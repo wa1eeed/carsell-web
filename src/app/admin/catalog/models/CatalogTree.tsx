@@ -110,13 +110,7 @@ export function CatalogTree({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() =>
-                setDraft({
-                  id: t.id, nameAr: t.nameAr, nameEn: t.nameEn, yearFrom: t.yearFrom,
-                  bodyType: t.bodyType, transmission: t.transmission, fuel: t.fuel,
-                  drivetrain: t.drivetrain, seats: t.seats, doors: t.doors,
-                })
-              }
+              onClick={() => router.push(`/admin/catalog/trims/${t.id}`)}
             >
               تعديل
             </Button>

@@ -5,7 +5,12 @@
     "nameEn": "Anti-lock Braking System",
     "group": "SAFETY",
     "sort": 1,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "airbags_front",
@@ -13,7 +18,12 @@
     "nameEn": "Front Airbags",
     "group": "SAFETY",
     "sort": 2,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "airbags_side",
@@ -21,7 +31,12 @@
     "nameEn": "Side Airbags",
     "group": "SAFETY",
     "sort": 3,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "esc",
@@ -29,7 +44,12 @@
     "nameEn": "Electronic Stability Control",
     "group": "SAFETY",
     "sort": 4,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "tpms",
@@ -37,7 +57,12 @@
     "nameEn": "Tyre Pressure Monitoring",
     "group": "SAFETY",
     "sort": 5,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "rear_camera",
@@ -45,7 +70,12 @@
     "nameEn": "Rear Camera",
     "group": "SAFETY",
     "sort": 6,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "camera_360",
@@ -53,7 +83,12 @@
     "nameEn": "360° Camera",
     "group": "SAFETY",
     "sort": 7,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "parking_sensors",
@@ -61,7 +96,12 @@
     "nameEn": "Parking Sensors",
     "group": "SAFETY",
     "sort": 8,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "blind_spot",
@@ -69,7 +109,12 @@
     "nameEn": "Blind Spot Monitor",
     "group": "SAFETY",
     "sort": 9,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "lane_assist",
@@ -77,7 +122,12 @@
     "nameEn": "Lane Keep Assist",
     "group": "SAFETY",
     "sort": 10,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "aeb",
@@ -85,7 +135,12 @@
     "nameEn": "Autonomous Emergency Braking",
     "group": "SAFETY",
     "sort": 11,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "isofix",
@@ -93,7 +148,12 @@
     "nameEn": "ISOFIX Anchors",
     "group": "SAFETY",
     "sort": 12,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "hill_assist",
@@ -101,7 +161,12 @@
     "nameEn": "Hill Start Assist",
     "group": "SAFETY",
     "sort": 13,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "ac_auto",
@@ -109,7 +174,12 @@
     "nameEn": "Automatic Climate Control",
     "group": "COMFORT",
     "sort": 14,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "ac_dual",
@@ -117,7 +187,12 @@
     "nameEn": "Dual-zone Climate",
     "group": "COMFORT",
     "sort": 15,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "ac_rear",
@@ -125,7 +200,12 @@
     "nameEn": "Rear AC Vents",
     "group": "COMFORT",
     "sort": 16,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "leather_seats",
@@ -133,7 +213,12 @@
     "nameEn": "Leather Seats",
     "group": "COMFORT",
     "sort": 17,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "power_seats",
@@ -141,7 +226,12 @@
     "nameEn": "Power Seats",
     "group": "COMFORT",
     "sort": 18,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "memory_seats",
@@ -149,7 +239,12 @@
     "nameEn": "Memory Seats",
     "group": "COMFORT",
     "sort": 19,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "heated_seats",
@@ -157,7 +252,12 @@
     "nameEn": "Heated Seats",
     "group": "COMFORT",
     "sort": 20,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "ventilated_seats",
@@ -165,7 +265,12 @@
     "nameEn": "Ventilated Seats",
     "group": "COMFORT",
     "sort": 21,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "sunroof",
@@ -173,7 +278,12 @@
     "nameEn": "Sunroof",
     "group": "COMFORT",
     "sort": 22,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "panoramic_roof",
@@ -181,7 +291,12 @@
     "nameEn": "Panoramic Roof",
     "group": "COMFORT",
     "sort": 23,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "power_tailgate",
@@ -189,7 +304,12 @@
     "nameEn": "Power Tailgate",
     "group": "COMFORT",
     "sort": 24,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "keyless_entry",
@@ -197,7 +317,12 @@
     "nameEn": "Keyless Entry",
     "group": "COMFORT",
     "sort": 25,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "push_start",
@@ -205,7 +330,12 @@
     "nameEn": "Push-button Start",
     "group": "COMFORT",
     "sort": 26,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "steering_wheel_leather",
@@ -213,7 +343,12 @@
     "nameEn": "Leather Steering Wheel",
     "group": "COMFORT",
     "sort": 27,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "screen_8",
@@ -221,7 +356,12 @@
     "nameEn": "8-inch Display",
     "group": "TECH",
     "sort": 28,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "screen_10",
@@ -229,7 +369,12 @@
     "nameEn": "10-inch Display or Larger",
     "group": "TECH",
     "sort": 29,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "carplay",
@@ -237,7 +382,12 @@
     "nameEn": "Apple CarPlay",
     "group": "TECH",
     "sort": 30,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "android_auto",
@@ -245,7 +395,12 @@
     "nameEn": "Android Auto",
     "group": "TECH",
     "sort": 31,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "navigation",
@@ -253,7 +408,12 @@
     "nameEn": "Navigation System",
     "group": "TECH",
     "sort": 32,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "bluetooth",
@@ -261,7 +421,12 @@
     "nameEn": "Bluetooth",
     "group": "TECH",
     "sort": 33,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "wireless_charging",
@@ -269,7 +434,12 @@
     "nameEn": "Wireless Charging",
     "group": "TECH",
     "sort": 34,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "premium_audio",
@@ -277,7 +447,12 @@
     "nameEn": "Premium Audio System",
     "group": "TECH",
     "sort": 35,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "digital_cluster",
@@ -285,7 +460,12 @@
     "nameEn": "Digital Instrument Cluster",
     "group": "TECH",
     "sort": 36,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "hud",
@@ -293,7 +473,12 @@
     "nameEn": "Head-up Display",
     "group": "TECH",
     "sort": 37,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "cruise_control",
@@ -301,7 +486,12 @@
     "nameEn": "Cruise Control",
     "group": "TECH",
     "sort": 38,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   },
   {
     "key": "adaptive_cruise",
@@ -309,6 +499,11 @@
     "nameEn": "Adaptive Cruise Control",
     "group": "TECH",
     "sort": 39,
-    "active": true
+    "active": true,
+    "placements": [
+      "trim_editor",
+      "search_filter",
+      "listing_page"
+    ]
   }
 ]

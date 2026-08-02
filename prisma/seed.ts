@@ -132,6 +132,7 @@ type FeatureRow = {
   group: FeatureGroup;
   sort: number;
   active: boolean;
+  placements: string[];
 };
 
 type TrimRow = {

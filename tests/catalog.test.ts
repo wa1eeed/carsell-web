@@ -3,13 +3,17 @@ import { db } from '@/lib/db';
 import {
   createBrand,
   createModel,
+  createFeature,
   createTrim,
   deleteBrand,
+  deleteFeature,
   deleteModel,
   deleteTrim,
   setBrandVisibility,
   slugify,
+  featureCounts,
   updateBrand,
+  updateFeature,
   updateTrim,
 } from '@/lib/domain/catalog';
 import type { AdminUser } from '@/generated/prisma/client';
@@ -294,5 +298,85 @@ describe('الفئات', () => {
       where: { entity: 'Trim', entityId: created.trim.id, action: 'trim.delete' },
     });
     expect(log).not.toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+//  المميّزات (A19)
+// ═══════════════════════════════════════════════════════════
+
+describe('المميّزات', () => {
+  const KEY = 'test_feature_x';
+
+  async function cleanupFeature(): Promise<void> {
+    await db.trimFeature.deleteMany({ where: { featureKey: KEY } });
+    await db.auditLog.deleteMany({ where: { entity: 'Feature', entityId: KEY } });
+    await db.feature.deleteMany({ where: { key: KEY } });
+  }
+
+  beforeEach(cleanupFeature);
+  afterAll(cleanupFeature);
+
+  const base = {
+    key: KEY, nameAr: 'ميزة', nameEn: 'Feature',
+    group: 'SAFETY' as const, placements: ['trim_editor'],
+  };
+
+  it('المفتاح ثابت — لا يُعدَّل بعد الإنشاء', async () => {
+    const created = await createFeature(admin, base, null);
+    expect(created.ok).toBe(true);
+
+    // التوقيع نفسه لا يقبل `key` — الحماية في النوع لا في الفحص
+    await updateFeature(admin, KEY, { nameAr: 'اسم آخر' }, null);
+    const after = await db.feature.findUniqueOrThrow({ where: { key: KEY } });
+    expect(after.key).toBe(KEY);
+    expect(after.nameAr).toBe('اسم آخر');
+  });
+
+  it('يرفض مفتاحًا بشكل غير صالح', async () => {
+    for (const bad of ['Rear-Camera', 'كاميرا', '1abc', 'a', 'a b']) {
+      const result = await createFeature(admin, { ...base, key: bad }, null);
+      expect(result.ok, bad).toBe(false);
+    }
+  });
+
+  it('يرفض موضعًا غير معروف', async () => {
+    const result = await createFeature(admin, { ...base, placements: ['nowhere'] }, null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors).toContainEqual({ field: 'placements', code: 'INVALID' });
+  });
+
+  it('الإخفاء لا يحذف الربط بالفئات', async () => {
+    await createFeature(admin, base, null);
+    const trim = await db.trim.findFirstOrThrow();
+    await db.trimFeature.create({ data: { trimId: trim.id, featureKey: KEY, isDefault: true } });
+
+    await updateFeature(admin, KEY, { active: false }, null);
+
+    expect(await db.trimFeature.count({ where: { featureKey: KEY } })).toBe(1);
+    const after = await db.feature.findUniqueOrThrow({ where: { key: KEY } });
+    expect(after.active).toBe(false);
+  });
+
+  it('لا تُحذف ميزة مربوطة بفئة — والفحص في الخادم', async () => {
+    await createFeature(admin, base, null);
+    const trim = await db.trim.findFirstOrThrow();
+    await db.trimFeature.create({ data: { trimId: trim.id, featureKey: KEY, isDefault: true } });
+
+    const result = await deleteFeature(admin, KEY, null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('LINKED');
+    expect(await db.feature.count({ where: { key: KEY } })).toBe(1);
+  });
+
+  it('تُحذف الميزة اليتيمة', async () => {
+    await createFeature(admin, base, null);
+    expect((await deleteFeature(admin, KEY, null)).ok).toBe(true);
+  });
+
+  it('عدّاد اليتيمة يحسب غير المربوطة بأي فئة', async () => {
+    const before = (await featureCounts()).orphans;
+    await createFeature(admin, base, null);
+    expect((await featureCounts()).orphans).toBe(before + 1);
   });
 });

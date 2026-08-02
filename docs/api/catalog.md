@@ -111,3 +111,59 @@ deleted. Both are enforced in the domain layer and return
 Counts in the model header go through `Quantity`, so Arabic pluralisation is
 correct: «فئتان» not «٢ فئة», «إعلان واحد» not «١ إعلانًا». Writing the unit by
 hand produces grammatical errors that then repeat on every screen.
+
+---
+
+# Trim editor (A14) and features (A19)
+
+## `GET /api/v1/trims/{id}`
+
+**Public, no auth** — the catalogue is not a secret and the sell form calls it
+before sign-in.
+
+Returns the trim, its brand and model, the **inherited** values that fill the
+sell form automatically, and the trim's default features.
+
+The response goes through a serialiser rather than returning the Prisma object:
+`Trim` carries `visible`, `modelId` and other internals, and returning it raw
+would make every future column part of the public contract by accident.
+
+Hidden trims, and trims under a hidden model or brand, return 404 — invisible in
+the catalogue means invisible in the API.
+
+### Acceptance (task 9)
+
+`GET /api/v1/trims/{Camry LE}` returns `SEDAN` / `AUTOMATIC` / `PETROL` / `FWD` /
+`5`. Verified against the running server, not by reading code.
+
+The seed originally used the Saudi trim names (GL, GLE, SE, Hybrid); `LE` was
+added because the design's own A13 and A14 markup uses «كامري LE» as its example.
+
+## A14 — trim editor
+
+Three panels: identity, inherited values, and default features. Two read-only
+panels sit beside them — the fields **the seller** enters, and a preview of what
+the seller sees — because the whole point of the screen is the boundary between
+the two.
+
+**Editing an inherited value does not change published listings.** Values are
+snapshotted onto the vehicle at publish time. The screen says so, and a test in
+`tests/catalog.test.ts` proves it.
+
+## A19 — features
+
+One bank of features feeding trims, the search filter and the car page.
+
+- **The key is immutable.** It is not in the update payload at all, so the
+  protection is in the type rather than in a check. Changing it would break every
+  `TrimFeature` and `ListingFeature` link and would only surface in production.
+- **The names are content.** Edited any time, visible immediately, no deploy.
+- **Four independent placements**: `trim_editor` · `search_filter` ·
+  `listing_page` · `card_badge`. The seed turns on the first three; `card_badge`
+  is per-feature and off by default, because a badge on every card is not a badge.
+- **Hiding** removes a feature from the filter and the car page. It does **not**
+  unlink it from trims and does not touch published listings.
+- **Deleting** is only possible for a feature linked to no trim and no listing,
+  enforced in the domain layer.
+- The orphan counter is a warning, not an error: a feature linked to nothing is
+  invisible to everyone, which is usually a mistake worth seeing.

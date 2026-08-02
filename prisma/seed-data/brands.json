@@ -15,6 +15,21 @@
         "visible": true,
         "trims": [
           {
+            "nameAr": "LE",
+            "nameEn": "LE",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
             "nameAr": "GL",
             "nameEn": "GL",
             "bodyType": "SEDAN",

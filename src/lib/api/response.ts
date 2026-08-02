@@ -94,6 +94,11 @@ export const ERRORS = {
     messageAr: 'لا يُحذف عنصر له فئات أو مركبات. أخفِه بدل حذفه.',
     messageEn: 'An entry with trims or vehicles cannot be deleted. Hide it instead.',
   },
+  FEATURE_LINKED: {
+    code: 'FEATURE_LINKED',
+    messageAr: 'لا تُحذف ميزة مربوطة بفئة أو بإعلان. أخفِها بدل حذفها.',
+    messageEn: 'A feature linked to a trim or listing cannot be deleted. Hide it instead.',
+  },
   UPLOAD_NOT_CONFIGURED: {
     code: 'UPLOAD_NOT_CONFIGURED',
     messageAr: 'تخزين الوسائط غير مضبوط في هذه البيئة.',

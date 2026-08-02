@@ -1,8 +1,16 @@
 import { db } from '@/lib/db';
-import type { AdminUser, Brand, Model, Prisma, Trim } from '@/generated/prisma/client';
+import type {
+  AdminUser,
+  Brand,
+  Feature,
+  Model,
+  Prisma,
+  Trim,
+} from '@/generated/prisma/client';
 import type {
   BodyType,
   Drivetrain,
+  FeatureGroup,
   FuelType,
   Transmission,
 } from '@/generated/prisma/enums';
@@ -641,6 +649,229 @@ export async function deleteTrim(
       actorId: admin.id, actorType: 'admin', entity: 'Trim', entityId: id,
       action: 'trim.delete',
       before: { ...trim, engineL: trim.engineL?.toString() ?? null },
+      ip,
+    },
+  });
+  return { ok: true };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  المميّزات (A19)
+// ═══════════════════════════════════════════════════════════
+
+/** مواضع الظهور الأربعة المستقلة — قرار A19 بند ٣. */
+export const FEATURE_PLACEMENTS = [
+  'trim_editor',
+  'search_filter',
+  'listing_page',
+  'card_badge',
+] as const;
+
+export type FeaturePlacement = (typeof FEATURE_PLACEMENTS)[number];
+
+export const FEATURE_KEY_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
+
+export type FeatureRow = {
+  key: string;
+  nameAr: string;
+  nameEn: string;
+  group: FeatureGroup;
+  sort: number;
+  active: boolean;
+  placements: string[];
+  trimCount: number;
+  listingCount: number;
+};
+
+export type FeatureCounts = {
+  total: number;
+  byGroup: Record<FeatureGroup, number>;
+  /** غير مربوطة بأي فئة — بطاقة التحذير في A19 */
+  orphans: number;
+};
+
+export async function listFeatures(): Promise<FeatureRow[]> {
+  const features = await db.feature.findMany({
+    orderBy: [{ group: 'asc' }, { sort: 'asc' }],
+    include: { _count: { select: { trims: true, listings: true } } },
+  });
+
+  return features.map((f) => ({
+    key: f.key,
+    nameAr: f.nameAr,
+    nameEn: f.nameEn,
+    group: f.group,
+    sort: f.sort,
+    active: f.active,
+    placements: f.placements,
+    trimCount: f._count.trims,
+    listingCount: f._count.listings,
+  }));
+}
+
+export async function featureCounts(): Promise<FeatureCounts> {
+  const rows = await listFeatures();
+  const byGroup = { SAFETY: 0, COMFORT: 0, TECH: 0 } as Record<FeatureGroup, number>;
+  for (const row of rows) byGroup[row.group] += 1;
+
+  return {
+    total: rows.length,
+    byGroup,
+    orphans: rows.filter((r) => r.trimCount === 0).length,
+  };
+}
+
+export type FeatureInput = {
+  key: string;
+  nameAr: string;
+  nameEn: string;
+  group: FeatureGroup;
+  sort?: number;
+  active?: boolean;
+  placements?: string[];
+};
+
+export type FeatureResult =
+  | { ok: true; feature: Feature }
+  | { ok: false; errors: CatalogError[]; notFound?: true };
+
+function validatePlacements(placements: string[] | undefined): CatalogError[] {
+  if (placements === undefined) return [];
+  const allowed = new Set<string>(FEATURE_PLACEMENTS);
+  return placements.some((p) => !allowed.has(p))
+    ? [{ field: 'placements', code: 'INVALID' }]
+    : [];
+}
+
+export async function createFeature(
+  admin: AdminUser,
+  input: FeatureInput,
+  ip: string | null,
+): Promise<FeatureResult> {
+  const errors = [
+    ...validateNames(input.nameAr, input.nameEn),
+    ...validatePlacements(input.placements),
+  ];
+  if (!FEATURE_KEY_PATTERN.test(input.key)) {
+    errors.push({ field: 'key', code: 'INVALID' });
+  } else if ((await db.feature.findUnique({ where: { key: input.key } })) !== null) {
+    errors.push({ field: 'key', code: 'INVALID' });
+  }
+  if (errors.length > 0) return { ok: false, errors };
+
+  const feature = await db.feature.create({
+    data: {
+      key: input.key,
+      nameAr: input.nameAr.trim(),
+      nameEn: input.nameEn.trim(),
+      group: input.group,
+      sort: input.sort ?? 0,
+      active: input.active ?? true,
+      placements: input.placements ?? ['trim_editor', 'listing_page'],
+    },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Feature', entityId: feature.key,
+      action: 'feature.create', after: { ...feature }, ip,
+    },
+  });
+  return { ok: true, feature };
+}
+
+/**
+ * **المفتاح ثابت ولا يُعدَّل بعد الإنشاء** (قرار A19 بند ١):
+ * الكود يستعمله، وتغييره يقطع كل ربط في `TrimFeature` و`ListingFeature`
+ * ولا يُكتشف إلا في الإنتاج. الاسمان محتوى يُحرَّر ويظهر فورًا بلا نشر.
+ */
+export async function updateFeature(
+  admin: AdminUser,
+  key: string,
+  input: Partial<Omit<FeatureInput, 'key'>>,
+  ip: string | null,
+): Promise<FeatureResult> {
+  const before = await db.feature.findUnique({ where: { key } });
+  if (before === null) return { ok: false, errors: [], notFound: true };
+
+  const nameAr = input.nameAr ?? before.nameAr;
+  const nameEn = input.nameEn ?? before.nameEn;
+  const errors = [...validateNames(nameAr, nameEn), ...validatePlacements(input.placements)];
+  if (errors.length > 0) return { ok: false, errors };
+
+  const feature = await db.feature.update({
+    where: { key },
+    data: {
+      nameAr: nameAr.trim(),
+      nameEn: nameEn.trim(),
+      ...(input.group === undefined ? {} : { group: input.group }),
+      ...(input.sort === undefined ? {} : { sort: input.sort }),
+      ...(input.active === undefined ? {} : { active: input.active }),
+      ...(input.placements === undefined ? {} : { placements: input.placements }),
+    },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Feature', entityId: key,
+      action: 'feature.update', before: { ...before }, after: { ...feature }, ip,
+    },
+  });
+  return { ok: true, feature };
+}
+
+/**
+ * **الحذف النهائي لميزة غير مربوطة بأي فئة وحدها** (قرار A19 بند ٥)،
+ * ويُتحقّق في الخادم لا في الواجهة.
+ * والإخفاء لا يحذف من الفئات ولا من الإعلانات المنشورة (بند ٤).
+ */
+export async function deleteFeature(
+  admin: AdminUser,
+  key: string,
+  ip: string | null,
+): Promise<{ ok: true } | { ok: false; reason: 'NOT_FOUND' | 'LINKED'; count?: number }> {
+  const feature = await db.feature.findUnique({
+    where: { key },
+    include: { _count: { select: { trims: true, listings: true } } },
+  });
+  if (feature === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  const linked = feature._count.trims + feature._count.listings;
+  if (linked > 0) return { ok: false, reason: 'LINKED', count: linked };
+
+  await db.feature.delete({ where: { key } });
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Feature', entityId: key,
+      action: 'feature.delete', before: { ...feature }, ip,
+    },
+  });
+  return { ok: true };
+}
+
+/** ربط المميّزات بفئة — قائمة A14. */
+export async function setTrimFeatures(
+  admin: AdminUser,
+  trimId: string,
+  keys: readonly string[],
+  ip: string | null,
+): Promise<{ ok: boolean }> {
+  const before = await db.trimFeature.findMany({ where: { trimId } });
+
+  await db.$transaction([
+    db.trimFeature.deleteMany({ where: { trimId } }),
+    db.trimFeature.createMany({
+      data: keys.map((featureKey) => ({ trimId, featureKey, isDefault: true })),
+      skipDuplicates: true,
+    }),
+  ]);
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Trim', entityId: trimId,
+      action: 'trim.features',
+      before: { keys: before.map((b) => b.featureKey) },
+      after: { keys: [...keys] },
       ip,
     },
   });
