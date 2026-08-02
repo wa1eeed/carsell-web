@@ -87,5 +87,75 @@
     "trims": "{count, plural, zero{لا فئات} one{فئة واحدة} two{فئتان} few{{n} فئات} many{{n} فئة} other{{n} فئة}}",
     "listings": "{count, plural, zero{لا إعلانات} one{إعلان واحد} two{إعلانان} few{{n} إعلانات} many{{n} إعلانًا} other{{n} إعلان}}",
     "models": "{count, plural, zero{لا طرازات} one{طراز واحد} two{طرازان} few{{n} طرازات} many{{n} طرازًا} other{{n} طراز}}"
+  },
+  "search": {
+    "title": "تصفّح السيارات",
+    "intro": "مركبات موثّقة الملكية بتقرير فحص من مركز مستقل. اشترِ كاش أو بالتقسيط أو زايد في المزاد — والمبلغ في حساب ضمان حتى تنتقل الملكية باسمك.",
+    "filters": "الفلاتر",
+    "clear": "مسح",
+    "offerType": "نوع العرض",
+    "brandAndModel": "الماركة والطراز",
+    "city": "المدينة",
+    "mileage": "الممشى",
+    "features": "المميزات",
+    "inspectionAndSeller": "الفحص والبائع",
+    "under": "أقل من",
+    "from": "من",
+    "to": "إلى",
+    "priceFrom": "السعر من",
+    "priceTo": "السعر حتى",
+    "mileageUnder": "الممشى أقل من",
+    "scoreFrom": "تقييم من",
+    "inspectedOnly": "مفحوصة فقط",
+    "score80": "تقييم ٨٠ فأعلى",
+    "noPaint": "بدون صبغ",
+    "verifiedOnly": "بائع موثّق فقط",
+    "financingOnly": "يقبل التقسيط",
+    "emptyTitle": "لا نتائج مطابقة",
+    "emptyBody": "جرّب توسيع نطاق السعر أو إزالة بعض الفلاتر.",
+    "type": {
+      "DIRECT": "بيع مباشر",
+      "NEGOTIATION": "تفاوض",
+      "AUCTION": "مزاد"
+    },
+    "condition": {
+      "NEW": "جديدة",
+      "USED": "مستعملة"
+    },
+    "spec": {
+      "SAUDI": "سعودي",
+      "GCC": "خليجي",
+      "AGENT_IMPORT": "وارد وكيل"
+    },
+    "transmission": {
+      "AUTOMATIC": "أوتوماتيك",
+      "MANUAL": "عادي",
+      "CVT": "CVT",
+      "DCT": "DCT"
+    },
+    "fuel": {
+      "PETROL": "بنزين",
+      "DIESEL": "ديزل",
+      "HYBRID": "هايبرد",
+      "ELECTRIC": "كهرباء"
+    },
+    "bodyType": {
+      "SEDAN": "سيدان",
+      "SUV": "دفع رباعي",
+      "PICKUP": "وانيت",
+      "HATCHBACK": "هاتشباك",
+      "COUPE": "كوبيه",
+      "VAN": "فان"
+    },
+    "sort": {
+      "newest": "الأحدث",
+      "price_asc": "الأقل سعرًا",
+      "price_desc": "الأعلى سعرًا",
+      "closing_soon": "الأقرب إغلاقًا"
+    },
+    "view": {
+      "grid": "شبكة",
+      "list": "قائمة"
+    }
   }
 }

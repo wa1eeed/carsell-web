@@ -87,5 +87,75 @@
     "trims": "{count, plural, one{{n} trim} other{{n} trims}}",
     "listings": "{count, plural, one{{n} listing} other{{n} listings}}",
     "models": "{count, plural, one{{n} model} other{{n} models}}"
+  },
+  "search": {
+    "title": "Browse cars",
+    "intro": "Ownership-verified vehicles with an independent inspection report. Buy outright, finance, or bid at auction — funds sit in escrow until the title is in your name.",
+    "filters": "Filters",
+    "clear": "Clear",
+    "offerType": "Offer type",
+    "brandAndModel": "Brand and model",
+    "city": "City",
+    "mileage": "Mileage",
+    "features": "Features",
+    "inspectionAndSeller": "Inspection and seller",
+    "under": "Under",
+    "from": "From",
+    "to": "To",
+    "priceFrom": "Price from",
+    "priceTo": "Price to",
+    "mileageUnder": "Mileage under",
+    "scoreFrom": "Score from",
+    "inspectedOnly": "Inspected only",
+    "score80": "Score 80+",
+    "noPaint": "No repaint",
+    "verifiedOnly": "Verified sellers",
+    "financingOnly": "Financing available",
+    "emptyTitle": "No matching results",
+    "emptyBody": "Try widening the price range or removing a filter.",
+    "type": {
+      "DIRECT": "Direct",
+      "NEGOTIATION": "Negotiation",
+      "AUCTION": "Auction"
+    },
+    "condition": {
+      "NEW": "New",
+      "USED": "Used"
+    },
+    "spec": {
+      "SAUDI": "Saudi",
+      "GCC": "GCC",
+      "AGENT_IMPORT": "Agent import"
+    },
+    "transmission": {
+      "AUTOMATIC": "Automatic",
+      "MANUAL": "Manual",
+      "CVT": "CVT",
+      "DCT": "DCT"
+    },
+    "fuel": {
+      "PETROL": "Petrol",
+      "DIESEL": "Diesel",
+      "HYBRID": "Hybrid",
+      "ELECTRIC": "Electric"
+    },
+    "bodyType": {
+      "SEDAN": "Sedan",
+      "SUV": "SUV",
+      "PICKUP": "Pickup",
+      "HATCHBACK": "Hatchback",
+      "COUPE": "Coupe",
+      "VAN": "Van"
+    },
+    "sort": {
+      "newest": "Newest",
+      "price_asc": "Lowest price",
+      "price_desc": "Highest price",
+      "closing_soon": "Closing soonest"
+    },
+    "view": {
+      "grid": "Grid",
+      "list": "List"
+    }
   }
 }
