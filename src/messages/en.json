@@ -493,6 +493,33 @@
       "PAYMENT": "Payment",
       "TRANSFER": "Transfer",
       "DONE": "Done"
+    },
+    "escrowStatus": {
+      "PENDING": "Pending",
+      "HELD": "Held",
+      "RELEASED": "Released",
+      "REFUNDED": "Refunded",
+      "PARTIAL_REFUND": "Partial refund"
+    },
+    "orderStatus": {
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "STALLED": "Stalled",
+      "DISPUTED": "Disputed"
+    },
+    "orderSource": {
+      "DIRECT": "Direct sale",
+      "OFFER": "Offer",
+      "AUCTION": "Auction",
+      "BUY_NOW": "Buy now"
+    },
+    "disputeStatus": {
+      "OPEN": "Open",
+      "INVESTIGATING": "Investigating",
+      "RESOLVED_BUYER": "For the buyer",
+      "RESOLVED_SELLER": "For the seller",
+      "CLOSED": "Closed"
     }
   },
   "services": {
@@ -657,5 +684,36 @@
     "filledPrefix": "Filled",
     "filledSuffix": "fields — check them",
     "vinFailedQuiet": "Could not fetch; continue manually."
+  },
+  "order": {
+    "subtitle": "Where your order and your money stand.",
+    "vehicle": "Vehicle",
+    "timeline": "Order timeline",
+    "escrow": "Escrow",
+    "amounts": "Amounts",
+    "price": "Car price",
+    "commission": "Platform commission",
+    "transferFee": "Transfer fee",
+    "total": "Total",
+    "vatIncluded": "Prices include VAT",
+    "status": "Status",
+    "inStageFor": "In this stage for",
+    "payBy": "Payment due by",
+    "disputeOpen": "A dispute is open on this order",
+    "disputeFrozen": "The order is frozen at its stage: it neither advances nor lapses until the dispute is resolved.",
+    "slaDue": "Response due by",
+    "event": {
+      "stage.advanced": "Stage advanced",
+      "dispute.opened": "Dispute opened",
+      "dispute.resolved": "Dispute resolved",
+      "payment.timeout": "Payment window missed"
+    },
+    "escrowState": {
+      "PENDING": "Funds not yet held.",
+      "HELD": "Funds are held and have not reached the seller.",
+      "RELEASED": "Funds released to the seller.",
+      "REFUNDED": "Funds refunded in full to the buyer.",
+      "PARTIAL_REFUND": "Part of the amount was refunded to the buyer."
+    }
   }
 }

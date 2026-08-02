@@ -703,9 +703,17 @@ model Dispute {
   openedBy   String
   reason     String
   status     DisputeStatus @default(OPEN)
+  /// مهلة الردّ — **من فتح النزاع لا من آخر رسالة**. صمت أحد الطرفين
+  /// لا يمدّدها، وإلّا صار التجاهل استراتيجية.
   slaDueAt   DateTime
-  resolution String?
+  resolution String? // FULL_REFUND | PARTIAL_SETTLEMENT | RELEASE_TO_SELLER
+  /// مبلغ التسوية الجزئية — `null` لغيرها
+  resolutionAmount Decimal? @db.Decimal(12, 2)
   resolvedBy String?
+  resolvedAt DateTime?
+  /// طلب الموافقة الذي نُفِّذ به القرار — لا قرار بلا موافقة عضوين
+  approvalId String?
+  openedAt   DateTime      @default(now())
   messages   Json[]
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
@@ -1269,6 +1277,7 @@ model ApprovalRequest {
 
 enum ApprovalKind {
   ESCROW_RELEASE
+  DISPUTE_RESOLUTION
   KEY_ROTATION
   COMMISSION_CHANGE
   PLAN_CHANGE

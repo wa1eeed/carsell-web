@@ -493,6 +493,33 @@
       "PAYMENT": "دفع",
       "TRANSFER": "نقل ملكية",
       "DONE": "إتمام"
+    },
+    "escrowStatus": {
+      "PENDING": "بانتظار الحجز",
+      "HELD": "محجوز",
+      "RELEASED": "مُفرَج عنه",
+      "REFUNDED": "مُسترجَع",
+      "PARTIAL_REFUND": "استرجاع جزئي"
+    },
+    "orderStatus": {
+      "ACTIVE": "جارٍ",
+      "COMPLETED": "مكتمل",
+      "CANCELLED": "ملغى",
+      "STALLED": "متعثّر",
+      "DISPUTED": "نزاع"
+    },
+    "orderSource": {
+      "DIRECT": "بيع مباشر",
+      "OFFER": "عرض",
+      "AUCTION": "مزاد",
+      "BUY_NOW": "اشترِ الآن"
+    },
+    "disputeStatus": {
+      "OPEN": "مفتوح",
+      "INVESTIGATING": "قيد النظر",
+      "RESOLVED_BUYER": "لصالح المشتري",
+      "RESOLVED_SELLER": "لصالح البائع",
+      "CLOSED": "مغلق"
     }
   },
   "services": {
@@ -657,5 +684,36 @@
     "filledPrefix": "مُلئت",
     "filledSuffix": "حقول — راجعها",
     "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا."
+  },
+  "order": {
+    "subtitle": "مرحلة الطلب وأين مبلغك الآن.",
+    "vehicle": "المركبة",
+    "timeline": "مسار الطلب",
+    "escrow": "حساب الضمان",
+    "amounts": "المبالغ",
+    "price": "سعر السيارة",
+    "commission": "عمولة المنصة",
+    "transferFee": "رسوم نقل الملكية",
+    "total": "الإجمالي",
+    "vatIncluded": "الأسعار شاملة ضريبة القيمة المضافة",
+    "status": "الحالة",
+    "inStageFor": "في هذه المرحلة منذ",
+    "payBy": "مهلة الدفع حتى",
+    "disputeOpen": "نزاع مفتوح على هذا الطلب",
+    "disputeFrozen": "الطلب مجمَّد في مرحلته: لا يتقدّم ولا يسقط حتى يُحسم النزاع.",
+    "slaDue": "مهلة الردّ حتى",
+    "event": {
+      "stage.advanced": "انتقال مرحلة",
+      "dispute.opened": "فُتح نزاع",
+      "dispute.resolved": "حُسم النزاع",
+      "payment.timeout": "فاتت مهلة الدفع"
+    },
+    "escrowState": {
+      "PENDING": "لم يُحجز المبلغ بعد.",
+      "HELD": "المبلغ محجوز ولم يصل البائع.",
+      "RELEASED": "أُفرج عن المبلغ للبائع.",
+      "REFUNDED": "أُعيد المبلغ كاملًا للمشتري.",
+      "PARTIAL_REFUND": "أُعيد جزء من المبلغ للمشتري."
+    }
   }
 }
