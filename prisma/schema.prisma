@@ -79,11 +79,12 @@ model AdminUser {
   email            String    @unique
   name             String
   role             AdminRole
-  twoFactorEnabled Boolean   @default(false)
   lastSeenAt       DateTime?
   status           String    @default("active")
 
-  // كلمة مرور + TOTP إلزامي لكل الأدوار بلا استثناء
+  // كلمة مرور + TOTP إلزامي لكل الأدوار بلا استثناء.
+  // لا حقل `twoFactorEnabled`: الحقيقة هي `totpEnrolledAt !== null`،
+  // وحقلٌ منفصل يوحي بالاختيارية وقد يُقرأ لاحقًا كبوابة.
   passwordHash       String
   totpSecret         String? // مشفّر
   totpEnrolledAt     DateTime?
@@ -268,12 +269,21 @@ enum Drivetrain {
 
 /// قرار ١٩ — بنك المميّزات: لا اسم ميزة مكتوب في الكود
 model Feature {
-  key    String       @id // sunroof | leather_seats | camera_360 …
-  nameAr String
+  key    String       @id // ثابت لا يُعدَّل بعد الإنشاء
+  nameAr String // محتوى يُحرَّر ويظهر فورًا بلا نشر
   nameEn String
   group  FeatureGroup
   sort   Int          @default(0)
+  /**
+   * الإخفاء يزيلها من الفلتر وصفحة السيارة، ولا يحذفها من الفئات
+   * ولا من الإعلانات المنشورة (قرار A19 بند ٤).
+   */
   active Boolean      @default(true)
+  /**
+   * مواضع الظهور الأربعة المستقلة (قرار A19 بند ٣):
+   * trim_editor | search_filter | listing_page | card_badge
+   */
+  placements String[]
 
   trims    TrimFeature[]
   listings ListingFeature[]

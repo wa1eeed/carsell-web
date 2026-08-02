@@ -1,0 +1,250 @@
+import { db } from '@/lib/db';
+import type { AdminUser, Brand, Prisma } from '@/generated/prisma/client';
+
+/**
+ * الكتالوج — الماركات (A12).
+ *
+ * **كل تعديل يكتب `AuditLog`** بلا استثناء، وبالحالة قبل وبعد: سجلّ يقول
+ * «عُدِّلت الماركة» بلا قيَم لا يجيب على «ماذا تغيّر ومتى» بعد شهر.
+ */
+
+export const BRAND_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export type BrandRow = {
+  id: string;
+  slug: string;
+  nameAr: string;
+  nameEn: string;
+  logoUrl: string | null;
+  visible: boolean;
+  sort: number;
+  modelCount: number;
+  listingCount: number;
+};
+
+export type CatalogCounts = {
+  brands: number;
+  visibleBrands: number;
+  models: number;
+  trims: number;
+  withoutLogo: number;
+};
+
+export type BrandInput = {
+  nameAr: string;
+  nameEn: string;
+  slug?: string;
+  logoUrl?: string | null;
+  visible?: boolean;
+  sort?: number;
+};
+
+export type BrandError =
+  | { field: 'nameAr' | 'nameEn' | 'slug'; code: 'REQUIRED' | 'INVALID' | 'TAKEN' };
+
+export type BrandResult =
+  | { ok: true; brand: Brand }
+  | { ok: false; errors: BrandError[] };
+
+/** يشتقّ `slug` من الاسم الإنجليزي حين لا يُرسَل. */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * الاسمان إلزاميان — معيار قبول المهمة ٧.
+ * التطبيق يعرض بحسب لغة المستخدم، فماركة بلا اسم إنجليزي تظهر فارغة
+ * في الواجهة الإنجليزية ولا يكتشفها أحد إلا بعد النشر.
+ */
+function validate(input: BrandInput): BrandError[] {
+  const errors: BrandError[] = [];
+  if (input.nameAr.trim() === '') errors.push({ field: 'nameAr', code: 'REQUIRED' });
+  if (input.nameEn.trim() === '') errors.push({ field: 'nameEn', code: 'REQUIRED' });
+
+  const slug = input.slug?.trim() ?? slugify(input.nameEn);
+  if (slug === '') errors.push({ field: 'slug', code: 'REQUIRED' });
+  else if (!BRAND_SLUG_PATTERN.test(slug)) errors.push({ field: 'slug', code: 'INVALID' });
+
+  return errors;
+}
+
+async function audit(
+  admin: AdminUser,
+  action: string,
+  brandId: string,
+  before: Prisma.InputJsonValue | undefined,
+  after: Prisma.InputJsonValue | undefined,
+  ip: string | null,
+): Promise<void> {
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorType: 'admin',
+      entity: 'Brand',
+      entityId: brandId,
+      action,
+      before,
+      after,
+      ip,
+    },
+  });
+}
+
+/**
+ * قائمة الماركات مع عدد الطرازات والإعلانات لكل واحدة.
+ *
+ * عدّ الإعلانات يمرّ بـ`Vehicle.brandId` لا بـ`brandName` النصّي:
+ * اللقطة النصّية للعرض والمعرّف للإحصاء (قرار ٣٢).
+ */
+export async function listBrands(): Promise<BrandRow[]> {
+  const brands = await db.brand.findMany({
+    orderBy: [{ sort: 'asc' }, { nameAr: 'asc' }],
+    include: { _count: { select: { models: true } } },
+  });
+
+  const perBrand = await db.vehicle.groupBy({
+    by: ['brandId'],
+    _count: { _all: true },
+    where: { listings: { some: { status: { not: 'DRAFT' } } } },
+  });
+  const listingByBrand = new Map(perBrand.map((r) => [r.brandId, r._count._all]));
+
+  return brands.map((brand) => ({
+    id: brand.id,
+    slug: brand.slug,
+    nameAr: brand.nameAr,
+    nameEn: brand.nameEn,
+    logoUrl: brand.logoUrl,
+    visible: brand.visible,
+    sort: brand.sort,
+    modelCount: brand._count.models,
+    listingCount: listingByBrand.get(brand.id) ?? 0,
+  }));
+}
+
+export async function catalogCounts(): Promise<CatalogCounts> {
+  const [brands, visibleBrands, models, trims, withoutLogo] = await Promise.all([
+    db.brand.count(),
+    db.brand.count({ where: { visible: true } }),
+    db.model.count(),
+    db.trim.count(),
+    db.brand.count({ where: { OR: [{ logoUrl: null }, { logoUrl: '' }] } }),
+  ]);
+  return { brands, visibleBrands, models, trims, withoutLogo };
+}
+
+export async function createBrand(
+  admin: AdminUser,
+  input: BrandInput,
+  ip: string | null,
+): Promise<BrandResult> {
+  const errors = validate(input);
+  if (errors.length > 0) return { ok: false, errors };
+
+  const slug = input.slug?.trim() ?? slugify(input.nameEn);
+  if ((await db.brand.findUnique({ where: { slug } })) !== null) {
+    return { ok: false, errors: [{ field: 'slug', code: 'TAKEN' }] };
+  }
+
+  const brand = await db.brand.create({
+    data: {
+      slug,
+      nameAr: input.nameAr.trim(),
+      nameEn: input.nameEn.trim(),
+      logoUrl: input.logoUrl ?? null,
+      visible: input.visible ?? true,
+      sort: input.sort ?? 0,
+    },
+  });
+
+  await audit(admin, 'brand.create', brand.id, undefined, { ...brand }, ip);
+  return { ok: true, brand };
+}
+
+export async function updateBrand(
+  admin: AdminUser,
+  id: string,
+  input: Partial<BrandInput>,
+  ip: string | null,
+): Promise<BrandResult | { ok: false; errors: BrandError[]; notFound: true }> {
+  const before = await db.brand.findUnique({ where: { id } });
+  if (before === null) {
+    return { ok: false, errors: [], notFound: true };
+  }
+
+  const merged: BrandInput = {
+    nameAr: input.nameAr ?? before.nameAr,
+    nameEn: input.nameEn ?? before.nameEn,
+    slug: input.slug ?? before.slug,
+  };
+  const errors = validate(merged);
+  if (errors.length > 0) return { ok: false, errors };
+
+  if (merged.slug !== before.slug) {
+    const taken = await db.brand.findUnique({ where: { slug: merged.slug as string } });
+    if (taken !== null) return { ok: false, errors: [{ field: 'slug', code: 'TAKEN' }] };
+  }
+
+  const brand = await db.brand.update({
+    where: { id },
+    data: {
+      nameAr: merged.nameAr.trim(),
+      nameEn: merged.nameEn.trim(),
+      slug: merged.slug,
+      ...(input.logoUrl === undefined ? {} : { logoUrl: input.logoUrl }),
+      ...(input.visible === undefined ? {} : { visible: input.visible }),
+      ...(input.sort === undefined ? {} : { sort: input.sort }),
+    },
+  });
+
+  await audit(admin, 'brand.update', id, { ...before }, { ...brand }, ip);
+  return { ok: true, brand };
+}
+
+/**
+ * الإخفاء يمنع الإعلانات الجديدة على الماركة **ولا يحذف القائم**
+ * ولا يخفي إعلانًا منشورًا — قاعدة A12 من ترميز التصميم.
+ */
+export async function setBrandVisibility(
+  admin: AdminUser,
+  id: string,
+  visible: boolean,
+  ip: string | null,
+): Promise<BrandResult | { ok: false; errors: BrandError[]; notFound: true }> {
+  return updateBrand(admin, id, { visible }, ip);
+}
+
+export type DeleteResult =
+  | { ok: true }
+  | { ok: false; reason: 'NOT_FOUND' | 'HAS_MODELS' | 'HAS_VEHICLES'; count?: number };
+
+/**
+ * الحذف النهائي متاح فقط لماركة **بلا طرازات وبلا مركبات**.
+ * الفحص في الخادم لا في الواجهة: زرّ مخفي ليس قيدًا.
+ */
+export async function deleteBrand(
+  admin: AdminUser,
+  id: string,
+  ip: string | null,
+): Promise<DeleteResult> {
+  const brand = await db.brand.findUnique({
+    where: { id },
+    include: { _count: { select: { models: true, vehicles: true } } },
+  });
+  if (brand === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  if (brand._count.models > 0) {
+    return { ok: false, reason: 'HAS_MODELS', count: brand._count.models };
+  }
+  if (brand._count.vehicles > 0) {
+    return { ok: false, reason: 'HAS_VEHICLES', count: brand._count.vehicles };
+  }
+
+  await db.brand.delete({ where: { id } });
+  await audit(admin, 'brand.delete', id, { ...brand }, undefined, ip);
+  return { ok: true };
+}

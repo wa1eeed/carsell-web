@@ -28,7 +28,6 @@ async function makeAdmin(): Promise<string> {
       name: 'اختبار',
       role: 'OPS',
       passwordHash: await hashPassword(PASSWORD),
-      twoFactorEnabled: true,
       totpSecret: secret,
       totpEnrolledAt: at(-60),
       mustChangePassword: false,

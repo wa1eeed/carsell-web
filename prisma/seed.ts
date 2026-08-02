@@ -343,8 +343,7 @@ async function main(): Promise<void> {
           name,
           role,
           passwordHash: seedPasswordHash,
-          // TOTP إلزامي لكل الأدوار — لا استثناء ولو للسوبر أدمن
-          twoFactorEnabled: true,
+          // TOTP إلزامي لكل الأدوار — التسجيل هو الحقيقة لا راية منفصلة
           totpSecret: secret,
           totpEnrolledAt: days(-1),
           mustChangePassword: false,

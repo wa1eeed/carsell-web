@@ -74,6 +74,31 @@ export const ERRORS = {
     messageAr: 'يلزم تسجيل الدخول.',
     messageEn: 'Sign-in required.',
   },
+  FORBIDDEN: {
+    code: 'FORBIDDEN',
+    messageAr: 'لا تملك صلاحية هذا الإجراء.',
+    messageEn: 'You do not have permission for this action.',
+  },
+  NOT_FOUND: {
+    code: 'NOT_FOUND',
+    messageAr: 'غير موجود.',
+    messageEn: 'Not found.',
+  },
+  BRAND_HAS_CHILDREN: {
+    code: 'BRAND_HAS_CHILDREN',
+    messageAr: 'لا تُحذف ماركة لها طرازات أو مركبات. أخفِها بدل حذفها.',
+    messageEn: 'A brand with models or vehicles cannot be deleted. Hide it instead.',
+  },
+  UPLOAD_NOT_CONFIGURED: {
+    code: 'UPLOAD_NOT_CONFIGURED',
+    messageAr: 'تخزين الوسائط غير مضبوط في هذه البيئة.',
+    messageEn: 'Media storage is not configured in this environment.',
+  },
+  UPLOAD_REJECTED: {
+    code: 'UPLOAD_REJECTED',
+    messageAr: 'نوع الملف أو حجمه غير مقبول. PNG أو SVG أو WebP حتى ٨ ميجابايت.',
+    messageEn: 'File type or size not accepted. PNG, SVG or WebP up to 8 MB.',
+  },
   ADMIN_INVALID_CREDENTIALS: {
     code: 'ADMIN_INVALID_CREDENTIALS',
     // رسالة واحدة لبريد مجهول ولكلمة خاطئة — تمييزهما يجعل
