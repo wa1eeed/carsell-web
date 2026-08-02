@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '@/lib/db';
 import {
   OTP_LENGTH,
@@ -162,5 +162,79 @@ describe('التحقّق', () => {
     const unknown = await verifyOtp('does-not-exist', '000000', T0);
     expect(unknown.ok).toBe(false);
     if (!unknown.ok) expect(unknown.reason).toBe('INVALID');
+  });
+});
+
+describe('تسريب الرمز', () => {
+  it('devCode لا يخرج إلا في development — والشرط على APP_ENV لا NODE_ENV', async () => {
+    for (const env of ['staging', 'production'] as const) {
+      vi.resetModules();
+      vi.stubEnv('APP_ENV', env);
+      // الحالة الفاصلة: APP_ENV=staging و NODE_ENV=development.
+      // الشرط الصحيح (APP_ENV) لا يسرّب، والخاطئ (NODE_ENV) يسرّب.
+      vi.stubEnv('NODE_ENV', 'development');
+
+      const mod = await import('@/lib/domain/auth');
+      const phone = `+96659999${env === 'staging' ? '8001' : '8002'}`;
+      await db.otpChallenge.deleteMany({ where: { phone } });
+
+      const result = await mod.requestOtp(phone, T0);
+      expect(result.ok, env).toBe(true);
+      if (result.ok) {
+        expect(result.devCode, `${env} يجب ألّا يعيد الرمز`).toBeUndefined();
+      }
+
+      await db.otpChallenge.deleteMany({ where: { phone } });
+      vi.unstubAllEnvs();
+    }
+    vi.resetModules();
+  });
+
+  it('development وحدها تعيد الرمز', async () => {
+    const { code } = await freshCode(T0);
+    expect(code).toMatch(/^\d{6}$/);
+  });
+});
+
+describe('أرقام التجربة', () => {
+  const TEST_PHONE = '+966599997001';
+
+  afterAll(async () => {
+    await db.otpChallenge.deleteMany({ where: { phone: TEST_PHONE } });
+    await db.auditLog.deleteMany({ where: { actorId: TEST_PHONE } });
+  });
+
+  it('رقم التجربة رمزه ثابت ويُسجَّل كل استخدام في AuditLog', async () => {
+    vi.resetModules();
+    vi.stubEnv('OTP_TEST_NUMBERS', TEST_PHONE);
+    const mod = await import('@/lib/domain/auth');
+
+    await db.otpChallenge.deleteMany({ where: { phone: TEST_PHONE } });
+    await db.auditLog.deleteMany({ where: { actorId: TEST_PHONE } });
+
+    const requested = await mod.requestOtp(TEST_PHONE, T0);
+    expect(requested.ok).toBe(true);
+    if (!requested.ok) return;
+
+    const verified = await mod.verifyOtp(requested.challengeId, mod.OTP_TEST_CODE, at(5));
+    expect(verified.ok, 'الرمز الثابت يعمل').toBe(true);
+
+    const logged = await db.auditLog.count({
+      where: { actorId: TEST_PHONE, action: 'otp.test_number' },
+    });
+    expect(logged).toBe(1);
+
+    await db.user.deleteMany({ where: { phone: TEST_PHONE } });
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('الأرقام الحقيقية لا تأخذ الرمز الثابت ولا تُسجَّل', async () => {
+    const { code } = await freshCode(T0);
+    expect(code).not.toBe('000000');
+    const logged = await db.auditLog.count({
+      where: { actorId: PHONE, action: 'otp.test_number' },
+    });
+    expect(logged).toBe(0);
   });
 });

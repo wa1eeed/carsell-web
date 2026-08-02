@@ -35,13 +35,18 @@ const SIZE: Record<PlateSize, { width: number; base: number }> = {
 };
 
 const ASPECT = 2.4;
+const FRAME = 2; // الإطار الخارجي
+const DIVIDER = 1.5; // الفواصل الداخلية — نفس السواد لا رمادي
 
 /**
  * اللوحة السعودية.
  *
- * البنية: صفّان × عمودان، وشريط رأسي في الطرف الأيمن.
+ * **مستطيل أبيض واحد بشبكة خطوط سوداء.** لا خلفية رمادية ولا
+ * تدرّج ولا ظلّ ولا حدّ لكل خلية: الخلية مساحة بيضاء يحدّها خطّ،
+ * لا صندوق منفصل — وهذا ما يفرّق اللوحة عن رسمٍ لها.
+ *
+ * البنية: صفّان × عمودان، وشريط رأسي في الطرف الأيمن يفصله خطّ.
  *   · العمود الأيسر: الأرقام · العمود الأوسط: الحروف
- *   · الشريط الأيمن: الشعار ثم «السعودية» ثم K S A رأسيًا ثم نقطة
  *   · الصفّ العلوي عربي والسفلي لاتيني
  *
  * `dir="ltr"` على المكوّن كله: ترتيب الأعمدة ثابت في اللوحة الحقيقية
@@ -55,7 +60,7 @@ export function PlateBadge({
   size = 'md',
   className,
 }: {
-  /** ثلاثة أحرف عربية، بمسافات أو بدونها: «أ ب ج» */
+  /** ثلاثة أحرف عربية، بمسافات أو بدونها: «أ ب ح» */
   letters: string;
   /** أربعة أرقام Latin للتخزين */
   numbers: string;
@@ -68,38 +73,45 @@ export function PlateBadge({
   return (
     <span
       dir="ltr"
-      className={cn(
-        'inline-flex overflow-hidden rounded-md border border-plate-line bg-plate-frame text-plate-ink',
-        className,
-      )}
-      style={{ width, height: width / ASPECT, fontSize: base, padding: '0.22em' }}
+      className={cn('inline-flex overflow-hidden bg-plate-bg text-plate-ink', className)}
+      style={{
+        width,
+        height: width / ASPECT,
+        fontSize: base,
+        border: `${FRAME}px solid var(--color-plate-ink)`,
+        borderRadius: 'var(--radius-md)',
+      }}
       role="img"
       aria-label={`${numbers} ${letters}`}
     >
-      {/* الخلايا الأربع */}
-      <span className="flex flex-1 flex-col gap-[0.15em]">
-        <span className="flex flex-1 gap-[0.15em]">
+      {/* الخلايا الأربع — الفواصل خطوط لا حدود صناديق */}
+      <span className="flex flex-1 flex-col">
+        <span className="flex flex-1">
           <Cell grow={1}>{toArabicDigits(numbers)}</Cell>
+          <VLine />
           <Cell grow={1.15}>{arabicLetters}</Cell>
         </span>
-        <span className="flex flex-1 gap-[0.15em]">
-          <Cell latin grow={1}>{numbers}</Cell>
-          <Cell latin grow={1.15}>{toLatinLetters(letters)}</Cell>
+        <HLine />
+        <span className="flex flex-1">
+          <Cell grow={1} latin>
+            {numbers}
+          </Cell>
+          <VLine />
+          <Cell grow={1.15} latin>
+            {toLatinLetters(letters)}
+          </Cell>
         </span>
       </span>
 
-      {/* الشريط الرأسي في الطرف الأيمن — كما في بطاقة التصميم */}
+      {/* الشريط الرأسي في الطرف الأيمن، يفصله خطّ بنفس السماكة */}
+      <VLine />
       <span
-        className="flex flex-col items-center justify-between ps-[0.25em]"
-        style={{ width: '13%' }}
+        className="flex flex-col items-center justify-between py-[0.15em]"
+        style={{ width: '15%' }}
       >
         <Emblem />
-        {/* الشريط ضيّق عمدًا كاللوحة الحقيقية — النصّ فيه تفصيل
-            واقعي لا واجهة تُقرأ، فيصغر حتى يتّسع بلا قصّ */}
-        <span
-          className="whitespace-nowrap"
-          style={{ fontSize: '0.42em', lineHeight: 1 }}
-        >
+        {/* تفصيل واقعي لا واجهة تُقرأ — يصغر حتى يتّسع بلا قصّ */}
+        <span className="whitespace-nowrap" style={{ fontSize: '0.42em', lineHeight: 1 }}>
           السعودية
         </span>
         <span
@@ -112,10 +124,28 @@ export function PlateBadge({
         </span>
         <span
           className="rounded-full bg-plate-ink"
-          style={{ width: '0.28em', height: '0.28em' }}
+          style={{ width: '0.3em', height: '0.3em' }}
         />
       </span>
     </span>
+  );
+}
+
+/** فاصل عمودي بسماكة الفواصل الداخلية. */
+function VLine() {
+  return (
+    <span
+      className="shrink-0 self-stretch bg-plate-ink"
+      style={{ width: DIVIDER }}
+      aria-hidden
+    />
+  );
+}
+
+/** فاصل أفقي بين الصفّين. */
+function HLine() {
+  return (
+    <span className="shrink-0 bg-plate-ink" style={{ height: DIVIDER }} aria-hidden />
   );
 }
 
@@ -128,16 +158,13 @@ function Cell({
   latin?: boolean;
   grow?: number;
 }) {
-  // `latin` يضبط الحجم فقط — الخط Arial في الصفَّين
   return (
     <span
       // Arial لكل محتوى اللوحة — الحروف العربية والأرقام معًا.
       // حروف اللوحة رموز منقوشة لا نصّ يُقرأ، فلا تأخذ خط المتن.
-      className="font-num flex items-center justify-center overflow-hidden border border-plate-line bg-plate-cell leading-none font-bold whitespace-nowrap"
+      className="font-num flex items-center justify-center overflow-hidden leading-none font-bold whitespace-nowrap"
       style={{
         flex: `${grow} 1 0`,
-        // الحواف بالتناسب لا بتوكن ثابت — اللوحة كائن يتغيّر بمقاسه
-        borderRadius: '0.5em',
         // ثلاثة أحرف متباعدة أعرض من أربعة أرقام، فيصغر خطّها
         fontSize: latin ? '1.15em' : '1.25em',
         letterSpacing: '0.06em',

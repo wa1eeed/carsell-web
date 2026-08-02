@@ -1,6 +1,6 @@
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
 import { db } from '@/lib/db';
-import { isDevelopment } from '@/lib/env';
+import { APP_ENV, isDevelopment } from '@/lib/env';
 import type { User } from '@/generated/prisma/client';
 
 /**
@@ -24,6 +24,29 @@ export const OTP_TTL_SECONDS = 5 * 60;
 export const OTP_MAX_SENDS_PER_HOUR = 5;
 export const OTP_MAX_ATTEMPTS = 5;
 export const OTP_RESEND_COOLDOWN_SECONDS = 30;
+
+/** رمز ثابت لأرقام التجربة — معروف عمدًا ولا يُرسل عبر مزوّد. */
+export const OTP_TEST_CODE = '000000';
+
+/**
+ * أرقام تجربة لـstaging بلا كلفة رسائل.
+ * **الأرقام الحقيقية تمرّ بالمزوّد دائمًا** — لا استثناء.
+ * كل استخدام يُسجَّل في `AuditLog` بنوع `otp.test_number`،
+ * فقائمة مفتوحة على الإنتاج تظهر في التدقيق لا في السكوت.
+ */
+function testNumbers(): ReadonlySet<string> {
+  const raw = process.env.OTP_TEST_NUMBERS ?? '';
+  return new Set(
+    raw
+      .split(',')
+      .map((n) => n.trim())
+      .filter((n) => n !== ''),
+  );
+}
+
+export function isTestNumber(phone: string): boolean {
+  return testNumbers().has(phone);
+}
 
 export type RequestOtpResult =
   | { ok: true; challengeId: string; expiresIn: number; devCode?: string }
@@ -107,7 +130,8 @@ export async function requestOtp(
     }
   }
 
-  const code = generateCode();
+  const isTest = isTestNumber(phone);
+  const code = isTest ? OTP_TEST_CODE : generateCode();
   const challenge = await db.otpChallenge.create({
     data: {
       phone,
@@ -122,9 +146,25 @@ export async function requestOtp(
     data: { codeHash: hashCode(challenge.id, code) },
   });
 
+  if (isTest) {
+    await db.auditLog.create({
+      data: {
+        actorId: phone,
+        actorType: 'system',
+        entity: 'OtpChallenge',
+        entityId: challenge.id,
+        action: 'otp.test_number',
+        after: { phone, appEnv: APP_ENV },
+      },
+    });
+  }
+
   // TODO(المهمة ٢٧): إرسال الرسالة عبر مزوّد SMS المحلي.
-  // حتى ذلك الحين يُعاد الرمز في التطوير وحده — ولا يُعاد في staging
-  // ولا في الإنتاج مهما كان، وإلا صارت المصادقة زينة.
+  //
+  // حتى ذلك الحين يُعاد الرمز في **التطوير وحده**. والشرط على
+  // `APP_ENV` لا على `NODE_ENV`: الأخير يساوي `production` في
+  // staging أيضًا، فـ`NODE_ENV !== 'production'` تُسرّب الرمز على
+  // إنترنت عام — ورمز مكشوف يعني انتحال أي رقم بضغطة.
   return {
     ok: true,
     challengeId: challenge.id,

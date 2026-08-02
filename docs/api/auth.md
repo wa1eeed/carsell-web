@@ -34,7 +34,21 @@ database, otherwise one person ends up with several accounts:
 `512345678` · with spaces or dashes · with Arabic-Indic digits.
 
 In `development` only, the response also carries `devCode` so the flow is
-testable without an SMS provider. It is never returned in staging or production.
+testable without an SMS provider.
+
+The condition is `APP_ENV === 'development'`, **not** `NODE_ENV !== 'production'`.
+Staging is on the public internet, and an exposed code means impersonating any
+number with one click. A test asserts `devCode` is absent whenever `APP_ENV` is
+not `development`, including the case where `NODE_ENV` says `development` — the
+exact configuration in which the wrong condition leaks.
+
+### Test numbers
+
+For exercising staging without SMS cost, `OTP_TEST_NUMBERS` holds a
+comma-separated list of E.164 numbers whose code is always `000000`. **Real
+numbers always go through the provider — no exception.** Every use writes an
+`AuditLog` row with action `otp.test_number`, so a list left open in production
+shows up in the audit trail rather than in silence.
 
 | Failure | Status | Meaning |
 |---|---|---|

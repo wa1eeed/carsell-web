@@ -90,6 +90,11 @@ Money is a decimal **string**, never a float, even in a message.
 
 ## Authentication
 
+> **Not implemented — built in task 19.** The protocol is settled here so the
+> client code written before then targets the right shape, but the ticket
+> endpoint does not exist yet: an authentication endpoint with no consumer is
+> attack surface without benefit.
+
 The session JWT is never put in a WebSocket URL — URLs end up in proxy logs,
 browser history and referrers.
 
