@@ -15,6 +15,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
+import { hashPassword } from '../src/lib/auth/password';
+import { generateSecret } from '../src/lib/auth/totp';
 import { Prisma } from '../src/generated/prisma/client';
 import type {
   BodyType,
@@ -317,6 +319,14 @@ async function main(): Promise<void> {
   });
 
   // ————— ٣ حسابات أدمن بالأدوار —————
+  //
+  // كلمة مرور واحدة معروفة للتطوير، وTOTP **مسجَّل مسبقًا** حتى
+  // يمكن الدخول بلا مسح رمز QR في كل إعادة زرع. السرّ يُطبع أدناه.
+  // لا يعمل هذا إلا خارج الإنتاج — الحارس أعلى الملف يمنعه.
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD ?? 'CarSell!dev2026';
+  const seedPasswordHash = await hashPassword(seedPassword);
+  const totpSecrets = new Map<string, string>();
+
   const admins = await Promise.all(
     (
       [
@@ -324,11 +334,23 @@ async function main(): Promise<void> {
         ['ops@carsell.one', 'نورة — التشغيل', 'OPS'],
         ['finance@carsell.one', 'سلطان — المالية', 'FINANCE'],
       ] as const
-    ).map(([email, name, role]) =>
-      prisma.adminUser.create({
-        data: { email, name, role, twoFactorEnabled: role === 'SUPER_ADMIN' },
-      }),
-    ),
+    ).map(([email, name, role]) => {
+      const secret = generateSecret();
+      totpSecrets.set(email, secret);
+      return prisma.adminUser.create({
+        data: {
+          email,
+          name,
+          role,
+          passwordHash: seedPasswordHash,
+          // TOTP إلزامي لكل الأدوار — لا استثناء ولو للسوبر أدمن
+          twoFactorEnabled: true,
+          totpSecret: secret,
+          totpEnrolledAt: days(-1),
+          mustChangePassword: false,
+        },
+      });
+    }),
   );
 
   // ————— ٣٩ ميزة —————
@@ -1131,6 +1153,11 @@ async function main(): Promise<void> {
     'إحصاء سعر': await prisma.priceStat.count(),
   };
 
+  console.log('');
+  console.log(`  حسابات الأدمن — كلمة المرور: ${seedPassword}`);
+  for (const [email, secret] of totpSecrets) {
+    console.log(`    ${email.padEnd(22)} TOTP: ${secret}`);
+  }
   console.log('');
   for (const [label, n] of Object.entries(counts)) {
     console.log(`  ${String(n).padStart(5)}  ${label}`);

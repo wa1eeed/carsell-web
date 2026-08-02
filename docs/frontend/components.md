@@ -166,6 +166,21 @@ test environment for production.
 lot; it renders nothing when no auction is live rather than showing an empty bar.
 `SiteHeader` marks the active nav item with an underline.
 
+## Screens without a design card
+
+`/admin/login` has no card in `CarSell Admin.dc.html` — A1–A14 all begin after
+sign-in. It is built on the token system and recorded here as a **documented
+deviation**:
+
+- Full page on `--color-ink`, no sidebar and no header.
+- One centred card, 400px wide, `--color-bg`, `radius-xl`, 40px padding.
+- Wordmark at `text-3xl`, then `ADMIN CONSOLE` at `text-3xs` with `0.12em`
+  tracking at 55% opacity.
+- Two fields, then a full-width primary button. After the password step the same
+  card shows six TOTP boxes with Latin digits.
+- In staging, an ochre strip at the top of the page.
+- No "remember me", no "forgot password", no social sign-in.
+
 ## Review page
 
 `/dev/ui` shows every state of every component grouped as scales → atomic →

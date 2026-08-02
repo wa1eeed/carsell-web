@@ -74,6 +74,33 @@ export const ERRORS = {
     messageAr: 'يلزم تسجيل الدخول.',
     messageEn: 'Sign-in required.',
   },
+  ADMIN_INVALID_CREDENTIALS: {
+    code: 'ADMIN_INVALID_CREDENTIALS',
+    // رسالة واحدة لبريد مجهول ولكلمة خاطئة — تمييزهما يجعل
+    // النقطة أداةَ تعداد لحسابات الفريق
+    messageAr: 'البريد أو كلمة المرور غير صحيحة.',
+    messageEn: 'Incorrect email or password.',
+  },
+  ADMIN_INVALID_CODE: {
+    code: 'ADMIN_INVALID_CODE',
+    messageAr: 'رمز التحقّق غير صحيح.',
+    messageEn: 'Incorrect verification code.',
+  },
+  ADMIN_LOCKED: {
+    code: 'ADMIN_LOCKED',
+    messageAr: 'قُفل الحساب مؤقتًا بعد محاولات فاشلة. أعد المحاولة بعد ربع ساعة.',
+    messageEn: 'Account temporarily locked after failed attempts. Try again in 15 minutes.',
+  },
+  ADMIN_INACTIVE: {
+    code: 'ADMIN_INACTIVE',
+    messageAr: 'هذا الحساب غير مفعّل. راجع مدير النظام.',
+    messageEn: 'This account is not active. Contact the system administrator.',
+  },
+  ADMIN_NOT_ENROLLED: {
+    code: 'ADMIN_NOT_ENROLLED',
+    messageAr: 'لم يُسجَّل التحقّق بخطوتين بعد. راجع مدير النظام.',
+    messageEn: 'Two-factor authentication is not enrolled. Contact the system administrator.',
+  },
   ACCOUNT_BLOCKED: {
     code: 'ACCOUNT_BLOCKED',
     messageAr: 'هذا الحساب موقوف. تواصل مع الدعم.',

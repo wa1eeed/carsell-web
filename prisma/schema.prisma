@@ -73,7 +73,7 @@ enum UserStatus {
   BANNED
 }
 
-/// فريق الأدمن منفصل عن مستخدمي السوق
+/// فريق الأدمن منفصل عن مستخدمي السوق — لا مشاركة مصادقة ولا كوكي.
 model AdminUser {
   id               String    @id @default(cuid())
   email            String    @unique
@@ -83,7 +83,33 @@ model AdminUser {
   lastSeenAt       DateTime?
   status           String    @default("active")
 
+  // كلمة مرور + TOTP إلزامي لكل الأدوار بلا استثناء
+  passwordHash       String
+  totpSecret         String? // مشفّر
+  totpEnrolledAt     DateTime?
+  failedAttempts     Int       @default(0)
+  lockedUntil        DateTime?
+  passwordChangedAt  DateTime  @default(now())
+  mustChangePassword Boolean   @default(true)
+
+  sessions      AdminSession[]
   financeInputs FinanceInput[]
+}
+
+/// جلسات الأدمن — تُبطَل بتغيير الكلمة أو الدور، ولا تُشارك جلسة المستخدم.
+model AdminSession {
+  id          String    @id @default(cuid())
+  adminUserId String
+  tokenHash   String    @unique
+  ip          String?
+  userAgent   String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId, expiresAt])
 }
 
 enum AdminRole {
