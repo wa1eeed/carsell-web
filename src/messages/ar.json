@@ -27,5 +27,55 @@
     "direction": "الاتجاه",
     "directionValue": "من اليمين إلى اليسار",
     "switch": "English"
+  },
+  "ui": {
+    "currency": "ريال",
+    "inspected": "مفحوصة",
+    "sponsored": "إعلان",
+    "highestBid": "أعلى مزايدة",
+    "bidders": "مزايدًا",
+    "orMonthly": "أو شهريًا",
+    "inspectionScore": "درجة الفحص",
+    "outOf100": "من ١٠٠",
+    "thisListing": "هذا الإعلان",
+    "aboveRange": "أعلى من النطاق",
+    "belowRange": "أقل من النطاق",
+    "fairMarket": "السوق العادل",
+    "basedOn": "مبني على",
+    "deals": "صفقة",
+    "listingType": {
+      "DIRECT": "مباشر",
+      "NEGOTIATION": "تفاوض",
+      "AUCTION": "مزاد"
+    },
+    "km": "كم"
+  },
+  "orderStage": {
+    "REQUEST": "طلب",
+    "APPROVED": "موافقة",
+    "INSPECTION": "فحص",
+    "PAYMENT": "دفع",
+    "TRANSFER": "نقل ملكية",
+    "DONE": "إتمام"
+  },
+  "site": {
+    "liveAuctions": "مزادات مباشرة",
+    "closingSoon": "الأقرب إغلاقًا",
+    "tagline": "سوق سيارات سعودي: بيع مباشر وتفاوض بالعروض ومزاد بسعر احتياطي، والدفع عبر حساب ضمان.",
+    "nav": {
+      "home": "الرئيسية",
+      "cars": "تصفّح السيارات",
+      "auctions": "المزادات",
+      "dealers": "المعارض",
+      "services": "الخدمات"
+    }
+  },
+  "dev": {
+    "title": "مكتبة المكوّنات",
+    "subtitle": "كل حالة لكل مكوّن — أداة المراجعة البصرية مقابل بطاقات التصميم.",
+    "atomic": "الذرّية",
+    "composite": "المركّبة",
+    "shells": "الأصداف",
+    "scales": "السلالم"
   }
 }

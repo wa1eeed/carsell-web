@@ -27,5 +27,55 @@
     "direction": "Direction",
     "directionValue": "Left to right",
     "switch": "العربية"
+  },
+  "ui": {
+    "currency": "SAR",
+    "inspected": "Inspected",
+    "sponsored": "Sponsored",
+    "highestBid": "Highest bid",
+    "bidders": "bidders",
+    "orMonthly": "or monthly",
+    "inspectionScore": "Inspection score",
+    "outOf100": "of 100",
+    "thisListing": "This listing",
+    "aboveRange": "Above range",
+    "belowRange": "Below range",
+    "fairMarket": "Fair market",
+    "basedOn": "Based on",
+    "deals": "deals",
+    "listingType": {
+      "DIRECT": "Direct",
+      "NEGOTIATION": "Negotiation",
+      "AUCTION": "Auction"
+    },
+    "km": "km"
+  },
+  "orderStage": {
+    "REQUEST": "Request",
+    "APPROVED": "Approved",
+    "INSPECTION": "Inspection",
+    "PAYMENT": "Payment",
+    "TRANSFER": "Transfer",
+    "DONE": "Done"
+  },
+  "site": {
+    "liveAuctions": "live auctions",
+    "closingSoon": "Closing soonest",
+    "tagline": "A Saudi car marketplace: direct sale, offer negotiation and reserve auctions, paid through escrow.",
+    "nav": {
+      "home": "Home",
+      "cars": "Browse cars",
+      "auctions": "Auctions",
+      "dealers": "Dealers",
+      "services": "Services"
+    }
+  },
+  "dev": {
+    "title": "Component library",
+    "subtitle": "Every state of every component — the visual review tool against the design cards.",
+    "atomic": "Atomic",
+    "composite": "Composite",
+    "shells": "Shells",
+    "scales": "Scales"
   }
 }
