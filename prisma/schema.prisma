@@ -37,6 +37,9 @@ model User {
   idVerified   Boolean    @default(false)
   idVerifiedAt DateTime?
   iban         String? // مشفّر
+  /// موافقة التسويق — **تُطلب ولا تُفترض** (ضوابط A9).
+  marketingConsent   Boolean   @default(false)
+  marketingConsentAt DateTime?
   dealerId     String?
   createdAt    DateTime   @default(now())
 
@@ -56,6 +59,9 @@ model User {
   invoices        Invoice[]
   overrides       EntitlementOverride[]
   notifications   Notification[]
+  campaignSends   CampaignSend[]
+  pushPreferences NotificationPreference[]
+  deviceTokens    DeviceToken[]
   wallet          Wallet?
 
   @@index([status, createdAt])
@@ -1375,4 +1381,112 @@ model PriceStat {
   model Model @relation(fields: [modelId], references: [id], onDelete: Cascade)
 
   @@unique([modelId, year, trimId, mileageBucket, city])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  التسويق وإشعارات الدفع — A9 وA10 (المهمة ٢٦)
+//  هياكل تُفعَّل مع التطبيق: التخزين والقواعد هنا، والإرسال مؤجَّل.
+// ═══════════════════════════════════════════════════════════
+
+/// شريحة جمهور — **قواعد لا أعضاء**.
+///
+/// حفظ قائمة المطابقين يجعلها تكذب بعد ساعة: من ألغى موافقته التسويقية
+/// أو أتمّ صفقة يبقى في القائمة ويصله ما لا يخصّه. القواعد تُحوسَب وقت
+/// الإرسال (معيار A9).
+model Segment {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  nameAr    String
+  /// شروط مركَّبة: [{ field, op, value }] — تُقرأ في resolveSegment
+  rules     Json
+  createdBy String
+  createdAt DateTime @default(now())
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id        String         @id @default(cuid())
+  nameAr    String
+  channels  String[] // email | sms | push
+  segmentId String
+  subjectAr String?
+  bodyAr    String?
+  status    CampaignStatus @default(DRAFT)
+  /// الجدولة، و«أفضل وقت لكل مستخدم» تُحسب عند الإرسال لا تُخزَّن
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdBy   String
+  createdAt   DateTime     @default(now())
+
+  segment Segment        @relation(fields: [segmentId], references: [id], onDelete: Restrict)
+  sends   CampaignSend[]
+
+  @@index([status, scheduledAt])
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  SENT
+  CANCELLED
+}
+
+/// أثر الحملة على مستخدم بعينه — **الأساس الذي تُحسب منه كل نسبة**.
+/// ولا أعمدة «فُتح ٣٨٪» في الحملة: النسبة تُحسب من هذه الصفوف.
+model CampaignSend {
+  id         String    @id @default(cuid())
+  campaignId String
+  userId     String
+  channel    String
+  sentAt     DateTime  @default(now())
+  openedAt   DateTime?
+  clickedAt  DateTime?
+  convertedAt DateTime?
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, userId, channel])
+  @@index([userId, sentAt])
+}
+
+/// قناة إشعار يراها المستخدم في إعداداته — A10.
+model PushChannel {
+  key    String  @id // auction_mine | orders_payment | offers_mine …
+  nameAr String
+  /// ═══ معيار A10 ═══ الحرِجة لا يقدر المستخدم إيقافها.
+  userControllable Boolean @default(true)
+  /// افتراضٌ مغلق للتسويقي — الموافقة تُطلب لا تُفترض.
+  defaultOn        Boolean @default(true)
+  sort             Int     @default(0)
+
+  preferences NotificationPreference[]
+}
+
+model NotificationPreference {
+  userId     String
+  channelKey String
+  enabled    Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel PushChannel @relation(fields: [channelKey], references: [key], onDelete: Cascade)
+
+  @@id([userId, channelKey])
+}
+
+/// رمز جهاز — يُحذف عند أوّل رفض من المزوّد (قاعدة A10).
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String // ios | android
+  lastSeenAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -37,6 +37,7 @@ export type Unit =
   | 'transactionalNotifications'
   | 'characters'
   | 'smsSegments'
+  | 'messages'
   | 'km';
 
 /**

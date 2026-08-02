@@ -192,3 +192,41 @@ rule as A8's delivery rates.
 (تعمل / تحذير / غير مفعّلة), the declared failure path per integration, and every
 line of the key-governance panel — each of which is now enforced in code rather
 than described in a paragraph.
+
+---
+
+## A9 — the rules engine before the composer · 2026-08-03
+
+A9's markup shows a visual segment builder (conditions joined with «و», a
+`+ شرط` button, live counts) and a campaign composer with A/B split and
+send-time optimisation.
+
+**What was built:** the rules engine underneath it — the closed field list, the
+`NOT` handling, the three-number live resolution, the cooldown and monthly cap,
+and the send path that recomputes at send time. The screen reads segments and
+campaigns; it does not yet compose them.
+
+**Why:** the visual builder is the certain part — it can be built any time
+against a settled engine. The engine is the part with the acceptance criterion
+attached, and building the editor first would have meant designing the rule shape
+around the UI rather than around what a marketing send must not get wrong.
+
+**What is identical:** the three counts and their labels, the five guard rules
+in the panel, and the separation of marketing from transactional.
+
+---
+
+## A10 — a table that reads, because the rule is not the admin's to change · 2026-08-03
+
+A10's markup shows per-channel toggles for sound, badge, open and delivery rates.
+
+**What was built:** the six channels with their critical flag, the default state,
+and how many users muted each. No toggle for `userControllable`.
+
+**Why:** turning a critical channel into a mutable one is a product decision. A
+switch for it in the console makes it happen by button-press. The flag is a
+migration away when someone decides to change it — which is the correct amount of
+friction.
+
+**Also omitted:** delivery, open and opt-out rates, for the same reason as A8 —
+they come from a provider that does not exist yet.

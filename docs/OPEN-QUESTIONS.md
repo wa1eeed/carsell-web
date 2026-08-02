@@ -311,3 +311,47 @@ to be re-entered, secret and all, by someone already anxious.
 
 **Implemented:** `ROTATION_WINDOW_HOURS = 48`, and expiry marks the request
 `EXPIRED` rather than executing late.
+
+---
+
+## 19 · Marketing cap is 4/month with a 72-hour cooldown
+
+**Assumed:** both numbers, taken from A9's markup.
+
+**If wrong:** they are the difference between a marketing programme and a
+complaint rate. Four a month is aggressive for a purchase people make once every
+few years; a 72-hour cooldown means a well-timed price-drop alert can be
+suppressed by an unrelated promotion two days earlier.
+
+**Implemented:** `MARKETING_CAP_PER_MONTH = 4`, `COOLDOWN_HOURS = 72`, both
+enforced at send time and both shown on screen. They belong in `PlatformSetting`
+once someone owns the number.
+
+---
+
+## 20 · Marketing consent defaults to false for existing users
+
+**Assumed:** nobody is opted in without asking. The migration adds
+`marketingConsent BOOLEAN NOT NULL DEFAULT false`, so every existing user starts
+opted out.
+
+**If wrong:** it is the only defensible default, but it means the first campaign
+reaches almost nobody until consent is collected — and there is currently no
+screen that asks for it.
+
+**Implemented:** default false, with `marketingConsentAt` recording when it was
+given. The asking is the app's job and is not built.
+
+---
+
+## 21 · Two channels are critical, and the admin cannot change that
+
+**Assumed:** auctions the user participates in, and orders/payment — exactly the
+two A10's markup marks «لا — حرِجة».
+
+**If wrong:** an operator facing a complaint spike has no lever. The only way to
+make a critical channel mutable is a migration.
+
+**Implemented:** `PushChannel.userControllable`, deliberately excluded from
+`updateChannel`. Making it editable from the console would let a product decision
+happen by button-press in a meeting.

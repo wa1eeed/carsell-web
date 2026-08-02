@@ -311,6 +311,7 @@
   },
   "units": {
     "orders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبًا} other{{n} طلب}}",
+    "messages": "{count, plural, zero{لا رسائل} one{رسالة واحدة} two{رسالتان} few{{n} رسائل} many{{n} رسالة} other{{n} رسالة}}",
     "transactionalNotifications": "{count, plural, zero{لا إشعارات معاملاتية} one{إشعار معاملاتي واحد} two{إشعاران معاملاتيان} few{{n} إشعارات معاملاتية} many{{n} إشعارًا معاملاتيًّا} other{{n} إشعار معاملاتي}}",
     "characters": "{count, plural, zero{لا أحرف} one{حرف واحد} two{حرفان} few{{n} أحرف} many{{n} حرفًا} other{{n} حرف}}",
     "smsSegments": "{count, plural, zero{لا مقاطع} one{مقطع واحد} two{مقطعان} few{{n} مقاطع} many{{n} مقطعًا} other{{n} مقطع}}",

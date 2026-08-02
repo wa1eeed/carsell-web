@@ -185,6 +185,14 @@ type ServiceRow = {
   providerType: ProviderType | null;
 };
 
+type PushChannelRow = {
+  key: string;
+  nameAr: string;
+  userControllable: boolean;
+  defaultOn: boolean;
+  sort: number;
+};
+
 type AdSlotRow = {
   key: string;
   nameAr: string;
@@ -235,6 +243,7 @@ type TemplateRow = {
 async function reset(): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "DeviceToken","NotificationPreference","PushChannel","CampaignSend","Campaign","Segment",
       "ApprovalRequest","AuditLog","Report","PriceStat","SeoTemplate","Integration",
       "AdCampaign","AdSlot","NotificationTemplate","FaqPlacement","FaqItem",
       "SavedSearch","Favorite","FinanceInput","CommissionRule","PlatformSetting",
@@ -1052,6 +1061,74 @@ async function main(): Promise<void> {
   await prisma.notificationTemplate.createMany({
     data: load<TemplateRow[]>('notification-templates.json'),
   });
+  await prisma.pushChannel.createMany({
+    data: load<PushChannelRow[]>('push-channels.json'),
+  });
+
+  // ————— مفضّلات وبحوث محفوظة — بلاها لا تُقاس شريحة ولا تُختبر —————
+  const buyerPool = await prisma.user.findMany({
+    where: { dealerId: null },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  const publishedListings = await prisma.listing.findMany({
+    where: { status: 'PUBLISHED' },
+    select: { id: true },
+    orderBy: { ref: 'asc' },
+  });
+
+  for (const [index, buyer] of buyerPool.entries()) {
+    // ثلثا المشترين لهم مفضّلة — والباقي بلاها ليبقى للشريحة معنًى
+    if (index % 3 === 2 || publishedListings.length === 0) continue;
+    const count = between(1, 3);
+    for (let n = 0; n < count; n += 1) {
+      const listing = publishedListings[(index * 3 + n) % publishedListings.length];
+      if (listing === undefined) continue;
+      await prisma.favorite.upsert({
+        where: { userId_listingId: { userId: buyer.id, listingId: listing.id } },
+        create: { userId: buyer.id, listingId: listing.id, createdAt: days(-between(1, 40)) },
+        update: {},
+      });
+    }
+  }
+
+  // ————— شرائح وحملة — القواعد تُحوسَب وقت الإرسال لا الآن —————
+  const superAdminId = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
+  const favouriteSegment = await prisma.segment.create({
+    data: {
+      key: 'has_favourites',
+      nameAr: 'لديه مفضلة نشطة',
+      rules: [{ field: 'hasFavorites' }],
+      createdBy: superAdminId,
+      createdAt: days(-20),
+    },
+  });
+  await prisma.segment.create({
+    data: {
+      key: 'added_no_listing',
+      nameAr: 'أضاف مركبة ولم يعلن',
+      rules: [{ field: 'hasVehicle' }, { field: 'hasListing', negate: true }],
+      createdBy: superAdminId,
+      createdAt: days(-14),
+    },
+  });
+  await prisma.campaign.create({
+    data: {
+      nameAr: 'عاد سعر سيارة في مفضلتك',
+      channels: ['push'],
+      segmentId: favouriteSegment.id,
+      status: 'DRAFT',
+      createdBy: superAdminId,
+      createdAt: days(-6),
+    },
+  });
+
+  // موافقة التسويق — تُطلب ولا تُفترض، فثلث المستخدمين وافقوا
+  const consenting = await prisma.user.findMany({ select: { id: true } });
+  await prisma.user.updateMany({
+    where: { id: { in: consenting.filter((_, i) => i % 3 === 0).map((u) => u.id) } },
+    data: { marketingConsent: true, marketingConsentAt: days(-30) },
+  });
   await prisma.adSlot.createMany({
     data: load<AdSlotRow[]>('ad-slots.json').map((s) => ({
       ...s,
@@ -1245,6 +1322,8 @@ async function main(): Promise<void> {
     خدمة: await prisma.service.count(),
     'سؤال شائع': await prisma.faqItem.count(),
     'قالب إشعار': await prisma.notificationTemplate.count(),
+    'قناة دفع': await prisma.pushChannel.count(),
+    مفضّلة: await prisma.favorite.count(),
     'مساحة إعلانية': await prisma.adSlot.count(),
     'جهة تمويل': await prisma.financeProvider.count(),
     تكامل: await prisma.integration.count(),

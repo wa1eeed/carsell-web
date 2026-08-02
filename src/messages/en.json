@@ -311,6 +311,7 @@
   },
   "units": {
     "orders": "{count, plural, one{{n} order} other{{n} orders}}",
+    "messages": "{count, plural, one{{n} message} other{{n} messages}}",
     "transactionalNotifications": "{count, plural, one{{n} transactional notification} other{{n} transactional notifications}}",
     "characters": "{count, plural, one{{n} character} other{{n} characters}}",
     "smsSegments": "{count, plural, one{{n} segment} other{{n} segments}}",
