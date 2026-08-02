@@ -19,6 +19,9 @@ export type Unit =
   | 'models'
   | 'features'
   | 'reviews'
+  | 'auctions'
+  | 'months'
+  | 'financeProviders'
   | 'km';
 
 /**

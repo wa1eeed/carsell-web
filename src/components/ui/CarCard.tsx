@@ -47,9 +47,15 @@ const TYPE_TONE = {
 export type MetaPart = string | { count: number; unit: Unit };
 
 function MetaLine({ parts }: { parts: readonly MetaPart[] }) {
+  /**
+   * المقطع الفارغ يُسقَط هنا لا عند المناداة: مناداةٌ تنسى الشرط
+   * تُنتج فاصلًا معلَّقًا بلا نصّ بعده — والفاصل بلا طرفين خطأ مرئي.
+   */
+  const shown = parts.filter((part) => typeof part !== 'string' || part.trim() !== '');
+
   return (
     <p className="flex flex-wrap items-center gap-1.5 text-xs opacity-55">
-      {parts.map((part, i) => (
+      {shown.map((part, i) => (
         <span key={i} className="flex items-center gap-1.5">
           {i > 0 ? (
             <span aria-hidden className="opacity-40">

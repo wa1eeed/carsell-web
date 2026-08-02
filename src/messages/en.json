@@ -142,6 +142,130 @@
       "auctions": "Auctions",
       "dealers": "Dealers",
       "services": "Services"
+    },
+    "metaTitle": "carsell.one — the Saudi car marketplace",
+    "metaDescription": "Vehicles with verified ownership and an independent inspection report. Buy outright, by instalments, or bid at auction — funds held in escrow until ownership transfers to you.",
+    "sellYourCar": "Sell your car",
+    "signIn": "Sign in",
+    "heroTitle": "Cars for sale in Saudi Arabia",
+    "heroBody": "Vehicles with verified ownership and an independent inspection report. Buy outright, by instalments, or bid at auction — funds held in escrow until ownership transfers to you.",
+    "heroStat": {
+      "listings": "listed vehicles",
+      "dealers": "verified dealers",
+      "finance": "finance providers"
+    },
+    "promoTag": "Summer offer",
+    "promoTitle": "Zero commission on every sale",
+    "promoBody": "On direct sale, negotiation and auction",
+    "searchBrandModel": "Make or model",
+    "searchPlaceholder": "Camry, Lexus ES, listing ref…",
+    "city": "City",
+    "anyCity": "All cities",
+    "condition": "Condition",
+    "anyCondition": "Any",
+    "priceUpTo": "Price up to",
+    "anyPrice": "No limit",
+    "search": "Search",
+    "summary": {
+      "usedTitle": "Used cars",
+      "usedBody": "210-point inspected, ownership verified",
+      "newTitle": "New cars",
+      "newBody": "From dealers with factory warranty",
+      "auctionsTitle": "Auctions",
+      "auctionsBody": "Vehicles with live bidding",
+      "sellTitle": "Sell your car",
+      "sellBody": "Direct, negotiation or auction — no commission",
+      "sellAction": "Start now"
+    },
+    "browseByBrand": "Browse by make",
+    "allBrands": "All makes",
+    "moreBrands": "more makes",
+    "financeTitle": "Find the car that fits your monthly payment",
+    "financeBody": "Pick a payment you are comfortable with and we show what you can actually finance with {n}.",
+    "band": {
+      "lt1000": "Under 1,000",
+      "1000_1500": "1,000 – 1,500",
+      "1500_2000": "1,500 – 2,000",
+      "2000_2500": "2,000 – 2,500",
+      "2500_3000": "2,500 – 3,000",
+      "3000_4000": "3,000 – 4,000",
+      "4000_5000": "4,000 – 5,000",
+      "gt5000": "Over 5,000"
+    },
+    "withinBand": "in this band",
+    "downPayment": "Down payment",
+    "showAll": "Show all →",
+    "liveAuctionsTitle": "Live auctions",
+    "recentIn": "Recently added in {city}",
+    "howToBuy": "How do you buy a car on carsell.one?",
+    "step": {
+      "1": {
+        "title": "Choose your car",
+        "body": "Browse ownership-verified vehicles and compare them by inspection report and market price."
+      },
+      "2": {
+        "title": "Buy, negotiate or bid",
+        "body": "Pay the listed price, make an offer and negotiate, or bid at auction."
+      },
+      "3": {
+        "title": "Pay through escrow",
+        "body": "Funds are held in escrow and are not released to the seller until ownership transfers to you."
+      },
+      "4": {
+        "title": "Take delivery, in your name",
+        "body": "A managed transfer appointment, and a 7-day return guarantee."
+      }
+    },
+    "whyTitle": "Why buy from carsell.one?",
+    "whyBody": "Four written guarantees, not marketing promises.",
+    "why": {
+      "1": {
+        "title": "210-point inspection",
+        "body": "From an independent centre that does not know the asking price, with the full report in front of you before you buy."
+      },
+      "2": {
+        "title": "Escrow account",
+        "body": "Your money is held by a third party and does not reach the seller until ownership transfers."
+      },
+      "3": {
+        "title": "7-day return",
+        "body": "If the vehicle contradicts its inspection report, it goes back and you are refunded in full."
+      },
+      "4": {
+        "title": "Verified ownership",
+        "body": "Every vehicle is matched against the ownership record before it is published."
+      }
+    },
+    "servicesTitle": "Services you may need",
+    "faqTitle": "Frequently asked",
+    "helpCentre": "Help centre",
+    "footer": {
+      "1": {
+        "title": "Buying",
+        "links": [
+          "Browse cars",
+          "Auctions",
+          "Dealers",
+          "Finance"
+        ]
+      },
+      "2": {
+        "title": "Selling",
+        "links": [
+          "Sell your car",
+          "Seller guide",
+          "Plans"
+        ]
+      },
+      "3": {
+        "title": "Platform",
+        "links": [
+          "Services",
+          "Help centre",
+          "Terms",
+          "Privacy"
+        ]
+      }
     }
   },
   "dev": {
@@ -166,7 +290,10 @@
     "models": "{count, plural, one{{n} model} other{{n} models}}",
     "hoursShort": "{count, plural, one{{n}h} other{{n}h}}",
     "features": "{count, plural, one{{n} feature} other{{n} features}}",
-    "reviews": "{count, plural, one{{n} review} other{{n} reviews}}"
+    "reviews": "{count, plural, one{{n} review} other{{n} reviews}}",
+    "auctions": "{count, plural, one{{n} auction} other{{n} auctions}}",
+    "months": "{count, plural, one{{n} month} other{{n} months}}",
+    "financeProviders": "{count, plural, one{{n} finance provider} other{{n} finance providers}}"
   },
   "search": {
     "title": "Browse cars",

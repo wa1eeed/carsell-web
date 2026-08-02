@@ -224,6 +224,15 @@
   );
 }
 
+/** نمط الخطوط المائلة على سطح داكن — نفس النمط بحبر الخلفية. */
+@utility washed-light {
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-bg) 20%, transparent) 0 12px,
+    color-mix(in srgb, var(--color-bg) 10%, transparent) 12px 24px
+  );
+}
+
 @utility bidi-ltr {
   direction: ltr;
   unicode-bidi: isolate;
