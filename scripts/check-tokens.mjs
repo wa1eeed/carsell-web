@@ -8,6 +8,7 @@
  *     (DESIGN-DECISIONS · بعد المهمة ١).
  *  ٧. لا `#` في جمع ICU عربي — يطبع أرقامًا لاتينية.
  *  ٨. كل `unit` مستعمل في الكود مصرَّح به في الوحدات وفي نوع `Unit`.
+ *  ٩. لا رقم من قاعدة البيانات يُلصق في سلسلة نصّ معروضة.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -201,7 +202,81 @@ function checkUnits() {
   }
 }
 
+// ————— القاعدة ٩: لا رقم يُلصق في سلسلة نصّ معروضة —————
+/**
+ * `` `${item.title} ${item.year}` `` ينتج «كامري EX 2021» — أرقام
+ * لاتينية في نصّ عربي. القاعدة ٥ لا تلتقطها: هي تفحص ملفّات
+ * الترجمة، والرقم هنا يأتي من قاعدة البيانات وقت التشغيل.
+ *
+ * **المصدر يعرّف نفسه**: أسماء الحقول الرقمية تُقرأ من
+ * `schema.prisma` وتُفكَّك إلى كلماتها (`mileageKm` ⇒ mileage · km)،
+ * فكل حقل رقمي جديد يُحرَس تلقائيًا بلا تعديل هنا.
+ *
+ * **والفحص مقصور على سياق النصّ المعروض** — خاصية نصّية، أو سمة
+ * نصّية، أو محتوى عنصر. أوّل صياغة منه شملت كل سلسلة، فأطلقت تسع
+ * إنذارات كاذبة على نِسَب CSS ومفاتيح ترجمة. وقاعدة تُصدر ضجيجًا
+ * تُعطَّل، والمعطَّلة أسوأ من غير الموجودة.
+ */
+const TEXT_CONTEXT = [
+  // خاصية نصّية في كائن: `title: ` · `label: `
+  /\b(title|label|name|text|description|summary|caption|heading|subtitle)\s*:\s*$/,
+  // سمة نصّية في JSX: `title={` · `alt={` · `placeholder={`.
+  // و`aria-label` **ليست** منها: قارئ الشاشة ينطق الرقم اللاتيني
+  // صحيحًا، وتحويله عربيًّا-هنديًّا هناك لا يفيد أحدًا.
+  /\b(title|alt|placeholder)=\{\s*$/,
+  // محتوى عنصر: `>{`
+  />\s*\{\s*$/,
+];
+
+function numericFieldWords() {
+  const schema = readFileSync(join(ROOT, 'prisma', 'schema.prisma'), 'utf8');
+  const words = new Set();
+  for (const line of schema.split('\n')) {
+    const match = line.match(/^\s{2}(\w+)\s+(Int|Float|Decimal|BigInt)\b/);
+    if (match === null) continue;
+    for (const word of match[1].split(/(?=[A-Z])/)) {
+      const lower = word.toLowerCase();
+      // ما دون ثلاثة أحرف يلتقط ما ليس رقمًا
+      if (lower.length >= 3) words.add(lower);
+    }
+  }
+  return words;
+}
+
+function checkStringifiedNumbers() {
+  const words = numericFieldWords();
+  if (words.size === 0) {
+    problems.push('prisma/schema.prisma — لم يُقرأ أي حقل رقمي (القاعدة ٩ معطّلة فعليًا)');
+    return;
+  }
+
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      const source = readFileSync(file, 'utf8');
+
+      for (const literal of source.matchAll(/`[^`]*`/g)) {
+        if (!literal[0].includes('${')) continue;
+        const before = source.slice(Math.max(0, literal.index - 60), literal.index);
+        if (!TEXT_CONTEXT.some((context) => context.test(before))) continue;
+
+        for (const slot of literal[0].matchAll(/\$\{([^}]+)\}/g)) {
+          const name = slot[1].split(/[.?[\]]/).filter(Boolean).pop() ?? '';
+          if ([...words].some((word) => name.toLowerCase().includes(word))) {
+            const line = source.slice(0, literal.index).split('\n').length;
+            problems.push(
+              `${rel}:${line}  «${slot[0]}» رقم داخل سلسلة نصّ — استعمل <ArabicNumber> أو <Quantity>`,
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
 checkUnits();
+checkStringifiedNumbers();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -212,5 +287,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ.',
 );

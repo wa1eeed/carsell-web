@@ -228,3 +228,44 @@
   direction: ltr;
   unicode-bidi: isolate;
 }
+
+/**
+ * مقبض شريط المدى.
+ *
+ * `input[type=range]` هو العنصر الوحيد الذي يحمل السحب بالمؤشّر
+ * والأسهم و`aria` مجّانًا، لكن مقبضه لا يُطلى إلا بعنصر زائف —
+ * ولا تصل إليه أدوات Tailwind. فالطلاء هنا، بالتوكنات وحدها.
+ *
+ * المسار شفاف لأن الشريط مرسوم تحته: عنصران متراكبان لمقبضين،
+ * ولو طُلي مسار كلٍّ منهما لحجب الأعلى ما تحته.
+ */
+@utility range-thumb {
+  pointer-events: none;
+
+  &::-webkit-slider-thumb {
+    pointer-events: auto;
+    appearance: none;
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    border: 2px solid var(--color-accent);
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    pointer-events: auto;
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    border-radius: var(--radius-full);
+    background: var(--color-bg);
+    border: 2px solid var(--color-accent);
+    cursor: pointer;
+  }
+
+  &:disabled::-webkit-slider-thumb,
+  &:disabled::-moz-range-thumb {
+    opacity: 0.4;
+    cursor: default;
+  }
+}

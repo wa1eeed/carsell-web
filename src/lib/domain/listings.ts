@@ -35,6 +35,7 @@ export type Filters = {
   yearTo: number | null;
   priceMin: number | null;
   priceMax: number | null;
+  mileageMin: number | null;
   mileageMax: number | null;
   city: string | null;
   condition: VehicleCondition | null;
@@ -57,7 +58,7 @@ export type Filters = {
 export const EMPTY_FILTERS: Filters = {
   type: null, brandId: null, modelId: null, trimId: null,
   yearFrom: null, yearTo: null, priceMin: null, priceMax: null,
-  mileageMax: null, city: null, condition: null, spec: null,
+  mileageMin: null, mileageMax: null, city: null, condition: null, spec: null,
   transmission: null, fuel: null, bodyType: null, drivetrain: null,
   inspected: null, scoreMin: null, paintStatus: null,
   verifiedSeller: null, financing: null, features: [],
@@ -67,6 +68,13 @@ export const EMPTY_FILTERS: Filters = {
 /** أبعاد الفلترة التي تُحسب لها عدّادات. */
 export const FACET_DIMENSIONS = ['type', 'brandId', 'city', 'condition'] as const;
 export type FacetDimension = (typeof FACET_DIMENSIONS)[number];
+
+/**
+ * ما يمكن استثناؤه من الشرط. الأبعاد المستمرّة (سعر · سنة · ممشى)
+ * تُستثنى هي أيضًا: مدرَّج السعر يجب أن يبقى ثابتًا وأنت تسحب
+ * مقبضيه، وإلا انهار تحت يدك وصار سحبه مستحيلًا.
+ */
+export type SkipDimension = FacetDimension | 'price' | 'year' | 'mileage';
 
 function enumOf<T extends string>(
   allowed: readonly T[],
@@ -105,6 +113,7 @@ export function parseFilters(params: URLSearchParams): Filters {
     yearTo: intOf(get('yearTo'), 1970, 2100),
     priceMin: intOf(get('priceMin'), 0, 100_000_000),
     priceMax: intOf(get('priceMax'), 0, 100_000_000),
+    mileageMin: intOf(get('mileageMin'), 0, 2_000_000),
     mileageMax: intOf(get('mileageMax'), 0, 2_000_000),
     city: get('city'),
     condition: enumOf(['NEW', 'USED'] as const, get('condition')),
@@ -177,7 +186,7 @@ export function activeFilterCount(filters: Filters): number {
 export function buildWhere(
   filters: Filters,
   financingMinPrice: number,
-  skip?: FacetDimension,
+  skip?: SkipDimension,
 ): Prisma.ListingWhereInput {
   const and: Prisma.ListingWhereInput[] = [
     // المنشور وحده يظهر في البحث — لا مسودّة ولا قيد مراجعة
@@ -198,8 +207,13 @@ export function buildWhere(
   if (filters.bodyType !== null) vehicle.bodyType = filters.bodyType;
   if (filters.drivetrain !== null) vehicle.drivetrain = filters.drivetrain;
   if (filters.paintStatus !== null) vehicle.paintStatus = filters.paintStatus;
-  if (filters.mileageMax !== null) vehicle.mileageKm = { lte: filters.mileageMax };
-  if (filters.yearFrom !== null || filters.yearTo !== null) {
+  if (skip !== 'mileage' && (filters.mileageMin !== null || filters.mileageMax !== null)) {
+    vehicle.mileageKm = {
+      ...(filters.mileageMin === null ? {} : { gte: filters.mileageMin }),
+      ...(filters.mileageMax === null ? {} : { lte: filters.mileageMax }),
+    };
+  }
+  if (skip !== 'year' && (filters.yearFrom !== null || filters.yearTo !== null)) {
     vehicle.year = {
       ...(filters.yearFrom === null ? {} : { gte: filters.yearFrom }),
       ...(filters.yearTo === null ? {} : { lte: filters.yearTo }),
@@ -218,7 +232,7 @@ export function buildWhere(
 
   if (Object.keys(vehicle).length > 0) and.push({ vehicle });
 
-  if (filters.priceMin !== null || filters.priceMax !== null) {
+  if (skip !== 'price' && (filters.priceMin !== null || filters.priceMax !== null)) {
     and.push({
       askPrice: {
         ...(filters.priceMin === null ? {} : { gte: filters.priceMin }),
@@ -269,12 +283,26 @@ function orderBy(sort: Sort): Prisma.ListingOrderByWithRelationInput[] {
   }
 }
 
+/** حدود بُعد مستمرّ — طرفا شريط المدى قبل تقييده بنفسه. */
+export type Bounds = { min: number; max: number };
+
 export type Facets = {
   type: Record<string, number>;
   brandId: Record<string, number>;
   city: Record<string, number>;
   condition: Record<string, number>;
+  /** حدود الشرائط، محسوبة ضمن بقية الفلاتر ومن دون البُعد نفسه. */
+  price: Bounds | null;
+  year: Bounds | null;
+  mileage: Bounds | null;
+  /**
+   * توزّع الأسعار — «توزّع الأسعار في هذا البحث» تحت الشريط.
+   * يجيب سؤالًا لا تجيبه الرقائق: أين يتكدّس المعروض فعلًا.
+   */
+  priceBars: number[];
 };
+
+export const PRICE_BARS = 8;
 
 /**
  * عدّاد كل بُعد يُحسب ضمن بقية الفلاتر **ويستثني بُعده هو** — السلوك
@@ -284,6 +312,54 @@ async function computeFacets(
   filters: Filters,
   financingMinPrice: number,
 ): Promise<Facets> {
+  const [priceBounds, yearBounds, mileageBounds] = await Promise.all([
+    db.listing.aggregate({
+      where: buildWhere(filters, financingMinPrice, 'price'),
+      _min: { askPrice: true },
+      _max: { askPrice: true },
+    }),
+    db.vehicle.aggregate({
+      where: { listings: { some: buildWhere(filters, financingMinPrice, 'year') } },
+      _min: { year: true },
+      _max: { year: true },
+    }),
+    db.vehicle.aggregate({
+      where: { listings: { some: buildWhere(filters, financingMinPrice, 'mileage') } },
+      _min: { mileageKm: true },
+      _max: { mileageKm: true },
+    }),
+  ]);
+
+  const price =
+    priceBounds._min.askPrice === null || priceBounds._max.askPrice === null
+      ? null
+      : { min: Number(priceBounds._min.askPrice), max: Number(priceBounds._max.askPrice) };
+
+  /**
+   * المدرَّج بثماني عدّات مفهرسة لا بجرّ كل الأسعار إلى الذاكرة:
+   * `count` على مدى مفهرس يبقى ثابت الكلفة مهما كبر المعروض، بينما
+   * جرّ الصفوف ينمو معه — والحدّ الصامت على عددها يكذب على القارئ.
+   */
+  const priceBars = await (async (): Promise<number[]> => {
+    if (price === null || price.max <= price.min) return [];
+    const width = (price.max - price.min) / PRICE_BARS;
+    const base = buildWhere(filters, financingMinPrice, 'price');
+    return Promise.all(
+      Array.from({ length: PRICE_BARS }, (_, i) => {
+        const from = price.min + i * width;
+        const last = i === PRICE_BARS - 1;
+        return db.listing.count({
+          where: {
+            AND: [
+              base,
+              { askPrice: { gte: from, ...(last ? {} : { lt: from + width }) } },
+            ],
+          },
+        });
+      }),
+    );
+  })();
+
   const [byType, byCity, byBrand, byCondition] = await Promise.all([
     db.listing.groupBy({
       by: ['type'],
@@ -322,6 +398,16 @@ async function computeFacets(
     city: toMap(byCity, (r: { city: string }) => r.city),
     brandId: toMap(byBrand, (r: { brandId: string }) => r.brandId),
     condition: toMap(byCondition, (r: { condition: string }) => r.condition),
+    price,
+    year:
+      yearBounds._min.year === null || yearBounds._max.year === null
+        ? null
+        : { min: yearBounds._min.year, max: yearBounds._max.year },
+    mileage:
+      mileageBounds._min.mileageKm === null || mileageBounds._max.mileageKm === null
+        ? null
+        : { min: mileageBounds._min.mileageKm, max: mileageBounds._max.mileageKm },
+    priceBars,
   };
 }
 

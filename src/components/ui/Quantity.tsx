@@ -10,11 +10,14 @@ export type Unit =
   | 'deals'
   | 'days'
   | 'hours'
+  /** «١ س» — اختصار لا صيغة جمع: البطاقة تُمسَح بالعين ولا تُقرأ. */
+  | 'hoursShort'
   | 'photos'
   | 'cars'
   | 'trims'
   | 'listings'
   | 'models'
+  | 'features'
   | 'km';
 
 /**

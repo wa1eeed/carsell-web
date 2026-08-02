@@ -1,4 +1,4 @@
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -12,6 +12,7 @@ import {
   searchListings,
   serializeFilters,
 } from '@/lib/domain/listings';
+import { SearchHeading } from './SearchHeading';
 import { SearchScreen } from './SearchScreen';
 
 export const dynamic = 'force-dynamic';
@@ -59,7 +60,6 @@ export default async function CarsPage({
   setRequestLocale(locale);
 
   const filters = parseFilters(toParams(await searchParams));
-  const t = await getTranslations('search');
 
   const [result, brands, features, cities] = await Promise.all([
     searchListings(filters),
@@ -92,12 +92,13 @@ export default async function CarsPage({
       <SiteHeader active="cars" />
       <main className="min-h-screen bg-bg text-ink">
         <div className="mx-auto w-full max-w-page px-10 py-8">
-          <h1 className="mb-2 text-4xl font-extrabold tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="mb-7 max-w-2xl text-sm leading-loose opacity-65">
-            {t('intro')}
-          </p>
+          <SearchHeading
+            locale={locale}
+            filters={filters}
+            result={result}
+            brands={brands}
+            models={models}
+          />
 
           <SearchScreen
             filters={filters}

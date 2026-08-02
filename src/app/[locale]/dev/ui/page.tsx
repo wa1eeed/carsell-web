@@ -50,7 +50,8 @@ const LATER = new Date(Date.now() + 3 * 86400 * 1000 + 4 * 3600 * 1000).toISOStr
 
 const CAR: ListingCardData = {
   ref: 'ADS2026A0005',
-  title: 'تويوتا كامري GLE ٢٠٢٤',
+  title: 'تويوتا كامري GLE',
+  year: 2024,
   city: 'الرياض',
   mileageKm: 3456,
   transmission: 'أوتوماتيك',

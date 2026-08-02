@@ -45,7 +45,8 @@
       "DIRECT": "مباشر",
       "NEGOTIATION": "تفاوض",
       "AUCTION": "مزاد"
-    }
+    },
+    "durationFull": "<d></d> و<h></h>"
   },
   "orderStage": {
     "REQUEST": "طلب",
@@ -86,7 +87,9 @@
     "km": "{count, plural, other{{n} كم}}",
     "trims": "{count, plural, zero{لا فئات} one{فئة واحدة} two{فئتان} few{{n} فئات} many{{n} فئة} other{{n} فئة}}",
     "listings": "{count, plural, zero{لا إعلانات} one{إعلان واحد} two{إعلانان} few{{n} إعلانات} many{{n} إعلانًا} other{{n} إعلان}}",
-    "models": "{count, plural, zero{لا طرازات} one{طراز واحد} two{طرازان} few{{n} طرازات} many{{n} طرازًا} other{{n} طراز}}"
+    "models": "{count, plural, zero{لا طرازات} one{طراز واحد} two{طرازان} few{{n} طرازات} many{{n} طرازًا} other{{n} طراز}}",
+    "hoursShort": "{count, plural, other{{n} س}}",
+    "features": "{count, plural, zero{لا مميزات} one{ميزة واحدة} two{ميزتان} few{{n} مميزات} many{{n} ميزة} other{{n} ميزة}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -156,6 +159,26 @@
     "view": {
       "grid": "شبكة",
       "list": "قائمة"
-    }
+    },
+    "crumbHome": "الرئيسية",
+    "crumbCars": "تصفّح السيارات",
+    "h1All": "سيارات للبيع في السعودية",
+    "h1Prefix": "سيارات",
+    "h1In": "في",
+    "introRange": "{n} معروضة{where} بأسعار من {min} إلى {max} ريال، جميعها موثّقة الملكية مع تقرير فحص فني وإمكانية الشراء بالتقسيط أو عبر حساب الضمان.",
+    "introEmpty": "لا نتائج مطابقة لهذا البحث. وسّع النطاق أو امسح بعض الفلاتر.",
+    "introWhere": " في {city}",
+    "conditionHint": "تحدّد بقية الخيارات",
+    "conditionNewHint": "صفر · من الوكيل أو المعرض",
+    "conditionUsedHint": "ممشى وفحص وتاريخ حوادث",
+    "priceSpread": "توزّع الأسعار في هذا البحث",
+    "currency": "ريال",
+    "modelYear": "الموديل",
+    "kilometre": "كيلومتر",
+    "featuresPick": "اختر المميزات",
+    "none": "الكل",
+    "conditionTitle": "حالة المركبة",
+    "price": "السعر",
+    "year": "سنة الصنع"
   }
 }

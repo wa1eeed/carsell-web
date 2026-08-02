@@ -1,11 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { splitDuration } from '@/lib/arabic';
 import { Quantity } from './Quantity';
 import { cn } from '@/lib/cn';
 
 export type CountdownTone = 'ink' | 'warn' | 'plain';
+
+/**
+ * البطاقة **تُمسَح** بالعين وصفحة السيارة **تُقرأ**، فالصيغتان تختلفان:
+ * `compact` «٤ أيام ١ س» — شارة صغيرة بين شارات أخرى.
+ * `full`    «٤ أيام و١ ساعة» — للمساحة التي تحتمل القراءة الكاملة.
+ * ودون ٢٤ ساعة `HH:MM:SS` في الموضعين.
+ */
+export type CountdownFormat = 'compact' | 'full';
 
 const TONE: Record<CountdownTone, string> = {
   ink: 'bg-ink text-bg px-2.5 py-1 rounded-sm',
@@ -27,14 +36,17 @@ const TONE: Record<CountdownTone, string> = {
 export function Countdown({
   endsAt,
   tone = 'ink',
+  format = 'compact',
   onEnd,
   className,
 }: {
   endsAt: Date | string;
   tone?: CountdownTone;
+  format?: CountdownFormat;
   onEnd?: () => void;
   className?: string;
 }) {
+  const t = useTranslations('ui');
   const target = useMemo(
     () => (typeof endsAt === 'string' ? new Date(endsAt) : endsAt),
     [endsAt],
@@ -85,11 +97,26 @@ export function Countdown({
   const parts = splitDuration(remaining);
 
   if (parts.isLong) {
+    const days = <Quantity unit="days" count={parts.days} />;
+
+    // الواو خارج المقطعين المعزولين لا داخلهما، والمسافات حولها
+    // في ملف الترجمة لأنها تختلف بين «و١ ساعة» و«and 1 hour».
+    if (format === 'full') {
+      return (
+        <span className={cn('inline-flex items-center font-bold', TONE[tone], className)}>
+          {t.rich('durationFull', {
+            d: () => days,
+            h: () => <Quantity unit="hours" count={parts.hours} />,
+          })}
+        </span>
+      );
+    }
+
     // مقطعان معزولان بفراغ تخطيطي — لا فاصل نصّي بينهما
     return (
       <span className={cn('inline-flex items-center gap-1.5 font-bold', TONE[tone], className)}>
-        <Quantity unit="days" count={parts.days} />
-        <Quantity unit="hours" count={parts.hours} />
+        {days}
+        <Quantity unit="hoursShort" count={parts.hours} />
       </span>
     );
   }

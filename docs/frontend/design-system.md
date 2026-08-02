@@ -181,3 +181,46 @@ agreement and flagging it would be noise that gets the rule disabled.
 `StatCard` takes `suffix`, not `unit`: it is for suffixes that do **not** depend
 on the count («ريال», «م», «٪»). A count with a unit always goes through
 `Quantity`.
+
+
+## Gate 9 — a number never becomes a string
+
+`` `${item.title} ${item.year}` `` renders "Camry EX 2021": Latin digits inside
+Arabic text. Gate 5 cannot see it — that gate reads the translation files, and
+this number arrives from the database at runtime.
+
+**The gate defines itself from the schema.** `scripts/check-tokens.mjs` reads
+every `Int`/`Float`/`Decimal`/`BigInt` field name out of `schema.prisma` and
+splits it into words (`mileageKm` → mileage, km). Any new numeric field is
+guarded automatically, with no edit here — which is what makes it a gate rather
+than a correction that keeps recurring.
+
+It fires only in **displayed-text context**: a text-bearing object property, a
+text attribute, or element content. The first version checked every template
+literal and produced nine false positives on CSS percentages and translation
+keys. A rule that emits noise gets disabled, and a disabled rule is worse than
+no rule.
+
+`aria-label` is deliberately **not** in that set. A screen reader pronounces a
+Latin digit correctly, and converting it to Arabic-Indic there helps nobody.
+
+Digits inside a model name — `Mazda CX-5`, `Kia K5` — are proper nouns, not
+quantities, and are never converted. `tests/listings.test.ts` asserts the
+narrower rule that actually broke: no model year glued into a title.
+
+## Countdown — two formats
+
+A card is **scanned**; a car page is **read**. So:
+
+| Surface | Over 24h | Under 24h |
+|---|---|---|
+| Card (`compact`, default) | «٤ أيام ١ س» | `HH:MM:SS` |
+| Car page (`full`) | «٤ أيام و١ ساعة» | `HH:MM:SS` |
+
+The conjunction sits between the two isolated segments, not inside either, and
+its spacing lives in the message file because «و١ ساعة» and "and 1 hour" space
+differently.
+
+On a card the countdown is a small badge at the bottom of the image, the same
+size as the photo count. A countdown covering a quarter of the image steals what
+the reader came to see.

@@ -45,7 +45,8 @@
       "DIRECT": "Direct",
       "NEGOTIATION": "Negotiation",
       "AUCTION": "Auction"
-    }
+    },
+    "durationFull": "<d></d> and <h></h>"
   },
   "orderStage": {
     "REQUEST": "Request",
@@ -86,7 +87,9 @@
     "km": "{count, plural, other{{n} km}}",
     "trims": "{count, plural, one{{n} trim} other{{n} trims}}",
     "listings": "{count, plural, one{{n} listing} other{{n} listings}}",
-    "models": "{count, plural, one{{n} model} other{{n} models}}"
+    "models": "{count, plural, one{{n} model} other{{n} models}}",
+    "hoursShort": "{count, plural, one{{n}h} other{{n}h}}",
+    "features": "{count, plural, one{{n} feature} other{{n} features}}"
   },
   "search": {
     "title": "Browse cars",
@@ -156,6 +159,26 @@
     "view": {
       "grid": "Grid",
       "list": "List"
-    }
+    },
+    "crumbHome": "Home",
+    "crumbCars": "Browse cars",
+    "h1All": "Cars for sale in Saudi Arabia",
+    "h1Prefix": "",
+    "h1In": "in",
+    "introRange": "{n} listed{where}, priced from {min} to {max} SAR — all with verified ownership, a technical inspection report, and the option to buy by instalments or through escrow.",
+    "introEmpty": "No results match this search. Widen the range or clear some filters.",
+    "introWhere": " in {city}",
+    "conditionHint": "determines the rest",
+    "conditionNewHint": "Brand new · from a dealer",
+    "conditionUsedHint": "Mileage, inspection and history",
+    "priceSpread": "Price distribution in this search",
+    "currency": "SAR",
+    "modelYear": "Year",
+    "kilometre": "Kilometres",
+    "featuresPick": "Pick features",
+    "none": "All",
+    "conditionTitle": "Condition",
+    "price": "Price",
+    "year": "Year"
   }
 }

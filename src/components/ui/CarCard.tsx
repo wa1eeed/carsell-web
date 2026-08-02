@@ -8,7 +8,9 @@ import { cn } from '@/lib/cn';
 
 export type ListingCardData = {
   ref: string;
+  /** بلا سنة — السنة رقم يُصاغ لا نصّ يُلصق (فحص ٩). */
   title: string;
+  year: number;
   city: string;
   mileageKm: number;
   transmission: string;
@@ -24,6 +26,10 @@ export type ListingCardData = {
   bidderCount?: number;
   endsAt?: string;
 };
+
+/** شارة فوق الصورة — عدّاد المزاد وعدّاد الصور يتشاركانها. */
+const IMAGE_BADGE =
+  'absolute bottom-2.5 inline-flex items-center rounded-sm bg-ink/70 px-2 py-0.5 text-3xs text-bg';
 
 const TYPE_TONE = {
   DIRECT: 'neutral',
@@ -126,17 +132,22 @@ export function CarCard({
             {sponsored ? <Badge tone="neutral">{t('sponsored')}</Badge> : null}
             {data.inspected ? <InspectedBadge /> : null}
           </span>
-          {data.type === 'AUCTION' && data.endsAt !== undefined ? (
-            <Countdown endsAt={data.endsAt} />
-          ) : null}
         </div>
-        <span className="absolute bottom-2.5 inline-flex items-center rounded-sm bg-ink/70 px-2 py-0.5 text-3xs text-bg end-2.5">
+        {/* العدّاد وعدّاد الصور شارتان أسفل الصورة بحجم واحد —
+            عدّاد يغطّي ربع الصورة يسرق ما جاء القارئ ليراه. */}
+        {data.type === 'AUCTION' && data.endsAt !== undefined ? (
+          <Countdown endsAt={data.endsAt} tone="plain" className={cn(IMAGE_BADGE, 'start-2.5')} />
+        ) : null}
+        <span className={cn(IMAGE_BADGE, 'end-2.5')}>
           <Quantity unit="photos" count={data.imageCount} />
         </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-3.5">
-        <h3 className="text-lg leading-snug font-bold">{data.title}</h3>
+        <h3 className="flex flex-wrap items-baseline gap-1.5 text-lg leading-snug font-bold">
+          <span className="bidi-isolate">{data.title}</span>
+          <ArabicNumber value={data.year} grouped={false} />
+        </h3>
         <MetaLine
           parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmission]}
         />
@@ -183,7 +194,10 @@ export function CarRow({
           نهاية الصفّ. لا `justify-between` على ثلاثة عناصر — تُنتج
           فجوة في الوسط وتترك الرقاقة معلّقة وحدها. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <h3 className="truncate text-lg font-bold">{data.title}</h3>
+        <h3 className="flex items-baseline gap-1.5 truncate text-lg font-bold">
+          <span className="bidi-isolate">{data.title}</span>
+          <ArabicNumber value={data.year} grouped={false} />
+        </h3>
         <MetaLine
           parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmission]}
         />

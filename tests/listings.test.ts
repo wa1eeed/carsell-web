@@ -180,3 +180,59 @@ describe('البحث على بيانات حقيقية', () => {
     expect(result.items.every((i) => i.monthly === null)).toBe(true);
   });
 });
+
+describe('الفلاتر المتدرّجة — حدود الشرائط', () => {
+  it('حدود كل شريط تُحسب من دون قيده هو — وإلا انهار تحت الإصبع', async () => {
+    const wide = await searchListings(of(''));
+    const narrow = await searchListings(of('priceMin=50000&priceMax=60000'));
+
+    // النتائج ضاقت…
+    expect(narrow.total).toBeLessThan(wide.total);
+    // …وطرفا شريط السعر لم يضيقا معها
+    expect(narrow.facets.price).toEqual(wide.facets.price);
+  });
+
+  it('حدود السنة تتأثّر بفلتر آخر ولا تتأثّر بنفسها', async () => {
+    const all = await searchListings(of(''));
+    const capped = await searchListings(of('yearFrom=2024'));
+    expect(capped.facets.year).toEqual(all.facets.year);
+
+    const oneBrand = await searchListings(of(`brandId=${await someBrandId()}`));
+    expect(oneBrand.facets.year).not.toBeNull();
+  });
+
+  it('الممشى مدى لا سقفًا — الطرفان يضيّقان معًا', async () => {
+    const all = await searchListings(of(''));
+    const band = await searchListings(of('mileageMin=100000&mileageMax=150000'));
+    expect(band.total).toBeLessThan(all.total);
+    for (const item of band.items) {
+      expect(item.mileageKm).toBeGreaterThanOrEqual(100_000);
+      expect(item.mileageKm).toBeLessThanOrEqual(150_000);
+    }
+  });
+
+  it('أعمدة المدرَّج تجمع إلى إجمالي غير المقيَّد بالسعر', async () => {
+    const result = await searchListings(of(''));
+    const sum = result.facets.priceBars.reduce((a, b) => a + b, 0);
+    expect(sum).toBe(result.total);
+  });
+
+  /**
+   * الرقم داخل «مازدا CX-5» و«كيا K5» جزء من اسم عَلَم لا كمّية،
+   * فلا يُحوَّل. الممنوع سنة الصنع ملصوقة في العنوان — رقم يُعرض
+   * ويجب أن يمرّ بـ`ArabicNumber`.
+   */
+  it('العنوان بلا سنة — السنة رقم يُصاغ لا نصّ يُلصق', async () => {
+    const result = await searchListings(of('limit=20'));
+    for (const item of result.items) {
+      expect(item.title, item.title).not.toMatch(/(^|\s)(19|20)\d{2}(\s|$)/);
+      expect(item.title).not.toContain(String(item.year));
+      expect(item.year).toBeGreaterThan(1970);
+    }
+  });
+});
+
+async function someBrandId(): Promise<string> {
+  const brand = await db.brand.findFirstOrThrow({ select: { id: true } });
+  return brand.id;
+}

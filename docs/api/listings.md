@@ -23,7 +23,7 @@ show results, not an error page. `type=BOGUS` behaves as no type filter.
 ## Filters
 
 `type` · `brandId` · `modelId` · `trimId` · `yearFrom` · `yearTo` · `priceMin` ·
-`priceMax` · `mileageMax` · `city` · `condition` · `spec` · `transmission` ·
+`priceMax` · `mileageMin` · `mileageMax` · `city` · `condition` · `spec` · `transmission` ·
 `fuel` · `bodyType` · `drivetrain` · `inspected` · `scoreMin` · `paintStatus` ·
 `verifiedSeller` · `financing` · `features[]` · `sort` · `page` · `limit`
 
@@ -53,6 +53,24 @@ the platform has verified. The **badge** differs («بائع موثّق» / «ت
 same criterion, a label that describes the party. The Prisma condition lives in
 the same file so a query cannot drift from the badge.
 
+## Progressive disclosure
+
+The filter column asks **condition first**, and the answer shapes the rest: a
+new car has no mileage, so the mileage control disappears rather than sitting
+there greyed out. An input that cannot apply is worse than a missing one — it
+makes the reader think they forgot something.
+
+Price, year and mileage are **range sliders**, not chips. A chip offers one band
+we chose ("under 50k"); a slider lets the reader set their own. In a car market
+that is the most-used control, and buyers usually know both their floor and
+their ceiling.
+
+Sliders commit **on release**, not per pixel: every filter change writes the URL
+and refetches, so committing mid-drag would fire a request per frame.
+
+Features are a row that opens a sheet. Thirty-nine chips open in a 280px column
+bury everything below them, and nobody scans that list except on purpose.
+
 ## Facets
 
 Each dimension's counts are computed **within the other filters and excluding its
@@ -60,10 +78,30 @@ own** — the standard behaviour that answers "how many would I see if I switche
 this option". With `city=الرياض` applied, the type counts are counts within
 Riyadh, while the city counts still list every city.
 
+The same rule covers the continuous dimensions. `facets.price`, `facets.year`
+and `facets.mileage` carry each slider's endpoints computed **without that
+slider's own constraint** — otherwise the track would collapse under the handle
+being dragged and become impossible to widen again.
+
+`facets.priceBars` is the price histogram: eight indexed `count` queries rather
+than pulling every price into memory, so cost stays flat as inventory grows. It
+is hidden below `RANGE_MIN_SAMPLE` (8) — "price distribution" over four cars is
+not a distribution, and equal bars claim a meaning they do not carry.
+
 ## Pagination
 
 `page` for the web (crawlable numbered links, needed for SEO) and `nextCursor`
 for the app (stable under insertion). Both come back in `meta`; decision 21.
+
+## Heading and SEO
+
+Breadcrumb, `h1` and the opening paragraph are built **from the active filters**,
+not from fixed copy. "Used Toyota Camry in Riyadh" describes its page; "Browse
+cars" describes every page. Organic search rests entirely on these three.
+
+The title is assembled from **translated words only**, never from numbers — see
+the gate below. Counts and price bounds in the paragraph go through ICU
+arguments that are pre-formatted, so Arabic-Indic digits survive.
 
 ## Serialisation
 

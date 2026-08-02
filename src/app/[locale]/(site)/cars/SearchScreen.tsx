@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,8 @@ import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
+import { RANGE_MIN_SAMPLE } from '@/components/ui/RangeBar';
+import { RangeSlider } from '@/components/ui/RangeSlider';
 import { Sheet } from '@/components/ui/Sheet';
 import type { Filters, ListingCard, SearchResult, Sort } from '@/lib/domain/listings';
 import { cn } from '@/lib/cn';
@@ -19,7 +21,6 @@ type FeatureOption = { key: string; nameAr: string; nameEn: string };
 
 const TYPES = ['DIRECT', 'NEGOTIATION', 'AUCTION'] as const;
 const SORT_OPTIONS: readonly Sort[] = ['newest', 'price_asc', 'price_desc', 'closing_soon'];
-const MILEAGE_STEPS = [50_000, 100_000, 200_000] as const;
 
 /**
  * Wb — الفلاتر والنتائج.
@@ -50,6 +51,7 @@ export function SearchScreen({
   const params = useSearchParams();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [sheet, setSheet] = useState(false);
+  const [featureSheet, setFeatureSheet] = useState(false);
 
   /** أي تعديل فلتر يعيد الصفحة إلى ١ — نتيجة الصفحة ٣ لفلتر آخر بلا معنى. */
   const apply = useCallback(
@@ -81,9 +83,15 @@ export function SearchScreen({
    * لفلتر غير مفعّل ولا العكس.
    */
   const chips = useMemo(() => {
-    const out: { key: string; label: string; clear: Record<string, string | null> }[] = [];
-    const add = (key: string, label: string, clear: Record<string, string | null>) =>
+    const out: { key: string; label: ReactNode; clear: Record<string, string | null> }[] = [];
+    const add = (key: string, label: ReactNode, clear: Record<string, string | null>) =>
       out.push({ key, label, clear });
+    /** كلمة ثم رقم — الرقم عبر `ArabicNumber` لا داخل سلسلة. */
+    const withNumber = (word: string, value: number): ReactNode => (
+      <>
+        {word} <ArabicNumber value={value} grouped={value > 9999} />
+      </>
+    );
 
     const brandName = (id: string): string => brands.find((b) => b.id === id)?.nameAr ?? id;
     const modelName = (id: string): string => models.find((m) => m.id === id)?.nameAr ?? id;
@@ -102,13 +110,14 @@ export function SearchScreen({
     if (filters.fuel !== null) add('fuel', t(`fuel.${filters.fuel}`), { fuel: null });
     if (filters.bodyType !== null) add('bodyType', t(`bodyType.${filters.bodyType}`), { bodyType: null });
     if (filters.spec !== null) add('spec', t(`spec.${filters.spec}`), { spec: null });
-    if (filters.yearFrom !== null) add('yearFrom', `${t('from')} ${filters.yearFrom}`, { yearFrom: null });
-    if (filters.yearTo !== null) add('yearTo', `${t('to')} ${filters.yearTo}`, { yearTo: null });
-    if (filters.priceMin !== null) add('priceMin', `${t('priceFrom')} ${filters.priceMin}`, { priceMin: null });
-    if (filters.priceMax !== null) add('priceMax', `${t('priceTo')} ${filters.priceMax}`, { priceMax: null });
-    if (filters.mileageMax !== null) add('mileageMax', `${t('mileageUnder')} ${filters.mileageMax}`, { mileageMax: null });
+    if (filters.yearFrom !== null) add('yearFrom', withNumber(t('from'), filters.yearFrom), { yearFrom: null });
+    if (filters.yearTo !== null) add('yearTo', withNumber(t('to'), filters.yearTo), { yearTo: null });
+    if (filters.priceMin !== null) add('priceMin', withNumber(t('priceFrom'), filters.priceMin), { priceMin: null });
+    if (filters.priceMax !== null) add('priceMax', withNumber(t('priceTo'), filters.priceMax), { priceMax: null });
+    if (filters.mileageMax !== null) add('mileageMax', withNumber(t('mileageUnder'), filters.mileageMax), { mileageMax: null });
+    if (filters.mileageMin !== null) add('mileageMin', withNumber(t('from'), filters.mileageMin), { mileageMin: null });
     if (filters.inspected === true) add('inspected', t('inspectedOnly'), { inspected: null });
-    if (filters.scoreMin !== null) add('scoreMin', `${t('scoreFrom')} ${filters.scoreMin}`, { scoreMin: null });
+    if (filters.scoreMin !== null) add('scoreMin', withNumber(t('scoreFrom'), filters.scoreMin), { scoreMin: null });
     if (filters.paintStatus === 'ORIGINAL') add('paintStatus', t('noPaint'), { paintStatus: null });
     if (filters.verifiedSeller === true) add('verifiedSeller', t('verifiedOnly'), { verifiedSeller: null });
     if (filters.financing === true) add('financing', t('financingOnly'), { financing: null });
@@ -120,7 +129,8 @@ export function SearchScreen({
 
   const toCard = (item: ListingCard): ListingCardData => ({
     ref: item.ref,
-    title: `${item.title} ${item.year}`,
+    title: item.title,
+    year: item.year,
     city: item.city,
     mileageKm: item.mileageKm,
     transmission: t(`transmission.${item.transmission}`),
@@ -138,25 +148,90 @@ export function SearchScreen({
 
   const facetLabel = (n: number | undefined): number => n ?? 0;
 
+  const isNew = filters.condition === 'NEW';
+  const bounds = result.facets;
+
+  /**
+   * سؤال الحالة أولًا — **وهو الذي يحدّد بقية الخيارات**.
+   * سيارة جديدة بلا ممشى، وعرض حقلٍ لا معنى له يجعل القارئ
+   * يظنّ أنه نسي شيئًا. الاختيار يمسح ما بطل معه.
+   */
+  const conditionCard = (value: 'NEW' | 'USED') => {
+    const on = filters.condition === value;
+    return (
+      <button
+        key={value}
+        type="button"
+        onClick={() =>
+          apply(
+            on
+              ? { condition: null }
+              : value === 'NEW'
+                ? { condition: 'NEW', mileageMin: null, mileageMax: null }
+                : { condition: 'USED' },
+          )
+        }
+        className={cn(
+          'flex-1 rounded-lg p-3.5 text-start',
+          on ? 'bg-accent text-bg' : 'border border-line hover:bg-ink/5',
+        )}
+      >
+        <span className="mb-1 block text-sm font-bold">{t(`condition.${value}`)}</span>
+        <span className={cn('block text-3xs', on ? 'opacity-75' : 'opacity-55')}>
+          {t(value === 'NEW' ? 'conditionNewHint' : 'conditionUsedHint')}
+        </span>
+      </button>
+    );
+  };
+
+  const section = (title: string, hint: string | null, body: ReactNode) => (
+    <section>
+      <h3 className="mb-3 flex items-baseline gap-2 text-2xs font-bold tracking-[0.12em] opacity-45">
+        {title}
+        {hint === null ? null : <span className="font-medium tracking-normal">— {hint}</span>}
+      </h3>
+      {body}
+    </section>
+  );
+
   const panel = (
     <div className="flex flex-col gap-6">
-      <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
-          {t('offerType')}
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {TYPES.map((type) => (
-            <Chip
-              key={type}
-              active={filters.type === type}
-              count={facetLabel(result.facets.type[type])}
-              onClick={() => toggle('type', type)}
-            >
-              {t(`type.${type}`)}
-            </Chip>
-          ))}
-        </div>
-      </section>
+      {section(
+        t('conditionTitle'),
+        t('conditionHint'),
+        <div className="flex gap-2">{conditionCard('NEW')}{conditionCard('USED')}</div>,
+      )}
+
+      {bounds.price === null
+        ? null
+        : section(
+            t('price'),
+            null,
+            <>
+              <RangeSlider
+                min={bounds.price.min}
+                max={bounds.price.max}
+                value={[filters.priceMin, filters.priceMax]}
+                step={1000}
+                label={t('currency')}
+                /**
+                 * المدرَّج يظهر فوق عتبة الثقة نفسها التي في
+                 * `RangeBar` — «توزّع الأسعار» على أربع سيارات
+                 * ليس توزّعًا، وأعمدة متساوية تدّعي معنى لا تحمله.
+                 */
+                bars={result.total >= RANGE_MIN_SAMPLE ? result.facets.priceBars : undefined}
+                onCommit={([lo, hi]) =>
+                  apply({
+                    priceMin: lo === null ? null : String(lo),
+                    priceMax: hi === null ? null : String(hi),
+                  })
+                }
+              />
+              {result.total < RANGE_MIN_SAMPLE ? null : (
+                <p className="mt-1.5 text-3xs opacity-45">{t('priceSpread')}</p>
+              )}
+            </>,
+          )}
 
       <section>
         <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
@@ -192,6 +267,65 @@ export function SearchScreen({
         )}
       </section>
 
+      {bounds.year === null
+        ? null
+        : section(
+            t('year'),
+            null,
+            <RangeSlider
+              min={bounds.year.min}
+              max={bounds.year.max}
+              value={[filters.yearFrom, filters.yearTo]}
+              label={t('modelYear')}
+              grouped={false}
+              onCommit={([lo, hi]) =>
+                apply({
+                  yearFrom: lo === null ? null : String(lo),
+                  yearTo: hi === null ? null : String(hi),
+                })
+              }
+            />,
+          )}
+
+      {/* الجديد بلا ممشى — الحقل يختفي ولا يُعرض معطّلًا */}
+      {isNew || bounds.mileage === null
+        ? null
+        : section(
+            t('mileage'),
+            null,
+            <RangeSlider
+              min={0}
+              max={Math.max(bounds.mileage.max, 1)}
+              value={[filters.mileageMin, filters.mileageMax]}
+              step={5000}
+              label={t('kilometre')}
+              onCommit={([lo, hi]) =>
+                apply({
+                  mileageMin: lo === null ? null : String(lo),
+                  mileageMax: hi === null ? null : String(hi),
+                })
+              }
+            />,
+          )}
+
+      <section>
+        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
+          {t('offerType')}
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {TYPES.map((type) => (
+            <Chip
+              key={type}
+              active={filters.type === type}
+              count={facetLabel(result.facets.type[type])}
+              onClick={() => toggle('type', type)}
+            >
+              {t(`type.${type}`)}
+            </Chip>
+          ))}
+        </div>
+      </section>
+
       <section>
         <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
           {t('city')}
@@ -210,50 +344,27 @@ export function SearchScreen({
         </div>
       </section>
 
-      <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
-          {t('mileage')}
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {MILEAGE_STEPS.map((step) => (
-            <Chip
-              key={step}
-              active={filters.mileageMax === step}
-              onClick={() => toggle('mileageMax', String(step))}
-            >
-              <span className="bidi-isolate">
-                {t('under')} <ArabicNumber value={step} />
-              </span>
-            </Chip>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
-          {t('features')}
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {features.slice(0, 10).map((feature) => {
-            const on = filters.features.includes(feature.key);
-            return (
-              <Chip
-                key={feature.key}
-                active={on}
-                onClick={() =>
-                  apply({
-                    features: on
-                      ? filters.features.filter((f) => f !== feature.key)
-                      : [...filters.features, feature.key],
-                  })
-                }
-              >
-                {feature.nameAr}
-              </Chip>
-            );
-          })}
-        </div>
-      </section>
+      {/**
+        * المميّزات صفّ يفتح ورقة — تسع وثلاثون رقاقة مفتوحة تُغرق
+        * العمود وتدفن ما تحتها، والقارئ لا يبحث فيها إلا قاصدًا.
+        */}
+      <button
+        type="button"
+        onClick={() => setFeatureSheet(true)}
+        className="flex items-center gap-3 rounded-lg border border-line px-4 py-3 text-start hover:bg-ink/5"
+      >
+        <span className="flex-1 text-sm font-semibold">{t('features')}</span>
+        <span className="max-w-[130px] truncate text-2xs opacity-50">
+          {filters.features.length === 0 ? (
+            t('none')
+          ) : (
+            <Quantity unit="features" count={filters.features.length} />
+          )}
+        </span>
+        <svg viewBox="0 0 24 24" className="size-3 opacity-35 rtl:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.75} strokeLinecap="round" strokeLinejoin="round">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
 
       <section>
         <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
@@ -414,6 +525,33 @@ export function SearchScreen({
 
       <Sheet open={sheet} onClose={() => setSheet(false)} title={t('filters')}>
         {panel}
+      </Sheet>
+
+      <Sheet
+        open={featureSheet}
+        onClose={() => setFeatureSheet(false)}
+        title={t('featuresPick')}
+      >
+        <div className="flex flex-wrap gap-2">
+          {features.map((feature) => {
+            const on = filters.features.includes(feature.key);
+            return (
+              <Chip
+                key={feature.key}
+                active={on}
+                onClick={() =>
+                  apply({
+                    features: on
+                      ? filters.features.filter((f) => f !== feature.key)
+                      : [...filters.features, feature.key],
+                  })
+                }
+              >
+                {feature.nameAr}
+              </Chip>
+            );
+          })}
+        </div>
       </Sheet>
     </div>
   );
