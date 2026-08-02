@@ -7,6 +7,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge, InspectedBadge } from '@/components/ui/Badge';
 import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Countdown } from '@/components/ui/Countdown';
+import { Percent, Quantity } from '@/components/ui/Quantity';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { PlateBadge } from '@/components/ui/PlateBadge';
@@ -43,6 +44,10 @@ function Case({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+/** مواعيد واقعية — لا ٢٠٩٩، فالعدّاد يجب أن يُقرأ لا أن يُحسب. */
+const SOON = new Date(Date.now() + 4 * 3600 * 1000 + 14 * 60 * 1000).toISOString();
+const LATER = new Date(Date.now() + 3 * 86400 * 1000 + 4 * 3600 * 1000).toISOString();
+
 const CAR: ListingCardData = {
   ref: 'ADS2026A0005',
   title: 'تويوتا كامري GLE ٢٠٢٤',
@@ -65,7 +70,7 @@ const AUCTION_CAR: ListingCardData = {
   type: 'AUCTION',
   highestBid: 208_500,
   bidderCount: 4,
-  endsAt: '2099-01-01T00:00:00.000Z',
+  endsAt: SOON,
   sellerName: 'خالد العتيبي',
   sellerVerified: false,
 };
@@ -113,7 +118,6 @@ export default async function DevUiPage({
   setRequestLocale(locale);
 
   const t = await getTranslations('dev');
-  const navCount = ADMIN_NAV.reduce((n, g) => n + g.items.length, 0);
 
   return (
     <main className="min-h-screen bg-bg text-ink">
@@ -180,16 +184,33 @@ export default async function DevUiPage({
               <InspectedBadge />
             </Case>
 
-            <Case label="PlateBadge — sm · md · lg">
-              <PlateBadge letters="أ ب ج" numbers="1234" lettersEn="A B J" size="sm" />
-              <PlateBadge letters="أ ب ج" numbers="1234" lettersEn="A B J" size="md" />
-              <PlateBadge letters="ب س د" numbers="4444" lettersEn="B S D" size="lg" />
+            <Case label="PlateBadge — sm ٨٢ · md ١٢٠ · lg ١٨٠ · المكافئ اللاتيني مشتقّ">
+              <PlateBadge letters="أ ب ح" numbers="1234" size="sm" />
+              <PlateBadge letters="أ ب ح" numbers="1234" size="md" />
+              <PlateBadge letters="ب س د" numbers="4444" size="lg" />
+              <PlateBadge letters="م ص ط" numbers="9078" size="md" />
             </Case>
 
-            <Case label="Countdown — داكن · أوكر · مجرّد">
-              <Countdown endsAt="2099-01-01T00:00:00.000Z" />
-              <Countdown endsAt="2099-01-01T00:00:00.000Z" tone="warn" />
-              <Countdown endsAt="2099-01-01T00:00:00.000Z" tone="plain" />
+            <Case label="Countdown — دون ٢٤ ساعة: HH:MM:SS · فوقها: أيام وساعات">
+              <Countdown endsAt={SOON} />
+              <Countdown endsAt={SOON} tone="warn" />
+              <Countdown endsAt={SOON} tone="plain" />
+              <Countdown endsAt={LATER} tone="warn" />
+            </Case>
+
+            <Case label="Quantity — الجمع العربي بحالاته الست">
+              <div className="flex w-full flex-col gap-1.5 text-sm">
+                {[0, 1, 2, 3, 9, 11, 38, 100].map((n) => (
+                  <Quantity key={n} unit="orders" count={n} />
+                ))}
+              </div>
+            </Case>
+
+            <Case label="Percent — الإشارة والرقم والعلامة مقطع واحد">
+              <Percent value={18} className="text-2xl font-bold text-accent-700" />
+              <Percent value={-40} className="text-2xl font-bold text-warn-700" />
+              <Percent value={180} className="text-2xl font-bold text-accent-700" />
+              <Percent value={0} className="text-2xl font-bold opacity-55" />
             </Case>
 
             <Case label="ScoreRing — sm · md · lg · عتبات اللون">
@@ -315,7 +336,7 @@ export default async function DevUiPage({
 
         {/* ═══ الأصداف ═══ */}
         <Section title={t('shells')}>
-          <Case label={`AdminShell — قائمة التنقّل: ٤ مجموعات و${navCount} بندًا`}>
+          <Case label="AdminShell — قائمة التنقّل: أربع مجموعات وثلاثون بندًا">
             <div className="grid w-full gap-4 md:grid-cols-4">
               {ADMIN_NAV.map((group) => (
                 <div key={group.title} className="rounded-lg bg-ink p-3.5 text-bg">

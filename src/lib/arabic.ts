@@ -65,3 +65,35 @@ export function formatDuration(totalSeconds: number): string {
   const s = safe % 60;
   return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
 }
+
+export const SECONDS_PER_DAY = 86_400;
+
+/**
+ * ما فوق ٢٤ ساعة لا يُعرض ساعاتٍ بالآلاف.
+ * `634796:04:20` رقم صحيح حسابيًا وبلا معنى للقارئ.
+ * فوق يوم: أيام وساعات. دون يوم: `HH:MM:SS`.
+ */
+export function splitDuration(totalSeconds: number): {
+  days: number;
+  hours: number;
+  clock: string;
+  isLong: boolean;
+} {
+  const safe = Math.max(0, Math.floor(totalSeconds));
+  return {
+    days: Math.floor(safe / SECONDS_PER_DAY),
+    hours: Math.floor((safe % SECONDS_PER_DAY) / 3600),
+    clock: formatDuration(safe),
+    isLong: safe >= SECONDS_PER_DAY,
+  };
+}
+
+/**
+ * نسبة مئوية في **مقطع نصّي واحد**: الإشارة والرقم والعلامة معًا.
+ * تقسيمها إلى ثلاثة عناصر يجعل الاتجاه يفرّقها فتُقرأ «٪ ٤٠ −».
+ */
+export function formatPercent(value: number, locale: NumeralLocale): string {
+  const sign = value > 0 ? '+' : value < 0 ? '\u2212' : '';
+  const digits = formatNumber(Math.abs(value), locale, { grouped: false });
+  return locale === 'ar' ? `${sign}${digits}٪` : `${sign}${digits}%`;
+}

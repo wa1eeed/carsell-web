@@ -3,6 +3,7 @@ import { ArabicNumber } from './ArabicNumber';
 import { Badge, InspectedBadge } from './Badge';
 import { Countdown } from './Countdown';
 import { Money } from './Money';
+import { Quantity, type Unit } from './Quantity';
 import { cn } from '@/lib/cn';
 
 export type ListingCardData = {
@@ -37,7 +38,7 @@ const TYPE_TONE = {
  * الفاصل «·» بين كلمة عربية ورقم عربي-هندي ينزلق فيُقرأ رقمًا زائدًا.
  * لا تُمرَّر هذه المقاطع كسلسلة واحدة أبدًا (فحص CI رقم ٦).
  */
-export type MetaPart = string | { value: number; unit?: string };
+export type MetaPart = string | { count: number; unit: Unit };
 
 function MetaLine({ parts }: { parts: readonly MetaPart[] }) {
   return (
@@ -50,16 +51,11 @@ function MetaLine({ parts }: { parts: readonly MetaPart[] }) {
             </span>
           ) : null}
           {/* الرقم ووحدته مقطع واحد معزول — لا فاصل بينهما فلا انزلاق */}
-          <span className="bidi-isolate flex items-center gap-1">
-            {typeof part === 'string' ? (
-              part
-            ) : (
-              <>
-                <ArabicNumber value={part.value} />
-                {part.unit === undefined ? null : <span>{part.unit}</span>}
-              </>
-            )}
-          </span>
+          {typeof part === 'string' ? (
+            <span className="bidi-isolate">{part}</span>
+          ) : (
+            <Quantity unit={part.unit} count={part.count} />
+          )}
         </span>
       ))}
     </p>
@@ -124,7 +120,7 @@ export function CarCard({
         className,
       )}
     >
-      <div className="relative aspect-16/10 bg-ink/8">
+      <div className="washed relative aspect-16/10">
         <div className="absolute inset-x-2.5 top-2.5 flex items-start justify-between gap-2">
           <span className="flex flex-col items-start gap-1.5">
             {sponsored ? <Badge tone="neutral">{t('sponsored')}</Badge> : null}
@@ -134,24 +130,21 @@ export function CarCard({
             <Countdown endsAt={data.endsAt} />
           ) : null}
         </div>
-        <span className="absolute bottom-2.5 inline-flex items-center gap-1 rounded-sm bg-ink/70 px-2 py-0.5 text-3xs text-bg end-2.5">
-          <ArabicNumber value={data.imageCount} />
+        <span className="absolute bottom-2.5 inline-flex items-center rounded-sm bg-ink/70 px-2 py-0.5 text-3xs text-bg end-2.5">
+          <Quantity unit="photos" count={data.imageCount} />
         </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-3.5">
         <h3 className="text-lg leading-snug font-bold">{data.title}</h3>
         <MetaLine
-          parts={[data.city, { value: data.mileageKm, unit: t('km') }, data.transmission]}
+          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmission]}
         />
 
         <div className="mt-auto flex items-end justify-between gap-3 border-b border-line-2 pb-3">
           <Price data={data} />
           {data.type === 'AUCTION' ? (
-            <span className="flex items-center gap-1 text-3xs opacity-50">
-              <ArabicNumber value={data.bidderCount ?? 0} />
-              <span>{t('bidders')}</span>
-            </span>
+            <Quantity unit="bidders" count={data.bidderCount ?? 0} className="text-3xs opacity-50" />
           ) : (
             <Badge tone={TYPE_TONE[data.type]}>{t(`listingType.${data.type}`)}</Badge>
           )}
@@ -180,24 +173,26 @@ export function CarRow({
         className,
       )}
     >
-      <div className="relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg bg-ink/8">
+      <div className="washed relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg">
         {data.inspected ? (
           <InspectedBadge className="absolute top-2 start-2" />
         ) : null}
       </div>
 
+      {/* العنوان والبيانات يأخذان الفراغ، والسعر والرقاقة مجموعان في
+          نهاية الصفّ. لا `justify-between` على ثلاثة عناصر — تُنتج
+          فجوة في الوسط وتترك الرقاقة معلّقة وحدها. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="truncate text-lg font-bold">{data.title}</h3>
-          <Badge tone={TYPE_TONE[data.type]}>{t(`listingType.${data.type}`)}</Badge>
-        </div>
+        <h3 className="truncate text-lg font-bold">{data.title}</h3>
         <MetaLine
-          parts={[data.city, { value: data.mileageKm, unit: t('km') }, data.transmission]}
+          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmission]}
         />
-        <div className="mt-auto flex items-end justify-between gap-3">
-          <Price data={data} />
-          <Seller name={data.sellerName} verified={data.sellerVerified} />
-        </div>
+        <Seller name={data.sellerName} verified={data.sellerVerified} />
+      </div>
+
+      <div className="flex shrink-0 flex-col items-end justify-between gap-2.5">
+        <Badge tone={TYPE_TONE[data.type]}>{t(`listingType.${data.type}`)}</Badge>
+        <Price data={data} />
       </div>
     </article>
   );

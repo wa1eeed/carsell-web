@@ -33,7 +33,6 @@
     "inspected": "مفحوصة",
     "sponsored": "إعلان",
     "highestBid": "أعلى مزايدة",
-    "bidders": "مزايدًا",
     "orMonthly": "أو شهريًا",
     "inspectionScore": "درجة الفحص",
     "outOf100": "من ١٠٠",
@@ -42,13 +41,11 @@
     "belowRange": "أقل من النطاق",
     "fairMarket": "السوق العادل",
     "basedOn": "مبني على",
-    "deals": "صفقة",
     "listingType": {
       "DIRECT": "مباشر",
       "NEGOTIATION": "تفاوض",
       "AUCTION": "مزاد"
-    },
-    "km": "كم"
+    }
   },
   "orderStage": {
     "REQUEST": "طلب",
@@ -77,5 +74,15 @@
     "composite": "المركّبة",
     "shells": "الأصداف",
     "scales": "السلالم"
+  },
+  "units": {
+    "orders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبًا} other{{n} طلب}}",
+    "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدًا} other{{n} مزايد}}",
+    "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
+    "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يومًا} other{{n} يوم}}",
+    "hours": "{count, plural, zero{لا ساعات} one{ساعة واحدة} two{ساعتان} few{{n} ساعات} many{{n} ساعة} other{{n} ساعة}}",
+    "photos": "{count, plural, zero{لا صور} one{صورة واحدة} two{صورتان} few{{n} صور} many{{n} صورة} other{{n} صورة}}",
+    "cars": "{count, plural, zero{لا سيارات} one{سيارة واحدة} two{سيارتان} few{{n} سيارات} many{{n} سيارة} other{{n} سيارة}}",
+    "km": "{count, plural, other{{n} كم}}"
   }
 }

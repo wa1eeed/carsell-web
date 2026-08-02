@@ -9,6 +9,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Money } from '@/components/ui/Money';
 import { Badge } from '@/components/ui/Badge';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Quantity } from '@/components/ui/Quantity';
 
 /** الحالات التي تحتاج تفاعلًا — تُعرض جنبًا إلى جنب مع الساكنة. */
 
@@ -37,9 +38,11 @@ const COLUMNS: readonly Column<OrderRow>[] = [
     numeric: true,
     sortable: true,
     cell: (r) => (
-      <span className={r.days > 7 ? 'font-bold text-warn-700' : ''}>
-        <ArabicNumber value={r.days} /> يوم
-      </span>
+      <Quantity
+        unit="days"
+        count={r.days}
+        className={r.days > 7 ? 'font-bold text-warn-700' : ''}
+      />
     ),
   },
 ];

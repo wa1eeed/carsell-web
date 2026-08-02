@@ -6,6 +6,7 @@
  *  ٥. لا رقم Latin يسبق كلمة عربية في نص الواجهة.
  *  ٦. لا سطر بيانات مبنيّ كنصّ واحد — الفصل بالتخطيط لا بالنصّ
  *     (DESIGN-DECISIONS · بعد المهمة ١).
+ *  ٧. لا `#` في جمع ICU عربي — يطبع أرقامًا لاتينية.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -34,6 +35,12 @@ const MIDDLE_DOT = /·/;
 
 /** متغيّر ICU (`{count}`) أو رقم صريح (لاتيني أو عربي-هندي). */
 const NUMERIC_CONTENT = /\{[^}]+\}|[0-9٠-٩]/;
+
+/**
+ * `#` داخل جمع ICU يطبع بـ`Intl.NumberFormat('ar')` — وهو **لاتيني**،
+ * فتخرج «9 طلبات». الرقم يُصاغ في المكوّن ويُمرَّر متغيّرًا جاهزًا.
+ */
+const ICU_HASH = /\{[^{}]*\bplural\b/;
 
 /** @type {string[]} */
 const problems = [];
@@ -101,6 +108,12 @@ function walkMessages(node, path, file, checkArabicDigits) {
         `${file}:${path}  «·» ورقم في سلسلة واحدة — افصل المقاطع بالتخطيط ولُفّ كلًّا منها بـ bidi-isolate`,
       );
     }
+    // القاعدة ٧
+    if (checkArabicDigits && ICU_HASH.test(node) && node.includes('#')) {
+      problems.push(
+        `${file}:${path}  «#» في جمع ICU يطبع أرقامًا لاتينية — مرّر الرقم مصاغًا في متغيّر`,
+      );
+    }
     return;
   }
   if (node && typeof node === 'object') {
@@ -133,5 +146,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU.',
 );

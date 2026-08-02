@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { formatDuration } from '@/lib/arabic';
+import { splitDuration } from '@/lib/arabic';
+import { Quantity } from './Quantity';
 import { cn } from '@/lib/cn';
 
 export type CountdownTone = 'ink' | 'warn' | 'plain';
@@ -15,7 +16,9 @@ const TONE: Record<CountdownTone, string> = {
 /**
  * عدّاد `HH:MM:SS`.
  *
- * · **Latin في اللغتين** — أوضح وأسرع قراءة (HANDOFF §١٢).
+ * · دون ٢٤ ساعة: `HH:MM:SS` **Latin في اللغتين** (HANDOFF §١٢).
+ * · فوقها: أيام وساعات. ساعات بالآلاف (`634796:04:20`) رقم صحيح
+ *   حسابيًا وبلا معنى للقارئ، فلا تُعرض أبدًا.
  * · يتوقّف عند إخفاء الصفحة ويعيد الحساب عند العودة، فلا مؤقّت
  *   يعمل في تبويب مخفي ولا انحراف تراكمي.
  * · الوقت المتبقّي يُحسب من فارق زمني لا من عدّ تنازلي — تكبيرة
@@ -79,12 +82,24 @@ export function Countdown({
     };
   }, [target, onEnd]);
 
+  const parts = splitDuration(remaining);
+
+  if (parts.isLong) {
+    // مقطعان معزولان بفراغ تخطيطي — لا فاصل نصّي بينهما
+    return (
+      <span className={cn('inline-flex items-center gap-1.5 font-bold', TONE[tone], className)}>
+        <Quantity unit="days" count={parts.days} />
+        <Quantity unit="hours" count={parts.hours} />
+      </span>
+    );
+  }
+
   return (
     <span
       dir="ltr"
       className={cn('font-num inline-block font-bold tabular-nums', TONE[tone], className)}
     >
-      {formatDuration(remaining)}
+      {parts.clock}
     </span>
   );
 }

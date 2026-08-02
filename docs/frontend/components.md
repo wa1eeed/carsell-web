@@ -41,13 +41,34 @@ A capsule — that is what separates it from `Badge`. Filter chips are clickable
 by the active-filter row on the search page. Disabled chips are inert.
 
 ### `PlateBadge`
-Saudi plate: KSA strip on top, then Arabic digits and letters, then the Latin row.
-Sizes `sm | md | lg`. Everything inside is `font-num` including the letters —
-plate letters are symbols, not text — and the box is `dir="ltr"` because the
-order of digits and letters is fixed regardless of page direction.
+A real Saudi plate, copied from the object rather than from the design system.
+
+Structure: two rows × two columns plus a vertical strip at the right edge.
+Left column digits, middle column letters, Arabic row on top and Latin below.
+The strip carries the emblem, the country name, K S A stacked, and a filled dot.
+
+Props are `letters` (3 Arabic characters) and `numbers` (4 digits). **The Latin
+equivalents are derived inside the component** from the official 17-letter table
+— م→Z and ص→X are codes, not transliteration, so no caller can get them wrong.
+
+Two deliberate exceptions, both because a plate is a physical object and not a UI
+element:
+
+- **Colour.** Black text on `#f2f2f2` cells inside a white frame, via
+  `plate-ink` / `plate-cell` / `plate-frame` / `plate-line`. These are the only
+  tokens outside the three-meaning colour system.
+- **Type.** Arial for **both** rows, Arabic letters included. Plate letters are
+  engraved symbols, not running text, so they do not take the body font.
+
+Sizes are `sm` 82px · `md` 120px · `lg` 180px wide at a 2.4:1 ratio. Only the
+width and a base font size change; everything inside is in `em`, so the plate
+scales without its structure changing. `dir="ltr"` on the whole component —
+column order is fixed on a real plate and does not follow page direction.
 
 ### `Countdown`
-`HH:MM:SS`, **Latin in both languages**. It stops on `visibilitychange` and
+Under 24 hours: `HH:MM:SS`, **Latin in both languages**. Above 24 hours: days and
+hours, as two isolated segments. Thousands of hours (`634796:04:20`) is
+arithmetically correct and meaningless to a reader, so it is never shown. It stops on `visibilitychange` and
 recomputes on return, so no timer runs in a hidden tab. Remaining time is derived
 from a timestamp difference rather than a decrementing counter, so it cannot
 drift. Tones `ink | warn | plain`; `onEnd` fires once at zero.
@@ -56,6 +77,24 @@ drift. Tones `ink | warn | plain`; `onEnd` fires once at zero.
 Inspection score out of 100 in three sizes. Colour is meaning, not decoration:
 ≥80 green, ≥60 ochre, below that red. Thresholds live here so the vehicle page
 and the report page cannot disagree.
+
+### `Quantity` · `Percent`
+`Quantity` renders a number with its unit. **Arabic pluralisation has six forms**
+— «طلب واحد» · «طلبان» · «٩ طلبات» · «١١ طلبًا» — and writing the unit by hand
+produces «٩ طلب», a grammatical error that then repeats on every screen. Rules
+live in the `units` messages as ICU plurals; no unit is written outside this
+component.
+
+The number is formatted in the component and passed in as `{n}`, because ICU's
+`#` renders through `Intl.NumberFormat('ar')`, which produces **Latin** digits.
+CI check 7 fails on any `#` left inside an Arabic plural.
+
+`Percent` renders sign, number and percent mark as **one** isolated segment.
+Split across three elements, direction reorders them into «٪ ٤٠ −».
+
+Neither applies `font-num`: the Arabic font stack already maps digits to Arial by
+unicode range, and forcing `font-num` on mixed text would put the Arabic letters
+in Arial too.
 
 ### `EmptyState` · `Toast`
 `EmptyState` is required on every table and every result grid. `Toast` comes in

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ArabicNumber } from './ArabicNumber';
+import { Percent } from './Quantity';
 import { cn } from '@/lib/cn';
 
 export type StatTone = 'plain' | 'warn' | 'ink';
@@ -43,9 +44,10 @@ export function StatCard({
         </span>
         <span className="flex-1" />
         {delta === undefined ? null : (
-          <span
+          <Percent
+            value={delta}
             className={cn(
-              'inline-flex items-center gap-0.5 text-3xs font-bold',
+              'text-3xs font-bold',
               delta >= 0
                 ? onInk
                   ? 'text-accent-400'
@@ -54,11 +56,7 @@ export function StatCard({
                   ? 'text-warn-400'
                   : 'text-warn-700',
             )}
-          >
-            <span className="bidi-isolate">{delta >= 0 ? '+' : '−'}</span>
-            <ArabicNumber value={Math.abs(delta)} />
-            <span className="bidi-isolate">٪</span>
-          </span>
+          />
         )}
       </div>
 

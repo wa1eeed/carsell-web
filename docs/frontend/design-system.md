@@ -53,7 +53,7 @@ added by a recorded decision.
 
 | Token | px | Used for |
 |---|---|---|
-| `text-3xs` | 8.5 | letter-spaced micro labels, table headers |
+| `text-3xs` | 8.5 | **admin only** — micro labels, table headers |
 | `text-2xs` | 9.5 | helper labels under numbers |
 | `text-xs` | 10.5 | secondary card data |
 | `text-sm` | 11.5 | the most common size — list items, fields |
@@ -63,9 +63,18 @@ added by a recorded decision.
 | `text-xl` | 17 | admin page header |
 | `text-2xl` | 20 | site section heading |
 | `text-3xl` … `text-6xl` | 22 · 26 · 32 · 36 | large headings |
+| `text-display` | 44 | page heroes only |
 
 Weights: 400 body · 500 secondary · 600 label · 700 heading · **800 the wordmark
 only**.
+
+`text-3xs` is **forbidden in the public site**. 8.5px Arabic on a phone screen is
+not readable; the admin panel is an internal tool on a large screen, which is the
+only place it is allowed.
+
+`text-display` is a deliberate single exception rather than a broken scale: the
+Wa headline is the largest text in the product and the first thing the eye lands
+on, and 36px costs it its presence.
 
 ### Where the scale came from
 
@@ -80,9 +89,11 @@ declarations. 57% land exactly on the scale. The rest are whole-pixel values
 One variable generates the scale: `--spacing: 4px`, so `p-1` is 4px, `p-10` is
 40px — the web page margin and column gap.
 
-The design is built on a **2px** grid inside components: the most-used value in
-the entire design is 10px (1,108 occurrences), then 14px (788). These are written
-as half steps of the same variable, with no extra tokens:
+**The design uses 4px for layout and 2px inside components.** The most-used value
+in the whole design is 10px (1,108 occurrences), then 14px (788). Half steps of
+the same variable express exactly that, and `p-2.5` is readable and conventional
+in Tailwind. Naming the 2px grid explicitly would create a second scale competing
+with the first, so we do not:
 
 ```
 p-0.5 = 2   p-1.5 = 6   p-2.5 = 10   p-3.5 = 14   p-4.5 = 18   p-5.5 = 22

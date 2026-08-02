@@ -13,22 +13,25 @@
     "typecheck": "tsc --noEmit",
     "check:tokens": "node scripts/check-tokens.mjs",
     "check:schema": "tsx scripts/check-schema.ts",
-    "check": "npm run typecheck && npm run lint && npm run check:tokens",
+    "check": "npm run typecheck && npm run lint && npm run check:tokens && npm test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "jose": "^6.2.7",
     "next": "15.5.22",
     "next-intl": "4.13.4",
     "pg": "^8.22.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.6",
@@ -42,6 +45,7 @@
     "prisma": "^7.9.1",
     "tailwindcss": "4.3.3",
     "tsx": "^4.23.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.10"
   }
 }

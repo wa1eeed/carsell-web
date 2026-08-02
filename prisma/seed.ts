@@ -644,7 +644,7 @@ async function main(): Promise<void> {
         city,
         entryMode: i % 4 === 0 ? 'MANUAL' : 'VIN_LOOKUP',
         vin: `SEED${String(i).padStart(4, '0')}${between(100000000, 999999999)}`,
-        plateLetters: 'أ ب ج',
+        plateLetters: 'أ ب ح',
         plateNumbers: String(between(1000, 9999)),
         createdAt: days(-between(2, 120)),
       },

@@ -33,7 +33,6 @@
     "inspected": "Inspected",
     "sponsored": "Sponsored",
     "highestBid": "Highest bid",
-    "bidders": "bidders",
     "orMonthly": "or monthly",
     "inspectionScore": "Inspection score",
     "outOf100": "of 100",
@@ -42,13 +41,11 @@
     "belowRange": "Below range",
     "fairMarket": "Fair market",
     "basedOn": "Based on",
-    "deals": "deals",
     "listingType": {
       "DIRECT": "Direct",
       "NEGOTIATION": "Negotiation",
       "AUCTION": "Auction"
-    },
-    "km": "km"
+    }
   },
   "orderStage": {
     "REQUEST": "Request",
@@ -77,5 +74,15 @@
     "composite": "Composite",
     "shells": "Shells",
     "scales": "Scales"
+  },
+  "units": {
+    "orders": "{count, plural, one{{n} order} other{{n} orders}}",
+    "bidders": "{count, plural, one{{n} bidder} other{{n} bidders}}",
+    "deals": "{count, plural, one{{n} deal} other{{n} deals}}",
+    "days": "{count, plural, one{{n} day} other{{n} days}}",
+    "hours": "{count, plural, one{{n} hour} other{{n} hours}}",
+    "photos": "{count, plural, one{{n} photo} other{{n} photos}}",
+    "cars": "{count, plural, one{{n} car} other{{n} cars}}",
+    "km": "{count, plural, other{{n} km}}"
   }
 }

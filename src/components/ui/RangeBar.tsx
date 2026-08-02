@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Money } from './Money';
-import { ArabicNumber } from './ArabicNumber';
+import { Quantity } from './Quantity';
 import { cn } from '@/lib/cn';
 
 /** الحد الأدنى للثقة — أقل منه لا يُعرض شيء (HANDOFF §١٧٫١). */
@@ -91,8 +91,7 @@ export function RangeBar({
 
       <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-55">
         <span>{t('basedOn')}</span>
-        <ArabicNumber value={stats.sampleSize} className="font-semibold" />
-        <span>{t('deals')}</span>
+        <Quantity unit="deals" count={stats.sampleSize} className="font-semibold" />
       </p>
     </div>
   );
