@@ -28,6 +28,31 @@ export function fail(error: ApiError, status: number, init?: ResponseInit): Next
 
 /** أخطاء معرَّفة مركزيًا — لا نصّ خطأ مكتوب داخل مسار. */
 export const ERRORS = {
+  OFFER_ACTIVE_EXISTS: {
+    code: 'OFFER_ACTIVE_EXISTS',
+    messageAr: 'لديك عرض نشط على هذا الإعلان. اسحبه قبل تقديم عرض جديد.',
+    messageEn: 'You already have an active offer on this listing. Withdraw it first.',
+  },
+  OFFER_OWN_LISTING: {
+    code: 'OFFER_OWN_LISTING',
+    messageAr: 'لا يمكنك تقديم عرض على إعلانك.',
+    messageEn: 'You cannot make an offer on your own listing.',
+  },
+  OFFER_NOT_NEGOTIABLE: {
+    code: 'OFFER_NOT_NEGOTIABLE',
+    messageAr: 'هذا الإعلان لا يقبل العروض.',
+    messageEn: 'This listing does not accept offers.',
+  },
+  OFFER_LISTING_CLOSED: {
+    code: 'OFFER_LISTING_CLOSED',
+    messageAr: 'الإعلان لم يعد معروضًا.',
+    messageEn: 'This listing is no longer available.',
+  },
+  OFFER_NOT_ACTIVE: {
+    code: 'OFFER_NOT_ACTIVE',
+    messageAr: 'هذا العرض لم يعد نشطًا.',
+    messageEn: 'This offer is no longer active.',
+  },
   VIN_INVALID: {
     code: 'VIN_INVALID',
     messageAr: 'رقم الهيكل غير صحيح — تحقّق من الخانات السبع عشرة.',

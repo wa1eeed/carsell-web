@@ -55,6 +55,7 @@ model User {
   reports         Report[]
   invoices        Invoice[]
   overrides       EntitlementOverride[]
+  notifications   Notification[]
 
   @@index([status, createdAt])
   @@index([dealerId])
@@ -1062,6 +1063,32 @@ model SeoTemplate {
   outroEn   String
   variables String[]
   active    Boolean  @default(true)
+}
+
+/// الإشعار المُرسَل — القالب يصف الشكل، وهذا يسجّل الواقعة.
+///
+/// القاعدتان ١ و٥ في القسم ٧ تشترطان إشعارًا («يُرفض تلقائيًا **مع
+/// إشعار**»، «إعادة نشر + **إخطار المتقدّمين**»)، وقالبٌ بلا سجلّ
+/// يجعل الشرط غير قابل للاختبار: لا أثر يُقاس.
+///
+/// `critical` لا يُوقَف (قاعدة ١٧) — ولذلك الأولوية على الإشعار نفسه
+/// لا على تفضيل المستخدم وحده.
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String
+  templateKey String
+  priority   String    @default("normal") // critical | high | normal
+  /// متغيّرات القالب وقت الإرسال — لقطة، فتغييرُ القالب لا يغيّر ما أُرسل
+  payload    Json?
+  entityType String? // Offer | Order | Listing
+  entityId   String?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([entityType, entityId])
 }
 
 model NotificationTemplate {

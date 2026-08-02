@@ -41,3 +41,28 @@ COPY package*.json prisma prisma.config.ts ./
 `prisma generate` itself does not need a database connection — `prisma.config.ts`
 reads `process.env.DATABASE_URL` rather than Prisma's `env()`, which throws when
 the variable is absent.
+
+## When R2 is configured
+
+**One verification is deliberately missing and must be run then.**
+
+The plate-blur acceptance criterion ("an image with a plate is saved blurred") is
+proven at the storage boundary: `tests/listing-images.test.ts` replaces the store
+with a spy and measures the bytes handed to it. What has **never** run is the
+full round trip over HTTP — upload a real file through
+`POST /api/v1/listings/images`, then read the object back from R2 and confirm the
+plate region is blurred in what storage actually holds.
+
+Locally R2 is unconfigured, so the route stops at `503 STORAGE_UNAVAILABLE`,
+which is correct behaviour and is itself verified. But nothing has yet proven
+that `storeObject` writes what it was given, or that the object served from the
+public URL is the processed one.
+
+With keys in place this is a single check. Without this note it is a silent gap:
+every test passes and the criterion still might not hold in production.
+
+Run:
+
+1. Upload a photo with a readable plate through the sell flow.
+2. Fetch the resulting public URL.
+3. Assert the plate region's standard deviation is below half the original.
