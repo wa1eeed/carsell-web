@@ -34,7 +34,7 @@ export default async function AdminDashboardPage() {
             label="محتجز في الضمان"
             value={escrowHeld._sum.amount?.toString() ?? 0}
             tone="ink"
-            unit="ريال"
+            suffix="ريال"
           />
         ) : null}
       </div>

@@ -168,3 +168,16 @@ Bidirectional fields inside Arabic text — phone, IBAN, VIN, plate, email — u
 | 4 | no raw colour in components | `check-tokens.mjs` |
 | 5 | no Latin digit before an Arabic word | `check-tokens.mjs` |
 | 6 | no data line built as one string | `check-tokens.mjs` |
+| 7 | no `#` inside an Arabic ICU plural | `check-tokens.mjs` |
+| 8 | every `Quantity` unit is declared | `check-tokens.mjs` |
+| 9 | no Arabic unit written after a number | `carsell/no-arabic-beside-number` |
+
+Checks 7, 8 and 9 exist because the same defect appeared three times: a unit
+written by hand after a number produces «٩ طلب» instead of «٩ طلبات». Arabic has
+six plural forms, so a hand-written unit is wrong in most of them. The rule is
+scoped to text **after** the number — a label before it («المحدَّد: ٣») needs no
+agreement and flagging it would be noise that gets the rule disabled.
+
+`StatCard` takes `suffix`, not `unit`: it is for suffixes that do **not** depend
+on the count («ريال», «م», «٪»). A count with a unit always goes through
+`Quantity`.

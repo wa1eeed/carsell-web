@@ -19,7 +19,7 @@ const TONE: Record<StatTone, string> = {
 export function StatCard({
   label,
   value,
-  unit,
+  suffix,
   delta,
   tone = 'plain',
   breakdown,
@@ -27,7 +27,11 @@ export function StatCard({
 }: {
   label: string;
   value: number | string;
-  unit?: string;
+  /**
+   * لاحقة **لا تتبع العدد**: «ريال» · «م» · «٪».
+   * لعددٍ ووحدته استعمل `Quantity` — العربية ست حالات جمع.
+   */
+  suffix?: string;
   /** موجب صعود وسالب هبوط، بالنسبة المئوية */
   delta?: number;
   tone?: StatTone;
@@ -62,8 +66,8 @@ export function StatCard({
 
       <div className="flex items-baseline gap-1.5">
         <ArabicNumber value={value} className="text-4xl leading-none font-bold" />
-        {unit === undefined ? null : (
-          <span className="text-2xs opacity-55">{unit}</span>
+        {suffix === undefined ? null : (
+          <span className="text-2xs opacity-55">{suffix}</span>
         )}
       </div>
 

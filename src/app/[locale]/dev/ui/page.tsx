@@ -237,7 +237,7 @@ export default async function DevUiPage({
                 { label: 'تفاوض', value: 5_400_000 },
               ]}
             />
-            <StatCard label="مهلة متجاوزة" value={9} tone="warn" delta={-4} unit="طلب" />
+            <StatCard label="مهلة متجاوزة" value={9} tone="warn" delta={-4} suffix="طلب" />
             <StatCard
               label="نقد الضمان"
               value={2_300_000}
@@ -270,7 +270,7 @@ export default async function DevUiPage({
                   <ArabicNumber value={2024} grouped={false} />
                 </SpecRow>
                 <SpecRow label="الممشى">
-                  <ArabicNumber value={3456} /> كم
+                  <Quantity unit="km" count={3456} />
                 </SpecRow>
                 <SpecRow label="ناقل الحركة">أوتوماتيك</SpecRow>
               </div>

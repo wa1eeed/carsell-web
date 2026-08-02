@@ -7,6 +7,7 @@
  *  ٦. لا سطر بيانات مبنيّ كنصّ واحد — الفصل بالتخطيط لا بالنصّ
  *     (DESIGN-DECISIONS · بعد المهمة ١).
  *  ٧. لا `#` في جمع ICU عربي — يطبع أرقامًا لاتينية.
+ *  ٨. كل `unit` مستعمل في الكود مصرَّح به في الوحدات وفي نوع `Unit`.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -137,6 +138,71 @@ for (const locale of ['ar', 'en']) {
   }
 }
 
+// ————— القاعدة ٨: الوحدات المصرَّح بها —————
+/**
+ * ثلاثة مصادر يجب أن تتطابق: نوع `Unit` في المكوّن، ومفاتيح `units`
+ * في ar وen، وما يُستعمل فعلًا في الشاشات.
+ *
+ * الفحص لا يمنع وحدة **صحيحة نحويًا وخاطئة دلاليًا** («سيارتان» لعدّ
+ * الفئات) — لكنه يجعل القائمة المصرَّح بها قصيرة وظاهرة، فيُرى الخطأ
+ * في المراجعة بدل أن يختفي بين عشرات السلاسل.
+ */
+function checkUnits() {
+  const quantityPath = join(ROOT, 'src', 'components', 'ui', 'Quantity.tsx');
+  let declared;
+  try {
+    const source = readFileSync(quantityPath, 'utf8');
+    const union = source.match(/export type Unit =([\s\S]*?);/);
+    if (union === null) {
+      problems.push('src/components/ui/Quantity.tsx — تعذّر قراءة نوع Unit');
+      return;
+    }
+    declared = new Set([...union[1].matchAll(/'([a-zA-Z_]+)'/g)].map((m) => m[1]));
+  } catch {
+    problems.push('src/components/ui/Quantity.tsx — غير موجود');
+    return;
+  }
+
+  for (const locale of ['ar', 'en']) {
+    const file = `src/messages/${locale}.json`;
+    const messages = JSON.parse(
+      readFileSync(join(ROOT, 'src', 'messages', `${locale}.json`), 'utf8'),
+    );
+    const keys = new Set(Object.keys(messages.units ?? {}));
+
+    for (const unit of declared) {
+      if (!keys.has(unit)) {
+        problems.push(`${file}  الوحدة «${unit}» مصرَّحة في نوع Unit وغائبة عن الترجمة`);
+      }
+    }
+    for (const key of keys) {
+      if (!declared.has(key)) {
+        problems.push(`${file}  الوحدة «${key}» في الترجمة وغائبة عن نوع Unit`);
+      }
+    }
+  }
+
+  // ما يُستعمل فعلًا في الشاشات
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      const source = readFileSync(file, 'utf8');
+      // مقصور على <Quantity>: `unit` في StatCard لاحقة لا وحدة معدودة
+      for (const tag of source.matchAll(/<Quantity\b[^>]*>/g)) {
+        for (const match of tag[0].matchAll(/\bunit=(?:"([^"]+)"|\{'([^']+)'\})/g)) {
+          const used = match[1] ?? match[2];
+          if (used !== undefined && !declared.has(used)) {
+            problems.push(`${rel}  الوحدة «${used}» مستعملة وغير مصرَّح بها في نوع Unit`);
+          }
+        }
+      }
+    }
+  }
+}
+
+checkUnits();
+
 // ————— النتيجة —————
 if (problems.length > 0) {
   console.error('\n✗ بوابة الجودة — القسم ١٤:\n');
@@ -146,5 +212,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها.',
 );
