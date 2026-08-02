@@ -220,3 +220,49 @@ are not the developer's to invent. It is left unbuilt rather than guessed.
 
 **Implemented:** the six schema-backed groups only. The rest needs both columns
 and a ruling — the refund policy above all.
+
+---
+
+## 13 · Finance-input keys are a closed list in code
+
+**Assumed:** salaries · paid marketing · referral incentives · content and SEO ·
+infrastructure · other · cash balance. The three marked `inCac` are what CAC
+divides by new customers.
+
+**If wrong:** an expense line that does not fit any of them gets filed under
+"other" and disappears from every derived figure. Adding a key is a deploy.
+
+**Implemented:** `FINANCE_INPUT_KEYS` in `src/lib/domain/admin-finance.ts`. A
+free-text key was rejected deliberately — it produces "marketing", "mktg" and
+"تسويق" across three months and CAC then sums a subset of itself.
+
+---
+
+## 14 · LTV counts platform commission only
+
+**Assumed:** lifetime value is commission per paying customer. Service revenue,
+sponsored ads and shipping are not attributed back to the buyer who generated
+them.
+
+**If wrong:** LTV is understated, possibly badly — right now commission is
+disabled, so LTV reads zero while the platform does earn from services. That
+makes LTV/CAC useless exactly when it is being used to decide whether to enable
+commission.
+
+**Implemented:** commission only. Attributing service revenue to a customer
+needs `ServiceRequest.userId` joined through to orders, which is a reporting
+decision, not a rendering one.
+
+---
+
+## 15 · SMS cost is 0.04 SAR per segment, hard-coded
+
+**Assumed:** a placeholder until a provider is contracted. Displayed as an
+estimate, and labelled as one on screen.
+
+**If wrong:** it is a money figure on an admin screen, and a wrong one shapes
+decisions about which templates use SMS. The real rate varies by provider and by
+destination network.
+
+**Implemented:** `SMS_COST_PER_SEGMENT` in `src/lib/domain/notification-text.ts`,
+overridable per call. It belongs in `PlatformSetting` once a provider exists.

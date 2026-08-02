@@ -311,6 +311,12 @@
   },
   "units": {
     "orders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبًا} other{{n} طلب}}",
+    "transactionalNotifications": "{count, plural, zero{لا إشعارات معاملاتية} one{إشعار معاملاتي واحد} two{إشعاران معاملاتيان} few{{n} إشعارات معاملاتية} many{{n} إشعارًا معاملاتيًّا} other{{n} إشعار معاملاتي}}",
+    "characters": "{count, plural, zero{لا أحرف} one{حرف واحد} two{حرفان} few{{n} أحرف} many{{n} حرفًا} other{{n} حرف}}",
+    "smsSegments": "{count, plural, zero{لا مقاطع} one{مقطع واحد} two{مقطعان} few{{n} مقاطع} many{{n} مقطعًا} other{{n} مقطع}}",
+    "notifications": "{count, plural, zero{لا إشعارات} one{إشعار واحد} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
+    "newCustomers": "{count, plural, zero{لا عملاء جدد} one{عميل جديد} two{عميلان جديدان} few{{n} عملاء جدد} many{{n} عميلًا جديدًا} other{{n} عميل جديد}}",
+    "buyers": "{count, plural, zero{لا مشترين} one{مشترٍ واحد} two{مشتريان} few{{n} مشترين} many{{n} مشتريًا} other{{n} مشترٍ}}",
     "openRequests": "{count, plural, zero{لا قائم} one{قائم واحد} two{قائمان} few{{n} قائمة} many{{n} قائمًا} other{{n} قائم}}",
     "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدًا} other{{n} مزايد}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",

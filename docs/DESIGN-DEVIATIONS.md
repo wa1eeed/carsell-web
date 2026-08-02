@@ -116,3 +116,39 @@ column of Arabic-Indic ones, which is what made the deviation visible.
 descriptions, price, SLA and placements, and carries the publish/hide action.
 The design lists further per-service settings the schema cannot yet hold — see
 `docs/OPEN-QUESTIONS.md` §12.
+
+---
+
+## A3 — no charts, and figures that need a provider · 2026-08-03
+
+A3's markup has a 12-month GMV/revenue chart, a revenue-mix donut, and a monthly
+expense card.
+
+**What was built:** the numbers those visuals summarise, as cards with their
+breakdowns — GMV by source, revenue by stream, escrow by state, subscriptions by
+plan — plus the composite indicators and the commission simulator.
+
+**Why:** no charting approach has been chosen anywhere in the admin yet, and
+picking one inside a single screen makes it that screen's choice rather than the
+console's. The expense card renders `FinanceInput` values that the inputs table
+already lists row by row.
+
+**To add them:** every figure the charts need is already returned by
+`financeSummary` and `indicators`; only rendering is missing.
+
+---
+
+## A8 — delivery rates and test send omitted · 2026-08-03
+
+A8's markup shows email delivery 98.4%, SMS delivery 96.1%, and buttons for
+"test send" and "delivery log".
+
+**What was built:** sent count (from `Notification`), estimated SMS segments and
+cost — the last two explicitly labelled estimates.
+
+**Why:** delivery rate is a fact only a provider knows, and no provider is
+contracted. Showing a computed-looking percentage with nothing behind it is
+worse than showing nothing. Same for a test send with nowhere to send to.
+
+**Also omitted:** "+ new notification". A template is keyed to the code that
+emits it, so a template with no emitter is a text nobody will ever send.

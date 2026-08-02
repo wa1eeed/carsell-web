@@ -12,6 +12,8 @@
  * ١٠. كل أداة لون في المكوّنات تشير إلى توكن معرَّف فعلًا.
  * ١١. كل ترحيل يمسّ المال له نصّ نقض بجواره.
  * ١٢. صفوف Prisma لا تعبر حدّ الخادم/العميل.
+ * ١٣. لا نقطة في مفتاح ترجمة — next-intl يقرؤها تداخلًا.
+ * ١٤. لا مكوّن عميل يصل إلى `db` عبر سلسلة استيرادات.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -20,7 +22,7 @@
  * الملف الوحيد المسموح فيه بقيَم لونية خام: src/app/globals.css.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
@@ -513,6 +515,74 @@ function rowBindings(source) {
   return bound;
 }
 
+/**
+ * ————— القاعدة ١٤: `db` لا يصل حزمة المتصفّح —————
+ *
+ * **الحدّ يمرّ عبر الاستيرادات لا عبر التوجيهات.** مكوّن `'use client'`
+ * يستورد وحدةً تستورد `db` يجرّ Prisma إلى المتصفّح فيُسقط البناء —
+ * ورسالة الخطأ تتحدّث عن `node:process` لا عن الاستيراد الذي سبّبها.
+ *
+ * وقع مرّتين: `CategoryFilter` في المهمة ١٤، ومحرّر القوالب في ٢٤.
+ * والمرّة الثانية بوابة لا تصحيح ثالث.
+ *
+ * والقاعدة ١٢ لا تمسكه: هي تفحص النوع والصفّ، وهذا استيراد لا نوع له.
+ */
+const BANNED_LEAVES = [/from\s+'@\/lib\/db'/, /from\s+'@\/generated\/prisma\/client'/];
+
+/** يتتبّع استيرادات `@/…` من ملفٍ ما، ويعيد أوّل سلسلة تصل إلى `db`. */
+function pathToDb(entry, seen = new Set()) {
+  if (seen.has(entry)) return null;
+  seen.add(entry);
+
+  let source;
+  try {
+    source = readFileSync(entry, 'utf8');
+  } catch {
+    return null;
+  }
+
+  // الورقة تعيد سلسلة فارغة — ومن استوردها هو من يُسمّيها
+  for (const pattern of BANNED_LEAVES) {
+    if (pattern.test(source)) return [];
+  }
+
+  for (const match of source.matchAll(/from\s+'(@\/[^']+)'/g)) {
+    const specifier = match[1] ?? '';
+    // `import type` لا يصل الحزمة — يُمحى وقت الترجمة
+    const line = source.slice(Math.max(0, match.index - 120), match.index);
+    if (/\bimport\s+type\b/.test(line)) continue;
+
+    const base = join(ROOT, 'src', specifier.slice(2));
+    for (const candidate of [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')]) {
+      if (!existsSync(candidate)) continue;
+      const rest = pathToDb(candidate, seen);
+      if (rest !== null) return [relative(ROOT, candidate), ...rest];
+      break;
+    }
+  }
+
+  return null;
+}
+
+function checkClientDbImports() {
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const source = readFileSync(file, 'utf8');
+      if (!/^\s*['"]use client['"]/m.test(source)) continue;
+
+      const chain = pathToDb(file);
+      if (chain === null) continue;
+
+      problems.push(
+        chain.length === 0
+          ? `${relative(ROOT, file)}  مكوّن عميل يستورد db مباشرةً`
+          : `${relative(ROOT, file)}  مكوّن عميل يصل إلى db عبر: ${chain.join(' ← ')} — افصل ما يحتاجه المتصفّح في وحدة بلا db`,
+      );
+    }
+  }
+}
+
 function checkPrismaBoundary() {
   for (const dir of SCAN_DIRS) {
     for (const file of walk(join(ROOT, dir))) {
@@ -568,6 +638,7 @@ checkStringifiedNumbers();
 checkColourUtilities();
 checkMoneyMigrations();
 checkPrismaBoundary();
+checkClientDbImports();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -578,5 +649,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح.',
 );

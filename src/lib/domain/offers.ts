@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
+import { DEFAULT_VAT_PCT, vatIncluded } from './money';
 
 /**
  * العروض — القواعد ١–٥ من القسم ٧.
@@ -340,8 +341,7 @@ export async function acceptOffer(
     const transferFee = Number(platform?.transferFee ?? 0);
     const total = price + commissionAmount + transferFee;
     // الضريبة **مضمَّنة** — ١٥/١١٥ من الإجمالي لا مضافة إليه (قرار ١٧)
-    const vatPct = Number(platform?.vatPct ?? 15);
-    const vatAmount = (total * vatPct) / (100 + vatPct);
+    const vatAmount = vatIncluded(total, platform?.vatPct ?? DEFAULT_VAT_PCT);
 
     const ref = await nextOrderRef(tx, now);
 
@@ -357,7 +357,7 @@ export async function acceptOffer(
         commissionPct: new Prisma.Decimal(commissionPct),
         commissionAmount: new Prisma.Decimal(commissionAmount),
         transferFee: new Prisma.Decimal(transferFee),
-        vatAmount: new Prisma.Decimal(vatAmount.toFixed(2)),
+        vatAmount,
         totalAmount: new Prisma.Decimal(total),
         createdAt: now,
         stageEnteredAt: now,

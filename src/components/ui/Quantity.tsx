@@ -31,6 +31,12 @@ export type Unit =
   | 'exceeded'
   | 'accesses'
   | 'openRequests'
+  | 'newCustomers'
+  | 'buyers'
+  | 'notifications'
+  | 'transactionalNotifications'
+  | 'characters'
+  | 'smsSegments'
   | 'km';
 
 /**

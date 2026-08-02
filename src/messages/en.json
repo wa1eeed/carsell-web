@@ -311,6 +311,12 @@
   },
   "units": {
     "orders": "{count, plural, one{{n} order} other{{n} orders}}",
+    "transactionalNotifications": "{count, plural, one{{n} transactional notification} other{{n} transactional notifications}}",
+    "characters": "{count, plural, one{{n} character} other{{n} characters}}",
+    "smsSegments": "{count, plural, one{{n} segment} other{{n} segments}}",
+    "notifications": "{count, plural, one{{n} notification} other{{n} notifications}}",
+    "newCustomers": "{count, plural, one{{n} new customer} other{{n} new customers}}",
+    "buyers": "{count, plural, one{{n} buyer} other{{n} buyers}}",
     "openRequests": "{count, plural, one{{n} open} other{{n} open}}",
     "bidders": "{count, plural, one{{n} bidder} other{{n} bidders}}",
     "deals": "{count, plural, one{{n} deal} other{{n} deals}}",
