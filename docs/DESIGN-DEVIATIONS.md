@@ -60,7 +60,10 @@ nor any listing.
 
 ## Body diagram — schematic, not a car outline · 2026-08-02
 
-**Status: awaiting design review.**
+**Status: RESOLVED 2026-08-02.** The artwork arrived as
+`public/diagrams/car-body-top.svg` and is now rendered; the schematic remains
+only as the fallback when the file is absent. Everything below is kept as the
+record of what was built in the interim.
 
 Wd's markup draws the paint map as an `<svg>` car outline. What was built is a
 grid of labelled rectangles carrying the same panel keys, the same three states,

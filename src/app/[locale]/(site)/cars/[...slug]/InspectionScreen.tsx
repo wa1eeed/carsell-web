@@ -27,10 +27,13 @@ import type { PublicInspectionReport } from '@/lib/domain/inspection';
 export function InspectionScreen({
   report,
   expired,
+  diagram,
   formatted,
 }: {
   report: PublicInspectionReport;
   expired: boolean;
+  /** رسم المصمّم — `null` حتى يصل، فيُعرض التخطيط البديل. */
+  diagram: string | null;
   /** التواريخ تُصاغ على الخادم — لا اختلاف بين ما يُقدَّم وما يُروى. */
   formatted: { inspectedAt: string; validUntil: string };
 }) {
@@ -119,6 +122,7 @@ export function InspectionScreen({
         <BodyDiagram
           panels={report.paintMap}
           summary={report.paintSummary}
+          diagram={diagram}
           className="w-full shrink-0 lg:w-[420px]"
         />
 

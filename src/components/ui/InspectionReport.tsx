@@ -193,6 +193,54 @@ const PANEL_LAYOUT: readonly { key: string; x: number; y: number; w: number; h: 
   { key: 'rearBumper', x: 164, y: 44, w: 8, h: 18 },
 ];
 
+/** معرّف اللوحة في الرسم ⇒ مفتاحها في `paintMap`. */
+const PANEL_ALIAS: Record<string, string> = {
+  'front-bumper': 'frontBumper',
+  'rear-bumper': 'rearBumper',
+  hood: 'hood',
+  roof: 'roof',
+  trunk: 'trunk',
+  'fender-fl': 'frontLeftFender',
+  'fender-fr': 'frontRightFender',
+  'door-fl': 'leftFrontDoor',
+  'door-fr': 'rightFrontDoor',
+  'door-rl': 'leftRearDoor',
+  'door-rr': 'rightRearDoor',
+  'quarter-l': 'leftQuarter',
+  'quarter-r': 'rightQuarter',
+};
+
+function panelTitles(t: (key: string) => string): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(PANEL_ALIAS).map(([id, key]) => [id, t(`panel.${key}`)]),
+  );
+}
+
+/**
+ * يطلي مجموعة `panels` وحدها.
+ *
+ * الحقن على نصّ الرسم لا على DOM: الرسم أصل ثابت يأتي من المصمّم، ولا
+ * سبيل لمحتوى مستخدم إليه. والطلاء **بصنف لا بلون مكتوب**، فتبقى
+ * التوكنات المصدر الوحيد ويبقى فحص اللون قادرًا على رؤيته.
+ */
+function paintDiagram(
+  svg: string,
+  panels: readonly { key: string; state: string }[],
+  titles: Record<string, string>,
+): string {
+  const stateOf = (key: string): string =>
+    panels.find((panel) => panel.key === key)?.state ?? 'unknown';
+
+  return svg.replace(/<(path|polygon|rect|g)\b([^>]*?)\bid="([^"]+)"([^>]*)>/g, (whole, tag, before, id, after) => {
+    const key = PANEL_ALIAS[id];
+    if (key === undefined) return whole;
+    const fill = PAINT_FILL[stateOf(key)] ?? PAINT_FILL.unknown;
+    const title = titles[id];
+    const open = `<${tag}${before}id="${id}"${after} class="${fill}">`;
+    return title === undefined ? open : `${open}<title>${title}</title>`;
+  });
+}
+
 const PAINT_FILL: Record<string, string> = {
   original: 'fill-accent-200',
   repainted: 'fill-warn-400',
@@ -203,10 +251,16 @@ const PAINT_FILL: Record<string, string> = {
 export function BodyDiagram({
   panels,
   summary,
+  /**
+   * رسم المصمّم — منظر علويّ بمعرّف لكل لوحة. غيابه يعرض التخطيط
+   * البديل: شبكةٌ صادقة بأنها شبكة، لا شكلٌ يُقرأ خطأً على أنه سيارة.
+   */
+  diagram = null,
   className,
 }: {
   panels: readonly { key: string; state: string }[];
   summary: string | null;
+  diagram?: string | null;
   className?: string;
 }) {
   const t = useTranslations('ui');
@@ -217,21 +271,35 @@ export function BodyDiagram({
     <section className={className}>
       <h2 className="mb-3.5 text-base font-bold">{t('bodyAndPaintMap')}</h2>
       <div className="rounded-xl border border-line bg-surface p-6">
-        <svg viewBox="0 0 176 94" className="h-auto w-full" role="img" aria-label={t('bodyAndPaintMap')}>
-          {PANEL_LAYOUT.map((panel) => (
-            <rect
-              key={panel.key}
-              x={panel.x}
-              y={panel.y}
-              width={panel.w}
-              height={panel.h}
-              rx={3}
-              className={cn(PAINT_FILL[stateOf(panel.key)] ?? PAINT_FILL.unknown)}
-            >
-              <title>{t(`panel.${panel.key}`)}</title>
-            </rect>
-          ))}
-        </svg>
+        {diagram === null ? (
+          <svg viewBox="0 0 176 94" className="h-auto w-full" role="img" aria-label={t('bodyAndPaintMap')}>
+            {PANEL_LAYOUT.map((panel) => (
+              <rect
+                key={panel.key}
+                x={panel.x}
+                y={panel.y}
+                width={panel.w}
+                height={panel.h}
+                rx={3}
+                className={cn(PAINT_FILL[stateOf(panel.key)] ?? PAINT_FILL.unknown)}
+              >
+                <title>{t(`panel.${panel.key}`)}</title>
+              </rect>
+            ))}
+          </svg>
+        ) : (
+          /**
+           * الرسم يُحقَن كما هو، وتُطلى **مجموعة `panels` وحدها**:
+           * الزجاج لا يُصبغ، والزينة ترث `currentColor`. الطلاء بصنف
+           * لا بلون مكتوب، فالتوكنات تبقى المصدر الوحيد (فحص ٤ و١٠).
+           */
+          <div
+            className="body-diagram text-ink/45 [&_svg]:h-auto [&_svg]:w-full"
+            role="img"
+            aria-label={t('bodyAndPaintMap')}
+            dangerouslySetInnerHTML={{ __html: paintDiagram(diagram, panels, panelTitles(t)) }}
+          />
+        )}
 
         <ul className="mt-5 flex flex-wrap gap-4 text-2xs font-medium">
           {(['original', 'repainted', 'replaced', 'unknown'] as const).map((state) => (

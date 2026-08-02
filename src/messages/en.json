@@ -62,7 +62,9 @@
       "leftRearDoor": "Left rear door",
       "rightRearDoor": "Right rear door",
       "frontBumper": "Front bumper",
-      "rearBumper": "Rear bumper"
+      "rearBumper": "Rear bumper",
+      "leftQuarter": "Left quarter",
+      "rightQuarter": "Right quarter"
     },
     "noHistory": "No recorded history",
     "noHistoryBody": "The seller uploaded no service record and this vehicle has no inspection.",
@@ -333,7 +335,9 @@
     "auctions": "{count, plural, one{{n} auction} other{{n} auctions}}",
     "months": "{count, plural, one{{n} month} other{{n} months}}",
     "financeProviders": "{count, plural, one{{n} finance provider} other{{n} finance providers}}",
-    "points": "{count, plural, one{{n} point} other{{n} points}}"
+    "points": "{count, plural, one{{n} point} other{{n} points}}",
+    "services": "{count, plural, one{{n} service} other{{n} services}}",
+    "articles": "{count, plural, one{{n} article} other{{n} articles}}"
   },
   "search": {
     "title": "Browse cars",
@@ -452,6 +456,48 @@
       "SELLER": "from the seller",
       "INSPECTION": "from the inspection",
       "PLATFORM": "from the platform"
+    },
+    "serviceCategory": {
+      "PRE_PURCHASE": "Before buying",
+      "POST_PURCHASE": "After buying",
+      "SELLER": "For sellers"
+    },
+    "helpTopic": {
+      "escrow": "Escrow and payment",
+      "auction": "Auctions",
+      "negotiation": "Negotiation",
+      "inspection": "Inspection",
+      "selling": "Selling",
+      "buying": "Buying",
+      "orders": "Orders",
+      "fees": "Fees",
+      "account": "Account and verification"
     }
+  },
+  "services": {
+    "title": "Services that save you the trip",
+    "intro": "Every service is priced and paid for inside the platform, and its result appears in your profile. Add your vehicle first so a service reaches you without re-entering details.",
+    "all": "All",
+    "free": "Free",
+    "instant": "Instant"
+  },
+  "help": {
+    "title": "Help centre",
+    "intro": "Written answers to what is actually asked. If yours is not here, contact us at the bottom.",
+    "browseByTopic": "Browse by topic",
+    "mostAsked": "Most asked",
+    "notFound": "Did not find your answer?",
+    "notFoundBody": "Message us and we will reply within one working day.",
+    "contact": "Contact us",
+    "allTopics": "All topics",
+    "emptyTopic": "No questions in this topic yet."
+  },
+  "legal": {
+    "version": "Version",
+    "effectiveFrom": "Effective from",
+    "contents": "Contents",
+    "otherDocuments": "Other documents",
+    "notFound": "Document not found",
+    "notFoundBody": "The link may be outdated. Browse the documents from the footer."
   }
 }

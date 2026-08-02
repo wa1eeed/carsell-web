@@ -62,7 +62,9 @@
       "leftRearDoor": "الباب الخلفي الأيسر",
       "rightRearDoor": "الباب الخلفي الأيمن",
       "frontBumper": "الصدّام الأمامي",
-      "rearBumper": "الصدّام الخلفي"
+      "rearBumper": "الصدّام الخلفي",
+      "leftQuarter": "الربع الأيسر",
+      "rightQuarter": "الربع الأيمن"
     },
     "noHistory": "لا تاريخ مسجَّل",
     "noHistoryBody": "لم يرفع البائع سجلّ صيانة ولا يوجد فحص لهذه المركبة.",
@@ -333,7 +335,9 @@
     "auctions": "{count, plural, zero{لا مزادات} one{مزاد واحد} two{مزادان} few{{n} مزادات} many{{n} مزادًا} other{{n} مزاد}}",
     "months": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهران} few{{n} أشهر} many{{n} شهرًا} other{{n} شهر}}",
     "financeProviders": "{count, plural, zero{لا جهات تمويل} one{جهة تمويل واحدة} two{جهتَي تمويل} few{{n} جهات تمويل} many{{n} جهة تمويل} other{{n} جهة تمويل}}",
-    "points": "{count, plural, zero{لا نقاط} one{نقطة واحدة} two{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}"
+    "points": "{count, plural, zero{لا نقاط} one{نقطة واحدة} two{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}",
+    "services": "{count, plural, zero{لا خدمات} one{خدمة واحدة} two{خدمتان} few{{n} خدمات} many{{n} خدمة} other{{n} خدمة}}",
+    "articles": "{count, plural, zero{لا مقالات} one{مقالة واحدة} two{مقالتان} few{{n} مقالات} many{{n} مقالة} other{{n} مقالة}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -452,6 +456,48 @@
       "SELLER": "من البائع",
       "INSPECTION": "من الفحص",
       "PLATFORM": "من المنصة"
+    },
+    "serviceCategory": {
+      "PRE_PURCHASE": "قبل الشراء",
+      "POST_PURCHASE": "بعد الشراء",
+      "SELLER": "للبائعين"
+    },
+    "helpTopic": {
+      "escrow": "الضمان والدفع",
+      "auction": "المزادات",
+      "negotiation": "التفاوض",
+      "inspection": "الفحص",
+      "selling": "البيع",
+      "buying": "الشراء",
+      "orders": "الطلبات",
+      "fees": "الرسوم",
+      "account": "الحساب والتوثيق"
     }
+  },
+  "services": {
+    "title": "خدمات تُغنيك عن التنقّل",
+    "intro": "كل خدمة لها سعر ودفع داخل المنصة، وتظهر نتيجتها في ملفك. أضف مركبتك أولًا لتصل الخدمة إليك بلا إدخال بيانات متكرّر.",
+    "all": "الكل",
+    "free": "مجانًا",
+    "instant": "فورية"
+  },
+  "help": {
+    "title": "مركز المساعدة",
+    "intro": "إجابات مكتوبة على ما يُسأل فعلًا. وإن لم تجد جوابك فالتواصل أسفل الصفحة.",
+    "browseByTopic": "تصفّح حسب الموضوع",
+    "mostAsked": "الأكثر سؤالًا",
+    "notFound": "لم تجد إجابتك؟",
+    "notFoundBody": "راسلنا وسنردّ خلال يوم عمل واحد.",
+    "contact": "تواصل معنا",
+    "allTopics": "كل المواضيع",
+    "emptyTopic": "لا أسئلة في هذا الموضوع بعد."
+  },
+  "legal": {
+    "version": "النسخة",
+    "effectiveFrom": "سارية من",
+    "contents": "البنود",
+    "otherDocuments": "مستندات أخرى",
+    "notFound": "المستند غير موجود",
+    "notFoundBody": "قد يكون الرابط قديمًا. تصفّح المستندات من التذييل."
   }
 }

@@ -23,6 +23,8 @@ export type Unit =
   | 'months'
   | 'financeProviders'
   | 'points'
+  | 'services'
+  | 'articles'
   | 'km';
 
 /**

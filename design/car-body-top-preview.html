@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<style>
+body{background:#f5ead8;color:#201e1d;font-family:system-ui,sans-serif;margin:0;padding:40px;display:flex;gap:48px;align-items:flex-start}
+.frame{border:1px solid rgba(32,30,29,.13);border-radius:14px;padding:24px;background:#efe4cf}
+svg{width:300px;height:auto;color:#201e1d}
+[data-role="panels"] *{fill:#e4d6bd;stroke:rgba(32,30,29,.3);stroke-width:1.5}
+[data-role="panels"] #hood,[data-role="panels"] #door-rl{fill:#c39a3c}
+[data-role="panels"] #quarter-r{fill:#b8452f}
+[data-role="panels"] #roof{fill:#efe4cf;stroke-dasharray:4 4}
+.key{display:flex;flex-direction:column;gap:12px;font-size:13px}
+.k{display:flex;align-items:center;gap:10px}
+.sw{width:22px;height:22px;border-radius:6px;border:1.5px solid rgba(32,30,29,.3)}
+</style></head><body>
+<div class="frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 512" role="img" aria-labelledby="cbt-title">
+  <title id="cbt-title">مخطط هيكل المركبة — منظر علوي</title>
+
+  
+  <g data-role="decor" fill="currentColor" opacity=".18">
+    <rect x="34" y="104" width="22" height="58" rx="8"></rect>
+    <rect x="304" y="104" width="22" height="58" rx="8"></rect>
+    <rect x="34" y="352" width="22" height="58" rx="8"></rect>
+    <rect x="304" y="352" width="22" height="58" rx="8"></rect>
+  </g>
+
+  
+  <path data-role="decor" d="M55 68 C55 38 96 24 180 24 C264 24 305 38 305 68 L305 444 C305 474 264 488 180 488 C96 488 55 474 55 444 Z" fill="none" stroke="currentColor" stroke-width="2" opacity=".28"></path>
+
+  
+  <g data-role="panels">
+    <path id="front-bumper" d="M57 66 C57 40 97 26 180 26 C263 26 303 40 303 66 L303 74 L57 74 Z"></path>
+    <rect id="fender-fl" x="57" y="78" width="42" height="72" rx="6"></rect>
+    <rect id="hood" x="103" y="78" width="154" height="72" rx="8"></rect>
+    <rect id="fender-fr" x="261" y="78" width="42" height="72" rx="6"></rect>
+
+    <rect id="door-fl" x="57" y="154" width="42" height="92" rx="6"></rect>
+    <rect id="door-fr" x="261" y="154" width="42" height="92" rx="6"></rect>
+
+    <rect id="roof" x="103" y="200" width="154" height="126" rx="10"></rect>
+
+    <rect id="door-rl" x="57" y="250" width="42" height="92" rx="6"></rect>
+    <rect id="door-rr" x="261" y="250" width="42" height="92" rx="6"></rect>
+
+    <rect id="quarter-l" x="57" y="346" width="42" height="72" rx="6"></rect>
+    <rect id="trunk" x="103" y="376" width="154" height="66" rx="8"></rect>
+    <rect id="quarter-r" x="261" y="346" width="42" height="72" rx="6"></rect>
+
+    <path id="rear-bumper" d="M57 422 L303 422 L303 446 C303 472 263 486 180 486 C97 486 57 472 57 446 Z"></path>
+  </g>
+
+  
+  <g data-role="glass" fill="currentColor" opacity=".10">
+    <path d="M107 196 L253 196 L241 158 C232 155 128 155 119 158 Z"></path>
+    <path d="M107 330 L253 330 L241 368 C232 371 128 371 119 368 Z"></path>
+    <rect x="61" y="158" width="34" height="84" rx="5"></rect>
+    <rect x="265" y="158" width="34" height="84" rx="5"></rect>
+    <rect x="61" y="254" width="34" height="84" rx="5"></rect>
+    <rect x="265" y="254" width="34" height="84" rx="5"></rect>
+  </g>
+
+  
+  <g data-role="decor" fill="currentColor" opacity=".28">
+    <rect x="44" y="162" width="14" height="18" rx="5"></rect>
+    <rect x="302" y="162" width="14" height="18" rx="5"></rect>
+  </g>
+</svg></div>
+<div class="key">
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">مفتاح الحالات</div>
+  <div class="k"><span class="sw" style="background:#e4d6bd"></span> وكالة — لم يُمسّ</div>
+  <div class="k"><span class="sw" style="background:#c39a3c"></span> صبغ</div>
+  <div class="k"><span class="sw" style="background:#b8452f"></span> تبديل</div>
+  <div class="k"><span class="sw" style="background:#efe4cf;border-style:dashed"></span> لم يُقس</div>
+  <div style="margin-top:16px;font-size:12px;opacity:.6;line-height:1.9;max-width:240px">المعرّفات: front-bumper · hood · fender-fl · fender-fr · door-fl · door-fr · door-rl · door-rr · roof · quarter-l · quarter-r · trunk · rear-bumper</div>
+</div>
+</body></html>

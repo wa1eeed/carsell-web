@@ -917,9 +917,7 @@ async function main(): Promise<void> {
    * ليقرّر شراءً، و«الهيكل والصبغ-١٧» لا يقول له شيئًا. الأسماء في
    * `prisma/seed-data/inspection-points.json` ومجموعها ٢١٠ بالضبط.
    */
-  const POINTS = JSON.parse(
-    readFileSync(join(process.cwd(), 'prisma', 'seed-data', 'inspection-points.json'), 'utf8'),
-  ) as Record<string, { name: string; points: string[] }>;
+  const POINTS = load<Record<string, { name: string; points: string[] }>>('inspection-points.json');
 
   /** الملاحظات المحدَّدة — الفاحص لا يكتب على كل نقطة، بل على ما يستحق. */
   const FINDINGS: Record<string, { state: string; note: string; photos: string[] }> = {
@@ -1206,10 +1204,28 @@ async function main(): Promise<void> {
     });
   }
 
+  /**
+   * المستندات القانونية — نسخة وتاريخ سريان لكل مستند. مستخدم قَبِل
+   * شروط مارس محكومٌ بنصّها لا بنصّ اليوم، فالنسخة جزء من البيانات.
+   */
+  const LEGAL = load<Record<string, {
+    titleAr: string; titleEn: string; version: string;
+    summaryAr: string; summaryEn: string; sort: number; sections: unknown;
+  }>>('legal.json');
+
+  for (const [key, doc] of Object.entries(LEGAL)) {
+    await prisma.legalDocument.upsert({
+      where: { key },
+      update: { ...doc, sections: doc.sections as never, effectiveAt: NOW },
+      create: { key, ...doc, sections: doc.sections as never, effectiveAt: NOW },
+    });
+  }
+
   // ————— التقرير —————
   const counts = {
     ماركة: await prisma.brand.count(),
     'نوع هيكل': await prisma.bodyTypeDisplay.count(),
+    'مستند قانوني': await prisma.legalDocument.count(),
     طراز: await prisma.model.count(),
     فئة: await prisma.trim.count(),
     ميزة: await prisma.feature.count(),

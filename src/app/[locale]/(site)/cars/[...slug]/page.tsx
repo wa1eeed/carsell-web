@@ -22,6 +22,7 @@ import {
   findReportByListingRef,
   toPublicReport,
 } from '@/lib/domain/inspection';
+import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { CarPage } from './CarPage';
 import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
@@ -141,9 +142,10 @@ function shell(children: React.ReactNode) {
 
 /** Wd — تقرير الفحص، تحت رابط الإعلان. */
 async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
-  const [row, t] = await Promise.all([
+  const [row, t, diagram] = await Promise.all([
     findReportByListingRef(resolved.row.ref),
     getTranslations('ui'),
+    loadBodyDiagram(),
   ]);
 
   /**
@@ -179,6 +181,7 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
     <InspectionScreen
       report={report}
       expired={expired}
+      diagram={diagram}
       formatted={{
         inspectedAt: dateFormat.format(inspected),
         validUntil: dateFormat.format(new Date(report.validUntil)),

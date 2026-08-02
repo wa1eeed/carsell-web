@@ -1027,6 +1027,27 @@ model BodyTypeDisplay {
   @@index([visible, sort])
 }
 
+/// المستندات القانونية — الشروط والخصوصية والاسترجاع.
+///
+/// **نسخة وتاريخ سريان لكل مستند**: مستخدم قَبِل شروطًا في مارس محكومٌ
+/// بنصّها لا بنصّ اليوم، فلا يجوز أن يُستبدل النصّ في مكانه بلا أثر.
+/// والبنود `Json` لأنها تختلف عددًا وعمقًا بين مستند وآخر.
+model LegalDocument {
+  key         String   @id // terms | privacy | refund | cookies
+  titleAr     String
+  titleEn     String
+  version     String // 1.0 · 1.1
+  effectiveAt DateTime
+  summaryAr   String?
+  summaryEn   String?
+  sections    Json // [{ n, titleAr, titleEn, bodyAr, bodyEn }]
+  active      Boolean  @default(true)
+  sort        Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, sort])
+}
+
 model SeoTemplate {
   key       String   @id
   surface   String // search | landing_city | landing_brand | landing_model …
