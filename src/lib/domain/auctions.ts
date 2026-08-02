@@ -14,6 +14,7 @@ import { Prisma } from '@/generated/prisma/client';
 /** القاعدة ٧ — التمديد ونافذته وحدّه. */
 export const EXTEND_WINDOW_SECONDS = 60;
 export const EXTEND_BY_SECONDS = 5 * 60;
+// DESIGN-Q ٥: الحدّ مشترك لا لكل مزايد
 export const MAX_EXTENSIONS = 10;
 
 export type BidFailure =
@@ -322,6 +323,7 @@ export type PublicAuction = {
  * ترتيب أوّل ظهور — لا معرّفًا مقطوعًا — يمنع مطابقة نفس المزايد عبر
  * مزادين.
  */
+// DESIGN-Q ٦: الترقيم بترتيب أوّل ظهور يكشف ترتيب الوصول
 function aliasMap(bids: readonly { bidderId: string }[]): Map<string, number> {
   const map = new Map<string, number>();
   for (const bid of [...bids].reverse()) {
@@ -391,6 +393,7 @@ export async function getAuction(
  * ما يظهر. والعرابين تُسوّى في نفس اللحظة: تركُها معلّقة إلى وظيفة
  * ثانية يعني مالًا محتجزًا بلا سبب لكل من خسر.
  */
+// DESIGN-Q ٤: العرابين تُسوّى فورًا عند احتياطي غير مبلوغ — قبل أيّ قبول لاحق
 export async function closeEndedAuctions(now: Date = new Date()): Promise<number> {
   const ended = await db.auction.findMany({
     where: { status: 'LIVE', endsAt: { lte: now } },

@@ -12,6 +12,7 @@ import type { OrderStage } from '@/generated/prisma/enums';
  */
 
 /** خطّ الهدف لكل مرحلة، بالساعات. */
+// DESIGN-Q ٨: الأهداف ثوابت في الكود لا إعدادات تشغيلية
 export const STAGE_TARGET_HOURS: Record<OrderStage, number> = {
   REQUEST: 24,
   APPROVED: 24,
@@ -148,6 +149,7 @@ export type IdentityView = {
   ibanTail: string | null;
 };
 
+// DESIGN-Q ١٠: الاطّلاع يُسجَّل ولا يُشعَر به أحد
 export async function viewIdentity(
   admin: AdminUser,
   userId: string,

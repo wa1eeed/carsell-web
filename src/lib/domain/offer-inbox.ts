@@ -125,6 +125,7 @@ export const REPORT_REASONS = [
  * وبلاغ واحد لكل (مبلِّغ، هدف): تكرار الشخص نفسه لا يزيد وزن البلاغ
  * ويُغرق الطابور.
  */
+// DESIGN-Q ٧: بلاغ واحد يكفي لإدخال المراجعة — بلا عتبة
 export async function fileReport(
   input: ReportInput,
   now: Date = new Date(),

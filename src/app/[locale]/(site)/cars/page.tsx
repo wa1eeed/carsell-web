@@ -5,6 +5,11 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { db } from '@/lib/db';
+import {
+  listBrandOptions,
+  listFeatureOptions,
+  listModelOptions,
+} from '@/lib/domain/catalog-options';
 import { routing } from '@/i18n/routing';
 import {
   activeFilterCount,
@@ -63,29 +68,14 @@ export default async function CarsPage({
 
   const [result, brands, features, cities] = await Promise.all([
     searchListings(filters),
-    db.brand.findMany({
-      where: { visible: true },
-      orderBy: [{ sort: 'asc' }],
-      select: { id: true, nameAr: true, nameEn: true, slug: true },
-    }),
-    db.feature.findMany({
-      where: { active: true, placements: { has: 'search_filter' } },
-      orderBy: [{ group: 'asc' }, { sort: 'asc' }],
-      select: { key: true, nameAr: true, nameEn: true },
-    }),
+    listBrandOptions(),
+    listFeatureOptions('search_filter'),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
       .then((rows) => rows.map((r) => r.city).sort()),
   ]);
 
-  const models =
-    filters.brandId === null
-      ? []
-      : await db.model.findMany({
-          where: { brandId: filters.brandId, visible: true },
-          orderBy: { nameAr: 'asc' },
-          select: { id: true, nameAr: true, nameEn: true },
-        });
+  const models = await listModelOptions(filters.brandId);
 
   return (
     <>

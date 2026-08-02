@@ -28,6 +28,7 @@ export type OpenResult =
  * يترك نافذةً يمرّ فيها عدّاد الإلغاء ويُسقط الطلب — وهي بالضبط اللحظة
  * التي يفتح فيها المشتري نزاعه.
  */
+// DESIGN-Q ٢: أيّ الطرفين وفي أيّ مرحلة — فتحٌ مبكّر يجمّد إعلانًا بلا كلفة
 export async function openDispute(
   input: { orderRef: string; openedBy: string; reason: string },
   now: Date = new Date(),
@@ -253,6 +254,7 @@ export async function approveResolution(
  * والطلب يخرج من التجميد في الحالات الثلاث — النزاع حُسم، فلا معنى
  * لإبقائه مجمَّدًا. والحسم يُنهي الطلب لا يعيده إلى مساره: قرارٌ صدر.
  */
+// DESIGN-Q ١: التسوية الجزئية تُلغي الطلب — وقد تكون استمرارًا للبيع بسعر أقلّ
 async function executeResolution(
   tx: Prisma.TransactionClient,
   disputeId: string,

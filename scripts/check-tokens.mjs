@@ -11,6 +11,7 @@
  *  ٩. لا رقم من قاعدة البيانات يُلصق في سلسلة نصّ معروضة.
  * ١٠. كل أداة لون في المكوّنات تشير إلى توكن معرَّف فعلًا.
  * ١١. كل ترحيل يمسّ المال له نصّ نقض بجواره.
+ * ١٢. صفوف Prisma لا تعبر حدّ الخادم/العميل.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -411,10 +412,149 @@ function checkMoneyMigrations() {
   }
 }
 
+// ————— القاعدة ١٢: صفّ Prisma لا يعبر الحدّ —————
+/**
+ * صفٌّ يعبر إلى مكوّن عميل **يصل المتصفّح كاملًا** ولو عرض العمود منه
+ * أربعة أرقام. الإخفاء بالعرض ليس إخفاءً.
+ *
+ * وقع هذا فعلًا في A5: مئة رقم جوال كامل في حمولة الصفحة. وكان رقم
+ * جوال في شاشة أدمن؛ وقد يكون في المرّة القادمة `minAcceptPrice` في
+ * صفحة إعلان عامة — وهو ما بُنيت حوله عشر قواعد.
+ *
+ * **الفحص على النوع لا على المحتوى**: النوع يُمسك في كل حال، والمحتوى
+ * يُمسك حين يصادف الفحصُ صفًّا فيه بيانات.
+ *
+ * شقّان:
+ *   أ. مكوّن عميل لا يستورد نوع نموذج من `@/generated/prisma/client`.
+ *      التعدادات مسموحة — سلاسل نصّية لا تحمل شيئًا.
+ *   ب. متغيّر يحمل نتيجة استعلام مباشرةً لا يُمرَّر خاصّيةً في JSX.
+ *      بينهما يجب أن يقف مُسلسِل صريح يعلن ما يخرج.
+ */
+const PRISMA_CLIENT_IMPORT = /from\s+'@\/generated\/prisma\/client'/;
+const PRISMA_TYPE_USE = /\bPrisma\.\w+GetPayload\b|\bPrisma\.\w+(Create|Update|Where)\w*\b/;
+
+/** أساليب تُعيد صفوفًا. `count` يعيد عددًا، فليس منها. */
+const ROW_QUERY =
+  /db\.\w+\.(findMany|findUnique|findFirst|findUniqueOrThrow|findFirstOrThrow|groupBy|aggregate)\s*\(/;
+
+/**
+ * يقسم محتوى `Promise.all([...])` إلى عناصره على المستوى الأعلى.
+ * القسمة بالفاصلة وحدها تكسر عند أوّل كائن داخلي — فالعدّ بالأقواس.
+ */
+function splitTopLevel(text) {
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (const char of text) {
+    if (char === '(' || char === '[' || char === '{') depth += 1;
+    if (char === ')' || char === ']' || char === '}') depth -= 1;
+    if (char === ',' && depth === 0) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim() !== '') parts.push(current);
+  return parts;
+}
+
+/** يعيد أسماء المتغيّرات التي تحمل صفوفًا فعلًا. */
+function rowBindings(source) {
+  const bound = new Set();
+
+  // `const rows = await db.x.findMany(...)`
+  for (const match of source.matchAll(/(?:const|let)\s+(\w+)\s*=\s*await\s+(db\.\w+\.\w+)/g)) {
+    const name = match[1];
+    if (name !== undefined && ROW_QUERY.test(`${match[2] ?? ''}(`)) bound.add(name);
+  }
+
+  /**
+   * `const [a, b, c] = await Promise.all([...])` — **بمطابقة الموضع**:
+   * `cities` المشتقّة بـ`.then(rows => rows.map(...))` مصفوفة نصوص لا
+   * صفوف، وحصرُها بالاسم وحده يُنتج إنذارًا كاذبًا يُعطِّل البوابة.
+   */
+  for (const match of source.matchAll(/(?:const|let)\s+\[([^\]]+)\]\s*=\s*await\s+Promise\.all\(\[/g)) {
+    const names = (match[1] ?? '').split(',').map((n) => n.trim().split(/[:=\s]/)[0] ?? '');
+    const from = (match.index ?? 0) + match[0].length;
+
+    let depth = 1;
+    let end = from;
+    while (end < source.length && depth > 0) {
+      const char = source[end];
+      if (char === '[' || char === '(' || char === '{') depth += 1;
+      if (char === ']' || char === ')' || char === '}') depth -= 1;
+      end += 1;
+    }
+
+    const elements = splitTopLevel(source.slice(from, end - 1));
+    names.forEach((name, i) => {
+      const element = elements[i] ?? '';
+      // `.then(` يعني تحويلًا — والمحوَّل ليس صفًّا
+      if (name !== '' && ROW_QUERY.test(element) && !element.includes('.then(')) {
+        bound.add(name);
+      }
+    });
+  }
+
+  return bound;
+}
+
+function checkPrismaBoundary() {
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      const source = readFileSync(file, 'utf8');
+      const isClient = /^\s*['"]use client['"]/m.test(source);
+
+      // ——— أ. النوع لا يعبر ———
+      if (isClient) {
+        if (PRISMA_CLIENT_IMPORT.test(source)) {
+          problems.push(
+            `${rel}  مكوّن عميل يستورد نوعًا من @/generated/prisma/client — أعلن نوعًا خاصًّا يبنيه مُسلسِل`,
+          );
+        }
+        if (PRISMA_TYPE_USE.test(source)) {
+          problems.push(
+            `${rel}  مكوّن عميل يستعمل نوع Prisma داخليًّا — النوع يعبر بما يحمله`,
+          );
+        }
+        continue;
+      }
+
+      // ——— ب. القيمة لا تعبر ———
+      if (!ROW_QUERY.test(source)) continue;
+
+      const bound = rowBindings(source);
+      if (bound.size === 0) continue;
+
+      /**
+       * الاستعلام المباشر داخل الخاصّية يُلتقط أيضًا:
+       * `rows={await db.user.findMany()}` لا اسم له لكنه يعبر.
+       */
+      for (const attribute of source.matchAll(/\b(\w+)=\{([^}]{1,80})\}/g)) {
+        const name = attribute[1] ?? '';
+        const value = (attribute[2] ?? '').trim();
+        if (name === 'key' || name === 'className') continue;
+
+        const direct = ROW_QUERY.test(value);
+        const named = bound.has(value);
+        if (!direct && !named) continue;
+
+        problems.push(
+          `${rel}  «${name}={${value}}» صفّ Prisma يعبر إلى مكوّن — مرّره عبر مُسلسِل يعلن ما يخرج`,
+        );
+      }
+    }
+  }
+}
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
 checkMoneyMigrations();
+checkPrismaBoundary();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -425,5 +565,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ.',
 );
