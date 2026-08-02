@@ -28,6 +28,36 @@ export function fail(error: ApiError, status: number, init?: ResponseInit): Next
 
 /** أخطاء معرَّفة مركزيًا — لا نصّ خطأ مكتوب داخل مسار. */
 export const ERRORS = {
+  VIN_INVALID: {
+    code: 'VIN_INVALID',
+    messageAr: 'رقم الهيكل غير صحيح — تحقّق من الخانات السبع عشرة.',
+    messageEn: 'That VIN is not valid — check all seventeen characters.',
+  },
+  VIN_NOT_RECOGNISED: {
+    code: 'VIN_NOT_RECOGNISED',
+    messageAr: 'لم نتعرّف على هذا الرقم. أكمل البيانات يدويًا.',
+    messageEn: 'We did not recognise this VIN. Fill in the details manually.',
+  },
+  VIN_ALREADY_LISTED: {
+    code: 'VIN_ALREADY_LISTED',
+    messageAr: 'هذه المركبة معروضة بالفعل.',
+    messageEn: 'This vehicle is already listed.',
+  },
+ IMAGE_TOO_LARGE: {
+    code: 'IMAGE_TOO_LARGE',
+    messageAr: 'حجم الصورة أكبر من المسموح. جرّب صورة أصغر.',
+    messageEn: 'The image is larger than allowed. Try a smaller one.',
+  },
+  IMAGE_INVALID: {
+    code: 'IMAGE_INVALID',
+    messageAr: 'تعذّرت قراءة الملف كصورة.',
+    messageEn: 'The file could not be read as an image.',
+  },
+  STORAGE_UNAVAILABLE: {
+    code: 'STORAGE_UNAVAILABLE',
+    messageAr: 'تخزين الصور غير متاح حاليًا. حاول بعد قليل.',
+    messageEn: 'Image storage is unavailable right now. Try again shortly.',
+  },
   VALIDATION: (fields: Record<string, string>): ApiError => ({
     code: 'VALIDATION_FAILED',
     messageAr: 'تحقّق من الحقول المعلَّمة.',

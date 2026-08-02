@@ -143,3 +143,32 @@ describe('البصمة الإدراكية', () => {
     expect(hammingDistance('ff', 'ffff')).toBe(Number.MAX_SAFE_INTEGER);
   });
 });
+
+describe('جلب رقم الهيكل — الفشل مسار لا خطأ', () => {
+  it('يستخرج السنة من الخانة العاشرة', async () => {
+    const { decodeYear } = await import('@/lib/domain/vin');
+    const at = new Date('2026-01-01');
+
+    expect(decodeYear('JTDBE32K1A0123456', at)).toBe(2010);
+    expect(decodeYear('1FTFW1ET5DFA12345', at)).toBe(2013);
+    // خانة غير صالحة لا تُخمَّن
+    expect(decodeYear('JTDBE32K1I0123456', at)).toBeNull();
+  });
+
+  it('يرفض الأشكال غير الصحيحة — ولا يقبل I ولا O ولا Q', async () => {
+    const { isValidVinFormat } = await import('@/lib/domain/vin');
+    expect(isValidVinFormat('JTDBE32K1A0123456')).toBe(true);
+    expect(isValidVinFormat('SHORT123')).toBe(false);
+    expect(isValidVinFormat('JTDBE32K1A012345I')).toBe(false);
+    expect(isValidVinFormat('JTDBE32K1A012345O')).toBe(false);
+    expect(isValidVinFormat('JTDBE32K1A012345Q')).toBe(false);
+  });
+
+  /** المجهول يذهب إلى الإدخال اليدوي — وهو مسار سليم لا فشل. */
+  it('يستخرج المُصنِّع المعروف ويصمت عن المجهول', async () => {
+    const { decodeBrandSlug } = await import('@/lib/domain/vin');
+    expect(decodeBrandSlug('JTDBE32K1A0123456')).toBe('toyota');
+    expect(decodeBrandSlug('1FTFW1ET5DFA12345')).toBe('ford');
+    expect(decodeBrandSlug('ZZZBE32K1A0123456')).toBeNull();
+  });
+});

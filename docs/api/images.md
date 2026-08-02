@@ -77,3 +77,44 @@ them while review exposes the copier.
 after blurring — the blur is real, not a flag. It also asserts no blur on a
 smooth frame and on a noisy frame with no plate, and that the hash survives
 re-compression and resizing while separating different images.
+
+## VIN lookup — failure is a path, not an error
+
+Acceptance: **lookup fails ⇒ manual entry**. Manual is not a fallback; it is a
+first-class path of the same rank. No vehicle-data integration exists in phase 1,
+and any seller may hold a vehicle no provider knows.
+
+What is extracted comes **from the number itself**, not from a service: model
+year from position 10, manufacturer from the first three characters. What cannot
+be extracted is left empty for the seller to fill — never guessed.
+
+Three outcomes, three codes, because the screen does something different with
+each:
+
+| Outcome | Code | Screen |
+|---|---|---|
+| Valid, partially decoded | `200` | Fills what it knows, marks it "fetched" |
+| Malformed | `VIN_INVALID` | Says which check failed |
+| Format-valid, unknown | `VIN_NOT_RECOGNISED` | Opens manual entry and says why |
+| Already listed | `VIN_ALREADY_LISTED` | Stops — one car, one listing |
+
+Collapsing these into one error would make the screen ask the seller for a
+different VIN they do not have.
+
+The WMI table is deliberately short — the makes actually sold in Saudi Arabia.
+Expanding it to thousands of codes inherits maintenance with no matching use, and
+the unknown case already lands somewhere correct.
+
+`ALREADY_LISTED` blocks because one car with two listings corrupts every count
+and every price statistic.
+
+## Proven at the storage boundary
+
+`tests/listing-images.test.ts` replaces the store with a spy and asserts the
+**bytes handed to storage** are blurred — not the output of the blur function in
+isolation. A test that measures only the blur proves blurring works; it does not
+prove that what gets stored is the blurred copy, and one line separates the two.
+
+It also asserts the hash matches the stored bytes (hash after blur), that a
+non-image never reaches storage, and that what is stored is normalised JPEG
+rather than the original format.
