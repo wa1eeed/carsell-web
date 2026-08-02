@@ -9,14 +9,19 @@ import { r2Key } from './env';
  * فما عليها يضيع، والالتزام بهذا من اليوم الأول يجعل الانتقال إلى Google
  * Cloud تغييرَ نشرٍ لا إعادة كتابة.
  *
- * الرفع **موقَّع من المتصفح مباشرةً**: الملف لا يمرّ بخادم Next، فلا نحمّل
- * الطلب الأول عبء صور عشرة ميجابايت ولا نستهلك ذاكرة الحاوية.
+ * الرفع **موقَّع من المتصفح مباشرةً** لشعارات الماركات والمعارض: الملف لا
+ * يمرّ بخادم Next، فلا نحمّل الطلب عبء صور كبيرة ولا نستهلك ذاكرة الحاوية.
+ *
+ * **واستثناء صور الإعلانات**: تمرّ بالخادم عبر `storeObject` لأنها تُطمَس
+ * وتُبصَم قبل التخزين. صورةٌ تذهب من المتصفّح إلى التخزين مباشرةً لا يراها
+ * الخادم فلا يطمس لوحتها — والرفع الموقَّع يجعل «تُحفظ مطموسة» وعدًا لا
+ * يملك أحد الوفاء به.
  *
  * والمفتاح يُبنى بـ`r2Key()` وحده — يضع بادئة البيئة (`staging/` أو
  * `production/`) فلا تختلط وسائط بيئتين.
  */
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 export const ALLOWED_IMAGE_TYPES = [
   'image/webp',
@@ -141,6 +146,34 @@ export async function signUpload({
       maxBytes: MAX_UPLOAD_BYTES,
     },
   };
+}
+
+/**
+ * تخزين محتوى **بعد معالجته على الخادم** — صور الإعلانات وحدها.
+ * يعيد المفتاح، أو `null` إن لم يُضبط R2 أو فشل الرفع.
+ */
+export async function storeObject(
+  kind: UploadKind,
+  body: Buffer,
+  contentType: string,
+): Promise<string | null> {
+  const config = readConfig();
+  if (config === null) return null;
+
+  const key = r2Key(KIND_PATH[kind], `${crypto.randomUUID()}.jpg`);
+  try {
+    await client(config).send(
+      new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+      }),
+    );
+    return key;
+  } catch {
+    return null;
+  }
 }
 
 function publicUrlFor(key: string, base: string): string {

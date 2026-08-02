@@ -16,9 +16,17 @@ describe('Wm — لا تسريب وجود الحساب', () => {
    * يعطي **نفس الشكل ونفس النتيجة** للمسجَّل والجديد، والفرق يظهر بعد
    * التحقّق لا قبله.
    */
+  /**
+   * رقمان **جديدان** لا رقم مزروع: الأخير تتراكم عليه محاولات من
+   * تشغيلات سابقة فيصطدم بالحدّ الساعي، ويفشل الاختبار لسبب لا
+   * علاقة له بما يقيسه. اختبارٌ يعتمد على حالة متراكمة يكذب مرّتين:
+   * يسقط وهو سليم، وقد يمرّ وهو مكسور.
+   */
   it('الشكل واحد للرقم المسجَّل والجديد', async () => {
-    const known = (await anyUser()).phone;
-    const fresh = `05550${String(Date.now()).slice(-5)}`;
+    const stamp = String(Date.now()).slice(-6);
+    const known = `0553${stamp}`;
+    const fresh = `0554${stamp}`;
+    await db.user.create({ data: { phone: known } });
 
     const base = new Date();
     const first = await requestOtp(known, base);
@@ -29,6 +37,8 @@ describe('Wm — لا تسريب وجود الحساب', () => {
     if (first.ok && second.ok) {
       expect(Object.keys(first).sort()).toEqual(Object.keys(second).sort());
     }
+
+    await db.user.delete({ where: { phone: known } });
   });
 });
 
