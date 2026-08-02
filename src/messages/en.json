@@ -520,6 +520,13 @@
       "RESOLVED_BUYER": "For the buyer",
       "RESOLVED_SELLER": "For the seller",
       "CLOSED": "Closed"
+    },
+    "auctionStatus": {
+      "SCHEDULED": "Upcoming",
+      "LIVE": "Live",
+      "ENDED_MET": "Ended — reserve met",
+      "ENDED_UNMET": "Ended — reserve not met",
+      "CANCELLED": "Cancelled"
     }
   },
   "services": {
@@ -715,5 +722,38 @@
       "REFUNDED": "Funds refunded in full to the buyer.",
       "PARTIAL_REFUND": "Part of the amount was refunded to the buyer."
     }
+  },
+  "auctions": {
+    "title": "Auctions",
+    "intro": "Live bidding on ownership-verified vehicles, with a refundable deposit and escrow.",
+    "tab": {
+      "live": "Live now",
+      "soon": "Upcoming",
+      "ended": "Ended"
+    },
+    "empty": {
+      "live": "No live auctions right now",
+      "soon": "No upcoming auctions",
+      "ended": "No ended auctions"
+    },
+    "emptyBody": "Check back — auctions are added weekly.",
+    "viewListing": "Vehicle page →",
+    "bidLog": "Bid log",
+    "noBids": "No bids yet.",
+    "bidder": "Bidder",
+    "auto": "Auto",
+    "openingPrice": "Opening price",
+    "highestBid": "Highest bid",
+    "minimumBid": "Minimum",
+    "reserveMet": "Reserve met",
+    "reserveNotMet": "Reserve not met yet",
+    "extendedTimes": "Extended",
+    "outOf": "of",
+    "placeBid": "Place a bid",
+    "depositRequired": "Deposit",
+    "buyNow": "Buy now for",
+    "countLive": "live",
+    "countSoon": "upcoming",
+    "countEnded": "ended"
   }
 }
