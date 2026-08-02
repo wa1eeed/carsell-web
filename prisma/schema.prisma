@@ -37,9 +37,10 @@ model User {
   idVerified   Boolean    @default(false)
   idVerifiedAt DateTime?
   iban         String? // مشفّر
-  dealerId     String? // لا يوجد كيان Dealer في المرحلة الأولى — انظر التقرير
+  dealerId     String?
   createdAt    DateTime   @default(now())
 
+  dealer          Dealer?          @relation(fields: [dealerId], references: [id], onDelete: SetNull)
   vehicles        Vehicle[]
   listings        Listing[]
   offers          Offer[]
@@ -53,8 +54,10 @@ model User {
   savedSearches   SavedSearch[]
   reports         Report[]
   invoices        Invoice[]
+  overrides       EntitlementOverride[]
 
   @@index([status, createdAt])
+  @@index([dealerId])
 }
 
 enum UserRole {
@@ -90,6 +93,46 @@ enum AdminRole {
   SUPPORT
   CONTENT
   READONLY
+}
+
+/**
+ * المعرض — **حقول الملف العام وحدها**.
+ * Wg (صفحة المعرض التي يراها المشتري) مرحلة أولى.
+ * لوحة تحكّم التاجر D1–D11 مرحلة ثالثة: لا فروع ولا أعضاء
+ * ولا فواتير ولا استيراد جماعي هنا.
+ */
+model Dealer {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  nameAr      String
+  nameEn      String
+  logoUrl     String?
+  coverUrl    String?
+  aboutAr     String?
+  aboutEn     String?
+  city        String
+  address     String?
+  phone       String?
+  hours       Json?
+  crNumber    String?
+  vatNumber   String?
+  verified    Boolean      @default(false) // شارة «تاجر موثّق» يمنحها الأدمن
+  ratingAvg   Decimal?     @db.Decimal(3, 2)
+  ratingCount Int          @default(0)
+  status      DealerStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  members       User[]
+  vehicles      Vehicle[]
+  subscriptions Subscription[]
+
+  @@index([status, city])
+}
+
+enum DealerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
 }
 
 model OtpChallenge {
@@ -268,6 +311,7 @@ model Vehicle {
   createdAt     DateTime         @default(now())
 
   owner              User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  dealer             Dealer?             @relation(fields: [dealerId], references: [id], onDelete: SetNull)
   brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Restrict)
   model              Model               @relation(fields: [modelId], references: [id], onDelete: Restrict)
   trim               Trim?               @relation(fields: [trimId], references: [id], onDelete: SetNull)
@@ -599,7 +643,7 @@ model Escrow {
   status            EscrowStatus @default(PENDING)
   heldAt            DateTime?
   releasedAt        DateTime?
-  releaseApprovedBy String[] // يحتاج عضوين — معرّفات AdminUser
+  // الموافقة الثنائية عبر ApprovalRequest بـ kind = ESCROW_RELEASE — آلية واحدة لكل الإجراءات الثنائية
   providerRef       String?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
@@ -680,13 +724,14 @@ model Service {
   descEn      String
   price       Decimal         @db.Decimal(10, 2)
   category    ServiceCategory
-  providerId  String? // لا يوجد كيان Provider في المرحلة الأولى — انظر التقرير
+  providerId  String?
   isAutomated Boolean         @default(false)
   slaHours    Int?
   placements  String[] // home_services | listing_banner | guide …
   active      Boolean         @default(true)
   sort        Int             @default(0)
 
+  provider ServiceProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   requests ServiceRequest[]
 }
 
@@ -711,6 +756,7 @@ model ServiceRequest {
   createdAt  DateTime             @default(now())
 
   service           Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  provider          ServiceProvider?  @relation(fields: [providerId], references: [id], onDelete: SetNull)
   user              User              @relation(fields: [userId], references: [id], onDelete: Restrict)
   listing           Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
   vehicle           Vehicle?          @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
@@ -821,10 +867,12 @@ model Subscription {
   status             String    @default("active")
   grandfatheredUntil DateTime?
 
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan Plan  @relation(fields: [planId], references: [id], onDelete: Restrict)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dealer Dealer? @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  plan   Plan    @relation(fields: [planId], references: [id], onDelete: Restrict)
 
   @@index([userId, status])
+  @@index([dealerId, status])
 }
 
 model CommissionRule {
@@ -1006,6 +1054,129 @@ model Report {
 
   @@index([status, createdAt])
   @@index([targetType, targetId])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  المزوّدون والتجاوزات والتكاملات والموافقات
+// ═══════════════════════════════════════════════════════════
+
+/// مزوّد خدمة أو تمويل — يُسنِد إليه الأدمن طلبات الخدمات (A6)
+model ServiceProvider {
+  id            String       @id @default(cuid())
+  nameAr        String
+  nameEn        String
+  logoUrl       String?
+  type          ProviderType
+  contactPhone  String?
+  contactEmail  String?
+  commissionPct Decimal?     @db.Decimal(5, 2)
+  slaHours      Int?
+  cities        String[]
+  active        Boolean      @default(true)
+
+  services Service[]
+  requests ServiceRequest[]
+
+  @@index([type, active])
+}
+
+enum ProviderType {
+  INSPECTION
+  SHIPPING
+  INSURANCE
+  DETAILING
+  PHOTOGRAPHY
+  FINANCE
+  OTHER
+}
+
+/**
+ * الحلقة الوسطى في قراءة الخصائص: الباقة ← **التجاوز** ← قواعد العمولة.
+ * الكود يسأل `entitlement("can_auction")` ولا يسأل عن الباقة ولا عن الدور.
+ */
+model EntitlementOverride {
+  id             String    @id @default(cuid())
+  userId         String?
+  dealerId       String?
+  entitlementKey String
+  value          String
+  reason         String
+  expiresAt      DateTime?
+  createdBy      String
+  createdAt      DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, entitlementKey])
+  @@index([dealerId, entitlementKey])
+}
+
+/// A11 — كل مزوّد خارجي. المفاتيح مشفّرة ولا تُعرض كاملة،
+/// والتدوير يمرّ بـApprovalRequest بـ kind = KEY_ROTATION.
+model Integration {
+  key              String              @id // otp_sms | nafath | moyasar | r2 …
+  nameAr           String
+  provider         String
+  category         IntegrationCategory
+  status           IntegrationStatus   @default(INACTIVE)
+  configPublic     Json?
+  secretsEncrypted String?
+  lastCheckAt      DateTime?
+  lastCheckOk      Boolean?
+  failureBehavior  String
+
+  @@index([category, status])
+}
+
+enum IntegrationCategory {
+  IDENTITY
+  PAYMENT
+  GOVERNMENT
+  INFRASTRUCTURE
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  DEGRADED
+}
+
+/**
+ * آلية «بعضوين» الواحدة لكل الإجراءات الثنائية.
+ * حلّت محلّ `Escrow.releaseApprovedBy`: دور واحد لا يكفي ولو كان الأعلى.
+ * التنفيذ يقع متى بلغ `approvedBy` عدد `requiredApprovals`.
+ */
+model ApprovalRequest {
+  id                String         @id @default(cuid())
+  kind              ApprovalKind
+  entityType        String
+  entityId          String
+  payload           Json
+  requestedBy       String
+  approvedBy        String[]
+  requiredApprovals Int            @default(2)
+  status            ApprovalStatus @default(PENDING)
+  expiresAt         DateTime
+  executedAt        DateTime?
+
+  @@index([status, kind])
+  @@index([entityType, entityId])
+}
+
+enum ApprovalKind {
+  ESCROW_RELEASE
+  KEY_ROTATION
+  COMMISSION_CHANGE
+  PLAN_CHANGE
+  USER_BAN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  EXECUTED
 }
 
 model AuditLog {

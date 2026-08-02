@@ -1,0 +1,456 @@
+[
+  {
+    "questionAr": "كيف أقدّم عرضًا وما الحد الأدنى المقبول؟",
+    "questionEn": "How do I make an offer, and what is the minimum accepted?",
+    "answerAr": "تكتب مبلغك في بطاقة العرض ويصل البائع فورًا. البائع يحدّد حدًّا أدنى مخفيًا — أي عرض تحته يُرفض تلقائيًا مع إشعارك، وما فوقه ينتظر ردّه أو عرضًا مقابلًا خلال ٤٨ ساعة.",
+    "answerEn": "You enter your amount on the offer card and the seller is notified at once. The seller sets a hidden floor: anything below it is auto-declined with a notice to you, and anything above waits for their reply or counter-offer within 48 hours.",
+    "category": "negotiation",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "NEGOTIATION",
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 1
+  },
+  {
+    "questionAr": "هل يمكنني سحب عرضي؟",
+    "questionEn": "Can I withdraw my offer?",
+    "answerAr": "نعم، ما دام العرض معلّقًا ولم يقبله البائع. بعد القبول يصير الطلب قائمًا ويخضع لشروط الإلغاء.",
+    "answerEn": "Yes, while the offer is still pending and unaccepted. Once accepted it becomes an order and the cancellation terms apply.",
+    "category": "negotiation",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "NEGOTIATION",
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 2
+  },
+  {
+    "questionAr": "ماذا يحدث لو قبل البائع عرض شخص آخر؟",
+    "questionEn": "What if the seller accepts someone else's offer?",
+    "answerAr": "يُغلق عرضك تلقائيًا ويصلك إشعار، ويُسحب الإعلان من العرض. وإن لم يدفع المشتري خلال ٢٤ ساعة يُعاد نشر الإعلان ونُخطر المتقدّمين.",
+    "answerEn": "Your offer closes automatically and you are notified, and the listing is withdrawn. If that buyer does not pay within 24 hours the listing is republished and previous bidders are told.",
+    "category": "negotiation",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "NEGOTIATION",
+        "condition": null
+      }
+    ],
+    "sort": 3
+  },
+  {
+    "questionAr": "كم تبقى صلاحية العرض؟",
+    "questionEn": "How long does an offer stay valid?",
+    "answerAr": "٤٨ ساعة من إرساله. بعدها يسقط تلقائيًا ويمكنك تقديم عرض جديد.",
+    "answerEn": "48 hours from submission. After that it lapses automatically and you may submit a new one.",
+    "category": "negotiation",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "NEGOTIATION",
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 4
+  },
+  {
+    "questionAr": "كيف يعمل المزاد والسعر الاحتياطي؟",
+    "questionEn": "How does the auction and reserve price work?",
+    "answerAr": "تزايد بمبلغ لا يقلّ عن أعلى مزايدة زائد خطوة المزايدة. البائع يحدّد سعرًا احتياطيًا مخفيًا؛ إن بلغته المزايدات رست المركبة تلقائيًا، وإن لم تبلغه فالخيار للبائع.",
+    "answerEn": "You bid at least the highest bid plus the increment. The seller sets a hidden reserve: if bidding reaches it the vehicle is awarded automatically, otherwise the decision returns to the seller.",
+    "category": "auction",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "AUCTION",
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 5
+  },
+  {
+    "questionAr": "لماذا لا أرى السعر الاحتياطي؟",
+    "questionEn": "Why can't I see the reserve price?",
+    "answerAr": "الاحتياطي مخفي عن كل المزايدين طوال المزاد وبعده. نعرض فقط ما إذا كان قد بُلِغ أو لا.",
+    "answerEn": "The reserve is hidden from every bidder during and after the auction. We only show whether it has been met.",
+    "category": "auction",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "AUCTION",
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 6
+  },
+  {
+    "questionAr": "ما العربون ومتى يُرد؟",
+    "questionEn": "What is the deposit and when is it returned?",
+    "answerAr": "مبلغ يُحجز قبل أول مزايدة. يُرد لغير الفائزين فور الإغلاق، ويُخصم من مبلغ الفائز، ويُصادَر إن انسحب الفائز أو لم يدفع خلال المهلة.",
+    "answerEn": "An amount held before your first bid. It is released to non-winners at close, applied to the winner's total, and forfeited if the winner withdraws or misses the payment window.",
+    "category": "auction",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "AUCTION",
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 7
+  },
+  {
+    "questionAr": "ماذا لو زايد أحد في آخر دقيقة؟",
+    "questionEn": "What if someone bids in the final minute?",
+    "answerAr": "يُمدَّد المزاد خمس دقائق تلقائيًا، فلا يُحسم بمزايدة في الثانية الأخيرة. ويظهر التمديد في سجل المزايدات.",
+    "answerEn": "The auction extends by five minutes automatically, so it cannot be won by a last-second bid. Each extension is recorded in the bid log.",
+    "category": "auction",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "AUCTION",
+        "condition": null
+      }
+    ],
+    "sort": 8
+  },
+  {
+    "questionAr": "هل يمكنني الشراء فورًا بدل المزايدة؟",
+    "questionEn": "Can I buy now instead of bidding?",
+    "answerAr": "إن حدّد البائع سعر «اشترِ الآن» فنعم — ويختفي الخيار متى بلغت المزايدات السعر الاحتياطي.",
+    "answerEn": "If the seller set a Buy Now price, yes — and the option disappears once bidding reaches the reserve.",
+    "category": "auction",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": "AUCTION",
+        "condition": null
+      }
+    ],
+    "sort": 9
+  },
+  {
+    "questionAr": "كيف تُحمى أموالي حتى نقل الملكية؟",
+    "questionEn": "How is my money protected until ownership transfers?",
+    "answerAr": "يُحتجز المبلغ في حساب ضمان ولا يُحوَّل للبائع إلا بعد إتمام نقل الملكية في المرور وتأكيدك الاستلام. ولك سبعة أيام للاسترجاع إن خالفت المركبة الوصف أو التقرير.",
+    "answerEn": "Funds are held in escrow and released to the seller only after the traffic-department transfer completes and you confirm receipt. You have seven days to claim a refund if the vehicle differs from the description or report.",
+    "category": "escrow",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 10
+  },
+  {
+    "questionAr": "متى يُحوَّل المبلغ للبائع؟",
+    "questionEn": "When is the seller paid?",
+    "answerAr": "بعد وصول الطلب إلى مرحلة نقل الملكية وتأكيد الاستلام. ويُعاد المبلغ تلقائيًا إن لم يكتمل النقل خلال سبعة أيام.",
+    "answerEn": "After the order reaches the transfer stage and receipt is confirmed. The amount is refunded automatically if the transfer does not complete within seven days.",
+    "category": "escrow",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 11
+  },
+  {
+    "questionAr": "ما مراحل الطلب الستة؟",
+    "questionEn": "What are the six order stages?",
+    "answerAr": "طلب، ثم موافقة، ثم فحص، ثم دفع، ثم نقل ملكية، ثم إتمام. وتظهر لك المرحلة الحالية ومدّة بقائك فيها في صفحة الطلب.",
+    "answerEn": "Request, approved, inspection, payment, transfer, then done. Your current stage and how long you have been in it appear on the order page.",
+    "category": "orders",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 12
+  },
+  {
+    "questionAr": "هل أدفع عمولة على البيع؟",
+    "questionEn": "Do I pay a selling commission?",
+    "answerAr": "لا. العمولة صفر بالمئة حاليًا على البيع المباشر والتفاوض والمزاد. وأي تغيير مستقبلي لا يمسّ الطلبات القائمة — العمولة تُثبَّت لقطةً وقت إنشاء الطلب.",
+    "answerEn": "No. Commission is currently zero percent on direct sales, negotiation and auctions. Any future change will not affect existing orders — commission is snapshotted when the order is created.",
+    "category": "fees",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 13
+  },
+  {
+    "questionAr": "ما التكاليف غير سعر السيارة؟",
+    "questionEn": "What costs are there beyond the car price?",
+    "answerAr": "رسوم نقل الملكية، وأي خدمة تطلبها اختياريًا كالفحص أو الشحن. تظهر كلها في ملخّص التكلفة الإجمالية قبل الدفع.",
+    "answerEn": "The ownership-transfer fee, plus any optional service you request such as inspection or shipping. All of them appear in the total-cost summary before payment.",
+    "category": "fees",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 14
+  },
+  {
+    "questionAr": "هل الأسعار شاملة الضريبة؟",
+    "questionEn": "Do prices include VAT?",
+    "answerAr": "نعم، كل المبالغ المعروضة شاملة ضريبة القيمة المضافة، وتظهر مفصّلة في الفاتورة.",
+    "answerEn": "Yes, every displayed amount includes VAT, itemised on the invoice.",
+    "category": "fees",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 15
+  },
+  {
+    "questionAr": "ماذا يغطّي تقرير الفحص؟",
+    "questionEn": "What does the inspection report cover?",
+    "answerAr": "٢١٠ نقطة في الهيكل والمحرك والناقل والإطارات والفرامل والكهرباء والمقصورة، مع مخطط صبغ ودرجة من ١٠٠.",
+    "answerEn": "210 points across body, engine, transmission, tyres, brakes, electrics and cabin, with a paint map and a score out of 100.",
+    "category": "inspection",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": {
+          "has_inspection": true
+        }
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 16
+  },
+  {
+    "questionAr": "ماذا لو خالفت السيارة تقرير الفحص؟",
+    "questionEn": "What if the car differs from the inspection report?",
+    "answerAr": "لك سبعة أيام من الاستلام لفتح نزاع. يبقى المبلغ في الضمان حتى يُبتّ فيه.",
+    "answerEn": "You have seven days from receipt to open a dispute. Funds remain in escrow until it is resolved.",
+    "category": "inspection",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": {
+          "has_inspection": true
+        }
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 17
+  },
+  {
+    "questionAr": "لماذا بعض السيارات بلا وسم «مفحوصة»؟",
+    "questionEn": "Why do some cars have no inspected badge?",
+    "answerAr": "لأنها لم تُفحص. غياب الوسم يعني غياب الفحص لا فشله — ويمكنك طلب فحص قبل الشراء.",
+    "answerEn": "Because they have not been inspected. A missing badge means no inspection, not a failed one — and you can request one before buying.",
+    "category": "inspection",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 18
+  },
+  {
+    "questionAr": "هل يمكنني معاينة المركبة قبل الدفع؟",
+    "questionEn": "Can I view the vehicle before paying?",
+    "answerAr": "نعم. اطلب معاينة من صفحة المركبة ونرتّب موعدًا في موقع البائع أو نقطة محايدة.",
+    "answerEn": "Yes. Request a viewing from the vehicle page and we arrange an appointment at the seller's location or a neutral point.",
+    "category": "buying",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 19
+  },
+  {
+    "questionAr": "من يتحمّل رسوم النقل والشحن؟",
+    "questionEn": "Who pays for transfer and shipping?",
+    "answerAr": "رسوم نقل الملكية على المشتري افتراضيًا وتظهر في ملخّص التكلفة. والشحن خدمة اختيارية يطلبها من يريدها.",
+    "answerEn": "The transfer fee is on the buyer by default and appears in the cost summary. Shipping is an optional service, requested by whoever wants it.",
+    "category": "buying",
+    "placements": [
+      {
+        "surface": "listing_page",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 20
+  },
+  {
+    "questionAr": "كيف أبيع سيارتي؟",
+    "questionEn": "How do I sell my car?",
+    "answerAr": "أدخل الرقم التسلسلي فنجلب بيانات المركبة، أضِف الصور والسعر، ثم اختر البيع المباشر أو التفاوض أو المزاد. النشر مجاني.",
+    "answerEn": "Enter the VIN and we fetch the vehicle data, add photos and a price, then choose direct sale, negotiation or auction. Listing is free.",
+    "category": "selling",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 21
+  },
+  {
+    "questionAr": "لماذا تُطمس اللوحة في الصور؟",
+    "questionEn": "Why is the licence plate blurred in photos?",
+    "answerAr": "طمس اللوحة تلقائي وإلزامي على كل صورة، حمايةً لك. لا يمكن تعطيله.",
+    "answerEn": "Plate blurring is automatic and mandatory on every photo, for your protection. It cannot be turned off.",
+    "category": "selling",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 22
+  },
+  {
+    "questionAr": "متى أحتاج توثيق الهوية والآيبان؟",
+    "questionEn": "When do I need identity verification and an IBAN?",
+    "answerAr": "قبل أول عملية شراء أو بيع فقط، لا عند التسجيل. التصفّح متاح فورًا برقم جوالك.",
+    "answerEn": "Only before your first purchase or sale, not at sign-up. Browsing works right away with just your phone number.",
+    "category": "account",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      },
+      {
+        "surface": "checkout",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 23
+  },
+  {
+    "questionAr": "كيف ألغي طلبًا؟",
+    "questionEn": "How do I cancel an order?",
+    "answerAr": "من صفحة الطلب قبل مرحلة الدفع بلا رسوم. وبعد الدفع يُفتح نزاع ويُبتّ فيه خلال مهلة معلنة.",
+    "answerEn": "From the order page before the payment stage, at no cost. After payment a dispute is opened and resolved within a published window.",
+    "category": "orders",
+    "placements": [
+      {
+        "surface": "help_center",
+        "listingType": null,
+        "condition": null
+      }
+    ],
+    "sort": 24
+  }
+]

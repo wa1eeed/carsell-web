@@ -358,3 +358,105 @@ Node عادي. `tsx` يشغّل `prisma/seed.ts` و`scripts/check-schema.ts`.
 **٧ · `scripts/check-schema.ts`**
 معيار قبول المهمة ٢ في صورة قابلة للتشغيل: يقرأ النماذج من المخطط نفسه
 ويستعلم كلًّا منها، فيفشل إن أُضيف نموذج بلا ترحيل. `npm run check:schema`.
+
+---
+
+## 2026-08-02 · بعد المهمة ٢ · الكيانات الخمسة
+
+الإضافات الثلاث (`titleEn`/`detailEn` · `Listing.reviewReason` · حذف
+`Trim.defaultFeatures`) **مُقرّة كلها**.
+
+### نطاق التاجر — تمييز لازم
+صفحة المعرض العامة **Wg مرحلة أولى** (يراها المشتري). لوحة تحكّم التاجر
+**D1–D11 مرحلة ثالثة**. لذلك `Dealer` بحقول الملف العام فقط — لا فروع ولا
+أعضاء ولا فواتير ولا استيراد جماعي.
+
+### الترميز
+
+```prisma
+model Dealer {
+  id String @id @default(cuid())
+  slug String @unique
+  nameAr String
+  nameEn String
+  logoUrl String?
+  coverUrl String?
+  aboutAr String?
+  aboutEn String?
+  city String
+  address String?
+  phone String?
+  hours Json?
+  crNumber String?
+  vatNumber String?
+  verified Boolean @default(false)
+  ratingAvg Decimal? @db.Decimal(3,2)
+  ratingCount Int @default(0)
+  status DealerStatus @default(PENDING)
+  createdAt DateTime @default(now())
+}
+enum DealerStatus { PENDING ACTIVE SUSPENDED }
+
+model ServiceProvider {
+  id String @id @default(cuid())
+  nameAr String
+  nameEn String
+  logoUrl String?
+  type ProviderType
+  contactPhone String?
+  contactEmail String?
+  commissionPct Decimal? @db.Decimal(5,2)
+  slaHours Int?
+  cities String[]
+  active Boolean @default(true)
+}
+enum ProviderType { INSPECTION SHIPPING INSURANCE DETAILING PHOTOGRAPHY FINANCE OTHER }
+
+model EntitlementOverride {
+  id String @id @default(cuid())
+  userId String?
+  dealerId String?
+  entitlementKey String
+  value String
+  reason String
+  expiresAt DateTime?
+  createdBy String
+  createdAt DateTime @default(now())
+  @@index([userId, entitlementKey])
+}
+
+model Integration {
+  key String @id
+  nameAr String
+  provider String
+  category IntegrationCategory
+  status IntegrationStatus @default(INACTIVE)
+  configPublic Json?
+  secretsEncrypted String?
+  lastCheckAt DateTime?
+  lastCheckOk Boolean?
+  failureBehavior String
+}
+enum IntegrationCategory { IDENTITY PAYMENT GOVERNMENT INFRASTRUCTURE }
+enum IntegrationStatus { ACTIVE INACTIVE DEGRADED }
+
+model ApprovalRequest {
+  id String @id @default(cuid())
+  kind ApprovalKind
+  entityType String
+  entityId String
+  payload Json
+  requestedBy String
+  approvedBy String[]
+  requiredApprovals Int @default(2)
+  status ApprovalStatus @default(PENDING)
+  expiresAt DateTime
+  executedAt DateTime?
+  @@index([status, kind])
+}
+enum ApprovalKind { ESCROW_RELEASE KEY_ROTATION COMMISSION_CHANGE PLAN_CHANGE USER_BAN }
+enum ApprovalStatus { PENDING APPROVED REJECTED EXPIRED EXECUTED }
+```
+
+**واستبدل `Escrow.releaseApprovedBy` بـ`ApprovalRequest`** — آلية واحدة لكل
+الإجراءات الثنائية.

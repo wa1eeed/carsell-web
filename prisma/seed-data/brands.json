@@ -1,0 +1,2953 @@
+[
+  {
+    "slug": "toyota",
+    "nameAr": "تويوتا",
+    "nameEn": "Toyota",
+    "sort": 1,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "كامري",
+        "nameEn": "Camry",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "GL",
+            "nameEn": "GL",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "GLE",
+            "nameEn": "GLE",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "SE",
+            "nameEn": "SE",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "هايبرد",
+            "nameEn": "Hybrid",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "HYBRID",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 218,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "كورولا",
+        "nameEn": "Corolla",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "XLI",
+            "nameEn": "XLI",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 121,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "GLI",
+            "nameEn": "GLI",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 170,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "هايبرد",
+            "nameEn": "Hybrid",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "HYBRID",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.8,
+            "cylinders": 4,
+            "horsepower": 122,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "لاندكروزر",
+        "nameEn": "Land Cruiser",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "GXR",
+            "nameEn": "GXR",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 4.0,
+            "cylinders": 6,
+            "horsepower": 271,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "VXR",
+            "nameEn": "VXR",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 409,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "GX-R توين تيربو",
+            "nameEn": "GX-R Twin Turbo",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 409,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "برادو",
+        "nameEn": "Prado",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "TXL",
+            "nameEn": "TXL",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.7,
+            "cylinders": 4,
+            "horsepower": 163,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "VXR",
+            "nameEn": "VXR",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 4.0,
+            "cylinders": 6,
+            "horsepower": 271,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "هايلكس",
+        "nameEn": "Hilux",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "PICKUP",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "غمارة",
+            "nameEn": "Single Cab",
+            "bodyType": "PICKUP",
+            "transmission": "MANUAL",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 2,
+            "doors": 2,
+            "engineL": 2.7,
+            "cylinders": 4,
+            "horsepower": 163,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "غمارتين",
+            "nameEn": "Double Cab",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.7,
+            "cylinders": 4,
+            "horsepower": 163,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "أدفنتشر",
+            "nameEn": "Adventure",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "DIESEL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.8,
+            "cylinders": 4,
+            "horsepower": 204,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "راف٤",
+        "nameEn": "RAV4",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LE",
+            "nameEn": "LE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "XLE",
+            "nameEn": "XLE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "هايبرد",
+            "nameEn": "Hybrid",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "HYBRID",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 219,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "أفالون",
+        "nameEn": "Avalon",
+        "yearFrom": 2018,
+        "yearTo": 2022,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "لميتد",
+            "nameEn": "Limited",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 301,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "توهرنغ",
+            "nameEn": "Touring",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 301,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "يارس",
+        "nameEn": "Yaris",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "Y",
+            "nameEn": "Y",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 106,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "Y بلس",
+            "nameEn": "Y Plus",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 106,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "فورتشنر",
+        "nameEn": "Fortuner",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "EXR",
+            "nameEn": "EXR",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.7,
+            "cylinders": 4,
+            "horsepower": 163,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "VXR",
+            "nameEn": "VXR",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 4.0,
+            "cylinders": 6,
+            "horsepower": 271,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "هايلاندر",
+        "nameEn": "Highlander",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LE",
+            "nameEn": "LE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 295,
+            "yearFrom": 2020,
+            "yearTo": null
+          },
+          {
+            "nameAr": "لميتد",
+            "nameEn": "Limited",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 295,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سي إتش آر",
+        "nameEn": "C-HR",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "قياسي",
+            "nameEn": "Standard",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 144,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "إنوفا",
+        "nameEn": "Innova",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "VAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "GL",
+            "nameEn": "GL",
+            "bodyType": "VAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 2.7,
+            "cylinders": 4,
+            "horsepower": 163,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "hyundai",
+    "nameAr": "هيونداي",
+    "nameEn": "Hyundai",
+    "sort": 2,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "إلنترا",
+        "nameEn": "Elantra",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "سمارت",
+            "nameEn": "Smart",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 128,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "كمفورت",
+            "nameEn": "Comfort",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 159,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "N لاين",
+            "nameEn": "N Line",
+            "bodyType": "SEDAN",
+            "transmission": "DCT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 201,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سوناتا",
+        "nameEn": "Sonata",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "سمارت",
+            "nameEn": "Smart",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 160,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "كمفورت",
+            "nameEn": "Comfort",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 180,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "أكسنت",
+        "nameEn": "Accent",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "سمارت",
+            "nameEn": "Smart",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 123,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "توسان",
+        "nameEn": "Tucson",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "سمارت",
+            "nameEn": "Smart",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 156,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "كمفورت",
+            "nameEn": "Comfort",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 190,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سنتافي",
+        "nameEn": "Santa Fe",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "كمفورت",
+            "nameEn": "Comfort",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 191,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "كالجري",
+            "nameEn": "Calligraphy",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 272,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "كريتا",
+        "nameEn": "Creta",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "سمارت",
+            "nameEn": "Smart",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 123,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "باليسيد",
+        "nameEn": "Palisade",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "كمفورت",
+            "nameEn": "Comfort",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 3.8,
+            "cylinders": 6,
+            "horsepower": 295,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "أزيرا",
+        "nameEn": "Azera",
+        "yearFrom": 2018,
+        "yearTo": 2022,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "كمفورت",
+            "nameEn": "Comfort",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 290,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "ستاريا",
+        "nameEn": "Staria",
+        "yearFrom": 2022,
+        "yearTo": null,
+        "bodyType": "VAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "قياسي",
+            "nameEn": "Standard",
+            "bodyType": "VAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 11,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 272,
+            "yearFrom": 2022,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "أيونيك ٥",
+        "nameEn": "Ioniq 5",
+        "yearFrom": 2022,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "قياسي",
+            "nameEn": "Standard",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "ELECTRIC",
+            "drivetrain": "RWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": null,
+            "cylinders": null,
+            "horsepower": 225,
+            "yearFrom": 2022,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "nissan",
+    "nameAr": "نيسان",
+    "nameEn": "Nissan",
+    "sort": 3,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "باترول",
+        "nameEn": "Patrol",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SE",
+            "nameEn": "SE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 4.0,
+            "cylinders": 6,
+            "horsepower": 275,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "LE بلاتينيوم",
+            "nameEn": "LE Platinum",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.6,
+            "cylinders": 8,
+            "horsepower": 400,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "نسمو",
+            "nameEn": "Nismo",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.6,
+            "cylinders": 8,
+            "horsepower": 428,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "صني",
+        "nameEn": "Sunny",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 118,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "SV",
+            "nameEn": "SV",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 118,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "ألتيما",
+        "nameEn": "Altima",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 182,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "SV",
+            "nameEn": "SV",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 182,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "SL",
+            "nameEn": "SL",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 182,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "إكس-تريل",
+        "nameEn": "X-Trail",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 181,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "كيكس",
+        "nameEn": "Kicks",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 118,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "مكسيما",
+        "nameEn": "Maxima",
+        "yearFrom": 2018,
+        "yearTo": 2023,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SV",
+            "nameEn": "SV",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 300,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "نافارا",
+        "nameEn": "Navara",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "PICKUP",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "غمارتين",
+            "nameEn": "Double Cab",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "DIESEL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 190,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "باثفايندر",
+        "nameEn": "Pathfinder",
+        "yearFrom": 2022,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SV",
+            "nameEn": "SV",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 284,
+            "yearFrom": 2022,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "kia",
+    "nameAr": "كيا",
+    "nameEn": "Kia",
+    "sort": 4,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "K5",
+        "nameEn": "K5",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 152,
+            "yearFrom": 2020,
+            "yearTo": null
+          },
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 194,
+            "yearFrom": 2020,
+            "yearTo": null
+          },
+          {
+            "nameAr": "GT لاين",
+            "nameEn": "GT Line",
+            "bodyType": "SEDAN",
+            "transmission": "DCT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 180,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سيراتو",
+        "nameEn": "Cerato",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 128,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 157,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سبورتاج",
+        "nameEn": "Sportage",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 155,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.4,
+            "cylinders": 4,
+            "horsepower": 181,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سورينتو",
+        "nameEn": "Sorento",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 191,
+            "yearFrom": 2021,
+            "yearTo": null
+          },
+          {
+            "nameAr": "SX",
+            "nameEn": "SX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 272,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "كارنيفال",
+        "nameEn": "Carnival",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "VAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "VAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 11,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 290,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "بيجاس",
+        "nameEn": "Pegas",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.4,
+            "cylinders": 4,
+            "horsepower": 95,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سيلتوس",
+        "nameEn": "Seltos",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 123,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "تيلورايد",
+        "nameEn": "Telluride",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 3.8,
+            "cylinders": 6,
+            "horsepower": 291,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "chevrolet",
+    "nameAr": "شفروليه",
+    "nameEn": "Chevrolet",
+    "sort": 5,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "تاهو",
+        "nameEn": "Tahoe",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LS",
+            "nameEn": "LS",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2021,
+            "yearTo": null
+          },
+          {
+            "nameAr": "LT",
+            "nameEn": "LT",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2021,
+            "yearTo": null
+          },
+          {
+            "nameAr": "زد٧١",
+            "nameEn": "Z71",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سوبربان",
+        "nameEn": "Suburban",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LT",
+            "nameEn": "LT",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "ماليبو",
+        "nameEn": "Malibu",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LS",
+            "nameEn": "LS",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 163,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "LT",
+            "nameEn": "LT",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 250,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "كابرس",
+        "nameEn": "Caprice",
+        "yearFrom": 2018,
+        "yearTo": 2020,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LS",
+            "nameEn": "LS",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "RWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.6,
+            "cylinders": 6,
+            "horsepower": 304,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "ترافيرس",
+        "nameEn": "Traverse",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LS",
+            "nameEn": "LS",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.6,
+            "cylinders": 6,
+            "horsepower": 310,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "كولورادو",
+        "nameEn": "Colorado",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "PICKUP",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "غمارتين",
+            "nameEn": "Crew Cab",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.6,
+            "cylinders": 6,
+            "horsepower": 308,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "جروف",
+        "nameEn": "Groove",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LS",
+            "nameEn": "LS",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 105,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ford",
+    "nameAr": "فورد",
+    "nameEn": "Ford",
+    "sort": 6,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "إكسبيديشن",
+        "nameEn": "Expedition",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "XLT",
+            "nameEn": "XLT",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 375,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "بلاتينيوم",
+            "nameEn": "Platinum",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 400,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "إكسبلورر",
+        "nameEn": "Explorer",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "XLT",
+            "nameEn": "XLT",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.3,
+            "cylinders": 4,
+            "horsepower": 300,
+            "yearFrom": 2020,
+            "yearTo": null
+          },
+          {
+            "nameAr": "لميتد",
+            "nameEn": "Limited",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.0,
+            "cylinders": 6,
+            "horsepower": 365,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "F-150",
+        "nameEn": "F-150",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "PICKUP",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "XLT",
+            "nameEn": "XLT",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 5.0,
+            "cylinders": 8,
+            "horsepower": 395,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "رابتور",
+            "nameEn": "Raptor",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 450,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "موستانج",
+        "nameEn": "Mustang",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "COUPE",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "إيكوبوست",
+            "nameEn": "EcoBoost",
+            "bodyType": "COUPE",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "RWD",
+            "seats": 4,
+            "doors": 2,
+            "engineL": 2.3,
+            "cylinders": 4,
+            "horsepower": 310,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "GT",
+            "nameEn": "GT",
+            "bodyType": "COUPE",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "RWD",
+            "seats": 4,
+            "doors": 2,
+            "engineL": 5.0,
+            "cylinders": 8,
+            "horsepower": 450,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "تورس",
+        "nameEn": "Taurus",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "أمبيانتي",
+            "nameEn": "Ambiente",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 240,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "إيدج",
+        "nameEn": "Edge",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SE",
+            "nameEn": "SE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 250,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "برونكو",
+        "nameEn": "Bronco",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "بيج بند",
+            "nameEn": "Big Bend",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.3,
+            "cylinders": 4,
+            "horsepower": 300,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "honda",
+    "nameAr": "هوندا",
+    "nameEn": "Honda",
+    "sort": 7,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "أكورد",
+        "nameEn": "Accord",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 192,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 192,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "توهرنغ",
+            "nameEn": "Touring",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 252,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سيفيك",
+        "nameEn": "Civic",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "DX",
+            "nameEn": "DX",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 125,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "LX",
+            "nameEn": "LX",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 158,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سي آر-في",
+        "nameEn": "CR-V",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "DX",
+            "nameEn": "DX",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 154,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 190,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "بايلوت",
+        "nameEn": "Pilot",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 280,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "HR-V",
+        "nameEn": "HR-V",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "DX",
+            "nameEn": "DX",
+            "bodyType": "SUV",
+            "transmission": "CVT",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.8,
+            "cylinders": 4,
+            "horsepower": 141,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "أوديسي",
+        "nameEn": "Odyssey",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "VAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "EX",
+            "nameEn": "EX",
+            "bodyType": "VAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 280,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "lexus",
+    "nameAr": "لكزس",
+    "nameEn": "Lexus",
+    "sort": 8,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "ES",
+        "nameEn": "ES",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "٢٥٠",
+            "nameEn": "250",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "٣٥٠",
+            "nameEn": "350",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 302,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "٣٠٠h",
+            "nameEn": "300h",
+            "bodyType": "SEDAN",
+            "transmission": "CVT",
+            "fuel": "HYBRID",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 218,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "LX",
+        "nameEn": "LX",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "٥٧٠",
+            "nameEn": "570",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 5.7,
+            "cylinders": 8,
+            "horsepower": 367,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "٦٠٠",
+            "nameEn": "600",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 409,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "RX",
+        "nameEn": "RX",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "٣٥٠",
+            "nameEn": "350",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 295,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "٣٥٠L",
+            "nameEn": "350L",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.5,
+            "cylinders": 6,
+            "horsepower": 295,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "GX",
+        "nameEn": "GX",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "٤٦٠",
+            "nameEn": "460",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 4.6,
+            "cylinders": 8,
+            "horsepower": 301,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "NX",
+        "nameEn": "NX",
+        "yearFrom": 2022,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "٢٥٠",
+            "nameEn": "250",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 203,
+            "yearFrom": 2022,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "IS",
+        "nameEn": "IS",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "٣٠٠",
+            "nameEn": "300",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "RWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 241,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "gmc",
+    "nameAr": "جي إم سي",
+    "nameEn": "GMC",
+    "sort": 9,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "يوكن",
+        "nameEn": "Yukon",
+        "yearFrom": 2021,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SLE",
+            "nameEn": "SLE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2021,
+            "yearTo": null
+          },
+          {
+            "nameAr": "دينالي",
+            "nameEn": "Denali",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 6.2,
+            "cylinders": 8,
+            "horsepower": 420,
+            "yearFrom": 2021,
+            "yearTo": null
+          },
+          {
+            "nameAr": "AT4",
+            "nameEn": "AT4",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 8,
+            "doors": 5,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2021,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "سييرا",
+        "nameEn": "Sierra",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "PICKUP",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SLE",
+            "nameEn": "SLE",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 5.3,
+            "cylinders": 8,
+            "horsepower": 355,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "دينالي",
+            "nameEn": "Denali",
+            "bodyType": "PICKUP",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FOUR_WD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 6.2,
+            "cylinders": 8,
+            "horsepower": 420,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "أكاديا",
+        "nameEn": "Acadia",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SLE",
+            "nameEn": "SLE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 3.6,
+            "cylinders": 6,
+            "horsepower": 310,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "تيرين",
+        "nameEn": "Terrain",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "SLE",
+            "nameEn": "SLE",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 1.5,
+            "cylinders": 4,
+            "horsepower": 170,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "mazda",
+    "nameAr": "مازدا",
+    "nameEn": "Mazda",
+    "sort": 10,
+    "visible": true,
+    "models": [
+      {
+        "nameAr": "مازدا ٦",
+        "nameEn": "Mazda 6",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 187,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "V",
+            "nameEn": "V",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 187,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "مازدا ٣",
+        "nameEn": "Mazda 3",
+        "yearFrom": 2019,
+        "yearTo": null,
+        "bodyType": "SEDAN",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 1.6,
+            "cylinders": 4,
+            "horsepower": 122,
+            "yearFrom": 2019,
+            "yearTo": null
+          },
+          {
+            "nameAr": "V",
+            "nameEn": "V",
+            "bodyType": "SEDAN",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 4,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 153,
+            "yearFrom": 2019,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "CX-5",
+        "nameEn": "CX-5",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 155,
+            "yearFrom": 2018,
+            "yearTo": null
+          },
+          {
+            "nameAr": "V",
+            "nameEn": "V",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 192,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "CX-9",
+        "nameEn": "CX-9",
+        "yearFrom": 2018,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "AWD",
+            "seats": 7,
+            "doors": 5,
+            "engineL": 2.5,
+            "cylinders": 4,
+            "horsepower": 231,
+            "yearFrom": 2018,
+            "yearTo": null
+          }
+        ]
+      },
+      {
+        "nameAr": "CX-30",
+        "nameEn": "CX-30",
+        "yearFrom": 2020,
+        "yearTo": null,
+        "bodyType": "SUV",
+        "visible": true,
+        "trims": [
+          {
+            "nameAr": "S",
+            "nameEn": "S",
+            "bodyType": "SUV",
+            "transmission": "AUTOMATIC",
+            "fuel": "PETROL",
+            "drivetrain": "FWD",
+            "seats": 5,
+            "doors": 5,
+            "engineL": 2.0,
+            "cylinders": 4,
+            "horsepower": 153,
+            "yearFrom": 2020,
+            "yearTo": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "mitsubishi",
+    "nameAr": "ميتسوبيشي",
+    "nameEn": "Mitsubishi",
+    "sort": 11,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "mg",
+    "nameAr": "إم جي",
+    "nameEn": "MG",
+    "sort": 12,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "changan",
+    "nameAr": "شانجان",
+    "nameEn": "Changan",
+    "sort": 13,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "jetour",
+    "nameAr": "جيتور",
+    "nameEn": "Jetour",
+    "sort": 14,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "geely",
+    "nameAr": "جيلي",
+    "nameEn": "Geely",
+    "sort": 15,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "chery",
+    "nameAr": "شيري",
+    "nameEn": "Chery",
+    "sort": 16,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "haval",
+    "nameAr": "هافال",
+    "nameEn": "Haval",
+    "sort": 17,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "isuzu",
+    "nameAr": "إيسوزو",
+    "nameEn": "Isuzu",
+    "sort": 18,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "mercedes-benz",
+    "nameAr": "مرسيدس-بنز",
+    "nameEn": "Mercedes-Benz",
+    "sort": 19,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "bmw",
+    "nameAr": "بي إم دبليو",
+    "nameEn": "BMW",
+    "sort": 20,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "audi",
+    "nameAr": "أودي",
+    "nameEn": "Audi",
+    "sort": 21,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "volkswagen",
+    "nameAr": "فولكس واجن",
+    "nameEn": "Volkswagen",
+    "sort": 22,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "land-rover",
+    "nameAr": "لاند روفر",
+    "nameEn": "Land Rover",
+    "sort": 23,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "jeep",
+    "nameAr": "جيب",
+    "nameEn": "Jeep",
+    "sort": 24,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "dodge",
+    "nameAr": "دودج",
+    "nameEn": "Dodge",
+    "sort": 25,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "cadillac",
+    "nameAr": "كاديلاك",
+    "nameEn": "Cadillac",
+    "sort": 26,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "infiniti",
+    "nameAr": "إنفينيتي",
+    "nameEn": "Infiniti",
+    "sort": 27,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "porsche",
+    "nameAr": "بورش",
+    "nameEn": "Porsche",
+    "sort": 28,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "renault",
+    "nameAr": "رينو",
+    "nameEn": "Renault",
+    "sort": 29,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "peugeot",
+    "nameAr": "بيجو",
+    "nameEn": "Peugeot",
+    "sort": 30,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "suzuki",
+    "nameAr": "سوزوكي",
+    "nameEn": "Suzuki",
+    "sort": 31,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "subaru",
+    "nameAr": "سوبارو",
+    "nameEn": "Subaru",
+    "sort": 32,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "volvo",
+    "nameAr": "فولفو",
+    "nameEn": "Volvo",
+    "sort": 33,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "genesis",
+    "nameAr": "جينيسيس",
+    "nameEn": "Genesis",
+    "sort": 34,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "bentley",
+    "nameAr": "بنتلي",
+    "nameEn": "Bentley",
+    "sort": 35,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "rolls-royce",
+    "nameAr": "رولز رويس",
+    "nameEn": "Rolls-Royce",
+    "sort": 36,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "ferrari",
+    "nameAr": "فيراري",
+    "nameEn": "Ferrari",
+    "sort": 37,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "lamborghini",
+    "nameAr": "لامبورغيني",
+    "nameEn": "Lamborghini",
+    "sort": 38,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "maserati",
+    "nameAr": "مازيراتي",
+    "nameEn": "Maserati",
+    "sort": 39,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "tesla",
+    "nameAr": "تسلا",
+    "nameEn": "Tesla",
+    "sort": 40,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "lucid",
+    "nameAr": "لوسيد",
+    "nameEn": "Lucid",
+    "sort": 41,
+    "visible": true,
+    "models": []
+  },
+  {
+    "slug": "byd",
+    "nameAr": "بي واي دي",
+    "nameEn": "BYD",
+    "sort": 42,
+    "visible": true,
+    "models": []
+  }
+]

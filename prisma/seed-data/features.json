@@ -1,0 +1,314 @@
+[
+  {
+    "key": "abs",
+    "nameAr": "نظام منع انغلاق المكابح ABS",
+    "nameEn": "Anti-lock Braking System",
+    "group": "SAFETY",
+    "sort": 1,
+    "active": true
+  },
+  {
+    "key": "airbags_front",
+    "nameAr": "وسائد هوائية أمامية",
+    "nameEn": "Front Airbags",
+    "group": "SAFETY",
+    "sort": 2,
+    "active": true
+  },
+  {
+    "key": "airbags_side",
+    "nameAr": "وسائد هوائية جانبية",
+    "nameEn": "Side Airbags",
+    "group": "SAFETY",
+    "sort": 3,
+    "active": true
+  },
+  {
+    "key": "esc",
+    "nameAr": "ثبات إلكتروني ESC",
+    "nameEn": "Electronic Stability Control",
+    "group": "SAFETY",
+    "sort": 4,
+    "active": true
+  },
+  {
+    "key": "tpms",
+    "nameAr": "مراقبة ضغط الإطارات",
+    "nameEn": "Tyre Pressure Monitoring",
+    "group": "SAFETY",
+    "sort": 5,
+    "active": true
+  },
+  {
+    "key": "rear_camera",
+    "nameAr": "كاميرا خلفية",
+    "nameEn": "Rear Camera",
+    "group": "SAFETY",
+    "sort": 6,
+    "active": true
+  },
+  {
+    "key": "camera_360",
+    "nameAr": "كاميرا محيطية ٣٦٠°",
+    "nameEn": "360° Camera",
+    "group": "SAFETY",
+    "sort": 7,
+    "active": true
+  },
+  {
+    "key": "parking_sensors",
+    "nameAr": "حسّاسات ركن",
+    "nameEn": "Parking Sensors",
+    "group": "SAFETY",
+    "sort": 8,
+    "active": true
+  },
+  {
+    "key": "blind_spot",
+    "nameAr": "تنبيه النقطة العمياء",
+    "nameEn": "Blind Spot Monitor",
+    "group": "SAFETY",
+    "sort": 9,
+    "active": true
+  },
+  {
+    "key": "lane_assist",
+    "nameAr": "مساعد البقاء في المسار",
+    "nameEn": "Lane Keep Assist",
+    "group": "SAFETY",
+    "sort": 10,
+    "active": true
+  },
+  {
+    "key": "aeb",
+    "nameAr": "فرملة طوارئ تلقائية",
+    "nameEn": "Autonomous Emergency Braking",
+    "group": "SAFETY",
+    "sort": 11,
+    "active": true
+  },
+  {
+    "key": "isofix",
+    "nameAr": "مثبّتات مقعد الطفل ISOFIX",
+    "nameEn": "ISOFIX Anchors",
+    "group": "SAFETY",
+    "sort": 12,
+    "active": true
+  },
+  {
+    "key": "hill_assist",
+    "nameAr": "مساعد الانطلاق على المنحدر",
+    "nameEn": "Hill Start Assist",
+    "group": "SAFETY",
+    "sort": 13,
+    "active": true
+  },
+  {
+    "key": "ac_auto",
+    "nameAr": "مكيّف أوتوماتيك",
+    "nameEn": "Automatic Climate Control",
+    "group": "COMFORT",
+    "sort": 14,
+    "active": true
+  },
+  {
+    "key": "ac_dual",
+    "nameAr": "تحكّم مزدوج بالمناطق",
+    "nameEn": "Dual-zone Climate",
+    "group": "COMFORT",
+    "sort": 15,
+    "active": true
+  },
+  {
+    "key": "ac_rear",
+    "nameAr": "مكيّف خلفي",
+    "nameEn": "Rear AC Vents",
+    "group": "COMFORT",
+    "sort": 16,
+    "active": true
+  },
+  {
+    "key": "leather_seats",
+    "nameAr": "مقاعد جلد",
+    "nameEn": "Leather Seats",
+    "group": "COMFORT",
+    "sort": 17,
+    "active": true
+  },
+  {
+    "key": "power_seats",
+    "nameAr": "مقاعد كهربائية",
+    "nameEn": "Power Seats",
+    "group": "COMFORT",
+    "sort": 18,
+    "active": true
+  },
+  {
+    "key": "memory_seats",
+    "nameAr": "ذاكرة مقاعد",
+    "nameEn": "Memory Seats",
+    "group": "COMFORT",
+    "sort": 19,
+    "active": true
+  },
+  {
+    "key": "heated_seats",
+    "nameAr": "مقاعد مدفّأة",
+    "nameEn": "Heated Seats",
+    "group": "COMFORT",
+    "sort": 20,
+    "active": true
+  },
+  {
+    "key": "ventilated_seats",
+    "nameAr": "مقاعد مبرّدة",
+    "nameEn": "Ventilated Seats",
+    "group": "COMFORT",
+    "sort": 21,
+    "active": true
+  },
+  {
+    "key": "sunroof",
+    "nameAr": "فتحة سقف",
+    "nameEn": "Sunroof",
+    "group": "COMFORT",
+    "sort": 22,
+    "active": true
+  },
+  {
+    "key": "panoramic_roof",
+    "nameAr": "سقف بانورامي",
+    "nameEn": "Panoramic Roof",
+    "group": "COMFORT",
+    "sort": 23,
+    "active": true
+  },
+  {
+    "key": "power_tailgate",
+    "nameAr": "باب خلفي كهربائي",
+    "nameEn": "Power Tailgate",
+    "group": "COMFORT",
+    "sort": 24,
+    "active": true
+  },
+  {
+    "key": "keyless_entry",
+    "nameAr": "دخول بلا مفتاح",
+    "nameEn": "Keyless Entry",
+    "group": "COMFORT",
+    "sort": 25,
+    "active": true
+  },
+  {
+    "key": "push_start",
+    "nameAr": "تشغيل بزر",
+    "nameEn": "Push-button Start",
+    "group": "COMFORT",
+    "sort": 26,
+    "active": true
+  },
+  {
+    "key": "steering_wheel_leather",
+    "nameAr": "مقود جلد",
+    "nameEn": "Leather Steering Wheel",
+    "group": "COMFORT",
+    "sort": 27,
+    "active": true
+  },
+  {
+    "key": "screen_8",
+    "nameAr": "شاشة ٨ بوصة",
+    "nameEn": "8-inch Display",
+    "group": "TECH",
+    "sort": 28,
+    "active": true
+  },
+  {
+    "key": "screen_10",
+    "nameAr": "شاشة ١٠ بوصة فأكثر",
+    "nameEn": "10-inch Display or Larger",
+    "group": "TECH",
+    "sort": 29,
+    "active": true
+  },
+  {
+    "key": "carplay",
+    "nameAr": "Apple CarPlay",
+    "nameEn": "Apple CarPlay",
+    "group": "TECH",
+    "sort": 30,
+    "active": true
+  },
+  {
+    "key": "android_auto",
+    "nameAr": "Android Auto",
+    "nameEn": "Android Auto",
+    "group": "TECH",
+    "sort": 31,
+    "active": true
+  },
+  {
+    "key": "navigation",
+    "nameAr": "نظام ملاحة",
+    "nameEn": "Navigation System",
+    "group": "TECH",
+    "sort": 32,
+    "active": true
+  },
+  {
+    "key": "bluetooth",
+    "nameAr": "بلوتوث",
+    "nameEn": "Bluetooth",
+    "group": "TECH",
+    "sort": 33,
+    "active": true
+  },
+  {
+    "key": "wireless_charging",
+    "nameAr": "شاحن لاسلكي",
+    "nameEn": "Wireless Charging",
+    "group": "TECH",
+    "sort": 34,
+    "active": true
+  },
+  {
+    "key": "premium_audio",
+    "nameAr": "نظام صوت فاخر",
+    "nameEn": "Premium Audio System",
+    "group": "TECH",
+    "sort": 35,
+    "active": true
+  },
+  {
+    "key": "digital_cluster",
+    "nameAr": "عدّادات رقمية",
+    "nameEn": "Digital Instrument Cluster",
+    "group": "TECH",
+    "sort": 36,
+    "active": true
+  },
+  {
+    "key": "hud",
+    "nameAr": "شاشة أمامية HUD",
+    "nameEn": "Head-up Display",
+    "group": "TECH",
+    "sort": 37,
+    "active": true
+  },
+  {
+    "key": "cruise_control",
+    "nameAr": "مثبّت سرعة",
+    "nameEn": "Cruise Control",
+    "group": "TECH",
+    "sort": 38,
+    "active": true
+  },
+  {
+    "key": "adaptive_cruise",
+    "nameAr": "مثبّت سرعة تكيّفي",
+    "nameEn": "Adaptive Cruise Control",
+    "group": "TECH",
+    "sort": 39,
+    "active": true
+  }
+]

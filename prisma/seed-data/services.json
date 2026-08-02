@@ -1,0 +1,154 @@
+[
+  {
+    "key": "inspection",
+    "nameAr": "فحص فني ٢١٠ نقطة",
+    "nameEn": "210-point inspection",
+    "descAr": "فحص شامل في مركز مستقل يغطّي الهيكل والمحرك والكهرباء، بتقرير مفصّل ودرجة من ١٠٠.",
+    "descEn": "Full independent inspection covering body, engine and electrics, with a detailed report and a score out of 100.",
+    "price": "450.00",
+    "category": "PRE_PURCHASE",
+    "isAutomated": false,
+    "slaHours": 48,
+    "placements": [
+      "home_services",
+      "listing_banner",
+      "guide"
+    ],
+    "sort": 1,
+    "providerType": "INSPECTION"
+  },
+  {
+    "key": "mojaz",
+    "nameAr": "تقرير موجز الرسمي",
+    "nameEn": "Mojaz official report",
+    "descAr": "سجل الملّاك والبلاغات والممشى الموثّق وحالة الرهن — تقرير رسمي يُصدر باسمك.",
+    "descEn": "Ownership history, incident reports, verified odometer and lien status — an official report issued in your name.",
+    "price": "25.00",
+    "category": "PRE_PURCHASE",
+    "isAutomated": true,
+    "slaHours": 1,
+    "placements": [
+      "listing_banner",
+      "guide"
+    ],
+    "sort": 2,
+    "providerType": null
+  },
+  {
+    "key": "viewing",
+    "nameAr": "طلب معاينة",
+    "nameEn": "Viewing request",
+    "descAr": "موعد معاينة للمركبة في موقع البائع أو نقطة محايدة، بترتيب من المنصة.",
+    "descEn": "A viewing appointment at the seller's location or a neutral point, arranged by the platform.",
+    "price": "0.00",
+    "category": "PRE_PURCHASE",
+    "isAutomated": false,
+    "slaHours": 24,
+    "placements": [
+      "listing_banner"
+    ],
+    "sort": 3,
+    "providerType": null
+  },
+  {
+    "key": "shipping",
+    "nameAr": "شحن ونقل",
+    "nameEn": "Shipping and transport",
+    "descAr": "نقل المركبة بين المدن على شاحنة مغلقة مع تأمين أثناء النقل.",
+    "descEn": "Inter-city vehicle transport on a covered truck, insured in transit.",
+    "price": "900.00",
+    "category": "POST_PURCHASE",
+    "isAutomated": false,
+    "slaHours": 96,
+    "placements": [
+      "home_services",
+      "guide"
+    ],
+    "sort": 4,
+    "providerType": "SHIPPING"
+  },
+  {
+    "key": "ownership_transfer",
+    "nameAr": "نقل الملكية",
+    "nameEn": "Ownership transfer",
+    "descAr": "إنهاء إجراءات نقل الملكية في المرور نيابةً عن الطرفين.",
+    "descEn": "Completing the traffic-department ownership transfer on behalf of both parties.",
+    "price": "350.00",
+    "category": "POST_PURCHASE",
+    "isAutomated": false,
+    "slaHours": 72,
+    "placements": [
+      "home_services",
+      "guide"
+    ],
+    "sort": 5,
+    "providerType": null
+  },
+  {
+    "key": "insurance",
+    "nameAr": "تأمين شامل",
+    "nameEn": "Comprehensive insurance",
+    "descAr": "عرض سعر فوري للتأمين الشامل من شركات معتمدة على المركبة نفسها.",
+    "descEn": "An instant comprehensive-insurance quote from approved providers for this exact vehicle.",
+    "price": "0.00",
+    "category": "POST_PURCHASE",
+    "isAutomated": true,
+    "slaHours": 1,
+    "placements": [
+      "listing_banner",
+      "guide"
+    ],
+    "sort": 6,
+    "providerType": "INSURANCE"
+  },
+  {
+    "key": "detailing",
+    "nameAr": "تلميع وتنظيف",
+    "nameEn": "Detailing",
+    "descAr": "تلميع خارجي وتنظيف داخلي عميق قبل التصوير أو بعد الشراء.",
+    "descEn": "Exterior polish and deep interior clean, before photography or after purchase.",
+    "price": "400.00",
+    "category": "SELLER",
+    "isAutomated": false,
+    "slaHours": 48,
+    "placements": [
+      "home_services",
+      "guide"
+    ],
+    "sort": 7,
+    "providerType": "DETAILING"
+  },
+  {
+    "key": "photography",
+    "nameAr": "تصوير احترافي",
+    "nameEn": "Professional photography",
+    "descAr": "جلسة تصوير للمركبة بإضاءة ومعالجة — الإعلانات المصوّرة احترافيًا تُشاهَد أكثر.",
+    "descEn": "A lit and edited photo session for the vehicle — professionally shot listings get more views.",
+    "price": "250.00",
+    "category": "SELLER",
+    "isAutomated": false,
+    "slaHours": 48,
+    "placements": [
+      "home_services",
+      "guide"
+    ],
+    "sort": 8,
+    "providerType": "PHOTOGRAPHY"
+  },
+  {
+    "key": "featured_listing",
+    "nameAr": "تمييز الإعلان",
+    "nameEn": "Featured listing",
+    "descAr": "رفع الإعلان إلى أعلى نتائج البحث لمدة سبعة أيام.",
+    "descEn": "Promote the listing to the top of search results for seven days.",
+    "price": "150.00",
+    "category": "SELLER",
+    "isAutomated": true,
+    "slaHours": 1,
+    "placements": [
+      "guide"
+    ],
+    "sort": 9,
+    "providerType": null
+  }
+]

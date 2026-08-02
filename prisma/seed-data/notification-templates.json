@@ -1,0 +1,714 @@
+[
+  {
+    "key": "auth.otp",
+    "subjectAr": "رمز الدخول",
+    "subjectEn": "Login code",
+    "bodyAr": "رمز الدخول. التفاصيل في التطبيق.",
+    "bodyEn": "Login code. Details in the app.",
+    "smsAr": "رمز CarSell: {code}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": false,
+    "channelInApp": false,
+    "variables": [
+      "code",
+      "minutes"
+    ],
+    "active": true
+  },
+  {
+    "key": "auth.new_device",
+    "subjectAr": "دخول من جهاز جديد",
+    "subjectEn": "Sign-in from a new device",
+    "bodyAr": "دخول من جهاز جديد. التفاصيل في التطبيق.",
+    "bodyEn": "Sign-in from a new device. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "device",
+      "city"
+    ],
+    "active": true
+  },
+  {
+    "key": "account.id_verified",
+    "subjectAr": "تم توثيق هويتك",
+    "subjectEn": "Your identity is verified",
+    "bodyAr": "تم توثيق هويتك. التفاصيل في التطبيق.",
+    "bodyEn": "Your identity is verified. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "name"
+    ],
+    "active": true
+  },
+  {
+    "key": "account.id_rejected",
+    "subjectAr": "تعذّر توثيق الهوية",
+    "subjectEn": "Identity verification failed",
+    "bodyAr": "تعذّر توثيق الهوية. التفاصيل في التطبيق.",
+    "bodyEn": "Identity verification failed. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "reason"
+    ],
+    "active": true
+  },
+  {
+    "key": "account.iban_required",
+    "subjectAr": "أضِف الآيبان قبل البيع",
+    "subjectEn": "Add your IBAN before selling",
+    "bodyAr": "أضِف الآيبان قبل البيع. التفاصيل في التطبيق.",
+    "bodyEn": "Add your IBAN before selling. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [],
+    "active": true
+  },
+  {
+    "key": "listing.published",
+    "subjectAr": "نُشر إعلانك",
+    "subjectEn": "Your listing is live",
+    "bodyAr": "نُشر إعلانك. التفاصيل في التطبيق.",
+    "bodyEn": "Your listing is live. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "title"
+    ],
+    "active": true
+  },
+  {
+    "key": "listing.under_review",
+    "subjectAr": "إعلانك قيد المراجعة",
+    "subjectEn": "Your listing is under review",
+    "bodyAr": "إعلانك قيد المراجعة. التفاصيل في التطبيق.",
+    "bodyEn": "Your listing is under review. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "reason"
+    ],
+    "active": true
+  },
+  {
+    "key": "listing.rejected",
+    "subjectAr": "رُفض إعلانك",
+    "subjectEn": "Your listing was rejected",
+    "bodyAr": "رُفض إعلانك. التفاصيل في التطبيق.",
+    "bodyEn": "Your listing was rejected. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "reason"
+    ],
+    "active": true
+  },
+  {
+    "key": "listing.expiring",
+    "subjectAr": "إعلانك يقارب الانتهاء",
+    "subjectEn": "Your listing is about to expire",
+    "bodyAr": "إعلانك يقارب الانتهاء. التفاصيل في التطبيق.",
+    "bodyEn": "Your listing is about to expire. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "days"
+    ],
+    "active": true
+  },
+  {
+    "key": "listing.sold",
+    "subjectAr": "بيعت مركبتك",
+    "subjectEn": "Your vehicle sold",
+    "bodyAr": "بيعت مركبتك. التفاصيل في التطبيق.",
+    "bodyEn": "Your vehicle sold. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.received",
+    "subjectAr": "عرض جديد على مركبتك",
+    "subjectEn": "New offer on your vehicle",
+    "bodyAr": "عرض جديد على مركبتك. التفاصيل في التطبيق.",
+    "bodyEn": "New offer on your vehicle. Details in the app.",
+    "smsAr": "عرض جديد {amount} على {ref}",
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount",
+      "buyer"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.accepted",
+    "subjectAr": "قُبل عرضك",
+    "subjectEn": "Your offer was accepted",
+    "bodyAr": "قُبل عرضك. التفاصيل في التطبيق.",
+    "bodyEn": "Your offer was accepted. Details in the app.",
+    "smsAr": "قُبل عرضك على {ref}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.rejected",
+    "subjectAr": "رُفض عرضك",
+    "subjectEn": "Your offer was declined",
+    "bodyAr": "رُفض عرضك. التفاصيل في التطبيق.",
+    "bodyEn": "Your offer was declined. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.auto_rejected",
+    "subjectAr": "رُفض عرضك تلقائيًا",
+    "subjectEn": "Your offer was auto-declined",
+    "bodyAr": "رُفض عرضك تلقائيًا. التفاصيل في التطبيق.",
+    "bodyEn": "Your offer was auto-declined. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.countered",
+    "subjectAr": "عرض مقابل من البائع",
+    "subjectEn": "The seller countered",
+    "bodyAr": "عرض مقابل من البائع. التفاصيل في التطبيق.",
+    "bodyEn": "The seller countered. Details in the app.",
+    "smsAr": "عرض مقابل {amount} على {ref}",
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.expiring",
+    "subjectAr": "عرضك يسقط قريبًا",
+    "subjectEn": "Your offer expires soon",
+    "bodyAr": "عرضك يسقط قريبًا. التفاصيل في التطبيق.",
+    "bodyEn": "Your offer expires soon. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "hours"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.expired",
+    "subjectAr": "سقط عرضك",
+    "subjectEn": "Your offer expired",
+    "bodyAr": "سقط عرضك. التفاصيل في التطبيق.",
+    "bodyEn": "Your offer expired. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "offer.withdrawn",
+    "subjectAr": "سُحب العرض",
+    "subjectEn": "The offer was withdrawn",
+    "bodyAr": "سُحب العرض. التفاصيل في التطبيق.",
+    "bodyEn": "The offer was withdrawn. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.starting",
+    "subjectAr": "مزاد يبدأ قريبًا",
+    "subjectEn": "An auction starts soon",
+    "bodyAr": "مزاد يبدأ قريبًا. التفاصيل في التطبيق.",
+    "bodyEn": "An auction starts soon. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "minutes"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.outbid",
+    "subjectAr": "تم تجاوز مزايدتك",
+    "subjectEn": "You have been outbid",
+    "bodyAr": "تم تجاوز مزايدتك. التفاصيل في التطبيق.",
+    "bodyEn": "You have been outbid. Details in the app.",
+    "smsAr": "تم تجاوزك على {ref}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.extended",
+    "subjectAr": "مُدّد المزاد",
+    "subjectEn": "The auction was extended",
+    "bodyAr": "مُدّد المزاد. التفاصيل في التطبيق.",
+    "bodyEn": "The auction was extended. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "minutes"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.closing",
+    "subjectAr": "المزاد يُغلق قريبًا",
+    "subjectEn": "The auction closes soon",
+    "bodyAr": "المزاد يُغلق قريبًا. التفاصيل في التطبيق.",
+    "bodyEn": "The auction closes soon. Details in the app.",
+    "smsAr": "يغلق {ref} خلال {minutes} د",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "minutes"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.won",
+    "subjectAr": "فزت بالمزاد",
+    "subjectEn": "You won the auction",
+    "bodyAr": "فزت بالمزاد. التفاصيل في التطبيق.",
+    "bodyEn": "You won the auction. Details in the app.",
+    "smsAr": "فزت بـ{ref} — ادفع خلال {hours} س",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount",
+      "hours"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.lost",
+    "subjectAr": "انتهى المزاد",
+    "subjectEn": "The auction ended",
+    "bodyAr": "انتهى المزاد. التفاصيل في التطبيق.",
+    "bodyEn": "The auction ended. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "auction.reserve_not_met",
+    "subjectAr": "لم يبلغ المزاد الاحتياطي",
+    "subjectEn": "The auction did not meet reserve",
+    "bodyAr": "لم يبلغ المزاد الاحتياطي. التفاصيل في التطبيق.",
+    "bodyEn": "The auction did not meet reserve. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "deposit.held",
+    "subjectAr": "حُجز العربون",
+    "subjectEn": "Your deposit is held",
+    "bodyAr": "حُجز العربون. التفاصيل في التطبيق.",
+    "bodyEn": "Your deposit is held. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "deposit.released",
+    "subjectAr": "رُدّ العربون",
+    "subjectEn": "Your deposit was released",
+    "bodyAr": "رُدّ العربون. التفاصيل في التطبيق.",
+    "bodyEn": "Your deposit was released. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "deposit.forfeited",
+    "subjectAr": "صودر العربون",
+    "subjectEn": "Your deposit was forfeited",
+    "bodyAr": "صودر العربون. التفاصيل في التطبيق.",
+    "bodyEn": "Your deposit was forfeited. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "order.created",
+    "subjectAr": "أُنشئ طلبك",
+    "subjectEn": "Your order was created",
+    "bodyAr": "أُنشئ طلبك. التفاصيل في التطبيق.",
+    "bodyEn": "Your order was created. Details in the app.",
+    "smsAr": "أُنشئ الطلب {ref}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "order.stage_changed",
+    "subjectAr": "تغيّرت مرحلة الطلب",
+    "subjectEn": "Your order moved stage",
+    "bodyAr": "تغيّرت مرحلة الطلب. التفاصيل في التطبيق.",
+    "bodyEn": "Your order moved stage. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "stage"
+    ],
+    "active": true
+  },
+  {
+    "key": "order.payment_due",
+    "subjectAr": "موعد الدفع يقترب",
+    "subjectEn": "Payment is due soon",
+    "bodyAr": "موعد الدفع يقترب. التفاصيل في التطبيق.",
+    "bodyEn": "Payment is due soon. Details in the app.",
+    "smsAr": "ادفع {ref} خلال {hours} س",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "hours",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "order.payment_overdue",
+    "subjectAr": "انتهت مهلة الدفع",
+    "subjectEn": "The payment window closed",
+    "bodyAr": "انتهت مهلة الدفع. التفاصيل في التطبيق.",
+    "bodyEn": "The payment window closed. Details in the app.",
+    "smsAr": "انتهت مهلة الدفع لـ{ref}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
+  },
+  {
+    "key": "order.cancelled",
+    "subjectAr": "أُلغي الطلب",
+    "subjectEn": "Your order was cancelled",
+    "bodyAr": "أُلغي الطلب. التفاصيل في التطبيق.",
+    "bodyEn": "Your order was cancelled. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "reason"
+    ],
+    "active": true
+  },
+  {
+    "key": "escrow.held",
+    "subjectAr": "المبلغ في الضمان",
+    "subjectEn": "Funds are in escrow",
+    "bodyAr": "المبلغ في الضمان. التفاصيل في التطبيق.",
+    "bodyEn": "Funds are in escrow. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "escrow.released",
+    "subjectAr": "حُوّل المبلغ للبائع",
+    "subjectEn": "Funds released to the seller",
+    "bodyAr": "حُوّل المبلغ للبائع. التفاصيل في التطبيق.",
+    "bodyEn": "Funds released to the seller. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "dispute.opened",
+    "subjectAr": "فُتح نزاع",
+    "subjectEn": "A dispute was opened",
+    "bodyAr": "فُتح نزاع. التفاصيل في التطبيق.",
+    "bodyEn": "A dispute was opened. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "reason"
+    ],
+    "active": true
+  },
+  {
+    "key": "dispute.resolved",
+    "subjectAr": "حُسم النزاع",
+    "subjectEn": "The dispute was resolved",
+    "bodyAr": "حُسم النزاع. التفاصيل في التطبيق.",
+    "bodyEn": "The dispute was resolved. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "resolution"
+    ],
+    "active": true
+  },
+  {
+    "key": "service.completed",
+    "subjectAr": "جهز تقرير خدمتك",
+    "subjectEn": "Your service result is ready",
+    "bodyAr": "جهز تقرير خدمتك. التفاصيل في التطبيق.",
+    "bodyEn": "Your service result is ready. Details in the app.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": false,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "service"
+    ],
+    "active": true
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "key": "home_story",
+    "nameAr": "قصص الرئيسية",
+    "width": 1080,
+    "height": 1920,
+    "pricingModel": "day",
+    "basePrice": "800.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "home_banner",
+    "nameAr": "بنر الرئيسية",
+    "width": 1200,
+    "height": 450,
+    "pricingModel": "week",
+    "basePrice": "4500.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "search_inline",
+    "nameAr": "بطاقة مموّلة في النتائج",
+    "width": 600,
+    "height": 400,
+    "pricingModel": "cpc",
+    "basePrice": "2.50",
+    "maxPerSession": 3
+  },
+  {
+    "key": "brand_featured",
+    "nameAr": "ماركة مميّزة",
+    "width": 400,
+    "height": 400,
+    "pricingModel": "cpm",
+    "basePrice": "35.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "service_featured",
+    "nameAr": "خدمة مميّزة",
+    "width": 1200,
+    "height": 675,
+    "pricingModel": "cpm",
+    "basePrice": "30.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "vehicle_inline",
+    "nameAr": "شريط صفحة السيارة",
+    "width": 1200,
+    "height": 96,
+    "pricingModel": "cpm",
+    "basePrice": "25.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "empty_state",
+    "nameAr": "حالة فارغة",
+    "width": 1200,
+    "height": 450,
+    "pricingModel": "cpm",
+    "basePrice": "12.00",
+    "maxPerSession": 1
+  }
+]
