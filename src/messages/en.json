@@ -164,14 +164,6 @@
     "noReport": "No inspection report",
     "noReportBody": "This vehicle has not been inspected. Order an inspection from the services directory."
   },
-  "orderStage": {
-    "REQUEST": "Request",
-    "APPROVED": "Approved",
-    "INSPECTION": "Inspection",
-    "PAYMENT": "Payment",
-    "TRANSFER": "Transfer",
-    "DONE": "Done"
-  },
   "site": {
     "liveAuctions": "live auctions",
     "closingSoon": "Closing soonest",
@@ -337,7 +329,10 @@
     "financeProviders": "{count, plural, one{{n} finance provider} other{{n} finance providers}}",
     "points": "{count, plural, one{{n} point} other{{n} points}}",
     "services": "{count, plural, one{{n} service} other{{n} services}}",
-    "articles": "{count, plural, one{{n} article} other{{n} articles}}"
+    "articles": "{count, plural, one{{n} article} other{{n} articles}}",
+    "seconds": "{count, plural, one{{n} second} other{{n} seconds}}",
+    "views": "{count, plural, one{{n} view} other{{n} views}}",
+    "offers": "{count, plural, one{{n} offer} other{{n} offers}}"
   },
   "search": {
     "title": "Browse cars",
@@ -472,6 +467,32 @@
       "orders": "Orders",
       "fees": "Fees",
       "account": "Account and verification"
+    },
+    "listingStatus": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "In review",
+      "PUBLISHED": "Published",
+      "SOLD": "Sold",
+      "SUSPENDED": "Suspended",
+      "EXPIRED": "Expired",
+      "WITHDRAWN": "Withdrawn",
+      "CLOSED": "Closed"
+    },
+    "offerStatus": {
+      "PENDING": "Awaiting reply",
+      "COUNTERED": "Countered",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "WITHDRAWN": "Withdrawn",
+      "EXPIRED": "Expired"
+    },
+    "orderStage": {
+      "REQUEST": "Request",
+      "APPROVED": "Approved",
+      "INSPECTION": "Inspection",
+      "PAYMENT": "Payment",
+      "TRANSFER": "Transfer",
+      "DONE": "Done"
     }
   },
   "services": {
@@ -499,5 +520,69 @@
     "otherDocuments": "Other documents",
     "notFound": "Document not found",
     "notFoundBody": "The link may be outdated. Browse the documents from the footer."
+  },
+  "auth": {
+    "title": "Start with your mobile number",
+    "subtitle": "Sign in and sign up are the same step — if you have an account we take you straight in.",
+    "phone": "Mobile number",
+    "agreeTo": "I agree to the",
+    "terms": "Terms",
+    "and": "and",
+    "privacy": "Privacy policy",
+    "sendCode": "Send verification code",
+    "browseFree": "Verification is only needed before buying or selling — browsing is open now",
+    "codeTitle": "Verification code",
+    "sentTo": "Sent to",
+    "change": "Change",
+    "verify": "Verify",
+    "resendIn": "Resend in",
+    "resend": "Resend the code",
+    "genericError": "Could not complete the request. Try again.",
+    "eyebrow": "Car marketplace",
+    "promiseTitle": "Buy and sell with confidence",
+    "promise": {
+      "1": "Escrow holds the money until ownership transfers",
+      "2": "Vehicle data fetched, not typed",
+      "3": "Zero commission on sales"
+    }
+  },
+  "account": {
+    "title": "My account",
+    "greeting": "Hello {name}",
+    "anonymous": "there",
+    "subtitle": "Your vehicles, offers, orders and reports in one place.",
+    "completeTitle": "Complete your profile before your first transaction",
+    "completeBody": "These fields are needed before buying or selling — not at sign-up.",
+    "blocksBuying": "You cannot buy until your email and identity verification are complete.",
+    "blocksSelling": "You cannot receive sale proceeds until you add an IBAN.",
+    "missing": {
+      "email": "Email address",
+      "idVerification": "Identity verification",
+      "iban": "IBAN"
+    },
+    "stat": {
+      "listings": "My vehicles",
+      "orders": "My orders",
+      "offers": "Offers received",
+      "favourites": "Saved"
+    },
+    "tab": {
+      "listings": "My vehicles",
+      "offers": "Offers received",
+      "orders": "My orders",
+      "reports": "Inspection reports"
+    },
+    "view": "View",
+    "expiresOn": "Expires",
+    "listingWithdrawn": "Listing withdrawn",
+    "sellNow": "Sell your car",
+    "noListings": "No listed vehicles",
+    "noListingsBody": "Publish your first vehicle and it will appear here with its offers and views.",
+    "noOffers": "No offers received",
+    "noOffersBody": "When a buyer makes an offer on one of your vehicles it will appear here.",
+    "noOrders": "No orders",
+    "noOrdersBody": "Purchase orders you create will appear here with their stages.",
+    "noReports": "No inspection reports",
+    "noReportsBody": "Order an inspection from the services directory and its report will appear here."
   }
 }

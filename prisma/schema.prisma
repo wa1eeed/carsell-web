@@ -613,6 +613,9 @@ model Order {
   vatAmount   Decimal @default(0) @db.Decimal(12, 2)
   totalAmount Decimal @default(0) @db.Decimal(12, 2)
 
+  /// تاريخ الإنشاء — **غير** `stageEnteredAt`: الثاني يتصفّر عند كل
+  /// انتقال مرحلة، فلا يصلح لترتيب «طلباتي» ولا لأي قياس زمني.
+  createdAt             DateTime  @default(now())
   stageEnteredAt        DateTime  @default(now()) // لحساب مدة البقاء
   paymentDueAt          DateTime?
   transferAppointmentAt DateTime?

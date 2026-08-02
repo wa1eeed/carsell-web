@@ -164,14 +164,6 @@
     "noReport": "لا تقرير فحص",
     "noReportBody": "هذه المركبة غير مفحوصة. اطلب فحصًا من دليل الخدمات."
   },
-  "orderStage": {
-    "REQUEST": "طلب",
-    "APPROVED": "موافقة",
-    "INSPECTION": "فحص",
-    "PAYMENT": "دفع",
-    "TRANSFER": "نقل ملكية",
-    "DONE": "إتمام"
-  },
   "site": {
     "liveAuctions": "مزادات مباشرة",
     "closingSoon": "الأقرب إغلاقًا",
@@ -337,7 +329,10 @@
     "financeProviders": "{count, plural, zero{لا جهات تمويل} one{جهة تمويل واحدة} two{جهتَي تمويل} few{{n} جهات تمويل} many{{n} جهة تمويل} other{{n} جهة تمويل}}",
     "points": "{count, plural, zero{لا نقاط} one{نقطة واحدة} two{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}",
     "services": "{count, plural, zero{لا خدمات} one{خدمة واحدة} two{خدمتان} few{{n} خدمات} many{{n} خدمة} other{{n} خدمة}}",
-    "articles": "{count, plural, zero{لا مقالات} one{مقالة واحدة} two{مقالتان} few{{n} مقالات} many{{n} مقالة} other{{n} مقالة}}"
+    "articles": "{count, plural, zero{لا مقالات} one{مقالة واحدة} two{مقالتان} few{{n} مقالات} many{{n} مقالة} other{{n} مقالة}}",
+    "seconds": "{count, plural, zero{لا ثوانٍ} one{ثانية واحدة} two{ثانيتان} few{{n} ثوانٍ} many{{n} ثانية} other{{n} ثانية}}",
+    "views": "{count, plural, zero{لا مشاهدات} one{مشاهدة واحدة} two{مشاهدتان} few{{n} مشاهدات} many{{n} مشاهدة} other{{n} مشاهدة}}",
+    "offers": "{count, plural, zero{لا عروض} one{عرض واحد} two{عرضان} few{{n} عروض} many{{n} عرضًا} other{{n} عرض}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -472,6 +467,32 @@
       "orders": "الطلبات",
       "fees": "الرسوم",
       "account": "الحساب والتوثيق"
+    },
+    "listingStatus": {
+      "DRAFT": "مسودّة",
+      "PENDING_REVIEW": "قيد المراجعة",
+      "PUBLISHED": "منشور",
+      "SOLD": "مُباع",
+      "SUSPENDED": "موقوف",
+      "EXPIRED": "منتهٍ",
+      "WITHDRAWN": "مسحوب",
+      "CLOSED": "مغلق"
+    },
+    "offerStatus": {
+      "PENDING": "بانتظار الردّ",
+      "COUNTERED": "عرض مقابل",
+      "ACCEPTED": "مقبول",
+      "REJECTED": "مرفوض",
+      "WITHDRAWN": "مسحوب",
+      "EXPIRED": "منتهٍ"
+    },
+    "orderStage": {
+      "REQUEST": "طلب",
+      "APPROVED": "موافقة",
+      "INSPECTION": "فحص",
+      "PAYMENT": "دفع",
+      "TRANSFER": "نقل ملكية",
+      "DONE": "إتمام"
     }
   },
   "services": {
@@ -499,5 +520,69 @@
     "otherDocuments": "مستندات أخرى",
     "notFound": "المستند غير موجود",
     "notFoundBody": "قد يكون الرابط قديمًا. تصفّح المستندات من التذييل."
+  },
+  "auth": {
+    "title": "ابدأ برقم جوالك",
+    "subtitle": "دخول وتسجيل بنفس الخطوة — إن كان لديك حساب ندخلك مباشرة.",
+    "phone": "رقم الجوال",
+    "agreeTo": "أوافق على",
+    "terms": "الشروط والأحكام",
+    "and": "و",
+    "privacy": "سياسة الخصوصية",
+    "sendCode": "أرسل رمز التحقق",
+    "browseFree": "التوثيق مطلوب قبل البيع أو الشراء فقط — التصفّح متاح فورًا",
+    "codeTitle": "رمز التحقق",
+    "sentTo": "أُرسل إلى",
+    "change": "تغيير",
+    "verify": "تحقّق",
+    "resendIn": "إعادة الإرسال بعد",
+    "resend": "أعد إرسال الرمز",
+    "genericError": "تعذّر إتمام الطلب. حاول مجدّدًا.",
+    "eyebrow": "سوق سيارات",
+    "promiseTitle": "اشترِ وبِع بثقة",
+    "promise": {
+      "1": "ضمان يحتجز المبلغ حتى نقل الملكية",
+      "2": "بيانات المركبة مجلوبة لا مكتوبة",
+      "3": "صفر عمولة على البيع"
+    }
+  },
+  "account": {
+    "title": "حسابي",
+    "greeting": "أهلًا {name}",
+    "anonymous": "بك",
+    "subtitle": "مركباتك وعروضك وطلباتك وتقاريرك في مكان واحد.",
+    "completeTitle": "أكمل ملفك قبل أول معاملة",
+    "completeBody": "هذه الحقول مطلوبة قبل الشراء أو البيع — لا عند التسجيل.",
+    "blocksBuying": "لن تستطيع الشراء قبل إكمال البريد وتوثيق الهوية.",
+    "blocksSelling": "لن تستطيع استلام مبلغ البيع قبل إضافة الآيبان.",
+    "missing": {
+      "email": "البريد الإلكتروني",
+      "idVerification": "توثيق الهوية",
+      "iban": "الآيبان"
+    },
+    "stat": {
+      "listings": "مركباتي",
+      "orders": "طلباتي",
+      "offers": "عروض واردة",
+      "favourites": "المفضّلة"
+    },
+    "tab": {
+      "listings": "مركباتي",
+      "offers": "العروض الواردة",
+      "orders": "طلباتي",
+      "reports": "تقارير الفحص"
+    },
+    "view": "عرض",
+    "expiresOn": "تنتهي في",
+    "listingWithdrawn": "الإعلان مسحوب",
+    "sellNow": "بِع سيارتك",
+    "noListings": "لا مركبات معروضة",
+    "noListingsBody": "انشر مركبتك الأولى وستظهر هنا مع عروضها ومشاهداتها.",
+    "noOffers": "لا عروض واردة",
+    "noOffersBody": "حين يقدّم مشترٍ عرضًا على إحدى مركباتك سيظهر هنا.",
+    "noOrders": "لا طلبات",
+    "noOrdersBody": "طلبات الشراء التي تنشئها ستظهر هنا بمراحلها.",
+    "noReports": "لا تقارير فحص",
+    "noReportsBody": "اطلب فحصًا لمركبتك من دليل الخدمات ليظهر تقريره هنا."
   }
 }

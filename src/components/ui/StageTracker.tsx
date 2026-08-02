@@ -28,7 +28,8 @@ export function StageTracker({
   orientation?: 'horizontal' | 'vertical';
   className?: string;
 }) {
-  const t = useTranslations('orderStage');
+  // نسخة واحدة لتسميات المراحل في `enums` — لا نسختان تنحرفان
+  const t = useTranslations('enums.orderStage');
   const currentIndex = ORDER_STAGES.indexOf(current);
   const vertical = orientation === 'vertical';
 

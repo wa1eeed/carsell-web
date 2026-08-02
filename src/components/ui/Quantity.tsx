@@ -25,6 +25,9 @@ export type Unit =
   | 'points'
   | 'services'
   | 'articles'
+  | 'seconds'
+  | 'views'
+  | 'offers'
   | 'km';
 
 /**
