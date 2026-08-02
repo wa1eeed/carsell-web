@@ -47,6 +47,7 @@ export function SearchScreen({
   query: string;
 }) {
   const t = useTranslations('search');
+  const te = useTranslations('enums');
   const router = useRouter();
   const params = useSearchParams();
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -105,11 +106,11 @@ export function SearchScreen({
     }
     if (filters.modelId !== null) add('modelId', modelName(filters.modelId), { modelId: null, trimId: null });
     if (filters.city !== null) add('city', filters.city, { city: null });
-    if (filters.condition !== null) add('condition', t(`condition.${filters.condition}`), { condition: null });
-    if (filters.transmission !== null) add('transmission', t(`transmission.${filters.transmission}`), { transmission: null });
-    if (filters.fuel !== null) add('fuel', t(`fuel.${filters.fuel}`), { fuel: null });
-    if (filters.bodyType !== null) add('bodyType', t(`bodyType.${filters.bodyType}`), { bodyType: null });
-    if (filters.spec !== null) add('spec', t(`spec.${filters.spec}`), { spec: null });
+    if (filters.condition !== null) add('condition', te(`condition.${filters.condition}`), { condition: null });
+    if (filters.transmission !== null) add('transmission', te(`transmission.${filters.transmission}`), { transmission: null });
+    if (filters.fuel !== null) add('fuel', te(`fuel.${filters.fuel}`), { fuel: null });
+    if (filters.bodyType !== null) add('bodyType', te(`bodyType.${filters.bodyType}`), { bodyType: null });
+    if (filters.spec !== null) add('spec', te(`spec.${filters.spec}`), { spec: null });
     if (filters.yearFrom !== null) add('yearFrom', withNumber(t('from'), filters.yearFrom), { yearFrom: null });
     if (filters.yearTo !== null) add('yearTo', withNumber(t('to'), filters.yearTo), { yearTo: null });
     if (filters.priceMin !== null) add('priceMin', withNumber(t('priceFrom'), filters.priceMin), { priceMin: null });
@@ -125,7 +126,7 @@ export function SearchScreen({
       add(`f:${key}`, featureName(key), {});
     }
     return out;
-  }, [filters, t, brands, models, features]);
+  }, [filters, t, te, brands, models, features]);
 
   const toCard = (item: ListingCard): ListingCardData => ({
     ref: item.ref,
@@ -133,7 +134,7 @@ export function SearchScreen({
     year: item.year,
     city: item.city,
     mileageKm: item.mileageKm,
-    transmission: t(`transmission.${item.transmission}`),
+    transmission: te(`transmission.${item.transmission}`),
     price: Number(item.price),
     monthly: item.monthly ?? undefined,
     type: item.type,
@@ -176,7 +177,7 @@ export function SearchScreen({
           on ? 'bg-accent text-bg' : 'border border-line hover:bg-ink/5',
         )}
       >
-        <span className="mb-1 block text-sm font-bold">{t(`condition.${value}`)}</span>
+        <span className="mb-1 block text-sm font-bold">{te(`condition.${value}`)}</span>
         <span className={cn('block text-3xs', on ? 'opacity-75' : 'opacity-55')}>
           {t(value === 'NEW' ? 'conditionNewHint' : 'conditionUsedHint')}
         </span>

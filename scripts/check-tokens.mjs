@@ -260,11 +260,19 @@ function checkStringifiedNumbers() {
         if (!literal[0].includes('${')) continue;
         const before = source.slice(Math.max(0, literal.index - 60), literal.index);
         if (!TEXT_CONTEXT.some((context) => context.test(before))) continue;
+        /**
+         * مهرب موثَّق: كل بوابة تحتاج مخرجًا صريحًا، وإلا أُضعِفت
+         * البوابة نفسها لتمرير حالة واحدة. والسبب مكتوب في السطر
+         * فيراه المراجع — JSON-LD حقل آلة يتطلّب أرقامًا لاتينية.
+         */
+        const line = source.slice(0, literal.index).split('\n').length;
+        const own = source.split('\n')[line - 1] ?? '';
+        const previous = source.split('\n')[line - 2] ?? '';
+        if (/check-9-ok:/.test(own) || /check-9-ok:/.test(previous)) continue;
 
         for (const slot of literal[0].matchAll(/\$\{([^}]+)\}/g)) {
           const name = slot[1].split(/[.?[\]]/).filter(Boolean).pop() ?? '';
           if ([...words].some((word) => name.toLowerCase().includes(word))) {
-            const line = source.slice(0, literal.index).split('\n').length;
             problems.push(
               `${rel}:${line}  «${slot[0]}» رقم داخل سلسلة نصّ — استعمل <ArabicNumber> أو <Quantity>`,
             );

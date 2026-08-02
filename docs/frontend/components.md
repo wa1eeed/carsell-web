@@ -186,3 +186,24 @@ deviation**:
 `/dev/ui` shows every state of every component grouped as scales → atomic →
 composite → shells. It is the review tool: open it beside the design card and
 compare. It is not published — dev routes are blocked in task 28.
+
+
+## Wc components (task 11)
+
+| Component | Note |
+|---|---|
+| `Gallery` | 16:9 hero, thumbnail strip, position counter, fullscreen. No images → the diagonal pattern with no counter; a listing without photos is a real state, not an error to hide behind a grey box. |
+| `SpecTable` | Two columns, separated **by lines, not shadows**. Values are passed as nodes, never strings, so numbers go through `ArabicNumber`/`Quantity` (gate 9). |
+| `PaintMap` | Three states, not two — **"not measured" is not "original"**. Hiding that difference makes an unmeasured panel look verified, which is worse than silence. |
+| `HistoryList` | Every line carries its source. Empty state rather than grey placeholder rows. |
+| `BuyColumn` | Swaps wholesale by selling method rather than hiding buttons. Never renders a reserve or minimum-accept **amount**. |
+| `FaqAccordion` | Native `<details>`, one open at a time, answers present in served HTML for `FAQPage`. |
+| `SimilarGrid` | Deliberately lighter than `CarCard` — the reader is comparing, not searching, so seller and badges would compete with the page. Returns nothing when the list is empty. |
+
+### One namespace for enum labels
+
+`transmission`, `fuel`, `bodyType`, `drivetrain`, `spec`, `condition`,
+`listingType`, `paintState`, `featureGroup` and `source` values live in a single
+`enums` namespace read by Wb and Wc alike. They previously existed twice — the
+value maps under `search`, the field labels under `ui` — and the second copy is
+how two screens start disagreeing about what `CVT` is called.

@@ -31,6 +31,7 @@ export async function SearchHeading({
   models: readonly Named[];
 }) {
   const t = await getTranslations('search');
+  const te = await getTranslations('enums');
   const tu = await getTranslations('units');
   const numerals = locale as NumeralLocale;
   const name = (list: readonly Named[], id: string | null): string | null => {
@@ -43,7 +44,7 @@ export async function SearchHeading({
   const brand = name(brands, filters.brandId);
   const model = name(models, filters.modelId);
   const condition =
-    filters.condition === null ? null : t(`condition.${filters.condition}`);
+    filters.condition === null ? null : te(`condition.${filters.condition}`);
 
   const title =
     brand === null && filters.city === null && condition === null

@@ -18,6 +18,7 @@ export type Unit =
   | 'listings'
   | 'models'
   | 'features'
+  | 'reviews'
   | 'km';
 
 /**

@@ -236,3 +236,27 @@ async function someBrandId(): Promise<string> {
   const brand = await db.brand.findFirstOrThrow({ select: { id: true } });
   return brand.id;
 }
+
+describe('عدّاد المدّة', () => {
+  /**
+   * «٤ أيام ولا ساعات» صحيحة نحويًا وسخيفة قراءةً. صيغة الصفر تخدم
+   * عدًّا مستقلًّا («لا مزايدين») لا جزءًا ثانيًا من مدّة مركّبة.
+   */
+  it('يفصل الأيام والساعات، ويصمت عن الصفر', async () => {
+    const { splitDuration } = await import('@/lib/arabic');
+
+    const fourDays = splitDuration(4 * 86_400);
+    expect(fourDays.isLong).toBe(true);
+    expect(fourDays.days).toBe(4);
+    expect(fourDays.hours).toBe(0);
+
+    const mixed = splitDuration(4 * 86_400 + 3600);
+    expect(mixed.days).toBe(4);
+    expect(mixed.hours).toBe(1);
+
+    // دون ٢٤ ساعة: ساعة واحدة لا يوم صفر
+    const short = splitDuration(5 * 3600 + 62);
+    expect(short.isLong).toBe(false);
+    expect(short.clock).toBe('05:01:02');
+  });
+});

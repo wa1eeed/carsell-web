@@ -118,6 +118,7 @@ export function CarCard({
   className?: string;
 }) {
   const t = useTranslations('ui');
+  const te = useTranslations('enums');
 
   return (
     <article
@@ -157,7 +158,7 @@ export function CarCard({
           {data.type === 'AUCTION' ? (
             <Quantity unit="bidders" count={data.bidderCount ?? 0} className="text-3xs opacity-50" />
           ) : (
-            <Badge tone={TYPE_TONE[data.type]}>{t(`listingType.${data.type}`)}</Badge>
+            <Badge tone={TYPE_TONE[data.type]}>{te(`listingType.${data.type}`)}</Badge>
           )}
         </div>
 
@@ -175,7 +176,7 @@ export function CarRow({
   data: ListingCardData;
   className?: string;
 }) {
-  const t = useTranslations('ui');
+  const te = useTranslations('enums');
 
   return (
     <article
@@ -205,7 +206,7 @@ export function CarRow({
       </div>
 
       <div className="flex shrink-0 flex-col items-end justify-between gap-2.5">
-        <Badge tone={TYPE_TONE[data.type]}>{t(`listingType.${data.type}`)}</Badge>
+        <Badge tone={TYPE_TONE[data.type]}>{te(`listingType.${data.type}`)}</Badge>
         <Price data={data} />
       </div>
     </article>

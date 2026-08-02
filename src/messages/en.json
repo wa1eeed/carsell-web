@@ -41,12 +41,88 @@
     "belowRange": "Below range",
     "fairMarket": "Fair market",
     "basedOn": "Based on",
-    "listingType": {
-      "DIRECT": "Direct",
-      "NEGOTIATION": "Negotiation",
-      "AUCTION": "Auction"
+    "durationFull": "<d></d> and <h></h>",
+    "fullscreen": "Fullscreen",
+    "close": "Close",
+    "paintMap": "Body map",
+    "paint": {
+      "original": "Original",
+      "repainted": "Repainted",
+      "unknown": "Not measured"
     },
-    "durationFull": "<d></d> and <h></h>"
+    "panel": {
+      "hood": "Hood",
+      "roof": "Roof",
+      "trunk": "Trunk",
+      "frontLeftFender": "Front left fender",
+      "frontRightFender": "Front right fender",
+      "leftFrontDoor": "Left front door",
+      "rightFrontDoor": "Right front door",
+      "leftRearDoor": "Left rear door",
+      "rightRearDoor": "Right rear door",
+      "frontBumper": "Front bumper",
+      "rearBumper": "Rear bumper"
+    },
+    "noHistory": "No recorded history",
+    "noHistoryBody": "The seller uploaded no service record and this vehicle has no inspection.",
+    "cashPrice": "Cash price",
+    "financing": "Instalments",
+    "perMonth": "/mo",
+    "buyViaEscrow": "Buy now via escrow",
+    "makeOffer": "Make an offer",
+    "requestViewing": "Request a viewing",
+    "placeBid": "Place a bid",
+    "depositRequired": "Deposit",
+    "minimumBid": "Minimum bid",
+    "reserveMet": "Reserve met",
+    "reserveNotMet": "Reserve not met yet",
+    "escrowNote": "Funds are held in escrow and are not released to the seller until ownership is transferred to you.",
+    "totalCost": "Total cost",
+    "carPrice": "Car price",
+    "platformCommission": "Platform commission",
+    "transferFee": "Transfer fee",
+    "total": "Total",
+    "vatIncluded": "Prices include VAT",
+    "sellerBadge": {
+      "DEALER_VERIFIED": "Verified dealer",
+      "USER_VERIFIED": "Verified seller"
+    },
+    "outOf": "of",
+    "similarCars": "Similar cars",
+    "specs": "Specifications",
+    "inspectionReport": "Inspection report",
+    "featuresTab": "Features",
+    "vehicleHistory": "Vehicle history",
+    "sellerNotes": "Seller notes",
+    "questions": "Questions",
+    "fullReport": "Full report →",
+    "worthAttention": "Worth your attention",
+    "brandAndModel": "Make and model",
+    "trim": "Trim",
+    "modelYear": "Year",
+    "mileage": "Mileage",
+    "transmission": "Transmission",
+    "fuel": "Fuel",
+    "bodyType": "Body type",
+    "drivetrain": "Drivetrain",
+    "seats": "Seats",
+    "colorExterior": "Colour",
+    "spec": "Spec",
+    "paintStatus": "Paint",
+    "verifiedByInspection": "Verified by inspection",
+    "sellerDeclared": "Seller declared",
+    "marketPosition": "Price position in the market",
+    "save": "Save",
+    "share": "Share",
+    "faqTitle": "Frequently asked",
+    "faqByType": "Curated by the carsell.one team for each selling method",
+    "inspectionPoints": "210-point inspection",
+    "readFullReport": "Read the full report →",
+    "notInspected": "This vehicle is not inspected",
+    "notInspectedBody": "There is no inspection report. Order one from the services directory before you buy.",
+    "home": "Home",
+    "cars": "Browse cars",
+    "openingPrice": "Opening price"
   },
   "orderStage": {
     "REQUEST": "Request",
@@ -89,7 +165,8 @@
     "listings": "{count, plural, one{{n} listing} other{{n} listings}}",
     "models": "{count, plural, one{{n} model} other{{n} models}}",
     "hoursShort": "{count, plural, one{{n}h} other{{n}h}}",
-    "features": "{count, plural, one{{n} feature} other{{n} features}}"
+    "features": "{count, plural, one{{n} feature} other{{n} features}}",
+    "reviews": "{count, plural, one{{n} review} other{{n} reviews}}"
   },
   "search": {
     "title": "Browse cars",
@@ -121,35 +198,6 @@
       "NEGOTIATION": "Negotiation",
       "AUCTION": "Auction"
     },
-    "condition": {
-      "NEW": "New",
-      "USED": "Used"
-    },
-    "spec": {
-      "SAUDI": "Saudi",
-      "GCC": "GCC",
-      "AGENT_IMPORT": "Agent import"
-    },
-    "transmission": {
-      "AUTOMATIC": "Automatic",
-      "MANUAL": "Manual",
-      "CVT": "CVT",
-      "DCT": "DCT"
-    },
-    "fuel": {
-      "PETROL": "Petrol",
-      "DIESEL": "Diesel",
-      "HYBRID": "Hybrid",
-      "ELECTRIC": "Electric"
-    },
-    "bodyType": {
-      "SEDAN": "Sedan",
-      "SUV": "SUV",
-      "PICKUP": "Pickup",
-      "HATCHBACK": "Hatchback",
-      "COUPE": "Coupe",
-      "VAN": "Van"
-    },
     "sort": {
       "newest": "Newest",
       "price_asc": "Lowest price",
@@ -180,5 +228,63 @@
     "conditionTitle": "Condition",
     "price": "Price",
     "year": "Year"
+  },
+  "enums": {
+    "transmission": {
+      "AUTOMATIC": "Automatic",
+      "MANUAL": "Manual",
+      "CVT": "CVT",
+      "DCT": "DCT"
+    },
+    "fuel": {
+      "PETROL": "Petrol",
+      "DIESEL": "Diesel",
+      "HYBRID": "Hybrid",
+      "ELECTRIC": "Electric"
+    },
+    "spec": {
+      "SAUDI": "Saudi spec",
+      "GCC": "GCC spec",
+      "AGENT_IMPORT": "Agent import"
+    },
+    "bodyType": {
+      "SEDAN": "Sedan",
+      "SUV": "SUV",
+      "PICKUP": "Pickup",
+      "HATCHBACK": "Hatchback",
+      "COUPE": "Coupe",
+      "VAN": "Van"
+    },
+    "drivetrain": {
+      "FWD": "FWD",
+      "RWD": "RWD",
+      "AWD": "AWD",
+      "FOUR_WD": "4WD"
+    },
+    "condition": {
+      "NEW": "New",
+      "USED": "Used"
+    },
+    "listingType": {
+      "DIRECT": "Direct",
+      "NEGOTIATION": "Negotiable",
+      "AUCTION": "Auction"
+    },
+    "paintState": {
+      "ORIGINAL": "Fully original",
+      "PARTIAL": "Partly repainted",
+      "REPAINTED": "Repainted",
+      "UNKNOWN": "Unknown"
+    },
+    "featureGroup": {
+      "SAFETY": "Safety",
+      "COMFORT": "Comfort",
+      "TECH": "Technology"
+    },
+    "source": {
+      "SELLER": "from the seller",
+      "INSPECTION": "from the inspection",
+      "PLATFORM": "from the platform"
+    }
   }
 }

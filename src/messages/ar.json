@@ -41,12 +41,88 @@
     "belowRange": "أقل من النطاق",
     "fairMarket": "السوق العادل",
     "basedOn": "مبني على",
-    "listingType": {
-      "DIRECT": "مباشر",
-      "NEGOTIATION": "تفاوض",
-      "AUCTION": "مزاد"
+    "durationFull": "<d></d> و<h></h>",
+    "fullscreen": "شاشة كاملة",
+    "close": "إغلاق",
+    "paintMap": "مخطط الهيكل",
+    "paint": {
+      "original": "أصلي",
+      "repainted": "مصبوغ",
+      "unknown": "لم يُقس"
     },
-    "durationFull": "<d></d> و<h></h>"
+    "panel": {
+      "hood": "غطاء المحرك",
+      "roof": "السقف",
+      "trunk": "غطاء الصندوق",
+      "frontLeftFender": "الرفرف الأمامي الأيسر",
+      "frontRightFender": "الرفرف الأمامي الأيمن",
+      "leftFrontDoor": "الباب الأمامي الأيسر",
+      "rightFrontDoor": "الباب الأمامي الأيمن",
+      "leftRearDoor": "الباب الخلفي الأيسر",
+      "rightRearDoor": "الباب الخلفي الأيمن",
+      "frontBumper": "الصدّام الأمامي",
+      "rearBumper": "الصدّام الخلفي"
+    },
+    "noHistory": "لا تاريخ مسجَّل",
+    "noHistoryBody": "لم يرفع البائع سجلّ صيانة ولا يوجد فحص لهذه المركبة.",
+    "cashPrice": "سعر الكاش",
+    "financing": "التقسيط",
+    "perMonth": "/شهر",
+    "buyViaEscrow": "اشترِ الآن عبر الضمان",
+    "makeOffer": "قدّم عرضك",
+    "requestViewing": "اطلب معاينة",
+    "placeBid": "زايد الآن",
+    "depositRequired": "عربون",
+    "minimumBid": "الحدّ الأدنى",
+    "reserveMet": "تجاوز السعر الاحتياطي",
+    "reserveNotMet": "لم يبلغ السعر الاحتياطي بعد",
+    "escrowNote": "المبلغ محفوظ في حساب الضمان ولا يُحوَّل للبائع قبل نقل الملكية باسمك.",
+    "totalCost": "التكلفة الإجمالية",
+    "carPrice": "سعر السيارة",
+    "platformCommission": "عمولة المنصة",
+    "transferFee": "رسوم نقل الملكية",
+    "total": "الإجمالي",
+    "vatIncluded": "الأسعار شاملة ضريبة القيمة المضافة",
+    "sellerBadge": {
+      "DEALER_VERIFIED": "تاجر موثّق",
+      "USER_VERIFIED": "بائع موثّق"
+    },
+    "outOf": "من",
+    "similarCars": "سيارات مشابهة",
+    "specs": "المواصفات",
+    "inspectionReport": "تقرير الفحص",
+    "featuresTab": "المميزات",
+    "vehicleHistory": "تاريخ المركبة",
+    "sellerNotes": "وصف البائع",
+    "questions": "أسئلة",
+    "fullReport": "التقرير الكامل ←",
+    "worthAttention": "ملاحظات تستحق الانتباه",
+    "brandAndModel": "الماركة والطراز",
+    "trim": "الفئة",
+    "modelYear": "سنة الصنع",
+    "mileage": "الممشى",
+    "transmission": "ناقل الحركة",
+    "fuel": "الوقود",
+    "bodyType": "نوع الهيكل",
+    "drivetrain": "نوع الدفع",
+    "seats": "عدد المقاعد",
+    "colorExterior": "اللون",
+    "spec": "المواصفة",
+    "paintStatus": "حالة الصبغ",
+    "verifiedByInspection": "موثّق بالفحص",
+    "sellerDeclared": "إقرار البائع",
+    "marketPosition": "موقع السعر في السوق",
+    "save": "حفظ",
+    "share": "مشاركة",
+    "faqTitle": "أسئلة شائعة",
+    "faqByType": "مجموعة يحدّدها فريق carsell.one لكل طريقة بيع",
+    "inspectionPoints": "فحص ٢١٠ نقطة",
+    "readFullReport": "اقرأ التقرير الكامل ←",
+    "notInspected": "هذه المركبة غير مفحوصة",
+    "notInspectedBody": "لا تقرير فحص لهذه المركبة. اطلب فحصًا قبل الشراء من دليل الخدمات.",
+    "home": "الرئيسية",
+    "cars": "تصفّح السيارات",
+    "openingPrice": "سعر الافتتاح"
   },
   "orderStage": {
     "REQUEST": "طلب",
@@ -89,7 +165,8 @@
     "listings": "{count, plural, zero{لا إعلانات} one{إعلان واحد} two{إعلانان} few{{n} إعلانات} many{{n} إعلانًا} other{{n} إعلان}}",
     "models": "{count, plural, zero{لا طرازات} one{طراز واحد} two{طرازان} few{{n} طرازات} many{{n} طرازًا} other{{n} طراز}}",
     "hoursShort": "{count, plural, other{{n} س}}",
-    "features": "{count, plural, zero{لا مميزات} one{ميزة واحدة} two{ميزتان} few{{n} مميزات} many{{n} ميزة} other{{n} ميزة}}"
+    "features": "{count, plural, zero{لا مميزات} one{ميزة واحدة} two{ميزتان} few{{n} مميزات} many{{n} ميزة} other{{n} ميزة}}",
+    "reviews": "{count, plural, zero{لا تقييمات} one{تقييم واحد} two{تقييمان} few{{n} تقييمات} many{{n} تقييمًا} other{{n} تقييم}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -121,35 +198,6 @@
       "NEGOTIATION": "تفاوض",
       "AUCTION": "مزاد"
     },
-    "condition": {
-      "NEW": "جديدة",
-      "USED": "مستعملة"
-    },
-    "spec": {
-      "SAUDI": "سعودي",
-      "GCC": "خليجي",
-      "AGENT_IMPORT": "وارد وكيل"
-    },
-    "transmission": {
-      "AUTOMATIC": "أوتوماتيك",
-      "MANUAL": "عادي",
-      "CVT": "CVT",
-      "DCT": "DCT"
-    },
-    "fuel": {
-      "PETROL": "بنزين",
-      "DIESEL": "ديزل",
-      "HYBRID": "هايبرد",
-      "ELECTRIC": "كهرباء"
-    },
-    "bodyType": {
-      "SEDAN": "سيدان",
-      "SUV": "دفع رباعي",
-      "PICKUP": "وانيت",
-      "HATCHBACK": "هاتشباك",
-      "COUPE": "كوبيه",
-      "VAN": "فان"
-    },
     "sort": {
       "newest": "الأحدث",
       "price_asc": "الأقل سعرًا",
@@ -180,5 +228,63 @@
     "conditionTitle": "حالة المركبة",
     "price": "السعر",
     "year": "سنة الصنع"
+  },
+  "enums": {
+    "transmission": {
+      "AUTOMATIC": "أوتوماتيك",
+      "MANUAL": "عادي",
+      "CVT": "CVT",
+      "DCT": "DCT"
+    },
+    "fuel": {
+      "PETROL": "بنزين",
+      "DIESEL": "ديزل",
+      "HYBRID": "هجين",
+      "ELECTRIC": "كهربائية"
+    },
+    "spec": {
+      "SAUDI": "وارد سعودي",
+      "GCC": "خليجي",
+      "AGENT_IMPORT": "وارد وكيل"
+    },
+    "bodyType": {
+      "SEDAN": "سيدان",
+      "SUV": "دفع رباعي",
+      "PICKUP": "وانيت",
+      "HATCHBACK": "هاتشباك",
+      "COUPE": "كوبيه",
+      "VAN": "فان"
+    },
+    "drivetrain": {
+      "FWD": "أمامي",
+      "RWD": "خلفي",
+      "AWD": "رباعي دائم",
+      "FOUR_WD": "رباعي"
+    },
+    "condition": {
+      "NEW": "جديدة",
+      "USED": "مستعملة"
+    },
+    "listingType": {
+      "DIRECT": "مباشر",
+      "NEGOTIATION": "تفاوض",
+      "AUCTION": "مزاد"
+    },
+    "paintState": {
+      "ORIGINAL": "أصلي بالكامل",
+      "PARTIAL": "صبغ جزئي",
+      "REPAINTED": "مصبوغة",
+      "UNKNOWN": "غير محدَّد"
+    },
+    "featureGroup": {
+      "SAFETY": "الأمان",
+      "COMFORT": "الراحة",
+      "TECH": "التقنية"
+    },
+    "source": {
+      "SELLER": "من البائع",
+      "INSPECTION": "من الفحص",
+      "PLATFORM": "من المنصة"
+    }
   }
 }

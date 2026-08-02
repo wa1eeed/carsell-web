@@ -99,6 +99,19 @@ export function Countdown({
   if (parts.isLong) {
     const days = <Quantity unit="days" count={parts.days} />;
 
+    /**
+     * صفر الساعات لا يُنطق في مدّة مركّبة: «٤ أيام ولا ساعات» صحيحة
+     * نحويًا وسخيفة قراءةً. صيغة الصفر في `units` تخدم عدًّا مستقلًّا
+     * («لا مزايدين»)، لا جزءًا ثانيًا من مدّة.
+     */
+    if (parts.hours === 0) {
+      return (
+        <span className={cn('inline-flex items-center font-bold', TONE[tone], className)}>
+          {days}
+        </span>
+      );
+    }
+
     // الواو خارج المقطعين المعزولين لا داخلهما، والمسافات حولها
     // في ملف الترجمة لأنها تختلف بين «و١ ساعة» و«and 1 hour».
     if (format === 'full') {
