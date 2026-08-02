@@ -152,3 +152,43 @@ worse than showing nothing. Same for a test send with nowhere to send to.
 
 **Also omitted:** "+ new notification". A template is keyed to the code that
 emits it, so a template with no emitter is a text nobody will ever send.
+
+---
+
+## A1 — two cards omitted, not approximated · 2026-08-03
+
+A1's markup has eight cards. Six are built; `المستخدم النشط` and `مصدر التسجيل`
+are not.
+
+**Why:** neither has a source. Active-user counts need an activity log; the
+registration source needs a column on `User` written at signup. The screen says
+so in a line at the bottom.
+
+**Why not a placeholder:** the acceptance criterion for this screen is that every
+number comes from the database. A card showing an estimate is exactly the shape
+a hard-coded number takes in practice — it never arrives as a literal, it
+arrives as "temporary until the data exists".
+
+**Also omitted:** the 12-month growth chart, the customer pie, and the
+registration-source chart, for the same reason as A3's charts.
+
+---
+
+## A11 — one environment, arrows of governance instead of a toggle · 2026-08-03
+
+A11's markup shows a `بيئة الاختبار` / `إنتاج` switch with separate keys per
+environment, per-integration health percentages, and a monthly cost figure.
+
+**What was built:** one configuration per integration, the failure behaviour of
+each shown in its own row, and the full key-governance flow — encrypted storage,
+hint-only display, and two-member rotation.
+
+**Why:** two environments is a schema decision (two rows or a second column) that
+changes how every integration is read at runtime. Health percentages and cost
+need a provider reporting real numbers, and there is no provider yet — the same
+rule as A8's delivery rates.
+
+**What is identical:** the grouping by category, the status vocabulary
+(تعمل / تحذير / غير مفعّلة), the declared failure path per integration, and every
+line of the key-governance panel — each of which is now enforced in code rather
+than described in a paragraph.

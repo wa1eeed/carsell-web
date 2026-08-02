@@ -266,3 +266,48 @@ destination network.
 
 **Implemented:** `SMS_COST_PER_SEGMENT` in `src/lib/domain/notification-text.ts`,
 overridable per call. It belongs in `PlatformSetting` once a provider exists.
+
+---
+
+## 16 · A1 has two cards with no source
+
+**Assumed:** `المستخدم النشط` (DAU/WAU/MAU) and `مصدر التسجيل` are deferred, not
+dropped. The first needs an activity log the schema does not have; the second
+needs a `source` column on `User` captured at registration.
+
+**If wrong:** these are the two cards that answer "is the product working" and
+"where do people come from" — arguably the most important on the screen. A
+growth dashboard without them measures inventory, not growth.
+
+**Implemented:** both omitted, with a line on the screen saying why. Showing
+estimated numbers would have made them believed. `source` is one nullable column
+and one write at registration; activity tracking is a larger decision.
+
+---
+
+## 17 · Integrations have one environment, not two
+
+**Assumed:** `Integration` holds one configuration per key. A11's markup shows a
+`بيئة الاختبار` / `إنتاج` toggle and separate keys for each.
+
+**If wrong:** an operator testing a payment flow has to overwrite the production
+key to do it — which is the exact accident the two-approver rule exists to
+prevent, made routine.
+
+**Implemented:** one configuration. Two environments means either two rows per
+integration (`payments:test`, `payments:live`) or a second secrets column — a
+schema decision, and one that touches how every integration is read at runtime.
+
+---
+
+## 18 · Rotation approval expires after 48 hours
+
+**Assumed:** same window as a dispute. A rotation nobody seconds within two days
+is one nobody wanted.
+
+**If wrong:** rotations often happen under pressure — a leaked key at midnight
+Thursday, no second approver until Sunday. Expiry then forces the whole request
+to be re-entered, secret and all, by someone already anxious.
+
+**Implemented:** `ROTATION_WINDOW_HOURS = 48`, and expiry marks the request
+`EXPIRED` rather than executing late.
