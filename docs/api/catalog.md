@@ -61,3 +61,53 @@ changed, and when" a month later.
 
 CSV import appears in the A12 markup but is outside task 7's scope
 (`CRUD + logo to R2`). The button renders disabled.
+
+---
+
+# Models and trims (A13)
+
+`/admin/catalog/models?brand=&model=`. Selection lives **in the URL**, not in
+client state: the link is shareable and the browser back button returns to the
+same place.
+
+## Both names, here too
+
+Models and trims follow the same rule as brands: Arabic and English names are
+both required, whitespace does not count, and the rule applies on update.
+
+## Years
+
+`yearFrom` must be a real year; `yearTo` is optional but, when present, must not
+precede `yearFrom` — that combination produces an entry that matches no year at
+all and silently disappears from the seller form.
+
+## Inherited values
+
+A trim carries `bodyType`, `transmission`, `fuel`, `drivetrain`, `seats` and
+`doors`, and **all of them are required**. A trim missing one fills a blank in the
+sell form, which is the whole reason the trim exists.
+
+When a seller picks brand → model → trim, those five fields are filled
+automatically. They do not type them, and two listings of the same model cannot
+disagree.
+
+## Editing a trim does not touch published listings
+
+Values are **snapshotted onto the vehicle** when it is added, never read live from
+the trim. Editing a trim applies to new listings only.
+
+This is the second entry in the spec's list of predicted mistakes (§15), and it
+has a test: change a trim's transmission and seat count, then assert the existing
+vehicle still reports the old values.
+
+## Deleting
+
+A model with trims or vehicles cannot be deleted; a trim with vehicles cannot be
+deleted. Both are enforced in the domain layer and return
+`CATALOG_HAS_CHILDREN` (409). Hide instead.
+
+## Counted units
+
+Counts in the model header go through `Quantity`, so Arabic pluralisation is
+correct: «فئتان» not «٢ فئة», «إعلان واحد» not «١ إعلانًا». Writing the unit by
+hand produces grammatical errors that then repeat on every screen.

@@ -12,6 +12,9 @@ export type Unit =
   | 'hours'
   | 'photos'
   | 'cars'
+  | 'trims'
+  | 'listings'
+  | 'models'
   | 'km';
 
 /**

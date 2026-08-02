@@ -1,5 +1,11 @@
 import { db } from '@/lib/db';
-import type { AdminUser, Brand, Prisma } from '@/generated/prisma/client';
+import type { AdminUser, Brand, Model, Prisma, Trim } from '@/generated/prisma/client';
+import type {
+  BodyType,
+  Drivetrain,
+  FuelType,
+  Transmission,
+} from '@/generated/prisma/enums';
 
 /**
  * الكتالوج — الماركات (A12).
@@ -246,5 +252,397 @@ export async function deleteBrand(
 
   await db.brand.delete({ where: { id } });
   await audit(admin, 'brand.delete', id, { ...brand }, undefined, ip);
+  return { ok: true };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  الطرازات والفئات (A13)
+// ═══════════════════════════════════════════════════════════
+
+export type ModelRow = {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  yearFrom: number;
+  yearTo: number | null;
+  bodyType: BodyType | null;
+  visible: boolean;
+  trimCount: number;
+  listingCount: number;
+};
+
+export type TrimRow = {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  yearFrom: number;
+  yearTo: number | null;
+  bodyType: BodyType;
+  transmission: Transmission;
+  fuel: FuelType;
+  drivetrain: Drivetrain;
+  seats: number;
+  doors: number;
+  engineL: string | null;
+  cylinders: number | null;
+  horsepower: number | null;
+  visible: boolean;
+  listingCount: number;
+};
+
+export type ModelInput = {
+  brandId: string;
+  nameAr: string;
+  nameEn: string;
+  yearFrom: number;
+  yearTo?: number | null;
+  bodyType?: BodyType | null;
+  visible?: boolean;
+};
+
+/** القيَم الموروثة إلزامية كلها — فئة ناقصة تُملأ فراغًا في نموذج البيع. */
+export type TrimInput = {
+  modelId: string;
+  nameAr: string;
+  nameEn: string;
+  yearFrom: number;
+  yearTo?: number | null;
+  bodyType: BodyType;
+  transmission: Transmission;
+  fuel: FuelType;
+  drivetrain: Drivetrain;
+  seats: number;
+  doors: number;
+  engineL?: string | null;
+  cylinders?: number | null;
+  horsepower?: number | null;
+  visible?: boolean;
+};
+
+export type CatalogError = { field: string; code: 'REQUIRED' | 'INVALID' };
+
+const YEAR_MIN = 1970;
+const YEAR_MAX = 2100;
+
+function validateYears(
+  yearFrom: number,
+  yearTo: number | null | undefined,
+): CatalogError[] {
+  const errors: CatalogError[] = [];
+  if (!Number.isInteger(yearFrom) || yearFrom < YEAR_MIN || yearFrom > YEAR_MAX) {
+    errors.push({ field: 'yearFrom', code: 'INVALID' });
+  }
+  if (yearTo !== null && yearTo !== undefined) {
+    if (!Number.isInteger(yearTo) || yearTo < YEAR_MIN || yearTo > YEAR_MAX) {
+      errors.push({ field: 'yearTo', code: 'INVALID' });
+    } else if (yearTo < yearFrom) {
+      // سنة نهاية قبل البداية تنتج فئة لا تظهر لأي سنة
+      errors.push({ field: 'yearTo', code: 'INVALID' });
+    }
+  }
+  return errors;
+}
+
+function validateNames(nameAr: string, nameEn: string): CatalogError[] {
+  const errors: CatalogError[] = [];
+  if (nameAr.trim() === '') errors.push({ field: 'nameAr', code: 'REQUIRED' });
+  if (nameEn.trim() === '') errors.push({ field: 'nameEn', code: 'REQUIRED' });
+  return errors;
+}
+
+export async function listModels(brandId: string): Promise<ModelRow[]> {
+  const models = await db.model.findMany({
+    where: { brandId },
+    orderBy: { nameAr: 'asc' },
+    include: { _count: { select: { trims: true } } },
+  });
+
+  const perModel = await db.vehicle.groupBy({
+    by: ['modelId'],
+    _count: { _all: true },
+    where: { brandId, listings: { some: { status: { not: 'DRAFT' } } } },
+  });
+  const byModel = new Map(perModel.map((r) => [r.modelId, r._count._all]));
+
+  return models.map((m) => ({
+    id: m.id,
+    nameAr: m.nameAr,
+    nameEn: m.nameEn,
+    yearFrom: m.yearFrom,
+    yearTo: m.yearTo,
+    bodyType: m.bodyType,
+    visible: m.visible,
+    trimCount: m._count.trims,
+    listingCount: byModel.get(m.id) ?? 0,
+  }));
+}
+
+export async function listTrims(modelId: string): Promise<TrimRow[]> {
+  const trims = await db.trim.findMany({
+    where: { modelId },
+    orderBy: { nameEn: 'asc' },
+  });
+
+  const perTrim = await db.vehicle.groupBy({
+    by: ['trimId'],
+    _count: { _all: true },
+    where: { modelId, listings: { some: { status: { not: 'DRAFT' } } } },
+  });
+  const byTrim = new Map(
+    perTrim.filter((r) => r.trimId !== null).map((r) => [r.trimId as string, r._count._all]),
+  );
+
+  return trims.map((t) => ({
+    id: t.id,
+    nameAr: t.nameAr,
+    nameEn: t.nameEn,
+    yearFrom: t.yearFrom,
+    yearTo: t.yearTo,
+    bodyType: t.bodyType,
+    transmission: t.transmission,
+    fuel: t.fuel,
+    drivetrain: t.drivetrain,
+    seats: t.seats,
+    doors: t.doors,
+    engineL: t.engineL?.toString() ?? null,
+    cylinders: t.cylinders,
+    horsepower: t.horsepower,
+    visible: t.visible,
+    listingCount: byTrim.get(t.id) ?? 0,
+  }));
+}
+
+export type ModelResult =
+  | { ok: true; model: Model }
+  | { ok: false; errors: CatalogError[]; notFound?: true };
+
+export async function createModel(
+  admin: AdminUser,
+  input: ModelInput,
+  ip: string | null,
+): Promise<ModelResult> {
+  const errors = [
+    ...validateNames(input.nameAr, input.nameEn),
+    ...validateYears(input.yearFrom, input.yearTo),
+  ];
+  if ((await db.brand.findUnique({ where: { id: input.brandId } })) === null) {
+    errors.push({ field: 'brandId', code: 'INVALID' });
+  }
+  if (errors.length > 0) return { ok: false, errors };
+
+  const model = await db.model.create({
+    data: {
+      brandId: input.brandId,
+      nameAr: input.nameAr.trim(),
+      nameEn: input.nameEn.trim(),
+      yearFrom: input.yearFrom,
+      yearTo: input.yearTo ?? null,
+      bodyType: input.bodyType ?? null,
+      visible: input.visible ?? true,
+    },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Model', entityId: model.id,
+      action: 'model.create', after: { ...model }, ip,
+    },
+  });
+  return { ok: true, model };
+}
+
+export async function updateModel(
+  admin: AdminUser,
+  id: string,
+  input: Partial<Omit<ModelInput, 'brandId'>>,
+  ip: string | null,
+): Promise<ModelResult> {
+  const before = await db.model.findUnique({ where: { id } });
+  if (before === null) return { ok: false, errors: [], notFound: true };
+
+  const nameAr = input.nameAr ?? before.nameAr;
+  const nameEn = input.nameEn ?? before.nameEn;
+  const yearFrom = input.yearFrom ?? before.yearFrom;
+  const yearTo = input.yearTo === undefined ? before.yearTo : input.yearTo;
+
+  const errors = [...validateNames(nameAr, nameEn), ...validateYears(yearFrom, yearTo)];
+  if (errors.length > 0) return { ok: false, errors };
+
+  const model = await db.model.update({
+    where: { id },
+    data: {
+      nameAr: nameAr.trim(), nameEn: nameEn.trim(), yearFrom, yearTo,
+      ...(input.bodyType === undefined ? {} : { bodyType: input.bodyType }),
+      ...(input.visible === undefined ? {} : { visible: input.visible }),
+    },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Model', entityId: id,
+      action: 'model.update', before: { ...before }, after: { ...model }, ip,
+    },
+  });
+  return { ok: true, model };
+}
+
+export type TrimResult =
+  | { ok: true; trim: Trim }
+  | { ok: false; errors: CatalogError[]; notFound?: true };
+
+export async function createTrim(
+  admin: AdminUser,
+  input: TrimInput,
+  ip: string | null,
+): Promise<TrimResult> {
+  const errors = [
+    ...validateNames(input.nameAr, input.nameEn),
+    ...validateYears(input.yearFrom, input.yearTo),
+  ];
+  if (!Number.isInteger(input.seats) || input.seats < 1 || input.seats > 20) {
+    errors.push({ field: 'seats', code: 'INVALID' });
+  }
+  if (!Number.isInteger(input.doors) || input.doors < 2 || input.doors > 6) {
+    errors.push({ field: 'doors', code: 'INVALID' });
+  }
+  if ((await db.model.findUnique({ where: { id: input.modelId } })) === null) {
+    errors.push({ field: 'modelId', code: 'INVALID' });
+  }
+  if (errors.length > 0) return { ok: false, errors };
+
+  const trim = await db.trim.create({
+    data: {
+      modelId: input.modelId,
+      nameAr: input.nameAr.trim(),
+      nameEn: input.nameEn.trim(),
+      yearFrom: input.yearFrom,
+      yearTo: input.yearTo ?? null,
+      bodyType: input.bodyType,
+      transmission: input.transmission,
+      fuel: input.fuel,
+      drivetrain: input.drivetrain,
+      seats: input.seats,
+      doors: input.doors,
+      engineL: input.engineL ?? null,
+      cylinders: input.cylinders ?? null,
+      horsepower: input.horsepower ?? null,
+      visible: input.visible ?? true,
+    },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Trim', entityId: trim.id,
+      action: 'trim.create', after: { ...trim, engineL: trim.engineL?.toString() ?? null }, ip,
+    },
+  });
+  return { ok: true, trim };
+}
+
+/**
+ * **تعديل قيمة موروثة لا يمسّ الإعلانات المنشورة.**
+ * القيَم تُنسخ لقطةً في المركبة وقت الإضافة، والتعديل يسري على الجديد
+ * وحده — وهذا ما يمنع تغييرًا في الكتالوج من العبث بإعلان قديم (§١٥).
+ */
+export async function updateTrim(
+  admin: AdminUser,
+  id: string,
+  input: Partial<Omit<TrimInput, 'modelId'>>,
+  ip: string | null,
+): Promise<TrimResult> {
+  const before = await db.trim.findUnique({ where: { id } });
+  if (before === null) return { ok: false, errors: [], notFound: true };
+
+  const nameAr = input.nameAr ?? before.nameAr;
+  const nameEn = input.nameEn ?? before.nameEn;
+  const yearFrom = input.yearFrom ?? before.yearFrom;
+  const yearTo = input.yearTo === undefined ? before.yearTo : input.yearTo;
+
+  const errors = [...validateNames(nameAr, nameEn), ...validateYears(yearFrom, yearTo)];
+  if (errors.length > 0) return { ok: false, errors };
+
+  const trim = await db.trim.update({
+    where: { id },
+    data: {
+      nameAr: nameAr.trim(), nameEn: nameEn.trim(), yearFrom, yearTo,
+      ...(input.bodyType === undefined ? {} : { bodyType: input.bodyType }),
+      ...(input.transmission === undefined ? {} : { transmission: input.transmission }),
+      ...(input.fuel === undefined ? {} : { fuel: input.fuel }),
+      ...(input.drivetrain === undefined ? {} : { drivetrain: input.drivetrain }),
+      ...(input.seats === undefined ? {} : { seats: input.seats }),
+      ...(input.doors === undefined ? {} : { doors: input.doors }),
+      ...(input.engineL === undefined ? {} : { engineL: input.engineL }),
+      ...(input.cylinders === undefined ? {} : { cylinders: input.cylinders }),
+      ...(input.horsepower === undefined ? {} : { horsepower: input.horsepower }),
+      ...(input.visible === undefined ? {} : { visible: input.visible }),
+    },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Trim', entityId: id,
+      action: 'trim.update',
+      before: { ...before, engineL: before.engineL?.toString() ?? null },
+      after: { ...trim, engineL: trim.engineL?.toString() ?? null },
+      ip,
+    },
+  });
+  return { ok: true, trim };
+}
+
+export type CatalogDeleteResult =
+  | { ok: true }
+  | { ok: false; reason: 'NOT_FOUND' | 'HAS_TRIMS' | 'HAS_VEHICLES'; count?: number };
+
+export async function deleteModel(
+  admin: AdminUser,
+  id: string,
+  ip: string | null,
+): Promise<CatalogDeleteResult> {
+  const model = await db.model.findUnique({
+    where: { id },
+    include: { _count: { select: { trims: true, vehicles: true } } },
+  });
+  if (model === null) return { ok: false, reason: 'NOT_FOUND' };
+  if (model._count.trims > 0) {
+    return { ok: false, reason: 'HAS_TRIMS', count: model._count.trims };
+  }
+  if (model._count.vehicles > 0) {
+    return { ok: false, reason: 'HAS_VEHICLES', count: model._count.vehicles };
+  }
+
+  await db.model.delete({ where: { id } });
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Model', entityId: id,
+      action: 'model.delete', before: { ...model }, ip,
+    },
+  });
+  return { ok: true };
+}
+
+export async function deleteTrim(
+  admin: AdminUser,
+  id: string,
+  ip: string | null,
+): Promise<CatalogDeleteResult> {
+  const trim = await db.trim.findUnique({
+    where: { id },
+    include: { _count: { select: { vehicles: true } } },
+  });
+  if (trim === null) return { ok: false, reason: 'NOT_FOUND' };
+  if (trim._count.vehicles > 0) {
+    return { ok: false, reason: 'HAS_VEHICLES', count: trim._count.vehicles };
+  }
+
+  await db.trim.delete({ where: { id } });
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'Trim', entityId: id,
+      action: 'trim.delete',
+      before: { ...trim, engineL: trim.engineL?.toString() ?? null },
+      ip,
+    },
+  });
   return { ok: true };
 }

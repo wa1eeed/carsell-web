@@ -2,10 +2,15 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import {
   createBrand,
+  createModel,
+  createTrim,
   deleteBrand,
+  deleteModel,
+  deleteTrim,
   setBrandVisibility,
   slugify,
   updateBrand,
+  updateTrim,
 } from '@/lib/domain/catalog';
 import type { AdminUser } from '@/generated/prisma/client';
 
@@ -16,6 +21,8 @@ async function cleanup(): Promise<void> {
   const brands = await db.brand.findMany({ where: { slug: { startsWith: PREFIX } } });
   for (const brand of brands) {
     await db.vehicle.deleteMany({ where: { brandId: brand.id } });
+    const models = await db.model.findMany({ where: { brandId: brand.id } });
+    for (const m of models) await db.trim.deleteMany({ where: { modelId: m.id } });
     await db.model.deleteMany({ where: { brandId: brand.id } });
     await db.auditLog.deleteMany({ where: { entity: 'Brand', entityId: brand.id } });
     await db.brand.delete({ where: { id: brand.id } });
@@ -148,5 +155,144 @@ describe('سجل التدقيق', () => {
     expect((update?.before as { nameAr: string }).nameAr).toBe('ماركة اختبار');
     expect((update?.after as { nameAr: string }).nameAr).toBe('اسم جديد');
     expect(update?.ip).toBe('1.2.3.4');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+//  الطرازات والفئات (A13)
+// ═══════════════════════════════════════════════════════════
+
+describe('الطرازات', () => {
+  it('الاسمان إلزاميان هنا أيضًا', async () => {
+    const brand = await createBrand(admin, input(), null);
+    if (!brand.ok) throw new Error('لم تُنشأ');
+
+    for (const bad of [{ nameAr: '' }, { nameEn: '' }, { nameAr: '  ' }]) {
+      const result = await createModel(
+        admin,
+        { brandId: brand.brand.id, nameAr: 'كامري', nameEn: 'Camry', yearFrom: 2020, ...bad },
+        null,
+      );
+      expect(result.ok, JSON.stringify(bad)).toBe(false);
+    }
+  });
+
+  it('يرفض سنة نهاية قبل البداية — تنتج طرازًا لا يظهر لأي سنة', async () => {
+    const brand = await createBrand(admin, input(), null);
+    if (!brand.ok) throw new Error('لم تُنشأ');
+    const result = await createModel(
+      admin,
+      { brandId: brand.brand.id, nameAr: 'ك', nameEn: 'C', yearFrom: 2024, yearTo: 2020 },
+      null,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors).toContainEqual({ field: 'yearTo', code: 'INVALID' });
+  });
+
+  it('لا يُحذف طراز له فئات', async () => {
+    const brand = await createBrand(admin, input(), null);
+    if (!brand.ok) throw new Error('لم تُنشأ');
+    const model = await createModel(
+      admin,
+      { brandId: brand.brand.id, nameAr: 'ك', nameEn: 'C', yearFrom: 2020 },
+      null,
+    );
+    if (!model.ok) throw new Error('لم يُنشأ');
+
+    await createTrim(admin, {
+      modelId: model.model.id, nameAr: 'LE', nameEn: 'LE', yearFrom: 2020,
+      bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
+      drivetrain: 'FWD', seats: 5, doors: 4,
+    }, null);
+
+    const result = await deleteModel(admin, model.model.id, null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('HAS_TRIMS');
+  });
+});
+
+describe('الفئات', () => {
+  async function makeModel(): Promise<string> {
+    const brand = await createBrand(admin, input(), null);
+    if (!brand.ok) throw new Error('لم تُنشأ');
+    const model = await createModel(
+      admin,
+      { brandId: brand.brand.id, nameAr: 'كامري', nameEn: 'Camry', yearFrom: 2018 },
+      null,
+    );
+    if (!model.ok) throw new Error('لم يُنشأ');
+    return model.model.id;
+  }
+
+  const base = (modelId: string) => ({
+    modelId, nameAr: 'LE', nameEn: 'LE', yearFrom: 2020,
+    bodyType: 'SEDAN' as const, transmission: 'AUTOMATIC' as const,
+    fuel: 'PETROL' as const, drivetrain: 'FWD' as const, seats: 5, doors: 4,
+  });
+
+  it('يرفض مقاعد أو أبوابًا خارج المعقول', async () => {
+    const modelId = await makeModel();
+    for (const bad of [{ seats: 0 }, { seats: 99 }, { doors: 1 }, { doors: 9 }]) {
+      const result = await createTrim(admin, { ...base(modelId), ...bad }, null);
+      expect(result.ok, JSON.stringify(bad)).toBe(false);
+    }
+  });
+
+  it('تعديل قيمة موروثة لا يمسّ مركبة منشورة — اللقطة صامدة', async () => {
+    const modelId = await makeModel();
+    const created = await createTrim(admin, base(modelId), null);
+    if (!created.ok) throw new Error('لم تُنشأ');
+
+    const model = await db.model.findUniqueOrThrow({ where: { id: modelId } });
+    const owner = await db.user.findFirstOrThrow();
+    const vehicle = await db.vehicle.create({
+      data: {
+        ownerId: owner.id, brandId: model.brandId, modelId, trimId: created.trim.id,
+        brandName: 'ماركة', modelName: 'كامري', trimName: 'LE', year: 2022,
+        bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
+        drivetrain: 'FWD', seats: 5, mileageKm: 1000, colorExterior: 'أبيض',
+        spec: 'SAUDI', condition: 'USED', city: 'الرياض', entryMode: 'MANUAL',
+      },
+    });
+
+    await updateTrim(admin, created.trim.id, { transmission: 'CVT', seats: 7 }, null);
+
+    const after = await db.vehicle.findUniqueOrThrow({ where: { id: vehicle.id } });
+    expect(after.transmission).toBe('AUTOMATIC');
+    expect(after.seats).toBe(5);
+  });
+
+  it('لا تُحذف فئة لها مركبات', async () => {
+    const modelId = await makeModel();
+    const created = await createTrim(admin, base(modelId), null);
+    if (!created.ok) throw new Error('لم تُنشأ');
+
+    const model = await db.model.findUniqueOrThrow({ where: { id: modelId } });
+    const owner = await db.user.findFirstOrThrow();
+    await db.vehicle.create({
+      data: {
+        ownerId: owner.id, brandId: model.brandId, modelId, trimId: created.trim.id,
+        brandName: 'ماركة', modelName: 'كامري', trimName: 'LE', year: 2022,
+        bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
+        drivetrain: 'FWD', seats: 5, mileageKm: 1000, colorExterior: 'أبيض',
+        spec: 'SAUDI', condition: 'USED', city: 'الرياض', entryMode: 'MANUAL',
+      },
+    });
+
+    const result = await deleteTrim(admin, created.trim.id, null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('HAS_VEHICLES');
+  });
+
+  it('تُحذف فئة بلا مركبات، ويُكتب سجلّها', async () => {
+    const modelId = await makeModel();
+    const created = await createTrim(admin, base(modelId), null);
+    if (!created.ok) throw new Error('لم تُنشأ');
+
+    expect((await deleteTrim(admin, created.trim.id, null)).ok).toBe(true);
+    const log = await db.auditLog.findFirst({
+      where: { entity: 'Trim', entityId: created.trim.id, action: 'trim.delete' },
+    });
+    expect(log).not.toBeNull();
   });
 });

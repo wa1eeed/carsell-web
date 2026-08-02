@@ -89,6 +89,11 @@ export const ERRORS = {
     messageAr: 'لا تُحذف ماركة لها طرازات أو مركبات. أخفِها بدل حذفها.',
     messageEn: 'A brand with models or vehicles cannot be deleted. Hide it instead.',
   },
+  CATALOG_HAS_CHILDREN: {
+    code: 'CATALOG_HAS_CHILDREN',
+    messageAr: 'لا يُحذف عنصر له فئات أو مركبات. أخفِه بدل حذفه.',
+    messageEn: 'An entry with trims or vehicles cannot be deleted. Hide it instead.',
+  },
   UPLOAD_NOT_CONFIGURED: {
     code: 'UPLOAD_NOT_CONFIGURED',
     messageAr: 'تخزين الوسائط غير مضبوط في هذه البيئة.',

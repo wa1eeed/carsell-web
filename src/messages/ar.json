@@ -83,6 +83,9 @@
     "hours": "{count, plural, zero{لا ساعات} one{ساعة واحدة} two{ساعتان} few{{n} ساعات} many{{n} ساعة} other{{n} ساعة}}",
     "photos": "{count, plural, zero{لا صور} one{صورة واحدة} two{صورتان} few{{n} صور} many{{n} صورة} other{{n} صورة}}",
     "cars": "{count, plural, zero{لا سيارات} one{سيارة واحدة} two{سيارتان} few{{n} سيارات} many{{n} سيارة} other{{n} سيارة}}",
-    "km": "{count, plural, other{{n} كم}}"
+    "km": "{count, plural, other{{n} كم}}",
+    "trims": "{count, plural, zero{لا فئات} one{فئة واحدة} two{فئتان} few{{n} فئات} many{{n} فئة} other{{n} فئة}}",
+    "listings": "{count, plural, zero{لا إعلانات} one{إعلان واحد} two{إعلانان} few{{n} إعلانات} many{{n} إعلانًا} other{{n} إعلان}}",
+    "models": "{count, plural, zero{لا طرازات} one{طراز واحد} two{طرازان} few{{n} طرازات} many{{n} طرازًا} other{{n} طراز}}"
   }
 }

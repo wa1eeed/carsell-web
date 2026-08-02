@@ -83,6 +83,9 @@
     "hours": "{count, plural, one{{n} hour} other{{n} hours}}",
     "photos": "{count, plural, one{{n} photo} other{{n} photos}}",
     "cars": "{count, plural, one{{n} car} other{{n} cars}}",
-    "km": "{count, plural, other{{n} km}}"
+    "km": "{count, plural, other{{n} km}}",
+    "trims": "{count, plural, one{{n} trim} other{{n} trims}}",
+    "listings": "{count, plural, one{{n} listing} other{{n} listings}}",
+    "models": "{count, plural, one{{n} model} other{{n} models}}"
   }
 }
