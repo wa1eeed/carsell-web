@@ -643,6 +643,7 @@ model Order {
   seller   User         @relation("OrderSeller", fields: [sellerId], references: [id], onDelete: Restrict)
   events   OrderEvent[]
   escrow   Escrow?
+  payments Payment[]
   disputes Dispute[]
   invoices Invoice[]
 
@@ -1489,4 +1490,93 @@ model DeviceToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  الدفع الحقيقي و3DS — المهمة ٢٧
+// ═══════════════════════════════════════════════════════════
+
+/// محاولة دفع — **سجلٌّ لكل محاولة لا لكل نجاح**.
+///
+/// المحاولات الفاشلة هي ما يُشتكى منه: «دفعتُ ولم يصل». وبلا صفّ لكل
+/// محاولة لا يمكن الردّ إلا بـ«لا نرى شيئًا».
+model Payment {
+  id        String        @id @default(cuid())
+  orderId   String
+  amount    Decimal       @db.Decimal(12, 2)
+  currency  String        @default("SAR")
+  method    String // mada | visa | mastercard | applepay | bank_transfer
+  status    PaymentStatus @default(CREATED)
+  /// معرّف العملية عند المزوّد — يبقى فارغًا حتى يصل مزوّد حقيقي
+  providerRef String?
+  /// رابط تحدّي 3DS حين تطلبه البطاقة
+  threeDsUrl  String?
+  failureCode String?
+  createdAt   DateTime  @default(now())
+  authorizedAt DateTime?
+  capturedAt   DateTime?
+  failedAt     DateTime?
+
+  order  Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  events PaymentEvent[]
+
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum PaymentStatus {
+  CREATED
+  REQUIRES_3DS
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+/// كل انتقال حالة — **بمصدره**: من المستخدم أم من ويب هوك المزوّد.
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  paymentId String
+  type      String
+  fromStatus PaymentStatus?
+  toStatus   PaymentStatus
+  source     String // user | provider | admin | system
+  detail     Json?
+  createdAt  DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId, createdAt])
+}
+
+/// مفتاح التكرار — القسم ٦: كل `POST` يقبله، وهو إلزامي للدفع.
+///
+/// الشبكة تُعيد الطلب بلا أن يعرف المستخدم. وبلا هذا الجدول تُخصم
+/// البطاقة مرّتين لأن المتصفّح أعاد الإرسال.
+model IdempotencyKey {
+  key       String   @id
+  scope     String // payment.create | offer.create …
+  /// بصمة الجسم: نفس المفتاح بجسم مختلف خطأٌ لا إعادة
+  bodyHash  String
+  /// الاستجابة الأولى — تُعاد حرفيًّا للطلب المكرّر
+  response  Json
+  status    Int
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// ويب هوك وصل — **يُخزَّن معرّفه قبل معالجته**.
+/// المزوّد يعيد الإرسال عند أيّ شكّ، والمعالجة مرّتين تُفرج عن المال مرّتين.
+model WebhookEvent {
+  id          String   @id
+  provider    String
+  type        String
+  signatureOk Boolean
+  processedAt DateTime?
+  receivedAt  DateTime @default(now())
+  payload     Json
+
+  @@index([provider, receivedAt])
 }
