@@ -10,6 +10,7 @@
  *  ٨. كل `unit` مستعمل في الكود مصرَّح به في الوحدات وفي نوع `Unit`.
  *  ٩. لا رقم من قاعدة البيانات يُلصق في سلسلة نصّ معروضة.
  * ١٠. كل أداة لون في المكوّنات تشير إلى توكن معرَّف فعلًا.
+ * ١١. كل ترحيل يمسّ المال له نصّ نقض بجواره.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -361,9 +362,59 @@ function checkColourUtilities() {
   }
 }
 
+// ————— القاعدة ١١: ترحيل ماليّ بلا نقض —————
+/**
+ * ترحيل يمسّ جدول مال يحتاج طريق عودة **مكتوبًا وقت كتابته**، لا وقت
+ * الحاجة إليه: من يكتب النقض تحت ضغط عطلٍ في الإنتاج يكتبه خطأً.
+ *
+ * والجداول تُعرَّف بأسمائها لا بحدسٍ: ما يحمل مبلغًا أو التزامًا ماليًّا.
+ * والنصّ لا يُفحَص محتواه — يُفحَص وجوده. محتواه مسؤولية من كتبه، ووجوده
+ * هو ما يُنسى.
+ */
+const MONEY_TABLES = [
+  'Order', 'Escrow', 'Invoice', 'CommissionRule', 'Deposit', 'Payout',
+  'Refund', 'Transaction', 'Wallet', 'FinanceSetting', 'PlatformSetting',
+  'Subscription', 'Plan', 'PlanEntitlement', 'FinanceInput', 'ApprovalRequest',
+];
+
+function checkMoneyMigrations() {
+  const root = join(ROOT, 'prisma', 'migrations');
+  let entries;
+  try {
+    entries = readdirSync(root, { withFileTypes: true });
+  } catch {
+    return; // لا ترحيلات بعد
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const dir = join(root, entry.name);
+    const up = join(dir, 'migration.sql');
+
+    let sql;
+    try {
+      sql = readFileSync(up, 'utf8');
+    } catch {
+      continue;
+    }
+
+    const touched = MONEY_TABLES.filter((table) => sql.includes(`"${table}"`));
+    if (touched.length === 0) continue;
+
+    try {
+      readFileSync(join(dir, 'migration.down.sql'), 'utf8');
+    } catch {
+      problems.push(
+        `prisma/migrations/${entry.name}  يمسّ ${touched.join('، ')} وبلا migration.down.sql`,
+      );
+    }
+  }
+}
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
+checkMoneyMigrations();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -374,5 +425,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض.',
 );
