@@ -30,6 +30,7 @@ export type Unit =
   | 'offers'
   | 'exceeded'
   | 'accesses'
+  | 'openRequests'
   | 'km';
 
 /**

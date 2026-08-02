@@ -311,6 +311,7 @@
   },
   "units": {
     "orders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبًا} other{{n} طلب}}",
+    "openRequests": "{count, plural, zero{لا قائم} one{قائم واحد} two{قائمان} few{{n} قائمة} many{{n} قائمًا} other{{n} قائم}}",
     "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدًا} other{{n} مزايد}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
     "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يومًا} other{{n} يوم}}",
@@ -712,10 +713,10 @@
     "disputeFrozen": "الطلب مجمَّد في مرحلته: لا يتقدّم ولا يسقط حتى يُحسم النزاع.",
     "slaDue": "مهلة الردّ حتى",
     "event": {
-      "stage.advanced": "انتقال مرحلة",
-      "dispute.opened": "فُتح نزاع",
-      "dispute.resolved": "حُسم النزاع",
-      "payment.timeout": "فاتت مهلة الدفع"
+      "stage": { "advanced": "انتقال مرحلة" },
+      "dispute": { "opened": "فُتح نزاع", "resolved": "حُسم النزاع" },
+      "payment": { "timeout": "فاتت مهلة الدفع" },
+      "other": "تحديث على الطلب"
     },
     "escrowState": {
       "PENDING": "لم يُحجز المبلغ بعد.",

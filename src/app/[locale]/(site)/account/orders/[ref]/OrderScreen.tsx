@@ -79,7 +79,15 @@ export function OrderScreen({
                 <li key={i} className="flex items-start gap-3.5">
                   <span className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold">{t(`event.${event.type}`)}</p>
+                    {/*
+                      المفتاح مشتقّ من قيمة في قاعدة البيانات، فقد يصل نوعٌ
+                      لا ترجمة له — و`t` حينها **يطبع مسار المفتاح نفسه**
+                      أمام المستخدم. الاحتياط هنا لا يخفي النقص: المرحلة
+                      تحته تبقى ظاهرة، والاختبار يمنع النوع غير المترجَم.
+                    */}
+                    <p className="text-xs font-bold">
+                      {t.has(`event.${event.type}`) ? t(`event.${event.type}`) : t('event.other')}
+                    </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-50">
                       {event.toStage === null ? null : (
                         <span>{te(`orderStage.${event.toStage}`)}</span>

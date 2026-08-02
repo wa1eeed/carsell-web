@@ -189,3 +189,34 @@ exceptional, the customer — or a supervisor — should be notified when it hap
 not only be able to find it later.
 
 **Implemented:** logged, not notified. `viewIdentity`
+
+---
+
+## 11 · Services have no image, and the design shows one per row
+
+**Assumed:** the `الصورة` column in A7 is deferred, not dropped. `Service` has no
+image field, and the design shows a thumbnail in every row plus "image and icon"
+in the list of what an admin controls per service.
+
+**If wrong:** the services directory the customer sees is a wall of text. A
+service is a thing you recognise before you read — the same argument that put
+silhouettes on `BodyTypeStrip`.
+
+**Implemented:** column omitted; the row leads with the name and the key.
+Adding it later means one `imageUrl` column and a reuse of `ImageUploader` —
+cheap, which is why it was not guessed at now.
+
+---
+
+## 12 · Per-service settings the schema cannot hold yet
+
+**Assumed:** the editor covers what `Service` has — names, descriptions, price,
+SLA, placements, visibility. The design also lists provider shares, available
+cities, display conditions (inspected / auction / dealer), fields the requester
+fills, and a cancellation and refund policy.
+
+**If wrong:** "cancellation and refund policy" is a money rule, and money rules
+are not the developer's to invent. It is left unbuilt rather than guessed.
+
+**Implemented:** the six schema-backed groups only. The rest needs both columns
+and a ruling — the refund policy above all.

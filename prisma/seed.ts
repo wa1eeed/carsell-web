@@ -878,7 +878,8 @@ async function main(): Promise<void> {
     await prisma.orderEvent.createMany({
       data: STAGES.slice(0, STAGES.indexOf(stage) + 1).map((s, n) => ({
         orderId: order.id,
-        type: 'stage.changed',
+        // نفس اسم `advanceStage` — واسمان لحدث واحد أسوأ من اسم غير مثالي
+        type: 'stage.advanced',
         fromStage: n === 0 ? null : (STAGES[n - 1] ?? null),
         toStage: s,
         actorType: 'system',

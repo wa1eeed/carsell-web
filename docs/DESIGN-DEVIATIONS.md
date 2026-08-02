@@ -78,3 +78,41 @@ car. The schematic is honest about being a schematic.
 
 **To supply:** a single SVG car outline with `id` per panel; the component then
 swaps `<rect>` for `<path>` and nothing else changes.
+
+---
+
+## A7 ordering — arrows, not drag handles · 2026-08-03
+
+A7's markup shows a `⠿` drag handle in every row and a footer reading "drag to
+reorder how they appear in the services directory".
+
+**What was built:** a `ترتيب العرض` toggle — the button the design already has in
+the header — which reveals `↑` / `↓` in each row. Off by default.
+
+**Why:** drag needs a pointer. Arrows work from the keyboard, announce themselves
+to a screen reader, and each press is one auditable move rather than a gesture
+that has to be interpreted. Two arrows in every row of a table nobody is
+reordering is noise, hence the mode.
+
+**What is identical:** the ordering itself (`Service.sort`), where it takes
+effect, and the header button that starts it.
+
+**To change it back:** `moveService` already swaps two neighbours; a drag
+implementation would call the same function with the same arguments.
+
+---
+
+## A7 editing — a drawer, not inline fields · 2026-08-03
+
+A7's row action is a single `تحرير` button. The first build put a price input in
+every row instead.
+
+**Why the design is right:** a table is scanned, not filled in. Every row being
+one stray keystroke from a price change is the wrong default for the screen that
+sets what customers pay — and the inline inputs also rendered Latin digits in a
+column of Arabic-Indic ones, which is what made the deviation visible.
+
+**What was added beyond the design's row action:** the drawer edits names,
+descriptions, price, SLA and placements, and carries the publish/hide action.
+The design lists further per-service settings the schema cannot yet hold — see
+`docs/OPEN-QUESTIONS.md` §12.
