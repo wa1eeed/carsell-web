@@ -332,7 +332,9 @@
     "articles": "{count, plural, one{{n} article} other{{n} articles}}",
     "seconds": "{count, plural, one{{n} second} other{{n} seconds}}",
     "views": "{count, plural, one{{n} view} other{{n} views}}",
-    "offers": "{count, plural, one{{n} offer} other{{n} offers}}"
+    "offers": "{count, plural, one{{n} offer} other{{n} offers}}",
+    "exceeded": "{count, plural, one{{n} exceeded} other{{n} exceeded}}",
+    "accesses": "{count, plural, one{{n} access} other{{n} accesses}}"
   },
   "search": {
     "title": "Browse cars",
@@ -755,5 +757,23 @@
     "countLive": "live",
     "countSoon": "upcoming",
     "countEnded": "ended"
+  },
+  "inbox": {
+    "title": "Offers",
+    "intro": "Offers you received and offers you sent.",
+    "tab": {
+      "active": "Received",
+      "sent": "Sent",
+      "closed": "Closed"
+    },
+    "empty": {
+      "active": "No offers received",
+      "sent": "You have not sent any offers",
+      "closed": "No closed offers"
+    },
+    "emptyBody": "Only active offers appear here — closed ones move to the Closed tab.",
+    "received": "Received",
+    "sentBy": "Sent",
+    "asking": "Asking"
   }
 }

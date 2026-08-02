@@ -28,6 +28,11 @@ export function fail(error: ApiError, status: number, init?: ResponseInit): Next
 
 /** أخطاء معرَّفة مركزيًا — لا نصّ خطأ مكتوب داخل مسار. */
 export const ERRORS = {
+  REPORT_DUPLICATE: {
+    code: 'REPORT_DUPLICATE',
+    messageAr: 'بلاغك على هذا العنصر قيد النظر بالفعل.',
+    messageEn: 'Your report on this item is already being reviewed.',
+  },
   OFFER_ACTIVE_EXISTS: {
     code: 'OFFER_ACTIVE_EXISTS',
     messageAr: 'لديك عرض نشط على هذا الإعلان. اسحبه قبل تقديم عرض جديد.',

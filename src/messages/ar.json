@@ -332,7 +332,9 @@
     "articles": "{count, plural, zero{لا مقالات} one{مقالة واحدة} two{مقالتان} few{{n} مقالات} many{{n} مقالة} other{{n} مقالة}}",
     "seconds": "{count, plural, zero{لا ثوانٍ} one{ثانية واحدة} two{ثانيتان} few{{n} ثوانٍ} many{{n} ثانية} other{{n} ثانية}}",
     "views": "{count, plural, zero{لا مشاهدات} one{مشاهدة واحدة} two{مشاهدتان} few{{n} مشاهدات} many{{n} مشاهدة} other{{n} مشاهدة}}",
-    "offers": "{count, plural, zero{لا عروض} one{عرض واحد} two{عرضان} few{{n} عروض} many{{n} عرضًا} other{{n} عرض}}"
+    "offers": "{count, plural, zero{لا عروض} one{عرض واحد} two{عرضان} few{{n} عروض} many{{n} عرضًا} other{{n} عرض}}",
+    "exceeded": "{count, plural, zero{لا شيء تجاوز} one{واحد تجاوز} two{اثنان تجاوزا} few{{n} تجاوزت} many{{n} تجاوزت} other{{n} تجاوز}}",
+    "accesses": "{count, plural, zero{لا اطّلاع} one{اطّلاع واحد} two{اطّلاعان} few{{n} اطّلاعات} many{{n} اطّلاعًا} other{{n} اطّلاع}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -755,5 +757,23 @@
     "countLive": "مباشرة",
     "countSoon": "قادمة",
     "countEnded": "منتهية"
+  },
+  "inbox": {
+    "title": "صندوق العروض",
+    "intro": "العروض الواردة عليك والمُرسَلة منك.",
+    "tab": {
+      "active": "واردة",
+      "sent": "مُرسَلة",
+      "closed": "منتهية"
+    },
+    "empty": {
+      "active": "لا عروض واردة",
+      "sent": "لم ترسل عروضًا",
+      "closed": "لا عروض منتهية"
+    },
+    "emptyBody": "العروض النشطة وحدها تظهر هنا — والمنتهية تنتقل إلى «منتهية».",
+    "received": "وارد",
+    "sentBy": "مُرسَل",
+    "asking": "المطلوب"
   }
 }

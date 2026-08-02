@@ -28,6 +28,8 @@ export type Unit =
   | 'seconds'
   | 'views'
   | 'offers'
+  | 'exceeded'
+  | 'accesses'
   | 'km';
 
 /**
