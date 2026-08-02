@@ -58,5 +58,9 @@ something.
 The natural-language search input is **absent, not disabled** (decision 24). The
 flag stays off and nothing is rendered — we do not show what does not work.
 
-`BodyTypeStrip` appears in the §10 component list but **not in the Wa design**.
-It is not built; see the question logged in `DESIGN-DECISIONS.md`.
+`BodyTypeStrip` **is** built — the gap was in the Wa markup, not in §10. It comes
+from screen 13a of `CarSell Redesign.dc.html`; see `DESIGN-DEVIATIONS.md` for
+what it was built from and what still needs review.
+
+Body types sit **between makes and finance**: make is what a Saudi buyer searches
+first, body type second.

@@ -64,6 +64,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     title: 'الإعدادات',
     items: [
       { label: 'الكتالوج', href: '/admin/catalog/brands', permission: 'catalog.manage' },
+      { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
       { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },
       { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
       { label: 'مزوّدو الخدمات والتمويل', href: null },

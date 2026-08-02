@@ -128,3 +128,45 @@ describe('الأقسام لا تكذب', () => {
     expect(home.summary.auctions).toBe(home.live.auctions);
   });
 });
+
+describe('صفّ أنواع الهياكل', () => {
+  /**
+   * جدول **عرض** لا كيانات: المفاتيح من تعداد `BodyType` نفسه، فلا
+   * نوع معروض تجهله المركبات ولا العكس.
+   */
+  it('كل مفتاح معروض موجود في التعداد', async () => {
+    const rows = await db.bodyTypeDisplay.findMany();
+    const used = await db.vehicle.findMany({ distinct: ['bodyType'], select: { bodyType: true } });
+    const keys = new Set(rows.map((row) => row.key));
+    for (const vehicle of used) {
+      expect(keys, vehicle.bodyType).toContain(vehicle.bodyType);
+    }
+  });
+
+  /**
+   * بخلاف شرائح القسط: هناك السلّم نفسه معلومة، وهنا «لا فان معروض»
+   * ليس جوابًا يبحث عنه أحد.
+   */
+  it('النوع الفارغ يُخفى لا يُعطَّل', async () => {
+    const home = await getHomeData('ar');
+    for (const body of home.bodyTypes) {
+      expect(body.count, body.nameAr).toBeGreaterThan(0);
+
+      const real = await db.listing.count({
+        where: { status: 'PUBLISHED', vehicle: { bodyType: body.key as never } },
+      });
+      expect(real, body.nameAr).toBe(body.count);
+    }
+  });
+
+  it('المخفيّ في الأدمن لا يظهر في الرئيسية', async () => {
+    const first = await db.bodyTypeDisplay.findFirstOrThrow({ where: { visible: true } });
+    await db.bodyTypeDisplay.update({ where: { key: first.key }, data: { visible: false } });
+    try {
+      const home = await getHomeData('ar');
+      expect(home.bodyTypes.map((b) => b.key)).not.toContain(first.key);
+    } finally {
+      await db.bodyTypeDisplay.update({ where: { key: first.key }, data: { visible: true } });
+    }
+  });
+});

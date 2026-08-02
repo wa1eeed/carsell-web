@@ -8,6 +8,7 @@ import { LiveBar, SiteFooter, SiteHeader } from '@/components/site/SiteHeader';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Button } from '@/components/ui/Button';
+import { BodyTypeStrip } from '@/components/ui/BodyTypeStrip';
 import { CarCard } from '@/components/ui/CarCard';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { HeroSearch } from '@/components/ui/HeroSearch';
@@ -240,6 +241,29 @@ export default async function HomePage({
             />
           </div>
         </section>
+
+        {/* نوع الهيكل يلي الماركة مباشرةً — الماركة أوّل ما يبحث به
+            المشتري السعودي، والهيكل ثانيه، والتمويل بعدهما. */}
+        {home.bodyTypes.length === 0 ? null : (
+          <section className="border-t border-line">
+            <div className="mx-auto w-full max-w-page px-10 py-10">
+              <SectionHead
+                title={t('browseByBodyType')}
+                action={t('showAll')}
+                href={`/${locale}/cars`}
+              />
+              <BodyTypeStrip
+                items={home.bodyTypes.map((body) => ({
+                  key: body.key,
+                  name: isArabic ? body.nameAr : body.nameEn,
+                  imageUrl: body.imageUrl,
+                  count: body.count,
+                  href: `/${locale}/cars?bodyType=${body.key}`,
+                }))}
+              />
+            </div>
+          </section>
+        )}
 
         {/* التمويل — عرض وحساب فقط، بلا طلب ولا تكامل (قرار ١٤) */}
         <section className="border-t border-line">

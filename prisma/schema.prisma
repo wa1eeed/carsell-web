@@ -1010,6 +1010,21 @@ model FaqPlacement {
 }
 
 /// قرار ٢٦ — ستة قوالب لا آلاف النصوص. تُخفى الفقرة إن كانت العيّنة < ٨.
+/// جدول **عرض** لأنواع الهياكل — لا كيانات.
+/// المفتاح هو `BodyType` نفسه، فلا مرجع جديد ولا مفتاح خارجي ثانٍ
+/// يمكن أن ينحرف عن التعداد. الاسم والصورة والترتيب محتوى يحرّره
+/// الأدمن في A12 كما يحرّر الماركات.
+model BodyTypeDisplay {
+  key      BodyType @id
+  nameAr   String
+  nameEn   String
+  imageUrl String? // صورة ظلّية يرفعها الأدمن
+  sort     Int      @default(0)
+  visible  Boolean  @default(true)
+
+  @@index([visible, sort])
+}
+
 model SeoTemplate {
   key       String   @id
   surface   String // search | landing_city | landing_brand | landing_model …

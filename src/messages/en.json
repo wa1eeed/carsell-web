@@ -266,7 +266,8 @@
           "Privacy"
         ]
       }
-    }
+    },
+    "browseByBodyType": "Browse by body type"
   },
   "dev": {
     "title": "Component library",

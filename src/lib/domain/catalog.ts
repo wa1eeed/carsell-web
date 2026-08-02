@@ -877,3 +877,74 @@ export async function setTrimFeatures(
   });
   return { ok: true };
 }
+
+// ═══════════════════════════════════════════════════════════
+//  أنواع الهياكل — جدول عرض لا كيانات
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * المفتاح هو `BodyType` نفسه ولا يُنشأ ولا يُحذف: إضافة نوع تعني
+ * تعديل التعداد وترحيلًا، لا صفًّا في جدول. فالأدمن **يحرّر ويرتّب
+ * ويخفي** ولا يزيد ولا ينقص — وهذا ما يمنع نوعًا معروضًا لا تعرفه
+ * المركبات.
+ */
+export type BodyTypeInput = {
+  nameAr?: string;
+  nameEn?: string;
+  imageUrl?: string | null;
+  sort?: number;
+  visible?: boolean;
+};
+
+export async function listBodyTypes() {
+  const [rows, counts] = await Promise.all([
+    db.bodyTypeDisplay.findMany({ orderBy: { sort: 'asc' } }),
+    db.vehicle.groupBy({
+      by: ['bodyType'],
+      where: { listings: { some: { status: 'PUBLISHED' } } },
+      _count: { _all: true },
+    }),
+  ]);
+
+  return rows.map((row) => ({
+    ...row,
+    listingCount: counts.find((c) => c.bodyType === row.key)?._count._all ?? 0,
+  }));
+}
+
+export async function updateBodyType(
+  admin: AdminUser,
+  key: string,
+  input: BodyTypeInput,
+  ip: string | null,
+): Promise<
+  | { ok: true; bodyType: Awaited<ReturnType<typeof db.bodyTypeDisplay.update>> }
+  | { ok: false; notFound: true }
+  | { ok: false; errors: { field: string; code: string }[] }
+> {
+  const before = await db.bodyTypeDisplay.findUnique({ where: { key: key as never } });
+  if (before === null) return { ok: false, notFound: true };
+
+  const nameAr = (input.nameAr ?? before.nameAr).trim();
+  const nameEn = (input.nameEn ?? before.nameEn).trim();
+
+  // الاسمان إلزاميان — نفس قاعدة الماركات
+  const errors: { field: string; code: string }[] = [];
+  if (nameAr === '') errors.push({ field: 'nameAr', code: 'REQUIRED' });
+  if (nameEn === '') errors.push({ field: 'nameEn', code: 'REQUIRED' });
+  if (errors.length > 0) return { ok: false, errors };
+
+  const bodyType = await db.bodyTypeDisplay.update({
+    where: { key: key as never },
+    data: {
+      nameAr,
+      nameEn,
+      ...(input.imageUrl === undefined ? {} : { imageUrl: input.imageUrl }),
+      ...(input.sort === undefined ? {} : { sort: input.sort }),
+      ...(input.visible === undefined ? {} : { visible: input.visible }),
+    },
+  });
+
+  await audit(admin, 'bodyType.update', key, { ...before }, { ...bodyType }, ip);
+  return { ok: true, bodyType };
+}

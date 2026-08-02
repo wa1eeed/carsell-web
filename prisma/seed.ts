@@ -1126,9 +1126,32 @@ async function main(): Promise<void> {
     },
   });
 
+  /**
+   * أنواع الهياكل — جدول **عرض** لا كيانات. المفاتيح من `BodyType`
+   * نفسه، فلا مرجع جديد يمكن أن ينحرف عن التعداد. الصور الظلّية
+   * يرفعها الأدمن في A12، والبطاقة تُعرض بالاسم وحده حتى ذلك الحين.
+   */
+  const BODY_TYPES = [
+    { key: 'SEDAN', nameAr: 'سيدان', nameEn: 'Sedan', sort: 1 },
+    { key: 'SUV', nameAr: 'دفع رباعي', nameEn: 'SUV', sort: 2 },
+    { key: 'PICKUP', nameAr: 'بيك أب', nameEn: 'Pickup', sort: 3 },
+    { key: 'HATCHBACK', nameAr: 'هاتشباك', nameEn: 'Hatchback', sort: 4 },
+    { key: 'COUPE', nameAr: 'كوبيه', nameEn: 'Coupe', sort: 5 },
+    { key: 'VAN', nameAr: 'فان', nameEn: 'Van', sort: 6 },
+  ] as const;
+
+  for (const body of BODY_TYPES) {
+    await prisma.bodyTypeDisplay.upsert({
+      where: { key: body.key },
+      update: { nameAr: body.nameAr, nameEn: body.nameEn, sort: body.sort },
+      create: { ...body },
+    });
+  }
+
   // ————— التقرير —————
   const counts = {
     ماركة: await prisma.brand.count(),
+    'نوع هيكل': await prisma.bodyTypeDisplay.count(),
     طراز: await prisma.model.count(),
     فئة: await prisma.trim.count(),
     ميزة: await prisma.feature.count(),

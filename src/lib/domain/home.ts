@@ -60,6 +60,14 @@ export type HomeAuction = HomeCard & {
   bidCount: number;
 };
 
+export type HomeBodyType = {
+  key: string;
+  nameAr: string;
+  nameEn: string;
+  imageUrl: string | null;
+  count: number;
+};
+
 export type HomeService = {
   key: string;
   nameAr: string;
@@ -77,6 +85,7 @@ export type HomeData = {
   stats: { listings: number; dealers: number; financeProviders: number };
   summary: { used: number; newCars: number; auctions: number };
   brands: { top: HomeBrand[]; total: number };
+  bodyTypes: HomeBodyType[];
   finance: {
     /** الشرط المعروض للزائر: دفعة أولى ونسبة ومدّة (قرار ١٤). */
     downPaymentPct: number;
@@ -232,6 +241,8 @@ export async function getHomeData(
     newCount,
     brandRows,
     brandTotal,
+    bodyTypeRows,
+    bodyTypeCounts,
     bandCounts,
     financeCars,
     auctionRows,
@@ -258,6 +269,12 @@ export async function getHomeData(
       take: 15,
     }),
     db.brand.count({ where: { visible: true } }),
+    db.bodyTypeDisplay.findMany({ where: { visible: true }, orderBy: { sort: 'asc' } }),
+    db.vehicle.groupBy({
+      by: ['bodyType'],
+      where: { listings: { some: published } },
+      _count: { _all: true },
+    }),
     finance === null
       ? Promise.resolve([])
       : Promise.all(
@@ -334,6 +351,16 @@ export async function getHomeData(
     stats: { listings: listingCount, dealers: dealerCount, financeProviders: financeProviderCount },
     summary: { used: usedCount, newCars: newCount, auctions: liveAuctions },
     brands: { top, total: brandTotal },
+    /**
+     * النوع الفارغ **يُخفى** — بخلاف شرائح القسط: هناك السلّم نفسه
+     * معلومة، وهنا «لا فان معروض» ليس جوابًا يبحث عنه أحد.
+     */
+    bodyTypes: bodyTypeRows.flatMap((row) => {
+      const count = bodyTypeCounts.find((c) => c.bodyType === row.key)?._count._all ?? 0;
+      return count === 0
+        ? []
+        : [{ key: row.key, nameAr: row.nameAr, nameEn: row.nameEn, imageUrl: row.imageUrl, count }];
+    }),
     finance: {
       downPaymentPct: finance?.downPaymentPct ?? 0,
       months: finance?.months ?? 0,
