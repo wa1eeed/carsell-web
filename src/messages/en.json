@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "title": "CarSell — Saudi car marketplace",
+    "description": "Direct sale · Offer negotiation · Reserve auctions · Services · Escrow."
+  },
+  "foundation": {
+    "eyebrow": "Task 1 — Foundation",
+    "title": "Foundation is in place",
+    "body": "Colour, type and direction all come from globals.css tokens. Nothing is written inline on this screen.",
+    "surfaces": "Surfaces",
+    "surfaceBg": "Page background",
+    "surfaceCard": "Card surface",
+    "surfaceInk": "Ink surface",
+    "semantics": "The three meanings",
+    "semanticAccent": "Green — action and verification",
+    "semanticWarn": "Ochre — time and warning",
+    "semanticDanger": "Red — failure and deletion",
+    "typography": "Typography",
+    "typeHeading": "Heading set in Figtree at 700",
+    "typeBody": "Body copy set in Figtree at 400 — separation by lines, never by shadow.",
+    "numbers": "Numerals set in Arial inside Figtree text",
+    "numbersPrice": "145,000 SAR",
+    "numbersMileage": "3,456 km",
+    "numbersScore": "92 of 100",
+    "reference": "Listing reference",
+    "referenceValue": "ADS2026A0005",
+    "direction": "Direction",
+    "directionValue": "Left to right",
+    "switch": "العربية"
+  }
+}

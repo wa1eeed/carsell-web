@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+
+/* ══════════════════════════════════════════════════════════════════
+   الأرقام بخط Arial داخل النص العربي
+   منسوخ حرفيًا من ترميز التصميم (<helmet> في design/*.dc.html).
+   نطاق المحارف يغطّي الأرقام اللاتينية والعربية-الهندية والفاصلة
+   العشرية وفاصلة الألوف العربيتين والفاصلة والنقطة اللاتينيتين —
+   ولا يمسّ أي حرف، فتبقى الحروف على Tajawal.
+   بهذا يتحقّق «كل رقم بـ Arial» بلا لفّ كل رقم بعنصر.
+   ══════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'CarzNum';
+  src: local('Arial'), local('Helvetica');
+  unicode-range: U+0030-0039, U+0660-0669, U+066B-066C, U+002C, U+002E;
+}
+
+@theme {
+  /* ——— تعطيل لوحة Tailwind الافتراضية ———
+     أي `bg-red-500` أو `font-sans` يصير خطأ ظاهرًا لا تسريبًا صامتًا.
+     القاعدة: توكنات هذا الملف فقط. */
+  --color-*: initial;
+  --font-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* ——— الأسطح ——— */
+  --color-bg: #f5ead8; /* خلفية الصفحة */
+  --color-surface: #efe4cf; /* بطاقات وأشرطة */
+  --color-ink: #201e1d; /* السطح الداكن والنص */
+
+  /* ——— الأخضر: الإجراء والتوثيق والنجاح ——— */
+  --color-accent: #4a8a5e;
+  --color-accent-100: #eef7ee;
+  --color-accent-200: #d8ecda;
+  --color-accent-400: #8cc79e; /* على الأسطح الداكنة فقط */
+  --color-accent-700: #2f6142;
+  --color-accent-800: #20452f;
+  --color-accent-900: #16301f;
+
+  /* ——— الأوكر: الوقت والتحذير وما يحتاج انتباهًا ——— */
+  --color-warn: #c39a3c;
+  --color-warn-100: #fdf5e2;
+  --color-warn-200: #f7e9c2;
+  --color-warn-400: #ddb95f; /* على الأسطح الداكنة فقط */
+  --color-warn-700: #7d5f1c;
+  --color-warn-800: #5a4313;
+  --color-warn-900: #3a2a0d;
+
+  /* ——— الأحمر: الفشل والحذف والتجاوز الحرج فقط ——— */
+  --color-danger: #b8452f;
+
+  /* ——— سلاسل المخططات: بهذا الترتيب، خمس سلاسل كحد أقصى ———
+     السلسلة الأولى دائمًا الأهم (DESIGN-DECISIONS ٥). */
+  --chart-1: #4a8a5e;
+  --chart-2: #7fb08d;
+  --chart-3: #c39a3c;
+  --chart-4: #a8977a;
+  --chart-5: #6d6a64;
+  --chart-neg: #b8452f;
+
+  /* ——— الخطوط الفاصلة ———
+     الفصل بالخطوط لا بالظلال. */
+  --carz-line: rgba(32, 30, 29, 0.13);
+  --carz-line-2: rgba(32, 30, 29, 0.07);
+
+  /* ——— أسماء مرادفة داخل نطاق الألوان ———
+     الغرض توليد أدوات Tailwind (`border-line`، `bg-chart-1`) فيبقى
+     المكوّن بلا `var()` مكتوبة. القيَم أعلاه هي المصدر الوحيد. */
+  --color-line: var(--carz-line);
+  --color-line-2: var(--carz-line-2);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-neg: var(--chart-neg);
+
+  /* ——— الخطوط ———
+     `--font-tajawal` و`--font-figtree` يحقنهما next/font في <html>. */
+  --font-body-ar: 'CarzNum', var(--font-tajawal), system-ui, sans-serif;
+  --font-heading-ar: 'CarzNum', var(--font-tajawal), system-ui, sans-serif;
+  --font-body-en: var(--font-figtree), system-ui, sans-serif;
+  --font-num: Arial, Helvetica, sans-serif; /* كل الأرقام */
+
+  /* ——— سلّم الحواف (DESIGN-DECISIONS · بعد المهمة ١) ———
+     سلّم Tailwind الافتراضي معطَّل حتى لا تتسرّب قيمة غير مصمَّمة.
+     حشو خلايا الجدول ليس حافة — يُضبط مرة واحدة في `DataTable`
+     (صفوف 13px/22px · رأس 12px/22px). */
+  --radius-*: initial;
+  --radius-sm: 8px; /* رقائق، أزرار صغيرة، خلايا */
+  --radius-md: 11px; /* بطاقات إحصاء، حقول */
+  --radius-lg: 12px; /* بطاقات المحتوى، جداول */
+  --radius-xl: 14px; /* بطاقات الويب الكبيرة */
+  --radius-2xl: 18px; /* إطار الصفحة في مراجع التصميم */
+  --radius-full: 999px; /* رقائق دائرية، صور رمزية، أزرار حبّة */
+
+  /* ——— عرض الشبكة (القسم ٣ قاعدتا ٤ و٥) ——— */
+  --container-page: 1360px; /* الويب */
+  --container-admin: 1440px; /* الأدمن */
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* الخط يتبع لغة المستند لا شرطًا داخل مكوّن */
+  html[lang='ar'] body {
+    font-family: var(--font-body-ar);
+  }
+
+  html[lang='en'] body {
+    font-family: var(--font-body-en);
+  }
+
+  body {
+    margin: 0;
+  }
+
+  /* العناوين العربية بوزن 700/800 من Tajawal */
+  html[lang='ar'] :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-heading-ar);
+    font-weight: 700;
+  }
+
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   عزل الاتجاه — أداتان إلزاميتان في كل نصّ مركّب
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * `bidi-isolate` — لكل مقطع في سطر مفصول بـ«·».
+ *
+ * بلا عزل، الفاصل المحايد (U+00B7) الواقع بين كلمة عربية ورقم
+ * عربي-هندي ينزلق إلى الجهة الخطأ فيبدو رقمًا زائدًا:
+ *   «١٤٥٬٠٠٠ ريال · ٣٬٤٥٦ كم»  ⇐ يُرسم  «١٤٥٬٠٠٠ ريال ٣٬٤٥٦٠ كم»
+ * وهذا نمط سطر البيانات في كل بطاقة في Wa وWb وWk.
+ * القاعدة: لُفّ كل مقطع، ولا تعالجها بمحارف RLM داخل ملفات الترجمة.
+ */
+@utility bidi-isolate {
+  unicode-bidi: isolate;
+}
+
+/**
+ * `bidi-ltr` — للحقول ثنائية الاتجاه داخل نص عربي (HANDOFF §١٢):
+ * الجوال · IBAN · VIN · اللوحة · البريد · المعرّفات.
+ */
+@utility bidi-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+}

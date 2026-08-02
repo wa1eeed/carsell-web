@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="organic.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><style>@font-face{font-family:"CarzNum";src:local("Arial"),local("Helvetica");unicode-range:U+0030-0039,U+0660-0669,U+066B-066C,U+002C,U+002E}:root{--font-heading-ar:"CarzNum","Tajawal",system-ui,sans-serif;--font-body-ar:"CarzNum","Tajawal",system-ui,sans-serif;--carz-ink:#201e1d;--carz-line:rgba(32,30,29,.13);--carz-line-2:rgba(32,30,29,.07);--color-accent:#4a8a5e;--color-accent-100:#eef7ee;--color-accent-200:#d8ecda;--color-accent-700:#2f6142;--color-accent-800:#20452f;--color-accent-900:#16301f}body{margin:0;background:#e8e4dc;color:var(--carz-ink);font-family:var(--font-body-ar)}a{color:var(--color-accent-700)}a:hover{color:var(--color-accent)}</style></helmet>
+<section style="padding:44px 44px 36px;border-bottom:1px solid var(--carz-line)">
+<div dir="rtl" style="display:flex;align-items:baseline;gap:10px;margin:0 0 22px">
+  <a href="#D" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 8px;background:var(--carz-ink);color:#f5ead8;border-radius:999px;text-decoration:none">D</a>
+  <span style="font-family:var(--font-heading);font-size:16px">لوحة التاجر — نفس الـAPI ونفس بيانات الدخول، أدوات الحجم الكبير</span>
+</div>
+
+<div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;padding:30px 36px;margin-bottom:36px;display:flex;gap:52px">
+  <div style="flex:1">
+    <div style="font:700 10px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:13px">المبدأ</div>
+    <div style="font:400 12px/1.95 var(--font-body-ar);opacity:.72">حساب واحد وواجهتان: التطبيق للميدان (تصوير، رد سريع، مزايدة) واللوحة للحجم (رفع دفعة، تسعير جماعي، فواتير، تقارير). <span style="font-weight:700">لا منطق بيع جديد</span> — رحلة البيع هي نفسها. المخزون هو نفس كيان <span style="font-family:Figtree,system-ui,sans-serif">vehicles</span> مع <span style="font-family:Figtree,system-ui,sans-serif">dealer_id</span> و<span style="font-family:Figtree,system-ui,sans-serif">branch_id</span> — لا جدول مخزون منفصل.</div>
+  </div>
+  <div style="width:1px;background:var(--carz-line)"></div>
+  <div style="flex:1">
+    <div style="font:700 10px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:13px">الصلاحيات</div>
+    <div style="font:400 12px/1.95 var(--font-body-ar);opacity:.72">· <span style="font-weight:700">مالك</span> — كل شيء، والاشتراك والفواتير<br>· <span style="font-weight:700">مدير</span> — المخزون والعروض والفريق والتقارير<br>· <span style="font-weight:700">مبيعات</span> — مركبات فرعه وعروضها فقط<br>· <span style="font-weight:700">محاسب</span> — الفواتير والتسويات بلا تعديل أسعار</div>
+  </div>
+  <div style="width:1px;background:var(--carz-line)"></div>
+  <div style="flex:1">
+    <div style="font:700 10px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:13px">الشاشات</div>
+    <div style="font:400 12px/1.95 var(--font-body-ar);opacity:.72"><a href="#D1">D1</a> لوحة القيادة · <a href="#D2">D2</a> المخزون<br><a href="#D3">D3</a> الإضافة الجماعية · <a href="#D4">D4</a> المزادات<br><a href="#D5">D5</a> العروض · <a href="#D6">D6</a> الطلبات<br><a href="#D7">D7</a> الفواتير · <a href="#D8">D8</a> التسويات<br><a href="#D9">D9</a> الفريق والفروع · <a href="#D10">D10</a> الملف العام<br><a href="#D11">D11</a> التقارير</div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:40px">
+
+<div id="D1" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D1" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D1</a>لوحة القيادة — صحّة المعرض في شاشة</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">معرض الخليج للسيارات · أغسطس ٢٠٢٦</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px"><div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">تصدير</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">أضف مركبة</div></div></div>
+        <div style="flex:1"></div>
+              <div style="padding:22px 30px 30px">
+        <div style="display:flex;gap:14px;margin-bottom:22px">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf">
+            <div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:7px">مبيعات الشهر</div>
+            <div style="font-family:var(--font-heading-ar);font-weight:700;font-size:23px;">١٬٨٤٠٬٠٠٠</div>
+            <div style="font:500 9.5px var(--font-body-ar);margin-top:5px;opacity:.5">١٢ صفقة · +١٨٪ عن يوليو</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf">
+            <div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:7px">الهامش</div>
+            <div style="font-family:var(--font-heading-ar);font-weight:700;font-size:23px;">٢٣٤٬٠٠٠</div>
+            <div style="font:500 9.5px var(--font-body-ar);margin-top:5px;opacity:.5">١٢٫٧٪ من المبيعات</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf">
+            <div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:7px">المخزون النشط</div>
+            <div style="font-family:var(--font-heading-ar);font-weight:700;font-size:23px;">٣٤</div>
+            <div style="font:500 9.5px var(--font-body-ar);margin-top:5px;opacity:.5">قيمته ٤٬٦٢٠٬٠٠٠</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf">
+            <div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:7px">وسيط أيام البيع</div>
+            <div style="font-family:var(--font-heading-ar);font-weight:700;font-size:23px;">٢٦</div>
+            <div style="font:500 9.5px var(--font-body-ar);margin-top:5px;opacity:.5">السوق ٣١ يومًا</div>
+          </div>
+          <div style="flex:1;border:1px solid rgba(195,154,60,.5);border-radius:11px;padding:16px 18px;background:#f7e9c2">
+            <div style="font:500 10px var(--font-body-ar);color:#7d5f1c;margin-bottom:7px">عروض تحتاج ردًّا</div>
+            <div style="font-family:var(--font-heading-ar);font-weight:700;font-size:23px;color:#7d5f1c">٣</div>
+            <div style="font:500 9.5px var(--font-body-ar);margin-top:5px;color:#7d5f1c">أقدمها منذ ١٩ ساعة</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:16px;margin-bottom:16px">
+          <div style="flex:1.3;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">المبيعات — ٦ أشهر</div>
+            <div style="display:flex;align-items:flex-end;gap:14px;height:150px;padding-bottom:22px;position:relative">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><span style="font:700 9.5px Arial,sans-serif;opacity:.55">١٫١م</span><div style="width:100%;height:52%;border-radius:6px 6px 0 0;background:rgba(32,30,29,.16)"></div><span style="font:500 9.5px var(--font-body-ar);opacity:.5;position:absolute;bottom:0">مارس</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><span style="font:700 9.5px Arial,sans-serif;opacity:.55">١٫٣م</span><div style="width:100%;height:61%;border-radius:6px 6px 0 0;background:rgba(32,30,29,.16)"></div><span style="font:500 9.5px var(--font-body-ar);opacity:.5;position:absolute;bottom:0">أبريل</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><span style="font:700 9.5px Arial,sans-serif;opacity:.55">١٫٠م</span><div style="width:100%;height:48%;border-radius:6px 6px 0 0;background:rgba(32,30,29,.16)"></div><span style="font:500 9.5px var(--font-body-ar);opacity:.5;position:absolute;bottom:0">مايو</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><span style="font:700 9.5px Arial,sans-serif;opacity:.55">١٫٥م</span><div style="width:100%;height:73%;border-radius:6px 6px 0 0;background:rgba(32,30,29,.16)"></div><span style="font:500 9.5px var(--font-body-ar);opacity:.5;position:absolute;bottom:0">يونيو</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><span style="font:700 9.5px Arial,sans-serif;opacity:.55">١٫٦م</span><div style="width:100%;height:66%;border-radius:6px 6px 0 0;background:rgba(32,30,29,.16)"></div><span style="font:500 9.5px var(--font-body-ar);opacity:.5;position:absolute;bottom:0">يوليو</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><span style="font:700 9.5px Arial,sans-serif;opacity:.55">١٫٨م</span><div style="width:100%;height:88%;border-radius:6px 6px 0 0;background:var(--color-accent)"></div><span style="font:500 9.5px var(--font-body-ar);opacity:.5;position:absolute;bottom:0">أغسطس</span></div>
+            </div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">أعمار المخزون</div>
+            <div style="margin-bottom:11px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:500 11px var(--font-body-ar);opacity:.7">أقل من ١٥ يومًا — ١٤ مركبة</span><span style="font:700 11px Arial,sans-serif">٤١٪</span></div>
+            <div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:41%;height:100%;background:var(--color-accent)"></div></div>
+          </div>
+            <div style="margin-bottom:11px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:500 11px var(--font-body-ar);opacity:.7">١٥–٣٠ يومًا — ١١ مركبة</span><span style="font:700 11px Arial,sans-serif">٣٢٪</span></div>
+            <div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:32%;height:100%;background:var(--color-accent)"></div></div>
+          </div>
+            <div style="margin-bottom:11px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:500 11px var(--font-body-ar);opacity:.7">٣١–٦٠ يومًا — ٦ مركبات</span><span style="font:700 11px Arial,sans-serif">١٨٪</span></div>
+            <div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:18%;height:100%;background:#c39a3c"></div></div>
+          </div>
+            <div style="margin-bottom:11px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:500 11px var(--font-body-ar);opacity:.7">أكثر من ٦٠ يومًا — ٣ مركبات</span><span style="font:700 11px Arial,sans-serif">٩٪</span></div>
+            <div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:9%;height:100%;background:#a2513f"></div></div>
+          </div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6;margin-top:13px;padding-top:13px;border-top:1px solid var(--carz-line-2)">ثلاث مركبات تجاوزت ٦٠ يومًا — راجع أسعارها، فكل شهر إضافي يقلّص الهامش.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:16px">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">يحتاج إجراءً اليوم</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:#c39a3c;flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">٣ عروض بلا رد</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">أقدمها منذ ١٩ ساعة</div></div><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">افتح ←</span></div><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:#c39a3c;flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">مزاد باترول يغلق بعد ٠١:٣٨</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">الاحتياطي لم يُبلغ بعد</div></div><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">افتح ←</span></div><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:var(--color-accent);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">٣ طلبات في مرحلة الدفع</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">مهلة المشتري ٢٤ ساعة</div></div><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">افتح ←</span></div><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:var(--color-accent);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">مركبتان بلا صور كافية</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">لا تظهر في نتائج البحث</div></div><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">افتح ←</span></div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">الأكثر مشاهدة هذا الأسبوع</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><div class="washed" style="width:46px;height:34px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></div><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">تويوتا لاندكروزر ٢٠٢٤</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">٢٬٤١٠ مشاهدة</div></div><span style="font:600 10.5px var(--font-body-ar);opacity:.65">٧ عروض</span></div><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><div class="washed" style="width:46px;height:34px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></div><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">نيسان باترول ٢٠٢٣</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">١٬٨٨٠ مشاهدة</div></div><span style="font:600 10.5px var(--font-body-ar);opacity:.65">مزاد جارٍ</span></div><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><div class="washed" style="width:46px;height:34px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></div><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">لكزس ES ٢٠٢٢</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">١٬٢٤٠ مشاهدة</div></div><span style="font:600 10.5px var(--font-body-ar);opacity:.65">٣ عروض</span></div><div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><div class="washed" style="width:46px;height:34px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></div><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">هيونداي سوناتا ٢٠٢٣</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">٩٦٠ مشاهدة</div></div><span style="font:600 10.5px var(--font-body-ar);opacity:.65">بلا عروض</span></div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:#efe4cf">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">أداء الفريق — أغسطس</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--carz-line-2)"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">خالد</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">٥ صفقات</div></div><span style="font:700 11.5px Arial,sans-serif">٧٤٠٬٠٠٠</span></div><div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--carz-line-2)"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">نورة</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">٤ صفقات</div></div><span style="font:700 11.5px Arial,sans-serif">٦١٠٬٠٠٠</span></div><div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--carz-line-2)"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">سعد</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">٣ صفقات</div></div><span style="font:700 11.5px Arial,sans-serif">٤٩٠٬٠٠٠</span></div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6;margin-top:12px">البائع يرى مركبات فرعه فقط؛ هذا الجدول للمدير.</div>
+          </div>
+        </div>
+      </div>
+      </div>
+undefined
+    </div>
+  </div>
+</div>
+
+
+<div id="D2" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D2" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D2</a>المخزون — جدول واحد بتعديل جماعي</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">المخزون</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">٣٤ مركبة · قيمتها ٤٬٦٢٠٬٠٠٠ ر.س</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">تصدير CSV</div><div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">رفع دفعة</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">أضف مركبة</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 11.5px var(--font-body-ar)">الكل<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(245,234,216,.2);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٣٤</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">منشور<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٢٦</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مزاد<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٤</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مسودة<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">محجوز<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مباع</div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;border:1px solid var(--carz-line);font:600 11px var(--font-body-ar)">كل الفروع<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;opacity:.5"><path d="m6 9 6 6 6-6"></path></svg></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;border:1px solid var(--carz-line);font:600 11px var(--font-body-ar)">الأقدم مخزونًا<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;opacity:.5"><path d="m6 9 6 6 6-6"></path></svg></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;padding:13px 20px;border-radius:10px;background:var(--carz-ink);color:#f5ead8;margin-bottom:14px">
+          <span style="font:700 11.5px var(--font-body-ar)">٣ مركبات محدَّدة</span>
+          <div style="flex:1"></div>
+          <div style="padding:8px 15px;border-radius:8px;background:rgba(245,234,216,.14);font:600 11px var(--font-body-ar)">خفّض السعر ٥٪</div>
+          <div style="padding:8px 15px;border-radius:8px;background:rgba(245,234,216,.14);font:600 11px var(--font-body-ar)">انقل لفرع</div>
+          <div style="padding:8px 15px;border-radius:8px;background:rgba(245,234,216,.14);font:600 11px var(--font-body-ar)">حوّل لمزاد</div>
+          <div style="padding:8px 15px;border-radius:8px;background:rgba(245,234,216,.14);font:600 11px var(--font-body-ar)">أوقف النشر</div>
+        </div>
+
+        <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;padding:11px 22px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 9.5px var(--font-body-ar);opacity:.55">
+            <div></div><div></div><div>المركبة واللوحة</div><div>الممشى</div><div>السعر</div><div>في المخزون</div><div>عروض</div><div>الفرع</div><div>الحالة</div><div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;align-items:center;padding:12px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid var(--carz-line)"></span>
+          <div class="washed" style="width:48px;height:36px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px)"></div>
+          <div><div style="font:700 12px var(--font-body-ar)">تويوتا لاندكروزر VXR ٢٠٢٤</div><div style="font:500 9.5px Arial,sans-serif;opacity:.45;margin-top:3px" dir="ltr">ABD 1234</div></div>
+          <div style="font:600 11.5px Arial,sans-serif;opacity:.75">٩٬٠٠٠ كم</div>
+          <div style="font:700 12.5px Arial,sans-serif">٤٨٠٬٠٠٠</div>
+          <div style="font:600 11.5px var(--font-body-ar);opacity:.7">٨ يومًا</div>
+          <div style="font:700 11.5px Arial,sans-serif;color:var(--color-accent-700)">٧</div>
+          <div style="font:500 11px var(--font-body-ar);opacity:.65">الملقا</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar);">منشور</span></div>
+          <div style="font:700 11px var(--font-body-ar);color:var(--color-accent-700)">تعديل</div>
+        </div>
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;align-items:center;padding:12px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid var(--carz-line)"></span>
+          <div class="washed" style="width:48px;height:36px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px)"></div>
+          <div><div style="font:700 12px var(--font-body-ar)">نيسان باترول LE ٢٠٢٣</div><div style="font:500 9.5px Arial,sans-serif;opacity:.45;margin-top:3px" dir="ltr">JKL 8842</div></div>
+          <div style="font:600 11.5px Arial,sans-serif;opacity:.75">٤١٬٠٠٠ كم</div>
+          <div style="font:700 12.5px Arial,sans-serif">٢٢٠٬٠٠٠</div>
+          <div style="font:600 11.5px var(--font-body-ar);opacity:.7">١٤ يومًا</div>
+          <div style="font:700 11.5px Arial,sans-serif;color:var(--color-accent-700)">—</div>
+          <div style="font:500 11px var(--font-body-ar);opacity:.65">الملقا</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar);">مزاد</span></div>
+          <div style="font:700 11px var(--font-body-ar);color:var(--color-accent-700)">تعديل</div>
+        </div>
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;align-items:center;padding:12px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid var(--carz-line)"></span>
+          <div class="washed" style="width:48px;height:36px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px)"></div>
+          <div><div style="font:700 12px var(--font-body-ar)">لكزس ES ٣٥٠ ٢٠٢٢</div><div style="font:500 9.5px Arial,sans-serif;opacity:.45;margin-top:3px" dir="ltr">MNS 5510</div></div>
+          <div style="font:600 11.5px Arial,sans-serif;opacity:.75">٥٢٬٠٠٠ كم</div>
+          <div style="font:700 12.5px Arial,sans-serif">١١٨٬٠٠٠</div>
+          <div style="font:600 11.5px var(--font-body-ar);opacity:.7">٢٢ يومًا</div>
+          <div style="font:700 11.5px Arial,sans-serif;color:var(--color-accent-700)">٣</div>
+          <div style="font:500 11px var(--font-body-ar);opacity:.65">العليا</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar);">منشور</span></div>
+          <div style="font:700 11px var(--font-body-ar);color:var(--color-accent-700)">تعديل</div>
+        </div>
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;align-items:center;padding:12px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid var(--carz-line)"></span>
+          <div class="washed" style="width:48px;height:36px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px)"></div>
+          <div><div style="font:700 12px var(--font-body-ar)">هوندا أكورد ٢٠٢٢</div><div style="font:500 9.5px Arial,sans-serif;opacity:.45;margin-top:3px" dir="ltr">RTV 3097</div></div>
+          <div style="font:600 11.5px Arial,sans-serif;opacity:.75">٣٤٬٠٠٠ كم</div>
+          <div style="font:700 12.5px Arial,sans-serif">١١٤٬٠٠٠</div>
+          <div style="font:600 11.5px var(--font-body-ar);color:#7d5f1c">٣٧ يومًا</div>
+          <div style="font:700 11.5px Arial,sans-serif;opacity:.35">٠</div>
+          <div style="font:500 11px var(--font-body-ar);opacity:.65">العليا</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar);">منشور</span></div>
+          <div style="font:700 11px var(--font-body-ar);color:var(--color-accent-700)">تعديل</div>
+        </div>
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;align-items:center;padding:12px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid var(--carz-line)"></span>
+          <div class="washed" style="width:48px;height:36px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px)"></div>
+          <div><div style="font:700 12px var(--font-body-ar)">شفروليه تاهو ٢٠٢٠</div><div style="font:500 9.5px Arial,sans-serif;opacity:.45;margin-top:3px" dir="ltr">QWE 7721</div></div>
+          <div style="font:600 11.5px Arial,sans-serif;opacity:.75">١١٤٬٠٠٠ كم</div>
+          <div style="font:700 12.5px Arial,sans-serif">٩٦٬٥٠٠</div>
+          <div style="font:600 11.5px var(--font-body-ar);color:#a2513f">٦٨ يومًا</div>
+          <div style="font:700 11.5px Arial,sans-serif;opacity:.35">٠</div>
+          <div style="font:500 11px var(--font-body-ar);opacity:.65">الخرج</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar);">منشور</span></div>
+          <div style="font:700 11px var(--font-body-ar);color:var(--color-accent-700)">تعديل</div>
+        </div>
+          <div style="display:grid;grid-template-columns:26px 54px 1.7fr 1fr .9fr .9fr .7fr .8fr 90px 70px;gap:12px;align-items:center;padding:12px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid var(--carz-line)"></span>
+          <div class="washed" style="width:48px;height:36px;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px)"></div>
+          <div><div style="font:700 12px var(--font-body-ar)">كيا سبورتاج ٢٠٢٢</div><div style="font:500 9.5px Arial,sans-serif;opacity:.45;margin-top:3px" dir="ltr">ZXC 4408</div></div>
+          <div style="font:600 11.5px Arial,sans-serif;opacity:.75">٥١٬٠٠٠ كم</div>
+          <div style="font:700 12.5px Arial,sans-serif">٩٨٬٥٠٠</div>
+          <div style="font:600 11.5px var(--font-body-ar);opacity:.7">٥ يومًا</div>
+          <div style="font:700 11.5px Arial,sans-serif;color:var(--color-accent-700)">—</div>
+          <div style="font:500 11px var(--font-body-ar);opacity:.65">الملقا</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);font:700 9.5px var(--font-body-ar)">محجوز</span></div>
+          <div style="font:700 11px var(--font-body-ar);color:var(--color-accent-700)">تعديل</div>
+        </div>
+        </div>
+        <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">المخزون هو نفس مركبات التطبيق — ما تعدّله هنا يظهر فورًا في الإعلان وفي تطبيقك. البائع يرى مركبات فرعه فقط، والمحاسب لا يستطيع تعديل الأسعار. كل تعديل جماعي يُسجَّل في سجل التدقيق باسم العضو.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D3" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D3" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D3</a>الإضافة الجماعية — ملف واحد بمطابقة أعمدة</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">inventory-aug.xlsx · ٤٢ صفًّا</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px"><div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">نزّل القالب</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">استورد ٣٨ صفًّا</div></div></div>
+        <div style="flex:1"></div>
+              <div style="padding:22px 30px 30px">
+        <div style="display:flex;gap:14px;margin-bottom:20px">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:6px">صفوف الملف</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px">٤٢</div></div>
+          <div style="flex:1;border:1px solid var(--color-accent);border-radius:11px;padding:16px 18px;background:var(--color-accent-100)"><div style="font:500 10px var(--font-body-ar);color:var(--color-accent-800);margin-bottom:6px">جاهزة للاستيراد</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px;color:var(--color-accent-800)">٣٨</div></div>
+          <div style="flex:1;border:1px solid rgba(195,154,60,.5);border-radius:11px;padding:16px 18px;background:#f7e9c2"><div style="font:500 10px var(--font-body-ar);color:#7d5f1c;margin-bottom:6px">تحتاج مراجعة</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px;color:#7d5f1c">٣</div></div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:6px">مكرّرة (موجودة)</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px">١</div></div>
+        </div>
+
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="flex:1.2;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">مطابقة الأعمدة</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">VIN</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">الرقم التسلسلي</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Model Year</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">سنة الصنع</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Make</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">الماركة</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Model</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">الطراز</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Trim</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">الفئة</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Mileage</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">الممشى</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Asking</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">السعر المطلوب</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Colour</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">اللون الخارجي</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Branch</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:600 11.5px var(--font-body-ar);flex:1;">الفرع</span><svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="m5 13 4 4L19 7"></path></svg></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:600 11.5px Figtree,system-ui,sans-serif;width:110px" dir="ltr">Notes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:.35;flex:none"><path d="m15 18-6-6 6-6"></path></svg><span style="font:500 11.5px var(--font-body-ar);flex:1;opacity:.4">—</span><span style="font:600 9.5px var(--font-body-ar);opacity:.45">تُتجاهل</span></div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6;margin-top:13px">الرقم التسلسلي وحده كافٍ — بقية القيَم تُجلب من الكتالوج وتُملأ آليًا. الأعمدة الزائدة تُتجاهل ولا تمنع الاستيراد.</div>
+          </div>
+
+          <div style="flex:1.3;border:1px solid var(--carz-line);border-radius:12px;overflow:hidden">
+            <div style="padding:14px 20px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 11.5px var(--font-body-ar)">تقرير الصفوف — ٤ تحتاج انتباهًا</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--carz-line-2)"><span style="font:700 11px Arial,sans-serif;width:38px;opacity:.55">٧</span><span style="font:500 11.5px var(--font-body-ar);flex:1">رقم تسلسلي غير صالح (١٦ خانة)</span><span style="padding:4px 10px;border-radius:6px;background:rgba(162,81,63,.14);color:#a2513f;font:700 9.5px var(--font-body-ar);">خطأ</span></div><div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--carz-line-2)"><span style="font:700 11px Arial,sans-serif;width:38px;opacity:.55">١٩</span><span style="font:500 11.5px var(--font-body-ar);flex:1">السعر ٠ — لن يُنشر</span><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar);">تحذير</span></div><div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--carz-line-2)"><span style="font:700 11px Arial,sans-serif;width:38px;opacity:.55">٢٤</span><span style="font:500 11.5px var(--font-body-ar);flex:1">الفرع «جدة» غير موجود في معرضك</span><span style="padding:4px 10px;border-radius:6px;background:rgba(162,81,63,.14);color:#a2513f;font:700 9.5px var(--font-body-ar);">خطأ</span></div><div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--carz-line-2)"><span style="font:700 11px Arial,sans-serif;width:38px;opacity:.55">٣١</span><span style="font:500 11.5px var(--font-body-ar);flex:1">مركبة موجودة أصلًا — ستُحدَّث لا تُضاف</span><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar);opacity:.6">معلومة</span></div>
+            <div style="padding:18px 20px">
+              <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">الاستيراد ذرّي على مستوى الصف: الصفوف السليمة تُستورد والمعطوبة تُترك مع تقرير قابل للتنزيل — لا يُلغى الملف كله بسبب صف. المركبات المستوردة تدخل كـ<span style="font-weight:700">مسودّات</span> ولا تُنشر قبل إضافة الصور.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+undefined
+    </div>
+  </div>
+</div>
+
+
+<div id="D4" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D4" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D4</a>المزادات — إنشاء ومتابعة لحظية</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">المزادات</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">٤ جارية · ٢ منتهية هذا الشهر</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">سجل المزادات</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">أنشئ مزادًا</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:8px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 11.5px var(--font-body-ar)">جارية<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(245,234,216,.2);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٤</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مجدولة<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">انتهت</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">لم تبلغ الاحتياطي<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١</span></div></div>
+        <div style="display:flex;gap:16px;margin-bottom:18px">
+          <div style="flex:1;border:1px solid rgba(195,154,60,.5);border-radius:12px;overflow:hidden">
+            <div style="padding:15px 20px;background:#f7e9c2;border-bottom:1px solid rgba(195,154,60,.4);display:flex;align-items:center;gap:12px">
+              <div style="flex:1"><div style="font:700 13px var(--font-body-ar);color:#7d5f1c">نيسان باترول LE ٢٠٢٣</div><div style="font:500 10px var(--font-body-ar);margin-top:3px;color:#7d5f1c">١٩ مزايدًا · يغلق بعد ٠١:٣٨:٠٢</div></div>
+              <span style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 9.5px var(--font-body-ar)"><span style="width:5px;height:5px;border-radius:999px;background:#8CC79E"></span>مباشر</span>
+            </div>
+            <div style="padding:18px 20px">
+              <div style="display:flex;gap:14px;margin-bottom:14px">
+                <div style="flex:1"><div style="font:500 9.5px var(--font-body-ar);opacity:.5;margin-bottom:5px">أعلى مزايدة</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:21px">٢٠٨٬٥٠٠</div></div>
+                <div style="width:1px;background:var(--carz-line)"></div>
+                <div style="flex:1"><div style="font:500 9.5px var(--font-body-ar);opacity:.5;margin-bottom:5px">الاحتياطي (مخفي)</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:21px;opacity:.75">٢٢٠٬٠٠٠</div></div>
+              </div>
+              <div style="font:600 11px var(--font-body-ar);color:#7d5f1c;margin-bottom:12px">أقل من الاحتياطي بـ ١١٬٥٠٠ — قرارك مطلوب عند الإغلاق</div>
+              <div style="display:flex;gap:8px"><div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;border:1px solid var(--carz-line);font:700 11px var(--font-body-ar)">كشف المزايدات</div><div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;border:1px solid var(--carz-line);font:700 11px var(--font-body-ar)">مدّد ٣٠ د</div></div>
+            </div>
+          </div><div style="flex:1;border:1px solid var(--color-accent);border-radius:12px;overflow:hidden">
+            <div style="padding:15px 20px;background:var(--color-accent-100);border-bottom:1px solid var(--color-accent);display:flex;align-items:center;gap:12px">
+              <div style="flex:1"><div style="font:700 13px var(--font-body-ar);color:var(--color-accent-900)">لكزس LX ٢٠٢١</div><div style="font:500 10px var(--font-body-ar);margin-top:3px;color:var(--color-accent-800)">٢٦ مزايدًا · يغلق بعد ٠٤:١١:٥٧</div></div>
+              <span style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 9.5px var(--font-body-ar)"><span style="width:5px;height:5px;border-radius:999px;background:#8CC79E"></span>مباشر</span>
+            </div>
+            <div style="padding:18px 20px">
+              <div style="display:flex;gap:14px;margin-bottom:14px">
+                <div style="flex:1"><div style="font:500 9.5px var(--font-body-ar);opacity:.5;margin-bottom:5px">أعلى مزايدة</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:21px">٣٤٢٬٠٠٠</div></div>
+                <div style="width:1px;background:var(--carz-line)"></div>
+                <div style="flex:1"><div style="font:500 9.5px var(--font-body-ar);opacity:.5;margin-bottom:5px">الاحتياطي (مخفي)</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:21px;opacity:.75">٣٣٠٬٠٠٠</div></div>
+              </div>
+              <div style="font:600 11px var(--font-body-ar);color:var(--color-accent-700);margin-bottom:12px">تجاوز الاحتياطي بـ ١٢٬٠٠٠ — سيُرسى تلقائيًا</div>
+              <div style="display:flex;gap:8px"><div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;border:1px solid var(--carz-line);font:700 11px var(--font-body-ar)">كشف المزايدات</div><div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;border:1px solid var(--carz-line);font:700 11px var(--font-body-ar)">مدّد ٣٠ د</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">إعدادات المزاد الجديد</div>
+            <div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1.4"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">المركبة</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">شفروليه تاهو ٢٠٢٠</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">سعر الافتتاح</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">٧٥٬٠٠٠</div></div></div>
+            <div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">السعر الاحتياطي — مخفي</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">٩٥٬٠٠٠</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">أقل فرق للمزايدة</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">١٬٠٠٠</div></div></div>
+            <div style="display:flex;gap:12px;margin-bottom:16px"><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">البداية</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">الخميس ٨:٠٠ م</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">المدة</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">٤٨ ساعة</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">التمديد</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">٥ د عند مزايدة أخيرة</div></div></div>
+            <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">التمديد التلقائي يمنع القنص في الثانية الأخيرة ويرفع السعر النهائي. لا يمكن تعديل الاحتياطي بعد أول مزايدة.</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:#efe4cf">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">مزاد لم يبلغ الاحتياطي — ثلاثة مخارج</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:var(--color-accent);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">اقبل أعلى مزايدة</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">٢٠٨٬٥٠٠ — أقل من احتياطيك بـ ١١٬٥٠٠</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:rgba(32,30,29,.16);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">أعد المزاد باحتياطي أقل</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">يحتفظ بالمتابعين ويبدأ من أعلى مزايدة</div></div></div><div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--carz-line-2)"><span style="width:7px;height:7px;border-radius:999px;background:rgba(32,30,29,.16);flex:none"></span><div style="flex:1"><div style="font:600 11.5px var(--font-body-ar)">حوّلها لتفاوض</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">تُنشر بسعر مطلوب وتستقبل عروضًا</div></div></div>
+            <div style="font:400 10.5px/1.85 var(--font-body-ar);opacity:.6;margin-top:13px">إن لم تقرّر خلال ٢٤ ساعة، تُرد العرابين تلقائيًا ويعود الإعلان مسودة.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D5" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D5" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D5</a>العروض والمفاوضات — صندوق موحّد لكل الفروع</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">العروض والمفاوضات</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">١٢ عرضًا نشطًا · ٣ تنتظر ردّك</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">الردود الجاهزة</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">قواعد الرد التلقائي</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:8px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 11.5px var(--font-body-ar)">تنتظر ردّك<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(245,234,216,.2);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٣</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">ردّ المشتري<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٤</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">كل النشطة<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مقبولة<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٣</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">منتهية</div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;border:1px solid var(--carz-line);font:600 11px var(--font-body-ar)">كل الفروع<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;opacity:.5"><path d="m6 9 6 6 6-6"></path></svg></div>
+        </div>
+        <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:1.2fr .9fr 1.5fr .9fr 1fr 200px;gap:14px;padding:11px 22px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 9.5px var(--font-body-ar);opacity:.55">
+            <div>المشتري</div><div>العرض</div><div>المركبة</div><div>منذ</div><div>الحالة</div><div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.2fr .9fr 1.5fr .9fr 1fr 200px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font:600 11.5px var(--font-body-ar)">عبدالله ا.</span></div>
+          <div style="font:700 13px Arial,sans-serif;">٤٦٥٬٠٠٠</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">لاندكروزر VXR ٢٠٢٤</div>
+          <div style="font:500 10.5px var(--font-body-ar);opacity:.5">١٩ ساعة</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent);color:#f5ead8;font:700 9.5px var(--font-body-ar);">الأعلى</span></div>
+          <div style="display:flex;gap:7px"><div style="padding:8px 14px;border-radius:8px;background:var(--color-accent);color:#f5ead8;font:700 10.5px var(--font-body-ar)">اقبل</div><div style="padding:8px 14px;border-radius:8px;border:1px solid var(--carz-ink);font:700 10.5px var(--font-body-ar)">مقابل</div><div style="padding:8px 12px;border-radius:8px;border:1px solid var(--carz-line);font:700 10.5px var(--font-body-ar);opacity:.6">ارفض</div></div>
+        </div>
+          <div style="display:grid;grid-template-columns:1.2fr .9fr 1.5fr .9fr 1fr 200px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font:600 11.5px var(--font-body-ar)">نورة س.</span></div>
+          <div style="font:700 13px Arial,sans-serif;">٤٥٢٬٠٠٠</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">لاندكروزر VXR ٢٠٢٤</div>
+          <div style="font:500 10.5px var(--font-body-ar);opacity:.5">٦ ساعات</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar);">بانتظار ردّك</span></div>
+          <div style="display:flex;gap:7px"><div style="padding:8px 14px;border-radius:8px;background:var(--color-accent);color:#f5ead8;font:700 10.5px var(--font-body-ar)">اقبل</div><div style="padding:8px 14px;border-radius:8px;border:1px solid var(--carz-ink);font:700 10.5px var(--font-body-ar)">مقابل</div><div style="padding:8px 12px;border-radius:8px;border:1px solid var(--carz-line);font:700 10.5px var(--font-body-ar);opacity:.6">ارفض</div></div>
+        </div>
+          <div style="display:grid;grid-template-columns:1.2fr .9fr 1.5fr .9fr 1fr 200px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font:600 11.5px var(--font-body-ar)">سعود ع.</span></div>
+          <div style="font:700 13px Arial,sans-serif;">١١٥٬٠٠٠</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">لكزس ES ٣٥٠ ٢٠٢٢</div>
+          <div style="font:500 10.5px var(--font-body-ar);opacity:.5">٣ ساعات</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar);">بانتظار ردّك</span></div>
+          <div style="display:flex;gap:7px"><div style="padding:8px 14px;border-radius:8px;background:var(--color-accent);color:#f5ead8;font:700 10.5px var(--font-body-ar)">اقبل</div><div style="padding:8px 14px;border-radius:8px;border:1px solid var(--carz-ink);font:700 10.5px var(--font-body-ar)">مقابل</div><div style="padding:8px 12px;border-radius:8px;border:1px solid var(--carz-line);font:700 10.5px var(--font-body-ar);opacity:.6">ارفض</div></div>
+        </div>
+          
+        </div>
+        <div style="display:flex;gap:16px">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">قواعد الرد التلقائي</div>
+            <div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">اقبل تلقائيًا فوق</span><span style="font:700 11.5px var(--font-body-ar)">٤٧٠٬٠٠٠ ر.س</span></div><div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">ارفض تلقائيًا دون</span><span style="font:700 11.5px var(--font-body-ar)">٤٤٠٬٠٠٠ ر.س</span></div><div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">عرض مقابل تلقائي</span><span style="font:700 11.5px var(--font-body-ar)">−٣٪ من السعر المطلوب</span></div><div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">مهلة العرض</span><span style="font:700 11.5px var(--font-body-ar)">٤٨ ساعة ثم يسقط</span></div>
+            <div style="font:400 10.5px/1.85 var(--font-body-ar);opacity:.6;margin-top:13px">القواعد لكل مركبة أو لكل المخزون. الرفض التلقائي يُخطر المشتري بسببه دون كشف حدّك.</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:#efe4cf">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">الردود الجاهزة</div>
+            <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11px/1.6 var(--font-body-ar);flex:1;opacity:.75">شكرًا لعرضك — أقرب سعر ممكن هو {price}</span><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">استخدم</span></div><div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11px/1.6 var(--font-body-ar);flex:1;opacity:.75">المركبة متاحة للمعاينة في فرع {branch} يوميًا ٤–٩ م</span><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">استخدم</span></div><div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11px/1.6 var(--font-body-ar);flex:1;opacity:.75">التقرير الفني مرفق بالإعلان، ودرجة الحالة {score}</span><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">استخدم</span></div><div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11px/1.6 var(--font-body-ar);flex:1;opacity:.75">السعر نهائي — لا يقبل التفاوض حاليًا</span><span style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">استخدم</span></div>
+            <div style="font:400 10.5px/1.85 var(--font-body-ar);opacity:.6;margin-top:13px">المتغيّرات بين قوسين تُستبدل آليًا ببيانات المركبة والفرع.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D6" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D6" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D6</a>الطلبات — من الموافقة إلى الإفراج عن المبلغ</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">الطلبات</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">٧ جارية · ١٢ مكتملة هذا الشهر</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">تصدير</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">مواعيد النقل</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px"><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 11.5px var(--font-body-ar)">الجارية<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(245,234,216,.2);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٧</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">الطلب<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">الفحص<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">الدفع<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٣</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">نقل الملكية<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مكتملة</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">متعثّرة<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١</span></div></div>
+        <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1.2fr .8fr 1fr 90px;gap:14px;padding:11px 22px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 9.5px var(--font-body-ar);opacity:.55">
+            <div>الطلب</div><div>المركبة</div><div>المشتري</div><div>المرحلة</div><div>في المرحلة</div><div>المبلغ</div><div>الضمان</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1.2fr .8fr 1fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="font:600 11px Figtree,system-ui,sans-serif" dir="ltr">ORD-2026-1184</div>
+          <div style="font:600 11.5px var(--font-body-ar)">لاندكروزر VXR ٢٠٢٤</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">عبدالله ا.</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar)">الدفع</span></div>
+          <div style="font:600 11px var(--font-body-ar);color:#7d5f1c">١٤ ساعة</div>
+          <div style="font:700 12px Arial,sans-serif">٤٦٥٬٠٠٠</div>
+          <div style="font:700 10.5px var(--font-body-ar);color:#7d5f1c">محتجز</div>
+        </div>
+          <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1.2fr .8fr 1fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="font:600 11px Figtree,system-ui,sans-serif" dir="ltr">ORD-2026-1179</div>
+          <div style="font:600 11.5px var(--font-body-ar)">لكزس ES ٣٥٠ ٢٠٢٢</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">سعود ع.</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">الفحص</span></div>
+          <div style="font:600 11px var(--font-body-ar);opacity:.65">يومان</div>
+          <div style="font:700 12px Arial,sans-serif">١١٨٬٠٠٠</div>
+          <div style="font:700 10.5px var(--font-body-ar);color:#7d5f1c">محتجز</div>
+        </div>
+          <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1.2fr .8fr 1fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="font:600 11px Figtree,system-ui,sans-serif" dir="ltr">ORD-2026-1171</div>
+          <div style="font:600 11.5px var(--font-body-ar)">كيا سبورتاج ٢٠٢٢</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">نورة س.</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">نقل الملكية</span></div>
+          <div style="font:600 11px var(--font-body-ar);color:#7d5f1c">٤ أيام</div>
+          <div style="font:700 12px Arial,sans-serif">٩٨٬٥٠٠</div>
+          <div style="font:700 10.5px var(--font-body-ar);color:#7d5f1c">محتجز</div>
+        </div>
+          <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1.2fr .8fr 1fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)">
+          <div style="font:600 11px Figtree,system-ui,sans-serif" dir="ltr">ORD-2026-1160</div>
+          <div style="font:600 11.5px var(--font-body-ar)">هيونداي سوناتا ٢٠٢٣</div>
+          <div style="font:500 11.5px var(--font-body-ar);opacity:.75">خالد م.</div>
+          <div><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">مكتمل</span></div>
+          <div style="font:600 11px var(--font-body-ar);opacity:.65">—</div>
+          <div style="font:700 12px Arial,sans-serif">١١٤٬٠٠٠</div>
+          <div style="font:700 10.5px var(--font-body-ar);color:var(--color-accent-700)">أُفرج</div>
+        </div>
+        </div>
+        <div style="display:flex;gap:16px">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">مواعيد نقل الملكية هذا الأسبوع</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--carz-line-2)"><div style="flex:1"><div style="font:700 11.5px var(--font-body-ar)">الثلاثاء ١٨ · ١٠:٠٠ ص</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">مرور الملقا · كيا سبورتاج</div></div><span style="font:500 11px var(--font-body-ar);opacity:.65">نورة س.</span></div><div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--carz-line-2)"><div style="flex:1"><div style="font:700 11.5px var(--font-body-ar)">الأربعاء ١٩ · ٤:٣٠ م</div><div style="font:400 9.5px var(--font-body-ar);opacity:.5;margin-top:3px">مرور العليا · لكزس ES</div></div><span style="font:500 11px var(--font-body-ar);opacity:.65">سعود ع.</span></div>
+            <div style="font:400 10.5px/1.85 var(--font-body-ar);opacity:.6;margin-top:13px">المستندات المطلوبة لكل موعد تظهر في صفحة الطلب — الرخصة، الاستمارة، وإخلاء المخالفات.</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:#efe4cf">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">المستحق لك</div>
+            <div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">محتجز في الضمان (٦ طلبات)</span><span style="font:700 12px Arial,sans-serif">١٬٤٨٠٬٠٠٠</span></div>
+            <div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">جاهز للتحويل غدًا</span><span style="font:700 12px Arial,sans-serif;color:var(--color-accent-700)">٩٨٬٥٠٠</span></div>
+            <div style="display:flex;justify-content:space-between;padding:11px 0"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">عمولة المنصة (٠٪ حاليًا)</span><span style="font:700 12px Arial,sans-serif;color:var(--color-accent-700)">٠</span></div>
+            <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">يُفرج عن المبلغ بعد إتمام نقل الملكية وتأكيد المشتري الاستلام، ويُحوَّل إلى آيبان المعرض في دفعة يومية.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="D7" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D7" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D7</a>الفواتير والضريبة — متوافقة مع الفوترة الإلكترونية</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">الفواتير والضريبة</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">١٥ فاتورة · أغسطس ٢٠٢٦</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">تصدير محاسبي</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">أنشئ فاتورة</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:14px;margin-bottom:20px">
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:6px">إجمالي المبيعات</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px">١٬٨٤٠٬٠٠٠</div></div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:6px">ضريبة القيمة المضافة (مضمَّنة)</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px">٢٤٠٬٠٠٠</div></div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:500 10px var(--font-body-ar);opacity:.5;margin-bottom:6px">عمولة المنصة</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px;color:var(--color-accent-700)">٠</div></div>
+          <div style="flex:1;border:1px solid rgba(195,154,60,.5);border-radius:11px;padding:16px 18px;background:#f7e9c2"><div style="font:500 10px var(--font-body-ar);color:#7d5f1c;margin-bottom:6px">لم تُرسل لهيئة الزكاة</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px;color:#7d5f1c">١</div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 11.5px var(--font-body-ar)">الكل<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(245,234,216,.2);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١٥</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مبيعات<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">عمولة<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">٢</span></div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">اشتراك<span style="min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(32,30,29,.08);display:flex;align-items:center;justify-content:center;font:700 9.5px Arial,sans-serif">١</span></div></div>
+        <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr .9fr .9fr .9fr 90px;gap:14px;align-items:center;padding:11px 22px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 9.5px var(--font-body-ar);opacity:.55"><div>رقم الفاتورة</div><div>البيان</div><div>العميل</div><div>قبل الضريبة</div><div>الضريبة</div><div>الإجمالي</div><div>ZATCA</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr .9fr .9fr .9fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Figtree,system-ui,sans-serif" dir="ltr">INV-2026-0412</span></div><div style="font:500 11.5px var(--font-body-ar)">بيع لاندكروزر VXR ٢٠٢٤</div><div style="font:500 11.5px var(--font-body-ar)">عبدالله ا.</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٤٠٤٬٣٤٨</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">٦٠٬٦٥٢</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٤٦٥٬٠٠٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="color:var(--color-accent-700);font-weight:700">مُرسلة</span></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr .9fr .9fr .9fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Figtree,system-ui,sans-serif" dir="ltr">INV-2026-0408</span></div><div style="font:500 11.5px var(--font-body-ar)">بيع لكزس ES ٣٥٠ ٢٠٢٢</div><div style="font:500 11.5px var(--font-body-ar)">سعود ع.</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">١٠٢٬٦٠٩</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">١٥٬٣٩١</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">١١٨٬٠٠٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="color:var(--color-accent-700);font-weight:700">مُرسلة</span></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr .9fr .9fr .9fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Figtree,system-ui,sans-serif" dir="ltr">INV-2026-0401</span></div><div style="font:500 11.5px var(--font-body-ar)">بيع كيا سبورتاج ٢٠٢٢</div><div style="font:500 11.5px var(--font-body-ar)">نورة س.</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٨٥٬٦٥٢</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">١٢٬٨٤٨</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٩٨٬٥٠٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="color:#7d5f1c;font-weight:700">قيد الإرسال</span></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr .9fr .9fr .9fr 90px;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Figtree,system-ui,sans-serif" dir="ltr">SUB-2026-0088</span></div><div style="font:500 11.5px var(--font-body-ar)">اشتراك «معرض احترافي» — أغسطس</div><div style="font:500 11.5px var(--font-body-ar)">carsell.one</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.4">—</span></div></div>
+        </div>
+        <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">كل فاتورة بيع تُنشأ آليًا عند إتمام الطلب، وتحمل QR ورقم UUID مطابقين لمتطلبات الفوترة الإلكترونية، وتُرسَل لهيئة الزكاة والضريبة والجمارك تلقائيًا. الرقم الضريبي والسجل التجاري يأتيان من ملف المعرض، وتعديلهما يحتاج موافقة الأدمن.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D8" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D8" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D8</a>التسويات والعمولة — ما دخل وما خرج</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">التسويات والعمولة</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">آيبان ينتهي بـ ٤٤٢١ · تحويل يومي</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">كشف حساب</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">غيّر الآيبان</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:16px;margin-bottom:20px">
+          <div style="flex:1.2;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:var(--carz-ink);color:#f5ead8">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px"><span style="color:#f5ead8;opacity:.55">الرصيد</span></div>
+            <div style="display:flex;gap:20px">
+              <div style="flex:1"><div style="font:500 10px var(--font-body-ar);opacity:.6;margin-bottom:6px">محتجز في الضمان</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:24px">١٬٤٨٠٬٠٠٠</div><div style="font:500 9.5px var(--font-body-ar);opacity:.55;margin-top:5px">٦ طلبات جارية</div></div>
+              <div style="width:1px;background:rgba(245,234,216,.16)"></div>
+              <div style="flex:1"><div style="font:500 10px var(--font-body-ar);opacity:.6;margin-bottom:6px">جاهز للتحويل</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:24px;color:#8CC79E">٩٨٬٥٠٠</div><div style="font:500 9.5px var(--font-body-ar);opacity:.55;margin-top:5px">يُحوَّل غدًا ٢:٠٠ م</div></div>
+              <div style="width:1px;background:rgba(245,234,216,.16)"></div>
+              <div style="flex:1"><div style="font:500 10px var(--font-body-ar);opacity:.6;margin-bottom:6px">حُوِّل هذا الشهر</div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:24px">١٬٦٤٢٬٥٠٠</div><div style="font:500 9.5px var(--font-body-ar);opacity:.55;margin-top:5px">١١ تحويلًا</div></div>
+            </div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">العمولة المطبّقة عليك</div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">بيع مباشر</span><span style="font:700 11.5px var(--font-body-ar);color:var(--color-accent-700)">٠٪</span></div><div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">تفاوض</span><span style="font:700 11.5px var(--font-body-ar);color:var(--color-accent-700)">٠٪</span></div><div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">مزاد</span><span style="font:700 11.5px var(--font-body-ar);color:var(--color-accent-700)">٠٪</span></div><div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><span style="font:500 11.5px var(--font-body-ar);opacity:.7">رسم ثابت</span><span style="font:700 11.5px var(--font-body-ar);color:var(--color-accent-700)">٠ ر.س</span></div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6;margin-top:12px">من باقة «معرض احترافي». تُثبَّت لقطةً في كل طلب وقت إنشائه، فتعديل الباقة لا يغيّر طلبًا قائمًا.</div>
+          </div>
+        </div>
+        <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:1fr 1.1fr 1.4fr 1fr .9fr .9fr 1fr;gap:14px;align-items:center;padding:11px 22px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 9.5px var(--font-body-ar);opacity:.55"><div>التاريخ</div><div>النوع</div><div>البيان</div><div>المبلغ</div><div>العمولة</div><div>الضريبة</div><div>الصافي</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.1fr 1.4fr 1fr .9fr .9fr 1fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">١٧ أغسطس</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">تحويل صادر</span></div><div style="font:500 11.5px var(--font-body-ar)">تسوية بيع هيونداي سوناتا ٢٠٢٣</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">١١٤٬٠٠٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700;color:var(--color-accent-700)">١١٤٬٠٠٠</span></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.1fr 1.4fr 1fr .9fr .9fr 1fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">١٥ أغسطس</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);font:700 9.5px var(--font-body-ar)">احتجاز</span></div><div style="font:500 11.5px var(--font-body-ar)">ضمان طلب لاندكروزر VXR ٢٠٢٤</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٤٦٥٬٠٠٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;opacity:.5">محتجز</span></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1.1fr 1.4fr 1fr .9fr .9fr 1fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">١٢ أغسطس</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar)">خدمة</span></div><div style="font:500 11.5px var(--font-body-ar)">تصوير احترافي — ٣ مركبات</div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٩٠٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif">١٣٥</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700;color:#a2513f">−١٬٠٣٥</span></div></div>
+        </div>
+        <div style="border:1px solid rgba(195,154,60,.5);background:#f7e9c2;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);color:#7d5f1c">التحويل إلى آيبان المعرض فقط — لا آيبان شخصي ولا طرف ثالث، وتغييره يحتاج تحقّقًا من الأدمن ويوقف التحويلات ٢٤ ساعة. هذا أهم إجراء ضد الاستيلاء على الحسابات.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D9" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D9" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D9</a>الفريق والفروع — صلاحيات بحسب الدور والفرع</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">الفريق والفروع</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">٦ أعضاء · ٣ فروع · ٦ مقاعد مستخدمة من ٨ (الدعوة المعلّقة تحجز مقعدًا)</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">أضف فرعًا</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">ادعُ عضوًا</div>
+      </div>
+      <div style="padding:20px 30px 30px;display:flex;gap:18px;align-items:flex-start">
+        <div style="flex:1.4;min-width:0">
+          <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">الأعضاء</div>
+          <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:18px">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:11px 22px;background:#efe4cf;border-bottom:1px solid var(--carz-line);font:700 9.5px var(--font-body-ar);opacity:.55"><div>العضو</div><div>الدور</div><div>الفرع</div><div>الصفقات</div><div>آخر دخول</div><div>الحالة</div></div>
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font-weight:700">وليد ع.</span></div></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--carz-ink);color:#f5ead8;font:700 9.5px var(--font-body-ar)">مالك</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.7">كل الفروع</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.5;font-size:10.5px">الآن</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">نشط</span></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font-weight:700">خالد م.</span></div></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">مدير</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.7">كل الفروع</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٥</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.5;font-size:10.5px">قبل ساعة</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">نشط</span></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font-weight:700">نورة س.</span></div></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">مبيعات</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.7">الملقا</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٤</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.5;font-size:10.5px">اليوم</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">نشط</span></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font-weight:700">سعد ف.</span></div></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">مبيعات</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.7">العليا</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٣</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.5;font-size:10.5px">أمس</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">نشط</span></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font-weight:700">ريم ن.</span></div></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">محاسب</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.7">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.5;font-size:10.5px">قبل ٣ أيام</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 9.5px var(--font-body-ar)">نشط</span></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr 1fr .9fr;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--carz-line-2)"><div style="font:500 11.5px var(--font-body-ar)"><div style="display:flex;align-items:center;gap:10px"><span class="washed" style="width:30px;height:30px;border-radius:999px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 6px,rgba(32,30,29,.07) 6px 12px);flex:none"></span><span style="font-weight:700">فهد ق.</span></div></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:rgba(32,30,29,.08);color:inherit;font:700 9.5px var(--font-body-ar)">مبيعات</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.7">الخرج</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="font-family:Arial,sans-serif;font-weight:700">٠</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="opacity:.5;font-size:10.5px">—</span></div><div style="font:500 11.5px var(--font-body-ar)"><span style="padding:4px 10px;border-radius:6px;background:#f7e9c2;color:#7d5f1c;font:700 9.5px var(--font-body-ar)">دعوة معلّقة</span></div></div>
+          </div>
+          <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">الفروع</div>
+          <div style="display:flex;gap:12px">
+            <div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:700 12.5px var(--font-body-ar);margin-bottom:5px">الملقا</div><div style="font:400 10px var(--font-body-ar);opacity:.5;margin-bottom:11px">الرياض</div><div style="display:flex;justify-content:space-between;font:600 11px var(--font-body-ar)"><span>١٨ مركبة</span><span style="opacity:.6">خالد م.</span></div></div><div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:700 12.5px var(--font-body-ar);margin-bottom:5px">العليا</div><div style="font:400 10px var(--font-body-ar);opacity:.5;margin-bottom:11px">الرياض</div><div style="display:flex;justify-content:space-between;font:600 11px var(--font-body-ar)"><span>١١ مركبة</span><span style="opacity:.6">سعد ف.</span></div></div><div style="flex:1;border:1px solid var(--carz-line);border-radius:11px;padding:16px 18px;background:#efe4cf"><div style="font:700 12.5px var(--font-body-ar);margin-bottom:5px">الخرج</div><div style="font:400 10px var(--font-body-ar);opacity:.5;margin-bottom:11px">الخرج</div><div style="display:flex;justify-content:space-between;font:600 11px var(--font-body-ar)"><span>٥ مركبات</span><span style="opacity:.6">—</span></div></div>
+          </div>
+        </div>
+        <div style="width:400px;flex:none">
+          <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">ما يراه كل دور</div>
+          <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;border-bottom:1px solid var(--carz-line-2);font:500 10.5px var(--font-body-ar)"><span style="font-weight:700">المخزون</span><span style="opacity:.7">الكل</span><span style="opacity:.7">فرعه</span><span style="opacity:.7">قراءة</span></div><div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;border-bottom:1px solid var(--carz-line-2);font:500 10.5px var(--font-body-ar)"><span style="font-weight:700">الأسعار</span><span style="opacity:.7">تعديل</span><span style="opacity:.7">تعديل</span><span style="opacity:.7">—</span></div><div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;border-bottom:1px solid var(--carz-line-2);font:500 10.5px var(--font-body-ar)"><span style="font-weight:700">العروض</span><span style="opacity:.7">الكل</span><span style="opacity:.7">فرعه</span><span style="opacity:.7">—</span></div><div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;border-bottom:1px solid var(--carz-line-2);font:500 10.5px var(--font-body-ar)"><span style="font-weight:700">الفواتير</span><span style="opacity:.7">الكل</span><span style="opacity:.7">—</span><span style="opacity:.7">الكل</span></div><div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;border-bottom:1px solid var(--carz-line-2);font:500 10.5px var(--font-body-ar)"><span style="font-weight:700">الفريق</span><span style="opacity:.7">تعديل</span><span style="opacity:.7">—</span><span style="opacity:.7">—</span></div><div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;border-bottom:1px solid var(--carz-line-2);font:500 10.5px var(--font-body-ar)"><span style="font-weight:700">الاشتراك</span><span style="opacity:.7">المالك فقط</span><span style="opacity:.7">—</span><span style="opacity:.7">—</span></div>
+            <div style="display:grid;grid-template-columns:1fr .9fr .9fr .9fr;gap:10px;padding:10px 16px;background:#efe4cf;font:700 9px var(--font-body-ar);opacity:.55"><span></span><span>مدير</span><span>مبيعات</span><span>محاسب</span></div>
+          </div>
+          <div style="border:1px solid var(--carz-line);border-radius:12px;padding:18px 20px;background:#efe4cf">
+            <div style="font:700 11.5px var(--font-body-ar);margin-bottom:9px">المقاعد من الباقة</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:11px"><span style="font-family:var(--font-heading-ar);font-weight:700;font-size:22px">٦</span><span style="font:500 11.5px var(--font-body-ar);opacity:.55">من ٨ مقاعد</span></div>
+            <div style="height:7px;border-radius:999px;background:var(--carz-line);overflow:hidden;margin-bottom:12px"><div style="width:75%;height:100%;background:var(--color-accent)"></div></div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6">عدد المقاعد خاصية من باقتك — رفعه يحتاج ترقية. كل إجراء يُسجَّل باسم العضو لا باسم المعرض.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D10" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D10" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D10</a>الملف العام — ما يراه المشتري عن معرضك</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">الملف العام</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">يظهر في صفحة المعرض وبطاقات إعلاناتك</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">عرض كمشتري</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">احفظ</div>
+      </div>
+      <div style="padding:20px 30px 30px;display:flex;gap:20px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">الهوية</div>
+          <div style="display:flex;gap:12px;margin-bottom:12px"><div style="flex:1.4"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">اسم المعرض (عربي)</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">معرض الخليج للسيارات</div></div><div style="flex:1.4"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">الاسم (إنجليزي)</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">Gulf Auto Gallery</div></div></div>
+          <div style="display:flex;gap:12px;margin-bottom:16px"><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">السجل التجاري</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">1010XXXXXX</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">الرقم الضريبي</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">3004XXXXXXXXX</div></div></div>
+          <div style="display:flex;gap:14px;margin-bottom:16px">
+            <div style="flex:none"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">الشعار</div><div class="washed" style="width:88px;height:88px;border-radius:12px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 7px,rgba(32,30,29,.07) 7px 14px)"></div></div>
+            <div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">الغلاف</div><div class="washed" style="height:88px;border-radius:12px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 9px,rgba(32,30,29,.07) 9px 18px)"></div></div>
+          </div>
+          <div style="margin-bottom:16px"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">نبذة</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:14px;background:#f5ead8;font:400 11.5px/1.9 var(--font-body-ar);opacity:.75">معرض متخصّص في السيارات اليابانية والأمريكية منذ ٢٠١١. كل مركباتنا مفحوصة فحصًا فنيًّا معتمدًا قبل العرض، ونوفّر تمويلًا من ثلاث جهات.</div></div>
+          <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">ساعات العمل والموقع</div>
+          <div style="display:flex;gap:12px"><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">أيام العمل</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">السبت – الخميس</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">الساعات</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">١٠ ص – ١٠ م</div></div><div style="flex:1"><div style="font:600 10px var(--font-body-ar);opacity:.55;margin-bottom:6px">الجمعة</div><div style="border:1px solid var(--carz-line);border-radius:8px;padding:11px 13px;background:#f5ead8;font:600 12px var(--font-body-ar)">٤ م – ١٠ م</div></div></div>
+        </div>
+        <div style="width:420px;flex:none;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:#efe4cf">
+          <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">معاينة — صفحة المعرض</div>
+          <div style="border:1px solid var(--carz-line);border-radius:12px;overflow:hidden;background:#f5ead8;margin-bottom:16px">
+            <div class="washed" style="height:76px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.14) 0 9px,rgba(32,30,29,.07) 9px 18px)"></div>
+            <div style="padding:0 18px 18px;margin-top:-24px">
+              <div class="washed" style="width:52px;height:52px;border-radius:12px;background:repeating-linear-gradient(135deg,rgba(32,30,29,.2) 0 6px,rgba(32,30,29,.1) 6px 12px);border:2px solid #f5ead8;margin-bottom:11px"></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-family:var(--font-heading-ar);font-weight:700;font-size:15px">معرض الخليج للسيارات</span><span style="display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;background:var(--color-accent);color:#f5ead8;font:700 8.5px var(--font-body-ar)">تاجر موثّق</span></div>
+              <div style="font:400 10px var(--font-body-ar);opacity:.55;margin-bottom:12px">الرياض · ٣ فروع · منذ ٢٠١١</div>
+              <div style="display:flex;gap:16px;padding:12px 0;border-top:1px solid var(--carz-line-2);border-bottom:1px solid var(--carz-line-2);margin-bottom:12px">
+                <div><div style="font:700 14px Arial,sans-serif">٣٤</div><div style="font:400 9px var(--font-body-ar);opacity:.5;margin-top:2px">مركبة</div></div>
+                <div><div style="font:700 14px Arial,sans-serif">٤٫٨</div><div style="font:400 9px var(--font-body-ar);opacity:.5;margin-top:2px">٦٢ تقييمًا</div></div>
+                <div><div style="font:700 14px Arial,sans-serif">٢٦</div><div style="font:400 9px var(--font-body-ar);opacity:.5;margin-top:2px">يومًا للبيع</div></div>
+                <div><div style="font:700 14px Arial,sans-serif">١٤١</div><div style="font:400 9px var(--font-body-ar);opacity:.5;margin-top:2px">صفقة</div></div>
+              </div>
+              <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.7">معرض متخصّص في السيارات اليابانية والأمريكية منذ ٢٠١١…</div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">شارة «تاجر موثّق» تأتي من الأدمن بعد التحقّق من السجل التجاري — لا تُمنح من هنا. متوسط التقييم وأيام البيع محسوبان آليًا ولا يمكن تعديلهما.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="D11" style="display:flex;flex-direction:column;gap:9px">
+  <div dir="rtl" style="display:flex;align-items:baseline;gap:8px;font:400 12px var(--font-body-ar);opacity:.55"><a href="#D11" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 9px;background:rgba(32,30,29,.09);color:var(--carz-ink);border-radius:999px;text-decoration:none">D11</a>التقارير — ما يبيع وما يتعطّل</div>
+  <div dir="rtl" style="width:1440px;background:#f5ead8;border:1px solid var(--carz-line);border-radius:18px;overflow:hidden;display:flex">
+    <div style="width:236px;flex:none;background:var(--carz-ink);color:#f5ead8;padding:20px 0">
+      <div style="padding:0 20px 16px;border-bottom:1px solid rgba(245,234,216,.13);margin-bottom:6px">
+        <div style="font:800 18px Figtree,system-ui,sans-serif;letter-spacing:-.02em">carsell<span style="color:#8CC79E">.one</span></div>
+        <div style="font:600 9px var(--font-body-ar);opacity:.5;margin-top:5px;letter-spacing:.12em">DEALER DASHBOARD</div>
+      </div>
+      <div style="padding:0 11px">
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المخزون والبيع</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">لوحة القيادة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المخزون</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٣٤</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الإضافة الجماعية</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">المزادات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٤</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">الطلب والعميل</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العروض والمفاوضات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">١٢</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الطلبات</span><span style="padding:2px 6px;border-radius:5px;background:#c39a3c;color:#201e1d;font:700 8.5px Arial,sans-serif">٧</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">العملاء</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المال</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفواتير والضريبة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">التسويات والعمولة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الاشتراك والباقة</span></div>
+        <div style="padding:15px 14px 7px;font:700 9px var(--font-body-ar);letter-spacing:.16em;opacity:.38">المعرض</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الفريق والفروع</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الملف العام</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:600 11.5px var(--font-body-ar);opacity:.66"><span style="flex:1">الردود الجاهزة</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font:700 11.5px var(--font-body-ar);background:rgba(245,234,216,.12)"><span style="flex:1">التقارير</span></div>
+      </div>
+      <div style="margin:20px 11px 0;padding:14px;border-radius:10px;background:rgba(245,234,216,.07)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span class="washed" style="width:28px;height:28px;border-radius:8px;background:repeating-linear-gradient(135deg,rgba(245,234,216,.22) 0 5px,rgba(245,234,216,.1) 5px 10px);flex:none"></span><div style="min-width:0"><div style="font:700 11px var(--font-body-ar)">معرض الخليج للسيارات</div><div style="font:500 9px var(--font-body-ar);opacity:.55;margin-top:2px">تاجر موثّق · ٣ فروع</div></div></div>
+        <div style="font:600 9.5px var(--font-body-ar);opacity:.6">وليد · مدير</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:17px 30px;border-bottom:1px solid var(--carz-line);display:flex;align-items:center;gap:16px;background:#efe4cf">
+        <div><div style="font-family:var(--font-heading-ar);font-weight:700;font-size:18px">التقارير</div><div style="font:400 10.5px var(--font-body-ar);opacity:.5;margin-top:3px">أغسطس ٢٠٢٦ · كل الفروع</div></div>
+        <div style="flex:1"></div>
+        <div style="padding:10px 18px;border-radius:9px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">تصدير Excel</div><div style="padding:10px 18px;border-radius:9px;background:var(--color-accent);color:#f5ead8;font:700 11.5px var(--font-body-ar)">جدول تقريرًا دوريًا</div>
+      </div>
+      <div style="padding:20px 30px 30px">
+        <div style="display:flex;gap:8px;margin-bottom:18px"><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--carz-ink);color:#f5ead8;font:700 11.5px var(--font-body-ar)">المبيعات</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">المخزون</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">مصدر الطلب</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">التحويل</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">الفريق</div><div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid var(--carz-line);font:600 11.5px var(--font-body-ar)">التقييمات</div></div>
+        <div style="display:flex;gap:16px;margin-bottom:16px">
+          <div style="flex:1.2;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">المبيعات حسب الماركة</div>
+            <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">تويوتا</span><span style="font:500 10.5px var(--font-body-ar);opacity:.5">٥ صفقات</span><span style="flex:1"></span><span style="font:700 11.5px Arial,sans-serif">٧٤٠٬٠٠٠</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:100%;height:100%;background:var(--color-accent)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">لكزس</span><span style="font:500 10.5px var(--font-body-ar);opacity:.5">٣ صفقات</span><span style="flex:1"></span><span style="font:700 11.5px Arial,sans-serif">٤٢٠٬٠٠٠</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:57%;height:100%;background:var(--color-accent)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">نيسان</span><span style="font:500 10.5px var(--font-body-ar);opacity:.5">صفقة واحدة</span><span style="flex:1"></span><span style="font:700 11.5px Arial,sans-serif">٣٦٠٬٠٠٠</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:49%;height:100%;background:var(--color-accent)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">هيونداي</span><span style="font:500 10.5px var(--font-body-ar);opacity:.5">صفقتان</span><span style="flex:1"></span><span style="font:700 11.5px Arial,sans-serif">٢٢٨٬٠٠٠</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:31%;height:100%;background:var(--color-accent)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">كيا</span><span style="font:500 10.5px var(--font-body-ar);opacity:.5">صفقة واحدة</span><span style="flex:1"></span><span style="font:700 11.5px Arial,sans-serif">٩٢٬٠٠٠</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:12%;height:100%;background:var(--color-accent)"></div></div></div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">مصدر الطلب</div>
+            <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">نتائج البحث</span><span style="font:700 11.5px Arial,sans-serif">٤٢٪</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:42%;height:100%;background:var(--color-accent)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">صفحة المعرض</span><span style="font:700 11.5px Arial,sans-serif">٢٤٪</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:24%;height:100%;background:var(--color-accent)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">الرئيسية والملخّصات</span><span style="font:700 11.5px Arial,sans-serif">١٨٪</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:18%;height:100%;background:rgba(32,30,29,.22)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">المزادات</span><span style="font:700 11.5px Arial,sans-serif">١١٪</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:11%;height:100%;background:rgba(32,30,29,.22)"></div></div></div><div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font:600 11.5px var(--font-body-ar)">روابط مشاركة</span><span style="font:700 11.5px Arial,sans-serif">٥٪</span></div><div style="height:7px;border-radius:999px;background:var(--carz-line-2);overflow:hidden"><div style="width:5%;height:100%;background:rgba(32,30,29,.22)"></div></div></div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6;margin-top:11px;padding-top:11px;border-top:1px solid var(--carz-line-2)">٢٤٪ من طلباتك تأتي من صفحة معرضك — استكمال الملف العام يرفع هذا الرقم.</div>
+          </div>
+          <div style="flex:1;border:1px solid var(--carz-line);border-radius:12px;padding:20px 22px;background:#efe4cf">
+            <div style="font:700 9.5px var(--font-body-ar);letter-spacing:.16em;opacity:.45;margin-bottom:12px">قمع التحويل</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><div style="width:100%;min-width:14px;height:22px;border-radius:5px;background:var(--color-accent);opacity:1.0166666666666666"></div><div style="flex:1"><div style="font:600 11px var(--font-body-ar)">مشاهدة الإعلان</div></div><span style="font:700 11.5px Arial,sans-serif">١٨٬٤٢٠</span></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><div style="width:25%;min-width:14px;height:22px;border-radius:5px;background:var(--color-accent);opacity:0.5166666666666666"></div><div style="flex:1"><div style="font:600 11px var(--font-body-ar)">فتح التفاصيل</div></div><span style="font:700 11.5px Arial,sans-serif">٤٬٦٢٠</span></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><div style="width:7%;min-width:14px;height:22px;border-radius:5px;background:var(--color-accent);opacity:0.39666666666666667"></div><div style="flex:1"><div style="font:600 11px var(--font-body-ar)">عرض أو مزايدة</div></div><span style="font:700 11.5px Arial,sans-serif">٣١٢</span></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><div style="width:3%;min-width:14px;height:22px;border-radius:5px;background:var(--color-accent);opacity:0.37"></div><div style="flex:1"><div style="font:600 11px var(--font-body-ar)">طلب</div></div><span style="font:700 11.5px Arial,sans-serif">٢٨</span></div><div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--carz-line-2)"><div style="width:2%;min-width:14px;height:22px;border-radius:5px;background:var(--color-accent);opacity:0.3633333333333333"></div><div style="flex:1"><div style="font:600 11px var(--font-body-ar)">صفقة مكتملة</div></div><span style="font:700 11.5px Arial,sans-serif">١٢</span></div>
+            <div style="font:400 10.5px/1.8 var(--font-body-ar);opacity:.6;margin-top:11px">أكبر تسرّب بين المشاهدة والتفاصيل — الصور والسعر هما ما يُصلحه.</div>
+          </div>
+        </div>
+        <div style="border:1px solid var(--carz-line);background:#efe4cf;border-radius:11px;padding:16px 18px;font:400 11.5px/1.95 var(--font-body-ar);opacity:.72">كل التقارير تحترم صلاحيات الدور: البائع يرى أرقام فرعه فقط. التقرير الدوري يُرسل بريدًا كل اثنين ٨ ص، ويمكن ربط تصدير محاسبي شهري بنظامك.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+<p dir="rtl" style="margin:26px 0 0;font:12.5px/1.6 var(--font-body-ar);opacity:.55">إحدى عشرة وحدة تغطّي لوحة التاجر كاملة — كلها على نفس الشبكة والشريط الجانبي.</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1540,&quot;height&quot;:1000}}"></script>
+</body>
+</html>

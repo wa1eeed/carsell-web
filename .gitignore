@@ -1,0 +1,28 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+.env
+.env.local
+.env.*.local
+!.env.example
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+coverage/
+.turbo/
+.vercel/
+*.tsbuildinfo
+prisma/*.db
+prisma/*.db-journal
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Prisma — عميل مولَّد
+src/generated/
+
+# إعدادات Claude Code المحلية (تصاريح خاصة بالجهاز)
+.claude/settings.local.json

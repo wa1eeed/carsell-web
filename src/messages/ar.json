@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "title": "CarSell — سوق سيارات سعودي",
+    "description": "بيع مباشر · تفاوض بالعروض · مزاد بسعر احتياطي · خدمات · ضمان."
+  },
+  "foundation": {
+    "eyebrow": "المهمة ١ — الأساس",
+    "title": "الأساس قائم",
+    "body": "اللون والخط والاتجاه كلها من توكنات globals.css. لا قيمة مكتوبة داخل هذه الشاشة.",
+    "surfaces": "الأسطح",
+    "surfaceBg": "خلفية الصفحة",
+    "surfaceCard": "سطح البطاقات",
+    "surfaceInk": "السطح الداكن",
+    "semantics": "الدلالات الثلاث",
+    "semanticAccent": "أخضر — إجراء وتوثيق",
+    "semanticWarn": "أوكر — وقت وتحذير",
+    "semanticDanger": "أحمر — فشل وحذف",
+    "typography": "الخطوط",
+    "typeHeading": "عنوان بخط Tajawal بوزن ٧٠٠",
+    "typeBody": "نصّ متن بخط Tajawal بوزن ٤٠٠ — والفصل بالخطوط لا بالظلال.",
+    "numbers": "الأرقام بخط Arial داخل نص Tajawal",
+    "numbersPrice": "١٤٥٬٠٠٠ ريال",
+    "numbersMileage": "٣٬٤٥٦ كم",
+    "numbersScore": "٩٢ من ١٠٠",
+    "reference": "رقم الإعلان",
+    "referenceValue": "ADS2026A0005",
+    "direction": "الاتجاه",
+    "directionValue": "من اليمين إلى اليسار",
+    "switch": "English"
+  }
+}
