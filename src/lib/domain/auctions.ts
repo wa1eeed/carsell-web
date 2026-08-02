@@ -14,8 +14,10 @@ import { Prisma } from '@/generated/prisma/client';
 /** القاعدة ٧ — التمديد ونافذته وحدّه. */
 export const EXTEND_WINDOW_SECONDS = 60;
 export const EXTEND_BY_SECONDS = 5 * 60;
-// DESIGN-Q ٥: الحدّ مشترك لا لكل مزايد
 export const MAX_EXTENSIONS = 10;
+
+/** مهلة البائع لقبول أعلى مزايدة بعد إغلاق باحتياطي غير مبلوغ (قرار ٤). */
+export const SELLER_DECISION_HOURS = 24;
 
 export type BidFailure =
   | 'AUCTION_NOT_FOUND'
@@ -254,12 +256,16 @@ export async function settleDeposits(
   auctionId: string,
   winnerId: string | null,
   now: Date = new Date(),
-): Promise<{ refunded: number; applied: number }> {
-  const held = await db.deposit.findMany({
+  options: { holdFor?: string | null } = {},
+): Promise<{ refunded: number; applied: number; held: number }> {
+  const all = await db.deposit.findMany({
     where: { auctionId, status: 'HELD' },
     select: { id: true, userId: true },
   });
 
+  // من يبقى عربونه محجوزًا بانتظار قرار البائع — لا يُرَد ولا يُخصم
+  const pending = options.holdFor ?? null;
+  const held = all.filter((deposit) => deposit.userId !== pending);
   const losers = held.filter((deposit) => deposit.userId !== winnerId);
   const winner = held.find((deposit) => deposit.userId === winnerId);
 
@@ -278,7 +284,64 @@ export async function settleDeposits(
     });
   }
 
-  return { refunded: losers.length, applied: winner === undefined ? 0 : 1 };
+  return {
+    refunded: losers.length,
+    applied: winner === undefined ? 0 : 1,
+    held: all.length - held.length,
+  };
+}
+
+/**
+ * قرار البائع بعد إغلاق باحتياطي غير مبلوغ.
+ *
+ * قَبِل ⇒ عربون الأعلى يُخصم من مستحقّه. رفض أو انقضت المهلة ⇒ يُرَد
+ * فورًا. وانقضاء المهلة **ردٌّ لا مصادرة**: المزايد أوفى بمزايدته،
+ * والذي لم يقرّر هو البائع.
+ */
+export async function resolveSellerDecision(
+  auctionId: string,
+  accepted: boolean,
+  now: Date = new Date(),
+): Promise<{ ok: boolean }> {
+  const auction = await db.auction.findUnique({
+    where: { id: auctionId },
+    select: {
+      id: true, status: true, sellerDecisionDueAt: true,
+      bids: { orderBy: { amount: 'desc' }, take: 1, select: { bidderId: true } },
+    },
+  });
+  if (auction === null || auction.status !== 'ENDED_UNMET') return { ok: false };
+
+  const topBidder = auction.bids[0]?.bidderId ?? null;
+  if (topBidder === null) return { ok: false };
+
+  const expired =
+    auction.sellerDecisionDueAt !== null && auction.sellerDecisionDueAt <= now;
+
+  await db.deposit.updateMany({
+    where: { auctionId, userId: topBidder, status: 'HELD' },
+    data: {
+      status: accepted && !expired ? 'APPLIED' : 'RELEASED',
+      releasedAt: now,
+    },
+  });
+
+  await db.auction.update({
+    where: { id: auctionId },
+    data: { status: accepted && !expired ? 'ENDED_MET' : 'ENDED_UNMET', sellerDecisionDueAt: null },
+  });
+
+  return { ok: true };
+}
+
+/** المزادات التي انقضت مهلة قرار بائعها — يُرَد عربون الأعلى. */
+export async function expireSellerDecisions(now: Date = new Date()): Promise<number> {
+  const overdue = await db.auction.findMany({
+    where: { status: 'ENDED_UNMET', sellerDecisionDueAt: { lte: now } },
+    select: { id: true },
+  });
+  for (const auction of overdue) await resolveSellerDecision(auction.id, false, now);
+  return overdue.length;
 }
 
 /** الانسحاب بعد الفوز — العربون يُصادَر. */
@@ -323,13 +386,27 @@ export type PublicAuction = {
  * ترتيب أوّل ظهور — لا معرّفًا مقطوعًا — يمنع مطابقة نفس المزايد عبر
  * مزادين.
  */
-// DESIGN-Q ٦: الترقيم بترتيب أوّل ظهور يكشف ترتيب الوصول
-function aliasMap(bids: readonly { bidderId: string }[]): Map<string, number> {
-  const map = new Map<string, number>();
-  for (const bid of [...bids].reverse()) {
-    if (!map.has(bid.bidderId)) map.set(bid.bidderId, map.size + 1);
-  }
-  return map;
+/**
+ * أرقام مستعارة **عشوائية لكل مزاد**.
+ *
+ * الترقيم بترتيب أوّل ظهور يكشف من كان حاضرًا مبكّرًا، وهو مع الطوابع
+ * الزمنية العامة يكفي لتعريف من يُعلَم بحضوره. والرقم الثابت المشتقّ
+ * من المعرّف يُتعقَّب بين مزادين.
+ *
+ * فالخلط بمُبدِّل من `auctionId` وحده: ثابت داخل المزاد الواحد — فيتابَع
+ * من يزايد على من — ومختلف بين مزادين، ولا يُشتقّ منه المعرّف.
+ */
+function aliasMap(auctionId: string, bids: readonly { bidderId: string }[]): Map<string, number> {
+  const unique = [...new Set(bids.map((bid) => bid.bidderId))];
+
+  // بذرة من المزاد وحده — نفس المزاد نفس الترتيب، ومزادٌ آخر ترتيبٌ آخر
+  let seed = 0;
+  for (const char of auctionId) seed = (seed * 31 + char.charCodeAt(0)) >>> 0;
+
+  const order = unique.map((id, i) => ({ id, key: (seed + (i + 1) * 2_654_435_761) >>> 0 }));
+  order.sort((a, b) => a.key - b.key);
+
+  return new Map(order.map((entry, i) => [entry.id, i + 1]));
 }
 
 export async function getAuction(
@@ -348,7 +425,7 @@ export async function getAuction(
 
   const highest = auction.bids[0] === undefined ? null : Number(auction.bids[0].amount);
   const reserveMet = isReserveMet(auction.reservePrice, highest);
-  const aliases = aliasMap(auction.bids);
+  const aliases = aliasMap(auction.id, auction.bids);
 
   void now;
 
@@ -393,7 +470,17 @@ export async function getAuction(
  * ما يظهر. والعرابين تُسوّى في نفس اللحظة: تركُها معلّقة إلى وظيفة
  * ثانية يعني مالًا محتجزًا بلا سبب لكل من خسر.
  */
-// DESIGN-Q ٤: العرابين تُسوّى فورًا عند احتياطي غير مبلوغ — قبل أيّ قبول لاحق
+/**
+ * ═══ قرار ٤ ═══ الإغلاق يميّز المزايد الأعلى عن الباقين.
+ *
+ * الاحتياطي **مبلوغ** ⇒ فائزٌ ومسار عاديّ: عربونه يُخصم والباقون
+ * يُرَدّون.
+ *
+ * **غير مبلوغ** ⇒ لا فائز بعد، لكن للبائع أربعًا وعشرين ساعة ليقبل
+ * أعلى مزايدة (19e). فعربون الأعلى **يبقى محجوزًا** طوال المهلة —
+ * وردُّه فورًا يُطلقه من التزامه قبل أن يقرّر البائع، فيصير القبول
+ * بلا مقابل. وعرابين الباقين تُرَد فورًا: لا شيء ينتظرهم.
+ */
 export async function closeEndedAuctions(now: Date = new Date()): Promise<number> {
   const ended = await db.auction.findMany({
     where: { status: 'LIVE', endsAt: { lte: now } },
@@ -407,10 +494,24 @@ export async function closeEndedAuctions(now: Date = new Date()): Promise<number
 
     await db.auction.update({
       where: { id: auction.id },
-      data: { status: met ? 'ENDED_MET' : 'ENDED_UNMET' },
+      data: {
+        status: met ? 'ENDED_MET' : 'ENDED_UNMET',
+        ...(met || top === null
+          ? {}
+          : {
+              sellerDecisionDueAt: new Date(
+                now.getTime() + SELLER_DECISION_HOURS * 3600 * 1000,
+              ),
+            }),
+      },
     });
 
-    await settleDeposits(auction.id, met ? (top?.bidderId ?? null) : null, now);
+    if (met) {
+      await settleDeposits(auction.id, top?.bidderId ?? null, now);
+    } else {
+      // الأعلى يبقى محجوزًا حتى يقرّر البائع؛ والباقون يُرَدّون الآن
+      await settleDeposits(auction.id, null, now, { holdFor: top?.bidderId ?? null });
+    }
   }
 
   return ended.length;

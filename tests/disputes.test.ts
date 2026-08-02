@@ -79,6 +79,8 @@ async function scaffold(): Promise<void> {
 }
 
 async function teardown(): Promise<void> {
+  await db.walletEntry.deleteMany({ where: { orderId } });
+  await db.wallet.deleteMany({ where: { userId: { in: [buyerId, sellerId] } } });
   await db.notification.deleteMany({ where: { userId: { in: [buyerId, sellerId] } } });
   await db.approvalRequest.deleteMany({ where: { requestedBy: { in: [adminA, adminB] } } });
   await db.dispute.deleteMany({ where: { orderId } });
@@ -131,22 +133,41 @@ describe('dispute.freeze — القاعدة ١', () => {
     const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
     expect(order.status).toBe('DISPUTED');
     expect(timedOut).toBe(0);
+    // ═══ قرار ٣ ═══ المتبقّي محفوظ لا مُهدَر
+    expect(order.paymentPausedRemainingMs).toBe(24 * 3600 * 1000);
     await teardown();
   });
 
   it('نزاع ثانٍ على نفس الطلب يُرفض', async () => {
     await openDispute({ orderRef, openedBy: buyerId, reason: 'س' }, T0);
-    const again = await openDispute({ orderRef, openedBy: sellerId, reason: 'ص' }, hours(1));
+    const again = await openDispute({ orderRef, openedBy: buyerId, reason: 'ص' }, hours(1));
     expect(again.ok).toBe(false);
     if (!again.ok) expect(again.reason).toBe('ALREADY_OPEN');
     await teardown();
   });
 
-  it('غير طرفَي الطلب لا يفتح نزاعًا', async () => {
+  /**
+   * ═══ قرار ٢ ═══ البائع ليس له نزاع — له إلغاء بسبب وبلاغ. وفتحُه
+   * نزاعًا يجمّد إعلانًا بلا كلفة، فيصير أداة تعطيل لا وسيلة إنصاف.
+   */
+  it('البائع لا يفتح نزاعًا، ولا غير الطرفين', async () => {
+    const bySeller = await openDispute({ orderRef, openedBy: sellerId, reason: 'س' }, T0);
+    expect(bySeller.ok).toBe(false);
+    if (!bySeller.ok) expect(bySeller.reason).toBe('NOT_BUYER');
+
     const stranger = await db.user.create({ data: { phone: `+96659${String(Date.now()).slice(-7)}` } });
     const opened = await openDispute({ orderRef, openedBy: stranger.id, reason: 'س' }, T0);
     expect(opened.ok).toBe(false);
     await db.user.delete({ where: { id: stranger.id } });
+    await teardown();
+  });
+
+  /** ═══ قرار ٢ ═══ قبل الدفع لا مال في الضمان، فلا شيء يُتنازع عليه. */
+  it('لا نزاع قبل مرحلة الدفع', async () => {
+    await db.order.update({ where: { id: orderId }, data: { stage: 'INSPECTION' } });
+    const early = await openDispute({ orderRef, openedBy: buyerId, reason: 'س' }, T0);
+    expect(early.ok).toBe(false);
+    if (!early.ok) expect(early.reason).toBe('BEFORE_PAYMENT');
     await teardown();
   });
 });
@@ -260,7 +281,14 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     await teardown();
   });
 
-  it('تسوية جزئية ⇒ PARTIAL_REFUND بمبلغها', async () => {
+  /**
+   * ═══ قرار ١ ═══ التسوية **تُكمل البيع ولا تُلغيه**.
+   *
+   * الطرفان اتّفقا على سعر يعالج العيب: المركبة تبقى والملكية تُنقَل.
+   * والحال الذي كان مبنيًّا — مركبةٌ بيد المشتري لا يملكها نظامًا —
+   * أسوأ احتمال في المنصّة.
+   */
+  it('تسوية جزئية تُكمل البيع: TRANSFER ومحفظة وردّ جزئي', async () => {
     const { opened, proposed } = await proposeAndApprove('PARTIAL_SETTLEMENT', 15_000);
     if (!proposed.ok) return;
 
@@ -271,9 +299,27 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     await approveResolution({ approvalId: proposed.approvalId, adminId: admin3.id }, hours(4));
 
     expect((await db.escrow.findUniqueOrThrow({ where: { orderId } })).status).toBe('PARTIAL_REFUND');
+
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+    expect(order.stage).toBe('TRANSFER');
+    expect(order.status).toBe('ACTIVE');
+    // السعر الأصلي يبقى، والمُسوَّى بجواره — التدقيق يحتاج الاثنين
+    expect(Number(order.agreedPrice)).toBe(100_000);
+    expect(Number(order.settlementAmount)).toBe(100_350 - 15_000);
+
+    const wallet = await db.wallet.findUniqueOrThrow({
+      where: { userId: buyerId },
+      include: { entries: true },
+    });
+    expect(wallet.entries).toHaveLength(1);
+    expect(Number(wallet.entries[0]?.amount)).toBe(15_000);
+    expect(wallet.entries[0]?.kind).toBe('settlement_refund');
+
     const dispute = await db.dispute.findUniqueOrThrow({ where: { id: opened.disputeId } });
     expect(Number(dispute.resolutionAmount)).toBe(15_000);
 
+    await db.walletEntry.deleteMany({ where: { walletId: wallet.id } });
+    await db.wallet.delete({ where: { id: wallet.id } });
     await db.adminUser.delete({ where: { id: admin3.id } });
     await teardown();
   });
@@ -291,7 +337,41 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     const escrow = await db.escrow.findUniqueOrThrow({ where: { orderId } });
     expect(escrow.status).toBe('RELEASED');
     expect(escrow.releasedAt).not.toBeNull();
-    expect((await db.order.findUniqueOrThrow({ where: { id: orderId } })).status).toBe('COMPLETED');
+
+    /**
+     * ═══ قرار ٣ ═══ النزاع رُفض فيعود الطلب إلى مساره، ومهلة الدفع
+     * تُستأنف من حيث توقّفت — ومن قضى نزاعًا لا يُطلب منه الدفع في
+     * نصف ساعة، فالحدّ الأدنى ستّ ساعات.
+     */
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+    expect(order.status).toBe('ACTIVE');
+    expect(order.paymentPausedRemainingMs).toBeNull();
+    expect(order.paymentDueAt?.getTime()).toBe(hours(4 + 24).getTime());
+
+    await db.adminUser.delete({ where: { id: admin3.id } });
+    await teardown();
+  });
+
+  it('المتبقّي القصير يُرفَع إلى ستّ ساعات', async () => {
+    // النزاع يُفتح ولم يبقَ من المهلة إلا ساعة
+    await db.order.update({ where: { id: orderId }, data: { paymentDueAt: hours(1) } });
+    const opened = await openDispute({ orderRef, openedBy: buyerId, reason: 'س' }, T0);
+    if (!opened.ok) return;
+
+    const proposed = await proposeResolution(
+      { disputeId: opened.disputeId, adminId: adminA, resolution: 'RELEASE_TO_SELLER' },
+      hours(2),
+    );
+    if (!proposed.ok) return;
+
+    const admin3 = await db.adminUser.create({
+      data: { email: `g${Date.now()}@carsell.one`, name: 'ز', role: 'OPS', passwordHash: 'x' },
+    });
+    await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(3));
+    await approveResolution({ approvalId: proposed.approvalId, adminId: admin3.id }, hours(10));
+
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+    expect(order.paymentDueAt?.getTime()).toBe(hours(16).getTime());
 
     await db.adminUser.delete({ where: { id: admin3.id } });
     await teardown();

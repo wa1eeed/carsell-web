@@ -15,11 +15,20 @@ import { Prisma } from '@/generated/prisma/client';
 export const DISPUTE_SLA_HOURS = 48;
 export const REQUIRED_APPROVALS = 2;
 
+/** أقلّ ما يُمنَح عند استئناف مهلة الدفع بعد نزاع (قرار ٣). */
+export const MIN_RESUMED_PAYMENT_MS = 6 * 3600 * 1000;
+
 export type Resolution = 'FULL_REFUND' | 'PARTIAL_SETTLEMENT' | 'RELEASE_TO_SELLER';
 
 export type OpenResult =
   | { ok: true; disputeId: string; slaDueAt: Date }
-  | { ok: false; reason: 'ORDER_NOT_FOUND' | 'NOT_PARTY' | 'ALREADY_OPEN' | 'ORDER_CLOSED' };
+  | {
+      ok: false;
+      reason: 'ORDER_NOT_FOUND' | 'NOT_BUYER' | 'ALREADY_OPEN' | 'ORDER_CLOSED' | 'BEFORE_PAYMENT';
+    };
+
+/** المراحل التي يجوز فيها النزاع — المال في الضمان فصاعدًا. */
+const DISPUTABLE_STAGES = ['PAYMENT', 'TRANSFER', 'DONE'] as const;
 
 /**
  * فتح نزاع.
@@ -28,7 +37,15 @@ export type OpenResult =
  * يترك نافذةً يمرّ فيها عدّاد الإلغاء ويُسقط الطلب — وهي بالضبط اللحظة
  * التي يفتح فيها المشتري نزاعه.
  */
-// DESIGN-Q ٢: أيّ الطرفين وفي أيّ مرحلة — فتحٌ مبكّر يجمّد إعلانًا بلا كلفة
+/**
+ * **المشتري وحده، وبعد دخول الطلب مرحلة الدفع.**
+ *
+ * البائع ليس له نزاع — له إلغاء بسبب، وبلاغ. وفتحُه نزاعًا مبكّرًا
+ * يجمّد إعلانًا بلا كلفة، فيصير أداة تعطيل لا وسيلة إنصاف.
+ *
+ * وقبل الدفع لا مال في الضمان، فلا شيء يُتنازع عليه: النزاع أداةُ
+ * فضٍّ لمالٍ محتجَز، لا اعتراضٌ على صفقة لم تبدأ.
+ */
 export async function openDispute(
   input: { orderRef: string; openedBy: string; reason: string },
   now: Date = new Date(),
@@ -36,15 +53,18 @@ export async function openDispute(
   return db.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { ref: input.orderRef },
-      select: { id: true, status: true, buyerId: true, sellerId: true, stage: true },
+      select: {
+        id: true, status: true, buyerId: true, sellerId: true, stage: true, paymentDueAt: true,
+      },
     });
 
     if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
-    if (order.buyerId !== input.openedBy && order.sellerId !== input.openedBy) {
-      return { ok: false, reason: 'NOT_PARTY' };
-    }
+    if (order.buyerId !== input.openedBy) return { ok: false, reason: 'NOT_BUYER' };
     if (order.status === 'COMPLETED' || order.status === 'CANCELLED') {
       return { ok: false, reason: 'ORDER_CLOSED' };
+    }
+    if (!(DISPUTABLE_STAGES as readonly string[]).includes(order.stage)) {
+      return { ok: false, reason: 'BEFORE_PAYMENT' };
     }
 
     const existing = await tx.dispute.findFirst({
@@ -68,8 +88,25 @@ export async function openDispute(
       },
     });
 
-    // القاعدة ١ — التجميد، في نفس المعاملة
-    await tx.order.update({ where: { id: order.id }, data: { status: 'DISPUTED' } });
+    /**
+     * ═══ القاعدة ١ + قرار ٣ ═══ التجميد **يحفظ المتبقّي**.
+     *
+     * إيقاف العدّاد بلا حفظ ما تبقّى يعني أنّ الاستئناف يمنح مهلة
+     * كاملة جديدة — فيصير فتحُ نزاعٍ ثم إغلاقه وسيلةَ تمديد. والحفظ
+     * يجعل الاستئناف من حيث توقّف بالضبط.
+     */
+    const remainingMs =
+      order.paymentDueAt === null
+        ? null
+        : Math.max(0, order.paymentDueAt.getTime() - now.getTime());
+
+    await tx.order.update({
+      where: { id: order.id },
+      data: {
+        status: 'DISPUTED',
+        ...(remainingMs === null ? {} : { paymentPausedRemainingMs: remainingMs }),
+      },
+    });
 
     await tx.orderEvent.create({
       data: {
@@ -83,10 +120,9 @@ export async function openDispute(
       },
     });
 
-    const other = order.buyerId === input.openedBy ? order.sellerId : order.buyerId;
     await tx.notification.create({
       data: {
-        userId: other,
+        userId: order.sellerId,
         templateKey: 'dispute.opened',
         // فوات المهلة يُحسم النزاع بلا ردّه — فالإشعار حرج (قاعدة ١٧)
         priority: 'critical',
@@ -254,7 +290,6 @@ export async function approveResolution(
  * والطلب يخرج من التجميد في الحالات الثلاث — النزاع حُسم، فلا معنى
  * لإبقائه مجمَّدًا. والحسم يُنهي الطلب لا يعيده إلى مساره: قرارٌ صدر.
  */
-// DESIGN-Q ١: التسوية الجزئية تُلغي الطلب — وقد تكون استمرارًا للبيع بسعر أقلّ
 async function executeResolution(
   tx: Prisma.TransactionClient,
   disputeId: string,
@@ -268,23 +303,113 @@ async function executeResolution(
 
   const dispute = await tx.dispute.findUniqueOrThrow({
     where: { id: disputeId },
-    include: { order: { select: { id: true, buyerId: true, sellerId: true } } },
-  });
-
-  const escrowStatus =
-    resolution === 'FULL_REFUND'
-      ? 'REFUNDED'
-      : resolution === 'PARTIAL_SETTLEMENT'
-        ? 'PARTIAL_REFUND'
-        : 'RELEASED';
-
-  await tx.escrow.updateMany({
-    where: { orderId: dispute.order.id },
-    data: {
-      status: escrowStatus,
-      ...(resolution === 'RELEASE_TO_SELLER' ? { releasedAt: now } : {}),
+    include: {
+      order: {
+        select: {
+          id: true, buyerId: true, sellerId: true, stage: true,
+          totalAmount: true, paymentPausedRemainingMs: true,
+        },
+      },
     },
   });
+  const order = dispute.order;
+
+  if (resolution === 'PARTIAL_SETTLEMENT') {
+    const refund = parsed.amount ?? 0;
+
+    /**
+     * ═══ التسوية تُكمل البيع ولا تُلغيه ═══
+     *
+     * الطرفان اتّفقا على سعر يعالج العيب: المشتري يبقي المركبة وتُنقَل
+     * الملكية. وإلغاء الطلب يعني ردّ المركبة — وذاك «استرجاع كامل» لا
+     * تسوية. والحال الذي كان مبنيًّا (مركبة بيد المشتري لا يملكها
+     * نظامًا) أسوأ احتمال في المنصّة.
+     *
+     * والفرق يُرَد إلى **محفظة** المشتري لا إلى بطاقته: الردّ إلى
+     * وسيلة الدفع يحتاج مزوّدًا ويستغرق أيامًا، والمحفظة قيدٌ فوريّ
+     * يملكه صاحبه.
+     */
+    const wallet = await tx.wallet.upsert({
+      where: { userId: order.buyerId },
+      update: {},
+      create: { userId: order.buyerId },
+    });
+
+    await tx.walletEntry.create({
+      data: {
+        walletId: wallet.id,
+        amount: new Prisma.Decimal(refund),
+        kind: 'settlement_refund',
+        orderId: order.id,
+        note: `dispute:${disputeId}`,
+        createdAt: now,
+      },
+    });
+
+    await tx.escrow.updateMany({
+      where: { orderId: order.id },
+      // الباقي يُفرَج للبائع — والحالة تقول إن جزءًا رُدّ
+      data: { status: 'PARTIAL_REFUND', releasedAt: now },
+    });
+
+    await tx.order.update({
+      where: { id: order.id },
+      data: {
+        // السعر الأصلي يبقى في `agreedPrice` — التدقيق يحتاج الاثنين
+        settlementAmount: new Prisma.Decimal(Number(order.totalAmount) - refund),
+        status: 'ACTIVE',
+        stage: 'TRANSFER',
+        stageEnteredAt: now,
+        paymentPausedRemainingMs: null,
+      },
+    });
+  } else if (resolution === 'FULL_REFUND') {
+    await tx.escrow.updateMany({
+      where: { orderId: order.id },
+      data: { status: 'REFUNDED' },
+    });
+    await tx.order.update({
+      where: { id: order.id },
+      data: {
+        status: 'CANCELLED',
+        cancelledBy: 'admin',
+        cancelReason: 'dispute.full_refund',
+        paymentPausedRemainingMs: null,
+      },
+    });
+  } else {
+    await tx.escrow.updateMany({
+      where: { orderId: order.id },
+      data: { status: 'RELEASED', releasedAt: now },
+    });
+
+    /**
+     * ═══ قرار ٣ ═══ الإفراج للبائع **يستأنف** مهلة الدفع إن كان
+     * الطلب فيها، ولا يُنهي الطلب: النزاع رُفض، فيعود إلى مساره.
+     *
+     * ومن قضى نزاعًا لا يُطلب منه الدفع في نصف ساعة — فإن كان
+     * المتبقّي أقلّ من ستّ ساعات مُنح ستًّا.
+     */
+    const resumed =
+      order.stage === 'PAYMENT'
+        ? new Date(
+            now.getTime() +
+              Math.max(
+                MIN_RESUMED_PAYMENT_MS,
+                order.paymentPausedRemainingMs ?? MIN_RESUMED_PAYMENT_MS,
+              ),
+          )
+        : null;
+
+    await tx.order.update({
+      where: { id: order.id },
+      data: {
+        status: 'ACTIVE',
+        paymentPausedRemainingMs: null,
+        ...(resumed === null ? {} : { paymentDueAt: resumed }),
+      },
+    });
+  }
 
   await tx.dispute.update({
     where: { id: disputeId },
@@ -299,19 +424,9 @@ async function executeResolution(
     },
   });
 
-  await tx.order.update({
-    where: { id: dispute.order.id },
-    data: {
-      status: resolution === 'RELEASE_TO_SELLER' ? 'COMPLETED' : 'CANCELLED',
-      ...(resolution === 'RELEASE_TO_SELLER'
-        ? {}
-        : { cancelledBy: 'admin', cancelReason: `dispute.${resolution.toLowerCase()}` }),
-    },
-  });
-
   await tx.orderEvent.create({
     data: {
-      orderId: dispute.order.id,
+      orderId: order.id,
       type: 'dispute.resolved',
       actorId: adminId,
       actorType: 'admin',
@@ -320,7 +435,7 @@ async function executeResolution(
     },
   });
 
-  for (const userId of [dispute.order.buyerId, dispute.order.sellerId]) {
+  for (const userId of [order.buyerId, order.sellerId]) {
     await tx.notification.create({
       data: {
         userId,

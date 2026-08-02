@@ -5,12 +5,12 @@ The question here is not "was this reasonable" but **"what breaks if the
 assumption is wrong"** — an assumption that looked obvious is exactly the kind
 that never surfaces as a question.
 
-Each is implemented as described, marked `// DESIGN-Q` in the code.
+**All ten were answered on 2026-08-02.** What follows is the record: the
+assumption as built, what would have broken, and the ruling. Kept because the
+reasoning is the durable part — a future change to any of these needs to know
+why it is the way it is.
 
-Money and permissions questions are **not** deferred here — those stop the work
-and are asked directly. Three below touch money and are flagged as such; they are
-listed because the assumption is already in production code, not because they can
-wait.
+Three touched money. The first was **inverted** — see its ruling.
 
 ---
 
@@ -29,6 +29,16 @@ transfers, which contradicts the settlement itself.
 **Implemented:** partial settlement → `PARTIAL_REFUND` + order `CANCELLED`.
 `src/lib/domain/disputes.ts`
 
+
+> **RULED:** A settlement **completes the sale**. The buyer keeps the vehicle,
+> the order moves to `TRANSFER`, ownership transfers. The difference is refunded
+> to the buyer's **wallet** from escrow; the remainder is released to the seller.
+>
+> A settlement means both sides agreed a price that accounts for the defect.
+> Cancelling means returning the car — and that is a *full refund*, not a
+> settlement. `Order.settlementAmount` holds the settled price; `agreedPrice`
+> keeps the original. The invoice uses the settled price; an audit needs both.
+
 ---
 
 ## 2 · Who may open a dispute, and until when
@@ -40,6 +50,12 @@ freezes a listing indefinitely with no cost. That is a denial tool. A rule like
 "buyer only, and only after payment" would close it.
 
 **Implemented:** both parties, any active stage. `openDispute`
+
+
+> **RULED:** **Buyer only, and only once the order has reached payment** — when
+> money is in escrow. No dispute on a live listing, none before payment.
+>
+> The seller has no dispute; they have cancel-with-reason, and report.
 
 ---
 
@@ -54,6 +70,12 @@ built there is no remaining-time arithmetic at all.
 
 **Touches money.** `timeoutUnpaidOrders` skips `DISPUTED`.
 
+
+> **RULED:** The window **pauses and resumes**. The dispute stops the clock and
+> stores the remainder (`paymentPausedRemainingMs`); resolution resumes it from
+> where it stopped. If under 6 hours remain, 6 hours are granted — someone who
+> has just been through a dispute is not asked to pay within half an hour.
+
 ---
 
 ## 4 · Deposits settle at auction close, including on an unmet reserve
@@ -67,6 +89,15 @@ would be needed.
 
 **Touches money.** `closeEndedAuctions` settles in the same operation.
 
+
+> **RULED:** Both concerns were right. The fix distinguishes the top bidder:
+> their deposit stays **held for 24 hours** — the seller's window to accept or
+> decline. Accepted → applied. Declined or expired → refunded immediately.
+> Everyone else is refunded at close.
+>
+> An expired window is a **refund, not a forfeit**: the bidder honoured their
+> bid; it was the seller who did not decide.
+
 ---
 
 ## 5 · The extension cap is 10, and it is per auction not per bidder
@@ -78,6 +109,14 @@ then win in silence. A per-bidder cap, or a cap on total added time, behaves
 differently at the end.
 
 **Implemented:** 10 shared, published in the public object.
+
+
+> **RULED:** One report does **not** trigger review. The listing stays published.
+> Review is triggered by two independent reports, by one report from a buyer with
+> an order on that listing, or at admin discretion. A single report appears in the
+> queue with no effect on the listing.
+>
+> One click to remove a competitor's listing is cheaper than any paid ad.
 
 ---
 
@@ -91,6 +130,10 @@ per-auction numbering would not.
 
 **Implemented:** `aliasMap` in `src/lib/domain/auctions.ts`
 
+
+> **RULED:** **Random per auction**, not derived from the id. Order of appearance
+> reveals who was there early; a stable number is traceable across auctions.
+
 ---
 
 ## 7 · A report puts a listing into review immediately, on the first report
@@ -103,6 +146,12 @@ entirely.
 
 **Implemented:** first report → `PENDING_REVIEW`. Decision 33 says a report
 triggers review; it does not say how many. `fileReport`
+
+
+> **RULED:** Weekly summary to `SUPER_ADMIN` with each member's access count, and
+> an immediate alert when a member exceeds **twice their own weekly average** —
+> compared against themselves, not the team: whoever handles disputes reads ten
+> times what a catalogue editor does.
 
 ---
 

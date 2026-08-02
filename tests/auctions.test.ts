@@ -5,13 +5,16 @@ import {
   EXTEND_WINDOW_SECONDS,
   MAX_EXTENSIONS,
   buyNowAvailable,
+  SELLER_DECISION_HOURS,
   closeEndedAuctions,
+  expireSellerDecisions,
   forfeitDeposit,
   getAuction,
   holdDeposit,
   isReserveMet,
   minimumBid,
   placeBid,
+  resolveSellerDecision,
   settleDeposits,
 } from '@/lib/domain/auctions';
 import { Prisma } from '@/generated/prisma/client';
@@ -206,7 +209,11 @@ describe('auction.reserveHidden — القاعدة ٨', () => {
     expect(isReserveMet(null, null)).toBe(true);
   });
 
-  it('هوية المزايد لا تخرج — أسماء مستعارة ثابتة داخل المزاد', async () => {
+  /**
+   * ═══ قرار ٦ ═══ الترقيم **عشوائي لكل مزاد**: ترتيب أوّل ظهور يكشف
+   * من كان حاضرًا مبكّرًا، والرقم الثابت يُتعقَّب بين مزادين.
+   */
+  it('هوية المزايد لا تخرج — أرقام ثابتة داخل المزاد لا بترتيب الوصول', async () => {
     await placeBid({ auctionId, bidderId: bidderA, amount: START }, at(10));
     await placeBid({ auctionId, bidderId: bidderB, amount: START + INCREMENT }, at(20));
     await placeBid({ auctionId, bidderId: bidderA, amount: START + 2 * INCREMENT }, at(30));
@@ -272,15 +279,54 @@ describe('deposit.lifecycle — القاعدة ٩', () => {
     await teardown();
   });
 
-  it('لم يبلغ الاحتياطي ⇒ ENDED_UNMET وكل العرابين تُرد', async () => {
+  /**
+   * ═══ قرار ٤ ═══ احتياطي غير مبلوغ ⇒ **عربون الأعلى يبقى محجوزًا**
+   * أربعًا وعشرين ساعة — مهلة البائع للقبول. وردُّه فورًا يُطلقه من
+   * التزامه قبل أن يقرّر البائع، فيصير القبول بلا مقابل.
+   */
+  it('لم يبلغ الاحتياطي ⇒ الأعلى محجوز والباقون يُرَدّون', async () => {
     await placeBid({ auctionId, bidderId: bidderA, amount: START }, at(10));
+    await placeBid({ auctionId, bidderId: bidderB, amount: START + INCREMENT }, at(20));
     await db.auction.update({ where: { id: auctionId }, data: { endsAt: at(100) } });
 
     await closeEndedAuctions(at(200));
 
-    expect((await db.auction.findUniqueOrThrow({ where: { id: auctionId } })).status).toBe('ENDED_UNMET');
-    const deposits = await db.deposit.findMany({ where: { auctionId } });
-    expect(deposits.every((deposit) => deposit.status === 'RELEASED')).toBe(true);
+    const auction = await db.auction.findUniqueOrThrow({ where: { id: auctionId } });
+    expect(auction.status).toBe('ENDED_UNMET');
+    expect(auction.sellerDecisionDueAt?.getTime()).toBe(
+      at(200 + SELLER_DECISION_HOURS * 3600).getTime(),
+    );
+
+    const top = await db.deposit.findFirstOrThrow({ where: { auctionId, userId: bidderB } });
+    const other = await db.deposit.findFirstOrThrow({ where: { auctionId, userId: bidderA } });
+    expect(top.status).toBe('HELD');
+    expect(other.status).toBe('RELEASED');
+    await teardown();
+  });
+
+  it('قبول البائع يخصم عربون الأعلى', async () => {
+    await placeBid({ auctionId, bidderId: bidderA, amount: START }, at(10));
+    await db.auction.update({ where: { id: auctionId }, data: { endsAt: at(100) } });
+    await closeEndedAuctions(at(200));
+
+    expect((await resolveSellerDecision(auctionId, true, at(300))).ok).toBe(true);
+    const deposit = await db.deposit.findFirstOrThrow({ where: { auctionId, userId: bidderA } });
+    expect(deposit.status).toBe('APPLIED');
+    expect((await db.auction.findUniqueOrThrow({ where: { id: auctionId } })).status).toBe('ENDED_MET');
+    await teardown();
+  });
+
+  /** انقضاء المهلة **ردٌّ لا مصادرة**: المزايد أوفى، والذي لم يقرّر البائع. */
+  it('انقضاء مهلة البائع يَرُدّ العربون ولا يصادره', async () => {
+    await placeBid({ auctionId, bidderId: bidderA, amount: START }, at(10));
+    await db.auction.update({ where: { id: auctionId }, data: { endsAt: at(100) } });
+    await closeEndedAuctions(at(200));
+
+    const late = at(200 + (SELLER_DECISION_HOURS + 1) * 3600);
+    expect(await expireSellerDecisions(late)).toBe(1);
+
+    const deposit = await db.deposit.findFirstOrThrow({ where: { auctionId, userId: bidderA } });
+    expect(deposit.status).toBe('RELEASED');
     await teardown();
   });
 });

@@ -125,7 +125,19 @@ export const REPORT_REASONS = [
  * وبلاغ واحد لكل (مبلِّغ، هدف): تكرار الشخص نفسه لا يزيد وزن البلاغ
  * ويُغرق الطابور.
  */
-// DESIGN-Q ٧: بلاغ واحد يكفي لإدخال المراجعة — بلا عتبة
+/**
+ * ═══ قرار ٥ ═══ **بلاغ واحد لا يُدخل المراجعة.**
+ *
+ * الإعلان يبقى منشورًا، ويُدخَل الطابور بأحد ثلاثة:
+ *   · بلاغان مستقلّان أو أكثر،
+ *   · بلاغ من مشترٍ له طلب على هذا الإعلان،
+ *   · تقدير الأدمن.
+ *
+ * والسبب: نقرة واحدة تُزيل إعلان منافس أرخص من أيّ إعلان مدفوع.
+ * والبلاغ المفرد يظهر في طابور A17 بلا أثر على الإعلان.
+ */
+export const REVIEW_REPORT_THRESHOLD = 2;
+
 export async function fileReport(
   input: ReportInput,
   now: Date = new Date(),
@@ -171,14 +183,27 @@ export async function fileReport(
       },
     });
 
-    // قرار ٣٣ — بلاغ وارد يُدخل الإعلان المراجعة، ولا يخفيه
     let underReview = false;
     if (input.targetType === 'listing') {
-      const { count } = await tx.listing.updateMany({
-        where: { id: input.targetId, status: 'PUBLISHED' },
-        data: { status: 'PENDING_REVIEW', reviewReason: 'USER_REPORT' },
+      const openReports = await tx.report.count({
+        where: { targetType: 'listing', targetId: input.targetId, status: 'open' },
       });
-      underReview = count > 0;
+
+      /**
+       * مشترٍ له طلب على هذا الإعلان بلاغُه وحده يكفي: هو الوحيد الذي
+       * رأى المركبة بعقد، وليس منافسًا يستطيع أن يكون.
+       */
+      const fromBuyer = await tx.order.count({
+        where: { listingId: input.targetId, buyerId: input.reporterId },
+      });
+
+      if (openReports >= REVIEW_REPORT_THRESHOLD || fromBuyer > 0) {
+        const { count } = await tx.listing.updateMany({
+          where: { id: input.targetId, status: 'PUBLISHED' },
+          data: { status: 'PENDING_REVIEW', reviewReason: 'USER_REPORT' },
+        });
+        underReview = count > 0;
+      }
     }
 
     return { ok: true, reportId: report.id, underReview };

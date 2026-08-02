@@ -12,7 +12,6 @@ import type { OrderStage } from '@/generated/prisma/enums';
  */
 
 /** خطّ الهدف لكل مرحلة، بالساعات. */
-// DESIGN-Q ٨: الأهداف ثوابت في الكود لا إعدادات تشغيلية
 export const STAGE_TARGET_HOURS: Record<OrderStage, number> = {
   REQUEST: 24,
   APPROVED: 24,
@@ -149,7 +148,6 @@ export type IdentityView = {
   ibanTail: string | null;
 };
 
-// DESIGN-Q ١٠: الاطّلاع يُسجَّل ولا يُشعَر به أحد
 export async function viewIdentity(
   admin: AdminUser,
   userId: string,
@@ -179,6 +177,9 @@ export async function viewIdentity(
       createdAt: now,
     },
   });
+
+  // التنبيه بعد التسجيل — يقرأ منه ولا يسبقه
+  await alertOnAccessSpike(admin.id, now);
 
   return {
     name: user.name,
@@ -236,4 +237,107 @@ export async function listAdminUsers(): Promise<UserRow[]> {
     listingCount: user._count.listings,
     orderCount: user._count.ordersAsBuyer,
   }));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  قرار ٧ — سجلّ الاطّلاع يُقرأ
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * **سجلٌّ لا يقرؤه أحد لا يمنع شيئًا** — وهذه هي القيمة كلّها.
+ *
+ * ملخّص أسبوعي إلى `SUPER_ADMIN` بعدد اطّلاعات كل عضو، وتنبيه فوري
+ * عند تجاوز عضوٍ ضعف متوسّطه الأسبوعي.
+ *
+ * والمقارنة **بمتوسّط العضو نفسه** لا بمتوسّط الفريق: من يعالج
+ * النزاعات يطّلع عشرة أضعاف من يحرّر الكتالوج، ورقمٌ موحّد يصرخ عليه
+ * كل أسبوع حتى يُتجاهَل التنبيه كلّه.
+ */
+export const ACCESS_SPIKE_MULTIPLIER = 2;
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+
+export type AccessSummaryRow = {
+  adminId: string;
+  adminName: string;
+  thisWeek: number;
+  /** متوسّط الأسابيع الأربعة السابقة — بلا الأسبوع الجاري. */
+  baseline: number;
+  spike: boolean;
+};
+
+export async function identityAccessSummary(
+  now: Date = new Date(),
+): Promise<AccessSummaryRow[]> {
+  const weekAgo = new Date(now.getTime() - WEEK_MS);
+  const fiveWeeksAgo = new Date(now.getTime() - 5 * WEEK_MS);
+
+  const rows = await db.auditLog.findMany({
+    where: {
+      action: 'user.viewIdentity',
+      actorType: 'admin',
+      createdAt: { gte: fiveWeeksAgo },
+    },
+    select: { actorId: true, createdAt: true },
+  });
+
+  const admins = await db.adminUser.findMany({
+    where: { id: { in: [...new Set(rows.map((row) => row.actorId))] } },
+    select: { id: true, name: true },
+  });
+
+  return admins.map((admin) => {
+    const mine = rows.filter((row) => row.actorId === admin.id);
+    const thisWeek = mine.filter((row) => row.createdAt >= weekAgo).length;
+    const earlier = mine.filter((row) => row.createdAt < weekAgo).length;
+    const baseline = earlier / 4;
+
+    return {
+      adminId: admin.id,
+      adminName: admin.name,
+      thisWeek,
+      baseline: Math.round(baseline * 10) / 10,
+      // بلا تاريخ سابق لا قفزة — عضوٌ جديد ليس متجاوزًا
+      spike: baseline > 0 && thisWeek > baseline * ACCESS_SPIKE_MULTIPLIER,
+    };
+  });
+}
+
+/**
+ * التنبيه الفوري — يُستدعى بعد كل اطّلاع.
+ *
+ * **يُخطَر `SUPER_ADMIN` وحده**: تنبيهُ الفريق كلّه يجعل الرقابة
+ * جماعية أي بلا صاحب، والقفزة قد تكون مشروعة فلا تُعلَن قبل أن تُفحص.
+ */
+export async function alertOnAccessSpike(
+  adminId: string,
+  now: Date = new Date(),
+): Promise<{ alerted: boolean }> {
+  const summary = await identityAccessSummary(now);
+  const row = summary.find((entry) => entry.adminId === adminId);
+  if (row === undefined || !row.spike) return { alerted: false };
+
+  // تنبيه واحد لكل عضو في الأسبوع — التكرار يُدرِّب على التجاهل
+  const since = new Date(now.getTime() - WEEK_MS);
+  const already = await db.auditLog.count({
+    where: {
+      action: 'identity.access_spike',
+      entityId: adminId,
+      createdAt: { gte: since },
+    },
+  });
+  if (already > 0) return { alerted: false };
+
+  await db.auditLog.create({
+    data: {
+      actorId: 'system',
+      actorType: 'system',
+      entity: 'AdminUser',
+      entityId: adminId,
+      action: 'identity.access_spike',
+      after: { thisWeek: row.thisWeek, baseline: row.baseline },
+      createdAt: now,
+    },
+  });
+
+  return { alerted: true };
 }

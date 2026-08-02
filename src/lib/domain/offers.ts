@@ -400,7 +400,6 @@ export async function expireOffers(now: Date = new Date()): Promise<number> {
  * «المتقدّمون» هم من رُفضت عروضهم بسبب القبول — لا كل من قدّم عرضًا
  * يومًا. من انسحب أو انتهى عرضه بنفسه اختار الخروج، وإخطاره ضجيج.
  */
-// DESIGN-Q ٩: المرفوض تلقائيًّا لا يُخطَر بإعادة النشر
 export async function timeoutUnpaidOrders(now: Date = new Date()): Promise<number> {
   const overdue = await db.order.findMany({
     where: { stage: 'PAYMENT', status: 'ACTIVE', paymentDueAt: { lte: now } },

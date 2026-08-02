@@ -35,6 +35,7 @@ async function fixture() {
   });
 
   const cleanup = async (): Promise<void> => {
+    await db.order.deleteMany({ where: { listingId: listing.id } });
     await db.report.deleteMany({ where: { reporterId: { in: [seller.id, buyer.id] } } });
     await db.notification.deleteMany({ where: { userId: { in: [seller.id, buyer.id] } } });
     await db.offer.deleteMany({ where: { listingId: listing.id } });
@@ -101,17 +102,64 @@ describe('Wl — لا عرض مرفوض في «نشطة»', () => {
 });
 
 describe('البلاغات', () => {
-  /** قرار ٣٣ — البلاغ يُدخل المراجعة ولا يحذف. */
-  it('البلاغ يُدخل الإعلان المراجعة ولا يخفيه', async () => {
+  /**
+   * ═══ قرار ٥ ═══ **بلاغ واحد لا يُدخل المراجعة**: نقرة واحدة تُزيل
+   * إعلان منافس أرخص من أيّ إعلان مدفوع. والمفرد يظهر في الطابور بلا
+   * أثر على الإعلان.
+   */
+  it('بلاغ واحد يُسجَّل ولا يمسّ الإعلان', async () => {
     const f = await fixture();
     const filed = await fileReport({
       reporterId: f.buyer.id, targetType: 'listing', targetId: f.listing.id, reason: 'fraud',
+    });
+
+    expect(filed.ok && filed.underReview).toBe(false);
+    expect((await db.listing.findUniqueOrThrow({ where: { id: f.listing.id } })).status).toBe('PUBLISHED');
+    expect(await db.report.count({ where: { targetId: f.listing.id } })).toBe(1);
+    await f.cleanup();
+  });
+
+  it('بلاغان مستقلّان يُدخلان المراجعة', async () => {
+    const f = await fixture();
+    const second = await db.user.create({
+      data: { phone: `+96657${String(Date.now()).slice(-7)}` },
+    });
+
+    await fileReport({
+      reporterId: f.buyer.id, targetType: 'listing', targetId: f.listing.id, reason: 'fraud',
+    });
+    const filed = await fileReport({
+      reporterId: second.id, targetType: 'listing', targetId: f.listing.id, reason: 'wrong_data',
     });
 
     expect(filed.ok && filed.underReview).toBe(true);
     const listing = await db.listing.findUniqueOrThrow({ where: { id: f.listing.id } });
     expect(listing.status).toBe('PENDING_REVIEW');
     expect(listing.reviewReason).toBe('USER_REPORT');
+
+    await db.report.deleteMany({ where: { reporterId: second.id } });
+    await db.user.delete({ where: { id: second.id } });
+    await f.cleanup();
+  });
+
+  /** مشترٍ له طلب رأى المركبة بعقد — وليس منافسًا يستطيع أن يكون. */
+  it('بلاغ مشترٍ له طلب يكفي وحده', async () => {
+    const f = await fixture();
+    await db.order.create({
+      data: {
+        ref: `ORD-RPT-${String(Date.now()).slice(-8)}`,
+        listingId: f.listing.id, buyerId: f.buyer.id, sellerId: f.seller.id,
+        source: 'DIRECT', stage: 'PAYMENT', agreedPrice: 90_000,
+        commissionPct: 0, commissionAmount: 0, totalAmount: 90_350,
+      },
+    });
+
+    const filed = await fileReport({
+      reporterId: f.buyer.id, targetType: 'listing', targetId: f.listing.id, reason: 'wrong_data',
+    });
+    expect(filed.ok && filed.underReview).toBe(true);
+
+    await db.order.deleteMany({ where: { listingId: f.listing.id } });
     await f.cleanup();
   });
 
