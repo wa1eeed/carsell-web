@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { db } from '@/lib/db';
+import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { SellWizard } from './SellWizard';
@@ -88,7 +89,12 @@ export default async function SellPage({
         </section>
 
         <div className="mx-auto w-full max-w-page px-10 py-10">
-          <SellWizard brands={brands} cities={cities} locale={locale} />
+          <SellWizard
+            brands={brands}
+            cities={cities}
+            locale={locale}
+            vinLookupEnabled={isFeatureOn('VIN_LOOKUP')}
+          />
         </div>
       </main>
     </>

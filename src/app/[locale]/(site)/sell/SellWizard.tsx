@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ImageUploader, type UploadedImage } from '@/components/ui/ImageUploader';
 import { Money } from '@/components/ui/Money';
@@ -50,10 +49,13 @@ export function SellWizard({
   brands,
   cities,
   locale,
+  vinLookupEnabled,
 }: {
   brands: readonly Option[];
   cities: readonly string[];
   locale: string;
+  /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
+  vinLookupEnabled: boolean;
 }) {
   const t = useTranslations('sell');
   const te = useTranslations('enums');
@@ -65,8 +67,14 @@ export function SellWizard({
   const [price, setPrice] = useState('');
   const [method, setMethod] = useState<(typeof METHODS)[number]>('DIRECT');
 
-  const [source, setSource] = useState<'fetched' | 'manual' | null>(null);
-  const [vinNotice, setVinNotice] = useState<string | null>(null);
+  /**
+   * **لا حالة تفتح النموذج**: الحقول ظاهرة من اللحظة الأولى. جلب
+   * الرقم التسلسلي يحتاج ربطًا بخدمة مؤجَّلة، وبناء النموذج على أنه
+   * المسار الأول يفتحه على طريق مسدود.
+   */
+  const [filledCount, setFilledCount] = useState<number | null>(null);
+  const [vinFailed, setVinFailed] = useState(false);
+  const [alreadyListed, setAlreadyListed] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const set = (patch: Partial<Vehicle>): void => setVehicle((v) => ({ ...v, ...patch }));
@@ -85,9 +93,23 @@ export function SellWizard({
    * الجلب. **فشله يفتح الإدخال اليدوي ويقول السبب** — ولا يطلب من
    * البائع رقمًا آخر لا يملكه.
    */
+  /**
+   * الجلب **مساعد لا مسار**.
+   *
+   * نجاحه يملأ ما يعرفه ويقول كم حقلًا مُلئ، والحقول تبقى قابلة
+   * للتعديل كلّها. وفشله **ليس حدثًا**: سطر رمادي واحد، بلا رسالة خطأ
+   * وبلا تحويل — لأن الفشل هو الحال المتوقّع ما دامت الخدمة مؤجَّلة،
+   * وتحويلُه إلى خطأ يُشعر البائع أنه أخطأ وهو لم يخطئ.
+   *
+   * والاستثناء الوحيد: مركبة معروضة بالفعل. تلك ليست فشل جلب بل
+   * قاعدة عمل توقف — سيارةٌ بإعلانين تُفسد كل إحصاء.
+   */
   const lookup = async (): Promise<void> => {
     setBusy(true);
-    setVinNotice(null);
+    setVinFailed(false);
+    setFilledCount(null);
+    setAlreadyListed(false);
+
     try {
       const response = await fetch('/api/v1/vin/lookup', {
         method: 'POST',
@@ -96,30 +118,32 @@ export function SellWizard({
       });
       const body = (await response.json()) as {
         data?: { vin: string; year: number | null; brandId: string | null };
-        error?: { code: string; messageAr: string; messageEn: string };
+        error?: { code: string };
       };
 
       if (!response.ok || body.data === undefined) {
-        const code = body.error?.code ?? '';
-        setVinNotice(
-          code === 'VIN_ALREADY_LISTED'
-            ? t('vinListed')
-            : code === 'VIN_INVALID'
-              ? t('vinInvalid')
-              : t('vinUnknown'),
-        );
-        // غير المعروف يفتح اليدوي؛ والمعروض بالفعل لا يفتح شيئًا
-        if (code !== 'VIN_ALREADY_LISTED') setSource('manual');
+        if (body.error?.code === 'VIN_ALREADY_LISTED') setAlreadyListed(true);
+        else setVinFailed(true);
         return;
       }
 
-      set({
-        vin: body.data.vin,
-        ...(body.data.year === null ? {} : { year: String(body.data.year) }),
-        ...(body.data.brandId === null ? {} : { brandId: body.data.brandId }),
-      });
-      if (body.data.brandId !== null) await loadModels(body.data.brandId);
-      setSource('fetched');
+      const patch: Partial<Vehicle> = { vin: body.data.vin };
+      let filled = 0;
+      if (body.data.year !== null) {
+        patch.year = String(body.data.year);
+        filled += 1;
+      }
+      if (body.data.brandId !== null) {
+        patch.brandId = body.data.brandId;
+        filled += 1;
+        await loadModels(body.data.brandId);
+      }
+
+      set(patch);
+      setFilledCount(filled);
+    } catch {
+      // الشبكة أو الخدمة — الحال نفسه: لا حدث
+      setVinFailed(true);
     } finally {
       setBusy(false);
     }
@@ -144,160 +168,174 @@ export function SellWizard({
       />
 
       {step === 'vehicle' ? (
-        <div className="flex flex-col gap-8 lg:flex-row">
-          <section className="min-w-0 flex-1">
-            <h2 className="mb-1.5 text-lg font-bold">{t('vinTitle')}</h2>
-            <p className="mb-4 text-xs opacity-60">{t('vinHelp')}</p>
+        <section className="max-w-3xl">
+          {/**
+            * الحقل المساعد أعلى النموذج — لا تبويب ولا خيار متكافئ.
+            * والراية المطفأة تُخفيه كلّيًا، والنموذج يعمل كاملًا بدونه.
+            */}
+          {!vinLookupEnabled ? null : (
+            <div className="mb-7 rounded-xl border border-line bg-surface p-5">
+              <p className="mb-3 text-xs opacity-70">{t('vinOptional')}</p>
 
-            <div className="mb-3 flex flex-wrap gap-2.5">
-              {/* رقم الهيكل لاتيني ويُقارَن خانةً بخانة — `dir="ltr"` دائمًا */}
+              <div className="flex flex-wrap gap-2.5">
+                <input
+                  dir="ltr"
+                  value={vehicle.vin}
+                  onChange={(event) =>
+                    set({ vin: toLatinDigits(event.target.value).toUpperCase().slice(0, 17) })
+                  }
+                  placeholder="JTDBE32K123456789"
+                  maxLength={17}
+                  aria-label={t('vinTitle')}
+                  className={cn(field, 'font-num min-w-56 flex-1 tracking-wider')}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => void lookup()}
+                  disabled={vehicle.vin.length !== 17 || busy}
+                >
+                  {t('lookup')}
+                </Button>
+              </div>
+
+              {/* النجاح: كم حقلًا مُلئ، ودعوة صريحة لمراجعته */}
+              {filledCount === null ? null : (
+                <p
+                  role="status"
+                  className="mt-3 flex items-center gap-2 rounded-md bg-accent-100 px-3.5 py-2.5 text-2xs text-accent-900"
+                >
+                  <svg viewBox="0 0 24 24" className="size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m5 13 4 4L19 7" />
+                  </svg>
+                  <span className="flex items-center gap-1.5">
+                    {t('filledPrefix')} <ArabicNumber value={filledCount} /> {t('filledSuffix')}
+                  </span>
+                </p>
+              )}
+
+              {/* الفشل: سطر رمادي واحد. لا خطأ ولا تحويل — الجلب ليس المسار */}
+              {!vinFailed ? null : (
+                <p className="mt-3 text-2xs opacity-45">{t('vinFailedQuiet')}</p>
+              )}
+
+              {/* الاستثناء: قاعدة عمل توقف، لا فشل جلب */}
+              {!alreadyListed ? null : (
+                <p role="alert" className="mt-3 rounded-md bg-warn-100 px-3.5 py-2.5 text-2xs text-warn-900">
+                  {t('vinListed')}
+                </p>
+              )}
+            </div>
+          )}
+
+          <h2 className="mb-4 text-lg font-bold">{t('vehicleData')}</h2>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label>
+              <span className={label}>{t('brand')}</span>
+              <select
+                value={vehicle.brandId}
+                onChange={(event) => {
+                  set({ brandId: event.target.value, modelId: '' });
+                  void loadModels(event.target.value);
+                }}
+                className={field}
+              >
+                <option value="" />
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {locale === 'ar' ? brand.nameAr : brand.nameEn}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span className={label}>{t('model')}</span>
+              <select
+                value={vehicle.modelId}
+                onChange={(event) => set({ modelId: event.target.value })}
+                disabled={models.length === 0}
+                className={field}
+              >
+                <option value="" />
+                {models.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {locale === 'ar' ? model.nameAr : model.nameEn}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span className={label}>{t('year')}</span>
               <input
                 dir="ltr"
-                value={vehicle.vin}
+                inputMode="numeric"
+                value={vehicle.year}
                 onChange={(event) =>
-                  set({ vin: toLatinDigits(event.target.value).toUpperCase().slice(0, 17) })
+                  set({ year: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 4) })
                 }
-                placeholder="JTDBE32K123456789"
-                maxLength={17}
-                className={cn(field, 'font-num min-w-56 flex-1 tracking-wider')}
+                className={cn(field, 'font-num')}
               />
-              <Button onClick={() => void lookup()} disabled={vehicle.vin.length !== 17 || busy}>
-                {t('lookup')}
-              </Button>
-              <Button variant="outline" onClick={() => setSource('manual')}>
-                {t('manual')}
-              </Button>
-            </div>
+            </label>
 
-            {vinNotice === null ? null : (
-              <p role="status" className="mb-4 rounded-md bg-warn-100 px-3.5 py-2.5 text-2xs text-warn-900">
-                {vinNotice}
-              </p>
-            )}
+            <label>
+              <span className={label}>{t('mileage')}</span>
+              <input
+                dir="ltr"
+                inputMode="numeric"
+                value={vehicle.mileageKm}
+                onChange={(event) =>
+                  set({ mileageKm: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 7) })
+                }
+                className={cn(field, 'font-num')}
+              />
+            </label>
 
-            {source === null ? null : (
-              <>
-                <div className="mb-4 flex items-baseline gap-2.5">
-                  <h3 className="text-sm font-bold">{t('vehicleData')}</h3>
-                  <Badge tone={source === 'fetched' ? 'accent' : 'neutral'}>
-                    {t(source === 'fetched' ? 'fetched' : 'manualEntry')}
-                  </Badge>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label>
-                    <span className={label}>{t('brand')}</span>
-                    <select
-                      value={vehicle.brandId}
-                      onChange={(event) => {
-                        set({ brandId: event.target.value, modelId: '' });
-                        void loadModels(event.target.value);
-                      }}
-                      className={field}
-                    >
-                      <option value="" />
-                      {brands.map((brand) => (
-                        <option key={brand.id} value={brand.id}>
-                          {locale === 'ar' ? brand.nameAr : brand.nameEn}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label>
-                    <span className={label}>{t('model')}</span>
-                    <select
-                      value={vehicle.modelId}
-                      onChange={(event) => set({ modelId: event.target.value })}
-                      disabled={models.length === 0}
-                      className={field}
-                    >
-                      <option value="" />
-                      {models.map((model) => (
-                        <option key={model.id} value={model.id}>
-                          {locale === 'ar' ? model.nameAr : model.nameEn}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label>
-                    <span className={label}>{t('year')}</span>
-                    <input
-                      dir="ltr"
-                      inputMode="numeric"
-                      value={vehicle.year}
-                      onChange={(event) =>
-                        set({ year: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 4) })
-                      }
-                      className={cn(field, 'font-num')}
-                    />
-                  </label>
-
-                  <label>
-                    <span className={label}>{t('mileage')}</span>
-                    <input
-                      dir="ltr"
-                      inputMode="numeric"
-                      value={vehicle.mileageKm}
-                      onChange={(event) =>
-                        set({ mileageKm: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 7) })
-                      }
-                      className={cn(field, 'font-num')}
-                    />
-                  </label>
-
-                  {(
-                    [
-                      ['transmission', ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT']],
-                      ['fuel', ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC']],
-                      ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
-                    ] as const
-                  ).map(([key, values]) => (
-                    <label key={key}>
-                      <span className={label}>{t(key)}</span>
-                      <select
-                        value={vehicle[key]}
-                        onChange={(event) => set({ [key]: event.target.value })}
-                        className={field}
-                      >
-                        {values.map((value) => (
-                          <option key={value} value={value}>
-                            {te(`${key}.${value}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ))}
-
-                  <label>
-                    <span className={label}>{t('city')}</span>
-                    <select
-                      value={vehicle.city}
-                      onChange={(event) => set({ city: event.target.value })}
-                      className={field}
-                    >
-                      <option value="" />
-                      {cities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <Button
-                  onClick={() => setStep('photos')}
-                  disabled={!vehicleReady}
-                  className="mt-7"
+            {(
+              [
+                ['transmission', ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT']],
+                ['fuel', ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC']],
+                ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
+              ] as const
+            ).map(([key, values]) => (
+              <label key={key}>
+                <span className={label}>{t(key)}</span>
+                <select
+                  value={vehicle[key]}
+                  onChange={(event) => set({ [key]: event.target.value })}
+                  className={field}
                 >
-                  {t('next')}
-                </Button>
-              </>
-            )}
-          </section>
-        </div>
+                  {values.map((value) => (
+                    <option key={value} value={value}>
+                      {te(`${key}.${value}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+
+            <label>
+              <span className={label}>{t('city')}</span>
+              <select
+                value={vehicle.city}
+                onChange={(event) => set({ city: event.target.value })}
+                className={field}
+              >
+                <option value="" />
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <Button onClick={() => setStep('photos')} disabled={!vehicleReady} className="mt-7">
+            {t('next')}
+          </Button>
+        </section>
       ) : null}
 
       {step === 'photos' ? (

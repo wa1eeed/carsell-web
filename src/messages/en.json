@@ -599,14 +599,8 @@
       "method": "Selling method"
     },
     "vinTitle": "VIN",
-    "vinHelp": "Seventeen characters — on the door plate or the registration.",
     "lookup": "Fetch details",
-    "manual": "Enter details manually",
     "vehicleData": "Vehicle details",
-    "fetched": "Fetched automatically",
-    "manualEntry": "Entered manually",
-    "vinInvalid": "That VIN is not valid — check all seventeen characters.",
-    "vinUnknown": "We did not recognise this VIN. Fill in the details manually and your listing will publish normally.",
     "vinListed": "This vehicle is already listed. A second listing is not created for the same VIN.",
     "brand": "Make",
     "model": "Model",
@@ -658,6 +652,10 @@
       "AUCTION": "Open bidding for a period you choose, with an opening price and a hidden reserve."
     },
     "needPhotos": "Add at least one photo.",
-    "needPrice": "Enter an asking price."
+    "needPrice": "Enter an asking price.",
+    "vinOptional": "Have the VIN? We will fill what we can.",
+    "filledPrefix": "Filled",
+    "filledSuffix": "fields — check them",
+    "vinFailedQuiet": "Could not fetch; continue manually."
   }
 }

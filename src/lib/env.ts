@@ -45,3 +45,14 @@ export function r2Key(...segments: readonly string[]): string {
     .filter((segment) => segment !== '')
     .join('/');
 }
+
+/**
+ * الرايات — تُقرأ على الخادم وتُمرَّر إلى الشاشة.
+ *
+ * **الراية المطفأة تُخفي لا تُعطّل** (قرار ٢٤): لا يُعرض ما لا يعمل.
+ * والشاشة يجب أن تكون كاملة بدون كل ميزةٍ خلف راية — وإلا صارت الراية
+ * وهمًا لا يمكن إطفاؤه.
+ */
+export function isFeatureOn(name: 'AI_PRICING' | 'NL_SEARCH' | 'ADS' | 'VIN_LOOKUP'): boolean {
+  return process.env[`FEATURE_${name}`] === 'true';
+}
