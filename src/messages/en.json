@@ -48,7 +48,8 @@
     "paint": {
       "original": "Original",
       "repainted": "Repainted",
-      "unknown": "Not measured"
+      "unknown": "Not measured",
+      "replaced": "Replaced"
     },
     "panel": {
       "hood": "Hood",
@@ -122,7 +123,44 @@
     "notInspectedBody": "There is no inspection report. Order one from the services directory before you buy.",
     "home": "Home",
     "cars": "Browse cars",
-    "openingPrice": "Opening price"
+    "openingPrice": "Opening price",
+    "pointsWithNotes": "Points with notes",
+    "showPassed": "Show passing points",
+    "showFindingsOnly": "Notes only",
+    "noFindings": "No notes",
+    "noFindingsBody": "Every point passed in this report.",
+    "point": "Point",
+    "state": {
+      "NOTE": "Note",
+      "PAINT": "Repainted",
+      "FAIL": "Needs repair"
+    },
+    "inspectorNote": "Inspector note",
+    "statePass": "Pass",
+    "findingPhotos": "Photos of notes",
+    "bodyAndPaintMap": "Body and paint map",
+    "inspectionTitle": "Full technical inspection",
+    "downloadPdf": "Download PDF",
+    "shareReport": "Share report",
+    "inspectionCentre": "Inspection centre",
+    "inspectionDate": "Inspection date",
+    "reportNumber": "Report number",
+    "reportValidity": "Valid until",
+    "until": "until",
+    "inspector": "Inspector",
+    "vin": "VIN",
+    "grade": {
+      "EXCELLENT": "Excellent",
+      "GOOD": "Good",
+      "FAIR": "Fair",
+      "POOR": "Needs work"
+    },
+    "sectionScores": "Section scores",
+    "backToListing": "← Back to listing",
+    "reportExpired": "This report has expired",
+    "reportExpiredBody": "More than 90 days have passed since the inspection, and the vehicle's condition may have changed.",
+    "noReport": "No inspection report",
+    "noReportBody": "This vehicle has not been inspected. Order an inspection from the services directory."
   },
   "orderStage": {
     "REQUEST": "Request",
@@ -294,7 +332,8 @@
     "reviews": "{count, plural, one{{n} review} other{{n} reviews}}",
     "auctions": "{count, plural, one{{n} auction} other{{n} auctions}}",
     "months": "{count, plural, one{{n} month} other{{n} months}}",
-    "financeProviders": "{count, plural, one{{n} finance provider} other{{n} finance providers}}"
+    "financeProviders": "{count, plural, one{{n} finance provider} other{{n} finance providers}}",
+    "points": "{count, plural, one{{n} point} other{{n} points}}"
   },
   "search": {
     "title": "Browse cars",

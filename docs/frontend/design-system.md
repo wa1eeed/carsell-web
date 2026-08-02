@@ -224,3 +224,23 @@ differently.
 On a card the countdown is a small badge at the bottom of the image, the same
 size as the photo count. A countdown covering a quarter of the image steals what
 the reader came to see.
+
+
+## Gate 10 — a colour utility with no token
+
+Tailwind's palette is **disabled** (`--color-*: initial`), so a utility naming an
+undeclared token does not error — it renders **black**, or nothing.
+
+`fill-accent-2` painted the body diagram's repainted panels solid black on Wd,
+and `bg-accent-2` had done the same on Wc's paint map before it. The same defect
+twice, so: a gate instead of a third correction. Both were fixed together.
+
+The cause was a rename that the components missed. The design markup calls the
+ochre `--color-accent-2`; the token set calls it `warn`. Nothing failed loudly,
+because there is nothing to fail — an unknown token is simply absent.
+
+The gate reads the declared names out of `globals.css` itself, so adding a token
+guards it automatically and removing one surfaces its users immediately. Edge
+modifiers (`border-b`, `border-s`), scale steps (`text-3xs`) and non-colour
+keywords (`outline-offset-2`) are excluded — the first pass flagged 22 of them,
+and a rule that emits noise gets disabled.

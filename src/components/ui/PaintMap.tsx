@@ -21,7 +21,7 @@ const GRID: readonly (string | null)[] = [
 
 const TONE: Record<PanelState, string> = {
   original: 'bg-accent-200',
-  repainted: 'bg-accent-2',
+  repainted: 'bg-warn-400',
   unknown: 'bg-ink/12',
 };
 

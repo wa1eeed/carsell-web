@@ -48,7 +48,8 @@
     "paint": {
       "original": "أصلي",
       "repainted": "مصبوغ",
-      "unknown": "لم يُقس"
+      "unknown": "لم يُقس",
+      "replaced": "مستبدلة"
     },
     "panel": {
       "hood": "غطاء المحرك",
@@ -122,7 +123,44 @@
     "notInspectedBody": "لا تقرير فحص لهذه المركبة. اطلب فحصًا قبل الشراء من دليل الخدمات.",
     "home": "الرئيسية",
     "cars": "تصفّح السيارات",
-    "openingPrice": "سعر الافتتاح"
+    "openingPrice": "سعر الافتتاح",
+    "pointsWithNotes": "البنود التي عليها ملاحظات",
+    "showPassed": "اعرض البنود السليمة",
+    "showFindingsOnly": "الملاحظات فقط",
+    "noFindings": "لا ملاحظات",
+    "noFindingsBody": "جميع البنود سليمة في هذا التقرير.",
+    "point": "البند",
+    "state": {
+      "NOTE": "ملاحظة",
+      "PAINT": "صبغ",
+      "FAIL": "يحتاج إصلاحًا"
+    },
+    "inspectorNote": "ملاحظة الفاحص",
+    "statePass": "سليم",
+    "findingPhotos": "صور الملاحظات",
+    "bodyAndPaintMap": "مخطط الهيكل والصبغ",
+    "inspectionTitle": "تقرير فحص فني شامل",
+    "downloadPdf": "تحميل PDF",
+    "shareReport": "مشاركة التقرير",
+    "inspectionCentre": "مركز الفحص",
+    "inspectionDate": "تاريخ الفحص",
+    "reportNumber": "رقم التقرير",
+    "reportValidity": "صلاحية التقرير",
+    "until": "حتى",
+    "inspector": "الفاحص",
+    "vin": "رقم الهيكل",
+    "grade": {
+      "EXCELLENT": "حالة ممتازة",
+      "GOOD": "حالة جيدة",
+      "FAIR": "حالة مقبولة",
+      "POOR": "تحتاج عملًا"
+    },
+    "sectionScores": "درجات الأقسام",
+    "backToListing": "عودة إلى الإعلان ←",
+    "reportExpired": "انتهت صلاحية هذا التقرير",
+    "reportExpiredBody": "مضى أكثر من ٩٠ يومًا على الفحص، وحالة المركبة قد تكون تغيّرت.",
+    "noReport": "لا تقرير فحص",
+    "noReportBody": "هذه المركبة غير مفحوصة. اطلب فحصًا من دليل الخدمات."
   },
   "orderStage": {
     "REQUEST": "طلب",
@@ -294,7 +332,8 @@
     "reviews": "{count, plural, zero{لا تقييمات} one{تقييم واحد} two{تقييمان} few{{n} تقييمات} many{{n} تقييمًا} other{{n} تقييم}}",
     "auctions": "{count, plural, zero{لا مزادات} one{مزاد واحد} two{مزادان} few{{n} مزادات} many{{n} مزادًا} other{{n} مزاد}}",
     "months": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهران} few{{n} أشهر} many{{n} شهرًا} other{{n} شهر}}",
-    "financeProviders": "{count, plural, zero{لا جهات تمويل} one{جهة تمويل واحدة} two{جهتَي تمويل} few{{n} جهات تمويل} many{{n} جهة تمويل} other{{n} جهة تمويل}}"
+    "financeProviders": "{count, plural, zero{لا جهات تمويل} one{جهة تمويل واحدة} two{جهتَي تمويل} few{{n} جهات تمويل} many{{n} جهة تمويل} other{{n} جهة تمويل}}",
+    "points": "{count, plural, zero{لا نقاط} one{نقطة واحدة} two{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}"
   },
   "search": {
     "title": "تصفّح السيارات",

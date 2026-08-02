@@ -22,6 +22,7 @@ export type Unit =
   | 'auctions'
   | 'months'
   | 'financeProviders'
+  | 'points'
   | 'km';
 
 /**

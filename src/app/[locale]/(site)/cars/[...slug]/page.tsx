@@ -14,7 +14,16 @@ import {
   toPublicDetail,
   type PublicListingDetail,
 } from '@/lib/domain/listing-detail';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
+import {
+  REPORT_VALIDITY_DAYS,
+  findReportByListingRef,
+  toPublicReport,
+} from '@/lib/domain/inspection';
 import { CarPage } from './CarPage';
+import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
 
 export const dynamic = 'force-dynamic';
@@ -49,7 +58,15 @@ async function resolve(params: Params) {
   const { locale, slug } = params;
   if (!hasLocale(routing.locales, locale)) notFound();
 
-  const parts = slug.map(decodeSegment);
+  /**
+   * التقرير **جزء أخير على المسار نفسه** لا مسار مستقلّ: Next لا يسمح
+   * بجزء ثابت بعد catch-all. والنتيجة أصحّ بنيويًا — التقرير صفة
+   * مركبةٍ معروضة، فرابطه فرع من رابطها لا جار له.
+   */
+  const raw = slug.map(decodeSegment);
+  const wantsReport = raw[raw.length - 1] === 'inspection';
+  const parts = wantsReport ? raw.slice(0, -1) : raw;
+
   const ref = parts.length === 1 ? parts[0] : parts.length === 4 ? parts[3] : null;
   if (ref === undefined || ref === null) notFound();
 
@@ -68,10 +85,11 @@ async function resolve(params: Params) {
    * أعلاه. حلقة تحويل لا نهائية تُسقط الصفحة عن الفهرسة كلّها
    * وتظهر للزائر صفحة خطأ — وثمن الحارس مقارنة نصّين.
    */
-  const here = `/${locale}/cars/${parts.map(encodeURIComponent).join('/')}`;
-  if (!matches && canonical.path !== here) permanentRedirect(canonical.path);
+  const target = wantsReport ? `${canonical.path}/inspection` : canonical.path;
+  const here = `/${locale}/cars/${raw.map(encodeURIComponent).join('/')}`;
+  if (!matches && target !== here) permanentRedirect(target);
 
-  return { row, canonical, locale };
+  return { row, canonical, locale, wantsReport };
 }
 
 export async function generateMetadata({
@@ -80,15 +98,27 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
-  if (!hasLocale(routing.locales, locale) || slug.length !== 4) return {};
+  if (!hasLocale(routing.locales, locale)) return {};
 
-  const row = await findListingForMetadata(decodeSegment(slug[3] ?? ''));
+  const report = slug[slug.length - 1] === 'inspection';
+  const parts = report ? slug.slice(0, -1) : slug;
+  if (parts.length !== 4) return {};
+
+  const row = await findListingForMetadata(decodeSegment(parts[3] ?? ''));
   if (row === null) return {};
 
   const canonical = canonicalPath(locale, row);
   const title = [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
     .filter((part) => part !== null && part !== '')
     .join(' ');
+
+  // التقرير محتوى فرعي — الإعلان هو ما يُفهرَس
+  if (report) {
+    return {
+      title: `${title} — ${row.ref}`,
+      robots: { index: false, follow: true },
+    };
+  }
 
   return {
     title: `${title} — ${row.ref}`,
@@ -98,9 +128,70 @@ export async function generateMetadata({
   };
 }
 
+function shell(children: React.ReactNode) {
+  return (
+    <>
+      <SiteHeader active="cars" />
+      <main className="min-h-screen bg-bg text-ink">
+        <div className="mx-auto w-full max-w-page px-10 py-8">{children}</div>
+      </main>
+    </>
+  );
+}
+
+/** Wd — تقرير الفحص، تحت رابط الإعلان. */
+async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
+  const [row, t] = await Promise.all([
+    findReportByListingRef(resolved.row.ref),
+    getTranslations('ui'),
+  ]);
+
+  /**
+   * مركبة بلا فحص **حالة قائمة لا خطأ**: أغلب الإعلانات كذلك. حالةٌ
+   * صريحة تدلّ على دليل الخدمات، لا ٤٠٤ توحي بأن الرابط مكسور.
+   */
+  if (row === null) {
+    return shell(
+      <EmptyState
+        title={t('noReport')}
+        description={t('noReportBody')}
+        action={
+          <Link href={resolved.canonical.path}>
+            <Button variant="outline">{t('backToListing')}</Button>
+          </Link>
+        }
+      />,
+    );
+  }
+
+  const report = toPublicReport(row, resolved.locale);
+  const inspected = new Date(report.inspectedAt);
+  const expired =
+    Date.now() - inspected.getTime() > REPORT_VALIDITY_DAYS * 24 * 3600 * 1000;
+
+  // التاريخ يُصاغ على الخادم — لا اختلاف بين ما يُقدَّم وما يُروى
+  const dateFormat = new Intl.DateTimeFormat(
+    resolved.locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB',
+    { day: 'numeric', month: 'long', year: 'numeric' },
+  );
+
+  return shell(
+    <InspectionScreen
+      report={report}
+      expired={expired}
+      formatted={{
+        inspectedAt: dateFormat.format(inspected),
+        validUntil: dateFormat.format(new Date(report.validUntil)),
+      }}
+    />,
+  );
+}
+
 export default async function CarDetailPage({ params }: { params: Promise<Params> }) {
   const resolved = await resolve(await params);
   setRequestLocale(resolved.locale);
+
+  if (resolved.wantsReport) return inspectionView(resolved);
 
   const [detail, faq, similar, t] = await Promise.all([
     toPublicDetail(resolved.row),

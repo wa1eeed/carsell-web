@@ -57,3 +57,21 @@ nor any listing.
 
 - The silhouette artwork itself (none uploaded yet; cards render name-only).
 - Whether the row should also appear on Wb as a filter entry point.
+
+## Body diagram — schematic, not a car outline · 2026-08-02
+
+**Status: awaiting design review.**
+
+Wd's markup draws the paint map as an `<svg>` car outline. What was built is a
+grid of labelled rectangles carrying the same panel keys, the same three states,
+the same legend and the same tooltips.
+
+**Why:** the outline is artwork, not layout — it needs a drawn asset, and
+approximating one by hand produces a shape that reads as a mistake rather than a
+car. The schematic is honest about being a schematic.
+
+**What is identical:** panel keys, states (`original` / `repainted` / `replaced` /
+`unknown`), the legend, per-panel tooltips, and the summary paragraph.
+
+**To supply:** a single SVG car outline with `id` per panel; the component then
+swaps `<rect>` for `<path>` and nothing else changes.

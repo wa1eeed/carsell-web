@@ -9,6 +9,7 @@
  *  ٧. لا `#` في جمع ICU عربي — يطبع أرقامًا لاتينية.
  *  ٨. كل `unit` مستعمل في الكود مصرَّح به في الوحدات وفي نوع `Unit`.
  *  ٩. لا رقم من قاعدة البيانات يُلصق في سلسلة نصّ معروضة.
+ * ١٠. كل أداة لون في المكوّنات تشير إلى توكن معرَّف فعلًا.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -283,8 +284,86 @@ function checkStringifiedNumbers() {
   }
 }
 
+// ————— القاعدة ١٠: أداة لون بلا توكن —————
+/**
+ * لوحة Tailwind **معطّلة** (`--color-*: initial`)، فأداةٌ تشير إلى
+ * توكن غير معرَّف لا تُنتج خطأ — تُنتج **أسود** أو شفافًا. و`fill-accent-2`
+ * ظهرت سوداء في مخطط الهيكل، و`bg-accent-2` قبلها في Wc: نفس العطب
+ * مرّتين، فالبوابة بدل التصحيح الثالث.
+ *
+ * الأسماء تُقرأ من `globals.css` نفسه — إضافة توكن جديد تُحرَس تلقائيًا،
+ * وحذف توكن يُظهر مستعمليه فورًا.
+ */
+const COLOUR_UTILITIES =
+  /\b(?:bg|text|border|fill|stroke|ring|outline|decoration|divide|shadow|from|via|to|accent|caret|placeholder)-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)(?:\/\d{1,3})?\b/g;
+
+/**
+ * جانب الحدّ ليس لونًا: `border-b` و`border-s` اتجاه، و`border-b-2`
+ * سماكة. اللون — إن وُجد — هو ما بعد الاتجاه.
+ */
+const EDGES = new Set(['t', 'b', 'l', 'r', 's', 'e', 'x', 'y']);
+
+/** ما ليس لونًا وإن شارك البادئة: `text-sm` مقاس و`shadow-lg` ظلّ. */
+const NOT_COLOURS = new Set([
+  'sm', 'md', 'lg', 'xl', 'xs', 'base', 'auto', 'none', 'full', 'solid', 'dashed',
+  'dotted', 'double', 'hidden', 'left', 'right', 'center', 'start', 'end', 'justify',
+  'top', 'bottom', 'wrap', 'nowrap', 'balance', 'pretty', 'ellipsis', 'clip',
+  'inherit', 'initial', 'unset', 'revert', 'contain', 'cover', 'fixed', 'local',
+  'scroll', 'repeat', 'round', 'space', 'reverse', 'offset', 'inset', 'collapse',
+  'separate', 'spacing', 'display', 'num', 'body', 'heading', 'page', 'thumb',
+  'isolate', 'ltr', 'nums', 'tabular', 'current', 'transparent', 'loose', 'snug',
+  'tight', 'relaxed', 'normal', 'bold', 'medium', 'semibold', 'extrabold', 'light',
+  'thin', 'black', 'wide', 'wider', 'widest',
+]);
+
+/** يعيد اسم اللون المقصود، أو `null` إن لم تكن الأداة لونًا أصلًا. */
+function colourName(raw) {
+  const parts = raw.split('-');
+  // اتجاه في الصدارة: `border-b-line` ⇒ line · `border-b` ⇒ لا لون
+  if (parts.length > 0 && EDGES.has(parts[0])) parts.shift();
+  const name = parts.join('-');
+  if (name === '') return null;
+  // كلمة غير لونية في الصدارة تكفي: `outline-offset-2` إزاحة لا لون
+  if (NOT_COLOURS.has(name) || NOT_COLOURS.has(parts[0] ?? '')) return null;
+  // أرقام السلّم وكسوره: `2` · `0.5` · `3xs`
+  if (/^\d/.test(name)) return null;
+  return name;
+}
+
+function declaredColours() {
+  const css = readFileSync(join(ROOT, TOKENS_FILE), 'utf8');
+  const names = new Set();
+  for (const match of css.matchAll(/--color-([a-z0-9-]+)\s*:/g)) names.add(match[1]);
+  return names;
+}
+
+function checkColourUtilities() {
+  const declared = declaredColours();
+  if (declared.size === 0) {
+    problems.push(`${TOKENS_FILE} — لم يُقرأ أي توكن لون (القاعدة ١٠ معطّلة فعليًا)`);
+    return;
+  }
+
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      const source = readFileSync(file, 'utf8');
+
+      const seen = new Set();
+      for (const match of source.matchAll(COLOUR_UTILITIES)) {
+        const name = colourName(match[1] ?? '');
+        if (name === null || declared.has(name) || seen.has(name)) continue;
+        seen.add(name);
+        problems.push(`${rel}  «${match[0]}» يشير إلى توكن غير معرَّف — سيُرسم أسود`);
+      }
+    }
+  }
+}
+
 checkUnits();
 checkStringifiedNumbers();
+checkColourUtilities();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -295,5 +374,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن.',
 );

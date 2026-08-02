@@ -812,6 +812,8 @@ enum ServiceRequestStatus {
 
 model InspectionReport {
   id               String   @id @default(cuid())
+  /// رقم يُقتبَس ويُبحث به — `cuid` لا يُملى في مكالمة هاتف
+  ref              String   @unique
   serviceRequestId String   @unique
   vehicleId        String
   score            Int // 0–100

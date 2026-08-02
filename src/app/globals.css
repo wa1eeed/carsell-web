@@ -278,3 +278,40 @@
     cursor: default;
   }
 }
+
+
+/**
+ * الطباعة — «تحميل PDF» في Wd.
+ *
+ * مولّد PDF عربي على الخادم يحتاج تضمين خطّ وتشكيل حروف واتجاهًا، وكلٌّ
+ * منها موضع خطأ صامت يُخرج تقريرًا بحروف مقطّعة. وطباعة المتصفّح تعرف
+ * العربية أصلًا وتُنتج ملفًا يطابق ما رآه القارئ حرفًا بحرف.
+ *
+ * وما يُطبع **تقرير لا لقطة شاشة**: يسقط التنقّل والأزرار، وتظهر
+ * الروابط بنصّها، ولا يُقطع جدول بين صفحتين.
+ */
+@media print {
+  header nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  table,
+  figure,
+  section {
+    break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}

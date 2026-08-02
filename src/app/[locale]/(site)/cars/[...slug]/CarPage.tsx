@@ -147,8 +147,8 @@ export function CarPage({
             </div>
 
             {inspection === null ? null : (
-              <a
-                href="#inspection"
+              <Link
+                href={`${canonical.path}/inspection`}
                 className="flex shrink-0 items-center gap-3 rounded-lg border border-accent-200 bg-accent-100 p-3.5"
               >
                 <ScoreRing score={inspection.score} size="sm" />
@@ -160,7 +160,7 @@ export function CarPage({
                     {t('readFullReport')}
                   </span>
                 </span>
-              </a>
+              </Link>
             )}
           </header>
 

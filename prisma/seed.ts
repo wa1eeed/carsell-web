@@ -911,14 +911,59 @@ async function main(): Promise<void> {
     }
   }
 
-  // ————— تقريرا فحص كاملان —————
+  // ————— تقريرا فحص كاملان — ٢١٠ نقطة لكلٍّ منهما —————
+  /**
+   * النقاط أسماء حقيقية لا معرّفات مصطنعة: تقرير فحص يقرؤه مشترٍ
+   * ليقرّر شراءً، و«الهيكل والصبغ-١٧» لا يقول له شيئًا. الأسماء في
+   * `prisma/seed-data/inspection-points.json` ومجموعها ٢١٠ بالضبط.
+   */
+  const POINTS = JSON.parse(
+    readFileSync(join(process.cwd(), 'prisma', 'seed-data', 'inspection-points.json'), 'utf8'),
+  ) as Record<string, { name: string; points: string[] }>;
+
+  /** الملاحظات المحدَّدة — الفاحص لا يكتب على كل نقطة، بل على ما يستحق. */
+  const FINDINGS: Record<string, { state: string; note: string; photos: string[] }> = {
+    'سماكة طلاء المصد الخلفي': {
+      state: 'PAINT',
+      note: 'سماكة الطلاء ١٨٠ ميكرون مقابل ١١٥ للقطع المجاورة — صبغ إصلاحي لا استبدال.',
+      photos: ['inspection/rear-bumper-1.jpg'],
+    },
+    'مساعد أمامي أيسر': {
+      state: 'NOTE',
+      note: 'بداية ترشيح زيت دون تأثير على الأداء. يُنصح بالمتابعة خلال ١٠٬٠٠٠ كم.',
+      photos: ['inspection/front-left-strut.jpg'],
+    },
+    'عمق نقشة الإطار الأمامي الأيمن': {
+      state: 'NOTE',
+      note: 'عمق النقشة ٥٫٤ ملم مقابل ٦٫٢ لبقية الإطارات.',
+      photos: ['inspection/front-right-tyre.jpg'],
+    },
+    'سماكة طلاء الرفرف الأمامي الأيمن': {
+      state: 'PAINT',
+      note: 'صبغ في الرفرف الأيمن — ٢٤٠ ميكرون.',
+      photos: ['inspection/right-fender.jpg'],
+    },
+  };
+
+  const SECTION_SCORES: Record<string, number> = {
+    engine: 96,
+    transmission: 94,
+    brakes: 89,
+    tyres: 91,
+    body: 86,
+    electric: 95,
+  };
+
+  const SECTION_NOTES: Record<string, string> = {
+    engine: 'ضغط متساوٍ على الأسطوانات، لا تسريب زيت.',
+    transmission: 'تعشيق سلس، لا اهتزاز عند التسارع.',
+    brakes: 'الأقراص الأمامية ٧٢٪ من العمر، ومساعد أمامي أيسر بداية ترشيح.',
+    tyres: 'الإطارات الأمامية بعمر سنتين، والخلفية بثلاث.',
+    body: 'هيكل سليم بلا حوادث مسجّلة. صبغ على المصد الخلفي فقط.',
+    electric: 'جميع الأنظمة تعمل، وشحن البطارية ضمن المدى.',
+  };
+
   const inspectionServiceId = services.get('inspection') as string;
-  const SECTIONS = [
-    ['الهيكل والصبغ', 84],
-    ['المحرك والناقل', 96],
-    ['الإطارات والفرامل', 88],
-    ['الكهرباء والمقصورة', 95],
-  ] as const;
 
   for (let i = 0; i < 2; i += 1) {
     const l = listings[i] as ListingRef;
@@ -937,33 +982,46 @@ async function main(): Promise<void> {
       },
     });
 
+    const sections = Object.entries(POINTS).map(([key, section]) => ({
+      key,
+      name: section.name,
+      score: SECTION_SCORES[key] ?? 90,
+      note: SECTION_NOTES[key] ?? null,
+      points: section.points.map((label, n) => {
+        const finding = i === 0 ? FINDINGS[label] : undefined;
+        return {
+          id: `${key}-${n + 1}`,
+          label,
+          state: finding?.state ?? 'OK',
+          note: finding?.note ?? null,
+          photos: finding?.photos ?? [],
+        };
+      }),
+    }));
+
     await prisma.inspectionReport.create({
       data: {
+        ref: `INS-2026-${String(41800 + i)}`,
         serviceRequestId: request.id,
         vehicleId: l.vehicleId,
         score: 92 - i * 5,
         inspectorName: i === 0 ? 'م. تركي الشمري' : 'م. بدر المطيري',
         inspectedAt: days(-between(5, 20)),
-        sections: SECTIONS.map(([name, score]) => ({
-          name,
-          score,
-          points: Array.from({ length: 52 }, (_, n) => ({
-            id: `${name}-${n + 1}`,
-            ok: n % 17 !== 0,
-          })),
-        })),
+        sections,
         paintMap: {
+          summary:
+            'هيكل سليم بلا حوادث مسجّلة. صبغ على المصد الخلفي فقط بسماكة ١٨٠ ميكرون. لا آثار لحام أو استبدال في أي قطعة أساسية.',
           frontBumper: 'original',
           hood: 'original',
+          roof: 'original',
+          trunk: 'original',
+          rearBumper: i === 0 ? 'repainted' : 'original',
           frontRightFender: i === 0 ? 'repainted' : 'original',
           frontLeftFender: 'original',
           rightFrontDoor: 'original',
-          rightRearDoor: 'original',
           leftFrontDoor: 'original',
+          rightRearDoor: 'original',
           leftRearDoor: 'original',
-          roof: 'original',
-          trunk: i === 1 ? 'unmeasured' : 'original',
-          rearBumper: 'original',
         },
       },
     });
