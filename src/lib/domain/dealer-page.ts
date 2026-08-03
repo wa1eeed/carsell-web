@@ -31,7 +31,8 @@ export type PublicDealer = {
   joinedAt: string;
   listingCount: number;
   soldCount: number;
-  listings: (ListingCard & { path: string })[];
+  // اسمٌ واحد للمسار في كل الشاشات — `href` كما في البحث والرئيسية
+  listings: ListingCard[];
 };
 
 /**
@@ -66,7 +67,11 @@ export async function getDealerPage(
       include: {
         // الفحص على المركبة لا على الإعلان — وأحدثه هو المعروض
         vehicle: {
-          include: { inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 } },
+          include: {
+            inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
+            // بلا `brand.slug` يُبنى الرابط بالاسم العربي فيُحوَّل ٣٠١
+            brand: { select: { slug: true } },
+          },
         },
         images: { orderBy: { sort: 'asc' } },
         auction: { include: { _count: { select: { bids: true } } } },
@@ -126,7 +131,7 @@ export async function getDealerPage(
         highestBid: null,
         bidderCount: row.auction?._count.bids ?? null,
         endsAt: row.auction?.endsAt.toISOString() ?? null,
-        path: canonicalPath(locale, row).path,
+        href: canonicalPath(locale, row).path,
       };
     }),
   };

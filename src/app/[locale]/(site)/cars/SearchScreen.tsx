@@ -2,6 +2,7 @@
 
 import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
@@ -491,14 +492,24 @@ export function SearchScreen({
           />
         ) : view === 'grid' ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {/*
+              **البطاقة بلا رابط ليست بطاقة.** كانت نتائج البحث تُعرض بلا
+              روابط، فيرى الزائر عشرات السيارات ولا يفتح واحدة — والرئيسية
+              كانت تلفّ بطاقاتها منذ البداية، فبقي العطل في الشاشة التي
+              يصلها أكثر الناس.
+            */}
             {result.items.map((item) => (
-              <CarCard key={item.ref} data={toCard(item)} />
+              <Link key={item.ref} href={item.href}>
+                <CarCard data={toCard(item)} />
+              </Link>
             ))}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {result.items.map((item) => (
-              <CarRow key={item.ref} data={toCard(item)} />
+              <Link key={item.ref} href={item.href}>
+                <CarRow data={toCard(item)} />
+              </Link>
             ))}
           </div>
         )}

@@ -145,7 +145,7 @@ export default async function DealerPage({
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {dealer.listings.map((listing) => (
-                <Link key={listing.ref} href={listing.path}>
+                <Link key={listing.ref} href={listing.href}>
                   <CarCard
                     data={{
                       ref: listing.ref,
