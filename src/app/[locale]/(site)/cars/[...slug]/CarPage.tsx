@@ -270,6 +270,11 @@ export function CarPage({
                   price: Number(detail.cost.price),
                   commission: Number(detail.cost.commission),
                   transferFee: Number(detail.cost.transferFee),
+                  transferAdminFee: Number(detail.cost.transferAdminFee),
+                  vatIncludedInPrice:
+                    detail.cost.vatIncludedInPrice === null
+                      ? null
+                      : Number(detail.cost.vatIncludedInPrice),
                   total: Number(detail.cost.total),
                 },
                 seller: {

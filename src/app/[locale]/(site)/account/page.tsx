@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
+import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { AccountScreen } from './AccountScreen';
 
 export const dynamic = 'force-dynamic';
@@ -54,7 +55,7 @@ export default async function AccountPage({
           </h1>
           <p className="mb-8 text-sm opacity-60">{t('subtitle')}</p>
 
-          <AccountScreen data={data} locale={locale} />
+          <AccountScreen data={data} locale={locale} taxProfile={taxProfileOf(user)} />
         </div>
       </main>
     </>

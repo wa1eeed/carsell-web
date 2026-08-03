@@ -11,6 +11,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { ScoreRing } from '@/components/ui/ScoreRing';
+import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
+import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { StatCard } from '@/components/ui/StatCard';
 import { Tabs } from '@/components/ui/Tabs';
 import type { AccountData } from '@/lib/domain/account';
@@ -53,10 +55,21 @@ function MissingFields({ data, locale }: { data: AccountData; locale: string }) 
   );
 }
 
-export function AccountScreen({ data, locale }: { data: AccountData; locale: string }) {
+export function AccountScreen({
+  data,
+  locale,
+  taxProfile,
+}: {
+  data: AccountData;
+  locale: string;
+  taxProfile: TaxProfile;
+}) {
   const t = useTranslations('account');
   const te = useTranslations('enums');
+  const tx = useTranslations('tax');
   const [tab, setTab] = useState('listings');
+  const [tax, setTax] = useState<TaxProfile>(taxProfile);
+  const [editingTax, setEditingTax] = useState(false);
 
   const date = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
     day: 'numeric',
@@ -220,6 +233,47 @@ export function AccountScreen({ data, locale }: { data: AccountData; locale: str
           </ul>
         )
       ) : null}
+
+      {/*
+        ═══ الإعدادات المالية والضريبية ═══
+
+        الحالة تُعرض شارةً لا نصًّا مدفونًا: المستخدم يريد أن يعرف بنظرة
+        أيّ وضعٍ يُطبَّق عليه، والرقم `dir="ltr"` لأنه يُقارَن خانةً بخانة.
+      */}
+      <section className="mt-9 rounded-xl border border-line p-5">
+        <h2 className="mb-3 text-sm font-bold">{tx('settingsTitle')}</h2>
+        <div className="flex flex-wrap items-center gap-3">
+          {tax.status === null ? (
+            <p className="min-w-0 flex-1 text-2xs leading-loose opacity-60">{tx('currentUnset')}</p>
+          ) : (
+            <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs">
+              <Badge tone={tax.status === 'VAT_REGISTERED' ? 'accent' : 'neutral'}>
+                {tax.status === 'VAT_REGISTERED'
+                  ? tx('currentRegistered')
+                  : tx('currentIndividual')}
+              </Badge>
+              {tax.vatNumber === null ? null : (
+                <span dir="ltr" className="bidi-isolate font-num opacity-70">
+                  {tax.vatNumber}
+                </span>
+              )}
+            </p>
+          )}
+          <Button size="sm" variant="outline" onClick={() => setEditingTax(true)}>
+            {tx('edit')}
+          </Button>
+        </div>
+      </section>
+
+      <TaxStatusDialog
+        open={editingTax}
+        onClose={() => setEditingTax(false)}
+        initial={tax}
+        onSaved={(profile) => {
+          setTax(profile);
+          setEditingTax(false);
+        }}
+      />
     </>
   );
 }

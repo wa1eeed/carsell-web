@@ -6,9 +6,11 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { db } from '@/lib/db';
+import { listBrandOptions } from '@/lib/domain/catalog-options';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
+import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { SellWizard } from './SellWizard';
 
 export const dynamic = 'force-dynamic';
@@ -45,11 +47,7 @@ export default async function SellPage({
   if (user === null) redirect(`/${locale}/auth`);
 
   const [brands, cities, stats, t] = await Promise.all([
-    db.brand.findMany({
-      where: { visible: true },
-      orderBy: { sort: 'asc' },
-      select: { id: true, nameAr: true, nameEn: true },
-    }),
+    listBrandOptions(),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
       .then((rows) => rows.map((row) => row.city).sort()),
@@ -90,6 +88,7 @@ export default async function SellPage({
 
         <div className="mx-auto w-full max-w-page px-10 py-10">
           <SellWizard
+            taxProfile={taxProfileOf(user)}
             brands={brands}
             cities={cities}
             locale={locale}

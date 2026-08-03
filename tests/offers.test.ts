@@ -309,14 +309,44 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
 
     expect(Number(order.agreedPrice)).toBe(95_000);
     expect(Number(order.transferFee)).toBe(Number(platform.transferFee));
+    /**
+     * ورسوم المعالجة تدخل الإجمالي **حين يتحمّلها المشتري وحده** —
+     * وخصمُها من البائع يقع في كشف التسوية لا هنا. وجمعُ الطرفين معًا
+     * كان سيخفي أخطر ما في الحقلين: أن يُؤخذا مرّتين.
+     */
+    const buyerShare =
+      order.processingFeeBearer === 'BUYER' ? Number(order.processingFee) : 0;
     expect(Number(order.totalAmount)).toBe(
-      Number(order.agreedPrice) + Number(order.commissionAmount) + Number(order.transferFee),
+      Number(order.agreedPrice) +
+        Number(order.commissionAmount) +
+        Number(order.transferFee) +
+        Number(order.transferAdminFee) +
+        buyerShare,
     );
-    // الضريبة مضمَّنة ١٥/١١٥ لا مضافة (قرار ١٧)
-    expect(Number(order.vatAmount)).toBeLessThan(Number(order.totalAmount));
+
+    /**
+     * ═══ الضريبة على **توريداتنا وحدها** ═══
+     *
+     * كان هذا الاختبار يؤكّد ١٥/١١٥ من الإجمالي — وهو «قرار ١٧» وقد
+     * نُسخ: الإجمالي يضمّ قيمة المركبة (مورّدها البائع) والرسم الحكوميّ
+     * (صرفٌ لسنا مورّده)، وكلاهما ليس من وعائنا.
+     *
+     * والتأكيد الآن على **القاعدة** لا على رقمٍ بعينه، فيصمد حين تُفعَّل
+     * العمولة أو يُفعَّل الرسم الإداريّ.
+     */
+    const ourBase =
+      Number(order.commissionAmount) +
+      Number(order.transferAdminFee) +
+      Number(order.processingFee);
     expect(Number(order.vatAmount)).toBeCloseTo(
+      (ourBase * Number(platform.vatPct)) / (100 + Number(platform.vatPct)),
+      2,
+    );
+
+    // والرسم الحكوميّ خارج الوعاء — تأكيدٌ صريح لا استنتاج
+    expect(Number(order.transferFee)).toBeGreaterThan(0);
+    expect(Number(order.vatAmount)).toBeLessThan(
       (Number(order.totalAmount) * Number(platform.vatPct)) / (100 + Number(platform.vatPct)),
-      1,
     );
     await teardown();
   });

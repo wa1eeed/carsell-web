@@ -1,5 +1,6 @@
 'use client';
 
+import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
@@ -140,7 +141,8 @@ export function SearchScreen({
     type: item.type,
     inspected: item.inspected,
     imageCount: item.imageCount,
-    sellerName: item.sellerName,
+    // `null` من النطاق — والتسمية هنا
+    sellerName: item.sellerName ?? ANONYMOUS_SELLER,
     sellerVerified: item.sellerVerified,
     ...(item.highestBid === null ? {} : { highestBid: Number(item.highestBid) }),
     ...(item.bidderCount === null ? {} : { bidderCount: item.bidderCount }),

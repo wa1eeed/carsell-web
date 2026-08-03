@@ -185,6 +185,35 @@ type ServiceRow = {
   providerType: ProviderType | null;
 };
 
+type TaxRuleRow = {
+  sellerType: string | null;
+  buyerType: string | null;
+  supplyType: string;
+  taxableBase: string;
+  ratePct: string | null;
+  supplierIsPlatform: boolean;
+  invoiceIssuer: string;
+  active: boolean;
+  note: string;
+};
+
+type GatewayRow = {
+  key: string;
+  nameAr: string;
+  nameEn: string;
+  status: string;
+  sort: number;
+  capabilities: Prisma.InputJsonValue;
+};
+
+type PushChannelRow = {
+  key: string;
+  nameAr: string;
+  userControllable: boolean;
+  defaultOn: boolean;
+  sort: number;
+};
+
 type AdSlotRow = {
   key: string;
   nameAr: string;
@@ -235,6 +264,10 @@ type TemplateRow = {
 async function reset(): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "CreditNote","TaxInvoiceLine","TaxInvoice","TaxRule",
+      "VehicleSaleAgreement","SettlementStatement",
+      "PaymentEvent","Payment","PaymentRouteChange","PaymentRoute","PaymentGateway",
+      "DeviceToken","NotificationPreference","PushChannel","CampaignSend","Campaign","Segment",
       "ApprovalRequest","AuditLog","Report","PriceStat","SeoTemplate","Integration",
       "AdCampaign","AdSlot","NotificationTemplate","FaqPlacement","FaqItem",
       "SavedSearch","Favorite","FinanceInput","CommissionRule","PlatformSetting",
@@ -844,10 +877,15 @@ async function main(): Promise<void> {
     const stage = STAGES[i % STAGES.length] as (typeof STAGES)[number];
     const buyer = buyers[i % buyers.length] as (typeof buyers)[number];
     const agreed = new D(String(Math.round(Number(l.askPrice) * 0.97)));
+    // رسمٌ حكوميّ يُمرَّر كما هو — صرفٌ نيابةً عن العميل، لا ضريبة لنا فيه
     const transferFee = new D('350.00');
     const total = agreed.plus(transferFee);
-    // الضريبة مضمَّنة: total × ١٥/١١٥ (قرار ١٧)
-    const vat = total.times(15).dividedBy(115).toDecimalPlaces(2);
+    /**
+     * الضريبة على **توريداتنا وحدها**: العمولة (٠٪ الآن) والرسم الإداريّ
+     * (معطَّل افتراضًا) — فصفرٌ هنا. وكانت ١٥/١١٥ من الإجمالي («قرار ١٧»
+     * وقد نُسخ)، فتحتسب ضريبةً على قيمة المركبة والرسم الحكوميّ معًا.
+     */
+    const vat = new D('0.00');
 
     const order = await prisma.order.create({
       data: {
@@ -878,7 +916,8 @@ async function main(): Promise<void> {
     await prisma.orderEvent.createMany({
       data: STAGES.slice(0, STAGES.indexOf(stage) + 1).map((s, n) => ({
         orderId: order.id,
-        type: 'stage.changed',
+        // نفس اسم `advanceStage` — واسمان لحدث واحد أسوأ من اسم غير مثالي
+        type: 'stage.advanced',
         fromStage: n === 0 ? null : (STAGES[n - 1] ?? null),
         toStage: s,
         actorType: 'system',
@@ -1050,6 +1089,114 @@ async function main(): Promise<void> {
   // ————— القوالب والمساحات الإعلانية —————
   await prisma.notificationTemplate.createMany({
     data: load<TemplateRow[]>('notification-templates.json'),
+  });
+  // ————— بوابات الدفع وتوجيه الأغراض (A20) —————
+  await prisma.paymentGateway.createMany({
+    data: load<GatewayRow[]>('payment-gateways.json').map((g) => ({
+      ...g,
+      status: g.status as 'ACTIVE' | 'INACTIVE' | 'DEGRADED',
+    })),
+  });
+  const routingAdmin = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
+  await prisma.paymentRoute.createMany({
+    data: [
+      // الضمان يحتاج ٣٠ يومًا — والمصرفية وحدها تبلغها
+      { purpose: 'VEHICLE_ESCROW', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      { purpose: 'AUCTION_DEPOSIT', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      { purpose: 'TRANSFER_FEE', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      // تحصيل فوري بلا حجز
+      { purpose: 'WALLET_TOPUP', gatewayKey: 'moyasar', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      { purpose: 'SERVICE_PURCHASE', gatewayKey: 'tap', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      // معطّل — كل الباقات مجانية
+      { purpose: 'SUBSCRIPTION', gatewayKey: 'moyasar', environment: 'TEST', enabled: false, updatedBy: routingAdmin, updatedAt: NOW },
+    ],
+  });
+
+  // ————— قواعد الضريبة (A21) — ثلاث منها تنتظر المذكرة —————
+  await prisma.taxRule.createMany({
+    data: load<TaxRuleRow[]>('tax-rules.json').map((rule) => ({
+      sellerType: rule.sellerType as never,
+      buyerType: rule.buyerType as never,
+      supplyType: rule.supplyType as never,
+      taxableBase: rule.taxableBase as never,
+      ratePct: rule.ratePct === null ? null : new D(rule.ratePct),
+      supplierIsPlatform: rule.supplierIsPlatform,
+      invoiceIssuer: rule.invoiceIssuer as never,
+      active: rule.active,
+      note: rule.note,
+      activeFrom: days(-365),
+      updatedBy: routingAdmin,
+      updatedAt: NOW,
+    })),
+  });
+
+  await prisma.pushChannel.createMany({
+    data: load<PushChannelRow[]>('push-channels.json'),
+  });
+
+  // ————— مفضّلات وبحوث محفوظة — بلاها لا تُقاس شريحة ولا تُختبر —————
+  const buyerPool = await prisma.user.findMany({
+    where: { dealerId: null },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  const publishedListings = await prisma.listing.findMany({
+    where: { status: 'PUBLISHED' },
+    select: { id: true },
+    orderBy: { ref: 'asc' },
+  });
+
+  for (const [index, buyer] of buyerPool.entries()) {
+    // ثلثا المشترين لهم مفضّلة — والباقي بلاها ليبقى للشريحة معنًى
+    if (index % 3 === 2 || publishedListings.length === 0) continue;
+    const count = between(1, 3);
+    for (let n = 0; n < count; n += 1) {
+      const listing = publishedListings[(index * 3 + n) % publishedListings.length];
+      if (listing === undefined) continue;
+      await prisma.favorite.upsert({
+        where: { userId_listingId: { userId: buyer.id, listingId: listing.id } },
+        create: { userId: buyer.id, listingId: listing.id, createdAt: days(-between(1, 40)) },
+        update: {},
+      });
+    }
+  }
+
+  // ————— شرائح وحملة — القواعد تُحوسَب وقت الإرسال لا الآن —————
+  const superAdminId = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
+  const favouriteSegment = await prisma.segment.create({
+    data: {
+      key: 'has_favourites',
+      nameAr: 'لديه مفضلة نشطة',
+      rules: [{ field: 'hasFavorites' }],
+      createdBy: superAdminId,
+      createdAt: days(-20),
+    },
+  });
+  await prisma.segment.create({
+    data: {
+      key: 'added_no_listing',
+      nameAr: 'أضاف مركبة ولم يعلن',
+      rules: [{ field: 'hasVehicle' }, { field: 'hasListing', negate: true }],
+      createdBy: superAdminId,
+      createdAt: days(-14),
+    },
+  });
+  await prisma.campaign.create({
+    data: {
+      nameAr: 'عاد سعر سيارة في مفضلتك',
+      channels: ['push'],
+      segmentId: favouriteSegment.id,
+      status: 'DRAFT',
+      createdBy: superAdminId,
+      createdAt: days(-6),
+    },
+  });
+
+  // موافقة التسويق — تُطلب ولا تُفترض، فثلث المستخدمين وافقوا
+  const consenting = await prisma.user.findMany({ select: { id: true } });
+  await prisma.user.updateMany({
+    where: { id: { in: consenting.filter((_, i) => i % 3 === 0).map((u) => u.id) } },
+    data: { marketingConsent: true, marketingConsentAt: days(-30) },
   });
   await prisma.adSlot.createMany({
     data: load<AdSlotRow[]>('ad-slots.json').map((s) => ({
@@ -1244,6 +1391,10 @@ async function main(): Promise<void> {
     خدمة: await prisma.service.count(),
     'سؤال شائع': await prisma.faqItem.count(),
     'قالب إشعار': await prisma.notificationTemplate.count(),
+    'قناة دفع': await prisma.pushChannel.count(),
+    'بوابة دفع': await prisma.paymentGateway.count(),
+    'قاعدة ضريبية': await prisma.taxRule.count(),
+    مفضّلة: await prisma.favorite.count(),
     'مساحة إعلانية': await prisma.adSlot.count(),
     'جهة تمويل': await prisma.financeProvider.count(),
     تكامل: await prisma.integration.count(),

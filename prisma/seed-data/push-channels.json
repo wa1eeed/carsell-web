@@ -1,0 +1,8 @@
+[
+  { "key": "auction_mine", "nameAr": "المزادات التي أشارك فيها", "userControllable": false, "defaultOn": true, "sort": 1 },
+  { "key": "orders_payment", "nameAr": "الطلبات والدفع", "userControllable": false, "defaultOn": true, "sort": 2 },
+  { "key": "offers_mine", "nameAr": "العروض على مركباتي", "userControllable": true, "defaultOn": true, "sort": 3 },
+  { "key": "favorite_price_drop", "nameAr": "انخفاض سعر في المفضلة", "userControllable": true, "defaultOn": true, "sort": 4 },
+  { "key": "saved_search_results", "nameAr": "نتائج جديدة لبحث محفوظ", "userControllable": true, "defaultOn": true, "sort": 5 },
+  { "key": "marketing", "nameAr": "عروض وخدمات (تسويقي)", "userControllable": true, "defaultOn": false, "sort": 6 }
+]

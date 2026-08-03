@@ -311,6 +311,17 @@
   },
   "units": {
     "orders": "{count, plural, one{{n} order} other{{n} orders}}",
+    "paymentPurposes": "{count, plural, one{{n} payment purpose} other{{n} payment purposes}}",
+    "gateways": "{count, plural, one{{n} gateway} other{{n} gateways}}",
+    "inFlight": "{count, plural, one{{n} in flight} other{{n} in flight}}",
+    "messages": "{count, plural, one{{n} message} other{{n} messages}}",
+    "transactionalNotifications": "{count, plural, one{{n} transactional notification} other{{n} transactional notifications}}",
+    "characters": "{count, plural, one{{n} character} other{{n} characters}}",
+    "smsSegments": "{count, plural, one{{n} segment} other{{n} segments}}",
+    "notifications": "{count, plural, one{{n} notification} other{{n} notifications}}",
+    "newCustomers": "{count, plural, one{{n} new customer} other{{n} new customers}}",
+    "buyers": "{count, plural, one{{n} buyer} other{{n} buyers}}",
+    "openRequests": "{count, plural, one{{n} open} other{{n} open}}",
     "bidders": "{count, plural, one{{n} bidder} other{{n} bidders}}",
     "deals": "{count, plural, one{{n} deal} other{{n} deals}}",
     "days": "{count, plural, one{{n} day} other{{n} days}}",
@@ -332,7 +343,13 @@
     "articles": "{count, plural, one{{n} article} other{{n} articles}}",
     "seconds": "{count, plural, one{{n} second} other{{n} seconds}}",
     "views": "{count, plural, one{{n} view} other{{n} views}}",
-    "offers": "{count, plural, one{{n} offer} other{{n} offers}}"
+    "offers": "{count, plural, one{{n} offer} other{{n} offers}}",
+    "exceeded": "{count, plural, one{{n} exceeded} other{{n} exceeded}}",
+    "accesses": "{count, plural, one{{n} access} other{{n} accesses}}",
+    "taxRules": "{count, plural, =0{no rules} one{one rule} other{{n} rules}}",
+    "activeRules": "{count, plural, =0{none active} one{one active} other{{n} active}}",
+    "awaitingRules": "{count, plural, =0{none} one{one} other{{n}}}",
+    "creditNotes": "{count, plural, =0{no credit notes} one{one credit note} other{{n} credit notes}}"
   },
   "search": {
     "title": "Browse cars",
@@ -493,6 +510,40 @@
       "PAYMENT": "Payment",
       "TRANSFER": "Transfer",
       "DONE": "Done"
+    },
+    "escrowStatus": {
+      "PENDING": "Pending",
+      "HELD": "Held",
+      "RELEASED": "Released",
+      "REFUNDED": "Refunded",
+      "PARTIAL_REFUND": "Partial refund"
+    },
+    "orderStatus": {
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "STALLED": "Stalled",
+      "DISPUTED": "Disputed"
+    },
+    "orderSource": {
+      "DIRECT": "Direct sale",
+      "OFFER": "Offer",
+      "AUCTION": "Auction",
+      "BUY_NOW": "Buy now"
+    },
+    "disputeStatus": {
+      "OPEN": "Open",
+      "INVESTIGATING": "Investigating",
+      "RESOLVED_BUYER": "For the buyer",
+      "RESOLVED_SELLER": "For the seller",
+      "CLOSED": "Closed"
+    },
+    "auctionStatus": {
+      "SCHEDULED": "Upcoming",
+      "LIVE": "Live",
+      "ENDED_MET": "Ended — reserve met",
+      "ENDED_UNMET": "Ended — reserve not met",
+      "CANCELLED": "Cancelled"
     }
   },
   "services": {
@@ -657,5 +708,151 @@
     "filledPrefix": "Filled",
     "filledSuffix": "fields — check them",
     "vinFailedQuiet": "Could not fetch; continue manually."
+  },
+  "order": {
+    "subtitle": "Where your order and your money stand.",
+    "vehicle": "Vehicle",
+    "timeline": "Order timeline",
+    "escrow": "Escrow",
+    "amounts": "Amounts",
+    "price": "Car price",
+    "commission": "Platform commission",
+    "transferFee": "Transfer fee",
+    "total": "Total",
+    "vatIncluded": "Platform fees include VAT · the ownership-transfer fee is a government charge passed on unchanged",
+    "status": "Status",
+    "inStageFor": "In this stage for",
+    "payBy": "Payment due by",
+    "disputeOpen": "A dispute is open on this order",
+    "disputeFrozen": "The order is frozen at its stage: it neither advances nor lapses until the dispute is resolved.",
+    "slaDue": "Response due by",
+    "event": {
+      "stage": {
+        "advanced": "Stage advanced"
+      },
+      "dispute": {
+        "opened": "Dispute opened",
+        "resolved": "Dispute resolved"
+      },
+      "payment": {
+        "timeout": "Payment window missed"
+      },
+      "other": "Order update"
+    },
+    "escrowState": {
+      "PENDING": "Funds not yet held.",
+      "HELD": "Funds are held and have not reached the seller.",
+      "RELEASED": "Funds released to the seller.",
+      "REFUNDED": "Funds refunded in full to the buyer.",
+      "PARTIAL_REFUND": "Part of the amount was refunded to the buyer."
+    },
+    "documents": "Deal documents",
+    "documentsNote": "Issued and upcoming — each at its own moment.",
+    "docKind": {
+      "AGREEMENT": "Sale agreement",
+      "SETTLEMENT": "Settlement statement",
+      "INVOICE": "Tax invoice"
+    },
+    "docAt": {
+      "TRANSFER_CONFIRMED": "Issued when ownership transfer is confirmed",
+      "SETTLED": "Issued when the funds are released"
+    },
+    "docSupply": {
+      "COMMISSION": "for commission",
+      "SERVICE": "for services",
+      "VEHICLE": "for the vehicle"
+    },
+    "docNumber": "Invoice number",
+    "settlementTitle": "Your net proceeds",
+    "settlementPreview": "Estimate: computed from the amount held now, fixed as a statement on release.",
+    "settlementNotInvoice": "A financial statement, not a tax invoice.",
+    "settlementRow": {
+      "vehicleValue": "Vehicle value",
+      "commission": "Platform commission",
+      "gatewayFee": "Payment gateway fee",
+      "netToSeller": "Your net"
+    },
+    "adminFee": "Administrative fee"
+  },
+  "auctions": {
+    "title": "Auctions",
+    "intro": "Live bidding on ownership-verified vehicles, with a refundable deposit and escrow.",
+    "tab": {
+      "live": "Live now",
+      "soon": "Upcoming",
+      "ended": "Ended"
+    },
+    "empty": {
+      "live": "No live auctions right now",
+      "soon": "No upcoming auctions",
+      "ended": "No ended auctions"
+    },
+    "emptyBody": "Check back — auctions are added weekly.",
+    "viewListing": "Vehicle page →",
+    "bidLog": "Bid log",
+    "noBids": "No bids yet.",
+    "bidder": "Bidder",
+    "auto": "Auto",
+    "openingPrice": "Opening price",
+    "highestBid": "Highest bid",
+    "minimumBid": "Minimum",
+    "reserveMet": "Reserve met",
+    "reserveNotMet": "Reserve not met yet",
+    "extendedTimes": "Extended",
+    "outOf": "of",
+    "placeBid": "Place a bid",
+    "depositRequired": "Deposit",
+    "buyNow": "Buy now for",
+    "countLive": "live",
+    "countSoon": "upcoming",
+    "countEnded": "ended"
+  },
+  "inbox": {
+    "title": "Offers",
+    "intro": "Offers you received and offers you sent.",
+    "tab": {
+      "active": "Received",
+      "sent": "Sent",
+      "closed": "Closed"
+    },
+    "empty": {
+      "active": "No offers received",
+      "sent": "You have not sent any offers",
+      "closed": "No closed offers"
+    },
+    "emptyBody": "Only active offers appear here — closed ones move to the Closed tab.",
+    "received": "Received",
+    "sentBy": "Sent",
+    "asking": "Asking"
+  },
+  "tax": {
+    "prompt": "To organise your transactions and issue invoices as required, please state your tax status:",
+    "title": "Your tax status",
+    "individual": "I am an individual (not registered for VAT)",
+    "registered": "I am a business or an individual registered for VAT",
+    "vatPlaceholder": "Enter the 15-digit VAT number",
+    "vatLabel": "VAT number",
+    "save": "Save and continue",
+    "saving": "Saving…",
+    "once": "Asked once; you can change it later in settings.",
+    "error": {
+      "EMPTY": "Enter the VAT number.",
+      "LENGTH": "The VAT number is 15 digits.",
+      "PATTERN": "A VAT number starts and ends with 3 — check what you pasted.",
+      "SAVE": "Could not save, try again."
+    },
+    "settingsTitle": "Financial and tax settings",
+    "currentIndividual": "Current status: individual",
+    "currentRegistered": "Current status: registered business",
+    "currentUnset": "Not set yet — you will be asked at your first listing or first purchase.",
+    "edit": "Edit details",
+    "sellerIndividual": "Individual seller",
+    "sellerRegistered": "VAT-registered seller",
+    "priceFinal": "Final price — no VAT on the vehicle",
+    "priceWithVat": "VAT included",
+    "vatShare": "of which VAT",
+    "listingTaxable": "This vehicle belongs to a taxable business activity",
+    "listingTaxableHint": "Changes the tax treatment of this listing only.",
+    "adminFeeRow": "Administrative fee"
   }
 }

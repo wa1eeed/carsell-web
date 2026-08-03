@@ -8,19 +8,23 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:check": "BUILD_DIR=.next-check next build",
+    "verify": "tsc --noEmit && eslint . && node scripts/check-tokens.mjs && node scripts/generate-api-docs.mjs --check && vitest run",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:tokens": "node scripts/check-tokens.mjs",
     "check:schema": "tsx scripts/check-schema.ts",
     "check": "npm run typecheck && npm run lint && npm run check:tokens && npm test",
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate && rm -rf .next && echo '\n  ⚠  .next مُسح — أعِد تشغيل خادم التطوير، وإلّا سقط بـMODULE_NOT_FOUND\n'",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "docs:generate": "node scripts/generate-api-docs.mjs",
+    "docs:check": "node scripts/generate-api-docs.mjs --check"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",

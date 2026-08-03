@@ -69,7 +69,7 @@ export type VerifyOtpResult =
 function hashCode(challengeId: string, code: string): string {
   const pepper = process.env.OTP_PEPPER;
   if (pepper === undefined || pepper === '') {
-    throw new Error('OTP_PEPPER غير مضبوط — راجع .env.example');
+    throw new Error('OTP_PEPPER is unset — see .env.example');
   }
   return createHash('sha256').update(`${pepper}:${challengeId}:${code}`).digest('hex');
 }

@@ -36,7 +36,37 @@ model User {
   status       UserStatus @default(ACTIVE)
   idVerified   Boolean    @default(false)
   idVerifiedAt DateTime?
+
+  /// ═══ الوضع الضريبيّ — **مؤجَّلٌ لا منسيّ** ═══
+  ///
+  /// `null` تعني **لم يُسأل بعد**، وهي جوهر التأجيل: التسجيل بالجوال
+  /// وحده، والسؤال عند أوّل إجراء حقيقيّ. ولا يصلح `INDIVIDUAL` افتراضًا
+  /// — فيصير التصنيف اختيارَنا لا اختيارَه، ونحن نُصدر عنه فواتير.
+  ///
+  /// **والتسجيل ليس صفة تاجر**: فردٌ قد يكون مسجَّلًا في القيمة المضافة،
+  /// ولذلك الحقل على `User` لا على `Dealer`.
+  taxStatus      TaxStatus?
+  /// ١٥ رقمًا — يُخزَّن Latin مطبَّعًا، ويُعرض ويُنسخ `dir="ltr"`
+  vatNumber      String?
+  taxStatusSetAt DateTime?
+
+  /// ═══ هامش الربح — على **التسجيل** لا على صفة المعرض ═══
+  ///
+  /// يمنحه الأدمن بمستند من الهيئة، **ولا يُطبَّق تلقائيًّا أبدًا**. وكان
+  /// على `Dealer` فتعذّر منحُه لفردٍ مسجَّل لا صفّ معرضٍ له — والاستحقاق
+  /// يتبع الرقم الضريبيّ لا نوع الحساب.
+  ///
+  /// **ولا يسري بلا تسجيل**: اعتمادٌ على غير مسجَّل لا معنى له، و
+  /// `marginApprovedFor` تشترط الاثنين معًا فلا يمرّ أحدهما وحده.
+  marginSchemeApproved Boolean   @default(false)
+  marginSchemeRef      String?
+  marginSchemeBy       String?
+  marginSchemeAt       DateTime?
+
   iban         String? // مشفّر
+  /// موافقة التسويق — **تُطلب ولا تُفترض** (ضوابط A9).
+  marketingConsent   Boolean   @default(false)
+  marketingConsentAt DateTime?
   dealerId     String?
   createdAt    DateTime   @default(now())
 
@@ -56,6 +86,10 @@ model User {
   invoices        Invoice[]
   overrides       EntitlementOverride[]
   notifications   Notification[]
+  campaignSends   CampaignSend[]
+  pushPreferences NotificationPreference[]
+  deviceTokens    DeviceToken[]
+  wallet          Wallet?
 
   @@index([status, createdAt])
   @@index([dealerId])
@@ -130,6 +164,14 @@ enum AdminRole {
  * ولا فواتير ولا استيراد جماعي هنا.
  */
 model Dealer {
+  /// ═══ مهجور — انتقل الاعتماد إلى `User` ═══
+  /// الاعتماد على **التسجيل الضريبيّ** لا على صفة المعرض: فردٌ مسجَّل قد
+  /// يستحقّه ولا صفّ معرضٍ له. تُقرأ للتوافق ولا يُكتب فيها.
+  marginSchemeApproved Boolean   @default(false)
+  marginSchemeRef      String?
+  marginSchemeBy       String?
+  marginSchemeAt       DateTime?
+
   id          String       @id @default(cuid())
   slug        String       @unique
   nameAr      String
@@ -418,6 +460,14 @@ model Listing {
   type           ListingType
   status         ListingStatus @default(DRAFT)
   askPrice       Decimal       @db.Decimal(12, 2)
+  /// ═══ استثناء الإعلان الواحد ═══
+  ///
+  /// `null` تعني «اتبع وضع البائع» — وهو الحال الغالب. وقيمةٌ صريحة
+  /// تعني أن هذا الإعلان وحده يخالفه: مركبةٌ تابعة لنشاط تجاريّ خاضع
+  /// عند بائعٍ فرد، أو العكس.
+  ///
+  /// و`null` ليست `false`: الأولى تفويض، والثانية إقرارٌ بعدم الخضوع.
+  taxableSupply  Boolean?
   minAcceptPrice Decimal?      @db.Decimal(12, 2) // مخفي عن المشترين — لا يخرج في استجابة عامة
   negotiable     Boolean       @default(false)
   city           String
@@ -541,6 +591,8 @@ model Auction {
   status         AuctionStatus @default(SCHEDULED)
   viewingCity    String?
   viewingAddress String?
+  /// مهلة البائع لقبول أعلى مزايدة بعد إغلاق باحتياطي غير مبلوغ (19e)
+  sellerDecisionDueAt DateTime?
 
   listing  Listing   @relation(fields: [listingId], references: [id], onDelete: Restrict)
   bids     Bid[]
@@ -611,6 +663,12 @@ model Order {
 
   // قرار ١٧ — رسوم النقل لقطةً من PlatformSetting، والضريبة مضمَّنة ١٥/١١٥
   transferFee Decimal @default(0) @db.Decimal(12, 2)
+  /// لقطة الرسم الإداريّ — **سطرٌ مستقلّ عن `transferFee` دائمًا**
+  transferAdminFee Decimal @default(0) @db.Decimal(12, 2)
+  /// لقطة رسوم المعالجة ومن تحمّلها — والقيمة تبقى وإن تغيّرت السياسة
+  processingFee       Decimal   @default(0) @db.Decimal(12, 2)
+  processingFeeBearer FeeBearer @default(SELLER)
+  /// ضريبة **توريداتنا نحن** — لا ضريبة المركبة ولا الرسم الحكوميّ
   vatAmount   Decimal @default(0) @db.Decimal(12, 2)
   totalAmount Decimal @default(0) @db.Decimal(12, 2)
 
@@ -618,8 +676,22 @@ model Order {
   /// انتقال مرحلة، فلا يصلح لترتيب «طلباتي» ولا لأي قياس زمني.
   createdAt             DateTime  @default(now())
   stageEnteredAt        DateTime  @default(now()) // لحساب مدة البقاء
+  /// موعد انتهاء مهلة الدفع. **حقل واحد للمهلة** — انظر التعليق أدناه.
   paymentDueAt          DateTime?
+  /// المتبقّي من المهلة لحظة التجميد بالنزاع، لتُستأنف من حيث توقّفت
+  paymentPausedRemainingMs Int?
+  /// مبلغ التسوية الجزئية — البيع يكتمل بسعر أقلّ، والسعر الأصلي في
+  /// `agreedPrice` يبقى. الفاتورة بالمُسوَّى، والتدقيق يحتاج الاثنين.
+  settlementAmount      Decimal?  @db.Decimal(12, 2)
   transferAppointmentAt DateTime?
+  /// ═══ القاعدة ١ ═══ سقف النقل: الدفع + ٧ أيام.
+  /// لم يكتمل ⇒ استرجاع تلقائيّ للمشتري. وللأدمن تمديدٌ **واحد**.
+  transferDeadlineAt      DateTime?
+  transferDeadlineExtendedAt DateTime?
+  transferExtensionReason    String?
+  /// ═══ القاعدة ٢ ═══ نافذة الاسترجاع: تأكيد النقل + ٧ أيام.
+  /// **لا إفراج للبائع قبل انقضائها** — وهي جزء من عمر الحجز لا ملحق به.
+  returnWindowEndsAt      DateTime?
   cancelledBy           String?
   cancelReason          String?
 
@@ -628,6 +700,10 @@ model Order {
   seller   User         @relation("OrderSeller", fields: [sellerId], references: [id], onDelete: Restrict)
   events   OrderEvent[]
   escrow   Escrow?
+  payments Payment[]
+  taxInvoices TaxInvoice[]
+  settlement  SettlementStatement?
+  agreement   VehicleSaleAgreement?
   disputes Dispute[]
   invoices Invoice[]
 
@@ -676,6 +752,36 @@ model OrderEvent {
   @@index([orderId, createdAt])
 }
 
+/// محفظة المستخدم — **دفتر قيود، والرصيد مشتقّ منه**.
+///
+/// رصيدٌ مخزَّن في عمود يفترق عن مجموع قيوده عند أوّل كتابة تفشل بعد
+/// أخرى، ولا يظهر الفرق إلا عند مطالبة. القيود لا تُعدَّل ولا تُحذف —
+/// التصحيح قيدٌ مضادّ يبقى أثره.
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  entries WalletEntry[]
+}
+
+model WalletEntry {
+  id        String   @id @default(cuid())
+  walletId  String
+  /// موجب إيداع وسالب سحب — والمجموع هو الرصيد
+  amount    Decimal  @db.Decimal(12, 2)
+  kind      String // settlement_refund | payout | topup | adjustment
+  orderId   String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([walletId, createdAt])
+  @@index([orderId])
+}
+
 model Escrow {
   id                String       @id @default(cuid())
   orderId           String       @unique
@@ -684,7 +790,8 @@ model Escrow {
   heldAt            DateTime?
   releasedAt        DateTime?
   // الموافقة الثنائية عبر ApprovalRequest بـ kind = ESCROW_RELEASE — آلية واحدة لكل الإجراءات الثنائية
-  providerRef       String?
+  /// مرجع لدى البوابة — «بوابة» لا «مزوّد»، فالمفردة واحدة في المخطّط والنطاق
+  gatewayRef        String?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 }
@@ -703,9 +810,17 @@ model Dispute {
   openedBy   String
   reason     String
   status     DisputeStatus @default(OPEN)
+  /// مهلة الردّ — **من فتح النزاع لا من آخر رسالة**. صمت أحد الطرفين
+  /// لا يمدّدها، وإلّا صار التجاهل استراتيجية.
   slaDueAt   DateTime
-  resolution String?
+  resolution String? // FULL_REFUND | PARTIAL_SETTLEMENT | RELEASE_TO_SELLER
+  /// مبلغ التسوية الجزئية — `null` لغيرها
+  resolutionAmount Decimal? @db.Decimal(12, 2)
   resolvedBy String?
+  resolvedAt DateTime?
+  /// طلب الموافقة الذي نُفِّذ به القرار — لا قرار بلا موافقة عضوين
+  approvalId String?
+  openedAt   DateTime      @default(now())
   messages   Json[]
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
@@ -763,6 +878,13 @@ model Service {
   descAr      String
   descEn      String
   price       Decimal         @db.Decimal(10, 2)
+  /// ═══ الرسم الإداريّ — **ملكنا وخاضع للضريبة** ═══
+  ///
+  /// و`price` أعلاه قد يكون صرفًا نيابةً عن العميل (رسم حكوميّ أو مقدّم
+  /// خدمة)، وهذا حقلٌ **منفصل** لا زيادةٌ عليه: لحظة نضيف هامشًا داخل
+  /// `price` نفسه يسقط وصف «الصرف» عن المبلغ كلّه فيصير توريدنا كاملًا.
+  adminFeeEnabled Boolean @default(false)
+  adminFee        Decimal @default(0) @db.Decimal(10, 2)
   category    ServiceCategory
   providerId  String?
   isAutomated Boolean         @default(false)
@@ -791,6 +913,9 @@ model ServiceRequest {
   status     ServiceRequestStatus @default(NEW)
   providerId String?
   amount     Decimal              @db.Decimal(10, 2)
+  /// لقطةٌ وقت الإنشاء — كـ`amount` تمامًا: تعديل الرسم لاحقًا لا يمسّ
+  /// طلبًا قائمًا. ومعيار A7 يسري على الرسم كما يسري على السعر.
+  adminFee   Decimal              @default(0) @db.Decimal(10, 2)
   dueAt      DateTime?
   resultUrl  String? // PDF في R2
   createdAt  DateTime             @default(now())
@@ -932,9 +1057,74 @@ model CommissionRule {
 
 /// قرار ١٧ — إعدادات المنصة: رسوم النقل ونسبة الضريبة.
 /// صفّ واحد؛ القيَم تُنسخ لقطةً إلى الطلب وقت إنشائه.
+/// من يتحمّل رسوم معالجة الدفع.
+/// حالة مطابقة يومٍ لبوابة.
+enum ReconciliationStatus {
+  /// طوبقت ولا فرق
+  MATCHED
+  /// ثمّة فرق — وله جدولُ معاملاتٍ لا مجموعٌ وحده
+  DIFFERS
+  /// تعذّرت قراءة تسوية البوابة — **ليست تطابقًا**
+  UNAVAILABLE
+}
+
+/// ═══ المطابقة اليومية — دفترُنا مرآة ═══
+///
+/// **والمرآة التي لا تُقارَن بالأصل ليست مرآة.** يقرأ التشغيلُ تسوية كل
+/// بوابة ويقارنها بما عندنا، ويكتب صفًّا لكل (بوابة، يوم).
+///
+/// و`UNAVAILABLE` حالٌ ثالثة لا تُختزل في «تطابقت»: بوابةٌ لم تُقرأ لم
+/// تُطابَق، واختزالُها يجعل صمت المزوّد يبدو سلامةً.
+model ReconciliationRun {
+  id          String                @id @default(cuid())
+  gatewayKey  String
+  /// يوم التسوية — لا لحظة التشغيل
+  date        DateTime              @db.Date
+  ourTotal    Decimal               @db.Decimal(14, 2)
+  gatewayTotal Decimal?             @db.Decimal(14, 2)
+  diff        Decimal               @default(0) @db.Decimal(14, 2)
+  status      ReconciliationStatus
+  /// المعاملات المختلفة وحدها — لا المجاميع. الفرق حدثٌ يُعالَج.
+  mismatches  Json                  @default("[]")
+  note        String?
+  ranAt       DateTime              @default(now())
+
+  @@unique([gatewayKey, date])
+  @@index([status, date])
+}
+
+enum FeeBearer {
+  /// خصمٌ من مستحقّ البائع — لا يظهر في إجمالي المشتري
+  SELLER
+  /// إضافةٌ إلى إجمالي المشتري — لا يُخصم من البائع
+  BUYER
+}
+
 model PlatformSetting {
   id          String  @id @default("default")
+  /// **رسمٌ حكوميّ يُمرَّر كما هو** — صرفٌ نيابةً عن العميل، خارج نطاق
+  /// فاتورتنا ولا ضريبة لنا فيه. (يُصحّح «قرار ١٧»: لا ١٥/١١٥ هنا.)
   transferFee Decimal @default(350) @db.Decimal(10, 2)
+  /// رسمنا الإداريّ على إجراء النقل — توريدُ خدمةٍ منّا، خاضع للضريبة
+  transferAdminFeeEnabled Boolean @default(false)
+  transferAdminFee        Decimal @default(0) @db.Decimal(10, 2)
+
+  /// ═══ رسوم معالجة الدفع — **توريدٌ منّا لا صرفٌ نيابةً** ═══
+  ///
+  /// وهذا يفرقها عن رسم المرور: البوابة تفوتر **نحن** لا العميل، فنحن
+  /// المدين بها. وتمريرُها إلى أيّ من الطرفين إعادةُ تحميلِ تكلفتنا —
+  /// أي توريدُ خدمةٍ منّا خاضع للضريبة، لا صرفًا خارج النطاق.
+  ///
+  /// ولا علاقة لها بـ`PaymentGateway.capabilities.feePct`: تلك **ما
+  /// تأخذه البوابة منّا** (تكلفتنا)، وهذه **ما نأخذه نحن** (سياستنا).
+  /// وخلطُهما يجعل تغيير عقدٍ مع مزوّد يغيّر ما ندفعه للبائعين صمتًا.
+  processingFeeEnabled Boolean   @default(false)
+  /// خصمًا من البائع أو إضافةً على المشتري — **لا كليهما**
+  processingFeeBearer  FeeBearer @default(SELLER)
+  /// نسبةٌ ومبلغٌ ثابت **يجتمعان**: النسبة × القيمة + الثابت
+  processingFeePct     Decimal   @default(0) @db.Decimal(5, 2)
+  processingFeeFixed   Decimal   @default(0) @db.Decimal(10, 2)
+
   vatPct      Decimal @default(15) @db.Decimal(5, 2)
 }
 
@@ -1218,18 +1408,44 @@ model EntitlementOverride {
 /// A11 — كل مزوّد خارجي. المفاتيح مشفّرة ولا تُعرض كاملة،
 /// والتدوير يمرّ بـApprovalRequest بـ kind = KEY_ROTATION.
 model Integration {
-  key              String              @id // otp_sms | nafath | moyasar | r2 …
-  nameAr           String
-  provider         String
-  category         IntegrationCategory
-  status           IntegrationStatus   @default(INACTIVE)
-  configPublic     Json?
-  secretsEncrypted String?
-  lastCheckAt      DateTime?
-  lastCheckOk      Boolean?
-  failureBehavior  String
+  key             String              @id // otp_sms | nafath | moyasar | r2 …
+  nameAr          String
+  provider        String
+  category        IntegrationCategory
+  status          IntegrationStatus   @default(INACTIVE)
+  configPublic    Json?
+  /// ═══ قرار ٣٣ ═══ البيئة الفعّالة. وstaging مقيَّد بـTEST في الكود
+  /// لا بالانضباط — `effectiveEnvironment()` تتجاهل هذا الحقل خارج الإنتاج.
+  activeEnv       IntegrationEnv      @default(TEST)
+  lastCheckAt     DateTime?
+  lastCheckOk     Boolean?
+  failureBehavior String
+
+  credentials IntegrationCredential[]
 
   @@index([category, status])
+}
+
+enum IntegrationEnv {
+  TEST
+  LIVE
+}
+
+/// مفاتيح تكامل في بيئة واحدة.
+///
+/// جدولٌ مستقلّ لا عمودان: التلميحات والتدوير وتاريخ آخر تغيير كلّها
+/// **لكل بيئة**، وعمودان يجعلانها تتشارك صفًّا واحدًا فتختلط.
+model IntegrationCredential {
+  integrationKey   String
+  env              IntegrationEnv
+  secretsEncrypted String?
+  /// تلميحات معروضة — مخزَّنة نصًّا وقت الكتابة، فالعرض لا يفكّ تشفيرًا
+  hints            Json?
+  updatedAt        DateTime       @updatedAt
+
+  integration Integration @relation(fields: [integrationKey], references: [key], onDelete: Cascade)
+
+  @@id([integrationKey, env])
 }
 
 enum IntegrationCategory {
@@ -1269,8 +1485,15 @@ model ApprovalRequest {
 
 enum ApprovalKind {
   ESCROW_RELEASE
+  DISPUTE_RESOLUTION
   KEY_ROTATION
+  /// قرار ٣٣ — تبديل بيئة تكامل بين الاختبار والإنتاج
+  INTEGRATION_ENV
+  /// قرار ٣٤ — تبديل بوابة غرض دفع
+  PAYMENT_ROUTE
   COMMISSION_CHANGE
+  /// تعديل قاعدة ضريبية — أثرُها وثائقُ قانونية، فلا تُعدَّل بيدٍ واحدة
+  TAX_RULE_CHANGE
   PLAN_CHANGE
   USER_BAN
 }
@@ -1327,4 +1550,512 @@ model PriceStat {
   model Model @relation(fields: [modelId], references: [id], onDelete: Cascade)
 
   @@unique([modelId, year, trimId, mileageBucket, city])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  التسويق وإشعارات الدفع — A9 وA10 (المهمة ٢٦)
+//  هياكل تُفعَّل مع التطبيق: التخزين والقواعد هنا، والإرسال مؤجَّل.
+// ═══════════════════════════════════════════════════════════
+
+/// شريحة جمهور — **قواعد لا أعضاء**.
+///
+/// حفظ قائمة المطابقين يجعلها تكذب بعد ساعة: من ألغى موافقته التسويقية
+/// أو أتمّ صفقة يبقى في القائمة ويصله ما لا يخصّه. القواعد تُحوسَب وقت
+/// الإرسال (معيار A9).
+model Segment {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  nameAr    String
+  /// شروط مركَّبة: [{ field, op, value }] — تُقرأ في resolveSegment
+  rules     Json
+  createdBy String
+  createdAt DateTime @default(now())
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id        String         @id @default(cuid())
+  nameAr    String
+  channels  String[] // email | sms | push
+  segmentId String
+  subjectAr String?
+  bodyAr    String?
+  status    CampaignStatus @default(DRAFT)
+  /// الجدولة، و«أفضل وقت لكل مستخدم» تُحسب عند الإرسال لا تُخزَّن
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdBy   String
+  createdAt   DateTime     @default(now())
+
+  segment Segment        @relation(fields: [segmentId], references: [id], onDelete: Restrict)
+  sends   CampaignSend[]
+
+  @@index([status, scheduledAt])
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  SENT
+  CANCELLED
+}
+
+/// أثر الحملة على مستخدم بعينه — **الأساس الذي تُحسب منه كل نسبة**.
+/// ولا أعمدة «فُتح ٣٨٪» في الحملة: النسبة تُحسب من هذه الصفوف.
+model CampaignSend {
+  id         String    @id @default(cuid())
+  campaignId String
+  userId     String
+  channel    String
+  sentAt     DateTime  @default(now())
+  openedAt   DateTime?
+  clickedAt  DateTime?
+  convertedAt DateTime?
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, userId, channel])
+  @@index([userId, sentAt])
+}
+
+/// قناة إشعار يراها المستخدم في إعداداته — A10.
+model PushChannel {
+  key    String  @id // auction_mine | orders_payment | offers_mine …
+  nameAr String
+  /// ═══ معيار A10 ═══ الحرِجة لا يقدر المستخدم إيقافها.
+  userControllable Boolean @default(true)
+  /// افتراضٌ مغلق للتسويقي — الموافقة تُطلب لا تُفترض.
+  defaultOn        Boolean @default(true)
+  sort             Int     @default(0)
+
+  preferences NotificationPreference[]
+}
+
+model NotificationPreference {
+  userId     String
+  channelKey String
+  enabled    Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel PushChannel @relation(fields: [channelKey], references: [key], onDelete: Cascade)
+
+  @@id([userId, channelKey])
+}
+
+/// رمز جهاز — يُحذف عند أوّل رفض من المزوّد (قاعدة A10).
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String // ios | android
+  lastSeenAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  الدفع الحقيقي و3DS — المهمة ٢٧
+// ═══════════════════════════════════════════════════════════
+
+/// بوابة دفع مربوطة — A20.
+///
+/// **القدرات معلَنة لا مفترضة**: النطاق يقرأها ويتصرّف، ولا يفترض أن
+/// الحجز يدوم إلى الأبد. وبوابةٌ تنقصها قدرةٌ يحتاجها الغرض **لا تظهر
+/// في قائمة الاختيار أصلًا** — لا تُعرض ثم تُرفض.
+model PaymentGateway {
+  key      String  @id // moyasar | tap | bank_escrow
+  nameAr   String
+  nameEn   String
+  /// GatewayCapabilities — supportsHold · maxHoldDays · feePct …
+  capabilities Json
+  status   IntegrationStatus @default(INACTIVE)
+  sort     Int     @default(0)
+
+  routes  PaymentRoute[]
+  changes PaymentRouteChange[] @relation("ToGateway")
+  from    PaymentRouteChange[] @relation("FromGateway")
+}
+
+enum PaymentPurpose {
+  VEHICLE_ESCROW
+  AUCTION_DEPOSIT
+  WALLET_TOPUP
+  SERVICE_PURCHASE
+  TRANSFER_FEE
+  /// معطّل — كل الباقات مجانية الآن
+  SUBSCRIPTION
+}
+
+/// توجيه غرضٍ إلى بوابة — **صفٌّ واحد لكل غرض: الحال الجارية**.
+///
+/// والتاريخ في `PaymentRouteChange` لا هنا: الحال تُقرأ بصفّ واحد بلا
+/// ترتيب ولا نافذة زمنية.
+model PaymentRoute {
+  purpose     PaymentPurpose @id
+  gatewayKey  String
+  environment IntegrationEnv @default(TEST)
+  /// تعطيلٌ يمنع الجديد ولا يمسّ القائم (قاعدة ٣ من قرار ٣٤)
+  enabled     Boolean        @default(true)
+  updatedBy   String
+  updatedAt   DateTime       @updatedAt
+
+  gateway PaymentGateway @relation(fields: [gatewayKey], references: [key], onDelete: Restrict)
+}
+
+/// سجلّ التبديلات — **للتفسير والتدقيق لا للحساب** (قرار ٣٦).
+///
+/// المطابقة لا تقرأ منه شيئًا: كل `Payment` يحمل `gatewayKey` لقطةً،
+/// فالمطابقة تجمع به مباشرةً. ولو استنتجت البوابة من التوجيه لاستنتجت
+/// ما تملكه — ويوم التبديل نفسه تكون البوابتان مسؤولتين معًا فلا يصفه
+/// توجيهٌ واحد أصلًا.
+model PaymentRouteChange {
+  id              String         @id @default(cuid())
+  purpose         PaymentPurpose
+  fromGatewayKey  String?
+  toGatewayKey    String
+  fromEnvironment IntegrationEnv?
+  toEnvironment   IntegrationEnv
+  /// **إلزاميّ**: بعد سنة لا يتذكّر أحد لماذا، والقرار بلا سببه يُعاد نقضه
+  reason          String
+  at              DateTime       @default(now())
+  approvalId      String?
+  requestedBy     String
+  approvedBy      String[]
+
+  toGateway   PaymentGateway  @relation("ToGateway", fields: [toGatewayKey], references: [key], onDelete: Restrict)
+  fromGateway PaymentGateway? @relation("FromGateway", fields: [fromGatewayKey], references: [key], onDelete: Restrict)
+
+  @@index([purpose, at])
+}
+
+/// محاولة دفع — **سجلٌّ لكل محاولة لا لكل نجاح**.
+///
+/// المحاولات الفاشلة هي ما يُشتكى منه: «دفعتُ ولم يصل». وبلا صفّ لكل
+/// محاولة لا يمكن الردّ إلا بـ«لا نرى شيئًا».
+///
+/// و`gatewayKey` **لقطة لا إعداد** (قاعدة ١ من قرار ٣٤): الحجز يُفرَج
+/// من حيث أُنشئ، ولا نقل أرصدة بين بوابتين أبدًا.
+model Payment {
+  id         String         @id @default(cuid())
+  orderId    String?
+  purpose    PaymentPurpose
+  gatewayKey String
+  environment IntegrationEnv @default(TEST)
+  amount     Decimal        @db.Decimal(12, 2)
+  currency   String         @default("SAR")
+  method     String // mada | visa | mastercard | applepay | bank_transfer
+  status     PaymentStatus  @default(CREATED)
+  /// مرجع الحجز لدى البوابة — تُبنى عليه التسوية والإلغاء
+  holdRef     String?
+  /// مرجع التسوية — يُبنى عليه الردّ الجزئي
+  settleRef   String?
+  /// رابط تحدّي 3DS حين تطلبه البطاقة
+  actionUrl   String?
+  failureCode String?
+  /// ما سُوِّي وما رُدّ — جزئيًّا مسموح، فالمبلغ لا يكفي وحده
+  settledAmount  Decimal? @db.Decimal(12, 2)
+  returnedAmount Decimal? @db.Decimal(12, 2)
+  createdAt   DateTime  @default(now())
+  heldAt      DateTime?
+  settledAt   DateTime?
+  cancelledAt DateTime?
+  failedAt    DateTime?
+
+  order  Order?         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  events PaymentEvent[]
+
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
+  /// المطابCة تجمع بالبوابة واليوم — لا تفترض بوابة واحدة لليوم
+  @@index([gatewayKey, createdAt])
+}
+
+/// حالات المال — **بلغة الضمان لا بلغة البطاقة** (قرار ٣٤).
+enum PaymentStatus {
+  CREATED
+  /// تحدّي 3DS — ينتظر المستخدم
+  REQUIRES_ACTION
+  /// طُلب من البوابة ولم تؤكّد بعد — حساب الأمانة يبقى هنا حتى الويبهوك
+  PENDING
+  /// الحجز مؤكَّد — المال محجوز ولم يدخل حسابنا
+  HELD
+  SETTLED
+  PARTIALLY_SETTLED
+  /// أُلغي الحجز — لا استرجاع، لأن المال لم يتحرّك
+  CANCELLED
+  RETURNED
+  PARTIALLY_RETURNED
+  FAILED
+}
+
+/// كل انتقال حالة — **بمصدره**: من المستخدم أم من ويب هوك البوابة.
+model PaymentEvent {
+  id         String         @id @default(cuid())
+  paymentId  String
+  type       String
+  fromStatus PaymentStatus?
+  toStatus   PaymentStatus
+  source     String // user | gateway | admin | system
+  detail     Json?
+  createdAt  DateTime       @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId, createdAt])
+}
+
+/// مفتاح التكرار — القسم ٦: كل `POST` يقبله، وهو إلزامي للدفع.
+///
+/// الشبكة تُعيد الطلب بلا أن يعرف المستخدم. وبلا هذا الجدول تُخصم
+/// البطاقة مرّتين لأن المتصفّح أعاد الإرسال.
+model IdempotencyKey {
+  key       String   @id
+  scope     String // payment.create | offer.create …
+  /// بصمة الجسم: نفس المفتاح بجسم مختلف خطأٌ لا إعادة
+  bodyHash  String
+  /// الاستجابة الأولى — تُعاد حرفيًّا للطلب المكرّر
+  response  Json
+  status    Int
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// ويب هوك وصل — **يُخزَّن معرّفه قبل معالجته**.
+/// المزوّد يعيد الإرسال عند أيّ شكّ، والمعالجة مرّتين تُفرج عن المال مرّتين.
+model WebhookEvent {
+  id          String   @id
+  provider    String
+  type        String
+  signatureOk Boolean
+  processedAt DateTime?
+  receivedAt  DateTime @default(now())
+  payload     Json
+
+  @@index([provider, receivedAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  محرّك الضريبة والفوترة — A21 (المهمة ٣٥)
+//
+//  محرّكٌ لا فرعٌ في الكود: تعديل ضريبة القيمة المضافة قد يجعل المنصّة
+//  «موِردًا مفترضًا» فتُستحقّ الضريبة على كامل قيمة المركبة لا على
+//  العمولة — الفرق بين ١٥٠ و١٥٬٠٠٠ في صفقة واحدة. والتصنيف ينتظر
+//  مذكرة، فالمعالجة صفوفٌ يديرها الأدمن لا شروطٌ في الكود.
+// ═══════════════════════════════════════════════════════════
+
+/// الوضع الضريبيّ للمستخدم — يُسأل مرّة، ويُعدَّل من الإعدادات.
+enum TaxStatus {
+  /// غير مسجَّل في ضريبة القيمة المضافة
+  INDIVIDUAL
+  /// منشأة أو فردٌ مسجَّل — ومعه رقمٌ ضريبيّ من ١٥ رقمًا
+  VAT_REGISTERED
+}
+
+/// مفتاحُ **مطابقة القاعدة** لا وصفُ شخص.
+///
+/// و`DEALER_VAT` تعني «مورّدٌ مسجَّل في القيمة المضافة» — معرضًا كان أو
+/// فردًا مسجَّلًا: **فئتان لا ثلاث**، والفارق بينهما لا أثر له ضريبيًّا.
+/// أمّا **من هو** المورّد فيُقرأ من `supplierName` و`supplierVatNo` في
+/// الفاتورة، لا من هذا المفتاح.
+///
+/// // DESIGN-Q: الاسم يقول «تاجر» ويعني «مسجَّل» — يُعاد تسميته
+/// `SUPPLIER_VAT` عند أوّل ترحيلٍ يمسّ هذا النوع.
+enum SellerType {
+  INDIVIDUAL
+  DEALER_VAT
+  DEALER_NO_VAT
+  COMPANY
+}
+
+enum BuyerType {
+  INDIVIDUAL
+  DEALER
+  COMPANY
+}
+
+enum SupplyType {
+  VEHICLE
+  COMMISSION
+  SERVICE
+  /// رسمٌ إداريّ مقابل إجراءٍ نتولّاه — يُفصل عن الصرف الذي يرافقه
+  ADMIN_FEE
+  /// صرفٌ نيابةً عن العميل — يُسجَّل ليُعلَن، **ولا يُفوتَر منّا**
+  DISBURSEMENT
+}
+
+enum TaxableBase {
+  FULL_VALUE
+  MARGIN
+  FEE_ONLY
+  OUT_OF_SCOPE
+}
+
+enum InvoiceIssuer {
+  PLATFORM
+  SELLER
+  PLATFORM_ON_BEHALF
+  /// لا فاتورة أصلًا — الصرف نيابةً عن العميل ليس توريدًا من أحدٍ عبرنا
+  NONE
+}
+
+/// قاعدة ضريبية — **المطابقة بالأدقّ نطاقًا**، وصفٌّ عامّ احتياطي.
+///
+/// و`activeTo` يجعل القاعدة تاريخيّة لا محذوفة: فاتورةٌ صدرت بقاعدة
+/// انتهت تبقى مفهومة.
+model TaxRule {
+  id                 String        @id @default(cuid())
+  sellerType         SellerType?
+  buyerType          BuyerType?
+  supplyType         SupplyType
+  taxableBase        TaxableBase
+  ratePct            Decimal?      @db.Decimal(5, 2)
+  supplierIsPlatform Boolean       @default(false)
+  invoiceIssuer      InvoiceIssuer
+  activeFrom         DateTime
+  activeTo           DateTime?
+  /// `false` للقواعد التي تنتظر المذكرة الضريبية — تُعرض ولا تُطبَّق
+  active             Boolean       @default(true)
+  note               String?
+  updatedBy          String
+  updatedAt          DateTime      @updatedAt
+
+  invoices TaxInvoice[]
+
+  @@index([supplyType, active, activeFrom])
+}
+
+enum InvoiceStatus {
+  ISSUED
+  REPORTED
+  REPORT_FAILED
+  CANCELLED
+}
+
+/// فاتورة ضريبية — **وثيقة لا سجلّ**.
+///
+/// ولهذا **القاعدة تُنسَخ لقطةً كاملة**: تعديلها لاحقًا لا يغيّر فاتورة
+/// صدرت. والوثيقة لا تتغيّر بأثر رجعي — أهمّ قاعدة في هذا القسم.
+///
+/// والتسلسل **متّصل بلا فجوات**: لا حذف فاتورة أبدًا، والإلغاء بإشعار
+/// دائن يشير إلى الأصل.
+model TaxInvoice {
+  id       String @id @default(cuid())
+  /// تسلسلي متّصل — فريدٌ ولا يُعاد استعماله
+  sequence Int    @unique
+  number   String @unique
+  uuid     String @unique
+
+  orderId String?
+  /// لقطة القاعدة: معرّفها وكل قيَمها وقت الإصدار
+  ruleId             String
+  ruleSellerType     SellerType?
+  ruleBuyerType      BuyerType?
+  ruleSupplyType     SupplyType
+  ruleTaxableBase    TaxableBase
+  ruleRatePct        Decimal?      @db.Decimal(5, 2)
+  ruleInvoiceIssuer  InvoiceIssuer
+
+  supplierName    String
+  supplierVatNo   String?
+  supplierAddress String?
+  customerName    String
+  customerVatNo   String?
+
+  issuedAt   DateTime
+  suppliedAt DateTime
+
+  subtotal Decimal @db.Decimal(12, 2)
+  taxTotal Decimal @db.Decimal(12, 2)
+  total    Decimal @db.Decimal(12, 2)
+
+  /// QR بترميز TLV ثم Base64 — حقول «فاتورة» الخمسة
+  qrTlv        String?
+  invoiceHash  String?
+  signature    String?
+  status       InvoiceStatus @default(ISSUED)
+  reportedAt   DateTime?
+  reportError  String?
+
+  rule        TaxRule           @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  order       Order?            @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  lines       TaxInvoiceLine[]
+  creditNotes CreditNote[]
+
+  @@index([orderId])
+  @@index([status, issuedAt])
+}
+
+model TaxInvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(12, 2)
+  subtotal    Decimal @db.Decimal(12, 2)
+  taxAmount   Decimal @db.Decimal(12, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  invoice TaxInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+/// إشعار دائن — **الإلغاء الوحيد الممكن**، ويشير إلى الأصل.
+model CreditNote {
+  id        String   @id @default(cuid())
+  sequence  Int      @unique
+  number    String   @unique
+  uuid      String   @unique
+  invoiceId String
+  reason    String
+  amount    Decimal  @db.Decimal(12, 2)
+  taxAmount Decimal  @db.Decimal(12, 2)
+  issuedAt  DateTime
+  issuedBy  String
+
+  invoice TaxInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+}
+
+/// كشف تسوية مالية — **ليس فاتورة ضريبية**، ومكتوبٌ في رأسه.
+model SettlementStatement {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  vehicleValue  Decimal  @db.Decimal(12, 2)
+  commission    Decimal  @db.Decimal(12, 2)
+  commissionTax Decimal  @db.Decimal(12, 2)
+  gatewayFee    Decimal  @db.Decimal(12, 2)
+  servicesTotal Decimal  @db.Decimal(12, 2)
+  netToSeller   Decimal  @db.Decimal(12, 2)
+  heldAmount    Decimal  @db.Decimal(12, 2)
+  returnedAmount Decimal @db.Decimal(12, 2)
+  issuedAt      DateTime
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+}
+
+/// عقد بيع المركبة — **بين البائع والمشتري، ولسنا طرفًا فيه**.
+model VehicleSaleAgreement {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  vin          String
+  sellerName   String
+  sellerIdNo   String?
+  buyerName    String
+  buyerIdNo    String?
+  price        Decimal  @db.Decimal(12, 2)
+  inspectionRef String?
+  deliveryTerms String?
+  issuedAt     DateTime
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 }

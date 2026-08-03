@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { db } from '@/lib/db';
+import { listAdminBrandOptions } from '@/lib/domain/catalog-options';
 import { listModels, listTrims } from '@/lib/domain/catalog';
 import { CatalogTree } from './CatalogTree';
 
@@ -24,10 +24,7 @@ export default async function ModelsPage({
   if (!can(admin.role, 'catalog.manage')) redirect('/admin');
 
   const params = await searchParams;
-  const brands = await db.brand.findMany({
-    orderBy: [{ sort: 'asc' }, { nameAr: 'asc' }],
-    select: { id: true, nameAr: true, nameEn: true, slug: true },
-  });
+  const brands = await listAdminBrandOptions();
 
   const brand =
     brands.find((b) => b.id === params.brand) ?? brands[0] ?? null;

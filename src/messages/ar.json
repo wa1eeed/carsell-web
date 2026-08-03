@@ -311,6 +311,17 @@
   },
   "units": {
     "orders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبًا} other{{n} طلب}}",
+    "paymentPurposes": "{count, plural, zero{لا أغراض دفع} one{غرض دفع واحد} two{غرضا دفع} few{{n} أغراض دفع} many{{n} غرض دفع} other{{n} غرض دفع}}",
+    "gateways": "{count, plural, zero{لا بوابات} one{بوابة واحدة} two{بوابتان} few{{n} بوابات} many{{n} بوابة} other{{n} بوابة}}",
+    "inFlight": "{count, plural, zero{لا معاملات جارية} one{معاملة جارية} two{معاملتان جاريتان} few{{n} معاملات جارية} many{{n} معاملة جارية} other{{n} معاملة جارية}}",
+    "messages": "{count, plural, zero{لا رسائل} one{رسالة واحدة} two{رسالتان} few{{n} رسائل} many{{n} رسالة} other{{n} رسالة}}",
+    "transactionalNotifications": "{count, plural, zero{لا إشعارات معاملاتية} one{إشعار معاملاتي واحد} two{إشعاران معاملاتيان} few{{n} إشعارات معاملاتية} many{{n} إشعارًا معاملاتيًّا} other{{n} إشعار معاملاتي}}",
+    "characters": "{count, plural, zero{لا أحرف} one{حرف واحد} two{حرفان} few{{n} أحرف} many{{n} حرفًا} other{{n} حرف}}",
+    "smsSegments": "{count, plural, zero{لا مقاطع} one{مقطع واحد} two{مقطعان} few{{n} مقاطع} many{{n} مقطعًا} other{{n} مقطع}}",
+    "notifications": "{count, plural, zero{لا إشعارات} one{إشعار واحد} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
+    "newCustomers": "{count, plural, zero{لا عملاء جدد} one{عميل جديد} two{عميلان جديدان} few{{n} عملاء جدد} many{{n} عميلًا جديدًا} other{{n} عميل جديد}}",
+    "buyers": "{count, plural, zero{لا مشترين} one{مشترٍ واحد} two{مشتريان} few{{n} مشترين} many{{n} مشتريًا} other{{n} مشترٍ}}",
+    "openRequests": "{count, plural, zero{لا قائم} one{قائم واحد} two{قائمان} few{{n} قائمة} many{{n} قائمًا} other{{n} قائم}}",
     "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدًا} other{{n} مزايد}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
     "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يومًا} other{{n} يوم}}",
@@ -332,7 +343,13 @@
     "articles": "{count, plural, zero{لا مقالات} one{مقالة واحدة} two{مقالتان} few{{n} مقالات} many{{n} مقالة} other{{n} مقالة}}",
     "seconds": "{count, plural, zero{لا ثوانٍ} one{ثانية واحدة} two{ثانيتان} few{{n} ثوانٍ} many{{n} ثانية} other{{n} ثانية}}",
     "views": "{count, plural, zero{لا مشاهدات} one{مشاهدة واحدة} two{مشاهدتان} few{{n} مشاهدات} many{{n} مشاهدة} other{{n} مشاهدة}}",
-    "offers": "{count, plural, zero{لا عروض} one{عرض واحد} two{عرضان} few{{n} عروض} many{{n} عرضًا} other{{n} عرض}}"
+    "offers": "{count, plural, zero{لا عروض} one{عرض واحد} two{عرضان} few{{n} عروض} many{{n} عرضًا} other{{n} عرض}}",
+    "exceeded": "{count, plural, zero{لا شيء تجاوز} one{واحد تجاوز} two{اثنان تجاوزا} few{{n} تجاوزت} many{{n} تجاوزت} other{{n} تجاوز}}",
+    "accesses": "{count, plural, zero{لا اطّلاع} one{اطّلاع واحد} two{اطّلاعان} few{{n} اطّلاعات} many{{n} اطّلاعًا} other{{n} اطّلاع}}",
+    "taxRules": "{count, plural, zero{لا قواعد} one{قاعدة واحدة} two{قاعدتان} few{{n} قواعد} many{{n} قاعدة} other{{n} قاعدة}}",
+    "activeRules": "{count, plural, zero{لا مفعَّلة} one{واحدة مفعَّلة} two{اثنتان مفعَّلتان} few{{n} مفعَّلة} many{{n} مفعَّلة} other{{n} مفعَّلة}}",
+    "awaitingRules": "{count, plural, zero{لا شيء} one{واحدة} two{اثنتان} few{{n}} many{{n}} other{{n}}}",
+    "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -493,6 +510,40 @@
       "PAYMENT": "دفع",
       "TRANSFER": "نقل ملكية",
       "DONE": "إتمام"
+    },
+    "escrowStatus": {
+      "PENDING": "بانتظار الحجز",
+      "HELD": "محجوز",
+      "RELEASED": "مُفرَج عنه",
+      "REFUNDED": "مُسترجَع",
+      "PARTIAL_REFUND": "استرجاع جزئي"
+    },
+    "orderStatus": {
+      "ACTIVE": "جارٍ",
+      "COMPLETED": "مكتمل",
+      "CANCELLED": "ملغى",
+      "STALLED": "متعثّر",
+      "DISPUTED": "نزاع"
+    },
+    "orderSource": {
+      "DIRECT": "بيع مباشر",
+      "OFFER": "عرض",
+      "AUCTION": "مزاد",
+      "BUY_NOW": "اشترِ الآن"
+    },
+    "disputeStatus": {
+      "OPEN": "مفتوح",
+      "INVESTIGATING": "قيد النظر",
+      "RESOLVED_BUYER": "لصالح المشتري",
+      "RESOLVED_SELLER": "لصالح البائع",
+      "CLOSED": "مغلق"
+    },
+    "auctionStatus": {
+      "SCHEDULED": "قادم",
+      "LIVE": "مباشر",
+      "ENDED_MET": "انتهى — بلغ الاحتياطي",
+      "ENDED_UNMET": "انتهى — لم يبلغ الاحتياطي",
+      "CANCELLED": "ملغى"
     }
   },
   "services": {
@@ -657,5 +708,151 @@
     "filledPrefix": "مُلئت",
     "filledSuffix": "حقول — راجعها",
     "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا."
+  },
+  "order": {
+    "subtitle": "مرحلة الطلب وأين مبلغك الآن.",
+    "vehicle": "المركبة",
+    "timeline": "مسار الطلب",
+    "escrow": "حساب الضمان",
+    "amounts": "المبالغ",
+    "price": "سعر السيارة",
+    "commission": "عمولة المنصة",
+    "transferFee": "رسوم نقل الملكية",
+    "total": "الإجمالي",
+    "vatIncluded": "رسوم المنصة شاملة ضريبة القيمة المضافة · ورسوم نقل الملكية حكومية تُمرَّر كما هي",
+    "status": "الحالة",
+    "inStageFor": "في هذه المرحلة منذ",
+    "payBy": "مهلة الدفع حتى",
+    "disputeOpen": "نزاع مفتوح على هذا الطلب",
+    "disputeFrozen": "الطلب مجمَّد في مرحلته: لا يتقدّم ولا يسقط حتى يُحسم النزاع.",
+    "slaDue": "مهلة الردّ حتى",
+    "event": {
+      "stage": {
+        "advanced": "انتقال مرحلة"
+      },
+      "dispute": {
+        "opened": "فُتح نزاع",
+        "resolved": "حُسم النزاع"
+      },
+      "payment": {
+        "timeout": "فاتت مهلة الدفع"
+      },
+      "other": "تحديث على الطلب"
+    },
+    "escrowState": {
+      "PENDING": "لم يُحجز المبلغ بعد.",
+      "HELD": "المبلغ محجوز ولم يصل البائع.",
+      "RELEASED": "أُفرج عن المبلغ للبائع.",
+      "REFUNDED": "أُعيد المبلغ كاملًا للمشتري.",
+      "PARTIAL_REFUND": "أُعيد جزء من المبلغ للمشتري."
+    },
+    "documents": "مستندات الصفقة",
+    "documentsNote": "ما صدر وما سيصدر — وكلٌّ في لحظته.",
+    "docKind": {
+      "AGREEMENT": "عقد البيع",
+      "SETTLEMENT": "كشف التسوية",
+      "INVOICE": "فاتورة ضريبية"
+    },
+    "docAt": {
+      "TRANSFER_CONFIRMED": "يصدر عند تأكيد نقل الملكية",
+      "SETTLED": "يصدر عند الإفراج عن المبلغ"
+    },
+    "docSupply": {
+      "COMMISSION": "عن العمولة",
+      "SERVICE": "عن الخدمات",
+      "VEHICLE": "عن المركبة"
+    },
+    "docNumber": "رقم الفاتورة",
+    "settlementTitle": "صافي ما تستلمه",
+    "settlementPreview": "تقديريّ: محسوب من المبلغ المحجوز الآن، ويُثبَّت كشفًا عند الإفراج.",
+    "settlementNotInvoice": "كشف ماليّ، وليس فاتورة ضريبية.",
+    "settlementRow": {
+      "vehicleValue": "قيمة المركبة",
+      "commission": "عمولة المنصة",
+      "gatewayFee": "رسوم بوابة الدفع",
+      "netToSeller": "الصافي لك"
+    },
+    "adminFee": "رسوم إدارية"
+  },
+  "auctions": {
+    "title": "المزادات",
+    "intro": "مزايدة مباشرة على مركبات موثّقة الملكية، بعربون مسترَدّ وحساب ضمان.",
+    "tab": {
+      "live": "مباشرة الآن",
+      "soon": "قادمة",
+      "ended": "منتهية"
+    },
+    "empty": {
+      "live": "لا مزادات مباشرة الآن",
+      "soon": "لا مزادات قادمة",
+      "ended": "لا مزادات منتهية"
+    },
+    "emptyBody": "تابع الصفحة — تُضاف المزادات أسبوعيًّا.",
+    "viewListing": "صفحة المركبة ←",
+    "bidLog": "سجلّ المزايدات",
+    "noBids": "لا مزايدات بعد.",
+    "bidder": "مزايد",
+    "auto": "آلية",
+    "openingPrice": "سعر الافتتاح",
+    "highestBid": "أعلى مزايدة",
+    "minimumBid": "الحدّ الأدنى",
+    "reserveMet": "تجاوز السعر الاحتياطي",
+    "reserveNotMet": "لم يبلغ السعر الاحتياطي بعد",
+    "extendedTimes": "مُدِّد",
+    "outOf": "من",
+    "placeBid": "زايد الآن",
+    "depositRequired": "عربون",
+    "buyNow": "اشترِ الآن بـ",
+    "countLive": "مباشرة",
+    "countSoon": "قادمة",
+    "countEnded": "منتهية"
+  },
+  "inbox": {
+    "title": "صندوق العروض",
+    "intro": "العروض الواردة عليك والمُرسَلة منك.",
+    "tab": {
+      "active": "واردة",
+      "sent": "مُرسَلة",
+      "closed": "منتهية"
+    },
+    "empty": {
+      "active": "لا عروض واردة",
+      "sent": "لم ترسل عروضًا",
+      "closed": "لا عروض منتهية"
+    },
+    "emptyBody": "العروض النشطة وحدها تظهر هنا — والمنتهية تنتقل إلى «منتهية».",
+    "received": "وارد",
+    "sentBy": "مُرسَل",
+    "asking": "المطلوب"
+  },
+  "tax": {
+    "prompt": "لتنظيم تعاملاتك المالية وإصدار الفواتير حسب الأنظمة، يرجى تحديد وضعك الضريبي:",
+    "title": "وضعك الضريبي",
+    "individual": "أنا فرد (غير مسجل في ضريبة القيمة المضافة)",
+    "registered": "أنا منشأة أو فرد مسجل في ضريبة القيمة المضافة",
+    "vatPlaceholder": "أدخل الرقم الضريبي المكون من ١٥ رقمًا",
+    "vatLabel": "الرقم الضريبي",
+    "save": "حفظ واستمرار",
+    "saving": "جارٍ الحفظ…",
+    "once": "يُسأل مرة واحدة، ويمكنك تعديله لاحقًا من الإعدادات.",
+    "error": {
+      "EMPTY": "أدخل الرقم الضريبي.",
+      "LENGTH": "الرقم الضريبي ١٥ رقمًا.",
+      "PATTERN": "الرقم الضريبي يبدأ بـ٣ وينتهي بـ٣ — راجع ما نسخته.",
+      "SAVE": "تعذّر الحفظ، حاول مجددًا."
+    },
+    "settingsTitle": "الإعدادات المالية والضريبية",
+    "currentIndividual": "الحالة الحالية: فرد",
+    "currentRegistered": "الحالة الحالية: منشأة مسجلة",
+    "currentUnset": "لم تُحدَّد بعد — تُسأل عند أول إعلان أو أول شراء.",
+    "edit": "تعديل البيانات",
+    "sellerIndividual": "بائع فرد",
+    "sellerRegistered": "بائع مسجل ضريبيًا",
+    "priceFinal": "سعر نهائي — لا ضريبة على السيارة",
+    "priceWithVat": "شامل ضريبة القيمة المضافة",
+    "vatShare": "منها ضريبة",
+    "listingTaxable": "هذه السيارة تابعة لنشاط تجاري خاضع للضريبة",
+    "listingTaxableHint": "يغيّر الحالة الضريبية لهذا الإعلان وحده.",
+    "adminFeeRow": "رسوم إدارية"
   }
 }

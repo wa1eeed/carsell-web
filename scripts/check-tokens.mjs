@@ -10,6 +10,13 @@
  *  ٨. كل `unit` مستعمل في الكود مصرَّح به في الوحدات وفي نوع `Unit`.
  *  ٩. لا رقم من قاعدة البيانات يُلصق في سلسلة نصّ معروضة.
  * ١٠. كل أداة لون في المكوّنات تشير إلى توكن معرَّف فعلًا.
+ * ١١. كل ترحيل يمسّ المال له نصّ نقض بجواره.
+ * ١٢. صفوف Prisma لا تعبر حدّ الخادم/العميل.
+ * ١٣. لا نقطة في مفتاح ترجمة — next-intl يقرؤها تداخلًا.
+ * ١٤. لا مكوّن عميل يصل إلى `db` عبر سلسلة استيرادات.
+ * ١٥. مفردات المزوّد (authorize/capture/void) لا تعبر المُهايئ.
+ * ١٦. الضريبة تُحسب في `tax.ts` وحده · لا ضريبة على قيمة المركبة · لا «فاتورة مركبة».
+ * ١٧. النطاق يعيد بيانات لا جُملًا — لا حرف عربي في src/lib/domain عدا التعليقات.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -18,7 +25,7 @@
  * الملف الوحيد المسموح فيه بقيَم لونية خام: src/app/globals.css.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
@@ -121,6 +128,19 @@ function walkMessages(node, path, file, checkArabicDigits) {
   }
   if (node && typeof node === 'object') {
     for (const [key, value] of Object.entries(node)) {
+      /**
+       * القاعدة ١٣: **النقطة في المفتاح تعني التداخل لا الحرف.**
+       *
+       * `"stage.advanced"` مفتاحًا مسطَّحًا يقرؤه next-intl مسارًا، فلا
+       * يجده. وهو يصرخ في التطوير ويصمت في الإنتاج: النصّ يخرج مفتاحًا
+       * خامًا أمام المستخدم. والمفتاح المشتقّ من قيمة قاعدة بيانات
+       * (`t(`event.${row.type}`)`) هو أكثر ما يقع فيه.
+       */
+      if (key.includes('.')) {
+        problems.push(
+          `${file}:${path ? `${path}.` : ''}${key}  نقطة في مفتاح ترجمة — عشّشه بدل تسطيحه`,
+        );
+      }
       walkMessages(value, path ? `${path}.${key}` : key, file, checkArabicDigits);
     }
   }
@@ -361,9 +381,506 @@ function checkColourUtilities() {
   }
 }
 
+// ————— القاعدة ١١: ترحيل ماليّ بلا نقض —————
+/**
+ * ترحيل يمسّ جدول مال يحتاج طريق عودة **مكتوبًا وقت كتابته**، لا وقت
+ * الحاجة إليه: من يكتب النقض تحت ضغط عطلٍ في الإنتاج يكتبه خطأً.
+ *
+ * والجداول تُعرَّف بأسمائها لا بحدسٍ: ما يحمل مبلغًا أو التزامًا ماليًّا.
+ * والنصّ لا يُفحَص محتواه — يُفحَص وجوده. محتواه مسؤولية من كتبه، ووجوده
+ * هو ما يُنسى.
+ */
+const MONEY_TABLES = [
+  'Order', 'Escrow', 'Invoice', 'CommissionRule', 'Deposit', 'Payout',
+  'Refund', 'Transaction', 'Wallet', 'FinanceSetting', 'PlatformSetting',
+  'Subscription', 'Plan', 'PlanEntitlement', 'FinanceInput', 'ApprovalRequest',
+];
+
+function checkMoneyMigrations() {
+  const root = join(ROOT, 'prisma', 'migrations');
+  let entries;
+  try {
+    entries = readdirSync(root, { withFileTypes: true });
+  } catch {
+    return; // لا ترحيلات بعد
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const dir = join(root, entry.name);
+    const up = join(dir, 'migration.sql');
+
+    let sql;
+    try {
+      sql = readFileSync(up, 'utf8');
+    } catch {
+      continue;
+    }
+
+    const touched = MONEY_TABLES.filter((table) => sql.includes(`"${table}"`));
+    if (touched.length === 0) continue;
+
+    try {
+      readFileSync(join(dir, 'migration.down.sql'), 'utf8');
+    } catch {
+      problems.push(
+        `prisma/migrations/${entry.name}  يمسّ ${touched.join('، ')} وبلا migration.down.sql`,
+      );
+    }
+  }
+}
+
+// ————— القاعدة ١٢: صفّ Prisma لا يعبر الحدّ —————
+/**
+ * صفٌّ يعبر إلى مكوّن عميل **يصل المتصفّح كاملًا** ولو عرض العمود منه
+ * أربعة أرقام. الإخفاء بالعرض ليس إخفاءً.
+ *
+ * وقع هذا فعلًا في A5: مئة رقم جوال كامل في حمولة الصفحة. وكان رقم
+ * جوال في شاشة أدمن؛ وقد يكون في المرّة القادمة `minAcceptPrice` في
+ * صفحة إعلان عامة — وهو ما بُنيت حوله عشر قواعد.
+ *
+ * **الفحص على النوع لا على المحتوى**: النوع يُمسك في كل حال، والمحتوى
+ * يُمسك حين يصادف الفحصُ صفًّا فيه بيانات.
+ *
+ * شقّان:
+ *   أ. مكوّن عميل لا يستورد نوع نموذج من `@/generated/prisma/client`.
+ *      التعدادات مسموحة — سلاسل نصّية لا تحمل شيئًا.
+ *   ب. متغيّر يحمل نتيجة استعلام مباشرةً لا يُمرَّر خاصّيةً في JSX.
+ *      بينهما يجب أن يقف مُسلسِل صريح يعلن ما يخرج.
+ */
+const PRISMA_CLIENT_IMPORT = /from\s+'@\/generated\/prisma\/client'/;
+const PRISMA_TYPE_USE = /\bPrisma\.\w+GetPayload\b|\bPrisma\.\w+(Create|Update|Where)\w*\b/;
+
+/** أساليب تُعيد صفوفًا. `count` يعيد عددًا، فليس منها. */
+const ROW_QUERY =
+  /db\.\w+\.(findMany|findUnique|findFirst|findUniqueOrThrow|findFirstOrThrow|groupBy|aggregate)\s*\(/;
+
+/**
+ * يقسم محتوى `Promise.all([...])` إلى عناصره على المستوى الأعلى.
+ * القسمة بالفاصلة وحدها تكسر عند أوّل كائن داخلي — فالعدّ بالأقواس.
+ */
+function splitTopLevel(text) {
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (const char of text) {
+    if (char === '(' || char === '[' || char === '{') depth += 1;
+    if (char === ')' || char === ']' || char === '}') depth -= 1;
+    if (char === ',' && depth === 0) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim() !== '') parts.push(current);
+  return parts;
+}
+
+/** يعيد أسماء المتغيّرات التي تحمل صفوفًا فعلًا. */
+function rowBindings(source) {
+  const bound = new Set();
+
+  // `const rows = await db.x.findMany(...)`
+  for (const match of source.matchAll(/(?:const|let)\s+(\w+)\s*=\s*await\s+(db\.\w+\.\w+)/g)) {
+    const name = match[1];
+    if (name !== undefined && ROW_QUERY.test(`${match[2] ?? ''}(`)) bound.add(name);
+  }
+
+  /**
+   * `const [a, b, c] = await Promise.all([...])` — **بمطابقة الموضع**:
+   * `cities` المشتقّة بـ`.then(rows => rows.map(...))` مصفوفة نصوص لا
+   * صفوف، وحصرُها بالاسم وحده يُنتج إنذارًا كاذبًا يُعطِّل البوابة.
+   */
+  for (const match of source.matchAll(/(?:const|let)\s+\[([^\]]+)\]\s*=\s*await\s+Promise\.all\(\[/g)) {
+    const names = (match[1] ?? '').split(',').map((n) => n.trim().split(/[:=\s]/)[0] ?? '');
+    const from = (match.index ?? 0) + match[0].length;
+
+    let depth = 1;
+    let end = from;
+    while (end < source.length && depth > 0) {
+      const char = source[end];
+      if (char === '[' || char === '(' || char === '{') depth += 1;
+      if (char === ']' || char === ')' || char === '}') depth -= 1;
+      end += 1;
+    }
+
+    const elements = splitTopLevel(source.slice(from, end - 1));
+    names.forEach((name, i) => {
+      const element = elements[i] ?? '';
+      // `.then(` يعني تحويلًا — والمحوَّل ليس صفًّا
+      if (name !== '' && ROW_QUERY.test(element) && !element.includes('.then(')) {
+        bound.add(name);
+      }
+    });
+  }
+
+  return bound;
+}
+
+/**
+ * ————— القاعدة ١٤: `db` لا يصل حزمة المتصفّح —————
+ *
+ * **الحدّ يمرّ عبر الاستيرادات لا عبر التوجيهات.** مكوّن `'use client'`
+ * يستورد وحدةً تستورد `db` يجرّ Prisma إلى المتصفّح فيُسقط البناء —
+ * ورسالة الخطأ تتحدّث عن `node:process` لا عن الاستيراد الذي سبّبها.
+ *
+ * وقع مرّتين: `CategoryFilter` في المهمة ١٤، ومحرّر القوالب في ٢٤.
+ * والمرّة الثانية بوابة لا تصحيح ثالث.
+ *
+ * والقاعدة ١٢ لا تمسكه: هي تفحص النوع والصفّ، وهذا استيراد لا نوع له.
+ */
+const BANNED_LEAVES = [/from\s+'@\/lib\/db'/, /from\s+'@\/generated\/prisma\/client'/];
+
+/** يتتبّع استيرادات `@/…` من ملفٍ ما، ويعيد أوّل سلسلة تصل إلى `db`. */
+function pathToDb(entry, seen = new Set()) {
+  if (seen.has(entry)) return null;
+  seen.add(entry);
+
+  let source;
+  try {
+    source = readFileSync(entry, 'utf8');
+  } catch {
+    return null;
+  }
+
+  // الورقة تعيد سلسلة فارغة — ومن استوردها هو من يُسمّيها
+  for (const pattern of BANNED_LEAVES) {
+    if (pattern.test(source)) return [];
+  }
+
+  for (const match of source.matchAll(/from\s+'(@\/[^']+)'/g)) {
+    const specifier = match[1] ?? '';
+    // `import type` لا يصل الحزمة — يُمحى وقت الترجمة
+    const line = source.slice(Math.max(0, match.index - 120), match.index);
+    if (/\bimport\s+type\b/.test(line)) continue;
+
+    const base = join(ROOT, 'src', specifier.slice(2));
+    for (const candidate of [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')]) {
+      if (!existsSync(candidate)) continue;
+      const rest = pathToDb(candidate, seen);
+      if (rest !== null) return [relative(ROOT, candidate), ...rest];
+      break;
+    }
+  }
+
+  return null;
+}
+
+function checkClientDbImports() {
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const source = readFileSync(file, 'utf8');
+      if (!/^\s*['"]use client['"]/m.test(source)) continue;
+
+      const chain = pathToDb(file);
+      if (chain === null) continue;
+
+      problems.push(
+        chain.length === 0
+          ? `${relative(ROOT, file)}  مكوّن عميل يستورد db مباشرةً`
+          : `${relative(ROOT, file)}  مكوّن عميل يصل إلى db عبر: ${chain.join(' ← ')} — افصل ما يحتاجه المتصفّح في وحدة بلا db`,
+      );
+    }
+  }
+}
+
+
+/**
+ * ————— القاعدة ١٥: مفردات المزوّد لا تعبر المُهايئ —————
+ *
+ * الواجهة **بلغة الضمان لا بلغة البطاقة**: `hold` و`settle` و`cancel`.
+ * و`authorize`/`capture`/`void` مفردات بطاقةٍ صالحة **داخل المُهايئ
+ * وحده** — فهو المكان الذي يترجم فيه.
+ *
+ * ولمَ بوابة لا مراجعة: ترتيب الضمان قد يتغيّر بنيويًّا لا اسميًّا —
+ * حساب أمانة بنكيّ يجعل `hold` تحويلًا يستغرق يومًا. وشاشةٌ سمّت
+ * المفهوم `authorize` تصير كاذبة يومها، ولا يكشفها المترجم لأن
+ * الاسم يظلّ يترجم.
+ */
+const GATEWAY_VOCAB = /\b(authorize|authorization|capture|voidPayment|preauth)\b/;
+
+/** المُهايئات وحدها تترجم — وهي الاستثناء المُعلن. */
+const ADAPTER_PATH = /src[\\/]lib[\\/]payments[\\/]adapters[\\/]/;
+
+function checkGatewayVocabulary() {
+  const roots = [join('src', 'lib', 'domain'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (ADAPTER_PATH.test(rel)) continue;
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        // التعليق يشرح ولا ينفّذ — والشرح قد يذكر ما يُترجَم منه
+        const code = line.split('//')[0] ?? '';
+        if (/^\s*[*]/.test(line)) return;
+        const match = code.match(GATEWAY_VOCAB);
+        if (match) {
+          problems.push(
+            `${rel}:${i + 1}  «${match[0]}» مفردة مزوّد خارج المُهايئ — الواجهة بلغة الضمان: hold · settle · cancel · partialReturn`,
+          );
+        }
+      });
+    }
+  }
+}
+
+
+/**
+ * ————— القاعدة ١٦: الضريبة تُحسب في `tax.ts` وحده —————
+ *
+ * ولا حساب ضريبة على قيمة المركبة، ولا مستند يسمّي نفسه فاتورة مركبة.
+ *
+ * والسبب أكبر من الترتيب: تعديل ضريبة القيمة المضافة قد يجعل المنصّة
+ * «موِردًا مفترضًا»، فتُستحقّ الضريبة على كامل قيمة المركبة لا على
+ * العمولة — الفرق بين ١٥٠ و١٥٬٠٠٠ في صفقة واحدة. والتصنيف ينتظر مذكرة
+ * ضريبية، فحسابه اليوم بأي نسبة هو تخمينٌ في وثيقة قانونية.
+ *
+ * والفحص **مقيَّد بسياق ضريبي** لا بالرقم وحده: `take: 15` و
+ * `ADMIN_LOCK_MINUTES = 15` و`flex-[1.15]` كلّها ١٥ لا علاقة لها —
+ * وقاعدةٌ تُصدر ضجيجًا تُعطَّل.
+ */
+const TAX_CONTEXT = /vat|tax|ضريب/i;
+const RATE_LITERAL = /(?<![\w.])(?:15(?:\.0+)?|0\.15)(?![\w.%])|١٥\s*٪/;
+
+/**
+ * **مقياسٌ لا نسبة.**
+ *
+ * `VAT_LENGTH = 15` طولُ الرقم الضريبيّ لا نسبته، و`taxStatusSetAt`
+ * ليس معدَّلًا. والسياق الضريبيّ وحده لا يميّز — فالاسم يميّز: ما حمل
+ * وحدةَ قياسٍ في اسمه ليس نسبة.
+ */
+const MEASURE_NAME = /\b\w*(LENGTH|DIGITS|COUNT|SIZE|MINUTES|HOURS|DAYS|MS|CHARS|MAX|MIN)\w*\b/i;
+
+/**
+ * **الضريبة تُحسب في `tax.ts` وحده.**
+ *
+ * ودالّةٌ ثانية تحسبها في مكان آخر تصير مصدرًا ثانيًا للحقيقة: تُعدَّل
+ * القاعدة فتتبعها إحداهما وتتخلّف الأخرى، والفرق يظهر في فاتورة.
+ */
+const TAX_DEFINITION = /\b(function|const)\s+(vatIncluded|netOfVat|computeTax)\b/;
+
+/** حسابُ ضريبةٍ على قيمة المركبة — بالتسمية، فالنيّة تظهر في الاسم. */
+const VEHICLE_TAX = /\b(vehicleVat|vatOnVehicle|carVat|vehicleTax|taxOnVehicle)\b/i;
+
+/** مستندٌ يسمّي نفسه فاتورة مركبة — وهو ليس فاتورة حتى يُصنَّف. */
+/**
+ * والنفي ليس تسمية: «بلا فاتورة مركبة» تصف **الامتناع** عن إصدارها —
+ * وهو السلوك الصحيح نفسه الذي تحرسه هذه القاعدة. فحرفُ النفي قبلها
+ * يُخرجها.
+ */
+const VEHICLE_INVOICE =
+  /\b(vehicleInvoice|carInvoice)\b|(?<!(?:بلا|لا|دون|بغير|عدم)\s)فاتورة\s+(ال)?مركبة/;
+
+
+/**
+ * ————— القاعدة ١٨: رقمٌ مُقحَم في قالب لا تليه كلمة عربية —————
+ *
+ * `` `و${String(n)} طلبًا` `` تُخرج **رقمًا لاتينيًّا** وجمعًا مكتوبًا
+ * بيد كاتبه — والعربية ستّ حالات جمع فيُصيب واحدة ويُخطئ خمسًا: «و١
+ * طلبًا» و«و٢ طلبًا» و«و١٠ طلبًا».
+ *
+ * والقاعدة ٥ تمنع هذا في JSX، لكن رسائل الـToast **نصوصٌ لا عناصر**
+ * فلا يبلغها `<Quantity>` ولا تمرّ على تلك القاعدة. فوقع الخطأ مرّتين:
+ * في A7 وفي بطاقة رسوم المعالجة.
+ *
+ * والعلاج في النصّ: تُصاغ الجملة فلا يحكم العددُ المعدودَ — «الطلبات
+ * القائمة (١٠)» بدل «١٠ طلبات» — والرقم يمرّ على `toArabicDigits`.
+ *
+ * **والقوس هو العلامة**: عددٌ يفتح قوسًا لا يحكم ما بعده، فيُستثنى. وهو
+ * الصيغة الموصى بها نفسها، فاستثناؤها يكافئ اتّباعها.
+ *
+ * ويُستثنى `src/lib/arabic.ts` — فيه يُبنى التنسيق نفسه.
+ */
+const NUMERIC_INTERP =
+  /(?<!\()\$\{[^}]*(?:String\(|Number\(|\.length|count|total|Count)[^}]*\}\s*[\u0621-\u064A]/;
+
+function checkInterpolatedNumbers() {
+  const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (rel.includes('generated')) continue;
+      // موضع بناء التنسيق نفسه
+      if (rel.endsWith(join('lib', 'arabic.ts'))) continue;
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        if (/^\s*[*]/.test(line)) return;
+        if (NUMERIC_INTERP.test(line)) {
+          problems.push(
+            `${rel}:${i + 1}  رقم مُقحَم تليه كلمة عربية — الأرقام عربية-هندية، والجمع لا يُكتب بيد`,
+          );
+        }
+      });
+    }
+  }
+}
+
+function checkTaxRate() {
+  const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (rel.includes('generated')) continue;
+      const isTaxFile =
+        rel.endsWith(join('domain', 'tax.ts')) || rel.endsWith('domain/tax.ts');
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        const code = line.split('//')[0] ?? '';
+        const isComment = /^\s*[*]/.test(line);
+
+        if (
+          !isTaxFile &&
+          !isComment &&
+          TAX_CONTEXT.test(code) &&
+          RATE_LITERAL.test(code) &&
+          !MEASURE_NAME.test(code)
+        ) {
+          problems.push(
+            `${rel}:${i + 1}  نسبة ضريبة مكتوبة خارج tax.ts — النسبة تُقرأ من TaxRule`,
+          );
+        }
+        /**
+         * **الاستدعاء مسموح والتعريف ممنوع**: الشاشات والمجال يستدعون،
+         * و`tax.ts` وحده يُعرّف. ولهذا يلزم الاسمُ بعد `function` أو
+         * `const` مباشرةً — و`const x = vatIncluded(…)` استدعاءٌ يمرّ.
+         */
+        if (!isTaxFile && !isComment && TAX_DEFINITION.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  تعريف حساب ضريبة خارج tax.ts — الحساب في موضع واحد`,
+          );
+        }
+        if (!isComment && VEHICLE_TAX.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  حساب ضريبة على قيمة المركبة — التصنيف ينتظر المذكرة (المهمة ٣٥)`,
+          );
+        }
+        if (!isComment && VEHICLE_INVOICE.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  مستند يسمّي نفسه فاتورة مركبة — وهو ليس فاتورة حتى يُصنَّف`,
+          );
+        }
+      });
+    }
+  }
+}
+
+
+/**
+ * ————— القاعدة ١٧: النطاق يعيد بيانات لا جُملًا —————
+ *
+ * لا حرف عربي في `src/lib/domain` و`src/lib/payments` — **عدا التعليقات**.
+ *
+ * والسبب أن النطاق **لا يستطيع** الصياغة: لا يعرف اللغة ولا يملك
+ * `Quantity`. فجملةٌ يبنيها تُنتج «6 يومًا» — رقمًا لاتينيًّا وجمعًا
+ * خاطئًا داخل جملة عربية — ولا يكشفها المترجم ولا الاختبار الذي يفحص
+ * «هل النصّ صحيح»، لأنه يمرّ بنصٍّ مبنيّ بعناية ثم ينكسر في الجملة
+ * التالية.
+ *
+ * فالفحص على **غياب الصنف** لا على صحّة أفراده: لا نصّ هنا أصلًا.
+ * والتسميات في `src/lib/labels/`، والأخطاء رموزٌ تترجمها الشاشة.
+ */
+const DOMAIN_ROOTS = [join('src', 'lib', 'domain'), join('src', 'lib', 'payments')];
+const ARABIC = /[؀-ۿ]/;
+
+function checkDomainHasNoProse() {
+  for (const dir of DOMAIN_ROOTS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts')) continue;
+      const rel = relative(ROOT, file);
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      let inBlockComment = false;
+
+      lines.forEach((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('/*')) inBlockComment = true;
+        const wasComment = inBlockComment || trimmed.startsWith('*') || trimmed.startsWith('//');
+        if (trimmed.includes('*/')) inBlockComment = false;
+        if (wasComment) return;
+
+        // السطر قد يحمل شفرةً ثم تعليقًا — والتعليق مسموح
+        const code = line.split('//')[0] ?? '';
+        if (ARABIC.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  نصّ عربي في النطاق — أعِد مفتاحًا، والتسمية في src/lib/labels/`,
+          );
+        }
+      });
+    }
+  }
+}
+
+function checkPrismaBoundary() {
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      const source = readFileSync(file, 'utf8');
+      const isClient = /^\s*['"]use client['"]/m.test(source);
+
+      // ——— أ. النوع لا يعبر ———
+      if (isClient) {
+        if (PRISMA_CLIENT_IMPORT.test(source)) {
+          problems.push(
+            `${rel}  مكوّن عميل يستورد نوعًا من @/generated/prisma/client — أعلن نوعًا خاصًّا يبنيه مُسلسِل`,
+          );
+        }
+        if (PRISMA_TYPE_USE.test(source)) {
+          problems.push(
+            `${rel}  مكوّن عميل يستعمل نوع Prisma داخليًّا — النوع يعبر بما يحمله`,
+          );
+        }
+        continue;
+      }
+
+      // ——— ب. القيمة لا تعبر ———
+      if (!ROW_QUERY.test(source)) continue;
+
+      const bound = rowBindings(source);
+      if (bound.size === 0) continue;
+
+      /**
+       * الاستعلام المباشر داخل الخاصّية يُلتقط أيضًا:
+       * `rows={await db.user.findMany()}` لا اسم له لكنه يعبر.
+       */
+      for (const attribute of source.matchAll(/\b(\w+)=\{([^}]{1,80})\}/g)) {
+        const name = attribute[1] ?? '';
+        const value = (attribute[2] ?? '').trim();
+        if (name === 'key' || name === 'className') continue;
+
+        const direct = ROW_QUERY.test(value);
+        const named = bound.has(value);
+        if (!direct && !named) continue;
+
+        problems.push(
+          `${rel}  «${name}={${value}}» صفّ Prisma يعبر إلى مكوّن — مرّره عبر مُسلسِل يعلن ما يخرج`,
+        );
+      }
+    }
+  }
+}
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
+checkMoneyMigrations();
+checkPrismaBoundary();
+checkClientDbImports();
+checkGatewayVocabulary();
+checkTaxRate();
+  checkInterpolatedNumbers();
+checkDomainHasNoProse();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -374,5 +891,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية.',
 );

@@ -7,6 +7,7 @@ export default defineConfig({
     // اختبارات القواعد تمسّ قاعدة البيانات، فتُشغَّل بالتسلسل
     fileParallelism: false,
     setupFiles: ['./tests/setup.ts'],
+    globalSetup: ['./tests/global-setup.ts'],
   },
   resolve: {
     alias: {
