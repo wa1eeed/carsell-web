@@ -66,3 +66,21 @@ Run:
 1. Upload a photo with a readable plate through the sell flow.
 2. Fetch the resulting public URL.
 3. Assert the plate region's standard deviation is below half the original.
+
+## قبل الإنتاج — ما لا يُطلَق بدونه
+
+### القاعدة ١٢ · نصاب ثنائي على الإفراج عن الضمان — **غير مبنيّ الآن**
+
+كانت مبنيّة في `payments.ts`، وحُذفت معه حين أُلغيت بنية الدفع القديمة
+(قرار ٣٤). و`canSettle` في `transfer-windows.ts` تحرس **التوقيت** — لا
+تحرس النصاب.
+
+**فالحال اليوم:** لا شيء يمنع إفراجًا بموافقة شخص واحد، لأنه لا مسار
+إفراج أصلًا. وهذا آمنٌ ما دام لا مُهايئ، **وخطرٌ لحظة وصوله**.
+
+**يُعاد مع `MoyasarAdapter`** — حين يصير للإفراج استدعاءٌ حقيقيّ يُحرَس.
+والآلية جاهزة: `ApprovalRequest` بـ`kind = ESCROW_RELEASE`، وهي نفسها
+التي تدوّر المفاتيح وتبدّل البوابات.
+
+> **لا يُطلَق إنتاج بلا نصاب ثنائي على الإفراج.**
+

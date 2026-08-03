@@ -311,6 +311,9 @@
   },
   "units": {
     "orders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبًا} other{{n} طلب}}",
+    "paymentPurposes": "{count, plural, zero{لا أغراض دفع} one{غرض دفع واحد} two{غرضا دفع} few{{n} أغراض دفع} many{{n} غرض دفع} other{{n} غرض دفع}}",
+    "gateways": "{count, plural, zero{لا بوابات} one{بوابة واحدة} two{بوابتان} few{{n} بوابات} many{{n} بوابة} other{{n} بوابة}}",
+    "inFlight": "{count, plural, zero{لا معاملات جارية} one{معاملة جارية} two{معاملتان جاريتان} few{{n} معاملات جارية} many{{n} معاملة جارية} other{{n} معاملة جارية}}",
     "messages": "{count, plural, zero{لا رسائل} one{رسالة واحدة} two{رسالتان} few{{n} رسائل} many{{n} رسالة} other{{n} رسالة}}",
     "transactionalNotifications": "{count, plural, zero{لا إشعارات معاملاتية} one{إشعار معاملاتي واحد} two{إشعاران معاملاتيان} few{{n} إشعارات معاملاتية} many{{n} إشعارًا معاملاتيًّا} other{{n} إشعار معاملاتي}}",
     "characters": "{count, plural, zero{لا أحرف} one{حرف واحد} two{حرفان} few{{n} أحرف} many{{n} حرفًا} other{{n} حرف}}",

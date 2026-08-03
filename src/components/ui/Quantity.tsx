@@ -38,6 +38,9 @@ export type Unit =
   | 'characters'
   | 'smsSegments'
   | 'messages'
+  | 'paymentPurposes'
+  | 'gateways'
+  | 'inFlight'
   | 'km';
 
 /**

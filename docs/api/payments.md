@@ -91,9 +91,18 @@ it is not shown and then rejected. Offering a choice and refusing it teaches the
 operator that the list is unreliable.
 
 If `maxHoldDays` is **less than the purpose needs**, that is an amber warning
-explaining the consequence, not a block. A20's wording: dropping from 30 days to
-6 means an order still in transfer at day five converts from a hold to an early
-collection — *which changes what escrow means to the buyer*.
+explaining the consequence, not a block.
+
+**The warning is data, not a prebuilt string.** `eligibility` returns
+`{ maxHoldDays, neededDays }` and the screen renders it with `Quantity`. A
+sentence assembled in the domain produced *"6 يومًا"* — a Latin numeral and the
+wrong Arabic plural inside an Arabic sentence — and the domain cannot fix that,
+because it does not know the language and has no access to `Quantity`. A test
+asserts the domain returns **no Arabic characters at all**.
+
+`minHoldDays` is derived, not estimated: 24h payment + 7-day transfer ceiling +
+7-day return window = 15, and 22 with the single permitted extension — so the
+threshold is 21. See decision 38.
 
 The domain must never assume a hold lasts forever.
 

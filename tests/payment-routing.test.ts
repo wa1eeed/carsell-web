@@ -31,15 +31,14 @@ describe('═══ القاعدة ٢ ═══ الناقصة قدرةً لا �
     expect(keys).toContain('bank_escrow');
 
     const bank = choices.find((choice) => choice.key === 'bank_escrow');
-    expect(bank?.warning).toBeNull();
+    expect(bank?.shortfall).toBeNull();
 
     // ═══ ميسر (٧) وتاب (٦) دون الثلاثين — تظهران بتحذير لا تُخفيان ═══
     for (const key of ['moyasar', 'tap']) {
       const choice = choices.find((entry) => entry.key === key);
       expect(choice, key).toBeDefined();
-      expect(choice?.warning, key).not.toBeNull();
-      expect(choice?.warning, key).toContain('يغيّر معنى الضمان للمشتري');
-      expect(choice?.warning, key).toContain('دفع + سقف نقل + نافذة استرجاع');
+      expect(choice?.shortfall, key).not.toBeNull();
+      expect(choice?.shortfall?.neededDays, key).toBe(21);
     }
   });
 

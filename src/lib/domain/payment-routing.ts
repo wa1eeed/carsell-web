@@ -6,6 +6,7 @@ import {
   eligibility,
   readCapabilities,
   type GatewayCapabilities,
+  type HoldShortfall,
 } from '@/lib/payments/gateway';
 import { effectiveEnvironment } from './integration-env';
 
@@ -40,7 +41,7 @@ export type RouteRow = {
   heldNow: string;
   /** معاملات جارية تمنع التعطيل (قاعدة ٣). */
   inFlight: number;
-  warning: string | null;
+  shortfall: HoldShortfall | null;
 };
 
 const HELD_STATUSES = ['PENDING', 'HELD', 'REQUIRES_ACTION'] as const;
@@ -99,7 +100,7 @@ export async function listRoutes(now: Date = new Date()): Promise<RouteRow[]> {
       ).toString(),
       heldNow: (held.find((row) => row.purpose === purpose)?._sum.amount ?? 0).toString(),
       inFlight: inFlight.find((row) => row.purpose === purpose)?._count._all ?? 0,
-      warning: check.eligible ? check.warning : null,
+      shortfall: check.eligible ? check.shortfall : null,
     };
   });
 }
@@ -108,7 +109,7 @@ export type GatewayChoice = {
   key: string;
   nameAr: string;
   capabilities: GatewayCapabilities;
-  warning: string | null;
+  shortfall: HoldShortfall | null;
 };
 
 /**
@@ -132,7 +133,7 @@ export async function choicesFor(purpose: PaymentPurpose): Promise<GatewayChoice
       key: gateway.key,
       nameAr: gateway.nameAr,
       capabilities,
-      warning: check.warning,
+      shortfall: check.shortfall,
     });
   }
   return choices;

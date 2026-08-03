@@ -311,6 +311,9 @@
   },
   "units": {
     "orders": "{count, plural, one{{n} order} other{{n} orders}}",
+    "paymentPurposes": "{count, plural, one{{n} payment purpose} other{{n} payment purposes}}",
+    "gateways": "{count, plural, one{{n} gateway} other{{n} gateways}}",
+    "inFlight": "{count, plural, one{{n} in flight} other{{n} in flight}}",
     "messages": "{count, plural, one{{n} message} other{{n} messages}}",
     "transactionalNotifications": "{count, plural, one{{n} transactional notification} other{{n} transactional notifications}}",
     "characters": "{count, plural, one{{n} character} other{{n} characters}}",

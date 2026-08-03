@@ -40,18 +40,22 @@ describe('═══ القاعدة ٢ ═══ القدرة الناقصة تُ
     const tap = eligibility('VEHICLE_ESCROW', TAP);
     expect(tap.eligible).toBe(true);
     if (tap.eligible) {
-      expect(tap.warning).not.toBeNull();
-      // والنصّ يشرح ما يقع لا يكتفي بالرقم
-      expect(tap.warning).toContain('يغيّر معنى الضمان للمشتري');
-      // والمسار صار معلوم السقف، فالنصّ يسمّيه: دفع + سقف نقل + نافذة
-      expect(tap.warning).toContain('دفع + سقف نقل + نافذة استرجاع');
+      expect(tap.shortfall).not.toBeNull();
+      // **بيانات لا نصّ**: النطاق يقول الأرقام، والشاشة تصوغها بـQuantity
+      expect(tap.shortfall).toEqual({ maxHoldDays: 6, neededDays: 21 });
     }
+  });
+
+  it('ولا نصّ عربيّ في النطاق — فالصياغة ليست من شأنه', () => {
+    const tap = eligibility('VEHICLE_ESCROW', TAP);
+    // نصٌّ مبنيّ هنا كان يُنتج «6 يومًا»: رقمًا لاتينيًّا وجمعًا خاطئًا
+    expect(JSON.stringify(tap)).not.toMatch(/[\u0600-\u06FF]/);
   });
 
   it('والمصرفية بلا تحذير — فوق حدّ الإنذار', () => {
     const bank = eligibility('VEHICLE_ESCROW', BANK);
     expect(bank.eligible).toBe(true);
-    if (bank.eligible) expect(bank.warning).toBeNull();
+    if (bank.eligible) expect(bank.shortfall).toBeNull();
   });
 
   it('شحن المحفظة لا يشترط حجزًا — تحصيل فوريّ', () => {

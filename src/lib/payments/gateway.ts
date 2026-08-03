@@ -153,8 +153,17 @@ export const PURPOSE_REQUIREMENTS: Record<
   },
 };
 
+/**
+ * التحذير **بيانات لا نصّ جاهز**.
+ *
+ * نصٌّ يُبنى هنا يُنتج «٦ يومًا» و«21» — أرقامًا لاتينية وجمعًا خاطئًا
+ * داخل جملة عربية، ولا يستطيع النطاق تصحيحهما لأنه لا يعرف اللغة ولا
+ * يملك `Quantity`. فالصياغة في الشاشة، والنطاق يقول الأرقام وحدها.
+ */
+export type HoldShortfall = { maxHoldDays: number; neededDays: number };
+
 export type Eligibility =
-  | { eligible: true; warning: string | null }
+  | { eligible: true; shortfall: HoldShortfall | null }
   | { eligible: false; missing: (keyof GatewayCapabilities)[] };
 
 /**
@@ -175,12 +184,14 @@ export function eligibility(
   if (requirement.minHoldDays > 0 && capabilities.maxHoldDays < requirement.minHoldDays) {
     return {
       eligible: true,
-      // لا يقول «الغرض يحتاج كذا»: مرحلة النقل بلا سقف زمنيّ فلا يُعلم
-      warning: `أقصى مدّة حجز ${String(capabilities.maxHoldDays)} يومًا، ومسار الطلب يحتاج ${String(requirement.minHoldDays)} (دفع + سقف نقل + نافذة استرجاع) — فسيتحوّل الحجز إلى تحصيل مبكّر قبل أن تنقضي النافذة، وهذا يغيّر معنى الضمان للمشتري.`,
+      shortfall: {
+        maxHoldDays: capabilities.maxHoldDays,
+        neededDays: requirement.minHoldDays,
+      },
     };
   }
 
-  return { eligible: true, warning: null };
+  return { eligible: true, shortfall: null };
 }
 
 export function readCapabilities(value: unknown): GatewayCapabilities {
