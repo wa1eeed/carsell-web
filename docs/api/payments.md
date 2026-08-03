@@ -187,12 +187,35 @@ unchanged — the reverse is not true, which is why this direction was chosen.
 
 ## 8 · What does not exist yet, stated plainly
 
-- **No adapter has been tested against a live gateway.** Moyasar test keys are
-  expected within a day. `MoyasarAdapter` is built from published documentation
-  and carries that statement in its file header.
-- Adapter tests run against a **fake gateway implementing the same interface**,
-  so every path is covered without a network call.
-- `TapAdapter` and the bank trust gateway are not built.
+### `MoyasarAdapter` — built, **never tested against the provider**
+
+The statement is in the file header and repeated here because it is the one
+thing a reader must not miss: this adapter has **never touched Moyasar**. It is
+built from published documentation while test keys are awaited.
+
+Its tests run against a **fake gateway implementing the same interface**, so
+every path is covered without a network call — but **field-name agreement
+remains unproven**. If Moyasar returns `transactionUrl` where this expects
+`transaction_url`, the tests pass and production fails. Only real keys close
+that gap.
+
+What the tests *do* prove, and would prove for any adapter:
+
+- **Amounts convert to halalas.** The most dangerous line in the file: `100`
+  means one riyal, not one hundred. An error here charges a hundredfold or a
+  hundredth, and no type catches it because both are numbers. Round-trip tested
+  across whole riyals, half riyals, and single-digit fractions (`12.5` is half a
+  riyal, not five halalas).
+- **A dropped network returns `PENDING`, not `FAILED`.** The request may have
+  arrived and executed; calling it a failure makes the domain retry and charge
+  twice. `PENDING` leaves the decision to the webhook or to `status()`.
+- **A status other than `authorized` stays `PENDING`.** The domain waits on the
+  state, not on the call.
+- Gateway vocabulary appears **only inside this file** — gate 15 exempts
+  `src/lib/payments/adapters/` and nothing else.
+
+- `TapAdapter` and the bank trust gateway are not built. See § 7b for how the
+  bank adapter must be shaped when it arrives.
 
 ## 9 · Tax is not decided here
 
