@@ -877,10 +877,15 @@ async function main(): Promise<void> {
     const stage = STAGES[i % STAGES.length] as (typeof STAGES)[number];
     const buyer = buyers[i % buyers.length] as (typeof buyers)[number];
     const agreed = new D(String(Math.round(Number(l.askPrice) * 0.97)));
+    // رسمٌ حكوميّ يُمرَّر كما هو — صرفٌ نيابةً عن العميل، لا ضريبة لنا فيه
     const transferFee = new D('350.00');
     const total = agreed.plus(transferFee);
-    // الضريبة مضمَّنة: total × ١٥/١١٥ (قرار ١٧)
-    const vat = total.times(15).dividedBy(115).toDecimalPlaces(2);
+    /**
+     * الضريبة على **توريداتنا وحدها**: العمولة (٠٪ الآن) والرسم الإداريّ
+     * (معطَّل افتراضًا) — فصفرٌ هنا. وكانت ١٥/١١٥ من الإجمالي («قرار ١٧»
+     * وقد نُسخ)، فتحتسب ضريبةً على قيمة المركبة والرسم الحكوميّ معًا.
+     */
+    const vat = new D('0.00');
 
     const order = await prisma.order.create({
       data: {

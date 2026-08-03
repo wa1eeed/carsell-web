@@ -1,7 +1,8 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
-import { DEFAULT_VAT_PCT, vatIncluded } from './tax';
+import { DEFAULT_VAT_PCT } from './tax';
+import { effectiveAdminFee, ourVat } from './fees';
 
 /**
  * العروض — القواعد ١–٥ من القسم ٧.
@@ -338,10 +339,27 @@ export async function acceptOffer(
             Number(commissionRule.maxFee ?? Number.MAX_SAFE_INTEGER),
           );
 
+    /**
+     * رسم النقل **حكوميّ يُمرَّر كما هو** — صرفٌ نيابةً عن العميل. ورسمنا
+     * الإداريّ سطرٌ ثانٍ مستقلّ، لأن دمجهما يُسقط وصف الصرف عن المبلغ كلّه.
+     */
     const transferFee = Number(platform?.transferFee ?? 0);
-    const total = price + commissionAmount + transferFee;
-    // الضريبة **مضمَّنة** — ١٥/١١٥ من الإجمالي لا مضافة إليه (قرار ١٧)
-    const vatAmount = vatIncluded(total, platform?.vatPct ?? DEFAULT_VAT_PCT);
+    const transferAdminFee = effectiveAdminFee({
+      adminFeeEnabled: platform?.transferAdminFeeEnabled ?? false,
+      adminFee: platform?.transferAdminFee ?? 0,
+    });
+    const total = price + commissionAmount + transferFee + Number(transferAdminFee);
+
+    /**
+     * الضريبة على **توريداتنا وحدها** — العمولة والرسم الإداريّ.
+     *
+     * وكانت ١٥/١١٥ من الإجمالي كلّه، فتُدخل قيمة المركبة (مورّدها البائع)
+     * والرسمَ الحكوميّ (لسنا مورّده) في وعاءٍ ليسا منه. يُصحَّح «قرار ١٧».
+     */
+    const vatAmount = ourVat(
+      { commissionAmount, transferAdminFee },
+      Number(platform?.vatPct ?? DEFAULT_VAT_PCT),
+    );
 
     const ref = await nextOrderRef(tx, now);
 
@@ -357,6 +375,7 @@ export async function acceptOffer(
         commissionPct: new Prisma.Decimal(commissionPct),
         commissionAmount: new Prisma.Decimal(commissionAmount),
         transferFee: new Prisma.Decimal(transferFee),
+        transferAdminFee,
         vatAmount,
         totalAmount: new Prisma.Decimal(total),
         createdAt: now,

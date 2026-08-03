@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { effectiveAdminFee } from './fees';
 import { sellerBadge, type SellerBadge } from './seller';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ListingType, PaintStatus, VehicleCondition } from '@/generated/prisma/enums';
@@ -152,7 +153,15 @@ export type PublicListingDetail = {
   } | null;
 
   /** التكلفة الإجمالية — الضريبة مضمَّنة دائمًا (قرار ١٧). */
-  cost: { price: string; commission: string; transferFee: string; total: string };
+  cost: {
+    price: string;
+    commission: string;
+    /** حكوميّ — يُمرَّر كما هو */
+    transferFee: string;
+    /** إداريّ — إيرادٌ لنا، وسطرٌ لا يُدمج بما فوقه */
+    transferAdminFee: string;
+    total: string;
+  };
 
   /** موقع السعر في السوق — `null` دون عتبة العيّنة (قرار ٣٠). */
   priceStat: {
@@ -295,6 +304,12 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
     row.type !== 'AUCTION' && settings != null && price >= Number(settings.minPrice);
 
   const transferFee = Number(platform?.transferFee ?? 0);
+  const transferAdminFee = Number(
+    effectiveAdminFee({
+      adminFeeEnabled: platform?.transferAdminFeeEnabled ?? false,
+      adminFee: platform?.transferAdminFee ?? 0,
+    }),
+  );
   const commission =
     commissionRule === null
       ? 0
@@ -438,7 +453,8 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
       price: price.toString(),
       commission: commission.toString(),
       transferFee: transferFee.toString(),
-      total: (price + commission + transferFee).toString(),
+      transferAdminFee: transferAdminFee.toString(),
+      total: (price + commission + transferFee + transferAdminFee).toString(),
     },
 
     priceStat,

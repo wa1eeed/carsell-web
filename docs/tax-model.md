@@ -181,3 +181,49 @@ see question 12.
 12. **Gateway fee incidence.** We deduct the payment-gateway fee from the seller's
     net. Does that deduction change the taxable base of our commission supply, and
     must it appear on any invoice rather than only on the settlement statement?
+
+## 10 · Government fee vs. administrative fee
+
+**Ruled 2026-08-03.** The 350 SAR ownership-transfer fee is a **government
+charge**, passed through unchanged. It is a disbursement: we act as agent, the
+customer is the party liable, and the exact amount is passed on. It carries no
+VAT of ours and appears on no invoice we issue.
+
+Alongside it, each service — and the transfer itself — may carry an optional,
+switchable **administrative fee**. That fee is ours, so it is a standard-rated
+supply of a service.
+
+### Why two columns and not one number
+
+The disbursement treatment survives only while the amount is passed on
+**unchanged**. Charge 400 against a 350 government fee and call it "transfer
+fee", and the whole 400 becomes our taxable supply — tax on 400, not on the 50.
+
+So the split is a **condition of the classification**, not a presentation
+choice. It is two columns in the schema (`transferFee` / `transferAdminFee`,
+`Service.price` / `Service.adminFee`), `assertNoMarkup` guards the invariant,
+and no path sums them before storage. `src/lib/domain/fees.ts`.
+
+The administrative fee is **VAT-inclusive**, like every other platform price:
+what the operator types is what the customer pays, and the A7 field says so.
+
+### Consequences for figures that were already stored
+
+`Order.vatAmount` was 15/115 of the whole total. That put the vehicle value —
+whose supplier is the seller — and the government fee — whose supplier is
+nobody we invoice for — into a base neither belongs to. It is now VAT on **our
+supplies only**: commission plus administrative fees. The migration backfills
+existing rows, and its rollback restores the old formula exactly.
+
+A3's GMV card said "of which embedded tax, computed 15/115 of the total". That
+sentence was a promise the system no longer kept — an individual-to-individual
+sale is out of scope entirely and carries no tax at all. The card now reports
+our VAT, summed from `Order.vatAmount`, and says so.
+
+### `OUT_OF_SCOPE` now means no invoice from us
+
+Not a zero-tax invoice. Zero says "we supplied it and the tax is nil"; the truth
+is that we did not supply it. This also separates *stating* a treatment from
+*deactivating* a row: a row can now be active and correctly produce no invoice,
+where before the only way to express that was `active: false` — which reads as
+"undecided", not "decided not to invoice".

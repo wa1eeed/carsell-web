@@ -43,6 +43,8 @@ type Draft = {
   descAr: string;
   descEn: string;
   price: string;
+  adminFeeEnabled: boolean;
+  adminFee: string;
   slaHours: string;
   placements: string[];
 };
@@ -58,6 +60,8 @@ function draftOf(service: ServiceRow): Draft {
     descAr: service.descAr,
     descEn: service.descEn,
     price: service.price,
+    adminFeeEnabled: service.adminFeeEnabled,
+    adminFee: service.adminFee,
     slaHours: service.slaHours === null ? '' : String(service.slaHours),
     placements: [...service.placements],
   };
@@ -73,6 +77,8 @@ const BLANK: Draft = {
   descAr: '',
   descEn: '',
   price: '0',
+  adminFeeEnabled: false,
+  adminFee: '0',
   slaHours: '',
   placements: [],
 };
@@ -140,6 +146,7 @@ export function ServicesTable({
   const save = (): void => {
     if (draft === null) return;
     const price = Number(toLatinDigits(draft.price).replace(/\D/g, '') || '0');
+    const adminFee = Number(toLatinDigits(draft.adminFee).replace(/\D/g, '') || '0');
     const sla = toLatinDigits(draft.slaHours).replace(/\D/g, '');
     const body = {
       nameAr: draft.nameAr,
@@ -149,6 +156,8 @@ export function ServicesTable({
       slaHours: sla === '' ? null : Number(sla),
       placements: draft.placements,
       price,
+      adminFeeEnabled: draft.adminFeeEnabled,
+      adminFee,
     };
 
     if (draft.isNew) {
@@ -261,6 +270,18 @@ export function ServicesTable({
                 <span className="opacity-60">مجانًا</span>
               ) : (
                 <Money amount={service.price} />
+              ),
+          },
+          {
+            id: 'adminFee',
+            header: 'رسم إداريّ',
+            numeric: true,
+            /* المعطَّل شرطةٌ لا صفر — الصفر رقمٌ سارٍ والشرطة غيابُ قرار */
+            cell: (service) =>
+              !service.adminFeeEnabled || Number(service.adminFee) === 0 ? (
+                <span className="opacity-35">—</span>
+              ) : (
+                <Money amount={service.adminFee} />
               ),
           },
           {
@@ -469,6 +490,42 @@ export function ServicesTable({
                   : undefined
               }
             />
+            {/*
+              ═══ الرسم الإداريّ — حقلٌ ثانٍ لا زيادةٌ على السعر ═══
+
+              السعر أعلاه قد يكون **صرفًا نيابةً عن العميل**: رسمٌ حكوميّ
+              أو أجر مقدّم خدمة يُمرَّر كما هو. ولحظة نرفعه ونسمّيه السعر
+              يسقط وصف الصرف عن المبلغ كلّه فتُستحقّ الضريبة على كامله لا
+              على هامشنا وحده. فالفصل شرط صحّة التصنيف، والنصّ تحته يقول
+              ذلك للمشغّل بدل أن يكتشفه من مطابقةٍ لاحقة.
+            */}
+            <div className="flex flex-col gap-2.5 rounded-lg border border-line p-3.5">
+              <label className="flex items-center gap-2.5 text-2xs font-bold">
+                <input
+                  type="checkbox"
+                  checked={draft.adminFeeEnabled}
+                  onChange={(event) =>
+                    setDraft({ ...draft, adminFeeEnabled: event.target.checked })
+                  }
+                />
+                رسم إداريّ على هذه الخدمة
+              </label>
+              <p className="text-3xs leading-loose opacity-55">
+                يُضاف سطرًا مستقلًّا فوق السعر — لا يُدمج فيه. وهو إيرادٌ لنا فتسري
+                عليه الضريبة، بخلاف ما يُمرَّر لجهةٍ أخرى كما هو.
+              </p>
+              {!draft.adminFeeEnabled ? null : (
+                <Field
+                  label="الرسم بالريال — شامل الضريبة"
+                  ltr
+                  numeric
+                  value={draft.adminFee}
+                  onChange={(adminFee) => setDraft({ ...draft, adminFee })}
+                  hint="ما يُدخَل هنا هو ما يدفعه العميل: الضريبة مضمَّنة فيه ١٥/١١٥."
+                />
+              )}
+            </div>
+
             <Field
               label="مهلة التنفيذ بالساعات"
               ltr

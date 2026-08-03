@@ -290,13 +290,14 @@ export async function issueSettlementDocuments(
    * على توريدٍ مُفوتَر، ونقضُها يحتاج إشعار دائن على ورقةٍ ما كان لها أن
    * توجد. والخطأ هنا غير متماثل — النقص ثغرةٌ تُسدّ، والزيادة وثيقةٌ خرجت.
    *
-   * **ورسوم النقل مؤجَّلة كذلك** حتى يُقال أهي توريدنا أم تمريرُ رسمٍ
-   * حكوميّ. انظر `docs/tax-model.md` § ٩.
+   * **ورسم النقل الحكوميّ صرفٌ** يُمرَّر بلا زيادة فلا فاتورة منّا فيه،
+   * بينما **رسمنا الإداريّ عليه توريدٌ منّا** يُفوتَر. وهذا الفصل شرط
+   * صحّة التصنيف لا ترتيب عرض — `src/lib/domain/fees.ts`.
    *
    * أمّا المركبة فمورّدها البائع، وقاعدتها قد تكون معطّلة بانتظار المذكرة.
    */
   const supplies: {
-    supplyType: 'COMMISSION' | 'VEHICLE';
+    supplyType: 'COMMISSION' | 'VEHICLE' | 'ADMIN_FEE' | 'DISBURSEMENT';
     amount: string;
     description: string;
   }[] = [];
@@ -307,6 +308,33 @@ export async function issueSettlementDocuments(
       description: 'platform commission',
     });
   }
+
+  /**
+   * الرسم الإداريّ توريدُ خدمةٍ منّا — يُفوتَر مع تسوية المركبة لأنه
+   * جزء من مبلغها المحجوز، بخلاف خدمةٍ لها معاملتها.
+   */
+  if (order.transferAdminFee.greaterThan(0)) {
+    supplies.push({
+      supplyType: 'ADMIN_FEE',
+      amount: order.transferAdminFee.toString(),
+      description: 'ownership transfer administrative fee',
+    });
+  }
+
+  /**
+   * والرسم الحكوميّ يمرّ من المُصدِر **ليُردّ بقاعدته**: يطابق صفًّا
+   * `OUT_OF_SCOPE` فيعود `OUT_OF_SCOPE_NO_INVOICE`. ولم يُستثنَ في الكود
+   * لأن الاستثناء يجعل المعالجة سطرًا لا يراه المشغّل — وهنا يراها في
+   * A21 صفًّا يقرؤه ويغيّره إن جاء التصنيف بغيرها.
+   */
+  if (order.transferFee.greaterThan(0)) {
+    supplies.push({
+      supplyType: 'DISBURSEMENT',
+      amount: order.transferFee.toString(),
+      description: 'ownership transfer government fee',
+    });
+  }
+
   supplies.push({
     supplyType: 'VEHICLE',
     amount: figures?.vehicleValue ?? '0',
@@ -320,9 +348,7 @@ export async function issueSettlementDocuments(
   if (new Prisma.Decimal(figures?.servicesTotal ?? 0).greaterThan(0)) {
     result.blocked.push({ supplyType: 'SERVICE', reason: 'INVOICED_WITH_ITS_OWN_PAYMENT' });
   }
-  if (order.transferFee.greaterThan(0)) {
-    result.blocked.push({ supplyType: 'TRANSFER_FEE', reason: 'AWAITING_RULING' });
-  }
+
 
   for (const supply of supplies) {
     const issued = await issueInvoice(

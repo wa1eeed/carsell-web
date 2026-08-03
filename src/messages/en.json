@@ -715,7 +715,7 @@
     "commission": "Platform commission",
     "transferFee": "Transfer fee",
     "total": "Total",
-    "vatIncluded": "Prices include VAT",
+    "vatIncluded": "Platform fees include VAT · the ownership-transfer fee is a government charge passed on unchanged",
     "status": "Status",
     "inStageFor": "In this stage for",
     "payBy": "Payment due by",
@@ -767,7 +767,8 @@
       "commission": "Platform commission",
       "gatewayFee": "Payment gateway fee",
       "netToSeller": "Your net"
-    }
+    },
+    "adminFee": "Administrative fee"
   },
   "auctions": {
     "title": "Auctions",

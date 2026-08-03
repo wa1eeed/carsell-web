@@ -149,6 +149,7 @@ export function computeTax(
 export type IssueFailure =
   | 'NO_MATCHING_RULE'
   | 'MARGIN_NOT_APPROVED'
+  | 'OUT_OF_SCOPE_NO_INVOICE'
   | 'ALREADY_ISSUED';
 
 export type IssueInput = {
@@ -198,6 +199,18 @@ export async function issueInvoice(
    */
   if (rule.taxableBase === 'MARGIN' && input.dealerMarginApproved !== true) {
     return { ok: false, reason: 'MARGIN_NOT_APPROVED' };
+  }
+
+  /**
+   * **`OUT_OF_SCOPE` تعني أنّا لسنا المورّد — فلا فاتورة منّا.**
+   *
+   * لا فاتورةً بضريبة صفر: الصفر يقول «وردتُ وضريبتها لا شيء»، والحقيقة
+   * أنّا لم نورّد. وهذا يفصل الوصف عن التعطيل: كانت الحالة تُبلَغ
+   * بإبقاء الصفّ `active: false` — وهو يقول «لم نقرّر» لا «قرّرنا ألّا
+   * نُفوتر». فصار الصفّ يُفعَّل ليعلن المعالجة، والامتناع أثرُها.
+   */
+  if (rule.taxableBase === 'OUT_OF_SCOPE') {
+    return { ok: false, reason: 'OUT_OF_SCOPE_NO_INVOICE' };
   }
 
   const amounts = computeTax(rule.taxableBase, input.amount, rule.ratePct, input.marginAmount);

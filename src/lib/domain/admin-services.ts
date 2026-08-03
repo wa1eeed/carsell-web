@@ -120,6 +120,15 @@ export type ServiceRow = {
   descAr: string;
   descEn: string;
   price: string;
+  /**
+   * ═══ الرسم الإداريّ — منفصلٌ عن `price` عمدًا ═══
+   *
+   * `price` قد يكون صرفًا نيابةً عن العميل (رسم حكوميّ أو أجر مقدّم
+   * خدمة). ودمج هامشنا فيه يُسقط وصف «الصرف» عن المبلغ كلّه فتُستحقّ
+   * الضريبة على كامله. `src/lib/domain/fees.ts`.
+   */
+  adminFeeEnabled: boolean;
+  adminFee: string;
   category: string;
   active: boolean;
   slaHours: number | null;
@@ -141,7 +150,8 @@ export async function listServicesForAdmin(): Promise<ServiceRow[]> {
       orderBy: [{ sort: 'asc' }, { category: 'asc' }],
       select: {
         id: true, key: true, nameAr: true, nameEn: true, descAr: true, descEn: true,
-        price: true, category: true, active: true, slaHours: true, isAutomated: true,
+        price: true, adminFeeEnabled: true, adminFee: true,
+        category: true, active: true, slaHours: true, isAutomated: true,
         placements: true, sort: true,
         provider: { select: { nameAr: true } },
       },
@@ -172,6 +182,8 @@ export async function listServicesForAdmin(): Promise<ServiceRow[]> {
       descAr: service.descAr,
       descEn: service.descEn,
       price: service.price.toString(),
+      adminFeeEnabled: service.adminFeeEnabled,
+      adminFee: service.adminFee.toString(),
       category: service.category,
       active: service.active,
       slaHours: service.slaHours,
@@ -445,4 +457,79 @@ export async function setServiceActive(
     },
   });
   return { ok: true };
+}
+
+
+export type AdminFeeResult =
+  | { ok: true; enabled: boolean; adminFee: string; untouchedRequests: number }
+  | { ok: false; reason: 'NOT_FOUND' | 'FEE_INVALID' };
+
+/**
+ * ═══ الرسم الإداريّ للخدمة ═══
+ *
+ * قابل للتفعيل والتعطيل بحقلين لا بقيمةٍ صفرية: «معطَّل» و«صفر» ليسا
+ * سواءً — الأوّل قرارٌ يُستأنف، والثاني رقمٌ سارٍ. وتعطيلُه يُبقي قيمته
+ * فيعود المشغّل إليها بلا إعادة إدخال.
+ *
+ * **ولا يمسّ القائم** — كـ`changeServicePrice` تمامًا: `ServiceRequest.adminFee`
+ * لقطةٌ وقت الإنشاء، والعدد المُعاد يُري المحرّر ما بقي على حاله.
+ */
+export async function changeServiceAdminFee(
+  admin: AdminUser,
+  key: string,
+  input: { enabled: boolean; adminFee: number },
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<AdminFeeResult> {
+  if (!Number.isFinite(input.adminFee) || input.adminFee < 0) {
+    return { ok: false, reason: 'FEE_INVALID' };
+  }
+
+  const before = await db.service.findUnique({ where: { key } });
+  if (before === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  const openRequests = await db.serviceRequest.count({
+    where: { serviceId: before.id, status: { in: [...OPEN_STATUSES] } },
+  });
+
+  const unchanged =
+    before.adminFeeEnabled === input.enabled && before.adminFee.equals(input.adminFee);
+  if (unchanged) {
+    return {
+      ok: true,
+      enabled: before.adminFeeEnabled,
+      adminFee: before.adminFee.toString(),
+      untouchedRequests: openRequests,
+    };
+  }
+
+  const after = await db.service.update({
+    where: { key },
+    data: { adminFeeEnabled: input.enabled, adminFee: new Prisma.Decimal(input.adminFee) },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorType: 'admin',
+      entity: 'Service',
+      entityId: key,
+      action: 'service.admin_fee_changed',
+      before: { enabled: before.adminFeeEnabled, adminFee: before.adminFee.toString() },
+      after: {
+        enabled: after.adminFeeEnabled,
+        adminFee: after.adminFee.toString(),
+        untouchedRequests: openRequests,
+      },
+      ip,
+      createdAt: now,
+    },
+  });
+
+  return {
+    ok: true,
+    enabled: after.adminFeeEnabled,
+    adminFee: after.adminFee.toString(),
+    untouchedRequests: openRequests,
+  };
 }

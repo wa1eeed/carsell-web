@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
 import { pct, sum } from './money';
-import { DEFAULT_VAT_PCT, vatIncluded } from './tax';
+import { DEFAULT_VAT_PCT } from './tax';
 
 /**
  * A3 — المالية.
@@ -27,6 +27,11 @@ export type FinanceSummary = {
   from: string;
   to: string;
   vatPct: number;
+  /**
+   * `vat` هنا **ضريبتنا نحن** لا ضريبةَ السوق: مجموع `Order.vatAmount`،
+   * وهو العمولة والرسوم الإدارية. وليس ١٥/١١٥ من الـGMV — فبيعُ فردٍ
+   * لفرد خارج النطاق أصلًا، واحتسابُ ضريبةٍ عليه اختراعُ التزام.
+   */
   gmv: { total: string; vat: string; net: string; bySource: MoneyLine[] };
   revenue: { total: string; byStream: MoneyLine[] };
   escrow: { held: string; deposits: string; frozen: string; total: string };
@@ -53,7 +58,7 @@ export async function financeSummary(
       db.order.groupBy({
         by: ['source'],
         where: { createdAt: window, status: { in: [...REALISED_STATUSES] } },
-        _sum: { agreedPrice: true, commissionAmount: true },
+        _sum: { agreedPrice: true, commissionAmount: true, vatAmount: true },
       }),
       db.serviceRequest.groupBy({
         by: ['serviceId'],
@@ -109,14 +114,20 @@ export async function financeSummary(
     { key: 'commission', amount: commission.toString() },
   ].filter((line) => new Prisma.Decimal(line.amount).greaterThan(0));
 
+  /**
+   * **مجموعةٌ من صفوفها** كسائر أرقام هذه الشاشة — و`Order.vatAmount`
+   * لقطةٌ تُحسب وقت إنشاء الطلب من توريداتنا وحدها (`fees.ts`).
+   */
+  const ourVat = sum(orders.map((row) => row._sum.vatAmount));
+
   return {
     from: from.toISOString(),
     to: to.toISOString(),
     vatPct,
     gmv: {
       total: gmvTotal.toString(),
-      vat: vatIncluded(gmvTotal, vatPct).toString(),
-      net: gmvTotal.minus(vatIncluded(gmvTotal, vatPct)).toString(),
+      vat: ourVat.toString(),
+      net: gmvTotal.minus(ourVat).toString(),
       bySource: orders
         .map((row) => ({
           key: row.source,

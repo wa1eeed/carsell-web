@@ -129,7 +129,10 @@ export type PublicOrder = {
   amounts: {
     agreedPrice: string;
     commission: string;
+    /** رسمٌ حكوميّ يُمرَّر كما هو — لا ضريبة لنا فيه */
     transferFee: string;
+    /** رسمنا الإداريّ — سطرٌ مستقلّ دائمًا، ودمجُه بالأعلى يُبطل تصنيفه */
+    transferAdminFee: string;
     vat: string;
     total: string;
   };
@@ -208,6 +211,7 @@ export async function getOrder(
       agreedPrice: order.agreedPrice.toString(),
       commission: order.commissionAmount.toString(),
       transferFee: order.transferFee.toString(),
+      transferAdminFee: order.transferAdminFee.toString(),
       vat: order.vatAmount.toString(),
       total: order.totalAmount.toString(),
     },

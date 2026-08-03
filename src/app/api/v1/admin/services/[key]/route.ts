@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import {
+  changeServiceAdminFee,
   changeServicePrice,
   editService,
   moveService,
@@ -21,6 +22,9 @@ const Body = z.object({
   descEn: z.string().max(600).optional(),
   slaHours: z.number().int().min(0).max(8760).nullable().optional(),
   placements: z.array(z.string().max(40)).max(10).optional(),
+  /** الرسم الإداريّ — الرايةُ والقيمة معًا، فلا تُفعَّل بلا مبلغ */
+  adminFeeEnabled: z.boolean().optional(),
+  adminFee: z.number().int().min(0).max(100_000).optional(),
 });
 
 /**
@@ -53,7 +57,36 @@ export async function PATCH(
     return ok({ moved: parsed.data.move });
   }
 
-  const { price, active: _a, move: _m, ...edit } = parsed.data;
+  /**
+   * الرسم الإداريّ قبل السعر — وكلاهما يمرّ إن أُرسلا معًا، فلا يُبتلع
+   * أحدهما بالآخر (كما `editService` مع `price` أدناه).
+   */
+  if (parsed.data.adminFeeEnabled !== undefined || parsed.data.adminFee !== undefined) {
+    const fee = await changeServiceAdminFee(
+      guard.admin,
+      key,
+      {
+        enabled: parsed.data.adminFeeEnabled ?? false,
+        adminFee: parsed.data.adminFee ?? 0,
+      },
+      guard.ip,
+    );
+    if (!fee.ok) {
+      return fail(
+        fee.reason === 'NOT_FOUND' ? ERRORS.NOT_FOUND : ERRORS.VALIDATION({ adminFee: 'INVALID' }),
+        fee.reason === 'NOT_FOUND' ? 404 : 422,
+      );
+    }
+  }
+
+  const {
+    price,
+    active: _a,
+    move: _m,
+    adminFeeEnabled: _fe,
+    adminFee: _fa,
+    ...edit
+  } = parsed.data;
   if (Object.keys(edit).length > 0) {
     const result = await editService(guard.admin, key, edit, guard.ip);
     if (!result.ok) return fail(ERRORS.NOT_FOUND, 404);
@@ -61,7 +94,9 @@ export async function PATCH(
   }
 
   if (price === undefined) {
-    if (Object.keys(edit).length > 0) return ok({ edited: true });
+    if (Object.keys(edit).length > 0 || _fe !== undefined || _fa !== undefined) {
+      return ok({ edited: true });
+    }
     return fail(ERRORS.VALIDATION({ price: 'REQUIRED' }), 422);
   }
 

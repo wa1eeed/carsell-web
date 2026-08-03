@@ -76,7 +76,18 @@ describe('A3 — الملخّص محسوب من صفوفه', () => {
     });
 
     expect(summary.gmv.total).toBe(new Prisma.Decimal(real._sum.agreedPrice ?? 0).toString());
-    expect(summary.gmv.vat).toBe(vatIncluded(summary.gmv.total, summary.vatPct).toString());
+    /**
+     * **ضريبتنا لا ١٥/١١٥ من الـGMV.**
+     *
+     * كان هذا يؤكّد الثانية، وهي تفترض أن كل ريال في الـGMV خاضع — وبيعُ
+     * فردٍ لفرد خارج النطاق أصلًا. فالتأكيد الآن على أنها **مجموعةٌ من
+     * صفوفها** وأنها دون سقف ١٥/١١٥ ما دام في الـGMV ما ليس من وعائنا.
+     */
+    const ours = await db.order.aggregate({
+      where: { createdAt: { gte: from, lt: to }, status: { in: ['ACTIVE', 'COMPLETED'] } },
+      _sum: { vatAmount: true },
+    });
+    expect(summary.gmv.vat).toBe(new Prisma.Decimal(ours._sum.vatAmount ?? 0).toString());
     // والتفصيل يجمع الإجمالي
     expect(sum(summary.gmv.bySource.map((line) => line.amount)).toString()).toBe(summary.gmv.total);
   });

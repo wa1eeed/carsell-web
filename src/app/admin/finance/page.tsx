@@ -61,15 +61,22 @@ export default async function FinancePage() {
           {summary.gmv.bySource.map((line) => (
             <Line key={line.key} label={ORDER_SOURCE_LABEL[line.key] ?? line.key} amount={line.amount} />
           ))}
+          {/*
+            كان هنا «منها ضريبة مضمَّنة ١٥/١١٥ من الإجمالي» — وهو وعدٌ
+            مُخلَف: الـGMV قيمةُ مركباتٍ مورّدها البائع، وبيعُ فردٍ لفرد
+            خارج النطاق فلا ضريبة فيه أصلًا. فصار السطر يقول **ضريبتنا**
+            وحدها، مجموعةً من `Order.vatAmount` لا محسوبةً من الإجمالي.
+          */}
           <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-50">
-            منها ضريبة مضمَّنة <Money amount={summary.gmv.vat} /> — محسوبةً{' '}
+            وضريبة توريداتنا عليها <Money amount={summary.gmv.vat} /> — العمولة والرسوم
+            الإدارية بنسبة{' '}
             {/* النسبة تُقرأ يسارًا-يمينًا: بلا `dir` يظهر ١٥/١١٥ مقلوبًا ١١٥/١٥ */}
             <span className="bidi-isolate" dir="ltr">
               <ArabicNumber value={summary.vatPct} grouped={false} />
               <span aria-hidden>/</span>
               <ArabicNumber value={summary.vatPct + 100} grouped={false} />
-            </span>{' '}
-            من الإجمالي لا مضافةً إليه.
+            </span>
+            . وقيمة المركبة والرسوم الحكومية ليست من وعائنا.
           </p>
         </Card>
 

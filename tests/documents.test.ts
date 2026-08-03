@@ -132,9 +132,63 @@ describe('الفاتورة تشهد بواقعة', () => {
       if (Number(figures?.servicesTotal) > 0) {
         expect(result.blocked.map((b) => b.supplyType)).toContain('SERVICE');
       }
-      // ورسوم النقل مؤجَّلة بانتظار التصنيف — معلَنةً لا ساقطة
-      expect(result.blocked.map((b) => b.supplyType)).toContain('TRANSFER_FEE');
+      /**
+       * ورسم النقل الحكوميّ **صرفٌ**: يمرّ من المُصدِر فيردّه صفُّه
+       * `OUT_OF_SCOPE` بلا فاتورة. والامتناع أثرُ قاعدةٍ يقرؤها المشغّل
+       * في A21، لا سطرُ استثناءٍ في الكود.
+       */
+      const disbursement = result.blocked.find((b) => b.supplyType === 'DISBURSEMENT');
+      expect(disbursement?.reason).toBe('OUT_OF_SCOPE_NO_INVOICE');
+      expect(result.invoices.map((i) => i.supplyType)).not.toContain('DISBURSEMENT');
     });
+  });
+
+  /**
+   * الرسم الإداريّ توريدُ خدمةٍ منّا — يُفوتَر، ولا يُدمج بالصرف الذي
+   * يرافقه. ودمجُهما يُسقط وصف الصرف عن المبلغ كلّه فتُستحقّ الضريبة
+   * على الأربعمئة بدل الخمسين.
+   */
+  it('الرسم الإداريّ يُفوتَر، والحكوميّ لا — في الطلب نفسه', async () => {
+    await withOrder(async (order) => {
+      await db.order.update({
+        where: { id: order.id },
+        data: { transferFee: 350, transferAdminFee: 50 },
+      });
+
+      const result = await issueSettlementDocuments(order.id);
+      expect(result.invoices.map((i) => i.supplyType)).toContain('ADMIN_FEE');
+      expect(result.invoices.map((i) => i.supplyType)).not.toContain('DISBURSEMENT');
+
+      const invoice = await db.taxInvoice.findFirstOrThrow({
+        where: { orderId: order.id, ruleSupplyType: 'ADMIN_FEE' },
+      });
+      // الخمسون شاملةٌ للضريبة: ١٥/١١٥ منها ≈ ٦٫٥٢ — لا ٧٫٥٠ مضافة
+      expect(invoice.total.toString()).toBe('50');
+      expect(invoice.taxTotal.toString()).toBe('6.52');
+      // ولا فاتورة على الـ٣٥٠ بحال
+      expect(Number(invoice.subtotal)).toBeLessThan(350);
+    });
+  });
+
+  it('الرسم الإداريّ المعطَّل صفرٌ مهما كانت قيمته', async () => {
+    const { effectiveAdminFee } = await import('@/lib/domain/fees');
+    expect(effectiveAdminFee({ adminFeeEnabled: false, adminFee: 50 }).toString()).toBe('0');
+    expect(effectiveAdminFee({ adminFeeEnabled: true, adminFee: 50 }).toString()).toBe('50');
+  });
+
+  it('الصرف لا يُزاد عليه — والزيادة ترمي ولا تُصحَّح صمتًا', async () => {
+    const { assertNoMarkup } = await import('@/lib/domain/fees');
+    const { Prisma } = await import('@/generated/prisma/client');
+    expect(() =>
+      assertNoMarkup(new Prisma.Decimal(350), new Prisma.Decimal(350)),
+    ).not.toThrow();
+    expect(() => assertNoMarkup(new Prisma.Decimal(400), new Prisma.Decimal(350))).toThrow();
+  });
+
+  it('وعاء ضريبتنا: العمولة والرسم الإداريّ — لا المركبة ولا الصرف', async () => {
+    const { ourTaxableBase } = await import('@/lib/domain/fees');
+    const base = ourTaxableBase({ commissionAmount: 892.4, transferAdminFee: 50 });
+    expect(base.toString()).toBe('942.4');
   });
 
   it('التوريد المحجوب يُعلَن سببه ولا يُبتلع', async () => {

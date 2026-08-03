@@ -127,13 +127,21 @@ export function OrderScreen({
 
           <section className="mb-3.5 rounded-xl border border-line p-5">
             <h2 className="mb-3 text-xs font-bold">{t('amounts')}</h2>
+            {/*
+              الرسمان **سطران دائمًا**: الأوّل حكوميّ يُمرَّر كما هو، والثاني
+              إيرادٌ لنا تسري عليه الضريبة. ودمجُهما في سطر «رسوم النقل ٤٠٠»
+              يجعل المبلغ كلّه توريدًا منّا — وهو خطأ تصنيفٍ لا خطأ عرض.
+            */}
             {(
               [
                 ['price', order.amounts.agreedPrice],
                 ['commission', order.amounts.commission],
                 ['transferFee', order.amounts.transferFee],
+                ['adminFee', order.amounts.transferAdminFee],
               ] as const
-            ).map(([key, value]) => (
+            )
+              .filter(([key, value]) => key !== 'adminFee' || Number(value) > 0)
+              .map(([key, value]) => (
               <div key={key} className="flex items-center justify-between gap-4 py-1.5 text-sm">
                 <span className="opacity-60">{t(key)}</span>
                 <ArabicNumber value={Number(value)} className="font-bold" />
