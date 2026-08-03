@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,9 @@ type Vehicle = {
   vin: string;
   brandId: string;
   modelId: string;
+  /** الفئة تُملي الهيكل والدفع والمقاعد — فلا تُكتب يدويًّا */
+  trimId: string;
+  condition: string;
   year: string;
   mileageKm: string;
   transmission: string;
@@ -30,7 +34,7 @@ type Vehicle = {
 };
 
 const EMPTY: Vehicle = {
-  vin: '', brandId: '', modelId: '', year: '', mileageKm: '',
+  vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
 };
 
@@ -61,6 +65,7 @@ export function SellWizard({
   /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
   vinLookupEnabled: boolean;
 }) {
+  const router = useRouter();
   const t = useTranslations('sell');
   const te = useTranslations('enums');
   const tx = useTranslations('tax');
@@ -68,6 +73,7 @@ export function SellWizard({
   const [step, setStep] = useState<(typeof STEPS)[number]>('vehicle');
   const [vehicle, setVehicle] = useState<Vehicle>(EMPTY);
   const [models, setModels] = useState<Option[]>([]);
+  const [trims, setTrims] = useState<{ id: string; nameAr: string; nameEn: string }[]>([]);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [price, setPrice] = useState('');
   const [method, setMethod] = useState<(typeof METHODS)[number]>('DIRECT');
@@ -86,18 +92,80 @@ export function SellWizard({
   /** استثناء الإعلان الواحد — `null` يعني «اتبع وضع البائع». */
   const [taxableSupply, setTaxableSupply] = useState<boolean | null>(null);
 
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
   /**
-   * حارس النشر — يُستدعى حين يُبنى الإنشاء الفعليّ، ويحمل معه
-   * `taxableSupply` استثناءَ الإعلان.
+   * النشر — **والوضع الضريبيّ شرطٌ قبله**.
+   *
+   * وهو أوّل إجراءٍ للبائع له أثر ضريبيّ: شكل السعر المعروض للمشتري
+   * يتبع وضعه. فتُفتح النافذة ثم **يُستأنف النشر تلقائيًّا** بعد الحفظ.
    */
-  const publish = (): { taxableSupply: boolean | null } | null => {
+  const publish = (): void => {
     if (tax.needsAnswer) {
       setAskingTax(true);
-      return null;
+      return;
     }
-    return { taxableSupply };
+    if (publishing) return;
+
+    setPublishing(true);
+    setPublishError(null);
+
+    void (async () => {
+      const response = await fetch('/api/v1/listings', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          type: method,
+          askPrice: Number(toLatinDigits(price).replace(/\D/g, '')),
+          taxableSupply,
+          vehicle: {
+            brandId: vehicle.brandId,
+            modelId: vehicle.modelId,
+            trimId: vehicle.trimId,
+            year: Number(toLatinDigits(vehicle.year).replace(/\D/g, '')),
+            mileageKm: Number(toLatinDigits(vehicle.mileageKm).replace(/\D/g, '')),
+            transmission: vehicle.transmission,
+            fuel: vehicle.fuel,
+            spec: vehicle.spec,
+            condition: vehicle.condition,
+            city: vehicle.city,
+            colorExterior: vehicle.colorExterior,
+            vin: vehicle.vin === '' ? null : vehicle.vin,
+          },
+          // المفاتيح وحدها — والخادم يقرأ بصماتها من عنده
+          images: images.map((image) => image.key),
+        }),
+      }).catch(() => null);
+
+      setPublishing(false);
+
+      if (response === null) {
+        setPublishError(t('publishNetwork'));
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | { data?: { ref: string; status: string }; error?: { messageAr?: string } }
+        | null;
+
+      if (!response.ok) {
+        setPublishError(payload?.error?.messageAr ?? t('publishFailed'));
+        return;
+      }
+
+      /**
+       * **«نُشر» و«قيد المراجعة» ليسا سواءً.** والشاشة التي تقول «نُشر»
+       * عن إعلانٍ في الطابور تَعِد بما لم يقع، فيبحث عنه البائع في
+       * النتائج فلا يجده.
+       */
+      router.push(
+        payload?.data?.status === 'PENDING_REVIEW'
+          ? `/${locale}/account?listed=review`
+          : `/${locale}/account?listed=${payload?.data?.ref ?? ''}`,
+      );
+    })();
   };
-  void publish;
 
   /**
    * **لا حالة تفتح النموذج**: الحقول ظاهرة من اللحظة الأولى. جلب
@@ -119,6 +187,19 @@ export function SellWizard({
     const response = await fetch(`/api/v1/models?brandId=${brandId}`);
     const body = (await response.json()) as { data?: Option[] };
     setModels(body.data ?? []);
+  };
+
+  /** الفئات تتبع الطراز — كما تتبع الطرازاتُ الماركة. */
+  const loadTrims = async (modelId: string): Promise<void> => {
+    if (modelId === '') {
+      setTrims([]);
+      return;
+    }
+    const response = await fetch(`/api/v1/trims?modelId=${modelId}`);
+    const body = (await response.json()) as {
+      data?: { id: string; nameAr: string; nameEn: string }[];
+    };
+    setTrims(body.data ?? []);
   };
 
   /**
@@ -186,8 +267,8 @@ export function SellWizard({
     'w-full rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm outline-none';
 
   const vehicleReady =
-    vehicle.brandId !== '' && vehicle.modelId !== '' && vehicle.year !== '' &&
-    vehicle.mileageKm !== '' && vehicle.city !== '';
+    vehicle.brandId !== '' && vehicle.modelId !== '' && vehicle.trimId !== '' &&
+    vehicle.year !== '' && vehicle.mileageKm !== '' && vehicle.city !== '';
   const photosReady = images.length > 0 && price !== '';
 
   return (
@@ -285,7 +366,10 @@ export function SellWizard({
               <span className={label}>{t('model')}</span>
               <select
                 value={vehicle.modelId}
-                onChange={(event) => set({ modelId: event.target.value })}
+                onChange={(event) => {
+                  set({ modelId: event.target.value, trimId: '' });
+                  void loadTrims(event.target.value);
+                }}
                 disabled={models.length === 0}
                 className={field}
               >
@@ -293,6 +377,28 @@ export function SellWizard({
                 {models.map((model) => (
                   <option key={model.id} value={model.id}>
                     {locale === 'ar' ? model.nameAr : model.nameEn}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {/*
+              **الفئة إلزامية**: منها يُنسخ الهيكل والدفع وعدد المقاعد.
+              وطلبُها من البائع حقلٌ واحد، وإدخالُها يدويًّا أربعةٌ يخطئ
+              في أحدها — والمخطّط نفسه يقول إنها «تُنسخ لقطةً وقت النشر».
+            */}
+            <label>
+              <span className={label}>{t('trim')}</span>
+              <select
+                value={vehicle.trimId}
+                onChange={(event) => set({ trimId: event.target.value })}
+                disabled={trims.length === 0}
+                className={field}
+              >
+                <option value="" />
+                {trims.map((trim) => (
+                  <option key={trim.id} value={trim.id}>
+                    {locale === 'ar' ? trim.nameAr : trim.nameEn}
                   </option>
                 ))}
               </select>
@@ -497,16 +603,19 @@ export function SellWizard({
             </div>
           )}
 
+          {publishError === null ? null : (
+            <p className="mb-3.5 rounded-md border border-warn-200 bg-warn-100 px-4 py-3 text-2xs text-warn-900">
+              {publishError}
+            </p>
+          )}
+
           <div className="flex gap-2.5">
             <Button variant="outline" onClick={() => setStep('photos')}>
               {t('back')}
             </Button>
-            {/*
-              النشر الفعليّ لم يُبنَ بعد، فالزرّ يبقى معطَّلًا — **وزرٌّ
-              يبدو حيًّا ولا يفعل وعدٌ مُخلَف**. والحارس قائمٌ في `publish`
-              من الآن، فلا نافذة بين بناء النشر وحراسته.
-            */}
-            <Button disabled>{t('publish')}</Button>
+            <Button onClick={publish} disabled={publishing}>
+              {publishing ? t('publishing') : t('publish')}
+            </Button>
             <Button variant="ghost">{t('saveDraft')}</Button>
           </div>
         </section>
@@ -519,6 +628,8 @@ export function SellWizard({
         onSaved={(profile) => {
           setTax(profile);
           setAskingTax(false);
+          // أجاب ⇒ يُستأنف النشر، ولا يُطلب منه الضغط ثانيةً
+          publish();
         }}
       />
     </>

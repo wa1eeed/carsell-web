@@ -707,7 +707,10 @@
     "vinOptional": "Have the VIN? We will fill what we can.",
     "filledPrefix": "Filled",
     "filledSuffix": "fields — check them",
-    "vinFailedQuiet": "Could not fetch; continue manually."
+    "vinFailedQuiet": "Could not fetch; continue manually.",
+    "publishing": "Publishing…",
+    "publishFailed": "Could not publish — check the details.",
+    "publishNetwork": "Connection failed — try again."
   },
   "order": {
     "subtitle": "Where your order and your money stand.",

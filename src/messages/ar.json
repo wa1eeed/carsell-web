@@ -707,7 +707,10 @@
     "vinOptional": "عندك رقم الهيكل؟ نملأ ما نستطيع.",
     "filledPrefix": "مُلئت",
     "filledSuffix": "حقول — راجعها",
-    "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا."
+    "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا.",
+    "publishing": "جارٍ النشر…",
+    "publishFailed": "تعذّر النشر — راجع البيانات.",
+    "publishNetwork": "تعذّر الاتصال — أعد المحاولة."
   },
   "order": {
     "subtitle": "مرحلة الطلب وأين مبلغك الآن.",

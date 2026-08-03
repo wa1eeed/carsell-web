@@ -2582,6 +2582,33 @@
         "tags": [
           "listings"
         ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/listings",
+        "tags": [
+          "listings"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -2949,6 +2976,25 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/trims": {
+      "get": {
+        "summary": "GET /api/v1/trims",
+        "tags": [
+          "trims"
+        ],
         "responses": {
           "200": {
             "description": "OK"

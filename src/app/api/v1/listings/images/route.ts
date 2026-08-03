@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
+import { db } from '@/lib/db';
 import { findDuplicate, processListingImage } from '@/lib/domain/listing-images';
 import { MAX_UPLOAD_BYTES } from '@/lib/r2';
 
@@ -35,6 +36,23 @@ export async function POST(request: NextRequest) {
 
   // التكرار يُبلَّغ ولا يَرفض (قرار ٣٣) — المراجعة تكشف الناسخ
   const duplicate = await findDuplicate(result.image.phash);
+
+  /**
+   * **البصمة تبقى هنا ولا تعود إلى المتصفّح.** والنشر يقرؤها بمفتاح
+   * التخزين — فلو قُبلت من العميل لصار كشف التكرار حارسًا يُطفئه من
+   * يريد تجاوزه.
+   */
+  await db.uploadedAsset.upsert({
+    where: { r2Key: result.image.key },
+    create: {
+      r2Key: result.image.key,
+      ownerId: user.id,
+      phash: result.image.phash,
+      plateBlurred: result.image.plateBlurred,
+      qualityFlags: result.image.qualityFlags,
+    },
+    update: {},
+  });
 
   return ok({
     key: result.image.key,

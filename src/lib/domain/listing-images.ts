@@ -121,12 +121,22 @@ export async function processListingImage(
  */
 export async function findDuplicate(
   phash: string,
-  exceptListingId?: string,
+  except?: { listingId?: string; sellerId?: string },
 ): Promise<{ listingRef: string; distance: number } | null> {
+  /**
+   * **التكرار يُقاس مع إعلان مستخدمٍ آخر.**
+   *
+   * وبائعٌ يعيد صورة سيارته في إعلانٍ ثانٍ له ليس ناسخًا — وإدخالُه
+   * المراجعة يعاقب سلوكًا مشروعًا ويُغرق طابور A15 بما لا يستحقّه.
+   * وهذا نصّ القرار ٣٣ على `ReviewReason.DUPLICATE_IMAGE`.
+   */
   const candidates = await db.listingImage.findMany({
     where: {
       phash: { not: null },
-      ...(exceptListingId === undefined ? {} : { listingId: { not: exceptListingId } }),
+      ...(except?.listingId === undefined ? {} : { listingId: { not: except.listingId } }),
+      ...(except?.sellerId === undefined
+        ? {}
+        : { listing: { sellerId: { not: except.sellerId } } }),
     },
     select: { phash: true, listing: { select: { ref: true } } },
   });

@@ -1117,6 +1117,25 @@ model ApiKey {
   @@index([active])
 }
 
+/// ═══ صورة مرفوعة قبل أن يُنشأ إعلانها ═══
+///
+/// **البصمة تبقى في الخادم.** لو أُعيدت إلى المتصفّح ثم قُبلت منه عند
+/// النشر لصار كشف التكرار حارسًا يُطفئه من يريد تجاوزه — والقرار ٣٣
+/// يُدخل المكرّر المراجعة، فتعطيلُه من العميل يُفرغ القاعدة.
+///
+/// وتُحذف عند ربطها بإعلان، أو تُكنس إن بقيت يتيمة.
+model UploadedAsset {
+  id           String   @id @default(cuid())
+  r2Key        String   @unique
+  ownerId      String
+  phash        String
+  plateBlurred Boolean  @default(false)
+  qualityFlags String[]
+  createdAt    DateTime @default(now())
+
+  @@index([ownerId, createdAt])
+}
+
 enum FeeBearer {
   /// خصمٌ من مستحقّ البائع — لا يظهر في إجمالي المشتري
   SELLER
