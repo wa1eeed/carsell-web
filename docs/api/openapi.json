@@ -2532,6 +2532,50 @@
         }
       }
     },
+    "/api/v1/client-error": {
+      "post": {
+        "summary": "POST /api/v1/client-error",
+        "tags": [
+          "client-error"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "digest": {
+                    "type": "string",
+                    "maxLength": 80,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "message",
+                  "digest"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/listings": {
       "get": {
         "summary": "GET /api/v1/listings",

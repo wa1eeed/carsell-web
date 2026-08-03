@@ -108,8 +108,14 @@ export async function advanceStage(
    * وخارج المعاملة: انتقال المرحلة واقعةٌ لا تُلغى لأن مستندًا تعثّر.
    */
   if (result.ok && input.to === 'DONE' && orderId !== null) {
-    const { issueSaleAgreement } = await import('./documents');
-    await issueSaleAgreement(orderId, now);
+    // انتقال المرحلة وقع — وفشلُ العقد يُبلَّغ ولا يُبطله
+    try {
+      const { issueSaleAgreement } = await import('./documents');
+      await issueSaleAgreement(orderId, now);
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'orders.advanceStage.issueAgreement', extra: { orderId } });
+    }
   }
 
   return result;

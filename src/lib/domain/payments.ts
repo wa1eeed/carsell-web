@@ -291,8 +291,19 @@ export async function applyState(
    * انظر docs/tax-model.md § 9.
    */
   if (result.ok && to === 'SETTLED' && orderId !== null) {
-    const { issueSettlementDocuments } = await import('./documents');
-    await issueSettlementDocuments(orderId, now);
+    /**
+     * **الفشل هنا لا يُبطل التسوية.** المعاملة أُغلقت، والمال تحرّك —
+     * ورميُ الخطأ يجعل المستدعي يرى فشلًا وقد نجح، فيعيد المحاولة على
+     * دفعةٍ مُسوّاة. فيُبلَّغ ويُعاد الإصدار لاحقًا: `orderDocuments`
+     * تُظهر المستند «ينتظر»، والقائمة هي طابور إعادة المحاولة.
+     */
+    try {
+      const { issueSettlementDocuments } = await import('./documents');
+      await issueSettlementDocuments(orderId, now);
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'payments.applyState.issueDocuments', extra: { orderId } });
+    }
   }
 
   return result;
