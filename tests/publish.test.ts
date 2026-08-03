@@ -4,10 +4,17 @@ import { createListing, type PublishInput } from '@/lib/domain/publish';
 
 afterAll(async () => {
   await db.uploadedAsset.deleteMany({ where: { r2Key: { startsWith: 'probe/' } } });
+  if (touchedUsers.size > 0) {
+    await db.user.updateMany({
+      where: { id: { in: [...touchedUsers] } },
+      data: { taxStatus: null },
+    });
+  }
   await db.$disconnect();
 });
 
 const created: string[] = [];
+const touchedUsers = new Set<string>();
 
 async function base(): Promise<PublishInput> {
   const model = await db.model.findFirstOrThrow({
@@ -15,6 +22,9 @@ async function base(): Promise<PublishInput> {
     include: { brand: true, trims: { where: { visible: true }, take: 1 } },
   });
   const seller = await db.user.findFirstOrThrow({ where: { dealerId: null } });
+  // الوضع الضريبيّ شرطٌ قبل النشر — تُهيَّأ الحالة كما يفعل المستخدم
+  await db.user.update({ where: { id: seller.id }, data: { taxStatus: 'INDIVIDUAL' } });
+  touchedUsers.add(seller.id);
   return {
     sellerId: seller.id,
     type: 'DIRECT',
@@ -173,6 +183,17 @@ describe('النشر — والحارس معه لا بعده', () => {
     const input = await base();
     input.vehicle.vin = listed.vin;
     expect(await createListing(input)).toEqual({ ok: false, reason: 'VIN_ALREADY_LISTED' });
+  });
+
+  /**
+   * **حارسٌ في العميل ليس حارسًا.** المعالج يفتح النافذة قبل النداء،
+   * ونداءٌ مباشر كان ينشر لبائعٍ لم يُسأل فيُعرض سعره بوصفٍ اخترناه له.
+   */
+  it('لا نشر قبل تحديد الوضع الضريبي', async () => {
+    const input = await base();
+    await db.user.update({ where: { id: input.sellerId }, data: { taxStatus: null } });
+    expect(await createListing(input)).toEqual({ ok: false, reason: 'TAX_STATUS_REQUIRED' });
+    await db.user.update({ where: { id: input.sellerId }, data: { taxStatus: 'INDIVIDUAL' } });
   });
 
   it('بلا صور يُرفض — والإعلان بلا صورة لا يُشاهَد أصلًا', async () => {

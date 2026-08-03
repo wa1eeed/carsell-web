@@ -70,6 +70,7 @@ export type PublishInput = {
 };
 
 export type PublishFailure =
+  | 'TAX_STATUS_REQUIRED'
   | 'NO_IMAGES'
   | 'IMAGE_NOT_UPLOADED'
   | 'PRICE_INVALID'
@@ -106,12 +107,12 @@ async function reviewReasonFor(
     return 'PRICE_OUTLIER';
   }
 
-  const seller = await db.user.findUnique({
+  const account = await db.user.findUnique({
     where: { id: input.sellerId },
     select: { createdAt: true },
   });
-  if (seller !== null) {
-    const ageDays = (now.getTime() - seller.createdAt.getTime()) / 86_400_000;
+  if (account !== null) {
+    const ageDays = (now.getTime() - account.createdAt.getTime()) / 86_400_000;
     if (ageDays < NEW_ACCOUNT_DAYS) {
       const count = await db.listing.count({ where: { sellerId: input.sellerId } });
       if (count > NEW_ACCOUNT_MAX_LISTINGS) return 'NEW_ACCOUNT_BURST';
@@ -125,6 +126,19 @@ export async function createListing(
   input: PublishInput,
   now: Date = new Date(),
 ): Promise<PublishResult> {
+  /**
+   * **الوضع الضريبيّ شرطٌ قبل النشر** — كما هو قبل الشراء.
+   *
+   * والمعالج يفتح النافذة قبل النداء، لكن **حارسًا في العميل ليس
+   * حارسًا**: نداءٌ مباشر ينشر إعلانًا لبائعٍ لم يُسأل، فيُعرض سعره
+   * بوصفٍ اخترناه له. والخادم يردّ، والشاشة تسأل ثم تعيد المحاولة.
+   */
+  const seller = await db.user.findUnique({
+    where: { id: input.sellerId },
+    select: { taxStatus: true },
+  });
+  if (seller?.taxStatus == null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
+
   if (input.images.length === 0) return { ok: false, reason: 'NO_IMAGES' };
   if (!Number.isFinite(input.askPrice) || input.askPrice <= 0) {
     return { ok: false, reason: 'PRICE_INVALID' };

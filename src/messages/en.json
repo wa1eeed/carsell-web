@@ -710,7 +710,9 @@
     "vinFailedQuiet": "Could not fetch; continue manually.",
     "publishing": "Publishing…",
     "publishFailed": "Could not publish — check the details.",
-    "publishNetwork": "Connection failed — try again."
+    "publishNetwork": "Connection failed — try again.",
+    "colorExterior": "Exterior colour",
+    "condition": "Condition"
   },
   "order": {
     "subtitle": "Where your order and your money stand.",

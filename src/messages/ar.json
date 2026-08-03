@@ -710,7 +710,9 @@
     "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا.",
     "publishing": "جارٍ النشر…",
     "publishFailed": "تعذّر النشر — راجع البيانات.",
-    "publishNetwork": "تعذّر الاتصال — أعد المحاولة."
+    "publishNetwork": "تعذّر الاتصال — أعد المحاولة.",
+    "colorExterior": "اللون الخارجي",
+    "condition": "حالة المركبة"
   },
   "order": {
     "subtitle": "مرحلة الطلب وأين مبلغك الآن.",

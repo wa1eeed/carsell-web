@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
       {
         code: result.reason,
         messageAr:
-          result.reason === 'VIN_ALREADY_LISTED'
+          result.reason === 'TAX_STATUS_REQUIRED'
+            ? 'حدّد وضعك الضريبي قبل النشر.'
+            : result.reason === 'VIN_ALREADY_LISTED'
             ? 'هذه المركبة معروضة بالفعل — اسحب الإعلان القائم أوّلًا.'
             : result.reason === 'NO_IMAGES'
               ? 'أضف صورة واحدة على الأقل.'
@@ -101,7 +103,9 @@ export async function POST(request: NextRequest) {
               ? 'اختر فئة المركبة.'
               : 'الماركة أو الطراز غير معروف.',
         messageEn:
-          result.reason === 'VIN_ALREADY_LISTED'
+          result.reason === 'TAX_STATUS_REQUIRED'
+            ? 'Set your tax status before publishing.'
+            : result.reason === 'VIN_ALREADY_LISTED'
             ? 'This vehicle is already listed — withdraw the existing listing first.'
             : result.reason === 'NO_IMAGES'
               ? 'Add at least one photo.'
@@ -113,7 +117,11 @@ export async function POST(request: NextRequest) {
               ? 'Choose the vehicle trim.'
               : 'Unknown brand or model.',
       },
-      result.reason === 'VIN_ALREADY_LISTED' ? 409 : 422,
+      result.reason === 'VIN_ALREADY_LISTED'
+        ? 409
+        : result.reason === 'TAX_STATUS_REQUIRED'
+          ? 428
+          : 422,
     );
   }
 

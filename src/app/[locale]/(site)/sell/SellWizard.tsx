@@ -149,6 +149,12 @@ export function SellWizard({
         | { data?: { ref: string; status: string }; error?: { messageAr?: string } }
         | null;
 
+      if (response.status === 428) {
+        // لم يُسأل بعد — النافذة تفتح، والحفظ يعيد المحاولة
+        setAskingTax(true);
+        return;
+      }
+
       if (!response.ok) {
         setPublishError(payload?.error?.messageAr ?? t('publishFailed'));
         return;
@@ -268,7 +274,8 @@ export function SellWizard({
 
   const vehicleReady =
     vehicle.brandId !== '' && vehicle.modelId !== '' && vehicle.trimId !== '' &&
-    vehicle.year !== '' && vehicle.mileageKm !== '' && vehicle.city !== '';
+    vehicle.year !== '' && vehicle.mileageKm !== '' && vehicle.city !== '' &&
+    vehicle.colorExterior !== '';
   const photosReady = images.length > 0 && price !== '';
 
   return (
@@ -466,6 +473,33 @@ export function SellWizard({
                     {city}
                   </option>
                 ))}
+              </select>
+            </label>
+
+            {/*
+              اللون والحالة **يُجمعان هنا لأن المخطّط يطلبهما**، وكان
+              المعالج يرسل بلا لون فيردّ الخادم ٤٢٢ — نشرٌ لا يمكن أن
+              ينجح من الشاشة أصلًا. والحالة مرشِّح في البحث، فغيابها
+              يُخفي المركبة عن نصف الباحثين.
+            */}
+            <label>
+              <span className={label}>{t('colorExterior')}</span>
+              <input
+                value={vehicle.colorExterior}
+                onChange={(event) => set({ colorExterior: event.target.value })}
+                className={field}
+              />
+            </label>
+
+            <label>
+              <span className={label}>{t('condition')}</span>
+              <select
+                value={vehicle.condition}
+                onChange={(event) => set({ condition: event.target.value })}
+                className={field}
+              >
+                <option value="USED">{te('condition.USED')}</option>
+                <option value="NEW">{te('condition.NEW')}</option>
               </select>
             </label>
           </div>
