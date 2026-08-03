@@ -7,7 +7,9 @@ import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { getProcessingFee, listGateways, listRoutes } from '@/lib/domain/payment-routing';
+import { listRuns } from '@/lib/domain/reconciliation';
 import { ProcessingFeeCard } from './ProcessingFeeCard';
+import { ReconciliationTable } from './ReconciliationTable';
 import { RoutesTable } from './RoutesTable';
 
 export const dynamic = 'force-dynamic';
@@ -24,10 +26,11 @@ export default async function PaymentsRoutingPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [routes, gateways, processingFee] = await Promise.all([
+  const [routes, gateways, processingFee, runs] = await Promise.all([
     listRoutes(),
     listGateways(),
     getProcessingFee(),
+    listRuns(),
   ]);
   const linked = gateways.filter((gateway) => gateway.status !== 'INACTIVE');
 
@@ -98,6 +101,25 @@ export default async function PaymentsRoutingPage() {
         initial={processingFee}
         canManage={canWrite(admin.role, 'finance.view')}
       />
+
+      {/*
+        ═══ المطابقة اليومية ═══
+
+        ودفترُنا مرآة، والمرآة التي لا تُقارَن بالأصل ليست مرآة. وموضعها
+        هنا لأن المُقارَن به تسويةُ البوابة.
+      */}
+      <h2 className="mt-6 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+        المطابقة اليومية مع تسوية البوابات
+      </h2>
+      {runs.length === 0 ? (
+        <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-60">
+          لم تُشغَّل المطابقة بعد. وهي تقرأ تسوية كل بوابة وتقارنها بدفترنا، وتكتب
+          <strong> جدول المعاملات المختلفة</strong> لا المجاميع — فالفرق حدثٌ يُعالَج لا
+          رقمٌ يُتأمَّل.
+        </p>
+      ) : (
+        <ReconciliationTable runs={runs} />
+      )}
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
         <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">

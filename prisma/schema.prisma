@@ -1058,6 +1058,41 @@ model CommissionRule {
 /// قرار ١٧ — إعدادات المنصة: رسوم النقل ونسبة الضريبة.
 /// صفّ واحد؛ القيَم تُنسخ لقطةً إلى الطلب وقت إنشائه.
 /// من يتحمّل رسوم معالجة الدفع.
+/// حالة مطابقة يومٍ لبوابة.
+enum ReconciliationStatus {
+  /// طوبقت ولا فرق
+  MATCHED
+  /// ثمّة فرق — وله جدولُ معاملاتٍ لا مجموعٌ وحده
+  DIFFERS
+  /// تعذّرت قراءة تسوية البوابة — **ليست تطابقًا**
+  UNAVAILABLE
+}
+
+/// ═══ المطابقة اليومية — دفترُنا مرآة ═══
+///
+/// **والمرآة التي لا تُقارَن بالأصل ليست مرآة.** يقرأ التشغيلُ تسوية كل
+/// بوابة ويقارنها بما عندنا، ويكتب صفًّا لكل (بوابة، يوم).
+///
+/// و`UNAVAILABLE` حالٌ ثالثة لا تُختزل في «تطابقت»: بوابةٌ لم تُقرأ لم
+/// تُطابَق، واختزالُها يجعل صمت المزوّد يبدو سلامةً.
+model ReconciliationRun {
+  id          String                @id @default(cuid())
+  gatewayKey  String
+  /// يوم التسوية — لا لحظة التشغيل
+  date        DateTime              @db.Date
+  ourTotal    Decimal               @db.Decimal(14, 2)
+  gatewayTotal Decimal?             @db.Decimal(14, 2)
+  diff        Decimal               @default(0) @db.Decimal(14, 2)
+  status      ReconciliationStatus
+  /// المعاملات المختلفة وحدها — لا المجاميع. الفرق حدثٌ يُعالَج.
+  mismatches  Json                  @default("[]")
+  note        String?
+  ranAt       DateTime              @default(now())
+
+  @@unique([gatewayKey, date])
+  @@index([status, date])
+}
+
 enum FeeBearer {
   /// خصمٌ من مستحقّ البائع — لا يظهر في إجمالي المشتري
   SELLER

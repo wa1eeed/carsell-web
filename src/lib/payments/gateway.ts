@@ -94,7 +94,40 @@ export type PaymentGatewayPort = {
   partialReturn: (settleRef: string, amount: string) => Promise<ReturnResult>;
   status: (ref: string) => Promise<HoldStatus>;
 
+  /**
+   * تسوية يومٍ كما تقولها البوابة — **الأصل الذي تُقارَن به مرآتنا**.
+   *
+   * ودفترنا مرآة، والمرآة التي لا تُقارَن بالأصل ليست مرآة. تُعيد
+   * `available: false` حين لا يدعمها المزوّد أو لا مفاتيح بعد — وهي
+   * حالٌ متوقَّعة تُعرض سطرًا رماديًّا، لا خطأً يُقلق المشغّل.
+   */
+  settlementFor: (date: Date) => Promise<GatewaySettlement>;
+
   verifySignature: (rawBody: string, signature: string) => boolean;
+};
+
+/**
+ * تسوية يومٍ لدى البوابة.
+ *
+ * و`entries` ليست زينة: **الفرق حدثٌ يُعالَج لا رقمٌ يُتأمَّل**، ومجموعٌ
+ * لا يقول أيّ معاملةٍ اختلفت لا يُعالَج. ومن يقارن المجاميع وحدها يعرف
+ * أن ثمّة خطأً ولا يعرف أين.
+ */
+export type GatewaySettlement =
+  | {
+      available: true;
+      date: string;
+      currency: string;
+      total: string;
+      entries: SettlementEntry[];
+    }
+  | { available: false; reason: string };
+
+export type SettlementEntry = {
+  /** مرجع المعاملة لدى البوابة — به تُطابَق بدفترنا */
+  ref: string;
+  amount: string;
+  kind: 'SETTLE' | 'RETURN' | 'FEE';
 };
 
 /** ما يحتاجه كل غرض — والبوابة التي تنقصه لا تظهر في القائمة أصلًا. */
@@ -228,6 +261,9 @@ export function pendingGateway(key: string, env: IntegrationEnv): PaymentGateway
         held: false, settled: false, cancelled: false,
         settledAmount: null, expiresAt: null,
       }),
+    // بوابةٌ غير مضبوطة لا تسوية لها — والغياب معلَن لا مُفترض صفرًا
+    settlementFor: () =>
+      Promise.resolve({ available: false as const, reason: 'GATEWAY_NOT_CONFIGURED' }),
     // لا سرّ ⇒ لا توقيع صحيح. و`true` هنا تقبل أيّ ويبهوك من أيّ جهة
     verifySignature: () => false,
   };

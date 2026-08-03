@@ -20,6 +20,7 @@
 import type {
   CancelResult,
   GatewayCapabilities,
+  GatewaySettlement,
   HoldInput,
   HoldResult,
   HoldStatus,
@@ -229,6 +230,17 @@ export function createMoyasarAdapter(
         settledAmount: captured > 0 ? fromHalalas(captured) : null,
         expiresAt: null,
       };
+    },
+
+    /**
+     * تسوية يوم — **غير مبنيّة حتى تصل مفاتيح الاختبار**.
+     *
+     * وشكل استجابة `/payouts` عندهم غير مؤكَّد من الوثائق وحدها، وبناؤه
+     * تخمينًا يُنتج مطابقةً تُطمئن بلا أن تطابق شيئًا. فتُعلن غيابها،
+     * والمطابقة تُسجّل «تعذّرت القراءة» لا «تطابقت».
+     */
+    settlementFor(): Promise<GatewaySettlement> {
+      return Promise.resolve({ available: false, reason: 'SETTLEMENT_API_NOT_WIRED' });
     },
 
     verifySignature(rawBody: string, signature: string): boolean {
