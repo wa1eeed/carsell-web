@@ -200,9 +200,10 @@ export async function publishBid(
 }
 
 /** «خالد العتيبي» ⇒ «خالد ع.» — يكفي للمتابعة ولا يكشف أحدًا. */
-export function maskName(name: string | null): string {
+export function maskName(name: string | null): string | null {
   const clean = (name ?? '').trim();
-  if (clean === '') return 'مزايد';
+  // الاسم الفارغ يعود `null` — والشاشة تسمّي المجهول
+  if (clean === '') return null;
   const parts = clean.split(/\s+/);
   const first = parts[0] ?? '';
   const rest = parts[1];

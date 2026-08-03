@@ -11,6 +11,15 @@ import {
   listingsByCity,
   type MetricCard,
 } from '@/lib/domain/admin-dashboard';
+import {
+  DASHBOARD_CARD_LABEL,
+  DASHBOARD_SEGMENT_LABEL,
+  LISTING_TYPE_LABEL,
+  ORDER_STATUS_LABEL,
+  AUCTION_STATUS_LABEL,
+  REST_OF_CITIES,
+  REST_OF_CITIES_LABEL,
+} from '@/lib/labels/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +76,9 @@ export default async function AdminDashboardPage() {
           <div className="flex flex-col gap-2.5">
             {cities.map((city) => (
               <div key={city.city} className="flex items-center gap-3">
-                <span className="w-24 shrink-0 truncate text-2xs opacity-70">{city.city}</span>
+                <span className="w-24 shrink-0 truncate text-2xs opacity-70">
+                  {city.city === REST_OF_CITIES ? REST_OF_CITIES_LABEL : city.city}
+                </span>
                 {/*
                   الشريط يُقارَن بالعين، والرقم إلى جانبه لأنه يُقرأ.
                   والعرض نسبةٌ إلى الأعلى لا إلى المجموع: النسبة إلى
@@ -103,7 +114,9 @@ function Card({ card }: { card: MetricCard }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
       <div className="mb-1 flex items-baseline gap-2">
-        <h2 className="flex-1 text-3xs font-bold tracking-[0.14em] opacity-45">{card.title}</h2>
+        <h2 className="flex-1 text-3xs font-bold tracking-[0.14em] opacity-45">
+          {DASHBOARD_CARD_LABEL[card.key] ?? card.key}
+        </h2>
         {delta === null ? null : (
           <Badge tone={delta >= 0 ? 'accent' : 'danger'}>
             <span className="bidi-isolate" dir="ltr">
@@ -124,12 +137,29 @@ function Card({ card }: { card: MetricCard }) {
         ) : (
           card.segments.map((segment) => (
             <p key={segment.key} className="flex items-baseline justify-between gap-3 text-2xs">
-              <span className="truncate opacity-65">{segment.label}</span>
+              <span className="truncate opacity-65">{segmentLabel(segment)}</span>
               <ArabicNumber value={segment.count} />
             </p>
           ))
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * تسمية الشريحة — **من خرائط الواجهة لا من النطاق**.
+ *
+ * والخدمة استثناء ظاهر: اسمها بيانٌ في قاعدة البيانات لا تسمية واجهة،
+ * فيعيده النطاق ويُعرض كما هو.
+ */
+function segmentLabel(segment: { key: string; serviceName?: string | null }): string {
+  if (segment.serviceName != null) return segment.serviceName;
+  return (
+    DASHBOARD_SEGMENT_LABEL[segment.key] ??
+    LISTING_TYPE_LABEL[segment.key] ??
+    ORDER_STATUS_LABEL[segment.key] ??
+    AUCTION_STATUS_LABEL[segment.key] ??
+    segment.key
   );
 }

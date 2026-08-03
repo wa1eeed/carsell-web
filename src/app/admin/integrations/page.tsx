@@ -3,11 +3,8 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import {
-  categoryLabel,
-  integrationSummary,
-  listIntegrations,
-} from '@/lib/domain/admin-integrations';
+import { integrationSummary, listIntegrations } from '@/lib/domain/admin-integrations';
+import { INTEGRATION_CATEGORY_LABEL } from '@/lib/labels/admin';
 import { IntegrationsList } from './IntegrationsList';
 
 export const dynamic = 'force-dynamic';
@@ -34,7 +31,9 @@ export default async function IntegrationsPage() {
 
   const groups = new Map<string, typeof integrations>();
   for (const integration of integrations) {
-    const label = categoryLabel(integration.category);
+    const label =
+      INTEGRATION_CATEGORY_LABEL[integration.category as keyof typeof INTEGRATION_CATEGORY_LABEL] ??
+      integration.category;
     groups.set(label, [...(groups.get(label) ?? []), integration]);
   }
 

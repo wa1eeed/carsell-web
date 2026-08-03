@@ -26,7 +26,8 @@ export const BidPlaced = z.object({
   type: z.literal('bid.placed'),
   auctionId: z.string().min(1),
   amount: z.string(), // Decimal كنصّ — لا Float في المال ولو في رسالة
-  bidderMasked: z.string().min(1), // «خالد ع.» — لا اسم كامل ولا معرّف
+  // «خالد ع.» — لا اسم كامل ولا معرّف. و`null` حين لا اسم، والشاشة تسمّي المجهول
+  bidderMasked: z.string().min(1).nullable(),
   bidCount: z.number().int().nonnegative(),
   ...Sequenced,
 });
@@ -130,7 +131,7 @@ export function channelFor(
     case 'offer.accepted':
     case 'order.stage_changed': {
       if (recipientId === undefined || recipientId === '') {
-        throw new Error(`الحدث ${event.type} خاص ويلزمه معرّف المستلم`);
+        throw new Error(`Event ${event.type} is private and requires a recipient id`);
       }
       return userChannel(recipientId);
     }
@@ -141,10 +142,10 @@ export function channelFor(
  * اسم مختصر للعرض العام: الاسم الأول ثم أول حرف من العائلة.
  * الشفافية تقتضي معرفة «من زايد»، والخصوصية تمنع الاسم الكامل.
  */
-export function maskName(fullName: string | null): string {
+export function maskName(fullName: string | null): string | null {
   const parts = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
   const first = parts[0];
-  if (first === undefined) return 'مزايد';
+  if (first === undefined) return null;
   const family = parts[1];
   return family === undefined ? first : `${first} ${family.charAt(0)}.`;
 }

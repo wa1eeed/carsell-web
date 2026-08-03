@@ -13,6 +13,7 @@ import {
   monthKey,
   simulateCommission,
 } from '@/lib/domain/admin-finance';
+import { ORDER_SOURCE_LABEL, REVENUE_STREAM_LABEL } from '@/lib/labels/admin';
 import { FinanceInputs } from './FinanceInputs';
 import { Simulator } from './Simulator';
 
@@ -58,7 +59,7 @@ export default async function FinancePage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card title="GMV" subtitle="قيمة البضاعة التي مرّت" amount={summary.gmv.total}>
           {summary.gmv.bySource.map((line) => (
-            <Line key={line.key} label={line.label} amount={line.amount} />
+            <Line key={line.key} label={ORDER_SOURCE_LABEL[line.key] ?? line.key} amount={line.amount} />
           ))}
           <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-50">
             منها ضريبة مضمَّنة <Money amount={summary.gmv.vat} /> — محسوبةً{' '}
@@ -81,7 +82,11 @@ export default async function FinancePage() {
             <p className="text-2xs opacity-45">لا إيراد في هذا المدى.</p>
           ) : (
             summary.revenue.byStream.map((line) => (
-              <Line key={line.key} label={line.label} amount={line.amount} />
+              <Line
+                key={line.key}
+                label={line.serviceName ?? REVENUE_STREAM_LABEL[line.key] ?? line.key}
+                amount={line.amount}
+              />
             ))
           )}
         </Card>

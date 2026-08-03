@@ -19,7 +19,8 @@ import { DEFAULT_VAT_PCT, pct, sum, vatIncluded } from './money';
 /** حالات الطلب التي تُعدّ مبيعًا واقعًا — لا وعدًا به. */
 const REALISED_STATUSES = ['ACTIVE', 'COMPLETED'] as const;
 
-export type MoneyLine = { key: string; label: string; amount: string };
+/** المفتاح والمبلغ — والتسمية في `src/lib/labels/admin.ts`. */
+export type MoneyLine = { key: string; amount: string; serviceName?: string | null };
 
 export type FinanceSummary = {
   from: string;
@@ -29,13 +30,6 @@ export type FinanceSummary = {
   revenue: { total: string; byStream: MoneyLine[] };
   escrow: { held: string; deposits: string; frozen: string; total: string };
   subscriptions: { total: number; byPlan: { key: string; label: string; count: number }[] };
-};
-
-const SOURCE_LABEL: Record<string, string> = {
-  DIRECT: 'بيع مباشر',
-  BUY_NOW: 'شراء فوري',
-  OFFER: 'تفاوض',
-  AUCTION: 'مزاد',
 };
 
 /**
@@ -99,7 +93,7 @@ export async function financeSummary(
       const service = services.find((entry) => entry.id === row.serviceId);
       return {
         key: service?.key ?? row.serviceId,
-        label: service?.nameAr ?? '—',
+        serviceName: service?.nameAr ?? null,
         amount: new Prisma.Decimal(row._sum.amount ?? 0).toString(),
       };
     })
@@ -110,8 +104,8 @@ export async function financeSummary(
 
   const revenueStreams: MoneyLine[] = [
     ...serviceLines,
-    { key: 'ads', label: 'إعلانات مموّلة', amount: adRevenue.toString() },
-    { key: 'commission', label: 'عمولة المنصّة', amount: commission.toString() },
+    { key: 'ads', amount: adRevenue.toString() },
+    { key: 'commission', amount: commission.toString() },
   ].filter((line) => new Prisma.Decimal(line.amount).greaterThan(0));
 
   return {
@@ -125,7 +119,6 @@ export async function financeSummary(
       bySource: orders
         .map((row) => ({
           key: row.source,
-          label: SOURCE_LABEL[row.source] ?? row.source,
           amount: new Prisma.Decimal(row._sum.agreedPrice ?? 0).toString(),
         }))
         .sort((a, b) => Number(b.amount) - Number(a.amount)),
@@ -161,13 +154,13 @@ export async function financeSummary(
  * حساب CAC مجموعًا لبعضها.
  */
 export const FINANCE_INPUT_KEYS = [
-  { key: 'salaries', label: 'رواتب', inCac: false },
-  { key: 'marketing_spend', label: 'إعلانات مدفوعة', inCac: true },
-  { key: 'referral_incentives', label: 'حوافز إحالة', inCac: true },
-  { key: 'content_seo', label: 'محتوى وSEO', inCac: true },
-  { key: 'infra_cost', label: 'بنية تحتية', inCac: false },
-  { key: 'other_cost', label: 'أخرى', inCac: false },
-  { key: 'cash_balance', label: 'الرصيد النقدي', inCac: false },
+  { key: 'salaries', inCac: false },
+  { key: 'marketing_spend', inCac: true },
+  { key: 'referral_incentives', inCac: true },
+  { key: 'content_seo', inCac: true },
+  { key: 'infra_cost', inCac: false },
+  { key: 'other_cost', inCac: false },
+  { key: 'cash_balance', inCac: false },
 ] as const;
 
 const INPUT_KEYS: readonly string[] = FINANCE_INPUT_KEYS.map((entry) => entry.key);
@@ -186,7 +179,6 @@ function monthBounds(month: string): { from: Date; to: Date } {
 
 export type FinanceInputRow = {
   key: string;
-  label: string;
   value: string;
   note: string | null;
   updatedAt: string | null;
@@ -207,7 +199,6 @@ export async function financeInputs(month: string): Promise<FinanceInputRow[]> {
     const row = rows.find((candidate) => candidate.key === entry.key);
     return {
       key: entry.key,
-      label: entry.label,
       value: (row?.value ?? new Prisma.Decimal(0)).toString(),
       note: row?.note ?? null,
       updatedAt: row?.updatedAt.toISOString() ?? null,

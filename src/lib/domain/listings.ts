@@ -426,7 +426,7 @@ export type ListingCard = {
   imageCount: number;
   coverKey: string | null;
   publishedAt: string | null;
-  sellerName: string;
+  sellerName: string | null;
   sellerVerified: boolean;
   sellerIsDealer: boolean;
   highestBid: string | null;
@@ -528,7 +528,8 @@ export async function searchListings(filters: Filters): Promise<SearchResult> {
         imageCount: row.images.length,
         coverKey: cover?.r2Key ?? null,
         publishedAt: row.publishedAt?.toISOString() ?? null,
-        sellerName: row.seller.dealer?.nameAr ?? row.seller.name ?? 'بائع',
+        // `null` لا «بائع»: التسمية من شأن الشاشة
+      sellerName: row.seller.dealer?.nameAr ?? row.seller.name ?? null,
         sellerVerified:
           row.seller.idVerified || row.seller.dealer?.verified === true,
         sellerIsDealer: row.seller.dealer != null,

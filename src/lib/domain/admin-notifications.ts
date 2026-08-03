@@ -2,7 +2,6 @@ import { db } from '@/lib/db';
 import type { AdminUser } from '@/generated/prisma/client';
 import {
   SMS_COST_PER_SEGMENT,
-  groupLabel,
   groupOf,
   smsMetrics,
   undeclaredVariables,
@@ -22,7 +21,6 @@ import {
 // يُعاد تصديرها ليبقى للشاشة والاختبار مدخلٌ واحد
 export {
   SMS_COST_PER_SEGMENT,
-  groupLabel,
   groupOf,
   renderTemplate,
   smsMetrics,
@@ -33,7 +31,6 @@ export {
 export type TemplateRow = {
   key: string;
   group: string;
-  groupLabel: string;
   subjectAr: string | null;
   bodyAr: string | null;
   bodyEn: string | null;
@@ -63,7 +60,6 @@ export async function listTemplates(since?: Date): Promise<TemplateRow[]> {
   return templates.map((template) => ({
     key: template.key,
     group: groupOf(template.key),
-    groupLabel: groupLabel(groupOf(template.key)),
     subjectAr: template.subjectAr,
     subjectEn: template.subjectEn,
     bodyAr: template.bodyAr,
@@ -175,7 +171,7 @@ export type ChannelStats = {
   sentThisMonth: number;
   smsSegments: number;
   smsCost: string;
-  byChannel: { channel: string; label: string; templates: number }[];
+  byChannel: { channel: string; templates: number }[];
 };
 
 export async function channelStats(since: Date): Promise<ChannelStats> {
@@ -206,10 +202,10 @@ export async function channelStats(since: Date): Promise<ChannelStats> {
     smsSegments,
     smsCost: (smsSegments * SMS_COST_PER_SEGMENT).toFixed(2),
     byChannel: [
-      { channel: 'email', label: 'بريد', templates: templates.filter((t) => t.channelEmail).length },
-      { channel: 'sms', label: 'رسالة', templates: smsTemplates.length },
-      { channel: 'push', label: 'دفع', templates: templates.filter((t) => t.channelPush).length },
-      { channel: 'inApp', label: 'داخل التطبيق', templates: templates.filter((t) => t.channelInApp).length },
+      { channel: 'email', templates: templates.filter((t) => t.channelEmail).length },
+      { channel: 'sms', templates: smsTemplates.length },
+      { channel: 'push', templates: templates.filter((t) => t.channelPush).length },
+      { channel: 'inApp', templates: templates.filter((t) => t.channelInApp).length },
     ],
   };
 }

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import type { AdminUser } from '@/generated/prisma/client';
-import type { IntegrationCategory, IntegrationEnv } from '@/generated/prisma/enums';
+import type { IntegrationEnv } from '@/generated/prisma/enums';
 import { encryptSecret, secretHint } from '@/lib/crypto/secrets';
 import { effectiveEnvironment, environmentIsForced } from './integration-env';
 
@@ -17,21 +17,6 @@ import { effectiveEnvironment, environmentIsForced } from './integration-env';
  *   ٣. التدوير طلبُ موافقة: من يطلبه لا يعتمده.
  *   ٤. لكل بيئة صفّها — فتجربةُ دفعٍ لا تكتب فوق مفتاح الإنتاج.
  */
-
-/**
- * الفئات الأربع كما في المخطّط — لا كما أتذكّرها.
- * والنوع يجعل الاسم الخاطئ خطأَ ترجمة لا عنوانًا خامًا على الشاشة.
- */
-const CATEGORY_LABEL: Record<IntegrationCategory, string> = {
-  IDENTITY: 'الهوية والتحقّق',
-  PAYMENT: 'المدفوعات والضمان',
-  GOVERNMENT: 'البيانات الحكومية والخدمات',
-  INFRASTRUCTURE: 'الاتصال والبنية',
-};
-
-export function categoryLabel(category: string): string {
-  return CATEGORY_LABEL[category as IntegrationCategory] ?? category;
-}
 
 export type CredentialView = {
   env: IntegrationEnv;

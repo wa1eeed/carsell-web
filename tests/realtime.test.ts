@@ -124,8 +124,9 @@ describe('الاسم المختصر', () => {
   it('الاسم الأول وأول حرف من العائلة — لا اسم كامل في قناة عامة', () => {
     expect(maskName('خالد العتيبي')).toBe('خالد ا.');
     expect(maskName('ريم')).toBe('ريم');
-    expect(maskName(null)).toBe('مزايد');
-    expect(maskName('  ')).toBe('مزايد');
+    // **`null` لا «مزايد»**: النطاق يعيد بيانات، والشاشة تسمّي المجهول
+    expect(maskName(null)).toBeNull();
+    expect(maskName('  ')).toBeNull();
   });
 });
 

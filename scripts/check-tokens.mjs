@@ -16,6 +16,7 @@
  * ١٤. لا مكوّن عميل يصل إلى `db` عبر سلسلة استيرادات.
  * ١٥. مفردات المزوّد (authorize/capture/void) لا تعبر المُهايئ.
  * ١٦. نسبة الضريبة في `vat.ts` وحده · لا ضريبة على قيمة المركبة · لا «فاتورة مركبة».
+ * ١٧. النطاق يعيد بيانات لا جُملًا — لا حرف عربي في src/lib/domain عدا التعليقات.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -687,6 +688,52 @@ function checkTaxRate() {
   }
 }
 
+
+/**
+ * ————— القاعدة ١٧: النطاق يعيد بيانات لا جُملًا —————
+ *
+ * لا حرف عربي في `src/lib/domain` و`src/lib/payments` — **عدا التعليقات**.
+ *
+ * والسبب أن النطاق **لا يستطيع** الصياغة: لا يعرف اللغة ولا يملك
+ * `Quantity`. فجملةٌ يبنيها تُنتج «6 يومًا» — رقمًا لاتينيًّا وجمعًا
+ * خاطئًا داخل جملة عربية — ولا يكشفها المترجم ولا الاختبار الذي يفحص
+ * «هل النصّ صحيح»، لأنه يمرّ بنصٍّ مبنيّ بعناية ثم ينكسر في الجملة
+ * التالية.
+ *
+ * فالفحص على **غياب الصنف** لا على صحّة أفراده: لا نصّ هنا أصلًا.
+ * والتسميات في `src/lib/labels/`، والأخطاء رموزٌ تترجمها الشاشة.
+ */
+const DOMAIN_ROOTS = [join('src', 'lib', 'domain'), join('src', 'lib', 'payments')];
+const ARABIC = /[؀-ۿ]/;
+
+function checkDomainHasNoProse() {
+  for (const dir of DOMAIN_ROOTS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts')) continue;
+      const rel = relative(ROOT, file);
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      let inBlockComment = false;
+
+      lines.forEach((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('/*')) inBlockComment = true;
+        const wasComment = inBlockComment || trimmed.startsWith('*') || trimmed.startsWith('//');
+        if (trimmed.includes('*/')) inBlockComment = false;
+        if (wasComment) return;
+
+        // السطر قد يحمل شفرةً ثم تعليقًا — والتعليق مسموح
+        const code = line.split('//')[0] ?? '';
+        if (ARABIC.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  نصّ عربي في النطاق — أعِد مفتاحًا، والتسمية في src/lib/labels/`,
+          );
+        }
+      });
+    }
+  }
+}
+
 function checkPrismaBoundary() {
   for (const dir of SCAN_DIRS) {
     for (const file of walk(join(ROOT, dir))) {
@@ -745,6 +792,7 @@ checkPrismaBoundary();
 checkClientDbImports();
 checkGatewayVocabulary();
 checkTaxRate();
+checkDomainHasNoProse();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -755,5 +803,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · نسبة الضريبة في vat.ts وحده.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · نسبة الضريبة في vat.ts وحده · لا نصّ عربي في النطاق.',
 );

@@ -30,6 +30,19 @@ export default async function globalSetup(): Promise<void> {
   const candidates = await db.adminUser.findMany({ select: { id: true, email: true } });
   const ids = candidates.filter((row) => TEST_EMAIL.test(row.email)).map((row) => row.id);
 
+  /**
+   * والتحقّق الحيّ يكتب صفوفًا أيضًا — **فيُنظَّف آليًّا لا انضباطًا**.
+   *
+   * طلب تبديل بوابة تركتُه معلّقًا في تحقّقٍ يدويّ أسقط اختبارين في
+   * التشغيل التالي: الاختبار كان محقًّا، والبيانات هي المتّسخة.
+   */
+  const stalePending = await db.approvalRequest.deleteMany({
+    where: { kind: { in: ['PAYMENT_ROUTE', 'KEY_ROTATION', 'INTEGRATION_ENV'] }, status: 'PENDING' },
+  });
+  if (stalePending.count > 0) {
+    console.log(`  نُظّف ${String(stalePending.count)} طلب موافقة معلّق من تحقّق سابق`);
+  }
+
   if (ids.length > 0) {
     await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
     await db.adminSession.deleteMany({ where: { adminUserId: { in: ids } } });

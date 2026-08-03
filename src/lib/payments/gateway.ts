@@ -100,7 +100,7 @@ export type PaymentGatewayPort = {
 /** ما يحتاجه كل غرض — والبوابة التي تنقصه لا تظهر في القائمة أصلًا. */
 export const PURPOSE_REQUIREMENTS: Record<
   PaymentPurpose,
-  { needs: (keyof GatewayCapabilities)[]; minHoldDays: number; labelAr: string }
+  { needs: (keyof GatewayCapabilities)[]; minHoldDays: number }
 > = {
   /**
    * واحد وعشرون يومًا — **مشتقّة من القاعدتين لا مقدَّرة**:
@@ -121,35 +121,29 @@ export const PURPOSE_REQUIREMENTS: Record<
     // التسوية الجزئية لازمة: النزاع قد يُحسم بتسوية جزئية (قرار ١)
     needs: ['supportsHold', 'supportsPartialSettle'],
     minHoldDays: 21,
-    labelAr: 'بيع المركبات — الضمان',
   },
   /** مزادٌ قد يمتدّ ٧ أيام ← ٢٤ ساعة مهلة البائع ← ٢٤ ساعة دفع الفائز. */
   AUCTION_DEPOSIT: {
     needs: ['supportsHold'],
     minHoldDays: 10,
-    labelAr: 'العربون في المزادات',
   },
   WALLET_TOPUP: {
     // تحصيل فوري بلا حجز — فلا يشترط `supportsHold`
     needs: ['supportsRefund'],
     minHoldDays: 0,
-    labelAr: 'شحن رصيد المحفظة',
   },
   SERVICE_PURCHASE: {
     needs: ['supportsRefund'],
     minHoldDays: 0,
-    labelAr: 'شراء الخدمات',
   },
   /** تُحصَّل مع مبلغ الطلب فتتبع مدّته — لا مدّة لها مستقلّة. */
   TRANSFER_FEE: {
     needs: ['supportsHold'],
     minHoldDays: 21,
-    labelAr: 'رسوم نقل الملكية',
   },
   SUBSCRIPTION: {
     needs: [],
     minHoldDays: 0,
-    labelAr: 'اشتراكات الباقات',
   },
 };
 
@@ -215,7 +209,12 @@ export function readCapabilities(value: unknown): GatewayCapabilities {
  * ومستخدمٌ لا يعرف أدُفع أم لا.
  */
 export function pendingGateway(key: string, env: IntegrationEnv): PaymentGatewayPort {
-  const fail = { state: 'FAILED' as const, code: 'GATEWAY_NOT_CONFIGURED', message: `البوابة «${key}» غير مضبوطة في بيئة ${env}.` };
+  // الرسالة إنجليزية: النطاق يعيد رمزًا، والصياغة العربية في الشاشة
+  const fail = {
+    state: 'FAILED' as const,
+    code: 'GATEWAY_NOT_CONFIGURED',
+    message: `Gateway "${key}" is not configured for ${env}.`,
+  };
   return {
     key,
     capabilities: readCapabilities(null),

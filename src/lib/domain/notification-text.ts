@@ -80,31 +80,12 @@ export function smsMetrics(text: string, costPerSegment = SMS_COST_PER_SEGMENT):
 
 /**
  * المجموعة مشتقّة من بادئة المفتاح — لا عمود لها، ولا حاجة إليه.
- *
- * وكلّ بادئة موجودة مسمّاة: بادئتان بلا اسم تصيران مرشِّحَين متجاورين
- * مكتوبٌ عليهما «أخرى»، فيبدو الاثنان واحدًا مكرّرًا.
+ * والتسمية في `src/lib/labels/admin.ts`: النطاق يعيد المفتاح وحده.
  */
-const GROUP_LABEL: Record<string, string> = {
-  auth: 'الدخول',
-  account: 'الحساب',
-  listing: 'الإعلان',
-  offer: 'العروض',
-  auction: 'المزاد',
-  order: 'الطلب والدفع',
-  escrow: 'الضمان',
-  deposit: 'العربون',
-  dispute: 'النزاعات',
-  service: 'الخدمات',
-};
-
 export function groupOf(key: string): string {
   return key.split('.')[0] ?? 'other';
 }
 
-export function groupLabel(group: string): string {
-  // البادئة نفسها لا «أخرى»: مجموعةٌ جديدة تظهر باسمها الخام فتُلاحَظ وتُسمَّى
-  return GROUP_LABEL[group] ?? group;
-}
 
 /**
  * معاينة القالب بقيَم — **ما يراه المستخدم لا ما كتبه المحرّر**.

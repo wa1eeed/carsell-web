@@ -28,9 +28,8 @@ export type GatewayRow = {
 
 export type RouteRow = {
   purpose: PaymentPurpose;
-  labelAr: string;
   gatewayKey: string;
-  gatewayNameAr: string;
+  gatewayNameAr: string | null;
   /** المخزَّنة — وقد لا تكون المستعملة. */
   storedEnv: IntegrationEnv;
   activeEnv: IntegrationEnv;
@@ -89,9 +88,9 @@ export async function listRoutes(now: Date = new Date()): Promise<RouteRow[]> {
 
     return {
       purpose,
-      labelAr: PURPOSE_REQUIREMENTS[purpose].labelAr,
       gatewayKey: route?.gatewayKey ?? '',
-      gatewayNameAr: gateway?.nameAr ?? 'معطّل',
+      // اسم البوابة بيانٌ من قاعدة البيانات — و`null` يعني «معطّل» تقوله الشاشة
+      gatewayNameAr: gateway?.nameAr ?? null,
       storedEnv: route?.environment ?? 'TEST',
       activeEnv: effectiveEnvironment(route?.environment ?? 'TEST'),
       enabled: route?.enabled ?? false,

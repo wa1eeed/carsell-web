@@ -14,14 +14,14 @@ import type { AdminUser, Prisma } from '@/generated/prisma/client';
 
 /** الحقول التي يجوز بناء شرط عليها — **قائمة مغلقة**. */
 export const SEGMENT_FIELDS = [
-  { key: 'hasFavorites', label: 'لديه مفضلة', kind: 'bool' },
-  { key: 'hasCompletedOrder', label: 'أتمّ صفقة', kind: 'bool' },
-  { key: 'hasActiveOrder', label: 'لديه طلب جارٍ', kind: 'bool' },
-  { key: 'hasListing', label: 'له إعلان', kind: 'bool' },
-  { key: 'hasVehicle', label: 'أضاف مركبة', kind: 'bool' },
-  { key: 'hasBid', label: 'زايد سابقًا', kind: 'bool' },
-  { key: 'isDealer', label: 'تاجر', kind: 'bool' },
-  { key: 'activeWithinDays', label: 'سجّل خلال (يومًا)', kind: 'number' },
+  { key: 'hasFavorites', kind: 'bool' },
+  { key: 'hasCompletedOrder', kind: 'bool' },
+  { key: 'hasActiveOrder', kind: 'bool' },
+  { key: 'hasListing', kind: 'bool' },
+  { key: 'hasVehicle', kind: 'bool' },
+  { key: 'hasBid', kind: 'bool' },
+  { key: 'isDealer', kind: 'bool' },
+  { key: 'activeWithinDays', kind: 'number' },
 ] as const;
 
 export type SegmentRule = { field: string; negate?: boolean; value?: number };

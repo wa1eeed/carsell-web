@@ -9,7 +9,7 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { ENV_LABEL } from '@/lib/domain/integration-env';
+import { ENV_LABEL, PAYMENT_PURPOSE_LABEL, ROUTE_DISABLED_LABEL } from '@/lib/labels/admin';
 import type { GatewayChoice, RouteRow } from '@/lib/domain/payment-routing';
 import type { HoldShortfall } from '@/lib/payments/gateway';
 
@@ -92,7 +92,7 @@ export function RoutesTable({
             {routes.map((route) => (
               <tr key={route.purpose}>
                 <td className="p-3.5">
-                  <span className="font-bold">{route.labelAr}</span>
+                  <span className="font-bold">{PAYMENT_PURPOSE_LABEL[route.purpose]}</span>
                   {!route.enabled ? (
                     <span className="block text-3xs opacity-45">معطّل — لا معاملات جديدة</span>
                   ) : null}
@@ -103,7 +103,7 @@ export function RoutesTable({
                     </span>
                   )}
                 </td>
-                <td className="p-3.5">{route.gatewayNameAr}</td>
+                <td className="p-3.5">{route.gatewayNameAr ?? ROUTE_DISABLED_LABEL}</td>
                 <td className="p-3.5 text-end">
                   <Money amount={route.settledThisMonth} />
                 </td>
@@ -143,7 +143,7 @@ export function RoutesTable({
       <Sheet
         open={target !== null}
         onClose={() => setTarget(null)}
-        title={target === null ? '' : `تبديل بوابة — ${target.labelAr}`}
+        title={target === null ? '' : `تبديل بوابة — ${PAYMENT_PURPOSE_LABEL[target.purpose]}`}
         className="w-[520px]"
         footer={
           <div className="flex items-center gap-2.5">
@@ -160,7 +160,7 @@ export function RoutesTable({
           <div className="flex flex-col gap-4">
             <p className="flex items-baseline gap-2 text-2xs">
               <span className="opacity-55">الحالية</span>
-              <span className="font-bold">{target.gatewayNameAr}</span>
+              <span className="font-bold">{target.gatewayNameAr ?? ROUTE_DISABLED_LABEL}</span>
             </p>
 
             {choices === null ? (
@@ -223,7 +223,7 @@ export function RoutesTable({
 
             {selected === undefined ? null : (
               <div className="rounded-sm border border-line p-3 text-3xs leading-relaxed opacity-70">
-                المعاملات الجارية تبقى على {target.gatewayNameAr}، والحجز القائم يُفرَج عنه من
+                المعاملات الجارية تبقى على {target.gatewayNameAr ?? ROUTE_DISABLED_LABEL}، والحجز القائم يُفرَج عنه من
                 حيث أُنشئ. والتبديل يسري على الجديد وحده من لحظة تنفيذه.
               </div>
             )}

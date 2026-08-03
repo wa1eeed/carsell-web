@@ -67,7 +67,9 @@ describe('═══ القاعدة ٢ ═══ القدرة الناقصة تُ
     const purposes = Object.keys(PURPOSE_REQUIREMENTS);
     expect(purposes).toHaveLength(6);
     for (const purpose of purposes) {
-      expect(PURPOSE_REQUIREMENTS[purpose as keyof typeof PURPOSE_REQUIREMENTS].labelAr).not.toBe('');
+      const requirement = PURPOSE_REQUIREMENTS[purpose as keyof typeof PURPOSE_REQUIREMENTS];
+      expect(Array.isArray(requirement.needs), purpose).toBe(true);
+      expect(typeof requirement.minHoldDays, purpose).toBe('number');
     }
   });
 });

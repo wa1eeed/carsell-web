@@ -19,8 +19,3 @@ export function effectiveEnvironment(stored: IntegrationEnv): IntegrationEnv {
 export function environmentIsForced(stored: IntegrationEnv): boolean {
   return !isProduction && stored !== 'TEST';
 }
-
-export const ENV_LABEL: Record<IntegrationEnv, string> = {
-  TEST: 'اختبار',
-  LIVE: 'إنتاج',
-};

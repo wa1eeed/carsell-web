@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import type { IntegrationRow } from '@/lib/domain/admin-integrations';
-import { ENV_LABEL } from '@/lib/domain/integration-env';
+import { ENV_LABEL } from '@/lib/labels/admin';
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: 'تعمل',

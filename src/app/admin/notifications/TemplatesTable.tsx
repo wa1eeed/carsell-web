@@ -13,11 +13,11 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Tabs } from '@/components/ui/Tabs';
 import { Toast } from '@/components/ui/Toast';
 import {
-  groupLabel,
   smsMetrics,
   undeclaredVariables,
   usedVariables,
 } from '@/lib/domain/notification-text';
+import { NOTIFICATION_GROUP_LABEL } from '@/lib/labels/admin';
 import type { TemplateRow } from '@/lib/domain/admin-notifications';
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -139,7 +139,7 @@ export function TemplatesTable({
         </Chip>
         {groups.map(([id, count]) => (
           <Chip key={id} active={group === id} onClick={() => setGroup(id)} count={count}>
-            {groupLabel(id)}
+            {NOTIFICATION_GROUP_LABEL[id] ?? id}
           </Chip>
         ))}
       </div>

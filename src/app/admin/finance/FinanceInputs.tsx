@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { toLatinDigits } from '@/lib/arabic';
 import type { FinanceInputRow } from '@/lib/domain/admin-finance';
+import { FINANCE_INPUT_LABEL } from '@/lib/labels/admin';
 
 /**
  * المدخلات اليدوية — ما لا تملكه المنصّة.
@@ -67,7 +68,9 @@ export function FinanceInputs({
           const editing = draft[row.key];
           return (
             <div key={row.key} className="flex flex-wrap items-center gap-3 py-3">
-              <span className="min-w-32 flex-1 text-xs font-bold">{row.label}</span>
+              <span className="min-w-32 flex-1 text-xs font-bold">
+                {FINANCE_INPUT_LABEL[row.key] ?? row.key}
+              </span>
 
               {!canEdit ? (
                 <span className="font-num text-sm">{row.value}</span>

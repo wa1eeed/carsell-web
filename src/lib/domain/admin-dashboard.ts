@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { REST_OF_CITIES } from '@/lib/labels/admin';
 
 /**
  * A1 — لوحة القيادة: نمو وأعداد.
@@ -14,11 +15,11 @@ import { db } from '@/lib/db';
  * مقارنة ثلاثين يومًا بشهر تقويمي تُنتج قفزةً أو هبوطًا لا وجود لهما.
  */
 
-export type Segment = { key: string; label: string; count: number };
+/** المفتاح وحده — والتسمية في `src/lib/labels/admin.ts`. */
+export type Segment = { key: string; count: number; serviceName?: string | null };
 
 export type MetricCard = {
   key: string;
-  title: string;
   /** الإجمالي **في المدى** — لا الإجمالي التاريخي. */
   total: number;
   /** العدد في المدى السابق المساوي، و`null` حين لا معنى للمقارنة. */
@@ -32,35 +33,6 @@ function previousWindow(from: Date, to: Date): Window {
   const span = to.getTime() - from.getTime();
   return { gte: new Date(from.getTime() - span), lt: from };
 }
-
-const USER_LABEL: Record<string, string> = {
-  buyers: 'أفراد مشترون',
-  sellers: 'أفراد بائعون',
-  dealers: 'تجار ومعارض',
-  suspended: 'موقوفون',
-};
-
-const LISTING_TYPE_LABEL: Record<string, string> = {
-  DIRECT: 'بيع مباشر',
-  NEGOTIATION: 'تفاوض',
-  AUCTION: 'مزاد',
-};
-
-const ORDER_STATUS_LABEL: Record<string, string> = {
-  COMPLETED: 'مكتملة',
-  ACTIVE: 'جارية',
-  CANCELLED: 'ملغاة',
-  STALLED: 'متعثّرة',
-  DISPUTED: 'متنازع عليها',
-};
-
-const AUCTION_STATUS_LABEL: Record<string, string> = {
-  LIVE: 'جارية',
-  SCHEDULED: 'قادمة',
-  ENDED_MET: 'رست',
-  ENDED_UNMET: 'لم تبلغ الاحتياطي',
-  CANCELLED: 'ملغاة',
-};
 
 export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]> {
   const window: Window = { gte: from, lt: to };
@@ -147,76 +119,66 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
   return [
     {
       key: 'users',
-      title: 'العملاء',
       total: users,
       previous: usersBefore,
       segments: [
-        { key: 'buyers', label: USER_LABEL.buyers ?? '', count: buyers },
-        { key: 'sellers', label: USER_LABEL.sellers ?? '', count: sellers },
-        { key: 'dealers', label: USER_LABEL.dealers ?? '', count: dealerUsers },
-        { key: 'suspended', label: USER_LABEL.suspended ?? '', count: suspended },
+        { key: 'buyers', count: buyers },
+        { key: 'sellers', count: sellers },
+        { key: 'dealers', count: dealerUsers },
+        { key: 'suspended', count: suspended },
       ],
     },
     {
       key: 'vehicles',
-      title: 'المركبات المضافة',
       total: vehicles,
       previous: vehiclesBefore,
       segments: [
-        { key: 'listed', label: 'معروضة للبيع', count: listedVehicles - soldVehicles },
+        { key: 'listed', count: listedVehicles - soldVehicles },
         // في الجراج فقط: مركبة بلا إعلان — والفرق هو التعريف نفسه
-        { key: 'garage', label: 'في الجراج فقط', count: Math.max(0, vehicles - listedVehicles) },
-        { key: 'sold', label: 'مباعة', count: soldVehicles },
+        { key: 'garage', count: Math.max(0, vehicles - listedVehicles) },
+        { key: 'sold', count: soldVehicles },
       ],
     },
     {
       key: 'listings',
-      title: 'الإعلانات',
       total: countOf(listings),
       previous: listingsBefore,
       segments: listings.map((row) => ({
         key: row.type,
-        label: LISTING_TYPE_LABEL[row.type] ?? row.type,
         count: each(row),
       })),
     },
     {
       key: 'orders',
-      title: 'الطلبات',
       total: countOf(orders),
       previous: ordersBefore,
       segments: orders.map((row) => ({
         key: row.status,
-        label: ORDER_STATUS_LABEL[row.status] ?? row.status,
         count: each(row),
       })),
     },
     {
       key: 'repeat',
-      title: 'العملاء المتكرّرون',
       total: repeat.length,
       // تراكميّ لا مدَويّ — فلا فترة سابقة تُقارَن بها
       previous: null,
       segments: [
-        { key: 'twice', label: 'شراء مرتين', count: twice },
-        { key: 'thrice', label: 'ثلاث مرات', count: thrice },
-        { key: 'more', label: 'أربع فأكثر', count: more },
+        { key: 'twice', count: twice },
+        { key: 'thrice', count: thrice },
+        { key: 'more', count: more },
       ],
     },
     {
       key: 'auctions',
-      title: 'المزادات',
       total: countOf(auctions),
       previous: auctionsBefore,
       segments: auctions.map((row) => ({
         key: row.status,
-        label: AUCTION_STATUS_LABEL[row.status] ?? row.status,
         count: each(row),
       })),
     },
     {
       key: 'serviceRequests',
-      title: 'طلبات الخدمات',
       total: countOf(serviceRequests),
       previous: serviceRequestsBefore,
       segments: serviceRequests
@@ -224,7 +186,8 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
           const service = servicesByKey.find((entry) => entry.id === row.serviceId);
           return {
             key: service?.key ?? row.serviceId,
-            label: service?.nameAr ?? '—',
+            /** اسم الخدمة بيانٌ من قاعدة البيانات لا تسمية واجهة. */
+            serviceName: service?.nameAr ?? null,
             count: each(row),
           };
         })
@@ -259,7 +222,8 @@ export async function listingsByCity(from: Date, to: Date, top = 5): Promise<Cit
   const head = rows.slice(0, top).map((row) => ({ city: row.city, count: row._count._all ?? 0 }));
   const rest = rows.slice(top).reduce((total, row) => total + (row._count._all ?? 0), 0);
 
-  return rest === 0 ? head : [...head, { city: 'بقية المدن', count: rest }];
+  // مفتاحٌ محجوز لا اسم مدينة — والشاشة تسمّيه
+  return rest === 0 ? head : [...head, { city: REST_OF_CITIES, count: rest }];
 }
 
 /** فرقٌ مئويّ — و`null` حين لا أساس يُقارَن به (القسمة على صفر ليست ٠٪). */
