@@ -37,17 +37,19 @@ describe('═══ القاعدة ٢ ═══ القدرة الناقصة تُ
   });
 
   it('مدّة حجز أقصر ⇒ تحذير يشرح الأثر ولا يمنع', () => {
-    // تاب: ٦ أيام، والضمان قد يحتاج ١٤
     const tap = eligibility('VEHICLE_ESCROW', TAP);
     expect(tap.eligible).toBe(true);
     if (tap.eligible) {
       expect(tap.warning).not.toBeNull();
       // والنصّ يشرح ما يقع لا يكتفي بالرقم
       expect(tap.warning).toContain('يغيّر معنى الضمان للمشتري');
+      // ولا يدّعي أن الغرض «يحتاج» مدّةً معلومة — المرحلة بلا سقف
+      expect(tap.warning).toContain('تتقدّم بتأكيد إجراء لا بمهلة');
+      expect(tap.warning).not.toContain('والغرض قد يحتاج');
     }
   });
 
-  it('والمصرفية بلا تحذير — ثلاثون يومًا تكفي', () => {
+  it('والمصرفية بلا تحذير — فوق حدّ الإنذار', () => {
     const bank = eligibility('VEHICLE_ESCROW', BANK);
     expect(bank.eligible).toBe(true);
     if (bank.eligible) expect(bank.warning).toBeNull();
