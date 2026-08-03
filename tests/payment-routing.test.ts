@@ -2,9 +2,11 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import {
   EXPIRY_ALERT_HOURS,
+  approveRouteSwitch,
   choicesFor,
   expiringHolds,
   listRoutes,
+  pendingSwitches,
   requestRouteSwitch,
   setRouteEnabled,
 } from '@/lib/domain/payment-routing';
@@ -220,5 +222,78 @@ describe('حجم الشهر عمودان', () => {
     const routes = await listRoutes();
     expect(routes).toHaveLength(6);
     expect(routes.find((row) => row.purpose === 'SUBSCRIPTION')?.enabled).toBe(false);
+  });
+});
+
+describe('═══ القاعدة ٤ ═══ نصاب العضوين يكتمل — أو لا يكون نصابًا', () => {
+  /**
+   * **الطلب كان يُكتب ولا يُعتمد أبدًا.** `requiredApprovals: 2` مكتوبة
+   * منذ البناء، والشاشة تقول «ينتظر موافقة عضو ثانٍ» — **ولا دالّة
+   * موافقةٍ في الملف كلّه**. فكل طلب تبديلٍ يبقى معلَّقًا حتى ينقضي،
+   * ولا تُبدَّل بوابةُ غرضٍ مرّة واحدة.
+   */
+  it('الطالب لا يعتمد طلبه، والثاني يعتمده فيُطبَّق', async () => {
+    const requester = await admin();
+    const second = await admin();
+    const before = await db.paymentRoute.findUniqueOrThrow({
+      where: { purpose: 'SERVICE_PURCHASE' },
+    });
+    const to = before.gatewayKey === 'moyasar' ? 'tap' : 'moyasar';
+
+    try {
+      const asked = await requestRouteSwitch(
+        requester,
+        {
+          purpose: 'SERVICE_PURCHASE',
+          toGatewayKey: to,
+          toEnvironment: before.environment,
+          reason: 'اختبار اكتمال النصاب على غرض الخدمات',
+        },
+        null,
+      );
+      expect(asked.ok).toBe(true);
+
+      // الشاشة تقرأ المعلَّق — ولا تقول «ينتظر» ثم لا تعرض المنتظِر
+      const waiting = await pendingSwitches();
+      const mine = waiting.find((entry) => entry.purpose === 'SERVICE_PURCHASE');
+      expect(mine).toBeDefined();
+      expect(mine?.toGatewayKey).toBe(to);
+      expect(mine?.required).toBe(2);
+
+      // ═══ الطالب لا يوافق على طلبه ═══
+      const self = await approveRouteSwitch(requester, mine?.id ?? '', null);
+      expect(self.ok).toBe(false);
+      if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
+
+      // ولم يتغيّر شيء بمحاولته
+      const untouched = await db.paymentRoute.findUniqueOrThrow({
+        where: { purpose: 'SERVICE_PURCHASE' },
+      });
+      expect(untouched.gatewayKey).toBe(before.gatewayKey);
+
+      // ═══ والثاني يُكمل النصاب فيُطبَّق ═══
+      const done = await approveRouteSwitch(second, mine?.id ?? '', null);
+      expect(done.ok).toBe(true);
+      if (done.ok) expect(done.state).toBe('APPLIED');
+
+      const after = await db.paymentRoute.findUniqueOrThrow({
+        where: { purpose: 'SERVICE_PURCHASE' },
+      });
+      expect(after.gatewayKey).toBe(to);
+
+      // والطلب لم يعد معلَّقًا — فلا يُعتمد مرّتين
+      expect(await pendingSwitches()).toHaveLength(0);
+      const twice = await approveRouteSwitch(second, mine?.id ?? '', null);
+      expect(twice.ok).toBe(false);
+    } finally {
+      // الاختبار يعيد ما غيّره — والتوجيه صفٌّ مزروع لا مصنوع هنا
+      await db.paymentRoute.update({
+        where: { purpose: 'SERVICE_PURCHASE' },
+        data: { gatewayKey: before.gatewayKey, environment: before.environment },
+      });
+      await db.approvalRequest.deleteMany({ where: { kind: 'PAYMENT_ROUTE' } });
+      await db.auditLog.deleteMany({ where: { actorId: { in: [requester.id, second.id] } } });
+      await db.adminUser.deleteMany({ where: { id: { in: [requester.id, second.id] } } });
+    }
   });
 });

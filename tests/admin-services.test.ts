@@ -136,6 +136,7 @@ describe('A7 — الإنشاء والترتيب', () => {
       {
         key, category: 'SELLER', nameAr: 'خدمة اختبار', nameEn: 'Test service',
         descAr: '', descEn: '', price: 99, slaHours: null, placements: [],
+        adminFeeEnabled: true, adminFee: 25,
       },
       null,
     );
@@ -147,12 +148,22 @@ describe('A7 — الإنشاء والترتيب', () => {
     const top = await db.service.findFirstOrThrow({ orderBy: { sort: 'desc' } });
     expect(top.key).toBe(key);
 
+    /**
+     * **الرسم الإداريّ يصل إلى الصفّ.** كانت الشاشة تعرض حقله في لوح
+     * «خدمة جديدة» ويسقط في الطريق — مخطّطُ الطلب لا يقبله وما كان
+     * يُكتب. فيقرأ المشغّل «أُنشئت» والمحفوظ صفر، ورسمٌ لنا تسقط
+     * ضريبته معه.
+     */
+    expect(row.adminFeeEnabled).toBe(true);
+    expect(Number(row.adminFee)).toBe(25);
+
     // والمفتاح لا يتكرّر
     const again = await createService(
       operator,
       {
         key, category: 'SELLER', nameAr: 'x', nameEn: 'x',
         descAr: '', descEn: '', price: 1, slaHours: null, placements: [],
+        adminFeeEnabled: false, adminFee: 0,
       },
       null,
     );

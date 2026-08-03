@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import type { DisputeStatus } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
 
 /**
@@ -459,5 +460,86 @@ export async function overdueDisputes(now: Date = new Date()) {
     where: { status: { in: ['OPEN', 'INVESTIGATING'] }, slaDueAt: { lte: now } },
     orderBy: { slaDueAt: 'asc' },
     include: { order: { select: { ref: true, totalAmount: true } } },
+  });
+}
+
+export type DisputeRow = {
+  id: string;
+  orderRef: string;
+  orderTotal: string;
+  reason: string;
+  status: DisputeStatus;
+  openedAt: Date;
+  slaDueAt: Date;
+  overdue: boolean;
+  messageCount: number;
+  resolution: string | null;
+  resolutionAmount: string | null;
+  /** الطلب المعلَّق إن وُجد — به يعرف الثاني أن عليه اعتمادًا */
+  approval: {
+    id: string;
+    requestedBy: string;
+    approvals: number;
+    required: number;
+    resolution: string;
+    amount: number | null;
+  } | null;
+};
+
+/**
+ * ═══ طابور النزاعات — ولم يكن يُقرأ من شاشة ═══
+ *
+ * `openDispute` و`proposeResolution` و`approveResolution` مبنيّةٌ
+ * ومختبَرة، **ولا مسار ينادي أيًّا منها ولا شاشة تعرضها**. فالنزاع
+ * يُفتح ولا يُحسم أبدًا، ومالُ الضمان يبقى محجوزًا بلا قرار.
+ *
+ * والقرار ماليّ — استردادٌ كامل أو تسوية جزئية أو إفراج للبائع — فيمرّ
+ * بنصاب العضوين الذي بُني له، لا بيدٍ واحدة.
+ */
+export async function listDisputes(now: Date = new Date()): Promise<DisputeRow[]> {
+  const rows = await db.dispute.findMany({
+    orderBy: [{ status: 'asc' }, { slaDueAt: 'asc' }],
+    include: { order: { select: { ref: true, totalAmount: true } } },
+    take: 200,
+  });
+
+  const approvals = await db.approvalRequest.findMany({
+    where: {
+      kind: 'DISPUTE_RESOLUTION',
+      status: 'PENDING',
+      entityId: { in: rows.map((row) => row.id) },
+    },
+  });
+
+  return rows.map((row) => {
+    const approval = approvals.find((entry) => entry.entityId === row.id);
+    const payload = (approval?.payload ?? {}) as { resolution?: string; amount?: number };
+    return {
+      id: row.id,
+      orderRef: row.order.ref,
+      orderTotal: row.order.totalAmount.toString(),
+      reason: row.reason,
+      status: row.status,
+      openedAt: row.openedAt,
+      slaDueAt: row.slaDueAt,
+      // المتأخّر يُعلَّم ولا يُحسم: قرارٌ ماليّ لا يصدر بانقضاء وقت
+      overdue:
+        (row.status === 'OPEN' || row.status === 'INVESTIGATING') &&
+        row.slaDueAt.getTime() <= now.getTime(),
+      messageCount: row.messages.length,
+      resolution: row.resolution,
+      resolutionAmount: row.resolutionAmount?.toString() ?? null,
+      approval:
+        approval === undefined
+          ? null
+          : {
+              id: approval.id,
+              requestedBy: approval.requestedBy,
+              approvals: approval.approvedBy.length,
+              required: approval.requiredApprovals,
+              resolution: payload.resolution ?? '',
+              amount: payload.amount ?? null,
+            },
+    };
   });
 }

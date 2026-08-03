@@ -10,7 +10,7 @@ import { Quantity } from '@/components/ui/Quantity';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { ENV_LABEL, PAYMENT_PURPOSE_LABEL, ROUTE_DISABLED_LABEL } from '@/lib/labels/admin';
-import type { GatewayChoice, RouteRow } from '@/lib/domain/payment-routing';
+import type { GatewayChoice, PendingSwitch, RouteRow } from '@/lib/domain/payment-routing';
 import type { HoldShortfall } from '@/lib/payments/gateway';
 
 /**
@@ -22,9 +22,15 @@ import type { HoldShortfall } from '@/lib/payments/gateway';
  */
 export function RoutesTable({
   routes,
+  awaiting,
+  adminId,
   canManage,
 }: {
   routes: readonly RouteRow[];
+  /** طلبات تنتظر العضو الثاني — تُعرض فوق الجدول لا في سجلّ بعيد */
+  awaiting: readonly PendingSwitch[];
+  /** لأن الطالب لا يوافق على طلبه — والشاشة تقول ذلك قبل الضغط */
+  adminId: string;
   canManage: boolean;
 }) {
   const router = useRouter();
@@ -34,6 +40,40 @@ export function RoutesTable({
   const [choices, setChoices] = useState<GatewayChoice[] | null>(null);
   const [chosen, setChosen] = useState<string>('');
   const [reason, setReason] = useState('');
+
+  /**
+   * الموافقة الثانية — **ولم يكن لها زرّ ولا مسار.**
+   *
+   * كانت الشاشة تقول «ينتظر موافقة عضو ثانٍ» ثم لا تعرض المنتظِر ولا
+   * تعطي العضو الثاني موضعًا يوافق فيه، فيبقى الطلب حتى ينقضي.
+   */
+  const approve = (item: PendingSwitch): void => {
+    start(async () => {
+      const response = await fetch(
+        `/api/v1/admin/payments/routes/${item.purpose}/approve`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ requestId: item.id }),
+        },
+      ).catch(() => null);
+
+      const body = (await response?.json().catch(() => null)) as
+        | { data?: { state?: string }; error?: { messageAr?: string } }
+        | null;
+
+      if (response === null || !response.ok) {
+        setToast(body?.error?.messageAr ?? 'تعذّر اعتماد الطلب.');
+        return;
+      }
+      setToast(
+        body?.data?.state === 'APPLIED'
+          ? 'طُبِّق التبديل — والمعاملات الجارية تبقى على بوابتها.'
+          : 'سُجِّلت موافقتك — ما زال ينتظر عضوًا آخر.',
+      );
+      router.refresh();
+    });
+  };
 
   const openSwitch = (route: RouteRow): void => {
     setTarget(route);
@@ -76,6 +116,47 @@ export function RoutesTable({
 
   return (
     <>
+      {awaiting.length === 0 ? null : (
+        <div className="mb-4 flex flex-col gap-2.5">
+          {awaiting.map((item) => {
+            const isRequester = item.requestedBy === adminId;
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border border-warn-200 bg-warn-100 p-3.5 text-2xs text-warn-900"
+              >
+                <p className="font-bold">
+                  تبديل ينتظر الاعتماد — {PAYMENT_PURPOSE_LABEL[item.purpose]}
+                </p>
+                <p className="mt-1.5 leading-loose opacity-80">
+                  إلى <span className="font-bold">{item.toGatewayKey}</span> على{' '}
+                  {ENV_LABEL[item.toEnvironment]} · الموافقات{' '}
+                  <span className="font-num">
+                    <ArabicNumber value={item.approvals} grouped={false} />
+                  </span>{' '}
+                  من{' '}
+                  <span className="font-num">
+                    <ArabicNumber value={item.required} grouped={false} />
+                  </span>
+                </p>
+                {/* السبب يُعرض للموافق: من يعتمد بلا سببٍ يعتمد ورقة */}
+                <p className="mt-1.5 leading-loose opacity-70">السبب: {item.reason}</p>
+                {!canManage ? null : (
+                  <Button
+                    size="sm"
+                    className="mt-3"
+                    disabled={pending || isRequester}
+                    onClick={() => approve(item)}
+                  >
+                    {isRequester ? 'طلبتَه — ينتظر عضوًا آخر' : 'اعتمد التبديل'}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[760px] text-2xs">
           <thead className="border-b border-line text-3xs opacity-45">

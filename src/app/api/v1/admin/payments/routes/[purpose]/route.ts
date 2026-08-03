@@ -54,11 +54,16 @@ export async function POST(
         messageAr:
           result.reason === 'NOT_ELIGIBLE'
             ? 'هذه البوابة تنقصها قدرة يحتاجها الغرض.'
-            : 'تعذّر تسجيل طلب التبديل.',
+            : // القائم يُسمّى: «تعذّر» يدفع المشغّل يعيد المحاولة بلا فائدة
+              result.reason === 'ALREADY_PENDING'
+              ? 'على هذا الغرض طلب تبديل قائم — اعتمده أو انتظر انقضاءه.'
+              : 'تعذّر تسجيل طلب التبديل.',
         messageEn:
           result.reason === 'NOT_ELIGIBLE'
             ? 'This gateway lacks a capability the purpose requires.'
-            : 'Could not record the switch request.',
+            : result.reason === 'ALREADY_PENDING'
+              ? 'A switch request is already pending for this purpose.'
+              : 'Could not record the switch request.',
       },
       status,
     );

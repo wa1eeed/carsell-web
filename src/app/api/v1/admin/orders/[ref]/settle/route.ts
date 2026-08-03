@@ -18,7 +18,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ ref: string }> },
 ) {
-  const guard = await requireAdmin(request, 'finance.view');
+  /**
+   * **`escrow.release` لا `finance.view`.** الدوران يتطابقان اليوم،
+   * فلم يظهر أثر — لكن الصلاحية المسمّاة في `DUAL_APPROVAL` لم تكن
+   * تُفحص في موضع، فأيّ فصلٍ لهما لاحقًا كان يسقط مفتوحًا بلا إنذار.
+   */
+  const guard = await requireAdmin(request, 'escrow.release');
   if (!guard.ok) return guard.response;
 
   const { ref } = await params;

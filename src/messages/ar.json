@@ -349,7 +349,8 @@
     "taxRules": "{count, plural, zero{لا قواعد} one{قاعدة واحدة} two{قاعدتان} few{{n} قواعد} many{{n} قاعدة} other{{n} قاعدة}}",
     "activeRules": "{count, plural, zero{لا مفعَّلة} one{واحدة مفعَّلة} two{اثنتان مفعَّلتان} few{{n} مفعَّلة} many{{n} مفعَّلة} other{{n} مفعَّلة}}",
     "awaitingRules": "{count, plural, zero{لا شيء} one{واحدة} two{اثنتان} few{{n}} many{{n}} other{{n}}}",
-    "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}"
+    "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
+    "disputes": "{count, plural, zero{لا نزاعات} one{نزاع واحد} two{نزاعان} few{{n} نزاعات} many{{n} نزاعًا} other{{n} نزاع}}"
   },
   "search": {
     "title": "تصفّح السيارات",

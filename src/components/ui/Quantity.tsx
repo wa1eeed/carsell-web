@@ -45,6 +45,7 @@ export type Unit =
   | 'paymentPurposes'
   | 'gateways'
   | 'inFlight'
+  | 'disputes'
   | 'km';
 
 /**

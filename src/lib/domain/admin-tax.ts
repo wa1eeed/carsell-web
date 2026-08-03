@@ -211,6 +211,48 @@ export async function requestRuleChange(
   };
 }
 
+export type PendingRuleChange = {
+  id: string;
+  ruleId: string;
+  edit: RuleEdit;
+  requestedBy: string;
+  requestedByName: string | null;
+  approvals: number;
+  required: number;
+  expiresAt: Date;
+};
+
+/**
+ * التعديلات المعلَّقة — **والشاشة التي لا تعرضها تخفي ما تنتظره.**
+ *
+ * `approveRuleChange` كانت موجودة ولها مسار، ولا زرّ يبلغها: يقرأ
+ * المشغّل «ينتظر عضوًا ثانيًا» ولا يجد العضو الثاني موضعًا يوافق فيه،
+ * فيبقى التعديل معلَّقًا حتى ينقضي — ويُعاد طلبه فيعود إلى الحال نفسه.
+ */
+export async function pendingRuleChanges(now: Date = new Date()): Promise<PendingRuleChange[]> {
+  const rows = await db.approvalRequest.findMany({
+    where: { kind: 'TAX_RULE_CHANGE', status: 'PENDING', expiresAt: { gt: now } },
+    orderBy: { expiresAt: 'desc' },
+  });
+
+  const actors = await db.adminUser.findMany({
+    where: { id: { in: rows.map((row) => row.requestedBy) } },
+    select: { id: true, name: true },
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    ruleId: row.entityId,
+    edit: row.payload as RuleEdit,
+    requestedBy: row.requestedBy,
+    requestedByName: actors.find((actor) => actor.id === row.requestedBy)?.name ?? null,
+    // الطالب مكتوبٌ في `approvedBy` هنا — فالعدد كما هو بلا زيادة
+    approvals: row.approvedBy.length,
+    required: row.requiredApprovals,
+    expiresAt: row.expiresAt,
+  }));
+}
+
 /** الموافقة الثانية تُنفّذ — **ولا يوافق الطالب على نفسه**. */
 export async function approveRuleChange(
   admin: AdminUser,

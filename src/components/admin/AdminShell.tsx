@@ -38,6 +38,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'المزادات', href: null },
       { label: 'العروض والمفاوضات', href: null },
       { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
+      { label: 'النزاعات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'طلبات التمويل', href: null },
       { label: 'المدفوعات والضمان', href: null, permission: 'finance.view' },
       { label: 'النزاعات', href: null, permission: 'reports.handle' },

@@ -18,7 +18,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> },
 ) {
-  const guard = await requireAdmin(request, 'integrations.view');
+  // الموافق يملك ما يملكه الطالب — نصابٌ من أهل الصلاحية لا من رائيها
+  const guard = await requireAdmin(request, 'integrations.rotateKeys');
   if (!guard.ok) return guard.response;
 
   const parsed = Body.safeParse(await request.json().catch(() => null));

@@ -543,6 +543,104 @@
         }
       }
     },
+    "/api/v1/admin/disputes/{id}/approve": {
+      "post": {
+        "summary": "POST /api/v1/admin/disputes/{id}/approve",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "escrow.release",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/disputes/{id}/propose": {
+      "post": {
+        "summary": "POST /api/v1/admin/disputes/{id}/propose",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "escrow.release",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resolution": {
+                    "type": "string",
+                    "enum": [
+                      "FULL_REFUND",
+                      "PARTIAL_SETTLEMENT",
+                      "RELEASE_TO_SELLER"
+                    ]
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000000
+                  }
+                },
+                "required": [
+                  "resolution"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/features": {
       "get": {
         "summary": "GET /api/v1/admin/features",
@@ -864,7 +962,7 @@
             "admin": []
           }
         ],
-        "x-permission": "integrations.view",
+        "x-permission": "integrations.rotateKeys",
         "parameters": [
           {
             "name": "key",
@@ -899,7 +997,7 @@
             "admin": []
           }
         ],
-        "x-permission": "integrations.view",
+        "x-permission": "integrations.rotateKeys",
         "parameters": [
           {
             "name": "key",
@@ -1318,7 +1416,7 @@
             "admin": []
           }
         ],
-        "x-permission": "finance.view",
+        "x-permission": "escrow.release",
         "parameters": [
           {
             "name": "ref",
@@ -1517,6 +1615,41 @@
         }
       }
     },
+    "/api/v1/admin/payments/routes/{purpose}/approve": {
+      "post": {
+        "summary": "POST /api/v1/admin/payments/routes/{purpose}/approve",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/payments/routes/{purpose}/choices": {
       "get": {
         "summary": "GET /api/v1/admin/payments/routes/{purpose}/choices",
@@ -1616,6 +1749,14 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "adminFeeEnabled": {
+                    "type": "boolean"
+                  },
+                  "adminFee": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
                   }
                 },
                 "required": [
@@ -1627,7 +1768,9 @@
                   "descEn",
                   "price",
                   "slaHours",
-                  "placements"
+                  "placements",
+                  "adminFeeEnabled",
+                  "adminFee"
                 ]
               }
             }

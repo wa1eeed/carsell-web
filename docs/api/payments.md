@@ -246,6 +246,36 @@ Checked before the request is even created, and **again** at execution:
 The dispute re-check exists for exactly one case: a dispute opened *between* the
 request and the approval. A test covers it.
 
+### Rule 12b · half a quorum is not a quorum — gate 19
+
+Rule 12 was honoured where it was written and broken in three places where it
+was only *half* written. All three were the same defect wearing different
+clothes, and all three shipped while every test passed:
+
+| Where | What was built | What was missing |
+|---|---|---|
+| Key rotation | request, approve, route, screen | the routes checked `integrations.view`, which **`OPS` holds** — so two `OPS` admins satisfied a quorum reserved for `SUPER_ADMIN` |
+| Payment-route switch | request writing `requiredApprovals: 2`, screen saying "awaiting a second member" | **no approver function existed at all** — no request could ever be applied |
+| Tax-rule change | request, approve, route | **no control anywhere** called the approve endpoint, so a change stayed `PENDING` until it expired |
+| Dispute resolution | request, approve, both tested | **no route and no screen** — the whole module was unreachable |
+
+The screen promising a second approver while the system has no way to accept one
+is not a missing feature. It is a system reporting that it did something it did
+not do, and an operator waiting for an approval that has nowhere to happen.
+
+`checkApprovalQuorum` in `scripts/check-tokens.mjs` now asserts three things for
+every approval kind created in the domain with `requiredApprovals >= 2`:
+
+1. an `approve*` function exists in the same file,
+2. some API route calls it by name,
+3. every permission in `DUAL_APPROVAL` is checked by name in some route.
+
+**Its limit is deliberate and worth knowing**: check 3 asks "does *a* route check
+this permission?", not "does *this* route check the right one." Binding a route
+to its intended permission is not derivable from the source. The gate catches
+what actually happened — a quorum permission that nothing enforces — and a
+negative test drives it in both directions before it was enabled.
+
 ### Verified live, with no gateway keys configured
 
 | Request | Result |

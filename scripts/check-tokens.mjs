@@ -871,6 +871,99 @@ function checkPrismaBoundary() {
   }
 }
 
+/**
+ * ═══ البوابة ١٩ — نصاب العضوين يُبنى كاملًا أو لا يُبنى ═══
+ *
+ * **وقع ثلاث مرّات، فأُغلِق آليًا:**
+ *
+ *   ١· تدوير المفاتيح كان يفحص `integrations.view` لا `rotateKeys` —
+ *      و`OPS` يملك العرض ولا يملك التدوير، فكان عضوان من `OPS`
+ *      يستوفيان النصاب على سرٍّ حيّ. النصاب قائم، وأهله غير أهله.
+ *   ٢· تبديل بوابة الدفع كان يكتب طلبًا بنصاب عضوين **ولا دالّة
+ *      موافقةٍ في الملف كلّه** — فلا يُطبَّق تبديلٌ أبدًا.
+ *   ٣· تعديل القاعدة الضريبية كانت له دالّة ومسار **ولا زرّ** —
+ *      فيبقى معلَّقًا حتى ينقضي.
+ *
+ * والثلاثة صنفٌ واحد: **نصفُ نصاب**. والشاشة تقول «ينتظر عضوًا ثانيًا»
+ * والنظام لا يملك ما يُنتظَر — وعدٌ لا يقابله مسار.
+ *
+ * فالفحص ثلاثيّ لكل نوع موافقة يُنشأ في النطاق:
+ *   • دالّة موافقة تقابل دالّة الطلب
+ *   • مسار API ينادي دالّة الموافقة
+ *   • والصلاحية المسمّاة في `DUAL_APPROVAL` تُفحص باسمها لا بأضعف منها
+ *
+ * **وحدُّها معلوم**: الشطر الثالث يسأل «أيفحصها مسارٌ ما؟» لا «أيفحصها
+ * هذا المسار؟» — فلو حُرِس مسارٌ واحد بأضعف منها وحُرِس آخر بها لم تُرفع
+ * مخالفة. الربط بين المسار وصلاحيته المقصودة لا يُشتقّ من النصّ، والفحص
+ * يمسك ما وقع فعلًا: صلاحية نصاب **لا يفحصها شيء**.
+ */
+function checkApprovalQuorum() {
+  const domain = join(ROOT, 'src', 'lib', 'domain');
+  const api = join(ROOT, 'src', 'app', 'api');
+  if (!existsSync(domain) || !existsSync(api)) return;
+
+  const domainFiles = walk(domain).filter((file) => file.endsWith('.ts'));
+  const routeFiles = walk(api).filter((file) => file.endsWith('route.ts'));
+  const routeSource = routeFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
+
+  /* ① كل نوع موافقة يُنشأ لا بدّ له من موافِقٍ يُنادى من مسار */
+  const approvers = [];
+  const creators = new Map();
+  for (const file of domainFiles) {
+    const source = readFileSync(file, 'utf8');
+    for (const match of source.matchAll(/^export async function (approve\w+)/gm)) {
+      approvers.push({ name: match[1], file });
+    }
+    for (const match of source.matchAll(/kind:\s*'([A-Z_]+)'/g)) {
+      const kind = match[1];
+      if (!creators.has(kind)) creators.set(kind, file);
+    }
+  }
+
+  for (const [kind, file] of creators) {
+    const rel = relative(ROOT, file);
+    const source = readFileSync(file, 'utf8');
+    /* نصاب العضوين وحده معنيّ — طلبٌ بعضوٍ واحد ليس نصابًا */
+    if (!/requiredApprovals:\s*[2-9]/.test(source) && !/REQUIRED_APPROVALS/.test(source)) continue;
+
+    const local = approvers.filter((entry) => entry.file === file);
+    if (local.length === 0) {
+      problems.push(
+        `${rel}  «${kind}» يُنشأ بنصاب عضوين ولا دالّة `
+          + `approve* في ملفه — طلبٌ لا يُعتمد أبدًا`,
+      );
+      continue;
+    }
+    /* ② والموافِق يُنادى من مسار — دالّةٌ لا يبلغها أحد كأنها ليست */
+    const reachable = local.some((entry) => routeSource.includes(entry.name));
+    if (!reachable) {
+      problems.push(
+        `${rel}  «${local.map((entry) => entry.name).join('/')}» لا يناديها مسار — `
+          + `الموافقة الثانية بلا باب`,
+      );
+    }
+  }
+
+  /* ③ صلاحيات DUAL_APPROVAL تُفحص بأسمائها */
+  const permissionsFile = join(domain, 'permissions.ts');
+  if (!existsSync(permissionsFile)) return;
+  const permissions = readFileSync(permissionsFile, 'utf8');
+  const block = /DUAL_APPROVAL[^=]*=\s*new Set\(\[([\s\S]*?)\]\)/.exec(permissions);
+  if (block === null) return;
+
+  for (const match of (block[1] ?? '').matchAll(/'([\w.]+)'/g)) {
+    const permission = match[1];
+    // النقطة تُهرَّب مرّة واحدة — `\\.` في الحرفيّة تصير `\.` في النمط
+    const pattern = new RegExp(`requireAdmin\\([^)]*'${permission.replaceAll('.', '\\.')}'`);
+    if (!pattern.test(routeSource)) {
+      problems.push(
+        `src/lib/domain/permissions.ts  «${permission}» في DUAL_APPROVAL ولا مسار يفحصها — `
+          + `الإجراء محروسٌ باسمٍ آخر أو بلا حارس`,
+      );
+    }
+  }
+}
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -881,6 +974,7 @@ checkGatewayVocabulary();
 checkTaxRate();
   checkInterpolatedNumbers();
 checkDomainHasNoProse();
+checkApprovalQuorum();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -891,5 +985,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه.',
 );
