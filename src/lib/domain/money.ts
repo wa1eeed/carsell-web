@@ -3,37 +3,13 @@ import { Prisma } from '@/generated/prisma/client';
 /**
  * حساب المال — **بـ`Decimal` لا بعدد عشري**.
  *
- * القاعدة الوحيدة هنا هي أن قاعدة الضريبة تُكتب مرّة. كانت في
- * `offers.ts` وحدها، وحين احتاجتها A3 صارت على وشك أن تُكتب ثانيةً —
- * ونسختان من قاعدة ضريبية تتباعدان أوّل مرّة تتغيّر النسبة.
+ * والضريبة ليست هنا: انتقلت إلى `vat.ts` وحدها، فالنسبة تُقرأ من موضع
+ * واحد وبوابةٌ تمنع كتابتها في غيره. هذا الملف للحساب الذي لا علاقة
+ * له بتصنيف ضريبي — الجمع والنسبة المئوية.
  */
+// يُعاد التصدير ليبقى للمستدعين مدخلٌ واحد لا مدخلان
+export { DEFAULT_VAT_PCT, netOfVat, vatIncluded } from './vat';
 
-export const DEFAULT_VAT_PCT = 15;
-
-/**
- * ═══ قرار ١٧ ═══ **الضريبة مضمَّنة لا مضافة.**
- *
- * السعر المعروض شاملٌ للضريبة، فحصّتها منه `total × 15/115` لا
- * `total × 15/100`. والفرق ليس تقريبًا: على ١١٥٠٠٠ ريال، المضمَّنة
- * ١٥٠٠٠ والمضافة ١٧٢٥٠ — ألفان ومئتان وخمسون ريالًا من فرق في صفقة
- * واحدة، تُدفع من جيب أحدهم.
- */
-export function vatIncluded(
-  total: Prisma.Decimal | number | string,
-  vatPct: Prisma.Decimal | number | string = DEFAULT_VAT_PCT,
-): Prisma.Decimal {
-  const amount = new Prisma.Decimal(total);
-  const pct = new Prisma.Decimal(vatPct);
-  return amount.times(pct).dividedBy(pct.plus(100)).toDecimalPlaces(2);
-}
-
-/** الصافي قبل الضريبة — المكمّل لـ`vatIncluded`، ومجموعهما الإجمالي بلا فرق قرش. */
-export function netOfVat(
-  total: Prisma.Decimal | number | string,
-  vatPct: Prisma.Decimal | number | string = DEFAULT_VAT_PCT,
-): Prisma.Decimal {
-  return new Prisma.Decimal(total).minus(vatIncluded(total, vatPct));
-}
 
 /** جمعٌ آمن لقائمة مبالغ — `reduce` بـ`+` على `Decimal` يُنتج نصًّا لا رقمًا. */
 export function sum(amounts: readonly (Prisma.Decimal | number | string | null)[]): Prisma.Decimal {

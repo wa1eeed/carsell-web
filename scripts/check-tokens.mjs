@@ -15,6 +15,7 @@
  * ١٣. لا نقطة في مفتاح ترجمة — next-intl يقرؤها تداخلًا.
  * ١٤. لا مكوّن عميل يصل إلى `db` عبر سلسلة استيرادات.
  * ١٥. مفردات المزوّد (authorize/capture/void) لا تعبر المُهايئ.
+ * ١٦. نسبة الضريبة في `vat.ts` وحده · لا ضريبة على قيمة المركبة · لا «فاتورة مركبة».
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -627,6 +628,65 @@ function checkGatewayVocabulary() {
   }
 }
 
+
+/**
+ * ————— القاعدة ١٦: نسبة الضريبة في `vat.ts` وحده —————
+ *
+ * ولا حساب ضريبة على قيمة المركبة، ولا مستند يسمّي نفسه فاتورة مركبة.
+ *
+ * والسبب أكبر من الترتيب: تعديل ضريبة القيمة المضافة قد يجعل المنصّة
+ * «موِردًا مفترضًا»، فتُستحقّ الضريبة على كامل قيمة المركبة لا على
+ * العمولة — الفرق بين ١٥٠ و١٥٬٠٠٠ في صفقة واحدة. والتصنيف ينتظر مذكرة
+ * ضريبية، فحسابه اليوم بأي نسبة هو تخمينٌ في وثيقة قانونية.
+ *
+ * والفحص **مقيَّد بسياق ضريبي** لا بالرقم وحده: `take: 15` و
+ * `ADMIN_LOCK_MINUTES = 15` و`flex-[1.15]` كلّها ١٥ لا علاقة لها —
+ * وقاعدةٌ تُصدر ضجيجًا تُعطَّل.
+ */
+const TAX_CONTEXT = /vat|tax|ضريب/i;
+const RATE_LITERAL = /(?<![\w.])(?:15(?:\.0+)?|0\.15)(?![\w.%])|١٥\s*٪/;
+
+/** حسابُ ضريبةٍ على قيمة المركبة — بالتسمية، فالنيّة تظهر في الاسم. */
+const VEHICLE_TAX = /\b(vehicleVat|vatOnVehicle|carVat|vehicleTax|taxOnVehicle)\b/i;
+
+/** مستندٌ يسمّي نفسه فاتورة مركبة — وهو ليس فاتورة حتى يُصنَّف. */
+const VEHICLE_INVOICE = /\b(vehicleInvoice|carInvoice)\b|فاتورة\s+(ال)?مركبة/;
+
+function checkTaxRate() {
+  const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (rel.includes('generated')) continue;
+      const isVatFile = rel.endsWith(join('domain', 'vat.ts')) || rel.endsWith('domain/vat.ts');
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        const code = line.split('//')[0] ?? '';
+        const isComment = /^\s*[*]/.test(line);
+
+        if (!isVatFile && !isComment && TAX_CONTEXT.test(code) && RATE_LITERAL.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  نسبة ضريبة مكتوبة خارج vat.ts — النسبة تُقرأ من موضع واحد`,
+          );
+        }
+        if (!isComment && VEHICLE_TAX.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  حساب ضريبة على قيمة المركبة — التصنيف ينتظر المذكرة (المهمة ٣٥)`,
+          );
+        }
+        if (!isComment && VEHICLE_INVOICE.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  مستند يسمّي نفسه فاتورة مركبة — وهو ليس فاتورة حتى يُصنَّف`,
+          );
+        }
+      });
+    }
+  }
+}
+
 function checkPrismaBoundary() {
   for (const dir of SCAN_DIRS) {
     for (const file of walk(join(ROOT, dir))) {
@@ -684,6 +744,7 @@ checkMoneyMigrations();
 checkPrismaBoundary();
 checkClientDbImports();
 checkGatewayVocabulary();
+checkTaxRate();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -694,5 +755,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · نسبة الضريبة في vat.ts وحده.',
 );

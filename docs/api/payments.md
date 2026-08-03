@@ -1,140 +1,175 @@
-# Payments, escrow and 3DS (task 27)
+# Payments: purpose-based routing, escrow interface, capabilities
 
-Domain: `src/lib/domain/payments.ts`, `src/lib/payments/provider.ts`.
-Routes: `POST /api/v1/payments`, `POST /api/v1/webhooks/payments`.
+Decisions 30, 33, 34, 35. Screen `A20` in `design/CarSell Admin.dc.html`.
 
-**Status: the machinery is built and tested; no provider is wired.** Choosing
-between Moyasar and HyperPay and obtaining credentials is a money decision that
-has not been made — see "What is still open" below.
+> **Status.** This document defines the contract. The schema, the interface and
+> the capability model are specified here **before** any adapter is written —
+> so the adapter is measured against the contract rather than the contract being
+> reverse-engineered from whichever gateway was integrated first.
+>
+> A previous version of this file described a single-gateway, card-vocabulary
+> design. That design was cancelled. It is not patched here — a file describing a
+> cancelled structure is worse than no file, because the reader trusts it.
 
-## The interface first, the provider after
+## 1 · The platform never holds other people's money
 
-The design names «Moyasar / HyperPay» without choosing. Building the logic around
-one name makes switching a rewrite, while everything underneath it — states,
-idempotency, signature verification, escrow — is identical for both.
+Holding third-party funds in Saudi Arabia requires a SAMA licence. We are a
+marketplace, not a payment institution. Escrow is therefore **a hold at the
+gateway** or **a trust account at a bank** — never a balance in our account.
 
-`PaymentProvider` is four methods. `PENDING_PROVIDER` implements them all as
-explicit failures.
+| Moment | What happens | Where the money is |
+|---|---|---|
+| Order created | `hold` | reserved on the buyer's card |
+| Ownership transferred | `settle` → payout to seller | leaves the card, reaches the seller |
+| Cancelled · dispute for buyer | `cancel` | never moved — **not a refund** |
 
-### Payment failure is loud, unlike every other integration
+**Our ledger is a mirror, not a source.** Every entry corresponds to a state at
+the gateway; it records what happened, not what we own.
 
-`CLAUDE.md` says an integration behind a flag fails **silently**. That rule is
-for deferred *helpers* — VIN lookup fails and the user types the fields by hand.
-Payment has no fallback path. A silent failure is a spinner that never resolves
-and a user who does not know whether they were charged.
+**The one exception:** auction deposits and wallet balances are small prepaid
+amounts. Those are a **liability we owe**, and must be backed by real segregated
+funds that are not spent.
 
-So `PENDING_PROVIDER.charge` returns `PROVIDER_NOT_CONFIGURED`, the attempt is
-written as a `FAILED` payment row with its reason, and the API answers 502 with
-"your card was not charged".
-
-## Every attempt gets a row, not every success
-
-"I paid and it didn't arrive" is a complaint that cannot be answered with "we see
-nothing". `Payment` records the attempt at creation; `PaymentEvent` records every
-transition **with its source** — user, provider, admin, or system.
-
-## The state machine is an explicit table
+## 2 · One gateway per purpose, not one gateway
 
 ```
-CREATED      → REQUIRES_3DS · AUTHORIZED · FAILED · CANCELLED
-REQUIRES_3DS → AUTHORIZED · FAILED · CANCELLED
-AUTHORIZED   → CAPTURED · FAILED · CANCELLED
-CAPTURED     → REFUNDED
-FAILED · CANCELLED · REFUNDED → (terminal)
+VEHICLE_ESCROW    hold → settle after ownership transfer
+AUCTION_DEPOSIT   temporary hold, returned or deducted
+WALLET_TOPUP      immediate collection, no hold
+SERVICE_PURCHASE  inspection · report · shipping · photography
+TRANSFER_FEE      collected with the order amount
+SUBSCRIPTION      disabled — all plans are free today
 ```
 
-`FAILED → CAPTURED` looks impossible until a late webhook arrives after the
-payment window closed, flipping a failure into a success and handing money to an
-order that was already relisted. The table is written out rather than derived so
-that case is visibly absent.
+A super-admin switches a purpose's gateway from A20 **without a deploy**.
 
-## The amount comes from the order, never from the request
+## 3 · The interface speaks escrow, not card
 
-A price sent by the browser and charged to the card is a door to paying one riyal
-for a car. `Order.totalAmount` is a snapshot taken when the order was created.
+```ts
+hold(purpose, ref, amount)     → HoldResult
+settle(holdRef, amount?)       → SettleResult   // partial allowed
+cancel(holdRef)                → CancelResult
+partialReturn(settleRef, amt)  → ReturnResult
+status(ref)                    → HoldStatus
+```
 
-Also refused: a payer who is not the buyer, an order not in the `PAYMENT` stage,
-a lapsed payment window, an order already captured, and — importantly — a second
-attempt while one is live. Two live attempts is a double charge.
+The arrangement may change **structurally, not just nominally**. If we later
+contract with a licensed entity or a bank trust account, money is genuinely
+transferred rather than reserved, and releasing it becomes a transfer that takes
+a day rather than an instant call.
 
-## Capture holds escrow in the same transaction
+A screen that named the concept `authorize` becomes false that day — and the
+compiler will not catch it, because the name still translates.
 
-Money captured and not held is money in our account with no entry saying whose it
-is. `advancePayment(…, 'CAPTURED')` creates or flips the escrow to `HELD`,
-advances the order to `TRANSFER`, and writes the order event — all atomically.
+### Rule 1 · Results are asynchronous by contract
 
-## Rule 12 · escrow release needs two approvals
+Every function returns `PENDING` | `CONFIRMED` | `FAILED`. Never an immediate
+success.
 
-The last unimplemented rule from §7. It reuses the same `ApprovalRequest`
-mechanism as key rotation — one mechanism for every two-person action, because a
-second one beside it means two rules that drift.
+Today a card confirms instantly; a trust account stays `PENDING` until the
+webhook lands. **The domain waits on the state, not on the call.** Written this
+way from the start, the bank model needs no new code path — only a gateway whose
+results stay `PENDING` longer.
 
-Three preconditions before a release can even be requested:
+### Rule 2 · Capabilities are declared, and the domain reads them
 
-- **The money is actually held** — no releasing what was never captured.
-- **The order reached transfer** — the promise to the buyer is that their money
-  does not reach the seller before ownership does.
-- **No open dispute** — a dispute freezes; releasing during one empties the thing
-  being argued over.
+Each gateway declares:
 
-The dispute check runs **twice**: at request and again at execution. A dispute
-opened between the two is exactly the case the second check exists for, and a
-test covers it.
-
-The requester cannot approve their own request. Without that, "two members" is
-one member clicking twice.
-
-## Idempotency is mandatory for payments
-
-§6 requires `Idempotency-Key` on every `POST` and mandates it for payments. The
-network retries without the user knowing; the browser retries on refresh. Without
-the key table the card is charged twice — the worst possible bug in a product
-that sells cars.
-
-- Same key, same body → the **first response is replayed verbatim**, no second
-  execution.
-- Same key, **different** body → 409. That is a client bug, and replaying
-  silently hides it.
-- Missing key → 400. Tolerating its absence means the first customer on a bad
-  connection pays twice.
-
-## The webhook has three protections
-
-Each one exists for a failure that costs money. Verified live:
-
-| Request | Response |
+| Capability | Meaning |
 |---|---|
-| No signature | 401 |
-| Wrong signature | 401 |
-| Valid signature, first delivery | 200, stored and processed |
-| Same event id again | 200 `duplicate`, **not reprocessed** |
-| Tampered body, original signature | 401 |
+| `supportsHold` | can reserve without collecting |
+| `supportsPartialSettle` | can settle less than the held amount |
+| `supportsRefund` | can return after settlement |
+| `maxHoldDays` | how long a hold survives |
+| `settlementDelayHours` | how long until money reaches the seller |
+| `feePct` · `feeFixed` | cost per transaction |
 
-1. **Signature first.** Without verification anyone can declare a payment
-   successful. HMAC-SHA256 compared with `timingSafeEqual` — `===` returns on the
-   first differing byte, and the timing difference leaks the signature character
-   by character.
-2. **The event id is stored before processing**, as a primary key. Providers
-   redeliver whenever they are unsure, and processing twice releases money twice.
-3. **The transition is checked**, so a late redelivery cannot flip a terminal
-   state.
+Each purpose declares its `requiredCapabilities`.
 
-A signature-valid event that is logically rejected still returns **200**:
-providers retry on anything else, and retrying something that will never be
-accepted is a queue that never drains.
+**A gateway missing a required capability does not appear in the list at all** —
+it is not shown and then rejected. Offering a choice and refusing it teaches the
+operator that the list is unreliable.
 
-## What is still open — a money decision, not a technical one
+If `maxHoldDays` is **less than the purpose needs**, that is an amber warning
+explaining the consequence, not a block. A20's wording: dropping from 30 days to
+6 means an order still in transfer at day five converts from a hold to an early
+collection — *which changes what escrow means to the buyer*.
 
-Everything above is provider-agnostic and tested. These are not mine to decide:
+The domain must never assume a hold lasts forever.
 
-1. **Which provider** — Moyasar or HyperPay. They differ in settlement timing,
-   fees, and which payment methods they cover.
-2. **Who holds the funds.** "Escrow" here is our own ledger entry. A real escrow
-   is either a provider feature or a partner bank account, and that determines
-   whether release is an API call or a bank transfer.
-3. **Refund policy on an abandoned 3DS challenge.** Currently the attempt simply
-   fails and the buyer retries within the window; if the window lapses, rule 5
-   relists the vehicle. That is derived from existing rules, not decided.
+### Rule 3 · Gateway vocabulary never crosses the adapter
 
-Until 1 and 2 are answered, `providerFor` returns `PENDING_PROVIDER` and no real
-money moves — which is the correct behaviour for an unconfigured payment system.
+No `authorize`, `capture`, or `void` in any domain file or screen. `MoyasarAdapter`
+translates internally:
+
+```
+hold → authorize · settle → capture · cancel → void · partialReturn → refund
+```
+
+Enforced by **gate 15** in `scripts/check-tokens.mjs`, which scans
+`src/lib/domain`, `src/app` and `src/components` and exempts only
+`src/lib/payments/adapters/`.
+
+## 4 · Switching a gateway — four binding rules
+
+1. **In-flight transactions stay on their gateway.** A hold is released from
+   where it was created — balances are never moved between gateways. This is why
+   `gatewayKey` is stored **on each transaction** and read from there, never from
+   the current configuration.
+2. A switch applies to new transactions only, from the moment it executes.
+3. A purpose with in-flight transactions **cannot be disabled** — new
+   transactions stop, existing ones continue to completion.
+4. A switch needs an `ApprovalRequest` with two approvers and is logged with
+   both gateway names.
+
+## 5 · Environments
+
+Every gateway holds two key sets (`test` · `live`), and every purpose has an
+effective environment. **Staging is restricted to `test` in code, not by
+discipline** — see `docs/api/admin-dashboard.md` § Environment separation.
+Switching a production purpose to test needs two approvers.
+
+## 6 · Monthly volume is two columns, both from our ledger
+
+| Column | Definition |
+|---|---|
+| Settled this month | `settle` confirmed within the month |
+| Held now | `hold` outstanding, neither settled nor cancelled |
+
+One number would blend them: in an escrow purpose most money is held and
+unsettled, so "2.41M" could mean *passed through us* or *reached sellers*.
+
+**There is deliberately no third "per the gateway" column.** Two adjacent numbers
+with no stated reason for the difference get misread. The difference is handled
+by **daily reconciliation** (task 36): a job reads each gateway's settlement,
+compares it to our ledger, and writes
+`ReconciliationRun(gatewayKey, date, ourTotal, gatewayTotal, diff, status)`.
+Match ⇒ a green line. Difference ⇒ an alert listing **the differing transactions
+only**, not the totals.
+
+> A difference is an event to be worked, not a number to be contemplated. That is
+> what "our ledger is a mirror" means — a mirror never compared to the original
+> is not a mirror.
+
+## 7 · Abandoned 3DS is not a refund
+
+No money moved: the attempt fails **before** the hold.
+
+Added by decision 32: **three consecutive failed attempts** show "try another
+card or contact your bank". Silent repetition reads as a fault in the platform
+rather than in the card.
+
+## 8 · What does not exist yet, stated plainly
+
+- **No adapter has been tested against a live gateway.** Moyasar test keys are
+  expected within a day. `MoyasarAdapter` is built from published documentation
+  and carries that statement in its file header.
+- Adapter tests run against a **fake gateway implementing the same interface**,
+  so every path is covered without a network call.
+- `TapAdapter` and the bank trust gateway are not built.
+
+## 9 · Tax is not decided here
+
+No tax is computed on vehicle value anywhere, and no document calls itself a
+vehicle invoice, until the tax classification arrives — see task 35 and A21. The
+VAT rate lives in `src/lib/domain/vat.ts` alone, enforced by **gate 16**.
