@@ -9,10 +9,9 @@ import Link from 'next/link';
  */
 export default function NotFound() {
   return (
-    <main
-      dir="rtl"
-      className="flex min-h-screen items-center justify-center bg-bg p-10 text-ink"
-    >
+    <html lang="ar" dir="rtl">
+      <body>
+        <main className="flex min-h-screen items-center justify-center bg-bg p-10 text-ink">
       <div className="max-w-md text-center">
         <p className="font-num mb-2 text-5xl font-bold opacity-20">٤٠٤</p>
         <h1 className="mb-2.5 text-2xl font-bold">لا توجد هذه الصفحة</h1>
@@ -26,6 +25,8 @@ export default function NotFound() {
           إلى الرئيسية
         </Link>
       </div>
-    </main>
+        </main>
+      </body>
+    </html>
   );
 }
