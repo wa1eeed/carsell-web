@@ -286,9 +286,22 @@ zero. Zero would claim a calculation was made and came to nothing.
 A registered **buyer** is typed `COMPANY`, so their invoice carries both VAT
 numbers and the input tax can be reclaimed.
 
-### Still open
+### The margin scheme follows the registration, not the account type
 
-The margin scheme for used cars (`TaxableBase.MARGIN`) is approved per
-`Dealer.marginSchemeApproved`. A **registered individual has no dealer row**, so
-the scheme cannot currently be granted to one. If it should be available to
-them, the approval field belongs on `User` beside `taxStatus`. See question 6.
+**Ruled 2026-08-03.** Entitlement tracks the VAT number, not whether the account
+is a dealer. The approval fields moved from `Dealer` to `User`, beside
+`taxStatus`; the migration copies existing dealer approvals onto their members,
+because dropping them would silently withdraw an approval that was granted and
+charge full-value tax on the next sale.
+
+`marginApprovedFor()` **requires both** registration and approval, and checks
+them in one place rather than at each call site. An approval flag on an
+unregistered account is meaningless, and applying it would tax the margin alone
+for a seller who charges no VAT at all — an under-collection wearing the cover of
+a stale setting.
+
+A dealer approval still counts for its registered members, so nothing granted
+before the move is lost.
+
+`Dealer.marginScheme*` is now read-only legacy and should be dropped once its
+last reader is gone.

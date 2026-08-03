@@ -161,3 +161,25 @@ export function buyerTypeFor(buyer: {
 export function vehicleIsTaxable(sellerType: SellerType): boolean {
   return sellerType === 'DEALER_VAT' || sellerType === 'COMPANY';
 }
+
+/**
+ * ═══ هامش الربح — **التسجيل شرطٌ فيه** ═══
+ *
+ * والاستحقاق يتبع الرقم الضريبيّ لا نوع الحساب: فردٌ مسجَّل قد يستحقّه،
+ * ومعرضٌ غير مسجَّل لا يستحقّه.
+ *
+ * **والشرطان يُفحصان معًا هنا** لا في المستدعي: راية اعتمادٍ على حسابٍ
+ * غير مسجَّل لا معنى لها، وتطبيقُها يحتسب الضريبة على الهامش وحده لمن
+ * لا يورّد بضريبة أصلًا — نقصٌ في التحصيل بغطاء إعدادٍ قديم.
+ *
+ * ويُقرأ المعرض احتياطًا لاعتماداتٍ سبقت النقل.
+ */
+export function marginApprovedFor(seller: {
+  taxStatus: TaxStatus | null;
+  vatNumber: string | null;
+  marginSchemeApproved?: boolean;
+  dealer?: { marginSchemeApproved: boolean } | null;
+}): boolean {
+  if (!isVatRegistered(seller)) return false;
+  return seller.marginSchemeApproved === true || seller.dealer?.marginSchemeApproved === true;
+}

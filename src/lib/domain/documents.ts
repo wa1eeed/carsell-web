@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import { issueInvoice, vatIncluded } from './tax';
-import { buyerTypeFor, sellerTypeFor } from './tax-profile';
+import { buyerTypeFor, marginApprovedFor, sellerTypeFor } from './tax-profile';
 
 /**
  * مستندات الصفقة الثلاثة — **ولا يُدمج اثنان**.
@@ -226,6 +226,7 @@ export async function issueSettlementDocuments(
           dealerId: true,
           taxStatus: true,
           vatNumber: true,
+          marginSchemeApproved: true,
           dealer: {
             select: {
               nameAr: true,
@@ -350,8 +351,7 @@ export async function issueSettlementDocuments(
         buyerType,
         supplyType: supply.supplyType,
         amount: supply.amount,
-        dealerMarginApproved:
-          order.seller.dealer?.marginSchemeApproved ?? false,
+        marginApproved: marginApprovedFor(order.seller),
         supplierName: supply.supplyType === 'VEHICLE' ? sellerName : 'CarSell',
         supplierVatNo:
           supply.supplyType === 'VEHICLE'

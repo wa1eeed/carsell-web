@@ -174,7 +174,7 @@ describe('═══ معيار ٣٥ ═══ الهامش لا يُطبَّق �
     const allowed = await issueInvoice({
       ...BASE,
       sellerType: 'DEALER_VAT', buyerType: 'INDIVIDUAL', supplyType: 'VEHICLE',
-      amount: '100000.00', marginAmount: '11500.00', dealerMarginApproved: true,
+      amount: '100000.00', marginAmount: '11500.00', marginApproved: true,
     });
     expect(allowed.ok).toBe(true);
     if (allowed.ok) {

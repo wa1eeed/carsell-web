@@ -125,3 +125,58 @@ describe('التأجيل — لم يُسأل ليست «فرد»', () => {
     }
   });
 });
+
+describe('هامش الربح يتبع التسجيل لا صفة المعرض', () => {
+  const VAT = '300000000000003';
+
+  it('فردٌ مسجَّل ومعتمَد يستحقّه — ولا صفّ معرضٍ له', async () => {
+    const { marginApprovedFor } = await import('@/lib/domain/tax-profile');
+    expect(
+      marginApprovedFor({
+        taxStatus: 'VAT_REGISTERED',
+        vatNumber: VAT,
+        marginSchemeApproved: true,
+        dealer: null,
+      }),
+    ).toBe(true);
+  });
+
+  /**
+   * **التسجيل شرطٌ في الاعتماد.** رايةٌ على حسابٍ غير مسجَّل تحتسب
+   * الضريبة على الهامش وحده لمن لا يورّد بضريبة أصلًا — نقصُ تحصيلٍ
+   * بغطاء إعدادٍ قديم. والشرطان يُفحصان معًا فلا يمرّ أحدهما وحده.
+   */
+  it('اعتمادٌ بلا تسجيل لا يسري', async () => {
+    const { marginApprovedFor } = await import('@/lib/domain/tax-profile');
+    expect(
+      marginApprovedFor({
+        taxStatus: 'INDIVIDUAL',
+        vatNumber: null,
+        marginSchemeApproved: true,
+        dealer: { marginSchemeApproved: true },
+      }),
+    ).toBe(false);
+    expect(
+      marginApprovedFor({ taxStatus: null, vatNumber: null, marginSchemeApproved: true }),
+    ).toBe(false);
+  });
+
+  it('ومسجَّلٌ بلا اعتماد لا يستحقّه — ولا يُفترض له', async () => {
+    const { marginApprovedFor } = await import('@/lib/domain/tax-profile');
+    expect(
+      marginApprovedFor({ taxStatus: 'VAT_REGISTERED', vatNumber: VAT, marginSchemeApproved: false }),
+    ).toBe(false);
+  });
+
+  it('اعتماد المعرض يسري على عضوه المسجَّل — توافقًا مع ما سبق النقل', async () => {
+    const { marginApprovedFor } = await import('@/lib/domain/tax-profile');
+    expect(
+      marginApprovedFor({
+        taxStatus: 'VAT_REGISTERED',
+        vatNumber: VAT,
+        marginSchemeApproved: false,
+        dealer: { marginSchemeApproved: true },
+      }),
+    ).toBe(true);
+  });
+});

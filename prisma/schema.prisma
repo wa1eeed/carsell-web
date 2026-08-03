@@ -50,6 +50,19 @@ model User {
   vatNumber      String?
   taxStatusSetAt DateTime?
 
+  /// ═══ هامش الربح — على **التسجيل** لا على صفة المعرض ═══
+  ///
+  /// يمنحه الأدمن بمستند من الهيئة، **ولا يُطبَّق تلقائيًّا أبدًا**. وكان
+  /// على `Dealer` فتعذّر منحُه لفردٍ مسجَّل لا صفّ معرضٍ له — والاستحقاق
+  /// يتبع الرقم الضريبيّ لا نوع الحساب.
+  ///
+  /// **ولا يسري بلا تسجيل**: اعتمادٌ على غير مسجَّل لا معنى له، و
+  /// `marginApprovedFor` تشترط الاثنين معًا فلا يمرّ أحدهما وحده.
+  marginSchemeApproved Boolean   @default(false)
+  marginSchemeRef      String?
+  marginSchemeBy       String?
+  marginSchemeAt       DateTime?
+
   iban         String? // مشفّر
   /// موافقة التسويق — **تُطلب ولا تُفترض** (ضوابط A9).
   marketingConsent   Boolean   @default(false)
@@ -151,8 +164,9 @@ enum AdminRole {
  * ولا فواتير ولا استيراد جماعي هنا.
  */
 model Dealer {
-  /// ═══ هامش الربح صفةٌ على التاجر لا خيارٌ في الصفقة ═══
-  /// يمنحها الأدمن بمستند من الهيئة، **ولا تُطبَّق تلقائيًّا أبدًا**.
+  /// ═══ مهجور — انتقل الاعتماد إلى `User` ═══
+  /// الاعتماد على **التسجيل الضريبيّ** لا على صفة المعرض: فردٌ مسجَّل قد
+  /// يستحقّه ولا صفّ معرضٍ له. تُقرأ للتوافق ولا يُكتب فيها.
   marginSchemeApproved Boolean   @default(false)
   marginSchemeRef      String?
   marginSchemeBy       String?

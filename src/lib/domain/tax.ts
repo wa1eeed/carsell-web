@@ -159,8 +159,12 @@ export type IssueInput = {
   supplyType: SupplyType;
   amount: string;
   marginAmount?: string;
-  /** اعتماد الهيئة على التاجر — **لا يُفترض أبدًا**. */
-  dealerMarginApproved?: boolean;
+  /**
+   * اعتماد الهيئة — **لا يُفترض أبدًا**، ويُحسب في `marginApprovedFor`
+   * التي تشترط التسجيل معه. وكان اسمه `dealerMarginApproved` والاعتماد
+   * يتبع التسجيل لا صفة المعرض.
+   */
+  marginApproved?: boolean;
   supplierName: string;
   supplierVatNo?: string | null;
   supplierAddress?: string | null;
@@ -197,7 +201,7 @@ export async function issueInvoice(
    * **هامش الربح لا يُطبَّق بلا اعتماد.** القاعدة قد تقول `MARGIN`،
    * لكنها تصف تاجرًا معتمدًا — وتطبيقها على غيره احتسابٌ ناقص للضريبة.
    */
-  if (rule.taxableBase === 'MARGIN' && input.dealerMarginApproved !== true) {
+  if (rule.taxableBase === 'MARGIN' && input.marginApproved !== true) {
     return { ok: false, reason: 'MARGIN_NOT_APPROVED' };
   }
 
