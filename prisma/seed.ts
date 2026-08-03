@@ -185,6 +185,15 @@ type ServiceRow = {
   providerType: ProviderType | null;
 };
 
+type GatewayRow = {
+  key: string;
+  nameAr: string;
+  nameEn: string;
+  status: string;
+  sort: number;
+  capabilities: Record<string, unknown>;
+};
+
 type PushChannelRow = {
   key: string;
   nameAr: string;
@@ -243,6 +252,7 @@ type TemplateRow = {
 async function reset(): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "PaymentEvent","Payment","PaymentRouteChange","PaymentRoute","PaymentGateway",
       "DeviceToken","NotificationPreference","PushChannel","CampaignSend","Campaign","Segment",
       "ApprovalRequest","AuditLog","Report","PriceStat","SeoTemplate","Integration",
       "AdCampaign","AdSlot","NotificationTemplate","FaqPlacement","FaqItem",
@@ -1061,6 +1071,28 @@ async function main(): Promise<void> {
   await prisma.notificationTemplate.createMany({
     data: load<TemplateRow[]>('notification-templates.json'),
   });
+  // ————— بوابات الدفع وتوجيه الأغراض (A20) —————
+  await prisma.paymentGateway.createMany({
+    data: load<GatewayRow[]>('payment-gateways.json').map((g) => ({
+      ...g,
+      status: g.status as 'ACTIVE' | 'INACTIVE' | 'DEGRADED',
+    })),
+  });
+  const routingAdmin = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
+  await prisma.paymentRoute.createMany({
+    data: [
+      // الضمان يحتاج ٣٠ يومًا — والمصرفية وحدها تبلغها
+      { purpose: 'VEHICLE_ESCROW', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      { purpose: 'AUCTION_DEPOSIT', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      { purpose: 'TRANSFER_FEE', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      // تحصيل فوري بلا حجز
+      { purpose: 'WALLET_TOPUP', gatewayKey: 'moyasar', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      { purpose: 'SERVICE_PURCHASE', gatewayKey: 'tap', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
+      // معطّل — كل الباقات مجانية
+      { purpose: 'SUBSCRIPTION', gatewayKey: 'moyasar', environment: 'TEST', enabled: false, updatedBy: routingAdmin, updatedAt: NOW },
+    ],
+  });
+
   await prisma.pushChannel.createMany({
     data: load<PushChannelRow[]>('push-channels.json'),
   });
@@ -1323,6 +1355,7 @@ async function main(): Promise<void> {
     'سؤال شائع': await prisma.faqItem.count(),
     'قالب إشعار': await prisma.notificationTemplate.count(),
     'قناة دفع': await prisma.pushChannel.count(),
+    'بوابة دفع': await prisma.paymentGateway.count(),
     مفضّلة: await prisma.favorite.count(),
     'مساحة إعلانية': await prisma.adSlot.count(),
     'جهة تمويل': await prisma.financeProvider.count(),

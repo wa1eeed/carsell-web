@@ -102,15 +102,26 @@ export const PURPOSE_REQUIREMENTS: Record<
   PaymentPurpose,
   { needs: (keyof GatewayCapabilities)[]; minHoldDays: number; labelAr: string }
 > = {
+  /**
+   * ثلاثون يومًا — **محسوبة من مسار الطلب لا مقدَّرة**:
+   * دفعٌ ٢٤ ساعة ← موعد نقل الملكية في المرور (٣–١٠ أيام حسب التوفّر)
+   * ← **ضمانة الاسترجاع ٧ أيام بعد النقل** ولا إفراج قبل انقضائها.
+   * فالمجموع الاعتيادي ~٢٠ يومًا، والأسوأ يتجاوز ٣٠ مع تأجيل أو نزاع.
+   *
+   * والنتيجة مقصودة: بوابة بطاقة (٧ أو ٦ أيام) لا تصلح للضمان، وهذا
+   * ليس عيبًا في الرقم — من يوجّه الضمان إليها يبني وعدًا لا يستطيع
+   * الوفاء به، والتحذير الأوكر يجب أن ينطق هناك بالضبط.
+   */
   VEHICLE_ESCROW: {
-    // التسوية الجزئية لازمة: النزاع قد يُحسم بتسوية جزئية (قرار ٢٧)
+    // التسوية الجزئية لازمة: النزاع قد يُحسم بتسوية جزئية (قرار ١)
     needs: ['supportsHold', 'supportsPartialSettle'],
-    minHoldDays: 14,
+    minHoldDays: 30,
     labelAr: 'بيع المركبات — الضمان',
   },
+  /** مزادٌ قد يمتدّ ٧ أيام ← ٢٤ ساعة مهلة البائع ← ٢٤ ساعة دفع الفائز. */
   AUCTION_DEPOSIT: {
     needs: ['supportsHold'],
-    minHoldDays: 7,
+    minHoldDays: 10,
     labelAr: 'العربون في المزادات',
   },
   WALLET_TOPUP: {
@@ -124,9 +135,10 @@ export const PURPOSE_REQUIREMENTS: Record<
     minHoldDays: 0,
     labelAr: 'شراء الخدمات',
   },
+  /** تُحصَّل مع مبلغ الطلب فتتبع مدّته — لا مدّة لها مستقلّة. */
   TRANSFER_FEE: {
     needs: ['supportsHold'],
-    minHoldDays: 14,
+    minHoldDays: 30,
     labelAr: 'رسوم نقل الملكية',
   },
   SUBSCRIPTION: {

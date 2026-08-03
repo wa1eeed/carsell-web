@@ -104,3 +104,4 @@ ALTER TABLE "PaymentEvent" ADD CONSTRAINT "PaymentEvent_paymentId_fkey"
 
 -- المفردة واحدة في المخطّط والنطاق: «بوابة» لا «مزوّد»
 ALTER TABLE "Escrow" RENAME COLUMN "providerRef" TO "gatewayRef";
+ALTER TYPE "ApprovalKind" ADD VALUE IF NOT EXISTS 'PAYMENT_ROUTE';

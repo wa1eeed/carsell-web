@@ -1354,6 +1354,8 @@ enum ApprovalKind {
   KEY_ROTATION
   /// قرار ٣٣ — تبديل بيئة تكامل بين الاختبار والإنتاج
   INTEGRATION_ENV
+  /// قرار ٣٤ — تبديل بوابة غرض دفع
+  PAYMENT_ROUTE
   COMMISSION_CHANGE
   PLAN_CHANGE
   USER_BAN
