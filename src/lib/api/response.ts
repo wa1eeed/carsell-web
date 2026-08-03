@@ -28,6 +28,27 @@ export function fail(error: ApiError, status: number, init?: ResponseInit): Next
 
 /** أخطاء معرَّفة مركزيًا — لا نصّ خطأ مكتوب داخل مسار. */
 export const ERRORS = {
+  API_KEY_MISSING: {
+    code: 'API_KEY_MISSING',
+    messageAr: 'مفتاح الوصول مفقود — أرسله في ترويسة Authorization.',
+    messageEn: 'Access key missing — send it in the Authorization header.',
+  },
+  API_KEY_INVALID: {
+    code: 'API_KEY_INVALID',
+    messageAr: 'مفتاح الوصول غير صحيح.',
+    messageEn: 'Access key is not valid.',
+  },
+  /** مسحوبٌ **غير** غير موجود: الأوّل قرارٌ اتُّخذ والثاني خطأ إعداد. */
+  API_KEY_REVOKED: {
+    code: 'API_KEY_REVOKED',
+    messageAr: 'مفتاح الوصول مسحوب — أنشئ مفتاحًا جديدًا.',
+    messageEn: 'Access key has been revoked — issue a new one.',
+  },
+  RATE_LIMITED: {
+    code: 'RATE_LIMITED',
+    messageAr: 'تجاوزت حدّ الطلبات — أعد المحاولة بعد قليل.',
+    messageEn: 'Rate limit exceeded — retry shortly.',
+  },
   REPORT_DUPLICATE: {
     code: 'REPORT_DUPLICATE',
     messageAr: 'بلاغك على هذا العنصر قيد النظر بالفعل.',

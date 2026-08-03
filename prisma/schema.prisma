@@ -1093,6 +1093,30 @@ model ReconciliationRun {
   @@index([status, date])
 }
 
+/// ═══ مفتاح الـAPI العام ═══
+///
+/// **يُخزَّن مجزّأً لا خامًا**، كجلسات الأدمن: قاعدةٌ مسروقة تُعطي
+/// السارق مفاتيح عملاءٍ يعملون بها فورًا. والبادئة `prefix` تُعرض
+/// للتعرّف وحده — بها يعرف العميل أيّ مفتاح يدوّر.
+model ApiKey {
+  id        String    @id @default(cuid())
+  name      String
+  /// أوّل ثمانية أحرف — للعرض والتعرّف، ولا تكفي للاستعمال
+  prefix    String    @unique
+  keyHash   String    @unique
+  /// نطاقات مسموحة — والفارغ يعني القراءة العامة وحدها
+  scopes    String[]
+  /// طلبات في الدقيقة — لكل مفتاح لا لكل IP
+  rateLimit Int       @default(60)
+  active    Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdBy String
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([active])
+}
+
 enum FeeBearer {
   /// خصمٌ من مستحقّ البائع — لا يظهر في إجمالي المشتري
   SELLER

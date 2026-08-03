@@ -25,6 +25,73 @@
     }
   },
   "paths": {
+    "/api/public/v1/dealers": {
+      "get": {
+        "summary": "GET /api/public/v1/dealers",
+        "tags": [
+          "v1"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/public/v1/listings": {
+      "get": {
+        "summary": "GET /api/public/v1/listings",
+        "tags": [
+          "v1"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/public/v1/listings/{ref}": {
+      "get": {
+        "summary": "GET /api/public/v1/listings/{ref}",
+        "tags": [
+          "v1"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/account/tax-status": {
       "put": {
         "summary": "PUT /api/v1/account/tax-status",
