@@ -34,6 +34,14 @@ export function AuthForm({ locale }: { locale: string }) {
   const [code, setCode] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [challengeId, setChallengeId] = useState<string | null>(null);
+  /**
+   * رمز التطوير — **يخرجه الخادم في التطوير وحده ولم يكن يُعرض**.
+   *
+   * فمن يجرّب المنصّة محلّيًّا لا رسالة تصله ولا رمز يراه: يقف عند أوّل
+   * شاشة ولا يبلغ ما بعدها إلا بفتح أدوات المطوّر. وأوّل جدارٍ في رحلة
+   * التجربة هو الدخول نفسه.
+   */
+  const [devCode, setDevCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -56,7 +64,7 @@ export function AuthForm({ locale }: { locale: string }) {
         body: JSON.stringify({ phone: `0${phone}` }),
       });
       const body = (await response.json()) as {
-        data?: { challengeId: string };
+        data?: { challengeId: string; devCode?: string };
         error?: { messageAr: string; messageEn: string };
       };
 
@@ -70,6 +78,8 @@ export function AuthForm({ locale }: { locale: string }) {
       }
 
       setChallengeId(body.data.challengeId);
+      // الخادم لا يُخرجه خارج التطوير — فالشرط هناك لا هنا
+      setDevCode(body.data.devCode ?? null);
       setCode('');
       setStep('code');
       setCooldown(RESEND_SECONDS);
@@ -186,6 +196,27 @@ export function AuthForm({ locale }: { locale: string }) {
           {t('change')}
         </button>
       </p>
+
+      {devCode === null ? null : (
+        /**
+         * لا رسالة تصل في التطوير — فالرمز يُعرض ويُملأ بضغطة.
+         * والخادم لا يُخرجه إلا في التطوير، فلا حارس هنا يُنسى تشغيله.
+         */
+        <button
+          type="button"
+          onClick={() => {
+            setCode(devCode);
+            void verify(devCode);
+          }}
+          className="mb-4 flex w-full items-center justify-between rounded-md border border-dashed border-line px-3.5 py-2.5 text-2xs opacity-70 hover:opacity-100"
+        >
+          <span>وضع التطوير — لا تصل رسالة</span>
+          {/* الرمز يُقارن خانةً بخانة — لاتينيّ معزول */}
+          <span dir="ltr" className="font-num font-bold tracking-[0.3em]">
+            {devCode}
+          </span>
+        </button>
+      )}
 
       <OtpInput
         value={code}

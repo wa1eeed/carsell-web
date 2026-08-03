@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-79 models · 46 enums
+80 models · 46 enums
 
 ## Relationships
 
@@ -247,6 +247,7 @@ erDiagram
 | `locale` | `String` |  |
 | `idVerified` | `Boolean` |  |
 | `idVerifiedAt` | `DateTime?` |  |
+| `nationalIdEncrypted` | `String?` |  |
 | `vatNumber` | `String?` |  |
 | `taxStatusSetAt` | `DateTime?` |  |
 | `marginSchemeApproved` | `Boolean` |  |
@@ -1474,6 +1475,20 @@ Relations: `order` → `Order`
 | `issuedAt` | `DateTime` |  |
 
 Relations: `order` → `Order`
+
+### `SandboxTransaction`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `ref` | `String` | unique |
+| `kind` | `String` |  |
+| `amount` | `Decimal` |  |
+| `currency` | `String` |  |
+| `state` | `String` |  |
+| `parentRef` | `String?` |  |
+| `method` | `String` |  |
+| `createdAt` | `DateTime` |  |
 
 ## Enums
 

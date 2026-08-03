@@ -27,3 +27,4 @@ src/generated/
 # إعدادات Claude Code المحلية (تصاريح خاصة بالجهاز)
 .claude/settings.local.json
 .next-check
+.dev-uploads/

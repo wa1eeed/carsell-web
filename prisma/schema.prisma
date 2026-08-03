@@ -36,6 +36,8 @@ model User {
   status       UserStatus @default(ACTIVE)
   idVerified   Boolean    @default(false)
   idVerifiedAt DateTime?
+  /// رقم الهوية **مشفّرًا** — يُقارن عند نقل الملكية ولا يُعرض أبدًا
+  nationalIdEncrypted String?
 
   /// ═══ الوضع الضريبيّ — **مؤجَّلٌ لا منسيّ** ═══
   ///
@@ -2101,4 +2103,28 @@ model VehicleSaleAgreement {
   issuedAt     DateTime
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+}
+
+/// دفتر البوابة التجريبية — **الأصل الذي تُقارَن به مرآتنا**.
+///
+/// وهو منفصل عن `Payment` عمدًا: دفترنا مرآة، ومرآةٌ تُقارَن بنفسها ليست
+/// مرآة. فلو قرأت المطابقة من `Payment` لطابقت دائمًا وما كشفت شيئًا.
+///
+/// **ولا يُنشأ صفٌّ فيه خارج التطوير** — المُهايئ يرفض البناء في الإنتاج.
+model SandboxTransaction {
+  id         String   @id @default(cuid())
+  /// مرجع البوابة — هو `holdRef` ثم `settleRef` عندنا
+  ref        String   @unique
+  kind       String // HOLD | SETTLE | RETURN
+  amount     Decimal  @db.Decimal(12, 2)
+  currency   String   @default("SAR")
+  /// HELD | SETTLED | CANCELLED | RETURNED
+  state      String
+  /// مرجع الحجز الأصل — للتسوية والردّ
+  parentRef  String?
+  method     String   @default("mada")
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([parentRef])
 }

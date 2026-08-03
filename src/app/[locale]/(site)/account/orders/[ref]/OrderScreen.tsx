@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { PayPanel } from '@/components/site/PayPanel';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -19,8 +20,10 @@ import type { PublicOrder } from '@/lib/domain/orders';
 export function OrderScreen({
   order,
   formatted,
+  locale,
 }: {
   order: PublicOrder;
+  locale: string;
   formatted: {
     createdAt: string;
     stageEnteredAt: string;
@@ -33,6 +36,18 @@ export function OrderScreen({
 
   const days = Math.floor(order.dwellSeconds / 86_400);
   const frozen = order.status === 'DISPUTED';
+
+  /**
+   * **الدفع للمشتري وحده وفي مرحلته وحدها**، وما دام لا حجز قائمًا.
+   * و`counterparty.isSeller` تعني أن الرائي هو المشتري — الطرف الآخر بائع.
+   *
+   * وطلبٌ متنازَعٌ عليه لا يُدفع: الحال مجمَّدة حتى يُحسم النزاع.
+   */
+  const canPay =
+    order.counterparty.isSeller &&
+    order.stage === 'PAYMENT' &&
+    order.escrow === null &&
+    !frozen;
 
   const deductions = (
     [
@@ -109,6 +124,12 @@ export function OrderScreen({
 
         <aside className="w-full shrink-0 lg:w-80">
           {/* ═══ بطاقة الضمان — أين المال الآن ═══ */}
+          {!canPay ? null : (
+            <div className="mb-3.5">
+              <PayPanel orderRef={order.ref} total={order.amounts.total} locale={locale} />
+            </div>
+          )}
+
           {order.escrow === null ? null : (
             <section className="mb-3.5 rounded-xl border-2 border-ink p-5">
               <h2 className="mb-1.5 text-sm font-bold">{t('escrow')}</h2>

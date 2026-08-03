@@ -3,6 +3,7 @@ import { decryptSecret } from '@/lib/crypto/secrets';
 import type { IntegrationEnv, PaymentPurpose } from '@/generated/prisma/enums';
 import { effectiveEnvironment } from '@/lib/domain/integration-env';
 import { createMoyasarAdapter } from './adapters/moyasar';
+import { SANDBOX_KEY, createSandboxAdapter } from './adapters/sandbox';
 import { pendingGateway, readCapabilities, type PaymentGatewayPort } from './gateway';
 
 /**
@@ -47,6 +48,20 @@ export async function resolveGateway(purpose: PaymentPurpose): Promise<Resolved 
   const secrets = readSecrets(credential?.secretsEncrypted ?? null);
   const capabilities = readCapabilities(route.gateway.capabilities);
 
+  /**
+   * **التجريبية بلا أسرار** — لا مفتاح لها تُفكّه، فلا تمرّ بشرط
+   * الأسرار أدناه وإلّا لصارت `pendingGateway` وهي مضبوطة.
+   * وهي ترمي في الإنتاج من داخلها، فلا يحرسها هذا الموضع وحده.
+   */
+  if (route.gatewayKey === SANDBOX_KEY) {
+    return {
+      gateway: createSandboxAdapter(capabilities),
+      gatewayKey: route.gatewayKey,
+      environment,
+      enabled: route.enabled,
+    };
+  }
+
   if (secrets.secretKey === undefined || secrets.webhookSecret === undefined) {
     return {
       gateway: pendingGateway(route.gatewayKey, environment),
@@ -81,6 +96,12 @@ export async function resolveForPayment(
     where: { integrationKey_env: { integrationKey: gatewayKey, env: environment } },
   });
   const secrets = readSecrets(credential?.secretsEncrypted ?? null);
+
+  // معاملةٌ أُنشئت على التجريبية تُفرَج من التجريبية — من حيث أُنشئت
+  if (gatewayKey === SANDBOX_KEY) {
+    const gateway = await db.paymentGateway.findUnique({ where: { key: SANDBOX_KEY } });
+    return createSandboxAdapter(readCapabilities(gateway?.capabilities ?? null));
+  }
 
   if (gatewayKey === 'moyasar' && secrets.secretKey !== undefined && secrets.webhookSecret !== undefined) {
     return createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret);

@@ -25,6 +25,91 @@
     }
   },
   "paths": {
+    "/api/dev/media/{key}": {
+      "get": {
+        "summary": "GET /api/dev/media/{key}",
+        "tags": [
+          "media"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/dev/sandbox/3ds/{ref}": {
+      "get": {
+        "summary": "GET /api/dev/sandbox/3ds/{ref}",
+        "tags": [
+          "sandbox"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/dev/sandbox/3ds/{ref}",
+        "tags": [
+          "sandbox"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/public/v1/dealers": {
       "get": {
         "summary": "GET /api/public/v1/dealers",
@@ -2845,6 +2930,30 @@
     "/api/v1/me/entitlements": {
       "get": {
         "summary": "GET /api/v1/me/entitlements",
+        "tags": [
+          "me"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/me/profile": {
+      "patch": {
+        "summary": "PATCH /api/v1/me/profile",
         "tags": [
           "me"
         ],

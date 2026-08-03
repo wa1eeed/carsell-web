@@ -1,20 +1,66 @@
 [
   {
-    "key": "bank_escrow", "nameAr": "بوابة مصرفية (ضمان)", "nameEn": "Bank escrow gateway",
-    "status": "ACTIVE", "sort": 1,
-    "capabilities": { "supportsHold": true, "supportsPartialSettle": true, "supportsRefund": true,
-      "maxHoldDays": 30, "settlementDelayHours": 36, "feePct": 0.8, "feeFixed": 2 }
+    "key": "bank_escrow",
+    "nameAr": "بوابة مصرفية (ضمان)",
+    "nameEn": "Bank escrow gateway",
+    "status": "ACTIVE",
+    "sort": 1,
+    "capabilities": {
+      "supportsHold": true,
+      "supportsPartialSettle": true,
+      "supportsRefund": true,
+      "maxHoldDays": 30,
+      "settlementDelayHours": 36,
+      "feePct": 0.8,
+      "feeFixed": 2
+    }
   },
   {
-    "key": "moyasar", "nameAr": "ميسر", "nameEn": "Moyasar",
-    "status": "ACTIVE", "sort": 2,
-    "capabilities": { "supportsHold": true, "supportsPartialSettle": true, "supportsRefund": true,
-      "maxHoldDays": 7, "settlementDelayHours": 0, "feePct": 2.75, "feeFixed": 1 }
+    "key": "moyasar",
+    "nameAr": "ميسر",
+    "nameEn": "Moyasar",
+    "status": "ACTIVE",
+    "sort": 2,
+    "capabilities": {
+      "supportsHold": true,
+      "supportsPartialSettle": true,
+      "supportsRefund": true,
+      "maxHoldDays": 7,
+      "settlementDelayHours": 0,
+      "feePct": 2.75,
+      "feeFixed": 1
+    }
   },
   {
-    "key": "tap", "nameAr": "تاب", "nameEn": "Tap",
-    "status": "ACTIVE", "sort": 3,
-    "capabilities": { "supportsHold": true, "supportsPartialSettle": true, "supportsRefund": true,
-      "maxHoldDays": 6, "settlementDelayHours": 0, "feePct": 2.65, "feeFixed": 1 }
+    "key": "tap",
+    "nameAr": "تاب",
+    "nameEn": "Tap",
+    "status": "ACTIVE",
+    "sort": 3,
+    "capabilities": {
+      "supportsHold": true,
+      "supportsPartialSettle": true,
+      "supportsRefund": true,
+      "maxHoldDays": 6,
+      "settlementDelayHours": 0,
+      "feePct": 2.65,
+      "feeFixed": 1
+    }
+  },
+  {
+    "key": "sandbox",
+    "nameAr": "بوابة تجريبية (تطوير)",
+    "nameEn": "Sandbox gateway (development)",
+    "status": "ACTIVE",
+    "sort": 0,
+    "capabilities": {
+      "supportsHold": true,
+      "supportsPartialSettle": true,
+      "supportsRefund": true,
+      "maxHoldDays": 30,
+      "settlementDelayHours": 0,
+      "feePct": 0,
+      "feeFixed": 0
+    }
   }
 ]

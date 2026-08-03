@@ -24,7 +24,10 @@
     "db:seed": "tsx prisma/seed.ts",
     "test": "vitest run",
     "docs:generate": "node scripts/generate-api-docs.mjs",
-    "docs:check": "node scripts/generate-api-docs.mjs --check"
+    "docs:check": "node scripts/generate-api-docs.mjs --check",
+    "trial:on": "tsx scripts/trial-mode.ts on",
+    "trial:off": "tsx scripts/trial-mode.ts off",
+    "trial:reset": "tsx scripts/trial-reset.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",
