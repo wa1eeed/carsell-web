@@ -737,7 +737,10 @@
       "payment": {
         "timeout": "Payment window missed"
       },
-      "other": "Order update"
+      "other": "Order update",
+      "order": {
+        "created": "Order created"
+      }
     },
     "escrowState": {
       "PENDING": "Funds not yet held.",
@@ -878,5 +881,19 @@
     "from": "from",
     "to": "to",
     "byModel": "By model"
+  },
+  "buy": {
+    "working": "Working…",
+    "networkFailed": "Connection failed — try again.",
+    "buyFailed": "Could not create the order.",
+    "offerFailed": "Could not send the offer.",
+    "offerSent": "Your offer was sent — awaiting the seller.",
+    "offerBelowFloor": "Your offer arrived, but the seller set a floor above it. Try a higher amount.",
+    "ownListing": "This is your listing — manage it from your account.",
+    "askingPrice": "Asking price",
+    "yourOffer": "Your offer in SAR",
+    "offerNote": "The seller may accept, decline, or counter. Acceptance opens a payment window.",
+    "sendOffer": "Send offer",
+    "viewingSoon": "Viewing requests are coming soon — contact the seller from the order page after purchase."
   }
 }

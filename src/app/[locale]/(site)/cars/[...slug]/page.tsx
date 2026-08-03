@@ -15,6 +15,8 @@ import {
   toPublicReport,
 } from '@/lib/domain/inspection';
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
+import { currentUserFromCookies } from '@/lib/domain/account';
+import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
 import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
@@ -189,6 +191,13 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
     answer: isArabic ? entry.answerAr : entry.answerEn,
   }));
 
+  /**
+   * الجلسة تُقرأ هنا لا في المكوّن: زرّ الشراء يحتاج أن يعرف **قبل**
+   * الضغط أهو صاحب الإعلان، وأمسجَّلٌ دخوله — فيوجّه إلى الدخول بدل
+   * أن يُظهر خطأً بعد نداءٍ فاشل.
+   */
+  const viewer = await currentUserFromCookies();
+
   return (
     <>
       <SiteHeader active="cars" />
@@ -211,6 +220,11 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
             heading={{
               home: t('home'),
               cars: t('cars'),
+            }}
+            viewer={{
+              signedIn: viewer !== null,
+              isOwn: viewer !== null && viewer.id === resolved.row.sellerId,
+              taxProfile: viewer === null ? null : taxProfileOf(viewer),
             }}
           />
         </div>

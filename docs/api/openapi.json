@@ -2798,6 +2798,50 @@
         }
       }
     },
+    "/api/v1/orders": {
+      "post": {
+        "summary": "POST /api/v1/orders",
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "listingRef": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "listingRef"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/payments": {
       "post": {
         "summary": "POST /api/v1/payments",
