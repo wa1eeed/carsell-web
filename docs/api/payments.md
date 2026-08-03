@@ -264,6 +264,26 @@ A failed attempt is deliberately **not** memoised: `FAILED` means we know the
 hold did not happen, so retrying is safe. A dropped network returns `PENDING`
 instead, and that is never retried blindly.
 
+### The webhook's one leak, and why it is rate-limited rather than fixed
+
+The gateway is derived from the transaction's `holdRef`, so an unknown reference
+returns **404 before** the signature is checked — we cannot verify a signature
+without knowing which gateway's secret to use. That distinguishes "not found"
+from "found, bad signature".
+
+Fixing it properly would mean **one platform-wide webhook secret** instead of one
+per gateway per environment — which destroys the environment separation of
+decision 33. That is a real risk traded for a theoretical leak against random
+identifiers the provider generates.
+
+So the leak stays, and guessing is made impractical instead: **60 requests per
+minute per IP**, checked *before* any body read or query, so a guesser gets no
+free lookups. Verified live — the 61st request returns 429.
+
+The limiter is in-memory and therefore **per instance, and lost on restart**. It
+is stated as a nuisance-blocker, not a security boundary; a real limit needs
+Redis, which already exists for the live channel.
+
 ## 9 · Tax is not decided here
 
 No tax is computed on vehicle value anywhere, and no document calls itself a

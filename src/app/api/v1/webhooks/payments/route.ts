@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
+import { clientIp, rateLimit } from '@/lib/api/rate-limit';
 import { applyState } from '@/lib/domain/payments';
 import { resolveForPayment } from '@/lib/payments/resolve';
 import type { PaymentStatus } from '@/generated/prisma/enums';
@@ -27,7 +28,30 @@ const MAPPING: Record<string, PaymentStatus> = {
  * ويعود ٢٠٠ لِما تحقّق توقيعه ولو رُفض منطقيًّا: البوابة تعيد المحاولة
  * على أيّ رمز غير ٢٠٠، وإعادةُ ما لن يُقبل أبدًا طابورٌ لا ينتهي.
  */
+/** ستّون في الدقيقة لكل عنوان — تخمينٌ يحتاج آلافًا يصير غير عمليّ. */
+const WEBHOOK_LIMIT = 60;
+const WEBHOOK_WINDOW_SECONDS = 60;
+
 export async function POST(request: NextRequest) {
+  /**
+   * الحدّ **قبل أي عمل**: مسارٌ يقرأ الجسم ويستعلم عن المعاملة قبل
+   * الحدّ يمنح المُخمِّن استعلامًا مجّانيًّا لكل محاولة.
+   *
+   * وهو يمنع أيضًا التمييز بين ٤٠٤ و٤٠١ من كثرة المحاولات — وذاك
+   * التسريب النظريّ الوحيد في المسار (راجع payments.md § 8b).
+   */
+  const verdict = rateLimit(
+    `webhook:${clientIp(request.headers)}`,
+    WEBHOOK_LIMIT,
+    WEBHOOK_WINDOW_SECONDS,
+  );
+  if (!verdict.allowed) {
+    return new Response('too many requests', {
+      status: 429,
+      headers: { 'retry-after': String(verdict.retryAfterSeconds) },
+    });
+  }
+
   const raw = await request.text();
   const signature = request.headers.get('x-signature') ?? '';
 
