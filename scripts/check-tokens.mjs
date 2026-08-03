@@ -668,7 +668,13 @@ const TAX_DEFINITION = /\b(function|const)\s+(vatIncluded|netOfVat|computeTax)\b
 const VEHICLE_TAX = /\b(vehicleVat|vatOnVehicle|carVat|vehicleTax|taxOnVehicle)\b/i;
 
 /** مستندٌ يسمّي نفسه فاتورة مركبة — وهو ليس فاتورة حتى يُصنَّف. */
-const VEHICLE_INVOICE = /\b(vehicleInvoice|carInvoice)\b|فاتورة\s+(ال)?مركبة/;
+/**
+ * والنفي ليس تسمية: «بلا فاتورة مركبة» تصف **الامتناع** عن إصدارها —
+ * وهو السلوك الصحيح نفسه الذي تحرسه هذه القاعدة. فحرفُ النفي قبلها
+ * يُخرجها.
+ */
+const VEHICLE_INVOICE =
+  /\b(vehicleInvoice|carInvoice)\b|(?<!(?:بلا|لا|دون|بغير|عدم)\s)فاتورة\s+(ال)?مركبة/;
 
 
 /**
@@ -685,9 +691,13 @@ const VEHICLE_INVOICE = /\b(vehicleInvoice|carInvoice)\b|فاتورة\s+(ال)?�
  * والعلاج في النصّ: تُصاغ الجملة فلا يحكم العددُ المعدودَ — «الطلبات
  * القائمة (١٠)» بدل «١٠ طلبات» — والرقم يمرّ على `toArabicDigits`.
  *
+ * **والقوس هو العلامة**: عددٌ يفتح قوسًا لا يحكم ما بعده، فيُستثنى. وهو
+ * الصيغة الموصى بها نفسها، فاستثناؤها يكافئ اتّباعها.
+ *
  * ويُستثنى `src/lib/arabic.ts` — فيه يُبنى التنسيق نفسه.
  */
-const NUMERIC_INTERP = /\$\{[^}]*(?:String\(|Number\(|\.length|count|total|Count)[^}]*\}\s*[\u0621-\u064A]/;
+const NUMERIC_INTERP =
+  /(?<!\()\$\{[^}]*(?:String\(|Number\(|\.length|count|total|Count)[^}]*\}\s*[\u0621-\u064A]/;
 
 function checkInterpolatedNumbers() {
   const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];

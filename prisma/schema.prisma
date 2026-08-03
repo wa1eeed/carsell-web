@@ -1457,6 +1457,8 @@ enum ApprovalKind {
   /// قرار ٣٤ — تبديل بوابة غرض دفع
   PAYMENT_ROUTE
   COMMISSION_CHANGE
+  /// تعديل قاعدة ضريبية — أثرُها وثائقُ قانونية، فلا تُعدَّل بيدٍ واحدة
+  TAX_RULE_CHANGE
   PLAN_CHANGE
   USER_BAN
 }

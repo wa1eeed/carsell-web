@@ -6,6 +6,10 @@ import { cn } from '@/lib/cn';
 /** الوحدات المعدودة — تُضاف هنا لا تُكتب في شاشة. */
 export type Unit =
   | 'orders'
+  | 'taxRules'
+  | 'activeRules'
+  | 'awaitingRules'
+  | 'creditNotes'
   | 'bidders'
   | 'deals'
   | 'days'

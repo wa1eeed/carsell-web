@@ -338,3 +338,32 @@ silently change what sellers receive.
 hazard in the pair: **each is correct on its own**, and adding it to the buyer's
 total while also deducting it from the seller's proceeds collects it twice with
 nothing on screen to show it. A test asserts both directions.
+
+## 13 · The A21 screen
+
+`/admin/tax`. It shows rules and computes nothing — the computation lives in
+`tax.ts` alone, behind gate 16.
+
+**Disabled rules are shown, not hidden.** They are the single largest financial
+exposure in the product, and hiding them would make it invisible to the person
+who administers it. The banner explaining the deemed-supplier amendment sits
+above the table, not below it: someone opening the screen should read it before
+editing a row.
+
+Each row carries the count of invoices already issued under it, so the operator
+can see the reach of an edit before making it — and the snapshot inside those
+invoices does not move afterwards.
+
+### Edits need two approvers
+
+`ApprovalKind.TAX_RULE_CHANGE`. The first call opens a request and changes
+nothing; a second admin executes it. Activating a row that is awaiting a ruling
+can move the tax on a single transaction from 150 to 15,000, so there is no
+single-handed path — the guard was built with the edit, not after it.
+
+### Granting the margin scheme
+
+Requires VAT registration **and** a written reference to the authority's
+document. An approval with nothing to point at cannot be defended to an auditor,
+and an optional field here is left blank on the first busy day. Revoking clears
+the reference, so no row says "not approved" while carrying an approval number.

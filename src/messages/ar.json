@@ -345,7 +345,11 @@
     "views": "{count, plural, zero{لا مشاهدات} one{مشاهدة واحدة} two{مشاهدتان} few{{n} مشاهدات} many{{n} مشاهدة} other{{n} مشاهدة}}",
     "offers": "{count, plural, zero{لا عروض} one{عرض واحد} two{عرضان} few{{n} عروض} many{{n} عرضًا} other{{n} عرض}}",
     "exceeded": "{count, plural, zero{لا شيء تجاوز} one{واحد تجاوز} two{اثنان تجاوزا} few{{n} تجاوزت} many{{n} تجاوزت} other{{n} تجاوز}}",
-    "accesses": "{count, plural, zero{لا اطّلاع} one{اطّلاع واحد} two{اطّلاعان} few{{n} اطّلاعات} many{{n} اطّلاعًا} other{{n} اطّلاع}}"
+    "accesses": "{count, plural, zero{لا اطّلاع} one{اطّلاع واحد} two{اطّلاعان} few{{n} اطّلاعات} many{{n} اطّلاعًا} other{{n} اطّلاع}}",
+    "taxRules": "{count, plural, zero{لا قواعد} one{قاعدة واحدة} two{قاعدتان} few{{n} قواعد} many{{n} قاعدة} other{{n} قاعدة}}",
+    "activeRules": "{count, plural, zero{لا مفعَّلة} one{واحدة مفعَّلة} two{اثنتان مفعَّلتان} few{{n} مفعَّلة} many{{n} مفعَّلة} other{{n} مفعَّلة}}",
+    "awaitingRules": "{count, plural, zero{لا شيء} one{واحدة} two{اثنتان} few{{n}} many{{n}} other{{n}}}",
+    "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}"
   },
   "search": {
     "title": "تصفّح السيارات",

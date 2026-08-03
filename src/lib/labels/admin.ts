@@ -148,3 +148,54 @@ export const ROUTE_DISABLED_LABEL = 'معطّل';
 /** بدائل العرض حين يغيب الاسم — والنطاق يعيد `null` لا نصًّا. */
 export const ANONYMOUS_BIDDER = 'مزايد';
 export const ANONYMOUS_SELLER = 'بائع';
+
+/**
+ * ═══ ترميز A21 — بألفاظ التصميم حرفيًّا ═══
+ *
+ * و«خارج النطاق؟» **بعلامة الاستفهام**: هي الفرق بين «حكمنا بخروجها»
+ * و«لا نعرف بعد». والعلامة تنجو من كل ترجمة.
+ */
+export const SELLER_TYPE_LABEL: Record<string, string> = {
+  INDIVIDUAL: 'فرد غير مسجَّل',
+  DEALER_VAT: 'مورِّد مسجَّل',
+  DEALER_NO_VAT: 'تاجر غير مسجَّل',
+  COMPANY: 'شركة',
+};
+
+export const BUYER_TYPE_LABEL: Record<string, string> = {
+  INDIVIDUAL: 'فرد',
+  DEALER: 'تاجر',
+  COMPANY: 'شركة',
+};
+
+export const SUPPLY_TYPE_LABEL: Record<string, string> = {
+  VEHICLE: 'المركبة',
+  COMMISSION: 'العمولة',
+  SERVICE: 'الخدمات',
+  ADMIN_FEE: 'رسوم إدارية',
+  DISBURSEMENT: 'صرف نيابةً عن العميل',
+};
+
+export const TAXABLE_BASE_LABEL: Record<string, string> = {
+  FULL_VALUE: 'كامل القيمة',
+  MARGIN: 'هامش الربح',
+  FEE_ONLY: 'العمولة وحدها',
+  OUT_OF_SCOPE: 'خارج النطاق؟ — لا فاتورة',
+};
+
+export const INVOICE_ISSUER_LABEL: Record<string, string> = {
+  PLATFORM: 'المنصّة',
+  SELLER: 'البائع',
+  PLATFORM_ON_BEHALF: 'المنصّة نيابةً',
+  NONE: 'لا أحد',
+};
+
+export const INVOICE_STATUS_LABEL: Record<string, string> = {
+  ISSUED: 'صادرة',
+  REPORTED: 'مُبلَّغة',
+  REPORT_FAILED: 'تعذّر الإبلاغ',
+  CANCELLED: 'ملغاة',
+};
+
+/** «أي» لا «الكل»: الصفّ العامّ يطابق ما لم يجد أخصّ منه. */
+export const ANY_TYPE = 'أي';
