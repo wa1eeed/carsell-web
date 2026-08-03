@@ -185,6 +185,18 @@ type ServiceRow = {
   providerType: ProviderType | null;
 };
 
+type TaxRuleRow = {
+  sellerType: string | null;
+  buyerType: string | null;
+  supplyType: string;
+  taxableBase: string;
+  ratePct: string | null;
+  supplierIsPlatform: boolean;
+  invoiceIssuer: string;
+  active: boolean;
+  note: string;
+};
+
 type GatewayRow = {
   key: string;
   nameAr: string;
@@ -252,6 +264,8 @@ type TemplateRow = {
 async function reset(): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "CreditNote","TaxInvoiceLine","TaxInvoice","TaxRule",
+      "VehicleSaleAgreement","SettlementStatement",
       "PaymentEvent","Payment","PaymentRouteChange","PaymentRoute","PaymentGateway",
       "DeviceToken","NotificationPreference","PushChannel","CampaignSend","Campaign","Segment",
       "ApprovalRequest","AuditLog","Report","PriceStat","SeoTemplate","Integration",
@@ -1093,6 +1107,24 @@ async function main(): Promise<void> {
     ],
   });
 
+  // ————— قواعد الضريبة (A21) — ثلاث منها تنتظر المذكرة —————
+  await prisma.taxRule.createMany({
+    data: load<TaxRuleRow[]>('tax-rules.json').map((rule) => ({
+      sellerType: rule.sellerType as never,
+      buyerType: rule.buyerType as never,
+      supplyType: rule.supplyType as never,
+      taxableBase: rule.taxableBase as never,
+      ratePct: rule.ratePct === null ? null : new D(rule.ratePct),
+      supplierIsPlatform: rule.supplierIsPlatform,
+      invoiceIssuer: rule.invoiceIssuer as never,
+      active: rule.active,
+      note: rule.note,
+      activeFrom: days(-365),
+      updatedBy: routingAdmin,
+      updatedAt: NOW,
+    })),
+  });
+
   await prisma.pushChannel.createMany({
     data: load<PushChannelRow[]>('push-channels.json'),
   });
@@ -1356,6 +1388,7 @@ async function main(): Promise<void> {
     'قالب إشعار': await prisma.notificationTemplate.count(),
     'قناة دفع': await prisma.pushChannel.count(),
     'بوابة دفع': await prisma.paymentGateway.count(),
+    'قاعدة ضريبية': await prisma.taxRule.count(),
     مفضّلة: await prisma.favorite.count(),
     'مساحة إعلانية': await prisma.adSlot.count(),
     'جهة تمويل': await prisma.financeProvider.count(),

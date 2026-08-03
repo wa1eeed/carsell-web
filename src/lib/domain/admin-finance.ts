@@ -1,7 +1,8 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
-import { DEFAULT_VAT_PCT, pct, sum, vatIncluded } from './money';
+import { pct, sum } from './money';
+import { DEFAULT_VAT_PCT, vatIncluded } from './tax';
 
 /**
  * A3 — المالية.

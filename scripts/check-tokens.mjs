@@ -15,7 +15,7 @@
  * ١٣. لا نقطة في مفتاح ترجمة — next-intl يقرؤها تداخلًا.
  * ١٤. لا مكوّن عميل يصل إلى `db` عبر سلسلة استيرادات.
  * ١٥. مفردات المزوّد (authorize/capture/void) لا تعبر المُهايئ.
- * ١٦. نسبة الضريبة في `vat.ts` وحده · لا ضريبة على قيمة المركبة · لا «فاتورة مركبة».
+ * ١٦. الضريبة تُحسب في `tax.ts` وحده · لا ضريبة على قيمة المركبة · لا «فاتورة مركبة».
  * ١٧. النطاق يعيد بيانات لا جُملًا — لا حرف عربي في src/lib/domain عدا التعليقات.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
@@ -631,7 +631,7 @@ function checkGatewayVocabulary() {
 
 
 /**
- * ————— القاعدة ١٦: نسبة الضريبة في `vat.ts` وحده —————
+ * ————— القاعدة ١٦: الضريبة تُحسب في `tax.ts` وحده —————
  *
  * ولا حساب ضريبة على قيمة المركبة، ولا مستند يسمّي نفسه فاتورة مركبة.
  *
@@ -647,6 +647,14 @@ function checkGatewayVocabulary() {
 const TAX_CONTEXT = /vat|tax|ضريب/i;
 const RATE_LITERAL = /(?<![\w.])(?:15(?:\.0+)?|0\.15)(?![\w.%])|١٥\s*٪/;
 
+/**
+ * **الضريبة تُحسب في `tax.ts` وحده.**
+ *
+ * ودالّةٌ ثانية تحسبها في مكان آخر تصير مصدرًا ثانيًا للحقيقة: تُعدَّل
+ * القاعدة فتتبعها إحداهما وتتخلّف الأخرى، والفرق يظهر في فاتورة.
+ */
+const TAX_DEFINITION = /\b(function|const)\s+(vatIncluded|netOfVat|computeTax)\b/;
+
 /** حسابُ ضريبةٍ على قيمة المركبة — بالتسمية، فالنيّة تظهر في الاسم. */
 const VEHICLE_TAX = /\b(vehicleVat|vatOnVehicle|carVat|vehicleTax|taxOnVehicle)\b/i;
 
@@ -661,16 +669,27 @@ function checkTaxRate() {
       if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
       const rel = relative(ROOT, file);
       if (rel.includes('generated')) continue;
-      const isVatFile = rel.endsWith(join('domain', 'vat.ts')) || rel.endsWith('domain/vat.ts');
+      const isTaxFile =
+        rel.endsWith(join('domain', 'tax.ts')) || rel.endsWith('domain/tax.ts');
 
       const lines = readFileSync(file, 'utf8').split('\n');
       lines.forEach((line, i) => {
         const code = line.split('//')[0] ?? '';
         const isComment = /^\s*[*]/.test(line);
 
-        if (!isVatFile && !isComment && TAX_CONTEXT.test(code) && RATE_LITERAL.test(code)) {
+        if (!isTaxFile && !isComment && TAX_CONTEXT.test(code) && RATE_LITERAL.test(code)) {
           problems.push(
-            `${rel}:${i + 1}  نسبة ضريبة مكتوبة خارج vat.ts — النسبة تُقرأ من موضع واحد`,
+            `${rel}:${i + 1}  نسبة ضريبة مكتوبة خارج tax.ts — النسبة تُقرأ من TaxRule`,
+          );
+        }
+        /**
+         * **الاستدعاء مسموح والتعريف ممنوع**: الشاشات والمجال يستدعون،
+         * و`tax.ts` وحده يُعرّف. ولهذا يلزم الاسمُ بعد `function` أو
+         * `const` مباشرةً — و`const x = vatIncluded(…)` استدعاءٌ يمرّ.
+         */
+        if (!isTaxFile && !isComment && TAX_DEFINITION.test(code)) {
+          problems.push(
+            `${rel}:${i + 1}  تعريف حساب ضريبة خارج tax.ts — الحساب في موضع واحد`,
           );
         }
         if (!isComment && VEHICLE_TAX.test(code)) {
@@ -803,5 +822,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · نسبة الضريبة في vat.ts وحده · لا نصّ عربي في النطاق.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق.',
 );

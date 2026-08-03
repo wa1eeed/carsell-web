@@ -137,6 +137,13 @@ enum AdminRole {
  * ولا فواتير ولا استيراد جماعي هنا.
  */
 model Dealer {
+  /// ═══ هامش الربح صفةٌ على التاجر لا خيارٌ في الصفقة ═══
+  /// يمنحها الأدمن بمستند من الهيئة، **ولا تُطبَّق تلقائيًّا أبدًا**.
+  marginSchemeApproved Boolean   @default(false)
+  marginSchemeRef      String?
+  marginSchemeBy       String?
+  marginSchemeAt       DateTime?
+
   id          String       @id @default(cuid())
   slug        String       @unique
   nameAr      String
@@ -652,6 +659,9 @@ model Order {
   events   OrderEvent[]
   escrow   Escrow?
   payments Payment[]
+  taxInvoices TaxInvoice[]
+  settlement  SettlementStatement?
+  agreement   VehicleSaleAgreement?
   disputes Dispute[]
   invoices Invoice[]
 
@@ -1711,4 +1721,199 @@ model WebhookEvent {
   payload     Json
 
   @@index([provider, receivedAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+//  محرّك الضريبة والفوترة — A21 (المهمة ٣٥)
+//
+//  محرّكٌ لا فرعٌ في الكود: تعديل ضريبة القيمة المضافة قد يجعل المنصّة
+//  «موِردًا مفترضًا» فتُستحقّ الضريبة على كامل قيمة المركبة لا على
+//  العمولة — الفرق بين ١٥٠ و١٥٬٠٠٠ في صفقة واحدة. والتصنيف ينتظر
+//  مذكرة، فالمعالجة صفوفٌ يديرها الأدمن لا شروطٌ في الكود.
+// ═══════════════════════════════════════════════════════════
+
+enum SellerType {
+  INDIVIDUAL
+  DEALER_VAT
+  DEALER_NO_VAT
+  COMPANY
+}
+
+enum BuyerType {
+  INDIVIDUAL
+  DEALER
+  COMPANY
+}
+
+enum SupplyType {
+  VEHICLE
+  COMMISSION
+  SERVICE
+}
+
+enum TaxableBase {
+  FULL_VALUE
+  MARGIN
+  FEE_ONLY
+  OUT_OF_SCOPE
+}
+
+enum InvoiceIssuer {
+  PLATFORM
+  SELLER
+  PLATFORM_ON_BEHALF
+}
+
+/// قاعدة ضريبية — **المطابقة بالأدقّ نطاقًا**، وصفٌّ عامّ احتياطي.
+///
+/// و`activeTo` يجعل القاعدة تاريخيّة لا محذوفة: فاتورةٌ صدرت بقاعدة
+/// انتهت تبقى مفهومة.
+model TaxRule {
+  id                 String        @id @default(cuid())
+  sellerType         SellerType?
+  buyerType          BuyerType?
+  supplyType         SupplyType
+  taxableBase        TaxableBase
+  ratePct            Decimal?      @db.Decimal(5, 2)
+  supplierIsPlatform Boolean       @default(false)
+  invoiceIssuer      InvoiceIssuer
+  activeFrom         DateTime
+  activeTo           DateTime?
+  /// `false` للقواعد التي تنتظر المذكرة الضريبية — تُعرض ولا تُطبَّق
+  active             Boolean       @default(true)
+  note               String?
+  updatedBy          String
+  updatedAt          DateTime      @updatedAt
+
+  invoices TaxInvoice[]
+
+  @@index([supplyType, active, activeFrom])
+}
+
+enum InvoiceStatus {
+  ISSUED
+  REPORTED
+  REPORT_FAILED
+  CANCELLED
+}
+
+/// فاتورة ضريبية — **وثيقة لا سجلّ**.
+///
+/// ولهذا **القاعدة تُنسَخ لقطةً كاملة**: تعديلها لاحقًا لا يغيّر فاتورة
+/// صدرت. والوثيقة لا تتغيّر بأثر رجعي — أهمّ قاعدة في هذا القسم.
+///
+/// والتسلسل **متّصل بلا فجوات**: لا حذف فاتورة أبدًا، والإلغاء بإشعار
+/// دائن يشير إلى الأصل.
+model TaxInvoice {
+  id       String @id @default(cuid())
+  /// تسلسلي متّصل — فريدٌ ولا يُعاد استعماله
+  sequence Int    @unique
+  number   String @unique
+  uuid     String @unique
+
+  orderId String?
+  /// لقطة القاعدة: معرّفها وكل قيَمها وقت الإصدار
+  ruleId             String
+  ruleSellerType     SellerType?
+  ruleBuyerType      BuyerType?
+  ruleSupplyType     SupplyType
+  ruleTaxableBase    TaxableBase
+  ruleRatePct        Decimal?      @db.Decimal(5, 2)
+  ruleInvoiceIssuer  InvoiceIssuer
+
+  supplierName    String
+  supplierVatNo   String?
+  supplierAddress String?
+  customerName    String
+  customerVatNo   String?
+
+  issuedAt   DateTime
+  suppliedAt DateTime
+
+  subtotal Decimal @db.Decimal(12, 2)
+  taxTotal Decimal @db.Decimal(12, 2)
+  total    Decimal @db.Decimal(12, 2)
+
+  /// QR بترميز TLV ثم Base64 — حقول «فاتورة» الخمسة
+  qrTlv        String?
+  invoiceHash  String?
+  signature    String?
+  status       InvoiceStatus @default(ISSUED)
+  reportedAt   DateTime?
+  reportError  String?
+
+  rule        TaxRule           @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  order       Order?            @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  lines       TaxInvoiceLine[]
+  creditNotes CreditNote[]
+
+  @@index([orderId])
+  @@index([status, issuedAt])
+}
+
+model TaxInvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(12, 2)
+  subtotal    Decimal @db.Decimal(12, 2)
+  taxAmount   Decimal @db.Decimal(12, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  invoice TaxInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+/// إشعار دائن — **الإلغاء الوحيد الممكن**، ويشير إلى الأصل.
+model CreditNote {
+  id        String   @id @default(cuid())
+  sequence  Int      @unique
+  number    String   @unique
+  uuid      String   @unique
+  invoiceId String
+  reason    String
+  amount    Decimal  @db.Decimal(12, 2)
+  taxAmount Decimal  @db.Decimal(12, 2)
+  issuedAt  DateTime
+  issuedBy  String
+
+  invoice TaxInvoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+}
+
+/// كشف تسوية مالية — **ليس فاتورة ضريبية**، ومكتوبٌ في رأسه.
+model SettlementStatement {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  vehicleValue  Decimal  @db.Decimal(12, 2)
+  commission    Decimal  @db.Decimal(12, 2)
+  commissionTax Decimal  @db.Decimal(12, 2)
+  gatewayFee    Decimal  @db.Decimal(12, 2)
+  servicesTotal Decimal  @db.Decimal(12, 2)
+  netToSeller   Decimal  @db.Decimal(12, 2)
+  heldAmount    Decimal  @db.Decimal(12, 2)
+  returnedAmount Decimal @db.Decimal(12, 2)
+  issuedAt      DateTime
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+}
+
+/// عقد بيع المركبة — **بين البائع والمشتري، ولسنا طرفًا فيه**.
+model VehicleSaleAgreement {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  vin          String
+  sellerName   String
+  sellerIdNo   String?
+  buyerName    String
+  buyerIdNo    String?
+  price        Decimal  @db.Decimal(12, 2)
+  inspectionRef String?
+  deliveryTerms String?
+  issuedAt     DateTime
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 }

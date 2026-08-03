@@ -1,0 +1,57 @@
+[
+  { "sellerType": "INDIVIDUAL", "buyerType": "INDIVIDUAL", "supplyType": "VEHICLE",
+    "taxableBase": "OUT_OF_SCOPE", "ratePct": null, "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": false,
+    "note": "AWAITING RULING — deemed-supplier classification (Jan 2026 amendment). No vehicle invoice is issued; contract + settlement statement only." },
+
+  { "sellerType": "INDIVIDUAL", "buyerType": "DEALER", "supplyType": "VEHICLE",
+    "taxableBase": "OUT_OF_SCOPE", "ratePct": null, "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": false,
+    "note": "AWAITING RULING — same question, buyer is a dealer. Purchase contract, no invoice from the individual." },
+
+  { "sellerType": "DEALER_NO_VAT", "buyerType": null, "supplyType": "VEHICLE",
+    "taxableBase": "OUT_OF_SCOPE", "ratePct": null, "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": false,
+    "note": "AWAITING RULING — dealer below the registration threshold." },
+
+  { "sellerType": "INDIVIDUAL", "buyerType": null, "supplyType": "COMMISSION",
+    "taxableBase": "FEE_ONLY", "ratePct": "15.00", "supplierIsPlatform": true,
+    "invoiceIssuer": "PLATFORM", "active": true,
+    "note": "Our commission is our own supply regardless of who the seller is." },
+
+  { "sellerType": "DEALER_VAT", "buyerType": "INDIVIDUAL", "supplyType": "VEHICLE",
+    "taxableBase": "FULL_VALUE", "ratePct": "15.00", "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": true,
+    "note": "Registered dealer invoices the buyer directly." },
+
+  { "sellerType": "DEALER_VAT", "buyerType": "DEALER", "supplyType": "VEHICLE",
+    "taxableBase": "FULL_VALUE", "ratePct": "15.00", "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": true, "note": "Dealer to dealer." },
+
+  { "sellerType": "DEALER_VAT", "buyerType": null, "supplyType": "COMMISSION",
+    "taxableBase": "FEE_ONLY", "ratePct": "15.00", "supplierIsPlatform": true,
+    "invoiceIssuer": "PLATFORM", "active": true, "note": "Commission on dealer sales." },
+
+  { "sellerType": "COMPANY", "buyerType": "COMPANY", "supplyType": "VEHICLE",
+    "taxableBase": "FULL_VALUE", "ratePct": "15.00", "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": true, "note": "Company to company — each issues its own." },
+
+  { "sellerType": "COMPANY", "buyerType": null, "supplyType": "COMMISSION",
+    "taxableBase": "FEE_ONLY", "ratePct": "15.00", "supplierIsPlatform": true,
+    "invoiceIssuer": "PLATFORM", "active": true, "note": "Commission on company sales." },
+
+  { "sellerType": null, "buyerType": null, "supplyType": "SERVICE",
+    "taxableBase": "FULL_VALUE", "ratePct": "15.00", "supplierIsPlatform": true,
+    "invoiceIssuer": "PLATFORM", "active": true,
+    "note": "Services are always our own supply — inspection, report, shipping, photography." },
+
+  { "sellerType": "DEALER_VAT", "buyerType": "INDIVIDUAL", "supplyType": "VEHICLE",
+    "taxableBase": "MARGIN", "ratePct": "15.00", "supplierIsPlatform": false,
+    "invoiceIssuer": "SELLER", "active": false,
+    "note": "Profit-margin scheme. Inactive by default: applies only to a dealer holding written approval, and is never applied automatically." },
+
+  { "sellerType": null, "buyerType": null, "supplyType": "COMMISSION",
+    "taxableBase": "FEE_ONLY", "ratePct": "15.00", "supplierIsPlatform": true,
+    "invoiceIssuer": "PLATFORM", "active": true,
+    "note": "Catch-all for commission — the least specific row." }
+]

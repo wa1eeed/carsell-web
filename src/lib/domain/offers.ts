@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
-import { DEFAULT_VAT_PCT, vatIncluded } from './money';
+import { DEFAULT_VAT_PCT, vatIncluded } from './tax';
 
 /**
  * العروض — القواعد ١–٥ من القسم ٧.
