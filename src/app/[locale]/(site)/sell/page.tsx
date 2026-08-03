@@ -10,6 +10,7 @@ import { listBrandOptions } from '@/lib/domain/catalog-options';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
+import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { SellWizard } from './SellWizard';
 
 export const dynamic = 'force-dynamic';
@@ -87,6 +88,7 @@ export default async function SellPage({
 
         <div className="mx-auto w-full max-w-page px-10 py-10">
           <SellWizard
+            taxProfile={taxProfileOf(user)}
             brands={brands}
             cities={cities}
             locale={locale}

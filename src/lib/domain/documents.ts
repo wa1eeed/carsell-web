@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
-import type { BuyerType, SellerType } from '@/generated/prisma/enums';
 import { issueInvoice, vatIncluded } from './tax';
+import { buyerTypeFor, sellerTypeFor } from './tax-profile';
 
 /**
  * مستندات الصفقة الثلاثة — **ولا يُدمج اثنان**.
@@ -13,21 +13,6 @@ import { issueInvoice, vatIncluded } from './tax';
  * وكلٌّ يُصدر في لحظته: العقد عند تأكيد النقل، والكشف والفواتير عند
  * التسوية المؤكَّدة. **ووثيقةٌ تسبق واقعتها وثيقةٌ كاذبة.**
  */
-
-/** نوع البائع من بياناته — لا من إدخال يدويّ يُخطئ. */
-function sellerTypeOf(seller: {
-  dealerId: string | null;
-  dealer: { vatNumber: string | null } | null;
-}): SellerType {
-  if (seller.dealerId === null) return 'INDIVIDUAL';
-  return seller.dealer?.vatNumber == null || seller.dealer.vatNumber === ''
-    ? 'DEALER_NO_VAT'
-    : 'DEALER_VAT';
-}
-
-function buyerTypeOf(buyer: { dealerId: string | null }): BuyerType {
-  return buyer.dealerId === null ? 'INDIVIDUAL' : 'DEALER';
-}
 
 export type SettlementFigures = {
   vehicleValue: string;
@@ -234,11 +219,13 @@ export async function issueSettlementDocuments(
   const order = await db.order.findUnique({
     where: { id: orderId },
     include: {
-      buyer: { select: { name: true, dealerId: true } },
+      buyer: { select: { name: true, dealerId: true, taxStatus: true, vatNumber: true } },
       seller: {
         select: {
           name: true,
           dealerId: true,
+          taxStatus: true,
+          vatNumber: true,
           dealer: {
             select: {
               nameAr: true,
@@ -248,6 +235,7 @@ export async function issueSettlementDocuments(
           },
         },
       },
+      listing: { select: { taxableSupply: true } },
       settlement: true,
     },
   });
@@ -276,8 +264,12 @@ export async function issueSettlementDocuments(
     }
   }
 
-  const sellerType = sellerTypeOf(order.seller);
-  const buyerType = buyerTypeOf(order.buyer);
+  /**
+   * النوعان من **وضع الطرفين هما** لا من صفة المعرض — ففردٌ قد يكون
+   * مسجَّلًا، ومعرضٌ قد لا يكون. `src/lib/domain/tax-profile.ts`.
+   */
+  const sellerType = sellerTypeFor(order.seller, order.listing);
+  const buyerType = buyerTypeFor(order.buyer);
   const sellerName = order.seller.dealer?.nameAr ?? order.seller.name ?? '';
   const buyerName = order.buyer.name ?? '';
 

@@ -9,6 +9,8 @@ import { ImageUploader, type UploadedImage } from '@/components/ui/ImageUploader
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { Stepper } from '@/components/ui/Stepper';
+import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
+import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { toLatinDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
@@ -46,11 +48,13 @@ const METHODS = ['DIRECT', 'NEGOTIATION', 'AUCTION'] as const;
  * ورابطٌ يحمل نصف مركبة لا يفيد أحدًا ولا يُشارَك.
  */
 export function SellWizard({
+  taxProfile,
   brands,
   cities,
   locale,
   vinLookupEnabled,
 }: {
+  taxProfile: TaxProfile;
   brands: readonly Option[];
   cities: readonly string[];
   locale: string;
@@ -59,6 +63,7 @@ export function SellWizard({
 }) {
   const t = useTranslations('sell');
   const te = useTranslations('enums');
+  const tx = useTranslations('tax');
 
   const [step, setStep] = useState<(typeof STEPS)[number]>('vehicle');
   const [vehicle, setVehicle] = useState<Vehicle>(EMPTY);
@@ -66,6 +71,33 @@ export function SellWizard({
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [price, setPrice] = useState('');
   const [method, setMethod] = useState<(typeof METHODS)[number]>('DIRECT');
+
+  /**
+   * ═══ الوضع الضريبيّ يُسأل هنا، لا عند «ادفع» ═══
+   *
+   * والنشر أوّل إجراءٍ له أثر ضريبيّ: الإعلان يُظهر سعرًا للمشتري، وشكلُ
+   * السعر يتبع وضع البائع. فالسؤال قبل النشر لا بعده.
+   *
+   * **والحارس يُبنى مع الزرّ لا بعده**: بين بناء النشر وحراسته نافذةٌ
+   * تُنشَر فيها إعلاناتٌ بلا تصنيف.
+   */
+  const [tax, setTax] = useState<TaxProfile>(taxProfile);
+  const [askingTax, setAskingTax] = useState(false);
+  /** استثناء الإعلان الواحد — `null` يعني «اتبع وضع البائع». */
+  const [taxableSupply, setTaxableSupply] = useState<boolean | null>(null);
+
+  /**
+   * حارس النشر — يُستدعى حين يُبنى الإنشاء الفعليّ، ويحمل معه
+   * `taxableSupply` استثناءَ الإعلان.
+   */
+  const publish = (): { taxableSupply: boolean | null } | null => {
+    if (tax.needsAnswer) {
+      setAskingTax(true);
+      return null;
+    }
+    return { taxableSupply };
+  };
+  void publish;
 
   /**
    * **لا حالة تفتح النموذج**: الحقول ظاهرة من اللحظة الأولى. جلب
@@ -357,6 +389,28 @@ export function SellWizard({
               <span className="text-2xs opacity-50">{t('currency')}</span>
             </div>
 
+            {/*
+              ═══ استثناء الإعلان الواحد ═══
+
+              لا تظهر للمسجَّل: إعلاناته خاضعة أصلًا، وخانةٌ تسأله عمّا
+              أجاب عنه ضجيج. وتظهر للفرد وحده لأنها عنده استثناء — مركبةٌ
+              تابعة لنشاطٍ تجاريّ بين مركباته الشخصية.
+            */}
+            {tax.status !== 'INDIVIDUAL' ? null : (
+              <label className="mb-2 flex max-w-md cursor-pointer items-start gap-2.5 text-2xs leading-relaxed opacity-70">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={taxableSupply === true}
+                  onChange={(event) => setTaxableSupply(event.target.checked ? true : null)}
+                />
+                <span>
+                  {tx('listingTaxable')}
+                  <span className="block opacity-70">{tx('listingTaxableHint')}</span>
+                </span>
+              </label>
+            )}
+
             <div className="mt-7 flex gap-2.5">
               <Button variant="outline" onClick={() => setStep('vehicle')}>
                 {t('back')}
@@ -428,16 +482,45 @@ export function SellWizard({
             ))}
           </div>
 
+          {/*
+            ═══ التذكير يسبق لحظة الحاجة ═══
+
+            اكتشافُ «عليك تحديد وضعك الضريبي» عند ضغط «انشر» أسوأ توقيت.
+            فيظهر هنا قبله، بزرٍّ يعمل فعلًا — لا بتحذيرٍ بلا مخرج.
+          */}
+          {!tax.needsAnswer ? null : (
+            <div className="mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-line p-4">
+              <p className="min-w-0 flex-1 text-2xs leading-loose opacity-70">{tx('prompt')}</p>
+              <Button size="sm" variant="outline" onClick={() => setAskingTax(true)}>
+                {tx('title')}
+              </Button>
+            </div>
+          )}
+
           <div className="flex gap-2.5">
             <Button variant="outline" onClick={() => setStep('photos')}>
               {t('back')}
             </Button>
-            {/* الإنشاء الفعلي في المهمة ١٧ مع قواعد العروض */}
+            {/*
+              النشر الفعليّ لم يُبنَ بعد، فالزرّ يبقى معطَّلًا — **وزرٌّ
+              يبدو حيًّا ولا يفعل وعدٌ مُخلَف**. والحارس قائمٌ في `publish`
+              من الآن، فلا نافذة بين بناء النشر وحراسته.
+            */}
             <Button disabled>{t('publish')}</Button>
             <Button variant="ghost">{t('saveDraft')}</Button>
           </div>
         </section>
       ) : null}
+
+      <TaxStatusDialog
+        open={askingTax}
+        onClose={() => setAskingTax(false)}
+        initial={tax}
+        onSaved={(profile) => {
+          setTax(profile);
+          setAskingTax(false);
+        }}
+      />
     </>
   );
 }

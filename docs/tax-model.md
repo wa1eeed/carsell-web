@@ -227,3 +227,68 @@ is that we did not supply it. This also separates *stating* a treatment from
 *deactivating* a row: a row can now be active and correctly produce no invoice,
 where before the only way to express that was `active: false` — which reads as
 "undecided", not "decided not to invoice".
+
+## 11 · Tax status: deferred, asked once, two categories
+
+**Ruled 2026-08-03.** Registration asks for a phone number and nothing else. The
+tax question appears at the first act that has a tax consequence — publishing a
+first listing, or a first purchase — and never again. It is editable from
+account settings.
+
+`src/lib/domain/tax-profile.ts` owns this. `src/app/api/v1/account/tax-status`
+saves it.
+
+### `null` is a third state, and must stay one
+
+`User.taxStatus` is nullable and null means **not yet asked**. Defaulting it to
+`INDIVIDUAL` would be convenient and wrong: the classification would become our
+choice rather than the user's, and we issue invoices on the strength of it. A
+seller who has not answered is never treated as taxable.
+
+### Two categories, not three
+
+The predicate is `isVatRegistered(user)` — a business and a registered
+individual are the same thing for VAT, and building a third branch means every
+screen and every calculation has to remember a distinction that changes nothing.
+
+A registered status without a number is not stored. The number is what makes the
+status checkable; without it the claim is an assertion, and between accepting it
+and completing it, invoices go out carrying a description with nothing behind it.
+
+`SellerType.DEALER_VAT` is therefore the **rule-matching key for a registered
+supplier**, not an assertion that the person is a dealer. Who the supplier is
+comes from `supplierName` / `supplierVatNo` on the invoice. The name should
+become `SUPPLIER_VAT` at the next migration that touches this type.
+
+### The per-listing override
+
+`Listing.taxableSupply` is nullable: null follows the seller, `true` marks a
+business vehicle sold by an individual, `false` marks a personal vehicle sold by
+a registered seller. **`false` is not overridden by the seller's status** — the
+seller is the one who said it is outside their business.
+
+The checkbox is shown only to sellers who answered "individual". For a
+registered seller their listings are taxable anyway, so asking again is noise.
+
+### What the buyer sees
+
+The price statement follows the seller's status, and it is on the card before
+the buyer commits, not discovered at payment:
+
+| Seller | Badge | Price |
+|---|---|---|
+| Not registered | بائع فرد | Final price, no VAT on the vehicle |
+| Registered | بائع مسجل ضريبيًا | VAT-inclusive, with the VAT amount shown |
+
+`cost.vatIncludedInPrice` is `null` when the seller is not registered — not
+zero. Zero would claim a calculation was made and came to nothing.
+
+A registered **buyer** is typed `COMPANY`, so their invoice carries both VAT
+numbers and the input tax can be reclaimed.
+
+### Still open
+
+The margin scheme for used cars (`TaxableBase.MARGIN`) is approved per
+`Dealer.marginSchemeApproved`. A **registered individual has no dealer row**, so
+the scheme cannot currently be granted to one. If it should be available to
+them, the approval field belongs on `User` beside `taxStatus`. See question 6.

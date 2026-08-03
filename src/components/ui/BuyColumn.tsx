@@ -11,10 +11,20 @@ export type BuyColumnData = {
   type: 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
   askPrice: number;
   monthly: number | null;
-  cost: { price: number; commission: number; transferFee: number; total: number };
+  cost: {
+    price: number;
+    commission: number;
+    transferFee: number;
+    transferAdminFee: number;
+    /** `null` تعني «لا ضريبة هنا أصلًا» — وهي غير الصفر. */
+    vatIncludedInPrice: number | null;
+    total: number;
+  };
   seller: {
     name: string;
     badge: 'DEALER_VERIFIED' | 'USER_VERIFIED' | null;
+    /** مسجَّلٌ في القيمة المضافة — معرضًا كان أو فردًا مسجَّلًا. */
+    vatRegistered: boolean;
     dealerSlug: string | null;
     ratingAvg: number | null;
     ratingCount: number;
@@ -60,6 +70,7 @@ function Row({ label, value, tone }: { label: string; value: React.ReactNode; to
  */
 export function BuyColumn({ data, className }: { data: BuyColumnData; className?: string }) {
   const t = useTranslations('ui');
+  const tx = useTranslations('tax');
   const auction = data.auction;
 
   return (
@@ -68,8 +79,32 @@ export function BuyColumn({ data, className }: { data: BuyColumnData; className?
         {auction === null ? (
           <div className="flex border-b border-line">
             <div className="flex-1 border-e border-line p-5">
-              <p className="mb-1.5 text-2xs opacity-50">{t('cashPrice')}</p>
+              <p className="mb-1.5 flex flex-wrap items-center gap-2 text-2xs opacity-50">
+                {t('cashPrice')}
+                {/*
+                  ═══ شكل السعر يتبع وضع البائع ═══
+
+                  «٥٠٬٠٠٠ سعر نهائي» عند غير المسجَّل، و«٥٧٬٥٠٠ شامل
+                  الضريبة» عند المسجَّل. والمشتري يعرف أيّهما **قبل** أن
+                  يضغط لا في شاشة الدفع.
+                */}
+                <span className="opacity-80">
+                  {data.seller.vatRegistered ? tx('sellerRegistered') : tx('sellerIndividual')}
+                </span>
+              </p>
               <Money amount={data.askPrice} size="xl" />
+              <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-3xs opacity-55">
+                {data.cost.vatIncludedInPrice === null ? (
+                  tx('priceFinal')
+                ) : (
+                  <>
+                    <span>{tx('priceWithVat')}</span>
+                    <span aria-hidden className="opacity-40">·</span>
+                    <span>{tx('vatShare')}</span>
+                    <ArabicNumber value={data.cost.vatIncludedInPrice} />
+                  </>
+                )}
+              </p>
             </div>
             {data.monthly === null ? null : (
               <div className="w-36 p-5">
@@ -151,6 +186,12 @@ export function BuyColumn({ data, className }: { data: BuyColumnData; className?
           tone={data.cost.commission === 0 ? 'accent' : undefined}
         />
         <Row label={t('transferFee')} value={<ArabicNumber value={data.cost.transferFee} />} />
+        {data.cost.transferAdminFee === 0 ? null : (
+          <Row
+            label={tx('adminFeeRow')}
+            value={<ArabicNumber value={data.cost.transferAdminFee} />}
+          />
+        )}
         <div className="mt-2 flex items-center justify-between gap-4 border-t border-line pt-3 text-base font-bold">
           <span>{t('total')}</span>
           <ArabicNumber value={data.cost.total} />

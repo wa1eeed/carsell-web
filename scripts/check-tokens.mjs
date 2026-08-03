@@ -648,6 +648,15 @@ const TAX_CONTEXT = /vat|tax|ضريب/i;
 const RATE_LITERAL = /(?<![\w.])(?:15(?:\.0+)?|0\.15)(?![\w.%])|١٥\s*٪/;
 
 /**
+ * **مقياسٌ لا نسبة.**
+ *
+ * `VAT_LENGTH = 15` طولُ الرقم الضريبيّ لا نسبته، و`taxStatusSetAt`
+ * ليس معدَّلًا. والسياق الضريبيّ وحده لا يميّز — فالاسم يميّز: ما حمل
+ * وحدةَ قياسٍ في اسمه ليس نسبة.
+ */
+const MEASURE_NAME = /\b\w*(LENGTH|DIGITS|COUNT|SIZE|MINUTES|HOURS|DAYS|MS|CHARS|MAX|MIN)\w*\b/i;
+
+/**
  * **الضريبة تُحسب في `tax.ts` وحده.**
  *
  * ودالّةٌ ثانية تحسبها في مكان آخر تصير مصدرًا ثانيًا للحقيقة: تُعدَّل
@@ -677,7 +686,13 @@ function checkTaxRate() {
         const code = line.split('//')[0] ?? '';
         const isComment = /^\s*[*]/.test(line);
 
-        if (!isTaxFile && !isComment && TAX_CONTEXT.test(code) && RATE_LITERAL.test(code)) {
+        if (
+          !isTaxFile &&
+          !isComment &&
+          TAX_CONTEXT.test(code) &&
+          RATE_LITERAL.test(code) &&
+          !MEASURE_NAME.test(code)
+        ) {
           problems.push(
             `${rel}:${i + 1}  نسبة ضريبة مكتوبة خارج tax.ts — النسبة تُقرأ من TaxRule`,
           );

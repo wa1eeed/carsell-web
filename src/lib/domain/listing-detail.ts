@@ -1,5 +1,7 @@
 import { db } from '@/lib/db';
 import { effectiveAdminFee } from './fees';
+import { DEFAULT_VAT_PCT, vatIncluded } from './money';
+import { sellerTypeFor, vehicleIsTaxable, isVatRegistered } from './tax-profile';
 import { sellerBadge, type SellerBadge } from './seller';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ListingType, PaintStatus, VehicleCondition } from '@/generated/prisma/enums';
@@ -130,6 +132,11 @@ export type PublicListingDetail = {
   seller: {
     name: string;
     badge: SellerBadge;
+    /**
+     * **فئتان لا ثلاث** — مسجَّلٌ في القيمة المضافة أو لا. والمشتري يرى
+     * شكل السعر تبعًا لها: «سعر نهائي» أو «شامل الضريبة».
+     */
+    vatRegistered: boolean;
     dealerSlug: string | null;
     ratingAvg: string | null;
     ratingCount: number;
@@ -160,6 +167,15 @@ export type PublicListingDetail = {
     transferFee: string;
     /** إداريّ — إيرادٌ لنا، وسطرٌ لا يُدمج بما فوقه */
     transferAdminFee: string;
+    /**
+     * الضريبة **المضمَّنة في سعر الطلب** حين يكون البائع مسجَّلًا —
+     * و`null` حين لا يكون، وهي ليست صفرًا: الصفر يقول «حُسبت فكانت لا
+     * شيء»، و`null` تقول «لا ضريبة هنا أصلًا».
+     *
+     * والاسم يصف ما هو: ضريبةٌ داخل السعر، لا ضريبةٌ نحسبها على المركبة.
+     * والحساب يتبع نوع البائع لا صفة المعرض.
+     */
+    vatIncludedInPrice: string | null;
     total: string;
   };
 
@@ -303,6 +319,9 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
   const eligible =
     row.type !== 'AUCTION' && settings != null && price >= Number(settings.minPrice);
 
+  const sellerType = sellerTypeFor(row.seller, row);
+  const priceCarriesVat = vehicleIsTaxable(sellerType);
+
   const transferFee = Number(platform?.transferFee ?? 0);
   const transferAdminFee = Number(
     effectiveAdminFee({
@@ -420,6 +439,7 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
     seller: {
       name: row.seller.dealer?.nameAr ?? row.seller.name ?? '',
       badge: sellerBadge(row.seller),
+      vatRegistered: isVatRegistered(row.seller),
       dealerSlug: row.seller.dealer?.slug ?? null,
       ratingAvg: row.seller.dealer?.ratingAvg?.toString() ?? null,
       ratingCount: row.seller.dealer?.ratingCount ?? 0,
@@ -454,6 +474,9 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
       commission: commission.toString(),
       transferFee: transferFee.toString(),
       transferAdminFee: transferAdminFee.toString(),
+      vatIncludedInPrice: priceCarriesVat
+        ? vatIncluded(price, Number(platform?.vatPct ?? DEFAULT_VAT_PCT)).toString()
+        : null,
       total: (price + commission + transferFee + transferAdminFee).toString(),
     },
 

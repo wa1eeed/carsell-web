@@ -820,5 +820,35 @@
     "received": "Received",
     "sentBy": "Sent",
     "asking": "Asking"
+  },
+  "tax": {
+    "prompt": "To organise your transactions and issue invoices as required, please state your tax status:",
+    "title": "Your tax status",
+    "individual": "I am an individual (not registered for VAT)",
+    "registered": "I am a business or an individual registered for VAT",
+    "vatPlaceholder": "Enter the 15-digit VAT number",
+    "vatLabel": "VAT number",
+    "save": "Save and continue",
+    "saving": "Saving…",
+    "once": "Asked once; you can change it later in settings.",
+    "error": {
+      "EMPTY": "Enter the VAT number.",
+      "LENGTH": "The VAT number is 15 digits.",
+      "PATTERN": "A VAT number starts and ends with 3 — check what you pasted.",
+      "SAVE": "Could not save, try again."
+    },
+    "settingsTitle": "Financial and tax settings",
+    "currentIndividual": "Current status: individual",
+    "currentRegistered": "Current status: registered business",
+    "currentUnset": "Not set yet — you will be asked at your first listing or first purchase.",
+    "edit": "Edit details",
+    "sellerIndividual": "Individual seller",
+    "sellerRegistered": "VAT-registered seller",
+    "priceFinal": "Final price — no VAT on the vehicle",
+    "priceWithVat": "VAT included",
+    "vatShare": "of which VAT",
+    "listingTaxable": "This vehicle belongs to a taxable business activity",
+    "listingTaxableHint": "Changes the tax treatment of this listing only.",
+    "adminFeeRow": "Administrative fee"
   }
 }
