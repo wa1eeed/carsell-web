@@ -730,7 +730,8 @@ model Escrow {
   heldAt            DateTime?
   releasedAt        DateTime?
   // الموافقة الثنائية عبر ApprovalRequest بـ kind = ESCROW_RELEASE — آلية واحدة لكل الإجراءات الثنائية
-  providerRef       String?
+  /// مرجع لدى البوابة — «بوابة» لا «مزوّد»، فالمفردة واحدة في المخطّط والنطاق
+  gatewayRef        String?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 }
@@ -1524,54 +1525,147 @@ model DeviceToken {
 //  الدفع الحقيقي و3DS — المهمة ٢٧
 // ═══════════════════════════════════════════════════════════
 
+/// بوابة دفع مربوطة — A20.
+///
+/// **القدرات معلَنة لا مفترضة**: النطاق يقرأها ويتصرّف، ولا يفترض أن
+/// الحجز يدوم إلى الأبد. وبوابةٌ تنقصها قدرةٌ يحتاجها الغرض **لا تظهر
+/// في قائمة الاختيار أصلًا** — لا تُعرض ثم تُرفض.
+model PaymentGateway {
+  key      String  @id // moyasar | tap | bank_escrow
+  nameAr   String
+  nameEn   String
+  /// GatewayCapabilities — supportsHold · maxHoldDays · feePct …
+  capabilities Json
+  status   IntegrationStatus @default(INACTIVE)
+  sort     Int     @default(0)
+
+  routes  PaymentRoute[]
+  changes PaymentRouteChange[] @relation("ToGateway")
+  from    PaymentRouteChange[] @relation("FromGateway")
+}
+
+enum PaymentPurpose {
+  VEHICLE_ESCROW
+  AUCTION_DEPOSIT
+  WALLET_TOPUP
+  SERVICE_PURCHASE
+  TRANSFER_FEE
+  /// معطّل — كل الباقات مجانية الآن
+  SUBSCRIPTION
+}
+
+/// توجيه غرضٍ إلى بوابة — **صفٌّ واحد لكل غرض: الحال الجارية**.
+///
+/// والتاريخ في `PaymentRouteChange` لا هنا: الحال تُقرأ بصفّ واحد بلا
+/// ترتيب ولا نافذة زمنية.
+model PaymentRoute {
+  purpose     PaymentPurpose @id
+  gatewayKey  String
+  environment IntegrationEnv @default(TEST)
+  /// تعطيلٌ يمنع الجديد ولا يمسّ القائم (قاعدة ٣ من قرار ٣٤)
+  enabled     Boolean        @default(true)
+  updatedBy   String
+  updatedAt   DateTime       @updatedAt
+
+  gateway PaymentGateway @relation(fields: [gatewayKey], references: [key], onDelete: Restrict)
+}
+
+/// سجلّ التبديلات — **للتفسير والتدقيق لا للحساب** (قرار ٣٦).
+///
+/// المطابقة لا تقرأ منه شيئًا: كل `Payment` يحمل `gatewayKey` لقطةً،
+/// فالمطابقة تجمع به مباشرةً. ولو استنتجت البوابة من التوجيه لاستنتجت
+/// ما تملكه — ويوم التبديل نفسه تكون البوابتان مسؤولتين معًا فلا يصفه
+/// توجيهٌ واحد أصلًا.
+model PaymentRouteChange {
+  id              String         @id @default(cuid())
+  purpose         PaymentPurpose
+  fromGatewayKey  String?
+  toGatewayKey    String
+  fromEnvironment IntegrationEnv?
+  toEnvironment   IntegrationEnv
+  /// **إلزاميّ**: بعد سنة لا يتذكّر أحد لماذا، والقرار بلا سببه يُعاد نقضه
+  reason          String
+  at              DateTime       @default(now())
+  approvalId      String?
+  requestedBy     String
+  approvedBy      String[]
+
+  toGateway   PaymentGateway  @relation("ToGateway", fields: [toGatewayKey], references: [key], onDelete: Restrict)
+  fromGateway PaymentGateway? @relation("FromGateway", fields: [fromGatewayKey], references: [key], onDelete: Restrict)
+
+  @@index([purpose, at])
+}
+
 /// محاولة دفع — **سجلٌّ لكل محاولة لا لكل نجاح**.
 ///
 /// المحاولات الفاشلة هي ما يُشتكى منه: «دفعتُ ولم يصل». وبلا صفّ لكل
 /// محاولة لا يمكن الردّ إلا بـ«لا نرى شيئًا».
+///
+/// و`gatewayKey` **لقطة لا إعداد** (قاعدة ١ من قرار ٣٤): الحجز يُفرَج
+/// من حيث أُنشئ، ولا نقل أرصدة بين بوابتين أبدًا.
 model Payment {
-  id        String        @id @default(cuid())
-  orderId   String
-  amount    Decimal       @db.Decimal(12, 2)
-  currency  String        @default("SAR")
-  method    String // mada | visa | mastercard | applepay | bank_transfer
-  status    PaymentStatus @default(CREATED)
-  /// معرّف العملية عند المزوّد — يبقى فارغًا حتى يصل مزوّد حقيقي
-  providerRef String?
+  id         String         @id @default(cuid())
+  orderId    String?
+  purpose    PaymentPurpose
+  gatewayKey String
+  environment IntegrationEnv @default(TEST)
+  amount     Decimal        @db.Decimal(12, 2)
+  currency   String         @default("SAR")
+  method     String // mada | visa | mastercard | applepay | bank_transfer
+  status     PaymentStatus  @default(CREATED)
+  /// مرجع الحجز لدى البوابة — تُبنى عليه التسوية والإلغاء
+  holdRef     String?
+  /// مرجع التسوية — يُبنى عليه الردّ الجزئي
+  settleRef   String?
   /// رابط تحدّي 3DS حين تطلبه البطاقة
-  threeDsUrl  String?
+  actionUrl   String?
   failureCode String?
+  /// ما سُوِّي وما رُدّ — جزئيًّا مسموح، فالمبلغ لا يكفي وحده
+  settledAmount  Decimal? @db.Decimal(12, 2)
+  returnedAmount Decimal? @db.Decimal(12, 2)
   createdAt   DateTime  @default(now())
-  authorizedAt DateTime?
-  capturedAt   DateTime?
-  failedAt     DateTime?
+  heldAt      DateTime?
+  settledAt   DateTime?
+  cancelledAt DateTime?
+  failedAt    DateTime?
 
-  order  Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  order  Order?         @relation(fields: [orderId], references: [id], onDelete: Restrict)
   events PaymentEvent[]
 
   @@index([orderId, createdAt])
   @@index([status, createdAt])
+  /// المطابCة تجمع بالبوابة واليوم — لا تفترض بوابة واحدة لليوم
+  @@index([gatewayKey, createdAt])
 }
 
+/// حالات المال — **بلغة الضمان لا بلغة البطاقة** (قرار ٣٤).
 enum PaymentStatus {
   CREATED
-  REQUIRES_3DS
-  AUTHORIZED
-  CAPTURED
-  FAILED
+  /// تحدّي 3DS — ينتظر المستخدم
+  REQUIRES_ACTION
+  /// طُلب من البوابة ولم تؤكّد بعد — حساب الأمانة يبقى هنا حتى الويبهوك
+  PENDING
+  /// الحجز مؤكَّد — المال محجوز ولم يدخل حسابنا
+  HELD
+  SETTLED
+  PARTIALLY_SETTLED
+  /// أُلغي الحجز — لا استرجاع، لأن المال لم يتحرّك
   CANCELLED
-  REFUNDED
+  RETURNED
+  PARTIALLY_RETURNED
+  FAILED
 }
 
-/// كل انتقال حالة — **بمصدره**: من المستخدم أم من ويب هوك المزوّد.
+/// كل انتقال حالة — **بمصدره**: من المستخدم أم من ويب هوك البوابة.
 model PaymentEvent {
-  id        String   @id @default(cuid())
-  paymentId String
-  type      String
+  id         String         @id @default(cuid())
+  paymentId  String
+  type       String
   fromStatus PaymentStatus?
   toStatus   PaymentStatus
-  source     String // user | provider | admin | system
+  source     String // user | gateway | admin | system
   detail     Json?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime       @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 

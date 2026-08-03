@@ -229,8 +229,8 @@ export async function holdEscrow(
       amount: order.totalAmount,
       status: 'HELD',
       heldAt: now,
-      // المزوّد لاحقًا — والمرجع يبقى فارغًا حتى ذلك الحين لا مزوَّرًا
-      providerRef: null,
+      // البوابة لاحقًا — والمرجع يبقى فارغًا حتى ذلك الحين لا مزوَّرًا
+      gatewayRef: null,
     },
   });
   return { ok: true };
