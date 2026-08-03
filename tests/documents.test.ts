@@ -1,0 +1,221 @@
+import { afterAll, describe, expect, it } from 'vitest';
+import { db } from '@/lib/db';
+import {
+  issueSaleAgreement,
+  issueSettlementDocuments,
+  orderDocuments,
+  settlementFigures,
+} from '@/lib/domain/documents';
+import { applyState } from '@/lib/domain/payments';
+import { getOrder } from '@/lib/domain/orders';
+import { withOrder } from './helpers/order-fixture';
+
+afterAll(async () => {
+  await db.$disconnect();
+});
+
+describe('كشف التسوية يُرى قبل التسوية', () => {
+  it('قبل الإصدار: أرقامٌ محسوبة معلَّمة تقديرًا', async () => {
+    await withOrder(async (order) => {
+      const figures = await settlementFigures(order.id);
+      expect(figures).not.toBeNull();
+      expect(figures?.preview).toBe(true);
+      /**
+       * الصافي **متطابقٌ حسابيًّا** لا «أقلّ من القيمة»: العمولة ٠٪ الآن
+       * («عمولة المنصة (٠٪ حاليًا)» في التصميم)، فتأكيدُ النقصان كان
+       * يثبّت رقمًا لا قاعدة، ويسقط يوم تُفعَّل العمولة أو تُعطَّل.
+       */
+      expect(Number(figures?.netToSeller)).toBe(
+        Number(figures?.vehicleValue) - Number(figures?.commission) - Number(figures?.gatewayFee),
+      );
+      expect(Number(figures?.netToSeller)).toBeGreaterThan(0);
+    });
+  });
+
+  it('بعد الإصدار: يُقرأ من الصفّ لا يُحسب ثانية', async () => {
+    await withOrder(async (order) => {
+      await issueSettlementDocuments(order.id);
+      const figures = await settlementFigures(order.id);
+      expect(figures?.preview).toBe(false);
+
+      // القاعدة تغيّرت بعد الإصدار — والكشف الصادر لا يتحرّك
+      await db.order.update({
+        where: { id: order.id },
+        data: { settlementAmount: 1 },
+      });
+      const after = await settlementFigures(order.id);
+      expect(after?.vehicleValue).toBe(figures?.vehicleValue);
+    });
+  });
+
+  it('السعر المُسوَّى يتقدّم على المتّفق', async () => {
+    await withOrder(async (order) => {
+      await db.order.update({ where: { id: order.id }, data: { settlementAmount: 50_000 } });
+      const figures = await settlementFigures(order.id);
+      expect(figures?.vehicleValue).toBe('50000');
+      expect(figures?.vehicleValue).not.toBe(String(order.agreedPrice));
+    });
+  });
+
+  it('صافي البائع لا يصل المشتري', async () => {
+    await withOrder(async (order) => {
+      const asSeller = await getOrder(order.ref, order.sellerId, 'ar');
+      const asBuyer = await getOrder(order.ref, order.buyerId, 'ar');
+      expect(asSeller?.settlement).not.toBeNull();
+      expect(asBuyer?.settlement).toBeNull();
+    });
+  });
+});
+
+describe('الفاتورة تشهد بواقعة', () => {
+  it('PENDING لا تُصدر شيئًا — و SETTLED تُصدر', async () => {
+    await withOrder(async (order) => {
+      const payment = await db.payment.create({
+        data: {
+          orderId: order.id, purpose: 'VEHICLE_ESCROW', gatewayKey: 'moyasar',
+          amount: 100, method: 'mada', status: 'CREATED',
+        },
+      });
+      try {
+        await applyState(payment.id, 'PENDING', 'test');
+        expect(await db.taxInvoice.count({ where: { orderId: order.id } })).toBe(0);
+        expect(await db.settlementStatement.count({ where: { orderId: order.id } })).toBe(0);
+
+        await applyState(payment.id, 'SETTLED', 'test');
+        expect(await db.settlementStatement.count({ where: { orderId: order.id } })).toBe(1);
+
+        /**
+         * **العمولة ٠٪ ⇒ لا فاتورة عمولة.** ووثيقةٌ بمبلغ صفر ليست
+         * وثيقةً مخفَّفة بل وثيقةٌ كاذبة: تشهد بتوريدٍ لم يقع.
+         */
+        const invoices = await db.taxInvoice.findMany({ where: { orderId: order.id } });
+        expect(invoices.map((i) => i.ruleSupplyType)).not.toContain('COMMISSION');
+      } finally {
+        await db.paymentEvent.deleteMany({ where: { paymentId: payment.id } });
+        await db.payment.delete({ where: { id: payment.id } });
+        await db.escrow.updateMany({
+          where: { orderId: order.id },
+          data: { status: 'HELD', releasedAt: null },
+        });
+      }
+    });
+  });
+
+  it('العمولة حين تُفعَّل تُفوتَر', async () => {
+    await withOrder(async (order) => {
+      await db.order.update({
+        where: { id: order.id },
+        data: { commissionPct: 1, commissionAmount: 892.4 },
+      });
+      try {
+        const result = await issueSettlementDocuments(order.id);
+        expect(result.invoices.map((i) => i.supplyType)).toContain('COMMISSION');
+      } finally {
+        await db.order.update({
+          where: { id: order.id },
+          data: { commissionPct: 0, commissionAmount: 0 },
+        });
+      }
+    });
+  });
+
+  /**
+   * حارس الازدواج: الخدمة دُفعت بمعاملتها وفُوتِرت معها، فتسوية المركبة
+   * لا تعيد فوترتها. وسقوطُ هذا الاختبار يعني فاتورةً خرجت مرّتين.
+   */
+  it('الخدمات لا تُفوتَر ثانية عند التسوية — وتُعلَن مؤجَّلة', async () => {
+    await withOrder(async (order) => {
+      const result = await issueSettlementDocuments(order.id);
+      expect(result.invoices.map((i) => i.supplyType)).not.toContain('SERVICE');
+
+      const figures = await settlementFigures(order.id);
+      if (Number(figures?.servicesTotal) > 0) {
+        expect(result.blocked.map((b) => b.supplyType)).toContain('SERVICE');
+      }
+      // ورسوم النقل مؤجَّلة بانتظار التصنيف — معلَنةً لا ساقطة
+      expect(result.blocked.map((b) => b.supplyType)).toContain('TRANSFER_FEE');
+    });
+  });
+
+  it('التوريد المحجوب يُعلَن سببه ولا يُبتلع', async () => {
+    await withOrder(async (order) => {
+      const result = await issueSettlementDocuments(order.id);
+      const vehicle =
+        result.invoices.find((i) => i.supplyType === 'VEHICLE') ??
+        result.blocked.find((b) => b.supplyType === 'VEHICLE');
+      // إمّا فاتورة وإمّا سببٌ مكتوب — ولا صمت
+      expect(vehicle).toBeDefined();
+    });
+  });
+
+  it('نداءان لا يُصدران مستندين', async () => {
+    await withOrder(async (order) => {
+      await issueSettlementDocuments(order.id);
+      const first = await db.settlementStatement.count({ where: { orderId: order.id } });
+      await issueSettlementDocuments(order.id);
+      expect(await db.settlementStatement.count({ where: { orderId: order.id } })).toBe(first);
+    });
+  });
+});
+
+describe('عقد البيع', () => {
+  it('يُصدر مرّة، ويحمل الهيكل والطرفين', async () => {
+    await withOrder(async (order) => {
+      expect((await issueSaleAgreement(order.id)).ok).toBe(true);
+      expect((await issueSaleAgreement(order.id)).ok).toBe(true);
+
+      const agreements = await db.vehicleSaleAgreement.findMany({ where: { orderId: order.id } });
+      expect(agreements).toHaveLength(1);
+      expect(agreements[0]?.sellerName).not.toBe('');
+      expect(agreements[0]?.buyerName).not.toBe('');
+    });
+  });
+});
+
+describe('القادم يُعرض بموعده', () => {
+  it('قبل أي إصدار: ثلاثة مواضع، كلّها بموعدها لا بغيابها', async () => {
+    await withOrder(async (order) => {
+      const docs = await orderDocuments(order.ref, order.buyerId);
+      expect(docs).not.toBeNull();
+      expect(docs?.every((d) => d.state === 'PENDING')).toBe(true);
+      expect(docs?.map((d) => d.kind)).toEqual(['AGREEMENT', 'SETTLEMENT', 'INVOICE']);
+      // موعدٌ مذكور لكل قادم — والغياب بلا موعد هو ما يُقلق صاحب الطلب
+      expect(docs?.every((d) => d.availableAt !== null)).toBe(true);
+    });
+  });
+
+  it('بعد الإصدار: جاهزٌ برقمه', async () => {
+    await withOrder(async (order) => {
+      await issueSaleAgreement(order.id);
+      await issueSettlementDocuments(order.id);
+
+      const docs = await orderDocuments(order.ref, order.sellerId);
+      const ready = docs?.filter((d) => d.state === 'READY') ?? [];
+      expect(ready.length).toBeGreaterThanOrEqual(2);
+      expect(ready.every((d) => d.reference !== null)).toBe(true);
+      // الجاهز لا يحمل موعدًا — الموعد صفة القادم وحده
+      expect(ready.every((d) => d.availableAt === null)).toBe(true);
+    });
+  });
+
+  it('ثالثٌ غير الطرفين لا يرى شيئًا', async () => {
+    await withOrder(async (order) => {
+      expect(await orderDocuments(order.ref, 'someone-else')).toBeNull();
+    });
+  });
+});
+
+describe('السالب يحتفظ بإشارته', () => {
+  /**
+   * نصف القاعدة هنا ونصفها في `ArabicNumber`: التنسيق يضع الإشارة
+   * **قبل** الرقم، والمكوّن يثبّتها يسارًا بـ`dir="ltr"`. وبلا الاثنين
+   * يُرسم الخصم «٨٩٢−» فيُقرأ رقمًا وشرطةً غامضة — أو لا تُرى الشرطة
+   * فيُقرأ الخصم زيادة.
+   */
+  it('التنسيق يضع الإشارة قبل الرقم في اللغتين', async () => {
+    const { formatNumber } = await import('@/lib/arabic');
+    expect(formatNumber(-892, 'ar').startsWith('-')).toBe(true);
+    expect(formatNumber(-892, 'en').startsWith('-')).toBe(true);
+    expect(formatNumber(-2465, 'ar')).toBe('-٢٬٤٦٥');
+  });
+});

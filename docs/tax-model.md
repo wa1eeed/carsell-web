@@ -112,9 +112,40 @@ lost log line.
 **Not built:** the reporting client itself, cryptographic signing, and the
 XML export. They need ZATCA onboarding credentials.
 
+## 9 · What is issued at settlement, and what is deliberately not
+
+Issuance is wired to `applyState(payment, 'SETTLED')` — a **confirmed** settle,
+never `PENDING`. See `DESIGN-DECISIONS` § 39 for why, and `src/lib/domain/documents.ts`
+for the code.
+
+| Supply | At settlement | Reason |
+|---|---|---|
+| Commission | **Invoiced** | Our supply, settled by this payment. Currently 0 % (see below), so in practice no line is produced. |
+| Vehicle | Rule-dependent | Usually `NO_MATCHING_RULE` today — the three rows in § 5 are inactive by design. |
+| Services | **Not invoiced here** | `SERVICE_PURCHASE` is its own payment; the supply happened when the service was delivered. Re-invoicing at vehicle settlement is a **duplicate**, not a late invoice. |
+| Transfer fee | **Not invoiced here** | Unresolved whether it is our supply or a pass-through of a government charge. See question 11. |
+
+Nothing is dropped silently: every deferred supply appears in
+`IssueDocumentsResult.blocked` with a written reason, so the monthly
+reconciliation asks a question that already has an answer on file.
+
+### Commission is 0 % at launch
+
+The design states «عمولة المنصة (٠٪ حاليًا)». A zero-value invoice is not a
+lighter document — it attests to a supply that did not occur — so no commission
+invoice is issued while the rate is zero. A test locks both directions: none at
+0 %, one when the rate is switched on.
+
+### Who bears the gateway fee
+
+The settlement statement currently deducts **100 % of the gateway fee from the
+seller's net**, computed from the gateway's declared `feePct` / `feeFixed`. This
+is the common marketplace default, but it is a policy choice, not a derivation —
+see question 12.
+
 ---
 
-## Ten questions for the tax adviser
+## Twelve questions for the tax adviser
 
 1. **Deemed supplier.** When an unregistered individual sells to an individual
    through the platform, does the January 2026 amendment make us the supplier of
@@ -143,3 +174,10 @@ XML export. They need ZATCA onboarding credentials.
 10. **Credit notes and the return window.** A buyer returns a vehicle within the
     7-day window after a dealer sale — does the dealer issue the credit note, do
     we, and what is the deadline relative to the original invoice?
+11. **Transfer fee.** The 350 SAR ownership-transfer fee is currently stored with
+    VAT embedded at 15/115. Is it our taxable supply, or a disbursement passed
+    through to the traffic department and therefore outside the scope of our
+    invoice?
+12. **Gateway fee incidence.** We deduct the payment-gateway fee from the seller's
+    net. Does that deduction change the taxable base of our commission supply, and
+    must it appear on any invoice rather than only on the settlement statement?

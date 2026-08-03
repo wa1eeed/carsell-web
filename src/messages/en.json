@@ -723,9 +723,16 @@
     "disputeFrozen": "The order is frozen at its stage: it neither advances nor lapses until the dispute is resolved.",
     "slaDue": "Response due by",
     "event": {
-      "stage": { "advanced": "Stage advanced" },
-      "dispute": { "opened": "Dispute opened", "resolved": "Dispute resolved" },
-      "payment": { "timeout": "Payment window missed" },
+      "stage": {
+        "advanced": "Stage advanced"
+      },
+      "dispute": {
+        "opened": "Dispute opened",
+        "resolved": "Dispute resolved"
+      },
+      "payment": {
+        "timeout": "Payment window missed"
+      },
       "other": "Order update"
     },
     "escrowState": {
@@ -734,6 +741,32 @@
       "RELEASED": "Funds released to the seller.",
       "REFUNDED": "Funds refunded in full to the buyer.",
       "PARTIAL_REFUND": "Part of the amount was refunded to the buyer."
+    },
+    "documents": "Deal documents",
+    "documentsNote": "Issued and upcoming — each at its own moment.",
+    "docKind": {
+      "AGREEMENT": "Sale agreement",
+      "SETTLEMENT": "Settlement statement",
+      "INVOICE": "Tax invoice"
+    },
+    "docAt": {
+      "TRANSFER_CONFIRMED": "Issued when ownership transfer is confirmed",
+      "SETTLED": "Issued when the funds are released"
+    },
+    "docSupply": {
+      "COMMISSION": "for commission",
+      "SERVICE": "for services",
+      "VEHICLE": "for the vehicle"
+    },
+    "docNumber": "Invoice number",
+    "settlementTitle": "Your net proceeds",
+    "settlementPreview": "Estimate: computed from the amount held now, fixed as a statement on release.",
+    "settlementNotInvoice": "A financial statement, not a tax invoice.",
+    "settlementRow": {
+      "vehicleValue": "Vehicle value",
+      "commission": "Platform commission",
+      "gatewayFee": "Payment gateway fee",
+      "netToSeller": "Your net"
     }
   },
   "auctions": {

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import type { OrderDocument, SettlementFigures } from './documents';
 import type { OrderStage } from '@/generated/prisma/enums';
 import { returnWindowFrom, transferDeadlineFrom } from './transfer-windows';
 
@@ -52,7 +53,9 @@ export async function advanceStage(
   input: { orderRef: string; actorId: string; to: OrderStage },
   now: Date = new Date(),
 ): Promise<AdvanceResult> {
-  return db.$transaction(async (tx) => {
+  let orderId: string | null = null;
+
+  const result = await db.$transaction(async (tx): Promise<AdvanceResult> => {
     const order = await tx.order.findUnique({
       where: { ref: input.orderRef },
       select: { id: true, stage: true, status: true, buyerId: true, sellerId: true },
@@ -94,8 +97,22 @@ export async function advanceStage(
       },
     });
 
+    orderId = order.id;
     return { ok: true, stage: input.to };
   });
+
+  /**
+   * عقد البيع **عند تأكيد النقل** — وهو اللحظة التي صار فيها للمشتري
+   * مركبةٌ باسمه. وقبلها العقد وعدٌ لا واقعة.
+   *
+   * وخارج المعاملة: انتقال المرحلة واقعةٌ لا تُلغى لأن مستندًا تعثّر.
+   */
+  if (result.ok && input.to === 'DONE' && orderId !== null) {
+    const { issueSaleAgreement } = await import('./documents');
+    await issueSaleAgreement(orderId, now);
+  }
+
+  return result;
 }
 
 export type PublicOrder = {
@@ -117,6 +134,15 @@ export type PublicOrder = {
     total: string;
   };
   escrow: { status: string; amount: string; heldAt: string | null; releasedAt: string | null } | null;
+  /** مستندات الصفقة — الصادر والقادم معًا. */
+  documents: OrderDocument[];
+  /**
+   * أرقام التسوية — **للبائع وحده**.
+   *
+   * صافي البائع معلومته هو، ولا شأن للمشتري به. و`preview: true` تعني
+   * أنها تقديرٌ قبل التسوية لا كشفٌ صادر.
+   */
+  settlement: SettlementFigures | null;
   dispute: { id: string; status: string; slaDueAt: string; openedAt: string } | null;
   listing: { ref: string; title: string; year: number; path: string };
   counterparty: { name: string; isSeller: boolean };
@@ -155,9 +181,15 @@ export async function getOrder(
   if (order.buyerId !== viewerId && order.sellerId !== viewerId) return null;
 
   const { canonicalPath } = await import('./listing-detail');
+  const { orderDocuments, settlementFigures } = await import('./documents');
   const viewerIsBuyer = order.buyerId === viewerId;
   const other = viewerIsBuyer ? order.seller : order.buyer;
   const dispute = order.disputes[0] ?? null;
+
+  const [documents, settlement] = await Promise.all([
+    orderDocuments(ref, viewerId),
+    viewerIsBuyer ? Promise.resolve(null) : settlementFigures(order.id),
+  ]);
 
   return {
     ref: order.ref,
@@ -188,6 +220,8 @@ export async function getOrder(
             heldAt: order.escrow.heldAt?.toISOString() ?? null,
             releasedAt: order.escrow.releasedAt?.toISOString() ?? null,
           },
+    documents: documents ?? [],
+    settlement,
     dispute:
       dispute === null
         ? null

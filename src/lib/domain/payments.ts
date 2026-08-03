@@ -193,7 +193,9 @@ export async function applyState(
   now: Date = new Date(),
   detail?: Prisma.InputJsonValue,
 ): Promise<AdvanceResult> {
-  return db.$transaction(async (tx) => {
+  let orderId: string | null = null;
+
+  const result = await db.$transaction(async (tx): Promise<AdvanceResult> => {
     const payment = await tx.payment.findUnique({
       where: { id: paymentId },
       select: { id: true, status: true, orderId: true, amount: true, gatewayKey: true },
@@ -271,8 +273,29 @@ export async function applyState(
       });
     }
 
+    orderId = payment.orderId;
+
     return { ok: true, status: to };
   });
+
+  /**
+   * ═══ الفاتورة تشهد بواقعة ═══
+   *
+   * والإصدار **بعد** إغلاق المعاملة لا داخلها: الواقعة هي التسوية،
+   * والمستند مشتقٌّ منها. فلو فشل الإصدار وجب أن تبقى التسوية قائمة
+   * ويُعاد الإصدار — لا أن تُلغى تسويةٌ وقعت لأن ورقةً لم تُطبع.
+   *
+   * و`PENDING` لا تُصدر شيئًا: «ينتظر التأكيد» ليست واقعة بعد.
+   *
+   * // DESIGN-Q: `PARTIALLY_SETTLED` لا تُصدر — والمال تحرّك فيها جزئيًّا.
+   * انظر docs/tax-model.md § 9.
+   */
+  if (result.ok && to === 'SETTLED' && orderId !== null) {
+    const { issueSettlementDocuments } = await import('./documents');
+    await issueSettlementDocuments(orderId, now);
+  }
+
+  return result;
 }
 
 export const SETTLE_WINDOW_HOURS = 72;

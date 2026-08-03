@@ -34,6 +34,13 @@ export function OrderScreen({
   const days = Math.floor(order.dwellSeconds / 86_400);
   const frozen = order.status === 'DISPUTED';
 
+  const deductions = (
+    [
+      ['commission', order.settlement?.commission ?? '0'],
+      ['gatewayFee', order.settlement?.gatewayFee ?? '0'],
+    ] as const
+  ).filter(([, value]) => Number(value) > 0);
+
   return (
     <>
       {/* النزاع يتصدّر: ما دام مفتوحًا فهو حال الطلب لا حاشيته */}
@@ -137,6 +144,96 @@ export function OrderScreen({
               <ArabicNumber value={Number(order.amounts.total)} />
             </div>
             <p className="mt-2 text-3xs opacity-45">{t('vatIncluded')}</p>
+          </section>
+
+          {/*
+            ═══ الصافي يُرى **قبل** الإفراج لا بعده ═══
+
+            كشفٌ يظهر بعد تحرّك المال يشرح ما وقع، وكشفٌ يظهر قبله يجعل
+            البائع يعترض وهو ما زال ممكنًا. والتقدير معلَنٌ تقديرًا: لا
+            يُعرض رقمٌ مؤقّت بهيئة رقمٍ نهائيّ.
+          */}
+          {order.settlement === null ? null : (
+            <section
+              className={`mb-3.5 rounded-xl p-5 ${
+                order.settlement.preview ? 'border border-dashed border-line' : 'border border-line'
+              }`}
+            >
+              <h2 className="mb-1.5 text-xs font-bold">{t('settlementTitle')}</h2>
+              <Money amount={Number(order.settlement.netToSeller)} size="lg" />
+              {/*
+                **الخصم الصفريّ لا يُعرض.** «رسوم بوابة الدفع −٠» قبل
+                اختيار البوابة تقول «لا رسوم» وصوابها «لم تُعرف بعد» —
+                وصفرٌ معناه مجهول أسوأ من سطرٍ غائب. والعمولة ٠٪ مذكورة
+                في بطاقة المبالغ فوقها، فتكرارها هنا ضجيج.
+              */}
+              {deductions.length === 0 ? null : (
+                <div className="mt-3.5 border-t border-line pt-3">
+                  <div className="flex items-center justify-between gap-4 py-1 text-2xs">
+                    <span className="opacity-60">{t('settlementRow.vehicleValue')}</span>
+                    <ArabicNumber
+                      value={Number(order.settlement.vehicleValue)}
+                      className="font-bold"
+                    />
+                  </div>
+                  {deductions.map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between gap-4 py-1 text-2xs">
+                      <span className="opacity-60">{t(`settlementRow.${key}`)}</span>
+                      <ArabicNumber value={-Number(value)} className="font-bold" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="mt-3 text-3xs leading-loose opacity-50">
+                {order.settlement.preview ? t('settlementPreview') : t('settlementNotInvoice')}
+              </p>
+            </section>
+          )}
+
+          {/*
+            ═══ القادم يُعرض بموعده ═══
+
+            وقسمٌ فارغ يجعل صاحب الطلب يظنّ أن مستندًا ضاع. فـ«عقد البيع —
+            يصدر عند تأكيد النقل» أوضح من غيابه، والتذكير يسبق لحظة الحاجة.
+          */}
+          <section className="mb-3.5 rounded-xl border border-line p-5">
+            <h2 className="mb-1 text-xs font-bold">{t('documents')}</h2>
+            <p className="mb-3 text-3xs opacity-50">{t('documentsNote')}</p>
+            <ul className="flex flex-col gap-2.5">
+              {order.documents.map((doc, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span
+                    aria-hidden
+                    className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
+                      doc.state === 'READY' ? 'bg-accent' : 'bg-line'
+                    }`}
+                  />
+                  <div className={`min-w-0 ${doc.state === 'READY' ? '' : 'opacity-45'}`}>
+                    <p className="text-2xs font-bold">
+                      {t(`docKind.${doc.kind}`)}
+                      {doc.supplyType === undefined ? null : (
+                        <span className="font-normal opacity-60">
+                          {' '}
+                          {t(`docSupply.${doc.supplyType}`)}
+                        </span>
+                      )}
+                    </p>
+                    {doc.availableAt === null ? null : (
+                      <p className="mt-0.5 text-3xs">{t(`docAt.${doc.availableAt}`)}</p>
+                    )}
+                    {doc.kind !== 'INVOICE' || doc.reference === null ? null : (
+                      <p className="mt-0.5 flex items-center gap-1.5 text-3xs opacity-60">
+                        {t('docNumber')}
+                        {/* الرقم يُنسخ ويُقارن خانةً بخانة — لاتينيّ ومعزول */}
+                        <span dir="ltr" className="bidi-isolate font-num">
+                          {doc.reference}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section className="rounded-xl border border-line p-5">

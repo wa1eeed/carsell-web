@@ -77,3 +77,46 @@ footnote.
 
 Someone who is not a party to the order gets **404, not 403** — the existence of
 the order is itself information.
+
+
+## Deal documents on the order page (`Wj`)
+
+`getOrder` returns two additional fields, both derived from
+`src/lib/domain/documents.ts`.
+
+### `documents: OrderDocument[]`
+
+Every order lists three document slots — **issued and upcoming together**. A slot
+that does not exist yet carries `state: 'PENDING'` and an `availableAt` naming the
+moment it will appear (`TRANSFER_CONFIRMED` or `SETTLED`), which the screen renders
+as "issued when ownership transfer is confirmed".
+
+An empty section reads as *something was lost*. Naming the moment is the fix.
+
+Tax invoices appear one row per issued invoice, each with its number and
+`supplyType`. The number is rendered `dir="ltr"` — it is copied and compared
+digit by digit.
+
+Returns `null` for anyone who is not a party to the order.
+
+### `settlement: SettlementFigures | null`
+
+**Seller only.** The buyer receives `null`; the seller's net is not the buyer's
+business.
+
+Before settlement the figures are computed live and carry `preview: true`; the
+screen marks them estimated and draws a dashed border. After issuance they are
+read from the stored `SettlementStatement` and `preview` is `false`.
+
+Deduction rows render only when greater than zero: a gateway fee shown as `0`
+before a gateway is chosen claims "no fee" when it means "not yet known".
+
+| Field | Note |
+|---|---|
+| `vehicleValue` | `settlementAmount` when a partial settle fixed a lower price, else `agreedPrice` |
+| `commission` | 0 % at launch — see `docs/tax-model.md` § 9 |
+| `gatewayFee` | From the gateway's declared capabilities; estimated until the gateway settles |
+| `servicesTotal` | **Disclosed, not deducted** — services are paid in their own transaction |
+| `netToSeller` | `vehicleValue − commission − gatewayFee` |
+
+The statement header states it is not a tax invoice.

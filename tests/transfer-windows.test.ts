@@ -11,6 +11,7 @@ import {
   settleableOrders,
   transferDeadlineFrom,
 } from '@/lib/domain/transfer-windows';
+import { withOrder } from './helpers/order-fixture';
 
 afterAll(async () => {
   await db.$disconnect();
@@ -27,42 +28,6 @@ async function admin() {
       name: 'مشغّل', role: 'OPS', passwordHash: 'x',
     },
   });
-}
-
-/**
- * **الاختبار يعيد ما غيّره.**
- *
- * هذه الاختبارات تُبدّل حالة طلبٍ مزروع. وتركُها على حالها أفرغ قاعدة
- * التطوير من كل طلب `ACTIVE` فسقط التشغيل التالي كلّه — والاختبار الذي
- * يلوّث بيانات غيره أسوأ من غيابه: يمرّ وحده ويُسقط جيرانه.
- */
-async function withOrder(
-  body: (order: { id: string; ref: string; buyerId: string; sellerId: string }) => Promise<void>,
-): Promise<void> {
-  const before = await db.order.findFirstOrThrow({ orderBy: { ref: 'asc' } });
-  const escrowBefore = await db.escrow.findUnique({ where: { orderId: before.id } });
-  try {
-    await body(before);
-  } finally {
-    await db.order.update({
-      where: { id: before.id },
-      data: {
-        stage: before.stage,
-        status: before.status,
-        transferDeadlineAt: before.transferDeadlineAt,
-        transferDeadlineExtendedAt: before.transferDeadlineExtendedAt,
-        transferExtensionReason: before.transferExtensionReason,
-        returnWindowEndsAt: before.returnWindowEndsAt,
-      },
-    });
-    await db.escrow.deleteMany({ where: { orderId: before.id } });
-    if (escrowBefore !== null) {
-      await db.escrow.create({ data: escrowBefore });
-    }
-    await db.orderEvent.deleteMany({
-      where: { orderId: before.id, actorType: 'user', type: 'stage.advanced', fromStage: 'PAYMENT' },
-    });
-  }
 }
 
 describe('═══ القاعدة ١ ═══ سقف النقل — الدفع + ٧ أيام', () => {

@@ -723,9 +723,16 @@
     "disputeFrozen": "الطلب مجمَّد في مرحلته: لا يتقدّم ولا يسقط حتى يُحسم النزاع.",
     "slaDue": "مهلة الردّ حتى",
     "event": {
-      "stage": { "advanced": "انتقال مرحلة" },
-      "dispute": { "opened": "فُتح نزاع", "resolved": "حُسم النزاع" },
-      "payment": { "timeout": "فاتت مهلة الدفع" },
+      "stage": {
+        "advanced": "انتقال مرحلة"
+      },
+      "dispute": {
+        "opened": "فُتح نزاع",
+        "resolved": "حُسم النزاع"
+      },
+      "payment": {
+        "timeout": "فاتت مهلة الدفع"
+      },
       "other": "تحديث على الطلب"
     },
     "escrowState": {
@@ -734,6 +741,32 @@
       "RELEASED": "أُفرج عن المبلغ للبائع.",
       "REFUNDED": "أُعيد المبلغ كاملًا للمشتري.",
       "PARTIAL_REFUND": "أُعيد جزء من المبلغ للمشتري."
+    },
+    "documents": "مستندات الصفقة",
+    "documentsNote": "ما صدر وما سيصدر — وكلٌّ في لحظته.",
+    "docKind": {
+      "AGREEMENT": "عقد البيع",
+      "SETTLEMENT": "كشف التسوية",
+      "INVOICE": "فاتورة ضريبية"
+    },
+    "docAt": {
+      "TRANSFER_CONFIRMED": "يصدر عند تأكيد نقل الملكية",
+      "SETTLED": "يصدر عند الإفراج عن المبلغ"
+    },
+    "docSupply": {
+      "COMMISSION": "عن العمولة",
+      "SERVICE": "عن الخدمات",
+      "VEHICLE": "عن المركبة"
+    },
+    "docNumber": "رقم الفاتورة",
+    "settlementTitle": "صافي ما تستلمه",
+    "settlementPreview": "تقديريّ: محسوب من المبلغ المحجوز الآن، ويُثبَّت كشفًا عند الإفراج.",
+    "settlementNotInvoice": "كشف ماليّ، وليس فاتورة ضريبية.",
+    "settlementRow": {
+      "vehicleValue": "قيمة المركبة",
+      "commission": "عمولة المنصة",
+      "gatewayFee": "رسوم بوابة الدفع",
+      "netToSeller": "الصافي لك"
     }
   },
   "auctions": {
