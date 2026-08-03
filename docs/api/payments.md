@@ -159,6 +159,23 @@ Added by decision 32: **three consecutive failed attempts** show "try another
 card or contact your bank". Silent repetition reads as a fault in the platform
 rather than in the card.
 
+## 7b · `bank_escrow` — undetermined, designed for the harder case
+
+The bank is not chosen. The key stays as a placeholder, and its adapter is
+designed against **the harder possibility, not the easier one**:
+
+- **`status()` may be a settlement-file read, not an API call.** It returns
+  `PENDING` until the file arrives, and never assumes an immediate answer.
+- **File import is idempotent**: the same file read twice produces no duplicate
+  entry. Settlement files get re-sent, re-downloaded and re-run by hand; a
+  duplicated entry in a money ledger is not a cosmetic defect.
+- **The other four may be scheduled instructions rather than live calls** — which
+  is precisely why `PENDING` is a legitimate state in the contract rather than an
+  error. No new code path is needed for that model; the same interface carries it.
+
+If the bank turns out to expose a live API, an adapter built for files works
+unchanged — the reverse is not true, which is why this direction was chosen.
+
 ## 8 · What does not exist yet, stated plainly
 
 - **No adapter has been tested against a live gateway.** Moyasar test keys are
