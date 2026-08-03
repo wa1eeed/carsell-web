@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
 import { DEFAULT_VAT_PCT } from './tax';
-import { effectiveAdminFee, ourVat } from './fees';
+import { effectiveAdminFee, ourVat, processingFeeFor } from './fees';
 
 /**
  * العروض — القواعد ١–٥ من القسم ٧.
@@ -348,7 +348,24 @@ export async function acceptOffer(
       adminFeeEnabled: platform?.transferAdminFeeEnabled ?? false,
       adminFee: platform?.transferAdminFee ?? 0,
     });
-    const total = price + commissionAmount + transferFee + Number(transferAdminFee);
+    /**
+     * رسوم المعالجة **تُضاف للمشتري أو تُخصم من البائع، لا كليهما**.
+     * فما يدخل الإجمالي هنا صفرٌ حين يتحمّلها البائع، وخصمُه يقع لاحقًا
+     * في كشف التسوية من مستحقّه.
+     */
+    const processingFee = processingFeeFor(
+      platform ?? {
+        processingFeeEnabled: false,
+        processingFeeBearer: 'SELLER',
+        processingFeePct: 0,
+        processingFeeFixed: 0,
+      },
+      price,
+    );
+    const processingFeeBearer = platform?.processingFeeBearer ?? 'SELLER';
+    const buyerShare = processingFeeBearer === 'BUYER' ? Number(processingFee) : 0;
+
+    const total = price + commissionAmount + transferFee + Number(transferAdminFee) + buyerShare;
 
     /**
      * الضريبة على **توريداتنا وحدها** — العمولة والرسم الإداريّ.
@@ -357,7 +374,8 @@ export async function acceptOffer(
      * والرسمَ الحكوميّ (لسنا مورّده) في وعاءٍ ليسا منه. يُصحَّح «قرار ١٧».
      */
     const vatAmount = ourVat(
-      { commissionAmount, transferAdminFee },
+      // رسوم المعالجة توريدٌ منّا فتدخل الوعاء أيًّا كان من تحمّلها
+      { commissionAmount, transferAdminFee, processingFee },
       Number(platform?.vatPct ?? DEFAULT_VAT_PCT),
     );
 
@@ -376,6 +394,8 @@ export async function acceptOffer(
         commissionAmount: new Prisma.Decimal(commissionAmount),
         transferFee: new Prisma.Decimal(transferFee),
         transferAdminFee,
+        processingFee,
+        processingFeeBearer,
         vatAmount,
         totalAmount: new Prisma.Decimal(total),
         createdAt: now,

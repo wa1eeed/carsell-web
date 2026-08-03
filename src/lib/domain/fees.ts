@@ -118,13 +118,79 @@ export function effectiveAdminFee(source: {
 export function ourTaxableBase(order: {
   commissionAmount: Prisma.Decimal | number | string;
   transferAdminFee: Prisma.Decimal | number | string;
+  processingFee?: Prisma.Decimal | number | string;
 }): Prisma.Decimal {
-  return new Prisma.Decimal(order.commissionAmount).plus(new Prisma.Decimal(order.transferAdminFee));
+  return new Prisma.Decimal(order.commissionAmount)
+    .plus(new Prisma.Decimal(order.transferAdminFee))
+    .plus(new Prisma.Decimal(order.processingFee ?? 0));
 }
 
 export function ourVat(
-  order: { commissionAmount: Prisma.Decimal | number | string; transferAdminFee: Prisma.Decimal | number | string },
+  order: {
+    commissionAmount: Prisma.Decimal | number | string;
+    transferAdminFee: Prisma.Decimal | number | string;
+    processingFee?: Prisma.Decimal | number | string;
+  },
   ratePct: number = DEFAULT_VAT_PCT,
 ): Prisma.Decimal {
   return vatIncluded(ourTaxableBase(order), ratePct);
+}
+
+/**
+ * ═══ رسوم معالجة الدفع — سياسةٌ لا تكلفة ═══
+ *
+ * **وهي توريدٌ منّا لا صرفٌ نيابةً عن العميل.** الفرق عن رسم المرور
+ * جوهريّ: هناك العميل هو المدين والمرور يُصدر له، وهنا **البوابة تفوتر
+ * نحن**. فتمريرُها إلى أيّ من الطرفين إعادةُ تحميلِ تكلفتنا — أي خدمةٌ
+ * نورّدها، خاضعة للضريبة بالكامل.
+ *
+ * ولذلك **لا `assertNoMarkup` عليها**: الزيادة فوق تكلفتنا مسموحة ولا
+ * تُغيّر تصنيفًا، لأن التصنيف «توريدُنا» من الأصل.
+ */
+export type ProcessingFeePolicy = {
+  processingFeeEnabled: boolean;
+  processingFeeBearer: 'SELLER' | 'BUYER';
+  processingFeePct: Prisma.Decimal | number | string;
+  processingFeeFixed: Prisma.Decimal | number | string;
+};
+
+/**
+ * `نسبة × قيمة البيع + ثابت` — **والاثنان يجتمعان**.
+ *
+ * فترك أحدهما صفرًا يُنتج الصيغة المفردة، ولا حاجة إلى راية ثالثة تقول
+ * «أيّهما»: صفرٌ في أحدهما هو الجواب.
+ */
+export function processingFeeFor(
+  policy: ProcessingFeePolicy,
+  saleValue: Prisma.Decimal | number | string,
+): Prisma.Decimal {
+  if (!policy.processingFeeEnabled) return new Prisma.Decimal(0);
+
+  const pct = new Prisma.Decimal(policy.processingFeePct).dividedBy(100);
+  const fixed = new Prisma.Decimal(policy.processingFeeFixed);
+  return new Prisma.Decimal(saleValue).times(pct).plus(fixed).toDecimalPlaces(2);
+}
+
+/** ما يُضاف إلى إجمالي المشتري — صفرٌ حين يتحمّلها البائع. */
+export function processingFeeOnBuyer(
+  policy: ProcessingFeePolicy,
+  saleValue: Prisma.Decimal | number | string,
+): Prisma.Decimal {
+  return policy.processingFeeBearer === 'BUYER'
+    ? processingFeeFor(policy, saleValue)
+    : new Prisma.Decimal(0);
+}
+
+/**
+ * ما يُخصم من مستحقّ البائع — صفرٌ حين يتحمّلها المشتري.
+ *
+ * **ولا يُخصم ما دُفع.** لو خُصم من البائع ما أضافه المشتري لأخذناها
+ * مرّتين، وهو أخطر ما في هذين الحقلين: كلٌّ منهما صحيحٌ وحده.
+ */
+export function processingFeeOnSeller(
+  order: { processingFee: Prisma.Decimal | number | string; processingFeeBearer: 'SELLER' | 'BUYER' },
+): Prisma.Decimal {
+  return order.processingFeeBearer === 'SELLER'
+    ? new Prisma.Decimal(order.processingFee)
+    : new Prisma.Decimal(0);
 }

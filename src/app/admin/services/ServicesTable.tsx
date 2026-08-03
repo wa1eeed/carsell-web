@@ -11,7 +11,7 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toLatinDigits } from '@/lib/arabic';
+import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
 import type { ServiceRow } from '@/lib/domain/admin-services';
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -180,9 +180,10 @@ export function ServicesTable({
 
     patch(draft.key, body, (data) => {
       const untouched = (data as { untouchedRequests?: number } | undefined)?.untouchedRequests;
+      // العددُ بين قوسين فلا يحكم المعدود — والعربية ستّ حالات جمع
       return untouched === undefined || untouched === 0
         ? 'حُفظ.'
-        : `حُفظ — و${String(untouched)} طلبًا قائمًا بقي بسعره.`;
+        : `حُفظ · الطلبات القائمة (${toArabicDigits(String(untouched))}) بقيت بسعرها.`;
     });
     setDraft(null);
   };

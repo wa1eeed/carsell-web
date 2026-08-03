@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
+import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
-import type { IntegrationEnv, PaymentPurpose } from '@/generated/prisma/enums';
+import type { FeeBearer, IntegrationEnv, PaymentPurpose } from '@/generated/prisma/enums';
 import {
   PURPOSE_REQUIREMENTS,
   eligibility,
@@ -327,4 +328,85 @@ export async function expiringHolds(now: Date = new Date()): Promise<ExpiringHol
   }
 
   return out.sort((a, b) => a.hoursLeft - b.hoursLeft);
+}
+
+/**
+ * ═══ سياسة رسوم المعالجة ═══
+ *
+ * وموضعها هنا لا في إعدادٍ عامّ: هي **قرارُ تسعيرٍ يرافق البوابات**،
+ * والمشغّل الذي يبدّل بوابةً هو من يراجع ما يُحمَّل مقابلها.
+ *
+ * وهي غير `capabilities.feePct`: تلك ما تأخذه البوابة منّا (تكلفتنا)،
+ * وهذه ما نأخذه نحن (سياستنا). ولا تُشتقّ إحداهما من الأخرى — فتغييرُ
+ * عقدٍ مع مزوّد لا يغيّر ما يستلمه البائعون صمتًا.
+ */
+export type ProcessingFeeRow = {
+  enabled: boolean;
+  bearer: FeeBearer;
+  pct: string;
+  fixed: string;
+};
+
+export async function getProcessingFee(): Promise<ProcessingFeeRow> {
+  const row = await db.platformSetting.findUnique({ where: { id: 'default' } });
+  return {
+    enabled: row?.processingFeeEnabled ?? false,
+    bearer: row?.processingFeeBearer ?? 'SELLER',
+    pct: (row?.processingFeePct ?? new Prisma.Decimal(0)).toString(),
+    fixed: (row?.processingFeeFixed ?? new Prisma.Decimal(0)).toString(),
+  };
+}
+
+export type ProcessingFeeResult =
+  | { ok: true; row: ProcessingFeeRow; openOrders: number }
+  | { ok: false; reason: 'INVALID' };
+
+/**
+ * الحفظ **لا يمسّ طلبًا قائمًا** — `Order.processingFee` لقطةٌ وقت
+ * الإنشاء، والعدد المُعاد يُري المشغّل ما بقي على سياسته القديمة قبل أن
+ * يسأل عنه.
+ */
+export async function setProcessingFee(
+  admin: AdminUser,
+  input: { enabled: boolean; bearer: FeeBearer; pct: number; fixed: number },
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<ProcessingFeeResult> {
+  const sane =
+    Number.isFinite(input.pct) &&
+    Number.isFinite(input.fixed) &&
+    input.pct >= 0 &&
+    input.pct <= 100 &&
+    input.fixed >= 0;
+  if (!sane) return { ok: false, reason: 'INVALID' };
+
+  const before = await getProcessingFee();
+
+  await db.platformSetting.update({
+    where: { id: 'default' },
+    data: {
+      processingFeeEnabled: input.enabled,
+      processingFeeBearer: input.bearer,
+      processingFeePct: new Prisma.Decimal(input.pct),
+      processingFeeFixed: new Prisma.Decimal(input.fixed),
+    },
+  });
+
+  const openOrders = await db.order.count({ where: { status: 'ACTIVE' } });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorType: 'admin',
+      entity: 'PlatformSetting',
+      entityId: 'default',
+      action: 'payments.processing_fee_changed',
+      before: { ...before },
+      after: { ...input, openOrders },
+      ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true, row: await getProcessingFee(), openOrders };
 }

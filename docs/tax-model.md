@@ -305,3 +305,36 @@ before the move is lost.
 
 `Dealer.marginScheme*` is now read-only legacy and should be dropped once its
 last reader is gone.
+
+## 12 · The payment processing fee is ours, not a disbursement
+
+**Ruled 2026-08-03.** Configurable in the admin, inside the gateways screen:
+enable it, choose who bears it, and set a percentage, a fixed amount, or both.
+
+`PlatformSetting.processingFee*` holds the policy; `Order.processingFee` and
+`Order.processingFeeBearer` snapshot it at creation so a policy change never
+moves money on an order already under way.
+
+### Why it is not treated like the transfer fee
+
+The transfer fee is a disbursement because the **customer** is the party liable
+and the traffic department's charge is theirs. The payment gateway invoices
+**us** — we are the merchant. Passing its cost on is therefore a recharge of our
+own cost, which is a supply of a service by us: standard-rated, in full.
+
+Two consequences follow. It enters `ourTaxableBase` whichever party bears it,
+and `assertNoMarkup` deliberately does **not** apply — charging above our cost
+changes nothing, because the classification was already "our supply".
+
+It is also distinct from `PaymentGateway.capabilities.feePct`, which is what the
+gateway takes **from us**. Neither is derived from the other: if the settlement
+deducted the gateway's actual cost, renegotiating a provider contract would
+silently change what sellers receive.
+
+### One bearer, never both
+
+`processingFeeOnBuyer` returns zero when the seller bears it and
+`processingFeeOnSeller` returns zero when the buyer does. This is the sharpest
+hazard in the pair: **each is correct on its own**, and adding it to the buyer's
+total while also deducting it from the seller's proceeds collects it twice with
+nothing on screen to show it. A test asserts both directions.

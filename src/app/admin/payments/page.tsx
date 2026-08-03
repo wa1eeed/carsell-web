@@ -6,7 +6,8 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { listGateways, listRoutes } from '@/lib/domain/payment-routing';
+import { getProcessingFee, listGateways, listRoutes } from '@/lib/domain/payment-routing';
+import { ProcessingFeeCard } from './ProcessingFeeCard';
 import { RoutesTable } from './RoutesTable';
 
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,11 @@ export default async function PaymentsRoutingPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [routes, gateways] = await Promise.all([listRoutes(), listGateways()]);
+  const [routes, gateways, processingFee] = await Promise.all([
+    listRoutes(),
+    listGateways(),
+    getProcessingFee(),
+  ]);
   const linked = gateways.filter((gateway) => gateway.status !== 'INACTIVE');
 
   return (
@@ -88,6 +93,11 @@ export default async function PaymentsRoutingPage() {
           </section>
         ))}
       </div>
+
+      <ProcessingFeeCard
+        initial={processingFee}
+        canManage={canWrite(admin.role, 'finance.view')}
+      />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
         <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">

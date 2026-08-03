@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import { issueInvoice, vatIncluded } from './tax';
+import { processingFeeOnSeller } from './fees';
 import { buyerTypeFor, marginApprovedFor, sellerTypeFor } from './tax-profile';
 
 /**
@@ -85,10 +86,15 @@ export async function settlementFigures(
 
   const commission = order.commissionAmount;
   const commissionTax = vatIncluded(commission);
-  const gatewayFee = await estimateGatewayFee(
-    order.payments[0] ?? null,
-    order.totalAmount,
-  );
+
+  /**
+   * ═══ الخصم من **سياستنا** لا من تكلفة البوابة ═══
+   *
+   * كان يُقدَّر من `capabilities.feePct` — أي من عقدنا مع المزوّد، فيصير
+   * تغييرُ عقدٍ يغيّر ما يستلمه البائعون صمتًا. صار من `Order.processingFee`
+   * لقطةً وقت الإنشاء، وصفرًا حين يتحمّلها المشتري.
+   */
+  const gatewayFee = processingFeeOnSeller(order);
   const servicesTotal = new Prisma.Decimal(services._sum.amount ?? 0);
 
   /**
@@ -115,26 +121,6 @@ export async function settlementFigures(
     ).toString(),
     preview: true,
   };
-}
-
-/** رسوم البوابة من قدراتها — تقديرٌ حتى تصل تسويتها الفعلية. */
-async function estimateGatewayFee(
-  payment: { gatewayKey: string } | null,
-  amount: Prisma.Decimal,
-): Promise<Prisma.Decimal> {
-  if (payment === null) return new Prisma.Decimal(0);
-  const gateway = await db.paymentGateway.findUnique({
-    where: { key: payment.gatewayKey },
-  });
-  if (gateway === null) return new Prisma.Decimal(0);
-
-  const caps = gateway.capabilities as {
-    feePct?: number;
-    feeFixed?: number;
-  } | null;
-  const pct = new Prisma.Decimal(caps?.feePct ?? 0).dividedBy(100);
-  const fixed = new Prisma.Decimal(caps?.feeFixed ?? 0);
-  return amount.times(pct).plus(fixed).toDecimalPlaces(2);
 }
 
 /** عقد البيع — **عند تأكيد النقل**، وهو بين الطرفين لا معنا. */
@@ -311,6 +297,18 @@ export async function issueSettlementDocuments(
       supplyType: 'ADMIN_FEE',
       amount: order.transferAdminFee.toString(),
       description: 'ownership transfer administrative fee',
+    });
+  }
+
+  /**
+   * ورسوم المعالجة كذلك — **توريدُنا أيًّا كان من تحمّلها**. البوابة
+   * تفوتر نحن، فتمريرُها إعادةُ تحميلِ تكلفتنا لا صرفٌ نيابةً عن أحد.
+   */
+  if (order.processingFee.greaterThan(0)) {
+    supplies.push({
+      supplyType: 'ADMIN_FEE',
+      amount: order.processingFee.toString(),
+      description: 'payment processing fee',
     });
   }
 

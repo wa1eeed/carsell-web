@@ -273,3 +273,71 @@ describe('السالب يحتفظ بإشارته', () => {
     expect(formatNumber(-2465, 'ar')).toBe('-٢٬٤٦٥');
   });
 });
+
+describe('رسوم المعالجة — على طرفٍ واحد لا طرفين', () => {
+  const POLICY = {
+    processingFeeEnabled: true,
+    processingFeeBearer: 'SELLER' as const,
+    processingFeePct: 2.5,
+    processingFeeFixed: 10,
+  };
+
+  it('النسبة والثابت يجتمعان، والمعطَّلة صفر', async () => {
+    const { processingFeeFor } = await import('@/lib/domain/fees');
+    // ٢٫٥٪ من ١٠٠٬٠٠٠ = ٢٥٠٠ + ١٠ ثابتًا
+    expect(processingFeeFor(POLICY, 100_000).toString()).toBe('2510');
+    // وترك أحدهما صفرًا يُنتج الصيغة المفردة بلا راية ثالثة
+    expect(processingFeeFor({ ...POLICY, processingFeeFixed: 0 }, 100_000).toString()).toBe('2500');
+    expect(processingFeeFor({ ...POLICY, processingFeePct: 0 }, 100_000).toString()).toBe('10');
+    expect(processingFeeFor({ ...POLICY, processingFeeEnabled: false }, 100_000).toString()).toBe(
+      '0',
+    );
+  });
+
+  /**
+   * **أخطر ما في الحقلين**: كلٌّ منهما صحيحٌ وحده. فلو أضافها المشتري
+   * وخُصمت من البائع أخذناها مرّتين، ولا شيء في الشاشة يُظهر ذلك.
+   */
+  it('ما أضافه المشتري لا يُخصم من البائع — والعكس', async () => {
+    const { processingFeeOnBuyer, processingFeeOnSeller } = await import('@/lib/domain/fees');
+
+    const onSeller = { ...POLICY, processingFeeBearer: 'SELLER' as const };
+    expect(processingFeeOnBuyer(onSeller, 100_000).toString()).toBe('0');
+    expect(
+      processingFeeOnSeller({ processingFee: '2510', processingFeeBearer: 'SELLER' }).toString(),
+    ).toBe('2510');
+
+    const onBuyer = { ...POLICY, processingFeeBearer: 'BUYER' as const };
+    expect(processingFeeOnBuyer(onBuyer, 100_000).toString()).toBe('2510');
+    expect(
+      processingFeeOnSeller({ processingFee: '2510', processingFeeBearer: 'BUYER' }).toString(),
+    ).toBe('0');
+  });
+
+  it('وهي توريدٌ منّا فتدخل وعاء الضريبة أيًّا كان من تحمّلها', async () => {
+    const { ourTaxableBase } = await import('@/lib/domain/fees');
+    expect(
+      ourTaxableBase({ commissionAmount: 0, transferAdminFee: 50, processingFee: 2510 }).toString(),
+    ).toBe('2560');
+  });
+
+  it('الكشف يخصم ما تحمّله البائع وحده', async () => {
+    await withOrder(async (order) => {
+      await db.order.update({
+        where: { id: order.id },
+        data: { processingFee: 2510, processingFeeBearer: 'BUYER' },
+      });
+      const buyerBore = await settlementFigures(order.id);
+      expect(buyerBore?.gatewayFee).toBe('0');
+
+      await db.order.update({
+        where: { id: order.id },
+        data: { processingFeeBearer: 'SELLER' },
+      });
+      const sellerBore = await settlementFigures(order.id);
+      expect(sellerBore?.gatewayFee).toBe('2510');
+      // والصافي ينقص بها لا بغيرها
+      expect(Number(buyerBore?.netToSeller) - Number(sellerBore?.netToSeller)).toBe(2510);
+    });
+  });
+});

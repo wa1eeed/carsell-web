@@ -670,6 +670,49 @@ const VEHICLE_TAX = /\b(vehicleVat|vatOnVehicle|carVat|vehicleTax|taxOnVehicle)\
 /** مستندٌ يسمّي نفسه فاتورة مركبة — وهو ليس فاتورة حتى يُصنَّف. */
 const VEHICLE_INVOICE = /\b(vehicleInvoice|carInvoice)\b|فاتورة\s+(ال)?مركبة/;
 
+
+/**
+ * ————— القاعدة ١٨: رقمٌ مُقحَم في قالب لا تليه كلمة عربية —————
+ *
+ * `` `و${String(n)} طلبًا` `` تُخرج **رقمًا لاتينيًّا** وجمعًا مكتوبًا
+ * بيد كاتبه — والعربية ستّ حالات جمع فيُصيب واحدة ويُخطئ خمسًا: «و١
+ * طلبًا» و«و٢ طلبًا» و«و١٠ طلبًا».
+ *
+ * والقاعدة ٥ تمنع هذا في JSX، لكن رسائل الـToast **نصوصٌ لا عناصر**
+ * فلا يبلغها `<Quantity>` ولا تمرّ على تلك القاعدة. فوقع الخطأ مرّتين:
+ * في A7 وفي بطاقة رسوم المعالجة.
+ *
+ * والعلاج في النصّ: تُصاغ الجملة فلا يحكم العددُ المعدودَ — «الطلبات
+ * القائمة (١٠)» بدل «١٠ طلبات» — والرقم يمرّ على `toArabicDigits`.
+ *
+ * ويُستثنى `src/lib/arabic.ts` — فيه يُبنى التنسيق نفسه.
+ */
+const NUMERIC_INTERP = /\$\{[^}]*(?:String\(|Number\(|\.length|count|total|Count)[^}]*\}\s*[\u0621-\u064A]/;
+
+function checkInterpolatedNumbers() {
+  const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (rel.includes('generated')) continue;
+      // موضع بناء التنسيق نفسه
+      if (rel.endsWith(join('lib', 'arabic.ts'))) continue;
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        if (/^\s*[*]/.test(line)) return;
+        if (NUMERIC_INTERP.test(line)) {
+          problems.push(
+            `${rel}:${i + 1}  رقم مُقحَم تليه كلمة عربية — الأرقام عربية-هندية، والجمع لا يُكتب بيد`,
+          );
+        }
+      });
+    }
+  }
+}
+
 function checkTaxRate() {
   const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];
 
@@ -826,6 +869,7 @@ checkPrismaBoundary();
 checkClientDbImports();
 checkGatewayVocabulary();
 checkTaxRate();
+  checkInterpolatedNumbers();
 checkDomainHasNoProse();
 
 // ————— النتيجة —————
@@ -837,5 +881,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية.',
 );
