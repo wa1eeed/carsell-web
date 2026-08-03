@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:check": "BUILD_DIR=.next-check next build",
-    "verify": "tsc --noEmit && eslint . && node scripts/check-tokens.mjs && vitest run",
+    "verify": "tsc --noEmit && eslint . && node scripts/check-tokens.mjs && node scripts/generate-api-docs.mjs --check && vitest run",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -22,7 +22,9 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "docs:generate": "node scripts/generate-api-docs.mjs",
+    "docs:check": "node scripts/generate-api-docs.mjs --check"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",
