@@ -1147,6 +1147,10 @@ enum FeeBearer {
 
 model PlatformSetting {
   id          String  @id @default("default")
+  /// قنوات الدعم — بيانٌ يعدّله المشغّل بلا نشر، لا نصٌّ في مكوّن
+  supportWhatsapp String?
+  supportPhone    String?
+  supportEmail    String?
   /// **رسمٌ حكوميّ يُمرَّر كما هو** — صرفٌ نيابةً عن العميل، خارج نطاق
   /// فاتورتنا ولا ضريبة لنا فيه. (يُصحّح «قرار ١٧»: لا ١٥/١١٥ هنا.)
   transferFee Decimal @default(350) @db.Decimal(10, 2)

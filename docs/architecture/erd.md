@@ -867,6 +867,9 @@ Relations: `status` → `ReconciliationStatus`
 | Field | Type | Key |
 |---|---|---|
 | `id` | `String` | PK |
+| `supportWhatsapp` | `String?` |  |
+| `supportPhone` | `String?` |  |
+| `supportEmail` | `String?` |  |
 | `transferFee` | `Decimal` |  |
 | `transferAdminFeeEnabled` | `Boolean` |  |
 | `transferAdminFee` | `Decimal` |  |

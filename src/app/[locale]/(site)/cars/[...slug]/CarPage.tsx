@@ -46,7 +46,13 @@ export function CarPage({
   canonical: Canonical;
   locale: string;
   heading: { home: string; cars: string };
-  viewer: { signedIn: boolean; isOwn: boolean; taxProfile: TaxProfile | null };
+  viewer: {
+    signedIn: boolean;
+    isOwn: boolean;
+    taxProfile: TaxProfile | null;
+    /** طلبٌ حيّ على الإعلان — فلا يُعرض «اشترِ» ثم يُرفض */
+    reserved: boolean;
+  };
 }) {
   const t = useTranslations('ui');
   const te = useTranslations('enums');
@@ -272,6 +278,7 @@ export function CarPage({
                   price={Number(detail.askPrice)}
                   type={detail.type}
                   isOwn={viewer.isOwn}
+                  reserved={viewer.reserved}
                   signedIn={viewer.signedIn}
                   locale={locale}
                   taxProfile={viewer.taxProfile}

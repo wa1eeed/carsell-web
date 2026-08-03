@@ -29,6 +29,7 @@ export function BuyActions({
   price,
   type,
   isOwn,
+  reserved,
   signedIn,
   locale,
   taxProfile,
@@ -37,6 +38,8 @@ export function BuyActions({
   price: number;
   type: 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
   isOwn: boolean;
+  /** طلبٌ حيّ على الإعلان — لا يُعرض «اشترِ» ليُرفض */
+  reserved: boolean;
   signedIn: boolean;
   locale: string;
   taxProfile: TaxProfile | null;
@@ -139,6 +142,32 @@ export function BuyActions({
       <p className="mb-4 rounded-md border border-line px-4 py-3 text-2xs opacity-60">
         {tb('ownListing')}
       </p>
+    );
+  }
+
+  /**
+   * **محجوزة: تُقال ولا يُعرض زرٌّ يُرفض.**
+   *
+   * كان «اشترِ الآن» يُعرض ثم يردّ الخادم `ORDER_EXISTS`، فيظنّ
+   * المشتري أن العطل فيه. والعرض يبقى — قد يسقط الطلب فتعود متاحة —
+   * لكن الحال تُقال كما هي.
+   */
+  if (reserved) {
+    return (
+      <div className="mb-4 rounded-md border border-warn-200 bg-warn-100 p-3.5 text-2xs leading-loose text-warn-900">
+        <p className="font-bold">محجوزة الآن</p>
+        <p className="mt-1 opacity-80">
+          على هذه المركبة طلبٌ قائم. إن لم يكتمل عادت متاحة — وتستطيع طلب معاينة الآن.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-3 w-full"
+          onClick={() => (requireSession() ? undefined : setToast(tb('viewingSoon')))}
+        >
+          {t('requestViewing')}
+        </Button>
+        {toast === null ? null : <Toast title={toast} />}
+      </div>
     );
   }
 

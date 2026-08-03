@@ -70,11 +70,25 @@ async function main(): Promise<void> {
     restored += 1;
   }
 
+  /**
+   * وإعلانات التجريب — تُعرَف بمرفوعها على القرص لا بتاريخها.
+   * ومركبتها معها، وإلّا بقيت يتيمةً تُضخّم كل عدّاد سوق.
+   */
+  const trialListings = await db.listing.findMany({
+    where: { images: { some: { r2Key: { contains: '/listings/' } } }, seller: { email: { contains: '.trial@' } } },
+    select: { id: true, vehicleId: true },
+  });
+  for (const listing of trialListings) {
+    await db.listingImage.deleteMany({ where: { listingId: listing.id } });
+    await db.listing.delete({ where: { id: listing.id } });
+    await db.vehicle.delete({ where: { id: listing.vehicleId } }).catch(() => undefined);
+  }
+
   const ledger = await db.sandboxTransaction.deleteMany({});
 
   console.log(
-    `\n✓ نُظّف التجريب: ${String(restored)} طلبًا وإعلاناتها، ` +
-      `و${String(payments.length)} دفعة، و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
+    `\n✓ نُظّف التجريب: ${String(restored)} طلبًا، و${String(payments.length)} دفعة، ` +
+      `و${String(trialListings.length)} إعلانًا، و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
   );
   await db.$disconnect();
 }

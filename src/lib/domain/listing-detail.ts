@@ -241,6 +241,24 @@ export async function findPublishedListing(ref: string): Promise<DetailRow | nul
  * يلمس القيمة، وأداة تطوير في Next تنشره في HTML. الحقول المحدَّدة
  * تُنهي الاحتمال من أصله بدل أن تعتمد على ألّا يلمسه أحد.
  */
+/**
+ * هل على الإعلان طلبٌ حيّ؟
+ *
+ * **الزرّ يعرف قبل أن يَعِد.** كان «اشترِ الآن» يُعرض على إعلانٍ له
+ * طلبٌ قائم، فيضغطه المشتري ويردّ الخادم `ORDER_EXISTS` — شاشةٌ تقول
+ * شيئًا والنظام يفعل غيره. والحجز يقع في `buyDirect`، لكن إعلانًا قد
+ * يبقى `PUBLISHED` ومعه طلب (الزرع يفعلها)، والسباق ممكن دائمًا.
+ *
+ * وهذا **لا يُغني عن حارس الخادم**: الشاشة تُخفي والخادم يمنع.
+ */
+export async function hasLiveOrder(listingId: string): Promise<boolean> {
+  const live = await db.order.findFirst({
+    where: { listingId, status: 'ACTIVE' },
+    select: { id: true },
+  });
+  return live !== null;
+}
+
 export async function findListingForMetadata(ref: string) {
   return db.listing.findFirst({
     where: { ref, status: 'PUBLISHED' },
