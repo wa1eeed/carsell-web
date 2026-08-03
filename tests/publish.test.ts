@@ -4,17 +4,18 @@ import { createListing, type PublishInput } from '@/lib/domain/publish';
 
 afterAll(async () => {
   await db.uploadedAsset.deleteMany({ where: { r2Key: { startsWith: 'probe/' } } });
-  if (touchedUsers.size > 0) {
-    await db.user.updateMany({
-      where: { id: { in: [...touchedUsers] } },
-      data: { taxStatus: null },
-    });
+  // الاستعادة إلى ما كان لا إلى فراغ — الصفّ مزروع لا مصنوع هنا
+  for (const [id, before] of touchedUsers) {
+    await db.user.update({ where: { id }, data: before });
   }
   await db.$disconnect();
 });
 
 const created: string[] = [];
-const touchedUsers = new Set<string>();
+const touchedUsers = new Map<
+  string,
+  { taxStatus: 'INDIVIDUAL' | 'VAT_REGISTERED' | null; email: string | null; idVerified: boolean; iban: string | null }
+>();
 
 async function base(): Promise<PublishInput> {
   const model = await db.model.findFirstOrThrow({
@@ -22,9 +23,26 @@ async function base(): Promise<PublishInput> {
     include: { brand: true, trims: { where: { visible: true }, take: 1 } },
   });
   const seller = await db.user.findFirstOrThrow({ where: { dealerId: null } });
-  // الوضع الضريبيّ شرطٌ قبل النشر — تُهيَّأ الحالة كما يفعل المستخدم
-  await db.user.update({ where: { id: seller.id }, data: { taxStatus: 'INDIVIDUAL' } });
-  touchedUsers.add(seller.id);
+  /**
+   * البائع يُهيَّأ كما يصل إلى النشر فعلًا: ملفٌ مكتمل ووضعٌ ضريبيّ
+   * محدَّد. والشاشة تشترطهما، والحارس صار يشترطهما — فالمهيّأ ناقصًا
+   * يختبر حالةً لا يبلغها مستخدم.
+   */
+  await db.user.update({
+    where: { id: seller.id },
+    data: {
+      taxStatus: 'INDIVIDUAL',
+      email: seller.email ?? `probe${seller.id.slice(-6)}@carsell.one`,
+      idVerified: true,
+      iban: seller.iban ?? 'SA0380000000608010167519',
+    },
+  });
+  touchedUsers.set(seller.id, {
+    taxStatus: seller.taxStatus,
+    email: seller.email,
+    idVerified: seller.idVerified,
+    iban: seller.iban,
+  });
   return {
     sellerId: seller.id,
     type: 'DIRECT',

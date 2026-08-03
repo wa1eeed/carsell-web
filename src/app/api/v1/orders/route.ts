@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
      * تعيد المحاولة. ورمزٌ يخلطها بالرفض يجعلها تعرض «تعذّر الشراء».
      */
     const status =
-      result.reason === 'LISTING_NOT_FOUND'
+      result.reason === 'PROFILE_INCOMPLETE'
+        ? 428
+        : result.reason === 'LISTING_NOT_FOUND'
         ? 404
         : result.reason === 'OWN_LISTING'
           ? 403
@@ -57,7 +59,9 @@ export async function POST(request: NextRequest) {
       {
         code: result.reason,
         messageAr:
-          result.reason === 'TAX_STATUS_REQUIRED'
+          result.reason === 'PROFILE_INCOMPLETE'
+            ? 'أكمل بريدك وتوثيق هويتك قبل الشراء.'
+            : result.reason === 'TAX_STATUS_REQUIRED'
             ? 'حدّد وضعك الضريبي قبل إتمام الشراء.'
             : result.reason === 'ORDER_EXISTS'
               ? 'على هذه المركبة طلب قائم — تابعه أو انتظر انتهاء مهلته.'
@@ -65,7 +69,9 @@ export async function POST(request: NextRequest) {
                 ? 'لا يمكنك شراء إعلانك.'
                 : 'هذه المركبة غير متاحة للشراء المباشر.',
         messageEn:
-          result.reason === 'TAX_STATUS_REQUIRED'
+          result.reason === 'PROFILE_INCOMPLETE'
+            ? 'Complete your email and identity verification before buying.'
+            : result.reason === 'TAX_STATUS_REQUIRED'
             ? 'Set your tax status before completing the purchase.'
             : result.reason === 'ORDER_EXISTS'
               ? 'This vehicle already has a live order.'

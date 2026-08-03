@@ -289,6 +289,7 @@ export async function holdEscrow(
 }
 
 export type DirectBuyFailure =
+  | 'PROFILE_INCOMPLETE'
   | 'LISTING_NOT_FOUND'
   | 'NOT_BUYABLE'
   | 'OWN_LISTING'
@@ -317,11 +318,18 @@ export async function buyDirect(
   const { PAYMENT_WINDOW_HOURS } = await import('./offers');
   const { computeOrderAmounts } = await import('./order-amounts');
 
-  const buyer = await db.user.findUnique({
-    where: { id: input.buyerId },
-    select: { taxStatus: true },
-  });
+  const buyer = await db.user.findUnique({ where: { id: input.buyerId } });
   if (buyer === null) return { ok: false, reason: 'LISTING_NOT_FOUND' };
+
+  /**
+   * **الشاشة تقول «لن تستطيع الشراء قبل إكمال البريد وتوثيق الهوية» —
+   * فليكن.** كانت `canBuy` تُعرض ولا تُفرض: وعدٌ يقوله الحساب وينقضه
+   * الشراء. والقاعدة في `profileCompletion` وحدها، فتتبعها الشاشة
+   * والحارس معًا ولا تتباعدان.
+   */
+  const { profileCompletion } = await import('./profile');
+  if (!profileCompletion(buyer).canBuy) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+
   // «لم يُسأل» تُوقف هنا — والشاشة تفتح النافذة ثم تعيد المحاولة
   if (buyer.taxStatus === null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
 

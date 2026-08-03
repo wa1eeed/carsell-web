@@ -70,6 +70,7 @@ export type PublishInput = {
 };
 
 export type PublishFailure =
+  | 'PROFILE_INCOMPLETE'
   | 'TAX_STATUS_REQUIRED'
   | 'NO_IMAGES'
   | 'IMAGE_NOT_UPLOADED'
@@ -133,11 +134,20 @@ export async function createListing(
    * حارسًا**: نداءٌ مباشر ينشر إعلانًا لبائعٍ لم يُسأل، فيُعرض سعره
    * بوصفٍ اخترناه له. والخادم يردّ، والشاشة تسأل ثم تعيد المحاولة.
    */
-  const seller = await db.user.findUnique({
-    where: { id: input.sellerId },
-    select: { taxStatus: true },
-  });
-  if (seller?.taxStatus == null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
+  const seller = await db.user.findUnique({ where: { id: input.sellerId } });
+  if (seller === null) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+
+  /**
+   * **الشاشة تقول «لن تستطيع البيع قبل إكمال الثلاثة» — فليكن.**
+   * والقاعدة في `profileCompletion` وحدها فتتبعها الشاشة والحارس.
+   *
+   * // DESIGN-Q: الآيبان ضمن `canSell` — أيُشترط عند النشر أم يكفي قبل
+   * الإفراج؟ التزمتُ بما تقوله الشاشة اليوم.
+   */
+  const { profileCompletion } = await import('./profile');
+  if (!profileCompletion(seller).canSell) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+
+  if (seller.taxStatus == null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
 
   if (input.images.length === 0) return { ok: false, reason: 'NO_IMAGES' };
   if (!Number.isFinite(input.askPrice) || input.askPrice <= 0) {

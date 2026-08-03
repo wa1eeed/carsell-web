@@ -18,7 +18,24 @@ async function withListing(
   const buyer = await db.user.findFirstOrThrow({
     where: { dealerId: null, id: { not: listing.sellerId } },
   });
-  const before = { status: listing.status, taxStatus: buyer.taxStatus };
+  const before = {
+    status: listing.status,
+    taxStatus: buyer.taxStatus,
+    email: buyer.email,
+    idVerified: buyer.idVerified,
+  };
+
+  /**
+   * المشتري يُهيَّأ كما يصل إلى الشراء فعلًا: بريدٌ وتوثيق هوية. والشاشة
+   * تقول «لن تستطيع الشراء قبل إكمالهما»، والحارس صار يقولها معها.
+   */
+  await db.user.update({
+    where: { id: buyer.id },
+    data: {
+      email: buyer.email ?? `probe${buyer.id.slice(-6)}@carsell.one`,
+      idVerified: true,
+    },
+  });
 
   try {
     await body({
@@ -38,7 +55,14 @@ async function withListing(
       await db.order.deleteMany({ where: { id: { in: ids } } });
     }
     await db.listing.update({ where: { id: listing.id }, data: { status: before.status } });
-    await db.user.update({ where: { id: buyer.id }, data: { taxStatus: before.taxStatus } });
+    await db.user.update({
+      where: { id: buyer.id },
+      data: {
+        taxStatus: before.taxStatus,
+        email: before.email,
+        idVerified: before.idVerified,
+      },
+    });
   }
 }
 
@@ -127,6 +151,34 @@ describe('الشراء المباشر', () => {
         reason: 'OWN_LISTING',
       });
       await db.user.update({ where: { id: ctx.sellerId }, data: { taxStatus: null } });
+    });
+  });
+});
+
+describe('الوعد المعروض يُفرَض', () => {
+  /**
+   * **الحساب يقول «لن تستطيع الشراء قبل إكمال البريد وتوثيق الهوية».**
+   * وكانت `canBuy` تُعرض ولا تُفرض — وعدٌ يقوله الحساب وينقضه الشراء.
+   * والقاعدة في `profileCompletion` وحدها فلا تتباعد الشاشة والحارس.
+   */
+  it('ملفٌ ناقص يمنع الشراء', async () => {
+    await withListing(async (ctx) => {
+      const before = await db.user.findUniqueOrThrow({ where: { id: ctx.buyerId } });
+      await db.user.update({
+        where: { id: ctx.buyerId },
+        data: { taxStatus: 'INDIVIDUAL', idVerified: false },
+      });
+      try {
+        expect(await buyDirect({ listingRef: ctx.listingRef, buyerId: ctx.buyerId })).toEqual({
+          ok: false,
+          reason: 'PROFILE_INCOMPLETE',
+        });
+      } finally {
+        await db.user.update({
+          where: { id: ctx.buyerId },
+          data: { idVerified: before.idVerified },
+        });
+      }
     });
   });
 });
