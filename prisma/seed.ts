@@ -191,7 +191,7 @@ type GatewayRow = {
   nameEn: string;
   status: string;
   sort: number;
-  capabilities: Record<string, unknown>;
+  capabilities: Prisma.InputJsonValue;
 };
 
 type PushChannelRow = {
