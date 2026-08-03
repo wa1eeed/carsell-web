@@ -126,7 +126,8 @@ export default async function HomePage({
                 {t('sellYourCar')}
               </Button>
             </Link>
-            <Link href={`/${locale}/login`}>
+            {/* المسار `/auth` لا `/login` — كان يقود إلى ٤٠٤ من الرئيسية */}
+            <Link href={`/${locale}/auth`}>
               <Button size="sm">{t('signIn')}</Button>
             </Link>
           </span>
