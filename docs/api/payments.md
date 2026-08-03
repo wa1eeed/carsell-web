@@ -217,6 +217,53 @@ What the tests *do* prove, and would prove for any adapter:
 - `TapAdapter` and the bank trust gateway are not built. See § 7b for how the
   bank adapter must be shaped when it arrives.
 
+## 8b · The path is wired — and guarded from birth
+
+`POST /api/v1/payments` → `startHold` → route → gateway adapter. The gateway is
+resolved **per purpose**, and each `Payment` stores its `gatewayKey` and
+`environment` as a snapshot, so a hold is always released through the gateway
+that created it.
+
+### Rule 12 · release needs two approvers — built with the path, not after it
+
+The release path and its quorum were built in the same commit. **What needs a
+guard is built guarded**: between building and guarding there is a window in
+which it runs unguarded, and one deploy inside that window is enough.
+
+`POST /api/v1/admin/orders/{ref}/settle` — without `requestId` it opens a
+request; with one it is the second approval, and **only that call reaches the
+gateway**.
+
+Checked before the request is even created, and **again** at execution:
+
+| Condition | Result |
+|---|---|
+| No held payment | `NO_HELD_PAYMENT` |
+| Return window still open | `RETURN_WINDOW_OPEN` **with `until`** |
+| Order disputed | `DISPUTED` |
+| Requester approving own request | `SELF_APPROVAL` (403) |
+
+The dispute re-check exists for exactly one case: a dispute opened *between* the
+request and the approval. A test covers it.
+
+### Verified live, with no gateway keys configured
+
+| Request | Result |
+|---|---|
+| No `Idempotency-Key` | **400** — tolerating it means the first customer on a bad connection pays twice |
+| With key, gateway unconfigured | **502** `GATEWAY_FAILED` — "your card was not charged" |
+| Same key, same body | **201**, first response replayed verbatim, no second execution |
+| Same key, different body | **409** `REUSED_WITH_DIFFERENT_BODY` |
+| Second approver, no keys | `GATEWAY_FAILED` / `GATEWAY_NOT_CONFIGURED`, escrow still `HELD`, request still `PENDING` |
+
+That last row is the point of the whole design: with no provider configured the
+system **refuses loudly and changes nothing** — it does not half-release, and the
+approval request survives for a retry once keys arrive.
+
+A failed attempt is deliberately **not** memoised: `FAILED` means we know the
+hold did not happen, so retrying is safe. A dropped network returns `PENDING`
+instead, and that is never retried blindly.
+
 ## 9 · Tax is not decided here
 
 No tax is computed on vehicle value anywhere, and no document calls itself a
