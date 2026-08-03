@@ -13,7 +13,12 @@ export type ListingCardData = {
   year: number;
   city: string;
   mileageKm: number;
-  transmission: string;
+  /**
+   * **نصٌّ مترجَم لا تعداد.** والاسم يقول ذلك لأن النوع لا يستطيع:
+   * `transmission: string` تقبل `'AUTOMATIC'` صامتةً فتُطبع كما هي —
+   * وقد وقعت في صفحة المعرض.
+   */
+  transmissionLabel: string;
   price: number;
   monthly?: number;
   type: 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
@@ -156,7 +161,7 @@ export function CarCard({
           <ArabicNumber value={data.year} grouped={false} />
         </h3>
         <MetaLine
-          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmission]}
+          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
         />
 
         <div className="mt-auto flex items-end justify-between gap-3 border-b border-line-2 pb-3">
@@ -206,7 +211,7 @@ export function CarRow({
           <ArabicNumber value={data.year} grouped={false} />
         </h3>
         <MetaLine
-          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmission]}
+          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
         />
         <Seller name={data.sellerName} verified={data.sellerVerified} />
       </div>

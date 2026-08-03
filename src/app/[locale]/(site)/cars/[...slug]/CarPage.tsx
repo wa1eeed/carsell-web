@@ -279,6 +279,15 @@ export function CarPage({
                 },
                 seller: {
                   ...detail.seller,
+                  /**
+                   * المسار يُركَّب هنا لا في النطاق: **الشاشة هي التي
+                   * تعرف اللغة**، والمكوّن لا يعرفها — وبناؤه هناك يُنتج
+                   * `/dealers/x` بلا بادئة فيسقط ٤٠٤.
+                   */
+                  dealerPath:
+                    detail.seller.dealerSlug === null
+                      ? null
+                      : `/${locale}/dealers/${detail.seller.dealerSlug}`,
                   ratingAvg: detail.seller.ratingAvg === null ? null : Number(detail.seller.ratingAvg),
                 },
                 auction:

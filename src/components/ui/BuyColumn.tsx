@@ -25,7 +25,8 @@ export type BuyColumnData = {
     badge: 'DEALER_VERIFIED' | 'USER_VERIFIED' | null;
     /** مسجَّلٌ في القيمة المضافة — معرضًا كان أو فردًا مسجَّلًا. */
     vatRegistered: boolean;
-    dealerSlug: string | null;
+    /** مسارٌ جاهز باللغة — المكوّن لا يعرف اللغة فلا يبنيه */
+    dealerPath: string | null;
     ratingAvg: number | null;
     ratingCount: number;
     listingCount: number;
@@ -228,9 +229,9 @@ export function BuyColumn({ data, className }: { data: BuyColumnData; className?
           </div>
         </div>
         {/* زرّ «راسلـه» محذوف (قرار ١٨) — لا يُفتح بابٌ بلا سياسة تحكمه */}
-        {data.seller.dealerSlug === null ? null : (
+        {data.seller.dealerPath === null ? null : (
           <Link
-            href={`/dealers/${data.seller.dealerSlug}`}
+            href={data.seller.dealerPath ?? '#'}
             className="flex items-center justify-center rounded-md border border-line py-2.5 text-xs font-bold hover:bg-ink/5"
           >
             <Quantity unit="cars" count={data.seller.listingCount} />

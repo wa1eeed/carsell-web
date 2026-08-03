@@ -854,5 +854,17 @@
     "listingTaxable": "This vehicle belongs to a taxable business activity",
     "listingTaxableHint": "Changes the tax treatment of this listing only.",
     "adminFeeRow": "Administrative fee"
+  },
+  "dealer": {
+    "verified": "Verified dealer",
+    "joined": "On the platform since",
+    "listed": "Listed now",
+    "sold": "Completed sales",
+    "vehicles": "Vehicles",
+    "emptyTitle": "No vehicles listed right now",
+    "emptyBody": "This dealer has no published listings at the moment — check back later.",
+    "metaFallback": "Car dealer in {city} on carsell.one",
+    "indexTitle": "Dealers",
+    "indexSubtitle": "Car dealers on the platform."
   }
 }

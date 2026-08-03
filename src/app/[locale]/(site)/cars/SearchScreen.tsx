@@ -135,7 +135,7 @@ export function SearchScreen({
     year: item.year,
     city: item.city,
     mileageKm: item.mileageKm,
-    transmission: te(`transmission.${item.transmission}`),
+    transmissionLabel: te(`transmission.${item.transmission}`),
     price: Number(item.price),
     monthly: item.monthly ?? undefined,
     type: item.type,

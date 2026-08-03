@@ -97,7 +97,7 @@ export default async function HomePage({
     year: item.year,
     city: item.city,
     mileageKm: item.mileageKm,
-    transmission: te(`transmission.${item.transmission}`),
+    transmissionLabel: te(`transmission.${item.transmission}`),
     price: Number(item.price),
     ...(item.monthly === null ? {} : { monthly: item.monthly }),
     type: item.type,
