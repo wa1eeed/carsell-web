@@ -43,9 +43,8 @@ describe('═══ القاعدة ٢ ═══ القدرة الناقصة تُ
       expect(tap.warning).not.toBeNull();
       // والنصّ يشرح ما يقع لا يكتفي بالرقم
       expect(tap.warning).toContain('يغيّر معنى الضمان للمشتري');
-      // ولا يدّعي أن الغرض «يحتاج» مدّةً معلومة — المرحلة بلا سقف
-      expect(tap.warning).toContain('تتقدّم بتأكيد إجراء لا بمهلة');
-      expect(tap.warning).not.toContain('والغرض قد يحتاج');
+      // والمسار صار معلوم السقف، فالنصّ يسمّيه: دفع + سقف نقل + نافذة
+      expect(tap.warning).toContain('دفع + سقف نقل + نافذة استرجاع');
     }
   });
 

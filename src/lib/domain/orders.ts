@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import type { OrderStage } from '@/generated/prisma/enums';
+import { returnWindowFrom, transferDeadlineFrom } from './transfer-windows';
 
 /**
  * الطلب ومراحله الستّ — المهمة ١٨.
@@ -70,7 +71,14 @@ export async function advanceStage(
       data: {
         stage: input.to,
         stageEnteredAt: now,
-        ...(input.to === 'DONE' ? { status: 'COMPLETED' as const } : {}),
+        /**
+         * القاعدتان تُفتحان هنا لأنه **نقطة الانتقال الوحيدة**:
+         * دخولُ النقل يبدأ سقفه، وتأكيدُه يبدأ نافذة الاسترجاع.
+         */
+        ...(input.to === 'TRANSFER' ? { transferDeadlineAt: transferDeadlineFrom(now) } : {}),
+        ...(input.to === 'DONE'
+          ? { status: 'COMPLETED' as const, returnWindowEndsAt: returnWindowFrom(now) }
+          : {}),
       },
     });
 

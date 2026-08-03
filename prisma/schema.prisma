@@ -635,6 +635,14 @@ model Order {
   /// `agreedPrice` يبقى. الفاتورة بالمُسوَّى، والتدقيق يحتاج الاثنين.
   settlementAmount      Decimal?  @db.Decimal(12, 2)
   transferAppointmentAt DateTime?
+  /// ═══ القاعدة ١ ═══ سقف النقل: الدفع + ٧ أيام.
+  /// لم يكتمل ⇒ استرجاع تلقائيّ للمشتري. وللأدمن تمديدٌ **واحد**.
+  transferDeadlineAt      DateTime?
+  transferDeadlineExtendedAt DateTime?
+  transferExtensionReason    String?
+  /// ═══ القاعدة ٢ ═══ نافذة الاسترجاع: تأكيد النقل + ٧ أيام.
+  /// **لا إفراج للبائع قبل انقضائها** — وهي جزء من عمر الحجز لا ملحق به.
+  returnWindowEndsAt      DateTime?
   cancelledBy           String?
   cancelReason          String?
 

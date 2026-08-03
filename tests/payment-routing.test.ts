@@ -39,6 +39,7 @@ describe('═══ القاعدة ٢ ═══ الناقصة قدرةً لا �
       expect(choice, key).toBeDefined();
       expect(choice?.warning, key).not.toBeNull();
       expect(choice?.warning, key).toContain('يغيّر معنى الضمان للمشتري');
+      expect(choice?.warning, key).toContain('دفع + سقف نقل + نافذة استرجاع');
     }
   });
 
