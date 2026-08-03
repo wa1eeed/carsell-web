@@ -866,5 +866,17 @@
     "metaFallback": "معرض سيارات في {city} على carsell.one",
     "indexTitle": "المعارض",
     "indexSubtitle": "معارض السيارات على المنصّة."
+  },
+  "landing": {
+    "title": "سيارات {brand} في {city}",
+    "titleModel": "{model} في {city}",
+    "meta": "{count} سيارة {brand} معروضة في {city} على carsell.one — مفحوصة وموثّقة الملكية.",
+    "metaModel": "{count} سيارة {model} معروضة في {city} على carsell.one — مفحوصة وموثّقة الملكية.",
+    "browse": "تصفّح سيارات {brand} في {city}",
+    "browseModel": "تصفّح {model} في {city}",
+    "inspected": "مفحوصة",
+    "from": "من",
+    "to": "إلى",
+    "byModel": "حسب الطراز"
   }
 }

@@ -21,6 +21,25 @@ import type { ListingType, PaintStatus, VehicleCondition } from '@/generated/pri
 export const PRICE_STAT_MIN_SAMPLE = 8;
 
 /** جزء المسار من نصّ عربي أو لاتيني — الرابط الأساسي (قرار ٢٥). */
+/**
+ * ═══ فكّ مقطعٍ من المسار ═══
+ *
+ * **أجزاء المسار تصل مُرمَّزة من Next**، والمدينة عربية. ومقارنتها
+ * بالنصّ المفكوك تفشل دائمًا — والفشل صامت: صفحةٌ تُصبح ٤٠٤ بلا خطأ في
+ * أي سجلّ. وقع مرّتين: في تحويل صفحة المركبة، ثم في صفحات الهبوط.
+ *
+ * ولذلك يقف **بجوار `toSlug`**: من يولّد المقطع يرى من يفكّه، ومن يقارن
+ * يجد الاثنين في موضع واحد.
+ */
+export function fromSlug(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    // مقطعٌ فاسد الترميز — يُقارَن كما هو ولا يُسقط الطلب
+    return segment;
+  }
+}
+
 export function toSlug(value: string): string {
   return value
     .trim()

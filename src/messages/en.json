@@ -866,5 +866,17 @@
     "metaFallback": "Car dealer in {city} on carsell.one",
     "indexTitle": "Dealers",
     "indexSubtitle": "Car dealers on the platform."
+  },
+  "landing": {
+    "title": "{brand} cars in {city}",
+    "titleModel": "{model} in {city}",
+    "meta": "{count} {brand} cars listed in {city} on carsell.one — inspected, ownership verified.",
+    "metaModel": "{count} {model} listed in {city} on carsell.one — inspected, ownership verified.",
+    "browse": "Browse {brand} cars in {city}",
+    "browseModel": "Browse {model} in {city}",
+    "inspected": "inspected",
+    "from": "from",
+    "to": "to",
+    "byModel": "By model"
   }
 }
