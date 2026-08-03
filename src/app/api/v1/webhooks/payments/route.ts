@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
-import { db } from '@/lib/db';
 import { advancePayment } from '@/lib/domain/payments';
+import { db } from '@/lib/db';
+import { activeSecret } from '@/lib/domain/admin-integrations';
 import { providerFor } from '@/lib/payments/provider';
 import type { PaymentStatus } from '@/generated/prisma/enums';
 
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest) {
   const raw = await request.text();
   const signature = request.headers.get('x-signature') ?? '';
 
-  const integration = await db.integration.findUnique({ where: { key: 'payments' } });
-  const provider = providerFor(integration?.secretsEncrypted ?? null);
+  // السرّ الفعّال للبيئة المستعمَلة — و`activeSecret` هي التي تحرس البيئة
+  const provider = providerFor(await activeSecret('payments'));
 
   if (!provider.verifySignature(raw, signature)) {
     // لا يُخزَّن ولا يُعالَج — ومن لا توقيع له ليس المزوّد

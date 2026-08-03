@@ -1272,18 +1272,44 @@ model EntitlementOverride {
 /// A11 — كل مزوّد خارجي. المفاتيح مشفّرة ولا تُعرض كاملة،
 /// والتدوير يمرّ بـApprovalRequest بـ kind = KEY_ROTATION.
 model Integration {
-  key              String              @id // otp_sms | nafath | moyasar | r2 …
-  nameAr           String
-  provider         String
-  category         IntegrationCategory
-  status           IntegrationStatus   @default(INACTIVE)
-  configPublic     Json?
-  secretsEncrypted String?
-  lastCheckAt      DateTime?
-  lastCheckOk      Boolean?
-  failureBehavior  String
+  key             String              @id // otp_sms | nafath | moyasar | r2 …
+  nameAr          String
+  provider        String
+  category        IntegrationCategory
+  status          IntegrationStatus   @default(INACTIVE)
+  configPublic    Json?
+  /// ═══ قرار ٣٣ ═══ البيئة الفعّالة. وstaging مقيَّد بـTEST في الكود
+  /// لا بالانضباط — `effectiveEnvironment()` تتجاهل هذا الحقل خارج الإنتاج.
+  activeEnv       IntegrationEnv      @default(TEST)
+  lastCheckAt     DateTime?
+  lastCheckOk     Boolean?
+  failureBehavior String
+
+  credentials IntegrationCredential[]
 
   @@index([category, status])
+}
+
+enum IntegrationEnv {
+  TEST
+  LIVE
+}
+
+/// مفاتيح تكامل في بيئة واحدة.
+///
+/// جدولٌ مستقلّ لا عمودان: التلميحات والتدوير وتاريخ آخر تغيير كلّها
+/// **لكل بيئة**، وعمودان يجعلانها تتشارك صفًّا واحدًا فتختلط.
+model IntegrationCredential {
+  integrationKey   String
+  env              IntegrationEnv
+  secretsEncrypted String?
+  /// تلميحات معروضة — مخزَّنة نصًّا وقت الكتابة، فالعرض لا يفكّ تشفيرًا
+  hints            Json?
+  updatedAt        DateTime       @updatedAt
+
+  integration Integration @relation(fields: [integrationKey], references: [key], onDelete: Cascade)
+
+  @@id([integrationKey, env])
 }
 
 enum IntegrationCategory {
@@ -1325,6 +1351,8 @@ enum ApprovalKind {
   ESCROW_RELEASE
   DISPUTE_RESOLUTION
   KEY_ROTATION
+  /// قرار ٣٣ — تبديل بيئة تكامل بين الاختبار والإنتاج
+  INTEGRATION_ENV
   COMMISSION_CHANGE
   PLAN_CHANGE
   USER_BAN

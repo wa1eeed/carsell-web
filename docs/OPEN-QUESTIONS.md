@@ -285,7 +285,14 @@ and one write at registration; activity tracking is a larger decision.
 
 ---
 
-## 17 · Integrations have one environment, not two
+## 17 · Integrations have one environment, not two — **RESOLVED 2026-08-03**
+
+> **Answered — decision 33.** Two key sets per integration (`test` · `live`),
+> staging restricted to `test` **in code**, and switching a production
+> integration to test needs two approvers. Implemented; see
+> `docs/api/admin-dashboard.md` § Environment separation. Kept below as the
+> record of the question.
+
 
 **Assumed:** `Integration` holds one configuration per key. A11's markup shows a
 `بيئة الاختبار` / `إنتاج` toggle and separate keys for each.

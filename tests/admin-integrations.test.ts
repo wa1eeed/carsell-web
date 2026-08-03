@@ -2,12 +2,15 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { decryptSecret, encryptSecret, secretHint } from '@/lib/crypto/secrets';
 import {
+  activeSecret,
   approveRotation,
   checkConnection,
   integrationSummary,
   listIntegrations,
+  requestEnvSwitch,
   requestRotation,
 } from '@/lib/domain/admin-integrations';
+import { effectiveEnvironment } from '@/lib/domain/integration-env';
 
 afterAll(async () => {
   await db.$disconnect();
@@ -73,10 +76,13 @@ describe('═══ معيار A11 ═══ المفاتيح لا تُعرض', 
     expect(payload).not.toContain('secretsEncrypted');
     expect(payload).not.toContain('v1.');
 
-    // ولا حقل باسم يوحي بسرّ
+    // ولا حقل باسم يوحي بسرّ — في الصفّ ولا في بيئاته
     for (const row of rows) {
       expect(Object.keys(row)).not.toContain('secretsEncrypted');
       expect(Object.keys(row)).not.toContain('secrets');
+      for (const credential of row.credentials) {
+        expect(Object.keys(credential)).not.toContain('secretsEncrypted');
+      }
     }
   });
 
@@ -85,25 +91,27 @@ describe('═══ معيار A11 ═══ المفاتيح لا تُعرض', 
     const approver = await admin('المعتمِد');
     const integration = await db.integration.findFirstOrThrow();
 
-    await requestRotation(requester, integration.key, { apiKey: SECRET }, null);
+    await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
     const request = await db.approvalRequest.findFirstOrThrow({
       where: { entityId: integration.key, status: 'PENDING' },
     });
     await approveRotation(approver, request.id, null);
 
     const row = (await listIntegrations()).find((entry) => entry.key === integration.key);
-    expect(row?.secretHints.apiKey).toBe(secretHint(SECRET));
-    expect(row?.hasSecrets).toBe(true);
+    const test = row?.credentials.find((entry) => entry.env === 'TEST');
+    expect(test?.hints.apiKey).toBe(secretHint(SECRET));
+    expect(test?.configured).toBe(true);
+    // والبيئة الأخرى لم تُمَسّ — وهذا كل معنى الفصل
+    expect(row?.credentials.find((entry) => entry.env === 'LIVE')?.configured).toBe(false);
 
     // والمخزَّن مشفَّر فعلًا
-    const stored = await db.integration.findUniqueOrThrow({ where: { key: integration.key } });
+    const stored = await db.integrationCredential.findUniqueOrThrow({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
+    });
     expect(stored.secretsEncrypted).not.toContain(SECRET);
     expect(decryptSecret(stored.secretsEncrypted ?? '')).toContain(SECRET);
 
-    await db.integration.update({
-      where: { key: integration.key },
-      data: { secretsEncrypted: integration.secretsEncrypted, configPublic: integration.configPublic ?? {} },
-    });
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
     await db.approvalRequest.deleteMany({ where: { entityId: integration.key } });
     await db.auditLog.deleteMany({ where: { actorId: { in: [requester.id, approver.id] } } });
     await db.adminUser.deleteMany({ where: { id: { in: [requester.id, approver.id] } } });
@@ -113,7 +121,7 @@ describe('═══ معيار A11 ═══ المفاتيح لا تُعرض', 
     const requester = await admin('الطالب');
     const integration = await db.integration.findFirstOrThrow();
 
-    await requestRotation(requester, integration.key, { apiKey: SECRET }, null);
+    await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
     const entry = await db.auditLog.findFirstOrThrow({ where: { actorId: requester.id } });
     const written = JSON.stringify(entry.after);
 
@@ -132,15 +140,18 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     const requester = await admin('الطالب');
     const approver = await admin('المعتمِد');
     const integration = await db.integration.findFirstOrThrow();
-    const original = integration.secretsEncrypted;
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
+    const original: string | null = null;
 
-    const asked = await requestRotation(requester, integration.key, { apiKey: SECRET }, null);
+    const asked = await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
     expect(asked.ok).toBe(true);
     if (asked.ok && asked.state === 'PENDING') expect(asked.required).toBe(2);
 
     // لم يتغيّر شيء بعد — الطلب وحده ليس تدويرًا
-    const midway = await db.integration.findUniqueOrThrow({ where: { key: integration.key } });
-    expect(midway.secretsEncrypted).toBe(original);
+    const midway = await db.integrationCredential.findUnique({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
+    });
+    expect(midway?.secretsEncrypted ?? null).toBe(original);
 
     const request = await db.approvalRequest.findFirstOrThrow({
       where: { entityId: integration.key, status: 'PENDING' },
@@ -151,15 +162,19 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     expect(self.ok).toBe(false);
     if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
 
-    const stillUnchanged = await db.integration.findUniqueOrThrow({ where: { key: integration.key } });
-    expect(stillUnchanged.secretsEncrypted).toBe(original);
+    const stillUnchanged = await db.integrationCredential.findUnique({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
+    });
+    expect(stillUnchanged?.secretsEncrypted ?? null).toBe(original);
 
     // ═══ عضو ثانٍ ⇒ يُنفَّذ ═══
     const second = await approveRotation(approver, request.id, null);
     expect(second.ok).toBe(true);
     if (second.ok) expect(second.state).toBe('EXECUTED');
 
-    const rotated = await db.integration.findUniqueOrThrow({ where: { key: integration.key } });
+    const rotated = await db.integrationCredential.findUniqueOrThrow({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
+    });
     expect(rotated.secretsEncrypted).not.toBe(original);
     expect(decryptSecret(rotated.secretsEncrypted ?? '')).toContain(SECRET);
 
@@ -167,10 +182,7 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     expect(executed.status).toBe('APPROVED');
     expect(executed.executedAt).not.toBeNull();
 
-    await db.integration.update({
-      where: { key: integration.key },
-      data: { secretsEncrypted: original, configPublic: integration.configPublic ?? {} },
-    });
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
     await db.approvalRequest.deleteMany({ where: { entityId: integration.key } });
     await db.auditLog.deleteMany({ where: { actorId: { in: [requester.id, approver.id] } } });
     await db.adminUser.deleteMany({ where: { id: { in: [requester.id, approver.id] } } });
@@ -181,8 +193,8 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     const second = await admin('الثاني');
     const integration = await db.integration.findFirstOrThrow();
 
-    expect((await requestRotation(first, integration.key, { apiKey: 'a' }, null)).ok).toBe(true);
-    const clash = await requestRotation(second, integration.key, { apiKey: 'b' }, null);
+    expect((await requestRotation(first, integration.key, 'TEST', { apiKey: 'a' }, null)).ok).toBe(true);
+    const clash = await requestRotation(second, integration.key, 'TEST', { apiKey: 'b' }, null);
     expect(clash.ok).toBe(false);
     if (!clash.ok) expect(clash.reason).toBe('ALREADY_PENDING');
 
@@ -195,9 +207,9 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     const requester = await admin('الطالب');
     const approver = await admin('المعتمِد');
     const integration = await db.integration.findFirstOrThrow();
-    const original = integration.secretsEncrypted;
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
 
-    await requestRotation(requester, integration.key, { apiKey: SECRET }, null);
+    await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
     const request = await db.approvalRequest.findFirstOrThrow({
       where: { entityId: integration.key, status: 'PENDING' },
     });
@@ -210,8 +222,10 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     expect(late.ok).toBe(false);
     if (!late.ok) expect(late.reason).toBe('EXPIRED');
 
-    const untouched = await db.integration.findUniqueOrThrow({ where: { key: integration.key } });
-    expect(untouched.secretsEncrypted).toBe(original);
+    const untouched = await db.integrationCredential.findUnique({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
+    });
+    expect(untouched).toBeNull();
 
     await db.approvalRequest.deleteMany({ where: { entityId: integration.key } });
     await db.auditLog.deleteMany({ where: { actorId: { in: [requester.id, approver.id] } } });
@@ -260,5 +274,98 @@ describe('A11 — الفحص لا يدّعي نجاحًا', () => {
     for (const row of await listIntegrations()) {
       expect(row.failureBehavior, row.key).not.toBe('');
     }
+  });
+});
+
+describe('═══ قرار ٣٣ ═══ البيئتان منفصلتان، وstaging مقيَّد في الكود', () => {
+  it('خارج الإنتاج تُقرأ TEST مهما كان المخزَّن', async () => {
+    // الاختبارات تجري على APP_ENV=development
+    expect(effectiveEnvironment('LIVE')).toBe('TEST');
+    expect(effectiveEnvironment('TEST')).toBe('TEST');
+  });
+
+  it('السرّ الفعّال من بيئة الاختبار ولو كانت البوابة مخزَّنة على الإنتاج', async () => {
+    const requester = await admin('الطالب');
+    const approver = await admin('المعتمِد');
+    const integration = await db.integration.findFirstOrThrow();
+
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
+    // مفتاحان مختلفان في البيئتين
+    await db.integrationCredential.createMany({
+      data: [
+        { integrationKey: integration.key, env: 'TEST', secretsEncrypted: 'TEST_SECRET_BLOB' },
+        { integrationKey: integration.key, env: 'LIVE', secretsEncrypted: 'LIVE_SECRET_BLOB' },
+      ],
+    });
+    await db.integration.update({ where: { key: integration.key }, data: { activeEnv: 'LIVE' } });
+
+    // ═══ المخزَّن LIVE — والمقروء TEST، لأن القيد في الكود ═══
+    expect(await activeSecret(integration.key)).toBe('TEST_SECRET_BLOB');
+
+    const row = (await listIntegrations()).find((entry) => entry.key === integration.key);
+    expect(row?.storedEnv).toBe('LIVE');
+    expect(row?.activeEnv).toBe('TEST');
+    // والشاشة تقولها ولا تُخفيها
+    expect(row?.envForced).toBe(true);
+
+    await db.integration.update({ where: { key: integration.key }, data: { activeEnv: 'TEST' } });
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
+    await db.adminUser.deleteMany({ where: { id: { in: [requester.id, approver.id] } } });
+  });
+
+  it('كتابة مفتاح إنتاج من خارج الإنتاج تُرفض', async () => {
+    const requester = await admin('الطالب');
+    const integration = await db.integration.findFirstOrThrow();
+
+    const live = await requestRotation(requester, integration.key, 'LIVE', { apiKey: SECRET }, null);
+    expect(live.ok).toBe(false);
+    if (!live.ok) expect(live.reason).toBe('ENV_FORBIDDEN');
+
+    // ولا طلب موافقة كُتب — الرفض قبل كل شيء
+    expect(
+      await db.approvalRequest.count({ where: { entityId: integration.key, status: 'PENDING' } }),
+    ).toBe(0);
+
+    await db.auditLog.deleteMany({ where: { actorId: requester.id } });
+    await db.adminUser.delete({ where: { id: requester.id } });
+  });
+
+  it('تبديل البيئة خارج الإنتاج لا معنى له فيُرفض', async () => {
+    const requester = await admin('الطالب');
+    const integration = await db.integration.findFirstOrThrow();
+
+    const result = await requestEnvSwitch(requester, integration.key, 'LIVE', null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('ENV_FORBIDDEN');
+
+    await db.adminUser.delete({ where: { id: requester.id } });
+  });
+
+  it('تدوير بيئة لا يمسّ الأخرى', async () => {
+    const requester = await admin('الطالب');
+    const approver = await admin('المعتمِد');
+    const integration = await db.integration.findFirstOrThrow();
+
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
+    await db.integrationCredential.create({
+      data: { integrationKey: integration.key, env: 'LIVE', secretsEncrypted: 'LIVE_UNTOUCHED' },
+    });
+
+    await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
+    const request = await db.approvalRequest.findFirstOrThrow({
+      where: { entityId: integration.key, status: 'PENDING' },
+    });
+    await approveRotation(approver, request.id, null);
+
+    const live = await db.integrationCredential.findUniqueOrThrow({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'LIVE' } },
+    });
+    // ═══ تجربةٌ لا تكتب فوق مفتاح الإنتاج — وهو كل سبب الفصل ═══
+    expect(live.secretsEncrypted).toBe('LIVE_UNTOUCHED');
+
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
+    await db.approvalRequest.deleteMany({ where: { entityId: integration.key } });
+    await db.auditLog.deleteMany({ where: { actorId: { in: [requester.id, approver.id] } } });
+    await db.adminUser.deleteMany({ where: { id: { in: [requester.id, approver.id] } } });
   });
 });

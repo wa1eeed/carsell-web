@@ -7,6 +7,8 @@ import { requestRotation } from '@/lib/domain/admin-integrations';
 export const runtime = 'nodejs';
 
 const Body = z.object({
+  // الاختبار افتراضًا: الإنتاج يُقصَد لا يُقع فيه
+  env: z.enum(['TEST', 'LIVE']).default('TEST'),
   secrets: z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9_]*$/), z.string().min(1).max(500)),
 });
 
@@ -27,10 +29,26 @@ export async function POST(
   if (!parsed.success) return fail(ERRORS.VALIDATION({ secrets: 'INVALID' }), 422);
 
   const { key } = await params;
-  const result = await requestRotation(guard.admin, key, parsed.data.secrets, guard.ip);
+  const result = await requestRotation(
+    guard.admin,
+    key,
+    parsed.data.env,
+    parsed.data.secrets,
+    guard.ip,
+  );
 
   if (!result.ok) {
     if (result.reason === 'NOT_FOUND') return fail(ERRORS.NOT_FOUND, 404);
+    if (result.reason === 'ENV_FORBIDDEN') {
+      return fail(
+        {
+          code: result.reason,
+          messageAr: 'مفاتيح الإنتاج لا تُكتب من خارج الإنتاج.',
+          messageEn: 'Live keys cannot be written from outside production.',
+        },
+        403,
+      );
+    }
     return fail(
       { code: result.reason, messageAr: 'تدوير قائم على هذا المفتاح بالفعل.', messageEn: 'A rotation is already pending for this key.' },
       409,

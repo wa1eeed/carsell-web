@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import type { IntegrationRow } from '@/lib/domain/admin-integrations';
+import { ENV_LABEL } from '@/lib/domain/integration-env';
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: 'تعمل',
@@ -20,7 +21,12 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'neutral'> = {
   INACTIVE: 'neutral',
 };
 
-type Draft = { key: string; nameAr: string; fields: { name: string; value: string }[] };
+type Draft = {
+  key: string;
+  nameAr: string;
+  env: 'TEST' | 'LIVE';
+  fields: { name: string; value: string }[];
+};
 
 /**
  * A11 — قائمة التكاملات ولوح التدوير.
@@ -77,7 +83,7 @@ export function IntegrationsList({
 
     post(
       `/api/v1/admin/integrations/${draft.key}/rotate`,
-      { secrets },
+      { env: draft.env, secrets },
       () => 'سُجّل الطلب — ينتظر موافقة عضو ثانٍ ولم يتغيّر شيء بعد.',
     );
     setDraft(null);
@@ -107,19 +113,44 @@ export function IntegrationsList({
                     </p>
                   </div>
 
-                  <div className="flex min-w-40 flex-col gap-1">
-                    {Object.entries(row.secretHints).length === 0 ? (
-                      <span className="text-3xs opacity-40">لا مفاتيح محفوظة</span>
-                    ) : (
-                      Object.entries(row.secretHints).map(([name, hint]) => (
-                        <span key={name} className="flex items-baseline gap-2 text-3xs">
-                          <span className="opacity-50">{name}</span>
-                          {/* التلميح مخزَّن نصًّا — ولا فكّ تشفير في مسار العرض */}
-                          <span className="font-num truncate opacity-75" dir="ltr">
-                            {hint}
-                          </span>
+                  {/*
+                    البيئتان جنبًا إلى جنب: مفتاحٌ واحد معروض يجعل المحرّر
+                    يظنّ أنه يرى المستعمَل، وهو قد يرى الآخر.
+                  */}
+                  <div className="flex min-w-56 flex-col gap-1.5">
+                    {row.credentials.map((credential) => (
+                      <div key={credential.env} className="flex items-baseline gap-2 text-3xs">
+                        <span
+                          className={
+                            credential.env === row.activeEnv
+                              ? 'w-10 shrink-0 font-bold'
+                              : 'w-10 shrink-0 opacity-40'
+                          }
+                        >
+                          {ENV_LABEL[credential.env]}
                         </span>
-                      ))
+                        {!credential.configured ? (
+                          <span className="opacity-40">بلا مفاتيح</span>
+                        ) : (
+                          <span className="flex flex-col gap-0.5">
+                            {Object.entries(credential.hints).map(([name, hint]) => (
+                              <span key={name} className="flex items-baseline gap-2">
+                                <span className="opacity-50">{name}</span>
+                                {/* التلميح مخزَّن نصًّا — ولا فكّ تشفير في مسار العرض */}
+                                <span className="font-num truncate opacity-75" dir="ltr">
+                                  {String(hint)}
+                                </span>
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                    {!row.envForced ? null : (
+                      /* المخزَّن «إنتاج» والمستعمَل «اختبار» — تُقال لا تُخفى */
+                      <span className="text-3xs text-warn">
+                        مخزَّنة على الإنتاج، وتعمل على الاختبار — القيد في الكود.
+                      </span>
                     )}
                   </div>
 
@@ -135,6 +166,8 @@ export function IntegrationsList({
                         setDraft({
                           key: row.key,
                           nameAr: row.nameAr,
+                          // الاختبار افتراضًا: الإنتاج يُقصَد لا يُقع فيه
+                          env: 'TEST',
                           fields: [{ name: 'apiKey', value: '' }],
                         })
                       }

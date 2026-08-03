@@ -2,12 +2,12 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
-import { db } from '@/lib/db';
 import {
   checkIdempotency,
   rememberIdempotency,
   startPayment,
 } from '@/lib/domain/payments';
+import { activeSecret } from '@/lib/domain/admin-integrations';
 import { providerFor } from '@/lib/payments/provider';
 
 export const runtime = 'nodejs';
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
     return ok(seen.response, undefined, { status: seen.status });
   }
 
-  const integration = await db.integration.findUnique({ where: { key: 'payments' } });
-  const provider = providerFor(integration?.secretsEncrypted ?? null);
+  // السرّ الفعّال للبيئة المستعمَلة — و`activeSecret` هي التي تحرس البيئة
+  const provider = providerFor(await activeSecret('payments'));
 
   const result = await startPayment(
     { ...parsed.data, buyerId: user.id, idempotencyKey: key },

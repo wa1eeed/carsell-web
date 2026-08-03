@@ -14,6 +14,7 @@
  * ١٢. صفوف Prisma لا تعبر حدّ الخادم/العميل.
  * ١٣. لا نقطة في مفتاح ترجمة — next-intl يقرؤها تداخلًا.
  * ١٤. لا مكوّن عميل يصل إلى `db` عبر سلسلة استيرادات.
+ * ١٥. مفردات المزوّد (authorize/capture/void) لا تعبر المُهايئ.
  *
  * قائمة الاستثناءات في القاعدة ٥ من DESIGN-DECISIONS.md بند ٧:
  * العدّادات HH:MM:SS · المعرّفات · اللوحة · الرموز الفنية —
@@ -583,6 +584,49 @@ function checkClientDbImports() {
   }
 }
 
+
+/**
+ * ————— القاعدة ١٥: مفردات المزوّد لا تعبر المُهايئ —————
+ *
+ * الواجهة **بلغة الضمان لا بلغة البطاقة**: `hold` و`settle` و`cancel`.
+ * و`authorize`/`capture`/`void` مفردات بطاقةٍ صالحة **داخل المُهايئ
+ * وحده** — فهو المكان الذي يترجم فيه.
+ *
+ * ولمَ بوابة لا مراجعة: ترتيب الضمان قد يتغيّر بنيويًّا لا اسميًّا —
+ * حساب أمانة بنكيّ يجعل `hold` تحويلًا يستغرق يومًا. وشاشةٌ سمّت
+ * المفهوم `authorize` تصير كاذبة يومها، ولا يكشفها المترجم لأن
+ * الاسم يظلّ يترجم.
+ */
+const GATEWAY_VOCAB = /\b(authorize|authorization|capture|voidPayment|preauth)\b/;
+
+/** المُهايئات وحدها تترجم — وهي الاستثناء المُعلن. */
+const ADAPTER_PATH = /src[\\/]lib[\\/]payments[\\/]adapters[\\/]/;
+
+function checkGatewayVocabulary() {
+  const roots = [join('src', 'lib', 'domain'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (ADAPTER_PATH.test(rel)) continue;
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        // التعليق يشرح ولا ينفّذ — والشرح قد يذكر ما يُترجَم منه
+        const code = line.split('//')[0] ?? '';
+        if (/^\s*[*]/.test(line)) return;
+        const match = code.match(GATEWAY_VOCAB);
+        if (match) {
+          problems.push(
+            `${rel}:${i + 1}  «${match[0]}» مفردة مزوّد خارج المُهايئ — الواجهة بلغة الضمان: hold · settle · cancel · partialReturn`,
+          );
+        }
+      });
+    }
+  }
+}
+
 function checkPrismaBoundary() {
   for (const dir of SCAN_DIRS) {
     for (const file of walk(join(ROOT, dir))) {
@@ -639,6 +683,7 @@ checkColourUtilities();
 checkMoneyMigrations();
 checkPrismaBoundary();
 checkClientDbImports();
+checkGatewayVocabulary();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -649,5 +694,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ.',
 );

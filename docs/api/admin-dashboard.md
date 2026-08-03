@@ -154,8 +154,65 @@ with no digits (`super`, `ops`, `finance`) and cannot match.
 - **No 12-month growth chart, customer pie, or registration-source chart** on
   A1 — the first needs a charting approach not yet chosen; the third has no
   column behind it.
-- **No test/production environment toggle** on A11: `Integration` holds one
-  configuration per key. Two environments means either two rows or a second
-  secrets column, which is a schema decision.
+- ~~No test/production environment toggle~~ — **resolved, decision 33.** See
+  "Environment separation" below.
 - **No per-integration health percentages or monthly cost** — both need a
   provider reporting real numbers.
+
+---
+
+# Environment separation (decision 33)
+
+Superseded open question §17. `Integration` now holds an `activeEnv`, and keys
+live in `IntegrationCredential`, keyed by `(integration, env)`.
+
+## A child table, not two columns
+
+Hints, rotation history and last-changed are **per environment**. Two columns on
+`Integration` would make both environments share one row for those, and they
+would blur.
+
+## staging is restricted in code, not by discipline
+
+`effectiveEnvironment()` reads the stored `activeEnv` **only in production**.
+Everywhere else it returns `TEST` without consulting it.
+
+Discipline means somebody remembers not to flip the environment on staging. They
+remember three times and forget the fourth, and the fourth is on a live payment
+key. The field is not read-then-ignored — it is **not read at all**, because a
+door that closes on a condition is opened by one wrong condition.
+
+`activeSecret(key)` is the only entry point for operational code, and it takes
+**no environment argument**. If it did, every caller could ask for `LIVE` from
+staging, and the constraint in the code would become a constraint in calling
+etiquette.
+
+## Live keys cannot be written from outside production
+
+`requestRotation` refuses `env: 'LIVE'` with `ENV_FORBIDDEN` (HTTP 403) before
+creating any approval request. The staging console reaches the staging database,
+and a live key written there is a live key in a less-guarded backup.
+
+Verified live from the running dev console:
+
+| Attempt | Result | Stored live key |
+|---|---|---|
+| Rotate `LIVE` | **403 `ENV_FORBIDDEN`** | untouched |
+| Rotate `TEST` | 200 | untouched |
+
+And a test asserts rotating one environment leaves the other byte-identical —
+which is the entire reason for the split.
+
+## Switching the environment also needs two approvals
+
+`ApprovalKind.INTEGRATION_ENV`, through the same `ApprovalRequest` mechanism as
+rotation. It is the more dangerous of the two, not the lesser: a bad rotation
+breaks an integration, while a bad switch runs real money through test keys — or
+the reverse, where real payments hit a test account and nothing arrives.
+
+## The screen says when the stored value is not the used one
+
+When `activeEnv` is `LIVE` but the code forces `TEST`, the row shows both key
+sets side by side and an amber line: "stored on production, running on test —
+the constraint is in the code". One key on screen would let the editor believe
+they are looking at the one in use.
