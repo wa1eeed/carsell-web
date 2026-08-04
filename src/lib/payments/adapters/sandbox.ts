@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { db } from '@/lib/db';
+import { isProduction } from '@/lib/env';
 import { Prisma } from '@/generated/prisma/client';
 import type {
   CancelResult,
@@ -25,9 +26,15 @@ import type {
  *
  * ═══ ومقيَّدة في الكود لا بالانضباط ═══
  *
- * `createSandboxAdapter` **ترمي** في الإنتاج. وبوابةٌ وهمية تُفتح على
- * `LIVE` تقول للمشتري إن بطاقته سُحبت ولم يُسحب شيء — وهذا أسوأ من
- * غياب البوابة أصلًا، لأن الغياب يُعلن نفسه.
+ * `createSandboxAdapter` **ترمي في الإنتاج** — وبوابةٌ وهمية تُفتح على
+ * مالٍ حقيقيّ تقول للمشتري إن بطاقته سُحبت ولم يُسحب شيء، وهذا أسوأ من
+ * غياب البوابة لأن الغياب يُعلن نفسه.
+ *
+ * **والحدّ `APP_ENV` لا `NODE_ENV`.** الثاني يساوي `production` في
+ * staging أيضًا، فالحراسة به تُغلق البوابة على بيئة التجريب نفسها —
+ * وstaging **مقيَّدة بـ`TEST` في الكود** أصلًا (`effectiveEnvironment`)،
+ * فهي موضع هذه البوابة لا موضع منعها. (كتبتُها بـ`NODE_ENV` أوّلًا،
+ * فكانت staging تسقط بلا بوابة وأنا أحسبها محروسة.)
  */
 
 export const SANDBOX_KEY = 'sandbox';
@@ -77,7 +84,7 @@ async function record(
 }
 
 export function createSandboxAdapter(capabilities: PaymentGatewayPort['capabilities']): PaymentGatewayPort {
-  if (process.env.NODE_ENV === 'production') throw new SandboxInProductionError();
+  if (isProduction) throw new SandboxInProductionError();
 
   return {
     key: SANDBOX_KEY,

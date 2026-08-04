@@ -129,6 +129,25 @@
         }
       }
     },
+    "/api/health": {
+      "get": {
+        "summary": "GET /api/health",
+        "tags": [
+          "root"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/public/v1/dealers": {
       "get": {
         "summary": "GET /api/public/v1/dealers",
