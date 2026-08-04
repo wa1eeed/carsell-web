@@ -12,8 +12,18 @@ export const dynamic = 'force-dynamic';
  * لا «تذكّرني» ولا «نسيت كلمة المرور» ولا دخول اجتماعي:
  * الحساب ينشئه SUPER_ADMIN وإعادة التعيين منه وحده.
  */
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ changed?: string }>;
+}) {
   if ((await currentAdmin()) !== null) redirect('/admin');
+
+  /**
+   * **ومعاملٌ يُرسَل ولا يُقرأ صمتٌ بعد نجاح.** من غيّر كلمته يُحوَّل
+   * إلى هنا، فيرى شاشة دخولٍ عاديّة ويظنّ أن شيئًا فشل — والتغيير وقع.
+   */
+  const changed = (await searchParams).changed === '1';
 
   return (
     <main className="flex min-h-screen flex-col bg-ink">
@@ -34,6 +44,12 @@ export default async function AdminLoginPage() {
               ADMIN CONSOLE
             </p>
           </header>
+          {changed ? (
+            <p className="mb-6 rounded-lg border border-line bg-surface p-3.5 text-2xs leading-loose">
+              <b>غُيّرت كلمتك.</b> وأُنهيت جلساتك كلّها — ادخل بالكلمة الجديدة.
+            </p>
+          ) : null}
+
           <AdminLoginForm />
         </div>
       </div>

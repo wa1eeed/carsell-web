@@ -286,3 +286,99 @@ that same commit, and a test fails until the screen's wording follows.
 **Schema:** `AdSlot.sizeLabel` and `AdSlot.placement` were added. `width×height`
 renders a 16:6 ratio as "16×6 pixels", and a slot sold to an advertiser without a
 written placement is sold without a description.
+
+---
+
+## A24 — not built, on purpose · 2026-08-04
+
+Design decision 14 is explicit: financing stays display-and-calculator only in
+phase one, and **"طلبات التمويل" in the admin console stays disabled with a
+"قريبًا" badge**. There is no `FinanceRequest` model and there should not be one
+yet. The nav item is left `href: null`, which is the designed state — not an
+unfinished screen. Recorded here so nobody "completes" it later.
+
+---
+
+## A28 — the provider screen, and SLA breach measured instead of noticed · 2026-08-04
+
+**What was built:** all of A28's columns from `ServiceProvider` — type,
+commission, SLA, cities, active — plus per-provider open load, enable/disable
+with an audit entry, and both rule panels.
+
+**Added beyond the markup:** the breached requests **by reference and hours
+late**. The markup shows "٣ طلبات تجاوزت الالتزام" as a figure; a figure nobody
+can act on. `ServiceRequest.dueAt` was written on every request and nothing ever
+compared it to the clock, so lateness passed without a trace.
+
+**Breach is derived from `dueAt` and the clock together**, never from a flag — a
+request still `IN_PROGRESS` whose deadline passed yesterday is late even though
+nothing has touched it. A finished request past its deadline is not: nobody is
+waiting.
+
+**Disabling does not touch running requests**, exactly as the markup states, and
+the toast tells the admin how many the provider will still finish.
+
+**Not built:** `أضف مزوّدًا` and `تصدير`. Onboarding a provider is a contract with
+commission and SLA terms; a form that creates one from the console makes a
+commercial agreement a button press.
+
+---
+
+## A36 — six real reports instead of twelve labels · 2026-08-04
+
+**What was built:** six named read queries that actually download as CSV —
+sales/commissions, ledger, inventory aging, auction performance, service requests
+and SLA, and customers. Each carries its own permission, and the route enforces
+it (OPS gets 403 on the customer export, verified).
+
+**Six, not the markup's twelve:** the rest need data we do not collect. The
+investor report wants CAC, LTV and burn; a report that downloads with empty
+columns is worse than one that does not exist.
+
+**CSV, not XLSX + PDF.** CSV opens in every tool and adds no dependency to the
+bundle. Two things the markup does not mention are enforced: a UTF-8 BOM, without
+which Excel on Windows renders Arabic as mojibake and the recipient assumes the
+export is corrupt; and formula-injection escaping — a cell starting with `=`, `+`,
+`-` or `@` executes in Excel, so a user-supplied name becomes a command on the
+recipient's machine.
+
+**Personal-data exports are audited, aggregate ones are not.** Auditing every
+export drowns the log; the customer export records who, when, and **how many
+rows** — "exported one customer" and "exported four hundred" are different acts.
+
+**Scheduling is declared, not running.** No job generates or delivers a report,
+so the page says so above the table rather than letting someone rely on a Sunday
+file that never arrives.
+
+**Route path:** `/api/v1/admin/exports/{key}`, not under `reports/`, because
+`reports/[ref]` is the report-queue segment and Next refuses two different slug
+names at one level — it drops *all* dynamic routes with an error that names no
+file.
+
+---
+
+## Admin "حسابي" — password change, and no TOTP to re-enrol · 2026-08-04
+
+Task 35 asked for a change-password screen **and TOTP re-enrolment**. TOTP was
+removed from admin sign-in earlier this session by the owner's instruction, so
+only the password half remains; the screen shows the account, its live sessions,
+and the permissions the role actually holds.
+
+**No permission is required.** Changing your own password is not something a role
+grants — everyone who signed in has it. Gating it would leave the weakest role
+unable to close a door that had been opened.
+
+**The current password is required** even though the session is valid: an
+unattended machine is enough to change a password and lock the owner out.
+
+**The change ends every session, including the current one.** The first version
+kept the current session alive and revoked the others — a *second* rule
+contradicting the one already in `resolveAdminSession`, which refuses any session
+created before `passwordChangedAt`. The guard would have killed that session at
+the next request anyway, logging the user out with no explanation. Now the screen
+says so before the button, the cookie is cleared by the route, and the login page
+reads `?changed=1` and says why.
+
+**A wrong current password answers 422, not 401.** 401 carries "يلزم تسجيل
+الدخول" — shown to someone who *is* signed in — and any generic interceptor
+would treat a mistyped character as an expired session.

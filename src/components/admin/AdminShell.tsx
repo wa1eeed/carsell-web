@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { APP_ENV } from '@/lib/env';
@@ -58,7 +59,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     items: [
       { label: 'الإعلانات المموّلة', href: '/admin/ads', permission: 'finance.view' },
       { label: 'الحملات التسويقية', href: '/admin/campaigns' },
-      { label: 'التقارير والتصدير', href: null },
+      { label: 'التقارير والتصدير', href: '/admin/exports' },
     ],
   },
   {
@@ -74,7 +75,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
       { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },
       { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
-      { label: 'مزوّدو الخدمات والتمويل', href: null },
+      { label: 'مزوّدو الخدمات والتمويل', href: '/admin/providers', permission: 'services.manage' },
       { label: 'إعدادات المزادات', href: '/admin/auction-settings', permission: 'finance.view' },
       { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage' },
       { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
@@ -184,10 +185,17 @@ export function AdminShell({
           <h1 className="text-xl font-bold">{title}</h1>
           <span className="flex-1" />
           {actions}
-          <span className="flex flex-col items-end gap-0.5 border-s border-line ps-4">
+          {/*
+            **الاسم يفتح الحساب.** وشاشة «حسابي» ليست في الشريط الجانبي
+            — مكانها حيث يبحث عنها المرء: تحت اسمه.
+          */}
+          <Link
+            href="/admin/account"
+            className="flex flex-col items-end gap-0.5 border-s border-line ps-4 hover:opacity-70"
+          >
             <span className="text-sm font-bold">{admin.name}</span>
             <span className="text-3xs opacity-55">{admin.role}</span>
-          </span>
+          </Link>
         </header>
         <main className="flex-1 p-7.5">{children}</main>
       </div>
