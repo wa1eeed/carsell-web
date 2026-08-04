@@ -199,3 +199,18 @@ export const INVOICE_STATUS_LABEL: Record<string, string> = {
 
 /** «أي» لا «الكل»: الصفّ العامّ يطابق ما لم يجد أخصّ منه. */
 export const ANY_TYPE = 'أي';
+
+/** حالات النزاع — والنطاق يعيد المفتاح، والصياغة هنا. */
+export const DISPUTE_STATUS_LABEL: Record<string, string> = {
+  OPEN: 'مفتوح',
+  INVESTIGATING: 'قيد الفحص',
+  RESOLVED_BUYER: 'حُسم للمشتري',
+  RESOLVED_SELLER: 'حُسم للبائع',
+  CLOSED: 'مغلق',
+};
+
+export const RESOLUTION_LABEL: Record<string, string> = {
+  FULL_REFUND: 'استرداد كامل',
+  PARTIAL_SETTLEMENT: 'تسوية جزئية',
+  RELEASE_TO_SELLER: 'إفراج للبائع',
+};

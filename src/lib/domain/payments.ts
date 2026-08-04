@@ -139,16 +139,38 @@ export async function startHold(
     : result.state === 'CONFIRMED' ? 'HELD'
     : 'PENDING';
 
+  /**
+   * مرجع البوابة يُكتب أوّلًا — به تُلغى المحاولة أو تُسوَّى لاحقًا،
+   * حتى لو سقط ما بعده.
+   */
   await db.payment.update({
     where: { id: payment.id },
     data: {
-      status: next,
       holdRef: result.holdRef,
       actionUrl: result.state === 'REQUIRES_ACTION' ? result.actionUrl : null,
-      ...(next === 'HELD' ? { heldAt: now } : {}),
     },
   });
-  await record(payment.id, 'CREATED', next, `payment.${next.toLowerCase()}`, 'gateway', now);
+
+  /**
+   * ═══ والحالة تمرّ بـ`applyState` لا تُكتب هنا ═══
+   *
+   * كانت تُكتب هنا مباشرةً، **فبوابةٌ تؤكّد لحظيًّا — وكل بوابة بطاقة
+   * كذلك — تترك الدفعة `HELD` بلا `Escrow` وبلا تقدّم مرحلة**: المال
+   * محجوزٌ لدى البوابة ودفترنا لا يعرف لمن هو، والطلب واقفٌ في «دفع»
+   * إلى أن تنقضي مهلته. ولا يظهر العطل إلا حين تؤكّد البوابة فورًا،
+   * فمسار الويبهوك وحده كان يُختبَر.
+   *
+   * و`applyState` هي **المدخل الوحيد** — تُنشئ الضمان وتفتح سقف النقل
+   * وتقيّد الحدث، فتُكتب قاعدة المال مرّة ويمرّ منها الويبهوك والأدمن
+   * وهذا المسار معًا.
+   */
+  const applied = await applyState(payment.id, next, 'gateway', now);
+  if (!applied.ok) {
+    // انتقالٌ مرفوض بعد نجاح البوابة: يُقيَّد ولا يُبتلع
+    await record(payment.id, 'CREATED', next, 'payment.state_rejected', 'gateway', now, {
+      reason: applied.reason,
+    });
+  }
 
   return {
     ok: true,
@@ -291,8 +313,19 @@ export async function applyState(
    * انظر docs/tax-model.md § 9.
    */
   if (result.ok && to === 'SETTLED' && orderId !== null) {
-    const { issueSettlementDocuments } = await import('./documents');
-    await issueSettlementDocuments(orderId, now);
+    /**
+     * **الفشل هنا لا يُبطل التسوية.** المعاملة أُغلقت، والمال تحرّك —
+     * ورميُ الخطأ يجعل المستدعي يرى فشلًا وقد نجح، فيعيد المحاولة على
+     * دفعةٍ مُسوّاة. فيُبلَّغ ويُعاد الإصدار لاحقًا: `orderDocuments`
+     * تُظهر المستند «ينتظر»، والقائمة هي طابور إعادة المحاولة.
+     */
+    try {
+      const { issueSettlementDocuments } = await import('./documents');
+      await issueSettlementDocuments(orderId, now);
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'payments.applyState.issueDocuments', extra: { orderId } });
+    }
   }
 
   return result;

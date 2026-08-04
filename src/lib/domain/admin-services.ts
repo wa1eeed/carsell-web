@@ -267,6 +267,14 @@ export type ServiceCreate = {
   price: number;
   slaHours: number | null;
   placements: string[];
+  /**
+   * **الرسم الإداريّ يُكتب عند الإنشاء لا بعده.** كانت الشاشة تعرض
+   * حقله في لوح «خدمة جديدة» ثم يسقط في الطريق: المشغّل يضع ٢٠٠ ريالًا
+   * ويقرأ «أُنشئت» ويكون المحفوظ صفرًا — وهو رسمٌ لنا تجب عليه الضريبة،
+   * فسقوطه يُسقط ضريبته معه.
+   */
+  adminFeeEnabled: boolean;
+  adminFee: number;
 };
 
 /**
@@ -299,6 +307,8 @@ export async function createService(
       price: new Prisma.Decimal(input.price),
       slaHours: input.slaHours,
       placements: input.placements,
+      adminFeeEnabled: input.adminFeeEnabled,
+      adminFee: new Prisma.Decimal(input.adminFee),
       sort: (last?.sort ?? 0) + 1,
       active: false,
     },

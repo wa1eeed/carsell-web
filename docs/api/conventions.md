@@ -1,7 +1,7 @@
 # API conventions
 
 Applies to every route under `/api/v1`. The public API (`/api/public/v1`) is
-phase 1.5, tasks 32–33; it will follow the same envelope.
+built and follows the same envelope — see [`public.md`](public.md).
 
 ## Envelope
 

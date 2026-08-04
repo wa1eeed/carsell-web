@@ -21,6 +21,25 @@ import type { ListingType, PaintStatus, VehicleCondition } from '@/generated/pri
 export const PRICE_STAT_MIN_SAMPLE = 8;
 
 /** جزء المسار من نصّ عربي أو لاتيني — الرابط الأساسي (قرار ٢٥). */
+/**
+ * ═══ فكّ مقطعٍ من المسار ═══
+ *
+ * **أجزاء المسار تصل مُرمَّزة من Next**، والمدينة عربية. ومقارنتها
+ * بالنصّ المفكوك تفشل دائمًا — والفشل صامت: صفحةٌ تُصبح ٤٠٤ بلا خطأ في
+ * أي سجلّ. وقع مرّتين: في تحويل صفحة المركبة، ثم في صفحات الهبوط.
+ *
+ * ولذلك يقف **بجوار `toSlug`**: من يولّد المقطع يرى من يفكّه، ومن يقارن
+ * يجد الاثنين في موضع واحد.
+ */
+export function fromSlug(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    // مقطعٌ فاسد الترميز — يُقارَن كما هو ولا يُسقط الطلب
+    return segment;
+  }
+}
+
 export function toSlug(value: string): string {
   return value
     .trim()
@@ -222,6 +241,24 @@ export async function findPublishedListing(ref: string): Promise<DetailRow | nul
  * يلمس القيمة، وأداة تطوير في Next تنشره في HTML. الحقول المحدَّدة
  * تُنهي الاحتمال من أصله بدل أن تعتمد على ألّا يلمسه أحد.
  */
+/**
+ * هل على الإعلان طلبٌ حيّ؟
+ *
+ * **الزرّ يعرف قبل أن يَعِد.** كان «اشترِ الآن» يُعرض على إعلانٍ له
+ * طلبٌ قائم، فيضغطه المشتري ويردّ الخادم `ORDER_EXISTS` — شاشةٌ تقول
+ * شيئًا والنظام يفعل غيره. والحجز يقع في `buyDirect`، لكن إعلانًا قد
+ * يبقى `PUBLISHED` ومعه طلب (الزرع يفعلها)، والسباق ممكن دائمًا.
+ *
+ * وهذا **لا يُغني عن حارس الخادم**: الشاشة تُخفي والخادم يمنع.
+ */
+export async function hasLiveOrder(listingId: string): Promise<boolean> {
+  const live = await db.order.findFirst({
+    where: { listingId, status: 'ACTIVE' },
+    select: { id: true },
+  });
+  return live !== null;
+}
+
 export async function findListingForMetadata(ref: string) {
   return db.listing.findFirst({
     where: { ref, status: 'PUBLISHED' },

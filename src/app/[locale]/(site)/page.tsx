@@ -97,7 +97,7 @@ export default async function HomePage({
     year: item.year,
     city: item.city,
     mileageKm: item.mileageKm,
-    transmission: te(`transmission.${item.transmission}`),
+    transmissionLabel: te(`transmission.${item.transmission}`),
     price: Number(item.price),
     ...(item.monthly === null ? {} : { monthly: item.monthly }),
     type: item.type,
@@ -126,7 +126,8 @@ export default async function HomePage({
                 {t('sellYourCar')}
               </Button>
             </Link>
-            <Link href={`/${locale}/login`}>
+            {/* المسار `/auth` لا `/login` — كان يقود إلى ٤٠٤ من الرئيسية */}
+            <Link href={`/${locale}/auth`}>
               <Button size="sm">{t('signIn')}</Button>
             </Link>
           </span>

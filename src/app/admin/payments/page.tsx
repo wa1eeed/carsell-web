@@ -6,7 +6,12 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { getProcessingFee, listGateways, listRoutes } from '@/lib/domain/payment-routing';
+import {
+  getProcessingFee,
+  listGateways,
+  listRoutes,
+  pendingSwitches,
+} from '@/lib/domain/payment-routing';
 import { listRuns } from '@/lib/domain/reconciliation';
 import { ProcessingFeeCard } from './ProcessingFeeCard';
 import { ReconciliationTable } from './ReconciliationTable';
@@ -26,8 +31,9 @@ export default async function PaymentsRoutingPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [routes, gateways, processingFee, runs] = await Promise.all([
+  const [routes, awaiting, gateways, processingFee, runs] = await Promise.all([
     listRoutes(),
+    pendingSwitches(),
     listGateways(),
     getProcessingFee(),
     listRuns(),
@@ -49,6 +55,8 @@ export default async function PaymentsRoutingPage() {
       </h2>
       <RoutesTable
         routes={routes}
+        awaiting={awaiting}
+        adminId={admin.id}
         canManage={canWrite(admin.role, 'finance.view')}
       />
 

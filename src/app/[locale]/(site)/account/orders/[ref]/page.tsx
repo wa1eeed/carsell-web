@@ -62,6 +62,7 @@ export default async function OrderPage({
 
           <OrderScreen
             order={order}
+            locale={locale}
             formatted={{
               createdAt: date.format(new Date(order.createdAt)),
               stageEnteredAt: date.format(new Date(order.stageEnteredAt)),

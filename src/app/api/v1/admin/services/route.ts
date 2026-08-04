@@ -17,6 +17,9 @@ const Body = z.object({
   price: z.number().int().min(0).max(1_000_000),
   slaHours: z.number().int().min(0).max(8760).nullable().default(null),
   placements: z.array(z.string().max(40)).max(10).default([]),
+  // يُقبلان هنا كما يُقبلان في التعديل — والشاشة ترسلهما في الحالين
+  adminFeeEnabled: z.boolean().default(false),
+  adminFee: z.number().int().min(0).max(1_000_000).default(0),
 });
 
 /** `POST /api/v1/admin/services` — خدمة جديدة، تُنشأ مخفيّة. */

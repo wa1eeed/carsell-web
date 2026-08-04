@@ -17,7 +17,7 @@ import {
   SUPPLY_TYPE_LABEL,
   TAXABLE_BASE_LABEL,
 } from '@/lib/labels/admin';
-import type { TaxRuleRow } from '@/lib/domain/admin-tax';
+import type { PendingRuleChange, TaxRuleRow } from '@/lib/domain/admin-tax';
 
 const BASES = ['FULL_VALUE', 'MARGIN', 'FEE_ONLY', 'OUT_OF_SCOPE'] as const;
 const ISSUERS = ['PLATFORM', 'SELLER', 'PLATFORM_ON_BEHALF', 'NONE'] as const;
@@ -42,15 +42,47 @@ type Draft = {
  */
 export function RulesTable({
   rules,
+  awaiting,
+  adminId,
   canManage,
 }: {
   rules: readonly TaxRuleRow[];
+  /** تعديلات تنتظر العضو الثاني — فوق الجدول لا في سجلّ بعيد */
+  awaiting: readonly PendingRuleChange[];
+  /** الطالب لا يوافق على طلبه — والشاشة تقوله قبل الضغط لا بعده */
+  adminId: string;
   canManage: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
+
+  /**
+   * الموافقة الثانية — **كان لها مسار ولا زرّ.**
+   *
+   * `POST` موجود منذ بنائها، ولم يكن في الشاشة ما يبلغه: فيبقى كل
+   * تعديلٍ معلَّقًا حتى ينقضي، ويُعاد طلبه فيعود إلى حاله.
+   */
+  const approve = (item: PendingRuleChange): void => {
+    start(async () => {
+      const response = await fetch(`/api/v1/admin/tax/rules/${item.ruleId}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+      }).catch(() => null);
+
+      if (response === null || !response.ok) {
+        setToast(
+          response?.status === 403
+            ? 'طالب التعديل لا يوافق على طلبه — يلزم عضو ثانٍ.'
+            : 'تعذّر اعتماد التعديل.',
+        );
+        return;
+      }
+      setToast('طُبِّق التعديل — والفواتير الصادرة لم تتغيّر.');
+      router.refresh();
+    });
+  };
 
   const submit = (): void => {
     if (draft === null) return;
@@ -89,6 +121,56 @@ export function RulesTable({
 
   return (
     <>
+      {awaiting.length === 0 ? null : (
+        <div className="mb-4 flex flex-col gap-2.5">
+          {awaiting.map((item) => {
+            const isRequester = item.requestedBy === adminId;
+            return (
+              <div
+                key={item.id}
+                className="rounded-md border border-warn-200 bg-warn-100 p-3.5 text-2xs text-warn-900"
+              >
+                <p className="font-bold">تعديل قاعدة ينتظر الاعتماد</p>
+                <p className="mt-1.5 leading-loose opacity-80">
+                  {TAXABLE_BASE_LABEL[item.edit.taxableBase] ?? item.edit.taxableBase}
+                  {item.edit.ratePct === null ? null : (
+                    <>
+                      {' · '}
+                      <span className="font-num">
+                        <ArabicNumber value={item.edit.ratePct} decimals={2} grouped={false} />٪
+                      </span>
+                    </>
+                  )}
+                  {' · '}
+                  {item.edit.active ? 'تُفعَّل' : 'تبقى معطَّلة'}
+                  {' · الموافقات '}
+                  <span className="font-num">
+                    <ArabicNumber value={item.approvals} grouped={false} />
+                  </span>
+                  {' من '}
+                  <span className="font-num">
+                    <ArabicNumber value={item.required} grouped={false} />
+                  </span>
+                </p>
+                {item.edit.note === null || item.edit.note === '' ? null : (
+                  <p className="mt-1.5 leading-loose opacity-70">الملاحظة: {item.edit.note}</p>
+                )}
+                {!canManage ? null : (
+                  <Button
+                    size="sm"
+                    className="mt-3"
+                    disabled={pending || isRequester}
+                    onClick={() => approve(item)}
+                  >
+                    {isRequester ? 'طلبتَه — ينتظر عضوًا آخر' : 'اعتمد التعديل'}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <DataTable
         rows={rules}
         rowKey={(rule) => rule.id}

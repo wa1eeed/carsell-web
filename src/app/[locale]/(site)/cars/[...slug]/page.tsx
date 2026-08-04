@@ -5,15 +5,7 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
-import {
-  canonicalPath,
-  faqForListing,
-  findListingForMetadata,
-  findPublishedListing,
-  similarListings,
-  toPublicDetail,
-  type PublicListingDetail,
-} from '@/lib/domain/listing-detail';
+import { canonicalPath, faqForListing, findListingForMetadata, findPublishedListing, fromSlug, hasLiveOrder, similarListings, toPublicDetail, type PublicListingDetail } from '@/lib/domain/listing-detail';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
@@ -23,6 +15,8 @@ import {
   toPublicReport,
 } from '@/lib/domain/inspection';
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
+import { currentUserFromCookies } from '@/lib/domain/account';
+import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
 import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
@@ -42,19 +36,6 @@ type Params = { locale: string; slug: string[] };
  * التحويل ٣٠١ لا ٣٠٢: نسختان من الصفحة نفسها تقسمان وزنها في الفهرسة،
  * والدائم وحده ينقل الوزن إلى الأساسي.
  */
-/**
- * أجزاء المسار تصل **مُرمَّزة** من Next، والمدينة عربية. مقارنتها
- * بالنصّ المفكوك تفشل دائمًا فيتحوّل الرابط إلى نفسه بلا نهاية —
- * وهذا ما وقع فعلًا قبل هذا الفكّ.
- */
-function decodeSegment(segment: string): string {
-  try {
-    return decodeURIComponent(segment);
-  } catch {
-    return segment;
-  }
-}
-
 async function resolve(params: Params) {
   const { locale, slug } = params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -64,7 +45,7 @@ async function resolve(params: Params) {
    * بجزء ثابت بعد catch-all. والنتيجة أصحّ بنيويًا — التقرير صفة
    * مركبةٍ معروضة، فرابطه فرع من رابطها لا جار له.
    */
-  const raw = slug.map(decodeSegment);
+  const raw = slug.map(fromSlug);
   const wantsReport = raw[raw.length - 1] === 'inspection';
   const parts = wantsReport ? raw.slice(0, -1) : raw;
 
@@ -87,7 +68,7 @@ async function resolve(params: Params) {
    * وتظهر للزائر صفحة خطأ — وثمن الحارس مقارنة نصّين.
    */
   const target = wantsReport ? `${canonical.path}/inspection` : canonical.path;
-  const here = `/${locale}/cars/${raw.map(encodeURIComponent).join('/')}`;
+  const here = `/${locale}/cars/${raw.map((part) => encodeURIComponent(part)).join('/')}`;
   if (!matches && target !== here) permanentRedirect(target);
 
   return { row, canonical, locale, wantsReport };
@@ -105,7 +86,7 @@ export async function generateMetadata({
   const parts = report ? slug.slice(0, -1) : slug;
   if (parts.length !== 4) return {};
 
-  const row = await findListingForMetadata(decodeSegment(parts[3] ?? ''));
+  const row = await findListingForMetadata(fromSlug(parts[3] ?? ''));
   if (row === null) return {};
 
   const canonical = canonicalPath(locale, row);
@@ -210,6 +191,13 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
     answer: isArabic ? entry.answerAr : entry.answerEn,
   }));
 
+  /**
+   * الجلسة تُقرأ هنا لا في المكوّن: زرّ الشراء يحتاج أن يعرف **قبل**
+   * الضغط أهو صاحب الإعلان، وأمسجَّلٌ دخوله — فيوجّه إلى الدخول بدل
+   * أن يُظهر خطأً بعد نداءٍ فاشل.
+   */
+  const viewer = await currentUserFromCookies();
+
   return (
     <>
       <SiteHeader active="cars" />
@@ -232,6 +220,12 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
             heading={{
               home: t('home'),
               cars: t('cars'),
+            }}
+            viewer={{
+              signedIn: viewer !== null,
+              isOwn: viewer !== null && viewer.id === resolved.row.sellerId,
+              taxProfile: viewer === null ? null : taxProfileOf(viewer),
+              reserved: await hasLiveOrder(resolved.row.id),
             }}
           />
         </div>

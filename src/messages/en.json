@@ -349,7 +349,8 @@
     "taxRules": "{count, plural, =0{no rules} one{one rule} other{{n} rules}}",
     "activeRules": "{count, plural, =0{none active} one{one active} other{{n} active}}",
     "awaitingRules": "{count, plural, =0{none} one{one} other{{n}}}",
-    "creditNotes": "{count, plural, =0{no credit notes} one{one credit note} other{{n} credit notes}}"
+    "creditNotes": "{count, plural, =0{no credit notes} one{one credit note} other{{n} credit notes}}",
+    "disputes": "{count, plural, one{{n} dispute} other{{n} disputes}}"
   },
   "search": {
     "title": "Browse cars",
@@ -707,7 +708,12 @@
     "vinOptional": "Have the VIN? We will fill what we can.",
     "filledPrefix": "Filled",
     "filledSuffix": "fields — check them",
-    "vinFailedQuiet": "Could not fetch; continue manually."
+    "vinFailedQuiet": "Could not fetch; continue manually.",
+    "publishing": "Publishing…",
+    "publishFailed": "Could not publish — check the details.",
+    "publishNetwork": "Connection failed — try again.",
+    "colorExterior": "Exterior colour",
+    "condition": "Condition"
   },
   "order": {
     "subtitle": "Where your order and your money stand.",
@@ -737,7 +743,10 @@
       "payment": {
         "timeout": "Payment window missed"
       },
-      "other": "Order update"
+      "other": "Order update",
+      "order": {
+        "created": "Order created"
+      }
     },
     "escrowState": {
       "PENDING": "Funds not yet held.",
@@ -854,5 +863,43 @@
     "listingTaxable": "This vehicle belongs to a taxable business activity",
     "listingTaxableHint": "Changes the tax treatment of this listing only.",
     "adminFeeRow": "Administrative fee"
+  },
+  "dealer": {
+    "verified": "Verified dealer",
+    "joined": "On the platform since",
+    "listed": "Listed now",
+    "sold": "Completed sales",
+    "vehicles": "Vehicles",
+    "emptyTitle": "No vehicles listed right now",
+    "emptyBody": "This dealer has no published listings at the moment — check back later.",
+    "metaFallback": "Car dealer in {city} on carsell.one",
+    "indexTitle": "Dealers",
+    "indexSubtitle": "Car dealers on the platform."
+  },
+  "landing": {
+    "title": "{brand} cars in {city}",
+    "titleModel": "{model} in {city}",
+    "meta": "{count} {brand} cars listed in {city} on carsell.one — inspected, ownership verified.",
+    "metaModel": "{count} {model} listed in {city} on carsell.one — inspected, ownership verified.",
+    "browse": "Browse {brand} cars in {city}",
+    "browseModel": "Browse {model} in {city}",
+    "inspected": "inspected",
+    "from": "from",
+    "to": "to",
+    "byModel": "By model"
+  },
+  "buy": {
+    "working": "Working…",
+    "networkFailed": "Connection failed — try again.",
+    "buyFailed": "Could not create the order.",
+    "offerFailed": "Could not send the offer.",
+    "offerSent": "Your offer was sent — awaiting the seller.",
+    "offerBelowFloor": "Your offer arrived, but the seller set a floor above it. Try a higher amount.",
+    "ownListing": "This is your listing — manage it from your account.",
+    "askingPrice": "Asking price",
+    "yourOffer": "Your offer in SAR",
+    "offerNote": "The seller may accept, decline, or counter. Acceptance opens a payment window.",
+    "sendOffer": "Send offer",
+    "viewingSoon": "Viewing requests are coming soon — contact the seller from the order page after purchase."
   }
 }

@@ -4,6 +4,7 @@ import { hasLocale } from 'next-intl';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
+import { OfferActions } from '@/components/site/OfferActions';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -96,6 +97,20 @@ export default async function OffersInboxPage({
       </Badge>
 
       <Money amount={Number(offer.amount)} size="md" showCurrency={false} className="text-accent-700" />
+
+      {/*
+        الردّ — **وكان غائبًا كلّه**. والعرض المنتهي أو المغلق لا يُردّ
+        عليه، فيقتصر الصفّ على شارته.
+      */}
+      <OfferActions
+        offerId={offer.id}
+        sentByMe={offer.sentByMe}
+        amount={offer.amount}
+        askPrice={offer.listing.askPrice}
+        actionable={
+          !offer.lapsed && (offer.status === 'PENDING' || offer.status === 'COUNTERED')
+        }
+      />
     </li>
   );
 

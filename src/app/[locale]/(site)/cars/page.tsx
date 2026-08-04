@@ -67,7 +67,7 @@ export default async function CarsPage({
   const filters = parseFilters(toParams(await searchParams));
 
   const [result, brands, features, cities] = await Promise.all([
-    searchListings(filters),
+    searchListings(filters, locale),
     listBrandOptions(),
     listFeatureOptions('search_filter'),
     db.listing

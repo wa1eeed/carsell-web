@@ -32,7 +32,7 @@ export async function PATCH(
   const { id } = await params;
 
   if (parsed.data.action === 'accept') {
-    const result = await acceptOffer({ offerId: id, sellerId: user.id });
+    const result = await acceptOffer({ offerId: id, actorId: user.id });
     if (!result.ok) return fail(reasonToError(result.reason), statusFor(result.reason));
     return ok({ orderRef: result.orderRef, closedOffers: result.closedOffers });
   }

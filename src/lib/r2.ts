@@ -1,6 +1,7 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2Key } from './env';
+import { devPut, devStoreAllowed } from './storage/dev-store';
 
 /**
  * Cloudflare R2 — كل وسائط المنتج.
@@ -158,7 +159,20 @@ export async function storeObject(
   contentType: string,
 ): Promise<string | null> {
   const config = readConfig();
-  if (config === null) return null;
+
+  /**
+   * **بلا R2 يتولّاها القرص — في التطوير وحده.**
+   *
+   * وبغيره لا يُنشر إعلانٌ بصورة، فلا يُمشى ما بعد الخطوة الرابعة من
+   * معالج البيع أصلًا. والإنتاج يظلّ يعيد `null` فيُرفض الرفع صراحةً.
+   */
+  if (config === null) {
+    if (!devStoreAllowed()) return null;
+    const devKey = r2Key(KIND_PATH[kind], `${crypto.randomUUID()}.jpg`);
+    return devPut(devKey, body)
+      .then(() => devKey)
+      .catch(() => null);
+  }
 
   const key = r2Key(KIND_PATH[kind], `${crypto.randomUUID()}.jpg`);
   try {
@@ -180,9 +194,11 @@ function publicUrlFor(key: string, base: string): string {
   return `${base.replace(/\/+$/, '')}/${key}`;
 }
 
-/** الرابط العام لمفتاح مخزَّن. يعيد `null` إن لم يُضبط R2 بعد. */
+/** الرابط العام لمفتاح مخزَّن. يعيد `null` إن لم يُضبط R2 ولا القرص. */
 export function publicUrl(key: string | null): string | null {
   if (key === null || key === '') return null;
   const config = readConfig();
-  return config === null ? null : publicUrlFor(key, config.publicUrl);
+  if (config !== null) return publicUrlFor(key, config.publicUrl);
+  // مسار التطوير يخدم من القرص — ولا وجود له في الإنتاج
+  return devStoreAllowed() ? `/api/dev/media/${key}` : null;
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from './ArabicNumber';
 import { Button } from './Button';
@@ -25,7 +26,8 @@ export type BuyColumnData = {
     badge: 'DEALER_VERIFIED' | 'USER_VERIFIED' | null;
     /** مسجَّلٌ في القيمة المضافة — معرضًا كان أو فردًا مسجَّلًا. */
     vatRegistered: boolean;
-    dealerSlug: string | null;
+    /** مسارٌ جاهز باللغة — المكوّن لا يعرف اللغة فلا يبنيه */
+    dealerPath: string | null;
     ratingAvg: number | null;
     ratingCount: number;
     listingCount: number;
@@ -68,7 +70,22 @@ function Row({ label, value, tone }: { label: string; value: React.ReactNode; to
  * وأزرار المقارنة و٣٦٠° والمراسلة **محذوفة** (قرار ١٨) — المراسلة تحتاج
  * إشرافًا وسياسة محتوى، ولا تُفتح بزر.
  */
-export function BuyColumn({ data, className }: { data: BuyColumnData; className?: string }) {
+export function BuyColumn({
+  data,
+  actions,
+  className,
+}: {
+  data: BuyColumnData;
+  /**
+   * أزرار الشراء تُحقن من الشاشة.
+   *
+   * والمكوّن هنا **لا يعرف جلسةً ولا مسارًا ولا لغة** — وبناء السلوك
+   * فيه يجرّ إليه `fetch` و`useRouter` ويجعله غير قابل للعرض في معرض
+   * المكوّنات. فالشكل هنا والسلوك هناك.
+   */
+  actions?: ReactNode;
+  className?: string;
+}) {
   const t = useTranslations('ui');
   const tx = useTranslations('tax');
   const auction = data.auction;
@@ -145,19 +162,7 @@ export function BuyColumn({ data, className }: { data: BuyColumnData; className?
 
         <div className="p-5">
           {auction === null ? (
-            <>
-              <Button className="mb-2.5 w-full">{t('buyViaEscrow')}</Button>
-              <div className="mb-4 flex gap-2">
-                {data.type === 'NEGOTIATION' ? (
-                  <Button variant="outline" className="flex-1">
-                    {t('makeOffer')}
-                  </Button>
-                ) : null}
-                <Button variant="ghost" className="flex-1 border border-line">
-                  {t('requestViewing')}
-                </Button>
-              </div>
-            </>
+            actions
           ) : (
             <>
               <Button className="mb-2.5 w-full">{t('placeBid')}</Button>
@@ -228,9 +233,9 @@ export function BuyColumn({ data, className }: { data: BuyColumnData; className?
           </div>
         </div>
         {/* زرّ «راسلـه» محذوف (قرار ١٨) — لا يُفتح بابٌ بلا سياسة تحكمه */}
-        {data.seller.dealerSlug === null ? null : (
+        {data.seller.dealerPath === null ? null : (
           <Link
-            href={`/dealers/${data.seller.dealerSlug}`}
+            href={data.seller.dealerPath ?? '#'}
             className="flex items-center justify-center rounded-md border border-line py-2.5 text-xs font-bold hover:bg-ink/5"
           >
             <Quantity unit="cars" count={data.seller.listingCount} />

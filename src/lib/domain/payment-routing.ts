@@ -229,6 +229,171 @@ export async function requestRouteSwitch(
   return { ok: true, state: 'PENDING' };
 }
 
+/** طلب معلَّق على غرض — تقرؤه الشاشة لتعرض «ينتظر عضوًا ثانيًا». */
+export type PendingSwitch = {
+  id: string;
+  purpose: PaymentPurpose;
+  toGatewayKey: string;
+  toEnvironment: IntegrationEnv;
+  fromGatewayKey: string | null;
+  reason: string;
+  requestedBy: string;
+  requestedByName: string | null;
+  approvals: number;
+  required: number;
+  expiresAt: Date;
+};
+
+/**
+ * الطلبات المعلَّقة — **والشاشة التي لا تعرضها تخفي ما تنتظره.**
+ *
+ * كانت الشاشة تقول «ينتظر موافقة عضو ثانٍ» ثم لا تعرض شيئًا ينتظر،
+ * فلا يعرف العضو الثاني أن عليه شيئًا ولا يجد أين يوافق.
+ */
+export async function pendingSwitches(now: Date = new Date()): Promise<PendingSwitch[]> {
+  const rows = await db.approvalRequest.findMany({
+    where: {
+      kind: 'PAYMENT_ROUTE',
+      entityType: 'PaymentRoute',
+      status: 'PENDING',
+      expiresAt: { gt: now },
+    },
+    // لا `createdAt` في الجدول — والمهلة واحدة فترتيبها ترتيب الطلب
+    orderBy: { expiresAt: 'desc' },
+  });
+
+  const actors = await db.adminUser.findMany({
+    where: { id: { in: rows.map((row) => row.requestedBy) } },
+    select: { id: true, name: true },
+  });
+
+  return rows.map((row) => {
+    const payload = row.payload as {
+      toGatewayKey?: string;
+      toEnvironment?: IntegrationEnv;
+      fromGatewayKey?: string | null;
+      reason?: string;
+    };
+    return {
+      id: row.id,
+      purpose: row.entityId as PaymentPurpose,
+      toGatewayKey: payload.toGatewayKey ?? '',
+      toEnvironment: payload.toEnvironment ?? 'TEST',
+      fromGatewayKey: payload.fromGatewayKey ?? null,
+      reason: payload.reason ?? '',
+      requestedBy: row.requestedBy,
+      requestedByName: actors.find((actor) => actor.id === row.requestedBy)?.name ?? null,
+      // الطالب يُحسب واحدًا — كما في التدوير، فلا نصابان مختلفان
+      approvals: row.approvedBy.length + 1,
+      required: row.requiredApprovals,
+      expiresAt: row.expiresAt,
+    };
+  });
+}
+
+export type ApproveSwitchResult =
+  | { ok: true; state: 'PENDING' | 'APPLIED'; approvals: number; required: number }
+  | { ok: false; reason: 'NOT_FOUND' | 'NOT_PENDING' | 'EXPIRED' | 'SELF_APPROVAL' | 'GATEWAY_NOT_FOUND' };
+
+/**
+ * ═══ الموافقة الثانية على تبديل البوابة — ولم تكن موجودة ═══
+ *
+ * `requestRouteSwitch` كان يكتب الطلب بـ`requiredApprovals: 2`، والشاشة
+ * تقول «ينتظر موافقة عضو ثانٍ» — **ولا دالّة موافقةٍ في الملف كلّه.**
+ * فكان كل طلبٍ يبقى معلَّقًا حتى ينقضي، ولا تُبدَّل بوابةُ غرضٍ أبدًا.
+ *
+ * ووعدٌ في الشاشة لا يقابله مسار ليس نقصَ ميزة: هو نظامٌ يقول إنه فعل
+ * ما لم يفعله، والمشغّل ينتظر موافقةً لا موضع لها.
+ *
+ * **والطالب لا يوافق على طلبه** — وإلّا صار «عضوان» عضوًا يضغط مرّتين.
+ */
+export async function approveRouteSwitch(
+  admin: AdminUser,
+  requestId: string,
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<ApproveSwitchResult> {
+  return db.$transaction(async (tx): Promise<ApproveSwitchResult> => {
+    const request = await tx.approvalRequest.findUnique({ where: { id: requestId } });
+    if (request === null || request.kind !== 'PAYMENT_ROUTE') {
+      return { ok: false, reason: 'NOT_FOUND' };
+    }
+    if (request.status !== 'PENDING') return { ok: false, reason: 'NOT_PENDING' };
+    if (request.expiresAt.getTime() <= now.getTime()) {
+      await tx.approvalRequest.update({ where: { id: requestId }, data: { status: 'EXPIRED' } });
+      return { ok: false, reason: 'EXPIRED' };
+    }
+    if (request.requestedBy === admin.id || request.approvedBy.includes(admin.id)) {
+      return { ok: false, reason: 'SELF_APPROVAL' };
+    }
+
+    const approvals = [...request.approvedBy, admin.id];
+    const total = approvals.length + 1;
+
+    if (total < request.requiredApprovals) {
+      await tx.approvalRequest.update({
+        where: { id: requestId },
+        data: { approvedBy: approvals },
+      });
+      return { ok: true, state: 'PENDING', approvals: total, required: request.requiredApprovals };
+    }
+
+    const payload = request.payload as {
+      toGatewayKey?: string;
+      toEnvironment?: IntegrationEnv;
+    };
+    const toGatewayKey = payload.toGatewayKey ?? '';
+    const purpose = request.entityId as PaymentPurpose;
+
+    /**
+     * **الأهلية تُعاد قراءتها عند التنفيذ لا عند الطلب وحده.** بين
+     * الطلب والموافقة قد تُسحب قدرةٌ من البوابة، فتوجيهٌ يُطبَّق على
+     * بوابةٍ فقدت `hold` يقبل طلبات لا يستطيع حجزها.
+     */
+    const gateway = await tx.paymentGateway.findUnique({ where: { key: toGatewayKey } });
+    if (gateway === null) return { ok: false, reason: 'GATEWAY_NOT_FOUND' };
+    if (!eligibility(purpose, readCapabilities(gateway.capabilities)).eligible) {
+      return { ok: false, reason: 'GATEWAY_NOT_FOUND' };
+    }
+
+    const before = await tx.paymentRoute.findUnique({ where: { purpose } });
+
+    /**
+     * **القائم يبقى على بوابته** (قاعدة ١). التبديل يغيّر وجهة الجديد
+     * وحده، والحجز المفتوح يُفرَج من حيث أُنشئ — ولذلك لا يُلمس هنا
+     * أيّ `Payment`، ولا تُنقل قيمة بين بوابتين.
+     */
+    await tx.paymentRoute.update({
+      where: { purpose },
+      data: { gatewayKey: toGatewayKey, environment: payload.toEnvironment ?? 'TEST' },
+    });
+
+    await tx.approvalRequest.update({
+      where: { id: requestId },
+      data: { approvedBy: approvals, status: 'APPROVED', executedAt: now },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorType: 'admin',
+        entity: 'PaymentRoute',
+        entityId: purpose,
+        action: 'route.switched',
+        before: {
+          gatewayKey: before?.gatewayKey ?? null,
+          environment: before?.environment ?? null,
+        },
+        after: { gatewayKey: toGatewayKey, environment: payload.toEnvironment ?? 'TEST' },
+        ip,
+        createdAt: now,
+      },
+    });
+
+    return { ok: true, state: 'APPLIED', approvals: total, required: request.requiredApprovals };
+  });
+}
+
 /**
  * تعطيل غرض — **يمنع الجديد ولا يمسّ القائم** (قاعدة ٣).
  * وغرضٌ له معاملات جارية لا يُعطَّل: القائم يبقى حتى ينتهي.

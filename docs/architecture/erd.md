@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-77 models · 46 enums
+80 models · 46 enums
 
 ## Relationships
 
@@ -247,6 +247,7 @@ erDiagram
 | `locale` | `String` |  |
 | `idVerified` | `Boolean` |  |
 | `idVerifiedAt` | `DateTime?` |  |
+| `nationalIdEncrypted` | `String?` |  |
 | `vatNumber` | `String?` |  |
 | `taxStatusSetAt` | `DateTime?` |  |
 | `marginSchemeApproved` | `Boolean` |  |
@@ -833,11 +834,42 @@ Relations: `user` → `User` · `dealer` → `Dealer` · `plan` → `Plan`
 
 Relations: `status` → `ReconciliationStatus`
 
+### `ApiKey`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `name` | `String` |  |
+| `prefix` | `String` | unique |
+| `keyHash` | `String` | unique |
+| `scopes` | `String[]` |  |
+| `rateLimit` | `Int` |  |
+| `active` | `Boolean` |  |
+| `lastUsedAt` | `DateTime?` |  |
+| `createdBy` | `String` |  |
+| `createdAt` | `DateTime` |  |
+| `revokedAt` | `DateTime?` |  |
+
+### `UploadedAsset`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `r2Key` | `String` | unique |
+| `ownerId` | `String` |  |
+| `phash` | `String` |  |
+| `plateBlurred` | `Boolean` |  |
+| `qualityFlags` | `String[]` |  |
+| `createdAt` | `DateTime` |  |
+
 ### `PlatformSetting`
 
 | Field | Type | Key |
 |---|---|---|
 | `id` | `String` | PK |
+| `supportWhatsapp` | `String?` |  |
+| `supportPhone` | `String?` |  |
+| `supportEmail` | `String?` |  |
 | `transferFee` | `Decimal` |  |
 | `transferAdminFeeEnabled` | `Boolean` |  |
 | `transferAdminFee` | `Decimal` |  |
@@ -1446,6 +1478,20 @@ Relations: `order` → `Order`
 | `issuedAt` | `DateTime` |  |
 
 Relations: `order` → `Order`
+
+### `SandboxTransaction`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `ref` | `String` | unique |
+| `kind` | `String` |  |
+| `amount` | `Decimal` |  |
+| `currency` | `String` |  |
+| `state` | `String` |  |
+| `parentRef` | `String?` |  |
+| `method` | `String` |  |
+| `createdAt` | `DateTime` |  |
 
 ## Enums
 

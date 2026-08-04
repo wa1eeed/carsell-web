@@ -349,7 +349,8 @@
     "taxRules": "{count, plural, zero{لا قواعد} one{قاعدة واحدة} two{قاعدتان} few{{n} قواعد} many{{n} قاعدة} other{{n} قاعدة}}",
     "activeRules": "{count, plural, zero{لا مفعَّلة} one{واحدة مفعَّلة} two{اثنتان مفعَّلتان} few{{n} مفعَّلة} many{{n} مفعَّلة} other{{n} مفعَّلة}}",
     "awaitingRules": "{count, plural, zero{لا شيء} one{واحدة} two{اثنتان} few{{n}} many{{n}} other{{n}}}",
-    "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}"
+    "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
+    "disputes": "{count, plural, zero{لا نزاعات} one{نزاع واحد} two{نزاعان} few{{n} نزاعات} many{{n} نزاعًا} other{{n} نزاع}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -707,7 +708,12 @@
     "vinOptional": "عندك رقم الهيكل؟ نملأ ما نستطيع.",
     "filledPrefix": "مُلئت",
     "filledSuffix": "حقول — راجعها",
-    "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا."
+    "vinFailedQuiet": "تعذّر الجلب، أكمل يدويًا.",
+    "publishing": "جارٍ النشر…",
+    "publishFailed": "تعذّر النشر — راجع البيانات.",
+    "publishNetwork": "تعذّر الاتصال — أعد المحاولة.",
+    "colorExterior": "اللون الخارجي",
+    "condition": "حالة المركبة"
   },
   "order": {
     "subtitle": "مرحلة الطلب وأين مبلغك الآن.",
@@ -737,7 +743,10 @@
       "payment": {
         "timeout": "فاتت مهلة الدفع"
       },
-      "other": "تحديث على الطلب"
+      "other": "تحديث على الطلب",
+      "order": {
+        "created": "أُنشئ الطلب"
+      }
     },
     "escrowState": {
       "PENDING": "لم يُحجز المبلغ بعد.",
@@ -854,5 +863,43 @@
     "listingTaxable": "هذه السيارة تابعة لنشاط تجاري خاضع للضريبة",
     "listingTaxableHint": "يغيّر الحالة الضريبية لهذا الإعلان وحده.",
     "adminFeeRow": "رسوم إدارية"
+  },
+  "dealer": {
+    "verified": "معرض موثّق",
+    "joined": "على المنصّة منذ",
+    "listed": "معروضة الآن",
+    "sold": "مبيعة مكتملة",
+    "vehicles": "مركبات المعرض",
+    "emptyTitle": "لا مركبات معروضة الآن",
+    "emptyBody": "لا إعلانات منشورة لهذا المعرض حاليًا — تابعه لاحقًا.",
+    "metaFallback": "معرض سيارات في {city} على carsell.one",
+    "indexTitle": "المعارض",
+    "indexSubtitle": "معارض السيارات على المنصّة."
+  },
+  "landing": {
+    "title": "سيارات {brand} في {city}",
+    "titleModel": "{model} في {city}",
+    "meta": "{count} سيارة {brand} معروضة في {city} على carsell.one — مفحوصة وموثّقة الملكية.",
+    "metaModel": "{count} سيارة {model} معروضة في {city} على carsell.one — مفحوصة وموثّقة الملكية.",
+    "browse": "تصفّح سيارات {brand} في {city}",
+    "browseModel": "تصفّح {model} في {city}",
+    "inspected": "مفحوصة",
+    "from": "من",
+    "to": "إلى",
+    "byModel": "حسب الطراز"
+  },
+  "buy": {
+    "working": "جارٍ…",
+    "networkFailed": "تعذّر الاتصال — أعد المحاولة.",
+    "buyFailed": "تعذّر إنشاء الطلب.",
+    "offerFailed": "تعذّر إرسال العرض.",
+    "offerSent": "وصل عرضك — ينتظر ردّ البائع.",
+    "offerBelowFloor": "وصل عرضك، والبائع وضع حدًّا أدنى فوقه. جرّب مبلغًا أعلى.",
+    "ownListing": "هذا إعلانك — تديره من صفحة حسابك.",
+    "askingPrice": "السعر المعروض",
+    "yourOffer": "عرضك بالريال",
+    "offerNote": "للبائع أن يقبل أو يرفض أو يعرض مبلغًا مقابلًا. وقبولُه يفتح مهلة دفع.",
+    "sendOffer": "أرسل العرض",
+    "viewingSoon": "طلب المعاينة قريبًا — تواصل مع البائع من صفحة الطلب بعد الشراء."
   }
 }

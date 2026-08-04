@@ -25,6 +25,158 @@
     }
   },
   "paths": {
+    "/api/dev/media/{key}": {
+      "get": {
+        "summary": "GET /api/dev/media/{key}",
+        "tags": [
+          "media"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/dev/sandbox/3ds/{ref}": {
+      "get": {
+        "summary": "GET /api/dev/sandbox/3ds/{ref}",
+        "tags": [
+          "sandbox"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/dev/sandbox/3ds/{ref}",
+        "tags": [
+          "sandbox"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/public/v1/dealers": {
+      "get": {
+        "summary": "GET /api/public/v1/dealers",
+        "tags": [
+          "v1"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/public/v1/listings": {
+      "get": {
+        "summary": "GET /api/public/v1/listings",
+        "tags": [
+          "v1"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/public/v1/listings/{ref}": {
+      "get": {
+        "summary": "GET /api/public/v1/listings/{ref}",
+        "tags": [
+          "v1"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/account/tax-status": {
       "put": {
         "summary": "PUT /api/v1/account/tax-status",
@@ -476,6 +628,104 @@
         }
       }
     },
+    "/api/v1/admin/disputes/{id}/approve": {
+      "post": {
+        "summary": "POST /api/v1/admin/disputes/{id}/approve",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "escrow.release",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/disputes/{id}/propose": {
+      "post": {
+        "summary": "POST /api/v1/admin/disputes/{id}/propose",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "escrow.release",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resolution": {
+                    "type": "string",
+                    "enum": [
+                      "FULL_REFUND",
+                      "PARTIAL_SETTLEMENT",
+                      "RELEASE_TO_SELLER"
+                    ]
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000000
+                  }
+                },
+                "required": [
+                  "resolution"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/features": {
       "get": {
         "summary": "GET /api/v1/admin/features",
@@ -797,7 +1047,7 @@
             "admin": []
           }
         ],
-        "x-permission": "integrations.view",
+        "x-permission": "integrations.rotateKeys",
         "parameters": [
           {
             "name": "key",
@@ -832,7 +1082,7 @@
             "admin": []
           }
         ],
-        "x-permission": "integrations.view",
+        "x-permission": "integrations.rotateKeys",
         "parameters": [
           {
             "name": "key",
@@ -1251,7 +1501,7 @@
             "admin": []
           }
         ],
-        "x-permission": "finance.view",
+        "x-permission": "escrow.release",
         "parameters": [
           {
             "name": "ref",
@@ -1450,6 +1700,41 @@
         }
       }
     },
+    "/api/v1/admin/payments/routes/{purpose}/approve": {
+      "post": {
+        "summary": "POST /api/v1/admin/payments/routes/{purpose}/approve",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/payments/routes/{purpose}/choices": {
       "get": {
         "summary": "GET /api/v1/admin/payments/routes/{purpose}/choices",
@@ -1549,6 +1834,14 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "adminFeeEnabled": {
+                    "type": "boolean"
+                  },
+                  "adminFee": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
                   }
                 },
                 "required": [
@@ -1560,7 +1853,9 @@
                   "descEn",
                   "price",
                   "slaHours",
-                  "placements"
+                  "placements",
+                  "adminFeeEnabled",
+                  "adminFee"
                 ]
               }
             }
@@ -2465,11 +2760,82 @@
         }
       }
     },
+    "/api/v1/client-error": {
+      "post": {
+        "summary": "POST /api/v1/client-error",
+        "tags": [
+          "client-error"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "digest": {
+                    "type": "string",
+                    "maxLength": 80,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "message",
+                  "digest"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/listings": {
       "get": {
         "summary": "GET /api/v1/listings",
         "tags": [
           "listings"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/listings",
+        "tags": [
+          "listings"
+        ],
+        "security": [
+          {
+            "user": []
+          }
         ],
         "responses": {
           "200": {
@@ -2564,6 +2930,30 @@
     "/api/v1/me/entitlements": {
       "get": {
         "summary": "GET /api/v1/me/entitlements",
+        "tags": [
+          "me"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/me/profile": {
+      "patch": {
+        "summary": "PATCH /api/v1/me/profile",
         "tags": [
           "me"
         ],
@@ -2687,6 +3077,50 @@
         }
       }
     },
+    "/api/v1/orders": {
+      "post": {
+        "summary": "POST /api/v1/orders",
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "listingRef": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "listingRef"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/payments": {
       "post": {
         "summary": "POST /api/v1/payments",
@@ -2794,6 +3228,25 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/trims": {
+      "get": {
+        "summary": "GET /api/v1/trims",
+        "tags": [
+          "trims"
+        ],
         "responses": {
           "200": {
             "description": "OK"

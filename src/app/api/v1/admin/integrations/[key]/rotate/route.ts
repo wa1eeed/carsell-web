@@ -22,7 +22,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> },
 ) {
-  const guard = await requireAdmin(request, 'integrations.view');
+  /**
+   * **`rotateKeys` لا `view`.** كان يفحص العرض، و`OPS` يملك العرض ولا
+   * يملك التدوير — فكان عضوان من `OPS` يستوفيان النصاب على سرٍّ حيّ.
+   * والنصاب كان قائمًا؛ الخطأ أنه نصابٌ من غير أهله.
+   */
+  const guard = await requireAdmin(request, 'integrations.rotateKeys');
   if (!guard.ok) return guard.response;
 
   const parsed = Body.safeParse(await request.json().catch(() => null));

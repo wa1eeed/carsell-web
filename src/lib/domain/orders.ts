@@ -108,8 +108,14 @@ export async function advanceStage(
    * وخارج المعاملة: انتقال المرحلة واقعةٌ لا تُلغى لأن مستندًا تعثّر.
    */
   if (result.ok && input.to === 'DONE' && orderId !== null) {
-    const { issueSaleAgreement } = await import('./documents');
-    await issueSaleAgreement(orderId, now);
+    // انتقال المرحلة وقع — وفشلُ العقد يُبلَّغ ولا يُبطله
+    try {
+      const { issueSaleAgreement } = await import('./documents');
+      await issueSaleAgreement(orderId, now);
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'orders.advanceStage.issueAgreement', extra: { orderId } });
+    }
   }
 
   return result;
@@ -280,4 +286,120 @@ export async function holdEscrow(
     },
   });
   return { ok: true };
+}
+
+export type DirectBuyFailure =
+  | 'PROFILE_INCOMPLETE'
+  | 'LISTING_NOT_FOUND'
+  | 'NOT_BUYABLE'
+  | 'OWN_LISTING'
+  | 'ORDER_EXISTS'
+  | 'TAX_STATUS_REQUIRED';
+
+export type DirectBuyResult =
+  | { ok: true; orderRef: string }
+  | { ok: false; reason: DirectBuyFailure };
+
+/**
+ * ═══ الشراء المباشر ⇒ طلبٌ عند مرحلة الدفع ═══
+ *
+ * والأربعة **في معاملة واحدة** كقبول العرض: إنشاء الطلب وسحب الإعلان
+ * وإغلاق العروض القائمة عليه. وإنشاءٌ ينجح وسحبٌ يفشل يترك سيارةً
+ * معروضةً وقد بيعت، فيشتريها ثانٍ.
+ *
+ * **والوضع الضريبيّ شرطٌ قبل الشراء لا بعده**: أوّل إجراءٍ ماليّ هو
+ * لحظة السؤال، واكتشافُ «عليك تحديد وضعك» بعد إنشاء الطلب يترك طلبًا
+ * معلّقًا بمهلة تجري على مشترٍ لم يُكمل.
+ */
+export async function buyDirect(
+  input: { listingRef: string; buyerId: string },
+  now: Date = new Date(),
+): Promise<DirectBuyResult> {
+  const { PAYMENT_WINDOW_HOURS } = await import('./offers');
+  const { computeOrderAmounts } = await import('./order-amounts');
+
+  const buyer = await db.user.findUnique({ where: { id: input.buyerId } });
+  if (buyer === null) return { ok: false, reason: 'LISTING_NOT_FOUND' };
+
+  /**
+   * **الشاشة تقول «لن تستطيع الشراء قبل إكمال البريد وتوثيق الهوية» —
+   * فليكن.** كانت `canBuy` تُعرض ولا تُفرض: وعدٌ يقوله الحساب وينقضه
+   * الشراء. والقاعدة في `profileCompletion` وحدها، فتتبعها الشاشة
+   * والحارس معًا ولا تتباعدان.
+   */
+  const { profileCompletion } = await import('./profile');
+  if (!profileCompletion(buyer).canBuy) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+
+  // «لم يُسأل» تُوقف هنا — والشاشة تفتح النافذة ثم تعيد المحاولة
+  if (buyer.taxStatus === null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
+
+  return db.$transaction(async (tx): Promise<DirectBuyResult> => {
+    const listing = await tx.listing.findUnique({
+      where: { ref: input.listingRef },
+      select: { id: true, sellerId: true, status: true, type: true, askPrice: true },
+    });
+
+    if (listing === null) return { ok: false, reason: 'LISTING_NOT_FOUND' };
+    if (listing.sellerId === input.buyerId) return { ok: false, reason: 'OWN_LISTING' };
+
+    /**
+     * **طلبٌ حيٌّ واحد للإعلان.** واثنان يعنيان مهلتَي دفعٍ تجريان على
+     * مركبةٍ واحدة، ومن يدفع أوّلًا يأخذها ومن يدفع ثانيًا يُسترجع.
+     *
+     * **والفحص قبل الحالة عمدًا**: أوّل شراءٍ يحجز الإعلان، فلو سبقت
+     * الحالةُ لقيل للثاني «غير متاحة» وصوابها «عليها طلب قائم» — والأولى
+     * تُنهي أمله، والثانية تقول له إنها قد تعود.
+     */
+    const live = await tx.order.findFirst({
+      where: { listingId: listing.id, status: 'ACTIVE' },
+      select: { id: true },
+    });
+    if (live !== null) return { ok: false, reason: 'ORDER_EXISTS' };
+
+    if (listing.status !== 'PUBLISHED') return { ok: false, reason: 'NOT_BUYABLE' };
+    // المزاد يُشترى بالمزايدة أو «اشترِ الآن» — لا بهذا المسار
+    if (listing.type === 'AUCTION') return { ok: false, reason: 'NOT_BUYABLE' };
+
+    const amounts = await computeOrderAmounts(tx, Number(listing.askPrice), now);
+
+    const year = now.getFullYear();
+    const count = await tx.order.count({ where: { ref: { startsWith: `ORD-${year}-` } } });
+    const ref = `ORD-${year}-${String(1000 + count + 1)}`;
+
+    await tx.order.create({
+      data: {
+        ref,
+        listingId: listing.id,
+        buyerId: input.buyerId,
+        sellerId: listing.sellerId,
+        source: 'DIRECT',
+        stage: 'PAYMENT',
+        ...amounts,
+        createdAt: now,
+        stageEnteredAt: now,
+        paymentDueAt: new Date(now.getTime() + PAYMENT_WINDOW_HOURS * 3600 * 1000),
+      },
+    });
+
+    // الإعلان يُحجز فورًا — وبقاؤه معروضًا يبيع المركبة مرّتين
+    await tx.listing.update({ where: { id: listing.id }, data: { status: 'RESERVED' } });
+
+    await tx.offer.updateMany({
+      where: { listingId: listing.id, status: { in: ['PENDING', 'COUNTERED'] } },
+      data: { status: 'REJECTED' },
+    });
+
+    await tx.orderEvent.create({
+      data: {
+        orderId: (await tx.order.findUniqueOrThrow({ where: { ref }, select: { id: true } })).id,
+        type: 'order.created',
+        toStage: 'PAYMENT',
+        actorId: input.buyerId,
+        actorType: 'user',
+        createdAt: now,
+      },
+    });
+
+    return { ok: true, orderRef: ref };
+  });
 }

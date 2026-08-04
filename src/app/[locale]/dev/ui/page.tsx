@@ -54,7 +54,7 @@ const CAR: ListingCardData = {
   year: 2024,
   city: 'الرياض',
   mileageKm: 3456,
-  transmission: 'أوتوماتيك',
+  transmissionLabel: 'أوتوماتيك',
   price: 145_000,
   monthly: 3120,
   type: 'NEGOTIATION',

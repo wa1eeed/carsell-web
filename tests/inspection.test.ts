@@ -14,9 +14,15 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
+/**
+ * **بترتيبٍ صريح.** `findFirst` بلا `orderBy` يعيد ما تعطيه القاعدة —
+ * ويتغيّر بحذف صفوفٍ لا علاقة لها. ومرّ هذا الاختبار سنةً ثم سقط حين
+ * تغيّر ترتيبٌ لم يُطلَب أصلًا، والاختبار الذي ينجح بالحظّ ينجح مرّة.
+ */
 const anyInspected = async (): Promise<string> => {
   const row = await db.listing.findFirstOrThrow({
     where: { status: 'PUBLISHED', vehicle: { inspectionReports: { some: {} } } },
+    orderBy: { ref: 'asc' },
     select: { ref: true },
   });
   return row.ref;

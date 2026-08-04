@@ -96,9 +96,65 @@ async function teardown(): Promise<void> {
   await db.user.deleteMany({ where: { id: { in: [sellerId, bidderA, bidderB] } } });
 }
 
+/**
+ * **الاختبار يعيد ما غيّره — وينظّف ما صنعه.**
+ *
+ * كان يخلّف مزادًا ومركبةً وثلاثة مستخدمين في كل تشغيل، فظهرت أربعة
+ * مزادات وهمية «مباشرة الآن» بعدّاد `00:00:00` في الموقع الحيّ. ونظافة
+ * `global-setup` تكنسها في **بداية** التشغيل التالي — فتبقى معروضة بين
+ * التشغيلين، وهي مدّةٌ يُفتح فيها الموقع ويُعرض.
+ */
 afterAll(async () => {
+  await cleanupScaffold();
   await db.$disconnect();
 });
+
+async function cleanupScaffold(): Promise<void> {
+  const listings = await db.listing.findMany({
+    where: { ref: { startsWith: 'AUC' } },
+    select: { id: true, vehicleId: true },
+  });
+  const ids = listings.map((row) => row.id);
+  if (ids.length === 0) return;
+
+  const auctions = await db.auction.findMany({
+    where: { listingId: { in: ids } },
+    select: { id: true },
+  });
+  const auctionIds = auctions.map((row) => row.id);
+
+  await db.bid.deleteMany({ where: { auctionId: { in: auctionIds } } });
+  await db.deposit.deleteMany({ where: { auctionId: { in: auctionIds } } });
+  await db.auction.deleteMany({ where: { id: { in: auctionIds } } });
+  await db.offer.deleteMany({ where: { listingId: { in: ids } } });
+  await db.listingImage.deleteMany({ where: { listingId: { in: ids } } });
+  await db.listing.deleteMany({ where: { id: { in: ids } } });
+  await db.vehicle.deleteMany({ where: { id: { in: listings.map((r) => r.vehicleId) } } });
+  /**
+   * والمستخدمون **بشرط ألّا يملكوا شيئًا**: حذفٌ بالبادئة وحدها يصطدم
+   * بقيدٍ أجنبيّ من مركبةٍ يتيمة خلّفها تشغيلٌ أقدم — والاصطدام يُسقط
+   * التنظيف كلّه فلا يُحذف حتى ما كان يمكن حذفه.
+   */
+  const candidates = await db.user.findMany({
+    where: { phone: { startsWith: '+96652' } },
+    select: {
+      id: true,
+      _count: {
+        select: { vehicles: true, listings: true, ordersAsBuyer: true, ordersAsSeller: true },
+      },
+    },
+  });
+  const removable = candidates
+    .filter(
+      (u) =>
+        u._count.vehicles === 0 &&
+        u._count.listings === 0 &&
+        u._count.ordersAsBuyer === 0 &&
+        u._count.ordersAsSeller === 0,
+    )
+    .map((u) => u.id);
+  if (removable.length > 0) await db.user.deleteMany({ where: { id: { in: removable } } });
+}
 
 beforeEach(async () => {
   await scaffold();

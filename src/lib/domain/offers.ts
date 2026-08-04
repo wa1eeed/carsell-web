@@ -1,8 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
-import { DEFAULT_VAT_PCT } from './tax';
-import { effectiveAdminFee, ourVat, processingFeeFor } from './fees';
+import { computeOrderAmounts } from './order-amounts';
 
 /**
  * العروض — القواعد ١–٥ من القسم ٧.
@@ -266,8 +265,17 @@ async function nextOrderRef(tx: Prisma.TransactionClient, now: Date): Promise<st
  * والعمولة **لقطة** في الطلب (قاعدة ١١): تعديل الباقة غدًا لا يمسّ
  * صفقة اليوم.
  */
+/**
+ * قبول عرض — **ويقبله من لم يرسله**.
+ *
+ * // DESIGN-Q: القواعد ١–٤ لا تذكر العرض المقابل أصلًا. وكان القبول
+ * للبائع وحده، فمقابلُ البائع لا يستطيع أحدٌ قبوله: لا هو (أرسله) ولا
+ * المشتري (ليس بائعًا) — فالتفاوض **لا يمكن أن ينتهي باتّفاق** بعد
+ * أوّل مقابل. نفّذتُ الأعمّ: يقبل من لم يرسل. والبديل أن يعيد المشتري
+ * عرضًا بالمبلغ نفسه ليقبله البائع، وهو التفافٌ يراه المستخدم عطلًا.
+ */
 export async function acceptOffer(
-  input: { offerId: string; sellerId: string },
+  input: { offerId: string; actorId: string },
   now: Date = new Date(),
 ): Promise<AcceptResult> {
   return db.$transaction(async (tx) => {
@@ -277,7 +285,14 @@ export async function acceptOffer(
     });
 
     if (offer === null) return { ok: false, reason: 'OFFER_NOT_FOUND' };
-    if (offer.listing.sellerId !== input.sellerId) return { ok: false, reason: 'NOT_SELLER' };
+
+    /**
+     * المُرسِل لا يقبل عرضه: العرض الأصليّ من المشتري فيقبله البائع،
+     * والمقابل من البائع فيقبله المشتري.
+     */
+    const sentBySeller = offer.parentOfferId !== null;
+    const accepter = sentBySeller ? offer.buyerId : offer.listing.sellerId;
+    if (accepter !== input.actorId) return { ok: false, reason: 'NOT_SELLER' };
     if (
       !ACTIVE_STATUSES.includes(offer.status) ||
       offer.expiresAt <= now ||
@@ -318,66 +333,11 @@ export async function acceptOffer(
       data: { status: 'RESERVED', closedAt: now, closeReason: 'offer.accepted' },
     });
 
-    const [platform, commissionRule] = await Promise.all([
-      tx.platformSetting.findUnique({ where: { id: 'default' } }),
-      tx.commissionRule.findFirst({
-        where: { scope: 'global', activeFrom: { lte: now } },
-        orderBy: { activeFrom: 'desc' },
-      }),
-    ]);
-
-    const price = Number(offer.amount);
-    const commissionPct = commissionRule === null ? 0 : Number(commissionRule.pct);
-    const commissionAmount =
-      commissionRule === null
-        ? 0
-        : Math.min(
-            Math.max(
-              (price * commissionPct) / 100 + Number(commissionRule.fixedFee),
-              Number(commissionRule.minFee ?? 0),
-            ),
-            Number(commissionRule.maxFee ?? Number.MAX_SAFE_INTEGER),
-          );
-
     /**
-     * رسم النقل **حكوميّ يُمرَّر كما هو** — صرفٌ نيابةً عن العميل. ورسمنا
-     * الإداريّ سطرٌ ثانٍ مستقلّ، لأن دمجهما يُسقط وصف الصرف عن المبلغ كلّه.
+     * **قاعدة المال تُكتب مرّة.** الحساب نفسه يخدم البيع المباشر ورسوّ
+     * المزاد، فأُخرج إلى `order-amounts.ts` قبل أن يُنسخ لا بعده.
      */
-    const transferFee = Number(platform?.transferFee ?? 0);
-    const transferAdminFee = effectiveAdminFee({
-      adminFeeEnabled: platform?.transferAdminFeeEnabled ?? false,
-      adminFee: platform?.transferAdminFee ?? 0,
-    });
-    /**
-     * رسوم المعالجة **تُضاف للمشتري أو تُخصم من البائع، لا كليهما**.
-     * فما يدخل الإجمالي هنا صفرٌ حين يتحمّلها البائع، وخصمُه يقع لاحقًا
-     * في كشف التسوية من مستحقّه.
-     */
-    const processingFee = processingFeeFor(
-      platform ?? {
-        processingFeeEnabled: false,
-        processingFeeBearer: 'SELLER',
-        processingFeePct: 0,
-        processingFeeFixed: 0,
-      },
-      price,
-    );
-    const processingFeeBearer = platform?.processingFeeBearer ?? 'SELLER';
-    const buyerShare = processingFeeBearer === 'BUYER' ? Number(processingFee) : 0;
-
-    const total = price + commissionAmount + transferFee + Number(transferAdminFee) + buyerShare;
-
-    /**
-     * الضريبة على **توريداتنا وحدها** — العمولة والرسم الإداريّ.
-     *
-     * وكانت ١٥/١١٥ من الإجمالي كلّه، فتُدخل قيمة المركبة (مورّدها البائع)
-     * والرسمَ الحكوميّ (لسنا مورّده) في وعاءٍ ليسا منه. يُصحَّح «قرار ١٧».
-     */
-    const vatAmount = ourVat(
-      // رسوم المعالجة توريدٌ منّا فتدخل الوعاء أيًّا كان من تحمّلها
-      { commissionAmount, transferAdminFee, processingFee },
-      Number(platform?.vatPct ?? DEFAULT_VAT_PCT),
-    );
+    const amounts = await computeOrderAmounts(tx, Number(offer.amount), now);
 
     const ref = await nextOrderRef(tx, now);
 
@@ -389,15 +349,7 @@ export async function acceptOffer(
         sellerId: offer.listing.sellerId,
         source: 'OFFER',
         stage: 'PAYMENT',
-        agreedPrice: new Prisma.Decimal(price),
-        commissionPct: new Prisma.Decimal(commissionPct),
-        commissionAmount: new Prisma.Decimal(commissionAmount),
-        transferFee: new Prisma.Decimal(transferFee),
-        transferAdminFee,
-        processingFee,
-        processingFeeBearer,
-        vatAmount,
-        totalAmount: new Prisma.Decimal(total),
+        ...amounts,
         createdAt: now,
         stageEnteredAt: now,
         paymentDueAt: new Date(now.getTime() + PAYMENT_WINDOW_HOURS * 3600 * 1000),
@@ -409,7 +361,7 @@ export async function acceptOffer(
       templateKey: 'offer.accepted',
       // مهلة الدفع حرجة: فواتها يُلغي الصفقة (قاعدة ١٧)
       priority: 'critical',
-      payload: { ref, amount: price },
+      payload: { ref, amount: Number(offer.amount) },
       entityType: 'Order',
       entityId: ref,
     });

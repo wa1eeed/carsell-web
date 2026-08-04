@@ -12,6 +12,7 @@ import {
   invoiceTotals,
   listInvoices,
   listTaxRules,
+  pendingRuleChanges,
   summarize,
 } from '@/lib/domain/admin-tax';
 import { INVOICE_STATUS_LABEL, SUPPLY_TYPE_LABEL } from '@/lib/labels/admin';
@@ -32,8 +33,9 @@ export default async function TaxEnginePage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [rules, invoices, totals] = await Promise.all([
+  const [rules, awaiting, invoices, totals] = await Promise.all([
     listTaxRules(),
+    pendingRuleChanges(),
     listInvoices(),
     invoiceTotals(),
   ]);
@@ -77,7 +79,12 @@ export default async function TaxEnginePage() {
       <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
         جدول القواعد — المطابقة بالأدقّ نطاقًا
       </h2>
-      <RulesTable rules={rules} canManage={canWrite(admin.role, 'finance.view')} />
+      <RulesTable
+        rules={rules}
+        awaiting={awaiting}
+        adminId={admin.id}
+        canManage={canWrite(admin.role, 'finance.view')}
+      />
 
       <p className="mt-3 text-2xs leading-loose opacity-60">
         <strong>غياب قاعدة مطابقة يوقف الإصدار ويسجّل السبب</strong> — لا يفترض النظام

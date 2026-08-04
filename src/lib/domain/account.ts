@@ -65,6 +65,67 @@ export type AccountReport = {
   path: string | null;
 };
 
+export type FavoriteListing = {
+  ref: string;
+  title: string;
+  year: number;
+  price: string;
+  city: string;
+  /** `null` إن سُحب الإعلان — يبقى في المفضّلة ولا يُفتح */
+  path: string | null;
+  available: boolean;
+};
+
+/**
+ * المفضّلة — **كانت تُعدّ ولا تُقرأ**.
+ *
+ * بطاقة الحساب تعرض «المفضّلة ٤» وتربط إلى صفحةٍ ترد ٤٠٤، فيرى
+ * المستخدم عددًا لا يبلغه. والصفّ لا علاقة له بـ`Listing` في المخطّط،
+ * فالربط هنا يدويّ.
+ *
+ * **والمسحوب يبقى معروضًا ولا يُفتح**: حذفُه من القائمة يجعل المستخدم
+ * يظنّ أنه لم يحفظه قطّ، وهي معلومةٌ تخصّه لا تخصّ الإعلان.
+ */
+export async function favoriteListings(
+  userId: string,
+  locale: string,
+): Promise<FavoriteListing[]> {
+  const rows = await db.favorite.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+  });
+  if (rows.length === 0) return [];
+
+  const listings = await db.listing.findMany({
+    where: { id: { in: rows.map((row) => row.listingId) } },
+    select: {
+      id: true, ref: true, askPrice: true, city: true, status: true,
+      vehicle: {
+        select: {
+          brandName: true, modelName: true, trimName: true, year: true,
+          brand: { select: { slug: true } },
+        },
+      },
+    },
+  });
+
+  return rows.flatMap((row) => {
+    const listing = listings.find((entry) => entry.id === row.listingId);
+    if (listing === undefined) return [];
+    const available = listing.status === 'PUBLISHED';
+    return [{
+      ref: listing.ref,
+      title: title(listing.vehicle),
+      year: listing.vehicle.year,
+      price: listing.askPrice.toString(),
+      city: listing.city,
+      path: available ? canonicalPath(locale, listing).path : null,
+      available,
+    }];
+  });
+}
+
 export type AccountData = {
   user: { name: string | null; phone: string; email: string | null; idVerified: boolean };
   completion: ProfileCompletion;

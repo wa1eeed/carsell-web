@@ -223,7 +223,7 @@ describe('offer.expiry — القاعدة ٣', () => {
     if (!created.ok) return;
     const late = hours(OFFER_TTL_HOURS + 1);
 
-    const accepted = await acceptOffer({ offerId: created.offer.id, sellerId }, late);
+    const accepted = await acceptOffer({ offerId: created.offer.id, actorId: sellerId }, late);
     expect(accepted.ok).toBe(false);
 
     const countered = await counterOffer({ offerId: created.offer.id, sellerId, amount: 97_000 }, late);
@@ -261,7 +261,7 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
     const theirs = await createOffer({ listingRef, buyerId: otherBuyerId, amount: 93_000 }, T0);
     if (!mine.ok || !theirs.ok) return;
 
-    const result = await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(2));
+    const result = await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(2));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
@@ -283,7 +283,7 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
     await createOffer({ listingRef, buyerId: otherBuyerId, amount: 93_000 }, T0);
     if (!mine.ok) return;
 
-    await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(2));
+    await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(2));
 
     const loser = await db.notification.findMany({ where: { userId: otherBuyerId } });
     expect(loser.map((n) => n.templateKey)).toContain('offer.lost');
@@ -301,7 +301,7 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
     const mine = await createOffer({ listingRef, buyerId, amount: 95_000 }, T0);
     if (!mine.ok) return;
 
-    const result = await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(1));
+    const result = await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(1));
     if (!result.ok) return;
 
     const order = await db.order.findUniqueOrThrow({ where: { ref: result.orderRef } });
@@ -355,7 +355,7 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
     const mine = await createOffer({ listingRef, buyerId, amount: 95_000 }, T0);
     if (!mine.ok) return;
 
-    const stolen = await acceptOffer({ offerId: mine.offer.id, sellerId: otherBuyerId }, hours(1));
+    const stolen = await acceptOffer({ offerId: mine.offer.id, actorId: otherBuyerId }, hours(1));
     expect(stolen.ok).toBe(false);
     if (!stolen.ok) expect(stolen.reason).toBe('NOT_SELLER');
     await teardown();
@@ -366,9 +366,9 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
     const second = await createOffer({ listingRef, buyerId: otherBuyerId, amount: 96_000 }, T0);
     if (!first.ok || !second.ok) return;
 
-    expect((await acceptOffer({ offerId: first.offer.id, sellerId }, hours(1))).ok).toBe(true);
+    expect((await acceptOffer({ offerId: first.offer.id, actorId: sellerId }, hours(1))).ok).toBe(true);
     // الثاني أُغلق مع القبول الأول
-    expect((await acceptOffer({ offerId: second.offer.id, sellerId }, hours(1))).ok).toBe(false);
+    expect((await acceptOffer({ offerId: second.offer.id, actorId: sellerId }, hours(1))).ok).toBe(false);
     expect(await db.order.count({ where: { listingId } })).toBe(1);
     await teardown();
   });
@@ -382,7 +382,7 @@ describe('order.paymentTimeout — القاعدة ٥', () => {
   it('فوات المهلة يُلغي الطلب ويعيد نشر الإعلان', async () => {
     const mine = await createOffer({ listingRef, buyerId, amount: 95_000 }, T0);
     if (!mine.ok) return;
-    const accepted = await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(1));
+    const accepted = await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(1));
     if (!accepted.ok) return;
 
     // قبل الموعد: لا شيء
@@ -405,7 +405,7 @@ describe('order.paymentTimeout — القاعدة ٥', () => {
     await createOffer({ listingRef, buyerId: otherBuyerId, amount: 93_000 }, T0);
     if (!mine.ok) return;
 
-    const accepted = await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(1));
+    const accepted = await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(1));
     if (!accepted.ok) return;
     await timeoutUnpaidOrders(hours(1 + PAYMENT_WINDOW_HOURS));
 
@@ -425,7 +425,7 @@ describe('order.paymentTimeout — القاعدة ٥', () => {
     const mine = await createOffer({ listingRef, buyerId, amount: 95_000 }, T0);
     if (!mine.ok) return;
 
-    const accepted = await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(1));
+    const accepted = await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(1));
     if (!accepted.ok) return;
     await timeoutUnpaidOrders(hours(1 + PAYMENT_WINDOW_HOURS));
 
@@ -439,7 +439,7 @@ describe('order.paymentTimeout — القاعدة ٥', () => {
   it('المشتري المتأخّر يُخطَر بأولوية حرجة', async () => {
     const mine = await createOffer({ listingRef, buyerId, amount: 95_000 }, T0);
     if (!mine.ok) return;
-    const accepted = await acceptOffer({ offerId: mine.offer.id, sellerId }, hours(1));
+    const accepted = await acceptOffer({ offerId: mine.offer.id, actorId: sellerId }, hours(1));
     if (!accepted.ok) return;
 
     await timeoutUnpaidOrders(hours(1 + PAYMENT_WINDOW_HOURS));
@@ -448,5 +448,42 @@ describe('order.paymentTimeout — القاعدة ٥', () => {
     });
     expect(notice.priority).toBe('critical');
     await teardown();
+  });
+});
+
+describe('العرض المقابل — ويقبله من لم يرسله', () => {
+  // الطقم يُبنى لكل حالة كما في بقيّة الملف — بلا حدٍّ أدنى للقبول
+  beforeEach(async () => {
+    await scaffold(null);
+  });
+
+  /**
+   * **التفاوض لم يكن يستطيع أن ينتهي باتّفاق بعد أوّل مقابل.**
+   * القبول كان للبائع وحده، ومقابلُ البائع لا يقبله هو (أرسله) ولا
+   * المشتري (ليس بائعًا) — فيبقى معلَّقًا حتى تنقضي مهلته.
+   */
+  it('المشتري يقبل مقابل البائع، ويُنشأ الطلب', async () => {
+    const mine = await createOffer({ listingRef, buyerId, amount: 90_000 }, T0);
+    expect(mine.ok).toBe(true);
+    if (!mine.ok) return;
+
+    const countered = await counterOffer(
+      { offerId: mine.offer.id, sellerId, amount: 96_000 },
+      hours(1),
+    );
+    expect(countered.ok).toBe(true);
+    if (!countered.ok) return;
+
+    // البائع أرسله فلا يقبله
+    expect(
+      await acceptOffer({ offerId: countered.offer.id, actorId: sellerId }, hours(2)),
+    ).toEqual({ ok: false, reason: 'NOT_SELLER' });
+
+    const accepted = await acceptOffer(
+      { offerId: countered.offer.id, actorId: buyerId },
+      hours(2),
+    );
+    expect(accepted.ok).toBe(true);
+    if (accepted.ok) expect(accepted.orderRef).toMatch(/^ORD-/);
   });
 });

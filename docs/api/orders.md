@@ -120,3 +120,38 @@ before a gateway is chosen claims "no fee" when it means "not yet known".
 | `netToSeller` | `vehicleValue − commission − gatewayFee` |
 
 The statement header states it is not a tax invoice.
+
+## Direct purchase — `POST /api/v1/orders`
+
+Creates an order at stage `PAYMENT` from a published, non-auction listing.
+
+`Idempotency-Key` is required. A double click or a network retry would otherwise
+create two orders on one vehicle.
+
+### One live order per listing
+
+Two would mean two payment windows running against a single car: whoever pays
+first gets it and whoever pays second is refunded. The guard sits **inside the
+transaction** alongside the order creation, the listing reservation, and the
+closing of outstanding offers — a creation that succeeds while the reservation
+fails leaves a sold car on display.
+
+The live-order check runs **before** the status check, deliberately. The first
+purchase reserves the listing, so a status-first order would tell the second
+buyer "not available" when the truthful answer is "there is a live order on it"
+— the first ends their hope, the second tells them it may come back.
+
+### `428 TAX_STATUS_REQUIRED` is not a rejection
+
+A buyer who has never stated their tax status is stopped **before** the order
+exists — discovering it afterwards leaves a dangling order with a payment window
+running against someone who never finished.
+
+The screen opens the one-time dialog and **retries the purchase automatically**
+once it is saved. Someone who answered is not asked to press buy again.
+
+### Amounts
+
+Computed by `computeOrderAmounts` — the same function `acceptOffer` uses. There
+is one money rule, not one per order source, and a test asserts a direct order's
+amounts equal that function's output field by field.

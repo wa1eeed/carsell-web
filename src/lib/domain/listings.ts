@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { canonicalPath } from './listing-detail';
 import { verifiedSellerWhere } from './seller';
 import type { Prisma } from '@/generated/prisma/client';
 import type {
@@ -413,6 +414,14 @@ async function computeFacets(
 
 export type ListingCard = {
   ref: string;
+  /**
+   * مسار الصفحة — **والبطاقة بلا رابط ليست بطاقة**.
+   *
+   * كانت نتائج البحث تُعرض بلا روابط أصلًا، فيرى الزائر ٥٢ سيارة ولا
+   * يستطيع فتح واحدة. والرئيسية كانت تلفّ بطاقاتها بـ`Link` منذ البداية،
+   * فبقي العطل في الشاشة الوحيدة التي يصلها الناس من البحث.
+   */
+  href: string;
   title: string;
   city: string;
   year: number;
@@ -459,7 +468,10 @@ function monthlyPayment(
   return Math.round(total / months / 10) * 10;
 }
 
-export async function searchListings(filters: Filters): Promise<SearchResult> {
+export async function searchListings(
+  filters: Filters,
+  locale = 'ar',
+): Promise<SearchResult> {
   const settings = await db.financeSetting.findUnique({ where: { id: 'default' } });
   const minPrice = Number(settings?.minPrice ?? 0);
   const where = buildWhere(filters, minPrice);
@@ -475,6 +487,13 @@ export async function searchListings(filters: Filters): Promise<SearchResult> {
         vehicle: {
           include: {
             inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
+            /**
+             * **الرابط يُبنى قانونيًّا من أوّله.** وبلا `brand.slug` يقع
+             * `canonicalPath` على الاسم العربي فيُنتج `/نيسان/`، ثم تحوّله
+             * الصفحة ٣٠١ إلى `/nissan/` — تحويلٌ على **كل** نقرة نتيجة:
+             * بطءٌ للزائر، وإشارةٌ لمحرّك البحث أن روابطنا ليست نهائية.
+             */
+            brand: { select: { slug: true } },
           },
         },
         seller: { include: { dealer: true } },
@@ -504,6 +523,7 @@ export async function searchListings(filters: Filters): Promise<SearchResult> {
 
       return {
         ref: row.ref,
+        href: canonicalPath(locale, row).path,
         title: [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
           .filter((p) => p !== null && p !== '')
           .join(' '),

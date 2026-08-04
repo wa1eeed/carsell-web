@@ -49,7 +49,7 @@ export default async function IntegrationsPage() {
       <IntegrationsList
         groups={[...groups.entries()].map(([label, rows]) => ({ label, rows }))}
         adminId={admin.id}
-        canManage={canWrite(admin.role, 'integrations.view')}
+        canManage={canWrite(admin.role, 'integrations.rotateKeys')}
       />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">

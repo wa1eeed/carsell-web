@@ -9,7 +9,19 @@ const compat = new FlatCompat({
 
 const config = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', 'design/**'],
+    /**
+     * `.next-check` مخرَج `build:check` — و`eslint .` كان يلتقطه حين
+     * يوجد، فيُخرج ١٨ ألف مخالفة من شيفرةٍ مولَّدة تُغرق مخالفاتنا.
+     * و`.dev-uploads` صور التطوير.
+     */
+    ignores: [
+      '.next/**',
+      '.next-check/**',
+      '.dev-uploads/**',
+      'node_modules/**',
+      'next-env.d.ts',
+      'design/**',
+    ],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {

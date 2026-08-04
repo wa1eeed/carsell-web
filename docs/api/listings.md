@@ -123,3 +123,64 @@ Monthly payment is `null` for auctions — financing never shows on an auction
 - SEO landing pages (`/cars/{city}/{brand}/{model}`) are task 10-b.
 - Filtered pages are `noindex`: duplicate content with no search value. The
   unfiltered page is indexable.
+
+## Publish — `POST /api/v1/listings`
+
+Creates the vehicle and the listing in one transaction, attaches the uploaded
+images, and decides the resulting status.
+
+### Decision 33 is evaluated here, not later
+
+> **The four conditions alone send a listing to review. There is no default
+> human gate.**
+
+Three are evaluated at publish time; the fourth (`USER_REPORT`) arrives later:
+
+| Condition | Threshold |
+|---|---|
+| `DUPLICATE_IMAGE` | A perceptual-hash match against **another seller's** image |
+| `PRICE_OUTLIER` | Below 40 % of `PriceStat.p25` for that model and year |
+| `NEW_ACCOUNT_BURST` | Account younger than 7 days with more than 3 listings |
+
+**None of them rejects.** A seller with two listings may repost a photo in good
+faith, and a low price may be an honest rushed sale. They set
+`status = PENDING_REVIEW` and record which condition fired, so the A15 queue
+shows the reviewer where to start.
+
+`publishedAt` is written **only when the listing is actually published** — a
+listing in the queue has not been published, and writing the date would make
+every "listed since" figure lie.
+
+### The duplicate check is measured against other sellers
+
+A seller reusing their own photo on a second listing is not a copier. Flagging
+them punishes legitimate behaviour and floods the review queue. This is the
+wording of decision 33 on `ReviewReason.DUPLICATE_IMAGE`.
+
+### Perceptual hashes never leave the server
+
+The upload endpoint stores the hash in `UploadedAsset`, keyed by the R2 object
+key, and does **not** return it. Publish looks it up by key.
+
+If the client supplied the hash, the duplicate check would be a guard that
+anyone wanting to evade it could simply switch off. Ownership is checked too: a
+key uploaded by someone else does not become your photo by naming it.
+
+### Rejections, as opposed to reviews
+
+| Reason | Why it is a refusal |
+|---|---|
+| `VIN_ALREADY_LISTED` | One car with two listings corrupts every count and statistic. A chassis number admits no interpretation. |
+| `NO_IMAGES` | A listing with no photo is not seen at all. |
+| `TRIM_UNKNOWN` | Body type, drivetrain and seat count are copied from the trim. Without it they have no source. |
+| `IMAGE_NOT_UPLOADED` | The key was never uploaded, or belongs to another seller. |
+
+### Trim is required
+
+The schema says a trim's values are "copied as a snapshot at publish time".
+Asking the seller for the trim is one field; asking for body type, drivetrain
+and seats separately is four, and they will get one of them wrong. Every model
+in the catalogue has trims, so no path is left without one.
+
+Transmission and fuel stay as the seller entered them — their particular car may
+differ from the standard trim.

@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge, InspectedBadge } from '@/components/ui/Badge';
 import { BuyColumn } from '@/components/ui/BuyColumn';
+import { BuyActions } from '@/components/site/BuyActions';
+import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { Gallery } from '@/components/ui/Gallery';
@@ -36,6 +38,7 @@ export function CarPage({
   canonical,
   locale,
   heading,
+  viewer,
 }: {
   detail: PublicListingDetail;
   faq: readonly { id: string; question: string; answer: string }[];
@@ -43,6 +46,13 @@ export function CarPage({
   canonical: Canonical;
   locale: string;
   heading: { home: string; cars: string };
+  viewer: {
+    signedIn: boolean;
+    isOwn: boolean;
+    taxProfile: TaxProfile | null;
+    /** طلبٌ حيّ على الإعلان — فلا يُعرض «اشترِ» ثم يُرفض */
+    reserved: boolean;
+  };
 }) {
   const t = useTranslations('ui');
   const te = useTranslations('enums');
@@ -262,6 +272,18 @@ export function CarPage({
         <div className="w-full shrink-0 lg:w-[380px]">
           <div className="sticky top-4 flex flex-col gap-3.5">
             <BuyColumn
+              actions={
+                <BuyActions
+                  listingRef={detail.ref}
+                  price={Number(detail.askPrice)}
+                  type={detail.type}
+                  isOwn={viewer.isOwn}
+                  reserved={viewer.reserved}
+                  signedIn={viewer.signedIn}
+                  locale={locale}
+                  taxProfile={viewer.taxProfile}
+                />
+              }
               data={{
                 type: detail.type,
                 askPrice: Number(detail.askPrice),
@@ -279,6 +301,15 @@ export function CarPage({
                 },
                 seller: {
                   ...detail.seller,
+                  /**
+                   * المسار يُركَّب هنا لا في النطاق: **الشاشة هي التي
+                   * تعرف اللغة**، والمكوّن لا يعرفها — وبناؤه هناك يُنتج
+                   * `/dealers/x` بلا بادئة فيسقط ٤٠٤.
+                   */
+                  dealerPath:
+                    detail.seller.dealerSlug === null
+                      ? null
+                      : `/${locale}/dealers/${detail.seller.dealerSlug}`,
                   ratingAvg: detail.seller.ratingAvg === null ? null : Number(detail.seller.ratingAvg),
                 },
                 auction:

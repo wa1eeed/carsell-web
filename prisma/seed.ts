@@ -1025,7 +1025,14 @@ async function main(): Promise<void> {
       score: SECTION_SCORES[key] ?? 90,
       note: SECTION_NOTES[key] ?? null,
       points: section.points.map((label, n) => {
-        const finding = i === 0 ? FINDINGS[label] : undefined;
+        /**
+         * الملاحظات لكل تقرير لا للأوّل وحده.
+         *
+         * وكان الثاني يحمل درجة ٨٧ **بلا ملاحظة واحدة** — تقريرٌ يقول
+         * «٨٧ من ١٠٠» ثم لا يذكر ما نقص. والمشتري يقرأ الرقم ويبحث عن
+         * سببه فلا يجده.
+         */
+        const finding = FINDINGS[label];
         return {
           id: `${key}-${n + 1}`,
           label,
