@@ -51,7 +51,13 @@ type Rule = {
  * والحساب واحدٌ للطرفين — فكتابتُه مرّتين تجعل حدًّا أدنى يُضاف لأحدهما
  * ويُنسى للآخر، ولا يظهر الفرق إلا في صفقةٍ صغيرة.
  */
-function commissionFrom(rule: Rule | null, price: number): number {
+/**
+ * العمولة من قاعدةٍ وسعر — **وهي القاعدة الوحيدة**.
+ *
+ * تُصدَّر كي يستعملها محاكي A29: محاكاةٌ تُعيد حسابها بنفسها تُنتج
+ * قاعدةً ثانية، فيقول المحاكي رقمًا ويكتب الطلبُ غيره.
+ */
+export function commissionFrom(rule: Rule | null, price: number): number {
   if (rule === null) return 0;
   const raw = (price * Number(rule.pct)) / 100 + Number(rule.fixedFee);
   return Math.min(

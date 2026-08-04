@@ -335,7 +335,14 @@ async function main(): Promise<void> {
     ['can_direct_sale', 'bool', 'true', 'إتاحة البيع المباشر'],
     ['can_negotiate', 'bool', 'true', 'إتاحة التفاوض بالعروض'],
     ['can_auction', 'bool', 'true', 'إتاحة إنشاء مزاد'],
-    ['max_active_listings', 'int', '10', 'سقف الإعلانات النشطة'],
+    /**
+     * **بلا حدّ — ‏`-1`‎ — لأن لا شيء يفرض حدًّا اليوم.**
+     *
+     * كانت `10`، ولا مسار يقرؤها: فالشاشة تقول «السقف عشرة» والمنتج
+     * يقبل المئة. والنصّ المعروض وعدٌ لا وصف — فإمّا يُفرَض السقف وإمّا
+     * يُقال إنه بلا حدّ. والتصميم (A29) يقول «بلا حد» في الباقات الثلاث.
+     */
+    ['max_active_listings', 'int', '-1', 'سقف الإعلانات النشطة'],
     ['featured_slots', 'int', '0', 'عدد مرات التمييز المجانية'],
     ['bulk_upload', 'bool', 'false', 'الرفع الجماعي — لوحة التاجر'],
     ['team_seats', 'int', '0', 'مقاعد فريق المعرض'],
@@ -356,8 +363,8 @@ async function main(): Promise<void> {
   const freePlan = await prisma.plan.create({
     data: {
       key: 'free',
-      nameAr: 'المجانية',
-      nameEn: 'Free',
+      nameAr: 'الأساسية',
+      nameEn: 'Basic',
       price: new D('0.00'),
       billingCycle: 'monthly',
       visible: true,
@@ -369,6 +376,48 @@ async function main(): Promise<void> {
       },
     },
   });
+
+  /**
+   * ═══ باقتا المعارض — **مجانيّتان اليوم** ═══
+   *
+   * التصميم (A29) يكتبها حرفيًّا: «٣ باقات · كلها مجانية اليوم».
+   * والسعر صفرٌ **قرارًا لا نسيانًا**: من يزرع منصّةً لا يعرف بعد كم
+   * يأخذ، ورقمٌ مزروع يُنتج اشتراكًا بسعرٍ لم يقرّره أحد.
+   *
+   * وما يفرّقها ليس السعر بل **قيَم خصائصها**: المقاعد والتمييز والرفع
+   * الجماعي — والكود يسأل عن الخاصّية لا عن الباقة.
+   */
+  const DEALER_PLANS = [
+    ['dealer', 'معرض', 'Dealer', { team_seats: '5', featured_slots: '2' }],
+    [
+      'dealer_pro',
+      'معرض احترافي',
+      'Dealer Pro',
+      { team_seats: '8', featured_slots: '6', bulk_upload: 'true', priority_support: 'true' },
+    ],
+  ] as const;
+
+  await Promise.all(
+    DEALER_PLANS.map(([key, nameAr, nameEn, overrides]) =>
+      prisma.plan.create({
+        data: {
+          key,
+          nameAr,
+          nameEn,
+          price: new D('0.00'),
+          billingCycle: 'monthly',
+          visible: true,
+          entitlements: {
+            create: ENTITLEMENTS.map(([entitlementKey, , defaultValue]) => ({
+              entitlementKey,
+              value:
+                (overrides as Record<string, string | undefined>)[entitlementKey] ?? defaultValue,
+            })),
+          },
+        },
+      }),
+    ),
+  );
 
   /**
    * ═══ قاعدةٌ لكل طرف — والاثنتان بصفر ═══

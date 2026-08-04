@@ -1421,11 +1421,21 @@ model NotificationTemplate {
 }
 
 model AdSlot {
-  key           String  @id // home_story | home_banner | search_inline …
-  nameAr        String
-  width         Int
-  height        Int
-  pricingModel  String // day | week | cpm | cpc
+  key    String @id // home_story | home_banner | search_inline …
+  nameAr String
+  width  Int
+  height Int
+
+  /// المقاس كما يُقرأ: «١٦:٦» أو «بطاقة سيارة» أو «٤٨px سطر».
+  /// و`width×height` وحدهما لا يصفان نسبةً ولا بطاقةً — فيُعرض «١٦×٦»
+  /// لمساحةٍ نسبتُها ١٦:٦ وكأنها بالبكسل.
+  sizeLabel String @default("")
+
+  /// أين تظهر في الشاشة — «أعلى الرئيسية» · «بعد كل ٦ نتائج».
+  /// ومساحةٌ بلا موضعٍ مكتوب تُباع لمعلنٍ لا يعرف أين سيظهر إعلانه.
+  placement String @default("")
+
+  pricingModel  String // day | week | month | cpm | cpc
   basePrice     Decimal @db.Decimal(10, 2)
   maxPerSession Int     @default(1)
   active        Boolean @default(true)

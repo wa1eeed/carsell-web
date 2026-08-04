@@ -265,6 +265,41 @@
         }
       }
     },
+    "/api/v1/admin/ad-slots/{key}": {
+      "patch": {
+        "summary": "PATCH /api/v1/admin/ad-slots/{key}",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/auction-settings": {
       "put": {
         "summary": "PUT /api/v1/admin/auction-settings",
@@ -2179,6 +2214,135 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/plans/{id}": {
+      "put": {
+        "summary": "PUT /api/v1/admin/plans/{id}",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "price": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  },
+                  "entitlements": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "price",
+                  "visible",
+                  "entitlements"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/plans/simulate": {
+      "post": {
+        "summary": "POST /api/v1/admin/plans/simulate",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "price": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "pct": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "fixedFee": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "minFee": {
+                    "type": "number",
+                    "minimum": 0,
+                    "nullable": true
+                  },
+                  "maxFee": {
+                    "type": "number",
+                    "minimum": 0,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "price",
+                  "pct",
+                  "fixedFee",
+                  "minFee",
+                  "maxFee"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"

@@ -1,20 +1,24 @@
 [
   {
     "key": "home_story",
-    "nameAr": "قصص الرئيسية",
+    "nameAr": "قصص إعلانية — الرئيسية",
     "width": 1080,
     "height": 1920,
+    "sizeLabel": "١٠٨٠×١٩٢٠",
+    "placement": "أعلى الرئيسية",
     "pricingModel": "day",
-    "basePrice": "800.00",
+    "basePrice": "1200.00",
     "maxPerSession": 1
   },
   {
     "key": "home_banner",
-    "nameAr": "بنر الرئيسية",
+    "nameAr": "البنر الرئيسي",
     "width": 1200,
     "height": 450,
+    "sizeLabel": "١٦:٦",
+    "placement": "أسفل الملخّصات",
     "pricingModel": "week",
-    "basePrice": "4500.00",
+    "basePrice": "3500.00",
     "maxPerSession": 1
   },
   {
@@ -22,42 +26,52 @@
     "nameAr": "بطاقة مموّلة في النتائج",
     "width": 600,
     "height": 400,
+    "sizeLabel": "بطاقة سيارة",
+    "placement": "بعد كل ٦ نتائج",
     "pricingModel": "cpc",
-    "basePrice": "2.50",
+    "basePrice": "4.50",
     "maxPerSession": 3
   },
   {
     "key": "brand_featured",
-    "nameAr": "ماركة مميّزة",
+    "nameAr": "مربّع ماركة مميّزة",
     "width": 400,
     "height": 400,
+    "sizeLabel": "١:١",
+    "placement": "أول خانة",
+    "pricingModel": "month",
+    "basePrice": "6000.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "service_featured",
+    "nameAr": "بطاقة خدمة مميّزة",
+    "width": 1200,
+    "height": 675,
+    "sizeLabel": "بطاقة خدمة",
+    "placement": "أول الدليل",
+    "pricingModel": "month",
+    "basePrice": "2800.00",
+    "maxPerSession": 1
+  },
+  {
+    "key": "vehicle_inline",
+    "nameAr": "بنر داخل صفحة السيارة",
+    "width": 1200,
+    "height": 96,
+    "sizeLabel": "٤٨px سطر",
+    "placement": "أسفل السعر",
     "pricingModel": "cpm",
     "basePrice": "35.00",
     "maxPerSession": 1
   },
   {
-    "key": "service_featured",
-    "nameAr": "خدمة مميّزة",
+    "key": "empty_state",
+    "nameAr": "إعلان الحالة الفارغة",
     "width": 1200,
     "height": 675,
-    "pricingModel": "cpm",
-    "basePrice": "30.00",
-    "maxPerSession": 1
-  },
-  {
-    "key": "vehicle_inline",
-    "nameAr": "شريط صفحة السيارة",
-    "width": 1200,
-    "height": 96,
-    "pricingModel": "cpm",
-    "basePrice": "25.00",
-    "maxPerSession": 1
-  },
-  {
-    "key": "empty_state",
-    "nameAr": "حالة فارغة",
-    "width": 1200,
-    "height": 450,
+    "sizeLabel": "١٦:٩",
+    "placement": "بعد النشر",
     "pricingModel": "cpm",
     "basePrice": "12.00",
     "maxPerSession": 1

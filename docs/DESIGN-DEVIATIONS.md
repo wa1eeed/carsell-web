@@ -230,3 +230,59 @@ friction.
 
 **Also omitted:** delivery, open and opt-out rates, for the same reason as A8 —
 they come from a provider that does not exist yet.
+
+---
+
+## A29 — the plan editor, without a plan creator · 2026-08-04
+
+A29's markup has an `أنشئ باقة` button next to `سجل التغييرات`.
+
+**What was built:** the three plans of the markup (الأساسية · معرض · معرض
+احترافي, all free, commission zero), the entitlement matrix, per-plan editing of
+price, visibility and every entitlement value, and the commission simulator —
+which returns the markup's own figure (145,000 at 1.5% → 2,175).
+
+**Why no creator:** a plan is only its entitlement values, and every key is a
+door the code opens by name. A new plan is therefore a new *row*, not a new
+capability — and the one operation that would matter, adding a key, is a code
+change by definition. The editor covers everything a new plan could express;
+creating one is a `Plan.create` away when a fourth tier is actually decided.
+
+**What is identical:** both tables and every column, the four cards, the
+simulator's inputs and output, and the closing two rules.
+
+**One correction to the markup's data:** `max_active_listings` seeded as `10`
+while nothing in the product enforces a cap. A screen that says the ceiling is
+ten while the product accepts a hundred is a broken promise, and the markup
+itself says "بلا حد" for all three plans — so the default is now `-1`.
+
+**Commission is shown here and edited in Finance.** Two screens writing one money
+rule diverge at the first change; A29 simulates and displays, A20 writes.
+
+---
+
+## A30 · A31 — one screen, and it says no ad is served yet · 2026-08-04
+
+Two screens in the markup — slots and their pricing (A30), sponsored campaigns
+(A31) — built as one page, because whoever disables a slot must see the campaigns
+they are about to stop.
+
+**What was built:** the seven slots with the markup's own sizes, placements,
+pricing models and prices; enable/disable with an audit entry; the campaign table
+with live state derived from its two dates; and both rule panels.
+
+**What is stated instead of claimed:** **nothing in the product serves an ad.**
+`AdSlot` and `AdCampaign` have no reader outside this screen. So the page says so
+in a line at the top, the session-cap card reads "قاعدة — ولا مسار عرضٍ بعد"
+rather than "يُفرَض في الخادم", and the occupancy and revenue cards of the markup
+are not shown at all — they would describe a market that never opened.
+
+**The session cap is one constant, not a sum.** Summing `maxPerSession` gave 9
+where the markup says 4; a per-slot ceiling is not a per-session one. It now
+lives in `src/lib/domain/ad-rules.ts` with the other four ad rules, so the serving
+path — when built — reads the number the screen displays. `ADS_SERVED` flips in
+that same commit, and a test fails until the screen's wording follows.
+
+**Schema:** `AdSlot.sizeLabel` and `AdSlot.placement` were added. `width×height`
+renders a 16:6 ratio as "16×6 pixels", and a slot sold to an advertiser without a
+written placement is sold without a description.

@@ -56,7 +56,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
     title: 'النمو',
     items: [
-      { label: 'الإعلانات المموّلة', href: null },
+      { label: 'الإعلانات المموّلة', href: '/admin/ads', permission: 'finance.view' },
       { label: 'الحملات التسويقية', href: '/admin/campaigns' },
       { label: 'التقارير والتصدير', href: null },
     ],
@@ -77,8 +77,8 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'مزوّدو الخدمات والتمويل', href: null },
       { label: 'إعدادات المزادات', href: '/admin/auction-settings', permission: 'finance.view' },
       { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage' },
-      { label: 'الباقات والعمولة', href: null },
-      { label: 'مساحات الإعلانات وتسعيرها', href: null },
+      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
+      { label: 'مساحات الإعلانات وتسعيرها', href: '/admin/ads', permission: 'finance.view' },
       { label: 'الرسوم والضرائب', href: null, permission: 'finance.view' },
       { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage' },
       { label: 'إشعارات الدفع', href: '/admin/push' },

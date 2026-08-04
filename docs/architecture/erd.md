@@ -1057,6 +1057,8 @@ Relations: `user` → `User`
 | `nameAr` | `String` |  |
 | `width` | `Int` |  |
 | `height` | `Int` |  |
+| `sizeLabel` | `String` |  |
+| `placement` | `String` |  |
 | `pricingModel` | `String` |  |
 | `basePrice` | `Decimal` |  |
 | `maxPerSession` | `Int` |  |
