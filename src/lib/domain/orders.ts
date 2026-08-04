@@ -315,7 +315,9 @@ export async function buyDirect(
   input: { listingRef: string; buyerId: string },
   now: Date = new Date(),
 ): Promise<DirectBuyResult> {
-  const { PAYMENT_WINDOW_HOURS } = await import('./offers');
+  // مهلة الدفع من الإعداد — تُقرأ عند الإنشاء فتُخزَّن في الصفّ
+  const { deadline } = await import('./deadlines');
+  const PAYMENT_WINDOW_HOURS = await deadline('paymentWindowHours');
   const { computeOrderAmounts } = await import('./order-amounts');
 
   const buyer = await db.user.findUnique({ where: { id: input.buyerId } });

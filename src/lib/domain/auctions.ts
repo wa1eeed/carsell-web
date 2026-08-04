@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
 
 /**
@@ -12,12 +13,13 @@ import { Prisma } from '@/generated/prisma/client';
  */
 
 /** القاعدة ٧ — التمديد ونافذته وحدّه. */
-export const EXTEND_WINDOW_SECONDS = 60;
-export const EXTEND_BY_SECONDS = 5 * 60;
+/** الافتراضيّان — والساريان من إعداد الأدمن. */
+export const EXTEND_WINDOW_SECONDS = DEADLINE_DEFAULTS.auctionExtendWindowSeconds;
+export const EXTEND_BY_SECONDS = DEADLINE_DEFAULTS.auctionExtendBySeconds;
 export const MAX_EXTENSIONS = 10;
 
 /** مهلة البائع لقبول أعلى مزايدة بعد إغلاق باحتياطي غير مبلوغ (قرار ٤). */
-export const SELLER_DECISION_HOURS = 24;
+export const SELLER_DECISION_HOURS = DEADLINE_DEFAULTS.sellerDecisionHours;
 
 export type BidFailure =
   | 'AUCTION_NOT_FOUND'
@@ -141,11 +143,14 @@ export async function placeBid(
      * المزاد في وقت يعرفه الجميع.
      */
     const remaining = (auction.endsAt.getTime() - now.getTime()) / 1000;
+    // نافذة التمديد ومدّته من إعداد الأدمن — والافتراضيّ ٦٠ و٣٠٠ ثانية
+    const extendWindow = await deadline('auctionExtendWindowSeconds');
+    const extendBy = await deadline('auctionExtendBySeconds');
     const shouldExtend =
-      remaining <= EXTEND_WINDOW_SECONDS && auction.extendedCount < MAX_EXTENSIONS;
+      remaining <= extendWindow && auction.extendedCount < MAX_EXTENSIONS;
 
     const endsAt = shouldExtend
-      ? new Date(now.getTime() + EXTEND_BY_SECONDS * 1000)
+      ? new Date(now.getTime() + extendBy * 1000)
       : auction.endsAt;
 
     if (shouldExtend) {
@@ -501,7 +506,7 @@ export async function closeEndedAuctions(now: Date = new Date()): Promise<number
           ? {}
           : {
               sellerDecisionDueAt: new Date(
-                now.getTime() + SELLER_DECISION_HOURS * 3600 * 1000,
+                now.getTime() + (await deadline('sellerDecisionHours')) * 3600 * 1000,
               ),
             }),
       },

@@ -68,6 +68,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'المالية', href: '/admin/finance', permission: 'finance.view' },
       { label: 'إعدادات الدفع والتوجيه', href: '/admin/payments', permission: 'finance.view' },
       { label: 'محرّك الضريبة', href: '/admin/tax', permission: 'finance.view' },
+      { label: 'المهل الزمنية', href: '/admin/deadlines', permission: 'finance.view' },
       { label: 'الكتالوج', href: '/admin/catalog/brands', permission: 'catalog.manage' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
       { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },

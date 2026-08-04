@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { DEADLINE_DEFAULTS } from './deadlines';
 import type { Prisma } from '@/generated/prisma/client';
 import type { PaymentPurpose, PaymentStatus } from '@/generated/prisma/enums';
 import { resolveForPayment, resolveGateway } from '@/lib/payments/resolve';
@@ -331,7 +332,8 @@ export async function applyState(
   return result;
 }
 
-export const SETTLE_WINDOW_HOURS = 72;
+/** الافتراضيّ — والسارية من إعداد الأدمن. */
+export const SETTLE_WINDOW_HOURS = DEADLINE_DEFAULTS.settleWindowHours;
 
 export type SettleFailure =
   | 'ORDER_NOT_FOUND'

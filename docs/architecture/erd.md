@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-80 models · 46 enums
+81 models · 46 enums
 
 ## Relationships
 
@@ -1492,6 +1492,15 @@ Relations: `order` → `Order`
 | `parentRef` | `String?` |  |
 | `method` | `String` |  |
 | `createdAt` | `DateTime` |  |
+
+### `DeadlineSetting`
+
+| Field | Type | Key |
+|---|---|---|
+| `key` | `String` | PK |
+| `value` | `Int` |  |
+| `updatedBy` | `String` |  |
+| `updatedAt` | `DateTime` |  |
 
 ## Enums
 
