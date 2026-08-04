@@ -357,8 +357,23 @@ async function main(): Promise<void> {
   // كلمة مرور واحدة معروفة للتطوير، وTOTP **مسجَّل مسبقًا** حتى
   // يمكن الدخول بلا مسح رمز QR في كل إعادة زرع. السرّ يُطبع أدناه.
   // لا يعمل هذا إلا خارج الإنتاج — الحارس أعلى الملف يمنعه.
-  const seedPassword = process.env.SEED_ADMIN_PASSWORD ?? 'CarSell!dev2026';
-  const seedPasswordHash = await hashPassword(seedPassword);
+  /**
+   * **والافتراضيّ للتطوير وحده.** الحارس أعلى الملف يمنع الإنتاج، لكنّ
+   * **staging ليست إنتاجًا** — فكانت تُنشَر بحسابِ أدمن كلمتُه مكتوبة
+   * في المستودع، على عنوانٍ عامّ. ومن قرأ الشيفرة دخل اللوحة.
+   *
+   * فالسقوط الآن **مُغلَق**: خارج التطوير لا زرع بلا كلمة صريحة.
+   */
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD ?? null;
+  if (seedPassword === null && APP_ENV !== 'development') {
+    console.error(
+      `\n✗ رُفض التشغيل: APP_ENV=${APP_ENV} بلا SEED_ADMIN_PASSWORD.\n` +
+        '  الافتراضيّ مكتوبٌ في المستودع، ونشرُه على عنوانٍ عامّ يفتح اللوحة لمن قرأه.\n' +
+        '  اضبط كلمةً قويّة واحتفظ بها:  openssl rand -base64 24\n',
+    );
+    process.exit(1);
+  }
+  const seedPasswordHash = await hashPassword(seedPassword ?? 'CarSell!dev2026');
   const totpSecrets = new Map<string, string>();
 
   const admins = await Promise.all(

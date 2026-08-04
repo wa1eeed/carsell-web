@@ -38,8 +38,12 @@ JWT_SECRET=<openssl rand -base64 48>
 OTP_PEPPER=<openssl rand -base64 32>
 SECRETS_KEY=<openssl rand -base64 32>
 CRON_SECRET=<openssl rand -base64 32>
-SEED_ADMIN_PASSWORD=<a strong password you keep>
+SEED_ADMIN_PASSWORD=<openssl rand -base64 24 — keep it>
 ```
+
+**The seed refuses to run outside development without `SEED_ADMIN_PASSWORD`.**
+Its development default is written in the repository, and deploying with it would
+put an admin account with a publicly known password on a public URL.
 
 `SECRETS_KEY` encrypts gateway credentials and IBANs at rest. **Losing it makes
 every stored secret unreadable**; rotating it requires re-entering them all.
