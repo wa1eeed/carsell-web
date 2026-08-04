@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { APP_URL } from '@/lib/env';
 import { toSlug } from './listing-detail';
 
 /**
@@ -33,7 +34,7 @@ export type PublicListing = {
   url: string;
 };
 
-const SITE = 'https://carsell.one';
+const SITE = APP_URL;
 
 /** الحقول المسموحة **تُذكر صراحةً** — و`select` أضيق من `include`. */
 const PUBLIC_SELECT = {
