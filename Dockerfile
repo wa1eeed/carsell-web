@@ -94,7 +94,24 @@ RUN mkdir -p /opt/prisma \
 # كلٌّ يجد ما يستورده بجانبه.
 COPY --from=build /app/prisma /opt/prisma/prisma
 COPY --from=build /app/prisma.config.ts /opt/prisma/prisma.config.ts
-RUN chown -R nextjs:nodejs /opt/prisma
+
+# ═══ ومجلّد زرعٍ مكتمل — للتشغيل مرّة واحدة ═══
+#
+# **البذرة لا تُحزَم ولا تُنسخ انتقائيًّا.** تستورد `@prisma/adapter-pg`
+# و`@node-rs/argon2` — والأخير ثنائيّ أصليّ لا يقبل الحزم، والأولى
+# ليست في شجرة `standalone` المقتطعة (الخادم لا يحتاجها).
+#
+# فتُنسخ شجرة البناء كاملةً إلى `/opt/seed` مع المخطّط والعميل
+# المولَّد. وهي ثقيلة، **وتُستعمل مرّةً عند أوّل نشر** — وثمنُها أهون
+# من نشرٍ بلا قواعد ضريبة ولا وثائق قانونية.
+COPY --from=build /app/node_modules /opt/seed/node_modules
+COPY --from=build /app/prisma /opt/seed/prisma
+COPY --from=build /app/prisma.config.ts /opt/seed/prisma.config.ts
+COPY --from=build /app/package.json /opt/seed/package.json
+COPY --from=build /app/src/generated /opt/seed/src/generated
+COPY --from=build /app/tsconfig.json /opt/seed/tsconfig.json
+
+RUN chown -R nextjs:nodejs /opt/prisma /opt/seed
 
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh

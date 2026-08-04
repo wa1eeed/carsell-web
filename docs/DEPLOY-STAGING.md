@@ -180,8 +180,13 @@ deploy with no error that explains why.
    instead of receiving traffic.
 5. **Seed** — first deploy only, from the container terminal in Coolify:
    ```bash
-   cd /app && SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" npx tsx prisma/seed.ts
+   cd /opt/seed && ./node_modules/.bin/tsx prisma/seed.ts
    ```
+
+   **Not from `/app`.** The runtime tree is the one Next traced for serving:
+   it has no `@prisma/adapter-pg` and no `@node-rs/argon2`, so the seed dies
+   there on `Cannot find module`. `/opt/seed` carries a complete tree, the
+   schema and the generated client — it exists for exactly this one command.
 
    ⚠️ **Capture the TOTP secrets from that output immediately.** They are
    generated fresh on every seed and printed exactly once. Without them you
