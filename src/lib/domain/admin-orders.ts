@@ -59,14 +59,23 @@ export async function listAdminOrders(
   });
 
   const mapped = rows.map((order) => {
-    const dwellHours = (now.getTime() - order.stageEnteredAt.getTime()) / 3_600_000;
+    /**
+     * **الشارة تُحسب من الرقم المعروض لا من الدقيق.**
+     *
+     * كانت تُحسب من الكسر ويُعرض المقرَّب، فصفٌّ يقول «٢٤٠ ساعة» ويحمل
+     * شارة «حرج» والحدّ ٢٤٠ — والمشغّل يقرأ رقمين متناقضين في سطر
+     * واحد ولا يعرف أيّهما يصدّق.
+     */
+    const dwellHours = Math.floor(
+      (now.getTime() - order.stageEnteredAt.getTime()) / 3_600_000,
+    );
     const targetHours = STAGE_TARGET_HOURS[order.stage];
 
     return {
       ref: order.ref,
       stage: order.stage,
       status: order.status,
-      dwellHours: Math.floor(dwellHours),
+      dwellHours,
       targetHours,
       late: targetHours > 0 && dwellHours > targetHours,
       critical: targetHours > 0 && dwellHours > targetHours * 2,
