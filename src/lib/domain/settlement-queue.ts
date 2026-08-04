@@ -24,7 +24,7 @@ import { canSettle } from './transfer-windows';
  * الصفّ غائبًا فيظنّه ضائعًا.
  */
 
-export type SettlementBlock = 'NOT_TRANSFERRED' | 'RETURN_WINDOW_OPEN' | 'DISPUTED';
+export type SettlementBlock = 'NOT_TRANSFERRED' | 'DISPUTED';
 
 export type PendingApproval = {
   id: string;
@@ -49,7 +49,6 @@ export type SettlementRow = {
   netToSeller: string;
   /** `null` تعني: جاهز للإفراج */
   blockedBy: SettlementBlock | null;
-  returnWindowEndsAt: string | null;
   approval: PendingApproval | null;
 };
 
@@ -74,7 +73,6 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
       ref: true,
       stage: true,
       status: true,
-      returnWindowEndsAt: true,
       agreedPrice: true,
       settlementAmount: true,
       commissionAmount: true,
@@ -133,7 +131,7 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
     const guard =
       order.disputes.length > 0
         ? ({ allowed: false, reason: 'DISPUTED' } as const)
-        : canSettle(order, now);
+        : canSettle(order);
 
     /**
      * **والانقضاء يُفحص هنا لا في الحالة المخزَّنة.** طلبٌ مضت مهلته
@@ -171,7 +169,6 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
         gatewayFee: order.settlement?.gatewayFee ?? null,
       }).toFixed(2),
       blockedBy: guard.allowed ? null : guard.reason,
-      returnWindowEndsAt: order.returnWindowEndsAt?.toISOString() ?? null,
       approval,
     };
 

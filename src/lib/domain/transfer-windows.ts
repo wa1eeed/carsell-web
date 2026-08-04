@@ -3,22 +3,28 @@ import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import type { AdminUser } from '@/generated/prisma/client';
 
 /**
- * القاعدتان الزمنيّتان على الطلب — ولا تتقاطعان.
+ * ═══ سقف النقل — القاعدة الزمنيّة الوحيدة على الطلب ═══
  *
- * ١· **سقف النقل** — الدفع + ٧ أيام. لم يكتمل ⇒ استرجاع تلقائيّ للمشتري.
- * ٢· **نافذة الاسترجاع** — تأكيد النقل + ٧ أيام. انقضت بلا طلب ⇒ إفراج للبائع.
- *
- * الأولى تحمي المشتري من طلبٍ **لا يتقدّم**، والثانية ممّا **اكتشفه بعد
- * الاستلام**. ولا تتقاطعان لأن الثانية لا تبدأ إلا بحدثٍ يُنهي الأولى.
+ * الدفع + ٧ أيام. لم يكتمل النقل ⇒ استرجاع تلقائيّ للمشتري. وهي تحمي
+ * المشتري من طلبٍ **لا يتقدّم**.
  *
  * ومرحلة النقل نفسها **بلا موعد مجدول**: تتقدّم بتأكيد الإجراء، والسقف
- * أعلاه حدّها الوحيد. ولو كان ثمّة موعد لكان السقف تابعًا له — وما دام
- * لا موعد، فالسقف قاعدةٌ مستقلّة تُحسب من الدفع.
+ * أعلاه حدّها الوحيد.
+ *
+ * ═══ ونافذة الاسترجاع أُلغيت — قرار المصمّم ═══
+ *
+ * كانت تأكيد النقل + ٧ أيام، ثم يُفرَج للبائع. **والإفراج الآن يتبع
+ * تأكيد النقل مباشرةً**: حين تصير المركبة باسم المشتري في المرور، لم
+ * يبقَ ما يُحتجَز المال لأجله — واحتجازُه أسبوعًا بعدها تأخيرٌ للبائع
+ * بلا ما يقابله.
+ *
+ * ويترتّب عليها أن **النزاع يُغلق عند تأكيد النقل** (`DISPUTABLE_STAGES`
+ * في `disputes.ts`): بعد الإفراج لا مال يُجمَّد، ونزاعٌ يُفتح حينها
+ * وعدٌ لا مصدر له. فالفحص قبل التأكيد لا بعده.
  */
 
 /** الافتراضيّ — والسارية من إعداد الأدمن. */
 export const TRANSFER_DEADLINE_DAYS = DEADLINE_DEFAULTS.transferDeadlineDays;
-export const RETURN_WINDOW_DAYS = DEADLINE_DEFAULTS.returnWindowDays;
 /** تمديدٌ **واحد** لا أكثر، بسبب مكتوب ومسجَّل. */
 export const TRANSFER_EXTENSION_DAYS = DEADLINE_DEFAULTS.transferExtensionDays;
 
@@ -32,49 +38,32 @@ export async function transferDeadlineFor(paidAt: Date): Promise<Date> {
   return new Date(paidAt.getTime() + (await deadline('transferDeadlineDays')) * DAY_MS);
 }
 
-export async function returnWindowFor(transferConfirmedAt: Date): Promise<Date> {
-  return new Date(transferConfirmedAt.getTime() + (await deadline('returnWindowDays')) * DAY_MS);
-}
-
 export function transferDeadlineFrom(paidAt: Date): Date {
   return new Date(paidAt.getTime() + TRANSFER_DEADLINE_DAYS * DAY_MS);
 }
 
-export function returnWindowFrom(transferConfirmedAt: Date): Date {
-  return new Date(transferConfirmedAt.getTime() + RETURN_WINDOW_DAYS * DAY_MS);
-}
-
 export type SettleGuard =
   | { allowed: true }
-  | { allowed: false; reason: 'NOT_TRANSFERRED' | 'RETURN_WINDOW_OPEN' | 'DISPUTED'; until?: string };
+  | { allowed: false; reason: 'NOT_TRANSFERRED' | 'DISPUTED' };
 
 /**
- * ═══ لا إفراج للبائع قبل انقضاء النافذة ═══
+ * ═══ الإفراج يتبع تأكيد نقل الملكية ═══
  *
- * وهي **جزء من عمر الحجز لا ملحق به**: المشتري استلم المركبة ولم يستقرّ
- * حقّه بعد، فالمال لا يزال ملكه في المعنى.
+ * **وشرطان لا ثلاثة**: أن تُنقل الملكية، وألّا يكون ثمّة نزاع مفتوح.
+ * ولا انتظار بعدهما — قرار المصمّم: حين تصير المركبة باسم المشتري في
+ * المرور فقد وقع البيع، ولا شيء يُحتجَز المال لأجله.
+ *
+ * **وبلوغُ `DONE` هو تأكيد النقل نفسه** — لا حقلٌ زمنيّ يُشتقّ منه.
+ * وكان الشرط `returnWindowEndsAt !== null`، فيُستدلّ على واقعةٍ بأثرٍ
+ * جانبيّ لها؛ فحقلٌ لم يُكتب لسببٍ آخر يجعل طلبًا مؤكَّدًا يُقرأ غير
+ * مؤكَّد.
  *
  * والفحص هنا لا في الشاشة: زرٌّ معطَّل يُلتفّ عليه بطلب واحد، ومبلغٌ
  * أُفرج عنه قبل أوانه لا يعود.
  */
-export function canSettle(
-  order: {
-    stage: string;
-    status: string;
-    returnWindowEndsAt: Date | null;
-  },
-  now: Date = new Date(),
-): SettleGuard {
+export function canSettle(order: { stage: string; status: string }): SettleGuard {
   if (order.status === 'DISPUTED') return { allowed: false, reason: 'DISPUTED' };
-  // النافذة لا تبدأ إلا بتأكيد النقل — وغيابها يعني أنه لم يُؤكَّد
-  if (order.returnWindowEndsAt === null) return { allowed: false, reason: 'NOT_TRANSFERRED' };
-  if (order.returnWindowEndsAt.getTime() > now.getTime()) {
-    return {
-      allowed: false,
-      reason: 'RETURN_WINDOW_OPEN',
-      until: order.returnWindowEndsAt.toISOString(),
-    };
-  }
+  if (order.stage !== 'DONE') return { allowed: false, reason: 'NOT_TRANSFERRED' };
   return { allowed: true };
 }
 
@@ -169,14 +158,28 @@ export async function overdueTransfers(now: Date = new Date()): Promise<OverdueT
     .sort((a, b) => b.hoursLate - a.hoursLate);
 }
 
-/** طلبات انقضت نافذتها بلا نزاع — **مرشَّحة للإفراج التلقائي للبائع**. */
-export async function settleableOrders(now: Date = new Date()): Promise<string[]> {
+/**
+ * طلبات نُقلت ملكيتها ومالُها ما زال محجوزًا — **مرشَّحة للإفراج**.
+ *
+ * وكان الشرط انقضاء نافذة الاسترجاع؛ صار **بلوغ `DONE`** بعد إلغائها.
+ *
+ * ═══ ولماذا تبقى هذه الدالّة بعد أن صار الإفراج فوريًّا ═══
+ *
+ * لأن الفوريّ قد يتعثّر: بوابةٌ لا تردّ، أو حاويةٌ سقطت بين تأكيد
+ * النقل ونداء المزوّد. فالوظيفة الدورية **شبكة أمان لا مسارًا ثانيًا**
+ * — تلتقط ما لم يُفرَج، ولولاها بقي مال البائع محجوزًا بلا ما يقول
+ * إن النداء لم يقع.
+ *
+ * **وهي تُرجع القائمة ولا تُفرج**: دالّةٌ تمرّ على مجموعةٍ تلمس مالًا
+ * لا تكتب، والكتابة استدعاءٌ مفرد صريح لكل عنصر.
+ */
+export async function settleableOrders(): Promise<string[]> {
   const orders = await db.order.findMany({
     where: {
-      returnWindowEndsAt: { lt: now },
-      // النزاع يجمّد — ولو انقضت النافذة
+      stage: 'DONE',
+      // النزاع يجمّد — ولو نُقلت الملكية
       status: { not: 'DISPUTED' },
-      escrow: { status: 'HELD' },
+      payments: { some: { status: 'HELD' } },
     },
     select: { ref: true },
   });

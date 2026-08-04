@@ -408,10 +408,94 @@ export async function applyState(
 /** الافتراضيّ — والسارية من إعداد الأدمن. */
 export const SETTLE_WINDOW_HOURS = DEADLINE_DEFAULTS.settleWindowHours;
 
+/**
+ * ═══ الإفراج عند تأكيد نقل الملكية — **تلقائيًّا** ═══
+ *
+ * قرار المصمّم: حين تصير المركبة باسم المشتري في المرور فقد وقع البيع،
+ * فيُفرَج المال للبائع. واليدويّ بنصاب عضوين يبقى **للحالات الخاصّة**.
+ *
+ * ═══ ولماذا لا نصاب على هذا المسار ═══
+ *
+ * لأن **الواقعة هي الإذن**: لا يقرّر أحد الإفراج هنا حتى يُراجَع
+ * قرارُه — تأكيدُ النقل من البائع هو ما أطلقه، وهو حدثٌ خارجيّ مسجَّل.
+ * والنصاب يحرس **قرار إنسان**، لا انتقالًا تفرضه واقعة.
+ *
+ * وأثرُه يُكتب بـ`actorType: 'system'` ليُقرأ في التدقيق على حقيقته:
+ * لم يضغطه أحد.
+ *
+ * **ولا يُنادى داخل معاملة**: نداء المزوّد بطيء وقد يتعثّر، وإبقاء
+ * معاملةٍ مفتوحة عليه يحبس صفوفًا. وتعثّرُه لا يُبطل تأكيد النقل —
+ * الوظيفة الدورية تلتقط ما لم يُفرَج.
+ */
+export async function settleOnTransferConfirmed(
+  orderRef: string,
+  now: Date = new Date(),
+): Promise<SettleResult> {
+  const order = await db.order.findUnique({
+    where: { ref: orderRef },
+    select: {
+      stage: true,
+      status: true,
+      payments: {
+        where: { status: 'HELD' },
+        select: { id: true, holdRef: true, gatewayKey: true, environment: true, amount: true },
+      },
+      disputes: { where: { status: { in: ['OPEN', 'INVESTIGATING'] } }, select: { id: true } },
+    },
+  });
+  if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
+
+  // النزاع يُفحص صراحةً — قد لا يبلغ `status` في كل مرحلة
+  if (order.disputes.length > 0) return { ok: false, reason: 'DISPUTED' };
+
+  const guard = canSettle(order);
+  if (!guard.allowed) return { ok: false, reason: guard.reason };
+
+  const payment = order.payments[0];
+  if (payment?.holdRef == null) return { ok: false, reason: 'NO_HELD_PAYMENT' };
+
+  const gateway = await resolveForPayment(payment.gatewayKey, payment.environment);
+  const settled = await gateway.settle(payment.holdRef);
+
+  if (settled.state === 'FAILED') {
+    return { ok: false, reason: 'GATEWAY_FAILED', code: settled.code };
+  }
+
+  if (settled.state === 'CONFIRMED') {
+    await applyState(payment.id, 'SETTLED', 'system', now, undefined, {
+      settleRef: settled.settleRef,
+      settledAmount: settled.settledAmount,
+    });
+  }
+
+  await db.auditLog.create({
+    data: {
+      actorId: orderRef,
+      actorType: 'system',
+      entity: 'Order',
+      entityId: orderRef,
+      action: 'escrow.settled',
+      before: { status: 'HELD' },
+      after: {
+        gatewayState: settled.state,
+        amount: payment.amount.toString(),
+        // **يُقال صراحةً**: هذا الإفراج تلقائيّ، ولا موافق له
+        trigger: 'transfer.confirmed',
+        quorum: 'none',
+      },
+      ip: null,
+      createdAt: now,
+    },
+  });
+
+  return settled.state === 'CONFIRMED'
+    ? { ok: true, state: 'SETTLED' }
+    : { ok: true, state: 'PENDING', approvals: 0, required: 0 };
+}
+
 export type SettleFailure =
   | 'ORDER_NOT_FOUND'
   | 'NO_HELD_PAYMENT'
-  | 'RETURN_WINDOW_OPEN'
   | 'NOT_TRANSFERRED'
   | 'DISPUTED'
   | 'ALREADY_PENDING'
@@ -442,22 +526,15 @@ export async function requestSettle(
   const order = await db.order.findUnique({
     where: { ref: orderRef },
     select: {
-      id: true, stage: true, status: true, returnWindowEndsAt: true,
+      id: true, stage: true, status: true,
       payments: { where: { status: 'HELD' }, select: { id: true } },
     },
   });
   if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
   if (order.payments.length === 0) return { ok: false, reason: 'NO_HELD_PAYMENT' };
 
-  const guard = canSettle(order, now);
-  if (!guard.allowed) {
-    return {
-      ok: false,
-      reason: guard.reason === 'RETURN_WINDOW_OPEN' ? 'RETURN_WINDOW_OPEN'
-        : guard.reason === 'DISPUTED' ? 'DISPUTED' : 'NOT_TRANSFERRED',
-      ...(guard.reason === 'RETURN_WINDOW_OPEN' ? { until: guard.until } : {}),
-    };
-  }
+  const guard = canSettle(order);
+  if (!guard.allowed) return { ok: false, reason: guard.reason };
 
   const existing = await db.approvalRequest.findFirst({
     where: { kind: 'ESCROW_RELEASE', entityType: 'Order', entityId: orderRef, status: 'PENDING' },
@@ -516,21 +593,15 @@ export async function approveSettle(
   const order = await db.order.findUnique({
     where: { ref: request.entityId },
     select: {
-      stage: true, status: true, returnWindowEndsAt: true,
+      stage: true, status: true,
       payments: { where: { status: 'HELD' }, select: { id: true, holdRef: true, gatewayKey: true, environment: true, amount: true } },
     },
   });
   if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
 
-  // يُفحص ثانيةً: النافذة قد تكون فُتحت بنزاع بين الطلب والاعتماد
-  const guard = canSettle(order, now);
-  if (!guard.allowed) {
-    return {
-      ok: false,
-      reason: guard.reason === 'DISPUTED' ? 'DISPUTED' : 'RETURN_WINDOW_OPEN',
-      ...(guard.until === undefined ? {} : { until: guard.until }),
-    };
-  }
+  // يُفحص ثانيةً: نزاعٌ قد يُفتح بين الطلب والاعتماد
+  const guard = canSettle(order);
+  if (!guard.allowed) return { ok: false, reason: guard.reason };
 
   const payment = order.payments[0];
   if (payment?.holdRef == null) return { ok: false, reason: 'NO_HELD_PAYMENT' };

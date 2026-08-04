@@ -29,10 +29,32 @@ stateDiagram-v2
         One admin extension, written reason.
     end note
     note right of DONE
-        Opens the 7-day return window.
-        No release to the seller before it closes.
+        Releases the escrow to the seller.
+        Automatic; no dispute may be opened after.
     end note
 ```
+
+**Confirming the transfer releases the money.** There used to be a 7-day return
+window between confirmation and release. The designer cancelled it: once the
+vehicle is registered to the buyer at the traffic department the sale has
+happened, and holding the money another week delays the seller against nothing.
+
+The release is automatic — `settleOnTransferConfirmed`, called by `advanceStage`
+outside its transaction, with `releaseConfirmedOrders` in the scheduler as the
+safety net for a gateway that did not answer. The two-approver path stays for
+exceptions.
+
+**No quorum on the automatic path, deliberately.** A quorum guards a *person's
+decision*; here the authorising event is the seller's transfer confirmation, which
+is external and recorded. The audit row is written with `actorType: 'system'` and
+`quorum: 'none'` so a later reader is not left to infer that someone pressed it.
+
+**Disputes close at transfer confirmation** — `DISPUTABLE_STAGES` is `PAYMENT`
+and `TRANSFER`, not `DONE`. This follows from the release: after it there is no
+held money to freeze, so a full refund would be a promise with no source. A
+dispute accepted and not enforceable is worse than one refused — the first is
+waited on for a month before anyone discovers it was empty. The buyer inspects
+before the seller confirms.
 
 Cancellation is a **status, not a stage**: the order stays at the stage it died
 in, so the record still says where it stopped.
@@ -168,7 +190,7 @@ stateDiagram-v2
     REQUIRES_ACTION --> PENDING
     REQUIRES_ACTION --> HELD
     PENDING --> HELD
-    HELD --> SETTLED : two approvers
+    HELD --> SETTLED : transfer confirmed, or two approvers
     HELD --> PARTIALLY_SETTLED
     HELD --> CANCELLED
     PARTIALLY_SETTLED --> SETTLED
@@ -187,8 +209,9 @@ The vocabulary is **escrow, not card**: hold, settle, cancel, partialReturn.
 arrived and executed; calling it a failure makes the domain retry and the card is
 charged twice. `PENDING` leaves the decision to the webhook or to `status()`.
 
-**Release to the seller needs two approvers** — `SETTLE_WINDOW_HOURS = 72`, and
-the requester cannot approve their own request.
+**Release to the seller happens on transfer confirmation** (§1). The manual
+path — for exceptions — needs two approvers, `SETTLE_WINDOW_HOURS = 72`, and the
+requester cannot approve their own request.
 
 ### The release had no door until now
 

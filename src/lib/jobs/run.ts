@@ -2,6 +2,8 @@ import { closeEndedAuctions, expireSellerDecisions } from '@/lib/domain/auctions
 import { expireOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
+import { settleableOrders } from '@/lib/domain/transfer-windows';
+import { settleOnTransferConfirmed } from '@/lib/domain/payments';
 
 /**
  * ═══ الوظائف الزمنية — والمهلة التي لا تُنفَّذ ليست مهلة ═══
@@ -47,7 +49,35 @@ const JOBS: readonly Job[] = [
   { name: 'expireSellerDecisions', run: (now) => expireSellerDecisions(now) },
   { name: 'overdueTransfers', run: async (now) => (await overdueTransfers(now)).length },
   { name: 'overdueDisputes', run: async (now) => (await overdueDisputes(now)).length },
+  /**
+   * **شبكة أمانٍ لا مسارٌ ثانٍ.** الإفراج يقع لحظة تأكيد نقل الملكية،
+   * وهذه تلتقط ما تعثّر: بوابةٌ لم تردّ، أو حاويةٌ سقطت بين التأكيد
+   * والنداء. ولولاها بقي مال البائع محجوزًا بلا ما يقول إن النداء
+   * لم يقع — والصمت هنا لا يُكتشف إلا حين يسأل البائع.
+   */
+  { name: 'releaseConfirmedOrders', run: (now) => releaseConfirmedOrders(now) },
 ];
+
+/**
+ * يُفرج عن كل طلبٍ نُقلت ملكيته ومالُه محجوز.
+ *
+ * **واحدًا واحدًا باستدعاءٍ مفرد** — والقائمة تُقرأ في `settleableOrders`
+ * وهي لا تكتب. فدالّةٌ تمرّ على مجموعةٍ تلمس مالًا وتكتب هي الشكل الذي
+ * يُفرِج عن مئة مبلغ بخطأ سطر.
+ *
+ * وفشلُ واحدٍ لا يوقف الباقين: بوابةٌ ترفض حجزًا بعينه لا تحبس مال
+ * تسعةٍ غيره.
+ */
+async function releaseConfirmedOrders(now: Date): Promise<number> {
+  const refs = await settleableOrders();
+  let released = 0;
+
+  for (const ref of refs) {
+    const result = await settleOnTransferConfirmed(ref, now).catch(() => null);
+    if (result?.ok === true) released += 1;
+  }
+  return released;
+}
 
 /**
  * `jobs` مَحقنٌ للاختبار — كما يُحقَن `Fetcher` في مُهايئ البوابة.

@@ -242,11 +242,6 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
     unit: 'يوم',
     effect: 'تمديدٌ واحد لا أكثر، بسبب مكتوب ومسجَّل.',
   },
-  returnWindowDays: {
-    name: 'نافذة الإرجاع',
-    unit: 'يوم',
-    effect: 'من تأكيد النقل. لا يُفرج عن المبلغ للبائع قبل انقضائها.',
-  },
   sellerDecisionHours: {
     name: 'قرار البائع بعد المزاد',
     unit: 'ساعة',

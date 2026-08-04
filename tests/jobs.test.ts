@@ -22,6 +22,7 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
       'expireSellerDecisions',
       'overdueTransfers',
       'overdueDisputes',
+      'releaseConfirmedOrders',
     ]);
     expect(run.failed).toBe(0);
     for (const outcome of run.outcomes) expect(outcome.ok).toBe(true);

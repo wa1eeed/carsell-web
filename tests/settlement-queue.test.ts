@@ -137,16 +137,18 @@ describe('settlementQueue — الفرز', () => {
     expect(only(queue.blocked)).toEqual([]);
   });
 
+  /**
+   * سببان لا ثلاثة: نافذة الاسترجاع أُلغيت بقرار المصمّم، فالإفراج
+   * يتبع تأكيد النقل مباشرةً.
+   */
   it('كل سببٍ للحجب يُسمّى', async () => {
     await make([
-      { key: 'W', window: days(3), stage: 'DONE', status: 'COMPLETED' },
       { key: 'T', window: null, stage: 'PAYMENT', status: 'ACTIVE' },
-      { key: 'D', window: days(-1), stage: 'DONE', status: 'DISPUTED', dispute: true },
+      { key: 'D', window: null, stage: 'DONE', status: 'DISPUTED', dispute: true },
     ]);
     const queue = await settlementQueue(T0);
     const mine = queue.blocked.filter((row) => row.orderRef.startsWith(TAG));
 
-    expect(mine.find((r) => r.orderRef.endsWith('-W'))?.blockedBy).toBe('RETURN_WINDOW_OPEN');
     expect(mine.find((r) => r.orderRef.endsWith('-T'))?.blockedBy).toBe('NOT_TRANSFERRED');
     expect(mine.find((r) => r.orderRef.endsWith('-D'))?.blockedBy).toBe('DISPUTED');
     expect(only(queue.ready)).toEqual([]);
@@ -166,7 +168,7 @@ describe('settlementQueue — الفرز', () => {
   it('المجموع يجمع المحجوز — والمحجوب داخله', async () => {
     await make([
       { key: 'A', window: days(-1), stage: 'DONE', status: 'COMPLETED' },
-      { key: 'W', window: days(3), stage: 'DONE', status: 'COMPLETED' },
+      { key: 'B', window: null, stage: 'DONE', status: 'COMPLETED' },
     ]);
     const before = await settlementQueue(days(-100));
     const queue = await settlementQueue(T0);

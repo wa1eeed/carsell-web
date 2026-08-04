@@ -46,14 +46,13 @@ export async function POST(
         messageAr:
           result.reason === 'SELF_APPROVAL'
             ? 'طالب الإفراج لا يوافق على طلبه — يلزم عضو ثانٍ.'
-            : result.reason === 'RETURN_WINDOW_OPEN'
-              ? 'نافذة الاسترجاع ما زالت مفتوحة — لا إفراج قبل انقضائها.'
+            : result.reason === 'NOT_TRANSFERRED'
+              ? 'لم تُؤكَّد ملكية المركبة بعد — لا إفراج قبلها.'
               : 'تعذّر الإفراج.',
         messageEn:
           result.reason === 'SELF_APPROVAL'
             ? 'The requester cannot approve their own release.'
             : 'Could not release the funds.',
-        ...(result.until === undefined ? {} : { fields: { until: result.until } }),
       },
       status,
     );

@@ -3,7 +3,7 @@ import { markListingSold, reserveListing } from './listing-state';
 import { nextOrderRef } from './refs';
 import type { OrderDocument, SettlementFigures } from './documents';
 import type { OrderStage } from '@/generated/prisma/enums';
-import { returnWindowFor, transferDeadlineFor } from './transfer-windows';
+import { transferDeadlineFor } from './transfer-windows';
 
 /**
  * الطلب ومراحله الستّ — المهمة ١٨.
@@ -84,13 +84,13 @@ export async function advanceStage(
         stage: input.to,
         stageEnteredAt: now,
         /**
-         * القاعدتان تُفتحان هنا لأنه **نقطة الانتقال الوحيدة**:
-         * دخولُ النقل يبدأ سقفه، وتأكيدُه يبدأ نافذة الاسترجاع.
+         * سقف النقل يُفتح هنا لأنه **نقطة الانتقال الوحيدة**.
+         *
+         * وكان تأكيدُ النقل يفتح نافذة استرجاعٍ سبعة أيام قبل الإفراج
+         * — أُلغيت بقرار المصمّم، فالإفراج يتبع التأكيد مباشرةً.
          */
         ...(input.to === 'TRANSFER' ? { transferDeadlineAt: await transferDeadlineFor(now) } : {}),
-        ...(input.to === 'DONE'
-          ? { status: 'COMPLETED' as const, returnWindowEndsAt: await returnWindowFor(now) }
-          : {}),
+        ...(input.to === 'DONE' ? { status: 'COMPLETED' as const } : {}),
       },
     });
 
@@ -134,6 +134,44 @@ export async function advanceStage(
     } catch (error) {
       const { reportError } = await import('@/lib/observability/report');
       reportError(error, { where: 'orders.advanceStage.issueAgreement', extra: { orderId } });
+    }
+
+    /**
+     * ═══ والمال يُفرَج للبائع هنا ═══
+     *
+     * قرار المصمّم: الإفراج يتبع تأكيد نقل الملكية. وكانت تُفتح نافذة
+     * استرجاعٍ سبعة أيام قبله.
+     *
+     * **وخارج المعاملة، وفشلُه لا يُبطل الانتقال**: نداء المزوّد بطيء
+     * وقد يتعثّر، ونقلُ ملكيةٍ وقع في المرور لا يُلغى لأن بوابةً لم
+     * تردّ. والوظيفة الدورية `releaseConfirmedOrders` تلتقط ما تعثّر —
+     * فبلا شبكة الأمان يبقى مال البائع محجوزًا بلا ما يقول إن النداء
+     * لم يقع.
+     */
+    try {
+      const { settleOnTransferConfirmed } = await import('./payments');
+      const released = await settleOnTransferConfirmed(input.orderRef, now);
+
+      /**
+       * **والمتوقَّع لا يُبلَّغ خطأً.**
+       *
+       * طلبٌ بلا دفعةٍ محجوزة يكتمل كما يكتمل غيره — أُفرج عنه سلفًا،
+       * أو لا مال فيه أصلًا. ونزاعٌ مفتوح حالٌ يحرسها النظام لا عطلٌ
+       * فيه. وتحويلُ هذين إلى أخطاء يُغرق السجلّ بضجيجٍ يُدرَّب الناس
+       * على تجاهله — فيضيع فيه `GATEWAY_FAILED` وحده الذي يعني أن مال
+       * بائعٍ لم يخرج.
+       */
+      const EXPECTED: readonly string[] = ['NO_HELD_PAYMENT', 'DISPUTED'];
+      if (!released.ok && !EXPECTED.includes(released.reason)) {
+        const { reportError } = await import('@/lib/observability/report');
+        reportError(new Error(`escrow.autoRelease:${released.reason}`), {
+          where: 'orders.advanceStage.autoRelease',
+          extra: { orderId, reason: released.reason },
+        });
+      }
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'orders.advanceStage.autoRelease', extra: { orderId } });
     }
   }
 

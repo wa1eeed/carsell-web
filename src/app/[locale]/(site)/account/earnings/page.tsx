@@ -21,7 +21,6 @@ export function generateMetadata(): Metadata {
 
 const BLOCKED_LABEL: Record<string, string> = {
   NOT_TRANSFERRED: 'بانتظار نقل الملكية',
-  RETURN_WINDOW_OPEN: 'في نافذة الإرجاع',
   DISPUTED: 'نزاع مفتوح',
 };
 

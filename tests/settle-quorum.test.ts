@@ -1,13 +1,11 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { approveSettle, canTransition, requestSettle } from '@/lib/domain/payments';
-import { RETURN_WINDOW_DAYS } from '@/lib/domain/transfer-windows';
 
 afterAll(async () => {
   await db.$disconnect();
 });
 
-const DAY = 86_400_000;
 let seq = 0;
 
 async function admin() {
@@ -21,7 +19,7 @@ async function admin() {
 }
 
 /** طلبٌ محجوز ماله ونافذته منقضية — الحال التي يجوز فيها الإفراج. */
-async function settleableOrder(windowEndsAt: Date) {
+async function settleableOrder(stage: 'DONE' | 'TRANSFER' = 'DONE') {
   const order = await db.order.findFirstOrThrow({ orderBy: { ref: 'asc' } });
   await db.payment.deleteMany({ where: { orderId: order.id } });
   await db.escrow.deleteMany({ where: { orderId: order.id } });
@@ -39,7 +37,7 @@ async function settleableOrder(windowEndsAt: Date) {
   });
   return db.order.update({
     where: { id: order.id },
-    data: { stage: 'DONE', status: 'COMPLETED', returnWindowEndsAt: windowEndsAt },
+    data: { stage, status: stage === 'DONE' ? 'COMPLETED' : 'ACTIVE' },
   });
 }
 
@@ -63,7 +61,7 @@ describe('═══ القاعدة ١٢ ═══ الإفراج بموافقة 
   it('الطالب لا يوافق على طلبه، والمال لا يتحرّك بمحاولته', async () => {
     const requester = await admin();
     const approver = await admin();
-    const order = await settleableOrder(new Date(Date.now() - DAY));
+    const order = await settleableOrder();
 
     const asked = await requestSettle(requester.id, order.ref);
     expect(asked.ok).toBe(true);
@@ -88,7 +86,7 @@ describe('═══ القاعدة ١٢ ═══ الإفراج بموافقة 
   it('العضو الثاني يُنادي البوابة — وبلا مفاتيح تفشل صراحةً لا صامتة', async () => {
     const requester = await admin();
     const approver = await admin();
-    const order = await settleableOrder(new Date(Date.now() - DAY));
+    const order = await settleableOrder();
 
     await requestSettle(requester.id, order.ref);
     const request = await db.approvalRequest.findFirstOrThrow({
@@ -113,23 +111,21 @@ describe('═══ القاعدة ١٢ ═══ الإفراج بموافقة 
   });
 });
 
-describe('نافذة الاسترجاع تحرس الإفراج — لا الشاشة', () => {
-  it('النافذة المفتوحة تمنع الطلب أصلًا، وتقول متى', async () => {
+describe('تأكيد النقل يحرس الإفراج — لا الشاشة', () => {
+  /**
+   * كانت نافذة استرجاعٍ سبعة أيام تحرسه؛ أُلغيت بقرار المصمّم. والحارس
+   * الباقي: **نُقلت الملكية، ولا نزاع**.
+   */
+  it('طلبٌ لم تُنقل ملكيته يُرفض قبل أن يُكتب له شيء', async () => {
     const requester = await admin();
-    const until = new Date(Date.now() + 3 * DAY);
-    const order = await settleableOrder(until);
+    const order = await settleableOrder('TRANSFER');
 
     const result = await requestSettle(requester.id, order.ref);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.reason).toBe('RETURN_WINDOW_OPEN');
-      // يقول متى — لا «ممنوع» وحدها
-      expect(result.until).toBe(until.toISOString());
-    }
+    if (!result.ok) expect(result.reason).toBe('NOT_TRANSFERRED');
 
     // ولا طلب موافقة كُتب: الرفض قبل كل شيء
     expect(await db.approvalRequest.count({ where: { entityId: order.ref } })).toBe(0);
-    expect(RETURN_WINDOW_DAYS).toBe(7);
 
     await cleanup(order.ref, [requester.id]);
   });
@@ -137,7 +133,7 @@ describe('نافذة الاسترجاع تحرس الإفراج — لا الش�
   it('نزاعٌ فُتح بين الطلب والاعتماد يوقف الإفراج', async () => {
     const requester = await admin();
     const approver = await admin();
-    const order = await settleableOrder(new Date(Date.now() - DAY));
+    const order = await settleableOrder();
 
     await requestSettle(requester.id, order.ref);
     const request = await db.approvalRequest.findFirstOrThrow({

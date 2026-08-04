@@ -139,9 +139,35 @@ describe('offer.autoReject — القاعدة ١', () => {
     const result = await createOffer({ listingRef, buyerId, amount: 50_000 }, T0);
     const notifications = await db.notification.findMany({ where: { userId: buyerId } });
 
-    const json = JSON.stringify({ result, notifications });
-    expect(json).not.toContain('90000');
-    expect(json).not.toContain('minAcceptPrice');
+    /**
+     * **يُفحص المحتوى لا النصّ الخام.**
+     *
+     * كان `JSON.stringify(...)` يُقارَن بـ`'90000'` مباشرةً — والبلوب
+     * يحمل معرّفات cuid وطوابع زمنية، فيستطيع أن يسقط مصادفةً على
+     * تسلسلٍ عشوائيّ. (سقط مرّةً في طقمٍ كامل ولم يُعَد إنتاجه في خمس
+     * محاولات.) والمفاتيح والقيَم تُفحص كلٌّ على حدة، فما يقيسه
+     * الاختبار هو ما يدّعي قياسه.
+     */
+    const keys: string[] = [];
+    const values: unknown[] = [];
+    const walk = (node: unknown): void => {
+      if (node === null || typeof node !== 'object') {
+        values.push(node);
+        return;
+      }
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
+      for (const [key, value] of Object.entries(node)) {
+        keys.push(key);
+        walk(value);
+      }
+    };
+    walk({ result, notifications });
+
+    expect(keys).not.toContain('minAcceptPrice');
+    expect(values.map(String)).not.toContain('90000');
     await teardown();
   });
 

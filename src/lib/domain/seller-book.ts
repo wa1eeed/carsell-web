@@ -34,7 +34,7 @@ export type BookLine = {
   govtFee: string;
   net: string;
   /** ما يمنع الصرف الآن — و`null` يعني جاهزًا */
-  blockedBy: 'NOT_TRANSFERRED' | 'RETURN_WINDOW_OPEN' | 'DISPUTED' | null;
+  blockedBy: 'NOT_TRANSFERRED' | 'DISPUTED' | null;
   releasesAt: string | null;
 };
 
@@ -139,11 +139,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
      */
     const guard = order.disputes.length > 0
       ? ({ allowed: false, reason: 'DISPUTED' } as const)
-      : canSettle({
-          stage: order.stage,
-          status: order.status,
-          returnWindowEndsAt: order.returnWindowEndsAt,
-        });
+      : canSettle({ stage: order.stage, status: order.status });
 
     if (!guard.allowed && order.escrow?.status === 'HELD') held = held.plus(net);
     earned = earned.plus(net);
@@ -165,7 +161,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
       govtFee: str(order.transferFee),
       net: str(net),
       blockedBy: guard.allowed ? null : guard.reason,
-      releasesAt: order.returnWindowEndsAt === null ? null : date.format(order.returnWindowEndsAt),
+      releasesAt: null,
     });
   }
 

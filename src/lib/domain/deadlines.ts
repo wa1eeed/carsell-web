@@ -10,6 +10,10 @@ import { db } from '@/lib/db';
  *
  * ═══ وما لا يُعدَّل من هنا ═══
  *
+ * **ونافذة الاسترجاع أُزيلت** — أُلغيت بقرار المصمّم (الإفراج يتبع
+ * تأكيد النقل)، وإعدادٌ يبقى في اللوحة بلا أثر أسوأ من غيابه: يُعدَّل
+ * فيُظنّ أنّ شيئًا تغيّر.
+ *
  * **المؤقّتات الأمنية ليست مهلًا تشغيلية**: جلسة الأدمن (٨ ساعات)،
  * وقفل المحاولات (١٥ دقيقة)، ومهلة رمز الدخول (٥ دقائق) — تعديلها
  * إضعافٌ للأمان لا ضبطٌ لتجربة، ومن يملك الشاشة يملك تمديد جلسته.
@@ -28,7 +32,6 @@ export type DeadlineKey =
   | 'paymentWindowHours'
   | 'transferDeadlineDays'
   | 'transferExtensionDays'
-  | 'returnWindowDays'
   | 'sellerDecisionHours'
   | 'disputeSlaHours'
   | 'settleWindowHours'
@@ -45,7 +48,6 @@ export const DEADLINE_DEFAULTS: Readonly<Record<DeadlineKey, number>> = {
   paymentWindowHours: 24,
   transferDeadlineDays: 7,
   transferExtensionDays: 7,
-  returnWindowDays: 7,
   sellerDecisionHours: 24,
   disputeSlaHours: 48,
   settleWindowHours: 72,
@@ -66,7 +68,6 @@ export const DEADLINE_BOUNDS: Readonly<Record<DeadlineKey, { min: number; max: n
   paymentWindowHours: { min: 1, max: 168 },
   transferDeadlineDays: { min: 1, max: 90 },
   transferExtensionDays: { min: 1, max: 90 },
-  returnWindowDays: { min: 1, max: 90 },
   sellerDecisionHours: { min: 1, max: 168 },
   disputeSlaHours: { min: 1, max: 336 },
   settleWindowHours: { min: 1, max: 720 },

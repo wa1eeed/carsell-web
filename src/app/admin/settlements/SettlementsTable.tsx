@@ -26,15 +26,8 @@ import type { SettlementBlock, SettlementRow } from '@/lib/domain/settlement-que
 
 const BLOCK_LABEL: Record<SettlementBlock, string> = {
   NOT_TRANSFERRED: 'لم تُؤكَّد ملكية المركبة بعد',
-  RETURN_WINDOW_OPEN: 'نافذة الاسترجاع لم تنقضِ',
   DISPUTED: 'نزاعٌ قائم — المبلغ مجمَّد حتى يُحسم',
 };
-
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
-  day: 'numeric',
-  month: 'long',
-  timeZone: 'Asia/Riyadh',
-});
 
 export function SettlementsTable({
   ready,
@@ -164,11 +157,7 @@ export function SettlementsTable({
                 <Badge tone={row.blockedBy === 'DISPUTED' ? 'warn' : 'neutral'}>
                   {row.blockedBy === null ? '—' : BLOCK_LABEL[row.blockedBy]}
                 </Badge>
-                {row.blockedBy === 'RETURN_WINDOW_OPEN' && row.returnWindowEndsAt !== null ? (
-                  <span className="text-3xs opacity-45">
-                    تنقضي {riyadh.format(new Date(row.returnWindowEndsAt))}
-                  </span>
-                ) : null}
+
               </div>
             </Row>
           ))}
