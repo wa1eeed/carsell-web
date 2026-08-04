@@ -48,6 +48,8 @@ const db = new PrismaClient({
  * يجعل الأثر الجديد يُنسى في أحدهما، فيسقط التنظيف بقيدٍ مرجعيّ.
  */
 async function removeOrder(orderId: string): Promise<void> {
+  // قيود الدفتر أثرٌ جديد على الطلب — تُتبَع في الاستعادة المشتركة
+  await db.ledgerEntry.deleteMany({ where: { orderId } });
   await db.escrow.deleteMany({ where: { orderId } });
   await db.orderEvent.deleteMany({ where: { orderId } });
   await db.taxInvoice.deleteMany({ where: { orderId } }).catch(() => undefined);

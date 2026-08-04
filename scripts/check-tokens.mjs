@@ -599,6 +599,18 @@ function checkClientDbImports() {
  * المفهوم `authorize` تصير كاذبة يومها، ولا يكشفها المترجم لأن
  * الاسم يظلّ يترجم.
  */
+/**
+ * ═══ البوابة ٢٠ ═══ **دفتر الأستاذ يُكتب من `postEntries` وحدها.**
+ *
+ * التوازن شرطُ كتابةٍ لا فحصٌ لاحق، و`postEntries` هي التي تفحصه.
+ * فكتابةٌ مباشرة بـ`ledgerEntry.create` تتجاوز الفحص وتُدخل قيدًا لا
+ * يتوازن — ودفترٌ مزدوج فيه قيدٌ واحد لا يتوازن ليس مزدوجًا.
+ *
+ * ولا يُستثنى إلا `ledger.ts` نفسه (فيه الكاتب) والاختبارات.
+ */
+const LEDGER_WRITE = /\bledgerEntry\s*\.\s*(create|createMany|update|updateMany|delete|deleteMany|upsert)\b/;
+const LEDGER_ALLOWED = /(src[/\\]lib[/\\]domain[/\\]ledger\.ts|^tests[/\\]|[/\\]tests[/\\]|scripts[/\\])/;
+
 const GATEWAY_VOCAB = /\b(authorize|authorization|capture|voidPayment|preauth)\b/;
 
 /**
@@ -626,6 +638,11 @@ function checkGatewayVocabulary() {
         // التعليق يشرح ولا ينفّذ — والشرح قد يذكر ما يُترجَم منه
         const code = line.split('//')[0] ?? '';
         if (/^\s*[*]/.test(line)) return;
+        if (LEDGER_WRITE.test(code) && !LEDGER_ALLOWED.test(rel)) {
+          problems.push(
+            `${rel}:${i + 1}  كتابةٌ مباشرة في دفتر الأستاذ — استعمل postEntries: هي التي تفحص التوازن`,
+          );
+        }
         if (HTTP_AUTH_HEADER.test(code)) return;
         const match = code.match(GATEWAY_VOCAB);
         if (match) {

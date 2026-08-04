@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { DEADLINE_DEFAULTS } from './deadlines';
+import { recordOrderEarned, recordOrderPaid } from './ledger-events';
 import type { Prisma } from '@/generated/prisma/client';
 import type { PaymentPurpose, PaymentStatus } from '@/generated/prisma/enums';
 import { resolveForPayment, resolveGateway } from '@/lib/payments/resolve';
@@ -248,6 +249,26 @@ export async function applyState(
     if (to === 'HELD' && payment.orderId !== null) {
       const existing = await tx.escrow.findUnique({ where: { orderId: payment.orderId } });
       if (existing === null) {
+        /**
+         * **القيد داخل المعاملة نفسها.** ضمانٌ يُنشأ ودفترٌ لا يُكتب
+         * يجعل الدفتر ينقص صفقةً بلا أن يقول — وهو أسوأ خللٍ في دفتر:
+         * لا يظهر إلا حين يبحث محاسب عن مالٍ لا يجده.
+         */
+        const order = await tx.order.findUniqueOrThrow({
+          where: { id: payment.orderId },
+          select: { buyerId: true },
+        });
+        await recordOrderPaid(
+          tx,
+          {
+            orderId: payment.orderId,
+            paymentId: payment.id,
+            buyerId: order.buyerId,
+            total: payment.amount,
+          },
+          now,
+        );
+
         await tx.escrow.create({
           data: {
             orderId: payment.orderId,
@@ -295,10 +316,42 @@ export async function applyState(
     }
 
     if (to === 'SETTLED' && payment.orderId !== null) {
-      await tx.escrow.updateMany({
+      const released = await tx.escrow.updateMany({
         where: { orderId: payment.orderId, status: 'HELD' },
         data: { status: 'RELEASED', releasedAt: now },
       });
+
+      /**
+       * **وهنا وحده يُعترف بالإيراد** — لا عند القبض.
+       *
+       * والشرط `released.count > 0`: التسوية قد تُنادى مرّتين (ويبهوك
+       * يتكرّر، أو إفراجٌ يُعاد)، والقيد يُكتب مرّة. ولو كُتب مرّتين
+       * لتضاعف الإيراد في الدفتر بلا أن يقول شيءٌ إنه تضاعف.
+       */
+      if (released.count > 0) {
+        const order = await tx.order.findUniqueOrThrow({
+          where: { id: payment.orderId },
+          select: {
+            buyerId: true, sellerId: true, totalAmount: true,
+            commissionAmount: true, vatAmount: true, transferFee: true,
+          },
+        });
+
+        await recordOrderEarned(
+          tx,
+          {
+            orderId: payment.orderId,
+            paymentId: payment.id,
+            buyerId: order.buyerId,
+            sellerId: order.sellerId,
+            total: order.totalAmount,
+            commission: order.commissionAmount,
+            vat: order.vatAmount,
+            govtFee: order.transferFee,
+          },
+          now,
+        );
+      }
     }
 
     orderId = payment.orderId;
