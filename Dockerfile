@@ -92,26 +92,33 @@ RUN mkdir -p /opt/prisma \
 #
 # فيُنسخ المخطّط والإعداد إلى جوار الأداة، ويُنفَّذ الأمر من هناك:
 # كلٌّ يجد ما يستورده بجانبه.
-COPY --from=build /app/prisma /opt/prisma/prisma
-COPY --from=build /app/prisma.config.ts /opt/prisma/prisma.config.ts
+COPY --from=build --chown=nextjs:nodejs /app/prisma /opt/prisma/prisma
+COPY --from=build --chown=nextjs:nodejs /app/prisma.config.ts /opt/prisma/prisma.config.ts
 
-# ═══ ومجلّد زرعٍ مكتمل — للتشغيل مرّة واحدة ═══
+# ═══ ومجلّد زرعٍ — بثلاث حزمٍ لا بشجرةٍ كاملة ═══
 #
-# **البذرة لا تُحزَم ولا تُنسخ انتقائيًّا.** تستورد `@prisma/adapter-pg`
-# و`@node-rs/argon2` — والأخير ثنائيّ أصليّ لا يقبل الحزم، والأولى
-# ليست في شجرة `standalone` المقتطعة (الخادم لا يحتاجها).
+# **البذرة تستورد ثلاثًا فقط**: `@prisma/adapter-pg` و`@node-rs/argon2`
+# (عبر `auth/password`) و`tsx` لتشغيل TypeScript. وليست في شجرة
+# `standalone` المقتطعة — تلك لما يحتاجه **الخادم** لا أدواته.
 #
-# فتُنسخ شجرة البناء كاملةً إلى `/opt/seed` مع المخطّط والعميل
-# المولَّد. وهي ثقيلة، **وتُستعمل مرّةً عند أوّل نشر** — وثمنُها أهون
-# من نشرٍ بلا قواعد ضريبة ولا وثائق قانونية.
-COPY --from=build /app/node_modules /opt/seed/node_modules
-COPY --from=build /app/prisma /opt/seed/prisma
-COPY --from=build /app/prisma.config.ts /opt/seed/prisma.config.ts
-COPY --from=build /app/package.json /opt/seed/package.json
-COPY --from=build /app/src/generated /opt/seed/src/generated
-COPY --from=build /app/tsconfig.json /opt/seed/tsconfig.json
+# ونسخُ `node_modules` كاملةً (٨٧٠ ميغابايت) **قتل البناء**: و`chown -R`
+# بعده يُضاعف الشجرة في طبقةٍ جديدة. فالتثبيت أخفّ وأصحّ — والتبعيّات
+# غير المباشرة تأتي معه.
+COPY --from=build --chown=nextjs:nodejs /app/prisma /opt/seed/prisma
+COPY --from=build --chown=nextjs:nodejs /app/prisma.config.ts /opt/seed/prisma.config.ts
+# `src` كاملًا (٩ ميغابايت نصًّا): البذرة تستورد `auth/password` و
+# `auth/totp`، ونسخُ ملفّين بعينهما هو الانتقائية التي أسقطتنا مرّتين
+COPY --from=build --chown=nextjs:nodejs /app/src /opt/seed/src
 
-RUN chown -R nextjs:nodejs /opt/prisma /opt/seed
+# **بلا `--omit=optional`**: `@node-rs/argon2` يشحن ثنائيّاته الأصلية
+# تبعيّاتٍ اختيارية — وحذفُها يُسقط الزرع بـ«Cannot find module
+# './argon2.linux-x64-musl.node'» على alpine. (قِستُه فسقط على macOS
+# بالرسالة نفسها.)
+RUN cd /opt/seed \
+    && npm init -y > /dev/null \
+    && npm install --no-audit --no-fund \
+         @prisma/adapter-pg @prisma/client @node-rs/argon2 tsx \
+    && chown -R nextjs:nodejs /opt/seed
 
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
