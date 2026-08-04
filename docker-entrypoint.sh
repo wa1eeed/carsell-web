@@ -7,8 +7,9 @@
 set -e
 
 echo "→ تطبيق الترحيلات…"
-# الأداة في مجلّدها المعزول — و`npx` هنا يبحث في `/app` فلا يجدها
-/opt/prisma/node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
+# **من داخل مجلّد الأداة**: `prisma.config.ts` يستورد `prisma/config`،
+# ومن `/app` لا يُحلّ. والمخطّط والإعداد منسوخان إلى جواره.
+(cd /opt/prisma && ./node_modules/.bin/prisma migrate deploy)
 
 echo "→ تشغيل الخادم…"
 exec node server.js

@@ -132,15 +132,21 @@ describe('صورة التشغيل تحمل ما يلزم الترحيل', () => 
     const run = dockerfile.slice(dockerfile.indexOf('AS run'));
 
     expect(run).toMatch(/COPY .*\/app\/prisma \.\/prisma/);
-    // **Prisma 7 يقرأ `url` من هذا الملفّ لا من المخطّط**
-    expect(run).toMatch(/prisma\.config\.ts/);
     // والأداة تُثبَّت في مجلّد معزول لا تُنسخ انتقائيًّا
     expect(run).toMatch(/\/opt\/prisma/);
+
+    /*
+      **والمخطّط والإعداد إلى جوار الأداة.** `prisma.config.ts` يستورد
+      `prisma/config`، ومن `/app` لا يُحلّ — فالأداة ليست هناك.
+    */
+    expect(run).toMatch(/COPY .*\/app\/prisma \/opt\/prisma\/prisma/);
+    expect(run).toMatch(/COPY .*prisma\.config\.ts \/opt\/prisma\/prisma\.config\.ts/);
   });
 
   it('ونقطة الدخول تنادي الأداة من مكانها', () => {
     const entrypoint = readFileSync('docker-entrypoint.sh', 'utf8');
-    expect(entrypoint).toMatch(/\/opt\/prisma\/node_modules\/\.bin\/prisma migrate deploy/);
+    // **من داخل** المجلّد — لا من `/app` باستدعاءٍ بمسار مطلق
+    expect(entrypoint).toMatch(/cd \/opt\/prisma && \.\/node_modules\/\.bin\/prisma migrate deploy/);
     // الترحيل يسبق الخادم ويوقفه إن سقط
     expect(entrypoint).toMatch(/set -e/);
     expect(entrypoint.indexOf('migrate deploy')).toBeLessThan(entrypoint.indexOf('server.js'));

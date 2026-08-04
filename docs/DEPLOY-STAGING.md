@@ -148,6 +148,16 @@ It is now installed into **`/opt/prisma`**, deliberately outside `/app`: the
 it can rearrange it and break the server itself — fixing the migration while
 breaking what already worked.
 
+**The migration runs entirely inside `/opt/prisma`.** `prisma.config.ts`
+imports `prisma/config`, which cannot resolve from `/app` because the tool is
+not there — it fails with `Cannot find module 'prisma/config'`, naming a module
+that exists, in another directory. So the schema and the config are copied next
+to the tool and the command runs with that as its working directory: everything
+finds what it imports beside it.
+
+Verified against a replica of the container layout, applying all 31 migrations
+to an empty database.
+
 **The health check needs `wget` or `curl` in the image.** `node:22-alpine`
 ships busybox `wget`, so this works — but if you ever switch to a distroless
 base, the health check silently starts failing and Coolify rolls back every

@@ -63,14 +63,8 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
-# المخطّط والترحيلات تلزم `migrate deploy` عند الإقلاع
+# المخطّط يبقى في `/app` أيضًا — العميل المولَّد يقرؤه
 COPY --from=build --chown=nextjs:nodejs /app/prisma ./prisma
-
-# **و`prisma.config.ts` معهما.** Prisma 7 لا يقبل `url` داخل المخطّط،
-# فيقرؤه من هذا الملفّ — وبغيابه يسقط الترحيل بـ«The datasource.url
-# property is required in your Prisma config file»، ورسالتُه تتّهم
-# إعدادًا ناقصًا والملفّ كلّه غير منسوخ. (وقع في ثاني إقلاع.)
-COPY --from=build --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # ═══ أداة Prisma في مجلّدٍ معزول ═══
 #
@@ -88,8 +82,19 @@ RUN mkdir -p /opt/prisma \
     && npm init -y > /dev/null \
     && npm install --omit=optional --no-audit --no-fund \
          "prisma@$(node -p "require('/tmp/app-package.json').devDependencies.prisma")" \
-    && rm /tmp/app-package.json \
-    && chown -R nextjs:nodejs /opt/prisma
+    && rm /tmp/app-package.json
+
+# ═══ والترحيل يُنفَّذ **داخل** `/opt/prisma` كلّه ═══
+#
+# `prisma.config.ts` يستورد `prisma/config`، ومن `/app` لا يُحلّ —
+# فالأداة ليست هناك. فيسقط بـ«Cannot find module 'prisma/config'»،
+# ورسالتُه تتّهم وحدةً موجودة… في مجلّدٍ آخر. (وقع في ثالث إقلاع.)
+#
+# فيُنسخ المخطّط والإعداد إلى جوار الأداة، ويُنفَّذ الأمر من هناك:
+# كلٌّ يجد ما يستورده بجانبه.
+COPY --from=build /app/prisma /opt/prisma/prisma
+COPY --from=build /app/prisma.config.ts /opt/prisma/prisma.config.ts
+RUN chown -R nextjs:nodejs /opt/prisma
 
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
