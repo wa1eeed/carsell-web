@@ -90,3 +90,31 @@ describe('الفهرسة محصورة بالإنتاج', () => {
     expect(source).not.toMatch(/https:\/\/carsell\.one/);
   });
 });
+
+/**
+ * ═══ حاجز البناء — سببه، وبوابتُه ═══
+ *
+ * **`next build` بـ`NODE_ENV=development` يسقط** عند تصدير `/404` بـ
+ * «<Html> should not be imported outside of pages/_document» — رسالةٌ
+ * لا تذكر `NODE_ENV` إطلاقًا، فيُبحث عن السبب في الشيفرة أسابيع وهو في
+ * متغيّر بيئة. (وقع في هذا المستودع، وسُمّي أخيرًا في أوّل نشر.)
+ *
+ * والمرحلتان في الـDockerfile متمايزتان عمدًا: **الأولى تُثبّت**
+ * بـ`development` لتأتي `devDependencies`، **والثانية تبني**
+ * بـ`production` وتبعيّاتها منسوخةٌ من الأولى.
+ */
+describe('الـDockerfile يبني بـproduction ويُثبّت بـdevelopment', () => {
+  it('مرحلة الاعتماديات development، ومرحلة البناء production', () => {
+    const dockerfile = readFileSync('Dockerfile', 'utf8');
+
+    const deps = dockerfile.slice(dockerfile.indexOf('AS deps'), dockerfile.indexOf('AS build'));
+    const build = dockerfile.slice(dockerfile.indexOf('AS build'), dockerfile.indexOf('AS run'));
+
+    expect(deps).toMatch(/ENV NODE_ENV=development/);
+    expect(deps).toMatch(/npm ci --include=dev/);
+
+    // **والبناء لا يكون development أبدًا** — هو حاجز البناء بعينه
+    expect(build).toMatch(/ENV NODE_ENV=production/);
+    expect(build).not.toMatch(/ENV NODE_ENV=development/);
+  });
+});

@@ -27,8 +27,16 @@ RUN npm ci --include=dev
 FROM node:22-alpine AS build
 WORKDIR /app
 
-# كذلك هنا — و`next build` يُخرج إنتاجًا بلا حاجة إلى هذا المتغيّر
-ENV NODE_ENV=development
+# ═══ والبناء بـ`production` — لا `development` ═══
+#
+# **هذا هو حاجز البناء الذي بحثنا عن سببه أسابيع.** `next build` بـ
+# `NODE_ENV=development` يسقط عند تصدير `/404` بـ«<Html> should not be
+# imported outside of pages/_document» — رسالةٌ لا تذكر `NODE_ENV`
+# إطلاقًا، فيُبحث عن السبب في الشيفرة وهو في متغيّر بيئة.
+#
+# وتبعيّات التطوير **منسوخةٌ من المرحلة الأولى** فلا يحتاجها هذا
+# المتغيّر: الأولى تُثبّت، والثانية تبني.
+ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
