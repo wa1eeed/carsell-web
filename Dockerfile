@@ -66,6 +66,12 @@ COPY --from=build --chown=nextjs:nodejs /app/public ./public
 # المخطّط والترحيلات تلزم `migrate deploy` عند الإقلاع
 COPY --from=build --chown=nextjs:nodejs /app/prisma ./prisma
 
+# **و`prisma.config.ts` معهما.** Prisma 7 لا يقبل `url` داخل المخطّط،
+# فيقرؤه من هذا الملفّ — وبغيابه يسقط الترحيل بـ«The datasource.url
+# property is required in your Prisma config file»، ورسالتُه تتّهم
+# إعدادًا ناقصًا والملفّ كلّه غير منسوخ. (وقع في ثاني إقلاع.)
+COPY --from=build --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+
 # ═══ أداة Prisma في مجلّدٍ معزول ═══
 #
 # **نسخُ `node_modules/prisma` و`@prisma` وحدهما لا يكفي**: الأداة

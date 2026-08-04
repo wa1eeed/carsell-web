@@ -118,3 +118,31 @@ describe('الـDockerfile يبني بـproduction ويُثبّت بـdevelopmen
     expect(build).not.toMatch(/ENV NODE_ENV=development/);
   });
 });
+
+/**
+ * ═══ ما تحتاجه صورة التشغيل يُنسخ إليها ═══
+ *
+ * كل ملفٍّ ينساه الـDockerfile يظهر **عند الإقلاع لا عند البناء** —
+ * فالبناء يمرّ والحاوية تموت، والرسالة تتّهم إعدادًا ناقصًا لا ملفًّا
+ * غير منسوخ. وقع مرّتين: `prisma.config.ts` وتبعيّات أداة Prisma.
+ */
+describe('صورة التشغيل تحمل ما يلزم الترحيل', () => {
+  it('المخطّط وملفّ الإعداد وأداة Prisma', () => {
+    const dockerfile = readFileSync('Dockerfile', 'utf8');
+    const run = dockerfile.slice(dockerfile.indexOf('AS run'));
+
+    expect(run).toMatch(/COPY .*\/app\/prisma \.\/prisma/);
+    // **Prisma 7 يقرأ `url` من هذا الملفّ لا من المخطّط**
+    expect(run).toMatch(/prisma\.config\.ts/);
+    // والأداة تُثبَّت في مجلّد معزول لا تُنسخ انتقائيًّا
+    expect(run).toMatch(/\/opt\/prisma/);
+  });
+
+  it('ونقطة الدخول تنادي الأداة من مكانها', () => {
+    const entrypoint = readFileSync('docker-entrypoint.sh', 'utf8');
+    expect(entrypoint).toMatch(/\/opt\/prisma\/node_modules\/\.bin\/prisma migrate deploy/);
+    // الترحيل يسبق الخادم ويوقفه إن سقط
+    expect(entrypoint).toMatch(/set -e/);
+    expect(entrypoint.indexOf('migrate deploy')).toBeLessThan(entrypoint.indexOf('server.js'));
+  });
+});
