@@ -392,10 +392,10 @@ async function main(): Promise<void> {
    *
    * فالسقوط الآن **مُغلَق**: خارج التطوير لا زرع بلا كلمة صريحة.
    */
-  const seedPassword = process.env.SEED_ADMIN_PASSWORD ?? null;
+  const seedPassword = process.env.ADMIN_PASSWORD ?? null;
   if (seedPassword === null && APP_ENV !== 'development') {
     console.error(
-      `\n✗ رُفض التشغيل: APP_ENV=${APP_ENV} بلا SEED_ADMIN_PASSWORD.\n` +
+      `\n✗ رُفض التشغيل: APP_ENV=${APP_ENV} بلا ADMIN_PASSWORD.\n` +
         '  الافتراضيّ مكتوبٌ في المستودع، ونشرُه على عنوانٍ عامّ يفتح اللوحة لمن قرأه.\n' +
         '  اضبط كلمةً قويّة واحتفظ بها:  openssl rand -base64 24\n',
     );
@@ -408,7 +408,7 @@ async function main(): Promise<void> {
    * بريد السوبر أدمن من البيئة — فلا يُشحن نطاقٌ ثابت إلى كل نشر،
    * ومن ينشر على نطاقه يدخل ببريده هو.
    */
-  const superEmail = process.env.SEED_ADMIN_EMAIL ?? 'super@carsell.one';
+  const superEmail = process.env.ADMIN_EMAIL ?? 'super@carsell.one';
 
   const admins = await Promise.all(
     (
@@ -1469,9 +1469,9 @@ async function main(): Promise<void> {
    * ما لا يخفى.
    */
   console.log(
-    process.env.SEED_ADMIN_PASSWORD === undefined
+    process.env.ADMIN_PASSWORD === undefined
       ? `  حسابات الأدمن — كلمة المرور: ${seedPassword ?? ''}`
-      : '  حسابات الأدمن — كلمة المرور: (من SEED_ADMIN_PASSWORD)',
+      : '  حسابات الأدمن — كلمة المرور: (من ADMIN_PASSWORD)',
   );
   console.log('  ⚠ احفظ أسرار TOTP التالية الآن — لا تُطبع مرّةً ثانية:');
   for (const [email, secret] of totpSecrets) {

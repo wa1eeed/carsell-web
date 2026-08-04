@@ -38,12 +38,55 @@ JWT_SECRET=<openssl rand -base64 48>
 OTP_PEPPER=<openssl rand -base64 32>
 SECRETS_KEY=<openssl rand -base64 32>
 CRON_SECRET=<openssl rand -base64 32>
-SEED_ADMIN_PASSWORD=<openssl rand -base64 24 — keep it>
+
+ADMIN_EMAIL=you@example.com
+ADMIN_PASSWORD=<openssl rand -base64 24 — keep it>
 ```
 
-**The seed refuses to run outside development without `SEED_ADMIN_PASSWORD`.**
+**The seed refuses to run outside development without `ADMIN_PASSWORD`.**
 Its development default is written in the repository, and deploying with it would
 put an admin account with a publicly known password on a public URL.
+
+### The admin account is synced on every boot
+
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` used to be read **only by the seed**. Anyone
+who changed the password in the deployment panel afterwards believed they had
+changed it — the database still held the old hash, and re-seeding was not an
+alternative because it wipes what has been built. A change you believe happened
+and did not is worse than one that is refused: the refused one is fixed
+immediately, the other is discovered on the day you need it.
+
+The entrypoint now runs `prisma/admin-sync.ts` after migrations and before the
+server. Change `ADMIN_PASSWORD` in Coolify, redeploy, and the password is the one
+you typed.
+
+| Situation | What happens |
+| --- | --- |
+| Neither variable set | Skipped, boot continues — it is opt-in |
+| Password unchanged | Nothing written, no audit row |
+| Password changed | Hash replaced, lockout cleared, **TOTP kept** |
+| Email not seen before | New SUPER_ADMIN created, TOTP secret printed once |
+| `ADMIN_RESET_TOTP=1` | New secret generated and printed — then remove the variable |
+| Password under 12 chars, or bad email | **Boot fails** with the reason on the first line |
+
+Three properties are deliberate:
+
+- **It touches nothing else.** One account, matched by email. A typo creates a
+  second admin rather than destroying the first.
+- **Changing a password does not invalidate TOTP.** Otherwise every password
+  change locks you out of the panel it was meant to protect.
+- **It never promotes an existing account.** An address already registered as
+  `OPS` stays `OPS` even when named in `ADMIN_EMAIL` — raising privilege from an
+  environment variable makes a role change a side effect of a password change,
+  which is the last place anyone reviews it.
+
+A weak password or malformed email stops the boot rather than degrading quietly:
+a server that runs while its panel cannot be entered is a fault found late, and a
+short password on a public URL is worse than downtime.
+
+The password is **never printed**, in any environment. Container logs are
+readable by everyone with deployment-panel access and they persist; whoever set
+the value already knows it.
 
 `SECRETS_KEY` encrypts gateway credentials and IBANs at rest. **Losing it makes
 every stored secret unreadable**; rotating it requires re-entering them all.
@@ -197,10 +240,21 @@ deploy with no error that explains why.
    container logs are readable by everyone with access to the deployment panel,
    and they persist.
 
-   Three accounts are created: `SEED_ADMIN_EMAIL` (or `super@carsell.one`) as
+   Three accounts are created: `ADMIN_EMAIL` (or `super@carsell.one`) as
    SUPER_ADMIN, plus `ops@` and `finance@`.
 
    Add each secret to an authenticator app as a manual key, issuer `carsell`.
+
+   **If the secret scrolled past**, it is still in the database — do not
+   re-seed to recover it. Either read it:
+
+   ```
+   docker exec -i <postgres> psql "$DATABASE_URL" \
+     -c 'SELECT email, "totpSecret" FROM "AdminUser";'
+   ```
+
+   or set `ADMIN_RESET_TOTP=1`, redeploy, take the new secret from the boot log,
+   and remove the variable again.
 6. **Verify** after the first deploy — see §6.
 
 ---

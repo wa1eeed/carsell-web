@@ -28,7 +28,9 @@
     "trial:on": "tsx scripts/trial-mode.ts on",
     "trial:off": "tsx scripts/trial-mode.ts off",
     "trial:reset": "tsx scripts/trial-reset.ts",
-    "db:seed:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/seed.ts"
+    "db:seed:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/seed.ts",
+    "admin:sync": "tsx prisma/admin-sync.ts",
+    "admin:sync:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/admin-sync.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",
