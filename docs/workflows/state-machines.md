@@ -190,6 +190,39 @@ charged twice. `PENDING` leaves the decision to the webhook or to `status()`.
 **Release to the seller needs two approvers** — `SETTLE_WINDOW_HOURS = 72`, and
 the requester cannot approve their own request.
 
+### The release had no door until now
+
+`requestSettle`, `approveSettle`, the route, the quorum and
+`tests/settle-quorum.test.ts` all existed — and **no screen in the product
+called any of them**. The admin orders table was six read-only columns with no
+button. Money entered escrow and there was no way to get it out to the seller.
+
+This is the eighth instance of the same shape (payments, offers, bidding,
+publishing, stage advance, disputes, auction settlement, and now this) and the
+only one that holds other people's money rather than disabling a feature. Every
+one of them passed hundreds of tests, because **tests never open a screen**.
+
+`/admin/settlements` is the door. `settlementQueue()` sorts every order carrying
+a held payment into three groups:
+
+| Group | Meaning |
+| --- | --- |
+| Awaiting approval | A request is open — shown first, because it is what needs a person now |
+| Ready | `canSettle` allows it and no request is open |
+| Blocked | Not transferred, return window open, or disputed — with the reason named |
+
+Blocked rows are shown rather than hidden. A queue that lists only what is
+actionable answers "what do I do now" and not "where is this seller's money",
+and the second question is the one the seller is asking.
+
+Two details the screen gets right on purpose:
+
+- The button says **"request release"**, not "release". The first press moves no
+  money; it opens a request. A button labelled with the outcome makes an operator
+  who presses it and sees nothing happen believe the system is broken.
+- The eligibility shown is `canSettle` itself, not a copy. A screen that says
+  "ready" while the server refuses is worse than a screen that says nothing.
+
 ## 7 · Listing (follows the order)
 
 `ListingStatus`; every write goes through `src/lib/domain/listing-state.ts`.

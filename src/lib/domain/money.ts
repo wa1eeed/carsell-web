@@ -20,6 +20,31 @@ export function sum(amounts: readonly (Prisma.Decimal | number | string | null)[
 }
 
 /**
+ * ═══ ما يصل البائع — قاعدةٌ واحدة ═══
+ *
+ * كانت في `seller-book.ts` وحدها، ثم احتاجتها شاشة الإفراج. **والنسخ
+ * يُنتج قاعدتين تتباعدان أوّل تغيير**: يُضاف رسمٌ في إحداهما فيرى
+ * البائع رقمًا في دفتره وآخر في إشعار التسوية — والفرق يظهر في مال.
+ *
+ * وخصمُ العمولة والضريبة ورسم النقل ورسم البوابة **من السعر المتّفق
+ * عليه لا من الإجمالي**: الإجمالي يحمل ما دفعه المشتري فوق السعر،
+ * وطرحُ الرسوم منه يخصمها مرّتين.
+ */
+export function netToSeller(order: {
+  agreedPrice: Prisma.Decimal;
+  commissionAmount: Prisma.Decimal;
+  vatAmount: Prisma.Decimal;
+  transferFee: Prisma.Decimal;
+  gatewayFee?: Prisma.Decimal | null;
+}): Prisma.Decimal {
+  return order.agreedPrice
+    .minus(order.commissionAmount)
+    .minus(order.vatAmount)
+    .minus(order.transferFee)
+    .minus(order.gatewayFee ?? new Prisma.Decimal(0));
+}
+
+/**
  * نسبةٌ مئوية بمقام قد يكون صفرًا.
  *
  * القسمة على صفر في `Decimal` **ترمي**، وأوّل شهر بلا صفقات مقامُه صفر.

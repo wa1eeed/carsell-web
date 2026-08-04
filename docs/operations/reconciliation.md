@@ -50,6 +50,21 @@ not write.
 Grouping is by `Payment.gatewayKey`, never by the current route: on a switching
 day both gateways are responsible and no single route describes that day.
 
+## Matching is by the provider's settlement reference
+
+`reconcileGateway` keys on `payment.settleRef ?? payment.holdRef`, and **nothing
+was writing `settleRef`**. The fallback worked, so every comparison silently
+matched on the hold reference instead — which providers do not use to report
+settlements. The field existed, the fallback existed, and the reconciliation
+would have failed against a real gateway with nothing to say the cause was a
+reference that was never saved.
+
+`approveSettle` now passes the gateway's `settleRef` and `settledAmount` through
+`applyState`, which stays the single writer of payment status. Found by walking
+the release end to end on the settlements screen and reading the row afterwards
+— not by a test, because every test asserted the status and none asserted the
+reference.
+
 ## Not built yet
 
 `settlementFor` on the Moyasar adapter **declares itself absent**

@@ -1,6 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { accountBalance } from './ledger';
+import { netToSeller } from './money';
 
 /**
  * ═══ الملفّ المالي للبائع — دفترٌ لا محفظة ═══
@@ -119,11 +120,8 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
 
   for (const order of orders) {
     const gatewayFee = order.settlement?.gatewayFee ?? zero;
-    const net = order.agreedPrice
-      .minus(order.commissionAmount)
-      .minus(order.vatAmount)
-      .minus(order.transferFee)
-      .minus(gatewayFee);
+    // القاعدة في `money.ts` — وتقرؤها شاشة الإفراج أيضًا
+    const net = netToSeller({ ...order, gatewayFee });
 
     sales = sales.plus(order.agreedPrice);
     commission = commission.plus(order.commissionAmount);

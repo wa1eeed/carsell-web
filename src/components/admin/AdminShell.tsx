@@ -40,7 +40,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
       { label: 'النزاعات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'طلبات التمويل', href: null },
-      { label: 'المدفوعات والضمان', href: null, permission: 'finance.view' },
+      { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
       { label: 'النزاعات', href: null, permission: 'reports.handle' },
       { label: 'البلاغات', href: null, permission: 'reports.handle' },
     ],

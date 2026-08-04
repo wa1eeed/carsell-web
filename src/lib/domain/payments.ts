@@ -210,12 +210,24 @@ export type AdvanceResult =
  * وحين تصير `HELD` يُحجز الضمان في المعاملة نفسها: مبلغٌ محجوز بلا قيدٍ
  * يقول لمن هو مالٌ بلا صاحب في دفترنا.
  */
+/**
+ * مراجع المزوّد التي تُحفظ مع الانتقال.
+ *
+ * **و`settleRef` لم يكن يُكتب إطلاقًا.** المطابقة اليومية تقرأ
+ * `settleRef ?? holdRef`، فكانت تُطابق أبدًا بمرجع الحجز — والمزوّد
+ * يبلّغ تسوياته بمرجع التسوية. فالحقل موجودٌ في المخطّط، والفرع
+ * الاحتياطيّ يعمل، والمطابقة تفشل على بوابةٍ حقيقية بلا أن يقول شيءٌ
+ * إن السبب مرجعٌ لم يُحفَظ.
+ */
+export type PaymentRefs = { settleRef?: string; settledAmount?: string };
+
 export async function applyState(
   paymentId: string,
   to: PaymentStatus,
   source: string,
   now: Date = new Date(),
   detail?: Prisma.InputJsonValue,
+  refs?: PaymentRefs,
 ): Promise<AdvanceResult> {
   let orderId: string | null = null;
 
@@ -235,6 +247,9 @@ export async function applyState(
         ...(to === 'SETTLED' || to === 'PARTIALLY_SETTLED' ? { settledAt: now } : {}),
         ...(to === 'CANCELLED' ? { cancelledAt: now } : {}),
         ...(to === 'FAILED' ? { failedAt: now } : {}),
+        ...(refs?.settleRef === undefined ? {} : { settleRef: refs.settleRef }),
+        // نصًّا لا `Decimal`: Prisma يقبل السلسلة، والبناء هنا يحتاج قيمةً لا نوعًا
+        ...(refs?.settledAmount === undefined ? {} : { settledAmount: refs.settledAmount }),
       },
     });
     await tx.paymentEvent.create({
@@ -529,8 +544,13 @@ export async function approveSettle(
   }
 
   // `PENDING` لا تُنهي الطلب: الويبهوك يُكمله، والنصاب قد اكتمل
-  const target: PaymentStatus = settled.state === 'CONFIRMED' ? 'SETTLED' : 'PENDING';
-  if (target === 'SETTLED') await applyState(payment.id, 'SETTLED', 'admin', now);
+  if (settled.state === 'CONFIRMED') {
+    // **ومرجع المزوّد يُحفظ** — وبدونه تُطابق المطابقة اليومية بمرجع الحجز
+    await applyState(payment.id, 'SETTLED', 'admin', now, undefined, {
+      settleRef: settled.settleRef,
+      settledAmount: settled.settledAmount,
+    });
+  }
 
   await db.approvalRequest.update({
     where: { id: requestId },
