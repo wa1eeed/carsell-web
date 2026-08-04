@@ -2,13 +2,13 @@ import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
-import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { platformBook, recentEntries } from '@/lib/domain/platform-book';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
+import { LedgerTable } from './LedgerTable';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,44 +86,7 @@ export default async function LedgerPage() {
           description="أوّل صفقة تُدفع تكتب أوّل قيد — والدفتر يبدأ من هناك."
         />
       ) : (
-        <DataTable
-          rows={entries}
-          rowKey={(row) => `${row.txnId}-${row.account}-${row.direction}`}
-          columns={[
-            { id: 'event', header: 'الحدث', cell: (row) => <span dir="ltr" className="text-2xs">{row.event}</span> },
-            {
-              id: 'account',
-              header: 'الحساب',
-              cell: (row) => LEDGER_ACCOUNT_LABEL[row.account] ?? row.account,
-            },
-            {
-              id: 'dir',
-              header: 'الاتّجاه',
-              cell: (row) => (
-                <Badge tone={row.direction === 'DEBIT' ? 'neutral' : 'accent'}>
-                  {row.direction === 'DEBIT' ? 'مدين' : 'دائن'}
-                </Badge>
-              ),
-            },
-            {
-              id: 'amount',
-              header: 'المبلغ',
-              numeric: true,
-              cell: (row) => <Money amount={Number(row.amount)} showCurrency={false} />,
-            },
-            {
-              id: 'order',
-              header: 'الطلب',
-              /* المرجع يُنسخ ويُقارن — لاتينيّ معزول */
-              cell: (row) =>
-                row.orderRef === null ? (
-                  <span className="opacity-35">—</span>
-                ) : (
-                  <span dir="ltr" className="font-num text-2xs">{row.orderRef}</span>
-                ),
-            },
-          ]}
-        />
+        <LedgerTable entries={entries} />
       )}
     </AdminShell>
   );

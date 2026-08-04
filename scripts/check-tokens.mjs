@@ -26,7 +26,7 @@
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { basename, join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const TOKENS_FILE = join('src', 'app', 'globals.css');
@@ -1047,6 +1047,65 @@ function checkListingState() {
   }
 }
 
+/**
+ * ═══ البوابة ٢٢ — دالّةٌ لا تعبر حدّ الخادم ═══
+ *
+ * مكوّن `'use client'` يقبل خاصّيةً من نوع دالّة (`cell` في `DataTable`،
+ * `onChange`، `onSelect`)، وتمريرُها من مكوّن خادم يرمي:
+ * **«Functions cannot be passed directly to Client Components»** —
+ * والصفحة تردّ ٥٠٠ كاملةً، لا جدولًا ناقصًا.
+ *
+ * ووقع مرّتين في يومٍ واحد: `/admin/ledger` كان يردّ ٥٠٠ منذ بنائه،
+ * و`/admin/tax` كان يردّ ٢٠٠ **لأن لا فاتورة في القاعدة** فالفرع لا
+ * يُصيَّر — وأوّل فاتورةٍ تُصدَر تُسقطه. ولم يكشفهما اختبار: **الاختبارات
+ * لا تفتح شاشة**، وكشفهما `curl` على كل وجهةٍ في الشريط.
+ *
+ * والفحص على **الاستعمال لا الاستيراد**: استيرادُ `Countdown` من صفحة
+ * خادم سليمٌ ما دامت لا تمرّر إليه دالّة.
+ */
+function checkFunctionPropsAcrossBoundary() {
+  const clientComponents = new Set();
+
+  // مكوّنات عميل تعلن خاصّيةً من نوع دالّة
+  for (const file of walk(join(ROOT, 'src', 'components'))) {
+    if (!file.endsWith('.tsx')) continue;
+    const source = readFileSync(file, 'utf8');
+    if (!/^\s*'use client'/.test(source)) continue;
+    if (!/^\s*\w+\??:\s*\(.*\)\s*=>/m.test(source) && !/\bcell:\s*\(/.test(source)) continue;
+    clientComponents.add(basename(file, '.tsx'));
+  }
+
+  if (clientComponents.size === 0) return;
+  const names = [...clientComponents].join('|');
+
+  for (const dir of [join('src', 'app'), join('src', 'components')]) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.tsx')) continue;
+      const source = readFileSync(file, 'utf8');
+      if (/^\s*'use client'/.test(source)) continue;
+
+      const rel = relative(ROOT, file);
+      const open = new RegExp(`<(${names})[\\s\\n]`, 'g');
+      let match;
+
+      while ((match = open.exec(source)) !== null) {
+        // جسم العنصر حتى إغلاق وسمه الافتتاحيّ
+        const rest = source.slice(match.index);
+        const end = rest.search(/\n\s*\/?>/);
+        const body = end === -1 ? rest.slice(0, 4000) : rest.slice(0, end);
+
+        if (/=\{[^}]*=>/.test(body) || /\bcell:\s*\(/.test(body) || /\browKey=\{/.test(body)) {
+          const line = source.slice(0, match.index).split('\n').length;
+          problems.push(
+            `${rel}:${line}  دالّة تُمرَّر إلى ${match[1]} من مكوّن خادم — الصفحة تردّ ٥٠٠. اسحب الجدول إلى مكوّن 'use client'`,
+          );
+        }
+      }
+    }
+  }
+}
+
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -1059,6 +1118,7 @@ checkTaxRate();
 checkDomainHasNoProse();
 checkApprovalQuorum();
 checkListingState();
+checkFunctionPropsAcrossBoundary();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1069,5 +1129,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم.',
 );

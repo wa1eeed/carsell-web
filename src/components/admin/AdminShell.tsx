@@ -68,7 +68,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'التشغيلية', href: '/admin/ops', permission: 'orders.view' },
       { label: 'المالية', href: '/admin/finance', permission: 'finance.view' },
       { label: 'إعدادات الدفع والتوجيه', href: '/admin/payments', permission: 'finance.view' },
-      { label: 'محرّك الضريبة', href: '/admin/tax', permission: 'finance.view' },
       { label: 'المهل الزمنية', href: '/admin/deadlines', permission: 'finance.view' },
       { label: 'دفتر الأستاذ', href: '/admin/ledger', permission: 'finance.view' },
       { label: 'الكتالوج', href: '/admin/catalog/brands', permission: 'catalog.manage' },
@@ -80,7 +79,9 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage' },
       { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
       { label: 'مساحات الإعلانات وتسعيرها', href: '/admin/ads', permission: 'finance.view' },
-      { label: 'الرسوم والضرائب', href: null, permission: 'finance.view' },
+      // **«الرسوم والضرائب» اسمُ A21 في التصميم** — وكانت لدينا باسمين:
+      // بندٌ حيّ اسمُه «محرّك الضريبة» وبندٌ ميّت اسمُه اسمَها.
+      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view' },
       { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage' },
       { label: 'إشعارات الدفع', href: '/admin/push' },
       { label: 'التكاملات ومفاتيح الربط', href: '/admin/integrations', permission: 'integrations.view' },
