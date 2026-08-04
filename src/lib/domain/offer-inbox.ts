@@ -25,6 +25,8 @@ export type InboxOffer = {
   autoRejected: boolean;
   /** الطرف الآخر — أنا المشتري أم البائع. */
   role: 'buyer' | 'seller';
+  /** أنا أرسلتُه — والمقابل يرسله البائع لا المشتري. */
+  sentByMe: boolean;
   counterOf: string | null;
   listing: {
     ref: string;
@@ -70,6 +72,19 @@ export async function getOfferInbox(
     lapsed: offer.expiresAt <= now,
     autoRejected: offer.autoRejected,
     role: offer.buyerId === userId ? 'buyer' : 'seller',
+    /**
+     * **من أرسل هذا العرض؟** — و`role` وحدها لا تقولها.
+     *
+     * العرض المقابل يحتفظ بـ`buyerId` الأصليّ (الطرفان لم يتغيّرا)،
+     * فكان البائع يرى مقابلَه هو في «واردة عليك» وفوقه زرّ «اقبل»
+     * — يقبل عرض نفسه. والمشتري يراه في «مُرسَلة منك» وهو لم يرسله.
+     *
+     * والمقابل يرسله البائع دائمًا (`counterOffer` تفحص `sellerId`).
+     */
+    sentByMe:
+      offer.parentOfferId === null
+        ? offer.buyerId === userId
+        : offer.listing.sellerId === userId,
     counterOf: offer.parentOfferId,
     listing: {
       ref: offer.listing.ref,
@@ -91,10 +106,10 @@ export async function getOfferInbox(
     ACTIVE_STATUSES.includes(offer.status) && !offer.lapsed;
 
   return {
-    // «واردة» — عروض الآخرين عليّ، وهي ما يحتاج قرارًا منّي
-    active: mapped.filter((offer) => isActive(offer) && offer.role === 'seller'),
-    // «مُرسَلة» — عروضي على غيري، وهي ما أنتظر ردًّا عليه
-    sent: mapped.filter((offer) => isActive(offer) && offer.role === 'buyer'),
+    // «واردة» — ما أرسله غيري، وهو ما يحتاج قرارًا منّي
+    active: mapped.filter((offer) => isActive(offer) && !offer.sentByMe),
+    // «مُرسَلة» — ما أرسلتُه أنا، وهو ما أنتظر ردًّا عليه
+    sent: mapped.filter((offer) => isActive(offer) && offer.sentByMe),
     closed: mapped.filter((offer) => !isActive(offer)),
   };
 }

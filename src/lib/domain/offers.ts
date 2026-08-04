@@ -265,8 +265,17 @@ async function nextOrderRef(tx: Prisma.TransactionClient, now: Date): Promise<st
  * والعمولة **لقطة** في الطلب (قاعدة ١١): تعديل الباقة غدًا لا يمسّ
  * صفقة اليوم.
  */
+/**
+ * قبول عرض — **ويقبله من لم يرسله**.
+ *
+ * // DESIGN-Q: القواعد ١–٤ لا تذكر العرض المقابل أصلًا. وكان القبول
+ * للبائع وحده، فمقابلُ البائع لا يستطيع أحدٌ قبوله: لا هو (أرسله) ولا
+ * المشتري (ليس بائعًا) — فالتفاوض **لا يمكن أن ينتهي باتّفاق** بعد
+ * أوّل مقابل. نفّذتُ الأعمّ: يقبل من لم يرسل. والبديل أن يعيد المشتري
+ * عرضًا بالمبلغ نفسه ليقبله البائع، وهو التفافٌ يراه المستخدم عطلًا.
+ */
 export async function acceptOffer(
-  input: { offerId: string; sellerId: string },
+  input: { offerId: string; actorId: string },
   now: Date = new Date(),
 ): Promise<AcceptResult> {
   return db.$transaction(async (tx) => {
@@ -276,7 +285,14 @@ export async function acceptOffer(
     });
 
     if (offer === null) return { ok: false, reason: 'OFFER_NOT_FOUND' };
-    if (offer.listing.sellerId !== input.sellerId) return { ok: false, reason: 'NOT_SELLER' };
+
+    /**
+     * المُرسِل لا يقبل عرضه: العرض الأصليّ من المشتري فيقبله البائع،
+     * والمقابل من البائع فيقبله المشتري.
+     */
+    const sentBySeller = offer.parentOfferId !== null;
+    const accepter = sentBySeller ? offer.buyerId : offer.listing.sellerId;
+    if (accepter !== input.actorId) return { ok: false, reason: 'NOT_SELLER' };
     if (
       !ACTIVE_STATUSES.includes(offer.status) ||
       offer.expiresAt <= now ||

@@ -79,6 +79,12 @@ async function main(): Promise<void> {
     select: { id: true, vehicleId: true },
   });
   for (const listing of trialListings) {
+    /**
+     * العروض قبل الإعلان — **وإلّا أسقط القيدُ المرجعيّ التنظيف كلّه**
+     * في منتصفه، فيبقى نصف ما صنعتَه ولا يقول الأمر إنه بقي.
+     * (وقع: عرضٌ على إعلان تجريب منع حذفه، فمات السكربت بلا رسالة مفهومة.)
+     */
+    await db.offer.deleteMany({ where: { listingId: listing.id } });
     await db.listingImage.deleteMany({ where: { listingId: listing.id } });
     await db.listing.delete({ where: { id: listing.id } });
     await db.vehicle.delete({ where: { id: listing.vehicleId } }).catch(() => undefined);
