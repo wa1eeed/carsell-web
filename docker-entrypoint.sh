@@ -7,7 +7,8 @@
 set -e
 
 echo "→ تطبيق الترحيلات…"
-npx prisma migrate deploy
+# الأداة في مجلّدها المعزول — و`npx` هنا يبحث في `/app` فلا يجدها
+/opt/prisma/node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
 
 echo "→ تشغيل الخادم…"
 exec node server.js

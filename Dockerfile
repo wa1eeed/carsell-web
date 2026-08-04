@@ -65,9 +65,25 @@ COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
 # المخطّط والترحيلات تلزم `migrate deploy` عند الإقلاع
 COPY --from=build --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=build --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=build --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=build --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+
+# ═══ أداة Prisma في مجلّدٍ معزول ═══
+#
+# **نسخُ `node_modules/prisma` و`@prisma` وحدهما لا يكفي**: الأداة
+# تحتاج تبعيّاتٍ غير مباشرة (`effect` · `c12` · `deepmerge-ts` …) ولها
+# هي تبعيّاتها — فيسقط الإقلاع بـ«Cannot find module 'effect'»،
+# ورسالتُه تتّهم وحدةً لم نسمع بها. (وقع في أوّل إقلاع.)
+#
+# **وتُثبَّت في `/opt/prisma` لا في `/app`**: شجرة `standalone` مقتطعةٌ
+# بعناية، و`npm install` داخلها قد يُعيد ترتيبها فيسقط الخادم نفسه —
+# فنُصلح الترحيل ونكسر ما كان يعمل.
+COPY --from=build /app/package.json /tmp/app-package.json
+RUN mkdir -p /opt/prisma \
+    && cd /opt/prisma \
+    && npm init -y > /dev/null \
+    && npm install --omit=optional --no-audit --no-fund \
+         "prisma@$(node -p "require('/tmp/app-package.json').devDependencies.prisma")" \
+    && rm /tmp/app-package.json \
+    && chown -R nextjs:nodejs /opt/prisma
 
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
@@ -75,8 +91,10 @@ RUN chmod +x docker-entrypoint.sh
 USER nextjs
 EXPOSE 3000
 
-# الفحص الصحّي على مسارٍ يلمس القاعدة — وصفحةٌ ساكنة تردّ ٢٠٠ وقاعدتها ساقطة
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+# الفحص الصحّي يلمس القاعدة — وصفحةٌ ساكنة تردّ ٢٠٠ وقاعدتها ساقطة.
+# و`wget` من busybox موجودٌ في alpine، والمهلة الأولى ٦٠ ثانية لأن
+# الترحيلات تسبق الخادم.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
   CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

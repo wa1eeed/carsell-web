@@ -134,6 +134,27 @@ is no longer required for the build to succeed.
 
 ---
 
+## 3d. Runtime pitfalls (hit on the first successful build)
+
+**The Prisma CLI cannot be copied selectively.** Copying
+`node_modules/prisma` and `node_modules/@prisma` looks sufficient and is not:
+`@prisma/config` needs `effect`, `c12`, `deepmerge-ts` and their own transitive
+dependencies, so the container boots and dies on
+`Cannot find module 'effect'` — a message naming a package you have never heard
+of.
+
+It is now installed into **`/opt/prisma`**, deliberately outside `/app`: the
+`standalone` tree is traced precisely by Next, and running `npm install` inside
+it can rearrange it and break the server itself — fixing the migration while
+breaking what already worked.
+
+**The health check needs `wget` or `curl` in the image.** `node:22-alpine`
+ships busybox `wget`, so this works — but if you ever switch to a distroless
+base, the health check silently starts failing and Coolify rolls back every
+deploy with no error that explains why.
+
+---
+
 ## 4. Deployment steps
 
 1. **Postgres**: create a `carsell_staging` database. Coolify can host it, or
