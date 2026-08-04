@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:check": "BUILD_DIR=.next-check next build",
+    "build:check": "BUILD_DIR=.next-check next build; s=$?; git checkout -- next-env.d.ts tsconfig.json 2>/dev/null || true; exit $s",
     "verify": "tsc --noEmit && eslint . && node scripts/check-tokens.mjs && node scripts/generate-api-docs.mjs --check && vitest run",
     "start": "next start",
     "lint": "eslint .",

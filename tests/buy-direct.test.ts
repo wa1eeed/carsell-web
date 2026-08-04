@@ -11,8 +11,15 @@ afterAll(async () => {
 async function withListing(
   body: (ctx: { listingRef: string; buyerId: string; sellerId: string; price: number }) => Promise<void>,
 ): Promise<void> {
+  /**
+   * **إعلانٌ بلا طلباتٍ أصلًا.**
+   *
+   * كان يأخذ أوّل منشور، والزرع يُنشئ طلبات على بعض الإعلانات — فيسقط
+   * فحص «لا أثر على هذا الإعلان» بطلبٍ لم يصنعه الاختبار. ويمرّ بعد
+   * تنظيفٍ سابق ويسقط بعد زرعٍ طازج، فيبدو تقطّعًا وهو شرطٌ ناقص.
+   */
   const listing = await db.listing.findFirstOrThrow({
-    where: { status: 'PUBLISHED', type: { not: 'AUCTION' } },
+    where: { status: 'PUBLISHED', type: { not: 'AUCTION' }, orders: { none: {} } },
     orderBy: { ref: 'asc' },
   });
   const buyer = await db.user.findFirstOrThrow({

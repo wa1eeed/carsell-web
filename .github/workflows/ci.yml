@@ -64,6 +64,8 @@ jobs:
       - name: بناء الإنتاج
         run: npm run build:check
 
-      # `build:check` يعدّل هذين، وتركهما معدَّلين يخالف الوثيقة
-      - name: ملفّا build:check لم يُلمسا
+      # `build:check` يعدّل `next-env.d.ts` و`tsconfig.json` ليشيرا إلى
+      # مجلّده، **ويستعيدهما بنفسه** الآن. وهذه الخطوة تحرس الاستعادة:
+      # لو سقطت لالتُزم بما تقول الوثيقة إنه لا يُلتزَم به.
+      - name: أثر build:check استُعيد
         run: git diff --exit-code next-env.d.ts tsconfig.json

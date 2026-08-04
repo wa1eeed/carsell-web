@@ -69,6 +69,34 @@ const prisma = new PrismaClient({
 
 const D = Prisma.Decimal;
 
+/**
+ * بصمة إدراكية مزروعة — **متباعدةٌ عن غيرها فعلًا**.
+ *
+ * كانت `${ref}-${n}`، فتختلف بصمتان بحرفٍ واحد ومسافة هامينغ بينهما ١
+ * — والحدّ ٦. **فكل صورة مزروعة نسخةٌ من كل أخرى**، وأيّ إعلان جديد
+ * يُحال إلى المراجعة بتهمة التكرار. وليست هذه علّة اختبار: هي حالُ
+ * المنتج على هذه البيانات.
+ *
+ * والبصمة الحقيقية ستّ عشرة خانة سداسية عشرية (٦٤ بت). فتُولَّد هنا
+ * بتجزئةٍ ثابتة — تتكرّر مع كل زرع، وتتباعد فيما بينها.
+ */
+function seedPhash(ref: string, index: number): string {
+  const seed = `${ref}#${String(index)}`;
+  let hash = 0x811c9dc5;
+  for (const char of seed) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+
+  // ستّ عشرة خانة من أربع جولات — فتتوزّع البتّات ولا تتشابه الرؤوس
+  let out = '';
+  for (let round = 0; round < 4; round += 1) {
+    hash = Math.imul(hash ^ (hash >>> 15), 0x2545f491) >>> 0;
+    out += hash.toString(16).padStart(8, '0').slice(0, 4);
+  }
+  return out;
+}
+
 // ═══════════════════════════════════════════════════════════
 //  أدوات حتمية
 // ═══════════════════════════════════════════════════════════
@@ -766,7 +794,7 @@ async function main(): Promise<void> {
         sort: n,
         isCover: n === 0,
         plateBlurred: true,
-        phash: `${ref}-${n}`,
+        phash: seedPhash(ref, n),
         qualityFlags: n === 3 && i % 9 === 0 ? ['BLURRY'] : [],
       })),
     });
