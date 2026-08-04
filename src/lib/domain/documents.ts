@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import { issueInvoice, vatIncluded } from './tax';
 import { processingFeeOnSeller } from './fees';
+import { netToSeller as sellerNet } from './money';
 import { buyerTypeFor, marginApprovedFor, sellerTypeFor } from './tax-profile';
 
 /**
@@ -84,7 +85,8 @@ export async function settlementFigures(
    */
   const value = order.settlementAmount ?? order.agreedPrice;
 
-  const commission = order.commissionAmount;
+  // **عمولة البائع وحدها** — وما يدفعه المشتري ليس خصمًا على البائع
+  const commission = order.sellerCommission;
   const commissionTax = vatIncluded(commission);
 
   /**
@@ -106,7 +108,13 @@ export async function settlementFigures(
    *
    * // DESIGN-Q: هل تُخصم خدمات البائع من صافيه أم تبقى معاملةً منفصلة؟
    */
-  const netToSeller = value.minus(commission).minus(gatewayFee);
+  // القاعدة في `money.ts` — وتقرؤها صفحة أرباح البائع وشاشة الإفراج
+  const netToSeller = sellerNet({
+    agreedPrice: order.agreedPrice,
+    settlementAmount: order.settlementAmount,
+    sellerCommission: commission,
+    gatewayFee,
+  });
 
   return {
     vehicleValue: value.toString(),

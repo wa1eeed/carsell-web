@@ -666,6 +666,82 @@
         }
       }
     },
+    "/api/v1/admin/commission": {
+      "put": {
+        "summary": "PUT /api/v1/admin/commission",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "BUYER",
+                      "SELLER"
+                    ]
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "pct": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "fixedFee": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "minFee": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000000,
+                    "nullable": true
+                  },
+                  "maxFee": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000000,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "side",
+                  "enabled",
+                  "pct",
+                  "fixedFee",
+                  "minFee",
+                  "maxFee"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/deadlines": {
       "put": {
         "summary": "PUT /api/v1/admin/deadlines",

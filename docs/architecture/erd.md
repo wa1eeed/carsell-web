@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-82 models · 48 enums
+82 models · 49 enums
 
 ## Relationships
 
@@ -155,6 +155,7 @@ erDiagram
   Subscription |o--|| User : "user"
   Subscription |o--|| Dealer : "dealer"
   Subscription }o--|| Plan : "plan"
+  CommissionRule }o--|| CommissionSide : "side"
   ReconciliationRun }o--|| ReconciliationStatus : "status"
   PlatformSetting }o--|| FeeBearer : "processingFeeBearer"
   FinanceInput }o--|| AdminUser : "admin"
@@ -567,6 +568,8 @@ Relations: `status` → `DepositStatus` · `auction` → `Auction` · `user` →
 | `agreedPrice` | `Decimal` |  |
 | `commissionPct` | `Decimal` |  |
 | `commissionAmount` | `Decimal` |  |
+| `buyerCommission` | `Decimal` |  |
+| `sellerCommission` | `Decimal` |  |
 | `transferFee` | `Decimal` |  |
 | `transferAdminFee` | `Decimal` |  |
 | `processingFee` | `Decimal` |  |
@@ -814,11 +817,14 @@ Relations: `user` → `User` · `dealer` → `Dealer` · `plan` → `Plan`
 | `id` | `String` | PK |
 | `scope` | `String` |  |
 | `scopeId` | `String?` |  |
+| `enabled` | `Boolean` |  |
 | `pct` | `Decimal` |  |
 | `fixedFee` | `Decimal` |  |
 | `minFee` | `Decimal?` |  |
 | `maxFee` | `Decimal?` |  |
 | `activeFrom` | `DateTime` |  |
+
+Relations: `side` → `CommissionSide`
 
 ### `ReconciliationRun`
 
@@ -1551,6 +1557,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `InvoiceType` — `SALE`, `COMMISSION`, `SERVICE`, `SUBSCRIPTION`
 - `ServiceCategory` — `PRE_PURCHASE`, `POST_PURCHASE`, `SELLER`
 - `ServiceRequestStatus` — `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`
+- `CommissionSide` — `BUYER`, `SELLER`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
 - `ProviderType` — `INSPECTION`, `SHIPPING`, `INSURANCE`, `DETAILING`, `PHOTOGRAPHY`, `FINANCE`, `OTHER`

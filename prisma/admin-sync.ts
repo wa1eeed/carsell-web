@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { MIN_ADMIN_PASSWORD, provisionSuperAdmin } from '../src/lib/domain/admin-provision';
+import { totpUri } from '../src/lib/auth/totp';
 
 /**
  * ═══ مزامنة حساب الأدمن من البيئة ═══
@@ -88,10 +89,25 @@ async function main(): Promise<void> {
    * السجلّات، وإلى الأبد.
    */
   if (result.totpSecret !== null) {
+    /**
+     * **والسرّ وحده على سطره، بلا إزاحة ولا حرف عربيّ.**
+     *
+     * طبعتُه أوّلًا مُزاحًا بين سطرين عربيين، فالتقط النسخُ علاماتِ
+     * اتّجاه غير مرئية ورفضه تطبيق المصادقة بـ«illegal character» —
+     * والسرّ سليم، والأبجدية `A–Z` و`2–7` بالضبط. وهو الصنف نفسه
+     * الذي يفرض `dir="ltr"` على كل حقلٍ يُنسخ من مصدر لاتينيّ،
+     * بوجهه المعكوس: **لاتينيٌّ يُنسخ من سياق عربيّ يفسد أيضًا**.
+     *
+     * فالتعليمات فوقه والرابط تحته، وبينهما سطرٌ لا يحمل غيره.
+     */
     console.log('');
-    console.log('  ⚠ سرّ TOTP — احفظه الآن، لا يُطبع مرّةً ثانية:');
-    console.log(`      ${result.totpSecret}`);
-    console.log('    أضِفه يدويًّا في تطبيق المصادقة (Enter setup key).');
+    console.log('  ⚠ سرّ TOTP — احفظه الآن، لا يُطبع مرّةً ثانية.');
+    console.log('  انسخ السطر التالي وحده (Enter setup key):');
+    console.log('');
+    console.log(result.totpSecret);
+    console.log('');
+    console.log('  أو الصق هذا الرابط إن قبِله تطبيقك:');
+    console.log(totpUri(result.totpSecret, email));
     console.log('');
   }
 }

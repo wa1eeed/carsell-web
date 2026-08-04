@@ -115,16 +115,18 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
   let gatewayFees = zero;
   let govtFees = zero;
   let held = zero;
+  let earned = zero;
 
   const lines: BookLine[] = [];
 
   for (const order of orders) {
     const gatewayFee = order.settlement?.gatewayFee ?? zero;
-    // القاعدة في `money.ts` — وتقرؤها شاشة الإفراج أيضًا
+    // القاعدة في `money.ts` — ويقرؤها كشف التسوية وشاشة الإفراج
     const net = netToSeller({ ...order, gatewayFee });
 
     sales = sales.plus(order.agreedPrice);
-    commission = commission.plus(order.commissionAmount);
+    // **عمولته هو** — و`commissionAmount` مجموع الطرفين، فعرضُه يُحمّله نصيب المشتري
+    commission = commission.plus(order.sellerCommission);
     commissionVat = commissionVat.plus(order.vatAmount);
     gatewayFees = gatewayFees.plus(gatewayFee);
     govtFees = govtFees.plus(order.transferFee);
@@ -144,6 +146,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
         });
 
     if (!guard.allowed && order.escrow?.status === 'HELD') held = held.plus(net);
+    earned = earned.plus(net);
 
     lines.push({
       orderRef: order.ref,
@@ -156,7 +159,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
         .join(' '),
       soldAt: date.format(order.createdAt),
       gross: str(order.agreedPrice),
-      commission: str(order.commissionAmount),
+      commission: str(order.sellerCommission),
       commissionVat: str(order.vatAmount),
       gatewayFee: str(gatewayFee),
       govtFee: str(order.transferFee),
@@ -173,7 +176,14 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
       commissionVat: str(commissionVat),
       gatewayFees: str(gatewayFees),
       govtFees: str(govtFees),
-      earned: str(sales.minus(commission).minus(commissionVat).minus(gatewayFees).minus(govtFees)),
+      /**
+       * **مجموع صوافي الأسطر لا حسابٌ ثانٍ.**
+       *
+       * كان يُطرح هنا رسمُ النقل والضريبة أيضًا — وكلاهما دفعه
+       * المشتري، فيرى البائع مجموعًا أقلّ من مجموع أسطره هو. وحسابان
+       * لرقمٍ واحد يتباعدان أوّل تعديل.
+       */
+      earned: str(earned),
     },
     held: str(held),
     payable: str(payable),

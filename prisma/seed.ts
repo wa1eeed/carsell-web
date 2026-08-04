@@ -371,13 +371,35 @@ async function main(): Promise<void> {
     },
   });
 
-  await prisma.commissionRule.create({
-    data: {
-      scope: 'global',
-      pct: new D('0.00'),
-      fixedFee: new D('0.00'),
-      activeFrom: days(-180),
-    },
+  /**
+   * ═══ قاعدةٌ لكل طرف — والاثنتان بصفر ═══
+   *
+   * **الصفر افتراضٌ لا نسيان**: من يزرع منصّةً لا يعرف بعد كم يأخذ،
+   * ونسبةٌ مزروعة تُنتج فواتير برقمٍ لم يقرّره أحد. والصفّان يوجدان
+   * كي تجدهما شاشة الأدمن فتُعدَّلا بضغطة — لا لتُنشأ من عدم.
+   *
+   * وعمولة المشتري **معطَّلة**، فالسلوك الافتراضيّ أن يدفع السعر
+   * ورسم النقل وحدهما.
+   */
+  await prisma.commissionRule.createMany({
+    data: [
+      {
+        scope: 'global',
+        side: 'SELLER',
+        enabled: true,
+        pct: new D('0.00'),
+        fixedFee: new D('0.00'),
+        activeFrom: days(-180),
+      },
+      {
+        scope: 'global',
+        side: 'BUYER',
+        enabled: false,
+        pct: new D('0.00'),
+        fixedFee: new D('0.00'),
+        activeFrom: days(-180),
+      },
+    ],
   });
 
   // ————— ٣ حسابات أدمن بالأدوار —————
@@ -1473,9 +1495,20 @@ async function main(): Promise<void> {
       ? `  حسابات الأدمن — كلمة المرور: ${seedPassword ?? ''}`
       : '  حسابات الأدمن — كلمة المرور: (من ADMIN_PASSWORD)',
   );
-  console.log('  ⚠ احفظ أسرار TOTP التالية الآن — لا تُطبع مرّةً ثانية:');
+  /**
+   * **كل سرّ على سطره وحده، بلا إزاحة ولا حرف عربيّ معه.**
+   *
+   * كانت تُطبع `email … TOTP: secret` مُزاحةً بعد سطرٍ عربيّ، فالتقط
+   * النسخُ علاماتِ اتّجاه غير مرئية ورفضها تطبيق المصادقة بـ«illegal
+   * character» — والسرّ سليم. وهو الصنف نفسه الذي يفرض `dir="ltr"`
+   * على كل حقلٍ يُنسخ من مصدر لاتينيّ، معكوسًا.
+   */
+  console.log('  ⚠ احفظ أسرار TOTP التالية الآن — لا تُطبع مرّةً ثانية.');
+  console.log('  كل سطرٍ منها يُنسخ وحده (Enter setup key):');
   for (const [email, secret] of totpSecrets) {
-    console.log(`    ${email.padEnd(22)} TOTP: ${secret}`);
+    console.log('');
+    console.log(`  ${email}`);
+    console.log(secret);
   }
   console.log('');
   for (const [label, n] of Object.entries(counts)) {

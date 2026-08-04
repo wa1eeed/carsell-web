@@ -103,9 +103,14 @@ describe('الفاتورة تشهد بواقعة', () => {
 
   it('العمولة حين تُفعَّل تُفوتَر', async () => {
     await withOrder(async (order) => {
+      /**
+       * **العمولة حقلان بعد فصل الطرفين**: `commissionAmount` مجموعُهما
+       * وعليه تُحسب الضريبة، و`sellerCommission` ما يُخصم من البائع —
+       * وهو ما يقرؤه كشف التسوية. وضبطُ الأوّل وحده يترك الخصم صفرًا.
+       */
       await db.order.update({
         where: { id: order.id },
-        data: { commissionPct: 1, commissionAmount: 892.4 },
+        data: { commissionPct: 1, commissionAmount: 892.4, sellerCommission: 892.4 },
       });
       try {
         const result = await issueSettlementDocuments(order.id);
@@ -113,7 +118,7 @@ describe('الفاتورة تشهد بواقعة', () => {
       } finally {
         await db.order.update({
           where: { id: order.id },
-          data: { commissionPct: 0, commissionAmount: 0 },
+          data: { commissionPct: 0, commissionAmount: 0, sellerCommission: 0 },
         });
       }
     });

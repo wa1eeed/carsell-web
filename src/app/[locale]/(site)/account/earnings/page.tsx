@@ -77,9 +77,13 @@ export default async function EarningsPage({
             <dl className="flex flex-col gap-2.5 text-2xs">
               <Row label="إجمالي المبيعات" value={book.totals.sales} />
               <Row label="عمولة المنصة" value={book.totals.commission} negative />
-              <Row label="ضريبة العمولة" value={book.totals.commissionVat} negative />
               <Row label="رسوم بوابة الدفع" value={book.totals.gatewayFees} negative />
-              <Row label="رسوم نقل الملكية" value={book.totals.govtFees} negative />
+              {/*
+                **ضريبة العمولة ورسم النقل لا يُعرضان خصمًا.**
+                دفعهما المشتري في إجماليه، وعرضُهما بالسالب يقول
+                للبائع إنه دُفع عنه ما لم يُدفع — والفرق ٦٥٠ ريالًا
+                في صفقةٍ واحدة. والنصّ المعروض وعدٌ لا وصف.
+              */}
               <div className="mt-1.5 border-t border-line pt-3">
                 <Row label="صافي ما استُحقّ لك" value={book.totals.earned} strong />
               </div>
@@ -114,9 +118,7 @@ export default async function EarningsPage({
                   <dl className="flex flex-col gap-1.5 text-2xs">
                     <Row label="قيمة البيع" value={line.gross} />
                     <Row label="عمولة المنصة" value={line.commission} negative />
-                    <Row label="ضريبة العمولة" value={line.commissionVat} negative />
                     <Row label="رسوم البوابة" value={line.gatewayFee} negative />
-                    <Row label="رسوم نقل الملكية" value={line.govtFee} negative />
                     <div className="mt-1 border-t border-line pt-2">
                       <Row label="صافي مستحقّك" value={line.net} strong />
                     </div>

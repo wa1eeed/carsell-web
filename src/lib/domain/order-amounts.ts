@@ -17,8 +17,14 @@ import { effectiveAdminFee, ourVat, processingFeeFor } from './fees';
 
 export type OrderAmounts = {
   agreedPrice: Prisma.Decimal;
+  /** نسبة عمولة **البائع** — ونسبة المشتري تُقرأ من `CommissionRule` عند العرض */
   commissionPct: Prisma.Decimal;
+  /** مجموع عمولتَي الطرفين — إيرادنا، وعليه تُحسب الضريبة */
   commissionAmount: Prisma.Decimal;
+  /** تُضاف إلى ما يدفعه المشتري */
+  buyerCommission: Prisma.Decimal;
+  /** تُخصم ممّا يستلمه البائع */
+  sellerCommission: Prisma.Decimal;
   /** حكوميّ يُمرَّر كما هو — لا ضريبة لنا فيه */
   transferFee: Prisma.Decimal;
   /** رسمنا الإداريّ — سطرٌ مستقلّ دائمًا */
@@ -32,6 +38,28 @@ export type OrderAmounts = {
 
 type Reader = Pick<typeof db, 'platformSetting' | 'commissionRule'>;
 
+type Rule = {
+  pct: Prisma.Decimal;
+  fixedFee: Prisma.Decimal;
+  minFee: Prisma.Decimal | null;
+  maxFee: Prisma.Decimal | null;
+};
+
+/**
+ * نسبةٌ **ومبلغٌ ثابت** معًا، بحدَّين.
+ *
+ * والحساب واحدٌ للطرفين — فكتابتُه مرّتين تجعل حدًّا أدنى يُضاف لأحدهما
+ * ويُنسى للآخر، ولا يظهر الفرق إلا في صفقةٍ صغيرة.
+ */
+function commissionFrom(rule: Rule | null, price: number): number {
+  if (rule === null) return 0;
+  const raw = (price * Number(rule.pct)) / 100 + Number(rule.fixedFee);
+  return Math.min(
+    Math.max(raw, Number(rule.minFee ?? 0)),
+    Number(rule.maxFee ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+
 /**
  * يقبل `tx` أو `db` — فيُحسب داخل معاملة الإنشاء لا قبلها.
  *
@@ -43,25 +71,35 @@ export async function computeOrderAmounts(
   price: number,
   now: Date = new Date(),
 ): Promise<OrderAmounts> {
-  const [platform, commissionRule] = await Promise.all([
+  const [platform, rules] = await Promise.all([
     reader.platformSetting.findUnique({ where: { id: 'default' } }),
-    reader.commissionRule.findFirst({
+    reader.commissionRule.findMany({
       where: { scope: 'global', activeFrom: { lte: now } },
       orderBy: { activeFrom: 'desc' },
     }),
   ]);
 
-  const commissionPct = commissionRule === null ? 0 : Number(commissionRule.pct);
-  const commissionAmount =
-    commissionRule === null
-      ? 0
-      : Math.min(
-          Math.max(
-            (price * commissionPct) / 100 + Number(commissionRule.fixedFee),
-            Number(commissionRule.minFee ?? 0),
-          ),
-          Number(commissionRule.maxFee ?? Number.MAX_SAFE_INTEGER),
-        );
+  /**
+   * أحدث قاعدةٍ سارية **لكل طرف على حدة**.
+   *
+   * **والتصفية بـ`enabled` تقع هنا لا في الاستعلام.** والقواعد تُضاف
+   * ولا تُعدَّل — لأن الطلب يخزّن نسبته وقت إنشائه — فتعطيلُ عمولةٍ
+   * يكتب صفًّا جديدًا بـ`enabled: false`. ولو صفّى الاستعلام لسقط على
+   * **القاعدة الأقدم المفعَّلة**، فيُعطَّل الرسم فيعود من تلقاء نفسه
+   * بنسبةٍ قديمة، ولا شيء يقول إن التعطيل لم يقع.
+   */
+  const latest = (side: 'BUYER' | 'SELLER'): Rule | null => {
+    const rule = rules.find((row) => row.side === side);
+    return rule === undefined || !rule.enabled ? null : rule;
+  };
+
+  const sellerRule = latest('SELLER');
+  const buyerRule = latest('BUYER');
+
+  const sellerCommission = commissionFrom(sellerRule, price);
+  const buyerCommission = commissionFrom(buyerRule, price);
+  const commissionPct = sellerRule === null ? 0 : Number(sellerRule.pct);
+  const commissionAmount = sellerCommission + buyerCommission;
 
   /**
    * رسم النقل **حكوميّ يُمرَّر كما هو** — صرفٌ نيابةً عن العميل. ورسمنا
@@ -91,7 +129,15 @@ export async function computeOrderAmounts(
   const processingFeeBearer = platform?.processingFeeBearer ?? 'SELLER';
   const buyerShare = processingFeeBearer === 'BUYER' ? Number(processingFee) : 0;
 
-  const total = price + commissionAmount + transferFee + Number(transferAdminFee) + buyerShare;
+  /**
+   * **ما يدفعه المشتري — بعمولته هو وحدها.**
+   *
+   * كان يُضاف `commissionAmount` كلّه هنا **ويُخصم كلّه** من صافي
+   * البائع في كشف التسوية: عمولةٌ معلنة ٢٬٥٠٠ تأخذ ٥٬٠٠٠، بلا حقلٍ
+   * يقول أيّهما قُصد. فالآن ما يُضاف هنا هو `buyerCommission`، وما
+   * يُخصم هناك `sellerCommission` — ومجموعهما إيرادنا.
+   */
+  const total = price + buyerCommission + transferFee + Number(transferAdminFee) + buyerShare;
 
   /**
    * الضريبة على **توريداتنا وحدها** — العمولة والرسوم الإدارية ورسوم
@@ -107,6 +153,8 @@ export async function computeOrderAmounts(
     agreedPrice: new Prisma.Decimal(price),
     commissionPct: new Prisma.Decimal(commissionPct),
     commissionAmount: new Prisma.Decimal(commissionAmount),
+    buyerCommission: new Prisma.Decimal(buyerCommission),
+    sellerCommission: new Prisma.Decimal(sellerCommission),
     transferFee: new Prisma.Decimal(transferFee),
     transferAdminFee,
     processingFee,

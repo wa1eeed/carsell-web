@@ -62,7 +62,8 @@ async function make(cases: readonly Case[]): Promise<void> {
       data: {
         ref: `${TAG}-${c.key}`, listingId: listing.id, buyerId, sellerId,
         source: 'DIRECT', stage: c.stage, status: c.status,
-        agreedPrice: 80_000, commissionPct: 2.5, commissionAmount: 2_000,
+        agreedPrice: 80_000, commissionPct: 2.5,
+        commissionAmount: 2_000, sellerCommission: 2_000, buyerCommission: 0,
         transferFee: 350, vatAmount: 300, totalAmount: 80_650,
         createdAt: days(-20), stageEnteredAt: days(-10),
         returnWindowEndsAt: c.window,
@@ -228,8 +229,16 @@ describe('settlementQueue — المال', () => {
 
     const order = await db.order.findUniqueOrThrow({ where: { ref: `${TAG}-A` } });
     expect(row?.netToSeller).toBe(netToSeller(order).toFixed(2));
-    // ٨٠٬٠٠٠ − ٢٬٠٠٠ عمولة − ٣٠٠ ضريبة − ٣٥٠ نقل
-    expect(row?.netToSeller).toBe('77350.00');
+
+    /**
+     * **٨٠٬٠٠٠ − ٢٬٠٠٠ عمولة البائع. ولا ضريبة ولا رسم نقل.**
+     *
+     * كان يُخصم منه ٣٥٠ رسمَ النقل و٣٠٠ ضريبةً — وكلاهما دفعهما
+     * المشتري في إجماليه (٨٠٬٦٥٠ = ٨٠٬٠٠٠ + ٣٥٠ + ٣٠٠). فكان
+     * البائع يدفع رسمًا لم يدفعه، وكشف تسويته يقول رقمًا وصفحة
+     * أرباحه تقول آخر.
+     */
+    expect(row?.netToSeller).toBe('78000.00');
     expect(row?.heldAmount).toBe('80650.00');
   });
 });

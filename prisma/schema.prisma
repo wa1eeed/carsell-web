@@ -661,7 +661,17 @@ model Order {
   status           OrderStatus @default(ACTIVE)
   agreedPrice      Decimal     @db.Decimal(12, 2)
   commissionPct    Decimal     @db.Decimal(5, 2) // لقطة وقت الإنشاء
+  /// ═══ العمولة طرفان ═══
+  ///
+  /// `commissionAmount` هو **مجموعهما** — إيرادنا من العمولة، وعليه
+  /// تُحسب الضريبة. والحقلان تحته يقولان **من دفع**: ما يُضاف إلى
+  /// إجمالي المشتري، وما يُخصم من صافي البائع.
+  ///
+  /// وفصلُهما ليس ترفًا: كان رقمٌ واحد يُضاف هنا ويُخصم هناك، فيُؤخذ
+  /// مرّتين ولا يظهر — والحقل الواحد لا يستطيع أن يقول أيّهما قُصد.
   commissionAmount Decimal     @db.Decimal(12, 2)
+  buyerCommission  Decimal     @default(0) @db.Decimal(12, 2)
+  sellerCommission Decimal     @default(0) @db.Decimal(12, 2)
 
   // قرار ١٧ — رسوم النقل لقطةً من PlatformSetting، والضريبة مضمَّنة ١٥/١١٥
   transferFee Decimal @default(0) @db.Decimal(12, 2)
@@ -1044,17 +1054,31 @@ model Subscription {
   @@index([dealerId, status])
 }
 
+/// طرف العمولة — **مستقلّان تمامًا**.
+///
+/// كانت قاعدةً واحدة تُضاف إلى المشتري **وتُخصم من البائع معًا**، فعمولةٌ
+/// معلنة ٢٬٥٠٠ تأخذ ٥٬٠٠٠ ولا يقول شيءٌ إنها مرّتان. والقرار: لكل طرف
+/// تفعيلُه ونسبتُه ومبلغُه، فتُطبَّق على أحدهما أو كليهما أو لا أحد.
+enum CommissionSide {
+  BUYER
+  SELLER
+}
+
 model CommissionRule {
   id         String   @id @default(cuid())
   scope      String // global | plan | dealer | listing_type
   scopeId    String?
+  /// على من تقع — والطرفان قاعدتان منفصلتان لا حقلان في قاعدة
+  side       CommissionSide @default(SELLER)
+  /// معطَّلة تعني صفرًا بلا حذف القاعدة — فتُستعاد نسبتُها بضغطة
+  enabled    Boolean  @default(true)
   pct        Decimal  @db.Decimal(5, 2)
   fixedFee   Decimal  @default(0) @db.Decimal(10, 2)
   minFee     Decimal? @db.Decimal(10, 2)
   maxFee     Decimal? @db.Decimal(10, 2)
   activeFrom DateTime
 
-  @@index([scope, activeFrom])
+  @@index([scope, side, activeFrom])
 }
 
 /// قرار ١٧ — إعدادات المنصة: رسوم النقل ونسبة الضريبة.

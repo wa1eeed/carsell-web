@@ -14,6 +14,8 @@ import {
   simulateCommission,
 } from '@/lib/domain/admin-finance';
 import { ORDER_SOURCE_LABEL, REVENUE_STREAM_LABEL } from '@/lib/labels/admin';
+import { listCommissionRules } from '@/lib/domain/admin-commission';
+import { CommissionRules } from './CommissionRules';
 import { FinanceInputs } from './FinanceInputs';
 import { Simulator } from './Simulator';
 
@@ -38,10 +40,11 @@ export default async function FinancePage() {
   const from = new Date(now.getTime() - RANGE_DAYS * 86_400_000);
   const month = monthKey(now);
 
-  const [summary, figures, inputs] = await Promise.all([
+  const [summary, figures, inputs, rules] = await Promise.all([
     financeSummary(from, now),
     indicators(month),
     financeInputs(month),
+    listCommissionRules(now),
   ]);
 
   const scenarios = simulateCommission(
@@ -207,6 +210,8 @@ export default async function FinancePage() {
       </section>
 
       <Simulator scenarios={scenarios} gmv={summary.gmv.total} />
+
+      <CommissionRules rows={rules} canEdit={canWrite(admin.role, 'finance.view')} />
 
       <FinanceInputs
         month={month}

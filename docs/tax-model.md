@@ -129,6 +129,53 @@ Nothing is dropped silently: every deferred supply appears in
 `IssueDocumentsResult.blocked` with a written reason, so the monthly
 reconciliation asks a question that already has an answer on file.
 
+### Commission has two sides, and was charged twice
+
+There was one `CommissionRule`. `computeOrderAmounts` **added** its amount to the
+buyer's total, and the settlement statement **deducted** the same amount from the
+seller's net. A commission advertised as 2,500 took 5,000, and no field could say
+which side was meant.
+
+Each side now has its own rule — enable/disable, a percentage, a fixed amount and
+optional floor and ceiling — set from `/admin/finance`. `Order` stores
+`buyerCommission` and `sellerCommission` separately; `commissionAmount` is their
+sum and remains the base for our VAT, because both sides are our revenue.
+
+**Rules are appended, never edited.** An order snapshots its commission at
+creation, so editing a row would not change a live order — it would erase what
+the rate was on the day that order's invoice was issued. Disabling writes a row
+with `enabled: false`.
+
+That has one consequence worth stating, because getting it wrong is silent: the
+query must **not** filter on `enabled`. Filtering in SQL makes a freshly disabled
+rule fall through to an *older enabled* one, so the charge you just switched off
+comes back at a historical rate and nothing reports that the change failed. The
+query takes the latest row per side and checks `enabled` in code.
+
+### The transfer fee was deducted from both sides too
+
+The same shape, one field over. The buyer's total adds the 350 SAR government
+transfer fee, and `seller-book.ts` deducted it from the seller's net as well —
+along with `vatAmount`, which is the tax inside our own commission and never the
+seller's cost.
+
+Measured at commission 0: the buyer paid 100,350, the settlement statement said
+the seller receives 100,000, and the seller's own earnings page said 99,650. Two
+screens, one order, 350 SAR apart — and the earnings page also listed the VAT and
+the transfer fee as deductions **from the seller**, which the seller never paid.
+
+`netToSeller` in `money.ts` is now the single rule, read by the settlement
+statement, the earnings page and the admin release queue:
+
+```
+settlementAmount ?? agreedPrice  −  sellerCommission  −  gatewayFee
+```
+
+Three divergences collapsed into it: the fee double-deduction, the VAT
+double-deduction, and `seller-book` reading `agreedPrice` where the statement
+read `settlementAmount ?? agreedPrice` — which differ after a dispute is settled
+for a partial amount.
+
 ### Commission is 0 % at launch
 
 The design states «عمولة المنصة (٠٪ حاليًا)». A zero-value invoice is not a
