@@ -1954,6 +1954,69 @@
         }
       }
     },
+    "/api/v1/admin/reports/{ref}": {
+      "post": {
+        "summary": "POST /api/v1/admin/reports/{ref}",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "reports.handle",
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "REVIEW_LISTING",
+                      "DISMISS",
+                      "ACTIONED"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "action"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/services": {
       "post": {
         "summary": "POST /api/v1/admin/services",

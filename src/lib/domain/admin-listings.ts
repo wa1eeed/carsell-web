@@ -156,7 +156,8 @@ async function evidenceFor(
 
   if (reason === 'USER_REPORT') {
     const reportCount = await db.report.count({
-      where: { targetType: 'listing', targetId: listing.ref, status: { not: 'DISMISSED' } },
+      // الحالة كما يكتبها المُنشئ — و`'DISMISSED'` لا وجود لها فتطابق الكلّ
+      where: { targetType: 'listing', targetId: listing.ref, status: { not: 'dismissed' } },
     });
     return { kind: 'USER_REPORT', reportCount };
   }

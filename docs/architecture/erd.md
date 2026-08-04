@@ -1077,6 +1077,7 @@ Relations: `slot` → `AdSlot`
 | Field | Type | Key |
 |---|---|---|
 | `id` | `String` | PK |
+| `ref` | `String` | unique |
 | `reporterId` | `String` |  |
 | `targetType` | `String` |  |
 | `targetId` | `String` |  |

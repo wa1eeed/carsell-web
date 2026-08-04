@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { sendListingToReview } from './listing-state';
+import { nextReportRef } from './refs';
 import { ACTIVE_STATUSES } from './offers';
 import { canonicalPath } from './listing-detail';
 import type { OfferStatus } from '@/generated/prisma/enums';
@@ -124,7 +125,7 @@ export type ReportInput = {
 };
 
 export type ReportResult =
-  | { ok: true; reportId: string; underReview: boolean }
+  | { ok: true; reportId: string; ref: string; underReview: boolean }
   | { ok: false; reason: 'TARGET_NOT_FOUND' | 'OWN_TARGET' | 'ALREADY_REPORTED' };
 
 /** أسباب البلاغ — قائمة مغلقة، فالحرّ منها يُنتج طابورًا لا يُفرَز. */
@@ -188,6 +189,8 @@ export async function fileReport(
 
     const report = await tx.report.create({
       data: {
+        // مرجعٌ يُقتبَس — والمعرّف الداخليّ لا يُقرأ في شاشة ولا مكالمة
+        ref: await nextReportRef(tx, now),
         reporterId: input.reporterId,
         targetType: input.targetType,
         targetId: input.targetId,
@@ -218,6 +221,6 @@ export async function fileReport(
       }
     }
 
-    return { ok: true, reportId: report.id, underReview };
+    return { ok: true, reportId: report.id, ref: report.ref, underReview };
   });
 }

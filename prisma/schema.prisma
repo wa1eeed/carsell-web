@@ -1417,6 +1417,8 @@ model AdCampaign {
 /// بلاغات المستخدمين
 model Report {
   id          String   @id @default(cuid())
+  /// `RPT-2026-0188` — يُقتبَس في مكالمة، والمعرّف الداخليّ لا يُقتبَس
+  ref         String   @unique
   reporterId  String
   targetType  String // listing | user
   targetId    String

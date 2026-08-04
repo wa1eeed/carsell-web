@@ -74,3 +74,22 @@ export async function nextListingRef(tx: Prisma.TransactionClient, now: Date): P
   const next = highestAfter(rows, prefix, 0) + 1;
   return `${prefix}${String(next).padStart(LISTING_PAD, '0')}`;
 }
+
+/**
+ * مرجع البلاغ — `RPT-2026-0188`.
+ *
+ * والمعرّف الداخليّ (cuid) لا يُقتبَس في مكالمة ولا يُقرأ في شاشة،
+ * فالبلاغ كالطلب: له مرجعٌ يقوله صاحبه.
+ */
+export async function nextReportRef(tx: Prisma.TransactionClient, now: Date): Promise<string> {
+  const year = now.getFullYear();
+  const prefix = `RPT-${year}-`;
+
+  const rows = await tx.report.findMany({
+    where: { ref: { startsWith: prefix } },
+    select: { ref: true },
+  });
+
+  const next = highestAfter(rows, prefix, 0) + 1;
+  return `${prefix}${String(next).padStart(LISTING_PAD, '0')}`;
+}
