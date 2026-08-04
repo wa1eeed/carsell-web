@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Countdown } from '@/components/ui/Countdown';
 import { Link } from '@/i18n/navigation';
+import { AccountNav } from './AccountNav';
 import { cn } from '@/lib/cn';
 
 const NAV = [
@@ -58,7 +59,12 @@ export function LiveBar({
   );
 }
 
-/** رأس الموقع — تنقّل بمؤشّر سفلي على البند النشط (Wa). */
+/**
+ * رأس الموقع — تنقّل بمؤشّر سفلي على البند النشط (Wa).
+ *
+ * و`actions` لِما تزيده صفحةٌ بعينها؛ ومدخل الحساب ليس منها — هو في
+ * كل شاشة، فيُرسم هنا.
+ */
 export function SiteHeader({
   active = 'home',
   actions,
@@ -92,6 +98,12 @@ export function SiteHeader({
       </nav>
 
       <span className="flex-1" />
+      {/*
+        **مدخل الحساب من الترويسة لا من كل صفحة.** كان يُمرَّر
+        `actions` يدويًّا، فمرّرته صفحةٌ واحدة من إحدى وعشرين — وبقي
+        عشرون شاشة بلا باب إلى الحساب.
+      */}
+      <AccountNav />
       {actions}
     </header>
   );

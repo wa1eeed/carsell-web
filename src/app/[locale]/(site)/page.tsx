@@ -7,7 +7,6 @@ import type { Metadata } from 'next';
 import { LiveBar, SiteFooter, SiteHeader } from '@/components/site/SiteHeader';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { Button } from '@/components/ui/Button';
 import { BodyTypeStrip } from '@/components/ui/BodyTypeStrip';
 import { CarCard } from '@/components/ui/CarCard';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
@@ -116,23 +115,8 @@ export default async function HomePage({
           : { closingTitle: home.live.closing.title, closingAt: home.live.closing.endsAt })}
         city={home.recent.city}
       />
-      <SiteHeader
-        active="home"
-        actions={
-          <span className="flex items-center gap-2.5">
-            {/* الزرّ عنصر تفاعل والرابط تنقّل — لا يُخلطان */}
-            <Link href={`/${locale}/sell`}>
-              <Button variant="outline" size="sm">
-                {t('sellYourCar')}
-              </Button>
-            </Link>
-            {/* المسار `/auth` لا `/login` — كان يقود إلى ٤٠٤ من الرئيسية */}
-            <Link href={`/${locale}/auth`}>
-              <Button size="sm">{t('signIn')}</Button>
-            </Link>
-          </span>
-        }
-      />
+      {/* الأزرار انتقلت إلى `AccountNav` داخل الترويسة — فتصل كل شاشة */}
+      <SiteHeader active="home" />
 
       <main className="bg-bg text-ink">
         {/* الصدر — سطح داكن */}
