@@ -25,6 +25,25 @@
     }
   },
   "paths": {
+    "/api/cron/run": {
+      "post": {
+        "summary": "POST /api/cron/run",
+        "tags": [
+          "run"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/dev/media/{key}": {
       "get": {
         "summary": "GET /api/dev/media/{key}",
@@ -3193,6 +3212,40 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{ref}": {
+      "patch": {
+        "summary": "PATCH /api/v1/orders/{ref}",
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"

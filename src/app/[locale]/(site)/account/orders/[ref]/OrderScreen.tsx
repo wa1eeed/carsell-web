@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { PayPanel } from '@/components/site/PayPanel';
+import { StagePanel } from '@/components/site/StagePanel';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -127,6 +128,21 @@ export function OrderScreen({
           {!canPay ? null : (
             <div className="mb-3.5">
               <PayPanel orderRef={order.ref} total={order.amounts.total} locale={locale} />
+            </div>
+          )}
+
+          {/*
+            الخطوة التالية — **ولم يكن للطلب ما يحرّكه**. تُعرض بعد
+            الدفع: البائع يبدأ النقل، والمشتري يؤكّد الاستلام.
+          */}
+          {canPay ? null : (
+            <div className="mb-3.5">
+              <StagePanel
+                orderRef={order.ref}
+                stage={order.stage}
+                viewerIsBuyer={order.counterparty.isSeller}
+                frozen={frozen}
+              />
             </div>
           )}
 

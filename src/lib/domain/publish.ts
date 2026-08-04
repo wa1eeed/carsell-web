@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { nextListingRef } from './refs';
 import { Prisma } from '@/generated/prisma/client';
 import type {
   FuelType,
@@ -226,9 +227,7 @@ export async function createListing(
       },
     });
 
-    const year = now.getFullYear();
-    const count = await tx.listing.count({ where: { ref: { startsWith: `ADS${year}A` } } });
-    const ref = `ADS${year}A${String(count + 1).padStart(4, '0')}`;
+    const ref = await nextListingRef(tx, now);
 
     const listing = await tx.listing.create({
       data: {

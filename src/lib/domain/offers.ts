@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { nextOrderRef } from './refs';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
@@ -252,13 +253,6 @@ export async function withdrawOffer(
 export type AcceptResult =
   | { ok: true; orderRef: string; closedOffers: number }
   | { ok: false; reason: 'OFFER_NOT_FOUND' | 'NOT_SELLER' | 'NOT_ACTIVE' };
-
-/** رقم الطلب — سنة وتسلسل، يُقتبَس في مكالمة. */
-async function nextOrderRef(tx: Prisma.TransactionClient, now: Date): Promise<string> {
-  const year = now.getFullYear();
-  const count = await tx.order.count({ where: { ref: { startsWith: `ORD-${year}-` } } });
-  return `ORD-${year}-${String(1000 + count + 1)}`;
-}
 
 /**
  * ═══ القاعدة ٤ ═══ قبول عرض ⇒ إغلاق الباقي + سحب الإعلان + مهلة دفع ٢٤ ساعة.

@@ -601,6 +601,14 @@ function checkClientDbImports() {
  */
 const GATEWAY_VOCAB = /\b(authorize|authorization|capture|voidPayment|preauth)\b/;
 
+/**
+ * و`authorization` **ترويسة HTTP قياسية** أيضًا — فتُستثنى حين تُقرأ
+ * كترويسة لا كمفردة بطاقة. وبلا هذا الاستثناء يُبلَّغ كل قارئٍ لترويسة
+ * `Bearer` مخالفةً، فتُعطَّل البوابة في يومها الأوّل. (وقع في مسار
+ * الوظائف الزمنية: `headers.get('authorization')`.)
+ */
+const HTTP_AUTH_HEADER = /(headers\.get\(\s*['"`]authorization|['"`]authorization['"`]\s*:)/i;
+
 /** المُهايئات وحدها تترجم — وهي الاستثناء المُعلن. */
 const ADAPTER_PATH = /src[\\/]lib[\\/]payments[\\/]adapters[\\/]/;
 
@@ -618,6 +626,7 @@ function checkGatewayVocabulary() {
         // التعليق يشرح ولا ينفّذ — والشرح قد يذكر ما يُترجَم منه
         const code = line.split('//')[0] ?? '';
         if (/^\s*[*]/.test(line)) return;
+        if (HTTP_AUTH_HEADER.test(code)) return;
         const match = code.match(GATEWAY_VOCAB);
         if (match) {
           problems.push(

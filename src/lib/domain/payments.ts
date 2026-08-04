@@ -267,13 +267,18 @@ export async function applyState(
       // الطلب يتقدّم إلى نقل الملكية — والسقف يُفتح معه
       const order = await tx.order.findUniqueOrThrow({ where: { id: payment.orderId } });
       if (order.stage === 'PAYMENT') {
-        const { transferDeadlineFrom } = await import('./transfer-windows');
+        /**
+         * **مهلة النقل من إعداد الأدمن** — وهذا موضع كتابتها الوحيد.
+         * وكانت تُقرأ من الثابت، فيضبط المشغّل الإعداد ولا يتغيّر شيء:
+         * إعدادٌ يُحفظ ولا يبلغ الصفّ ليس إعدادًا.
+         */
+        const { transferDeadlineFor } = await import('./transfer-windows');
         await tx.order.update({
           where: { id: payment.orderId },
           data: {
             stage: 'TRANSFER',
             stageEnteredAt: now,
-            transferDeadlineAt: transferDeadlineFrom(now),
+            transferDeadlineAt: await transferDeadlineFor(now),
           },
         });
         await tx.orderEvent.create({

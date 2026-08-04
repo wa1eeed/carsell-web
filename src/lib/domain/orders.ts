@@ -1,7 +1,8 @@
 import { db } from '@/lib/db';
+import { nextOrderRef } from './refs';
 import type { OrderDocument, SettlementFigures } from './documents';
 import type { OrderStage } from '@/generated/prisma/enums';
-import { returnWindowFrom, transferDeadlineFrom } from './transfer-windows';
+import { returnWindowFor, transferDeadlineFor } from './transfer-windows';
 
 /**
  * الطلب ومراحله الستّ — المهمة ١٨.
@@ -78,9 +79,9 @@ export async function advanceStage(
          * القاعدتان تُفتحان هنا لأنه **نقطة الانتقال الوحيدة**:
          * دخولُ النقل يبدأ سقفه، وتأكيدُه يبدأ نافذة الاسترجاع.
          */
-        ...(input.to === 'TRANSFER' ? { transferDeadlineAt: transferDeadlineFrom(now) } : {}),
+        ...(input.to === 'TRANSFER' ? { transferDeadlineAt: await transferDeadlineFor(now) } : {}),
         ...(input.to === 'DONE'
-          ? { status: 'COMPLETED' as const, returnWindowEndsAt: returnWindowFrom(now) }
+          ? { status: 'COMPLETED' as const, returnWindowEndsAt: await returnWindowFor(now) }
           : {}),
       },
     });
@@ -364,9 +365,7 @@ export async function buyDirect(
 
     const amounts = await computeOrderAmounts(tx, Number(listing.askPrice), now);
 
-    const year = now.getFullYear();
-    const count = await tx.order.count({ where: { ref: { startsWith: `ORD-${year}-` } } });
-    const ref = `ORD-${year}-${String(1000 + count + 1)}`;
+    const ref = await nextOrderRef(tx, now);
 
     await tx.order.create({
       data: {

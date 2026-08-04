@@ -1,0 +1,90 @@
+import { closeEndedAuctions, expireSellerDecisions } from '@/lib/domain/auctions';
+import { expireOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
+import { overdueTransfers } from '@/lib/domain/transfer-windows';
+import { overdueDisputes } from '@/lib/domain/disputes';
+
+/**
+ * ═══ الوظائف الزمنية — والمهلة التي لا تُنفَّذ ليست مهلة ═══
+ *
+ * كل قاعدة وقتٍ في المنتج كانت **معطَّلة**: `expireOffers` و
+ * `timeoutUnpaidOrders` و`closeEndedAuctions` وأخواتها مبنيّة ومختبَرة،
+ * **ولا شيء يستدعي واحدة منها**. فالعرض لا يسقط بعد مهلته، والطلب غير
+ * المدفوع يحبس سيارةً إلى الأبد، والمزاد لا يُغلق ولا يرسو على أحد.
+ *
+ * والشاشة تعرض «مهلة الدفع حتى ٤ أغسطس» — وعدٌ لا يقع.
+ *
+ * ═══ وواحدةٌ لا تُسقط الباقي ═══
+ *
+ * كل وظيفة تُغلَّف على حدة: فشلُ المطابقة لأن بوابةً لا تردّ يجب ألّا
+ * يمنع انتهاء العروض. والنتيجة تُجمع وتُعاد كاملةً — من يقرأ التقرير
+ * يحتاج أن يعرف **أيّها فشل** لا أن الجملة فشلت.
+ */
+
+export type JobOutcome =
+  | { job: string; ok: true; affected: number; ms: number }
+  | { job: string; ok: false; error: string; ms: number };
+
+export type JobRun = {
+  startedAt: string;
+  ms: number;
+  outcomes: JobOutcome[];
+  failed: number;
+};
+
+export type Job = { name: string; run: (now: Date) => Promise<number> };
+
+/**
+ * الترتيب مقصود: **ما يُحرّر أوّلًا**.
+ *
+ * انتهاء العروض وإسقاط الطلبات غير المدفوعة يُعيدان إعلانات إلى العرض،
+ * وإغلاق المزادات يُنشئ طلبات — فتشغيلُها قبل التنبيهات يجعل التنبيه
+ * على حالٍ صحيحة لا على حالٍ قديمة بلحظة.
+ */
+const JOBS: readonly Job[] = [
+  { name: 'expireOffers', run: (now) => expireOffers(now) },
+  { name: 'timeoutUnpaidOrders', run: (now) => timeoutUnpaidOrders(now) },
+  { name: 'closeEndedAuctions', run: (now) => closeEndedAuctions(now) },
+  { name: 'expireSellerDecisions', run: (now) => expireSellerDecisions(now) },
+  { name: 'overdueTransfers', run: async (now) => (await overdueTransfers(now)).length },
+  { name: 'overdueDisputes', run: async (now) => (await overdueDisputes(now)).length },
+];
+
+/**
+ * `jobs` مَحقنٌ للاختبار — كما يُحقَن `Fetcher` في مُهايئ البوابة.
+ * وبلا هذا الشقّ لا يُختبَر «واحدةٌ تسقط ولا تُسقط الباقي» إلا بإسقاط
+ * وظيفةٍ حقيقية، وهو اختبارٌ يقيس المنطق لا الوصل.
+ */
+export async function runJobs(
+  now: Date = new Date(),
+  jobs: readonly Job[] = JOBS,
+): Promise<JobRun> {
+  const startedAt = Number.isNaN(now.getTime()) ? new Date().toISOString() : now.toISOString();
+  const began = Date.now();
+  const outcomes: JobOutcome[] = [];
+
+  for (const job of jobs) {
+    const at = Date.now();
+    try {
+      const affected = await job.run(now);
+      outcomes.push({ job: job.name, ok: true, affected, ms: Date.now() - at });
+    } catch (caught) {
+      /**
+       * الرسالة تُلتقط ولا تُرمى: **وظيفةٌ تسقط لا تُسقط جارتها**،
+       * والتقرير يقول أيّها سقط بدل أن يقول «فشل التشغيل».
+       */
+      outcomes.push({
+        job: job.name,
+        ok: false,
+        error: caught instanceof Error ? caught.message : 'unknown error',
+        ms: Date.now() - at,
+      });
+    }
+  }
+
+  return {
+    startedAt,
+    ms: Date.now() - began,
+    outcomes,
+    failed: outcomes.filter((outcome) => !outcome.ok).length,
+  };
+}
