@@ -178,11 +178,24 @@ deploy with no error that explains why.
 4. **Health check**: already declared in the `Dockerfile` — `GET /api/health`
    touches the database, so a container with a dead database is marked unhealthy
    instead of receiving traffic.
-5. **Seed** (first deploy only):
+5. **Seed** — first deploy only, from the container terminal in Coolify:
    ```bash
-   npm run db:seed
+   cd /app && SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" npx tsx prisma/seed.ts
    ```
-   It creates the admin user with `SEED_ADMIN_PASSWORD` and TOTP. Keep both.
+
+   ⚠️ **Capture the TOTP secrets from that output immediately.** They are
+   generated fresh on every seed and printed exactly once. Without them you
+   cannot sign in to the admin panel — the second factor is mandatory for every
+   role, and there is no bypass.
+
+   The password itself is **not printed** when it comes from the environment:
+   container logs are readable by everyone with access to the deployment panel,
+   and they persist.
+
+   Three accounts are created: `SEED_ADMIN_EMAIL` (or `super@carsell.one`) as
+   SUPER_ADMIN, plus `ops@` and `finance@`.
+
+   Add each secret to an authenticator app as a manual key, issuer `carsell`.
 6. **Verify** after the first deploy — see §6.
 
 ---

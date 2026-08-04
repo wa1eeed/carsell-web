@@ -404,10 +404,16 @@ async function main(): Promise<void> {
   const seedPasswordHash = await hashPassword(seedPassword ?? 'CarSell!dev2026');
   const totpSecrets = new Map<string, string>();
 
+  /**
+   * بريد السوبر أدمن من البيئة — فلا يُشحن نطاقٌ ثابت إلى كل نشر،
+   * ومن ينشر على نطاقه يدخل ببريده هو.
+   */
+  const superEmail = process.env.SEED_ADMIN_EMAIL ?? 'super@carsell.one';
+
   const admins = await Promise.all(
     (
       [
-        ['super@carsell.one', 'وليد — سوبر أدمن', 'SUPER_ADMIN'],
+        [superEmail, 'وليد — سوبر أدمن', 'SUPER_ADMIN'],
         ['ops@carsell.one', 'نورة — التشغيل', 'OPS'],
         ['finance@carsell.one', 'سلطان — المالية', 'FINANCE'],
       ] as const
@@ -1452,7 +1458,22 @@ async function main(): Promise<void> {
   };
 
   console.log('');
-  console.log(`  حسابات الأدمن — كلمة المرور: ${seedPassword}`);
+  /**
+   * **كلمة المرور لا تُطبع حين تأتي من البيئة.**
+   *
+   * سجلّ الحاوية يقرؤه كل من يملك لوحة النشر، ويبقى محفوظًا فيها —
+   * فطباعتها هناك تجعل سرًّا ضبطتَه بعناية مقروءًا لكل من يفتح
+   * السجلّات، وإلى الأبد. ومن ضبطها يعرفها أصلًا.
+   *
+   * وفي التطوير تُطبع: الافتراضيّ معروفٌ في المستودع، وإخفاؤه إخفاءُ
+   * ما لا يخفى.
+   */
+  console.log(
+    process.env.SEED_ADMIN_PASSWORD === undefined
+      ? `  حسابات الأدمن — كلمة المرور: ${seedPassword ?? ''}`
+      : '  حسابات الأدمن — كلمة المرور: (من SEED_ADMIN_PASSWORD)',
+  );
+  console.log('  ⚠ احفظ أسرار TOTP التالية الآن — لا تُطبع مرّةً ثانية:');
   for (const [email, secret] of totpSecrets) {
     console.log(`    ${email.padEnd(22)} TOTP: ${secret}`);
   }
