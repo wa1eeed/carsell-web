@@ -278,3 +278,15 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
     effect: 'بعدها يُعدّ التقرير قديمًا ويُطلب فحصٌ جديد.',
   },
 };
+
+/** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */
+export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
+  ESCROW_AT_PROVIDER: 'لدى مزوّد الدفع',
+  BUYER_ADVANCE: 'قُبض ولم يُستحقّ',
+  SELLER_PAYABLE: 'حقوق البائعين',
+  PLATFORM_REVENUE: 'إيراد المنصّة',
+  VAT_PAYABLE: 'ضريبة مستحقّة',
+  GATEWAY_FEES_CLEARING: 'رسوم البوابة (عبور)',
+  GOVT_FEES_CLEARING: 'رسوم حكومية (عبور)',
+  PLATFORM_CASH: 'ما وصلنا فعلًا',
+};

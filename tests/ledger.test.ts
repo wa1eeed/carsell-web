@@ -219,3 +219,43 @@ describe('والدقّة عشريّة لا عائمة', () => {
     expect(await unbalancedTransactions()).toEqual([]);
   });
 });
+
+describe('دفتر المنصّة يقرأ الدفتر لا يُجمّع', () => {
+  /**
+   * **الاختلال يُعرض ولا يُخبَّأ.** ودفترٌ فيه معاملة لا تتوازن ليس
+   * مزدوجًا — فالشاشة تقوله في صدارتها لا في ذيلها.
+   */
+  it('يعيد الأرصدة والاختلال معًا', async () => {
+    const { platformBook } = await import('../src/lib/domain/platform-book');
+    const book = await platformBook();
+
+    expect(book.balances).toHaveLength(8);
+    expect(book.unbalanced).toEqual([]);
+    // الأرقام نصوصٌ بمنزلتين — لا عائمة تفقد الهللة
+    expect(book.revenue).toMatch(/^-?\d+\.\d{2}$/);
+    expect(book.vatPayable).toMatch(/^-?\d+\.\d{2}$/);
+  });
+
+  it('وإيراد المنصّة لا يشمل قيمة المركبات', async () => {
+    const { platformBook } = await import('../src/lib/domain/platform-book');
+    const before = await platformBook();
+
+    const money = {
+      orderId: ORDER,
+      buyerId: BUYER,
+      sellerId: SELLER,
+      total: 100_000,
+      commission: 0,
+      vat: 0,
+      govtFee: 0,
+      gatewayFee: 0,
+    };
+    await recordOrderPaid(db, money);
+    await recordOrderEarned(db, money);
+
+    const after = await platformBook();
+    // مئة ألف مرّت، والإيراد لم يتحرّك
+    expect(after.revenue).toBe(before.revenue);
+    expect(after.unbalanced).toEqual([]);
+  });
+});

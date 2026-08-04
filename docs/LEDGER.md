@@ -202,13 +202,33 @@ ledger exists to solve.
 | **Refunds are not wired** | `recordRefund` is written and tested but no dispute resolution calls it yet. |
 | **Discounts and coupons** | No model at all. |
 | **`PLATFORM_CASH`** | Declared, unused until the provider reports what actually reached us. |
-| **An admin ledger screen** | The finance screen still aggregates orders. It should read the ledger. |
 
 These are wiring, not design. The accounts and the invariant are settled.
 
 ---
 
-## 8. Where to look
+## 8. The platform's book
+
+`platformBook()` in `src/lib/domain/platform-book.ts`, shown at `/admin/ledger`.
+
+Three figures are read before anything else:
+
+- **Revenue** — commission and our fees. Never vehicle value.
+- **VAT payable** — a debt to ZATCA, owed even though we hold no cash.
+- **Held at the provider** — an obligation towards buyers and sellers, not our
+  money.
+
+**The imbalance check is shown at the top, not the bottom.** A number in the
+footer is contemplated; a number in the header is acted on. `unbalanced` must
+always be empty — if it is not, some writer bypassed `postEntries`, and no
+release should happen until it is explained.
+
+Entries are listed **grouped by transaction**, because a debit shown without its
+credit is half a sentence.
+
+---
+
+## 9. Where to look
 
 | | |
 |---|---|
@@ -216,6 +236,8 @@ These are wiring, not design. The accounts and the invariant are settled.
 | The four moments | `src/lib/domain/ledger-events.ts` |
 | Seller's book | `src/lib/domain/seller-book.ts` |
 | Seller's screen | `src/app/[locale]/(site)/account/earnings/page.tsx` |
+| Platform's book | `src/lib/domain/platform-book.ts` |
+| Admin screen | `src/app/admin/ledger/page.tsx` |
 | Schema | `prisma/schema.prisma` → `LedgerEntry` |
 | Tests | `tests/ledger.test.ts` |
 | Gate 20 | `scripts/check-tokens.mjs` |
