@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { APP_URL } from '@/lib/env';
 import { db } from '@/lib/db';
 import { canonicalPath } from '@/lib/domain/listing-detail';
 import { landingCombinations } from '@/lib/domain/landing';
@@ -7,7 +8,8 @@ import { routing } from '@/i18n/routing';
 
 export const dynamic = 'force-dynamic';
 
-const BASE = 'https://carsell.one';
+// العنوان من البيئة — ونطاقٌ مكتوبٌ في الشيفرة يبقى بعد تغييره
+const BASE = APP_URL;
 
 /**
  * خريطة الموقع — **من الصفوف لا من قائمة مكتوبة**.

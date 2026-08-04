@@ -38,6 +38,13 @@ export const isDevelopment = APP_ENV === 'development';
  */
 export const R2_PREFIX: string = isProduction ? 'production' : 'staging';
 
+/**
+ * العنوان العامّ — تُبنى عليه خريطة الموقع والروابط المطلقة.
+ * والافتراضيّ محلّيّ: نشرٌ بلا `APP_URL` يُنتج خريطةً تشير إلى
+ * `localhost`، وهي أوضح من نطاقٍ مكتوبٍ في الشيفرة يبقى بعد تغييره.
+ */
+export const APP_URL: string = (process.env.APP_URL ?? 'http://localhost:3000').replace(/\/+$/, '');
+
 /** مفتاح كائن في R2 داخل مجلّد البيئة الحالية. */
 export function r2Key(...segments: readonly string[]): string {
   return [R2_PREFIX, ...segments]

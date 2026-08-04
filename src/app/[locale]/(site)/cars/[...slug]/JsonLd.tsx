@@ -1,4 +1,5 @@
 import type { Canonical, PublicListingDetail } from '@/lib/domain/listing-detail';
+import { APP_URL } from '@/lib/env';
 
 /**
  * البيانات المنظَّمة — `Vehicle` و`FAQPage` و`BreadcrumbList`.
@@ -22,7 +23,7 @@ export function JsonLd({
   canonical: Canonical;
   locale: string;
 }) {
-  const site = 'https://carsell.one';
+  const site = APP_URL;
   const url = `${site}${canonical.path}`;
 
   const vehicle = {

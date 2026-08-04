@@ -71,3 +71,22 @@ describe('رمز الدخول محروس بـAPP_ENV', () => {
     expect(unconditional).toEqual([]);
   });
 });
+
+/**
+ * ═══ ما ليس إنتاجًا لا يُفهرَس ═══
+ *
+ * وstaging تُنشَر ببياناتٍ مزروعة: عشرات الإعلانات بأسعار وأرقام هياكل
+ * وهمية. وفهرستُها **على النطاق الحقيقيّ** تُدخلها نتائج البحث، ثم
+ * تنافس الحقيقية حين تأتي — وإخراجها يأخذ أسابيع.
+ */
+describe('الفهرسة محصورة بالإنتاج', () => {
+  it('robots يمنع الكلّ خارج الإنتاج', async () => {
+    const source = readFileSync('src/app/robots.ts', 'utf8');
+
+    // الحدّ على البيئة لا على النطاق
+    expect(source).toMatch(/if \(!isProduction\)/);
+    expect(source).toMatch(/disallow: '\/'/);
+    // ولا نطاق مكتوب في الشيفرة يبقى بعد تغييره
+    expect(source).not.toMatch(/https:\/\/carsell\.one/);
+  });
+});
