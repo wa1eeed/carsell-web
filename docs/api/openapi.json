@@ -3259,6 +3259,40 @@
         }
       }
     },
+    "/api/v1/orders/{ref}/disputes": {
+      "post": {
+        "summary": "POST /api/v1/orders/{ref}/disputes",
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/payments": {
       "post": {
         "summary": "POST /api/v1/payments",

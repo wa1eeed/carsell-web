@@ -8,6 +8,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge, InspectedBadge } from '@/components/ui/Badge';
 import { BuyColumn } from '@/components/ui/BuyColumn';
 import { BuyActions } from '@/components/site/BuyActions';
+import { ReportListing } from '@/components/site/ReportListing';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
@@ -52,6 +53,7 @@ export function CarPage({
     taxProfile: TaxProfile | null;
     /** طلبٌ حيّ على الإعلان — فلا يُعرض «اشترِ» ثم يُرفض */
     reserved: boolean;
+    listingId: string;
   };
 }) {
   const t = useTranslations('ui');
@@ -283,6 +285,19 @@ export function CarPage({
                   locale={locale}
                   taxProfile={viewer.taxProfile}
                 />
+              }
+              footer={
+                /*
+                  الإبلاغ **هادئ تحت البطاقة**: مسارٌ مبنيّ لا تناديه
+                  شاشة، وصفحة «تواصل معنا» تحيل إليه وهو غير موجود.
+                */
+                viewer.isOwn ? null : (
+                  <ReportListing
+                    listingId={viewer.listingId}
+                    signedIn={viewer.signedIn}
+                    locale={locale}
+                  />
+                )
               }
               data={{
                 type: detail.type,

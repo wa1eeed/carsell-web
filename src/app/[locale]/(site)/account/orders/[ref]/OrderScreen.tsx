@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { PayPanel } from '@/components/site/PayPanel';
+import { DisputePanel } from '@/components/site/DisputePanel';
 import { StagePanel } from '@/components/site/StagePanel';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -142,6 +143,22 @@ export function OrderScreen({
                 stage={order.stage}
                 viewerIsBuyer={order.counterparty.isSeller}
                 frozen={frozen}
+              />
+              {/*
+                والنزاع تحتها — آخر الحلول لا أوّلها. وللمشتري وحده،
+                بعد الدفع: قبله لا نزاع بل إلغاء.
+              */}
+              <DisputePanel
+                orderRef={order.ref}
+                canOpen={
+                  order.counterparty.isSeller &&
+                  !frozen &&
+                  order.stage !== 'PAYMENT' &&
+                  order.stage !== 'REQUEST' &&
+                  order.stage !== 'APPROVED' &&
+                  order.stage !== 'INSPECTION'
+                }
+                hasOpen={order.dispute !== null}
               />
             </div>
           )}
