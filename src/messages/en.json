@@ -411,7 +411,8 @@
     "none": "All",
     "conditionTitle": "Condition",
     "price": "Price",
-    "year": "Year"
+    "year": "Year",
+    "sortLabel": "Sort results"
   },
   "enums": {
     "transmission": {

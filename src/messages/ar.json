@@ -411,7 +411,8 @@
     "none": "الكل",
     "conditionTitle": "حالة المركبة",
     "price": "السعر",
-    "year": "سنة الصنع"
+    "year": "سنة الصنع",
+    "sortLabel": "ترتيب النتائج"
   },
   "enums": {
     "transmission": {
