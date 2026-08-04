@@ -38,3 +38,36 @@ describe('حدّ البيئة يُقرأ من APP_ENV', () => {
     }
   });
 });
+
+/**
+ * ═══ رمز الدخول لا يخرج خارج التطوير ═══
+ *
+ * **أخطر تسرّبٍ ممكن في هذا المنتج**: رمزٌ مكشوف على إنترنت عام يعني
+ * انتحال أيّ رقم جوّال بضغطة — لا اختراق حساب، بل انتحال كل الحسابات.
+ *
+ * والفحص هنا على **المصدر** لا على السلوك: تشغيل الدالّة يتطلّب تغيير
+ * `APP_ENV` وهو ثابتٌ يُقرأ عند الإقلاع، فيُقاس الشرط نفسه بدل أن
+ * يُحاكى. ومن يحذف الشرط أو يبدّله بـ`NODE_ENV` يسقط هنا.
+ */
+describe('رمز الدخول محروس بـAPP_ENV', () => {
+  it('يُعاد في التطوير وحده — والشرط على APP_ENV لا NODE_ENV', () => {
+    const source = readFileSync('src/lib/domain/auth.ts', 'utf8');
+
+    // يُعاد مشروطًا بـ`isDevelopment` — والأخيرة `APP_ENV === 'development'`
+    expect(source).toMatch(/isDevelopment \? \{ devCode: code \} : \{\}/);
+    expect(readFileSync('src/lib/env.ts', 'utf8')).toMatch(
+      /isDevelopment = APP_ENV === 'development'/,
+    );
+
+    /*
+      ولا يُعاد بلا شرط في أي موضع. وإعلانُ النوع (`devCode?: string`)
+      ليس إعادةً — يصف ما قد يُعاد لا ما يُعاد.
+    */
+    const unconditional = source
+      .split('\n')
+      .filter((line) => line.includes('devCode') && !line.includes('isDevelopment'))
+      .filter((line) => !/devCode\?:/.test(line))
+      .filter((line) => !line.trimStart().startsWith('*') && !line.trimStart().startsWith('//'));
+    expect(unconditional).toEqual([]);
+  });
+});

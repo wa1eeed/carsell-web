@@ -1,0 +1,69 @@
+# ═══ بوابة الجودة في CI ═══
+#
+# **و`build:check` منها لا خارجها.** حاجز البناء ارتفع في هذا المستودع
+# **ولم يُعرف سببه** — فقد يعود، واكتشافه يوم الإطلاق أسوأ توقيت.
+# و`verify` لا يبني، فخطأ الإنتاج يبقى غير مرئيّ بدونه.
+name: CI
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      # الاختبارات تلمس قاعدةً حقيقية — لا مُحاكاة تُخفي خطأ استعلام
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: carsell
+          POSTGRES_PASSWORD: carsell
+          POSTGRES_DB: carsell_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://carsell:carsell@localhost:5432/carsell_test
+      APP_ENV: development
+      NODE_ENV: test
+      # أسرارٌ صوريّة — لا تلمس شيئًا حقيقيًّا، ووجودها شرطُ إقلاع
+      JWT_SECRET: ci-only-not-a-real-secret-000000000000
+      OTP_PEPPER: ci-only-not-a-real-pepper-0000000000
+      SECRETS_KEY: ci-only-not-a-real-key-00000000000000
+      CRON_SECRET: ci-only-not-a-real-cron-secret-000000
+      APP_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: تطبيق الترحيلات
+        run: npx prisma migrate deploy
+
+      - name: البيانات الأولية
+        run: npm run db:seed
+
+      # الأنواع · اللينت · البوابات السبع عشرة · الوثائق · الاختبارات
+      - name: بوابة الجودة
+        run: npm run verify
+
+      # **البناء الحقيقيّ** — وهو ما لا يفعله `verify`
+      - name: بناء الإنتاج
+        run: npm run build:check
+
+      # `build:check` يعدّل هذين، وتركهما معدَّلين يخالف الوثيقة
+      - name: ملفّا build:check لم يُلمسا
+        run: git diff --exit-code next-env.d.ts tsconfig.json

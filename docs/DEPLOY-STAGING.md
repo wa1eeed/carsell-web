@@ -93,6 +93,23 @@ not open.
 
 ---
 
+## 3b. What CI already proves before you deploy
+
+`.github/workflows/ci.yml` runs on every push to `main` and `staging`:
+
+- types · lint · **all seventeen gates** · generated docs · 527 tests
+- **`npm run build:check`** — the real production build. `verify` does not
+  build, so without this a production-only error stays invisible until launch.
+  The build blocker in this repo was resolved but **its cause was never
+  identified**, so this step is the only thing that catches its return.
+- a check that `build:check` did not leave `next-env.d.ts` / `tsconfig.json`
+  modified.
+
+Tests run against a real Postgres service container, not a mock — a mocked
+database hides query errors, which is the class of bug that reaches production.
+
+---
+
 ## 4. Deployment steps
 
 1. **Postgres**: create a `carsell_staging` database. Coolify can host it, or
