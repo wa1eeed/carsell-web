@@ -189,3 +189,50 @@ charged twice. `PENDING` leaves the decision to the webhook or to `status()`.
 
 **Release to the seller needs two approvers** — `SETTLE_WINDOW_HOURS = 72`, and
 the requester cannot approve their own request.
+
+## 7 · Listing (follows the order)
+
+`ListingStatus`; every write goes through `src/lib/domain/listing-state.ts`.
+Gate 21 rejects a `status:` write to `listing` anywhere else.
+
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT
+    DRAFT --> PENDING_REVIEW : decision 33 flagged it
+    DRAFT --> PUBLISHED
+    PENDING_REVIEW --> PUBLISHED : review cleared
+    PUBLISHED --> PENDING_REVIEW : reports crossed the threshold
+    PUBLISHED --> RESERVED : order created, offer accepted, auction won
+    RESERVED --> PUBLISHED : payment window elapsed
+    RESERVED --> SOLD : transfer confirmed
+    RESERVED --> PUBLISHED : full refund before transfer
+    RESERVED --> SUSPENDED : full refund after transfer
+    SOLD --> [*]
+```
+
+**A listing was never marked `SOLD`.** The order reached `DONE`, became
+`COMPLETED` and issued its sale agreement, and the listing stayed `RESERVED`
+forever. The admin dashboard counts `status: 'SOLD'` for sold-this-month, so it
+read zero on every deployment the platform has ever had; the auctions page still
+listed vehicles that had changed hands. No test failed, because no test asked
+about the listing after completion.
+
+The same shape then appeared a second time: a dispute resolved with
+`FULL_REFUND` cancelled the order and left the listing reserved against an order
+that no longer existed.
+
+**Where a refunded listing goes depends on whether the vehicle moved.** Before
+transfer it never left the seller, so it returns to the market. After transfer
+it is with the buyer and we do not know where it settled, so publishing it would
+promise what we cannot deliver — it is withdrawn instead.
+
+> **Open:** `SUSPENDED` currently has no exit. `/account/listings` is read-only
+> and there is no admin listings screen, so nothing can bring a withdrawn
+> listing back. It is the most honest of the available states, not a complete
+> one. Tracked as a `DESIGN-Q` in `listing-state.ts`.
+
+**Reserving writes `closedAt` and `closeReason` too.** Three call sites used to
+reserve a listing and two of them wrote neither, so some reserved rows recorded
+why they closed and others did not — the difference was an incomplete copy, not
+a decision. Routing every transition through one module is what makes that
+impossible rather than merely unlikely.

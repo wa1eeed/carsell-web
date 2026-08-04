@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { markListingSold, reserveListing } from './listing-state';
 import { nextOrderRef } from './refs';
 import type { OrderDocument, SettlementFigures } from './documents';
 import type { OrderStage } from '@/generated/prisma/enums';
@@ -59,7 +60,14 @@ export async function advanceStage(
   const result = await db.$transaction(async (tx): Promise<AdvanceResult> => {
     const order = await tx.order.findUnique({
       where: { ref: input.orderRef },
-      select: { id: true, stage: true, status: true, buyerId: true, sellerId: true },
+      select: {
+        id: true,
+        stage: true,
+        status: true,
+        buyerId: true,
+        sellerId: true,
+        listingId: true,
+      },
     });
 
     if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
@@ -85,6 +93,16 @@ export async function advanceStage(
           : {}),
       },
     });
+
+    /**
+     * **والإعلان يتبع الطلب في اللحظة نفسها.**
+     *
+     * كان يبقى `RESERVED` بعد الاكتمال إلى الأبد — فعدّاد «المُباع
+     * هذا الشهر» يقرأ `SOLD` ويجد صفرًا دائمًا، والمزادات تعرض ما
+     * بيع. وداخل المعاملة لا بعدها: طلبٌ اكتمل وإعلانٌ لم يتبعه هو
+     * صفٌّ يكذب، ولا شيء يُبلّغ أن الحلقة انكسرت.
+     */
+    if (input.to === 'DONE') await markListingSold(tx, order.listingId, now);
 
     await tx.orderEvent.create({
       data: {
@@ -383,7 +401,7 @@ export async function buyDirect(
     });
 
     // الإعلان يُحجز فورًا — وبقاؤه معروضًا يبيع المركبة مرّتين
-    await tx.listing.update({ where: { id: listing.id }, data: { status: 'RESERVED' } });
+    await reserveListing(tx, listing.id, 'order.created', now);
 
     await tx.offer.updateMany({
       where: { listingId: listing.id, status: { in: ['PENDING', 'COUNTERED'] } },

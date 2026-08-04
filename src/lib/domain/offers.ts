@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { nextOrderRef } from './refs';
+import { republishListing, reserveListing } from './listing-state';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
@@ -327,10 +328,7 @@ export async function acceptOffer(
     }
 
     // الإعلان يُسحب من العرض العام فورًا
-    await tx.listing.update({
-      where: { id: offer.listingId },
-      data: { status: 'RESERVED', closedAt: now, closeReason: 'offer.accepted' },
-    });
+    await reserveListing(tx, offer.listingId, 'offer.accepted', now);
 
     /**
      * **قاعدة المال تُكتب مرّة.** الحساب نفسه يخدم البيع المباشر ورسوّ
@@ -426,10 +424,7 @@ export async function timeoutUnpaidOrders(now: Date = new Date()): Promise<numbe
       });
 
       // الإعلان يعود إلى العرض العام
-      await tx.listing.update({
-        where: { id: order.listingId },
-        data: { status: 'PUBLISHED', closedAt: null, closeReason: null },
-      });
+      await republishListing(tx, order.listingId);
 
       const contenders = await tx.offer.findMany({
         where: { listingId: order.listingId, status: 'REJECTED', autoRejected: false },

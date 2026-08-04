@@ -284,6 +284,14 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     // الطلب خرج من التجميد — النزاع حُسم
     expect(isFrozen(order.status)).toBe(false);
 
+    /**
+     * **والإعلان يعود إلى السوق** — كان يبقى `RESERVED` محجوزًا لطلبٍ
+     * أُلغي. والنزاع هنا عند مرحلة الدفع، فالمركبة لم تفارق بائعها.
+     */
+    const listing = await db.listing.findUniqueOrThrow({ where: { id: listingId } });
+    expect(listing.status).toBe('PUBLISHED');
+    expect(listing.closedAt).toBeNull();
+
     await db.adminUser.delete({ where: { id: admin3.id } });
     await teardown();
   });

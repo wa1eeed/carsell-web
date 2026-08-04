@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { republishListing, suspendListing } from './listing-state';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import type { DisputeStatus } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
@@ -309,7 +310,7 @@ async function executeResolution(
     include: {
       order: {
         select: {
-          id: true, buyerId: true, sellerId: true, stage: true,
+          id: true, buyerId: true, sellerId: true, stage: true, listingId: true,
           totalAmount: true, paymentPausedRemainingMs: true,
         },
       },
@@ -380,6 +381,22 @@ async function executeResolution(
         paymentPausedRemainingMs: null,
       },
     });
+
+    /**
+     * **والإعلان يتبع — ووجهته تختلف باختلاف ما وقع.**
+     *
+     * كان يبقى `RESERVED` إلى الأبد: محجوزًا لطلبٍ أُلغي. وهو الصنف
+     * نفسه الذي ترك الإعلان لا يصير `SOLD` عند الاكتمال.
+     *
+     * وقبل نقل الملكية المركبة لم تفارق بائعها، فتعود إلى السوق.
+     * وبعده هي بيد المشتري ولا نعرف أين استقرّت — فنشرُها وعدٌ لا
+     * نملك الوفاء به.
+     */
+    if (order.stage === 'PAYMENT') {
+      await republishListing(tx, order.listingId);
+    } else {
+      await suspendListing(tx, order.listingId, 'dispute.refunded', now);
+    }
   } else {
     await tx.escrow.updateMany({
       where: { orderId: order.id },

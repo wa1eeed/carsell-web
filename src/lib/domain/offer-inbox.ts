@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { sendListingToReview } from './listing-state';
 import { ACTIVE_STATUSES } from './offers';
 import { canonicalPath } from './listing-detail';
 import type { OfferStatus } from '@/generated/prisma/enums';
@@ -213,11 +214,7 @@ export async function fileReport(
       });
 
       if (openReports >= REVIEW_REPORT_THRESHOLD || fromBuyer > 0) {
-        const { count } = await tx.listing.updateMany({
-          where: { id: input.targetId, status: 'PUBLISHED' },
-          data: { status: 'PENDING_REVIEW', reviewReason: 'USER_REPORT' },
-        });
-        underReview = count > 0;
+        underReview = await sendListingToReview(tx, input.targetId, 'USER_REPORT');
       }
     }
 

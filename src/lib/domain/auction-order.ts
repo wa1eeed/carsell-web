@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import type { Prisma } from '@/generated/prisma/client';
 import { computeOrderAmounts } from './order-amounts';
 import { deadline } from './deadlines';
+import { reserveListing } from './listing-state';
 import { nextOrderRef } from './refs';
 
 /**
@@ -92,10 +93,7 @@ export async function createAuctionOrder(
   });
 
   // الإعلان يُحجز — وبقاؤه معروضًا بعد الرسوّ يبيع المركبة مرّتين
-  await tx.listing.update({
-    where: { id: auction.listing.id },
-    data: { status: 'RESERVED' },
-  });
+  await reserveListing(tx, auction.listing.id, 'auction.won', now);
 
   await tx.orderEvent.create({
     data: {

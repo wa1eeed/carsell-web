@@ -990,6 +990,54 @@ function checkApprovalQuorum() {
   }
 }
 
+/**
+ * ═══ البوابة ٢١ ═══ **حالة الإعلان تُكتب من `listing-state.ts` وحدها.**
+ *
+ * وُلدت من الصنف نفسه مرّتين: طلبٌ يكتمل والإعلان يبقى `RESERVED` فلا
+ * يصير `SOLD` أبدًا (وعدّاد «المُباع» صفرٌ دائمًا)، ثم نزاعٌ يُحسم بردٍّ
+ * كامل والإعلان يبقى محجوزًا لطلبٍ أُلغي.
+ *
+ * والسبب واحد: **الحالة تُكتب حيث يقع الحدث**، فكل كاتبٍ يتذكّر ما
+ * كان يعرفه يوم كُتب. وستّة كتّاب تباعدوا فعلًا — اثنان يكتبان
+ * `RESERVED` بلا `closedAt` ولا `closeReason` وثالثٌ يكتب الثلاثة.
+ *
+ * فالانتقال يمرّ بمدخله الوحيد، ومن يضيف حدثًا جديدًا يجد الانتقالات
+ * كلها أمامه فيرى أيّها ينقص.
+ */
+const LISTING_WRITE = /\blisting\s*\.\s*(update|updateMany|upsert)\b/;
+const LISTING_ALLOWED = /(src[/\\]lib[/\\]domain[/\\]listing-state\.ts|^tests[/\\]|[/\\]tests[/\\]|scripts[/\\]|prisma[/\\])/;
+
+function checkListingState() {
+  const roots = [join('src', 'lib'), join('src', 'app'), join('src', 'components')];
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+      const rel = relative(ROOT, file);
+      if (LISTING_ALLOWED.test(rel)) continue;
+
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line, i) => {
+        const code = line.split('//')[0] ?? '';
+        if (/^\s*[*]/.test(line)) return;
+        if (!LISTING_WRITE.test(code)) return;
+
+        /**
+         * والنافذة ستّة أسطر لأن `data: { status }` يقع بعد `where`
+         * في الاستدعاء متعدّد الأسطر. وتحديثٌ لا يمسّ الحالة (سعر،
+         * وصف، عدّاد مشاهدات) يمرّ — البوابة على الحالة لا على الجدول.
+         */
+        const window = lines.slice(i, i + 6).join('\n');
+        if (/\bstatus\s*:/.test(window)) {
+          problems.push(
+            `${rel}:${i + 1}  كتابةٌ مباشرة لحالة الإعلان — استعمل listing-state.ts: reserveListing · markListingSold · republishListing · suspendListing`,
+          );
+        }
+      });
+    }
+  }
+}
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -1001,6 +1049,7 @@ checkTaxRate();
   checkInterpolatedNumbers();
 checkDomainHasNoProse();
 checkApprovalQuorum();
+checkListingState();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1011,5 +1060,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد.',
 );

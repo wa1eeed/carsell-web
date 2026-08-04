@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import type { Escrow, Order } from '@/generated/prisma/client';
+import type { Escrow, Listing, Order } from '@/generated/prisma/client';
 
 /**
  * ═══ استعادة الطلب — **في موضع واحد** ═══
@@ -12,13 +12,22 @@ import type { Escrow, Order } from '@/generated/prisma/client';
  * يتبع الأثر الجديد مرّةً واحدة. **الخطأ الذي تكرّر يُغلَق آليًا.**
  */
 
-/** لقطةٌ كاملة للصفّ — والاستعادة تُعيده حرفيًّا لا حقولًا مختارة. */
-export type OrderSnapshot = { order: Order; escrow: Escrow | null };
+/**
+ * لقطةٌ كاملة للصفّ — والاستعادة تُعيده حرفيًّا لا حقولًا مختارة.
+ *
+ * **والإعلان معه**: صار `advanceStage` إلى `DONE` يكتب `SOLD`، وحسمُ
+ * نزاعٍ بردٍّ كامل يكتب `PUBLISHED` أو `SUSPENDED`. فاختبارٌ يُكمل طلبًا
+ * ولا يستعيد إعلانه يسحب سيارةً من السوق ويُسقط جيرانه في التشغيل
+ * التالي — وهو الأثر الجديد الذي تتبعه هذه الاستعادة مرّةً واحدة.
+ */
+export type OrderSnapshot = { order: Order; escrow: Escrow | null; listing: Listing };
 
 export async function snapshotOrder(orderId: string): Promise<OrderSnapshot> {
+  const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
   return {
-    order: await db.order.findUniqueOrThrow({ where: { id: orderId } }),
+    order,
     escrow: await db.escrow.findUnique({ where: { orderId } }),
+    listing: await db.listing.findUniqueOrThrow({ where: { id: order.listingId } }),
   };
 }
 
@@ -48,6 +57,9 @@ export async function restoreOrder(snapshot: OrderSnapshot): Promise<void> {
 
   const { id: _id, ...fields } = snapshot.order;
   await db.order.update({ where: { id }, data: fields });
+
+  const { id: _listingId, ...listingFields } = snapshot.listing;
+  await db.listing.update({ where: { id: snapshot.listing.id }, data: listingFields });
 }
 
 /** أوّل طلبٍ مزروع، مُعادًا إلى حاله مهما فعل الجسد أو رمى. */
