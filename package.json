@@ -16,7 +16,7 @@
     "check:tokens": "node scripts/check-tokens.mjs",
     "check:schema": "tsx scripts/check-schema.ts",
     "check": "npm run typecheck && npm run lint && npm run check:tokens && npm test",
-    "db:generate": "prisma generate && rm -rf .next && echo '\n  ⚠  .next مُسح — أعِد تشغيل خادم التطوير، وإلّا سقط بـMODULE_NOT_FOUND\n'",
+    "db:generate": "node scripts/db-generate.mjs",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",

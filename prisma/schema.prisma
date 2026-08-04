@@ -25,6 +25,19 @@ datasource db {
 //  الهوية
 // ═══════════════════════════════════════════════════════════
 
+/// حالة توثيق الهوية — **أربعٌ لا رايةٌ واحدة**.
+///
+/// `idVerified` منطقيّ يقول «وُثّق أو لا»، ولا يقول **ينتظر** ولا
+/// **مُعلَّق للتوضيح** ولا **مرفوض** — وهي الحالات التي يُبنى عليها
+/// طابور A18 كلّه. ورايةٌ واحدة تجعل المنتظر والمرفوض سواءً.
+enum IdentityStatus {
+  NONE /// لم يُقدّم شيئًا
+  PENDING /// قُدّم وينتظر مراجعة
+  CLARIFICATION /// طُلب توضيح — يبقى في الطابور
+  VERIFIED
+  REJECTED
+}
+
 model User {
   id           String     @id @default(cuid())
   phone        String     @unique // E.164
@@ -34,8 +47,17 @@ model User {
   locale       String     @default("ar")
   role         UserRole   @default(USER)
   status       UserStatus @default(ACTIVE)
+  /// مشتقّ من `identityStatus` ويُكتبان معًا في `identity-state.ts`.
+  /// يبقى لأن قرّاءه كثيرون ولا يحتاجون الحالة الكاملة.
   idVerified   Boolean    @default(false)
   idVerifiedAt DateTime?
+  identityStatus      IdentityStatus @default(NONE)
+  identitySubmittedAt DateTime?
+  /// `manual` · `nafath` · `commercial_register` — والنفاذ يمرّ آليًّا
+  identityMethod      String?
+  /// سبب الرفض أو ما طُلب توضيحه — يقرؤه صاحبه
+  identityNote        String?
+  identityReviewedBy  String?
   /// رقم الهوية **مشفّرًا** — يُقارن عند نقل الملكية ولا يُعرض أبدًا
   nationalIdEncrypted String?
 

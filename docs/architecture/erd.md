@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-82 models · 49 enums
+82 models · 50 enums
 
 ## Relationships
 
@@ -12,6 +12,7 @@
 erDiagram
   User }o--|| UserRole : "role"
   User }o--|| UserStatus : "status"
+  User }o--|| IdentityStatus : "identityStatus"
   User |o--|| TaxStatus : "taxStatus"
   User |o--|| Dealer : "dealer"
   User ||--o{ Vehicle : "vehicles"
@@ -250,6 +251,10 @@ erDiagram
 | `locale` | `String` |  |
 | `idVerified` | `Boolean` |  |
 | `idVerifiedAt` | `DateTime?` |  |
+| `identitySubmittedAt` | `DateTime?` |  |
+| `identityMethod` | `String?` |  |
+| `identityNote` | `String?` |  |
+| `identityReviewedBy` | `String?` |  |
 | `nationalIdEncrypted` | `String?` |  |
 | `vatNumber` | `String?` |  |
 | `taxStatusSetAt` | `DateTime?` |  |
@@ -263,7 +268,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet`
 
 ### `AdminUser`
 
@@ -1534,6 +1539,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 
 ## Enums
 
+- `IdentityStatus` — `NONE /// لم يُقدّم شيئًا`, `PENDING /// قُدّم وينتظر مراجعة`, `CLARIFICATION /// طُلب توضيح — يبقى في الطابور`, `VERIFIED`, `REJECTED`
 - `UserRole` — `USER`, `DEALER`, `ADMIN`, `SUPER_ADMIN`
 - `UserStatus` — `ACTIVE`, `SUSPENDED`, `BANNED`
 - `AdminRole` — `SUPER_ADMIN`, `OPS`, `FINANCE`, `SUPPORT`, `CONTENT`, `READONLY`
