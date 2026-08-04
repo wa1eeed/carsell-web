@@ -894,6 +894,13 @@ Relations: `status` → `ReconciliationStatus`
 | `processingFeePct` | `Decimal` |  |
 | `processingFeeFixed` | `Decimal` |  |
 | `vatPct` | `Decimal` |  |
+| `auctionMaxExtensions` | `Int` |  |
+| `auctionDefaultDeposit` | `Decimal` |  |
+| `auctionMinIncrement` | `Decimal` |  |
+| `auctionWinnerPaymentHours` | `Int` |  |
+| `auctionHideReserve` | `Boolean` |  |
+| `auctionBuyNowBeforeReserve` | `Boolean` |  |
+| `auctionDurationsDays` | `Int[]` |  |
 
 Relations: `processingFeeBearer` → `FeeBearer`
 

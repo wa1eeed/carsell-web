@@ -265,6 +265,83 @@
         }
       }
     },
+    "/api/v1/admin/auction-settings": {
+      "put": {
+        "summary": "PUT /api/v1/admin/auction-settings",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maxExtensions": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 50
+                  },
+                  "defaultDeposit": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "minIncrement": {
+                    "type": "number",
+                    "maximum": 100000
+                  },
+                  "winnerPaymentHours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 720
+                  },
+                  "hideReserve": {
+                    "type": "boolean"
+                  },
+                  "buyNowBeforeReserve": {
+                    "type": "boolean"
+                  },
+                  "durationsDays": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "maxExtensions",
+                  "defaultDeposit",
+                  "minIncrement",
+                  "winnerPaymentHours",
+                  "hideReserve",
+                  "buyNowBeforeReserve",
+                  "durationsDays"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/auth/login": {
       "post": {
         "summary": "POST /api/v1/admin/auth/login",
@@ -2539,6 +2616,41 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/team/{id}/sessions": {
+      "delete": {
+        "summary": "DELETE /api/v1/admin/team/{id}/sessions",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "team.manage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"

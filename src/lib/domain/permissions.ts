@@ -86,6 +86,24 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
 };
 
 /** هل يملك الدور هذه الصلاحية بأي مستوى؟ */
+/**
+ * الأدوار والصلاحيات **قائمتين معلَنتين** — لتُعرض المصفوفة في A35.
+ *
+ * ومن يراجع «من يستطيع الإفراج عن ضمان» لا ينبغي أن يفتح ملف شيفرة
+ * ليعرف: المصفوفة قرارُ حَوكمةٍ يُراجَع لا تفصيلُ تنفيذ.
+ */
+export const ADMIN_ROLES: readonly AdminRole[] = [
+  'SUPER_ADMIN', 'OPS', 'FINANCE', 'SUPPORT', 'CONTENT', 'READONLY',
+];
+
+export const PERMISSION_LIST: readonly Permission[] = [
+  'dashboard.view', 'finance.view', 'orders.view', 'orders.changeStage', 'escrow.release',
+  'users.view', 'users.viewIdentity', 'users.suspend', 'identity.review', 'listings.review',
+  'reports.handle', 'catalog.manage', 'catalog.uploadLogo', 'services.manage',
+  'serviceRequests.handle', 'notifications.manage', 'integrations.view',
+  'integrations.rotateKeys', 'team.manage', 'audit.view',
+];
+
 export function can(role: AdminRole, permission: Permission): boolean {
   return MATRIX[role][permission] !== undefined;
 }
