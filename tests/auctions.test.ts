@@ -17,6 +17,7 @@ import {
   resolveSellerDecision,
   settleDeposits,
 } from '@/lib/domain/auctions';
+import { createAuctionOrderStandalone } from '@/lib/domain/auction-order';
 import { Prisma } from '@/generated/prisma/client';
 
 const T0 = new Date('2026-06-01T10:00:00Z');
@@ -88,6 +89,20 @@ async function scaffold(): Promise<void> {
 }
 
 async function teardown(): Promise<void> {
+  /**
+   * **أثرٌ جديد على كيانٍ مشترك يُضاف إلى الاستعادة المشتركة.**
+   * صار إغلاق المزاد يُنشئ طلبًا للفائز، فبقي الطلب يمنع حذف إعلانه
+   * بقيدٍ مرجعيّ — والاستعادة تُتبَع فيها الآثار مرّة لا في كل اختبار.
+   */
+  const orders = await db.order.findMany({ where: { listingId }, select: { id: true } });
+  const orderIds = orders.map((row) => row.id);
+  if (orderIds.length > 0) {
+    await db.ledgerEntry.deleteMany({ where: { orderId: { in: orderIds } } });
+    await db.orderEvent.deleteMany({ where: { orderId: { in: orderIds } } });
+    await db.escrow.deleteMany({ where: { orderId: { in: orderIds } } });
+    await db.order.deleteMany({ where: { id: { in: orderIds } } });
+  }
+
   await db.bid.deleteMany({ where: { auctionId } });
   await db.deposit.deleteMany({ where: { auctionId } });
   await db.auction.deleteMany({ where: { id: auctionId } });
@@ -402,6 +417,47 @@ describe('auction.buyNowGate — القاعدة ١٠', () => {
     const after = await getAuction(listingRef);
     expect(after?.reserveMet).toBe(true);
     expect(after?.buyNowPrice).toBeNull();
+    await teardown();
+  });
+});
+
+describe('الرسوّ يُنشئ طلبًا — الحلقة التي لم تكن', () => {
+  /**
+   * **`OrderSource.AUCTION` معرَّفٌ منذ اليوم الأول ولا شيء يُنشئ به.**
+   * فالمزاد يُغلق وتُسوّى عرابينه ويُعلَن فائز ثم لا شيء: لا طلب ولا
+   * دفع ولا نقل ملكية — يربح المزايد ولا يستلم.
+   */
+  it('بلوغ الاحتياطي ⇒ طلبٌ للفائز، والإعلان يُحجز', async () => {
+    // مزايدةٌ تبلغ الاحتياطي، ثم إغلاقٌ بعد انقضاء الوقت
+    await holdDeposit({ auctionId, userId: bidderA });
+    const bid = await placeBid({ auctionId, bidderId: bidderA, amount: RESERVE }, at(60));
+    expect(bid.ok).toBe(true);
+
+    expect(await closeEndedAuctions(at(100_000))).toBeGreaterThan(0);
+
+    const order = await db.order.findFirst({ where: { listingId, source: 'AUCTION' } });
+    expect(order).not.toBeNull();
+    expect(order?.buyerId).toBe(bidderA);
+    expect(order?.stage).toBe('PAYMENT');
+    // والمهلة مخزَّنة — فالمشتري يرى متى يسقط طلبه
+    expect(order?.paymentDueAt).not.toBeNull();
+
+    const listing = await db.listing.findUniqueOrThrow({ where: { id: listingId } });
+    expect(listing.status).toBe('RESERVED');
+
+    await teardown();
+  });
+
+  /** **ولا طلبان.** إغلاقٌ يتكرّر (وظيفة دورية) لا يبيع المركبة مرّتين. */
+  it('وإغلاقٌ ثانٍ لا يُنشئ طلبًا ثانيًا', async () => {
+    await holdDeposit({ auctionId, userId: bidderA });
+    await placeBid({ auctionId, bidderId: bidderA, amount: RESERVE }, at(60));
+    await closeEndedAuctions(at(100_000));
+
+    const again = await createAuctionOrderStandalone(auctionId, at(100_100));
+    expect(again).toEqual({ ok: false, reason: 'ORDER_EXISTS' });
+    expect(await db.order.count({ where: { listingId, source: 'AUCTION' } })).toBe(1);
+
     await teardown();
   });
 });

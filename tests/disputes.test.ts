@@ -128,11 +128,18 @@ describe('dispute.freeze — القاعدة ١', () => {
     await openDispute({ orderRef, openedBy: buyerId, reason: 'س' }, T0);
 
     const { timeoutUnpaidOrders } = await import('@/lib/domain/offers');
-    const timedOut = await timeoutUnpaidOrders(hours(48));
+    await timeoutUnpaidOrders(hours(48));
 
+    /**
+     * **الحكم على هذا الطلب لا على العدد.**
+     *
+     * كان يفحص `timedOut === 0`، و`timeoutUnpaidOrders` تمرّ على
+     * **كل** الطلبات — فيكفي طلبٌ واحد غير مدفوع في القاعدة (مزروعٌ
+     * تجاوز مهلته بمرور الزمن) ليسقط الاختبار، والعطل ليس فيما يقيسه.
+     */
     const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
     expect(order.status).toBe('DISPUTED');
-    expect(timedOut).toBe(0);
+    expect(order.stage).toBe('PAYMENT');
     // ═══ قرار ٣ ═══ المتبقّي محفوظ لا مُهدَر
     expect(order.paymentPausedRemainingMs).toBe(24 * 3600 * 1000);
     await teardown();

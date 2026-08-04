@@ -93,3 +93,5 @@ that failed.
 Every gate in `scripts/check-tokens.mjs` and `eslint-rules/` was born from a
 mistake that happened **twice**. Add to them rather than fixing the same class of
 error a third time.
+- [LEDGER.md](LEDGER.md) — the double-entry ledger: accounts, the four money moments, and why a ledger is not a wallet.
+- [DEPLOY-STAGING.md](DEPLOY-STAGING.md) — deploying staging to a VPS with Coolify.

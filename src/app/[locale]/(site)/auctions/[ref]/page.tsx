@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
+import { currentUserFromCookies } from '@/lib/domain/account';
 import { getAuction } from '@/lib/domain/auctions';
 import { canonicalPath, findPublishedListing } from '@/lib/domain/listing-detail';
 import { AuctionScreen } from './AuctionScreen';
@@ -38,9 +39,11 @@ export default async function AuctionPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [auction, listing, t] = await Promise.all([
+  const [auction, listing, viewer, t] = await Promise.all([
     getAuction(ref),
     findPublishedListing(ref),
+    // البائع لا يزايد على مركبته — والشاشة تقولها قبل الضغط
+    currentUserFromCookies(),
     getTranslations('auctions'),
   ]);
 
@@ -67,6 +70,11 @@ export default async function AuctionPage({
             auction={auction}
             vehicle={{ title, year: listing.vehicle.year, city: listing.city }}
             listingPath={canonicalPath(locale, listing).path}
+            viewer={{
+              signedIn: viewer !== null,
+              isOwn: viewer !== null && viewer.id === listing.sellerId,
+            }}
+            locale={locale}
           />
         </div>
       </main>

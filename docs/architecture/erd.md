@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-80 models · 46 enums
+82 models · 48 enums
 
 ## Relationships
 
@@ -231,6 +231,8 @@ erDiagram
   CreditNote }o--|| TaxInvoice : "invoice"
   SettlementStatement }o--|| Order : "order"
   VehicleSaleAgreement }o--|| Order : "order"
+  LedgerEntry }o--|| LedgerAccount : "account"
+  LedgerEntry }o--|| LedgerDirection : "direction"
 ```
 
 ## Models
@@ -1493,6 +1495,32 @@ Relations: `order` → `Order`
 | `method` | `String` |  |
 | `createdAt` | `DateTime` |  |
 
+### `DeadlineSetting`
+
+| Field | Type | Key |
+|---|---|---|
+| `key` | `String` | PK |
+| `value` | `Int` |  |
+| `updatedBy` | `String` |  |
+| `updatedAt` | `DateTime` |  |
+
+### `LedgerEntry`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `txnId` | `String` |  |
+| `amount` | `Decimal` |  |
+| `currency` | `String` |  |
+| `event` | `String` |  |
+| `orderId` | `String?` |  |
+| `paymentId` | `String?` |  |
+| `userId` | `String?` |  |
+| `note` | `String?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
+
 ## Enums
 
 - `UserRole` — `USER`, `DEALER`, `ADMIN`, `SUPER_ADMIN`
@@ -1541,3 +1569,5 @@ Relations: `order` → `Order`
 - `TaxableBase` — `FULL_VALUE`, `MARGIN`, `FEE_ONLY`, `OUT_OF_SCOPE`
 - `InvoiceIssuer` — `PLATFORM`, `SELLER`, `PLATFORM_ON_BEHALF`, `NONE`
 - `InvoiceStatus` — `ISSUED`, `REPORTED`, `REPORT_FAILED`, `CANCELLED`
+- `LedgerAccount` — `ESCROW_AT_PROVIDER`, `BUYER_ADVANCE`, `SELLER_PAYABLE`, `PLATFORM_REVENUE`, `VAT_PAYABLE`, `GATEWAY_FEES_CLEARING`, `GOVT_FEES_CLEARING`, `PLATFORM_CASH`
+- `LedgerDirection` — `DEBIT`, `CREDIT`

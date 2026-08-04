@@ -1,4 +1,6 @@
 import { db } from '@/lib/db';
+import { nextOrderRef } from './refs';
+import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
 import { computeOrderAmounts } from './order-amounts';
@@ -15,10 +17,12 @@ import { computeOrderAmounts } from './order-amounts';
  */
 
 /** القاعدة ٣ — العرض يسقط بعد ٤٨ ساعة. */
-export const OFFER_TTL_HOURS = 48;
+/** الافتراضيّ — والسارية تُقرأ من `currentDeadlines` (إعداد الأدمن). */
+export const OFFER_TTL_HOURS = DEADLINE_DEFAULTS.offerTtlHours;
 
 /** القاعدة ٤ — مهلة الدفع بعد القبول. */
-export const PAYMENT_WINDOW_HOURS = 24;
+/** الافتراضيّ — والسارية من الإعداد. */
+export const PAYMENT_WINDOW_HOURS = DEADLINE_DEFAULTS.paymentWindowHours;
 
 /** الحالات التي تُعدّ «نشطة» — عرضٌ ينتظر ردًّا أو رُدّ عليه بمقابل. */
 export const ACTIVE_STATUSES: readonly OfferStatus[] = ['PENDING', 'COUNTERED'];
@@ -113,7 +117,9 @@ export async function createOffer(
     const floor = listing.minAcceptPrice === null ? null : Number(listing.minAcceptPrice);
     const autoRejected = floor !== null && input.amount < floor;
 
-    const expiresAt = new Date(now.getTime() + OFFER_TTL_HOURS * 3600 * 1000);
+    // المهلة تُقرأ عند الإنشاء فتُخزَّن — وتغييرُ الإعداد لا يحرّك عرضًا قائمًا
+    const ttl = await deadline('offerTtlHours');
+    const expiresAt = new Date(now.getTime() + ttl * 3600 * 1000);
 
     const offer = await tx.offer.create({
       data: {
@@ -193,7 +199,7 @@ export async function counterOffer(
         amount: new Prisma.Decimal(input.amount),
         status: 'PENDING',
         parentOfferId: original.id,
-        expiresAt: new Date(now.getTime() + OFFER_TTL_HOURS * 3600 * 1000),
+        expiresAt: new Date(now.getTime() + (await deadline('offerTtlHours')) * 3600 * 1000),
         createdAt: now,
       },
     });
@@ -247,13 +253,6 @@ export async function withdrawOffer(
 export type AcceptResult =
   | { ok: true; orderRef: string; closedOffers: number }
   | { ok: false; reason: 'OFFER_NOT_FOUND' | 'NOT_SELLER' | 'NOT_ACTIVE' };
-
-/** رقم الطلب — سنة وتسلسل، يُقتبَس في مكالمة. */
-async function nextOrderRef(tx: Prisma.TransactionClient, now: Date): Promise<string> {
-  const year = now.getFullYear();
-  const count = await tx.order.count({ where: { ref: { startsWith: `ORD-${year}-` } } });
-  return `ORD-${year}-${String(1000 + count + 1)}`;
-}
 
 /**
  * ═══ القاعدة ٤ ═══ قبول عرض ⇒ إغلاق الباقي + سحب الإعلان + مهلة دفع ٢٤ ساعة.
@@ -339,6 +338,9 @@ export async function acceptOffer(
      */
     const amounts = await computeOrderAmounts(tx, Number(offer.amount), now);
 
+    // مهلة الدفع تُقرأ عند الإنشاء فتُخزَّن — لا تتحرّك بتغيير الإعداد
+    const paymentWindow = await deadline('paymentWindowHours');
+
     const ref = await nextOrderRef(tx, now);
 
     await tx.order.create({
@@ -352,7 +354,7 @@ export async function acceptOffer(
         ...amounts,
         createdAt: now,
         stageEnteredAt: now,
-        paymentDueAt: new Date(now.getTime() + PAYMENT_WINDOW_HOURS * 3600 * 1000),
+        paymentDueAt: new Date(now.getTime() + paymentWindow * 3600 * 1000),
       },
     });
 

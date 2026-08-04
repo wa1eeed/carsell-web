@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import type { AdminUser } from '@/generated/prisma/client';
 
 /**
@@ -15,12 +16,25 @@ import type { AdminUser } from '@/generated/prisma/client';
  * لا موعد، فالسقف قاعدةٌ مستقلّة تُحسب من الدفع.
  */
 
-export const TRANSFER_DEADLINE_DAYS = 7;
-export const RETURN_WINDOW_DAYS = 7;
+/** الافتراضيّ — والسارية من إعداد الأدمن. */
+export const TRANSFER_DEADLINE_DAYS = DEADLINE_DEFAULTS.transferDeadlineDays;
+export const RETURN_WINDOW_DAYS = DEADLINE_DEFAULTS.returnWindowDays;
 /** تمديدٌ **واحد** لا أكثر، بسبب مكتوب ومسجَّل. */
-export const TRANSFER_EXTENSION_DAYS = 7;
+export const TRANSFER_EXTENSION_DAYS = DEADLINE_DEFAULTS.transferExtensionDays;
 
 const DAY_MS = 86_400_000;
+
+/**
+ * **تُقرأ من الإعداد** — والمتزامنة أدناه تبقى للحساب على الافتراضيّ
+ * (العرض والاختبار)، فما يُخزَّن في صفٍّ يمرّ بهذه.
+ */
+export async function transferDeadlineFor(paidAt: Date): Promise<Date> {
+  return new Date(paidAt.getTime() + (await deadline('transferDeadlineDays')) * DAY_MS);
+}
+
+export async function returnWindowFor(transferConfirmedAt: Date): Promise<Date> {
+  return new Date(transferConfirmedAt.getTime() + (await deadline('returnWindowDays')) * DAY_MS);
+}
 
 export function transferDeadlineFrom(paidAt: Date): Date {
   return new Date(paidAt.getTime() + TRANSFER_DEADLINE_DAYS * DAY_MS);

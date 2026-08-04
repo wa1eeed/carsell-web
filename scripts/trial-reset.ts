@@ -41,6 +41,25 @@ const db = new PrismaClient({
   log: ['error'],
 });
 
+/**
+ * حذف طلبٍ بكل ما تعلّق به — **موضعٌ واحد يتبع الآثار**.
+ *
+ * وكل أثرٍ جديد على الطلب يُضاف هنا مرّة: تفرّقُ الحذف على موضعين
+ * يجعل الأثر الجديد يُنسى في أحدهما، فيسقط التنظيف بقيدٍ مرجعيّ.
+ */
+async function removeOrder(orderId: string): Promise<void> {
+  // قيود الدفتر أثرٌ جديد على الطلب — تُتبَع في الاستعادة المشتركة
+  await db.ledgerEntry.deleteMany({ where: { orderId } });
+  await db.escrow.deleteMany({ where: { orderId } });
+  await db.orderEvent.deleteMany({ where: { orderId } });
+  await db.taxInvoice.deleteMany({ where: { orderId } }).catch(() => undefined);
+  await db.settlementStatement.deleteMany({ where: { orderId } }).catch(() => undefined);
+  // العقد يصدر عند `DONE` — أثرٌ أُضيف بعد كتابة هذا السكربت
+  await db.vehicleSaleAgreement.deleteMany({ where: { orderId } }).catch(() => undefined);
+  await db.dispute.deleteMany({ where: { orderId } }).catch(() => undefined);
+  await db.order.delete({ where: { id: orderId } }).catch(() => undefined);
+}
+
 async function main(): Promise<void> {
   /**
    * الطلبات التي مرّت بالبوابة التجريبية وحدها — **تُعرَف بدفعتها لا
@@ -60,10 +79,7 @@ async function main(): Promise<void> {
     const order = await db.order.findUnique({ where: { id: orderId } });
     if (order === null) continue;
 
-    await db.escrow.deleteMany({ where: { orderId } });
-    await db.orderEvent.deleteMany({ where: { orderId } });
-    await db.taxInvoice.deleteMany({ where: { orderId } }).catch(() => undefined);
-    await db.order.delete({ where: { id: orderId } });
+    await removeOrder(orderId);
 
     // الإعلان يعود معروضًا — وإلّا بقيت سيارةٌ محجوزة بلا طلب
     await db.listing.update({ where: { id: order.listingId }, data: { status: 'PUBLISHED' } });
@@ -80,6 +96,18 @@ async function main(): Promise<void> {
   });
   for (const listing of trialListings) {
     /**
+     * **وطلبات الإعلان أوّلًا — أيًّا كانت حالتها.**
+     *
+     * كان يُحذف الطلب الحيّ وحده، فالطلب المكتمل يبقى ويمنع حذف
+     * إعلانه بقيدٍ مرجعيّ — فيموت التنظيف في منتصفه ويترك نصف ما صُنع.
+     * (وقع أوّل صفقة اكتملت.)
+     */
+    const attached = await db.order.findMany({
+      where: { listingId: listing.id },
+      select: { id: true },
+    });
+    for (const order of attached) await removeOrder(order.id);
+    /**
      * العروض قبل الإعلان — **وإلّا أسقط القيدُ المرجعيّ التنظيف كلّه**
      * في منتصفه، فيبقى نصف ما صنعتَه ولا يقول الأمر إنه بقي.
      * (وقع: عرضٌ على إعلان تجريب منع حذفه، فمات السكربت بلا رسالة مفهومة.)
@@ -90,11 +118,35 @@ async function main(): Promise<void> {
     await db.vehicle.delete({ where: { id: listing.vehicleId } }).catch(() => undefined);
   }
 
+  /**
+   * ومزايدات التجريب وعرابينها — **الأثر الجديد يُتبَع في الاستعادة
+   * المشتركة**. مزايدةٌ تبقى تُغيّر أعلى سعرٍ في مزادٍ مزروع، فيقرأ
+   * كل من يفتحه رقمًا صنعتُه أنا.
+   */
+  const trialBidders = await db.user.findMany({
+    where: { email: { contains: '.trial@' } },
+    select: { id: true },
+  });
+  const bidderIds = trialBidders.map((row) => row.id);
+  const bids = await db.bid.deleteMany({ where: { bidderId: { in: bidderIds } } });
+  await db.deposit.deleteMany({ where: { userId: { in: bidderIds } } });
+
+  /**
+   * والمرفوعات اليتيمة — **تسرّبٌ لا أثرَ تجريبٍ وحده**.
+   *
+   * كل رفعٍ لم يُنشَر يترك صفًّا ببصمته، وكشفُ التكرار يقرؤها: فتُطلق
+   * صورةٌ هجرها صاحبها إنذارًا كاذبًا على بائعٍ آخر بعد شهور، ويدخل
+   * إعلانه المراجعة بلا سبب. (كشفه اختبارٌ سقط بـ`DUPLICATE_IMAGE`.)
+   */
+  const orphans = await db.uploadedAsset.deleteMany({});
+
   const ledger = await db.sandboxTransaction.deleteMany({});
 
   console.log(
     `\n✓ نُظّف التجريب: ${String(restored)} طلبًا، و${String(payments.length)} دفعة، ` +
-      `و${String(trialListings.length)} إعلانًا، و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
+      `و${String(trialListings.length)} إعلانًا، و${String(bids.count)} مزايدة، ` +
+      `و${String(orphans.count)} رفعًا يتيمًا، ` +
+      `و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
   );
   await db.$disconnect();
 }

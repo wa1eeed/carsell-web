@@ -101,6 +101,25 @@ export function AccountScreen({
         ))}
       </div>
 
+      {/*
+        الدفتر المالي — **يُعرض لمن باع فقط**. ومن لم يبع بعدُ لا يحتاج
+        صفحة مستحقّات فارغة تسأله عمّا لم يفعله.
+      */}
+      {data.listings.length === 0 && data.orders.length === 0 ? null : (
+        <Link
+          href={`/${locale}/account/earnings`}
+          className="mb-8 flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 transition-opacity hover:opacity-80"
+        >
+          <span>
+            <span className="block text-sm font-bold">مستحقّاتي</span>
+            <span className="mt-1 block text-2xs opacity-55">
+              ما لك من كل صفقة، وممّ خُصم، ومتى يصلك
+            </span>
+          </span>
+          <span aria-hidden className="text-lg opacity-40">←</span>
+        </Link>
+      )}
+
       <Tabs items={tabs} active={tab} onChange={setTab} className="mb-6" />
 
       {tab === 'listings' ? (

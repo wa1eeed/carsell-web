@@ -73,6 +73,7 @@ function Row({ label, value, tone }: { label: string; value: React.ReactNode; to
 export function BuyColumn({
   data,
   actions,
+  footer,
   className,
 }: {
   data: BuyColumnData;
@@ -84,6 +85,8 @@ export function BuyColumn({
    * المكوّنات. فالشكل هنا والسلوك هناك.
    */
   actions?: ReactNode;
+  /** سطرٌ هادئ أسفل العمود — الإبلاغ ونحوه. والشكل هنا والسلوك هناك. */
+  footer?: ReactNode;
   className?: string;
 }) {
   const t = useTranslations('ui');
@@ -242,6 +245,8 @@ export function BuyColumn({
           </Link>
         )}
       </Card>
+
+      {footer === undefined ? null : <div className="text-center">{footer}</div>}
     </aside>
   );
 }

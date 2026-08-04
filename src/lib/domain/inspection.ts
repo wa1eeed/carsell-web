@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { DEADLINE_DEFAULTS } from './deadlines';
 import { canonicalPath } from './listing-detail';
 
 /**
@@ -14,7 +15,8 @@ import { canonicalPath } from './listing-detail';
  */
 
 /** صلاحية التقرير — ٩٠ يومًا من الفحص. قاعدة محسوبة لا حقل مخزَّن. */
-export const REPORT_VALIDITY_DAYS = 90;
+/** الافتراضيّ — والسارية من إعداد الأدمن. */
+export const REPORT_VALIDITY_DAYS = DEADLINE_DEFAULTS.reportValidityDays;
 
 /** حالة النقطة. `OK` هي الغالبية العظمى ولا تُعرض في جدول الملاحظات. */
 export type PointState = 'OK' | 'NOTE' | 'PAINT' | 'FAIL';

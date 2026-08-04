@@ -182,3 +182,42 @@ describe('الوعد المعروض يُفرَض', () => {
     });
   });
 });
+
+describe('والمهلة من إعداد الأدمن لا من ثابت', () => {
+  /**
+   * **قيمةٌ محفوظة لا يقرؤها أحد ليست إعدادًا.** والشاشة تعد المشغّل
+   * بأن تعديله يسري — فيُقاس على صفٍّ حقيقيّ لا على القارئ وحده.
+   *
+   * والمهلة تُقرأ **عند الإنشاء** فتُخزَّن: تغييرُها بعدُ لا يحرّك
+   * طلبًا قائمًا، وهو ما لا يقبله من دفع على وعدٍ سابق.
+   */
+  it('تعديل مهلة الدفع يغيّر `paymentDueAt` في طلبٍ جديد', async () => {
+    const { setDeadline } = await import('../src/lib/domain/deadlines');
+    await setDeadline({ key: 'paymentWindowHours', value: 72, adminId: 'test-admin', ip: null });
+
+    try {
+      await withListing(async (ctx) => {
+        // الوضع الضريبيّ شرطٌ سابق — والطقم يستعيده ولا يضعه
+        await db.user.update({
+          where: { id: ctx.buyerId },
+          data: { taxStatus: 'INDIVIDUAL' },
+        });
+
+        const now = new Date('2026-08-03T10:00:00.000Z');
+        const result = await buyDirect(
+          { listingRef: ctx.listingRef, buyerId: ctx.buyerId },
+          now,
+        );
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+
+        const order = await db.order.findUniqueOrThrow({ where: { ref: result.orderRef } });
+        expect(order.paymentDueAt?.getTime()).toBe(now.getTime() + 72 * 3600 * 1000);
+      });
+    } finally {
+      // الاختبار يعيد ما غيّره — وصفٌّ باقٍ يغيّر مهل كل اختبارٍ بعده
+      await db.deadlineSetting.deleteMany({});
+      await db.auditLog.deleteMany({ where: { actorId: 'test-admin' } });
+    }
+  });
+});

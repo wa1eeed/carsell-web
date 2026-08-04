@@ -226,6 +226,8 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
               isOwn: viewer !== null && viewer.id === resolved.row.sellerId,
               taxProfile: viewer === null ? null : taxProfileOf(viewer),
               reserved: await hasLiveOrder(resolved.row.id),
+              // الإبلاغ يحتاج المعرّف لا المرجع — والمسار يقبل `targetId`
+              listingId: resolved.row.id,
             }}
           />
         </div>

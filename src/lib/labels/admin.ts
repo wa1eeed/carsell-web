@@ -214,3 +214,79 @@ export const RESOLUTION_LABEL: Record<string, string> = {
   PARTIAL_SETTLEMENT: 'تسوية جزئية',
   RELEASE_TO_SELLER: 'إفراج للبائع',
 };
+
+/**
+ * أسماء المهل ووحداتها وشرحُ أثرها.
+ *
+ * **والأثر يُقال لا الاسم وحده**: من يقرأ «مهلة الدفع ٢٤» لا يعرف ماذا
+ * يقع بعدها، ومن يعدّلها يجب أن يعرف أنه يُسقط طلبات.
+ */
+export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect: string }> = {
+  offerTtlHours: {
+    name: 'مهلة العرض',
+    unit: 'ساعة',
+    effect: 'بعدها يسقط العرض تلقائيًّا ولا يعود البائع يستطيع قبوله.',
+  },
+  paymentWindowHours: {
+    name: 'مهلة الدفع',
+    unit: 'ساعة',
+    effect: 'من إنشاء الطلب. بعدها يُلغى الطلب ويعود الإعلان معروضًا.',
+  },
+  transferDeadlineDays: {
+    name: 'مهلة نقل الملكية',
+    unit: 'يوم',
+    effect: 'من تأكيد الدفع. بعدها يُنبَّه الطرفان ويُفتح مسار النزاع.',
+  },
+  transferExtensionDays: {
+    name: 'تمديد نقل الملكية',
+    unit: 'يوم',
+    effect: 'تمديدٌ واحد لا أكثر، بسبب مكتوب ومسجَّل.',
+  },
+  returnWindowDays: {
+    name: 'نافذة الإرجاع',
+    unit: 'يوم',
+    effect: 'من تأكيد النقل. لا يُفرج عن المبلغ للبائع قبل انقضائها.',
+  },
+  sellerDecisionHours: {
+    name: 'قرار البائع بعد المزاد',
+    unit: 'ساعة',
+    effect: 'حين لا تبلغ المزايدات الاحتياطي. بعدها يسقط حقّه في القبول.',
+  },
+  disputeSlaHours: {
+    name: 'مهلة الردّ على النزاع',
+    unit: 'ساعة',
+    effect: 'الحدّ الذي يجب أن يردّ فيه فريق الدعم، ويُنبَّه عند تجاوزه.',
+  },
+  settleWindowHours: {
+    name: 'مهلة التسوية',
+    unit: 'ساعة',
+    effect: 'المدّة المتاحة لإتمام التسوية بعد استيفاء شروط الإفراج.',
+  },
+  auctionExtendWindowSeconds: {
+    name: 'نافذة تمديد المزاد',
+    unit: 'ثانية',
+    effect: 'مزايدةٌ داخل هذه النافذة قبل الإغلاق تمدّ المزاد.',
+  },
+  auctionExtendBySeconds: {
+    name: 'مقدار تمديد المزاد',
+    unit: 'ثانية',
+    effect: 'كم يُمدّ المزاد عند مزايدةٍ أخيرة — بحدّ أقصى عشر مرّات.',
+  },
+  reportValidityDays: {
+    name: 'صلاحية تقرير الفحص',
+    unit: 'يوم',
+    effect: 'بعدها يُعدّ التقرير قديمًا ويُطلب فحصٌ جديد.',
+  },
+};
+
+/** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */
+export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
+  ESCROW_AT_PROVIDER: 'لدى مزوّد الدفع',
+  BUYER_ADVANCE: 'قُبض ولم يُستحقّ',
+  SELLER_PAYABLE: 'حقوق البائعين',
+  PLATFORM_REVENUE: 'إيراد المنصّة',
+  VAT_PAYABLE: 'ضريبة مستحقّة',
+  GATEWAY_FEES_CLEARING: 'رسوم البوابة (عبور)',
+  GOVT_FEES_CLEARING: 'رسوم حكومية (عبور)',
+  PLATFORM_CASH: 'ما وصلنا فعلًا',
+};

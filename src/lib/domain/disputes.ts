@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import type { DisputeStatus } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
 
@@ -13,7 +14,8 @@ import { Prisma } from '@/generated/prisma/client';
  *    الطرفين لا يمدّدها، وإلّا صار التجاهل استراتيجية.
  */
 
-export const DISPUTE_SLA_HOURS = 48;
+/** الافتراضيّ — والسارية من إعداد الأدمن. */
+export const DISPUTE_SLA_HOURS = DEADLINE_DEFAULTS.disputeSlaHours;
 export const REQUIRED_APPROVALS = 2;
 
 /** أقلّ ما يُمنَح عند استئناف مهلة الدفع بعد نزاع (قرار ٣). */
@@ -75,7 +77,7 @@ export async function openDispute(
     if (existing !== null) return { ok: false, reason: 'ALREADY_OPEN' };
 
     // القاعدة ٣ — المهلة من الفتح، وتُثبَّت هنا ولا تُمسّ بعدها
-    const slaDueAt = new Date(now.getTime() + DISPUTE_SLA_HOURS * 3600 * 1000);
+    const slaDueAt = new Date(now.getTime() + (await deadline('disputeSlaHours')) * 3600 * 1000);
 
     const dispute = await tx.dispute.create({
       data: {

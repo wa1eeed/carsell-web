@@ -411,7 +411,8 @@
     "none": "الكل",
     "conditionTitle": "حالة المركبة",
     "price": "السعر",
-    "year": "سنة الصنع"
+    "year": "سنة الصنع",
+    "sortLabel": "ترتيب النتائج"
   },
   "enums": {
     "transmission": {
@@ -814,7 +815,8 @@
     "buyNow": "اشترِ الآن بـ",
     "countLive": "مباشرة",
     "countSoon": "قادمة",
-    "countEnded": "منتهية"
+    "countEnded": "منتهية",
+    "settling": "انتهى — يُحتسب الآن"
   },
   "inbox": {
     "title": "صندوق العروض",

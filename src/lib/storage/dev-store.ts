@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
+import { APP_ENV } from '@/lib/env';
 
 /**
  * ═══ تخزين تجريبيّ على القرص — للتطوير وحده ═══
@@ -27,13 +28,17 @@ export class ProductionStorageError extends Error {
 }
 
 /**
- * هل يجوز التخزين المحلّي هنا؟
+ * هل يجوز التخزين المحلّي هنا؟ — **التطوير وحده، وstaging ليست منه**.
  *
- * `NODE_ENV === 'production'` وحده هو الحدّ: بناء الإنتاج يُشغَّل به،
- * وأيّ نشرٍ حقيقيّ كذلك. والتطوير والاختبار دونه.
+ * وسببُه غير سبب البوابة التجريبية: تلك تُمنع في الإنتاج لأنها تكذب
+ * على المال، وهذا يُمنع في **كل نشر** لأن قرص الحاوية يزول عند
+ * الاستبدال. فصورةٌ يرفعها بائع على staging تختفي عند أوّل إصدار،
+ * ووعدُ «صورك محفوظة» لا يملك أحد الوفاء به.
+ *
+ * **فstaging تحتاج R2 حقيقيًّا** — ولا بديل عنه.
  */
 export function devStoreAllowed(): boolean {
-  return process.env.NODE_ENV !== 'production';
+  return APP_ENV === 'development';
 }
 
 /** يمنع `..` من الخروج من الجذر — المفتاح يأتي من مسار عام. */

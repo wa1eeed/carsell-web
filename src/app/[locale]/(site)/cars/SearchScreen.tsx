@@ -451,7 +451,12 @@ export function SearchScreen({
             {t('filters')}
           </Button>
 
+          {/*
+            قائمة الترتيب بلا عنوان مرئيّ — فالتسمية بـ`aria-label`.
+            وقارئُ الشاشة يقرأ «الأحدث» ولا يعرف أنها ترتيب.
+          */}
           <select
+            aria-label={t('sortLabel')}
             value={filters.sort}
             onChange={(e) => apply({ sort: e.target.value })}
             className="rounded-md border border-line bg-surface px-3.5 py-2 text-sm outline-none"
