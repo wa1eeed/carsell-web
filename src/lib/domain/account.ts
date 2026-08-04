@@ -51,6 +51,8 @@ export type AccountListing = {
   price: string;
   status: string;
   type: string;
+  /** ملاحظة المراجع حين يُعاد الإعلان — و`null` فيما عدا ذلك */
+  reviewNote: string | null;
   offerCount: number;
   viewCount: number;
   path: string;
@@ -175,6 +177,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       orderBy: { publishedAt: 'desc' },
       select: {
         ref: true, city: true, askPrice: true, status: true, type: true, viewCount: true,
+        reviewNote: true,
         vehicle: { select: vehicleSelect },
         _count: { select: { offers: true } },
       },
@@ -240,6 +243,8 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       price: listing.askPrice.toString(),
       status: listing.status,
       type: listing.type,
+      // **الإرجاع بلا سببٍ معروض إرجاعٌ صامت** — فيُعاد نشره كما هو
+      reviewNote: listing.status === 'DRAFT' ? listing.reviewNote : null,
       offerCount: listing._count.offers,
       viewCount: listing.viewCount,
       path: canonicalPath(locale, listing).path,

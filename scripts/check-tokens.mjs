@@ -551,9 +551,18 @@ function pathToDb(entry, seen = new Set()) {
 
   for (const match of source.matchAll(/from\s+'(@\/[^']+)'/g)) {
     const specifier = match[1] ?? '';
-    // `import type` لا يصل الحزمة — يُمحى وقت الترجمة
-    const line = source.slice(Math.max(0, match.index - 120), match.index);
-    if (/\bimport\s+type\b/.test(line)) continue;
+    /**
+     * `import type` لا يصل الحزمة — يُمحى وقت الترجمة.
+     *
+     * **والنظر يقف عند بداية السطر لا عند ١٢٠ محرفًا خلفه.** كانت
+     * النافذة الثابتة تبتلع نهاية السطر السابق، فسطرا استيرادٍ من
+     * الوحدة نفسها — أحدهما نوع والآخر قيمة — يجعلان الثاني يُقرأ
+     * نوعًا فيمرّ. وهو ما وقع فعلًا: مكوّن عميل استورد ثابتًا من وحدة
+     * نطاق فجرّ Prisma إلى المتصفّح، **والبوابة صامتة**، وسقط البناء
+     * بـ«Can't resolve 'fs'» — رسالةٌ لا تذكر لا العميل ولا `db`.
+     */
+    const lineStart = source.lastIndexOf('\n', match.index) + 1;
+    if (/\bimport\s+type\b/.test(source.slice(lineStart, match.index))) continue;
 
     const base = join(ROOT, 'src', specifier.slice(2));
     for (const candidate of [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')]) {

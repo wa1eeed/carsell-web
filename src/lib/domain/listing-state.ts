@@ -99,12 +99,58 @@ export async function republishListing(writer: Writer, listingId: string): Promi
 export async function suspendListing(
   writer: Writer,
   listingId: string,
-  reason: 'dispute.refunded',
+  reason: 'dispute.refunded' | 'review.rejected',
   now: Date = new Date(),
 ): Promise<void> {
   await writer.listing.update({
     where: { id: listingId },
     data: { status: 'SUSPENDED', closedAt: now, closeReason: reason },
+  });
+}
+
+/**
+ * يعود مسودّةً عند صاحبه بعد مراجعة — **بملاحظةٍ يقرؤها**.
+ *
+ * وإرجاعٌ بلا سببٍ مكتوب إرجاعٌ صامت: يجد البائع عمله مردودًا ولا
+ * يعرف ماذا يُصلح، فيعيد نشره كما هو فيعود إلى الطابور — ودورةٌ لا
+ * تنتهي بين الطرفين. فالملاحظة جزءٌ من الانتقال لا زينةٌ بجانبه.
+ */
+export async function returnListingToSeller(
+  writer: Writer,
+  listingId: string,
+  stamp: { note: string; adminId: string },
+  now: Date = new Date(),
+): Promise<void> {
+  await writer.listing.update({
+    where: { id: listingId },
+    data: {
+      status: 'DRAFT',
+      publishedAt: null,
+      reviewNote: stamp.note,
+      reviewedAt: now,
+      reviewedBy: stamp.adminId,
+    },
+  });
+}
+
+/** اعتُمد بعد مراجعة — **والراية تُمحى** وإلّا عاد إلى الطابور. */
+export async function approveReviewedListing(
+  writer: Writer,
+  listingId: string,
+  stamp: { adminId: string },
+  now: Date = new Date(),
+): Promise<void> {
+  await writer.listing.update({
+    where: { id: listingId },
+    data: {
+      status: 'PUBLISHED',
+      publishedAt: now,
+      closedAt: null,
+      closeReason: null,
+      reviewReason: null,
+      reviewedAt: now,
+      reviewedBy: stamp.adminId,
+    },
   });
 }
 
@@ -118,10 +164,12 @@ export async function sendListingToReview(
   writer: Writer,
   listingId: string,
   reviewReason: 'USER_REPORT',
+  now: Date = new Date(),
 ): Promise<boolean> {
   const { count } = await writer.listing.updateMany({
     where: { id: listingId, status: 'PUBLISHED' },
-    data: { status: 'PENDING_REVIEW', reviewReason },
+    // لحظة دخول الطابور — وبدونها لا يُقاس انتظارُ صاحبه
+    data: { status: 'PENDING_REVIEW', reviewReason, reviewQueuedAt: now },
   });
   return count > 0;
 }

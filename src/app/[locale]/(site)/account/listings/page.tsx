@@ -48,8 +48,8 @@ export default async function ListingsPage({
       }
     >
       {data.listings.map((listing) => (
+        <div key={listing.ref}>
         <AccountRow
-          key={listing.ref}
           href={listing.path}
           title={listing.title}
           year={listing.year}
@@ -71,6 +71,17 @@ export default async function ListingsPage({
           }
           value={<Money amount={listing.price} />}
         />
+              {/*
+          **ملاحظة المراجع تُعرض للبائع.** إعلانٌ يعود مسودّةً بلا
+          سببٍ مقروء يجعل صاحبه ينشره كما هو فيعود إلى الطابور —
+          ودورةٌ لا تنتهي بين الطرفين.
+        */}
+        {listing.reviewNote === null ? null : (
+          <p className="mt-2 mb-4 rounded-md border border-warn-200 bg-warn-100 p-3.5 text-2xs leading-loose text-warn-900">
+            <b>أُعيد للتعديل:</b> {listing.reviewNote}
+          </p>
+        )}
+        </div>
       ))}
     </AccountList>
   );

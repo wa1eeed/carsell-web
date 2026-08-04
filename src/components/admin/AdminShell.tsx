@@ -34,7 +34,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     items: [
       { label: 'لوحة القيادة', href: '/admin', permission: 'dashboard.view' },
       { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
-      { label: 'الإعلانات', href: null, permission: 'listings.review' },
+      { label: 'الإعلانات', href: '/admin/listings', permission: 'listings.review' },
       { label: 'المزادات', href: null },
       { label: 'العروض والمفاوضات', href: null },
       { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },

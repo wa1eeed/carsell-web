@@ -237,6 +237,8 @@ export async function createListing(
         type: input.type,
         status: reviewReason === null ? 'PUBLISHED' : 'PENDING_REVIEW',
         reviewReason,
+        // لحظة دخول الطابور — وبدونها لا يُقاس انتظارُ صاحبه
+        reviewQueuedAt: reviewReason === null ? null : now,
         askPrice: new Prisma.Decimal(input.askPrice),
         taxableSupply: input.taxableSupply,
         negotiable: input.type === 'NEGOTIATION',

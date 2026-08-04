@@ -479,6 +479,16 @@ model Listing {
   closedAt       DateTime?
   closeReason    String?
   reviewReason   ReviewReason? // قرار ٣٣ — أي شرط أدخله المراجعة (لطابور A15)
+  /// ═══ أثر قرار المراجعة ═══
+  ///
+  /// **والملاحظة تُخزَّن لأن الإرجاع بلا سببٍ مكتوب إرجاعٌ صامت**: يجد
+  /// البائع إعلانه مسودّةً ولا يعرف ماذا يُصلح، فيعيد نشره كما هو
+  /// فيعود إلى الطابور — ودورةٌ لا تنتهي بين الطرفين.
+  /// متى دخل الطابور — و`Listing` بلا `createdAt`، فالانتظار لا يُقاس بدونه
+  reviewQueuedAt DateTime?
+  reviewNote     String?
+  reviewedAt     DateTime?
+  reviewedBy     String?
 
   vehicle  Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
   seller   User             @relation(fields: [sellerId], references: [id], onDelete: Restrict)
