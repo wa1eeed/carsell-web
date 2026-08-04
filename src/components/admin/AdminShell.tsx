@@ -49,7 +49,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     title: 'العملاء',
     items: [
       { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
-      { label: 'التجار والمعارض', href: null },
+      { label: 'التجار والمعارض', href: '/admin/dealers', permission: 'users.view' },
       { label: 'توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
     ],
   },
