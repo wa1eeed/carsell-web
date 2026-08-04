@@ -36,17 +36,17 @@ afterAll(async () => {
 });
 
 describe('admin.provision — الإنشاء', () => {
-  it('يُنشئ سوبر أدمن بسرّ TOTP يُطبع مرّةً', async () => {
+  it('يُنشئ سوبر أدمن يدخل بالكلمة وحدها', async () => {
     const result = await provisionSuperAdmin(db, { email: EMAIL, password: STRONG }, T0);
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.outcome).toBe('created');
-    expect(result.totpSecret).not.toBeNull();
 
     const admin = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
     expect(admin.role).toBe('SUPER_ADMIN');
-    expect(admin.totpEnrolledAt).not.toBeNull();
+    // لا سرّ مصادقة يُولَّد — أُلغيت الثنائية بقرار المصمّم
+    expect(admin.totpEnrolledAt).toBeNull();
     // من ضبطها في البيئة اختارها — فلا يُطالَب بتغييرها عند أوّل دخول
     expect(admin.mustChangePassword).toBe(false);
     expect(await verifyPassword(STRONG, admin.passwordHash)).toBe(true);
@@ -71,7 +71,6 @@ describe('admin.provision — لا يكتب إن لم يتغيّر شيء', () =
 
     const again = await provisionSuperAdmin(db, { email: EMAIL, password: STRONG }, T0);
     expect(again.ok && again.outcome).toBe('unchanged');
-    expect(again.ok && again.totpSecret).toBeNull();
 
     const after = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
     expect(after.passwordHash).toBe(admin.passwordHash);
@@ -80,20 +79,15 @@ describe('admin.provision — لا يكتب إن لم يتغيّر شيء', () =
 });
 
 describe('admin.provision — التبديل', () => {
-  it('كلمةٌ جديدة تُطبَّق، وTOTP يبقى', async () => {
-    const created = await provisionSuperAdmin(db, { email: EMAIL, password: STRONG }, T0);
-    const before = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
+  it('كلمةٌ جديدة تُطبَّق', async () => {
+    await provisionSuperAdmin(db, { email: EMAIL, password: STRONG }, T0);
 
     const changed = await provisionSuperAdmin(db, { email: EMAIL, password: `${STRONG}-2` }, T0);
     expect(changed.ok && changed.outcome).toBe('password_set');
-    // لا سرّ جديد — وإلّا صار كل تبديل كلمةٍ إخراجًا من اللوحة
-    expect(changed.ok && changed.totpSecret).toBeNull();
 
     const after = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
-    expect(after.totpSecret).toBe(before.totpSecret);
     expect(await verifyPassword(`${STRONG}-2`, after.passwordHash)).toBe(true);
     expect(await verifyPassword(STRONG, after.passwordHash)).toBe(false);
-    expect(created.ok && created.totpSecret).toBe(after.totpSecret);
   });
 
   it('القفل يُفكّ مع الكلمة الجديدة', async () => {
@@ -108,19 +102,6 @@ describe('admin.provision — التبديل', () => {
     const after = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
     expect(after.failedAttempts).toBe(0);
     expect(after.lockedUntil).toBeNull();
-  });
-
-  it('إعادة تسجيل TOTP صريحة تُولّد سرًّا جديدًا', async () => {
-    const created = await provisionSuperAdmin(db, { email: EMAIL, password: STRONG }, T0);
-    const reset = await provisionSuperAdmin(
-      { adminUser: db.adminUser, auditLog: db.auditLog },
-      { email: EMAIL, password: STRONG, resetTotp: true },
-      T0,
-    );
-
-    expect(reset.ok && reset.outcome).toBe('totp_reset');
-    expect(reset.ok && reset.totpSecret).not.toBeNull();
-    expect(created.ok && created.totpSecret).not.toBe(reset.ok && reset.totpSecret);
   });
 });
 

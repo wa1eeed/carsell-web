@@ -119,9 +119,9 @@ model AdminUser {
   lastSeenAt       DateTime?
   status           String    @default("active")
 
-  // كلمة مرور + TOTP إلزامي لكل الأدوار بلا استثناء.
-  // لا حقل `twoFactorEnabled`: الحقيقة هي `totpEnrolledAt !== null`،
-  // وحقلٌ منفصل يوحي بالاختيارية وقد يُقرأ لاحقًا كبوابة.
+  // كلمة مرور وحدها — **أُلغيت المصادقة الثنائية بقرار المصمّم**.
+  // والحقلان أدناه يبقيان بلا قارئ: حذفهما ترحيلٌ يُتلف ما لا يُستعاد
+  // إن عادت الثنائية، وإبقاؤهما لا يَعِد بحراسةٍ ما دام لا كود يقرؤهما.
   passwordHash       String
   totpSecret         String? // مشفّر
   totpEnrolledAt     DateTime?

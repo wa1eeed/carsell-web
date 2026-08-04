@@ -16,7 +16,6 @@ import { join } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { hashPassword } from '../src/lib/auth/password';
-import { generateSecret } from '../src/lib/auth/totp';
 import { Prisma } from '../src/generated/prisma/client';
 import type {
   BodyType,
@@ -404,7 +403,7 @@ async function main(): Promise<void> {
 
   // ————— ٣ حسابات أدمن بالأدوار —————
   //
-  // كلمة مرور واحدة معروفة للتطوير، وTOTP **مسجَّل مسبقًا** حتى
+  // كلمة مرور واحدة معروفة للتطوير — والدخول بها وحدها
   // يمكن الدخول بلا مسح رمز QR في كل إعادة زرع. السرّ يُطبع أدناه.
   // لا يعمل هذا إلا خارج الإنتاج — الحارس أعلى الملف يمنعه.
   /**
@@ -424,7 +423,6 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   const seedPasswordHash = await hashPassword(seedPassword ?? 'CarSell!dev2026');
-  const totpSecrets = new Map<string, string>();
 
   /**
    * بريد السوبر أدمن من البيئة — فلا يُشحن نطاقٌ ثابت إلى كل نشر،
@@ -440,17 +438,13 @@ async function main(): Promise<void> {
         ['finance@carsell.one', 'سلطان — المالية', 'FINANCE'],
       ] as const
     ).map(([email, name, role]) => {
-      const secret = generateSecret();
-      totpSecrets.set(email, secret);
       return prisma.adminUser.create({
         data: {
           email,
           name,
           role,
           passwordHash: seedPasswordHash,
-          // TOTP إلزامي لكل الأدوار — التسجيل هو الحقيقة لا راية منفصلة
-          totpSecret: secret,
-          totpEnrolledAt: days(-1),
+          // المصادقة الثنائية أُلغيت بقرار المصمّم — الدخول بالكلمة وحدها
           mustChangePassword: false,
         },
       });
@@ -1495,21 +1489,6 @@ async function main(): Promise<void> {
       ? `  حسابات الأدمن — كلمة المرور: ${seedPassword ?? ''}`
       : '  حسابات الأدمن — كلمة المرور: (من ADMIN_PASSWORD)',
   );
-  /**
-   * **كل سرّ على سطره وحده، بلا إزاحة ولا حرف عربيّ معه.**
-   *
-   * كانت تُطبع `email … TOTP: secret` مُزاحةً بعد سطرٍ عربيّ، فالتقط
-   * النسخُ علاماتِ اتّجاه غير مرئية ورفضها تطبيق المصادقة بـ«illegal
-   * character» — والسرّ سليم. وهو الصنف نفسه الذي يفرض `dir="ltr"`
-   * على كل حقلٍ يُنسخ من مصدر لاتينيّ، معكوسًا.
-   */
-  console.log('  ⚠ احفظ أسرار TOTP التالية الآن — لا تُطبع مرّةً ثانية.');
-  console.log('  كل سطرٍ منها يُنسخ وحده (Enter setup key):');
-  for (const [email, secret] of totpSecrets) {
-    console.log('');
-    console.log(`  ${email}`);
-    console.log(secret);
-  }
   console.log('');
   for (const [label, n] of Object.entries(counts)) {
     console.log(`  ${String(n).padStart(5)}  ${label}`);

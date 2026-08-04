@@ -64,17 +64,14 @@ you typed.
 | --- | --- |
 | Neither variable set | Skipped, boot continues — it is opt-in |
 | Password unchanged | Nothing written, no audit row |
-| Password changed | Hash replaced, lockout cleared, **TOTP kept** |
-| Email not seen before | New SUPER_ADMIN created, TOTP secret printed once |
-| `ADMIN_RESET_TOTP=1` | New secret generated and printed — then remove the variable |
+| Password changed | Hash replaced, lockout cleared |
+| Email not seen before | New SUPER_ADMIN created |
 | Password under 12 chars, or bad email | **Boot fails** with the reason on the first line |
 
 Three properties are deliberate:
 
 - **It touches nothing else.** One account, matched by email. A typo creates a
   second admin rather than destroying the first.
-- **Changing a password does not invalidate TOTP.** Otherwise every password
-  change locks you out of the panel it was meant to protect.
 - **It never promotes an existing account.** An address already registered as
   `OPS` stays `OPS` even when named in `ADMIN_EMAIL` — raising privilege from an
   environment variable makes a role change a side effect of a password change,
@@ -231,30 +228,21 @@ deploy with no error that explains why.
    there on `Cannot find module`. `/opt/seed` carries a complete tree, the
    schema and the generated client — it exists for exactly this one command.
 
-   ⚠️ **Capture the TOTP secrets from that output immediately.** They are
-   generated fresh on every seed and printed exactly once. Without them you
-   cannot sign in to the admin panel — the second factor is mandatory for every
-   role, and there is no bypass.
-
-   The password itself is **not printed** when it comes from the environment:
+   The password is **not printed** when it comes from the environment:
    container logs are readable by everyone with access to the deployment panel,
    and they persist.
 
    Three accounts are created: `ADMIN_EMAIL` (or `super@carsell.one`) as
    SUPER_ADMIN, plus `ops@` and `finance@`.
 
-   Add each secret to an authenticator app as a manual key, issuer `carsell`.
+   **Sign-in is email and password only.** TOTP was mandatory for every role;
+   the designer removed it. What remains guarding the panel is the lockout —
+   five failed attempts lock the account for fifteen minutes, counted on the
+   account rather than the connection so changing address does not reset it,
+   and every attempt is written to `AuditLog`.
 
-   **If the secret scrolled past**, it is still in the database — do not
-   re-seed to recover it. Either read it:
-
-   ```
-   docker exec -i <postgres> psql "$DATABASE_URL" \
-     -c 'SELECT email, "totpSecret" FROM "AdminUser";'
-   ```
-
-   or set `ADMIN_RESET_TOTP=1`, redeploy, take the new secret from the boot log,
-   and remove the variable again.
+   That guards against guessing, not against a leak: whoever knows the password
+   is in. A strong `ADMIN_PASSWORD` is not a recommendation here.
 6. **Verify** after the first deploy — see §6.
 
 ---

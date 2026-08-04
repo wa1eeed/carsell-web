@@ -1,7 +1,6 @@
 import type { Prisma } from '@/generated/prisma/client';
 import type { db } from '@/lib/db';
 import { hashPassword, verifyPassword } from '../auth/password';
-import { generateSecret } from '../auth/totp';
 
 /**
  * ═══ حساب الأدمن الأول — من البيئة، عند كل إقلاع ═══
@@ -18,11 +17,7 @@ import { generateSecret } from '../auth/totp';
  * **١· لا يمسّ سواه.** يُطابق ببريدٍ واحد. وبريدٌ جديد يُنشئ حسابًا
  * جديدًا ولا يهدم القديم — فمن أخطأ الكتابة لا يفقد لوحته.
  *
- * **٢· TOTP يبقى.** تبديل الكلمة لا يُبطل تطبيق المصادقة، وإلّا صار
- * كل تغيير كلمةٍ إخراجًا من اللوحة. ويُولَّد سرٌّ جديد في حالتين
- * فقط: حسابٌ يُنشأ، أو `ADMIN_RESET_TOTP` صريحة.
- *
- * **٣· يفكّ القفل عند تعيين كلمة.** من نسي كلمته وحاول حتى أُقفل
+ * **٢· يفكّ القفل عند تعيين كلمة.** من نسي كلمته وحاول حتى أُقفل
  * حسابه يريد الدخول لا انتظار خمس عشرة دقيقة بعد أن أصلح السبب.
  *
  * ═══ وما لا يفعله ═══
@@ -45,21 +40,19 @@ export const MIN_ADMIN_PASSWORD = 12;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export type ProvisionOutcome = 'created' | 'password_set' | 'totp_reset' | 'unchanged';
+export type ProvisionOutcome = 'created' | 'password_set' | 'unchanged';
 
 export type ProvisionResult =
   | {
       ok: true;
       outcome: ProvisionOutcome;
       adminId: string;
-      /** يُطبع مرّةً واحدة عند التوليد — و`null` فيما عدا ذلك. */
-      totpSecret: string | null;
     }
   | { ok: false; reason: 'INVALID_EMAIL' | 'WEAK_PASSWORD' };
 
 export async function provisionSuperAdmin(
   writer: Writer,
-  input: { email: string; password: string; name?: string; resetTotp?: boolean },
+  input: { email: string; password: string; name?: string },
   now: Date = new Date(),
 ): Promise<ProvisionResult> {
   const email = input.email.trim().toLowerCase();
@@ -69,15 +62,12 @@ export async function provisionSuperAdmin(
   const existing = await writer.adminUser.findUnique({ where: { email } });
 
   if (existing === null) {
-    const secret = generateSecret();
     const created = await writer.adminUser.create({
       data: {
         email,
         name: input.name ?? email,
         role: 'SUPER_ADMIN',
         passwordHash: await hashPassword(input.password),
-        totpSecret: secret,
-        totpEnrolledAt: now,
         // من ضبطها في البيئة اختارها — ولا يُطالَب بتغيير ما اختاره
         mustChangePassword: false,
         passwordChangedAt: now,
@@ -85,49 +75,27 @@ export async function provisionSuperAdmin(
     });
 
     await writeAudit(writer, created.id, 'admin.provisioned', { email }, now);
-    return { ok: true, outcome: 'created', adminId: created.id, totpSecret: secret };
+    return { ok: true, outcome: 'created', adminId: created.id };
   }
 
-  const samePassword = await verifyPassword(input.password, existing.passwordHash);
-  const needsTotp = input.resetTotp === true || existing.totpSecret === null;
-
-  if (samePassword && !needsTotp) {
-    return { ok: true, outcome: 'unchanged', adminId: existing.id, totpSecret: null };
+  if (await verifyPassword(input.password, existing.passwordHash)) {
+    return { ok: true, outcome: 'unchanged', adminId: existing.id };
   }
-
-  const secret = needsTotp ? generateSecret() : null;
 
   await writer.adminUser.update({
     where: { id: existing.id },
     data: {
-      ...(samePassword
-        ? {}
-        : {
-            passwordHash: await hashPassword(input.password),
-            passwordChangedAt: now,
-            mustChangePassword: false,
-            // القفل يُفكّ مع الكلمة الجديدة — سببُه زال
-            failedAttempts: 0,
-            lockedUntil: null,
-          }),
-      ...(secret === null ? {} : { totpSecret: secret, totpEnrolledAt: now }),
+      passwordHash: await hashPassword(input.password),
+      passwordChangedAt: now,
+      mustChangePassword: false,
+      // القفل يُفكّ مع الكلمة الجديدة — سببُه زال
+      failedAttempts: 0,
+      lockedUntil: null,
     },
   });
 
-  await writeAudit(
-    writer,
-    existing.id,
-    secret === null ? 'admin.password_set' : 'admin.totp_reset',
-    { email, passwordChanged: !samePassword, totpReset: secret !== null },
-    now,
-  );
-
-  return {
-    ok: true,
-    outcome: secret === null ? 'password_set' : 'totp_reset',
-    adminId: existing.id,
-    totpSecret: secret,
-  };
+  await writeAudit(writer, existing.id, 'admin.password_set', { email }, now);
+  return { ok: true, outcome: 'password_set', adminId: existing.id };
 }
 
 /**

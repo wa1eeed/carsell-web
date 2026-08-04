@@ -1,11 +1,10 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { db } from '@/lib/db';
 import { verifyPassword } from '@/lib/auth/password';
-import { verifyTotp } from '@/lib/auth/totp';
 import type { AdminUser, Prisma } from '@/generated/prisma/client';
 
 /**
- * مصادقة الأدمن — كلمة مرور ثم TOTP.
+ * مصادقة الأدمن — كلمة مرور، وجلسةٌ تنتهي بثمان ساعات.
  *
  * **منفصلة تمامًا عن مصادقة المستخدمين**: جدول آخر، وكوكي آخر،
  * ولا JWT مشترك ولا وسيط مشترك. خلط هوية موظّف بهوية مستخدم سوق
@@ -17,16 +16,12 @@ export const ADMIN_MAX_FAILED = 5;
 export const ADMIN_LOCK_MINUTES = 15;
 
 export type LoginResult =
-  | { ok: true; stage: 'TOTP_REQUIRED'; adminUserId: string; enrolled: boolean }
+  | { ok: true; token: string; admin: AdminUser; mustChangePassword: boolean }
   | {
       ok: false;
       reason: 'INVALID_CREDENTIALS' | 'LOCKED' | 'INACTIVE';
       lockedUntil?: Date;
     };
-
-export type TotpResult =
-  | { ok: true; token: string; admin: AdminUser; mustChangePassword: boolean }
-  | { ok: false; reason: 'INVALID_CODE' | 'LOCKED' | 'NOT_ENROLLED' | 'UNKNOWN' };
 
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -52,18 +47,28 @@ async function writeAudit(
 }
 
 /**
- * الخطوة الأولى: البريد وكلمة المرور.
+ * ═══ الدخول: البريد وكلمة المرور — والجلسة تصدر هنا ═══
  *
- * لا تُصدر جلسة — TOTP إلزامي لكل الأدوار بلا استثناء، فالنجاح هنا
- * يعني «انتقل إلى الخطوة الثانية» لا «دخلت».
+ * كانت خطوةً أولى لا تُصدر جلسة، وTOTP إلزاميّ بعدها لكل الأدوار.
+ * **أُلغي بقرار المصمّم.**
  *
- * الرسالة واحدة لبريد مجهول ولكلمة خاطئة: تمييزهما يجعل النقطة
+ * ═══ وما يحرس الباب بعده ═══
+ *
+ * القفل وحده: **خمس محاولات فاشلة ⇒ ربع ساعة**، والعدّاد على الحساب
+ * لا على الاتصال فلا يلتفّ عليه تبديلُ عنوان. وكل محاولة — ناجحة أو
+ * فاشلة — تُكتب في `AuditLog`.
+ *
+ * وهو حارسٌ ضدّ التخمين لا ضدّ التسريب: من عرف الكلمة دخل. فكلمةٌ
+ * قويّة هنا ليست توصية.
+ *
+ * والرسالة واحدة لبريد مجهول ولكلمة خاطئة: تمييزهما يجعل النقطة
  * أداةَ تعداد لحسابات الفريق.
  */
 export async function loginWithPassword(
   email: string,
   password: string,
   ip: string | null,
+  userAgent: string | null = null,
   now: Date = new Date(),
 ): Promise<LoginResult> {
   const admin = await db.adminUser.findUnique({
@@ -108,57 +113,6 @@ export async function loginWithPassword(
       : { ok: false, reason: 'INVALID_CREDENTIALS' };
   }
 
-  // نجاح واحد يصفّر العدّاد
-  await db.adminUser.update({
-    where: { id: admin.id },
-    data: { failedAttempts: 0, lockedUntil: null },
-  });
-
-  return {
-    ok: true,
-    stage: 'TOTP_REQUIRED',
-    adminUserId: admin.id,
-    enrolled: admin.totpEnrolledAt !== null && admin.totpSecret !== null,
-  };
-}
-
-/**
- * الخطوة الثانية: رمز TOTP. النجاح وحده يُصدر جلسة.
- * الرمز يُخزَّن مجزّأً — تسريب قاعدة البيانات لا يمنح جلسات.
- */
-export async function verifyTotpAndIssueSession(
-  adminUserId: string,
-  code: string,
-  ip: string | null,
-  userAgent: string | null,
-  now: Date = new Date(),
-): Promise<TotpResult> {
-  const admin = await db.adminUser.findUnique({ where: { id: adminUserId } });
-  if (admin === null) return { ok: false, reason: 'UNKNOWN' };
-
-  if (admin.lockedUntil !== null && admin.lockedUntil.getTime() > now.getTime()) {
-    return { ok: false, reason: 'LOCKED' };
-  }
-  if (admin.totpSecret === null || admin.totpEnrolledAt === null) {
-    return { ok: false, reason: 'NOT_ENROLLED' };
-  }
-
-  if (!verifyTotp(admin.totpSecret, code, now)) {
-    const failed = admin.failedAttempts + 1;
-    const locked = failed >= ADMIN_MAX_FAILED;
-    await db.adminUser.update({
-      where: { id: admin.id },
-      data: {
-        failedAttempts: locked ? 0 : failed,
-        lockedUntil: locked
-          ? new Date(now.getTime() + ADMIN_LOCK_MINUTES * 60_000)
-          : null,
-      },
-    });
-    await writeAudit('admin.login.failed', admin.id, ip, { stage: 'totp', locked });
-    return { ok: false, reason: locked ? 'LOCKED' : 'INVALID_CODE' };
-  }
-
   const token = randomBytes(32).toString('base64url');
   await db.adminSession.create({
     data: {
@@ -170,18 +124,14 @@ export async function verifyTotpAndIssueSession(
     },
   });
 
+  // نجاح واحد يصفّر العدّاد
   await db.adminUser.update({
     where: { id: admin.id },
     data: { failedAttempts: 0, lockedUntil: null, lastSeenAt: now },
   });
   await writeAudit('admin.login.success', admin.id, ip, { role: admin.role });
 
-  return {
-    ok: true,
-    token,
-    admin,
-    mustChangePassword: admin.mustChangePassword,
-  };
+  return { ok: true, token, admin, mustChangePassword: admin.mustChangePassword };
 }
 
 /** يحلّ رمز الجلسة إلى صاحبها، ويعيد `null` لأي رمز منتهٍ أو مُبطَل. */

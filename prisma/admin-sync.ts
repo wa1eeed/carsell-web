@@ -1,7 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { MIN_ADMIN_PASSWORD, provisionSuperAdmin } from '../src/lib/domain/admin-provision';
-import { totpUri } from '../src/lib/auth/totp';
 
 /**
  * ═══ مزامنة حساب الأدمن من البيئة ═══
@@ -10,6 +9,9 @@ import { totpUri } from '../src/lib/auth/totp';
  * `ADMIN_PASSWORD` في لوحة النشر **تغييرًا يقع فعلًا** — لا متغيّرًا
  * يُقرأ عند الزرع وحده ثم يُنسى، فيظنّ صاحبه أنه بدّل كلمته وهي كما
  * كانت.
+ *
+ * ولا يُولَّد سرّ TOTP: أُلغيت المصادقة الثنائية بقرار المصمّم، والدخول
+ * بالبريد والكلمة وحدهما.
  *
  * ═══ وغيابُ المتغيّرات ليس خطأً ═══
  *
@@ -52,7 +54,6 @@ const prisma = new PrismaClient({
 const HEADLINE = {
   created: '✓ مزامنة الأدمن: أُنشئ الحساب',
   password_set: '✓ مزامنة الأدمن: بُدّلت كلمة المرور',
-  totp_reset: '✓ مزامنة الأدمن: أُعيد تسجيل TOTP',
   unchanged: '· مزامنة الأدمن: لا تغيير',
 } as const;
 
@@ -64,7 +65,6 @@ async function main(): Promise<void> {
     ...(process.env.ADMIN_NAME === undefined || process.env.ADMIN_NAME === ''
       ? {}
       : { name: process.env.ADMIN_NAME }),
-    resetTotp: process.env.ADMIN_RESET_TOTP === '1',
   });
 
   if (!result.ok) {
@@ -79,37 +79,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`${HEADLINE[result.outcome]}  —  ${email}`);
-
   /**
-   * السرّ يُطبع مرّةً واحدة ولا يُخزَّن مقروءًا.
-   *
    * **وكلمة المرور لا تُطبع أبدًا** — ولا حتى في التطوير: من ضبطها
    * يعرفها، وطباعتُها تجعل سرًّا اختير بعناية مقروءًا لكل من يفتح
    * السجلّات، وإلى الأبد.
    */
-  if (result.totpSecret !== null) {
-    /**
-     * **والسرّ وحده على سطره، بلا إزاحة ولا حرف عربيّ.**
-     *
-     * طبعتُه أوّلًا مُزاحًا بين سطرين عربيين، فالتقط النسخُ علاماتِ
-     * اتّجاه غير مرئية ورفضه تطبيق المصادقة بـ«illegal character» —
-     * والسرّ سليم، والأبجدية `A–Z` و`2–7` بالضبط. وهو الصنف نفسه
-     * الذي يفرض `dir="ltr"` على كل حقلٍ يُنسخ من مصدر لاتينيّ،
-     * بوجهه المعكوس: **لاتينيٌّ يُنسخ من سياق عربيّ يفسد أيضًا**.
-     *
-     * فالتعليمات فوقه والرابط تحته، وبينهما سطرٌ لا يحمل غيره.
-     */
-    console.log('');
-    console.log('  ⚠ سرّ TOTP — احفظه الآن، لا يُطبع مرّةً ثانية.');
-    console.log('  انسخ السطر التالي وحده (Enter setup key):');
-    console.log('');
-    console.log(result.totpSecret);
-    console.log('');
-    console.log('  أو الصق هذا الرابط إن قبِله تطبيقك:');
-    console.log(totpUri(result.totpSecret, email));
-    console.log('');
-  }
+  console.log(`${HEADLINE[result.outcome]}  —  ${email}`);
 }
 
 main()

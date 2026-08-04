@@ -327,50 +327,6 @@
         }
       }
     },
-    "/api/v1/admin/auth/totp": {
-      "post": {
-        "summary": "POST /api/v1/admin/auth/totp",
-        "tags": [
-          "admin"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "adminUserId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "code": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 12
-                  }
-                },
-                "required": [
-                  "adminUserId",
-                  "code"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "422": {
-            "description": "Validation failed"
-          }
-        }
-      }
-    },
     "/api/v1/admin/body-types/{key}": {
       "patch": {
         "summary": "PATCH /api/v1/admin/body-types/{key}",
