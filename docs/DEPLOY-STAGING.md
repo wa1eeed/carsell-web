@@ -114,6 +114,26 @@ database hides query errors, which is the class of bug that reaches production.
 
 ---
 
+## 3c. Build-time pitfalls (both hit on the first deploy)
+
+**Set the branch to `staging`.** Coolify defaults to `main`, and it will happily
+build a months-old commit while you wonder why your fix is not there. The log
+line to check is `Starting deployment of <repo>:<branch>` — read the branch and
+the commit sha before diagnosing anything else.
+
+**`NODE_ENV=production` at build time breaks the build.** Coolify passes runtime
+variables into the build, and `npm ci` then skips `devDependencies` — so
+`@tailwindcss/postcss` is missing and the build dies with `Cannot find module`,
+a message that never mentions the real cause.
+
+The `Dockerfile` is now immune: the deps and build stages set
+`ENV NODE_ENV=development` and install with `npm ci --include=dev`, so the build
+works regardless of what the orchestrator injects. You may still mark secrets as
+runtime-only in Coolify to silence the `SecretsUsedInArgOrEnv` warnings, but it
+is no longer required for the build to succeed.
+
+---
+
 ## 4. Deployment steps
 
 1. **Postgres**: create a `carsell_staging` database. Coolify can host it, or

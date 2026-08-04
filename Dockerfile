@@ -7,16 +7,28 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
+# ═══ البناء يحتاج تبعيّات التطوير — ولو حُقن `NODE_ENV=production` ═══
+#
+# **يُثبَّت هنا صراحةً ولا يُترك لما يحقنه المُنسِّق.** Coolify يمرّر
+# متغيّرات التشغيل إلى البناء، و`NODE_ENV=production` تجعل `npm ci`
+# يتخطّى `devDependencies` — فيسقط البناء على `@tailwindcss/postcss`
+# ورسالتُه «Cannot find module» لا تقول إن السبب متغيّر بيئة.
+# (وقع في أوّل نشر.)
+ENV NODE_ENV=development
+
 # `prisma` قبل `npm ci` لأن `postinstall` يولّد العميل منه
 COPY package*.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-RUN npm ci
+RUN npm ci --include=dev
 
 
 # ─── ٢· البناء ───
 FROM node:22-alpine AS build
 WORKDIR /app
+
+# كذلك هنا — و`next build` يُخرج إنتاجًا بلا حاجة إلى هذا المتغيّر
+ENV NODE_ENV=development
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
