@@ -814,7 +814,8 @@
     "buyNow": "اشترِ الآن بـ",
     "countLive": "مباشرة",
     "countSoon": "قادمة",
-    "countEnded": "منتهية"
+    "countEnded": "منتهية",
+    "settling": "انتهى — يُحتسب الآن"
   },
   "inbox": {
     "title": "صندوق العروض",

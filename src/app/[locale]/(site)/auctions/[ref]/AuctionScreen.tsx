@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { BidPanel } from '@/components/site/BidPanel';
 import { Countdown } from '@/components/ui/Countdown';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -30,10 +30,14 @@ export function AuctionScreen({
   auction: initial,
   vehicle,
   listingPath,
+  viewer,
+  locale,
 }: {
   auction: PublicAuction;
   vehicle: { title: string; year: number; city: string };
   listingPath: string;
+  viewer: { signedIn: boolean; isOwn: boolean };
+  locale: string;
 }) {
   const t = useTranslations('auctions');
   const te = useTranslations('enums');
@@ -89,7 +93,18 @@ export function AuctionScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auction.id, auction.listingRef]);
 
-  const live = auction.status === 'LIVE';
+  /**
+   * **الحالة المخزَّنة وانقضاء الوقت معًا** — كما في صندوق العروض.
+   *
+   * `closeEndedAuctions` وظيفةٌ دورية، وبين مرورها ومرورها التالي يبقى
+   * `status` على `LIVE` بعد `endsAt`: فتعرض الشاشة «مباشر» وعدّادًا
+   * وزرًّا مفعَّلًا، ويردّ الخادم «انتهى المزاد» عند الضغط. (وقع: زايدتُ
+   * على مزادٍ يقول إنه حيّ فردّ ٤٠٩.)
+   *
+   * والصفحة `force-dynamic` فالمقارنة عند التصيير — والعدّاد يتولّى
+   * اللحظة التالية في المتصفّح.
+   */
+  const live = auction.status === 'LIVE' && new Date(auction.endsAt).getTime() > Date.now();
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row">
@@ -102,7 +117,16 @@ export function AuctionScreen({
           <p className="flex flex-wrap items-center gap-2.5 text-sm opacity-65">
             <span className="bidi-isolate">{vehicle.city}</span>
             <span aria-hidden className="opacity-35">·</span>
-            <Badge tone={live ? 'ink' : 'neutral'}>{te(`auctionStatus.${auction.status}`)}</Badge>
+            {/*
+              الشارة تتبع `live` لا `status`. وبين انقضاء الوقت ومرور
+              الوظيفة **لا نعرف بعدُ** أبلغ الاحتياطي أم لا — فلا نقول
+              `ENDED_MET` ولا `ENDED_UNMET`، بل «يُحتسب الآن».
+            */}
+            <Badge tone={live ? 'ink' : 'neutral'}>
+              {live || auction.status !== 'LIVE'
+                ? te(`auctionStatus.${auction.status}`)
+                : t('settling')}
+            </Badge>
           </p>
         </header>
 
@@ -172,20 +196,21 @@ export function AuctionScreen({
           </div>
 
           <div className="p-5">
-            {/* المزايدة الفعلية تحتاج عربونًا محجوزًا — القاعدة ٩ */}
-            <Button className="mb-2.5 w-full" disabled={!live}>
-              {t('placeBid')}
-            </Button>
-            <p className="mb-4 flex items-center justify-center gap-1.5 text-2xs opacity-55">
-              {t('depositRequired')} <ArabicNumber value={Number(auction.depositAmount)} />
-            </p>
-
-            {/* ═══ القاعدة ١٠ ═══ يختفي متى بلغت المزايدات الاحتياطي */}
-            {auction.buyNowPrice === null ? null : (
-              <Button variant="outline" className="w-full">
-                {t('buyNow')} <ArabicNumber value={Number(auction.buyNowPrice)} />
-              </Button>
-            )}
+            {/*
+              المزايدة والعربون — **وكان الزرّان بلا `onClick`**، فالمزاد
+              يُعرَض حيًّا بعدّاده ولا يُزايَد فيه.
+            */}
+            <BidPanel
+              listingRef={auction.listingRef}
+              live={live}
+              minimumNext={auction.minimumBid}
+              depositAmount={auction.depositAmount}
+              buyNowPrice={auction.buyNowPrice}
+              signedIn={viewer.signedIn}
+              isOwn={viewer.isOwn}
+              locale={locale}
+              onPlaced={() => void snapshot()}
+            />
           </div>
         </section>
       </aside>

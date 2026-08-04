@@ -814,7 +814,8 @@
     "buyNow": "Buy now for",
     "countLive": "live",
     "countSoon": "upcoming",
-    "countEnded": "ended"
+    "countEnded": "ended",
+    "settling": "Ended — being finalised"
   },
   "inbox": {
     "title": "Offers",

@@ -90,11 +90,25 @@ async function main(): Promise<void> {
     await db.vehicle.delete({ where: { id: listing.vehicleId } }).catch(() => undefined);
   }
 
+  /**
+   * ومزايدات التجريب وعرابينها — **الأثر الجديد يُتبَع في الاستعادة
+   * المشتركة**. مزايدةٌ تبقى تُغيّر أعلى سعرٍ في مزادٍ مزروع، فيقرأ
+   * كل من يفتحه رقمًا صنعتُه أنا.
+   */
+  const trialBidders = await db.user.findMany({
+    where: { email: { contains: '.trial@' } },
+    select: { id: true },
+  });
+  const bidderIds = trialBidders.map((row) => row.id);
+  const bids = await db.bid.deleteMany({ where: { bidderId: { in: bidderIds } } });
+  await db.deposit.deleteMany({ where: { userId: { in: bidderIds } } });
+
   const ledger = await db.sandboxTransaction.deleteMany({});
 
   console.log(
     `\n✓ نُظّف التجريب: ${String(restored)} طلبًا، و${String(payments.length)} دفعة، ` +
-      `و${String(trialListings.length)} إعلانًا، و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
+      `و${String(trialListings.length)} إعلانًا، و${String(bids.count)} مزايدة، ` +
+      `و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
   );
   await db.$disconnect();
 }
