@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { createAuctionOrderStandalone } from './auction-order';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
 
@@ -337,6 +338,15 @@ export async function resolveSellerDecision(
     data: { status: accepted && !expired ? 'ENDED_MET' : 'ENDED_UNMET', sellerDecisionDueAt: null },
   });
 
+  /**
+   * **وقبولُ البائع دون الاحتياطي يُنشئ الطلب كذلك.** وإلّا لكان القبول
+   * تغييرَ حالةٍ لا بيعًا: يوافق البائع، ويُخصم عربون الفائز، ولا يجد
+   * أحدهما ما يدفع أو يستلم.
+   */
+  if (accepted && !expired) {
+    await createAuctionOrderStandalone(auctionId, now).catch(() => undefined);
+  }
+
   return { ok: true };
 }
 
@@ -514,6 +524,18 @@ export async function closeEndedAuctions(now: Date = new Date()): Promise<number
 
     if (met) {
       await settleDeposits(auction.id, top?.bidderId ?? null, now);
+
+      /**
+       * **والفائز يحصل على طلبه.** كان المزاد يُغلق وتُسوّى عرابينه
+       * ويُعلَن فائزٌ ثم لا شيء: لا طلب ولا دفع ولا نقل ملكية. فيربح
+       * المزايد ولا يستلم، ويبيع البائع ولا يقبض.
+       *
+       * والفشل يُبتلَع عمدًا: مزادٌ أُغلق لا يُعاد فتحه لأن الطلب لم
+       * يُنشأ، والوظيفة الدورية تعاود المحاولة في مرورها التالي.
+       */
+      if (top !== undefined) {
+        await createAuctionOrderStandalone(auction.id, now).catch(() => undefined);
+      }
     } else {
       // الأعلى يبقى محجوزًا حتى يقرّر البائع؛ والباقون يُرَدّون الآن
       await settleDeposits(auction.id, null, now, { holdFor: top?.bidderId ?? null });
