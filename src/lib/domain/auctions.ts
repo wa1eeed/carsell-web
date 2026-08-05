@@ -497,6 +497,33 @@ export async function getAuction(
  * وردُّه فورًا يُطلقه من التزامه قبل أن يقرّر البائع، فيصير القبول
  * بلا مقابل. وعرابين الباقين تُرَد فورًا: لا شيء ينتظرهم.
  */
+/**
+ * ═══ فتحُ المزادات التي حان وقتها ═══
+ *
+ * **كان `LIVE` حالةً لا يكتبها أحد.** يُغلق المزاد بـ`closeEndedAuctions`
+ * ولا شيء يفتحه: فيبقى `SCHEDULED` حتى ينقضي وقتُه كلُّه، ثم يُغلق بلا
+ * أن يُمكِّن أحدًا من المزايدة. **فلا مزاد في المنتج كلّه يقبل مزايدة.**
+ *
+ * وقِيس: مزادٌ نافذتُه مفتوحة الآن (بدأ أمس وينتهي غدًا) تعرضه الشاشة
+ * «قادمًا»، ولا عدّاد ولا زرّ.
+ *
+ * وهو الصنف نفسه الذي وقع في `OrderSource.AUCTION`: قيمةٌ في المخطّط
+ * لا كاتب لها — تاسعُ مرّة.
+ */
+export async function openScheduledAuctions(now: Date = new Date()): Promise<number> {
+  const { count } = await db.auction.updateMany({
+    where: {
+      status: 'SCHEDULED',
+      startsAt: { lte: now },
+      // ولا يُفتح ما انقضى وقتُه — `closeEndedAuctions` تتولّاه
+      endsAt: { gt: now },
+    },
+    data: { status: 'LIVE' },
+  });
+
+  return count;
+}
+
 export async function closeEndedAuctions(now: Date = new Date()): Promise<number> {
   const ended = await db.auction.findMany({
     where: { status: 'LIVE', endsAt: { lte: now } },

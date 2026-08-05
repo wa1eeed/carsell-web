@@ -18,6 +18,8 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
     expect(run.outcomes.map((outcome) => outcome.job)).toEqual([
       'expireOffers',
       'timeoutUnpaidOrders',
+      // **يُفتح قبل أن يُغلق** — ومزادٌ نافذتُه دقائق يمرّ بالحالتين في تشغيلٍ واحد
+      'openScheduledAuctions',
       'closeEndedAuctions',
       'expireSellerDecisions',
       'overdueTransfers',

@@ -461,3 +461,63 @@ describe('الرسوّ يُنشئ طلبًا — الحلقة التي لم تك
     await teardown();
   });
 });
+
+/**
+ * ═══ `LIVE` كانت حالةً لا يكتبها أحد ═══
+ *
+ * يُغلق المزاد بـ`closeEndedAuctions` **ولا شيء يفتحه**: يبقى
+ * `SCHEDULED` حتى ينقضي وقتُه كلُّه ثم يُغلق بلا أن يقبل مزايدةً واحدة.
+ * فلم يكن في المنتج كلّه مزادٌ يُزايَد عليه.
+ */
+describe('فتح المزادات التي حان وقتها', () => {
+  it('يفتح ما بدأ ولم ينتهِ، ولا يمسّ غيره', async () => {
+    const { openScheduledAuctions } = await import('@/lib/domain/auctions');
+    const now = new Date('2026-08-05T12:00:00.000Z');
+
+    const listing = await db.listing.findFirstOrThrow({
+      where: { auction: { is: null } },
+      select: { id: true },
+    });
+
+    const base = {
+      listingId: listing.id,
+      startPrice: 50_000,
+      bidIncrement: 500,
+      depositAmount: 5_000,
+    };
+
+    // بدأ ولم ينتهِ ⇒ يُفتح
+    const due = await db.auction.create({
+      data: {
+        ...base,
+        status: 'SCHEDULED',
+        startsAt: new Date(now.getTime() - 3_600_000),
+        endsAt: new Date(now.getTime() + 3_600_000),
+      },
+    });
+
+    const opened = await openScheduledAuctions(now);
+    expect(opened).toBeGreaterThanOrEqual(1);
+    expect((await db.auction.findUniqueOrThrow({ where: { id: due.id } })).status).toBe('LIVE');
+
+    await db.auction.delete({ where: { id: due.id } });
+
+    // **ولا يُفتح ما انقضى وقتُه** — وإلّا فُتح مزادٌ ميّت ثم أُغلق فورًا
+    const stale = await db.auction.create({
+      data: {
+        ...base,
+        status: 'SCHEDULED',
+        startsAt: new Date(now.getTime() - 7_200_000),
+        endsAt: new Date(now.getTime() - 3_600_000),
+      },
+    });
+
+    await openScheduledAuctions(now);
+    expect((await db.auction.findUniqueOrThrow({ where: { id: stale.id } })).status).toBe(
+      'SCHEDULED',
+    );
+
+    await db.auction.delete({ where: { id: stale.id } });
+  });
+});
+

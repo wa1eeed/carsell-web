@@ -1,4 +1,5 @@
-import { closeEndedAuctions, expireSellerDecisions } from '@/lib/domain/auctions';
+import { closeEndedAuctions,
+  openScheduledAuctions, expireSellerDecisions } from '@/lib/domain/auctions';
 import { expireOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
@@ -45,6 +46,8 @@ export type Job = { name: string; run: (now: Date) => Promise<number> };
 const JOBS: readonly Job[] = [
   { name: 'expireOffers', run: (now) => expireOffers(now) },
   { name: 'timeoutUnpaidOrders', run: (now) => timeoutUnpaidOrders(now) },
+  // **يُفتح قبل أن يُغلق** — وترتيبُهما يعني أن مزادًا نافذتُه دقائق يُفتح ويُغلق في تشغيلٍ واحد
+  { name: 'openScheduledAuctions', run: (now) => openScheduledAuctions(now) },
   { name: 'closeEndedAuctions', run: (now) => closeEndedAuctions(now) },
   { name: 'expireSellerDecisions', run: (now) => expireSellerDecisions(now) },
   { name: 'overdueTransfers', run: async (now) => (await overdueTransfers(now)).length },
