@@ -30,7 +30,17 @@ const SEEDED: Record<string, string> = {
 
 const mode = process.argv[2] ?? 'on';
 
-if (process.env.NODE_ENV === 'production') {
+/**
+ * ═══ والحدّ `APP_ENV` لا `NODE_ENV` ═══
+ *
+ * الثاني يساوي `production` في staging أيضًا — **وهي البيئة التي بُني
+ * لها هذا الأمر**. فالحراسة به تُغلق الوضع التجريبيّ على بيئة التجريب
+ * نفسها، ويبقى خادمُ العرض عاجزًا عن بيع سيارة واحدة.
+ *
+ * (القاعدة مسجَّلة، وهذا الملفّ كان يخالفها — وظهرت المخالفة أوّل ما
+ * احتيج إلى تشغيله داخل الحاوية.)
+ */
+if (process.env.APP_ENV === 'production') {
   console.error(
     '\n✗ الوضع التجريبيّ لا يُشغَّل في الإنتاج.\n' +
       '  بوابةٌ وهمية على مالٍ حقيقيّ تقول للمشتري إن بطاقته سُحبت ولم يُسحب شيء.\n',
@@ -47,7 +57,19 @@ if (mode !== 'on' && mode !== 'off') {
  * `.env` يُقرأ هنا — لا مكتبة dotenv في المستودع، و`npm run trial:on`
  * يجب أن يعمل بلا `set -a` قبله وإلّا صار سطرًا يُنسى ويُبلَّغ عنه عطلًا.
  */
-for (const line of readFileSync(new URL('../.env', import.meta.url), 'utf8').split('\n')) {
+/**
+ * **وغيابه ليس عطلًا.** داخل الحاوية لا ملفّ `.env` أصلًا: المتغيّرات
+ * تصل من المُنسِّق. فسقوطُ الأمر بـ`ENOENT` هنا يوقفه في البيئة
+ * الوحيدة التي يُحتاج فيها.
+ */
+let envFile = '';
+try {
+  envFile = readFileSync(new URL('../.env', import.meta.url), 'utf8');
+} catch {
+  envFile = '';
+}
+
+for (const line of envFile.split('\n')) {
   const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
   if (match === null) continue;
   const [, key, raw = ''] = match;

@@ -116,6 +116,20 @@ COPY --from=build --chown=nextjs:nodejs /app/prisma.config.ts /opt/seed/prisma.c
 # `auth/totp`، ونسخُ ملفّين بعينهما هو الانتقائية التي أسقطتنا مرّتين
 COPY --from=build --chown=nextjs:nodejs /app/src /opt/seed/src
 
+# ═══ وأمر الوضع التجريبيّ — يسافر مع الصورة ═══
+#
+# البذرة توجّه الضمان إلى `bank_escrow` ولا مُهايئ له، **فبيئةٌ طازجة
+# لا تستطيع أن تبيع سيارة واحدة**: كل شراء يردّ `GATEWAY_NOT_CONFIGURED`
+# ويقف الطلب عند الدفع بلا ضمان ولا مراحل ولا مستندات.
+#
+# و`npm run trial:on` لا يعمل هنا: `tsx` من `devDependencies`
+# و`scripts/` ليست في شجرة `standalone`. فيُنسخ إلى `/opt/seed` حيث
+# `tsx` مثبَّت و`src/generated` موجود — ويُحلّ استيراده منه.
+#
+# و**الحدّ فيه `APP_ENV`**: `NODE_ENV=production` في staging أيضًا،
+# فحراسةٌ به تُغلق الوضع على البيئة التي بُني لها.
+COPY --from=build --chown=nextjs:nodejs /app/scripts/trial-mode.ts /opt/seed/scripts/trial-mode.ts
+
 # **بلا `--omit=optional`**: `@node-rs/argon2` يشحن ثنائيّاته الأصلية
 # تبعيّاتٍ اختيارية — وحذفُها يُسقط الزرع بـ«Cannot find module
 # './argon2.linux-x64-musl.node'» على alpine. (قِستُه فسقط على macOS

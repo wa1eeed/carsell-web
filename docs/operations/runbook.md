@@ -73,6 +73,26 @@ than against our own mirror.
 **Staging should run with trial mode on** until provider keys are configured.
 Without it the platform is on display and cannot sell.
 
+### On staging, inside the container
+
+`npm run trial:on` does not exist in the runtime image: `tsx` is a
+devDependency and `scripts/` is not part of the `standalone` tree. The script is
+copied to `/opt/seed`, where `tsx` is installed and `src/generated` resolves:
+
+```sh
+cd /opt/seed && ./node_modules/.bin/tsx scripts/trial-mode.ts on
+```
+
+It reads `DATABASE_URL` from the process environment — there is no `.env` file
+in the container, and a missing one is not an error.
+
+The guard is on **`APP_ENV`, not `NODE_ENV`**. `NODE_ENV` is `production` on
+staging too, so guarding on it would refuse to run in the one environment the
+command exists for.
+
+This survives redeploys — the routing lives in `PaymentRoute` rows, not in the
+image — so it is a one-time step per database, not per deploy.
+
 `createSandboxAdapter` throws in production, so this cannot leak into a live
 environment: a fake gateway open on real money tells a buyer their card was
 charged when nothing was, which is worse than having no gateway at all — the
