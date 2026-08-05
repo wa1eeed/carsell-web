@@ -3627,6 +3627,40 @@
         }
       }
     },
+    "/api/v1/auctions/{ref}/decision": {
+      "post": {
+        "summary": "POST /api/v1/auctions/{ref}/decision",
+        "tags": [
+          "auctions"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/auth/otp/request": {
       "post": {
         "summary": "POST /api/v1/auth/otp/request",

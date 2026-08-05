@@ -48,6 +48,25 @@ const db = new PrismaClient({
  * يجعل الأثر الجديد يُنسى في أحدهما، فيسقط التنظيف بقيدٍ مرجعيّ.
  */
 async function removeOrder(orderId: string): Promise<void> {
+  /**
+   * **ودفعات الطلب كلّها — لا دفعات البوابة التجريبية وحدها.**
+   *
+   * `main` تحذف `gatewayKey: 'sandbox'` قبل أن تصل إلى هنا، فتبقى كل
+   * محاولةٍ سبقت تفعيل الوضع التجريبيّ (دفعةٌ `FAILED` عبر
+   * `bank_escrow` مثلًا) مشيرةً إلى الطلب — **فيموت الحذف بقيدٍ
+   * مرجعيّ في منتصفه** ويترك نصف ما صُنع. والرسالة تسمّي القيد
+   * `Payment_orderId_fkey` ولا تقول أيّ دفعةٍ ولا لماذا نجت.
+   */
+  const attachedPayments = await db.payment.findMany({
+    where: { orderId },
+    select: { id: true },
+  });
+  if (attachedPayments.length > 0) {
+    const ids = attachedPayments.map((row) => row.id);
+    await db.paymentEvent.deleteMany({ where: { paymentId: { in: ids } } });
+    await db.payment.deleteMany({ where: { id: { in: ids } } });
+  }
+
   // قيود الدفتر أثرٌ جديد على الطلب — تُتبَع في الاستعادة المشتركة
   await db.ledgerEntry.deleteMany({ where: { orderId } });
   await db.escrow.deleteMany({ where: { orderId } });

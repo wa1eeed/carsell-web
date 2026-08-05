@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
-import { getAuction } from '@/lib/domain/auctions';
+import { getAuction, sellerDecisionView } from '@/lib/domain/auctions';
 import { canonicalPath, findPublishedListing } from '@/lib/domain/listing-detail';
 import { AuctionScreen } from './AuctionScreen';
 
@@ -49,6 +49,15 @@ export default async function AuctionPage({
 
   if (auction === null || listing === null) notFound();
 
+  /**
+   * **القرار المعلَّق — للبائع وحده، وبعد أن نعرف من هو.**
+   *
+   * قراءةٌ ثانية لأنها تعتمد على `viewer`، والشكل العامّ لا يحملها:
+   * `sellerDecisionDueAt` يقول متى ينتهي حقٌّ لا يملكه غيره.
+   */
+  const decision =
+    viewer === null ? null : await sellerDecisionView(ref, viewer.id);
+
   const title = [listing.vehicle.brandName, listing.vehicle.modelName, listing.vehicle.trimName]
     .filter((part) => part !== null && part !== '')
     .join(' ');
@@ -74,6 +83,7 @@ export default async function AuctionPage({
               signedIn: viewer !== null,
               isOwn: viewer !== null && viewer.id === listing.sellerId,
             }}
+            decision={decision}
             locale={locale}
           />
         </div>

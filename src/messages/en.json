@@ -748,6 +748,7 @@
     "total": "Total",
     "vatIncluded": "Platform fees include VAT · the ownership-transfer fee is a government charge passed on unchanged",
     "status": "Status",
+    "lessThanAnHour": "less than an hour",
     "inStageFor": "In this stage for",
     "payBy": "Payment due by",
     "disputeOpen": "A dispute is open on this order",

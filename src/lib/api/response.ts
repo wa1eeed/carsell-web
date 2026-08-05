@@ -79,6 +79,21 @@ export const ERRORS = {
     messageAr: 'هذا العرض لم يعد نشطًا.',
     messageEn: 'This offer is no longer active.',
   },
+  AUCTION_NO_DECISION: {
+    code: 'AUCTION_NO_DECISION',
+    messageAr: 'لا قرار معلّقًا على هذا المزاد.',
+    messageEn: 'This auction has no pending decision.',
+  },
+  /**
+   * انقضاء مهلة القرار **يُقال صراحةً**: النطاق يردّ العربون ويُبقي
+   * الحالة كما هي ولو ضغط البائع «أقبل»، فالنتيجة عكس ما طلب — ورمزٌ
+   * عامّ يجعله ينتظر طلبًا لن يُنشأ.
+   */
+  AUCTION_DECISION_CLOSED: {
+    code: 'AUCTION_DECISION_CLOSED',
+    messageAr: 'انقضى وقت القرار، ورُدّ العربون إلى المزايد.',
+    messageEn: 'The decision window has closed and the deposit was refunded.',
+  },
   VIN_INVALID: {
     code: 'VIN_INVALID',
     messageAr: 'رقم الهيكل غير صحيح — تحقّق من الخانات السبع عشرة.',

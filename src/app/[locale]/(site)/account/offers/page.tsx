@@ -80,7 +80,14 @@ export default async function OffersInboxPage({
           <span aria-hidden className="opacity-40">·</span>
           <span className="bidi-isolate">{offer.listing.city}</span>
           <span aria-hidden className="opacity-40">·</span>
-          <span>{t(offer.role === 'seller' ? 'received' : 'sentBy')}</span>
+          {/*
+            **والشارة من `sentByMe` لا من `role`.** الدور ثابتٌ طول
+            المفاوضة (المشتري مشترٍ ولو قابَله البائع)، فاشتقاقُ الاتّجاه
+            منه يجعل البائع يقرأ «وارد» على مقابلِه هو، والمشتري «مُرسَل»
+            على ما وصله. والتبويب يفرزهما بـ`sentByMe` أصلًا، فكانت
+            الشارة تناقض العمود الذي هي فيه.
+          */}
+          <span>{t(offer.sentByMe ? 'sentBy' : 'received')}</span>
         </span>
       </span>
 

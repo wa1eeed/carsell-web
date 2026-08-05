@@ -350,6 +350,55 @@ export async function resolveSellerDecision(
   return { ok: true };
 }
 
+/**
+ * القرار المعلَّق كما يراه **البائع وحده**.
+ *
+ * و`PublicAuction` لا يحمله: `sellerDecisionDueAt` يقول متى ينتهي حقٌّ
+ * لا يملكه غيره، والشكل العامّ يُقرأ من مسارٍ عامّ. والفحص هنا لا في
+ * الشاشة — حارسٌ في العميل ليس حارسًا.
+ *
+ * ويُرجع `null` لغير البائع ولمزادٍ لا قرار عليه، فالشاشة تفحص وجوده
+ * ولا تكرّر الشرط.
+ */
+export type SellerDecision = {
+  dueAt: string;
+  /** انقضت المهلة وإن لم تمرّ الوظيفة الدورية بعد — الحالة والوقت معًا. */
+  lapsed: boolean;
+  highestBid: string;
+  depositAmount: string;
+  bidCount: number;
+};
+
+export async function sellerDecisionView(
+  listingRef: string,
+  viewerId: string,
+  now: Date = new Date(),
+): Promise<SellerDecision | null> {
+  const auction = await db.auction.findFirst({
+    where: { listing: { ref: listingRef, sellerId: viewerId }, status: 'ENDED_UNMET' },
+    select: {
+      sellerDecisionDueAt: true,
+      depositAmount: true,
+      _count: { select: { bids: true } },
+      bids: { orderBy: { amount: 'desc' }, take: 1, select: { amount: true } },
+    },
+  });
+
+  if (auction === null || auction.sellerDecisionDueAt === null) return null;
+
+  // لا مزايدة ⇒ لا قرار: النطاق يردّ `ok: false`، فلا تُعرض أزرار تُرفض
+  const highest = auction.bids[0];
+  if (highest === undefined) return null;
+
+  return {
+    dueAt: auction.sellerDecisionDueAt.toISOString(),
+    lapsed: auction.sellerDecisionDueAt <= now,
+    highestBid: highest.amount.toString(),
+    depositAmount: auction.depositAmount.toString(),
+    bidCount: auction._count.bids,
+  };
+}
+
 /** المزادات التي انقضت مهلة قرار بائعها — يُرَد عربون الأعلى. */
 export async function expireSellerDecisions(now: Date = new Date()): Promise<number> {
   const overdue = await db.auction.findMany({

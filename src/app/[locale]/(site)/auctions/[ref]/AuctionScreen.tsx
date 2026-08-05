@@ -7,10 +7,11 @@ import { useEffect, useRef, useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { BidPanel } from '@/components/site/BidPanel';
+import { SellerDecisionPanel } from '@/components/site/SellerDecisionPanel';
 import { Countdown } from '@/components/ui/Countdown';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
-import type { PublicAuction } from '@/lib/domain/auctions';
+import type { PublicAuction, SellerDecision } from '@/lib/domain/auctions';
 
 /** المزامنة كل ٣٠ ثانية — لا كل ثانية (معيار القبول). */
 const SYNC_SECONDS = 30;
@@ -31,12 +32,15 @@ export function AuctionScreen({
   vehicle,
   listingPath,
   viewer,
+  decision,
   locale,
 }: {
   auction: PublicAuction;
   vehicle: { title: string; year: number; city: string };
   listingPath: string;
   viewer: { signedIn: boolean; isOwn: boolean };
+  /** `null` لغير البائع ولمزادٍ لا قرار عليه — والحارس في النطاق. */
+  decision: SellerDecision | null;
   locale: string;
 }) {
   const t = useTranslations('auctions');
@@ -161,7 +165,15 @@ export function AuctionScreen({
         </section>
       </div>
 
-      <aside className="w-full shrink-0 lg:w-[380px]">
+      <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-[380px]">
+        {/*
+          **قرار البائع أوّلًا.** مهلةٌ تجري وحقٌّ يسقط بانقضائها — فلا
+          يُدفن تحت بطاقة السعر التي لم تعد تعني شيئًا بعد الإغلاق.
+        */}
+        {decision === null ? null : (
+          <SellerDecisionPanel listingRef={auction.listingRef} decision={decision} />
+        )}
+
         <section className="sticky top-4 overflow-hidden rounded-xl border-2 border-ink">
           <div className="border-b border-line p-5">
             <div className="mb-3 flex items-center gap-2.5">

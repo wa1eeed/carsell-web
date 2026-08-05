@@ -307,8 +307,16 @@ export function OrderScreen({
             {/* مدّة البقاء **محسوبة** — تخزينها يجعلها تكذب بعد ساعة */}
             <p className="flex items-center gap-1.5 text-2xs opacity-55">
               {t('inStageFor')}
+              {/*
+                **وأقلُّ من ساعةٍ تُقال بجملتها.** `Quantity` تصوغ الصفر
+                «لا ساعات»، فيقرأ صاحب الطلب «في هذه المرحلة منذ لا ساعات»
+                — وهي جملةٌ لا معنى لها في أوّل ساعةٍ من كل طلب، أي في
+                اللحظة التي يفتح فيها الشاشة أوّل مرّة.
+              */}
               {days > 0 ? (
                 <Quantity unit="days" count={days} />
+              ) : order.dwellSeconds < 3600 ? (
+                <span>{t('lessThanAnHour')}</span>
               ) : (
                 <Quantity unit="hours" count={Math.floor(order.dwellSeconds / 3600)} />
               )}
