@@ -1565,7 +1565,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `PaintStatus` — `ORIGINAL`, `PARTIAL`, `REPAINTED`, `UNKNOWN`
 - `VehicleHistorySource` — `SELLER`, `INSPECTION`, `PLATFORM`
 - `ListingType` — `DIRECT`, `NEGOTIATION`, `AUCTION`
-- `ListingStatus` — `DRAFT`, `PENDING_REVIEW`, `PUBLISHED`, `RESERVED`, `SOLD`, `SUSPENDED`, `EXPIRED`
+- `ListingStatus` — `DRAFT`, `PENDING_REVIEW`, `PUBLISHED`, `RESERVED`, `SOLD`, `SUSPENDED`, `PAUSED`, `EXPIRED`
 - `ReviewReason` — `DUPLICATE_IMAGE /// تكرار صورة > ٩٠٪ مع إعلان مستخدم آخر`, `PRICE_OUTLIER /// سعر أقل من ٤٠٪ من PriceStat.p25`, `NEW_ACCOUNT_BURST /// حساب عمره < ٧ أيام وله أكثر من ٣ إعلانات`, `USER_REPORT /// بلاغ وارد`
 - `OfferStatus` — `PENDING`, `COUNTERED`, `ACCEPTED`, `REJECTED`, `WITHDRAWN`, `EXPIRED`
 - `AuctionStatus` — `SCHEDULED`, `LIVE`, `ENDED_MET`, `ENDED_UNMET`, `CANCELLED`

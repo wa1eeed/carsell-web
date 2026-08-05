@@ -87,6 +87,36 @@ export async function republishListing(writer: Writer, listingId: string): Promi
 }
 
 /**
+ * ═══ إيقاف البائع لإعلانه — ورفعُه ═══
+ *
+ * **و`PAUSED` ليست `SUSPENDED`.** الثانية عقوبةٌ يوقعها الأدمن، ولو
+ * خُلطتا لرفع البائع عقوبتَه بضغطة «أعِد عرضه». والزائر لا يرى الإعلان
+ * في الحالين، فالفرق غير مرئيّ — ولذلك بالضبط يُكتب في الحالة نفسها.
+ *
+ * **ولا تُكتب `closeReason`**: الإيقاف المؤقّت ليس خروجًا من السوق،
+ * والإعلان يعود بحاله وسعره وتاريخ نشره ومشاهداته.
+ */
+export async function pauseListing(writer: Writer, listingId: string): Promise<void> {
+  await writer.listing.update({
+    where: { id: listingId },
+    data: { status: 'PAUSED' },
+  });
+}
+
+/**
+ * يعود معروضًا بعد إيقاف صاحبه — **ومن `PAUSED` وحدها**.
+ *
+ * الشرط في `seller-listing.ts` قبل النداء، وهذه هي الكتابة. وفصلُهما
+ * مقصود: الحالة تمرّ من هنا، والصلاحية تُفحص هناك.
+ */
+export async function resumeListing(writer: Writer, listingId: string): Promise<void> {
+  await writer.listing.update({
+    where: { id: listingId },
+    data: { status: 'PUBLISHED' },
+  });
+}
+
+/**
  * يخرج من السوق ولا يعود وحده — بعد ردٍّ كاملٍ وقع **بعد نقل الملكية**.
  *
  * والمركبة حينئذٍ بيد المشتري ولا نعرف أين استقرّت، فنشرُها وعدٌ لا

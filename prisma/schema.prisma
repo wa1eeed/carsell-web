@@ -543,7 +543,10 @@ enum ListingStatus {
   PUBLISHED
   RESERVED
   SOLD
+  /// أوقفه **الأدمن** — ولا يرفعه البائع، وإلّا رفع عقوبةً عليه بضغطة
   SUSPENDED
+  /// أوقفه **البائع** نفسه — يرفعه متى شاء، والزائر لا يراه في الحالين
+  PAUSED
   EXPIRED
 }
 

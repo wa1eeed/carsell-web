@@ -56,6 +56,10 @@ export type AccountListing = {
   reviewNote: string | null;
   offerCount: number;
   viewCount: number;
+  /** قابل للتفاوض — يقرؤه صندوق التحكّم ويكتبه البائع */
+  negotiable: boolean;
+  /** طلبٌ قائم يقفل السعر والإيقاف معًا — والشاشة تقولها قبل الضغط */
+  hasActiveOrder: boolean;
   path: string;
 };
 
@@ -204,9 +208,14 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       orderBy: { publishedAt: 'desc' },
       select: {
         ref: true, city: true, askPrice: true, status: true, type: true, viewCount: true,
-        reviewNote: true,
+        reviewNote: true, negotiable: true,
         vehicle: { select: vehicleSelect },
-        _count: { select: { offers: true } },
+        /**
+         * **والطلب القائم يُعدّ هنا.** التحكّم في الصفّ يحتاجه ليقول
+         * «لا يُعدَّل» قبل الضغط لا بعده — وسؤالُه لكل صفّ على حدة
+         * استعلامٌ لكل إعلان.
+         */
+        _count: { select: { offers: true, orders: { where: { status: 'ACTIVE' } } } },
       },
     }),
     db.inspectionReport.findMany({
@@ -289,6 +298,8 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       reviewNote: listing.status === 'DRAFT' ? listing.reviewNote : null,
       offerCount: listing._count.offers,
       viewCount: listing.viewCount,
+      negotiable: listing.negotiable,
+      hasActiveOrder: listing._count.orders > 0,
       path: canonicalPath(locale, listing).path,
     })),
     reports: reports.map((report) => {

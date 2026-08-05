@@ -9,6 +9,7 @@ import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow, Money } from '../AccountList';
+import { ListingControls } from '@/components/site/ListingControls';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,18 @@ export default async function ListingsPage({
           سببٍ مقروء يجعل صاحبه ينشره كما هو فيعود إلى الطابور —
           ودورةٌ لا تنتهي بين الطرفين.
         */}
+        {/*
+          **التحكّم — وكان غائبًا كلّه.** البائع ينشر ثم لا يستطيع
+          تغيير سعره ولا إيقاف عرضه، وهو أوّل ما يفعله كل بائع.
+        */}
+        <ListingControls
+          listingRef={listing.ref}
+          status={listing.status}
+          price={Number(listing.price)}
+          negotiable={listing.negotiable}
+          hasActiveOrder={listing.hasActiveOrder}
+        />
+
         {listing.reviewNote === null ? null : (
           <p className="mt-2 mb-4 rounded-md border border-warn-200 bg-warn-100 p-3.5 text-2xs leading-loose text-warn-900">
             <b>أُعيد للتعديل:</b> {listing.reviewNote}
