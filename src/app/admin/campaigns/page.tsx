@@ -4,13 +4,14 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
-import { can } from '@/lib/domain/permissions';
+import { can, canWrite } from '@/lib/domain/permissions';
 import {
   COOLDOWN_HOURS,
   MARKETING_CAP_PER_MONTH,
   listCampaigns,
   listSegments,
 } from '@/lib/domain/admin-campaigns';
+import { SendCampaignButton } from './SendButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,9 @@ export default async function CampaignsPage() {
 
   const [campaigns, segments] = await Promise.all([listCampaigns(), listSegments()]);
 
+  // الصلاحية تُفحص هنا وفي المسار — وحارسٌ في العميل ليس حارسًا
+  const canSend = canWrite(admin.role, 'notifications.manage');
+
   return (
     <AdminShell title="الحملات التسويقية" activeHref="/admin/campaigns" admin={admin}>
       <p className="mb-4 text-2xs opacity-55">
@@ -62,12 +66,13 @@ export default async function CampaignsPage() {
               <th className="p-3.5 text-end font-bold">نُقر</th>
               <th className="p-3.5 text-end font-bold">تحويل</th>
               <th className="p-3.5 text-start font-bold">الحالة</th>
+              <th className="p-3.5 text-start font-bold" />
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {campaigns.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-6 text-center opacity-45">
+                <td colSpan={9} className="p-6 text-center opacity-45">
                   لا حملات بعد — الإرسال يُفعَّل مع التطبيق.
                 </td>
               </tr>
@@ -95,6 +100,19 @@ export default async function CampaignsPage() {
                     <Badge tone={campaign.status === 'SENT' ? 'accent' : 'neutral'}>
                       {STATUS_LABEL[campaign.status] ?? campaign.status}
                     </Badge>
+                  </td>
+                  <td className="p-3.5">
+                    {/*
+                      الإرسال — **وكان بلا زرّ**، فحملةٌ في «مسودّة» تبقى
+                      فيها إلى الأبد ولو كانت شريحتها جاهزة.
+                    */}
+                    {!canSend ? null : (
+                      <SendCampaignButton
+                        campaignId={campaign.id}
+                        nameAr={campaign.nameAr}
+                        status={campaign.status}
+                      />
+                    )}
                   </td>
                 </tr>
               ))

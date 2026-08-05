@@ -118,9 +118,23 @@ describe('تغيير كلمة الأدمن', () => {
       where: { actorId: id, action: 'admin.password_changed' },
     });
     expect(audit).not.toBeNull();
-    // **ولا يُكتب شيءٌ من الكلمة** — ولا طولُها
-    expect(JSON.stringify(audit?.after)).not.toContain(NEW);
-    expect(JSON.stringify(audit?.after)).not.toContain(String(NEW.length));
+    /**
+     * **ولا يُكتب شيءٌ من الكلمة** — ولا طولُها.
+     *
+     * والطول يُفحص على **القيم** لا على النصّ المُسلسَل كلّه: البريد
+     * يحمل طابعًا زمنيًّا عشوائيًّا (`pwtest921845619@…`)، فبحثٌ نصّيّ
+     * عن «١٨» يقع عليه صدفةً — فيسقط الاختبار على ما لا يقيسه، وتبدو
+     * الصدفة عطلًا في الكود. (وقع.)
+     *
+     * والكلمة نفسها تُفحص نصًّا: عشرون حرفًا لا تقع صدفة.
+     */
+    const written = (audit?.after ?? {}) as Record<string, unknown>;
+    expect(JSON.stringify(written)).not.toContain(NEW);
+    expect(
+      Object.entries(written)
+        .filter(([key]) => key !== 'email')
+        .map(([, value]) => String(value)),
+    ).not.toContain(String(NEW.length));
 
     // نعيدها كي لا يعتمد ترتيبُ الاختبارات على ما غيّرناه
     await changeOwnPassword(

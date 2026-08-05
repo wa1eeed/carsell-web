@@ -74,6 +74,16 @@ export type AdminOrderDetail = {
   dueAt: string | null;
   /** انقضت المهلة ولم تمرّ الوظيفة الدورية — والحالة وحدها لا تكفي */
   overdue: boolean;
+  /**
+   * سقف النقل — **ويُمدَّد مرّة واحدة بسببٍ مكتوب**.
+   *
+   * والحقول الثلاثة تخرج معًا: بلا `extendedAt` تعرض الشاشة زرًّا
+   * يُرفض بعد الضغط، وبلا السبب يقرأ من يفتح الطلب بعد شهر تاريخًا
+   * مؤجَّلًا لا يعرف من أجّله ولا لماذا.
+   */
+  transferDeadlineAt: string | null;
+  transferExtendedAt: string | null;
+  transferExtensionReason: string | null;
   cancelReason: string | null;
 
   buyer: OrderParty;
@@ -184,6 +194,9 @@ export async function adminOrderDetail(ref: string, now: Date = new Date()): Pro
     stageEnteredAt: order.stageEnteredAt.toISOString(),
     dueAt: dueAt?.toISOString() ?? null,
     overdue: dueAt !== null && dueAt.getTime() < now.getTime(),
+    transferDeadlineAt: order.transferDeadlineAt?.toISOString() ?? null,
+    transferExtendedAt: order.transferDeadlineExtendedAt?.toISOString() ?? null,
+    transferExtensionReason: order.transferExtensionReason,
     cancelReason: order.cancelReason,
 
     buyer: party(order.buyer, buyerOrders),

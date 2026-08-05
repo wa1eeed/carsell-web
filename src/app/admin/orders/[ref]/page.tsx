@@ -12,7 +12,9 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
-import { can } from '@/lib/domain/permissions';
+import { can, canWrite } from '@/lib/domain/permissions';
+import { TRANSFER_EXTENSION_DAYS } from '@/lib/domain/transfer-windows';
+import { ExtendTransfer } from './ExtendTransfer';
 import { adminOrderDetail } from '@/lib/domain/admin-order-detail';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { STAGE_LABEL } from '@/lib/labels/charts';
@@ -84,6 +86,8 @@ export default async function AdminOrderDetailPage({
   if (order === null) notFound();
 
   const canFinance = can(admin.role, 'finance.view');
+  // التمديد تصرّفٌ في مسار الطلب لا قراءةٌ له — والفحص هنا وفي المسار
+  const canStage = canWrite(admin.role, 'orders.changeStage');
 
   return (
     <AdminShell title="تفاصيل الطلب" activeHref="/admin/orders" admin={admin}>
@@ -286,6 +290,21 @@ export default async function AdminOrderDetailPage({
               )}
               {order.cancelReason === null ? null : (
                 <Field label="سبب الإلغاء" value={order.cancelReason} />
+              )}
+
+              {/*
+                **التمديد — وكان بلا زرّ.** طلبٌ عالق في المرور لسببٍ خارج
+                يدَي الطرفين يمضي إلى الإلغاء التلقائيّ، ولا يملك التشغيلُ
+                ما يوقفه به. ولا يُعرض إلّا حيث له معنى: مرحلةُ نقلٍ لها
+                سقف.
+              */}
+              {order.stage !== 'TRANSFER' || order.transferDeadlineAt === null || !canStage ? null : (
+                <ExtendTransfer
+                  orderRef={order.ref}
+                  days={TRANSFER_EXTENSION_DAYS}
+                  extendedAt={order.transferExtendedAt}
+                  reason={order.transferExtensionReason}
+                />
               )}
             </DetailCard>
 
