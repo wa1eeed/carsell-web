@@ -636,7 +636,27 @@
     "noOrders": "No orders",
     "noOrdersBody": "Purchase orders you create will appear here with their stages.",
     "noReports": "No inspection reports",
-    "noReportsBody": "Order an inspection from the services directory and its report will appear here."
+    "noReportsBody": "Order an inspection from the services directory and its report will appear here.",
+    "noName": "My account",
+    "memberSince": "Customer since {date}",
+    "walletBalance": "Wallet balance",
+    "notSet": "Not set",
+    "notAsked": "Not asked yet",
+    "identityVerified": "Verified",
+    "identityMissing": "Not verified",
+    "editProfile": "Edit my details",
+    "field": {
+      "phone": "Mobile",
+      "email": "Email",
+      "identity": "Identity",
+      "iban": "IBAN",
+      "taxStatus": "Tax status",
+      "vatNumber": "VAT number"
+    },
+    "taxStatus": {
+      "INDIVIDUAL": "Not VAT registered",
+      "VAT_REGISTERED": "VAT registered"
+    }
   },
   "sell": {
     "title": "Sell your car at a fair price",

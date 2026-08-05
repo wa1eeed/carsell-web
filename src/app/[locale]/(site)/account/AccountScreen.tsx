@@ -95,6 +95,15 @@ export function AccountScreen({
     <>
       <MissingFields data={data} locale={locale} />
 
+      {/*
+        ═══ بطاقة الحساب — من أنتَ ورقمُك ورصيدك ═══
+
+        كانت الصفحة تبدأ بأربع عدّادات ثم قوائم، **بلا سطرٍ واحد يقول
+        من صاحبها**: لا رقم عميلٍ يُقتبس في مكالمة دعم، ولا بريدٌ ولا
+        حالةُ توثيقٍ ولا رصيدٌ لمحفظة.
+      */}
+      <ProfileCard data={data} locale={locale} />
+
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {data.stats.map((stat) => (
           <StatCard key={stat.key} label={t(`stat.${stat.key}`)} value={stat.value} />
@@ -294,5 +303,98 @@ export function AccountScreen({
         }}
       />
     </>
+  );
+}
+
+/** بطاقة الحساب — الهويّة والتواصل والمال في مكانٍ واحد. */
+function ProfileCard({ data, locale }: { data: AccountData; locale: string }) {
+  const t = useTranslations('account');
+  const { user } = data;
+
+  const joined = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(user.memberSince));
+
+  return (
+    <section className="mb-8 rounded-xl border border-line bg-surface p-6">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <span className="bidi-isolate truncate text-xl font-bold">
+            {user.name ?? t('noName')}
+          </span>
+          <span className="flex flex-wrap items-center gap-2.5 text-2xs opacity-60">
+            {/* رقم العميل يُقتبس في مكالمة — لاتينيّ معزول ويُنسخ خانةً بخانة */}
+            {user.ref === null ? null : (
+              <span dir="ltr" className="font-num">
+                {user.ref}
+              </span>
+            )}
+            <span aria-hidden className="opacity-40">·</span>
+            <span>{t('memberSince', { date: joined })}</span>
+          </span>
+        </div>
+
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-2xs opacity-55">{t('walletBalance')}</span>
+          <Money amount={Number(data.walletBalance)} size="lg" />
+        </div>
+      </div>
+
+      <dl className="grid gap-x-8 gap-y-3.5 sm:grid-cols-2">
+        <Row label={t('field.phone')} value={user.phone} ltr />
+        <Row label={t('field.email')} value={user.email} ltr missing={t('notSet')} />
+        <Row
+          label={t('field.identity')}
+          value={user.idVerified ? t('identityVerified') : null}
+          missing={t('identityMissing')}
+        />
+        <Row label={t('field.iban')} value={user.ibanMasked} ltr missing={t('notSet')} />
+        <Row
+          label={t('field.taxStatus')}
+          value={user.taxStatus === null ? null : t(`taxStatus.${user.taxStatus}`)}
+          missing={t('notAsked')}
+        />
+        {user.vatNumber === null ? null : (
+          <Row label={t('field.vatNumber')} value={user.vatNumber} ltr />
+        )}
+      </dl>
+
+      <Link
+        href={`/${locale}/account/profile`}
+        className="mt-5 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+      >
+        {t('editProfile')}
+      </Link>
+    </section>
+  );
+}
+
+/** سطرُ حقل — **والناقص يُقال لا يُترك فارغًا**، فالفراغ يُقرأ عطلًا. */
+function Row({
+  label,
+  value,
+  ltr,
+  missing,
+}: {
+  label: string;
+  value: string | null;
+  ltr?: boolean;
+  missing?: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-line-2 pb-2.5">
+      <dt className="shrink-0 text-2xs opacity-55">{label}</dt>
+      <dd
+        dir={ltr === true && value !== null ? 'ltr' : undefined}
+        className={
+          value === null
+            ? 'text-2xs opacity-45'
+            : `truncate text-2xs font-semibold ${ltr === true ? 'font-num' : 'bidi-isolate'}`
+        }
+      >
+        {value ?? missing ?? '—'}
+      </dd>
+    </div>
   );
 }

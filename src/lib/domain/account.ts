@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
+import { walletBalance as walletBalanceOf } from './wallet';
 import { SESSION_COOKIE, verifySession } from '@/lib/auth/token';
 import { profileCompletion, type ProfileCompletion } from './profile';
 import { canonicalPath } from './listing-detail';
@@ -129,7 +130,23 @@ export async function favoriteListings(
 }
 
 export type AccountData = {
-  user: { name: string | null; phone: string; email: string | null; idVerified: boolean };
+  user: {
+    /** رقم العميل — وهو ما يقوله في مكالمة الدعم */
+    ref: string | null;
+    name: string | null;
+    phone: string;
+    email: string | null;
+    idVerified: boolean;
+    identityStatus: string;
+    city: string | null;
+    /** الآيبان **مقنَّعًا** — يُعرض ليطمئنّ صاحبه أنه مُسجَّل، لا ليُقرأ */
+    ibanMasked: string | null;
+    taxStatus: string | null;
+    vatNumber: string | null;
+    memberSince: string;
+  };
+  /** رصيد محفظته — والمجموع من القيود لا من عمود */
+  walletBalance: string;
   completion: ProfileCompletion;
   stats: AccountStat[];
   orders: AccountOrder[];
@@ -137,6 +154,16 @@ export type AccountData = {
   listings: AccountListing[];
   reports: AccountReport[];
 };
+
+/**
+ * قناعُ الآيبان — أوّل أربعة وآخر أربعة، وما بينهما نقاط.
+ *
+ * وهو يكفي ليعرف صاحبه أيّ حسابٍ سجّل، ولا يكفي لأحدٍ آخر.
+ */
+function maskIban(iban: string | null): string | null {
+  if (iban === null || iban.length < 10) return iban;
+  return `${iban.slice(0, 4)}••••${iban.slice(-4)}`;
+}
 
 const title = (vehicle: { brandName: string; modelName: string; trimName: string | null }): string =>
   [vehicle.brandName, vehicle.modelName, vehicle.trimName]
@@ -203,13 +230,28 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     db.favorite.count({ where: { userId: user.id } }),
   ]);
 
+  const walletBalance = await walletBalanceOf(user.id);
+
   return {
     user: {
+      ref: user.ref,
       name: user.name,
       phone: user.phone,
       email: user.email,
       idVerified: user.idVerified,
+      identityStatus: user.identityStatus,
+      city: null,
+      /**
+       * **الآيبان مقنَّعًا لا كاملًا.** يُعرض ليطمئنّ صاحبه أنه
+       * مُسجَّل — وعرضُه كاملًا على شاشةٍ قد تُصوَّر أو تُشارَك يكشف
+       * حسابًا بنكيًّا بلا سببٍ يستدعيه.
+       */
+      ibanMasked: maskIban(user.iban),
+      taxStatus: user.taxStatus,
+      vatNumber: user.vatNumber,
+      memberSince: user.createdAt.toISOString(),
     },
+    walletBalance,
     completion: profileCompletion(user),
     stats: [
       { key: 'listings', value: listings.length },

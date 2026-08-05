@@ -636,7 +636,27 @@
     "noOrders": "لا طلبات",
     "noOrdersBody": "طلبات الشراء التي تنشئها ستظهر هنا بمراحلها.",
     "noReports": "لا تقارير فحص",
-    "noReportsBody": "اطلب فحصًا لمركبتك من دليل الخدمات ليظهر تقريره هنا."
+    "noReportsBody": "اطلب فحصًا لمركبتك من دليل الخدمات ليظهر تقريره هنا.",
+    "noName": "حسابي",
+    "memberSince": "عميلٌ منذ {date}",
+    "walletBalance": "رصيد المحفظة",
+    "notSet": "لم يُضف",
+    "notAsked": "لم يُسأل بعد",
+    "identityVerified": "موثَّقة",
+    "identityMissing": "لم تُوثَّق",
+    "editProfile": "تعديل بياناتي",
+    "field": {
+      "phone": "الجوّال",
+      "email": "البريد الإلكتروني",
+      "identity": "الهوية",
+      "iban": "الآيبان",
+      "taxStatus": "الوضع الضريبيّ",
+      "vatNumber": "الرقم الضريبيّ"
+    },
+    "taxStatus": {
+      "INDIVIDUAL": "غير مسجَّل في الضريبة",
+      "VAT_REGISTERED": "مسجَّل في الضريبة"
+    }
   },
   "sell": {
     "title": "بِع سيارتك بسعر عادل",
