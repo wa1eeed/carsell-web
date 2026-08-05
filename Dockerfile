@@ -66,6 +66,12 @@ COPY --from=build --chown=nextjs:nodejs /app/public ./public
 # المخطّط يبقى في `/app` أيضًا — العميل المولَّد يقرؤه
 COPY --from=build --chown=nextjs:nodejs /app/prisma ./prisma
 
+# ═══ نبضة المُجدوِل — ولا `curl` في هذه الصورة ═══
+#
+# `standalone` تحمل ما تتبّعه Next وحده، و`scripts/` ليست منه. فبلا
+# هذا السطر لا يجد المُجدوِل ما يشغّله، ويسقط بـ«Cannot find module».
+COPY --from=build --chown=nextjs:nodejs /app/scripts/ops/cron-tick.mjs ./scripts/ops/cron-tick.mjs
+
 # ═══ أداة Prisma في مجلّدٍ معزول ═══
 #
 # **نسخُ `node_modules/prisma` و`@prisma` وحدهما لا يكفي**: الأداة

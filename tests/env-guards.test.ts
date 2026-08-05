@@ -143,6 +143,30 @@ describe('صورة التشغيل تحمل ما يلزم الترحيل', () => 
     expect(run).toMatch(/COPY .*prisma\.config\.ts \/opt\/prisma\/prisma\.config\.ts/);
   });
 
+  /**
+   * ═══ ونبضة المُجدوِل ═══
+   *
+   * `standalone` تحمل ما تتبّعه Next وحده، و`scripts/` ليست منه —
+   * فبلا نسخٍ صريح لا يجد المُجدوِل ما يشغّله.
+   *
+   * **ولا `curl` في هذه الصورة**: `node:22-alpine` بلا أيّ `apk add`،
+   * فأمرٌ يبدأ به يسقط بـ«curl: not found» ويقول المُجدوِل «failed»
+   * ولا يذكر السبب. والوثيقة كانت تُملي `curl` سنةً كاملة.
+   */
+  it('ونبضة المُجدوِل منسوخة، ولا تعتمد على curl', () => {
+    const dockerfile = readFileSync('Dockerfile', 'utf8');
+    const run = dockerfile.slice(dockerfile.indexOf('AS run'));
+
+    expect(run).toMatch(/COPY .*cron-tick\.mjs/);
+    // ولا شيء يُثبّت `curl` — فلا يُملى في وثيقةٍ ولا يُستعمل في أمر
+    expect(dockerfile).not.toMatch(/apk add[^\n]*curl/);
+
+    const doc = readFileSync('docs/DEPLOY-STAGING.md', 'utf8');
+    const section = doc.slice(doc.indexOf('## 3. The scheduler'), doc.indexOf('## 3b.'));
+    expect(section).toMatch(/node scripts\/ops\/cron-tick\.mjs/);
+    expect(section).not.toMatch(/```bash\ncurl/);
+  });
+
   it('ونقطة الدخول تنادي الأداة من مكانها', () => {
     const entrypoint = readFileSync('docker-entrypoint.sh', 'utf8');
     // **من داخل** المجلّد — لا من `/app` باستدعاءٍ بمسار مطلق

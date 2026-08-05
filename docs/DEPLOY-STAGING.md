@@ -124,16 +124,28 @@ error — the platform stays usable without them.
 expire, unpaid orders hold a car forever, auctions never close, deposits are
 never returned.
 
-Add a scheduled job in Coolify, every 5 minutes:
+Add a Scheduled Task in Coolify, every 5 minutes, with this command:
 
 ```bash
-curl -fsS -X POST https://staging.carsell.one/api/cron/run \
-  -H "authorization: Bearer $CRON_SECRET"
+node scripts/ops/cron-tick.mjs
 ```
 
-It returns `500` when any job fails, so the scheduler can alert. Without
-`CRON_SECRET` set, the route answers `503` and does nothing — it fails closed,
-not open.
+**Not `curl`.** The runtime image is bare `node:22-alpine` with no `apk add` at
+all, so `curl` is not in it — a task starting with `curl` dies as
+`curl: not found`, and Coolify reports only "failed" without saying why. The
+Dockerfile already knew this: its healthcheck uses busybox `wget` and says so.
+busybox `wget` is no good here either — `--post-data` support varies by build,
+and this is a POST with an auth header. `node` is certain: it is what runs the
+server.
+
+The script calls `127.0.0.1:$PORT` rather than the public URL — no egress, no
+TLS, no dependency on DNS being ready — and it **prints the response body**, so
+a failed run names the job that failed instead of leaving you with the word
+"failed". It exits non-zero on `500` (any job failed) and on a missing
+`CRON_SECRET`, which is what makes the scheduler alert.
+
+Without `CRON_SECRET` set the route answers `503` and does nothing — it fails
+closed, not open, and the script says so in one line.
 
 ---
 
