@@ -332,6 +332,7 @@
     "trims": "{count, plural, zero{لا فئات} one{فئة واحدة} two{فئتان} few{{n} فئات} many{{n} فئة} other{{n} فئة}}",
     "listings": "{count, plural, zero{لا إعلانات} one{إعلان واحد} two{إعلانان} few{{n} إعلانات} many{{n} إعلانًا} other{{n} إعلان}}",
     "models": "{count, plural, zero{لا طرازات} one{طراز واحد} two{طرازان} few{{n} طرازات} many{{n} طرازًا} other{{n} طراز}}",
+    "minutes": "{count, plural, zero{لا دقائق} one{دقيقة واحدة} two{دقيقتان} few{{n} دقائق} many{{n} دقيقة} other{{n} دقيقة}}",
     "hoursShort": "{count, plural, other{{n} س}}",
     "features": "{count, plural, zero{لا مميزات} one{ميزة واحدة} two{ميزتان} few{{n} مميزات} many{{n} ميزة} other{{n} ميزة}}",
     "reviews": "{count, plural, zero{لا تقييمات} one{تقييم واحد} two{تقييمان} few{{n} تقييمات} many{{n} تقييمًا} other{{n} تقييم}}",

@@ -8,6 +8,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { getAuction, sellerDecisionView } from '@/lib/domain/auctions';
+import { Quantity } from '@/components/ui/Quantity';
 import { canonicalPath, findPublishedListing } from '@/lib/domain/listing-detail';
 import { AuctionScreen } from './AuctionScreen';
 
@@ -39,12 +40,13 @@ export default async function AuctionPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [auction, listing, viewer, t] = await Promise.all([
+  const [auction, listing, viewer, t, te] = await Promise.all([
     getAuction(ref),
     findPublishedListing(ref),
     // البائع لا يزايد على مركبته — والشاشة تقولها قبل الضغط
     currentUserFromCookies(),
     getTranslations('auctions'),
+    getTranslations('enums'),
   ]);
 
   if (auction === null || listing === null) notFound();
@@ -57,6 +59,24 @@ export default async function AuctionPage({
    */
   const decision =
     viewer === null ? null : await sellerDecisionView(ref, viewer.id);
+
+  /**
+   * **شريط المواصفات — أربع حقائق تسبق كل شيء.**
+   *
+   * وتُبنى هنا لا في الشاشة: الشاشة مكوّن عميل يُحدَّث كل ثلاثين ثانية
+   * بلقطةٍ من `/api/v1/auctions`، وتلك لا تحمل المركبة — فبناؤها هناك
+   * يجعلها تختفي عند أوّل تحديث.
+   */
+  const specs: { label: string; value: React.ReactNode }[] = [
+    {
+      label: 'الممشى',
+      value: <Quantity unit="km" count={listing.vehicle.mileageKm} />,
+    },
+    // التسميات من `enums` نفسها التي تقرؤها صفحة المركبة — لا نسخة ثانية
+    { label: 'ناقل الحركة', value: te(`transmission.${listing.vehicle.transmission}`) },
+    { label: 'المواصفات', value: te(`spec.${listing.vehicle.spec}`) },
+    { label: 'المدينة', value: listing.city },
+  ];
 
   const title = [listing.vehicle.brandName, listing.vehicle.modelName, listing.vehicle.trimName]
     .filter((part) => part !== null && part !== '')
@@ -78,6 +98,7 @@ export default async function AuctionPage({
           <AuctionScreen
             auction={auction}
             vehicle={{ title, year: listing.vehicle.year, city: listing.city }}
+            specs={specs}
             listingPath={canonicalPath(locale, listing).path}
             viewer={{
               signedIn: viewer !== null,

@@ -8,6 +8,13 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { BidPanel } from '@/components/site/BidPanel';
 import { SellerDecisionPanel } from '@/components/site/SellerDecisionPanel';
+import {
+  AuctionTerms,
+  BidLogStats,
+  BidStatus,
+  BidStep,
+  SpecStrip,
+} from '@/components/site/AuctionSections';
 import { Countdown } from '@/components/ui/Countdown';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -30,6 +37,7 @@ const SYNC_SECONDS = 30;
 export function AuctionScreen({
   auction: initial,
   vehicle,
+  specs,
   listingPath,
   viewer,
   decision,
@@ -37,12 +45,29 @@ export function AuctionScreen({
 }: {
   auction: PublicAuction;
   vehicle: { title: string; year: number; city: string };
+  /** شريط المواصفات — يُبنى في الخادم من الإعلان لا من المزاد. */
+  specs: readonly { label: string; value: React.ReactNode }[];
   listingPath: string;
   viewer: { signedIn: boolean; isOwn: boolean };
   /** `null` لغير البائع ولمزادٍ لا قرار عليه — والحارس في النطاق. */
   decision: SellerDecision | null;
   locale: string;
 }) {
+  /**
+   * توقيتُ المزايدة **بتوقيت الرياض دائمًا** — والمزاد يُغلق بساعته لا
+   * بساعة القارئ. ومزايدٌ في جدّة يقرأ «21:04» ويقارنها بعدّاد الإغلاق،
+   * فاختلاف المنطقة يجعل السجلّ يناقض العدّاد فوقه.
+   */
+  const stamp = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+    timeZone: 'Asia/Riyadh',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+
   const t = useTranslations('auctions');
   const te = useTranslations('enums');
   const [auction, setAuction] = useState(initial);
@@ -136,33 +161,81 @@ export function AuctionScreen({
 
         <div className="washed mb-6 aspect-16/9 rounded-xl" />
 
+        {/*
+          **شريط المواصفات — وكان الزائر يرى مبالغ ولا يرى المركبة.**
+          التصميم يضعه تحت العنوان مباشرةً: أربع حقائق تسبق كل شيء.
+        */}
+        <SpecStrip items={specs} />
+
         <Link href={listingPath} className="text-xs font-bold text-accent-700 hover:underline">
           {t('viewListing')}
         </Link>
 
         <section className="mt-8">
-          <h2 className="mb-3.5 text-base font-bold">{t('bidLog')}</h2>
+          <h2 className="mb-1.5 text-base font-bold">{t('bidLog')}</h2>
+          {/*
+            **والسجلّ يقول عن نفسه إنه لا يُعدَّل.** من يُطلب منه حجز
+            عربونٍ يحتاج أن يعرف أن ما يقرؤه أثرٌ لا عرضٌ يُنقّح.
+          */}
+          <p className="mb-4 text-3xs leading-loose opacity-55">
+            سجلٌّ غير قابل للتعديل — كل مزايدة موثّقة برقم المزايد وتوقيتٍ دقيق.
+            وهويات المزايدين مخفية، وأرقامهم ثابتة داخل المزاد تتيح متابعة سلوكه.
+          </p>
+
           {auction.bids.length === 0 ? (
             <p className="text-sm opacity-55">{t('noBids')}</p>
           ) : (
-            <ul className="flex flex-col">
-              {auction.bids.map((bid, i) => (
-                <li
-                  key={`${bid.alias}-${bid.at}-${String(i)}`}
-                  className="flex items-center gap-4 border-b border-line-2 py-3 last:border-0"
-                >
-                  {/* المزايد باسم مستعار — الهوية لا تخرج */}
-                  <span className="flex items-center gap-1.5 text-sm">
-                    {t('bidder')} <ArabicNumber value={Number(bid.alias)} grouped={false} />
-                  </span>
-                  {bid.isAuto ? <Badge tone="neutral">{t('auto')}</Badge> : null}
-                  <span className="flex-1" />
-                  <Money amount={Number(bid.amount)} size="md" showCurrency={false} />
-                </li>
-              ))}
-            </ul>
+            <>
+              <div className="overflow-x-auto rounded-xl border border-line">
+                <table className="w-full min-w-[34rem] text-start text-2xs">
+                  <thead className="border-b border-line bg-surface text-3xs opacity-50">
+                    <tr>
+                      <th className="p-3 text-start font-bold">المزايد</th>
+                      <th className="p-3 text-start font-bold">التاريخ والوقت</th>
+                      <th className="p-3 text-start font-bold">الفرق</th>
+                      <th className="p-3 text-start font-bold">الحالة</th>
+                      <th className="p-3 text-end font-bold">المبلغ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line-2">
+                    {auction.bids.map((bid, i) => (
+                      <tr key={`${bid.alias}-${bid.at}-${String(i)}`}>
+                        {/* المزايد باسم مستعار — الهوية لا تخرج */}
+                        <td className="p-3">
+                          <span className="flex items-center gap-1.5">
+                            {t('bidder')}{' '}
+                            <ArabicNumber value={Number(bid.alias)} grouped={false} />
+                          </span>
+                        </td>
+                        <td className="bidi-isolate p-3 font-num text-3xs opacity-60">
+                          {stamp.format(new Date(bid.at))}
+                        </td>
+                        <td className="p-3">
+                          <BidStep step={bid.step} />
+                        </td>
+                        <td className="p-3">
+                          <BidStatus top={bid.top} isAuto={bid.isAuto} />
+                        </td>
+                        <td className="p-3 text-end">
+                          <Money amount={Number(bid.amount)} size="sm" showCurrency={false} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <BidLogStats auction={auction} />
+            </>
           )}
         </section>
+
+        {/*
+          **شروط المزاد — وكان يُطلب حجز خمسة آلاف بلا شرطٍ معروض.**
+          وكلّها أرقامٌ فعلية من الإعداد: شرطٌ مكتوب بيدٍ يتباعد عن
+          الإعداد أوّل تغيير، فيقرأ المزايد «٥ دقائق» ويمدّد النظام ثلاثًا.
+        */}
+        <AuctionTerms terms={auction.terms} />
       </div>
 
       <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-[380px]">

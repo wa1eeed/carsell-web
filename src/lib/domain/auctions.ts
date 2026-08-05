@@ -440,8 +440,36 @@ export type PublicAuction = {
   minimumBid: string;
   /** راية وحدها — لا المبلغ ولا ما يُشتقّ منه (القاعدة ٨). */
   reserveMet: boolean;
-  /** المزايدون **بأسماء مستعارة** — الهوية الكاملة لا تخرج. */
-  bids: { alias: string; amount: string; at: string; isAuto: boolean }[];
+  /**
+   * المزايدون **بأسماء مستعارة** — الهوية الكاملة لا تخرج.
+   *
+   * ومع كل مزايدة ما يجعل السجلّ مقروءًا: **الفرق عن سابقتها** وحالتُها
+   * (الأعلى · تم تجاوزها) ونوعُها. وسجلٌّ بمبالغ وحدها يجعل القارئ
+   * يطرح بيده ستّ مرّات ليعرف كيف تحرّك المزاد.
+   */
+  bids: {
+    alias: string;
+    amount: string;
+    at: string;
+    isAuto: boolean;
+    /** الفرق عن المزايدة التي تحتها — و`null` لأوّل مزايدة. */
+    step: string | null;
+    top: boolean;
+  }[];
+  /** سعر الافتتاح ووقتُه — قاع السجلّ في التصميم. */
+  openedAt: string;
+  /** إحصاءات السجلّ: متوسّط الفرق · آخر مزايدة · مرّات التمديد. */
+  averageStep: string | null;
+  lastBidAt: string | null;
+  /** شروط المزاد — كلٌّ منها رقمٌ فعليّ لا نصٌّ مكتوب في الشاشة. */
+  terms: {
+    depositAmount: string;
+    extendWindowSeconds: number;
+    extendBySeconds: number;
+    paymentWindowHours: number;
+    viewingCity: string | null;
+    viewingAddress: string | null;
+  };
 };
 
 /**
@@ -519,12 +547,43 @@ export async function getAuction(
       minimumBid(Number(auction.startPrice), highest, Number(auction.bidIncrement)),
     ),
     reserveMet,
-    bids: auction.bids.map((bid) => ({
-      alias: String(aliases.get(bid.bidderId) ?? 0),
-      amount: bid.amount.toString(),
-      at: bid.createdAt.toISOString(),
-      isAuto: bid.isAuto,
-    })),
+    /**
+     * **والفرق يُحسب هنا لا في الشاشة.** الترتيب تنازليّ بالوقت،
+     * فالمزايدة التي تحت كلٍّ هي سابقتها — وأقدمُها يُقاس على سعر
+     * الافتتاح لا على `null`، فأوّل صفٍّ في السجلّ يقول كم رفع صاحبه
+     * عن المعلن.
+     */
+    bids: auction.bids.map((bid, index) => {
+      const under = auction.bids[index + 1];
+      const base = under === undefined ? Number(auction.startPrice) : Number(under.amount);
+      const step = Number(bid.amount) - base;
+      return {
+        alias: String(aliases.get(bid.bidderId) ?? 0),
+        amount: bid.amount.toString(),
+        at: bid.createdAt.toISOString(),
+        isAuto: bid.isAuto,
+        step: step > 0 ? String(step) : null,
+        top: index === 0,
+      };
+    }),
+    openedAt: auction.startsAt.toISOString(),
+    averageStep:
+      auction.bids.length < 2 || highest === null
+        ? null
+        : String(
+            Math.round(
+              (highest - Number(auction.startPrice)) / (auction.bids.length),
+            ),
+          ),
+    lastBidAt: auction.bids[0]?.createdAt.toISOString() ?? null,
+    terms: {
+      depositAmount: auction.depositAmount.toString(),
+      extendWindowSeconds: await deadline('auctionExtendWindowSeconds'),
+      extendBySeconds: await deadline('auctionExtendBySeconds'),
+      paymentWindowHours: await deadline('paymentWindowHours'),
+      viewingCity: auction.viewingCity,
+      viewingAddress: auction.viewingAddress,
+    },
   };
 }
 

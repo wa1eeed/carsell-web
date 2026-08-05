@@ -332,6 +332,7 @@
     "trims": "{count, plural, one{{n} trim} other{{n} trims}}",
     "listings": "{count, plural, one{{n} listing} other{{n} listings}}",
     "models": "{count, plural, one{{n} model} other{{n} models}}",
+    "minutes": "{count, plural, one{one minute} other{{n} minutes}}",
     "hoursShort": "{count, plural, one{{n}h} other{{n}h}}",
     "features": "{count, plural, one{{n} feature} other{{n} features}}",
     "reviews": "{count, plural, one{{n} review} other{{n} reviews}}",

@@ -14,6 +14,7 @@ export type Unit =
   | 'deals'
   | 'days'
   | 'hours'
+  | 'minutes'
   /** «١ س» — اختصار لا صيغة جمع: البطاقة تُمسَح بالعين ولا تُقرأ. */
   | 'hoursShort'
   | 'photos'
