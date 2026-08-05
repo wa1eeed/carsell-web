@@ -35,7 +35,7 @@ export default async function SettlementsPage() {
       subtitle="الضمان والإفراج والتسويات" activeHref="/admin/settlements" admin={admin}>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-60">
-          ما هو محجوز لدى مزوّد الدفع باسم صفقاتنا. والإفراج بنصاب عضوين: أحدهما
+          ما هو محجوز لدى مزوّد الدفع باسم صفقاتنا. ويحتاج تحويل المبلغ موافقة شخصين: أحدهما
           يطلب والآخر يعتمد، وعند الاعتماد يُنادى المزوّد.
         </p>
         <div className="flex flex-col items-start gap-0.5">

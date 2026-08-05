@@ -110,7 +110,7 @@ export default async function AdminOrderDetailPage({
       <DetailColumns
         main={
           <>
-            <DetailCard title="المال" note="المُتّفق والمُسوَّى والرسوم">
+            <DetailCard title="المال" note="المتّفق عليه والنهائيّ والرسوم">
               <Field
                 label="السعر المتّفق"
                 value={<Money amount={Number(order.money.agreedPrice)} />}
@@ -119,7 +119,7 @@ export default async function AdminOrderDetailPage({
               {order.money.settlementAmount === null ? null : (
                 // تسويةٌ جزئية بعد نزاع — والمتّفق يبقى للتدقيق
                 <Field
-                  label="المبلغ المُسوَّى"
+                  label="المبلغ النهائيّ بعد التسوية"
                   value={<Money amount={Number(order.money.settlementAmount)} />}
                   strong
                 />
@@ -145,7 +145,7 @@ export default async function AdminOrderDetailPage({
                 value={<Money amount={Number(order.money.processingFee)} />}
               />
               <Field
-                label="ضريبة توريداتنا"
+                label="الضريبة على عمولتنا ورسومنا"
                 value={<Money amount={Number(order.money.vatAmount)} />}
               />
               <Field
@@ -166,7 +166,7 @@ export default async function AdminOrderDetailPage({
 
             {canFinance ? (
               <DetailCard
-                title="قيود الدفتر"
+                title="حركة الحسابات"
                 note={
                   order.ledger.length === 0
                     ? 'لا قيد بعد'
@@ -199,7 +199,7 @@ export default async function AdminOrderDetailPage({
                             </td>
                             <td className="p-2">
                               <Badge tone={entry.direction === 'DEBIT' ? 'neutral' : 'accent'}>
-                                {entry.direction === 'DEBIT' ? 'مدين' : 'دائن'}
+                                {entry.direction === 'DEBIT' ? 'مدين (له)' : 'دائن (عليه)'}
                               </Badge>
                             </td>
                             <td className="p-2">

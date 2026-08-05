@@ -81,7 +81,7 @@ export default async function FinancePage() {
             وحدها، مجموعةً من `Order.vatAmount` لا محسوبةً من الإجمالي.
           */}
           <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-50">
-            وضريبة توريداتنا عليها <Money amount={summary.gmv.vat} /> — العمولة والرسوم
+            والضريبة على عمولتنا ورسومنا <Money amount={summary.gmv.vat} /> — العمولة والرسوم
             الإدارية بنسبة{' '}
             {/* النسبة تُقرأ يسارًا-يمينًا: بلا `dir` يظهر ١٥/١١٥ مقلوبًا ١١٥/١٥ */}
             <span className="bidi-isolate" dir="ltr">

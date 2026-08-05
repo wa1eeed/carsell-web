@@ -12,7 +12,7 @@ import { LedgerTable } from './LedgerTable';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'دفتر الأستاذ' };
+export const metadata = { title: 'دفتر الحسابات' };
 
 /**
  * A25 — دفتر الأستاذ.
@@ -29,7 +29,7 @@ export default async function LedgerPage() {
   const [book, entries] = await Promise.all([platformBook(), recentEntries()]);
 
   return (
-    <AdminShell title="دفتر الأستاذ"
+    <AdminShell title="دفتر الحسابات"
       subtitle="من الدفتر لا بالتجميع" activeHref="/admin/ledger" admin={admin}>
       {/*
         الاختلال في الصدارة لا في الذيل: رقمٌ في الأسفل يُتأمَّل، وفي
@@ -54,7 +54,7 @@ export default async function LedgerPage() {
 
       <div className="mb-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Figure label="إيراد المنصّة" note="العمولة والرسوم — لا قيمة المركبات" amount={book.revenue} strong />
-        <Figure label="ضريبة مستحقّة" note="دَينٌ للهيئة على توريداتنا" amount={book.vatPayable} strong />
+        <Figure label="ضريبة مستحقّة" note="ضريبة على عمولتنا ورسومنا — تُدفع للهيئة" amount={book.vatPayable} strong />
         <Figure label="لدى مزوّد الدفع" note="التزامٌ تجاه الأطراف، لا مالٌ لنا" amount={book.atProvider} />
         <Figure label="قُبض ولم يُستحقّ" note="في نافذة الإرجاع" amount={book.buyerAdvance} />
         <Figure label="حقوق البائعين" note="استُحقّت ولم تُحوَّل" amount={book.sellerPayable} />

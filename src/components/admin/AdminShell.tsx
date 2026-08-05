@@ -31,63 +31,96 @@ export type AdminNavGroup = {
 
 export const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
-    title: 'التشغيل',
+    /** ما يُفتح كل صباح — الأرقام ثم ما ينتظر عملًا. */
+    title: 'المتابعة',
     items: [
       { label: 'لوحة القيادة', href: '/admin', permission: 'dashboard.view' },
-      { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
-      { label: 'الإعلانات', href: '/admin/listings', permission: 'listings.review' },
-      { label: 'كل الإعلانات', href: '/admin/all-listings', permission: 'listings.review' },
-      { label: 'المزادات', href: '/admin/auctions', permission: 'orders.view' },
-      { label: 'العروض والمفاوضات', href: '/admin/offers', permission: 'orders.view' },
-      { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
-      { label: 'النزاعات', href: '/admin/disputes', permission: 'orders.view' },
-      { label: 'طلبات التمويل', href: null },
-      { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
-      { label: 'البلاغات', href: '/admin/reports', permission: 'reports.handle' },
-    ],
-  },
-  {
-    title: 'العملاء',
-    items: [
-      { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
-      { label: 'التجار والمعارض', href: '/admin/dealers', permission: 'users.view' },
-      { label: 'توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
-    ],
-  },
-  {
-    title: 'النمو',
-    items: [
-      { label: 'الإعلانات المموّلة', href: '/admin/ads', permission: 'finance.view' },
-      { label: 'الحملات التسويقية', href: '/admin/campaigns' },
+      { label: 'المتابعة اليومية', href: '/admin/ops', permission: 'orders.view' },
+      { label: 'المالية', href: '/admin/finance', permission: 'finance.view' },
       { label: 'التقارير والتصدير', href: '/admin/exports' },
     ],
   },
   {
-    title: 'الإعدادات',
+    /** **الإعلانات في مكانٍ واحد** — كانت مفرّقةً بين ثلاث مجموعات. */
+    title: 'الإعلانات',
     items: [
-      { label: 'التشغيلية', href: '/admin/ops', permission: 'orders.view' },
-      { label: 'المالية', href: '/admin/finance', permission: 'finance.view' },
-      { label: 'إعدادات الدفع والتوجيه', href: '/admin/payments', permission: 'finance.view' },
-      { label: 'المهل الزمنية', href: '/admin/deadlines', permission: 'finance.view' },
-      { label: 'دفتر الأستاذ', href: '/admin/ledger', permission: 'finance.view' },
-      { label: 'الكتالوج', href: '/admin/catalog/brands', permission: 'catalog.manage' },
+      { label: 'إعلانات تنتظر المراجعة', href: '/admin/listings', permission: 'listings.review' },
+      { label: 'كل الإعلانات', href: '/admin/all-listings', permission: 'listings.review' },
+      { label: 'المزادات', href: '/admin/auctions', permission: 'orders.view' },
+      { label: 'العروض والمساومات', href: '/admin/offers', permission: 'orders.view' },
+    ],
+  },
+  {
+    title: 'الطلبات والمبيعات',
+    items: [
+      { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
+      { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
+      { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
+      { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
+      { label: 'طلبات التمويل', href: null },
+    ],
+  },
+  {
+    /** **العملاء في مكانٍ واحد** — والتوثيق منهم لا من الإعدادات. */
+    title: 'العملاء',
+    items: [
+      { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
+      { label: 'المعارض والتجار', href: '/admin/dealers', permission: 'users.view' },
+      { label: 'طلبات توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
+    ],
+  },
+  {
+    /** **المزوّدون في مكانٍ واحد** — وطلباتُهم معهم لا في التشغيل. */
+    title: 'الخدمات والمزوّدون',
+    items: [
+      { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
+      { label: 'المزوّدون', href: '/admin/providers', permission: 'services.manage' },
+      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
+    ],
+  },
+  {
+    title: 'التسويق والإعلان',
+    items: [
+      { label: 'الإعلانات المموّلة', href: '/admin/ads', permission: 'finance.view' },
+      { label: 'الحملات التسويقية', href: '/admin/campaigns' },
+    ],
+  },
+  {
+    /**
+     * ═══ الإعدادات آخرًا وبتسلسل ═══
+     *
+     * المال ثمّ المحتوى ثمّ النظام. وكانت خمسة عشر بندًا بلا ترتيب:
+     * الكتالوج بين المهل والخدمات، والباقات بين الأسئلة والمساحات.
+     */
+    title: 'الإعدادات — المال',
+    items: [
+      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view' },
+      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
+      { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view' },
+      { label: 'دفتر الحسابات', href: '/admin/ledger', permission: 'finance.view' },
+      { label: 'المدد والمهل', href: '/admin/deadlines', permission: 'finance.view' },
+    ],
+  },
+  {
+    title: 'الإعدادات — المحتوى',
+    items: [
+      { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
       { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },
-      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
-      { label: 'مزوّدو الخدمات والتمويل', href: '/admin/providers', permission: 'services.manage' },
-      { label: 'إعدادات المزادات', href: '/admin/auction-settings', permission: 'finance.view' },
+      { label: 'مساحات الإعلانات', href: '/admin/ads', permission: 'finance.view' },
+      { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view' },
       { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage' },
-      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
-      { label: 'مساحات الإعلانات وتسعيرها', href: '/admin/ads', permission: 'finance.view' },
-      // **«الرسوم والضرائب» اسمُ A21 في التصميم** — وكانت لدينا باسمين:
-      // بندٌ حيّ اسمُه «محرّك الضريبة» وبندٌ ميّت اسمُه اسمَها.
-      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view' },
-      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage' },
-      { label: 'إشعارات الدفع', href: '/admin/push' },
-      { label: 'التكاملات ومفاتيح الربط', href: '/admin/integrations', permission: 'integrations.view' },
       { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage' },
+    ],
+  },
+  {
+    title: 'الإعدادات — النظام',
+    items: [
+      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage' },
+      { label: 'إشعارات الجوال', href: '/admin/push' },
+      { label: 'الربط بالخدمات الخارجية', href: '/admin/integrations', permission: 'integrations.view' },
       { label: 'الفريق والصلاحيات', href: '/admin/team', permission: 'team.manage' },
-      { label: 'سجل التدقيق', href: '/admin/audit', permission: 'audit.view' },
+      { label: 'سجل العمليات', href: '/admin/audit', permission: 'audit.view' },
     ],
   },
 ];

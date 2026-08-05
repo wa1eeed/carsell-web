@@ -115,7 +115,7 @@ export default async function AdminDisputeDetailPage({
             {dispute.resolvedAt === null ? (
               <DetailCard title="القرار">
                 <p className="text-2xs leading-loose opacity-60">
-                  لم يُحسم بعد. <b>والحسم يمرّ بنصاب عضوين</b> في شاشة النزاعات — لا من هنا.
+                  لم يُحسم بعد. <b>ويحتاج القرار موافقة شخصين</b> في شاشة النزاعات — لا من هنا.
                 </p>
                 <Link
                   href="/admin/disputes"

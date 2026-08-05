@@ -132,7 +132,7 @@ export function AuctionSettingsForm({
         <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="mb-4 flex items-center gap-2.5 text-sm font-bold">
             العربون والمزايدة
-            <Badge tone="warn">نصاب عضوين</Badge>
+            <Badge tone="warn">يحتاج موافقة شخصين</Badge>
           </h2>
 
           <Field

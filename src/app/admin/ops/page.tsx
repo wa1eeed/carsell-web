@@ -104,7 +104,7 @@ export default async function OpsPage() {
                 <Badge tone="danger" className="mt-3">
                   <span className="flex items-center gap-1.5">
                     <Quantity unit="exceeded" count={metric.critical} />
-                    <span>الضعف</span>
+                    <span>ضعف المدّة</span>
                   </span>
                 </Badge>
               )}

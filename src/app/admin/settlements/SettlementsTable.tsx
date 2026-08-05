@@ -172,7 +172,7 @@ export function SettlementsTable({
       <Modal
         open={confirming !== null}
         onClose={() => setConfirming(null)}
-        title="طلب الإفراج عن الضمان"
+        title="طلب تحويل المبلغ للبائع"
       >
         {confirming === null ? null : (
           <>

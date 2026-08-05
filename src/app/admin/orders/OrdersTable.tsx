@@ -57,7 +57,7 @@ export function OrdersTable({ orders }: { orders: readonly OrderRow[] }) {
               <span className="text-3xs opacity-45">/</span>
               <ArabicNumber value={order.targetHours} className="text-3xs opacity-45" />
               {order.critical ? (
-                <Badge tone="danger">تجاوز الضعف</Badge>
+                <Badge tone="danger">متأخّر جدًّا</Badge>
               ) : order.late ? (
                 <Badge tone="warn">متأخّر</Badge>
               ) : null}

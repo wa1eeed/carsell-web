@@ -31,7 +31,7 @@ export default async function AdminOrdersPage() {
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="طلبات جارية" value={orders.length} />
         <StatCard label="تجاوزت الهدف" value={late} tone={late > 0 ? 'warn' : 'plain'} />
-        <StatCard label="تجاوزت الضعف" value={critical} tone={critical > 0 ? 'warn' : 'plain'} />
+        <StatCard label="متأخّرة جدًّا" value={critical} tone={critical > 0 ? 'warn' : 'plain'} />
         <StatCard label="عليها نزاع" value={disputed} tone={disputed > 0 ? 'warn' : 'plain'} />
       </div>
 

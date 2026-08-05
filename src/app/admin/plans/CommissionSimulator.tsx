@@ -120,7 +120,7 @@ export function CommissionSimulator({
       </div>
 
       <p className="mt-4 text-3xs opacity-55">
-        المحاكاة لا تكتب شيئًا — والتطبيق على باقة يحتاج موافقة عضوين.
+        الحساب هنا تجريبيّ ولا يغيّر شيئًا — وتطبيقه على باقة يحتاج موافقة شخصين.
       </p>
     </section>
   );

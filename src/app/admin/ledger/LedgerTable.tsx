@@ -34,7 +34,7 @@ export function LedgerTable({ entries }: { entries: readonly LedgerRow[] }) {
       header: 'الاتّجاه',
       cell: (row) => (
         <Badge tone={row.direction === 'DEBIT' ? 'neutral' : 'accent'}>
-          {row.direction === 'DEBIT' ? 'مدين' : 'دائن'}
+          {row.direction === 'DEBIT' ? 'مدين (له)' : 'دائن (عليه)'}
         </Badge>
       ),
     },
