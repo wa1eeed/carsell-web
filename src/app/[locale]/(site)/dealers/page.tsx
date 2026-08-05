@@ -47,7 +47,7 @@ export default async function DealersPage({
     <>
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">{t('indexTitle')}</h1>
           <p className="mb-8 text-sm opacity-60">{t('indexSubtitle')}</p>
 

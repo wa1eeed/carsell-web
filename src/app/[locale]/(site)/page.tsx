@@ -121,7 +121,7 @@ export default async function HomePage({
       <main className="bg-bg text-ink">
         {/* الصدر — سطح داكن */}
         <section className="bg-ink text-bg">
-          <div className="mx-auto w-full max-w-page px-10 pt-13 pb-10">
+          <div className="page-frame pt-13 pb-10">
             <div className="flex flex-col gap-12 lg:flex-row">
               <div className="min-w-0 flex-[1.15]">
                 <h1 className="mb-4 text-display leading-tight font-extrabold tracking-tight">
@@ -165,7 +165,7 @@ export default async function HomePage({
           </div>
         </section>
 
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <SummaryCards
             cards={[
               {
@@ -213,7 +213,7 @@ export default async function HomePage({
         </div>
 
         <section className="border-t border-line">
-          <div className="mx-auto w-full max-w-page px-10 py-10">
+          <div className="page-frame">
             <SectionHead
               title={t('browseByBrand')}
               action={t('allBrands')}
@@ -231,7 +231,7 @@ export default async function HomePage({
             المشتري السعودي، والهيكل ثانيه، والتمويل بعدهما. */}
         {home.bodyTypes.length === 0 ? null : (
           <section className="border-t border-line">
-            <div className="mx-auto w-full max-w-page px-10 py-10">
+            <div className="page-frame">
               <SectionHead
                 title={t('browseByBodyType')}
                 action={t('showAll')}
@@ -252,7 +252,7 @@ export default async function HomePage({
 
         {/* التمويل — عرض وحساب فقط، بلا طلب ولا تكامل (قرار ١٤) */}
         <section className="border-t border-line">
-          <div className="mx-auto w-full max-w-page px-10 py-10">
+          <div className="page-frame">
             <div className="overflow-hidden rounded-2xl border border-line bg-surface">
               <div className="p-7">
                 <div className="mb-6 flex flex-wrap items-end gap-5">
@@ -314,7 +314,7 @@ export default async function HomePage({
 
         {home.auctions.length === 0 ? null : (
           <section className="border-t border-line">
-            <div className="mx-auto w-full max-w-page px-10 py-10">
+            <div className="page-frame">
               <SectionHead
                 title={t('liveAuctionsTitle')}
                 action={t('showAll')}
@@ -339,7 +339,7 @@ export default async function HomePage({
 
         {home.recent.cars.length === 0 ? null : (
           <section className="border-t border-line">
-            <div className="mx-auto w-full max-w-page px-10 py-10">
+            <div className="page-frame">
               <SectionHead
                 title={t('recentIn', { city: home.recent.city })}
                 action={t('showAll')}
@@ -357,7 +357,7 @@ export default async function HomePage({
         )}
 
         <section className="border-y border-line bg-surface">
-          <div className="mx-auto w-full max-w-page px-10 py-10">
+          <div className="page-frame">
             <h2 className="mb-7 text-2xl font-bold">{t('howToBuy')}</h2>
             <StepList
               steps={[1, 2, 3, 4].map((i) => ({
@@ -369,7 +369,7 @@ export default async function HomePage({
         </section>
 
         <section className="bg-ink text-bg">
-          <div className="mx-auto w-full max-w-page px-10 py-10">
+          <div className="page-frame">
             <div className="mb-7">
               <h2 className="mb-2 text-2xl font-bold">{t('whyTitle')}</h2>
               <p className="text-sm opacity-70">{t('whyBody')}</p>
@@ -385,7 +385,7 @@ export default async function HomePage({
 
         {home.services.length === 0 ? null : (
           <section className="border-b border-line">
-            <div className="mx-auto w-full max-w-page px-10 py-10">
+            <div className="page-frame">
               <SectionHead
                 title={t('servicesTitle')}
                 action={t('showAll')}
@@ -398,7 +398,7 @@ export default async function HomePage({
 
         {home.faq.length === 0 ? null : (
           <section>
-            <div className="mx-auto w-full max-w-page px-10 py-10">
+            <div className="page-frame">
               <SectionHead title={t('faqTitle')} action={t('helpCentre')} href={`/${locale}/help`} />
               <FaqAccordion
                 columns={2}

@@ -81,7 +81,7 @@ export default async function CarsPage({
     <>
       <SiteHeader active="cars" />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-8">
+        <div className="page-frame">
           <SearchHeading
             locale={locale}
             filters={filters}

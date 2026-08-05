@@ -64,7 +64,7 @@ export default async function HelpPage({
     <>
       <SiteHeader active="services" />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <header className="mb-9">
             <h1 className="mb-2.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
             <p className="max-w-2xl text-sm leading-loose opacity-68">{t('intro')}</p>

@@ -62,7 +62,7 @@ export default async function SellPage({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <section className="bg-ink text-bg">
-          <div className="mx-auto w-full max-w-page px-10 py-11">
+          <div className="page-frame py-11">
             <h1 className="mb-5 max-w-2xl text-display leading-tight font-extrabold tracking-tight">
               {t('title')}
               <span className="block opacity-70">{t('titleTail')}</span>
@@ -86,7 +86,7 @@ export default async function SellPage({
           </div>
         </section>
 
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <SellWizard
             taxProfile={taxProfileOf(user)}
             brands={brands}

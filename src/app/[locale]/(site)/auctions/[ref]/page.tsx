@@ -57,7 +57,7 @@ export default async function AuctionPage({
     <>
       <SiteHeader active="auctions" />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-8">
+        <div className="page-frame">
           <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-2xs opacity-50">
             <Link href={`/${locale}/auctions`} className="hover:underline">
               {t('title')}

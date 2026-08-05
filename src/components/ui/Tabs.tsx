@@ -27,7 +27,16 @@ export function Tabs({
   return (
     <div
       role="tablist"
-      className={cn('flex items-center gap-2 border-b border-line', className)}
+      /*
+        **الشريط يُمرَّر ولا يفيض.** أربعة تابز بعناوين عربية تبلغ
+        ٥١٨px، فتُدفع الصفحة كلُّها على شاشة ٣٧٥ — وهو ما كان يُخرج
+        صفحة السيارة عن حدّها على الهاتف. والتمرير داخل الشريط يُبقي
+        كلّ تابٍ مبلوغًا، بخلاف الالتفاف الذي يُنتج سطرين متفاوتين.
+      */
+      className={cn(
+        'no-scrollbar flex items-center gap-2 overflow-x-auto border-b border-line',
+        className,
+      )}
     >
       {items.map((item) => {
         const isActive = item.id === active;

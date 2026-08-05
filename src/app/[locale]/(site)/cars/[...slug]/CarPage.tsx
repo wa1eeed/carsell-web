@@ -126,8 +126,19 @@ export function CarPage({
         </span>
       </nav>
 
-      <div className="flex flex-col gap-10 lg:flex-row">
-        <div className="flex min-w-0 flex-1 flex-col gap-7">
+      {/*
+        ═══ الترتيب على الهاتف: الصور ثمّ السعر ثمّ التفاصيل ═══
+
+        كان الصندوق آخرَ الصفحة على الهاتف — بعد المواصفات والتابز
+        والأسئلة كلّها. فمن فتح سيارةً على جوّاله يمرّر شاشاتٍ قبل أن
+        يرى ثمنها، **وهو أوّل ما يُسأل عنه**.
+
+        وشبكةٌ بثلاثة أبناء تحلّها بلا تكرار: عمودٌ واحد على الهاتف
+        بترتيبها الطبيعيّ (ترويسة وصور · السعر · الباقي)، وعمودان من
+        `lg` — الصندوق في الثاني ممتدًّا، كالتصميم.
+      */}
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-7 lg:col-start-1 lg:row-start-1">
           <header className="flex flex-wrap items-start gap-6">
             <div className="min-w-0 flex-1">
               <div className="mb-2.5 flex flex-wrap items-center gap-2">
@@ -177,7 +188,93 @@ export function CarPage({
           </header>
 
           <Gallery images={detail.images} alt={vehicle.title} />
+        </div>
 
+        <div className="w-full lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <div className="flex flex-col gap-3.5 lg:sticky lg:top-4">
+            <BuyColumn
+              actions={
+                <BuyActions
+                  listingRef={detail.ref}
+                  price={Number(detail.askPrice)}
+                  type={detail.type}
+                  isOwn={viewer.isOwn}
+                  reserved={viewer.reserved}
+                  signedIn={viewer.signedIn}
+                  locale={locale}
+                  taxProfile={viewer.taxProfile}
+                />
+              }
+              footer={
+                /*
+                  الإبلاغ **هادئ تحت البطاقة**: مسارٌ مبنيّ لا تناديه
+                  شاشة، وصفحة «تواصل معنا» تحيل إليه وهو غير موجود.
+                */
+                viewer.isOwn ? null : (
+                  <ReportListing
+                    listingId={viewer.listingId}
+                    signedIn={viewer.signedIn}
+                    locale={locale}
+                  />
+                )
+              }
+              data={{
+                type: detail.type,
+                askPrice: Number(detail.askPrice),
+                monthly: detail.monthly,
+                cost: {
+                  price: Number(detail.cost.price),
+                  commission: Number(detail.cost.commission),
+                  transferFee: Number(detail.cost.transferFee),
+                  transferAdminFee: Number(detail.cost.transferAdminFee),
+                  vatIncludedInPrice:
+                    detail.cost.vatIncludedInPrice === null
+                      ? null
+                      : Number(detail.cost.vatIncludedInPrice),
+                  total: Number(detail.cost.total),
+                },
+                seller: {
+                  ...detail.seller,
+                  /**
+                   * المسار يُركَّب هنا لا في النطاق: **الشاشة هي التي
+                   * تعرف اللغة**، والمكوّن لا يعرفها — وبناؤه هناك يُنتج
+                   * `/dealers/x` بلا بادئة فيسقط ٤٠٤.
+                   */
+                  dealerPath:
+                    detail.seller.dealerSlug === null
+                      ? null
+                      : `/${locale}/dealers/${detail.seller.dealerSlug}`,
+                  ratingAvg: detail.seller.ratingAvg === null ? null : Number(detail.seller.ratingAvg),
+                },
+                auction:
+                  detail.auction === null
+                    ? null
+                    : {
+                        startPrice: Number(detail.auction.startPrice),
+                        minimumBid: Number(detail.auction.minimumBid),
+                        depositAmount: Number(detail.auction.depositAmount),
+                        bidCount: detail.auction.bidCount,
+                        highestBid:
+                          detail.auction.highestBid === null ? null : Number(detail.auction.highestBid),
+                        endsAt: detail.auction.endsAt,
+                        status: detail.auction.status,
+                        reserveMet: detail.auction.reserveMet,
+                      },
+              }}
+            />
+
+            {/* يعيد `null` دون عتبة العيّنة — لا شرط خارجي (قرار ٣٠) */}
+            {detail.priceStat === null ? null : (
+              <section className="rounded-xl border border-line p-5">
+                <h3 className="mb-3.5 text-xs font-bold">{t('marketPosition')}</h3>
+                <RangeBar price={Number(detail.askPrice)} stats={detail.priceStat} />
+              </section>
+            )}
+          </div>
+        </div>
+
+        {/* الابن الثالث: التفاصيل وما بعدها — تحت السعر على الهاتف */}
+        <div className="flex min-w-0 flex-col gap-7 lg:col-start-1 lg:row-start-2">
           <Tabs items={tabs} active={tab} onChange={setTab} />
 
           {tab === 'specs' ? <SpecTable entries={specs} /> : null}
@@ -269,89 +366,6 @@ export function CarPage({
           ) : null}
 
           {tab === 'faq' ? <FaqAccordion rows={faq} /> : null}
-        </div>
-
-        <div className="w-full shrink-0 lg:w-[380px]">
-          <div className="sticky top-4 flex flex-col gap-3.5">
-            <BuyColumn
-              actions={
-                <BuyActions
-                  listingRef={detail.ref}
-                  price={Number(detail.askPrice)}
-                  type={detail.type}
-                  isOwn={viewer.isOwn}
-                  reserved={viewer.reserved}
-                  signedIn={viewer.signedIn}
-                  locale={locale}
-                  taxProfile={viewer.taxProfile}
-                />
-              }
-              footer={
-                /*
-                  الإبلاغ **هادئ تحت البطاقة**: مسارٌ مبنيّ لا تناديه
-                  شاشة، وصفحة «تواصل معنا» تحيل إليه وهو غير موجود.
-                */
-                viewer.isOwn ? null : (
-                  <ReportListing
-                    listingId={viewer.listingId}
-                    signedIn={viewer.signedIn}
-                    locale={locale}
-                  />
-                )
-              }
-              data={{
-                type: detail.type,
-                askPrice: Number(detail.askPrice),
-                monthly: detail.monthly,
-                cost: {
-                  price: Number(detail.cost.price),
-                  commission: Number(detail.cost.commission),
-                  transferFee: Number(detail.cost.transferFee),
-                  transferAdminFee: Number(detail.cost.transferAdminFee),
-                  vatIncludedInPrice:
-                    detail.cost.vatIncludedInPrice === null
-                      ? null
-                      : Number(detail.cost.vatIncludedInPrice),
-                  total: Number(detail.cost.total),
-                },
-                seller: {
-                  ...detail.seller,
-                  /**
-                   * المسار يُركَّب هنا لا في النطاق: **الشاشة هي التي
-                   * تعرف اللغة**، والمكوّن لا يعرفها — وبناؤه هناك يُنتج
-                   * `/dealers/x` بلا بادئة فيسقط ٤٠٤.
-                   */
-                  dealerPath:
-                    detail.seller.dealerSlug === null
-                      ? null
-                      : `/${locale}/dealers/${detail.seller.dealerSlug}`,
-                  ratingAvg: detail.seller.ratingAvg === null ? null : Number(detail.seller.ratingAvg),
-                },
-                auction:
-                  detail.auction === null
-                    ? null
-                    : {
-                        startPrice: Number(detail.auction.startPrice),
-                        minimumBid: Number(detail.auction.minimumBid),
-                        depositAmount: Number(detail.auction.depositAmount),
-                        bidCount: detail.auction.bidCount,
-                        highestBid:
-                          detail.auction.highestBid === null ? null : Number(detail.auction.highestBid),
-                        endsAt: detail.auction.endsAt,
-                        status: detail.auction.status,
-                        reserveMet: detail.auction.reserveMet,
-                      },
-              }}
-            />
-
-            {/* يعيد `null` دون عتبة العيّنة — لا شرط خارجي (قرار ٣٠) */}
-            {detail.priceStat === null ? null : (
-              <section className="rounded-xl border border-line p-5">
-                <h3 className="mb-3.5 text-xs font-bold">{t('marketPosition')}</h3>
-                <RangeBar price={Number(detail.askPrice)} stats={detail.priceStat} />
-              </section>
-            )}
-          </div>
         </div>
       </div>
 

@@ -69,7 +69,7 @@ export default async function DealerPage({
     <>
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <section className="mb-8 rounded-xl border border-line bg-surface p-6">
             <div className="flex flex-wrap items-start gap-5">
               <div className="min-w-0 flex-1">

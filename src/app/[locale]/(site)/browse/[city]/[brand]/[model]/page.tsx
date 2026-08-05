@@ -60,7 +60,7 @@ export default async function CityBrandModelLanding({ params }: { params: Params
     <>
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <h1 className="mb-2 text-4xl font-bold tracking-tight">
             {t('titleModel', { model: content.model ?? content.brand, city: content.city })}
           </h1>

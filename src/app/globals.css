@@ -226,6 +226,25 @@
  * والمِلاحة على الهاتف منها: تُمرَّر ولا تُخفى، فزائرُ الهاتف لا يُترك
  * بلا طريقٍ إلى شيء — والشريط المرئيّ فوق صفٍّ قصير ضجيج.
  */
+/**
+ * حاوية الصفحة — عرضٌ أقصى وحافّتان.
+ *
+ * **والحافّة ١٦px على الهاتف لا ٤٠**: أربعون على كل جانبٍ تأكل ثمانين
+ * من ثلاثمئة وخمسة وسبعين — أكثر من خُمس الشاشة قبل أن يبدأ المحتوى.
+ * وكانت مكتوبةً `max-w-page px-10` في ثمانٍ وعشرين صفحة.
+ */
+@utility page-frame {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-page);
+  padding-inline: 1rem;
+  padding-block: 1.5rem;
+  @variant sm {
+    padding-inline: 2.5rem;
+    padding-block: 2rem;
+  }
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {

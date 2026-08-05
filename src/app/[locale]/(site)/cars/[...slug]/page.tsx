@@ -115,7 +115,7 @@ function shell(children: React.ReactNode) {
     <>
       <SiteHeader active="cars" />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-8">{children}</div>
+        <div className="page-frame">{children}</div>
       </main>
     </>
   );
@@ -202,7 +202,7 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
     <>
       <SiteHeader active="cars" />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-8">
+        <div className="page-frame">
           <CarPage
             detail={detail satisfies PublicListingDetail}
             faq={faqRows}

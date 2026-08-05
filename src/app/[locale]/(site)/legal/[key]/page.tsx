@@ -60,7 +60,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
     <>
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <header className="mb-9 border-b border-line pb-7">
             <h1 className="mb-2.5 text-4xl font-bold tracking-tight">{title}</h1>
             {summary === null ? null : (

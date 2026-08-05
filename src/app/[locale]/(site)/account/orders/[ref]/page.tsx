@@ -56,7 +56,7 @@ export default async function OrderPage({
     <>
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
-        <div className="mx-auto w-full max-w-page px-10 py-10">
+        <div className="page-frame">
           <h1 className="font-num mb-1.5 text-3xl font-bold tracking-tight">{order.ref}</h1>
           <p className="mb-8 text-sm opacity-60">{t('subtitle')}</p>
 
