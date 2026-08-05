@@ -28,6 +28,7 @@ export type Permission =
   | 'integrations.view'
   | 'integrations.rotateKeys'
   | 'audit.view'
+  | 'wallet.adjust'
   | 'team.manage';
 
 /** `true` كامل · `'read'` عرض بلا تعديل · غياب المفتاح = ممنوع. */
@@ -40,6 +41,8 @@ export type Grant = true | 'read';
 export const DUAL_APPROVAL: ReadonlySet<Permission> = new Set([
   'escrow.release',
   'integrations.rotateKeys',
+  // مالُ عميلٍ لا يمسّه واحد — والمنحة كالإفراج
+  'wallet.adjust',
 ]);
 
 const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = {
@@ -51,7 +54,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'catalog.uploadLogo': true, 'services.manage': true,
     'serviceRequests.handle': true, 'notifications.manage': true,
     'integrations.view': true, 'integrations.rotateKeys': true,
-    'audit.view': true, 'team.manage': true,
+    'audit.view': true, 'team.manage': true, 'wallet.adjust': true,
   },
   OPS: {
     'dashboard.view': true, 'orders.view': true, 'orders.changeStage': true,
@@ -63,6 +66,8 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
   FINANCE: {
     'dashboard.view': true, 'finance.view': true, 'orders.view': true,
     'escrow.release': true, 'services.manage': true, 'audit.view': 'read',
+    // المالية تطلب وتوافق — والنصاب اثنان من هذين الدورين
+    'wallet.adjust': true,
   },
   SUPPORT: {
     'dashboard.view': true, 'orders.view': true, 'users.view': true,
@@ -101,7 +106,7 @@ export const PERMISSION_LIST: readonly Permission[] = [
   'users.view', 'users.viewIdentity', 'users.suspend', 'identity.review', 'listings.review',
   'reports.handle', 'catalog.manage', 'catalog.uploadLogo', 'services.manage',
   'serviceRequests.handle', 'notifications.manage', 'integrations.view',
-  'integrations.rotateKeys', 'team.manage', 'audit.view',
+  'integrations.rotateKeys', 'team.manage', 'audit.view', 'wallet.adjust',
 ];
 
 export function can(role: AdminRole, permission: Permission): boolean {

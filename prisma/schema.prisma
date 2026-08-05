@@ -39,7 +39,13 @@ enum IdentityStatus {
 }
 
 model User {
-  id           String     @id @default(cuid())
+  id String @id @default(cuid())
+
+  /// رقم العميل المقروء — `CUS-2026-0042`. وهو ما يقوله في مكالمة،
+  /// والمعرّف الداخليّ لا يُقرأ في هاتف ولا يُكتب في رسالة.
+  /// اختياريّ في المخطّط لأن الصفوف القائمة تُملأ بترحيلٍ لاحق.
+  ref String? @unique
+
   phone        String     @unique // E.164
   email        String?    @unique
   name         String?
@@ -1628,6 +1634,8 @@ enum ApprovalKind {
   COMMISSION_CHANGE
   /// تعديل قاعدة ضريبية — أثرُها وثائقُ قانونية، فلا تُعدَّل بيدٍ واحدة
   TAX_RULE_CHANGE
+  /// إضافة رصيدٍ لعميل أو خصمُه — مالُ عميلٍ لا يمسّه واحد
+  WALLET_ADJUSTMENT
   PLAN_CHANGE
   USER_BAN
 }
@@ -2253,6 +2261,10 @@ enum LedgerAccount {
   GOVT_FEES_CLEARING
   /// ما وصلنا فعلًا
   PLATFORM_CASH
+  /// رصيد محافظ العملاء — **التزامٌ علينا لا مالٌ لنا**، ويُصفَّر بالسحب
+  WALLET_PAYABLE
+  /// تعويضاتٌ ومنحٌ من الإدارة — مصروفٌ يقابل الرصيد الممنوح
+  GOODWILL_EXPENSE
 }
 
 enum LedgerDirection {

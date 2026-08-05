@@ -1,5 +1,6 @@
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
 import { db } from '@/lib/db';
+import { nextCustomerRef } from './refs';
 import { APP_ENV, isDevelopment } from '@/lib/env';
 import type { User } from '@/generated/prisma/client';
 
@@ -228,7 +229,17 @@ export async function verifyOtp(
     return { ok: true, user: existing, isNew: false };
   }
 
-  // الدخول والتسجيل خطوة واحدة (Wm): أول تحقّق ناجح يُنشئ الحساب
-  const created = await db.user.create({ data: { phone: challenge.phone } });
+  /**
+   * الدخول والتسجيل خطوة واحدة (Wm): أول تحقّق ناجح يُنشئ الحساب.
+   *
+   * **ورقم العميل يُمنح عند الإنشاء داخل المعاملة نفسها** — ومنحُه
+   * لاحقًا بوظيفةٍ تمرّ يترك عملاءَ بلا رقمٍ بين اللحظتين، وهم الذين
+   * يتّصلون في يومهم الأوّل.
+   */
+  const created = await db.$transaction(async (tx) =>
+    tx.user.create({
+      data: { phone: challenge.phone, ref: await nextCustomerRef(tx, now) },
+    }),
+  );
   return { ok: true, user: created, isNew: true };
 }

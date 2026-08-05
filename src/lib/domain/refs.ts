@@ -93,3 +93,28 @@ export async function nextReportRef(tx: Prisma.TransactionClient, now: Date): Pr
   const next = highestAfter(rows, prefix, 0) + 1;
   return `${prefix}${String(next).padStart(LISTING_PAD, '0')}`;
 }
+
+/**
+ * رقم العميل — `CUS-2026-0042`.
+ *
+ * **وهو ما يقوله العميل في مكالمة.** والمعرّف الداخليّ (cuid) لا
+ * يُقرأ في هاتف ولا يُكتب في رسالة، فبقي العميلُ بلا رقمٍ يُعرَف به:
+ * يقول اسمَه ورقم جوّاله، والاسمان يتكرّران والجوّال يتغيّر.
+ */
+export async function nextCustomerRef(tx: Prisma.TransactionClient, now: Date): Promise<string> {
+  const year = now.getFullYear();
+  const prefix = `CUS-${year}-`;
+
+  const rows = await tx.user.findMany({
+    where: { ref: { startsWith: prefix } },
+    select: { ref: true },
+  });
+
+  const next = highestAfter(
+    rows.filter((row): row is { ref: string } => row.ref !== null),
+    prefix,
+    0,
+  ) + 1;
+  return `${prefix}${String(next).padStart(LISTING_PAD, '0')}`;
+}
+

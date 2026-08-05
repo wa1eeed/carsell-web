@@ -244,6 +244,7 @@ erDiagram
 | Field | Type | Key |
 |---|---|---|
 | `id` | `String` | PK |
+| `ref` | `String?` | unique |
 | `phone` | `String` | unique |
 | `email` | `String?` | unique |
 | `name` | `String?` |  |
@@ -1584,7 +1585,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`
 - `IntegrationStatus` — `ACTIVE`, `INACTIVE`, `DEGRADED`
-- `ApprovalKind` — `ESCROW_RELEASE`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `PLAN_CHANGE`, `USER_BAN`
+- `ApprovalKind` — `ESCROW_RELEASE`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
 - `ApprovalStatus` — `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`, `EXECUTED`
 - `CampaignStatus` — `DRAFT`, `SCHEDULED`, `RUNNING`, `SENT`, `CANCELLED`
 - `PaymentPurpose` — `VEHICLE_ESCROW`, `AUCTION_DEPOSIT`, `WALLET_TOPUP`, `SERVICE_PURCHASE`, `TRANSFER_FEE`, `SUBSCRIPTION`
@@ -1596,5 +1597,5 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `TaxableBase` — `FULL_VALUE`, `MARGIN`, `FEE_ONLY`, `OUT_OF_SCOPE`
 - `InvoiceIssuer` — `PLATFORM`, `SELLER`, `PLATFORM_ON_BEHALF`, `NONE`
 - `InvoiceStatus` — `ISSUED`, `REPORTED`, `REPORT_FAILED`, `CANCELLED`
-- `LedgerAccount` — `ESCROW_AT_PROVIDER`, `BUYER_ADVANCE`, `SELLER_PAYABLE`, `PLATFORM_REVENUE`, `VAT_PAYABLE`, `GATEWAY_FEES_CLEARING`, `GOVT_FEES_CLEARING`, `PLATFORM_CASH`
+- `LedgerAccount` — `ESCROW_AT_PROVIDER`, `BUYER_ADVANCE`, `SELLER_PAYABLE`, `PLATFORM_REVENUE`, `VAT_PAYABLE`, `GATEWAY_FEES_CLEARING`, `GOVT_FEES_CLEARING`, `PLATFORM_CASH`, `WALLET_PAYABLE`, `GOODWILL_EXPENSE`
 - `LedgerDirection` — `DEBIT`, `CREDIT`
