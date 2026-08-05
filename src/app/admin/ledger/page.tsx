@@ -29,7 +29,8 @@ export default async function LedgerPage() {
   const [book, entries] = await Promise.all([platformBook(), recentEntries()]);
 
   return (
-    <AdminShell title="دفتر الأستاذ" activeHref="/admin/ledger" admin={admin}>
+    <AdminShell title="دفتر الأستاذ"
+      subtitle="من الدفتر لا بالتجميع" activeHref="/admin/ledger" admin={admin}>
       {/*
         الاختلال في الصدارة لا في الذيل: رقمٌ في الأسفل يُتأمَّل، وفي
         الأعلى يُعالَج. ويجب أن يكون صفرًا دائمًا.

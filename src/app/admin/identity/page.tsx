@@ -24,7 +24,8 @@ export default async function AdminIdentityPage() {
   const [rows, stats] = await Promise.all([identityQueue(), identityStats()]);
 
   return (
-    <AdminShell title="توثيق الهوية" activeHref="/admin/identity" admin={admin}>
+    <AdminShell title="توثيق الهوية"
+      subtitle="طابور توثيق الهوية" activeHref="/admin/identity" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         الطابور اليدويّ وحده — النفاذ الوطنيّ يُوثَّق آليًّا. والهدف أقلّ من ساعة.
       </p>

@@ -61,7 +61,8 @@ export default async function OpsPage() {
   const measured = times.filter((row) => row.samples > 0).length;
 
   return (
-    <AdminShell title="التشغيلية" activeHref="/admin/ops" admin={admin}>
+    <AdminShell title="التشغيلية"
+      subtitle="الطوابير والأزمنة مقابل الأهداف" activeHref="/admin/ops" admin={admin}>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {metrics.map((metric) => {
           const ratio = metric.targetHours === 0 ? 0 : metric.averageHours / metric.targetHours;

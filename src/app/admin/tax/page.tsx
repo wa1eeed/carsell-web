@@ -40,7 +40,8 @@ export default async function TaxEnginePage() {
   const summary = summarize(rules);
 
   return (
-    <AdminShell title="محرّك الضريبة" activeHref="/admin/tax" admin={admin}>
+    <AdminShell title="محرّك الضريبة"
+      subtitle="القواعد والفواتير والإشعارات" activeHref="/admin/tax" admin={admin}>
       <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
         <Quantity unit="taxRules" count={summary.total} />
         <span aria-hidden className="opacity-40">·</span>

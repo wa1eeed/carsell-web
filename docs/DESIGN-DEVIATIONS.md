@@ -461,3 +461,23 @@ one component, like `StatCard`.
 and form controls therefore have no design values to match; ours are real
 elements, which is the accessible choice and a deliberate departure.
 
+### Third pass — the frame
+
+The sidebar already matched exactly: 238px wide, 10px/14px item padding, 8px
+radius, 10px gap, weight 600. The page header matched too (18px vs 17px vertical
+padding is one pixel, and 18px is on our spacing grid).
+
+**What was missing was the header subtitle.** Every screen in the markup carries a
+small grey line under its title saying what the screen does; ours showed the
+title alone in a wide bar. Added as an optional `subtitle` on `AdminShell` and
+populated on 20 screens. The title also dropped from `text-xl` to `text-lg` so
+the pair reads as a unit rather than two competing lines.
+
+### What remains unmeasured
+
+- **Badge radius** is 8px against the markup's 5–6px. Left alone: two pixels on a
+  small pill, and a third radius token for it is not worth the scale it adds.
+- **The public site** (`Front-end Web.dc.html`) has not been through this
+  treatment — only the admin console has. It is the larger surface and deserves
+  its own pass.
+

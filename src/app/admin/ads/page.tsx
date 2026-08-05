@@ -44,7 +44,8 @@ export default async function AdminAdsPage() {
   const writable = canWrite(admin.role, 'finance.view');
 
   return (
-    <AdminShell title="مساحات الإعلانات والحملات" activeHref="/admin/ads" admin={admin}>
+    <AdminShell title="مساحات الإعلانات والحملات"
+      subtitle="المساحات وتسعيرها وحملاتها" activeHref="/admin/ads" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
         المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يُخفي المساحة ولا يُلغي حملاتها</b>
         — فمعلنٌ دفع لأسبوع لا يفقد مالَه بتعطيلٍ إداريّ.

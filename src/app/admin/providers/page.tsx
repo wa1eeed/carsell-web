@@ -35,7 +35,8 @@ export default async function AdminProvidersPage() {
   const writable = canWrite(admin.role, 'services.manage');
 
   return (
-    <AdminShell title="مزوّدو الخدمات والتمويل" activeHref="/admin/providers" admin={admin}>
+    <AdminShell title="مزوّدو الخدمات والتمويل"
+      subtitle="المزوّدون والتزامهم" activeHref="/admin/providers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         مزوّدون ({toArabicDigits(String(rows.length))}) · خدمات مرتبطة (
         {toArabicDigits(String(stats.servicesLinked))})

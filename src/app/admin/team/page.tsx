@@ -25,7 +25,8 @@ export default async function AdminTeamPage() {
   const [rows, stats] = await Promise.all([teamMembers(), teamStats()]);
 
   return (
-    <AdminShell title="الفريق والصلاحيات" activeHref="/admin/team" admin={admin}>
+    <AdminShell title="الفريق والصلاحيات"
+      subtitle="الأدوار ومصفوفة الصلاحيات" activeHref="/admin/team" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         من في الفريق وبأي دور. <b>ولا يُنشأ عضو ولا يُرفع دور من هنا</b> — ذلك يمرّ
         بمتغيّرات النشر، فمن سرق جلسةً لا يصنع لنفسه حسابًا ثانيًا.

@@ -30,7 +30,8 @@ export default async function DisputesPage() {
   const overdue = disputes.filter((row) => row.overdue);
 
   return (
-    <AdminShell title="النزاعات" activeHref="/admin/disputes" admin={admin}>
+    <AdminShell title="النزاعات"
+      subtitle="النزاعات ومهلها" activeHref="/admin/disputes" admin={admin}>
       <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
         <Quantity unit="disputes" count={open.length} /> مفتوحة
         <span aria-hidden className="opacity-40">·</span>

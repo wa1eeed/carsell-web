@@ -44,7 +44,8 @@ export default async function AdminPlansPage() {
   const defaults = plans.filter((plan) => plan.key === 'free').length;
 
   return (
-    <AdminShell title="الباقات والعمولة" activeHref="/admin/plans" admin={admin}>
+    <AdminShell title="الباقات والعمولة"
+      subtitle="حزمة قيَم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         باقات ({toArabicDigits(String(stats.plans))}) ·{' '}
         {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${toArabicDigits(String(stats.paidPlans))})`}{' '}

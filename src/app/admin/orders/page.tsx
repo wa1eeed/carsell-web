@@ -26,7 +26,8 @@ export default async function AdminOrdersPage() {
   const disputed = orders.filter((order) => order.hasDispute).length;
 
   return (
-    <AdminShell title="الطلبات" activeHref="/admin/orders" admin={admin}>
+    <AdminShell title="الطلبات"
+      subtitle="تابز لكل مرحلة وإجراء مباشر" activeHref="/admin/orders" admin={admin}>
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="طلبات جارية" value={orders.length} />
         <StatCard label="تجاوزت الهدف" value={late} tone={late > 0 ? 'warn' : 'plain'} />

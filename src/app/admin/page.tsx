@@ -56,7 +56,8 @@ export default async function AdminDashboardPage() {
   const cityTotal = cities.reduce((total, city) => total + city.count, 0);
 
   return (
-    <AdminShell title="لوحة القيادة" activeHref="/admin" admin={admin}>
+    <AdminShell title="لوحة القيادة"
+      subtitle="نمو وأعداد — آخر ثلاثين يومًا" activeHref="/admin" admin={admin}>
       <p className="mb-4 text-2xs opacity-55">
         آخر <Quantity unit="days" count={RANGE_DAYS} /> · المقارنة بالمدى المساوي الذي يسبقه
       </p>

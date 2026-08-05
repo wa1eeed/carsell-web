@@ -37,7 +37,8 @@ export default async function AdminReportsPage({
   const [rows, stats] = await Promise.all([reportQueue(filter), reportStats()]);
 
   return (
-    <AdminShell title="البلاغات" activeHref="/admin/reports" admin={admin}>
+    <AdminShell title="البلاغات"
+      subtitle="البلاغات وما أُحيل منها" activeHref="/admin/reports" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         ما أبلغ عنه المستخدمون — إعلانًا أو حسابًا. والبلاغ يُحيل إلى مراجعة بشرية ولا
         يحذف شيئًا بنفسه.

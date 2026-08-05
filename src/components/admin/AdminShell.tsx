@@ -107,12 +107,20 @@ function EnvBanner() {
 /** الصدفة: شريط جانبي ٢٣٨px داكن + رأس صفحة ١٧px/٣٠px (القسم ٣ قاعدة ٥). */
 export function AdminShell({
   title,
+  subtitle,
   activeHref,
   actions,
   admin,
   children,
 }: {
   title: string;
+  /**
+   * سطرٌ رماديّ تحت العنوان — **في الترميز لكل شاشة**.
+   *
+   * ويقول ما تفعله الشاشة في سطر، فيعرف الداخل أين هو قبل أن يقرأ
+   * جدولًا. وكان غائبًا عندنا: عنوانٌ وحده في شريطٍ عريض.
+   */
+  subtitle?: string;
   activeHref?: string;
   actions?: ReactNode;
   admin: Pick<AdminUser, 'name' | 'role'>;
@@ -183,7 +191,12 @@ export function AdminShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <EnvBanner />
         <header className="flex items-center gap-4 border-b border-line bg-surface px-7.5 py-4.5">
-          <h1 className="text-xl font-bold">{title}</h1>
+          <span className="flex min-w-0 flex-col">
+            <h1 className="text-lg font-bold">{title}</h1>
+            {subtitle === undefined ? null : (
+              <span className="mt-0.5 truncate text-2xs opacity-50">{subtitle}</span>
+            )}
+          </span>
           <span className="flex-1" />
           {actions}
           {/*

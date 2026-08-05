@@ -43,7 +43,8 @@ export default async function AdminExportsPage() {
   const hidden = REPORTS.length - mine.length;
 
   return (
-    <AdminShell title="التقارير والتصدير" activeHref="/admin/exports" admin={admin}>
+    <AdminShell title="التقارير والتصدير"
+      subtitle="استعلامات مسمّاة على القراءة" activeHref="/admin/exports" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
         تقارير جاهزة ({toArabicDigits(String(stats.reports))}) — كلٌّ منها{' '}
         <b>استعلامٌ مسمّى على القراءة</b>، لا لقطةُ شاشة.

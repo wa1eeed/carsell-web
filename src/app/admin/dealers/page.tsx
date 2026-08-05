@@ -39,7 +39,8 @@ export default async function AdminDealersPage({
   ]);
 
   return (
-    <AdminShell title="التجار والمعارض" activeHref="/admin/dealers" admin={admin}>
+    <AdminShell title="التجار والمعارض"
+      subtitle="المعارض وتوثيقها" activeHref="/admin/dealers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         التحقّق والشارة والباقة. <b>ولا يُدار مخزونهم من هنا</b> — التاجر حسابٌ واحد
         بواجهتين: التطبيق للميدان واللوحة للحجم.

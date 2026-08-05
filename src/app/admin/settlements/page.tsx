@@ -31,7 +31,8 @@ export default async function SettlementsPage() {
   const queue = await settlementQueue();
 
   return (
-    <AdminShell title="المدفوعات والضمان" activeHref="/admin/settlements" admin={admin}>
+    <AdminShell title="المدفوعات والضمان"
+      subtitle="الضمان والإفراج والتسويات" activeHref="/admin/settlements" admin={admin}>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-60">
           ما هو محجوز لدى مزوّد الدفع باسم صفقاتنا. والإفراج بنصاب عضوين: أحدهما

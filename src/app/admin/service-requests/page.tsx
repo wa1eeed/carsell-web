@@ -28,7 +28,8 @@ export default async function ServiceRequestsPage() {
   const unassigned = requests.filter((request) => request.providerName === null).length;
 
   return (
-    <AdminShell title="طلبات الخدمات" activeHref="/admin/service-requests" admin={admin}>
+    <AdminShell title="طلبات الخدمات"
+      subtitle="الإسناد والالتزام" activeHref="/admin/service-requests" admin={admin}>
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="مفتوحة" value={open} />
         <StatCard label="تجاوزت المهلة" value={overdue} tone={overdue > 0 ? 'warn' : 'plain'} />

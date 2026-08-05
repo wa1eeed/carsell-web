@@ -42,7 +42,8 @@ export default async function AdminAccountPage() {
   const mine = PERMISSION_LIST.filter((permission) => can(admin.role, permission));
 
   return (
-    <AdminShell title="حسابي" activeHref="/admin/account" admin={admin}>
+    <AdminShell title="حسابي"
+      subtitle="حسابك وكلمته" activeHref="/admin/account" admin={admin}>
       <div className="grid gap-8 lg:grid-cols-2">
         <section>
           <h2 className="mb-4 text-sm font-bold">الحساب</h2>

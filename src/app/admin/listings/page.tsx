@@ -40,7 +40,8 @@ export default async function AdminListingsPage({
   const [rows, stats] = await Promise.all([reviewQueue(filter), reviewStats()]);
 
   return (
-    <AdminShell title="مراجعة الإعلانات" activeHref="/admin/listings" admin={admin}>
+    <AdminShell title="مراجعة الإعلانات"
+      subtitle="الطابور — والقرار بدليله" activeHref="/admin/listings" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
         الطابور الآليّ — لا مراجعةُ كل إعلان. يدخله ما رشّحته قاعدة: صورة مكرّرة، أو
         سعر شاذّ، أو حساب جديد، أو بلاغ.

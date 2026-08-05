@@ -32,7 +32,8 @@ export default async function AdminUsersPage() {
     counts.find((row) => row.status === status)?._count._all ?? 0;
 
   return (
-    <AdminShell title="العملاء" activeHref="/admin/users" admin={admin}>
+    <AdminShell title="العملاء"
+      subtitle="العملاء وحالاتهم" activeHref="/admin/users" admin={admin}>
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="نشط" value={countOf('ACTIVE')} />
         <StatCard label="موقوف" value={countOf('SUSPENDED')} tone={countOf('SUSPENDED') > 0 ? 'warn' : 'plain'} />
