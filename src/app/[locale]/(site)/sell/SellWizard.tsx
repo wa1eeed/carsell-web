@@ -12,10 +12,39 @@ import { Quantity } from '@/components/ui/Quantity';
 import { Stepper } from '@/components/ui/Stepper';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
-import { toLatinDigits } from '@/lib/arabic';
+import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 type Option = { id: string; nameAr: string; nameEn: string };
+
+/** فئةٌ **بمواصفاتها** — وهي ما يملأ الحقول عند اختيارها. */
+type TrimSpec = Option & {
+  bodyType: string;
+  transmission: string;
+  fuel: string;
+  drivetrain: string;
+  seats: number;
+  doors: number;
+};
+
+/** ما يعرفه الكتالوج عن هذا الطراز — والحقول تُحصر به. */
+type SpecOptions = {
+  bodyTypes: string[];
+  transmissions: string[];
+  fuels: string[];
+  drivetrains: string[];
+  seats: number[];
+  fromTrims: number;
+};
+
+const ALL_OPTIONS: SpecOptions = {
+  bodyTypes: ['SEDAN', 'SUV', 'HATCHBACK', 'COUPE', 'PICKUP', 'VAN', 'WAGON', 'CONVERTIBLE'],
+  transmissions: ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT'],
+  fuels: ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC'],
+  drivetrains: ['FWD', 'RWD', 'AWD', 'FOURWD'],
+  seats: [2, 4, 5, 7, 8],
+  fromTrims: 0,
+};
 
 type Vehicle = {
   vin: string;
@@ -73,7 +102,8 @@ export function SellWizard({
   const [step, setStep] = useState<(typeof STEPS)[number]>('vehicle');
   const [vehicle, setVehicle] = useState<Vehicle>(EMPTY);
   const [models, setModels] = useState<Option[]>([]);
-  const [trims, setTrims] = useState<{ id: string; nameAr: string; nameEn: string }[]>([]);
+  const [trims, setTrims] = useState<TrimSpec[]>([]);
+  const [options, setOptions] = useState<SpecOptions>(ALL_OPTIONS);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [price, setPrice] = useState('');
   const [method, setMethod] = useState<(typeof METHODS)[number]>('DIRECT');
@@ -203,9 +233,39 @@ export function SellWizard({
     }
     const response = await fetch(`/api/v1/trims?modelId=${modelId}`);
     const body = (await response.json()) as {
-      data?: { id: string; nameAr: string; nameEn: string }[];
+      data?: { trims?: TrimSpec[]; options?: SpecOptions };
     };
-    setTrims(body.data ?? []);
+    setTrims(body.data?.trims ?? []);
+    /**
+     * **والخيارات من الكتالوج لا من التعداد.** وطرازٌ بلا فئاتٍ منشورة
+     * يعود بالتعداد كاملًا — والحصرُ إلى لا شيء يقفل الاستمارة على
+     * بائعٍ لا يجد خيارًا واحدًا ولا رسالةً تقول لماذا.
+     */
+    setOptions(body.data?.options ?? ALL_OPTIONS);
+  };
+
+  /**
+   * ═══ اختيار الفئة يملأ ما تمليه ═══
+   *
+   * `Trim` يحمل الهيكل وناقل الحركة والوقود والدفع والمقاعد منذ اليوم
+   * الأوّل، **ولا أحد كان يقرؤها في الإدخال**: تُعرض ليتعرّف البائع
+   * على فئته، ثم يملأ الحقول بيده من قائمةٍ ثابتة — فيُنشر إعلانٌ
+   * بمواصفةٍ تناقض فئته.
+   */
+  /** الفئة المختارة — ومنها يُعرض الموروث. */
+  const inheritedTrim = trims.find((row) => row.id === vehicle.trimId) ?? null;
+
+  const pickTrim = (trimId: string): void => {
+    const trim = trims.find((row) => row.id === trimId);
+    if (trim === undefined) {
+      set({ trimId });
+      return;
+    }
+    /**
+     * **ويُملأ ما يقبله الخادم وحده.** الهيكل والدفع والمقاعد تأتيه من
+     * الفئة مباشرةً (قرار ٣٢)، فوضعُها في الحالة يوهم أنها تُرسَل.
+     */
+    set({ trimId, transmission: trim.transmission, fuel: trim.fuel });
   };
 
   /**
@@ -398,7 +458,7 @@ export function SellWizard({
               <span className={label}>{t('trim')}</span>
               <select
                 value={vehicle.trimId}
-                onChange={(event) => set({ trimId: event.target.value })}
+                onChange={(event) => pickTrim(event.target.value)}
                 disabled={trims.length === 0}
                 className={field}
               >
@@ -437,10 +497,42 @@ export function SellWizard({
               />
             </label>
 
+            {/*
+              **الخيارات من الكتالوج لا من التعداد.** وكانت أربعة نواقل
+              وأربعة أنواع وقود لكل مركبة — فيُعرض «كهربائي» على
+              لاندكروزر، ويختاره بائعٌ فيُنشر إعلانٌ بمواصفةٍ لا وجود لها.
+
+              و«المواصفة الإقليمية» تبقى كاملةً: سعوديّ أو خليجيّ أو وارد
+              وكيل صفةُ استيرادٍ لا تُملى من الفئة.
+            */}
+            {/*
+              ═══ الموروث من الفئة يُعرض ولا يُحرَّر ═══
+
+              الخادم يأخذ الهيكل والدفع والمقاعد **من الفئة** لقطةً
+              (قرار ٣٢) — فحقلٌ يملؤه البائع بها لا يغيّر شيئًا، وهو
+              وعدٌ مُخلَف بشكل حقل. وكان الهيكل غائبًا عن الاستمارة
+              أصلًا، فلا البائع يراه ولا يعرف ما سيُنشر.
+            */}
+            {inheritedTrim === null ? null : (
+              <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3">
+                <p className="mb-2 text-3xs font-bold opacity-55">من الفئة — تُسجَّل كما هي</p>
+                <p className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs">
+                  <span>{te(`bodyType.${inheritedTrim.bodyType}`)}</span>
+                  <span aria-hidden className="opacity-30">·</span>
+                  <span>{te(`drivetrain.${inheritedTrim.drivetrain}`)}</span>
+                  <span aria-hidden className="opacity-30">·</span>
+                  {/* الجملة لا يحكمها المعدود — والعدد بين قوسين (البوابة ١٨) */}
+                  <span className="font-num">
+                    المقاعد ({toArabicDigits(String(inheritedTrim.seats))})
+                  </span>
+                </p>
+              </div>
+            )}
+
             {(
               [
-                ['transmission', ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT']],
-                ['fuel', ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC']],
+                ['transmission', options.transmissions],
+                ['fuel', options.fuels],
                 ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
               ] as const
             ).map(([key, values]) => (
