@@ -12,6 +12,7 @@ import { Toast } from '@/components/ui/Toast';
 import { toArabicDigits } from '@/lib/arabic';
 import type { ReviewEvidence, ReviewRow, ReviewStats } from '@/lib/domain/admin-listings';
 import { MIN_REVIEW_NOTE } from '@/lib/domain/review-rules';
+import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
 
 /**
  * ═══ A15 — مراجعة الإعلانات ═══
@@ -26,12 +27,8 @@ import { MIN_REVIEW_NOTE } from '@/lib/domain/review-rules';
  * على وسمٍ لا يفحصه.
  */
 
-const REASON_LABEL: Record<string, string> = {
-  DUPLICATE_IMAGE: 'صورة مكرّرة',
-  PRICE_OUTLIER: 'سعر شاذّ',
-  NEW_ACCOUNT_BURST: 'حساب جديد',
-  USER_REPORT: 'بلاغ',
-};
+// التسميات في `labels/review.ts` — تقرؤها هذه الشاشة وشاشة التفاصيل
+const REASON_LABEL = REVIEW_REASON_LABEL;
 
 /** الدليل جملةً — والنطاق أعطى أرقامًا (البوابة ١٧). */
 function evidenceText(evidence: ReviewEvidence): string {

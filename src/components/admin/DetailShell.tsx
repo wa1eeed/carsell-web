@@ -25,7 +25,7 @@ export function DetailHeader({
   backHref: string;
   backLabel: string;
   reference: string;
-  title: string;
+  title: ReactNode;
   badges?: ReactNode;
   actions?: ReactNode;
 }) {

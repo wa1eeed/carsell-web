@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/ui/DataTable';
@@ -33,7 +34,15 @@ export function UsersTable({ users, canViewIdentity }: { users: readonly UserRow
         {
           id: 'name',
           header: 'الاسم',
-          cell: (user) => <span className="bidi-isolate">{user.name ?? '—'}</span>,
+          // **الاسم يفتح الملفّ** — وقائمةٌ لا تُفتح صفوفُها لا يُتصرَّف فيها
+          cell: (user) => (
+            <Link
+              href={`/admin/users/${user.id}`}
+              className="bidi-isolate font-semibold underline underline-offset-4 hover:opacity-70"
+            >
+              {user.name ?? 'بلا اسم'}
+            </Link>
+          ),
         },
         {
           id: 'status',

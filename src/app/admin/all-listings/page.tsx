@@ -103,7 +103,16 @@ export default async function AdminAllListingsPage({
               </>
             }
             subtitle={`${row.sellerName} · ${row.city}`}
-            meta={row.ref}
+            /* **المرجع يفتح الإعلان** — والقائمة كانت تعرض ولا تُفتح */
+            meta={
+              <Link
+                href={`/admin/listings/${encodeURIComponent(row.ref)}`}
+                dir="ltr"
+                className="font-num text-start underline underline-offset-4 hover:opacity-70"
+              >
+                {row.ref}
+              </Link>
+            }
           >
             <div className="flex flex-col items-start gap-0.5">
               <Money amount={Number(row.askPrice)} />
