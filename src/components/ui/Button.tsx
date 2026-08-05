@@ -20,8 +20,15 @@ const VARIANT: Record<ButtonVariant, string> = {
   icon: 'border border-line bg-bg text-ink hover:bg-ink/5',
 };
 
+/**
+ * الحشو مقيسٌ من الترميز: **‎10px/18px‎** للزرّ القياسيّ. وكان
+ * ‎10px/14px‎ — أضيقُ أفقيًّا، فيبدو الزرّ مضغوطًا حول نصّه.
+ *
+ * **والمقاس النصّي على سُلَّمنا** لا على ‎11.5px‎ الخام: رُفع بقرارٍ
+ * صريح من المالك.
+ */
 const SIZE: Record<ButtonSize, string> = {
-  sm: 'px-3.5 py-2 text-sm',
+  sm: 'px-4.5 py-2.5 text-sm',
   md: 'px-4.5 py-2.5 text-base',
 };
 
@@ -50,7 +57,8 @@ export function Button({
     <button
       type="button"
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-md font-bold whitespace-nowrap',
+        // نصف القطر ‎9px‎ كالترميز (`--radius-btn`) — و`rounded-md` أحدَ عشر
+        'inline-flex items-center justify-center gap-2 rounded-btn font-bold whitespace-nowrap',
         'transition-colors disabled:pointer-events-none disabled:opacity-40',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
         isIconOnly ? 'size-11 p-0' : SIZE[size],

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { SectionHead } from '@/components/admin/SectionHead';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -330,16 +331,5 @@ function Indicator({
       <p className="mt-2 mb-1.5 text-xl font-bold">{value}</p>
       <p className="text-3xs leading-relaxed opacity-50">{note}</p>
     </section>
-  );
-}
-
-/** ترويسة قسم — عنوانٌ وملاحظة وخطٌّ يمتدّ، كالتصميم. */
-function SectionHead({ title, note }: { title: string; note: string }) {
-  return (
-    <div className="mt-9 mb-3.5 flex items-baseline gap-3">
-      <h2 className="text-md font-bold">{title}</h2>
-      <span className="text-2xs opacity-45">{note}</span>
-      <span className="h-px flex-1 bg-line" aria-hidden />
-    </div>
   );
 }

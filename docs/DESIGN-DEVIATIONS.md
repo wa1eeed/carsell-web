@@ -434,3 +434,30 @@ PY
 
 then `javascript_tool` on the running page for `getComputedStyle`. Both numbers
 in one place is what makes it an audit rather than an impression.
+
+### Second pass — tables, buttons, section heads
+
+| Element | Design | Was | Now |
+|---|---|---|---|
+| table wrapper radius | 14px | 12px | 14px |
+| table background | `#efe4cf` | **transparent body** | surface |
+| header cell padding | 12px 20px | 12px 22px | 12px 20px |
+| header tracking | .06em | .1em | .06em |
+| body cell padding | 13px 20px | 14px 22px | 13px 20px |
+| button radius | 9px | 11px | 9px (`--radius-btn`) |
+| button padding | 10px 18px | 8px 14px | 10px 18px |
+| section head margin-top | 26px | 36px | 26px |
+
+The table body was transparent for the same reason the cards were, and it is the
+same fix. The button radius needed a token — the scale had 8px and 11px but not
+the 9px the markup uses everywhere, and a hardcoded `rounded-[9px]` is exactly
+what this repo forbids inside a component.
+
+`SectionHead` was written twice (operational and financial dashboards) and is now
+one component, like `StatCard`.
+
+**Not comparable:** the markup contains no `<table>`, `<input>`, `<select>` or
+`<textarea>` — it is a static mock built entirely from `div`s. Table semantics
+and form controls therefore have no design values to match; ours are real
+elements, which is the accessible choice and a deliberate departure.
+

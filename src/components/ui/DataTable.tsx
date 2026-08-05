@@ -69,12 +69,19 @@ export function DataTable<Row>({
   }
 
   return (
-    <div className={cn('overflow-x-auto rounded-lg border border-line', className)}>
+    /*
+      مقيسٌ من الترميز: نصف قطر ١٤px · حشو ‎12px/20px‎ للترويسة و‎13px/20px‎
+      للصفّ · تباعد حروفٍ ‎.06em‎ — **وخلفية مصمتة**.
+
+      والخلفية كانت غائبة عن الجسم: الترويسة وحدها مصمتة والصفوف شفّافة
+      على خلفية الصفحة، والترميز يملأ الجدول كلَّه.
+    */
+    <div className={cn('overflow-x-auto rounded-xl border border-line bg-surface', className)}>
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-line bg-surface text-start">
             {selectable ? (
-              <th className="w-11 px-5.5 py-3">
+              <th className="w-11 px-5 py-3">
                 <input
                   type="checkbox"
                   checked={allSelected}
@@ -88,7 +95,7 @@ export function DataTable<Row>({
               <th
                 key={col.id}
                 className={cn(
-                  'px-5.5 py-3 text-2xs font-bold tracking-[0.1em] opacity-45 whitespace-nowrap',
+                  'px-5 py-3 text-2xs font-bold tracking-[0.06em] opacity-45 whitespace-nowrap',
                   col.numeric ? 'text-end' : 'text-start',
                 )}
               >
@@ -135,9 +142,9 @@ export function DataTable<Row>({
           {loading
             ? Array.from({ length: 4 }, (_, i) => (
                 <tr key={i} className="border-b border-line-2 last:border-b-0">
-                  {selectable ? <td className="px-5.5 py-3.5" /> : null}
+                  {selectable ? <td className="px-5 py-3.25" /> : null}
                   {columns.map((col) => (
-                    <td key={col.id} className="px-5.5 py-3.5">
+                    <td key={col.id} className="px-5 py-3.25">
                       <span className="block h-3 w-2/3 animate-pulse rounded-full bg-ink/10" />
                     </td>
                   ))}
@@ -154,7 +161,7 @@ export function DataTable<Row>({
                     )}
                   >
                     {selectable ? (
-                      <td className="px-5.5 py-3.5">
+                      <td className="px-5 py-3.25">
                         <input
                           type="checkbox"
                           checked={selected?.has(key) === true}
@@ -168,7 +175,7 @@ export function DataTable<Row>({
                       <td
                         key={col.id}
                         className={cn(
-                          'px-5.5 py-3.5 align-middle',
+                          'px-5 py-3.25 align-middle',
                           col.numeric ? 'bidi-isolate text-end' : 'text-start',
                         )}
                       >
