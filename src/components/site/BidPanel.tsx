@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
+import { toArabicDigits } from '@/lib/arabic';
 import { Modal } from '@/components/ui/Sheet';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
@@ -20,10 +21,17 @@ import { toLatinDigits } from '@/lib/arabic';
  * القاعدة ٩: لا مزايدة بلا عربون محجوز. واكتشافُه بعد إدخال المبلغ
  * أسوأ توقيت — فالمبلغ يُذكر في النافذة قبل أن يكتب المزايد شيئًا.
  */
+/**
+ * مضاعفات الخطوة للزيادات السريعة — **صفرٌ أوّلًا**: أكثر المزايدات
+ * بأقلّ مقبول، فجعلُه زرًّا يوفّر الكتابة كلّها.
+ */
+const STEPS = [0, 1, 3] as const;
+
 export function BidPanel({
   listingRef,
   live,
   minimumNext,
+  increment,
   depositAmount,
   buyNowPrice,
   signedIn,
@@ -34,6 +42,8 @@ export function BidPanel({
   listingRef: string;
   live: boolean;
   minimumNext: string;
+  /** خطوة المزايدة — منها تُبنى الزيادات السريعة. */
+  increment: string;
   depositAmount: string;
   buyNowPrice: string | null;
   signedIn: boolean;
@@ -137,6 +147,35 @@ export function BidPanel({
             className="font-num rounded-lg border border-line bg-surface px-3.5 py-2.5 text-lg font-bold"
           />
         </label>
+
+        {/*
+          ═══ الزيادات السريعة — والمزاد يُكسب بثوانٍ ═══
+
+          التصميم يضع ثلاث خطوات فوق الحقل. وكتابةُ ستّ خانات بيدٍ على
+          هاتف في آخر دقيقة هي الفرق بين مزايدةٍ تصل وأخرى تتأخّر —
+          **والمزاد يمتدّ بالمزايدة الأخيرة**، فبطءُ الإدخال يغيّر
+          النتيجة لا الراحة وحدها.
+
+          والخطوات **مبنيّة على أقلّ مزايدة مقبولة** لا أرقامًا ثابتة:
+          رقمٌ ثابت على مزادٍ بمئتي ألف يزيد جزءًا من الألف، وعلى مزادٍ
+          بثلاثين ألفًا يقفز عشرها.
+        */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {STEPS.map((factor) => {
+            const value = Math.round(Number(minimumNext) + Number(increment) * factor);
+            return (
+              <button
+                key={factor}
+                type="button"
+                onClick={() => setAmount(String(value))}
+                className="rounded-full border border-line px-3.5 py-2 font-num text-3xs font-bold hover:border-ink"
+                dir="ltr"
+              >
+                {toArabicDigits(String(value))}
+              </button>
+            );
+          })}
+        </div>
         <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-50">
           يُحجز عربون <Money amount={Number(depositAmount)} /> مرّةً واحدة، ويُردّ إن لم ترسُ عليك.
         </p>

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { canonicalPath } from './listing-detail';
 import { createAuctionOrderStandalone } from './auction-order';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
@@ -348,6 +349,70 @@ export async function resolveSellerDecision(
   }
 
   return { ok: true };
+}
+
+/**
+ * ═══ مزادات تُغلق قريبًا ═══
+ *
+ * التصميم يضعها أسفل صفحة المزاد. **ومن يفوّت مزادًا يحتاج التالي**:
+ * صفحةٌ تنتهي عند «انتهى» تُخرج الزائر من المنصّة في اللحظة التي هو
+ * فيها أكثر استعدادًا للشراء.
+ *
+ * والمزاد الحاليّ يُستبعد، **والحالة والوقت معًا**: `LIVE` مخزَّنة
+ * لمزادٍ انقضى وقتُه تعرضه «يُغلق بعد ٠٠:٠٠» حتى تمرّ الوظيفة الدورية.
+ */
+export type ClosingSoon = {
+  listingRef: string;
+  title: string;
+  year: number;
+  endsAt: string;
+  price: string;
+  path: string;
+};
+
+export async function closingSoon(
+  excludeListingRef: string,
+  locale: string,
+  now: Date = new Date(),
+  take = 3,
+): Promise<ClosingSoon[]> {
+  const rows = await db.auction.findMany({
+    where: {
+      status: 'LIVE',
+      endsAt: { gt: now },
+      listing: { ref: { not: excludeListingRef }, status: 'PUBLISHED' },
+    },
+    orderBy: { endsAt: 'asc' },
+    take,
+    select: {
+      endsAt: true,
+      startPrice: true,
+      bids: { orderBy: { amount: 'desc' }, take: 1, select: { amount: true } },
+      listing: {
+        select: {
+          ref: true, city: true,
+          vehicle: {
+            select: {
+              brandName: true, modelName: true, trimName: true, year: true,
+              brand: { select: { slug: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return rows.map((row) => ({
+    listingRef: row.listing.ref,
+    title: [row.listing.vehicle.brandName, row.listing.vehicle.modelName, row.listing.vehicle.trimName]
+      .filter((part) => part !== null && part !== '')
+      .join(' '),
+    year: row.listing.vehicle.year,
+    endsAt: row.endsAt.toISOString(),
+    // أعلى مزايدة، وسعر الافتتاح حين لا مزايدة — والصفر يوحي بأنها بلا قيمة
+    price: (row.bids[0]?.amount ?? row.startPrice).toString(),
+    path: canonicalPath(locale, row.listing).path,
+  }));
 }
 
 /**

@@ -13,6 +13,8 @@ import {
   BidLogStats,
   BidStatus,
   BidStep,
+  ClosingSoonRail,
+  SellerCard,
   SpecStrip,
 } from '@/components/site/AuctionSections';
 import { Countdown } from '@/components/ui/Countdown';
@@ -41,6 +43,8 @@ export function AuctionScreen({
   listingPath,
   viewer,
   decision,
+  soon,
+  seller,
   locale,
 }: {
   auction: PublicAuction;
@@ -51,6 +55,21 @@ export function AuctionScreen({
   viewer: { signedIn: boolean; isOwn: boolean };
   /** `null` لغير البائع ولمزادٍ لا قرار عليه — والحارس في النطاق. */
   decision: SellerDecision | null;
+  /** مزادات تُغلق قريبًا — تُقرأ في الخادم، ولقطةُ التحديث لا تحملها. */
+  soon: readonly {
+    listingRef: string;
+    title: string;
+    year: number;
+    endsAt: string;
+    price: string;
+    path: string;
+  }[];
+  seller: {
+    name: string;
+    isDealer: boolean;
+    dealerPath: string | null;
+    listingCount: number;
+  };
   locale: string;
 }) {
   /**
@@ -236,6 +255,11 @@ export function AuctionScreen({
           الإعداد أوّل تغيير، فيقرأ المزايد «٥ دقائق» ويمدّد النظام ثلاثًا.
         */}
         <AuctionTerms terms={auction.terms} />
+
+        {/* من يزايد بمئتي ألف يسأل عمّن يبيع */}
+        <SellerCard {...seller} />
+
+        <ClosingSoonRail items={soon} />
       </div>
 
       <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-[380px]">
@@ -289,6 +313,7 @@ export function AuctionScreen({
               listingRef={auction.listingRef}
               live={live}
               minimumNext={auction.minimumBid}
+              increment={auction.bidIncrement}
               depositAmount={auction.depositAmount}
               buyNowPrice={auction.buyNowPrice}
               signedIn={viewer.signedIn}

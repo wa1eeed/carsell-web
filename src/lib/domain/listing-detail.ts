@@ -660,3 +660,13 @@ export async function similarListings(
       path: (locale: string) => canonicalPath(locale, listing).path,
     }));
 }
+
+/**
+ * كم يعرض هذا البائع الآن — **المنشور وحده**.
+ *
+ * والمحجوز والمباع لا يُعدّان: الرقم وعدٌ للزائر بأن هناك ما يتصفّحه،
+ * وعدٌّ يشمل ما لا يُفتح يجعل صفحة المعرض أصغر ممّا قيل له.
+ */
+export async function countSellerListings(sellerId: string): Promise<number> {
+  return db.listing.count({ where: { sellerId, status: 'PUBLISHED' } });
+}

@@ -7,9 +7,13 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
-import { getAuction, sellerDecisionView } from '@/lib/domain/auctions';
+import { closingSoon, getAuction, sellerDecisionView } from '@/lib/domain/auctions';
 import { Quantity } from '@/components/ui/Quantity';
-import { canonicalPath, findPublishedListing } from '@/lib/domain/listing-detail';
+import {
+  canonicalPath,
+  countSellerListings,
+  findPublishedListing,
+} from '@/lib/domain/listing-detail';
 import { AuctionScreen } from './AuctionScreen';
 
 export const dynamic = 'force-dynamic';
@@ -40,16 +44,29 @@ export default async function AuctionPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [auction, listing, viewer, t, te] = await Promise.all([
+  const [auction, listing, viewer, t, te, soon] = await Promise.all([
     getAuction(ref),
     findPublishedListing(ref),
     // البائع لا يزايد على مركبته — والشاشة تقولها قبل الضغط
     currentUserFromCookies(),
     getTranslations('auctions'),
     getTranslations('enums'),
+    // مزادات تُغلق قريبًا — ومن يفوّت مزادًا يحتاج التالي
+    closingSoon(ref, locale),
   ]);
 
   if (auction === null || listing === null) notFound();
+
+  /**
+   * عدد ما يعرضه هذا البائع — **بعد حارس الغياب** لا قبله: قراءةٌ من
+   * `listing` قبل فحص `null` تُسقط الصفحة بـ٥٠٠ على مرجعٍ لا وجود له،
+   * والصواب ٤٠٤. ولا يُعرض للفرد: «سيارة واحدة» تحت اسم شخصٍ لا تقول
+   * شيئًا.
+   */
+  const dealerListings =
+    listing.seller.dealer === null
+      ? 0
+      : await countSellerListings(listing.sellerId);
 
   /**
    * **القرار المعلَّق — للبائع وحده، وبعد أن نعرف من هو.**
@@ -105,6 +122,21 @@ export default async function AuctionPage({
               isOwn: viewer !== null && viewer.id === listing.sellerId,
             }}
             decision={decision}
+            soon={soon}
+            seller={{
+              /**
+               * **واسم المعرض يسبق اسم الشخص.** الزائر يشتري من معرضٍ
+               * له سجلّ، لا من موظّفٍ سجّل الحساب. والفردُ بلا معرض
+               * يُقال اسمه، ومن لا اسم له يُقال «بائع» ولا تُعرض فراغة.
+               */
+              name: listing.seller.dealer?.nameAr ?? listing.seller.name ?? 'بائع',
+              isDealer: listing.seller.dealer !== null,
+              dealerPath:
+                listing.seller.dealer === null
+                  ? null
+                  : `/${locale}/dealers/${listing.seller.dealer.slug}`,
+              listingCount: dealerListings,
+            }}
             locale={locale}
           />
         </div>

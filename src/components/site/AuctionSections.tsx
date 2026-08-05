@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Countdown } from '@/components/ui/Countdown';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -185,5 +187,96 @@ export function BidStep({ step }: { step: string | null }) {
     <span className="font-num text-3xs text-accent-700" dir="ltr">
       +{toArabicDigits(step)}
     </span>
+  );
+}
+
+/**
+ * ═══ مزادات تُغلق قريبًا ═══
+ *
+ * **ومن يفوّت مزادًا يحتاج التالي.** صفحةٌ تنتهي عند «انتهى» تُخرج
+ * الزائر من المنصّة في اللحظة التي هو فيها أكثر استعدادًا للشراء.
+ *
+ * ولا تُعرض حين لا مزاد آخر: قسمٌ فارغ بعنوانٍ يقول إن المنصّة خالية.
+ */
+export function ClosingSoonRail({
+  items,
+}: {
+  items: readonly {
+    listingRef: string;
+    title: string;
+    year: number;
+    endsAt: string;
+    price: string;
+    path: string;
+  }[];
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mt-10">
+      <h2 className="mb-3.5 text-base font-bold">مزادات تُغلق قريبًا</h2>
+      <ul className="grid gap-3.5 sm:grid-cols-3">
+        {items.map((item) => (
+          <li key={item.listingRef}>
+            <Link
+              href={item.path}
+              className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-4 hover:border-ink"
+            >
+              <span className="washed aspect-16/9 rounded-lg" />
+              <span className="flex flex-wrap items-baseline gap-1.5 text-2xs font-bold">
+                <span className="bidi-isolate">{item.title}</span>
+                <ArabicNumber value={item.year} grouped={false} />
+              </span>
+              <span className="flex items-center justify-between gap-3">
+                <Countdown endsAt={item.endsAt} format="full" tone="warn" className="text-3xs" />
+                <Money amount={Number(item.price)} showCurrency={false} size="sm" />
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/**
+ * بطاقة البائع — **ومن يزايد بمئتي ألف يسأل عمّن يبيع**.
+ *
+ * والتاجر يُميَّز عن الفرد: صفحةُ معرضٍ فيها سجلُّه كلّه، والفردُ لا
+ * صفحة له فيُقال اسمه وحده بلا رابطٍ يقود إلى ٤٠٤.
+ */
+export function SellerCard({
+  name,
+  isDealer,
+  dealerPath,
+  listingCount,
+}: {
+  name: string;
+  isDealer: boolean;
+  dealerPath: string | null;
+  listingCount: number;
+}) {
+  return (
+    <section className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-5">
+      <span className="washed size-12 shrink-0 rounded-full" />
+      <span className="flex min-w-40 flex-1 flex-col gap-1">
+        <span className="bidi-isolate text-2xs font-bold">{name}</span>
+        <span className="text-3xs opacity-55">
+          {isDealer ? (
+            <Quantity unit="cars" count={listingCount} />
+          ) : (
+            'بائع فرد'
+          )}
+        </span>
+      </span>
+      {isDealer && dealerPath !== null ? (
+        <Link
+          href={dealerPath}
+          className="rounded-btn border border-line px-4 py-2 text-3xs font-bold hover:border-ink"
+        >
+          صفحة المعرض
+        </Link>
+      ) : null}
+    </section>
   );
 }
