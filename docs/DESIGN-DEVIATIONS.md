@@ -481,3 +481,47 @@ the pair reads as a unit rather than two competing lines.
   treatment — only the admin console has. It is the larger surface and deserves
   its own pass.
 
+---
+
+## The public site, measured · 2026-08-05
+
+Same method as the admin console. The result is different: **the public site had
+not drifted.**
+
+| Element | Design | Ours |
+|---|---|---|
+| car card | 14px · surface · 1px border · overflow hidden | identical |
+| section heading | 22px / 700 | identical |
+| primary button | 9px · 10px 18px · accent | identical |
+| site header | 15px 40px · surface · gap 26px | 16px 40px · surface · gap 24px |
+| filter chip | 11px 18px · weight 600 | 10px 16px · weight 600 |
+
+Everything is within one or two pixels, and the two that differ sit on our
+spacing scale. The unfilled panels I first took for a deviation are unfilled in
+the markup too — the 14px cards that carry `#efe4cf` are the car cards, and the
+buy column has no background in either. Panel padding in the markup ranges from
+18/20 to 26/28 with no single value, so there is no rule to match.
+
+**The admin console had drifted; the public site had not.** That is the finding.
+
+### One real defect, and it was ours
+
+At 375px the homepage was **870px wide — 495px of horizontal scroll**, on the
+screen most visitors use. The site header was one non-wrapping row: logo, a
+five-item nav, and the account entry, with no treatment for narrow.
+
+Task 29 measured "no horizontal scroll at 375px" and it was green then. It
+drifted when the type scale was raised and the account entry moved into the
+header — **neither of which announced it**, because that measurement was taken by
+hand and never became a command.
+
+The first fix let the nav shrink (`min-w-0 flex-1`). The overflow went and **the
+nav went with it** — logo and account took the width, leaving nothing. A phone
+visitor with no overflow and no links is worse off than before. The nav now takes
+its own row on small screens and scrolls inside it; one row from `sm` up, as the
+markup shows.
+
+**No gate for it.** A real check needs a headless browser at a fixed width, which
+is a heavy dependency for one assertion; the lesson is recorded in `CLAUDE.md`
+instead — re-measure at 375px after touching type, the header, or grids.
+

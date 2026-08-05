@@ -75,12 +75,42 @@ export function SiteHeader({
   const t = useTranslations('site');
 
   return (
-    <header className="flex items-center gap-6 border-b border-line bg-surface px-10 py-4">
-      <Link href="/" className="font-body-en text-2xl font-extrabold tracking-tight">
-        carsell<span className="text-accent">.one</span>
-      </Link>
+    /*
+      ═══ الترويسة صفٌّ واحد لا ينكسر — وكانت تفيض على الهاتف ═══
 
-      <nav className="flex gap-5 text-base font-semibold whitespace-nowrap">
+      قِستُ على ٣٧٥px فوجدتُ الصفحة ٨٧٠px عرضًا: **٤٩٥px تمرير أفقيّ**
+      على أكثر شاشةٍ يزورها الناس.
+
+      وأوّل إصلاحٍ جرّبتُه جعل المِلاحة تنكمش داخل الصفّ — فذهب الفيض
+      **وذهبت المِلاحة معه**: الشعار والحساب أخذا العرض كلَّه ولم يبقَ
+      لها شيء. فزائر الهاتف بلا فيضٍ وبلا روابط، وهو أسوأ من الاثنين.
+
+      فالصفّان على الضيّق: الشعار والحساب في الأوّل، والمِلاحة في الثاني
+      تُمرَّر داخل حدّها — **وكلّ رابطٍ يبقى مبلوغًا**. وصفٌّ واحد من
+      `sm` فصاعدًا كالتصميم.
+    */
+    <header className="flex flex-col gap-3 border-b border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:gap-6 sm:px-10 sm:py-4">
+      <div className="flex items-center justify-between gap-4 sm:contents">
+        <Link
+          href="/"
+          className="font-body-en shrink-0 text-xl font-extrabold tracking-tight sm:text-2xl"
+        >
+          carsell<span className="text-accent">.one</span>
+        </Link>
+
+        {/*
+          **مدخل الحساب من الترويسة لا من كل صفحة.** كان يُمرَّر
+          `actions` يدويًّا، فمرّرته صفحةٌ واحدة من إحدى وعشرين — وبقي
+          عشرون شاشة بلا باب إلى الحساب.
+
+          وهو في الصفّ الأوّل على الهاتف، وفي آخر الصفّ على الواسع.
+        */}
+        <span className="shrink-0 sm:order-last">
+          <AccountNav />
+        </span>
+      </div>
+
+      <nav className="no-scrollbar -mx-4 flex gap-5 overflow-x-auto px-4 text-base font-semibold whitespace-nowrap sm:mx-0 sm:flex-1 sm:px-0">
         {NAV.map((item) => (
           <Link
             key={item.key}
@@ -97,13 +127,6 @@ export function SiteHeader({
         ))}
       </nav>
 
-      <span className="flex-1" />
-      {/*
-        **مدخل الحساب من الترويسة لا من كل صفحة.** كان يُمرَّر
-        `actions` يدويًّا، فمرّرته صفحةٌ واحدة من إحدى وعشرين — وبقي
-        عشرون شاشة بلا باب إلى الحساب.
-      */}
-      <AccountNav />
       {actions}
     </header>
   );
