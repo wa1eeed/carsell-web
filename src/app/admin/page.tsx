@@ -3,6 +3,7 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
+import { Sparkline } from '@/components/ui/Sparkline';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import {
@@ -11,6 +12,9 @@ import {
   listingsByCity,
   type MetricCard,
 } from '@/lib/domain/admin-dashboard';
+import { dailyOrders } from '@/lib/domain/admin-charts';
+import { dayTick } from '@/lib/labels/charts';
+import { toArabicDigits } from '@/lib/arabic';
 import {
   DASHBOARD_CARD_LABEL,
   DASHBOARD_SEGMENT_LABEL,
@@ -42,9 +46,10 @@ export default async function AdminDashboardPage() {
   const to = new Date();
   const from = new Date(to.getTime() - RANGE_DAYS * 86_400_000);
 
-  const [cards, cities] = await Promise.all([
+  const [cards, cities, daily] = await Promise.all([
     dashboardCards(from, to),
     listingsByCity(from, to),
+    dailyOrders(RANGE_DAYS, to),
   ]);
 
   const topCity = cities.reduce((most, city) => Math.max(most, city.count), 0);
@@ -62,7 +67,19 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <section className="mt-4 rounded-lg border border-line bg-surface p-5.5">
+      <div className="mt-9 mb-3.5 flex items-baseline gap-3">
+        <h2 className="text-md font-bold">حجم الطلبات اليومي</h2>
+        <span className="text-2xs opacity-45">
+          أيّام ({toArabicDigits(String(RANGE_DAYS))})
+        </span>
+        <span className="h-px flex-1 bg-line" aria-hidden />
+      </div>
+      {/* السلسلة تُحسب لحظة الفتح — فتتحرّك بين زيارتين بلا أن يمسّها أحد */}
+      <Sparkline
+        points={daily.map((point) => ({ label: dayTick(point.day), value: point.count }))}
+      />
+
+      <section className="mt-9 rounded-lg border border-line bg-surface p-5.5">
         <div className="mb-4 flex flex-wrap items-baseline gap-3">
           <h2 className="text-sm font-bold">الإعلانات حسب المدينة</h2>
           <span className="text-3xs opacity-45">

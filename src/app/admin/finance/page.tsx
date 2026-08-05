@@ -3,6 +3,11 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
+import { ShareBars } from '@/components/ui/ShareBars';
+import { Sparkline } from '@/components/ui/Sparkline';
+import { monthlyGmv } from '@/lib/domain/admin-charts';
+import { monthTick } from '@/lib/labels/charts';
+import { toArabicDigits } from '@/lib/arabic';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import {
@@ -20,6 +25,9 @@ import { FinanceInputs } from './FinanceInputs';
 import { Simulator } from './Simulator';
 
 export const dynamic = 'force-dynamic';
+
+/** اثنا عشر شهرًا — كالتصميم، ويكفي لرؤية موسم. */
+const GMV_MONTHS = 12;
 
 const RANGE_DAYS = 30;
 
@@ -40,11 +48,12 @@ export default async function FinancePage() {
   const from = new Date(now.getTime() - RANGE_DAYS * 86_400_000);
   const month = monthKey(now);
 
-  const [summary, figures, inputs, rules] = await Promise.all([
+  const [summary, figures, inputs, rules, months] = await Promise.all([
     financeSummary(from, now),
     indicators(month),
     financeInputs(month),
     listCommissionRules(now),
+    monthlyGmv(GMV_MONTHS),
   ]);
 
   const scenarios = simulateCommission(
@@ -129,6 +138,35 @@ export default async function FinancePage() {
         رواتبُ ومصروفُ تسويق يُدخَلان بالشهر. وترك المدى مبهمًا يجعل
         رقمين على شاشة واحدة يُقرآن على نافذة واحدة وهما على نافذتين.
       */}
+      <SectionHead
+        title="GMV والإيراد"
+        note={`شهرًا (${toArabicDigits(String(GMV_MONTHS))}) · بالريال`}
+      />
+      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+        {/*
+          **الخطّ للـGMV والأشرطة للإيراد**: خلطُهما على محورٍ واحد يجعل
+          الإيراد خطًّا ملتصقًا بالصفر — أربعةٌ وثمانون ألفًا بجانب أربعة
+          عشر مليونًا لا يُريان معًا.
+        */}
+        <Sparkline
+          points={months.map((point) => ({
+            label: monthTick(point.month, point.month.endsWith('-01')),
+            value: Number(point.gmv),
+          }))}
+          height={158}
+        />
+
+        <ShareBars
+          shares={summary.revenue.byStream.map((line) => ({
+            label: line.serviceName ?? REVENUE_STREAM_LABEL[line.key] ?? line.key,
+            value: Number(line.amount),
+          }))}
+          total={Number(summary.revenue.total)}
+          decimals={2}
+          baseNote={`مزيج الإيراد — القاعدة ${toArabicDigits(Number(summary.revenue.total).toLocaleString('en-US', { maximumFractionDigits: 0 }))} ريال في المدى`}
+        />
+      </div>
+
       <p className="mt-6 mb-3 flex items-baseline gap-2 text-2xs opacity-55">
         <span className="font-bold">المؤشّرات المركّبة</span>
         <span aria-hidden className="opacity-40">·</span>
@@ -292,5 +330,16 @@ function Indicator({
       <p className="mt-2 mb-1.5 text-xl font-bold">{value}</p>
       <p className="text-3xs leading-relaxed opacity-50">{note}</p>
     </section>
+  );
+}
+
+/** ترويسة قسم — عنوانٌ وملاحظة وخطٌّ يمتدّ، كالتصميم. */
+function SectionHead({ title, note }: { title: string; note: string }) {
+  return (
+    <div className="mt-9 mb-3.5 flex items-baseline gap-3">
+      <h2 className="text-md font-bold">{title}</h2>
+      <span className="text-2xs opacity-45">{note}</span>
+      <span className="h-px flex-1 bg-line" aria-hidden />
+    </div>
   );
 }

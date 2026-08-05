@@ -16,9 +16,19 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
+/**
+ * **علامةٌ يملكها هذا الملف وحده.**
+ *
+ * والحكم عليها لا على عدّادٍ عامّ: `taxInvoice.count()` بلا شرط أسقط
+ * الاختبار حين أنشأتُ فاتورةً بيدي أثناء المشي بالنقر — فحَكَم بما لا
+ * يقيسه.
+ */
+const TAX_TAG = `عميل-اختبار-${String(Date.now()).slice(-9)}`;
+
 const BASE = {
   supplierName: 'CarSell',
-  customerName: 'خالد',
+  // ولا يصلح `orderId`: مفتاحٌ أجنبيّ حقيقيّ، وقيمةٌ مخترعة تكسر الإنشاء
+  customerName: TAX_TAG,
   description: 'commission',
   suppliedAt: new Date('2026-08-01T00:00:00Z'),
 };
@@ -40,8 +50,15 @@ describe('═══ معيار ٣٥ ═══ لا فاتورة بلا قاعد�
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe('NO_MATCHING_RULE');
-    // ولا صفّ كُتب
-    expect(await db.taxInvoice.count()).toBe(0);
+
+    /**
+     * **ولا صفّ كُتب — للطلب المعنيّ.**
+     *
+     * كان عدّادًا عامًّا (`taxInvoice.count()`)، فأسقطته فاتورةٌ أنشأتُها
+     * بيدي أثناء المشي بالنقر على `/admin/tax`. والعدّاد العامّ يحكم
+     * بما لا يقيسه: يكفي صفٌّ من أي مصدرٍ ليقول إن الإصدار وقع.
+     */
+    expect(await db.taxInvoice.count({ where: { customerName: TAX_TAG } })).toBe(0);
   });
 
   it('والقواعد المعطّلة لا تُطابَق أصلًا', async () => {
