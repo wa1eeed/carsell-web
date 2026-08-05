@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/ui/DataTable';
@@ -26,7 +27,19 @@ export function OrdersTable({ orders }: { orders: readonly OrderRow[] }) {
         {
           id: 'ref',
           header: 'الطلب',
-          cell: (order) => <span className="font-num text-2xs">{order.ref}</span>,
+          /*
+            **المرجع يفتح الطلب.** والقائمة كانت تعرض صفوفًا ولا تفتحها،
+            فمن رأى طلبًا متعثّرًا لا يعرف لماذا.
+          */
+          cell: (order) => (
+            <Link
+              href={`/admin/orders/${encodeURIComponent(order.ref)}`}
+              dir="ltr"
+              className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-70"
+            >
+              {order.ref}
+            </Link>
+          ),
         },
         {
           id: 'stage',
