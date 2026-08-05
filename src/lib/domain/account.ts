@@ -58,6 +58,8 @@ export type AccountListing = {
   viewCount: number;
   /** قابل للتفاوض — يقرؤه صندوق التحكّم ويكتبه البائع */
   negotiable: boolean;
+  /** وصف البائع — يُحرَّر من «مركباتي»، و`''` حين لم يُكتب بعد */
+  description: string;
   /** طلبٌ قائم يقفل السعر والإيقاف معًا — والشاشة تقولها قبل الضغط */
   hasActiveOrder: boolean;
   path: string;
@@ -208,7 +210,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       orderBy: { publishedAt: 'desc' },
       select: {
         ref: true, city: true, askPrice: true, status: true, type: true, viewCount: true,
-        reviewNote: true, negotiable: true,
+        reviewNote: true, negotiable: true, description: true,
         vehicle: { select: vehicleSelect },
         /**
          * **والطلب القائم يُعدّ هنا.** التحكّم في الصفّ يحتاجه ليقول
@@ -299,6 +301,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       offerCount: listing._count.offers,
       viewCount: listing.viewCount,
       negotiable: listing.negotiable,
+      description: listing.description ?? '',
       hasActiveOrder: listing._count.orders > 0,
       path: canonicalPath(locale, listing).path,
     })),

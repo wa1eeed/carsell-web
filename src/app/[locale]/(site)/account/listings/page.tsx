@@ -86,6 +86,7 @@ export default async function ListingsPage({
           status={listing.status}
           price={Number(listing.price)}
           negotiable={listing.negotiable}
+          description={listing.description}
           hasActiveOrder={listing.hasActiveOrder}
         />
 

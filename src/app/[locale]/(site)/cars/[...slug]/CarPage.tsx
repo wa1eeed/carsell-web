@@ -99,6 +99,16 @@ export function CarPage({
     { id: 'inspection', label: t('inspectionReport') },
     { id: 'features', label: t('featuresTab') },
     { id: 'history', label: t('vehicleHistory') },
+    /**
+     * **وصف البائع — والتاب يختفي حين لا وصف.**
+     *
+     * تابٌ يُفتح على فراغٍ أسوأ من غيابه: القارئ يظنّ الصفحة معطوبة،
+     * ولا يعرف أن البائع هو الذي لم يكتب. والمواصفات تصف المصنع،
+     * والوصف يصف **هذه النسخة** — لماذا يبيعها وما أصلحه.
+     */
+    ...(detail.description === null || detail.description === ''
+      ? []
+      : [{ id: 'description', label: 'وصف البائع' }]),
     // العدد الفعلي للأسئلة المعروضة لا رقم ثابت (قرار ٣١)
     { id: 'faq', label: t('questions'), count: faq.length },
   ];
@@ -363,6 +373,12 @@ export function CarPage({
                 source: item.source,
               }))}
             />
+          ) : null}
+
+          {tab === 'description' && detail.description !== null ? (
+            <p className="max-w-2xl text-sm leading-loose whitespace-pre-line opacity-80">
+              {detail.description}
+            </p>
           ) : null}
 
           {tab === 'faq' ? <FaqAccordion rows={faq} /> : null}

@@ -29,12 +29,15 @@ export function ListingControls({
   status,
   price,
   negotiable,
+  description,
   hasActiveOrder,
 }: {
   listingRef: string;
   status: string;
   price: number;
   negotiable: boolean;
+  /** وصف البائع — والفراغ يمحوه. */
+  description: string;
   /** طلبٌ قائم يقفل كل شيء — والسعر لقطةٌ في الطلب لا يتبع الإعلان. */
   hasActiveOrder: boolean;
 }) {
@@ -45,6 +48,7 @@ export function ListingControls({
   const [draft, setDraft] = useState({
     price: String(price),
     negotiable,
+    description,
   });
 
   if (hasActiveOrder) {
@@ -88,7 +92,10 @@ export function ListingControls({
 
   const nextPrice = Number(toLatinDigits(draft.price).replace(/[^\d.]/g, ''));
   const priceOk = Number.isFinite(nextPrice) && nextPrice >= PRICE_MIN;
-  const changed = nextPrice !== price || draft.negotiable !== negotiable;
+  const changed =
+    nextPrice !== price ||
+    draft.negotiable !== negotiable ||
+    draft.description.trim() !== description.trim();
 
   return (
     <>
@@ -113,7 +120,7 @@ export function ListingControls({
         ) : null}
 
         <Button size="sm" variant="outline" disabled={busy} onClick={() => setOpen(!open)}>
-          {open ? 'إغلاق' : 'عدّل السعر'}
+          {open ? 'إغلاق' : 'عدّل الإعلان'}
         </Button>
       </div>
 
@@ -136,6 +143,26 @@ export function ListingControls({
             )}
           </label>
 
+          {/*
+            **الوصف — وكان لا حقل له في المخطّط أصلًا.** المواصفات تصف
+            المصنع، والوصف يصف هذه النسخة: لماذا يبيعها وما أصلحه وما
+            فيها من أثر. وسوقٌ بلا وصفٍ يجعل كل إعلانٍ نسخةً من جاره
+            ويدفع السؤال إلى محادثةٍ خارج المنصّة.
+          */}
+          <label className="mb-3 flex flex-col gap-1.5">
+            <span className="text-3xs font-bold opacity-60">وصف السيارة</span>
+            <textarea
+              rows={4}
+              value={draft.description}
+              onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+              placeholder="مالك واحد · صيانة الوكالة · سبب البيع…"
+              className="rounded-md border border-line bg-bg px-3 py-2 text-2xs leading-loose"
+            />
+            <span className="text-3xs opacity-45">
+              اذكر ما لا تقوله المواصفات — والصدق هنا يوفّر أسئلةً ونزاعًا لاحقًا.
+            </span>
+          </label>
+
           <label className="mb-3.5 flex cursor-pointer items-center gap-2.5 text-2xs">
             <input
               type="checkbox"
@@ -152,8 +179,12 @@ export function ListingControls({
               disabled={busy || !priceOk || !changed}
               onClick={() =>
                 send(
-                  { askPrice: nextPrice, negotiable: draft.negotiable },
-                  'حُفظ السعر — ويظهر للزوّار في الحال.',
+                  {
+                    askPrice: nextPrice,
+                    negotiable: draft.negotiable,
+                    description: draft.description,
+                  },
+                  'حُفظ — ويظهر للزوّار في الحال.',
                 )
               }
             >
@@ -163,7 +194,7 @@ export function ListingControls({
               size="sm"
               variant="ghost"
               onClick={() => {
-                setDraft({ price: String(price), negotiable });
+                setDraft({ price: String(price), negotiable, description });
                 setOpen(false);
               }}
             >

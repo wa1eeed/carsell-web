@@ -469,6 +469,7 @@ Relations: `source` → `VehicleHistorySource` · `vehicle` → `Vehicle`
 | `taxableSupply` | `Boolean?` |  |
 | `minAcceptPrice` | `Decimal?` |  |
 | `negotiable` | `Boolean` |  |
+| `description` | `String?` |  |
 | `city` | `String` |  |
 | `viewCount` | `Int` |  |
 | `featuredUntil` | `DateTime?` |  |

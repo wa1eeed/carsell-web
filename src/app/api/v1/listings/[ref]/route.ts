@@ -51,6 +51,7 @@ const EditBody = z.object({
   negotiable: z.boolean().optional(),
   // `null` تلغي الحدّ — و`nullable` تفرّقها عن الغياب الذي يعني «لا تمسّه»
   minAcceptPrice: z.number().finite().nullable().optional(),
+  description: z.string().max(4000).optional(),
   city: z.string().min(1).max(80).optional(),
   paused: z.boolean().optional(),
 });

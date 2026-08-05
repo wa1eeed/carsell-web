@@ -37,6 +37,8 @@ export type PublishInput = {
   sellerId: string;
   type: ListingType;
   askPrice: number;
+  /** وصف البائع — اختياريّ عند النشر، ويُحرَّر لاحقًا من «مركباتي». */
+  description?: string;
   /** استثناء الإعلان الضريبيّ — `null` يتبع وضع البائع */
   taxableSupply: boolean | null;
   vehicle: {
@@ -240,6 +242,9 @@ export async function createListing(
         // لحظة دخول الطابور — وبدونها لا يُقاس انتظارُ صاحبه
         reviewQueuedAt: reviewReason === null ? null : now,
         askPrice: new Prisma.Decimal(input.askPrice),
+        ...(input.description === undefined || input.description.trim() === ''
+          ? {}
+          : { description: input.description.trim().slice(0, 4000) }),
         taxableSupply: input.taxableSupply,
         negotiable: input.type === 'NEGOTIATION',
         city: input.vehicle.city,

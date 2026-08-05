@@ -43,6 +43,8 @@ export type SellerListingEdit = {
    * تلقائيًّا. و`null` تلغيه، فيصير كل عرضٍ إلى البائع.
    */
   minAcceptPrice?: number | null;
+  /** وصف البائع — والفراغ يمحوه، فمن ندم على ما كتبه يستطيع سحبه. */
+  description?: string;
   city?: string;
 };
 
@@ -139,6 +141,12 @@ export async function updateOwnListing(
 
   if (input.negotiable !== undefined) data.negotiable = input.negotiable;
   if (input.city !== undefined && input.city.trim() !== '') data.city = input.city.trim();
+
+  if (input.description !== undefined) {
+    const text = input.description.trim();
+    // الفراغ يعني «امحُه» لا «لا تمسّه» — والغياب وحده هو الثاني
+    data.description = text === '' ? null : text.slice(0, 4000);
+  }
 
   if (input.minAcceptPrice !== undefined) {
     if (input.minAcceptPrice === null) {

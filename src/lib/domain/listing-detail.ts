@@ -148,6 +148,9 @@ export type PublicListingDetail = {
     occurredAt: string;
   }[];
 
+  /** وصف البائع — و`null` حين لم يكتب شيئًا، فلا يُعرض قسمٌ فارغ. */
+  description: string | null;
+
   seller: {
     name: string;
     badge: SellerBadge;
@@ -401,6 +404,7 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
     type: row.type,
     city: row.city,
     negotiable: row.negotiable,
+    description: row.description,
     askPrice: row.askPrice.toString(),
     monthly:
       eligible && settings != null

@@ -500,6 +500,9 @@ model Listing {
   taxableSupply  Boolean?
   minAcceptPrice Decimal?      @db.Decimal(12, 2) // مخفي عن المشترين — لا يخرج في استجابة عامة
   negotiable     Boolean       @default(false)
+  /// وصف البائع لهذه النسخة — لماذا يبيعها وما أصلحه وما فيها من أثر.
+  /// والمواصفات تصف المصنع، فبلا وصفٍ يصير كل إعلانٍ نسخةً من جاره.
+  description    String?
   city           String
   viewCount      Int           @default(0)
   featuredUntil  DateTime?
