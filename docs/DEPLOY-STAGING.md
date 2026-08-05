@@ -127,8 +127,13 @@ never returned.
 Add a Scheduled Task in Coolify, every 5 minutes, with this command:
 
 ```bash
-node scripts/ops/cron-tick.mjs
+node /app/scripts/ops/cron-tick.mjs
 ```
+
+**Absolute path on purpose.** The image sets `WORKDIR /app`, so the relative
+form usually works — but "usually" depends on how the scheduler execs into the
+container, and that is not ours to assume. The script imports nothing relative,
+so the absolute path costs nothing and removes the question.
 
 **Not `curl`.** The runtime image is bare `node:22-alpine` with no `apk add` at
 all, so `curl` is not in it — a task starting with `curl` dies as

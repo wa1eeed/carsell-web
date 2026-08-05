@@ -163,7 +163,7 @@ describe('صورة التشغيل تحمل ما يلزم الترحيل', () => 
 
     const doc = readFileSync('docs/DEPLOY-STAGING.md', 'utf8');
     const section = doc.slice(doc.indexOf('## 3. The scheduler'), doc.indexOf('## 3b.'));
-    expect(section).toMatch(/node scripts\/ops\/cron-tick\.mjs/);
+    expect(section).toMatch(/node \/app\/scripts\/ops\/cron-tick\.mjs/);
     expect(section).not.toMatch(/```bash\ncurl/);
   });
 
