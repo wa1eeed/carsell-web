@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import type { AdminUser } from '@/generated/prisma/client';
+import type { AdminUser, Prisma } from '@/generated/prisma/client';
 import type { OrderStage } from '@/generated/prisma/enums';
 
 /**
@@ -37,6 +37,54 @@ export type OrderRow = {
   listingRef: string;
   hasDispute: boolean;
 };
+
+/**
+ * عدّادات تابز الطلبات — **مرحلةً مرحلة، ثم الحالات المنتهية**.
+ *
+ * التصميم (A4) يضع شريط شرائح: الكل · الطلب · موافقة البائع · الفحص ·
+ * الدفع · نقل الملكية · الإنهاء · مكتملة · ملغاة · متعثّرة · نزاع.
+ * وكانت الشاشة تعرض كل شيء في قائمةٍ واحدة — فمن أراد «المتعثّرة» قرأ
+ * ثلاث مئة صفٍّ بعينه.
+ *
+ * **والعدّ استعلامان لا أحد عشر**: `groupBy` على المرحلة وآخر على
+ * الحالة. واستعلامٌ لكل شريحة يجعل فتح الشاشة أحد عشر ذهابًا وإيابًا
+ * إلى القاعدة.
+ */
+export type OrderTabCounts = {
+  all: number;
+  byStage: Record<string, number>;
+  completed: number;
+  cancelled: number;
+  stalled: number;
+  disputed: number;
+};
+
+export async function orderTabCounts(): Promise<OrderTabCounts> {
+  const [stages, statuses, disputed] = await Promise.all([
+    db.order.groupBy({
+      by: ['stage'],
+      where: { status: { in: ['ACTIVE', 'DISPUTED', 'STALLED'] } },
+      _count: { _all: true },
+    }),
+    db.order.groupBy({ by: ['status'], _count: { _all: true } }),
+    db.order.count({ where: { disputes: { some: { status: { in: ['OPEN', 'INVESTIGATING'] } } } } }),
+  ]);
+
+  const byStage: Record<string, number> = {};
+  for (const row of stages) byStage[row.stage] = row._count._all;
+
+  const ofStatus = (key: string): number =>
+    statuses.find((row) => row.status === key)?._count._all ?? 0;
+
+  return {
+    all: statuses.reduce((total, row) => total + row._count._all, 0),
+    byStage,
+    completed: ofStatus('COMPLETED'),
+    cancelled: ofStatus('CANCELLED'),
+    stalled: ofStatus('STALLED'),
+    disputed,
+  };
+}
 
 export async function listAdminOrders(
   filters: { stage?: OrderStage; onlyLate?: boolean } = {},
@@ -227,8 +275,53 @@ export type UserRow = {
  * حمولة الصفحة، ولو لم يُعرض أيٌّ منها. الإخفاء بالعرض ليس إخفاءً:
  * ما يعبر الحدّ يصل المتصفّح.
  */
-export async function listAdminUsers(): Promise<UserRow[]> {
+/**
+ * شرائح العملاء — **النمط نفسه الذي في A4، وبالشرائح التي رسمها A5**.
+ *
+ * الكل · مشترون · بائعون · تجار · موثّقون · غير موثّقين · متكرّرون ·
+ * موقوفون · محظورون. وكانت الشاشة قائمةً واحدة بمئة صفّ — فمن أراد
+ * «غير الموثّقين» قرأها كلّها بعينه.
+ *
+ * و«مشترٍ» و«بائع» **ليسا حقلًا** بل أثرًا: من له طلبُ شراء مشترٍ، ومن
+ * له إعلانٌ بائع، وقد يكون الاثنين معًا. فالشريحة شرطُ وجودٍ لا مساواة.
+ */
+export type UserSegment =
+  | 'all' | 'buyers' | 'sellers' | 'dealers'
+  | 'verified' | 'unverified' | 'repeat' | 'suspended' | 'banned';
+
+const SEGMENT_WHERE: Record<UserSegment, Prisma.UserWhereInput> = {
+  all: {},
+  buyers: { ordersAsBuyer: { some: {} } },
+  sellers: { listings: { some: {} } },
+  dealers: { role: 'DEALER' },
+  verified: { idVerified: true },
+  unverified: { idVerified: false },
+  // «متكرّر» = أكثر من طلب شراءٍ واحد — والعدّ في SQL لا في الذاكرة
+  repeat: {},
+  suspended: { status: 'SUSPENDED' },
+  banned: { status: 'BANNED' },
+};
+
+export async function userSegmentCounts(): Promise<Record<UserSegment, number>> {
+  const keys = Object.keys(SEGMENT_WHERE) as UserSegment[];
+  const counts = await Promise.all(
+    keys.map(async (key) =>
+      key === 'repeat'
+        ? (await db.user.findMany({
+            where: { ordersAsBuyer: { some: {} } },
+            select: { _count: { select: { ordersAsBuyer: true } } },
+          })).filter((row) => row._count.ordersAsBuyer > 1).length
+        : db.user.count({ where: SEGMENT_WHERE[key] }),
+    ),
+  );
+  const out = {} as Record<UserSegment, number>;
+  keys.forEach((key, index) => { out[key] = counts[index] ?? 0; });
+  return out;
+}
+
+export async function listAdminUsers(segment: UserSegment = 'all'): Promise<UserRow[]> {
   const rows = await db.user.findMany({
+    where: SEGMENT_WHERE[segment] ?? {},
     orderBy: { createdAt: 'desc' },
     take: 100,
     select: {
@@ -237,7 +330,7 @@ export async function listAdminUsers(): Promise<UserRow[]> {
     },
   });
 
-  return rows.map((user) => ({
+  const mapped = rows.map((user) => ({
     id: user.id,
     name: user.name,
     phoneTail: user.phone.slice(-4),
@@ -246,6 +339,13 @@ export async function listAdminUsers(): Promise<UserRow[]> {
     listingCount: user._count.listings,
     orderCount: user._count.ordersAsBuyer,
   }));
+
+  /**
+   * **و«متكرّر» يُرشَّح هنا**: Prisma لا يقارن عدّادًا في `where`،
+   * والعدّ الصحيح في `userSegmentCounts` يفعلها باستعلامٍ مستقلّ.
+   * والترشيح بعد `take` يقصّ — وهو حدٌّ مقبول في شريحةٍ صغيرة بطبعها.
+   */
+  return segment === 'repeat' ? mapped.filter((user) => user.orderCount > 1) : mapped;
 }
 
 // ═══════════════════════════════════════════════════════════

@@ -4,7 +4,12 @@ import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
-import { listAdminUsers } from '@/lib/domain/admin-orders';
+import {
+  listAdminUsers,
+  userSegmentCounts,
+  type UserSegment,
+} from '@/lib/domain/admin-orders';
+import { FilterTabs, type FilterTab } from '@/components/admin/FilterTabs';
 import { UsersTable } from './UsersTable';
 
 export const dynamic = 'force-dynamic';
@@ -18,22 +23,56 @@ export const dynamic = 'force-dynamic';
  * صفحةٍ اطّلاعًا جماعيًّا على مئة عميل. الاطّلاع **فعلٌ مقصود** على
  * عميل واحد، بسبب مكتوب، ويُسجَّل قبل أن يُعرض شيء.
  */
-export default async function AdminUsersPage() {
+/**
+ * شرائح A5 — **بالترتيب الذي رسمه التصميم** لا بترتيب المخطّط.
+ * والمشغّل يتعلّم موضع الشريحة بيده، فترتيبٌ يتغيّر يُبطئه كل مرّة.
+ */
+const SEGMENTS: readonly { key: UserSegment; label: string }[] = [
+  { key: 'all', label: 'الكل' },
+  { key: 'buyers', label: 'مشترون' },
+  { key: 'sellers', label: 'بائعون' },
+  { key: 'dealers', label: 'تجار' },
+  { key: 'verified', label: 'موثّقون' },
+  { key: 'unverified', label: 'غير موثّقين' },
+  { key: 'repeat', label: 'متكرّرون' },
+  { key: 'suspended', label: 'موقوفون' },
+  { key: 'banned', label: 'محظورون' },
+];
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'users.view')) redirect('/admin');
 
-  const [users, counts] = await Promise.all([
-    listAdminUsers(),
+  const search = await searchParams;
+  const raw = typeof search.tab === 'string' ? search.tab : 'all';
+  const segment: UserSegment = SEGMENTS.find((row) => row.key === raw)?.key ?? 'all';
+
+  const [users, counts, segments] = await Promise.all([
+    listAdminUsers(segment),
     db.user.groupBy({ by: ['status'], _count: { _all: true } }),
+    userSegmentCounts(),
   ]);
+
+  const tabs: FilterTab[] = SEGMENTS.map((row) => ({
+    key: row.key,
+    label: row.label,
+    count: segments[row.key],
+    ...(row.key === 'suspended' || row.key === 'banned' ? { tone: 'warn' as const } : {}),
+  }));
 
   const countOf = (status: string): number =>
     counts.find((row) => row.status === status)?._count._all ?? 0;
 
   return (
     <AdminShell title="العملاء"
-      subtitle="العملاء وحالاتهم" activeHref="/admin/users" admin={admin}>
+      subtitle="تصنيفات وسلوك وقيمة" activeHref="/admin/users" admin={admin}>
+      <FilterTabs tabs={tabs} active={segment} basePath="/admin/users" />
+
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="نشط" value={countOf('ACTIVE')} />
         <StatCard label="موقوف" value={countOf('SUSPENDED')} tone={countOf('SUSPENDED') > 0 ? 'warn' : 'plain'} />
