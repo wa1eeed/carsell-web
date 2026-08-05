@@ -1490,6 +1490,33 @@ async function main(): Promise<void> {
   }
 
   // ————— التقرير —————
+  /**
+   * ═══ أرقام العملاء — بترتيب الانضمام ═══
+   *
+   * وبلا هذه الخطوة يخرج نشرٌ جديد بعملاءَ **بلا رقمٍ يُعرفون به**:
+   * الترحيل عبّأ الصفوف القائمة يومَ كُتب، ولا يمسّ ما يُزرع بعده.
+   * فالزرع يمنحها كما يمنحها التسجيل.
+   */
+  const unnumbered = await prisma.user.findMany({
+    where: { ref: null },
+    select: { id: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  const perYear = new Map<number, number>();
+  for (const user of unnumbered) {
+    const year = user.createdAt.getFullYear();
+    const taken = perYear.get(year) ?? (
+      await prisma.user.count({ where: { ref: { startsWith: `CUS-${year}-` } } })
+    );
+    const next = taken + 1;
+    perYear.set(year, next);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { ref: `CUS-${year}-${String(next).padStart(4, '0')}` },
+    });
+  }
+
   const counts = {
     ماركة: await prisma.brand.count(),
     'نوع هيكل': await prisma.bodyTypeDisplay.count(),

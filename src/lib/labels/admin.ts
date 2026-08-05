@@ -284,4 +284,7 @@ export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
   GATEWAY_FEES_CLEARING: 'رسوم البوابة (عبور)',
   GOVT_FEES_CLEARING: 'رسوم حكومية (عبور)',
   PLATFORM_CASH: 'ما وصلنا فعلًا',
+  // **وحسابٌ بلا تسمية يُعرض مفتاحًا خامًا** — وهو ما وقع أوّل قيد محفظة
+  WALLET_PAYABLE: 'أرصدة محافظ العملاء',
+  GOODWILL_EXPENSE: 'تعويضات ومنح',
 };

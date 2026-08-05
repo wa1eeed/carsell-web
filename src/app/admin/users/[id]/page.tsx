@@ -11,9 +11,11 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
-import { can } from '@/lib/domain/permissions';
+import { can, canWrite } from '@/lib/domain/permissions';
 import { adminUserDetail } from '@/lib/domain/admin-entity-detail';
 import { STAGE_LABEL } from '@/lib/labels/charts';
+import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
+import { WalletPanel } from './WalletPanel';
 import { toArabicDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
@@ -71,8 +73,9 @@ export default async function AdminUserDetailPage({
       <DetailHeader
         backHref="/admin/users"
         backLabel="العملاء"
-        reference={user.phone}
-        title={user.name}
+        // **رقم العميل هو المرجع** — وهو ما يقوله في مكالمة
+        reference={user.ref ?? user.phone}
+        title={`${user.name} · ${user.phone}`}
         badges={
           <>
             <Badge tone={user.status === 'ACTIVE' ? 'accent' : 'danger'}>{user.status}</Badge>
@@ -150,6 +153,69 @@ export default async function AdminUserDetailPage({
               )}
             </DetailCard>
 
+            <DetailCard title="المحفظة" note="الرصيد وحركته وأدوات التعديل">
+              <WalletPanel
+                userId={user.id}
+                balance={user.wallet?.balance ?? '0.00'}
+                lines={user.wallet?.lines ?? []}
+                pending={user.pendingAdjustment}
+                canAdjust={canWrite(admin.role, 'wallet.adjust')}
+                meId={admin.id}
+              />
+            </DetailCard>
+
+            {/*
+              **كشف عملياته من الدفتر لا من تجميع طلباته.** والدفتر يقول
+              «لماذا تغيّر» لا «كم صار» — وهو ما يُحتاج حين يشكو عميل.
+            */}
+            <DetailCard
+              title="كشف العمليات"
+              note={`آخر قيد (${toArabicDigits(String(user.ledger.length))})`}
+            >
+              {user.ledger.length === 0 ? (
+                <p className="text-2xs opacity-50">
+                  لا قيود — ولم تمرّ عليه صفقةٌ مدفوعة بعد.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-2xs">
+                    <thead>
+                      <tr className="border-b border-line">
+                        <th className="p-2 text-start font-bold">الحدث</th>
+                        <th className="p-2 text-start font-bold">الحساب</th>
+                        <th className="p-2 text-start font-bold">الاتّجاه</th>
+                        <th className="p-2 text-start font-bold">المبلغ</th>
+                        <th className="p-2 text-start font-bold">الطلب</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {user.ledger.map((row) => (
+                        <tr key={row.id} className="border-b border-line last:border-0">
+                          <td dir="ltr" className="font-num p-2 text-start opacity-70">
+                            {row.event}
+                          </td>
+                          <td className="p-2 opacity-70">
+                            {LEDGER_ACCOUNT_LABEL[row.account] ?? row.account}
+                          </td>
+                          <td className="p-2">
+                            <Badge tone={row.direction === 'DEBIT' ? 'neutral' : 'accent'}>
+                              {row.direction === 'DEBIT' ? 'مدين (له)' : 'دائن (عليه)'}
+                            </Badge>
+                          </td>
+                          <td className="p-2">
+                            <ArabicNumber value={Number(row.amount)} decimals={2} />
+                          </td>
+                          <td dir="ltr" className="font-num p-2 text-start opacity-60">
+                            {row.orderRef ?? '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </DetailCard>
+
             {user.overrides.length === 0 ? null : (
               <DetailCard title="تجاوزات الخصائص" note="بسببها">
                 {user.overrides.map((override) => (
@@ -167,6 +233,7 @@ export default async function AdminUserDetailPage({
         side={
           <>
             <DetailCard title="الحساب">
+              <Field label="رقم العميل" value={user.ref ?? 'لم يُمنح بعد'} ltr strong />
               <Field label="الاسم" value={user.name} />
               <Field label="الهاتف" value={user.phone} ltr />
               <Field label="البريد" value={user.email ?? 'لم يُضف'} ltr />
@@ -189,13 +256,11 @@ export default async function AdminUserDetailPage({
                 label="مفضّلة"
                 value={<ArabicNumber value={user.counts.favorites} />}
               />
-              {user.wallet === null ? null : (
-                <Field
-                  label="رصيد المحفظة"
-                  value={<Money amount={Number(user.wallet.balance)} />}
-                  strong
-                />
-              )}
+              <Field
+                label="رصيد المحفظة"
+                value={<Money amount={Number(user.wallet?.balance ?? '0.00')} />}
+                strong
+              />
             </DetailCard>
 
             <DetailCard title="التوثيق والضريبة">

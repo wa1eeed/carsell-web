@@ -1,5 +1,10 @@
-import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
+import {
+  pendingAdjustment,
+  walletView,
+  type PendingAdjustment,
+  type WalletLine,
+} from './wallet';
 
 /**
  * ═══ تفاصيل الإعلان والعميل في اللوحة ═══
@@ -162,6 +167,8 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
 
 export type AdminUserDetail = {
   id: string;
+  /** رقم العميل المقروء — وهو ما يقوله في مكالمة */
+  ref: string | null;
   name: string;
   phone: string;
   email: string | null;
@@ -178,7 +185,19 @@ export type AdminUserDetail = {
   dealerName: string | null;
 
   counts: { listings: number; asBuyer: number; asSeller: number; favorites: number };
-  wallet: { balance: string } | null;
+  wallet: { balance: string; lines: WalletLine[] } | null;
+  /** قيود الدفتر التي تخصّ هذا العميل — كشفُ عملياته */
+  ledger: {
+    id: string;
+    account: string;
+    direction: string;
+    amount: string;
+    event: string;
+    orderRef: string | null;
+    at: string;
+  }[];
+  /** ما ينتظر موافقةً ثانية على رصيده */
+  pendingAdjustment: PendingAdjustment | null;
   /** `at` تاريخ النشر — و`null` لمسودّةٍ لم تُنشر بعد */
   listings: { ref: string; status: string; askPrice: string; at: string | null }[];
   orders: { ref: string; stage: string; status: string; side: string; at: string }[];
@@ -190,6 +209,7 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
     where: { id },
     select: {
       id: true,
+      ref: true,
       name: true,
       phone: true,
       email: true,
@@ -203,8 +223,6 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
       vatNumber: true,
       marketingConsent: true,
       dealer: { select: { nameAr: true } },
-      // **الرصيد مجموع القيود لا حقلًا** — ولا عمود `balance` في المخطّط
-      wallet: { select: { id: true } },
       overrides: { select: { id: true, entitlementKey: true, value: true, reason: true } },
       _count: {
         select: {
@@ -219,7 +237,7 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
 
   if (user === null) return null;
 
-  const [listings, asBuyer, asSeller, walletSum] = await Promise.all([
+  const [listings, asBuyer, asSeller, wallet, pending, ledgerRows] = await Promise.all([
     db.listing.findMany({
       where: { sellerId: id },
       orderBy: { publishedAt: 'desc' },
@@ -239,13 +257,27 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
       take: 10,
       select: { ref: true, stage: true, status: true, createdAt: true },
     }),
-    user.wallet === null
-      ? Promise.resolve(null)
-      : db.walletEntry.aggregate({
-          where: { walletId: user.wallet.id },
-          _sum: { amount: true },
-        }),
+    walletView(id),
+    pendingAdjustment(id),
+    /**
+     * **كشف عملياته من الدفتر** — لا من تجميع طلباته. والدفتر يقول
+     * «لماذا تغيّر» لا «كم صار»، وهو ما يُحتاج حين يشكو عميل.
+     */
+    db.ledgerEntry.findMany({
+      where: { userId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 60,
+    }),
   ]);
+
+  const ledgerOrderIds = ledgerRows.map((row) => row.orderId).filter((row) => row !== null);
+  const ledgerOrders =
+    ledgerOrderIds.length === 0
+      ? []
+      : await db.order.findMany({
+          where: { id: { in: ledgerOrderIds } },
+          select: { id: true, ref: true },
+        });
 
   /**
    * الطلبات من الجانبين في قائمةٍ واحدة **بجانبها مكتوبًا**: عميلٌ
@@ -260,6 +292,7 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
 
   return {
     id: user.id,
+    ref: user.ref,
     name: user.name ?? user.phone,
     phone: user.phone,
     email: user.email,
@@ -281,10 +314,19 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
       favorites: user._count.favorites,
     },
 
-    wallet:
-      user.wallet === null
-        ? null
-        : { balance: (walletSum?._sum.amount ?? new Prisma.Decimal(0)).toFixed(2) },
+    // المحفظة تُعرض دائمًا ولو بلا صفّ — و«لا محفظة» تُقرأ عطلًا
+    wallet: { balance: wallet.balance, lines: wallet.lines },
+    pendingAdjustment: pending,
+
+    ledger: ledgerRows.map((row) => ({
+      id: row.id,
+      account: row.account,
+      direction: row.direction,
+      amount: row.amount.toFixed(2),
+      event: row.event,
+      orderRef: ledgerOrders.find((order) => order.id === row.orderId)?.ref ?? null,
+      at: row.createdAt.toISOString(),
+    })),
 
     listings: listings.map((listing) => ({
       ref: listing.ref,
