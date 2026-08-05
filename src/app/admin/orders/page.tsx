@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { FilterTabs, type FilterTab } from '@/components/admin/FilterTabs';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
@@ -52,7 +52,7 @@ export default async function AdminOrdersPage({
 
   const stage = STAGES.find((key) => key === raw);
   const closed = CLOSED.find((key) => key === raw);
-  const active = stage ?? closed ?? 'all';
+  const active: string | null = stage ?? closed ?? null;
 
   const [orders, counts] = await Promise.all([
     /**
@@ -77,8 +77,8 @@ export default async function AdminOrdersPage({
   const critical = orders.filter((order) => order.critical).length;
   const disputed = orders.filter((order) => order.hasDispute).length;
 
-  const tabs: FilterTab[] = [
-    { key: 'all', label: 'الكل', count: counts.all },
+  const tabs: MonitorTab[] = [
+    { key: null, label: 'الكل', count: counts.all },
     ...STAGES.map((key) => ({
       key,
       label: STAGE_LABEL[key] ?? key,
@@ -98,7 +98,7 @@ export default async function AdminOrdersPage({
   return (
     <AdminShell title="الطلبات"
       subtitle="تابز لكل مرحلة وإجراء مباشر" activeHref="/admin/orders" admin={admin}>
-      <FilterTabs tabs={tabs} active={active} basePath="/admin/orders" />
+      <MonitorTabs tabs={tabs} active={active} basePath="/admin/orders" param="tab" />
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="طلبات جارية" value={orders.length} />

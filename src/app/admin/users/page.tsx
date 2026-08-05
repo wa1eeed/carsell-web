@@ -9,7 +9,7 @@ import {
   userSegmentCounts,
   type UserSegment,
 } from '@/lib/domain/admin-orders';
-import { FilterTabs, type FilterTab } from '@/components/admin/FilterTabs';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { UsersTable } from './UsersTable';
 
 export const dynamic = 'force-dynamic';
@@ -58,8 +58,8 @@ export default async function AdminUsersPage({
     userSegmentCounts(),
   ]);
 
-  const tabs: FilterTab[] = SEGMENTS.map((row) => ({
-    key: row.key,
+  const tabs: MonitorTab[] = SEGMENTS.map((row) => ({
+    key: row.key === 'all' ? null : row.key,
     label: row.label,
     count: segments[row.key],
     ...(row.key === 'suspended' || row.key === 'banned' ? { tone: 'warn' as const } : {}),
@@ -71,7 +71,7 @@ export default async function AdminUsersPage({
   return (
     <AdminShell title="العملاء"
       subtitle="تصنيفات وسلوك وقيمة" activeHref="/admin/users" admin={admin}>
-      <FilterTabs tabs={tabs} active={segment} basePath="/admin/users" />
+      <MonitorTabs tabs={tabs} active={segment === 'all' ? null : segment} basePath="/admin/users" param="tab" />
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="نشط" value={countOf('ACTIVE')} />

@@ -14,7 +14,13 @@ import { toArabicDigits } from '@/lib/arabic';
  */
 
 export type MonitorCard = { title: string; value: number | string; note: string };
-export type MonitorTab = { key: string | null; label: string; count: number };
+export type MonitorTab = {
+  key: string | null;
+  label: string;
+  count: number;
+  /** نبرة العدّاد — تُفرَّق حين تعني الشريحة عملًا متأخّرًا. */
+  tone?: 'neutral' | 'warn' | 'danger';
+};
 
 /** الوقت المنقضي نصًّا — والجملة لا يحكمها المعدود (البوابة ١٨). */
 export function elapsed(minutes: number): string {
@@ -53,6 +59,21 @@ export function MonitorCards({ cards }: { cards: readonly MonitorCard[] }) {
   );
 }
 
+/**
+ * ═══ شريط الشرائح — مقيسٌ من ترميز التصميم ═══
+ *
+ * الشريحة `padding: 9px 15px` بفجوة `7px` وخطّ `11px`، **والعدّاد
+ * حبّةٌ بخلفية** (`padding: 1px 7px`، `border-radius: 999px`) بخطٍّ
+ * لاتينيّ `9.5px` لأنه رقم. وكان العدّاد نصًّا شفّافًا بلا خلفية —
+ * فيقرأ المشغّل الاسم والرقم كتلةً واحدة ولا تنفصل عينُه إلى العدد.
+ *
+ * ونبرة العدّاد تُفرَّق حين تعني عملًا متأخّرًا: `warn` لما ينتظر،
+ * و`danger` لما تجاوز. والنشط يقلبها كلّها فاتحةً على داكن.
+ *
+ * **والصفر يُعرض ولا يُخفى**: شريحةٌ بصفر تقول «لا شيء هنا الآن»،
+ * وإخفاؤها يجعل الشريط يتغيّر طوله بين زيارتين فيضيع موضع ما يبحث
+ * عنه المشغّل بيده.
+ */
 export function MonitorTabs({
   tabs,
   active,
@@ -65,19 +86,37 @@ export function MonitorTabs({
   param?: string;
 }) {
   return (
-    <nav className="mb-5 flex flex-wrap gap-2">
-      {tabs.map((tab) => (
-        <a
-          key={tab.key ?? 'all'}
-          href={tab.key === null ? basePath : `${basePath}?${param}=${tab.key}`}
-          className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-2xs ${
-            active === tab.key ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink'
-          }`}
-        >
-          {tab.label}
-          <span className="font-num opacity-60">{toArabicDigits(String(tab.count))}</span>
-        </a>
-      ))}
+    <nav className="mb-5 flex flex-wrap gap-2.5">
+      {tabs.map((tab) => {
+        const on = active === tab.key;
+        return (
+          <a
+            key={tab.key ?? 'all'}
+            href={tab.key === null ? basePath : `${basePath}?${param}=${tab.key}`}
+            aria-current={on ? 'page' : undefined}
+            className={
+              on
+                ? 'flex items-center gap-1.75 rounded-full bg-ink px-3.75 py-2.25 text-3xs font-bold text-bg'
+                : 'flex items-center gap-1.75 rounded-full border border-line px-3.75 py-2.25 text-3xs font-semibold hover:border-ink'
+            }
+          >
+            {tab.label}
+            <span
+              className={
+                on
+                  ? 'rounded-full bg-bg px-1.75 py-px font-num text-3xs font-bold text-ink'
+                  : tab.tone === 'danger'
+                    ? 'rounded-full bg-danger/12 px-1.75 py-px font-num text-3xs font-bold text-danger'
+                    : tab.tone === 'warn'
+                      ? 'rounded-full bg-warn-100 px-1.75 py-px font-num text-3xs font-bold text-warn-900'
+                      : 'rounded-full bg-ink/8 px-1.75 py-px font-num text-3xs font-bold'
+              }
+            >
+              {toArabicDigits(String(tab.count))}
+            </span>
+          </a>
+        );
+      })}
     </nav>
   );
 }

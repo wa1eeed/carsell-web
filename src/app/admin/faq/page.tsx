@@ -10,12 +10,23 @@ import { FaqTable } from './FaqTable';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'الأسئلة الشائعة' };
 
+/**
+ * **والخريطة تغطّي ما تزرعه البذرة كلَّه.** كانت خمسًا والمزروع تسع،
+ * فظهرت `inspection` و`account` و`orders` و`negotiation` و`fees`
+ * **بمفاتيحها الإنجليزية** في شريط عربيّ — والسقوط إلى المفتاح
+ * (`?? row.category`) لا يصرخ، فيمرّ النقص شهورًا.
+ */
 const CATEGORY_LABEL: Record<string, string> = {
   buying: 'الشراء',
   selling: 'البيع',
   auction: 'المزاد',
   escrow: 'الضمان',
   services: 'الخدمات',
+  inspection: 'الفحص',
+  account: 'الحساب',
+  orders: 'الطلبات',
+  negotiation: 'التفاوض',
+  fees: 'الرسوم والعمولة',
 };
 
 /**

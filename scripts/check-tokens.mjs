@@ -275,6 +275,12 @@ function checkStringifiedNumbers() {
     for (const file of walk(join(ROOT, dir))) {
       if (!file.endsWith('.tsx')) continue;
       const rel = relative(ROOT, file);
+      /**
+       * **ولا تُجرَّد التعليقات هنا**: مهرب هذه البوابة `check-9-ok:`
+       * **تعليقٌ في السطر أو قبله**، فتجريدُه يُلغي المخرج الموثَّق
+       * ويُطلق البوابة على الاستثناء الذي أُقرّ لها. (وقع: جُرّدت
+       * فسقط JSON-LD وهو حقل آلةٍ يتطلّب أرقامًا لاتينية.)
+       */
       const source = readFileSync(file, 'utf8');
 
       for (const literal of source.matchAll(/`[^`]*`/g)) {
@@ -368,7 +374,7 @@ function checkColourUtilities() {
     for (const file of walk(join(ROOT, dir))) {
       if (!file.endsWith('.tsx')) continue;
       const rel = relative(ROOT, file);
-      const source = readFileSync(file, 'utf8');
+      const source = stripComments(readFileSync(file, 'utf8'));
 
       const seen = new Set();
       for (const match of source.matchAll(COLOUR_UTILITIES)) {
@@ -379,6 +385,20 @@ function checkColourUtilities() {
       }
     }
   }
+}
+
+/**
+ * يُسقط التعليقات قبل الفحص.
+ *
+ * **وأسلوب هذا المستودع تعليقاتٌ طويلة تشرح القرار**، فيها أسماء خصائص
+ * CSS ومقاسات حرفية مقتبسة من التصميم. وفحصُ النصّ الخام يجعل تعليقًا
+ * يقول «`border-radius: 999px`» إنذارًا كاذبًا — ثم يتعلّم القارئ أن
+ * يتجاهل البوابة، وتلك أسوأ من غيابها.
+ *
+ * (وقعت أوّل ما وُثّقت مقاسات شريط الشرائح.)
+ */
+function stripComments(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 }
 
 // ————— القاعدة ١١: ترحيل ماليّ بلا نقض —————
@@ -861,7 +881,7 @@ function checkPrismaBoundary() {
     for (const file of walk(join(ROOT, dir))) {
       if (!file.endsWith('.tsx')) continue;
       const rel = relative(ROOT, file);
-      const source = readFileSync(file, 'utf8');
+      const source = stripComments(readFileSync(file, 'utf8'));
       const isClient = /^\s*['"]use client['"]/m.test(source);
 
       // ——— أ. النوع لا يعبر ———
