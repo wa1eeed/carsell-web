@@ -75,6 +75,35 @@ export function RoutesTable({
     });
   };
 
+  /**
+   * **المكبح — بلا عضوٍ ثانٍ.**
+   *
+   * التبديل يحوّل مالًا إلى مزوّدٍ آخر فيحتاج اثنين؛ والتعطيل يمنع
+   * الجديد ولا يحوّل شيئًا. واشتراط زميلٍ على المكبح يعني بوابةً
+   * معطوبة تبتلع الدفعات حتى يستيقظ — وهو أسوأ ما يقع في عطل.
+   */
+  const toggle = (route: RouteRow): void => {
+    start(async () => {
+      const response = await fetch(`/api/v1/admin/payments/routes/${route.purpose}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ enabled: !route.enabled }),
+      }).catch(() => null);
+
+      const payload = (await response?.json().catch(() => null)) as
+        | { error?: { messageAr?: string } }
+        | null;
+
+      if (response === null || !response.ok) {
+        setToast(payload?.error?.messageAr ?? 'تعذّر تغيير حالة الغرض.');
+        return;
+      }
+
+      setToast(route.enabled ? 'عُطِّل الغرض — لا معاملات جديدة عليه.' : 'أُعيد تفعيل الغرض.');
+      router.refresh();
+    });
+  };
+
   const openSwitch = (route: RouteRow): void => {
     setTarget(route);
     setChosen('');
@@ -210,9 +239,24 @@ export function RoutesTable({
                 </td>
                 <td className="p-3.5">
                   {!canManage ? null : (
-                    <Button size="sm" variant="outline" onClick={() => openSwitch(route)}>
-                      غيّر البوابة
-                    </Button>
+                    <span className="flex flex-wrap justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => openSwitch(route)}>
+                        غيّر البوابة
+                      </Button>
+                      {/*
+                        **وحجزٌ قائم يمنع التعطيل** — والشاشة تقولها قبل
+                        الضغط لا بعده: الحجوزات تُفرَج من بوابتها، وقطعُ
+                        الطريق عليها يترك مالًا بلا مسار إفراج.
+                      */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={pending || (route.enabled && route.inFlight > 0)}
+                        onClick={() => toggle(route)}
+                      >
+                        {route.enabled ? 'عطّل' : 'فعّل'}
+                      </Button>
+                    </span>
                   )}
                 </td>
               </tr>

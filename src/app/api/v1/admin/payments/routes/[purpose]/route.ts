@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
-import { requestRouteSwitch } from '@/lib/domain/payment-routing';
+import { requestRouteSwitch, setRouteEnabled } from '@/lib/domain/payment-routing';
 
 export const runtime = 'nodejs';
 
@@ -70,4 +70,62 @@ export async function POST(
   }
 
   return ok(result);
+}
+
+const Toggle = z.object({ enabled: z.boolean() });
+
+/**
+ * `PATCH /api/v1/admin/payments/routes/{purpose}` — تعطيل الغرض أو
+ * إعادة تفعيله.
+ *
+ * ═══ ولماذا لا يحتاج عضوين ═══
+ *
+ * التبديل يحتاجهما لأنه **يحوّل مالًا إلى مزوّدٍ آخر**. والتعطيل
+ * يمنع الجديد ولا يحوّل شيئًا: هو المكبح لا المِقود. واشتراط عضوٍ
+ * ثانٍ على المكبح يعني بوابةً معطوبة تبتلع الدفعات حتى يستيقظ
+ * زميل — وذلك أسوأ ما يمكن أن يحدث في عطل.
+ *
+ * **ولا يُعطَّل غرضٌ له حجزٌ قائم**: الحجوزات تُفرَج من بوابتها،
+ * وقطعُ الطريق عليها يترك مالًا محجوزًا بلا مسار إفراج. والنطاق
+ * يفحصها ويردّ `HAS_IN_FLIGHT`.
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ purpose: string }> },
+) {
+  const guard = await requireAdmin(request, 'finance.view');
+  if (!guard.ok) return guard.response;
+
+  const { purpose } = await params;
+  if (!(PURPOSES as readonly string[]).includes(purpose)) return fail(ERRORS.NOT_FOUND, 404);
+
+  const parsed = Toggle.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return fail(ERRORS.VALIDATION({ enabled: 'INVALID' }), 422);
+
+  const result = await setRouteEnabled(
+    guard.admin,
+    purpose as (typeof PURPOSES)[number],
+    parsed.data.enabled,
+    guard.ip,
+  );
+
+  if (!result.ok) {
+    if (result.reason === 'ROUTE_NOT_FOUND') return fail(ERRORS.NOT_FOUND, 404);
+    return fail(
+      {
+        code: result.reason,
+        messageAr:
+          result.reason === 'HAS_IN_FLIGHT'
+            ? 'على هذا الغرض حجوزٌ قائمة — لا يُعطَّل حتى تُفرَج.'
+            : 'تعذّر تغيير حالة الغرض.',
+        messageEn:
+          result.reason === 'HAS_IN_FLIGHT'
+            ? 'This purpose has held payments — it cannot be disabled until they settle.'
+            : 'Could not change the purpose state.',
+      },
+      409,
+    );
+  }
+
+  return ok({ enabled: parsed.data.enabled });
 }

@@ -158,6 +158,79 @@ export function IntegrationsList({
                     {STATUS_LABEL[row.status] ?? row.status}
                   </Badge>
 
+                  {/*
+                    ═══ بيئة التكامل — والخطوة الأخيرة قبل المال الحقيقيّ ═══
+
+                    `requestEnvSwitch` مبنيّة ومختبَرة ولا ينادِيها شيء،
+                    و`pendingEnvSwitch` يُحسب في النطاق ولا تعرضه شاشة —
+                    فالانتقال من الاختبار إلى الإنتاج كان يحتاج تعديل صفٍّ
+                    في القاعدة بيد. وهو أخطر ما يُفعل بيد.
+
+                    **والبيئة المقيَّدة في الكود لا يُعرض لها زرّ**: خارج
+                    الإنتاج القراءة مثبَّتة على `TEST`، فزرٌّ هنا يردّ ٤٠٣
+                    بعد الضغط — وقولُها قبله أصدق.
+                  */}
+                  {!canManage || row.envForced ? null : row.pendingEnvSwitch === null ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={pending}
+                      onClick={() =>
+                        post(
+                          `/api/v1/admin/integrations/${row.key}/environment`,
+                          { to: row.storedEnv === 'LIVE' ? 'TEST' : 'LIVE' },
+                          () => 'سُجّل الطلب — ينتظر عضوًا ثانيًا.',
+                        )
+                      }
+                    >
+                      {row.storedEnv === 'LIVE' ? 'أعِدها إلى الاختبار' : 'انقلها إلى الإنتاج'}
+                    </Button>
+                  ) : row.pendingEnvSwitch.requestedBy === adminId ? (
+                    <span className="text-3xs opacity-55">
+                      طلبتَ نقلها إلى {row.pendingEnvSwitch.to === 'LIVE' ? 'الإنتاج' : 'الاختبار'} —
+                      ينتظر عضوًا آخر
+                    </span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      disabled={pending}
+                      onClick={() =>
+                        post(
+                          `/api/v1/admin/integrations/${row.key}/approve`,
+                          { requestId: row.pendingEnvSwitch?.id },
+                          (data) =>
+                            (data as { state?: string } | undefined)?.state === 'EXECUTED'
+                              ? 'اكتمل النصاب — بُدّلت البيئة.'
+                              : 'سُجّلت موافقتك.',
+                        )
+                      }
+                    >
+                      اعتمد نقلها إلى {row.pendingEnvSwitch.to === 'LIVE' ? 'الإنتاج' : 'الاختبار'}
+                    </Button>
+                  )}
+
+                  {/*
+                    **فحص الاتصال — ولمن يقرأ الشاشة لا لمن يملك السرّ.**
+
+                    كان `checkConnection` مبنيًّا ولا ينادِيه شيء، فمن
+                    ضبط سرًّا لا يملك طريقةً ليعرف أوصل أم لا إلّا أن
+                    يُجري معاملةً حقيقية بمال حقيقيّ.
+                  */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={pending}
+                    onClick={() =>
+                      post(`/api/v1/admin/integrations/${row.key}/check`, {}, (data) =>
+                        (data as { configured?: boolean } | undefined)?.configured === true
+                          ? 'المفاتيح مضبوطة — ولم يُنادَ المزوّد فعلًا.'
+                          : 'لا مفاتيح مضبوطة لهذا التكامل بعد.',
+                      )
+                    }
+                  >
+                    افحص الاتصال
+                  </Button>
+
                   {!canManage ? null : row.pendingRotation === null ? (
                     <Button
                       size="sm"

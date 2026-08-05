@@ -1542,6 +1542,76 @@
         }
       }
     },
+    "/api/v1/admin/integrations/{key}/check": {
+      "post": {
+        "summary": "POST /api/v1/admin/integrations/{key}/check",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "integrations.view",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/integrations/{key}/environment": {
+      "post": {
+        "summary": "POST /api/v1/admin/integrations/{key}/environment",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "integrations.rotateKeys",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/integrations/{key}/rotate": {
       "post": {
         "summary": "POST /api/v1/admin/integrations/{key}/rotate",
@@ -2168,6 +2238,73 @@
     "/api/v1/admin/payments/routes/{purpose}": {
       "post": {
         "summary": "POST /api/v1/admin/payments/routes/{purpose}",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "toGatewayKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "toEnvironment": {
+                    "type": "string",
+                    "enum": [
+                      "TEST",
+                      "LIVE"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 400
+                  }
+                },
+                "required": [
+                  "toGatewayKey",
+                  "toEnvironment",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/admin/payments/routes/{purpose}",
         "tags": [
           "admin"
         ],
