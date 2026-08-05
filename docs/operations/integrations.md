@@ -27,6 +27,28 @@ A staging deployment cannot reach a live key even if someone stores one.
 **A secret is never shown in full**, is stored encrypted, and rotation needs two
 approvers (`ApprovalKind.KEY_ROTATION`).
 
+### What an operator can do from `/admin/integrations`
+
+| action | route | permission | approvals |
+|---|---|---|---|
+| check the connection | `POST /api/v1/admin/integrations/{key}/check` | `integrations.view` | 1 |
+| rotate keys | `POST …/rotate` then `…/approve` | `integrations.rotateKeys` | 2 |
+| switch environment | `POST …/environment` then `…/approve` | `integrations.rotateKeys` | 2 |
+
+The check answers one question — **are keys configured for the environment we
+are actually reading?** — and answers it as `UNTESTED`, not as "connected". It
+does not call the provider: a real call for the sake of a health check is a
+transaction in a live account. Reading is enough to catch the case that actually
+happens, which is a key that was never stored.
+
+Switching the environment is **the last step before the platform touches real
+money**, and it is the one an operator reaches for on launch day. It is hidden
+where `effectiveEnvironment()` pins the environment in code, because a button
+that returns 403 after the click is worse than no button.
+
+Both were built and tested long before either had a caller. Rotation had a door;
+these two did not, so switching to production meant editing a row by hand.
+
 ## The integrations
 
 | Key | What it does | Status | When it is down |

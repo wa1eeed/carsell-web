@@ -122,6 +122,27 @@ There is no single `ENDED`: the outcome is in the state itself
 (`ENDED_MET` / `ENDED_UNMET`), so no reader has to combine a status with a
 separate flag to know whether the car sold.
 
+### The seller's window
+
+`ENDED_UNMET` is not an ending. The seller has `sellerDecisionHours` to accept
+the highest bid anyway, and accepting creates the order exactly as a met reserve
+would — same amounts, same `computeOrderAmounts`. Declining, or letting the
+window elapse, releases the top bidder's deposit.
+
+An elapsed window is a **release, not a forfeit**: the bidder honoured their bid;
+it was the seller who did not decide.
+
+| actor | door |
+|---|---|
+| seller | `POST /api/v1/auctions/{ref}/decision` — `{ "accept": true｜false }` |
+| screen | the decision panel at the top of the auction sidebar, with its countdown |
+| system | `expireSellerDecisions` releases the deposit when the window elapses |
+
+This transition was drawn in this diagram long before anything could perform it:
+the domain function existed and was tested, but the only caller was the expiry
+job, which always passes `false`. Every under-reserve auction therefore ended in
+a refund no matter what the seller wanted. A diagram is not a door.
+
 `reservePrice` never appears in a public response — only `reserveMet` as a
 boolean. With no bids the screen shows the **opening price**, not "highest bid
 0": a zero where a price belongs suggests the vehicle is worthless, which is the

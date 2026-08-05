@@ -155,3 +155,33 @@ once it is saved. Someone who answered is not asked to press buy again.
 Computed by `computeOrderAmounts` — the same function `acceptOffer` uses. There
 is one money rule, not one per order source, and a test asserts a direct order's
 amounts equal that function's output field by field.
+
+## Extending the transfer deadline
+
+`POST /api/v1/admin/orders/{ref}/extend-transfer` — `orders.changeStage`,
+body `{ "reason": "…" }` (10 characters minimum).
+
+Adds `transferExtensionDays` to `Order.transferDeadlineAt`, **once**. A second
+attempt returns `ALREADY_EXTENDED`, and the screen shows no button in that case —
+it shows who extended it and why.
+
+Two constraints, both deliberate:
+
+- **Once only.** An unbounded extension makes the deadline decorative: every
+  stuck order gets extended until it is forgotten, with the buyer's money held
+  the whole time.
+- **A written reason.** The extension delays the buyer's money, so whoever
+  delays it says why. It is read a year later, by someone reconstructing what
+  happened to a specific order.
+
+Without this, an order stuck at the traffic department for a reason neither
+party controls runs to automatic cancellation and operations has nothing to stop
+it with. The function was built with both constraints and tested, and had no
+caller.
+
+### Which orders show it
+
+Stage `TRANSFER` and a non-null `transferDeadlineAt`. The order detail page
+returns `transferDeadlineAt`, `transferExtendedAt` and `transferExtensionReason`
+together for exactly this reason: without `transferExtendedAt` the screen would
+render a button the server refuses.

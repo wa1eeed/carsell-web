@@ -106,6 +106,31 @@ cleanly. A rollback nobody executed is not a rollback.
   from a provider that does not exist, and a computed-looking percentage with
   nothing behind it is worse than a blank.
 
+## Sending
+
+`POST /api/v1/admin/campaigns/{id}/send` — `notifications.manage`.
+
+The audience is resolved **at send time**, not stored on the campaign. Anyone
+over the monthly cap (`MARKETING_CAP_PER_MONTH`) or inside the 72-hour cooldown
+is skipped, and both counts come back in the response so the operator sees who
+was reached and who was withheld rather than guessing.
+
+`NO_AUDIENCE` is a 409, not a silent success. A campaign recorded as *sent* that
+reached nobody reads as a working campaign for as long as anyone looks at the
+table; what the operator needs to know is that the rules withheld everyone.
+
+A sent or cancelled campaign shows no button. The domain returns `NOT_SENDABLE`
+either way, and a button that is refused after the click is worse than no button.
+
+The permission is `notifications.manage`, the one that already governs every
+outbound message. Minting a `campaigns.send` permission would mean a new key in
+the seven-role matrix, and a forgotten row there is exactly the shape gate 19
+was built to catch.
+
+**This had no door at all until now.** `sendCampaign` was built and tested —
+audience resolution, cap, cooldown, `CampaignSend` rows — and nothing called it,
+so the one seeded campaign sat in `DRAFT` permanently.
+
 ## A recurring failure, closed
 
 `npm run build` writes to `.next` — the same directory the dev server serves
