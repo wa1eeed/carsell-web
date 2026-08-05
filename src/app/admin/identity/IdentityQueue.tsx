@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -131,7 +132,17 @@ export function IdentityQueue({
             >
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="bidi-isolate truncate text-sm font-bold">
-                  {row.name ?? 'بلا اسم'}
+                  {/*
+                    **ولا صفحةَ توثيقٍ منفصلة**: ملفّ العميل فيه حالة
+                    التوثيق وتاريخُها — **والرقم يبقى خلف مساره المُقيَّد**
+                    الذي يكتب أثرًا بكل قراءة، لا في صفحةٍ تُفتح عرَضًا.
+                  */}
+                  <Link
+                    href={`/admin/users/${row.userId}`}
+                    className="underline underline-offset-4 hover:opacity-70"
+                  >
+                    {row.name ?? 'بلا اسم'}
+                  </Link>
                 </span>
                 {/* الجوال يُقارن خانةً بخانة — لاتينيّ معزول */}
                 <span dir="ltr" className="font-num text-2xs opacity-60">

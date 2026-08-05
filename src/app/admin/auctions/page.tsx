@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Badge } from '@/components/ui/Badge';
@@ -85,7 +86,16 @@ export default async function AdminAuctionsPage({
               </>
             }
             subtitle={row.sellerName}
-            meta={row.listingRef}
+            /* **الصفّ يُفتح** — وقائمةٌ لا تُفتح صفوفُها لا يُتصرَّف فيها */
+            meta={
+              <Link
+                href={`/admin/auctions/${encodeURIComponent(row.listingRef)}`}
+                dir="ltr"
+                className="font-num text-start underline underline-offset-4 hover:opacity-70"
+              >
+                {row.listingRef}
+              </Link>
+            }
           >
             <div className="flex flex-col items-start gap-0.5">
               {row.topBid === null ? (

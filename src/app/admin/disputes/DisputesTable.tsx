@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -122,7 +123,12 @@ export function DisputesTable({
                   <td className="p-3.5">
                     {/* المرجع يُنسخ ويُقارن — لاتينيّ معزول */}
                     <span dir="ltr" className="font-num font-bold">
-                      {row.orderRef}
+                      <Link
+                        href={`/admin/disputes/${row.id}`}
+                        className="underline underline-offset-4 hover:opacity-70"
+                      >
+                        {row.orderRef}
+                      </Link>
                     </span>
                   </td>
                   <td className="max-w-[280px] p-3.5 leading-loose">{row.reason}</td>

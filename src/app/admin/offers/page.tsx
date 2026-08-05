@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Badge } from '@/components/ui/Badge';
@@ -89,7 +90,16 @@ export default async function AdminOffersPage({
             key={row.id}
             title={row.title}
             subtitle={`${row.buyerName} ← ${row.sellerName}`}
-            meta={row.listingRef}
+            /* **الصفّ يُفتح** — وقائمةٌ لا تُفتح صفوفُها لا يُتصرَّف فيها */
+            meta={
+              <Link
+                href={`/admin/offers/${row.id}`}
+                dir="ltr"
+                className="font-num text-start underline underline-offset-4 hover:opacity-70"
+              >
+                {row.listingRef}
+              </Link>
+            }
           >
             <div className="flex flex-col items-start gap-0.5">
               <Money amount={Number(row.amount)} />

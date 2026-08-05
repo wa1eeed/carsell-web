@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -87,7 +88,12 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
           >
             <div className="flex min-w-0 flex-col gap-1">
               <span className="flex items-center gap-2.5">
-                <span className="bidi-isolate truncate text-sm font-bold">{row.name}</span>
+                <Link
+                  href={`/admin/dealers/${row.id}`}
+                  className="bidi-isolate truncate text-sm font-bold underline underline-offset-4 hover:opacity-70"
+                >
+                  {row.name}
+                </Link>
                 {row.verified ? <Badge tone="accent">موثّق</Badge> : null}
               </span>
               <span className="text-2xs opacity-60">{row.city}</span>

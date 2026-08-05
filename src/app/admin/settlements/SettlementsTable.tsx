@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -228,7 +229,18 @@ function Row({ row, children }: { row: SettlementRow; children: React.ReactNode 
   return (
     <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-col gap-1">
-        <span className="font-num text-2xs opacity-55">{row.orderRef}</span>
+        {/*
+          **ولا صفحةَ تسويةٍ منفصلة**: تفاصيل الطلب فيها الضمان والدفعات
+          والقيود والمستندات — وصفحةٌ ثانية تقول ما تقوله الأولى تتباعد
+          عنها أوّل تعديل.
+        */}
+        <Link
+          href={`/admin/orders/${encodeURIComponent(row.orderRef)}`}
+          dir="ltr"
+          className="font-num text-start text-2xs underline underline-offset-4 opacity-60 hover:opacity-100"
+        >
+          {row.orderRef}
+        </Link>
         <span className="bidi-isolate truncate text-sm">{row.seller}</span>
         <span className="bidi-isolate truncate text-3xs opacity-45">
           المشتري {row.buyer}

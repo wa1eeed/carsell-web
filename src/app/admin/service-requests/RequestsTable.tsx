@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -43,7 +44,16 @@ export function RequestsTable({ requests }: { requests: readonly ServiceRequestR
           {
             id: 'ref',
             header: 'الطلب',
-            cell: (request) => <span className="font-num text-2xs">{request.ref}</span>,
+            // **المرجع يفتح الطلب** — والقائمة كانت تعرض ولا تُفتح
+            cell: (request) => (
+              <Link
+                href={`/admin/service-requests/${encodeURIComponent(request.ref)}`}
+                dir="ltr"
+                className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-70"
+              >
+                {request.ref}
+              </Link>
+            ),
           },
           {
             id: 'service',

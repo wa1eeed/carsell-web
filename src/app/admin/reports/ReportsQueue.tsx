@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -161,7 +162,13 @@ export function ReportsQueue({
               className="flex flex-col gap-3 py-4 lg:flex-row lg:items-center lg:justify-between"
             >
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="font-num text-3xs opacity-50">{row.ref}</span>
+                <Link
+                  href={`/admin/reports/${encodeURIComponent(row.ref)}`}
+                  dir="ltr"
+                  className="font-num text-start text-3xs underline underline-offset-4 opacity-60 hover:opacity-100"
+                >
+                  {row.ref}
+                </Link>
                 <span className="text-sm font-bold">{REASON_LABEL[row.reason] ?? row.reason}</span>
                 <span className="bidi-isolate truncate text-2xs opacity-60">
                   {row.targetTitle ?? row.targetId}
