@@ -34,9 +34,12 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     /** ما يُفتح كل صباح — الأرقام ثم ما ينتظر عملًا. */
     title: 'المتابعة',
     items: [
+      /**
+       * **ولوحة القيادة بندٌ واحد.** «المتابعة اليومية» و«المالية»
+       * تابان داخلها (A2 · A3)، والشريط في التصميم لا يذكرهما — وكانا
+       * بندين هنا، فصارت الشاشةُ الواحدة ثلاثًا.
+       */
       { label: 'لوحة القيادة', href: '/admin', permission: 'dashboard.view' },
-      { label: 'المتابعة اليومية', href: '/admin/ops', permission: 'orders.view' },
-      { label: 'المالية', href: '/admin/finance', permission: 'finance.view' },
       { label: 'التقارير والتصدير', href: '/admin/exports' },
     ],
   },
