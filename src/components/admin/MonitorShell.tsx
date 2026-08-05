@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { StatCard, StatGrid } from '@/components/admin/StatCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { toArabicDigits } from '@/lib/arabic';
 
@@ -38,21 +38,18 @@ export function countdown(seconds: number): string {
   return `${toArabicDigits(String(h).padStart(2, '0'))}:${toArabicDigits(String(m).padStart(2, '0'))}`;
 }
 
+/**
+ * بطاقات المراقبة — **وتبني على `StatCard` لا تنسخها**.
+ *
+ * فالهندسة مكتوبةٌ مرّةً واحدة، وتعديلها يُصيب كل شاشة معًا.
+ */
 export function MonitorCards({ cards }: { cards: readonly MonitorCard[] }) {
   return (
-    <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <StatGrid>
       {cards.map((card) => (
-        <div key={card.title} className="rounded-lg border border-line p-5">
-          <p className="mb-2 text-2xs opacity-55">{card.title}</p>
-          {typeof card.value === 'number' ? (
-            <ArabicNumber value={card.value} className="text-3xl font-bold" />
-          ) : (
-            <span className="font-num text-3xl font-bold">{card.value}</span>
-          )}
-          <p className="mt-1.5 text-3xs opacity-50">{card.note}</p>
-        </div>
+        <StatCard key={card.title} title={card.title} value={card.value} note={card.note} />
       ))}
-    </section>
+    </StatGrid>
   );
 }
 

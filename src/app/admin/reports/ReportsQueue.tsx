@@ -1,5 +1,6 @@
 'use client';
 
+import { StatCard as Card, StatGrid } from '@/components/admin/StatCard';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -105,7 +106,7 @@ export function ReportsQueue({
 
   return (
     <>
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <Card
           title="بلاغات تنتظر"
           value={stats.open}
@@ -132,7 +133,7 @@ export function ReportsQueue({
             </ul>
           )}
         </div>
-      </section>
+      </StatGrid>
 
       <nav className="mb-5 flex flex-wrap gap-2">
         {tabs.map((tab) => (
@@ -276,15 +277,6 @@ export function ReportsQueue({
   );
 }
 
-function Card({ title, value, note }: { title: string; value: number; note: string }) {
-  return (
-    <div className="rounded-lg border border-line p-5">
-      <p className="mb-2 text-2xs opacity-55">{title}</p>
-      <ArabicNumber value={value} className="text-3xl font-bold" />
-      <p className="mt-1.5 text-3xs opacity-50">{note}</p>
-    </div>
-  );
-}
 
 function Line({ label, value }: { label: string; value: string }) {
   return (

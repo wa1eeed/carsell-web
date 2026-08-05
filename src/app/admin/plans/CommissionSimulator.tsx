@@ -74,7 +74,7 @@ export function CommissionSimulator({
   };
 
   return (
-    <section className="rounded-lg border border-line p-5">
+    <section className="rounded-lg border border-line bg-surface p-5">
       <h3 className="mb-4 text-sm font-bold">محاكي العمولة</h3>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

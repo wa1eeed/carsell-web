@@ -115,7 +115,7 @@ export function CommissionRules({
           const effect = draft.enabled ? Math.min(Math.max(raw, floor), ceiling) : 0;
 
           return (
-            <div key={row.side} className="rounded-lg border border-line p-5">
+            <div key={row.side} className="rounded-lg border border-line bg-surface p-5">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-bold">{label.title}</span>

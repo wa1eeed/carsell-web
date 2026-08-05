@@ -81,7 +81,7 @@ export function AuctionSettingsForm({
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-line p-5">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="mb-4 text-sm font-bold">التوقيت</h2>
 
           <Readonly
@@ -129,7 +129,7 @@ export function AuctionSettingsForm({
           </div>
         </section>
 
-        <section className="rounded-lg border border-line p-5">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="mb-4 flex items-center gap-2.5 text-sm font-bold">
             العربون والمزايدة
             <Badge tone="warn">نصاب عضوين</Badge>
@@ -157,7 +157,7 @@ export function AuctionSettingsForm({
           />
         </section>
 
-        <section className="rounded-lg border border-line p-5 lg:col-span-2">
+        <section className="rounded-lg border border-line bg-surface p-5 lg:col-span-2">
           <h2 className="mb-4 text-sm font-bold">الاحتياطي</h2>
 
           <Toggle

@@ -1,9 +1,9 @@
 'use client';
 
+import { StatCard as Card, StatGrid } from '@/components/admin/StatCard';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -93,7 +93,7 @@ export function IdentityQueue({
 
   return (
     <>
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <Card
           title="ينتظر مراجعة يدوية"
           value={stats.waiting}
@@ -109,14 +109,14 @@ export function IdentityQueue({
           **النسبة مقياسٌ لطول الطابور لا زينة**: كلّما ارتفعت قلّ ما
           ينتظر إنسانًا — والتصميم يقولها في العنوان.
         */}
-        <div className="rounded-lg border border-line p-5">
+        <div className="rounded-lg border border-line bg-surface p-5">
           <p className="mb-2 text-2xs opacity-55">نسبة النفاذ الوطني</p>
           <span className="font-num text-3xl font-bold">
             {toArabicDigits(String(stats.nafathSharePct))}٪
           </span>
           <p className="mt-1.5 text-3xs opacity-50">كلّما ارتفعت قلّ الطابور</p>
         </div>
-      </section>
+      </StatGrid>
 
       {rows.length === 0 ? (
         <EmptyState
@@ -253,16 +253,6 @@ export function IdentityQueue({
 
       {toast === null ? null : <Toast title={toast} />}
     </>
-  );
-}
-
-function Card({ title, value, note }: { title: string; value: number; note: string }) {
-  return (
-    <div className="rounded-lg border border-line p-5">
-      <p className="mb-2 text-2xs opacity-55">{title}</p>
-      <ArabicNumber value={value} className="text-3xl font-bold" />
-      <p className="mt-1.5 text-3xs opacity-50">{note}</p>
-    </div>
   );
 }
 

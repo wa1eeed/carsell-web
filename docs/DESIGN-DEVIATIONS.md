@@ -382,3 +382,55 @@ reads `?changed=1` and says why.
 **A wrong current password answers 422, not 401.** 401 carries "يلزم تسجيل
 الدخول" — shown to someone who *is* signed in — and any generic interceptor
 would treat a mistyped character as an expired session.
+
+---
+
+## Measured audit of the admin console · 2026-08-05
+
+Not a claim of fidelity — a measurement. Values were extracted from
+`design/Admin.dc.html` by parsing the inline styles, and compared against the
+computed styles read from the running app.
+
+### The stat card — the most repeated element in the console
+
+| | Design | Was | Now |
+|---|---|---|---|
+| radius | 11px | 12px | 11px |
+| padding | 16px 18px | 20px | 16px 18px |
+| background | `#efe4cf` (surface) | **transparent** | surface |
+| grid gap | 14px | 16px | 14px |
+
+The background was the visible one: our cards sat transparent on the page with
+only a border holding them, while every card in the markup is filled. It showed
+on every admin screen at once.
+
+**It was also written four times** — in `MonitorCards` and as a byte-identical
+local `Card` inside the listing-review, reports and identity queues. A fourth
+copy produces no difference on the day it is made; it produces one at the first
+edit, which lands in one file and misses three. Now one `StatCard` and one
+`StatGrid` in `components/admin/`, and every screen builds on them.
+
+### What deliberately does *not* match
+
+**Type sizes.** The markup's raw values are 10px labels, 22px figures, 9.5px
+notes. The scale was raised earlier by the owner's explicit instruction — the
+fonts read smaller than global practice. Returning to 10px here would undo that
+decision in the element that is read most. Geometry follows the markup; type
+follows our scale.
+
+**Panel fills.** Seven section panels (auction settings, the commission
+simulator, commission rules, identity) were transparent and are now `surface`,
+matching the markup — same reason as the cards.
+
+### Method, so it can be repeated
+
+```
+python3 - <<'PY'   # counts every inline declaration in the markup
+import re, pathlib, collections
+s = pathlib.Path('design/Admin.dc.html').read_text(encoding='utf-8')
+...
+PY
+```
+
+then `javascript_tool` on the running page for `getComputedStyle`. Both numbers
+in one place is what makes it an audit rather than an impression.

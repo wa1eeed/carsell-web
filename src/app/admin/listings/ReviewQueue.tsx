@@ -1,5 +1,6 @@
 'use client';
 
+import { StatCard as Card, StatGrid } from '@/components/admin/StatCard';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -116,7 +117,7 @@ export function ReviewQueue({
 
   return (
     <>
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <Card
           title="في الطابور"
           value={stats.queued}
@@ -141,7 +142,7 @@ export function ReviewQueue({
           value={stats.publishedDirectToday}
           note={`${toArabicDigits(String(stats.directSharePct))}٪ من إعلانات اليوم`}
         />
-      </section>
+      </StatGrid>
 
       <nav className="mb-5 flex flex-wrap gap-2">
         {tabs.map((tab) => (
@@ -293,12 +294,3 @@ export function ReviewQueue({
   );
 }
 
-function Card({ title, value, note }: { title: string; value: number; note: string }) {
-  return (
-    <div className="rounded-lg border border-line p-5">
-      <p className="mb-2 text-2xs opacity-55">{title}</p>
-      <ArabicNumber value={value} className="text-3xl font-bold" />
-      <p className="mt-1.5 text-3xs opacity-50">{note}</p>
-    </div>
-  );
-}
