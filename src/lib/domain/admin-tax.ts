@@ -82,8 +82,34 @@ export type InvoiceTotals = {
   creditNotes: number;
 };
 
-export async function listInvoices(limit = 60): Promise<InvoiceRow[]> {
+/**
+ * شرائح A21 — **والترشيح في الاستعلام**: القائمة مقتطعة عند ستّين،
+ * فترشيحٌ بعدها يقرأ الستّين الأحدث ثم يرشّحها — فتبدو «مركبة» فارغةً
+ * وفي القاعدة مئات.
+ */
+export async function invoiceCountsByType(): Promise<Record<string, number>> {
+  const [rows, credits] = await Promise.all([
+    db.taxInvoice.groupBy({ by: ['ruleSupplyType'], _count: { _all: true } }),
+    db.creditNote.count(),
+  ]);
+  const out: Record<string, number> = {
+    all: rows.reduce((n, row) => n + row._count._all, 0),
+    credit: credits,
+  };
+  for (const row of rows) out[row.ruleSupplyType] = row._count._all;
+  return out;
+}
+
+export async function listInvoices(
+  limit = 60,
+  supplyType: string | null = null,
+): Promise<InvoiceRow[]> {
   const rows = await db.taxInvoice.findMany({
+    ...(supplyType === null
+      ? {}
+      : supplyType === 'credit'
+        ? { where: { creditNotes: { some: {} } } }
+        : { where: { ruleSupplyType: supplyType as SupplyType } }),
     orderBy: { sequence: 'desc' },
     take: limit,
     include: { _count: { select: { creditNotes: true } } },

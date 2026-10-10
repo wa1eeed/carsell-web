@@ -5,7 +5,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import {
+  invoiceCountsByType,
   invoiceTotals,
   listInvoices,
   listTaxRules,
@@ -26,15 +28,39 @@ export const dynamic = 'force-dynamic';
  * العمولة — الفرق بين ١٥٠ و١٥٬٠٠٠ في صفقة واحدة. والتصنيف ينتظر مذكرة،
  * فالمعالجة صفٌّ يُفعَّل لا نشرةٌ تُطلق.
  */
-export default async function TaxEnginePage() {
+/** شرائح A21 — بأسماء التوريد التي يقرؤها المحاسب لا برموزه. */
+const SEGMENTS: readonly { key: string | null; label: string }[] = [
+  { key: null, label: 'كل الفواتير' },
+  { key: 'COMMISSION', label: 'عمولة' },
+  { key: 'SERVICE', label: 'خدمات' },
+  { key: 'VEHICLE', label: 'مركبة' },
+  { key: 'credit', label: 'إشعارات دائنة' },
+];
+
+export default async function TaxEnginePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
+  const search = await searchParams;
+  const raw = typeof search.type === 'string' ? search.type : null;
+  const active = SEGMENTS.find((row) => row.key === raw)?.key ?? null;
+
+  const counts = await invoiceCountsByType();
+  const tabs: MonitorTab[] = SEGMENTS.map((row) => ({
+    key: row.key,
+    label: row.label,
+    count: counts[row.key ?? 'all'] ?? 0,
+  }));
+
   const [rules, awaiting, invoices, totals] = await Promise.all([
     listTaxRules(),
     pendingRuleChanges(),
-    listInvoices(),
+    listInvoices(60, active),
     invoiceTotals(),
   ]);
   const summary = summarize(rules);
@@ -118,6 +144,7 @@ export default async function TaxEnginePage() {
       <h2 className="mt-7 mb-2.5 flex flex-wrap items-center gap-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
         الفواتير الصادرة
       </h2>
+      <MonitorTabs tabs={tabs} active={active} basePath="/admin/tax" param="type" />
       <div className="mb-3 flex flex-wrap gap-2">
         <Count label="كل الفواتير" value={totals.all} />
         {totals.bySupply.map((line) => (

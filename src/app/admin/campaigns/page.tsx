@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import {
   COOLDOWN_HOURS,
   MARKETING_CAP_PER_MONTH,
@@ -38,12 +39,45 @@ const CHANNEL_LABEL: Record<string, string> = {
  * أن يمسّها أحد. وهذا هو المقصود: قائمةٌ محفوظة كانت ستُظهر رقمًا ثابتًا
  * صحيحًا يوم كُتب.
  */
-export default async function CampaignsPage() {
+/**
+ * شرائح A9 — **والترشيح في الصفحة**: `listCampaigns` لا تقتطع، فلا
+ * شريحة تبدو أصغر ممّا هي. ولو أُضيف اقتطاعٌ يومًا انتقل إلى الاستعلام.
+ */
+const SEGMENTS: readonly { key: string | null; label: string; match: readonly string[] }[] = [
+  { key: null, label: 'الكل', match: [] },
+  { key: 'running', label: 'جارية', match: ['RUNNING'] },
+  { key: 'scheduled', label: 'مجدولة', match: ['SCHEDULED'] },
+  { key: 'draft', label: 'مسودّات', match: ['DRAFT'] },
+  { key: 'done', label: 'منتهية', match: ['SENT', 'CANCELLED'] },
+];
+
+export default async function CampaignsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'notifications.manage')) redirect('/admin');
 
-  const [campaigns, segments] = await Promise.all([listCampaigns(), listSegments()]);
+  const [all, segments] = await Promise.all([listCampaigns(), listSegments()]);
+
+  const search = await searchParams;
+  const raw = typeof search.filter === 'string' ? search.filter : null;
+  const active = SEGMENTS.find((row) => row.key === raw)?.key ?? null;
+  const picked = SEGMENTS.find((row) => row.key === active) ?? SEGMENTS[0];
+
+  const campaigns =
+    picked === undefined || picked.key === null
+      ? all
+      : all.filter((row) => picked.match.includes(row.status));
+
+  const tabs: MonitorTab[] = SEGMENTS.map((row) => ({
+    key: row.key,
+    label: row.label,
+    count:
+      row.key === null ? all.length : all.filter((item) => row.match.includes(item.status)).length,
+  }));
 
   // الصلاحية تُفحص هنا وفي المسار — وحارسٌ في العميل ليس حارسًا
   const canSend = canWrite(admin.role, 'notifications.manage');
@@ -53,6 +87,8 @@ export default async function CampaignsPage() {
       <p className="mb-4 text-2xs opacity-55">
         بريد ورسائل وإشعارات دفع · <strong>منفصلة تمامًا عن المعاملاتية</strong>
       </p>
+
+      <MonitorTabs tabs={tabs} active={active} basePath="/admin/campaigns" param="filter" />
 
       <section className="mb-5 overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[720px] text-2xs">

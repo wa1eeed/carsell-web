@@ -3,6 +3,8 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { MonitorCards } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
+import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import { breachedRequests, providerList, providerStats } from '@/lib/domain/admin-providers';
 import { toArabicDigits } from '@/lib/arabic';
 import { ProviderTable } from './ProviderTable';
@@ -21,16 +23,43 @@ export const metadata = { title: 'مزوّدو الخدمات والتمويل' 
  * «٣ طلبات تجاوزت الالتزام» رقمٌ لا يُتصرَّف فيه. فالطلبات المتجاوزة
  * معروضةٌ بمراجعها وساعات تأخّرها — ومن يقرؤها يعرف أيّها يلاحق.
  */
-export default async function AdminProvidersPage() {
+/**
+ * شرائح A28 — **أنواع المزوّدين من التعداد لا مكتوبةً بيد**، فنوعٌ
+ * جديد في المخطّط يظهر وحده. و«أخرى» تضمّ ما لا تسمية له.
+ */
+const TYPES = [
+  'INSPECTION', 'SHIPPING', 'INSURANCE', 'DETAILING', 'PHOTOGRAPHY', 'FINANCE', 'OTHER',
+] as const;
+
+export default async function AdminProvidersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'services.manage')) redirect('/admin');
 
-  const [rows, stats, breached] = await Promise.all([
+  const [all, stats, breached] = await Promise.all([
     providerList(),
     providerStats(),
     breachedRequests(),
   ]);
+
+  const search = await searchParams;
+  const raw = typeof search.type === 'string' ? search.type : null;
+  const active = (TYPES as readonly string[]).includes(raw ?? '') ? raw : null;
+
+  const rows = active === null ? all : all.filter((row) => row.type === active);
+
+  const tabs: MonitorTab[] = [
+    { key: null, label: 'الكل', count: all.length },
+    ...TYPES.map((type) => ({
+      key: type,
+      label: PROVIDER_TYPE_LABEL[type] ?? type,
+      count: all.filter((row) => row.type === type).length,
+    })),
+  ];
 
   const writable = canWrite(admin.role, 'services.manage');
 
@@ -41,6 +70,8 @@ export default async function AdminProvidersPage() {
         مزوّدون ({toArabicDigits(String(rows.length))}) · خدمات مرتبطة (
         {toArabicDigits(String(stats.servicesLinked))})
       </p>
+
+      <MonitorTabs tabs={tabs} active={active} basePath="/admin/providers" param="type" />
 
       <MonitorCards
         cards={[
