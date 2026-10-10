@@ -4,6 +4,7 @@ import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { AccountBrief } from '@/components/site/AccountBrief';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
@@ -67,7 +68,10 @@ export default async function AccountPage({
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">
             {t('greeting', { name: data.user.name ?? t('anonymous') })}
           </h1>
-          <p className="mb-8 text-sm opacity-60">{t('subtitle')}</p>
+          <p className="mb-4 text-sm opacity-60">{t('subtitle')}</p>
+
+          {/* خلاصةٌ تُنهي بفعل — والجملة العامّة لا تقول ما ينتظره */}
+          <AccountBrief data={data} locale={locale} />
 
           {listed === null ? null : (
             <section

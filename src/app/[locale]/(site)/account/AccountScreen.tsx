@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { toArabicDigits } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -191,7 +192,18 @@ export function AccountScreen({
                   </span>
                 </span>
                 <Badge tone="warn">{te(`offerStatus.${offer.status}`)}</Badge>
-                <Money amount={Number(offer.amount)} size="md" showCurrency={false} className="text-accent-700" />
+                <span className="flex shrink-0 flex-col items-end gap-0.5">
+                  <Money amount={Number(offer.amount)} size="md" showCurrency={false} className="text-accent-700" />
+                  {/*
+                    **والمعلن بجواره.** عرضٌ بلا ما يُقارَن به لا
+                    يُقرَّر عليه: «١٤١٬٠٠٠» تعني شيئًا حين يكون المعلن
+                    «١٤٥٬٠٠٠» وشيئًا آخر حين يكون «٢٠٠٬٠٠٠».
+                  */}
+                  <span className="flex items-center gap-1 text-3xs opacity-50">
+                    سعرك المعلن
+                    <ArabicNumber value={Number(offer.askPrice)} />
+                  </span>
+                </span>
                 <Link href={offer.path} className="text-xs font-bold text-accent-700 hover:underline">
                   {t('view')}
                 </Link>
@@ -219,9 +231,28 @@ export function AccountScreen({
                     <span className="bidi-isolate">{date.format(new Date(order.createdAt))}</span>
                   </span>
                 </span>
-                <Badge tone="accent">{te(`orderStage.${order.stage}`)}</Badge>
+                <span className="flex shrink-0 flex-col items-start gap-1">
+                  <Badge tone="accent">{te(`orderStage.${order.stage}`)}</Badge>
+                  {/*
+                    **والخطوة تُقال بعددها.** اسم المرحلة وحده لا يقول
+                    كم بقي — ومن يقرأ «نقل الملكية» لا يعرف أهو في أوّل
+                    الطريق أم آخره. والترتيب من `STAGES` لا مكتوبًا.
+                  */}
+                  {/*
+                    **والصياغة تضع الكلمة قبل الرقمين.** «١ من ٦» فيها
+                    كلمةٌ عربية بين رقمين، والبوابة تمنعها بحقّ: العربية
+                    ستّ حالات جمع. فتُصاغ «الخطوة (١/٦)» — والكسر
+                    لاتينيٌّ معزول يُقرأ خانةً بخانة.
+                  */}
+                  <span className="flex items-center gap-1 text-3xs opacity-50">
+                    الخطوة
+                    <span dir="ltr" className="font-num">
+                      {toArabicDigits(String(order.step))}/{toArabicDigits(String(order.stepCount))}
+                    </span>
+                  </span>
+                </span>
                 <Money amount={Number(order.amount)} size="md" showCurrency={false} />
-                <Link href={order.path} className="text-xs font-bold text-accent-700 hover:underline">
+                <Link href={`/${locale}/account/orders/${order.ref}`} className="text-xs font-bold text-accent-700 hover:underline">
                   {t('view')}
                 </Link>
               </li>

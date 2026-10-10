@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
+import { STAGES as ORDER_STAGES } from './orders';
+import type { OrderStage } from '@/generated/prisma/enums';
 import type { Prisma } from '@/generated/prisma/client';
 import { walletBalance as walletBalanceOf } from './wallet';
 import { SESSION_COOKIE, verifySession } from '@/lib/auth/token';
@@ -28,6 +30,13 @@ export type AccountStat = { key: string; value: number };
 export type AccountOrder = {
   ref: string;
   stage: string;
+  /**
+   * موضع المرحلة من ستّ — **والتصميم يعرضه «الخطوة ٥ من ٦»**.
+   * واسمُ المرحلة وحده لا يقول كم بقي، ومن يقرأ «نقل الملكية» لا يعرف
+   * أهو في أوّل الطريق أم آخره.
+   */
+  step: number;
+  stepCount: number;
   title: string;
   year: number;
   amount: string;
@@ -38,6 +47,12 @@ export type AccountOrder = {
 export type AccountOffer = {
   id: string;
   listingRef: string;
+  /**
+   * سعر البائع المعلن — **والتصميم يعرضه بجوار العرض**.
+   * وعرضٌ بلا ما يُقارَن به لا يُقرَّر عليه: «١٤١٬٠٠٠» تعني شيئًا
+   * حين يكون المعلن «١٤٥٬٠٠٠».
+   */
+  askPrice: string;
   title: string;
   year: number;
   amount: string;
@@ -238,7 +253,10 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       take: 10,
       select: {
         id: true, amount: true, status: true, expiresAt: true,
-        listing: { select: { ref: true, city: true, vehicle: { select: vehicleSelect } } },
+        // سعر البائع المعلن — والعرض بلا ما يُقارَن به لا يُقرَّر عليه
+        listing: {
+          select: { ref: true, city: true, askPrice: true, vehicle: { select: vehicleSelect } },
+        },
       },
     }),
     db.listing.findMany({
@@ -354,6 +372,13 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     orders: orders.map((order) => ({
       ref: order.ref,
       stage: order.stage,
+      /**
+       * **والترتيب من `STAGES` لا مكتوبًا هنا.** قائمةٌ ثانية تتباعد
+       * عن الأولى أوّل مرحلةٍ تُضاف، فيقول الحساب «٥ من ٦» والطلب
+       * يقول غيرها.
+       */
+      step: Math.max(1, ORDER_STAGES.indexOf(order.stage as OrderStage) + 1),
+      stepCount: ORDER_STAGES.length,
       title: title(order.listing.vehicle),
       year: order.listing.vehicle.year,
       amount: order.totalAmount.toString(),
@@ -366,6 +391,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       title: title(offer.listing.vehicle),
       year: offer.listing.vehicle.year,
       amount: offer.amount.toString(),
+      askPrice: offer.listing.askPrice.toString(),
       status: offer.status,
       expiresAt: offer.expiresAt.toISOString(),
       path: canonicalPath(locale, offer.listing).path,
