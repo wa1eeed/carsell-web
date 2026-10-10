@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -78,6 +79,15 @@ export default async function DisputesPage({
           canResolve={canWrite(admin.role, 'escrow.release')}
         />
       )}
+    
+      <ListFooter
+        shown={disputes.length}
+        total={null}
+        note="المهلة تجري من لحظة الفتح"
+        can="قراءة الرسائل والأدلّة، وطلب قرارٍ ماليّ (استرداد أو تسوية جزئية أو إفراج)."
+        cannot="تنفيذ القرار الماليّ وحده — يحتاج موافقة شخصين وسببًا مكتوبًا، ويُقيَّد في سجلّ التدقيق."
+        automatic="نزاعٌ تجاوز مهلته يظهر أحمر، والطلب يبقى مجمَّدًا حتى يُحسم."
+      />
     </AdminShell>
   );
 }

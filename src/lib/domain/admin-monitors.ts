@@ -172,18 +172,22 @@ export type AuctionCounts = {
 export async function auctionMonitor(
   filter: 'live' | 'scheduled' | 'unmet' | 'ended' | null = null,
   now: Date = new Date(),
+  q: string | null = null,
 ): Promise<AuctionRow[]> {
   const rows = await db.auction.findMany({
-    where:
-      filter === 'live'
-        ? { status: 'LIVE', endsAt: { gt: now } }
+    where: {
+      ...(filter === 'live'
+        ? { status: 'LIVE' as const, endsAt: { gt: now } }
         : filter === 'scheduled'
-          ? { status: 'SCHEDULED' }
+          ? { status: 'SCHEDULED' as const }
           : filter === 'unmet'
-            ? { status: 'ENDED_UNMET' }
+            ? { status: 'ENDED_UNMET' as const }
             : filter === 'ended'
-              ? { status: { in: ['ENDED_MET', 'ENDED_UNMET'] } }
-              : {},
+              ? { status: { in: ['ENDED_MET' as const, 'ENDED_UNMET' as const] } }
+              : {}),
+      // البحث على الإعلان — والمزاد لا مرجع له يُنسخ، فمرجعُ إعلانه هو المقروء
+      ...(q === null || q.trim() === '' ? {} : { listing: listingSearch(q) }),
+    },
     orderBy: { endsAt: 'asc' },
     take: 100,
     select: {

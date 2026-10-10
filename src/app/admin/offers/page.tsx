@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import {
@@ -131,6 +132,14 @@ export default async function AdminOffersPage({
           </MonitorRow>
         ))}
       </MonitorList>
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="العروض النشطة — والمنتهية تسقط تلقائيًّا بعد مهلتها"
+        can="قراءة سلسلة العرض والعرض المقابل، والانتقال إلى الإعلان أو طرفيه."
+        cannot="القبول أو الرفض نيابةً عن البائع — العرض عقدٌ بين طرفين، وقبولُه منّا يُنشئ التزامًا لم يقرّره صاحبه."
+      />
     </AdminShell>
   );
 }

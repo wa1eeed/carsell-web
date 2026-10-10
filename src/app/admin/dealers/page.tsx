@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -78,6 +79,14 @@ export default async function AdminDealersPage({
       ) : (
         <DealersTable rows={rows} />
       )}
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="المعارض وحالات توثيقها"
+        can="توثيق المعرض أو إيقافه، وقراءة إعلاناته وصفقاته."
+        cannot="تعديل أسعار إعلانات المعرض أو بياناته التجارية — ذلك لصاحبه من لوحته."
+      />
     </AdminShell>
   );
 }

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
+import { ListSearch } from '@/components/admin/ListSearch';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -27,16 +29,17 @@ type Filter = (typeof FILTERS)[number];
 export default async function AdminAuctionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'orders.view')) redirect('/admin');
 
-  const { filter } = await searchParams;
+  const { filter, q } = await searchParams;
+  const term = (q ?? '').trim() === '' ? null : (q ?? '').trim();
   const active = FILTERS.includes(filter as Filter) ? (filter as Filter) : null;
 
-  const [rows, counts] = await Promise.all([auctionMonitor(active), auctionCounts()]);
+  const [rows, counts] = await Promise.all([auctionMonitor(active, new Date(), term), auctionCounts()]);
 
   return (
     <AdminShell title="المزادات" activeHref="/admin/auctions" admin={admin}>
@@ -59,6 +62,13 @@ export default async function AdminAuctionsPage({
             note: 'من المنتهية',
           },
         ]}
+      />
+
+      <ListSearch
+        action="/admin/auctions"
+        value={term}
+        placeholder="مرجع الإعلان · المركبة · المدينة · البائع"
+        keep={{ filter: active }}
       />
 
       <MonitorTabs
@@ -117,6 +127,15 @@ export default async function AdminAuctionsPage({
           </MonitorRow>
         ))}
       </MonitorList>
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="الجارية والقادمة وما لم يبلغ احتياطيَه"
+        can="فتح المزاد لقراءة سجلّه، والانتقال إلى إعلانه أو بائعه."
+        cannot="المزايدة نيابةً عن أحد، ولا تعديل سعرٍ احتياطيّ بعد بدء المزاد — فالمزايدون بنوا عليه."
+        automatic="مزادٌ في آخر دقائقه يمتدّ تلقائيًّا مع كل مزايدة."
+      />
     </AdminShell>
   );
 }

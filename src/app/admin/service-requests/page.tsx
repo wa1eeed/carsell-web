@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
@@ -92,6 +93,15 @@ export default async function ServiceRequestsPage({
       </div>
 
       <RequestsTable requests={requests} />
+    
+      <ListFooter
+        shown={requests.length}
+        total={null}
+        note="المفتوح لا يُقتطَع، والمنجَز يُقرأ أحدثه"
+        can="إسناد الطلب إلى مزوّد، وتغيير حالته، وتسجيل سبب الإلغاء."
+        cannot="تعديل سعر الخدمة من هنا — السعر من الكتالوج، وتغييره يمسّ كل طلبٍ قادم."
+        automatic="طلبٌ تجاوز مهلته المعلنة يظهر أوكر."
+      />
     </AdminShell>
   );
 }
