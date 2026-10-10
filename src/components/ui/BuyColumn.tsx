@@ -19,6 +19,8 @@ export type BuyColumnData = {
     transferAdminFee: number;
     /** `null` تعني «لا ضريبة هنا أصلًا» — وهي غير الصفر. */
     vatIncludedInPrice: number | null;
+    /** مزادٌ لم يُحسم — الرقم يتحرّك مع المزايدات */
+    provisional?: boolean;
     total: number;
   };
   seller: {
@@ -39,6 +41,8 @@ export type BuyColumnData = {
     bidCount: number;
     highestBid: number | null;
     endsAt: string;
+    /** مفتوحٌ للمزايدة الآن — حالةً ووقتًا */
+    live: boolean;
     status: string;
     reserveMet: boolean;
   } | null;
@@ -147,7 +151,12 @@ export function BuyColumn({
               <p className="flex-1 text-2xs opacity-50">
                 {t(auction.highestBid === null ? 'openingPrice' : 'highestBid')}
               </p>
-              <Countdown endsAt={auction.endsAt} format="full" tone="warn" className="text-2xs" />
+              {auction.live ? (
+                <Countdown endsAt={auction.endsAt} format="full" tone="warn" className="text-2xs" />
+              ) : (
+                /* عدّادٌ على صفر يقول «الآن» وهو «انتهى» — فيُقال انتهى */
+                <span className="text-2xs font-bold opacity-55">انتهى المزاد</span>
+              )}
             </div>
             <Money amount={auction.highestBid ?? auction.startPrice} size="xl" />
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs opacity-60">
@@ -168,10 +177,23 @@ export function BuyColumn({
             actions
           ) : (
             <>
-              <Button className="mb-2.5 w-full">{t('placeBid')}</Button>
-              <p className="mb-4 flex items-center justify-center gap-1.5 text-2xs opacity-55">
-                {t('depositRequired')} <ArabicNumber value={auction.depositAmount} />
-              </p>
+              {/*
+                **والزرّ يتبع الوقت لا الحالة المخزَّنة.** كان يُعرض
+                مفعَّلًا على مزادٍ انقضى — فيضغط الزائر ويردّ الخادم
+                «انتهى»، والشاشة هي التي أخطأت لا هو.
+              */}
+              {auction.live ? (
+                <>
+                  <Button className="mb-2.5 w-full">{t('placeBid')}</Button>
+                  <p className="mb-4 flex items-center justify-center gap-1.5 text-2xs opacity-55">
+                    {t('depositRequired')} <ArabicNumber value={auction.depositAmount} />
+                  </p>
+                </>
+              ) : (
+                <p className="mb-4 rounded-md border border-line bg-surface p-3.5 text-2xs leading-loose opacity-70">
+                  أُغلق هذا المزاد — وتفاصيل نتيجته في صفحته.
+                </p>
+              )}
             </>
           )}
 
@@ -187,6 +209,15 @@ export function BuyColumn({
 
       <Card>
         <h3 className="mb-3 text-xs font-bold">{t('totalCost')}</h3>
+        {/*
+          **ومزادٌ لم يُحسم رقمُه مؤقَّت.** الإجمالي يتحرّك مع كل مزايدة،
+          وعرضُه بلا قيدٍ يجعل المزايد يقيس عليه ثم يدفع غيره.
+        */}
+        {data.cost.provisional !== true ? null : (
+          <p className="mb-3 rounded-md border border-warn-200 bg-warn-100 p-3 text-3xs leading-loose text-warn-900">
+            محسوبة على أعلى مزايدة الآن — وترتفع مع كل مزايدة جديدة.
+          </p>
+        )}
         <Row label={t('carPrice')} value={<ArabicNumber value={data.cost.price} />} />
         <Row
           label={t('platformCommission')}

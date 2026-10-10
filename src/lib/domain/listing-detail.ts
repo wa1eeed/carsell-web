@@ -179,6 +179,8 @@ export type PublicListingDetail = {
     /** أعلى مزايدة + خطوة — آمن ولا يُشتق منه الاحتياطي (قرار ٢٩). */
     minimumBid: string;
     reserveMet: boolean;
+    /** مفتوحٌ للمزايدة الآن — حالةً ووقتًا. والزرّ يتبعها لا الحالة وحدها. */
+    live: boolean;
   } | null;
 
   /** التكلفة الإجمالية — الضريبة مضمَّنة دائمًا (قرار ١٧). */
@@ -189,6 +191,11 @@ export type PublicListingDetail = {
     transferFee: string;
     /** إداريّ — إيرادٌ لنا، وسطرٌ لا يُدمج بما فوقه */
     transferAdminFee: string;
+    /**
+     * مزادٌ لم يُحسم ⇒ الرقم مؤقَّت يتحرّك مع كل مزايدة.
+     * والشاشة تقولها، فلا يُقرأ الإجمالي على أنه قطعيّ.
+     */
+    provisional?: boolean;
     /**
      * الضريبة **المضمَّنة في سعر الطلب** حين يكون البائع مسجَّلًا —
      * و`null` حين لا يكون، وهي ليست صفرًا: الصفر يقول «حُسبت فكانت لا
@@ -399,6 +406,15 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
 
   const highestBid = highest?._max.amount ?? null;
 
+  /**
+   * أساس التكلفة — **المزايدة الحيّة في المزاد، والمطلوب فيما عداه.**
+   * والافتتاح حين لا مزايدة: صفرٌ أو مطلوبٌ بعيد كلاهما يُضلّل.
+   */
+  const costBase =
+    row.auction === null
+      ? price
+      : Number(highestBid ?? row.auction.startPrice);
+
   return {
     ref: row.ref,
     type: row.type,
@@ -508,17 +524,44 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
             reserveMet:
               row.auction.reservePrice === null ||
               (highestBid !== null && Number(highestBid) >= Number(row.auction.reservePrice)),
+            /**
+             * ═══ حيٌّ بالحالة **والوقت** معًا ═══
+             *
+             * صفحة السيارة كانت تعرض زرّ «زايد الآن» مفعَّلًا وعدّادًا
+             * على `00:00:00` لمزادٍ انقضى: الحالة `LIVE` مخزَّنة
+             * والوظيفة الدورية لم تمرّ بعد. فيضغط الزائر ويردّ الخادم
+             * «انتهى المزاد» — والشاشة هي التي أخطأت لا هو.
+             *
+             * وتُحسب هنا مرّةً: الصفحة والبطاقة والعمود يقرؤونها ولا
+             * يعيد أحدهم الاشتقاق. (تاسع مرّة للصنف.)
+             */
+            live:
+              row.auction.status === 'LIVE' &&
+              row.auction.startsAt.getTime() <= Date.now() &&
+              row.auction.endsAt.getTime() > Date.now(),
           },
 
+    /**
+     * ═══ وتكلفة المزاد تُبنى على المزايدة لا على المطلوب ═══
+     *
+     * كانت تُبنى على `askPrice` دائمًا — **فمزادٌ افتتاحُه ٥٨٬٥٠٠
+     * ومطلوبُه ٧٨٬٠٠٠ يعرض «الإجمالي ٧٨٬٣٥٠»**، رقمٌ لا يدفعه أحد ولا
+     * علاقة له بما يجري. ويقرؤه المزايد قبل أن يزايد فيقيس عليه.
+     *
+     * فتُبنى على **أعلى مزايدة، والافتتاح حين لا مزايدة** — وهي القاعدة
+     * نفسها المستعملة في البطاقات: الصفر يوحي بأن المركبة بلا قيمة.
+     * و`provisional` تقول للشاشة أن ترفع اليد عن القطعيّة.
+     */
     cost: {
-      price: price.toString(),
+      price: costBase.toString(),
       commission: commission.toString(),
       transferFee: transferFee.toString(),
       transferAdminFee: transferAdminFee.toString(),
       vatIncludedInPrice: priceCarriesVat
-        ? vatIncluded(price, Number(platform?.vatPct ?? DEFAULT_VAT_PCT)).toString()
+        ? vatIncluded(costBase, Number(platform?.vatPct ?? DEFAULT_VAT_PCT)).toString()
         : null,
-      total: (price + commission + transferFee + transferAdminFee).toString(),
+      total: (costBase + commission + transferFee + transferAdminFee).toString(),
+      provisional: row.auction !== null,
     },
 
     priceStat,

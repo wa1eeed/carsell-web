@@ -241,6 +241,7 @@ export function CarPage({
                     detail.cost.vatIncludedInPrice === null
                       ? null
                       : Number(detail.cost.vatIncludedInPrice),
+                  provisional: detail.cost.provisional,
                   total: Number(detail.cost.total),
                 },
                 seller: {
@@ -269,6 +270,7 @@ export function CarPage({
                         endsAt: detail.auction.endsAt,
                         status: detail.auction.status,
                         reserveMet: detail.auction.reserveMet,
+                        live: detail.auction.live,
                       },
               }}
             />

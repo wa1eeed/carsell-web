@@ -221,3 +221,56 @@ describe('المزاد بلا مزايدات', () => {
     }
   });
 });
+
+describe('═══ صفحة السيارة في المزاد ═══', () => {
+  /**
+   * **التكلفة على المزايدة لا على المطلوب.**
+   *
+   * كانت تُبنى على `askPrice` دائمًا، فمزادٌ افتتاحُه ٥٨٬٥٠٠ ومطلوبُه
+   * ٧٨٬٠٠٠ يعرض «الإجمالي ٧٨٬٣٥٠» — رقمًا لا يدفعه أحد، ويقرؤه المزايد
+   * قبل أن يزايد فيقيس عليه.
+   */
+  it('تُحسب التكلفة من الافتتاح حين لا مزايدة، ومن أعلى مزايدة بعدها', async () => {
+    const row = await db.listing.findFirst({
+      where: { status: 'PUBLISHED', type: 'AUCTION', auction: { isNot: null } },
+      select: { ref: true, askPrice: true, auction: { select: { startPrice: true } } },
+    });
+    if (row === null || row.auction === null) return;
+
+    const detail = await findPublishedListing(row.ref);
+    if (detail === null) return;
+    const view = await toPublicDetail(detail);
+
+    expect(view.auction).not.toBeNull();
+    expect(view.cost.provisional).toBe(true);
+
+    /**
+     * **القاعدة تُقاس لا الحالة.** كتبتُ أوّلًا «يساوي الافتتاح»
+     * مفترضًا صفًّا بلا مزايدات، فالتقط الاختبار مزادًا عليه مزايدات
+     * وسقط على ما لا يقيسه. والمقياس: أعلى مزايدة، والافتتاح حين لا
+     * مزايدة — أيّهما كان حال الصفّ.
+     */
+    const expected = Number(view.auction?.highestBid ?? row.auction.startPrice);
+    expect(Number(view.cost.price)).toBe(expected);
+    expect(Number(view.cost.total)).toBeGreaterThanOrEqual(expected);
+  });
+
+  /**
+   * **حيٌّ بالحالة والوقت معًا.** الحالة `LIVE` مخزَّنة لمزادٍ انقضى
+   * حتى تمرّ الوظيفة الدورية — والزرّ كان يتبع الحالة وحدها.
+   */
+  it('مزادٌ انقضى وقتُه ليس حيًّا ولو بقيت حالته LIVE', async () => {
+    const row = await db.listing.findFirst({
+      where: { status: 'PUBLISHED', type: 'AUCTION', auction: { status: 'LIVE' } },
+      select: { ref: true, auction: { select: { endsAt: true } } },
+    });
+    if (row === null || row.auction === null) return;
+
+    const detail = await findPublishedListing(row.ref);
+    if (detail === null) return;
+    const view = await toPublicDetail(detail);
+
+    const ended = row.auction.endsAt.getTime() <= Date.now();
+    expect(view.auction?.live).toBe(!ended);
+  });
+});
