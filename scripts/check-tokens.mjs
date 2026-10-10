@@ -1083,6 +1083,78 @@ function checkListingState() {
  * والفحص على **الاستعمال لا الاستيراد**: استيرادُ `Countdown` من صفحة
  * خادم سليمٌ ما دامت لا تمرّر إليه دالّة.
  */
+/**
+ * ═══ ٢٣ · مفتاحٌ في خريطة تسميات لا يكتبه أحد ═══
+ *
+ * `EVENT_LABEL[event.type] ?? event.type` يبتلع المفتاح الميّت: لا خطأ،
+ * ولا تحذير — يُعرض الرمز الإنجليزيّ الخام لمشغّلٍ عربيّ ويبدو مقصودًا.
+ *
+ * وقع ثلاث مرّات: فئات الأسئلة الشائعة (`inspection` · `account` خامًا
+ * في الشريط)، وأحداث الطلب (خمسةٌ من ثمانية مفاتيح ميّتة و`stage.advanced`
+ * — أكثرها تكرارًا — بلا تسمية)، وأسباب حجب الفاتورة.
+ *
+ * فيُقاس: كل مفتاح نقطيّ (`a.b`) في خريطة `Record<string, string>` اسمُها
+ * `*_LABEL` أو `*_REASON` **يجب أن يُكتب في مكانٍ ما** كـ`type: '…'` أو
+ * `reason: '…'` أو `'…'` داخل تعداد نصّيّ. ولا يُفحص العكس (مفتاحٌ ناقص)
+ * لأن الخريطة قد تغطّي جزءًا عن قصد.
+ */
+function checkDeadLabelKeys() {
+  const roots = [join('src', 'app'), join('src', 'components'), join('src', 'lib')];
+  const written = new Set();
+  const prefixes = new Set();
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!/\.tsx?$/.test(file)) continue;
+      /**
+       * **وخرائط التسميات تُنزع قبل العدّ.** المفتاح الميّت مكتوبٌ في
+       * الخريطة نفسها، فلو عُدَّت لكانت كل خريطة تُزكّي نفسها ولم
+       * تُطلق البوابة أبدًا. (أُثبتت فلم تُطلق، فصُحّحت.)
+       */
+      const text = readFileSync(file, 'utf8').replace(
+        /const\s+[A-Z][A-Z0-9_]*(?:_LABEL|_REASON)\s*:\s*Record<string,\s*string>\s*=\s*\{[\s\S]*?\n\};/g,
+        '',
+      );
+      for (const m of text.matchAll(/'([a-z][a-z0-9_]*\.[a-z][a-z0-9_.]*)'/g)) {
+        written.add(m[1]);
+      }
+
+      /**
+       * **والفعل يُبنى بقالب.** `` `listing.review.${decision}` `` يكتب
+       * ثلاثة أفعال ولا يظهر أيٌّ منها نصًّا — فبلا هذا السطر تُطلق
+       * البوابة عشرة إنذاراتٍ كاذبة وتُعطَّل في يومها الأوّل.
+       * فتُجمع البادئة، ويُقبل كل مفتاحٍ يبدأ بها.
+       */
+      for (const m of text.matchAll(/`([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*)\.\$\{/g)) {
+        prefixes.add(m[1]);
+      }
+    }
+  }
+
+  for (const dir of roots) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (!/\.tsx?$/.test(file)) continue;
+      const text = readFileSync(file, 'utf8');
+      const rel = relative(ROOT, file);
+
+      for (const map of text.matchAll(
+        /const\s+([A-Z][A-Z0-9_]*(?:_LABEL|_REASON))\s*:\s*Record<string,\s*string>\s*=\s*\{([\s\S]*?)\n\};/g,
+      )) {
+        const name = map[1];
+        for (const entry of map[2].matchAll(/^\s*'([a-z][a-z0-9_]*\.[a-z][a-z0-9_.]*)'\s*:/gm)) {
+          const key = entry[1];
+          const byTemplate = [...prefixes].some((pre) => key.startsWith(`${pre}.`));
+          if (!written.has(key) && !byTemplate) {
+            problems.push(
+              `${rel}  ${name}['${key}'] مفتاحٌ لا يكتبه أحد — يُعرض الرمز الخام ويبدو مقصودًا`,
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
 function checkFunctionPropsAcrossBoundary() {
   const clientComponents = new Set();
 
@@ -1139,6 +1211,7 @@ checkDomainHasNoProse();
 checkApprovalQuorum();
 checkListingState();
 checkFunctionPropsAcrossBoundary();
+checkDeadLabelKeys();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1149,5 +1222,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت.',
 );

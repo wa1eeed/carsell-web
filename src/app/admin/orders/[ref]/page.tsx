@@ -43,15 +43,60 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
   CANCELLED: 'danger',
 };
 
+/**
+ * ═══ تسميات أحداث الطلب — مقيسة على ما يُكتب فعلًا ═══
+ *
+ * كانت خمسةٌ من ثمانية مفاتيح لا يكتبها أحد (`order.stage_advanced` ·
+ * `order.cancelled` · `escrow.held` · `escrow.released` ·
+ * `payment.captured`)، ونوعان حقيقيّان بلا تسمية — **فأكثر الأحداث
+ * تكرارًا (`stage.advanced`) يُعرض خامًا بالإنجليزية** لمشغّلٍ عربيّ،
+ * ثمانيةً وأربعين مرّة في قاعدةٍ واحدة.
+ *
+ * والمفتاح الميّت لا يُكتشف: `?? event.type` يبتلعه فيبدو الأمر
+ * مقصودًا. فالخريطة تُقاس على `groupBy` لا تُكتب من الذاكرة.
+ */
 const EVENT_LABEL: Record<string, string> = {
   'order.created': 'أُنشئ الطلب',
-  'order.stage_advanced': 'تقدّمت المرحلة',
-  'order.cancelled': 'أُلغي',
-  'escrow.held': 'حُجز المبلغ',
-  'escrow.released': 'أُفرج عن المبلغ',
-  'payment.captured': 'حُصّل الدفع',
+  'stage.advanced': 'تقدّمت المرحلة',
+  'payment.timeout': 'انقضت مهلة الدفع',
+  'invoice.blocked': 'حُجبت فاتورة',
   'dispute.opened': 'فُتح نزاع',
   'dispute.resolved': 'حُسم النزاع',
+};
+
+/** سبب الحجب — ويُقرأ بعد شهورٍ في مطابقة، فيُكتب بلغةٍ تُفهم. */
+const BLOCKED_REASON: Record<string, string> = {
+  NO_MATCHING_RULE: 'لا قاعدة ضريبية تطابق البائع والمشتري — تُكتب قاعدة',
+  RULE_AWAITING_APPROVAL: 'القاعدة المطابِقة معطّلة — تُقَرّ من شاشة الضريبة',
+  INVOICED_WITH_ITS_OWN_PAYMENT: 'تُفوتَر مع دفعتها المستقلّة',
+  MARGIN_NOT_APPROVED: 'نظام الهامش غير معتمَد لهذا التاجر',
+  OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة لها',
+  ALREADY_ISSUED: 'صدرت من قبل',
+};
+
+/**
+ * صياغة سبب الحجب — **والجملة هنا لا في النطاق** (البوابة ١٧).
+ * وتُسمّى التوريدات بأسمائها: «مركبة» و«عمولة» لا `VEHICLE`.
+ */
+function blockedNote(
+  payload: { blocked?: { supplyType: string; reason: string }[] } | null,
+): string {
+  const rows = payload?.blocked ?? [];
+  if (rows.length === 0) return 'بلا تفصيل مسجَّل';
+  return rows
+    .map((row) => {
+      const supply = SUPPLY_LABEL[row.supplyType] ?? row.supplyType;
+      return `${supply}: ${BLOCKED_REASON[row.reason] ?? row.reason}`;
+    })
+    .join(' · ');
+}
+
+const SUPPLY_LABEL: Record<string, string> = {
+  VEHICLE: 'المركبة',
+  COMMISSION: 'العمولة',
+  SERVICE: 'الخدمات',
+  ADMIN_FEE: 'رسوم إدارية',
+  DISBURSEMENT: 'مبالغ ممرَّرة',
 };
 
 const DOCUMENT_LABEL: Record<string, string> = {
@@ -231,12 +276,18 @@ export default async function AdminOrderDetailPage({
                       key={event.id}
                       title={EVENT_LABEL[event.type] ?? event.type}
                       note={
-                        event.toStage === null
+                        event.type === 'invoice.blocked'
+                          ? blockedNote(event.payload)
+                          : event.toStage === null
                           ? `بفعل ${event.actorType}`
                           : `${event.fromStage === null ? '' : `${STAGE_LABEL[event.fromStage] ?? event.fromStage} ← `}${STAGE_LABEL[event.toStage] ?? event.toStage} · بفعل ${event.actorType}`
                       }
                       at={riyadh.format(new Date(event.at))}
-                      tone={event.type.startsWith('dispute') ? 'danger' : 'accent'}
+                      tone={
+                        event.type.startsWith('dispute') || event.type === 'invoice.blocked'
+                          ? 'danger'
+                          : 'accent'
+                      }
                     />
                   ))}
                 </div>

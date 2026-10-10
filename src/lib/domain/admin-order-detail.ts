@@ -37,6 +37,11 @@ export type OrderTimelineEntry = {
   toStage: OrderStage | null;
   actorType: string;
   at: string;
+  /**
+   * تفصيل الحدث حين يحمله — اليوم `invoice.blocked` وحده.
+   * **والنطاق يعيد بيانات لا جُملًا**: الصياغة في الشاشة.
+   */
+  payload: { blocked?: { supplyType: string; reason: string }[] } | null;
 };
 
 export type OrderMoney = {
@@ -264,6 +269,10 @@ export async function adminOrderDetail(ref: string, now: Date = new Date()): Pro
       toStage: event.toStage,
       actorType: event.actorType,
       at: event.createdAt.toISOString(),
+      payload:
+        event.payload === null || typeof event.payload !== 'object'
+          ? null
+          : (event.payload as OrderTimelineEntry['payload']),
     })),
 
     dispute:

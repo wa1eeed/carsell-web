@@ -49,7 +49,15 @@ describe('═══ معيار ٣٥ ═══ لا فاتورة بلا قاعد�
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('NO_MATCHING_RULE');
+    /**
+     * **والسبب يفرّق بين الغياب والتعطيل.**
+     *
+     * كان هذا الفحص يثبّت `NO_MATCHING_RULE` وتعليقه فوقه يقول إن
+     * القاعدة **موجودة ومعطّلة** — فكان يحرس صياغةً تُرسل المشغّل
+     * ليكتب قاعدةً قائمة، ثم تتزاحم قاعدتان على الحالة نفسها.
+     * والفعلان مختلفان: «اكتب قاعدة» و«أقِرّ ما عندك».
+     */
+    if (!result.ok) expect(result.reason).toBe('RULE_AWAITING_APPROVAL');
 
     /**
      * **ولا صفّ كُتب — للطلب المعنيّ.**
@@ -253,5 +261,40 @@ describe('رمز QR بترميز TLV', () => {
     expect(buffer[1]).toBe(Buffer.from('كارسِل', 'utf8').length);
     // ولو عُدّ محارفَ لانكسر القراءة
     expect(parseQrTlv(tlv)[1]).toBe('كارسِل');
+  });
+});
+
+describe('═══ الغياب والتعطيل ليسا سواءً ═══', () => {
+  /**
+   * توريدٌ لا قاعدة له **ولا صفّ معطَّل يطابقه** — فالجواب «اكتب قاعدة»
+   * لا «أقِرّ ما عندك». والتفريق هو ما يجعل بلاغ الحجب قابلًا للتنفيذ.
+   */
+  it('توريدٌ بلا أي صفّ يطابقه يردّ NO_MATCHING_RULE', async () => {
+    const supply = 'ADMIN_FEE' as const;
+
+    // نعطّل كل صفوف هذا التوريد مؤقّتًا، ثم نحذفها من المطابقة بتاريخٍ سابق
+    const rows = await db.taxRule.findMany({ where: { supplyType: supply }, select: { id: true } });
+    const future = new Date('2099-01-01T00:00:00Z');
+    await db.taxRule.updateMany({
+      where: { id: { in: rows.map((r) => r.id) } },
+      data: { activeFrom: future, active: false },
+    });
+
+    try {
+      const result = await issueInvoice({
+        ...BASE,
+        sellerType: 'INDIVIDUAL', buyerType: 'INDIVIDUAL', supplyType: supply,
+        amount: '100.00',
+      });
+      expect(result.ok).toBe(false);
+      // لا صفّ يطابق — لا مفعَّلًا ولا معطَّلًا — فالسبب غيابٌ لا انتظار
+      if (!result.ok) expect(result.reason).toBe('NO_MATCHING_RULE');
+    } finally {
+      // الاختبار يعيد ما غيّره — وإلّا أسقط جيرانه في التشغيل التالي
+      await db.taxRule.updateMany({
+        where: { id: { in: rows.map((r) => r.id) } },
+        data: { activeFrom: new Date('2026-01-01T00:00:00Z'), active: true },
+      });
+    }
   });
 });

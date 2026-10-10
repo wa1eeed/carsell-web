@@ -395,7 +395,39 @@ export async function applyState(
      */
     try {
       const { issueSettlementDocuments } = await import('./documents');
-      await issueSettlementDocuments(orderId, now);
+      const documents = await issueSettlementDocuments(orderId, now);
+
+      /**
+       * ═══ والفاتورة المحجوبة تُعلَن ═══
+       *
+       * `issueSettlementDocuments` تبني `blocked` وتقول أيّ توريد لم
+       * يُفوتَر ولماذا — **وكانت تُهمَل هنا**. فالطلب يكتمل والمال
+       * يُفرَج والشاشة تقول «فاتورة ضريبية: صدرت»، ولا فاتورة.
+       *
+       * ولا أحد يعلم: لا سطر في الطلب، ولا بلاغ، ولا طابور. وأوّل
+       * مطابقةٍ شهرية تكشف فرقًا بلا جوابٍ مكتوب — وهي الحال التي
+       * حذّر منها التعليق داخل الدالّة نفسها.
+       *
+       * فيُكتب حدثًا على الطلب (يقرؤه الأدمن في خطّه الزمنيّ) **و**
+       * يُبلَّغ: الأوّل للعامل على الطلب، والثاني لمن يراقب الامتثال.
+       */
+      if (documents.blocked.length > 0) {
+        await db.orderEvent.create({
+          data: {
+            orderId,
+            type: 'invoice.blocked',
+            actorType: 'system',
+            createdAt: now,
+            payload: { blocked: documents.blocked },
+          },
+        });
+
+        const { reportError } = await import('@/lib/observability/report');
+        reportError(new Error('settlement invoices blocked'), {
+          where: 'payments.applyState.issueDocuments',
+          extra: { orderId, blocked: documents.blocked },
+        });
+      }
     } catch (error) {
       const { reportError } = await import('@/lib/observability/report');
       reportError(error, { where: 'payments.applyState.issueDocuments', extra: { orderId } });

@@ -148,9 +148,40 @@ export function computeTax(
 
 export type IssueFailure =
   | 'NO_MATCHING_RULE'
+  /**
+   * قاعدةٌ **تطابق وهي معطّلة** — تنتظر إقرارًا.
+   *
+   * وكانت تُقرأ `NO_MATCHING_RULE`، فيذهب المشغّل ليكتب قاعدةً قائمةً
+   * أصلًا، ثم تتزاحم قاعدتان على الحالة نفسها. والفعلان مختلفان:
+   * «اكتب قاعدة» و«أقِرّ القاعدة التي عندك».
+   */
+  | 'RULE_AWAITING_APPROVAL'
   | 'MARGIN_NOT_APPROVED'
   | 'OUT_OF_SCOPE_NO_INVOICE'
   | 'ALREADY_ISSUED';
+
+/**
+ * أكان هناك صفٌّ يطابق لولا التعطيل؟ — **يُسأل على مسار الفشل وحده**،
+ * فلا يُكلّف المسار السعيد استعلامًا ثانيًا.
+ */
+export async function awaitingRuleExists(
+  query: RuleQuery,
+  at: Date = new Date(),
+): Promise<boolean> {
+  const count = await db.taxRule.count({
+    where: {
+      supplyType: query.supplyType,
+      active: false,
+      activeFrom: { lte: at },
+      OR: [{ activeTo: null }, { activeTo: { gt: at } }],
+      AND: [
+        { OR: [{ sellerType: null }, { sellerType: query.sellerType }] },
+        { OR: [{ buyerType: null }, { buyerType: query.buyerType }] },
+      ],
+    },
+  });
+  return count > 0;
+}
 
 export type IssueInput = {
   orderId?: string;
@@ -195,7 +226,13 @@ export async function issueInvoice(
     { sellerType: input.sellerType, buyerType: input.buyerType, supplyType: input.supplyType },
     now,
   );
-  if (rule === null) return { ok: false, reason: 'NO_MATCHING_RULE' };
+  if (rule === null) {
+    const awaiting = await awaitingRuleExists(
+      { supplyType: input.supplyType, sellerType: input.sellerType, buyerType: input.buyerType },
+      now,
+    );
+    return { ok: false, reason: awaiting ? 'RULE_AWAITING_APPROVAL' : 'NO_MATCHING_RULE' };
+  }
 
   /**
    * **هامش الربح لا يُطبَّق بلا اعتماد.** القاعدة قد تقول `MARGIN`،
