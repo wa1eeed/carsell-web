@@ -3,6 +3,7 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { settlementQueue } from '@/lib/domain/settlement-queue';
 import { SettlementsTable } from './SettlementsTable';
 
@@ -23,12 +24,53 @@ export const metadata = { title: 'المدفوعات والضمان' };
  * البائع «متى يصلني؟» يُجاب من هذه الشاشة. والفعل وحده محصورٌ بمن
  * يملك الإفراج — والخادم يفحصه ثانيةً، فحارس الشاشة اقتراح.
  */
-export default async function SettlementsPage() {
+/**
+ * شرائح A25 — **ثلاثٌ لا أربع.**
+ *
+ * التصميم يذكر «مُسترجَع» و«عرابين»، وكلاهما لا يُقرأ من هذا الطابور:
+ * هو طابورُ ما **لم يُفرَج عنه بعد** (`payments: { some: HELD }`)،
+ * والمسترجَع خرج منه والعربون ليس فيه أصلًا. وشريحةٌ تفتح على فراغٍ
+ * دائم تُقرأ عطلًا لا حدًّا — فتُترك حتى يُبنى مصدرها.
+ */
+const GROUPS = [
+  { key: null, label: 'الكل' },
+  { key: 'ready', label: 'جاهز للإفراج' },
+  { key: 'awaiting', label: 'ينتظر اعتمادًا' },
+  { key: 'blocked', label: 'محجوب' },
+] as const;
+
+export default async function SettlementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
   const queue = await settlementQueue();
+
+  const search = await searchParams;
+  const raw = typeof search.group === 'string' ? search.group : null;
+  const active = GROUPS.find((row) => row.key === raw)?.key ?? null;
+
+  const tabs: MonitorTab[] = GROUPS.map((row) => ({
+    key: row.key,
+    label: row.label,
+    count:
+      row.key === null
+        ? queue.ready.length + queue.awaitingApproval.length + queue.blocked.length
+        : row.key === 'ready'
+          ? queue.ready.length
+          : row.key === 'awaiting'
+            ? queue.awaitingApproval.length
+            : queue.blocked.length,
+    ...(row.key === 'awaiting' ? { tone: 'warn' as const } : {}),
+  }));
+
+  /** الشريحة تُخفي ما عداها — والمجموعات معروضةٌ كلّها حين لا شريحة. */
+  const show = (group: 'ready' | 'awaiting' | 'blocked'): boolean =>
+    active === null || active === group;
 
   return (
     <AdminShell title="المدفوعات والضمان"
@@ -44,10 +86,12 @@ export default async function SettlementsPage() {
         </div>
       </div>
 
+      <MonitorTabs tabs={tabs} active={active} basePath="/admin/settlements" param="group" />
+
       <SettlementsTable
-        ready={queue.ready}
-        awaitingApproval={queue.awaitingApproval}
-        blocked={queue.blocked}
+        ready={show('ready') ? queue.ready : []}
+        awaitingApproval={show('awaiting') ? queue.awaitingApproval : []}
+        blocked={show('blocked') ? queue.blocked : []}
         adminId={admin.id}
         canRelease={canWrite(admin.role, 'escrow.release')}
       />

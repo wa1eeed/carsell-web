@@ -4,6 +4,7 @@ import { MonitorCards } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { adCampaigns, adSlots, adStats } from '@/lib/domain/admin-plans';
 import {
   AD_CACHE_MINUTES,
@@ -34,12 +35,38 @@ const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
  * ذلك صراحةً: أرقامُها **إعدادٌ لا أداء**، وقولُها «يُفرَض في الخادم»
  * قبل أن يوجد خادمٌ يفرضه وعدٌ مُخلَف.
  */
-export default async function AdminAdsPage() {
+/** شرائح A31 — والمرحلة من التاريخين والحالة، لا من راية وحدها. */
+const PHASES = [
+  { key: 'live', label: 'نشطة' },
+  { key: 'scheduled', label: 'مجدولة' },
+  { key: 'ended', label: 'منتهية' },
+  { key: 'paused', label: 'متوقّفة' },
+] as const;
+
+export default async function AdminAdsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [slots, stats, campaigns] = await Promise.all([adSlots(), adStats(), adCampaigns()]);
+  const [slots, stats, allCampaigns] = await Promise.all([adSlots(), adStats(), adCampaigns()]);
+
+  const search = await searchParams;
+  const raw = typeof search.phase === 'string' ? search.phase : null;
+  const active = PHASES.find((row) => row.key === raw)?.key ?? null;
+  const campaigns = active === null ? allCampaigns : allCampaigns.filter((row) => row.phase === active);
+
+  const tabs: MonitorTab[] = [
+    { key: null, label: 'الكل', count: allCampaigns.length },
+    ...PHASES.map((row) => ({
+      key: row.key,
+      label: row.label,
+      count: allCampaigns.filter((item) => item.phase === row.key).length,
+    })),
+  ];
 
   const writable = canWrite(admin.role, 'finance.view');
 
@@ -97,6 +124,8 @@ export default async function AdminAdsPage() {
       )}
 
       <h2 className="mt-10 mb-3.5 text-sm font-bold">الحملات المموّلة</h2>
+      <MonitorTabs tabs={tabs} active={active} basePath="/admin/ads" param="phase" />
+
       {campaigns.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
           لا حملات. والحملة تُنشأ بعقدٍ مع المعلن، وتظهر هنا بمدّتها وأدائها.

@@ -342,6 +342,11 @@ export type CampaignRow = {
   endsAt: string;
   /** جاريةٌ الآن — الحالة من التاريخين لا من راية */
   live: boolean;
+  /**
+   * الشريحة التي تقع فيها — **من التاريخين والحالة معًا**.
+   * و«متوقّفة» راية في `status`، والثلاث الباقيات من الزمن.
+   */
+  phase: 'live' | 'scheduled' | 'ended' | 'paused';
   impressions: number;
   clicks: number;
   ctrPct: number;
@@ -359,6 +364,14 @@ export async function adCampaigns(now: Date = new Date()): Promise<CampaignRow[]
       startsAt: row.startsAt.toISOString(),
       endsAt: row.endsAt.toISOString(),
       live: row.startsAt <= now && row.endsAt >= now,
+      phase:
+        row.status === 'paused'
+          ? 'paused'
+          : row.startsAt > now
+            ? 'scheduled'
+            : row.endsAt < now
+              ? 'ended'
+              : 'live',
       impressions,
       clicks: row.clicks,
       // القسمة على صفر: حملةٌ لم تُعرض بعد — والصفر حالٌ متوقَّعة
