@@ -197,6 +197,11 @@ export type PublicOrder = {
     /** رسمنا الإداريّ — سطرٌ مستقلّ دائمًا، ودمجُه بالأعلى يُبطل تصنيفه */
     transferAdminFee: string;
     vat: string;
+    /**
+     * عربونُ مزادٍ خُصم من المطلوب — وصفرٌ في المباشر والتفاوض.
+     * **والسطر يُعرض وإلّا قرأ المشتري إجماليًّا لا يُجمَع.**
+     */
+    depositApplied: string;
     total: string;
   };
   escrow: { status: string; amount: string; heldAt: string | null; releasedAt: string | null } | null;
@@ -277,7 +282,9 @@ export async function getOrder(
       transferFee: order.transferFee.toString(),
       transferAdminFee: order.transferAdminFee.toString(),
       vat: order.vatAmount.toString(),
+      depositApplied: order.depositApplied.toString(),
       total: order.totalAmount.toString(),
+
     },
     escrow:
       order.escrow === null

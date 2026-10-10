@@ -73,3 +73,45 @@ notification carrier can do.
 database. `user:*` channels need a short-lived ticket and **the ticket endpoint
 does not exist yet**, so subscription to them is refused outright: an open
 subscription to a private channel is worse than a missing feature.
+
+## The deposit is money, not a flag
+
+`holdDeposit` used to write a `Deposit` row with status `HELD` and touch no
+money at all — no gateway call, no ledger entry, no payment. A bid was therefore
+not a commitment, and `forfeitDeposit` forfeited a number in our own table.
+
+**Owner's decisions, 2026-10-10:** the hold is taken **on a card**, and a
+forfeited deposit belongs to **the platform**.
+
+### How it flows
+
+| moment | what happens |
+|---|---|
+| first bid | `POST /auctions/{ref}/bids` with `method` and `returnUrl` → gateway hold for `AUCTION_DEPOSIT`, `Payment` row linked to the `Deposit` |
+| later bids | nothing — one hold per (auction, bidder) |
+| auction closes, you lost | the hold is **cancelled at the gateway**, deposit `RELEASED` |
+| auction closes, you won | deposit `APPLIED`, and the amount is **deducted from the order** (`Order.depositApplied`) |
+| you won and walked away | the hold is **captured**, deposit `FORFEITED`, and two balanced ledger entries credit platform revenue |
+
+### Two rules that are easy to get wrong
+
+**The row follows the money, never leads it.** A `Deposit` written before the
+hold succeeds makes the bidder committed in our table and free at their card.
+Same for forfeiture: a `FORFEITED` row with a failed capture makes the ledger
+claim income we never collected.
+
+**The deduction happens in both places at once.** The order's `totalAmount` is
+reduced *and* the gateway hold is settled against it. Deducting in one place
+only produces an invoice that does not add up — and the order screen shows the
+deposit as its own line, because a total smaller than the lines above it reads
+as a broken calculation.
+
+### `402`, not `409`
+
+A first bid without a card returns `402 DEPOSIT_METHOD_REQUIRED` with the
+amount. It is a step, not a failure: the screen opens the card picker instead of
+saying "bid failed". A 3-D Secure challenge returns `402 DEPOSIT_REQUIRES_ACTION`
+with the URL to finish — and **the bid is not recorded until the hold exists**.
+
+The card is asked for at the first bid, not on page load: most visitors never
+bid, and asking for a card before they decide drives them away.

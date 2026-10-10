@@ -7,7 +7,13 @@ import { holdDeposit, placeBid, publishBid } from '@/lib/domain/auctions';
 
 export const runtime = 'nodejs';
 
-const Body = z.object({ amount: z.number().int().positive().max(100_000_000) });
+const Body = z.object({
+  /**
+   * أوّل مزايدة تحتاج بطاقة — **والحجز صار ماليًّا** (المهمّة ٦٦).
+   * ومن حُجز عربونُه سلفًا لا يُطالَب بها ثانيةً.
+   */
+  method: z.string().min(2).max(24).optional(),
+  returnUrl: z.string().url().max(500).optional(), amount: z.number().int().positive().max(100_000_000) });
 
 const MESSAGES: Record<string, { ar: string; en: string }> = {
   NOT_LIVE: { ar: 'المزاد لم يبدأ بعد.', en: 'This auction is not live yet.' },
@@ -75,8 +81,45 @@ export async function POST(
    * العربون أوّلًا — و«محجوزٌ سلفًا» ليست خطأً: من زايد مرّةً لا
    * يُطالَب بعربونٍ ثانٍ، والمزايدة تمضي.
    */
-  const deposit = await holdDeposit({ auctionId: auction.id, userId: user.id });
+  const deposit = await holdDeposit({
+    auctionId: auction.id,
+    userId: user.id,
+    auctionRef: ref,
+    method: parsed.data.method,
+    returnUrl: parsed.data.returnUrl,
+  });
+
   if (!deposit.ok && deposit.reason !== 'ALREADY_HELD') {
+    /**
+     * **و«يلزم بطاقة» ليست خطأً بل خطوة.** تُعاد ٤٠٢ ومعها المبلغ،
+     * فتفتح الشاشة اختيار الوسيلة بدل أن تقول «تعذّرت المزايدة».
+     * ورمز ٤٠٩ هنا يجعل المزايد يظنّ مزايدته مرفوضة.
+     */
+    if (deposit.reason === 'METHOD_REQUIRED') {
+      return fail(
+        {
+          code: 'DEPOSIT_METHOD_REQUIRED',
+          messageAr: 'أوّل مزايدة تحتاج بطاقة — يُحجز العربون ولا يُخصم إلّا إن رسا عليك وانسحبت.',
+          messageEn: 'Your first bid needs a card — the deposit is held, not charged.',
+          fields: { amount: deposit.amount ?? '' },
+        },
+        402,
+      );
+    }
+
+    /** تحدّي التحقّق: وجهةٌ يُكملها، والمزايدة لا تقع قبل الحجز. */
+    if (deposit.reason === 'REQUIRES_ACTION') {
+      return fail(
+        {
+          code: 'DEPOSIT_REQUIRES_ACTION',
+          messageAr: 'أكمِل تحقّق البطاقة لتُحجز مزايدتك.',
+          messageEn: 'Finish the card verification to place your bid.',
+          fields: { actionUrl: deposit.actionUrl ?? '' },
+        },
+        402,
+      );
+    }
+
     return fail(
       { code: deposit.reason, messageAr: message(deposit.reason, 'ar'), messageEn: message(deposit.reason, 'en') },
       409,

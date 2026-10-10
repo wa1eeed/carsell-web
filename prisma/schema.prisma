@@ -677,8 +677,13 @@ model Deposit {
   status     DepositStatus @default(HELD)
   releasedAt DateTime?
 
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Restrict)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  /// دفعة الحجز لدى البوابة — و`null` للعرابين الدفتريّة القديمة.
+  /// والحجز يُفرَج من حيث أُنشئ، فاللقطة في `Payment` لا في الإعداد.
+  paymentId String? @unique
+
+  auction Auction  @relation(fields: [auctionId], references: [id], onDelete: Restrict)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
   @@unique([auctionId, userId])
 }
@@ -727,6 +732,11 @@ model Order {
   /// ضريبة **توريداتنا نحن** — لا ضريبة المركبة ولا الرسم الحكوميّ
   vatAmount   Decimal @default(0) @db.Decimal(12, 2)
   totalAmount Decimal @default(0) @db.Decimal(12, 2)
+
+  /// ما خُصم من المطلوب لأنه محجوزٌ عربونًا لدى البوابة.
+  /// والخصم في الموضعين معًا — من المطلوب هنا ومن الحجز هناك —
+  /// وخصمُ أحدهما وحده يُنشئ فرقًا في فاتورة.
+  depositApplied Decimal @default(0) @db.Decimal(12, 2)
 
   /// تاريخ الإنشاء — **غير** `stageEnteredAt`: الثاني يتصفّر عند كل
   /// انتقال مرحلة، فلا يصلح لترتيب «طلباتي» ولا لأي قياس زمني.
@@ -1892,6 +1902,8 @@ model PaymentRouteChange {
 /// من حيث أُنشئ، ولا نقل أرصدة بين بوابتين أبدًا.
 model Payment {
   id         String         @id @default(cuid())
+  /// عربون مزادٍ حُجز بهذه الدفعة — والدفعة قد تكون لطلبٍ أو لعربون
+  deposit    Deposit?
   orderId    String?
   purpose    PaymentPurpose
   gatewayKey String

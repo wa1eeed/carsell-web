@@ -17,6 +17,50 @@ import {
   resolveSellerDecision,
   settleDeposits,
 } from '@/lib/domain/auctions';
+
+/**
+ * ═══ وحجز العربون صار يمرّ ببوابة ═══
+ *
+ * فالطقم يضمن توجيه `AUCTION_DEPOSIT` إلى البوابة التجريبية **بنفسه**:
+ * اختبارٌ يعتمد على `npm run trial:on` يمرّ على جهازٍ ويسقط على آخر،
+ * ويبدو تقطّعًا وهو شرطٌ ناقص.
+ */
+async function ensureSandboxDeposits(): Promise<void> {
+  const admin = await db.adminUser.findFirst({ select: { id: true } });
+  await db.paymentRoute.updateMany({
+    where: { purpose: 'AUCTION_DEPOSIT' },
+    data: {
+      gatewayKey: 'sandbox',
+      environment: 'TEST',
+      enabled: true,
+      ...(admin === null ? {} : { updatedBy: admin.id }),
+    },
+  });
+}
+
+/** دفعات العرابين تُحذف قبل صفوفها — والمفتاح الأجنبيّ يمنع العكس. */
+async function deleteDepositPayments(where: { auctionId: string | { in: string[] } }): Promise<void> {
+  const rows = await db.deposit.findMany({ where, select: { paymentId: true } });
+  const ids = rows.map((row) => row.paymentId).filter((id): id is string => id !== null);
+  if (ids.length === 0) return;
+  await db.deposit.updateMany({ where, data: { paymentId: null } });
+  await db.payment.deleteMany({ where: { id: { in: ids } } });
+}
+
+/** حجزٌ ببطاقةٍ تجريبية — وهو ما تفعله الشاشة عند أوّل مزايدة. */
+async function holdTestDeposit(auctionId: string, userId: string): Promise<void> {
+  const result = await holdDeposit({
+    auctionId,
+    userId,
+    method: 'mada',
+    returnUrl: 'http://localhost/return',
+  });
+  // الفشل هنا يُسقط ما بعده بلا سبب مقروء — فيُقال صراحةً
+  if (!result.ok && result.reason !== 'ALREADY_HELD') {
+    throw new Error(`تعذّر حجز العربون: ${result.reason}`);
+  }
+}
+
 import { createAuctionOrderStandalone } from '@/lib/domain/auction-order';
 import { Prisma } from '@/generated/prisma/client';
 
@@ -84,8 +128,9 @@ async function scaffold(): Promise<void> {
   });
   auctionId = auction.id;
 
-  await holdDeposit({ auctionId, userId: bidderA });
-  await holdDeposit({ auctionId, userId: bidderB });
+  await ensureSandboxDeposits();
+  await holdTestDeposit(auctionId, bidderA);
+  await holdTestDeposit(auctionId, bidderB);
 }
 
 async function teardown(): Promise<void> {
@@ -104,6 +149,11 @@ async function teardown(): Promise<void> {
   }
 
   await db.bid.deleteMany({ where: { auctionId } });
+  /**
+   * **والدفعة تتبع العربون.** صار الحجز يُنشئ `Payment`، فحذفُ العربون
+   * وحده يترك دفعةً يتيمة تُضخّم كل عدّاد «محجوز الآن».
+   */
+  await deleteDepositPayments({ auctionId });
   await db.deposit.deleteMany({ where: { auctionId } });
   await db.auction.deleteMany({ where: { id: auctionId } });
   await db.listing.deleteMany({ where: { id: listingId } });
@@ -139,6 +189,7 @@ async function cleanupScaffold(): Promise<void> {
   const auctionIds = auctions.map((row) => row.id);
 
   await db.bid.deleteMany({ where: { auctionId: { in: auctionIds } } });
+  await deleteDepositPayments({ auctionId: { in: auctionIds } });
   await db.deposit.deleteMany({ where: { auctionId: { in: auctionIds } } });
   await db.auction.deleteMany({ where: { id: { in: auctionIds } } });
   await db.offer.deleteMany({ where: { listingId: { in: ids } } });
@@ -201,7 +252,7 @@ describe('bid.increment — القاعدة ٦', () => {
   });
 
   it('البائع لا يزايد على مركبته', async () => {
-    await holdDeposit({ auctionId, userId: sellerId });
+    await holdTestDeposit(auctionId, sellerId);
     const own = await placeBid({ auctionId, bidderId: sellerId, amount: 99_000 }, at(10));
     expect(own.ok).toBe(false);
     if (!own.ok) expect(own.reason).toBe('OWN_AUCTION');

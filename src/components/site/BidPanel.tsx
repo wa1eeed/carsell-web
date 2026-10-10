@@ -63,6 +63,16 @@ export function BidPanel({
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  /**
+   * ═══ وسيلة الدفع — تُسأل عند أوّل مزايدة وحدها ═══
+   *
+   * الحجز صار ماليًّا (المهمّة ٦٦)، فأوّل مزايدة تحتاج بطاقة.
+   * **ولا تُسأل مقدّمًا**: أكثر من يفتح الصفحة لا يزايد، وطلبُ بطاقةٍ
+   * قبل أن يقرّر يطرده. فتُفتح حين يردّ الخادم `DEPOSIT_METHOD_REQUIRED`
+   * — وهو يعرف وحده أللمزايد عربونٌ سابق أم لا.
+   */
+  const [method, setMethod] = useState<string | null>(null);
+  const [needsCard, setNeedsCard] = useState(false);
 
   /** بلا جلسة: إلى الدخول ومعه وجهة العودة — لا رسالة ثم طريق مسدود. */
   const requireSession = (): boolean => {
@@ -79,17 +89,42 @@ export function BidPanel({
       const response = await fetch(`/api/v1/auctions/${listingRef}/bids`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ amount: value }),
+        body: JSON.stringify({
+          amount: value,
+          ...(method === null
+            ? {}
+            : { method, returnUrl: `${window.location.origin}${window.location.pathname}` }),
+        }),
       }).catch(() => null);
 
       const payload = (await response?.json().catch(() => null)) as
-        | { error?: { messageAr?: string } }
+        | { error?: { code?: string; messageAr?: string; fields?: Record<string, string> } }
         | null;
 
       if (response === null || !response.ok) {
+        const code = payload?.error?.code;
+
+        /** «يلزم بطاقة» خطوةٌ لا خطأ — فتُفتح الوسائل ولا يُقال «تعذّرت». */
+        if (code === 'DEPOSIT_METHOD_REQUIRED') {
+          setNeedsCard(true);
+          setToast(payload?.error?.messageAr ?? null);
+          return;
+        }
+
+        /** تحدّي التحقّق: يُذهب به إلى وجهته ليُكمل. */
+        if (code === 'DEPOSIT_REQUIRES_ACTION') {
+          const url = payload?.error?.fields?.actionUrl ?? '';
+          if (url !== '') {
+            window.location.href = url;
+            return;
+          }
+        }
+
         setToast(payload?.error?.messageAr ?? 'تعذّرت المزايدة.');
         return;
       }
+
+      setNeedsCard(false);
 
       setToast('سُجّلت مزايدتك.');
       setOpen(false);
@@ -176,12 +211,55 @@ export function BidPanel({
             );
           })}
         </div>
+        {/*
+          ═══ وسيلة العربون — تظهر عند أوّل مزايدة وحدها ═══
+
+          والمبلغ **يُحجز ولا يُخصم**: يُفرَج فورًا لغير الفائزين،
+          ويُخصم من مطلوب الفائز، ولا يُقبض إلّا ممّن رسا عليه ثم انسحب.
+          وهذا هو ما يجعل المزايدة التزامًا لا نيّة.
+        */}
+        {!needsCard ? null : (
+          <div className="mt-3.5 rounded-lg border border-ink p-4">
+            <p className="mb-2.5 text-2xs font-bold">اختر بطاقةً لحجز العربون</p>
+            <div className="mb-2.5 flex flex-wrap gap-2">
+              {(
+                [
+                  ['mada', 'مدى'],
+                  ['visa', 'فيزا'],
+                  ['mastercard', 'ماستركارد'],
+                  ['applepay', 'Apple Pay'],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setMethod(key)}
+                  className={
+                    method === key
+                      ? 'rounded-btn border border-ink bg-ink px-3.5 py-2 text-3xs font-bold text-bg'
+                      : 'rounded-btn border border-line px-3.5 py-2 text-3xs font-bold hover:border-ink'
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-3xs leading-loose opacity-60">
+              يُحجز <Money amount={Number(depositAmount)} /> ولا يُخصم. ويُفرَج عنه فور
+              انتهاء المزاد إن لم يرسُ عليك.
+            </p>
+          </div>
+        )}
+
         <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-50">
-          {/* لا يُدّعى حجزٌ لا يقع — الحجز اليوم دفتريّ، والالتزام هو المعنى */}
-          مزايدتك التزام بعربون <Money amount={Number(depositAmount)} /> — ولا يُطالَب به إلّا
-          من رسا عليه المزاد ثم انسحب.
+          يُحجز عربون <Money amount={Number(depositAmount)} /> على بطاقتك مرّةً واحدة ولا
+          يُخصم، ويُفرَج عنه إن لم يرسُ عليك.
         </p>
-        <Button className="mt-4 w-full" disabled={pending || amount === ''} onClick={submit}>
+        <Button
+          className="mt-4 w-full"
+          disabled={pending || amount === '' || (needsCard && method === null)}
+          onClick={submit}
+        >
           {pending ? 'جارٍ…' : 'أرسل المزايدة'}
         </Button>
       </Modal>

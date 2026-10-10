@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { cancelDepositHold, captureForfeitedDeposit, holdDepositMoney } from './deposit-money';
 import { canonicalPath } from './listing-detail';
 import { createAuctionOrderStandalone } from './auction-order';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
@@ -219,11 +220,33 @@ export function maskName(name: string | null): string | null {
 
 export type DepositResult =
   | { ok: true; depositId: string }
-  | { ok: false; reason: 'AUCTION_NOT_FOUND' | 'ALREADY_HELD' | 'NOT_OPEN' };
+  | {
+      ok: false;
+      reason:
+        | 'AUCTION_NOT_FOUND'
+        | 'ALREADY_HELD'
+        | 'NOT_OPEN'
+        /** أوّل مزايدة تحتاج بطاقة — والشاشة تجمعها قبل الإرسال. */
+        | 'METHOD_REQUIRED'
+        | 'NO_ROUTE'
+        | 'ROUTE_DISABLED'
+        | 'GATEWAY_FAILED'
+        /** تحدّي تحقّق — ووجهتُه تُعاد ليُكمل */
+        | 'REQUIRES_ACTION';
+      amount?: string;
+      actionUrl?: string;
+    };
 
 /** ═══ القاعدة ٩، أوّلها ═══ حجز العربون قبل المزايدة. */
 export async function holdDeposit(
-  input: { auctionId: string; userId: string },
+  input: {
+    auctionId: string;
+    userId: string;
+    /** مرجع الإعلان — يُرسَل إلى البوابة ليقرأه المشغّل في لوحتها. */
+    auctionRef?: string;
+    method?: string;
+    returnUrl?: string;
+  },
   _now: Date = new Date(),
 ): Promise<DepositResult> {
   const auction = await db.auction.findUnique({
@@ -241,12 +264,41 @@ export async function holdDeposit(
   });
   if (existing !== null) return { ok: false, reason: 'ALREADY_HELD' };
 
+  /**
+   * ═══ والحجز يمرّ بالبوابة ═══
+   *
+   * كان صفًّا بـ`HELD` ولا مال خلفه — فالمزايدة ليست التزامًا
+   * والمصادرة تصادر رقمًا. **وقرار المالك: بطاقة لا محفظة**، لأن
+   * المحفظة تحتاج شحنًا مسبقًا ومزايدٌ برصيدٍ فارغ لا يزايد أصلًا.
+   *
+   * **ولا يُكتب الصفّ قبل أن يُحجز المال**: صفٌّ بـ`HELD` وحجزٌ فشل
+   * يجعل المزايد ملتزمًا في دفترنا وحرًّا عند بطاقته.
+   */
+  if (input.method === undefined || input.returnUrl === undefined) {
+    return { ok: false, reason: 'METHOD_REQUIRED', amount: auction.depositAmount.toString() };
+  }
+
+  const held = await holdDepositMoney({
+    auctionRef: input.auctionRef ?? auction.id,
+    amount: auction.depositAmount,
+    method: input.method,
+    returnUrl: input.returnUrl,
+    idempotencyKey: `deposit-${auction.id}-${input.userId}`,
+  });
+
+  if (!held.ok) {
+    return held.reason === 'REQUIRES_ACTION'
+      ? { ok: false, reason: 'REQUIRES_ACTION', actionUrl: held.actionUrl }
+      : { ok: false, reason: held.reason };
+  }
+
   const deposit = await db.deposit.create({
     data: {
       auctionId: auction.id,
       userId: input.userId,
       amount: auction.depositAmount,
       status: 'HELD',
+      paymentId: held.paymentId,
     },
   });
   return { ok: true, depositId: deposit.id };
@@ -268,7 +320,7 @@ export async function settleDeposits(
 ): Promise<{ refunded: number; applied: number; held: number }> {
   const all = await db.deposit.findMany({
     where: { auctionId, status: 'HELD' },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, paymentId: true },
   });
 
   // من يبقى عربونه محجوزًا بانتظار قرار البائع — لا يُرَد ولا يُخصم
@@ -276,6 +328,21 @@ export async function settleDeposits(
   const held = all.filter((deposit) => deposit.userId !== pending);
   const losers = held.filter((deposit) => deposit.userId !== winnerId);
   const winner = held.find((deposit) => deposit.userId === winnerId);
+
+  /**
+   * ═══ وحجز الخاسر يُلغى عند البوابة ═══
+   *
+   * `RELEASED` وسمٌ، والمال عند بطاقته. وإبقاؤه محجوزًا بعد انتهاء
+   * المزاد ليس ضمانةً بل احتجازُ مالٍ بلا سبب — ويظهر في كشف بطاقته.
+   *
+   * **وفشلُ الإلغاء لا يُبطل الإغلاق**: المزاد انتهى وقعًا، وحجزٌ لم
+   * يُلغَ يسقط وحده بعد مدّته عند البوابة. فيُحاوَل لكلٍّ على حدة،
+   * ولا يُحتجز الإغلاق كلّه على نداءٍ تعثّر.
+   */
+  for (const loser of losers) {
+    if (loser.paymentId === null) continue;
+    await cancelDepositHold(loser.paymentId, now).catch(() => undefined);
+  }
 
   await db.deposit.updateMany({
     where: { id: { in: losers.map((deposit) => deposit.id) } },
@@ -476,15 +543,43 @@ export async function expireSellerDecisions(now: Date = new Date()): Promise<num
 }
 
 /** الانسحاب بعد الفوز — العربون يُصادَر. */
+/**
+ * ═══ المصادرة — تحصيلٌ وقيد، لا وسم ═══
+ *
+ * **والمُصادَر للمنصّة** (قرار المالك): يُحصَّل الحجز ويُقيَّد إيرادًا.
+ * وكانت تكتب `FORFEITED` وحدها — فتصادر رقمًا في جدولنا والمال يبقى
+ * عند بطاقة المزايد، وهو ما يُفرغ القاعدة ٩ من معناها.
+ *
+ * **والوسم يتبع التحصيل لا يسبقه**: صفٌّ `FORFEITED` وتحصيلٌ فشل يجعل
+ * دفترنا يقول إننا قبضنا ما لم نقبض.
+ */
 export async function forfeitDeposit(
   input: { auctionId: string; userId: string },
   now: Date = new Date(),
 ): Promise<{ ok: boolean }> {
-  const { count } = await db.deposit.updateMany({
+  const rows = await db.deposit.findMany({
     where: { auctionId: input.auctionId, userId: input.userId, status: { in: ['HELD', 'APPLIED'] } },
-    data: { status: 'FORFEITED', releasedAt: now },
+    select: { id: true, paymentId: true },
   });
-  return { ok: count > 0 };
+  if (rows.length === 0) return { ok: false };
+
+  let forfeited = 0;
+  for (const row of rows) {
+    /**
+     * العربون الدفتريّ القديم (بلا دفعة) يُوسَم ولا يُحصَّل — لا مال
+     * خلفه أصلًا، واختلاقُ تحصيلٍ له يكتب في الدفتر ما لم يقع.
+     */
+    const captured = row.paymentId === null ? true : await captureForfeitedDeposit(row.paymentId, now);
+    if (!captured) continue;
+
+    await db.deposit.update({
+      where: { id: row.id },
+      data: { status: 'FORFEITED', releasedAt: now },
+    });
+    forfeited += 1;
+  }
+
+  return { ok: forfeited > 0 };
 }
 
 export type PublicAuction = {

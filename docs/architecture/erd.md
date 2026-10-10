@@ -108,6 +108,7 @@ erDiagram
   Deposit }o--|| DepositStatus : "status"
   Deposit }o--|| Auction : "auction"
   Deposit }o--|| User : "user"
+  Deposit |o--|| Payment : "payment"
   Order }o--|| OrderSource : "source"
   Order }o--|| OrderStage : "stage"
   Order }o--|| OrderStatus : "status"
@@ -205,6 +206,7 @@ erDiagram
   PaymentRouteChange }o--|| IntegrationEnv : "toEnvironment"
   PaymentRouteChange }o--|| PaymentGateway : "toGateway"
   PaymentRouteChange |o--|| PaymentGateway : "fromGateway"
+  Payment |o--|| Deposit : "deposit"
   Payment }o--|| PaymentPurpose : "purpose"
   Payment }o--|| IntegrationEnv : "environment"
   Payment }o--|| PaymentStatus : "status"
@@ -564,8 +566,9 @@ Relations: `auction` → `Auction` · `bidder` → `User`
 | `userId` | `String` |  |
 | `amount` | `Decimal` |  |
 | `releasedAt` | `DateTime?` |  |
+| `paymentId` | `String?` | unique |
 
-Relations: `status` → `DepositStatus` · `auction` → `Auction` · `user` → `User`
+Relations: `status` → `DepositStatus` · `auction` → `Auction` · `user` → `User` · `payment` → `Payment`
 
 ### `Order`
 
@@ -586,6 +589,7 @@ Relations: `status` → `DepositStatus` · `auction` → `Auction` · `user` →
 | `processingFee` | `Decimal` |  |
 | `vatAmount` | `Decimal` |  |
 | `totalAmount` | `Decimal` |  |
+| `depositApplied` | `Decimal` |  |
 | `createdAt` | `DateTime` |  |
 | `stageEnteredAt` | `DateTime` |  |
 | `paymentDueAt` | `DateTime?` |  |
@@ -1357,7 +1361,7 @@ Relations: `purpose` → `PaymentPurpose` · `fromEnvironment` → `IntegrationE
 | `cancelledAt` | `DateTime?` |  |
 | `failedAt` | `DateTime?` |  |
 
-Relations: `purpose` → `PaymentPurpose` · `environment` → `IntegrationEnv` · `status` → `PaymentStatus` · `order` → `Order` · `events` → `PaymentEvent`
+Relations: `deposit` → `Deposit` · `purpose` → `PaymentPurpose` · `environment` → `IntegrationEnv` · `status` → `PaymentStatus` · `order` → `Order` · `events` → `PaymentEvent`
 
 ### `PaymentEvent`
 

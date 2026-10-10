@@ -202,6 +202,18 @@ describe('حجم الشهر عمودان', () => {
     const order = await db.order.findFirstOrThrow();
     const now = new Date();
 
+    /**
+     * **ويُقاس الفرق لا المطلق.** الحكم على عدّادٍ عامّ يسقط بما لا
+     * يقيسه: صار حجز العربون يُنشئ `Payment` حقيقية، فكل تشغيلٍ
+     * لاختبارات المزاد يُضيف إلى «محجوز الآن» — وكان الفحص يتوقّع
+     * خمسة آلاف فوجد ثلاث مئة وثلاثين ألفًا. (الصنف مسجَّل في
+     * CLAUDE.md، ووقع ثانيةً هنا.)
+     */
+    const before = (await listRoutes(now)).find((row) => row.purpose === 'AUCTION_DEPOSIT');
+    const heldBefore = Number(before?.heldNow ?? 0);
+    const settledBefore = Number(before?.settledThisMonth ?? 0);
+    const inFlightBefore = before?.inFlight ?? 0;
+
     const [held, settled] = await Promise.all([
       db.payment.create({ data: { orderId: order.id, purpose: 'AUCTION_DEPOSIT', gatewayKey: 'bank_escrow', amount: 5000, method: 'mada', status: 'HELD', heldAt: now } }),
       db.payment.create({ data: { orderId: order.id, purpose: 'AUCTION_DEPOSIT', gatewayKey: 'bank_escrow', amount: 7000, method: 'mada', status: 'SETTLED', settledAmount: 7000, settledAt: now } }),
@@ -211,9 +223,9 @@ describe('حجم الشهر عمودان', () => {
     const deposit = routes.find((row) => row.purpose === 'AUCTION_DEPOSIT');
 
     // العمودان لا يخلطان: المحجوز ليس مُسوّى والعكس
-    expect(Number(deposit?.heldNow)).toBe(5000);
-    expect(Number(deposit?.settledThisMonth)).toBe(7000);
-    expect(deposit?.inFlight).toBe(1);
+    expect(Number(deposit?.heldNow) - heldBefore).toBe(5000);
+    expect(Number(deposit?.settledThisMonth) - settledBefore).toBe(7000);
+    expect((deposit?.inFlight ?? 0) - inFlightBefore).toBe(1);
 
     await db.payment.deleteMany({ where: { id: { in: [held.id, settled.id] } } });
   });

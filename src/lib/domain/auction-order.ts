@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import type { Prisma } from '@/generated/prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { computeOrderAmounts } from './order-amounts';
 import { deadline } from './deadlines';
 import { reserveListing } from './listing-state';
@@ -86,6 +86,30 @@ export async function createAuctionOrder(
   }
 
   const amounts = await computeOrderAmounts(tx, Number(top.amount), now);
+
+  /**
+   * ═══ وعربون الفائز يُخصم من المطلوب ═══
+   *
+   * الحجز قائمٌ عند البوابة باسمه، فمطالبتُه بالإجمالي كاملًا تجعله
+   * يدفع العربون مرّتين. **والخصم في الموضعين معًا**: من المطلوب هنا،
+   * ومن الحجز هناك حين يُحصَّل — وخصمُ أحدهما وحده يُنشئ فرقًا في
+   * فاتورة.
+   *
+   * **والدفتريّ القديم لا يُخصم**: لا مال خلفه، وخصمُه يجعل المشتري
+   * يدفع أقلّ ولا يصل البائع فرقٌ من أحد.
+   */
+  const winnerDeposit = await tx.deposit.findFirst({
+    where: {
+      auctionId: auction.id,
+      userId: top.bidderId,
+      status: { in: ['HELD', 'APPLIED'] },
+      paymentId: { not: null },
+    },
+    select: { amount: true },
+  });
+
+  const depositApplied = winnerDeposit?.amount ?? new Prisma.Decimal(0);
+  const dueAmount = amounts.totalAmount.minus(depositApplied);
   const paymentWindow = await deadline('paymentWindowHours');
   const ref = await nextOrderRef(tx, now);
 
@@ -98,6 +122,9 @@ export async function createAuctionOrder(
       source: 'AUCTION',
       stage: 'PAYMENT',
       ...amounts,
+      // الإجمالي يبقى للتدقيق، والمطلوب هو الفرق
+      totalAmount: dueAmount,
+      depositApplied,
       createdAt: now,
       stageEnteredAt: now,
       paymentDueAt: new Date(now.getTime() + paymentWindow * 3600 * 1000),

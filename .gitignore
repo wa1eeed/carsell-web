@@ -28,3 +28,6 @@ src/generated/
 .claude/settings.local.json
 .next-check
 .dev-uploads/
+
+# نواتج `sed -i.bak` — التُزم بها سهوًا مرّة، فتُستبعَد
+*.bak

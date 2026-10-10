@@ -73,7 +73,22 @@ export default async function globalSetup(): Promise<void> {
     const auctionIds = auctions.map((row) => row.id);
 
     await db.bid.deleteMany({ where: { auctionId: { in: auctionIds } } });
+    /**
+     * **ودفعة العربون تتبع صفَّه.** صار الحجز يُنشئ `Payment`، فحذفُ
+     * العربون وحده يترك دفعةً يتيمة تُضخّم «محجوز الآن» في كل تشغيل.
+     */
+    const depositRows = await db.deposit.findMany({
+      where: { auctionId: { in: auctionIds } },
+      select: { paymentId: true },
+    });
+    const depositPayments = depositRows
+      .map((row) => row.paymentId)
+      .filter((id): id is string => id !== null);
+
     await db.deposit.deleteMany({ where: { auctionId: { in: auctionIds } } });
+    if (depositPayments.length > 0) {
+      await db.payment.deleteMany({ where: { id: { in: depositPayments } } });
+    }
     await db.auction.deleteMany({ where: { id: { in: auctionIds } } });
 
     /**

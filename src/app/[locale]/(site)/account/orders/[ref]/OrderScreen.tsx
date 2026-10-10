@@ -201,8 +201,24 @@ export function OrderScreen({
                 <ArabicNumber value={Number(value)} className="font-bold" />
               </div>
             ))}
+            {/*
+              ═══ وعربون المزاد سطرٌ ظاهر ═══
+
+              حُجز على بطاقته عند أوّل مزايدة، وخُصم من المطلوب.
+              **وبلا هذا السطر يقرأ المشتري إجماليًّا لا يُجمَع**: سعرٌ
+              ورسمٌ ثم مطلوبٌ أقلّ منهما، فيظنّ الحساب مختلًّا.
+            */}
+            {Number(order.amounts.depositApplied ?? 0) === 0 ? null : (
+              <div className="flex items-center justify-between gap-4 py-1.5 text-sm text-accent-700">
+                <span>عربون المزاد (محجوز سلفًا)</span>
+                <span className="font-bold">
+                  −<ArabicNumber value={Number(order.amounts.depositApplied)} />
+                </span>
+              </div>
+            )}
+
             <div className="mt-2 flex items-center justify-between gap-4 border-t border-line pt-3 text-base font-bold">
-              <span>{t('total')}</span>
+              <span>{Number(order.amounts.depositApplied ?? 0) === 0 ? t('total') : 'المطلوب الآن'}</span>
               <ArabicNumber value={Number(order.amounts.total)} />
             </div>
             <p className="mt-2 text-3xs opacity-45">{t('vatIncluded')}</p>
