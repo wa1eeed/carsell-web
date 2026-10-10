@@ -4,7 +4,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { listDisputes } from '@/lib/domain/disputes';
+import { type DisputeFilter, disputeCounts, listDisputes } from '@/lib/domain/disputes';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { DisputesTable } from './DisputesTable';
 
 export const dynamic = 'force-dynamic';
@@ -19,12 +20,35 @@ export const dynamic = 'force-dynamic';
  * والقرار ماليّ بحت — استردادٌ كامل أو تسوية جزئية أو إفراج للبائع —
  * فحارسه `escrow.release`، وهو في نصاب العضوين لا يملكه دورٌ وحده.
  */
-export default async function DisputesPage() {
+/** شرائح A17 — والتصميم يسمّيها «البلاغات والنزاعات»؛ والبلاغات شاشتُها. */
+const SEGMENTS: readonly { key: string | null; label: string }[] = [
+  { key: null, label: 'الكل' },
+  { key: 'open', label: 'مفتوحة' },
+  { key: 'investigating', label: 'قيد التحقيق' },
+  { key: 'resolved', label: 'محلولة' },
+];
+
+export default async function DisputesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'orders.view')) redirect('/admin');
 
-  const disputes = await listDisputes();
+  const search = await searchParams;
+  const raw = typeof search.filter === 'string' ? search.filter : null;
+  const filter = (SEGMENTS.find((row) => row.key === raw)?.key ?? null) as DisputeFilter;
+
+  const [disputes, counts] = await Promise.all([listDisputes(new Date(), filter), disputeCounts()]);
+
+  const tabs: MonitorTab[] = SEGMENTS.map((row) => ({
+    key: row.key,
+    label: row.label,
+    count: counts[row.key ?? 'all'] ?? 0,
+    ...(row.key === 'open' ? { tone: 'danger' as const } : {}),
+  }));
   /** المفتوح ما لم يُحسم — والحسم لصالح أحد الطرفين حالتان لا حالة. */
   const open = disputes.filter((row) => row.status === 'OPEN' || row.status === 'INVESTIGATING');
   const overdue = disputes.filter((row) => row.overdue);
@@ -39,6 +63,8 @@ export default async function DisputesPage() {
         <span aria-hidden className="opacity-40">·</span>
         <span>القرار يحتاج موافقة عضوين</span>
       </p>
+
+      <MonitorTabs tabs={tabs} active={filter} basePath="/admin/disputes" param="filter" />
 
       {disputes.length === 0 ? (
         <EmptyState

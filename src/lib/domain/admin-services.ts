@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
+import type { ServiceRequestStatus } from '@/generated/prisma/enums';
 
 /**
  * الخدمات في اللوحة — A6 وA7.
@@ -40,10 +41,50 @@ const REQUEST_SELECT = {
 /** سقف المنجَز وحده — والمفتوح لا سقف له. */
 const CLOSED_HISTORY = 200;
 
+/**
+ * شرائح A6 — **حالةٌ أو نوعُ خدمة**، والتصميم يخلطهما في شريطٍ واحد:
+ * الكل · معلّقة · مسندة · قيد التنفيذ · مكتملة · ملغاة · ثم الأنواع.
+ * وهو خلطٌ مقصود: المشغّل يسأل «ما المتأخّر؟» و«كم فحصًا اليوم؟»
+ * بالتبادل، وشريطان يضاعفان النقرات.
+ */
+export type RequestFilter = string | null;
+
+export async function serviceRequestCounts(): Promise<Record<string, number>> {
+  const [byStatus, byKind] = await Promise.all([
+    db.serviceRequest.groupBy({ by: ['status'], _count: { _all: true } }),
+    db.serviceRequest.groupBy({ by: ['serviceId'], _count: { _all: true } }),
+  ]);
+  const services = await db.service.findMany({ select: { id: true, key: true } });
+  const keyOf = new Map(services.map((row) => [row.id, row.key]));
+
+  const out: Record<string, number> = {
+    all: byStatus.reduce((n, row) => n + row._count._all, 0),
+  };
+  for (const row of byStatus) out[row.status] = row._count._all;
+  for (const row of byKind) {
+    const key = keyOf.get(row.serviceId);
+    if (key !== undefined) out[key] = (out[key] ?? 0) + row._count._all;
+  }
+  return out;
+}
+
 export async function listServiceRequests(
-  filters: { onlyOverdue?: boolean } = {},
+  filters: { onlyOverdue?: boolean; filter?: RequestFilter } = {},
   now: Date = new Date(),
 ): Promise<ServiceRequestRow[]> {
+  /**
+   * **والشريحة تُرشَّح في الاستعلام.** الترشيح بعد الجلب يقصّ المنجَز
+   * (محدودٌ بـ`CLOSED_HISTORY`) قبل أن يُرشَّح، فتبدو «مكتملة» أصغر.
+   */
+  const pick = filters.filter ?? null;
+  const STATUSES = ['NEW', 'ASSIGNED', 'IN_PROGRESS', 'DONE', 'FAILED', 'REFUNDED'];
+  const byStatus = pick !== null && STATUSES.includes(pick);
+  const extra =
+    pick === null
+      ? {}
+      : byStatus
+        ? { status: pick as ServiceRequestStatus }
+        : { service: { key: pick } };
   /**
    * استعلامان لا واحد: **المفتوح لا يُقتطَع.**
    *
@@ -53,12 +94,12 @@ export async function listServiceRequests(
    */
   const [openRows, closedRows] = await Promise.all([
     db.serviceRequest.findMany({
-      where: { status: { in: [...OPEN_STATUSES] } },
+      where: { ...extra, status: { in: [...OPEN_STATUSES] } },
       orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
       select: REQUEST_SELECT,
     }),
     db.serviceRequest.findMany({
-      where: { status: { notIn: [...OPEN_STATUSES] } },
+      where: { ...extra, status: { notIn: [...OPEN_STATUSES] } },
       orderBy: { createdAt: 'desc' },
       take: CLOSED_HISTORY,
       select: REQUEST_SELECT,

@@ -526,8 +526,39 @@ export type DisputeRow = {
  * والقرار ماليّ — استردادٌ كامل أو تسوية جزئية أو إفراج للبائع — فيمرّ
  * بنصاب العضوين الذي بُني له، لا بيدٍ واحدة.
  */
-export async function listDisputes(now: Date = new Date()): Promise<DisputeRow[]> {
+/**
+ * شرائح طابور النزاعات — **والترشيح في الاستعلام لا بعد الجلب.**
+ *
+ * الطابور محدودٌ بمئتين، فترشيحٌ بعده يقصّ قبل أن يُرشَّح فتبدو
+ * الشريحة أصغر ممّا هي. (وقع في الطلبات، فأُصلح هناك.)
+ */
+export type DisputeFilter = 'open' | 'investigating' | 'resolved' | null;
+
+const DISPUTE_WHERE: Record<string, DisputeStatus[]> = {
+  open: ['OPEN'],
+  investigating: ['INVESTIGATING'],
+  resolved: ['RESOLVED_BUYER', 'RESOLVED_SELLER', 'CLOSED'],
+};
+
+export async function disputeCounts(): Promise<Record<string, number>> {
+  const rows = await db.dispute.groupBy({ by: ['status'], _count: { _all: true } });
+  const of = (keys: DisputeStatus[]): number =>
+    rows.filter((row) => keys.includes(row.status)).reduce((n, row) => n + row._count._all, 0);
+  return {
+    all: rows.reduce((n, row) => n + row._count._all, 0),
+    open: of(DISPUTE_WHERE.open ?? []),
+    investigating: of(DISPUTE_WHERE.investigating ?? []),
+    resolved: of(DISPUTE_WHERE.resolved ?? []),
+  };
+}
+
+export async function listDisputes(
+  now: Date = new Date(),
+  filter: DisputeFilter = null,
+): Promise<DisputeRow[]> {
+  const statuses = filter === null ? null : (DISPUTE_WHERE[filter] ?? null);
   const rows = await db.dispute.findMany({
+    ...(statuses === null ? {} : { where: { status: { in: statuses } } }),
     orderBy: [{ status: 'asc' }, { slaDueAt: 'asc' }],
     include: { order: { select: { ref: true, totalAmount: true } } },
     take: 200,

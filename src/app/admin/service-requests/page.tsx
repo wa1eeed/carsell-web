@@ -3,7 +3,9 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
-import { listServiceRequests } from '@/lib/domain/admin-services';
+import { db } from '@/lib/db';
+import { listServiceRequests, serviceRequestCounts } from '@/lib/domain/admin-services';
+import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { RequestsTable } from './RequestsTable';
 
 export const dynamic = 'force-dynamic';
@@ -15,12 +17,62 @@ export const dynamic = 'force-dynamic';
  * تصاعديًّا، والمتجاوز أحمر في صدره. وترتيبٌ بتاريخ الإنشاء يدفن طلبًا
  * تأخّر أسبوعًا تحت عشرة وصلت اليوم.
  */
-export default async function ServiceRequestsPage() {
+/**
+ * شرائح A6 — **حالاتٌ ثم أنواع**، كما يرتّبها التصميم. والمشغّل يسأل
+ * «ما المتأخّر؟» و«كم فحصًا اليوم؟» بالتبادل، فشريطٌ واحد لا شريطان.
+ */
+const SEGMENTS: readonly { key: string | null; label: string }[] = [
+  { key: null, label: 'الكل' },
+  { key: 'NEW', label: 'معلّقة' },
+  { key: 'ASSIGNED', label: 'مسندة' },
+  { key: 'IN_PROGRESS', label: 'قيد التنفيذ' },
+  { key: 'DONE', label: 'مكتملة' },
+  { key: 'FAILED', label: 'ملغاة' },
+];
+
+export default async function ServiceRequestsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'serviceRequests.handle')) redirect('/admin');
 
-  const requests = await listServiceRequests();
+  const search = await searchParams;
+  const raw = typeof search.filter === 'string' ? search.filter : null;
+
+  const [counts, services] = await Promise.all([
+    serviceRequestCounts(),
+    db.service.findMany({ where: { active: true }, orderBy: { sort: 'asc' }, select: { key: true, nameAr: true } }),
+  ]);
+
+  /**
+   * **والمفتاح يُقبل متى عرفناه.** مفتاحٌ مجهول يُقرأ «الكل» ولا يُسقط
+   * الشاشة — والرابط قد يُنسخ بعد حذف خدمة.
+   */
+  const known = new Set<string>([
+    ...SEGMENTS.map((row) => row.key).filter((key): key is string => key !== null),
+    ...services.map((row) => row.key),
+  ]);
+  const filter = raw !== null && known.has(raw) ? raw : null;
+
+  const requests = await listServiceRequests({ filter });
+
+  const tabs: MonitorTab[] = [
+    ...SEGMENTS.map((row) => ({
+      key: row.key,
+      label: row.label,
+      count: counts[row.key ?? 'all'] ?? 0,
+      ...(row.key === 'NEW' ? { tone: 'warn' as const } : {}),
+    })),
+    // ثم الأنواع — من الكتالوج لا مكتوبةً بيد، فخدمةٌ جديدة تظهر وحدها
+    ...services.map((row) => ({
+      key: row.key,
+      label: row.nameAr,
+      count: counts[row.key] ?? 0,
+    })),
+  ];
   const overdue = requests.filter((request) => request.overdue).length;
   const open = requests.filter((request) =>
     ['NEW', 'ASSIGNED', 'IN_PROGRESS'].includes(request.status),
@@ -30,6 +82,8 @@ export default async function ServiceRequestsPage() {
   return (
     <AdminShell title="طلبات الخدمات"
       subtitle="الإسناد والالتزام" activeHref="/admin/service-requests" admin={admin}>
+      <MonitorTabs tabs={tabs} active={filter} basePath="/admin/service-requests" param="filter" />
+
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <StatCard label="مفتوحة" value={open} />
         <StatCard label="تجاوزت المهلة" value={overdue} tone={overdue > 0 ? 'warn' : 'plain'} />
