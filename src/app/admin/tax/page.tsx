@@ -164,7 +164,7 @@ export default async function TaxEnginePage({
           description="تصدر الفاتورة عند التسوية المؤكَّدة — و«ينتظر التأكيد» ليست واقعة بعد."
         />
       ) : (
-        <InvoicesTable invoices={invoices} />
+        <InvoicesTable invoices={invoices} canCancel={canWrite(admin.role, 'finance.view')} />
       )}
 
       <p className="mt-3 text-2xs leading-loose opacity-55">

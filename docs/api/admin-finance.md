@@ -179,3 +179,30 @@ browser and the server both import, and which has no database access at all.
 - **No "test send" or "delivery log"** buttons — both need the provider.
 - **No "+ new notification"** — templates are keyed to code that emits them, so
   a template with no emitter is a text nobody sends.
+
+## Cancelling an invoice
+
+`POST /api/v1/admin/tax/invoices/{number}/cancel` — `finance.view`,
+body `{ "reason": "…" }` (5 characters minimum).
+
+**The invoice is never deleted.** A `CreditNote` is issued with its own
+sequence, the invoice is marked cancelled, and both stay readable together — a
+tax invoice is a document, not a draft, and correcting one is an entry that
+reverses it.
+
+**The key is the invoice number**, not the internal id. `INV-2026-000042` is
+what appears in the table, in the audit log, and in a tax review; an internal id
+is never said on a call or written in a memo.
+
+A reason is required because the credit note is read in an audit a year later,
+and "cancelled" with nothing beside it is a question with no answer. Five
+characters is not a sufficiency test — it is a floor below which the field is
+not a reason at all.
+
+Cancelling an already-cancelled invoice is `409`, not `422`: it is not a bad
+input to correct but a state the action does not apply to, however often it is
+retried.
+
+`cancelInvoice` was built and tested in task 21 and **nothing called it** — so
+an invoice issued in error stayed issued forever, and the only correction left
+was editing a row by hand, which is exactly what the document rule forbids.
