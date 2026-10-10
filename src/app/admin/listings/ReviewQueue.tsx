@@ -4,6 +4,7 @@ import { StatCard as Card, StatGrid } from '@/components/admin/StatCard';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -144,22 +145,12 @@ export function ReviewQueue({
         />
       </StatGrid>
 
-      <nav className="mb-5 flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <a
-            key={tab.key ?? 'all'}
-            href={tab.key === null ? '/admin/listings' : `/admin/listings?reason=${tab.key}`}
-            className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-2xs ${
-              (filter ?? null) === tab.key
-                ? 'border-ink bg-ink text-bg'
-                : 'border-line hover:border-ink'
-            }`}
-          >
-            {tab.label}
-            <span className="font-num opacity-60">{toArabicDigits(String(tab.count))}</span>
-          </a>
-        ))}
-      </nav>
+      {/*
+        **الشريط المشترك لا نسخةً يدوية.** كانت هنا نسخةٌ من الشكل
+        القديم (عدّادٌ نصٌّ شفّاف)، فترقية المشترك لم تبلغها —
+        وشاشتان متجاورتان بشريطين مختلفين تُقرآن كمنتجين.
+      */}
+      <MonitorTabs tabs={tabs} active={filter ?? null} basePath="/admin/listings" param="reason" />
 
       {rows.length === 0 ? (
         <EmptyState

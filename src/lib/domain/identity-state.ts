@@ -35,6 +35,40 @@ export async function submitIdentity(
   });
 }
 
+/**
+ * ═══ التوثيق التجريبيّ — حتى يُربط نفاذ ═══
+ *
+ * المستخدم يُدخل رقم هويته فيُقبل ببنيته ويُوثَّق حسابه مباشرةً
+ * (قرارٌ موثَّق: البديل حسابٌ لا يشتري ولا يبيع أبدًا).
+ *
+ * **وكان يُكتب في `profile-edit` بالراية وحدها** — فيصير ٥٣ مستخدمًا
+ * موثَّقين يشترون، وشاشةُ توثيق الهوية تقول «موثّق ٠» وطابورُها فارغ،
+ * ولا يمرّ على أحدهم إنسان. وهو بعينه ما حذّر منه رأس هذا الملفّ.
+ *
+ * فالكتابة هنا: الحالةُ والراية والطريقة والرقم المشفَّر في تحديثٍ
+ * واحد. ويوم يُربط نفاذ تصير `submitIdentity('nafath')` وتُحذف هذه.
+ */
+export async function recordTrialVerification(
+  writer: Writer,
+  userId: string,
+  input: { name: string; nationalIdEncrypted: string },
+  now: Date = new Date(),
+): Promise<void> {
+  await writer.user.update({
+    where: { id: userId },
+    data: {
+      name: input.name,
+      nationalIdEncrypted: input.nationalIdEncrypted,
+      identityStatus: 'VERIFIED',
+      identityMethod: 'manual',
+      identitySubmittedAt: now,
+      identityNote: null,
+      idVerified: true,
+      idVerifiedAt: now,
+    },
+  });
+}
+
 /** وُثّق — و`idVerified` يتبعها في الكتابة نفسها. */
 export async function verifyIdentity(
   writer: Writer,

@@ -691,6 +691,13 @@ async function main(): Promise<void> {
           phone: `+9665${String(10000000 + i).padStart(8, '0')}`,
           name,
           email: `seller${i + 1}@example.com`,
+          /**
+           * **والحقلان يتبعان بعضهما.** `identityStatus` هي الحقيقة
+           * و`idVerified` مشتقٌّ منها (`identity-state.ts`). وكانت
+           * البذرة تكتب الراية وحدها، فيصير ٥٣ مستخدمًا «موثَّقين»
+           * يشترون، وشاشة توثيق الهوية تقول «موثّق ٠» وطابورُها فارغ.
+           */
+          identityStatus: 'VERIFIED',
           idVerified: true,
           idVerifiedAt: days(-between(30, 400)),
           iban: `SA03${between(10, 99)}${between(1000000000000000, 9999999999999999)}`,
@@ -709,6 +716,7 @@ async function main(): Promise<void> {
           email: `dealer${i + 1}@example.com`,
           role: 'DEALER',
           dealerId: d.id,
+          identityStatus: 'VERIFIED',
           idVerified: true,
           idVerifiedAt: days(-300),
           createdAt: days(-between(200, 900)),
@@ -723,7 +731,10 @@ async function main(): Promise<void> {
         data: {
           phone: `+9665${String(30000000 + i).padStart(8, '0')}`,
           name: `مشترٍ ${i + 1}`,
+          // الثلث غير موثَّق — وحالتُه تتبع رايته، فيصير الطابور واقعيًّا
+          identityStatus: i % 3 !== 0 ? 'VERIFIED' : i % 3 === 0 && i % 2 === 0 ? 'PENDING' : 'NONE',
           idVerified: i % 3 !== 0,
+          ...(i % 3 === 0 && i % 2 === 0 ? { identitySubmittedAt: days(-between(1, 4)) } : {}),
           createdAt: days(-between(5, 300)),
         },
       }),

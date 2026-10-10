@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { recordTrialVerification } from './identity-state';
 import { toLatinDigits } from '@/lib/arabic';
 import { encryptSecret } from '@/lib/crypto/secrets';
 
@@ -125,16 +126,17 @@ export async function verifyIdentity(
   if (user === null) return { ok: false, reason: 'INVALID_ID' };
   if (user.idVerified) return { ok: false, reason: 'ALREADY_VERIFIED' };
 
-  await db.user.update({
-    where: { id: userId },
-    data: {
-      name,
-      idVerified: true,
-      idVerifiedAt: now,
-      // الرقم نفسه مشفَّر — يُقارن ولا يُعرض
-      nationalIdEncrypted: encryptSecret(digits),
-    },
-  });
+  /**
+   * **والكتابة من مدخلها الوحيد.** كانت هنا تضبط الراية وحدها وتترك
+   * `identityStatus` على `NONE` — فيختفي الموثَّق عن شاشة الأدمن.
+   */
+  await recordTrialVerification(
+    db,
+    userId,
+    // الرقم نفسه مشفَّر — يُقارن ولا يُعرض
+    { name, nationalIdEncrypted: encryptSecret(digits) },
+    now,
+  );
 
   await db.auditLog.create({
     data: {

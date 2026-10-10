@@ -1098,6 +1098,62 @@ function checkListingState() {
  * `reason: '…'` أو `'…'` داخل تعداد نصّيّ. ولا يُفحص العكس (مفتاحٌ ناقص)
  * لأن الخريطة قد تغطّي جزءًا عن قصد.
  */
+/**
+ * ═══ ٢٤ · `idVerified` من مدخله الوحيد ═══
+ *
+ * `identityStatus` هي الحقيقة، و`idVerified` مشتقٌّ منها —
+ * و`identity-state.ts` تكتب الاثنين معًا وتقول «ولا يُكتب `idVerified`
+ * في غيرها». **والبذرة كانت تكتب الراية وحدها**، فصار ٥٣ مستخدمًا
+ * يشترون بـ`idVerified: true` وشاشةُ توثيق الهوية تقول «موثّق ٠»
+ * وطابورُها فارغ — ورقمان متناقضان لحقيقةٍ واحدة في شاشتين متجاورتين.
+ *
+ * وهو الصنف نفسه الذي أُغلق في الدفتر (البوابة ٢٠) وفي حالة الإعلان:
+ * **قيمةٌ لها مدخلٌ واحد تُكتب من خارجه**. ثالثُ مرّة، فيُقاس.
+ */
+function checkIdentityFlag() {
+  const roots = [join('src', 'lib'), join('src', 'app'), 'prisma', 'scripts'];
+  const ALLOWED = /identity-state\.ts$/;
+
+  for (const dir of roots) {
+    let files;
+    try {
+      files = [...walk(join(ROOT, dir))];
+    } catch {
+      continue;
+    }
+    for (const file of files) {
+      if (!/\.tsx?$/.test(file)) continue;
+      const rel = relative(ROOT, file);
+      if (ALLOWED.test(rel) || rel.includes('generated')) continue;
+
+      const text = readFileSync(file, 'utf8');
+
+      /**
+       * **الكتابة وحدها تُفحص.** `idVerified: boolean` تصريحُ نوع،
+       * و`{ idVerified: true }` داخل `where` شرطُ بحث — وكلاهما قراءة.
+       * فيُبحث عن نداء كتابةٍ على `user` ثم يُقرأ ما بعده.
+       */
+      for (const call of text.matchAll(
+        /\b(?:db|prisma|tx)\.user\.(create|createMany|update|updateMany|upsert)\s*\(/g,
+      )) {
+        const window = text.slice(call.index, call.index + 1400);
+        if (!/\bidVerified\s*:/.test(window)) continue;
+
+        /**
+         * **والقاعدة «لا أحدهما دون الآخر» لا «لا تكتبها».** البذرة
+         * تُنشئ مستخدمين بحالةٍ ابتدائية، وكتابتُها صحيحة متى ضبطت
+         * الحقلين معًا — والخطأ أن يُكتب أحدهما وحده.
+         */
+        if (/\bidentityStatus\s*:/.test(window)) continue;
+        const line = text.slice(0, call.index).split('\n').length;
+        problems.push(
+          `${rel}:${String(line)}  idVerified يُكتب بلا identityStatus — وحقلان لحقيقةٍ واحدة يتباعدان`,
+        );
+      }
+    }
+  }
+}
+
 function checkDeadLabelKeys() {
   const roots = [join('src', 'app'), join('src', 'components'), join('src', 'lib')];
   const written = new Set();
@@ -1212,6 +1268,7 @@ checkApprovalQuorum();
 checkListingState();
 checkFunctionPropsAcrossBoundary();
 checkDeadLabelKeys();
+checkIdentityFlag();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1222,5 +1279,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus.',
 );
