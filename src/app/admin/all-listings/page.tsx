@@ -6,6 +6,7 @@ import { Money } from '@/components/ui/Money';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { MonitorCards, MonitorList, MonitorRow, MonitorTabs } from '@/components/admin/MonitorShell';
 import { ListSearch } from '@/components/admin/ListSearch';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { allListings, listingCounts } from '@/lib/domain/admin-monitors';
@@ -140,6 +141,14 @@ export default async function AdminAllListingsPage({
           </MonitorRow>
         ))}
       </MonitorList>
+
+      <ListFooter
+        shown={rows.length}
+        total={active === null && term === null ? counts.total : null}
+        note="الجرد كامل بحالاته — والمراجعة والقرار في طابور المراجعة"
+        can="فتح الإعلان لقراءة تفاصيله وتاريخه، والانتقال إلى بائعه أو إلى طابور المراجعة."
+        cannot="تعديل سعر إعلانٍ أو وصفه — ذلك لصاحبه وحده من «مركباتي». وإيقاف الإدارة يُرفع من هنا لا يرفعه البائع."
+      />
     </AdminShell>
   );
 }

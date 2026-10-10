@@ -11,6 +11,7 @@ import {
 } from '@/lib/domain/admin-orders';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { ListSearch } from '@/components/admin/ListSearch';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { UsersTable } from './UsersTable';
 
 export const dynamic = 'force-dynamic';
@@ -90,17 +91,13 @@ export default async function AdminUsersPage({
       </div>
 
       <UsersTable users={users} canViewIdentity={canWrite(admin.role, 'users.viewIdentity')} />
-
-      <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">قواعد الاطّلاع</h2>
-        <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
-          <li>الجدول لا يعرض هوية — عرضها ثم إخفاء بعضها يجعل كل تحميل صفحة اطّلاعًا على مئة عميل.</li>
-          <li>الاطّلاع فعلٌ مقصود على عميل واحد، بسبب مكتوب.</li>
-          <li>يُسجَّل في سجلّ التدقيق <strong>قبل</strong> أن يُعرض شيء — اطّلاعٌ بلا أثر يُفرغ السجلّ من معناه.</li>
-          <li>صورة الهوية ورقمها كاملًا لا يُعادان هنا: الاسم والحالة وتاريخ التوثيق تكفي من يعالج طلبًا.</li>
-          <li>الآيبان بأربعة أرقام أخيرة — تكفي للمطابقة ولا تكفي للتحويل.</li>
-        </ul>
-      </section>
+      <ListFooter
+        shown={users.length}
+        total={segment === 'all' && term === null ? segments.all : null}
+        can="فتح ملفّ العميل لقراءة إعلاناته وطلباته وكشف محفظته، وطلب تعديل رصيده (يعتمده شخصٌ ثانٍ)."
+        cannot="عرض رقم الهوية أو صورتها من الجدول — الاطّلاع فعلٌ مقصود على عميلٍ واحد بسببٍ مكتوب، ويُقيَّد قبل أن يُعرض شيء. والآيبان بأربعة أرقام: تكفي للمطابقة ولا تكفي للتحويل."
+        automatic="البحث لا يشمل رقم الجوال — رقمٌ كامل في مربّع بحثٍ يُسجَّل في كل سجلّ وصول."
+      />
     </AdminShell>
   );
 }

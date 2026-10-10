@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { ListSearch } from '@/components/admin/ListSearch';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
@@ -127,7 +128,29 @@ export default async function AdminOrdersPage({
           فإبقاؤها هنا يُغرق ما يحتاج عملًا بما لا يحتاجه.
         </p>
       ) : (
-        <OrdersTable orders={rows} />
+        <>
+          <OrdersTable orders={rows} />
+
+          <ListFooter
+            shown={rows.length}
+            /**
+             * **والمقام هو القائم لا الكلّ.** `counts.all` يضمّ
+             * المكتمل والملغى، والطابور لا يعرضهما — فـ«٨ من ١٤» تقرأ
+             * على أن ستّة أُخفيت، وهي منتهيةٌ أصلًا. فالمقام مجموع
+             * المراحل.
+             */
+            total={
+              stage === undefined && closed === undefined
+                ? Object.values(counts.byStage).reduce((sum, n) => sum + n, 0)
+                : null
+            }
+            note="الطابور للطلبات القائمة وحدها — والمنتهية في التقارير"
+
+            can="دفع الطلب إلى مرحلته التالية حين يتعثّر الآليّ، وتمديد مهلة نقل الملكية مرّةً بسببٍ مكتوب، والإلغاء نيابةً عن الطرفين."
+            cannot="الإفراج عن مبلغ الضمان بضغطة — يحتاج موافقة شخصين وسببًا مكتوبًا، ويُقيَّد في سجلّ التدقيق."
+            automatic="طلبٌ تجاوز ضعف هدف مرحلته يظهر أوكر، وثلاثة أضعافه أحمر."
+          />
+        </>
       )}
     </AdminShell>
   );
