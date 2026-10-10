@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
+import type { Prisma } from '@/generated/prisma/client';
 import { walletBalance as walletBalanceOf } from './wallet';
 import { SESSION_COOKIE, verifySession } from '@/lib/auth/token';
 import { profileCompletion, type ProfileCompletion } from './profile';
@@ -135,6 +136,24 @@ export async function favoriteListings(
   });
 }
 
+export type AccountAuction = {
+  listingRef: string;
+  title: string;
+  year: number;
+  endsAt: string;
+  /** حيٌّ الآن — حالةً ووقتًا، لا حالةً وحدها */
+  live: boolean;
+  /** أعلى مزايدة، أو سعر الافتتاح حين لا مزايدة */
+  price: string;
+  bidderCount: number;
+  /** دوري فيه: أعرضه أم أزايد عليه */
+  role: 'seller' | 'bidder';
+  /** للمزايد: أهو الأعلى الآن */
+  leading: boolean;
+  reserveMet: boolean;
+  path: string;
+};
+
 export type AccountData = {
   user: {
     /** رقم العميل — وهو ما يقوله في مكالمة الدعم */
@@ -153,6 +172,21 @@ export type AccountData = {
   };
   /** رصيد محفظته — والمجموع من القيود لا من عمود */
   walletBalance: string;
+  /**
+   * **ما هو محجوز من الرصيد** — عرابين مزاداتٍ لم تُحسم.
+   * والتصميم يقولها سطرًا تحت الرصيد: «منها ٥٬٠٠٠ محجوزة كعربون
+   * مزاد». ورصيدٌ يُعرض كاملًا وبعضُه محجوز يجعل صاحبه يخطّط لما
+   * لا يملك.
+   */
+  walletHeld: string;
+  /**
+   * ═══ مزاداتي — وكانت غائبةً كلّيًّا ═══
+   *
+   * التصميم يضع قسمًا كاملًا: ما يزايد فيه وما يعرضه، بعدّاد كلٍّ.
+   * ولم يكن في بيانات الحساب مزادٌ واحد — فالبائع لا يرى مزاده من
+   * حسابه، والمزايد لا يعرف أين وصلت مزايداته إلّا بفتح كل صفحة.
+   */
+  auctions: AccountAuction[];
   completion: ProfileCompletion;
   stats: AccountStat[];
   orders: AccountOrder[];
@@ -243,6 +277,49 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
 
   const walletBalance = await walletBalanceOf(user.id);
 
+  /**
+   * ═══ المزادات: ما أعرضه وما أزايد فيه ═══
+   *
+   * استعلامان لا واحد — الدور يختلف وكذلك ما يُعرض: البائع يسأل «هل
+   * بلغ احتياطيّ؟»، والمزايد يسأل «هل ما زلتُ الأعلى؟».
+   *
+   * **والحيّ بالحالة والوقت معًا**: `LIVE` مخزَّنة لمزادٍ انقضى حتى
+   * تمرّ الوظيفة الدورية، وعرضُه «جارٍ» في حساب صاحبه يُنتظَر بلا طائل.
+   */
+  const [mine, participated] = await Promise.all([
+    db.auction.findMany({
+      where: { listing: { sellerId: user.id } },
+      orderBy: { endsAt: 'desc' },
+      take: 10,
+      select: AUCTION_SELECT,
+    }),
+    db.auction.findMany({
+      where: { bids: { some: { bidderId: user.id } } },
+      orderBy: { endsAt: 'desc' },
+      take: 10,
+      select: AUCTION_SELECT,
+    }),
+  ]);
+
+  const auctions: AccountAuction[] = [
+    ...mine.map((row) => toAccountAuction(row, 'seller', user.id, locale)),
+    ...participated
+      // مزادُه الذي يزايد فيه بنفسه لا يُعدّ مرّتين
+      .filter((row) => row.listing.sellerId !== user.id)
+      .map((row) => toAccountAuction(row, 'bidder', user.id, locale)),
+  ];
+
+  /**
+   * المحجوز من الرصيد — عرابين مزاداتٍ لم تُحسم.
+   * **وهو اليوم دفتريّ**: `holdDeposit` لا تمرّ ببوابة (المهمّة ٦٦)،
+   * فالرقم يقول ما سيُحجز لا ما حُجز. ويُعرض لأن المزايد ملتزمٌ به.
+   */
+  const heldDeposits = await db.deposit.aggregate({
+    where: { userId: user.id, status: 'HELD' },
+    _sum: { amount: true },
+  });
+  const walletHeld = (heldDeposits._sum.amount ?? 0).toString();
+
   return {
     user: {
       ref: user.ref,
@@ -263,6 +340,8 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       memberSince: user.createdAt.toISOString(),
     },
     walletBalance,
+    walletHeld,
+    auctions,
     completion: profileCompletion(user),
     stats: [
       { key: 'listings', value: listings.length },
@@ -316,5 +395,71 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
         path: listing === null ? null : `${canonicalPath(locale, listing).path}/inspection`,
       };
     }),
+  };
+}
+
+/** ما يحتاجه صفّ المزاد في الحساب — ولا احتياطيّ فيه (قرار ٢٩). */
+const AUCTION_SELECT = {
+  status: true,
+  endsAt: true,
+  startPrice: true,
+  reservePrice: true,
+  listing: {
+    select: {
+      ref: true,
+      city: true,
+      sellerId: true,
+      vehicle: {
+        select: {
+          brandName: true, modelName: true, trimName: true, year: true,
+          brand: { select: { slug: true } },
+        },
+      },
+    },
+  },
+  bids: { orderBy: { amount: 'desc' }, take: 1, select: { amount: true, bidderId: true } },
+  _count: { select: { bids: true } },
+} as const;
+
+type AuctionRow = {
+  status: string;
+  endsAt: Date;
+  startPrice: Prisma.Decimal;
+  reservePrice: Prisma.Decimal | null;
+  listing: {
+    ref: string;
+    city: string;
+    sellerId: string;
+    vehicle: {
+      brandName: string; modelName: string; trimName: string | null; year: number;
+      brand: { slug: string } | null;
+    };
+  };
+  bids: { amount: Prisma.Decimal; bidderId: string }[];
+  _count: { bids: number };
+};
+
+function toAccountAuction(
+  row: AuctionRow,
+  role: 'seller' | 'bidder',
+  viewerId: string,
+  locale: string,
+): AccountAuction {
+  const top = row.bids[0] ?? null;
+  return {
+    listingRef: row.listing.ref,
+    title: title(row.listing.vehicle),
+    year: row.listing.vehicle.year,
+    endsAt: row.endsAt.toISOString(),
+    // الحالة والوقت معًا — والقاعدة مسجَّلة
+    live: row.status === 'LIVE' && row.endsAt.getTime() > Date.now(),
+    // الافتتاح حين لا مزايدة: صفرٌ يوحي بأن المركبة بلا قيمة
+    price: (top?.amount ?? row.startPrice).toString(),
+    bidderCount: row._count.bids,
+    role,
+    leading: top !== null && top.bidderId === viewerId,
+    // الراية وحدها تخرج — لا المبلغ ولا ما يُشتقّ منه
+    reserveMet: row.reservePrice === null || (top !== null && top.amount.gte(row.reservePrice)),
+    path: canonicalPath(locale, row.listing).path,
   };
 }

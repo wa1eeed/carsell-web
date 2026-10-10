@@ -12,6 +12,7 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { ScoreRing } from '@/components/ui/ScoreRing';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
+import { MyAuctions } from '@/components/site/MyAuctions';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { StatCard } from '@/components/ui/StatCard';
 import { Tabs } from '@/components/ui/Tabs';
@@ -262,6 +263,9 @@ export function AccountScreen({
         )
       ) : null}
 
+      {/* مزاداتي — ما أعرضه وما أزايد فيه، والقسم يختفي بلا مزاد */}
+      <MyAuctions rows={data.auctions} />
+
       {/*
         ═══ الإعدادات المالية والضريبية ═══
 
@@ -338,6 +342,17 @@ function ProfileCard({ data, locale }: { data: AccountData; locale: string }) {
         <div className="flex flex-col items-end gap-1">
           <span className="text-2xs opacity-55">{t('walletBalance')}</span>
           <Money amount={Number(data.walletBalance)} size="lg" />
+          {/*
+            **والمحجوز يُقال.** رصيدٌ يُعرض كاملًا وبعضُه عربونُ مزادٍ
+            لم يُحسم يجعل صاحبه يخطّط لما لا يملك التصرّف فيه.
+          */}
+          {Number(data.walletHeld) === 0 ? null : (
+            <span className="flex items-center gap-1 text-3xs opacity-55">
+              منها
+              <Money amount={Number(data.walletHeld)} showCurrency={false} size="sm" />
+              محجوزة كعربون مزاد
+            </span>
+          )}
         </div>
       </div>
 
