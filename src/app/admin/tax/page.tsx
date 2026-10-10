@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
@@ -174,6 +175,15 @@ export default async function TaxEnginePage({
         تصدير زاتكا XML والتوقيع والإبلاغ <strong>غير مبنيَّة بعد</strong> — تنتظر بيانات
         التسجيل لدى الهيئة.
       </p>
+    
+      <ListFooter
+        shown={invoices.length}
+        total={null}
+        note="الفواتير الصادرة — والقواعد أعلاها"
+        can="إصدار إشعارٍ دائن على فاتورة، وإقرار قاعدةٍ ضريبية معطّلة بعد مراجعتها."
+        cannot="تعديل فاتورة صدرت أو حذفها — الفاتورة الضريبية مستندٌ لا يُنقَّح، وتصحيحُها إشعارٌ دائن يعاكسها."
+        automatic="فاتورةٌ تُحجب لغياب قاعدةٍ أو لتعطيلها تُسجَّل حدثًا على طلبها."
+      />
     </AdminShell>
   );
 }

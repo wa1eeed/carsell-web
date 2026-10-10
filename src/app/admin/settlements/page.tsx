@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
@@ -94,6 +95,14 @@ export default async function SettlementsPage({
         blocked={show('blocked') ? queue.blocked : []}
         adminId={admin.id}
         canRelease={canWrite(admin.role, 'escrow.release')}
+      />
+    
+      <ListFooter
+        shown={queue.ready.length + queue.awaitingApproval.length + queue.blocked.length}
+        total={null}
+        note="ما لم يُفرَج عنه بعد — والمسترجَع خرج منه"
+        can="طلب الإفراج عن مبلغٍ محجوز، واعتماد طلب غيره."
+        cannot="الطلب والاعتماد معًا — ولا يعتمد طالبٌ طلبَ نفسه، فالإفراج يحتاج شخصين."
       />
     </AdminShell>
   );

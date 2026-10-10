@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -75,6 +76,14 @@ export default async function NotificationsPage() {
           </li>
         </ul>
       </section>
+    
+      <ListFooter
+        shown={templates.length}
+        total={null}
+        note="القوالب المعاملاتية — والتسويقية في الحملات"
+        can="تحرير نصّ القالب بلغتيه ومعاينته بقيَم."
+        cannot="إيقاف إشعارٍ حرج — ما يمسّ مال المستخدم أو أمن حسابه يصله مهما أوقف."
+      />
     </AdminShell>
   );
 }

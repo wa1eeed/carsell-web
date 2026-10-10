@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -85,6 +86,14 @@ export default async function AdminFaqPage({
       ) : (
         <FaqTable rows={rows} />
       )}
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="بنكٌ واحد ومواضع حسب طريقة البيع"
+        can="إضافة سؤال وتحريره وتغيير موضعه وترتيبه."
+        cannot="حذف سؤالٍ معروض على صفحةٍ حيّة بلا بديل — السؤال المحذوف يترك فراغًا يملؤه المشتري بظنّه."
+      />
     </AdminShell>
   );
 }

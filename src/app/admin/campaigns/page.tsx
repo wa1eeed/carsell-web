@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
@@ -202,6 +203,15 @@ export default async function CampaignsPage({
           </li>
         </ul>
       </section>
+    
+      <ListFooter
+        shown={campaigns.length}
+        total={null}
+        note="الحملات التسويقية — منفصلةٌ عن المعاملاتية"
+        can="إنشاء حملة وربطها بشريحة وإرسالها بعد مراجعتها."
+        cannot="إرسال حملةٍ أُرسلت أو أُلغيت، ولا تجاوز السقف الشهريّ أو مهلة التهدئة — والمحجوب بهما يُقال عدده."
+        automatic="الجمهور يُحوسَب لحظة الإرسال، ومن تجاوز سقفه أو كان في تهدئته يُستبعَد."
+      />
     </AdminShell>
   );
 }

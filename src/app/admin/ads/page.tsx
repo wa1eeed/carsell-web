@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -202,6 +203,14 @@ export default async function AdminAdsPage({
           </p>
         </div>
       </div>
+    
+      <ListFooter
+        shown={allCampaigns.length}
+        total={null}
+        note="المساحات وحملاتها"
+        can="تفعيل مساحةٍ أو إيقافها وتعديل تسعيرها، وقراءة أداء الحملات."
+        cannot="تعديل حملةٍ جارية — المعلن اشترى مساحةً بشروطٍ معلنة، وتغييرُها تحته إخلال."
+      />
     </AdminShell>
   );
 }

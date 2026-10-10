@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { identityQueue, identityStats } from '@/lib/domain/admin-identity';
@@ -80,6 +81,14 @@ export default async function AdminIdentityPage({
       <MonitorTabs tabs={tabs} active={status} basePath="/admin/identity" param="status" />
 
       <IdentityQueue rows={rows} stats={stats} />
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="الطابور اليدويّ وحده — والنفاذ الوطنيّ آليّ"
+        can="التوثيق أو طلب توضيح أو الرفض بسببٍ مكتوب."
+        cannot="عرض صورة الهوية أو رقمها كاملًا من الجدول — الاطّلاع فعلٌ مقصود يُقيَّد قبل أن يُعرض شيء."
+      />
     </AdminShell>
   );
 }

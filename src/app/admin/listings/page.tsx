@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { reviewQueue, reviewStats } from '@/lib/domain/admin-listings';
@@ -52,6 +53,15 @@ export default async function AdminListingsPage({
         stats={stats}
         filter={filter}
         canSuspend={can(admin.role, 'users.suspend')}
+      />
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="الطابور الآليّ — لا مراجعةُ كل إعلان"
+        can="الموافقة على الإعلان أو إعادته لصاحبه بملاحظةٍ يقرؤها."
+        cannot="تعديل محتوى الإعلان — الإرجاع بملاحظةٍ يجعل صاحبه يُصلح، والتعديل منّا يجعله يوقّع ما لم يكتب."
+        automatic="يدخل الطابور ما رشّحته قاعدة: صورة مكرّرة أو سعر شاذّ أو حساب جديد أو بلاغ."
       />
     </AdminShell>
   );

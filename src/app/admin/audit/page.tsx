@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { Badge } from '@/components/ui/Badge';
 import { MonitorCards, MonitorList, MonitorRow, MonitorTabs } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -101,6 +102,14 @@ export default async function AdminAuditPage({
           </MonitorRow>
         ))}
       </MonitorList>
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="السجلّ مضافٌ فقط"
+        can="القراءة والترشيح والبحث."
+        cannot="تعديل سطرٍ أو حذفه — سجلٌّ يُنقَّح ليس سجلًّا، وقيمتُه كلّها في أنه لا يُنقَض."
+      />
     </AdminShell>
   );
 }

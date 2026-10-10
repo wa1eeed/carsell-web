@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
@@ -147,6 +148,14 @@ export default async function AdminProvidersPage({
           </p>
         </div>
       </div>
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="المزوّدون وتغطيتهم والتزامهم"
+        can="إضافة مزوّد وتعديل بياناته وربط خدماته به، وإيقافه عن الإسناد."
+        cannot="حذف مزوّدٍ له طلباتٌ قائمة — تاريخُ الطلب يشير إليه، وحذفُه يترك طلبًا بلا منفّذ."
+      />
     </AdminShell>
   );
 }

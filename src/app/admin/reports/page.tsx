@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { reportQueue, reportStats } from '@/lib/domain/admin-reports';
@@ -45,6 +46,14 @@ export default async function AdminReportsPage({
       </p>
 
       <ReportsQueue rows={rows} stats={stats} status={filter} />
+    
+      <ListFooter
+        shown={rows.length}
+        total={null}
+        note="البلاغات ومآلها"
+        can="إحالة البلاغ إلى مراجعة الإعلان، أو إغلاقه بإجراء، أو صرفه."
+        cannot="إيقاف حساب المبلَّغ عنه من هنا — ذلك من شاشة العملاء بصلاحيتها."
+      />
     </AdminShell>
   );
 }

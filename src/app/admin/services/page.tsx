@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { listServicesForAdmin } from '@/lib/domain/admin-services';
@@ -37,6 +38,14 @@ export default async function AdminServicesPage() {
           <li>كل تغيير سعر يُكتب في سجلّ التدقيق بالقيمتين وبعدد الطلبات التي لم تُمَسّ.</li>
         </ul>
       </section>
+    
+      <ListFooter
+        shown={services.length}
+        total={null}
+        note="الخدمات وأسعارها ومواضعها"
+        can="إضافة خدمة وتعديل سعرها ومهلتها وربطها بمزوّد، وإخفاؤها."
+        cannot="تغيير سعر طلبٍ قائم — السعر لقطةٌ وقت الطلب، وتعديلُه هنا يمسّ القادم وحده."
+      />
     </AdminShell>
   );
 }
