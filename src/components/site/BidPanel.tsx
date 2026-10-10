@@ -177,7 +177,9 @@ export function BidPanel({
           })}
         </div>
         <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-50">
-          يُحجز عربون <Money amount={Number(depositAmount)} /> مرّةً واحدة، ويُردّ إن لم ترسُ عليك.
+          {/* لا يُدّعى حجزٌ لا يقع — الحجز اليوم دفتريّ، والالتزام هو المعنى */}
+          مزايدتك التزام بعربون <Money amount={Number(depositAmount)} /> — ولا يُطالَب به إلّا
+          من رسا عليه المزاد ثم انسحب.
         </p>
         <Button className="mt-4 w-full" disabled={pending || amount === ''} onClick={submit}>
           {pending ? 'جارٍ…' : 'أرسل المزايدة'}
