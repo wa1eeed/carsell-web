@@ -53,11 +53,29 @@ export type DealerStats = {
   listingSharePct: number;
 };
 
+/**
+ * بحث المعارض — **الاسم والمدينة والرقم الضريبيّ**.
+ * ولا الهاتف: يُسجَّل في كل سجلّ وصول، وهو بيانٌ لا يُسرَّب بحثًا.
+ */
+function dealerSearch(q: string | null): Prisma.DealerWhereInput {
+  const term = (q ?? '').trim();
+  if (term === '') return {};
+  return {
+    OR: [
+      { nameAr: { contains: term, mode: 'insensitive' } },
+      { nameEn: { contains: term, mode: 'insensitive' } },
+      { city: { contains: term, mode: 'insensitive' } },
+      { vatNumber: { contains: term, mode: 'insensitive' } },
+    ],
+  };
+}
+
 export async function dealerList(
   status: DealerStatus | null = null,
+  q: string | null = null,
 ): Promise<DealerRow[]> {
   const dealers = await db.dealer.findMany({
-    where: status === null ? {} : { status },
+    where: { ...(status === null ? {} : { status }), ...dealerSearch(q) },
     orderBy: { createdAt: 'desc' },
     take: 200,
     select: {

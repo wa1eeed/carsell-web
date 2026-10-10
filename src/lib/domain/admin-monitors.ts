@@ -314,18 +314,25 @@ export type OfferCounts = {
 export async function offerMonitor(
   filter: 'active' | 'countered' | 'accepted' | 'auto' | null = null,
   now: Date = new Date(),
+  q: string | null = null,
 ): Promise<OfferRow[]> {
   const rows = await db.offer.findMany({
-    where:
-      filter === 'active'
-        ? { status: 'PENDING', expiresAt: { gt: now } }
+    where: {
+      ...(filter === 'active'
+        ? { status: 'PENDING' as const, expiresAt: { gt: now } }
         : filter === 'countered'
-          ? { status: 'COUNTERED' }
+          ? { status: 'COUNTERED' as const }
           : filter === 'accepted'
-            ? { status: 'ACCEPTED' }
+            ? { status: 'ACCEPTED' as const }
             : filter === 'auto'
               ? { autoRejected: true }
-              : {},
+              : {}),
+      /**
+       * البحث على الإعلان — **والعرض لا مرجع له يُنسخ**، ومرجعُ إعلانه
+       * هو ما يُكتب في بلاغٍ أو مكالمة.
+       */
+      ...(q === null || q.trim() === '' ? {} : { listing: listingSearch(q) }),
+    },
     orderBy: { createdAt: 'desc' },
     take: 100,
     select: {

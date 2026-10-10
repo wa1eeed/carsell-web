@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ExportLink } from '@/components/admin/ExportLink';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -80,7 +81,11 @@ export default async function LedgerPage() {
         </p>
       </section>
 
-      <h2 className="mb-3.5 text-sm font-bold">آخر القيود</h2>
+      {/* التصدير من مكان الدفتر — ومن يراجعه يريد ملفَّه الآن */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
+        <h2 className="text-sm font-bold">آخر القيود</h2>
+        <ExportLink reportKey="ledger" allowed={can(admin.role, 'finance.view')} />
+      </div>
       {entries.length === 0 ? (
         <EmptyState
           title="الدفتر فارغ"

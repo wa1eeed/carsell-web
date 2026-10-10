@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListSearch } from '@/components/admin/ListSearch';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -25,17 +26,18 @@ const FILTERS: readonly string[] = ['ACTIVE', 'PENDING', 'SUSPENDED'];
 export default async function AdminDealersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'users.view')) redirect('/admin');
 
-  const { filter } = await searchParams;
+  const { filter, q } = await searchParams;
+  const term = (q ?? '').trim() === '' ? null : (q ?? '').trim();
   const active = filter !== undefined && FILTERS.includes(filter) ? filter : null;
 
   const [rows, stats] = await Promise.all([
-    dealerList(active as DealerStatus | null),
+    dealerList(active as DealerStatus | null, term),
     dealerStats(),
   ]);
 
@@ -58,6 +60,13 @@ export default async function AdminDealersPage({
             note: 'من المنشور',
           },
         ]}
+      />
+
+      <ListSearch
+        action="/admin/dealers"
+        value={term}
+        placeholder="اسم المعرض · المدينة · الرقم الضريبيّ"
+        keep={{ filter: active }}
       />
 
       <MonitorTabs

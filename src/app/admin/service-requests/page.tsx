@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ExportLink } from '@/components/admin/ExportLink';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -83,6 +84,14 @@ export default async function ServiceRequestsPage({
   return (
     <AdminShell title="طلبات الخدمات"
       subtitle="الإسناد والالتزام" activeHref="/admin/service-requests" admin={admin}>
+      {/*
+        **والتصدير من مكان القائمة.** شاشةٌ جامعة صحيحةٌ للمراجعة
+        الدورية، لكن من يقف على طابورٍ مرشَّح يريد تصديره الآن.
+      */}
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2.5">
+        <ExportLink reportKey="service_requests" allowed={can(admin.role, 'serviceRequests.handle')} />
+      </div>
+
       <MonitorTabs tabs={tabs} active={filter} basePath="/admin/service-requests" param="filter" />
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">

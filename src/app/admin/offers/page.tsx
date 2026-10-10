@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ListSearch } from '@/components/admin/ListSearch';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -36,16 +37,17 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function AdminOffersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'orders.view')) redirect('/admin');
 
-  const { filter } = await searchParams;
+  const { filter, q } = await searchParams;
+  const term = (q ?? '').trim() === '' ? null : (q ?? '').trim();
   const active = FILTERS.includes(filter as Filter) ? (filter as Filter) : null;
 
-  const [rows, counts] = await Promise.all([offerMonitor(active), offerCounts()]);
+  const [rows, counts] = await Promise.all([offerMonitor(active, new Date(), term), offerCounts()]);
 
   return (
     <AdminShell title="العروض والمفاوضات" activeHref="/admin/offers" admin={admin}>
@@ -64,6 +66,13 @@ export default async function AdminOffersPage({
             note: 'ممّا نظر فيه البائع',
           },
         ]}
+      />
+
+      <ListSearch
+        action="/admin/offers"
+        value={term}
+        placeholder="مرجع الإعلان · المركبة · المدينة · البائع"
+        keep={{ filter: active }}
       />
 
       <MonitorTabs

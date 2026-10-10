@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ExportLink } from '@/components/admin/ExportLink';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -82,6 +83,14 @@ export default async function AdminAllListingsPage({
       />
 
       {/* البحث قبل الشرائح — والشريحة تُحمل معه فلا يُرجعه إلى «الكل» */}
+      {/*
+        **والتصدير من مكان القائمة.** شاشةٌ جامعة صحيحةٌ للمراجعة
+        الدورية، لكن من يقف على طابورٍ مرشَّح يريد تصديره الآن.
+      */}
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2.5">
+        <ExportLink reportKey="inventory_aging" allowed={can(admin.role, 'listings.review')} />
+      </div>
+
       <ListSearch
         action="/admin/all-listings"
         value={term}

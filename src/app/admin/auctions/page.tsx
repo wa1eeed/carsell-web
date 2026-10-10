@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ExportLink } from '@/components/admin/ExportLink';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { ListSearch } from '@/components/admin/ListSearch';
 import { Badge } from '@/components/ui/Badge';
@@ -63,6 +64,14 @@ export default async function AdminAuctionsPage({
           },
         ]}
       />
+
+      {/*
+        **والتصدير من مكان القائمة.** شاشةٌ جامعة صحيحةٌ للمراجعة
+        الدورية، لكن من يقف على طابورٍ مرشَّح يريد تصديره الآن.
+      */}
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2.5">
+        <ExportLink reportKey="auction_performance" allowed={can(admin.role, 'orders.view')} />
+      </div>
 
       <ListSearch
         action="/admin/auctions"
