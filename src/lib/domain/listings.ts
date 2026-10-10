@@ -494,6 +494,7 @@ export async function searchListings(
              * بطءٌ للزائر، وإشارةٌ لمحرّك البحث أن روابطنا ليست نهائية.
              */
             brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
           },
         },
         seller: { include: { dealer: true } },

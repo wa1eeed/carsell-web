@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { citySlug as citySlugOf, modelSlug as modelSlugOf } from './slugs';
 import { fromSlug, toSlug } from './listing-detail';
 
 /**
@@ -36,7 +37,8 @@ export async function landingCombinations(): Promise<LandingKey[]> {
     select: {
       city: true,
       vehicle: {
-        select: { brandName: true, modelName: true, brand: { select: { slug: true } } },
+        select: { brandName: true, modelName: true, brand: { select: { slug: true } },
+          model: { select: { nameEn: true } } },
       },
     },
   });
@@ -44,20 +46,28 @@ export async function landingCombinations(): Promise<LandingKey[]> {
   const byKey = new Map<string, LandingKey>();
 
   for (const row of rows) {
-    const citySlug = toSlug(row.city);
+    /**
+     * **ومقاطع الهبوط لاتينيةٌ كصفحة السيارة.** كانت تُبنى بـ`toSlug`
+     * فتبقى عربية (`/browse/الرياض/toyota`)، وصفحةُ المركبة صارت
+     * `riyadh` — فمسارٌ واحد بوجهين، وأحدهما يردّ ٤٠٤ على الآخر.
+     */
+    const city = citySlugOf(row.city);
     const brandSlug = row.vehicle.brand?.slug ?? toSlug(row.vehicle.brandName);
-    const modelSlug = toSlug(row.vehicle.modelName);
+    const modelSlug = modelSlugOf({
+      nameAr: row.vehicle.modelName,
+      nameEn: row.vehicle.model?.nameEn ?? null,
+    });
 
     // مدينة × ماركة، ثم مدينة × ماركة × طراز — الأعمّ يبقى ولو نفد الأخصّ
     for (const entry of [
       { modelSlug: null, model: null },
       { modelSlug, model: row.vehicle.modelName },
     ]) {
-      const key = `${citySlug}|${brandSlug}|${entry.modelSlug ?? ''}`;
+      const key = `${city}|${brandSlug}|${entry.modelSlug ?? ''}`;
       const found = byKey.get(key);
       if (found === undefined) {
         byKey.set(key, {
-          citySlug,
+          citySlug: city,
           city: row.city,
           brandSlug,
           brand: row.vehicle.brandName,
@@ -83,6 +93,8 @@ export type LandingContent = LandingKey & {
   inspectedCount: number;
   /** مسار البحث المكافئ — الصفحة بوّابةٌ إليه لا بديلٌ عنه. */
   searchQuery: string;
+  /** وُصل إليها برابطٍ قديم — فتُحوَّل إلى المعياريّ. */
+  legacySlug: boolean;
 };
 
 /** يعيد `null` حين تنفد التركيبة — والصفحة حينها ٤٠٤ لا صفحةٌ فارغة. */
@@ -107,14 +119,39 @@ export async function landingContent(
       entry.brandSlug === brandSlug &&
       entry.modelSlug === modelSlug,
   );
-  if (match === undefined) return null;
+
+  /**
+   * ═══ والمقطع العربيّ القديم لا يُترك ٤٠٤ ═══
+   *
+   * الروابط كانت `/browse/الرياض/toyota` وصارت `/browse/riyadh/toyota`،
+   * وما فُهرس منها وما نُسخ في محادثةٍ يبقى بالقديم. وصفحةُ المركبة
+   * تُحوّل نفسها ٣٠١ — فالهبوط تفعل مثلها، وإلّا أسقطنا ما بُني من
+   * فهرسةٍ بتغييرٍ تجميليّ.
+   *
+   * فحين لا تطابق المقاطع، تُجرَّب **بأسماء المدن والطرازات العربية**:
+   * فإن طابقت رُدَّت التركيبة ومعها `canonicalSlugs` ليُحوّل المستدعي.
+   */
+  const legacy =
+    match !== undefined
+      ? undefined
+      : combinations.find(
+          (entry) =>
+            toSlug(entry.city) === citySlug &&
+            entry.brandSlug === brandSlug &&
+            (modelSlug === null
+              ? entry.modelSlug === null
+              : entry.model !== null && toSlug(entry.model) === modelSlug),
+        );
+
+  const picked = match ?? legacy;
+  if (picked === undefined) return null;
 
   const where = {
     status: 'PUBLISHED' as const,
-    city: match.city,
+    city: picked.city,
     vehicle: {
-      brandName: match.brand,
-      ...(match.model === null ? {} : { modelName: match.model }),
+      brandName: picked.brand,
+      ...(picked.model === null ? {} : { modelName: picked.model }),
     },
   };
 
@@ -124,17 +161,22 @@ export async function landingContent(
       where: { ...where, vehicle: { ...where.vehicle, inspectionReports: { some: {} } } },
     }),
     db.brand.findFirst({ where: { slug: brandSlug }, select: { id: true } }),
-    match.model === null
+    picked.model === null
       ? Promise.resolve(null)
-      : db.model.findFirst({ where: { nameAr: match.model }, select: { id: true } }),
+      : db.model.findFirst({ where: { nameAr: picked.model }, select: { id: true } }),
   ]);
 
-  const params = new URLSearchParams({ city: match.city });
+  const params = new URLSearchParams({ city: picked.city });
   if (brandId !== null) params.set('brandId', brandId.id);
   if (modelId !== null) params.set('modelId', modelId.id);
 
   return {
-    ...match,
+    ...picked,
+    /**
+     * **ووصلنا إليها بالمقطع العربيّ القديم.** الشاشة تُحوّل ٣٠١ إلى
+     * المعياريّ، فما فُهرس بالقديم ينتقل ولا يُفقد.
+     */
+    legacySlug: legacy !== undefined,
     priceMin: bounds._min.askPrice?.toString() ?? null,
     priceMax: bounds._max.askPrice?.toString() ?? null,
     inspectedCount,

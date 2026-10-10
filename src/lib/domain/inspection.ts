@@ -179,7 +179,8 @@ const REPORT_INCLUDE = {
           ref: true,
           city: true,
           vehicle: {
-            select: { brandName: true, modelName: true, brand: { select: { slug: true } } },
+            select: { brandName: true, modelName: true, brand: { select: { slug: true } },
+          model: { select: { nameEn: true } } },
           },
         },
       },

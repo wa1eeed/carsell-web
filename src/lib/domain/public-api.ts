@@ -48,6 +48,7 @@ const PUBLIC_SELECT = {
       brandName: true, modelName: true, year: true, mileageKm: true,
       transmission: true, fuel: true, bodyType: true,
       brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
       inspectionReports: { select: { score: true }, orderBy: { inspectedAt: 'desc' as const }, take: 1 },
     },
   },

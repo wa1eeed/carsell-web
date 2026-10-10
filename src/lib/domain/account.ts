@@ -115,6 +115,7 @@ export async function favoriteListings(
         select: {
           brandName: true, modelName: true, trimName: true, year: true,
           brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
         },
       },
     },
@@ -217,6 +218,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     trimName: true,
     year: true,
     brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
   } as const;
 
   const [orders, offers, listings, reports, favourites] = await Promise.all([
@@ -413,6 +415,7 @@ const AUCTION_SELECT = {
         select: {
           brandName: true, modelName: true, trimName: true, year: true,
           brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
         },
       },
     },

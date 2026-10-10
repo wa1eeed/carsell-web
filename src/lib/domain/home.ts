@@ -110,6 +110,7 @@ const CARD_INCLUDE = {
       mileageKm: true,
       transmission: true,
       brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
       inspectionReports: { select: { id: true }, take: 1 },
     },
   },
@@ -254,7 +255,8 @@ export async function getHomeData(
     db.auction.findFirst({
       where: { status: 'LIVE', listing: published },
       orderBy: { endsAt: 'asc' },
-      select: { endsAt: true, listing: { select: { ref: true, city: true, vehicle: { select: { brandName: true, modelName: true, brand: { select: { slug: true } } } } } } },
+      select: { endsAt: true, listing: { select: { ref: true, city: true, vehicle: { select: { brandName: true, modelName: true, brand: { select: { slug: true } },
+          model: { select: { nameEn: true } } } } } } },
     }),
     db.listing.count({ where: published }),
     db.dealer.count({ where: { verified: true, status: 'ACTIVE' } }),

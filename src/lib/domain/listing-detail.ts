@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { citySlug, modelSlug } from './slugs';
 import { effectiveAdminFee } from './fees';
 import { DEFAULT_VAT_PCT, vatIncluded } from './money';
 import { sellerTypeFor, vehicleIsTaxable, isVatRegistered } from './tax-profile';
@@ -69,12 +70,38 @@ export function canonicalPath(
   listing: {
     ref: string;
     city: string;
-    vehicle: { brandName: string; modelName: string; brand?: { slug: string } | null };
+    vehicle: {
+      brandName: string;
+      modelName: string;
+      brand?: { slug: string } | null;
+      /**
+       * **اختياريّة عمدًا.** سبعة عشر استعلامًا تبني هذا الشكل، وبعضها
+       * لا ينتقي العلاقة — فغيابُها يسقط إلى العربية كما كان ولا
+       * يُسقط شيئًا، وتُضاف حيث تُحتاج.
+       */
+      model?: { nameEn: string | null } | null;
+    };
   },
 ): Canonical {
-  const city = toSlug(listing.city);
+  /**
+   * ═══ المقاطع لاتينيةٌ كاملة ═══
+   *
+   * كان المسار `/ar/cars/الخبر/hyundai/ستاريا/ADS…` — الماركة لاتينية
+   * والمدينةُ والطراز عربيّان، لأن `toSlug` تُبقي `\p{Letter}` وهي
+   * تشمل العربية. والتصميم يعرضه `riyadh/toyota/camry`.
+   *
+   * **والرابط أوّل ما يُقرأ** في نتيجة بحثٍ وفي رسالة واتساب، والعربيّ
+   * يُرمَّز فيها `%D8%A7%D9%84…` فيُشارَك مشوَّهًا ولا يُنقر.
+   *
+   * ولا يُكسر القديم: الصفحة تقارن المطلوب بالمعياريّ وتُحوّل ٣٠١ —
+   * فالروابط المنسوخة تعمل وتُصحَّح نفسها.
+   */
+  const city = citySlug(listing.city);
   const brand = listing.vehicle.brand?.slug ?? toSlug(listing.vehicle.brandName);
-  const model = toSlug(listing.vehicle.modelName);
+  const model = modelSlug({
+    nameAr: listing.vehicle.modelName,
+    nameEn: listing.vehicle.model?.nameEn ?? null,
+  });
   const parts = [city, brand, model, listing.ref];
   return {
     city,
@@ -224,6 +251,7 @@ const DETAIL_INCLUDE = {
   vehicle: {
     include: {
       brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
       inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
       history: { orderBy: { occurredAt: 'desc' } },
     },
@@ -283,6 +311,7 @@ export async function findListingForMetadata(ref: string) {
           year: true,
           mileageKm: true,
           brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
         },
       },
     },

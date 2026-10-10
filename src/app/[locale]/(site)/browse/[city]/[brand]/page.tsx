@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { notFound } from 'next/navigation';
+import {notFound, permanentRedirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -55,6 +55,22 @@ export default async function CityBrandLanding({ params }: { params: Params }) {
   ]);
   // نفدت التركيبة ⇒ ٤٠٤ لا صفحةٌ فارغة
   if (content === null) notFound();
+
+  /**
+   * ═══ والرابط القديم يُحوَّل لا يُكسَر ═══
+   *
+   * المقاطع صارت لاتينية (`riyadh` بدل `الرياض`)، وما فُهرس بالقديم
+   * وما نُسخ في محادثةٍ يبقى عليه. وصفحةُ المركبة تُحوّل نفسها ٣٠١
+   * منذ بُنيت — فالهبوط تفعل مثلها، وإلّا أسقطنا ما بُني من فهرسةٍ
+   * بتغييرٍ تجميليّ.
+   *
+   * **وحارس الحلقة**: لا يُحوَّل مسارٌ إلى نفسه مهما اختلّ الحساب.
+   */
+  if (content.legacySlug) {
+    const target = `/${locale}/browse/${content.citySlug}/${content.brandSlug}`;
+    const here = `/${locale}/browse/${[city, brand].map(encodeURIComponent).join('/')}`;
+    if (target !== here) permanentRedirect(target);
+  }
 
   // الشاشة لا تُقارن مقاطع بنفسها — المقارنة حيث الفكّ مضمون
   const siblings = await landingSiblings(city, brand);

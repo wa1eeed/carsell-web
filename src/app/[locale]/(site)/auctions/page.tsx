@@ -78,6 +78,7 @@ export default async function AuctionsPage({
               select: {
                 brandName: true, modelName: true, trimName: true, year: true,
                 brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
               },
             },
           },

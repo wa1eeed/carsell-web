@@ -71,6 +71,7 @@ export async function getDealerPage(
             inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
             // بلا `brand.slug` يُبنى الرابط بالاسم العربي فيُحوَّل ٣٠١
             brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
           },
         },
         images: { orderBy: { sort: 'asc' } },

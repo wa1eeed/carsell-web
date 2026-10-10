@@ -48,6 +48,7 @@ const OFFER_INCLUDE = {
         select: {
           brandName: true, modelName: true, trimName: true, year: true,
           brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
         },
       },
     },

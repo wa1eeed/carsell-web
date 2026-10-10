@@ -22,7 +22,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [listings, landings, dealers] = await Promise.all([
     db.listing.findMany({
       where: { status: 'PUBLISHED' },
-      include: { vehicle: { include: { brand: { select: { slug: true } } } } },
+      include: { vehicle: { include: { brand: { select: { slug: true } },
+          model: { select: { nameEn: true } } } } },
       orderBy: { publishedAt: 'desc' },
       take: 5000,
     }),

@@ -89,12 +89,24 @@ describe('الرابط الأساسي — قرار ٢٥', () => {
     expect(canonical.path.endsWith(row!.ref)).toBe(true);
   });
 
-  /** ترويسة `Location` لا تقبل إلا ASCII — مسار عربي خام يسقط الطلب. */
-  it('المسار مُرمَّز والمعروض مفكوك', async () => {
+  /**
+   * ═══ المسار لاتينيٌّ كاملًا — ولا ترميز فيه ═══
+   *
+   * كان هذا الفحص يثبّت `display` يحمل «الرياض»: المدينة كانت تُكتب
+   * عربيةً في المسار وتُرمَّز (`%D8%A7%D9%84…`)، و`display` يفكّها
+   * للعرض. **وهو تفصيلُ تنفيذ لا قرار**: القرار ٢٥ يحدّد شكل المسار
+   * (`/cars/{city}/{brand}/{model}/{ref}`) لا خطَّه، وملفّ التصميم
+   * يعرضه `riyadh/toyota/camry`.
+   *
+   * والرابط أوّل ما يُقرأ في نتيجة بحثٍ وفي رسالة — والمرمَّز يُشارَك
+   * مشوَّهًا ولا يُنقر.
+   */
+  it('المسار لاتينيٌّ بلا ترميز، ولا يحمل عربية', async () => {
     const row = await findPublishedListing(await anyRef({ city: 'الرياض' }));
     const canonical = canonicalPath('ar', row!);
     expect(canonical.path).toMatch(/^[\x20-\x7E]*$/);
-    expect(canonical.display).toContain('الرياض');
+    expect(canonical.path).not.toContain('%');
+    expect(canonical.city).toBe('riyadh');
   });
 
   /**
