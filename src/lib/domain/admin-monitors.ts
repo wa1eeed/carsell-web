@@ -52,12 +52,39 @@ export type ListingCounts = {
   activeSharePct: number;
 };
 
+/**
+ * ═══ بحث القوائم — وما يُبحث عنه فعلًا ═══
+ *
+ * المرجع (`ADS2026A0042`) أوّلًا: هو ما يُنسخ من محادثةٍ أو بلاغ.
+ * ثم اسم المركبة والمدينة واسم البائع — وهي ما يُكتب حين لا يُحفظ
+ * المرجع. **ولا يُبحث في الهاتف**: رقمٌ كامل في مربّع بحثٍ يُسجَّل في
+ * كل سجلّ وصول، وهو بيانٌ شخصيّ لا يُسرَّب بحثًا.
+ *
+ * و`mode: 'insensitive'` لأن المراجع تُنسخ بحالتين، و«ADS» و«ads»
+ * واحد عند من يكتبها.
+ */
+function listingSearch(q: string | null): Prisma.ListingWhereInput {
+  const term = (q ?? '').trim();
+  if (term === '') return {};
+  return {
+    OR: [
+      { ref: { contains: term, mode: 'insensitive' } },
+      { city: { contains: term, mode: 'insensitive' } },
+      { seller: { name: { contains: term, mode: 'insensitive' } } },
+      { vehicle: { brandName: { contains: term, mode: 'insensitive' } } },
+      { vehicle: { modelName: { contains: term, mode: 'insensitive' } } },
+      { vehicle: { trimName: { contains: term, mode: 'insensitive' } } },
+    ],
+  };
+}
+
 export async function allListings(
   status: ListingStatus | null = null,
   take = 100,
+  q: string | null = null,
 ): Promise<ListingRow[]> {
   const rows = await db.listing.findMany({
-    where: status === null ? {} : { status },
+    where: { ...(status === null ? {} : { status }), ...listingSearch(q) },
     orderBy: { publishedAt: { sort: 'desc', nulls: 'last' } },
     take,
     select: {

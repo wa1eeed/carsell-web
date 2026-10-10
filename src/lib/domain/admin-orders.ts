@@ -86,13 +86,33 @@ export async function orderTabCounts(): Promise<OrderTabCounts> {
   };
 }
 
+/**
+ * بحث الطلبات — **المرجع أوّلًا** (`ORD-2026-1042`): هو ما يُنسخ من
+ * بلاغٍ أو مكالمة. ثم مرجع الإعلان واسم الطرفين.
+ * **ولا يُبحث في الهاتف**: رقمٌ كامل في مربّع بحث يُسجَّل في كل سجلّ
+ * وصول، وهو بيانٌ شخصيّ لا يُسرَّب بحثًا.
+ */
+function orderSearch(q: string | null): Prisma.OrderWhereInput {
+  const term = (q ?? '').trim();
+  if (term === '') return {};
+  return {
+    OR: [
+      { ref: { contains: term, mode: 'insensitive' } },
+      { listing: { ref: { contains: term, mode: 'insensitive' } } },
+      { buyer: { name: { contains: term, mode: 'insensitive' } } },
+      { seller: { name: { contains: term, mode: 'insensitive' } } },
+    ],
+  };
+}
+
 export async function listAdminOrders(
-  filters: { stage?: OrderStage; onlyLate?: boolean } = {},
+  filters: { stage?: OrderStage; onlyLate?: boolean; q?: string | null } = {},
   now: Date = new Date(),
 ): Promise<OrderRow[]> {
   const rows = await db.order.findMany({
     where: {
       ...(filters.stage === undefined ? {} : { stage: filters.stage }),
+      ...orderSearch(filters.q ?? null),
       status: { in: ['ACTIVE', 'DISPUTED', 'STALLED'] },
     },
     orderBy: { stageEnteredAt: 'asc' },
@@ -289,6 +309,23 @@ export type UserSegment =
   | 'all' | 'buyers' | 'sellers' | 'dealers'
   | 'verified' | 'unverified' | 'repeat' | 'suspended' | 'banned';
 
+/**
+ * بحث العملاء — **الاسم ورقم العميل والبريد**. ولا الهاتف: يُسجَّل في
+ * كل سجلّ وصول، وهو بيانٌ شخصيّ لا يُسرَّب بحثًا. ورقم العميل
+ * (`CUS-2026-0042`) هو ما يقوله العميل في مكالمة.
+ */
+function userSearch(q: string | null): Prisma.UserWhereInput {
+  const term = (q ?? '').trim();
+  if (term === '') return {};
+  return {
+    OR: [
+      { ref: { contains: term, mode: 'insensitive' } },
+      { name: { contains: term, mode: 'insensitive' } },
+      { email: { contains: term, mode: 'insensitive' } },
+    ],
+  };
+}
+
 const SEGMENT_WHERE: Record<UserSegment, Prisma.UserWhereInput> = {
   all: {},
   buyers: { ordersAsBuyer: { some: {} } },
@@ -319,9 +356,12 @@ export async function userSegmentCounts(): Promise<Record<UserSegment, number>> 
   return out;
 }
 
-export async function listAdminUsers(segment: UserSegment = 'all'): Promise<UserRow[]> {
+export async function listAdminUsers(
+  segment: UserSegment = 'all',
+  q: string | null = null,
+): Promise<UserRow[]> {
   const rows = await db.user.findMany({
-    where: SEGMENT_WHERE[segment] ?? {},
+    where: { ...(SEGMENT_WHERE[segment] ?? {}), ...userSearch(q) },
     orderBy: { createdAt: 'desc' },
     take: 100,
     select: {

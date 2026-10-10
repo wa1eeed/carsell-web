@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { decideReview, reviewQueue, reviewStats } from '@/lib/domain/admin-listings';
 import { MIN_REVIEW_NOTE } from '@/lib/domain/review-rules';
+import { allListings } from '@/lib/domain/admin-monitors';
 
 /**
  * ═══ A15 — طابور مراجعة الإعلانات ═══
@@ -186,5 +187,40 @@ describe('reviewStats — عدّادات الشاشة', () => {
     expect(stats.queued).toBeGreaterThanOrEqual(3);
     expect(stats.byReason.DUPLICATE_IMAGE).toBeGreaterThanOrEqual(2);
     expect(stats.oldestMinutes).toBeGreaterThanOrEqual(70);
+  });
+});
+
+describe('═══ بحث القوائم ═══', () => {
+  /**
+   * **ولا يُبحث في الهاتف.** رقمٌ كامل في مربّع بحثٍ يُسجَّل في كل
+   * سجلّ وصول وكل سجلّ وكيل — وهو بيانٌ شخصيّ لا يُسرَّب بحثًا.
+   * والبحث بالمرجع والاسم يكفي من يعالج طلبًا.
+   */
+  it('بحث الإعلانات يُرشِّح بالمرجع ولا يبحث في الهاتف', async () => {
+    const one = await db.listing.findFirst({
+      where: { status: 'PUBLISHED' },
+      select: { ref: true, seller: { select: { phone: true } } },
+    });
+    expect(one).not.toBeNull();
+    if (one === null) return;
+
+    const byRef = await allListings(null, 100, one.ref);
+    expect(byRef.map((row) => row.ref)).toContain(one.ref);
+    expect(byRef).toHaveLength(1);
+
+    // الهاتف كاملًا لا يُطابق شيئًا — وهو المقصود
+    const byPhone = await allListings(null, 100, one.seller.phone);
+    expect(byPhone).toHaveLength(0);
+  });
+
+  it('البحث يتقاطع مع الشريحة لا يُلغيها', async () => {
+    const sold = await allListings('SOLD', 100, null);
+    if (sold.length === 0) return;
+    const ref = sold[0]?.ref;
+    if (ref === undefined) return;
+
+    // المرجع نفسه تحت شريحةٍ أخرى لا يظهر — فالشرطان يُجمعان
+    const underWrongStatus = await allListings('PENDING_REVIEW', 100, ref);
+    expect(underWrongStatus).toHaveLength(0);
   });
 });

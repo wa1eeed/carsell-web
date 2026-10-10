@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
+import { ListSearch } from '@/components/admin/ListSearch';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
@@ -49,6 +50,7 @@ export default async function AdminOrdersPage({
 
   const search = await searchParams;
   const raw = typeof search.tab === 'string' ? search.tab : 'all';
+  const q = typeof search.q === 'string' && search.q.trim() !== '' ? search.q.trim() : null;
 
   const stage = STAGES.find((key) => key === raw);
   const closed = CLOSED.find((key) => key === raw);
@@ -60,7 +62,7 @@ export default async function AdminOrdersPage({
      * الجلب يجعل `take: 200` يقصّ قبل أن يُرشَّح، فتُعرض شريحةٌ ناقصة
      * وتبدو أصغر ممّا هي.
      */
-    listAdminOrders(stage === undefined ? {} : { stage }),
+    listAdminOrders({ ...(stage === undefined ? {} : { stage }), q }),
     orderTabCounts(),
   ]);
 
@@ -98,6 +100,13 @@ export default async function AdminOrdersPage({
   return (
     <AdminShell title="الطلبات"
       subtitle="تابز لكل مرحلة وإجراء مباشر" activeHref="/admin/orders" admin={admin}>
+      <ListSearch
+        action="/admin/orders"
+        value={q}
+        placeholder="رقم الطلب · مرجع الإعلان · اسم المشتري أو البائع"
+        keep={{ tab: active }}
+      />
+
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/orders" param="tab" />
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">

@@ -10,6 +10,7 @@ import {
   type UserSegment,
 } from '@/lib/domain/admin-orders';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
+import { ListSearch } from '@/components/admin/ListSearch';
 import { UsersTable } from './UsersTable';
 
 export const dynamic = 'force-dynamic';
@@ -51,9 +52,10 @@ export default async function AdminUsersPage({
   const search = await searchParams;
   const raw = typeof search.tab === 'string' ? search.tab : 'all';
   const segment: UserSegment = SEGMENTS.find((row) => row.key === raw)?.key ?? 'all';
+  const term = typeof search.q === 'string' && search.q.trim() !== '' ? search.q.trim() : null;
 
   const [users, counts, segments] = await Promise.all([
-    listAdminUsers(segment),
+    listAdminUsers(segment, term),
     db.user.groupBy({ by: ['status'], _count: { _all: true } }),
     userSegmentCounts(),
   ]);
@@ -71,6 +73,13 @@ export default async function AdminUsersPage({
   return (
     <AdminShell title="العملاء"
       subtitle="تصنيفات وسلوك وقيمة" activeHref="/admin/users" admin={admin}>
+      <ListSearch
+        action="/admin/users"
+        value={term}
+        placeholder="رقم العميل · الاسم · البريد"
+        keep={{ tab: segment === 'all' ? null : segment }}
+      />
+
       <MonitorTabs tabs={tabs} active={segment === 'all' ? null : segment} basePath="/admin/users" param="tab" />
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">

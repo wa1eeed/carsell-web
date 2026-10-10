@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { MonitorCards, MonitorList, MonitorRow, MonitorTabs } from '@/components/admin/MonitorShell';
+import { ListSearch } from '@/components/admin/ListSearch';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { allListings, listingCounts } from '@/lib/domain/admin-monitors';
@@ -41,17 +42,18 @@ const TYPE_LABEL: Record<string, string> = {
 export default async function AdminAllListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'listings.review')) redirect('/admin');
 
-  const { filter } = await searchParams;
+  const { filter, q } = await searchParams;
+  const term = (q ?? '').trim() === '' ? null : (q ?? '').trim();
   const active = filter !== undefined && FILTERS.includes(filter) ? filter : null;
 
   const [rows, counts] = await Promise.all([
-    allListings(active as ListingStatus | null),
+    allListings(active as ListingStatus | null, 100, term),
     listingCounts(),
   ]);
 
@@ -76,6 +78,14 @@ export default async function AdminAllListingsPage({
           { title: 'مبيعة', value: counts.sold, note: 'اكتمل نقل ملكيتها' },
           { title: 'محجوزة', value: counts.reserved, note: 'عليها طلب قائم' },
         ]}
+      />
+
+      {/* البحث قبل الشرائح — والشريحة تُحمل معه فلا يُرجعه إلى «الكل» */}
+      <ListSearch
+        action="/admin/all-listings"
+        value={term}
+        placeholder="مرجع الإعلان · المركبة · المدينة · البائع"
+        keep={{ filter: active }}
       />
 
       <MonitorTabs
