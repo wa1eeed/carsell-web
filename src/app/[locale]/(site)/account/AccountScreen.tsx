@@ -353,6 +353,13 @@ function ProfileCard({ data, locale }: { data: AccountData; locale: string }) {
               محجوزة كعربون مزاد
             </span>
           )}
+          {/* **والعدّاد يربط إلى شاشة أو لا يُعرض** — والقاعدة مسجَّلة */}
+          <Link
+            href={`/${locale}/account/wallet`}
+            className="text-3xs font-bold underline underline-offset-2 opacity-70 hover:opacity-100"
+          >
+            كشف المحفظة ←
+          </Link>
         </div>
       </div>
 

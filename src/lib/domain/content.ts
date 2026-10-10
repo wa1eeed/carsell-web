@@ -153,3 +153,44 @@ export async function getLegalDocument(key: string): Promise<PublicLegalDocument
     sections: parseLegalSections(row.sections),
   };
 }
+
+/**
+ * خدمةٌ واحدة بتفصيلها — **والفهرس كان يعرض ولا يفتح**.
+ *
+ * تسع بطاقاتٍ تُعرض ولا تُنقر واحدة، ولا صفحة تشرح ما يشمله الفحص ولا
+ * كم ضريبتُه ولا من يؤدّيه. فمن أراد أن يطلب خدمةً لم يجد أين.
+ *
+ * و`null` حين لا توجد أو عُطّلت — والصفحة حينها ٤٠٤ لا صفحةٌ فارغة.
+ */
+export async function serviceByKey(key: string): Promise<PublicServiceDetail | null> {
+  const row = await db.service.findFirst({
+    where: { key, active: true, placements: { has: 'guide' } },
+    select: {
+      key: true, nameAr: true, nameEn: true, descAr: true, descEn: true,
+      price: true, category: true, isAutomated: true, slaHours: true,
+      provider: { select: { nameAr: true, slaHours: true, cities: true } },
+    },
+  });
+  if (row === null) return null;
+
+  return {
+    key: row.key,
+    nameAr: row.nameAr,
+    nameEn: row.nameEn,
+    descAr: row.descAr,
+    descEn: row.descEn,
+    price: row.price.toString(),
+    category: row.category,
+    isAutomated: row.isAutomated,
+    slaHours: row.slaHours,
+    providerName: row.provider?.nameAr ?? null,
+    providerSlaHours: row.provider?.slaHours ?? null,
+    /** مدن التغطية — وخدمةٌ لا تغطّي مدينتك تُقال قبل أن تُطلب. */
+    providerCities: row.provider?.cities ?? [],
+  };
+}
+
+export type PublicServiceDetail = PublicService & {
+  providerSlaHours: number | null;
+  providerCities: string[];
+};

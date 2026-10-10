@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
@@ -84,9 +85,15 @@ export default async function ServicesPage({
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {rows.map((service) => (
-                    <article
+                    /*
+                      **والبطاقة تُفتح.** كانت تسع خدماتٍ تُعرض ولا
+                      تُنقر واحدة — الصنف نفسه الذي وقع في نتائج البحث
+                      وفي الرئيسية، والقاعدة مسجَّلة: افتح الشاشة وانقر.
+                    */
+                    <Link
                       key={service.key}
-                      className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface"
+                      href={`/${locale}/services/${service.key}`}
+                      className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface hover:border-ink"
                     >
                       <span className="washed relative block aspect-16/10">
                         {!service.isAutomated ? null : (
@@ -118,7 +125,7 @@ export default async function ServicesPage({
                           )}
                         </div>
                       </div>
-                    </article>
+                    </Link>
                   ))}
                 </div>
               </section>
