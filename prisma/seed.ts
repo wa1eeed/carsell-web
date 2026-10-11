@@ -955,8 +955,18 @@ async function main(): Promise<void> {
     ]),
   });
 
-  // ————— ٣ مزادات: جارٍ · قادم · منتهٍ —————
-  const auctionListings = listings.filter((l) => l.type === 'AUCTION').slice(0, 3);
+  /**
+   * ═══ كلُّ إعلانٍ نوعُه مزاد له مزاد ═══
+   *
+   * كانت `.slice(0, 3)` تترك **سبعة** إعلاناتٍ نوعُها `AUCTION` بلا
+   * صفّ `Auction` — وهي حالةٌ يمنعها المنتج نفسه (`publish` تُنشئ
+   * المزاد في معاملة النشر). والأثر مقيس: `/browse/tabuk/lexus`
+   * تردّ **٥٠٠**، وصفحة المزاد ٤٠٤، والبطاقة تعرض عدّادًا بلا موعد.
+   *
+   * والثلاثةُ الأولى بحالاتها المقصودة (جارٍ · قادم · منتهٍ)، وما
+   * بعدها يدور عليها — فلا يبقى إعلانٌ بلا مزاده.
+   */
+  const auctionListings = listings.filter((l) => l.type === 'AUCTION');
   const auctionSpecs = [
     { status: 'LIVE' as const, startsAt: hours(-6), endsAt: hours(4) },
     { status: 'SCHEDULED' as const, startsAt: days(2), endsAt: days(4) },
@@ -965,7 +975,7 @@ async function main(): Promise<void> {
 
   for (let i = 0; i < auctionListings.length; i += 1) {
     const l = auctionListings[i] as ListingRef;
-    const spec = auctionSpecs[i] as (typeof auctionSpecs)[number];
+    const spec = auctionSpecs[i % auctionSpecs.length] as (typeof auctionSpecs)[number];
     const start = new D(String(Math.round(Number(l.askPrice) * 0.75)));
     const increment = new D('500.00');
 

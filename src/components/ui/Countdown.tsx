@@ -50,16 +50,30 @@ export function Countdown({
   const target = useMemo(
     () => (typeof endsAt === 'string' ? new Date(endsAt) : endsAt),
     [endsAt],
-  );
+  ) as Date | null;
+  /**
+   * ═══ وتاريخٌ لا يُقرأ لا يُسقط الصفحة ═══
+   *
+   * وصلها `null` من بطاقةٍ ظنّت أنها حذفت الحقل، **فسقطت صفحة الهبوط
+   * كلُّها ٥٠٠** على `target.getTime()`. والسبب أُصلح في مصدره
+   * (`toCardData`)، وهذا حارسُ العمق: عدّادٌ بلا موعدٍ صالح يختفي —
+   * ولا يأخذ معه ما حوله.
+   *
+   * و`NaN` كـ`null`: `new Date('ليس تاريخًا')` لا ترمي، تُعيد تاريخًا
+   * غير صالح يُنتج `NaN` فيُعرض عدّادٌ فارغ.
+   */
+  const at = target === null || Number.isNaN(target.getTime()) ? null : target.getTime();
+
   const [remaining, setRemaining] = useState(() =>
-    Math.max(0, Math.floor((target.getTime() - Date.now()) / 1000)),
+    at === null ? 0 : Math.max(0, Math.floor((at - Date.now()) / 1000)),
   );
 
   useEffect(() => {
+    if (at === null) return;
     let timer: ReturnType<typeof setInterval> | undefined;
 
     const tick = (): void => {
-      const next = Math.max(0, Math.floor((target.getTime() - Date.now()) / 1000));
+      const next = Math.max(0, Math.floor((at - Date.now()) / 1000));
       setRemaining(next);
       if (next === 0 && timer !== undefined) {
         clearInterval(timer);
@@ -92,9 +106,12 @@ export function Countdown({
       stop();
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [target, onEnd]);
+  }, [at, onEnd]);
 
   const parts = splitDuration(remaining);
+
+  /** **وبلا موعدٍ صالح لا يُعرض شيء** — عدّادٌ فارغ يُقرأ عطلًا. */
+  if (at === null) return null;
 
   if (parts.isLong) {
     const days = <Quantity unit="days" count={parts.days} />;
