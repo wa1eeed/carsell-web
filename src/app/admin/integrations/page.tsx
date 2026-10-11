@@ -39,11 +39,22 @@ export default async function IntegrationsPage() {
 
   return (
     <AdminShell title="التكاملات ومفاتيح الربط" activeHref="/admin/integrations" admin={admin}>
-      <div className="mb-4 grid gap-4 md:grid-cols-4">
+      <div className="mb-4 grid gap-4 md:grid-cols-5">
+        {/*
+          **و«تحذير» صارت «بلا مفاتيح».** البطاقة كانت تعدّ `DEGRADED`
+          وهي حالٌ لا يكتبها شيء، فتقرأ صفرًا دائمًا. والعدّ الآن على
+          ما يُعرَف فعلًا: مفعَّلٌ بلا سرٍّ لبيئته العاملة.
+        */}
         <Stat title="تعمل" value={summary.connected} />
-        <Stat title="تحذير" value={summary.warning} />
+        <Stat title="بلا مفاتيح" value={summary.warning} />
         <Stat title="غير مفعّلة" value={summary.inactive} />
         <Stat title="مفاتيح تنتظر الاستبدال" value={summary.pendingRotations} />
+        {/*
+          **والبيئة عدّادٌ مستقلّ.** كانت تُضمّ إلى الاستبدال، فطلبُ
+          نقلٍ إلى الإنتاج — أخطر ما يُطلب في هذه الشاشة — يُقرأ
+          مفتاحًا ينتظر تدويرًا.
+        */}
+        <Stat title="بيئة تنتظر اعتمادًا" value={summary.pendingEnvSwitches} />
       </div>
 
       <IntegrationsList

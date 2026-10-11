@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { APP_URL } from '@/lib/env';
 import type { AdminUser } from '@/generated/prisma/client';
 import type { IntegrationEnv } from '@/generated/prisma/enums';
 import { encryptSecret, secretHint } from '@/lib/crypto/secrets';
@@ -31,6 +32,16 @@ export type IntegrationRow = {
   provider: string;
   category: string;
   status: string;
+  /** الحال المحسوبة — وهي التي تُعرض؛ و`status` نيّةٌ مخزَّنة */
+  connection: ConnectionState;
+  /**
+   * الوجهة التي يُنادينا المزوّد عليها — `null` لمن لا يُنادي.
+   *
+   * **ولم تكن تُعرض في مكان.** ومن يضبط بوابة الدفع يحتاجها حرفًا
+   * بحرف في لوحة المزوّد، فكان يفتح شجرة المسارات ليجدها — أو
+   * يكتبها من حفظه فيخطئ حرفًا ولا يصل تأكيدُ دفعةٍ واحدة.
+   */
+  webhookUrl: string | null;
   lastCheckAt: string | null;
   lastCheckOk: boolean | null;
   failureBehavior: string;
@@ -63,6 +74,51 @@ function readHints(value: unknown): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [name, hint] of Object.entries(value)) out[name] = String(hint);
   return out;
+}
+
+/**
+ * ═══ حالُ التكامل تُحسب، ولا تُقرأ من حقلٍ لا يكتبه أحد ═══
+ *
+ * `Integration.status` معرَّفٌ في المخطّط ومفهرَسٌ ومقروء — **ولا
+ * شيء يكتبه بعد البذرة**. فصفٌّ زُرع `ACTIVE` يبقى `ACTIVE` ولو لم
+ * يُضبط له مفتاحٌ قطّ، وبطاقةُ «تعمل» في صدر الشاشة تعدّ ما زرعتْه
+ * البذرة. وأسوأ منها: السطر نفسه كان يعرض «بلا مفاتيح» لبيئته
+ * الفعّالة **وبجانبه شارةٌ تقول متّصل** — تناقضٌ في سطرٍ واحد.
+ *
+ * والحال الحقيقية تُركَّب من اثنين:
+ *
+ * · **النيّة** — `status === 'INACTIVE'` تعني مؤجَّلًا عن عمد، وهي
+ *   حالٌ صحيحة لا عطل (`r2` اليوم).
+ * · **والمفاتيح** — أثمّة سرٌّ لبيئته **الفعّالة**؟ ولا يُسأل عن
+ *   المخزَّنة: خارج الإنتاج القراءةُ مثبَّتة على `TEST`، فمفتاحُ
+ *   الإنتاج موجودًا لا يجعله عاملًا.
+ *
+ * وهي الوحيدة التي يملكها الفحص أصلًا: `checkConnection` **لا تنادي
+ * المزوّد** (نداءٌ حقيقيّ معاملةٌ بمالٍ حيّ)، فكلُّ ما تعرفه هو هذا.
+ *
+ * **ودالّةٌ واحدة تخدم الشارة والبطاقة** — ونسختان تتباعدان أوّل
+ * تغيير، فتقول البطاقة «١١ تعمل» والصفوف تعرض تسعة.
+ */
+export type ConnectionState = 'OFF' | 'NO_KEYS' | 'READY';
+
+/**
+ * المسارات التي يُنادينا عليها المزوّدون — **من المسار الحقيقيّ**.
+ *
+ * ومن أضاف ويبهوك ولم يُدرجه هنا لا يكسر شيئًا، لكنّ ضابطه يبقى
+ * يفتّش عن وجهته في الشيفرة.
+ */
+const WEBHOOK_PATH: Record<string, string> = {
+  payments: '/api/v1/webhooks/payments',
+};
+
+export function connectionState(
+  status: string,
+  activeEnv: IntegrationEnv,
+  credentials: readonly { env: IntegrationEnv; configured: boolean }[],
+): ConnectionState {
+  if (status === 'INACTIVE') return 'OFF';
+  const active = credentials.find((entry) => entry.env === activeEnv);
+  return active !== undefined && active.configured ? 'READY' : 'NO_KEYS';
 }
 
 export async function listIntegrations(): Promise<IntegrationRow[]> {
@@ -111,6 +167,8 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       provider: row.provider,
       category: row.category,
       status: row.status,
+      connection: connectionState(row.status, effectiveEnvironment(row.activeEnv), credentials),
+      webhookUrl: WEBHOOK_PATH[row.key] === undefined ? null : `${APP_URL}${WEBHOOK_PATH[row.key]}`,
       lastCheckAt: row.lastCheckAt?.toISOString() ?? null,
       lastCheckOk: row.lastCheckOk,
       failureBehavior: row.failureBehavior,
@@ -428,31 +486,50 @@ export type IntegrationSummary = {
   warning: number;
   inactive: number;
   pendingRotations: number;
+  /**
+   * **وتبديل البيئة يُعدّ وحده.** كان الاثنان في عدّادٍ واحدٍ تحت
+   * عنوان «مفاتيح تنتظر الاستبدال» — فطلبُ نقلٍ إلى الإنتاج، وهو
+   * أخطر ما يُطلب هنا، يُعرض على أنه مفتاحٌ ينتظر تدويرًا.
+   */
+  pendingEnvSwitches: number;
   /** مخزَّنة `LIVE` وتعمل على `TEST` — حالٌ تُقال لا تُخفى. */
   forcedToTest: number;
 };
 
 export async function integrationSummary(): Promise<IntegrationSummary> {
-  const [byStatus, rotations, live] = await Promise.all([
-    db.integration.groupBy({ by: ['status'], _count: { _all: true } }),
+  const [rows, rotations, envSwitches, live] = await Promise.all([
+    db.integration.findMany({
+      select: { status: true, activeEnv: true, credentials: { select: { env: true, secretsEncrypted: true } } },
+    }),
     db.approvalRequest.count({
-      where: {
-        kind: { in: ['KEY_ROTATION', 'INTEGRATION_ENV'] },
-        status: 'PENDING',
-        entityType: 'Integration',
-      },
+      where: { kind: 'KEY_ROTATION', status: 'PENDING', entityType: 'Integration' },
+    }),
+    db.approvalRequest.count({
+      where: { kind: 'INTEGRATION_ENV', status: 'PENDING', entityType: 'Integration' },
     }),
     db.integration.count({ where: { activeEnv: 'LIVE' } }),
   ]);
 
-  const of = (status: 'ACTIVE' | 'DEGRADED' | 'INACTIVE'): number =>
-    byStatus.find((row) => row.status === status)?._count._all ?? 0;
+  // البطاقات من الدالّة نفسها التي تُعطي الشارة — فلا تتباعدان
+  const states = rows.map((row) =>
+    connectionState(
+      row.status,
+      effectiveEnvironment(row.activeEnv),
+      row.credentials.map((entry) => ({
+        env: entry.env,
+        configured: entry.secretsEncrypted != null && entry.secretsEncrypted !== '',
+      })),
+    ),
+  );
+  const of = (state: ConnectionState): number =>
+    states.filter((value) => value === state).length;
 
   return {
-    connected: of('ACTIVE'),
-    warning: of('DEGRADED'),
-    inactive: of('INACTIVE'),
+    connected: of('READY'),
+    warning: of('NO_KEYS'),
+    inactive: of('OFF'),
     pendingRotations: rotations,
+    pendingEnvSwitches: envSwitches,
     forcedToTest: effectiveEnvironmentIsStored() ? 0 : live,
   };
 }

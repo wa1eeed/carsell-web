@@ -1,8 +1,10 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { decryptSecret, encryptSecret, secretHint } from '@/lib/crypto/secrets';
+import { existsSync } from 'node:fs';
 import {
   activeSecret,
+  connectionState,
   approveRotation,
   checkConnection,
   integrationSummary,
@@ -254,17 +256,18 @@ describe('A11 — الفحص لا يدّعي نجاحًا', () => {
     await db.adminUser.delete({ where: { id: operator.id } });
   });
 
-  it('الملخّص يطابق الحالات الفعلية', async () => {
+  /**
+   * ═══ وهذا الاختبار كان يثبّت العطل ═══
+   *
+   * كان يفحص أن الملخّص **يطابق عدّ `status` المخزَّن** — أي يحرس
+   * بالضبط السلوك الذي جعل بطاقة «تعمل» تعدّ ما زرعتْه البذرة. فلمّا
+   * صار العدّ على الحال المحسوبة سقط، **والساقط كان الاختبار لا
+   * الكود**.
+   *
+   * وبقي منه ما يستحقّ: القسمة تامّة، ولا صفّ يسقط بين الشقوق.
+   */
+  it('الحالات الثلاث تقسم التكاملات كلها', async () => {
     const summary = await integrationSummary();
-    const real = {
-      connected: await db.integration.count({ where: { status: 'ACTIVE' } }),
-      warning: await db.integration.count({ where: { status: 'DEGRADED' } }),
-      inactive: await db.integration.count({ where: { status: 'INACTIVE' } }),
-    };
-    expect(summary.connected).toBe(real.connected);
-    expect(summary.warning).toBe(real.warning);
-    expect(summary.inactive).toBe(real.inactive);
-    // ومجموعها كل التكاملات — لا حالة تسقط بين الشقوق
     expect(summary.connected + summary.warning + summary.inactive).toBe(
       await db.integration.count(),
     );
@@ -367,5 +370,75 @@ describe('═══ قرار ٣٣ ═══ البيئتان منفصلتان، 
     await db.approvalRequest.deleteMany({ where: { entityId: integration.key } });
     await db.auditLog.deleteMany({ where: { actorId: { in: [requester.id, approver.id] } } });
     await db.adminUser.deleteMany({ where: { id: { in: [requester.id, approver.id] } } });
+  });
+});
+
+describe('A11 — الحال تُحسب ولا تُقرأ من حقلٍ لا يكتبه أحد', () => {
+  /**
+   * ═══ `Integration.status` بلا كاتب ═══
+   *
+   * معرَّفٌ في المخطّط ومفهرَسٌ ومقروء، **ولا شيء يكتبه بعد البذرة**.
+   * فصفٌّ زُرع `ACTIVE` بلا مفتاحٍ واحد يبقى `ACTIVE` إلى الأبد —
+   * وبطاقةُ «تعمل» تعدّه، **والسطر نفسه يعرض «بلا مفاتيح» وبجانبه
+   * شارة «تعمل»**. وأشدُّها `otp_sms`: مسارُ دخول كل مستخدم، مزروعًا
+   * `ACTIVE` بلا صفّ اعتماد واحد.
+   */
+  it('المفعَّل بلا مفاتيح ليس عاملًا', () => {
+    expect(connectionState('ACTIVE', 'TEST', [{ env: 'TEST', configured: false }]))
+      .toBe('NO_KEYS');
+    expect(connectionState('ACTIVE', 'TEST', [])).toBe('NO_KEYS');
+  });
+
+  it('والمؤجَّل عن عمد حالٌ ثالثة لا تحذير', () => {
+    // `r2` مؤجَّل بقرار — وعرضُه «تحذيرًا» يجعل القرار يبدو عطلًا
+    expect(connectionState('INACTIVE', 'TEST', [{ env: 'TEST', configured: true }]))
+      .toBe('OFF');
+  });
+
+  it('ومفتاحُ بيئةٍ أخرى لا يجعله عاملًا', () => {
+    /**
+     * خارج الإنتاج القراءة مثبَّتة على `TEST` — فمفتاح `LIVE` موجودًا
+     * لا يُنادى، وعدُّه اتّصالًا يُطمئن على ما لا يعمل.
+     */
+    expect(
+      connectionState('ACTIVE', 'TEST', [
+        { env: 'TEST', configured: false },
+        { env: 'LIVE', configured: true },
+      ]),
+    ).toBe('NO_KEYS');
+  });
+
+  it('والمفعَّل بمفتاح بيئته عامل', () => {
+    expect(connectionState('ACTIVE', 'TEST', [{ env: 'TEST', configured: true }]))
+      .toBe('READY');
+  });
+
+  it('والبطاقة والشارة من دالّة واحدة — فلا تتباعدان', async () => {
+    const [rows, summary] = await Promise.all([listIntegrations(), integrationSummary()]);
+    const counted = (state: string): number =>
+      rows.filter((row) => row.connection === state).length;
+
+    expect(summary.connected).toBe(counted('READY'));
+    expect(summary.warning).toBe(counted('NO_KEYS'));
+    expect(summary.inactive).toBe(counted('OFF'));
+  });
+});
+
+describe('A11 — وجهة الويبهوك تُعرض، ومن مسارٍ قائم', () => {
+  /**
+   * **والعنوان يُفحص لا يُكتب على حسن النيّة.** مسارٌ يُنقل أو يُعاد
+   * تسميته يترك في الشاشة عنوانًا يُنسخ إلى لوحة المزوّد فلا يصل
+   * تأكيدُ دفعةٍ واحدة — **ولا خطأ في أيّ سجلّ عندنا**، لأن النداء
+   * لا يبلغنا أصلًا. فالفحص على وجود ملفّ المسار.
+   */
+  it('كل وجهة معروضة لها ملفّ مسار', async () => {
+    const rows = await listIntegrations();
+    const shown = rows.filter((row) => row.webhookUrl !== null);
+    expect(shown.length).toBeGreaterThan(0);
+
+    for (const row of shown) {
+      const path = new URL(row.webhookUrl ?? '').pathname;
+      expect(existsSync(`src/app${path}/route.ts`), `${row.key} ⇐ ${path}`).toBe(true);
+    }
   });
 });

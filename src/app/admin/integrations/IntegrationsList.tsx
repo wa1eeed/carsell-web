@@ -6,21 +6,35 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import type { IntegrationRow } from '@/lib/domain/admin-integrations';
+import type { ConnectionState, IntegrationRow } from '@/lib/domain/admin-integrations';
 import { ENV_LABEL } from '@/lib/labels/admin';
 import { cn } from '@/lib/cn';
 import { toArabicDigits } from '@/lib/arabic';
 
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: 'تعمل',
-  DEGRADED: 'تحذير',
-  INACTIVE: 'غير مفعّلة',
+const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Asia/Riyadh',
+});
+
+/**
+ * **الشارة من الحال المحسوبة لا من `status`.** الحقل المخزَّن لا
+ * يكتبه شيء بعد البذرة، فكان السطر يعرض «بلا مفاتيح» لبيئته الفعّالة
+ * وبجانبه شارةٌ تقول «تعمل». والحساب في `connectionState` — دالّةً
+ * واحدة تخدم الشارة والبطاقات معًا.
+ */
+const CONNECTION_LABEL: Record<ConnectionState, string> = {
+  READY: 'تعمل',
+  NO_KEYS: 'بلا مفاتيح',
+  OFF: 'غير مفعّلة',
 };
 
-const STATUS_TONE: Record<string, 'accent' | 'warn' | 'neutral'> = {
-  ACTIVE: 'accent',
-  DEGRADED: 'warn',
-  INACTIVE: 'neutral',
+const CONNECTION_TONE: Record<ConnectionState, 'accent' | 'warn' | 'neutral'> = {
+  READY: 'accent',
+  NO_KEYS: 'warn',
+  OFF: 'neutral',
 };
 
 type Draft = {
@@ -113,6 +127,28 @@ export function IntegrationsList({
                     <p className="mt-1.5 text-3xs leading-relaxed opacity-55">
                       عند التعطّل: {row.failureBehavior}
                     </p>
+                    {/*
+                      ═══ وجهة المزوّد — تُعرض لتُنسخ ═══
+
+                      **ولم تكن في مكان.** من يضبط بوابة الدفع يحتاجها
+                      حرفًا بحرف في لوحة المزوّد، فكان يفتح شجرة
+                      المسارات ليجدها.
+
+                      و`dir="ltr"` و`select-all`: عنوانٌ لاتينيّ يُنسخ
+                      ويُقارَن خانةً بخانة، وحرفٌ ناقص فيه يعني أن لا
+                      تأكيد دفعةٍ يصل — ولا رسالة خطأ في أي سجلّ عندنا.
+                    */}
+                    {row.webhookUrl === null ? null : (
+                      <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5 text-3xs">
+                        <span className="opacity-50">يُنادينا على</span>
+                        <code
+                          className="font-num select-all rounded bg-ink/8 px-1.5 py-0.5 opacity-80"
+                          dir="ltr"
+                        >
+                          {row.webhookUrl}
+                        </code>
+                      </p>
+                    )}
                   </div>
 
                   {/*
@@ -156,9 +192,28 @@ export function IntegrationsList({
                     )}
                   </div>
 
-                  <Badge tone={STATUS_TONE[row.status] ?? 'neutral'}>
-                    {STATUS_LABEL[row.status] ?? row.status}
-                  </Badge>
+                  <div className="flex flex-col items-start gap-1">
+                    <Badge tone={CONNECTION_TONE[row.connection]}>
+                      {CONNECTION_LABEL[row.connection]}
+                    </Badge>
+                    {/*
+                      **ووقتُ آخر فحص يُعرض.** كان يُكتب في القاعدة
+                      ويُقرأ في النطاق ولا تعرضه شاشة — فمن ضغط «افحص»
+                      لا يرى أثرًا، ومن فتح الصفحة لا يعرف أفُحص اليوم
+                      أم لم يُفحص قطّ.
+
+                      و`lastCheckOk` تبقى `null` عمدًا: الفحص لا ينادي
+                      المزوّد — نداءٌ حقيقيّ معاملةٌ بمالٍ حيّ — فادّعاءُ
+                      «نجح» بعده كذب.
+                    */}
+                    {row.lastCheckAt === null ? (
+                      <span className="text-3xs opacity-35">لم يُفحص بعد</span>
+                    ) : (
+                      <span className="text-3xs opacity-45">
+                        فُحص {riyadh.format(new Date(row.lastCheckAt))}
+                      </span>
+                    )}
+                  </div>
 
                   {/*
                     ═══ بيئة التكامل — والخطوة الأخيرة قبل المال الحقيقيّ ═══
