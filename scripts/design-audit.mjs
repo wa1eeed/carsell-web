@@ -23,6 +23,12 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
+
+/** مدنٌ تُذكر في التصميم بياناتٍ لا بنية — والشريط يُبنى من القاعدة. */
+const CITY_NAMES = new Set([
+  'الرياض', 'جدة', 'الدمام', 'مكة', 'المدينة', 'الخبر', 'تبوك', 'أبها',
+  'الطائف', 'بريدة', 'حائل', 'نجران', 'جازان', 'الظهران',
+]);
 const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3002';
 const ADMIN_COOKIE = process.env.AUDIT_ADMIN ?? '';
 const USER_COOKIE = process.env.AUDIT_USER ?? '';
@@ -128,6 +134,16 @@ function signalsOf(segment, navNoise) {
      * ونصُّ زرّ، ورأسُ عمود — وهي ما يفقده المستخدم حين يغيب.
      */
     if (/[٠-٩0-9]/.test(s)) return false;
+
+    /**
+     * **وأسماءُ الأماكن والأشخاص الوهمية تُستبعَد أيضًا.** التصميم
+     * يكتب «حي الملقا» و«طريق الملك» و«معرض النخبة» — وهي بياناتٌ
+     * مخترعة كالأرقام، لا بنيةٌ تُبنى. وعدُّها نقصًا يُرسل القارئ
+     * ليزرع حيًّا بعينه في قاعدةٍ حقيقية.
+     */
+    if (/^(حي |طريق |شارع |معرض |صالة |مركز )/.test(s)) return false;
+    if (CITY_NAMES.has(s)) return false;
+
     return s.length >= 4;
   });
 }

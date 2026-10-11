@@ -138,14 +138,42 @@ export async function getDealerPage(
   };
 }
 
-/** المعارض النشطة — لفهرس `/dealers` وخريطة الموقع. */
-export async function listPublicDealers(locale: string): Promise<
-  { slug: string; name: string; city: string; verified: boolean; listingCount: number }[]
-> {
+export type PublicDealerCard = {
+  slug: string;
+  name: string;
+  city: string;
+  /** العنوان — والتصميم يكتب «الرياض · حي الملقا»، فالمدينة وحدها تُضيّع من يبحث قربه. */
+  address: string | null;
+  verified: boolean;
+  listingCount: number;
+  rating: string | null;
+  ratingCount: number;
+};
+
+/**
+ * المعارض النشطة — لفهرس `/dealers` وخريطة الموقع.
+ *
+ * **والترتيب يُطلب لا يُفرَض**: التصميم يضع «الأعلى تقييمًا»، ومن
+ * يبحث عن معرضٍ قريبٍ منه يرتّب بغيره. و`verified` أوّلًا يبقى
+ * افتراضًا، لأن الموثَّق هو ما تَعِد به المنصّة.
+ */
+export async function listPublicDealers(
+  locale: string,
+  options: { city?: string | null; sort?: 'rating' | 'listings' | null } = {},
+): Promise<PublicDealerCard[]> {
   const dealers = await db.dealer.findMany({
-    where: { status: 'ACTIVE' },
-    select: { id: true, slug: true, nameAr: true, nameEn: true, city: true, verified: true },
-    orderBy: [{ verified: 'desc' }, { nameAr: 'asc' }],
+    where: {
+      status: 'ACTIVE',
+      ...(options.city === null || options.city === undefined ? {} : { city: options.city }),
+    },
+    select: {
+      id: true, slug: true, nameAr: true, nameEn: true, city: true, address: true,
+      verified: true, ratingAvg: true, ratingCount: true,
+    },
+    orderBy:
+      options.sort === 'rating'
+        ? [{ ratingAvg: { sort: 'desc', nulls: 'last' } }, { nameAr: 'asc' }]
+        : [{ verified: 'desc' }, { nameAr: 'asc' }],
   });
 
   const counts = await db.listing.groupBy({
@@ -158,16 +186,29 @@ export async function listPublicDealers(locale: string): Promise<
     select: { id: true, dealerId: true },
   });
 
-  return dealers.map((dealer) => {
+  const mapped = dealers.map((dealer) => {
     const ids = members.filter((m) => m.dealerId === dealer.id).map((m) => m.id);
     return {
       slug: dealer.slug,
       name: locale === 'ar' ? dealer.nameAr : dealer.nameEn,
       city: dealer.city,
+      address: dealer.address,
       verified: dealer.verified,
+      // التقييم نصًّا — والقسمة تُترك للعرض فلا تُفقد الكسور
+      rating: dealer.ratingAvg?.toString() ?? null,
+      ratingCount: dealer.ratingCount,
       listingCount: counts
         .filter((row) => ids.includes(row.sellerId))
         .reduce((total, row) => total + row._count._all, 0),
     };
   });
+
+  /**
+   * **والترتيب بالمخزون يقع هنا**: العدد محسوبٌ بعد الجلب (مجموعُ
+   * إعلانات أعضائه)، فلا يُرتَّب به في الاستعلام.
+   */
+  if (options.sort === 'listings') {
+    return mapped.sort((a, b) => b.listingCount - a.listingCount);
+  }
+  return mapped;
 }
