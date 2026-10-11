@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { Counted } from '@/components/ui/Counted';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -53,7 +54,7 @@ export default async function PushPage() {
         <Stat
           title="رموز ميّتة"
           value={devices.stale}
-          note={<>لم تُرَ منذ <Quantity unit="days" count={STALE_TOKEN_DAYS} /></>}
+          note={<Counted message="unseenSince" count={STALE_TOKEN_DAYS} />}
         />
       </div>
 

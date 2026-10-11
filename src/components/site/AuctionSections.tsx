@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Counted } from '@/components/ui/Counted';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Countdown } from '@/components/ui/Countdown';
 import { Badge } from '@/components/ui/Badge';
@@ -73,13 +74,13 @@ export function BidLogStats({ auction }: { auction: PublicAuction }) {
           */
           <span className="text-2xs font-bold text-accent-700">الآن</span>
         ) : minutesSince < 60 ? (
-          <span className="text-2xs font-bold">
-            قبل <Quantity unit="minutes" count={minutesSince} />
-          </span>
+          <Counted message="agoMinutes" count={minutesSince} className="text-2xs font-bold" />
         ) : (
-          <span className="text-2xs font-bold">
-            قبل <Quantity unit="hours" count={Math.floor(minutesSince / 60)} />
-          </span>
+          <Counted
+            message="agoHours"
+            count={Math.floor(minutesSince / 60)}
+            className="text-2xs font-bold"
+          />
         )}
       </Stat>
       <Stat label="مرّات تمديد الوقت">

@@ -1,4 +1,5 @@
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Counted } from '@/components/ui/Counted';
 import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
 import { Sparkline } from '@/components/ui/Sparkline';
@@ -75,7 +76,7 @@ export async function GrowthTab() {
         <div className="mb-4 flex flex-wrap items-baseline gap-3">
           <h2 className="text-sm font-bold">الإعلانات حسب المدينة</h2>
           <span className="text-3xs opacity-45">
-            من <Quantity unit="listings" count={cityTotal} /> نُشرت في المدى
+            <Counted message="ofListings" count={cityTotal} /> نُشرت في المدى
           </span>
         </div>
 

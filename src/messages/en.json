@@ -1006,8 +1006,11 @@
     "emptyTitle": "No vehicles listed right now",
     "emptyBody": "This dealer has no published listings at the moment — check back later.",
     "metaFallback": "Car dealer in {city} on carsell.one",
-    "indexTitle": "Dealers",
-    "indexSubtitle": "Car dealers on the platform."
+    "indexTitle": "Dealers and showrooms",
+    "indexSubtitle": "Car dealers on the platform.",
+    "indexBadgeMeaning": "The green badge means a verified commercial registration.",
+    "indexVerified": "{count, plural, one{{n} verified dealer} other{{n} verified dealers}}",
+    "indexCities": "{count, plural, one{across {n} city} other{across {n} cities}}"
   },
   "landing": {
     "title": "{brand} cars in {city}",
@@ -1040,5 +1043,13 @@
     "days": "{count, plural, one{{n} day ago} other{{n} days ago}}",
     "weeks": "{count, plural, one{{n} week ago} other{{n} weeks ago}}",
     "months": "{count, plural, one{{n} month ago} other{{n} months ago}}"
+  },
+  "counted": {
+    "ofListings": "{count, plural, one{of {n} listing} other{of {n} listings}}",
+    "openDisputes": "{count, plural, one{{n} open dispute} other{{n} open disputes}}",
+    "overdueDisputes": "{count, plural, one{{n} dispute past its SLA} other{{n} disputes past their SLA}}",
+    "unseenSince": "{count, plural, one{not seen for {n} day} other{not seen for {n} days}}",
+    "agoMinutes": "{count, plural, zero{Just now} one{{n} minute ago} other{{n} minutes ago}}",
+    "agoHours": "{count, plural, zero{Just now} one{{n} hour ago} other{{n} hours ago}}"
   }
 }

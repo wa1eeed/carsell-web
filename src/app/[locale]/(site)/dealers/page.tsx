@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { DealerMark } from '@/components/site/DealerMark';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
@@ -62,14 +63,48 @@ export default async function DealersPage({
     a.localeCompare(b, 'ar'),
   );
 
+  /** **الموثَّق وحده يُعدّ** — الجملة تعدّ ما تضمنه الشارة لا كل صفّ. */
+  const verifiedCount = all.filter((dealer) => dealer.verified).length;
+
   return (
     <>
-      <SiteHeader />
+      {/*
+        **والمؤشّر يقول أين أنت.** كان يُضيء «الرئيسية» وزائرُه في
+        المعارض — إشارةُ موضعٍ كاذبة في كل زيارة.
+      */}
+      <SiteHeader active="dealers" />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">{t('indexTitle')}</h1>
+          {/*
+            ═══ العدّ ومعنى الشارة ═══
+
+            كان النصّ «معارض السيارات على المنصّة» — جملةٌ لا تقول
+            شيئًا. والتصميم يجعله **عدًّا ومعنى**: كم معرضًا موثّقًا
+            وفي كم مدينة، ثمّ ما الذي تضمنه الشارة الخضراء. وهي
+            آليّةُ الثقة في الصفحة كلّها: زائرٌ يرى شارةً ولا يعرف ما
+            وراءها لا يبني عليها قرارًا.
+
+            **ولا يُوعَد بما لا يُفحَص**: التصميم يكتب «سجلًّا تجاريًّا
+            متحقَّقًا منه **وآيبان باسم المنشأة**»، و`approveDealer`
+            تشترط `crNumber` وحده — ولا تمسّ آيبانًا. فكُتب المفحوص
+            وحده، والسؤال في DESIGN-DECISIONS.
+          */}
           <p className="mb-7 max-w-2xl text-sm leading-loose opacity-60">
-            {t('indexSubtitle')}
+            {/*
+              **وما يوافق العددَ يدخل داخل صيغة الجمع.** أوّل صياغةٍ
+              وضعت الصفة والجارّ خارج `<Quantity>` فخرج «٣ معارض
+              **موثّقًا** في **مدينتان**» — صفةٌ لا توافق معدودها،
+              ومثنّى مرفوعٌ بعد حرف جرّ. والصيغتان الآن تحملان الصفة
+              والجارّ معًا. (البوابة ٣١.)
+            */}
+            {t('indexVerified', {
+              count: verifiedCount,
+              n: toArabicDigits(String(verifiedCount)),
+            })}{' '}
+            {t('indexCities', { count: cities.length, n: toArabicDigits(String(cities.length)) })}
+            {' · '}
+            {t('indexBadgeMeaning')}
           </p>
 
           {/*
@@ -126,9 +161,17 @@ export default async function DealersPage({
                     href={`/${locale}/dealers/${dealer.slug}`}
                     className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-5 hover:border-ink"
                   >
-                    <span className="flex flex-wrap items-center gap-2 font-bold">
-                      <span className="bidi-isolate">{dealer.name}</span>
-                      {!dealer.verified ? null : <Badge tone="accent">{t('verified')}</Badge>}
+                    <span className="flex items-center gap-3">
+                      {/*
+                        **والشعار يُقرأ قبل الاسم.** وحين يغيب يُرسَم
+                        حرفُ الاسم الأوّل لا فراغٌ — فالشبكة تبقى
+                        منتظمة، ويبقى للبطاقة مرساةٌ بصرية.
+                      */}
+                      <DealerMark name={dealer.name} logoUrl={dealer.logoUrl} />
+                      <span className="flex min-w-0 flex-wrap items-center gap-2 font-bold">
+                        <span className="bidi-isolate truncate">{dealer.name}</span>
+                        {!dealer.verified ? null : <Badge tone="accent">{t('verified')}</Badge>}
+                      </span>
                     </span>
                     <span className="flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
                       {/* المدينة وحدها تُضيّع من يبحث قربه — فالعنوان معها */}

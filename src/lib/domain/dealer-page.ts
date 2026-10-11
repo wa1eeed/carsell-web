@@ -170,6 +170,8 @@ export async function getDealerPage(
 export type PublicDealerCard = {
   slug: string;
   name: string;
+  /** شعارُ المعرض — والشبكة تُقرأ بالصورة قبل الاسم */
+  logoUrl: string | null;
   city: string;
   /** العنوان — والتصميم يكتب «الرياض · حي الملقا»، فالمدينة وحدها تُضيّع من يبحث قربه. */
   address: string | null;
@@ -197,7 +199,7 @@ export async function listPublicDealers(
     },
     select: {
       id: true, slug: true, nameAr: true, nameEn: true, city: true, address: true,
-      verified: true, ratingAvg: true, ratingCount: true,
+      verified: true, ratingAvg: true, ratingCount: true, logoUrl: true,
     },
     orderBy:
       options.sort === 'rating'
@@ -220,6 +222,12 @@ export async function listPublicDealers(
     return {
       slug: dealer.slug,
       name: locale === 'ar' ? dealer.nameAr : dealer.nameEn,
+      /**
+       * **وشبكةُ المعارض تُقرأ بالصورة قبل الاسم.** فهرسٌ من ثماني
+       * بطاقاتٍ نصّية يُسقط كلّ تمييزٍ بينها، ويجعل الاختيار قراءةً
+       * لا لمحة.
+       */
+      logoUrl: dealer.logoUrl,
       city: dealer.city,
       address: dealer.address,
       verified: dealer.verified,

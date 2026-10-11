@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
+import { Counted } from '@/components/ui/Counted';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { type DisputeFilter, disputeCounts, listDisputes } from '@/lib/domain/disputes';
@@ -58,9 +58,9 @@ export default async function DisputesPage({
     <AdminShell title="النزاعات"
       subtitle="النزاعات ومهلها" activeHref="/admin/disputes" admin={admin}>
       <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
-        <Quantity unit="disputes" count={open.length} /> مفتوحة
+        <Counted message="openDisputes" count={open.length} />
         <span aria-hidden className="opacity-40">·</span>
-        <Quantity unit="disputes" count={overdue.length} /> فاتت مهلتها
+        <Counted message="overdueDisputes" count={overdue.length} />
         <span aria-hidden className="opacity-40">·</span>
         <span>القرار يحتاج موافقة عضوين</span>
       </p>

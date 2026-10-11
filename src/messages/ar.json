@@ -1006,8 +1006,11 @@
     "emptyTitle": "لا مركبات معروضة الآن",
     "emptyBody": "لا إعلانات منشورة لهذا المعرض حاليًا — تابعه لاحقًا.",
     "metaFallback": "معرض سيارات في {city} على carsell.one",
-    "indexTitle": "المعارض",
-    "indexSubtitle": "معارض السيارات على المنصّة."
+    "indexTitle": "المعارض والصالات",
+    "indexSubtitle": "معارض السيارات على المنصّة.",
+    "indexBadgeMeaning": "والشارة الخضراء تعني سجلًّا تجاريًّا متحقَّقًا منه.",
+    "indexVerified": "{count, plural, zero{لا معارض موثّقة} one{معرض واحد موثّق} two{معرضان موثّقان} few{{n} معارض موثّقة} many{{n} معرضًا موثّقًا} other{{n} معرض موثّق}}",
+    "indexCities": "{count, plural, zero{بلا مدن} one{في مدينة واحدة} two{في مدينتين} few{في {n} مدن} many{في {n} مدينة} other{في {n} مدينة}}"
   },
   "landing": {
     "title": "سيارات {brand} في {city}",
@@ -1040,5 +1043,13 @@
     "days": "{count, plural, one{قبل يوم} two{قبل يومين} few{قبل {n} أيام} many{قبل {n} يومًا} other{قبل {n} يوم}}",
     "weeks": "{count, plural, one{قبل أسبوع} two{قبل أسبوعين} few{قبل {n} أسابيع} many{قبل {n} أسبوعًا} other{قبل {n} أسبوع}}",
     "months": "{count, plural, one{قبل شهر} two{قبل شهرين} few{قبل {n} أشهر} many{قبل {n} شهرًا} other{قبل {n} شهر}}"
+  },
+  "counted": {
+    "ofListings": "{count, plural, zero{من لا إعلانات} one{من إعلان واحد} two{من إعلانين} few{من {n} إعلانات} many{من {n} إعلانًا} other{من {n} إعلان}}",
+    "openDisputes": "{count, plural, zero{لا نزاعات مفتوحة} one{نزاع واحد مفتوح} two{نزاعان مفتوحان} few{{n} نزاعات مفتوحة} many{{n} نزاعًا مفتوحًا} other{{n} نزاع مفتوح}}",
+    "overdueDisputes": "{count, plural, zero{لا نزاعات فاتت مهلتها} one{نزاع واحد فاتت مهلته} two{نزاعان فاتت مهلتهما} few{{n} نزاعات فاتت مهلتها} many{{n} نزاعًا فاتت مهلته} other{{n} نزاع فاتت مهلته}}",
+    "unseenSince": "{count, plural, zero{لم تُرَ اليوم} one{لم تُرَ منذ يوم} two{لم تُرَ منذ يومين} few{لم تُرَ منذ {n} أيام} many{لم تُرَ منذ {n} يومًا} other{لم تُرَ منذ {n} يوم}}",
+    "agoMinutes": "{count, plural, zero{الآن} one{قبل دقيقة} two{قبل دقيقتين} few{قبل {n} دقائق} many{قبل {n} دقيقة} other{قبل {n} دقيقة}}",
+    "agoHours": "{count, plural, zero{الآن} one{قبل ساعة} two{قبل ساعتين} few{قبل {n} ساعات} many{قبل {n} ساعة} other{قبل {n} ساعة}}"
   }
 }
