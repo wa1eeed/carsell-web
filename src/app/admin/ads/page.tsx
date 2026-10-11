@@ -15,6 +15,7 @@ import {
 import { toArabicDigits } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
 import { NewCampaign } from './NewCampaign';
+import { CampaignActions } from './CampaignActions';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'مساحات الإعلانات والحملات' };
@@ -190,6 +191,9 @@ export default async function AdminAdsPage({
                           : 'انتهت'}
                     </Badge>
                   </td>
+                  <td className="p-3">
+                    {writable ? <CampaignActions id={row.id} phase={row.phase} /> : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -205,8 +209,11 @@ export default async function AdminAdsPage({
             بنر ({toArabicDigits(String(MAX_BANNERS_PER_SCREEN))}) لكل شاشة كحدّ أقصى ·
             وسم «إعلان» أو «مموّل» إلزاميّ ·{' '}
             <b>لا إعلان داخل مسار الدفع والمزايدة والنزاع</b> · وإعلانات
-            ({toArabicDigits(String(stats.sessionCap))}) كحدّ أقصى في جلسة الرئيسية،
-            والسقف يُفرَض في الخادم لا في التطبيق.
+            ({toArabicDigits(String(stats.sessionCap))}) كحدّ أقصى في جلسة الرئيسية
+            {stats.homeServed
+              ? '، والسقف يُفرَض في الخادم لا في التطبيق'
+              : ' — قاعدةٌ لم يبلغها مسارٌ بعد، فلا إعلان في الرئيسية'}
+            .
           </p>
         </div>
 

@@ -17,6 +17,7 @@ import { Gallery } from '@/components/ui/Gallery';
 import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
 import { AuctionTerms, BidLogStats, BidStatus, BidStep } from '@/components/site/AuctionSections';
+import { BidPanel } from '@/components/site/BidPanel';
 import type { PublicAuction, ViewerStanding } from '@/lib/domain/auctions';
 import { HistoryList } from '@/components/ui/HistoryList';
 import { PaintMap } from '@/components/ui/PaintMap';
@@ -282,6 +283,32 @@ export function CarPage({
             )}
 
             <BuyColumn
+              {...(detail.auction === null
+                ? {}
+                : {
+                    /**
+                     * ═══ لوحةُ المزايدة — وكانت بلا مستوردٍ واحد ═══
+                     *
+                     * لمّا صارت صفحةُ المزاد صفحةَ المركبة بقي
+                     * `BidPanel` يتيمًا — وفيه المزايدةُ والعربونُ
+                     * والشراء الفوري — وورث عمودُ الشراء زرًّا مرسومًا
+                     * بلا `onClick`. **فلا مزايدة تُقدَّم من أيّ شاشة**،
+                     * وخيارُ البيع بالمزاد كلُّه معروضٌ لا يُستعمل.
+                     */
+                    bidActions: (
+                      <BidPanel
+                        listingRef={detail.ref}
+                        live={detail.auction.live}
+                        minimumNext={detail.auction.minimumBid}
+                        increment={detail.auction.bidIncrement}
+                        depositAmount={detail.auction.depositAmount}
+                        buyNowPrice={detail.auction.buyNowPrice}
+                        signedIn={viewer.signedIn}
+                        isOwn={viewer.isOwn}
+                        locale={locale}
+                      />
+                    ),
+                  })}
               actions={
                 closed !== null ? null : (
                 <BuyActions

@@ -455,9 +455,22 @@ describe('deposit.lifecycle — القاعدة ٩', () => {
 
 describe('auction.buyNowGate — القاعدة ١٠', () => {
   it('يظهر قبل بلوغ الاحتياطي ويختفي بعده', async () => {
-    expect(buyNowAvailable(BUY_NOW, false)).toBe(true);
-    expect(buyNowAvailable(BUY_NOW, true)).toBe(false);
-    expect(buyNowAvailable(null, false)).toBe(false);
+    expect(buyNowAvailable(BUY_NOW, false, true)).toBe(true);
+    expect(buyNowAvailable(BUY_NOW, true, true)).toBe(false);
+    expect(buyNowAvailable(null, false, true)).toBe(false);
+  });
+
+  it('و«بلغت المزايدات» تقتضي مزايدةً', () => {
+    /**
+     * `isReserveMet(null, …)` تعيد `true` دائمًا — «بلا احتياطي
+     * فالبيع حتميّ». **فمزادٌ بلا احتياطي لم يكن يعرض «اشترِ الآن»
+     * أبدًا**: بائعٌ يضبط سعرًا فوريًّا ولا يضبط احتياطيًّا لا يراه
+     * هو ولا يراه مشترٍ، وسعرٌ ضُبط ولم يُعرض قطّ.
+     *
+     * ولا شيء «حتميّ» على مزادٍ بلا مزايدةٍ واحدة.
+     */
+    expect(buyNowAvailable(BUY_NOW, true, false)).toBe(true);
+    expect(buyNowAvailable(BUY_NOW, true, true)).toBe(false);
   });
 
   it('يختفي من الكائن العام لا يُعرض معطّلًا', async () => {

@@ -2,7 +2,6 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from './ArabicNumber';
-import { Button } from './Button';
 import { Countdown } from './Countdown';
 import { Money } from './Money';
 import { Quantity } from './Quantity';
@@ -77,6 +76,7 @@ function Row({ label, value, tone }: { label: string; value: React.ReactNode; to
 export function BuyColumn({
   data,
   actions,
+  bidActions,
   footer,
   className,
 }: {
@@ -89,6 +89,17 @@ export function BuyColumn({
    * المكوّنات. فالشكل هنا والسلوك هناك.
    */
   actions?: ReactNode;
+  /**
+   * ═══ إجراءُ المزاد — ويُحقن كما يُحقن إجراءُ الشراء ═══
+   *
+   * **وكان زرًّا بلا `onClick`.** لمّا صارت صفحةُ المزاد صفحةَ المركبة
+   * بقي `BidPanel` — وفيه المزايدةُ والعربونُ والشراء الفوري — **بلا
+   * مستوردٍ واحد**، وورث هذا العمود زرًّا مرسومًا. فلا مزايدة تُقدَّم
+   * من أيّ شاشةٍ في المنتج، وخيارُ البيع بالمزاد كلُّه معروضٌ لا يُستعمل.
+   *
+   * والشكل هنا والسلوك هناك — كـ`actions` تمامًا.
+   */
+  bidActions?: ReactNode;
   /** سطرٌ هادئ أسفل العمود — الإبلاغ ونحوه. والشكل هنا والسلوك هناك. */
   footer?: ReactNode;
   className?: string;
@@ -184,7 +195,7 @@ export function BuyColumn({
               */}
               {auction.live ? (
                 <>
-                  <Button className="mb-2.5 w-full">{t('placeBid')}</Button>
+                  <div className="mb-2.5">{bidActions}</div>
                   <p className="mb-4 flex items-center justify-center gap-1.5 text-2xs opacity-55">
                     {t('depositRequired')} <ArabicNumber value={auction.depositAmount} />
                   </p>

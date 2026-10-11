@@ -63,12 +63,24 @@ export function minimumBid(
  * **الراية وحدها تخرج، لا المبلغ** (قاعدة ٨). وسبب الاختفاء: بعد بلوغ
  * الاحتياطي صارت المركبة تُباع حتمًا، فـ«اشترِ الآن» يسحبها من المزايدين
  * بسعر قد يكون أقلّ مما سيبلغونه.
+ *
+ * ═══ و«بلغت المزايدات» تقتضي مزايدةً ═══
+ *
+ * `isReserveMet(null, …)` تعيد `true` دائمًا — «بلا احتياطي فالبيع
+ * حتميّ» — وهو صحيحٌ عند الإغلاق حيث تُقارَن بأعلى مزايدة. **وهنا
+ * كان يعني أنّ مزادًا بلا احتياطي لا يُعرض فيه «اشترِ الآن» أبدًا**:
+ * فبائعٌ يضبط سعرًا فوريًّا ولا يضبط احتياطيًّا لا يراه هو ولا يراه
+ * مشترٍ، وسعرٌ ضُبط ولم يُعرض قطّ.
+ *
+ * ولا شيء «حتميّ» على مزادٍ بلا مزايدةٍ واحدة. فالاشتراط على
+ * الاثنين: بلوغُ الاحتياطي **ووجودُ من بلغه**.
  */
 export function buyNowAvailable(
   buyNowPrice: number | null,
   reserveMet: boolean,
+  hasBid: boolean,
 ): boolean {
-  return buyNowPrice !== null && !reserveMet;
+  return buyNowPrice !== null && !(reserveMet && hasBid);
 }
 
 /**
@@ -763,6 +775,7 @@ export async function getAuction(
     buyNowPrice: buyNowAvailable(
       auction.buyNowPrice === null ? null : Number(auction.buyNowPrice),
       reserveMet,
+      highest !== null,
     )
       ? (auction.buyNowPrice?.toString() ?? null)
       : null,

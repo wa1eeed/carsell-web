@@ -1860,6 +1860,68 @@ function checkQuantityAdjacency() {
  * **ونُسيت في القائمة** — فصارت صلاحيةُ تحويلِ مالٍ **نافذةً وغير
  * معروضة**، ومن يراجع «من يملك ماذا» يقرأ جردًا ناقصًا ولا يعلم.
  */
+/**
+ * ═══ البوابة ٣٣ ═══ **كلُّ وجهةٍ نُرسل إليها لها مسار**.
+ *
+ * الشراءُ الفوريّ ينجح، والطلب صحيح، والخادم يردّ
+ * `next: "/orders/ORD-…"` — **و٤٠٤**. المسار القائم
+ * `/account/orders/{ref}`، وكُشف بمشي الرحلة لا بقراءتها.
+ *
+ * والصنف تكرّر: ستُّ شاشات حسابٍ كانت ٤٠٤ والحساب يربط إليها، وصفحةُ
+ * هبوطٍ تموت حين تُباع مركبة، وهذه الثالثة. **ووجهةٌ ميّتة بعد نجاحٍ
+ * أسوأ من فشلٍ صريح**: الفعل وقع والمستخدم لا يعرف أين ذهب.
+ *
+ * والفحص على **وجهات التنقّل وحدها** — `href` و`router.push` و
+ * `location.href` و`redirect` و`next:` — لا على أيّ نصٍّ يبدأ بشرطة.
+ * و`${…}` قطعةٌ متغيّرة تُطابق `[param]`. (قِيست فأخرجت صفرًا.)
+ */
+function checkNavTargets() {
+  const appDir = join(ROOT, 'src', 'app');
+  if (!existsSync(appDir)) return;
+
+  const routes = [];
+  const walkRoutes = (dir, segs) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walkRoutes(full, entry.name.startsWith('(') ? segs : [...segs, entry.name]);
+      } else if (entry.name === 'page.tsx' || entry.name === 'route.ts') {
+        routes.push(segs.filter((seg) => seg !== '[locale]'));
+      }
+    }
+  };
+  walkRoutes(appDir, []);
+
+  const resolves = (parts) => routes.some((route) => {
+    if (route.length !== parts.length) return false;
+    return route.every((seg, i) => seg.startsWith('[') || parts[i] === '*' || seg === parts[i]);
+  });
+
+  const NAV = /(?:href=|router\.(?:push|replace)\(|location\.href\s*=\s*|redirect\(|permanentRedirect\(|next:\s*)[`'"]([^`'"]*)[`'"]/g;
+
+  const files = walk(join(ROOT, 'src'))
+    .filter((file) => /\.tsx?$/.test(file) && !file.includes(`${sep}generated${sep}`));
+
+  for (const file of files) {
+    const text = readFileSync(file, 'utf8');
+    for (const match of text.matchAll(NAV)) {
+      const raw = match[1].replace(/\$\{[^}]*\}/g, '*').split('?')[0].split('#')[0];
+      if (!raw.startsWith('/') || raw.startsWith('/*')) continue;
+      if (/^\/(api|_next|diagrams)\b/.test(raw)) continue;
+
+      const parts = raw.replace(/\/$/, '').split('/')
+        .filter(Boolean)
+        .filter((seg) => seg !== 'ar' && seg !== 'en');
+      if (parts.length === 0 || resolves(parts)) continue;
+
+      problems.push(
+        `${relative(ROOT, file)}  «${match[1]}» وجهةٌ بلا مسار — `
+          + 'ومن يصلها بعد نجاحٍ يقرأ ٤٠٤',
+      );
+    }
+  }
+}
+
 function checkPermissionCatalogue() {
   const file = join(ROOT, 'src', 'lib', 'domain', 'permissions.ts');
   if (!existsSync(file)) return;
@@ -1941,6 +2003,7 @@ checkEncryptedFieldReaders();
 checkStateCopiedFromProps();
 checkQuantityAdjacency();
 checkPermissionCatalogue();
+checkNavTargets();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1951,5 +2014,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار.',
 );

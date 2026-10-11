@@ -154,3 +154,204 @@ export async function createAuctionOrderStandalone(
 ): Promise<AuctionOrderResult> {
   return db.$transaction((tx) => createAuctionOrder(tx, { auctionId }, now));
 }
+
+export type BuyNowFailure =
+  | 'AUCTION_NOT_FOUND'
+  | 'NOT_LIVE'
+  | 'BUY_NOW_UNAVAILABLE'
+  | 'OWN_LISTING'
+  | 'PROFILE_INCOMPLETE'
+  | 'TAX_STATUS_REQUIRED'
+  | 'ORDER_EXISTS'
+  | 'LISTING_UNAVAILABLE';
+
+export type BuyNowResult =
+  | { ok: true; orderRef: string; amount: string }
+  | { ok: false; reason: BuyNowFailure };
+
+/**
+ * ═══ «اشترِ الآن» — زرٌّ كان يقول «قريبًا» ═══
+ *
+ * البائع يضبط سعر الشراء الفوري في معالج البيع، ويُخزَّن، والقاعدة ١٠
+ * تحكم متى يظهر (`buyNowAvailable`)، **والزرّ معروضٌ في لوحة المزايدة
+ * منذ بُنيت** — وضغطُه يُخرج رسالة «الشراء الفوري قريبًا». و
+ * `OrderSource.BUY_NOW` معرَّفٌ في المخطّط بلا كاتب.
+ *
+ * فبائعٌ يضبط سعرًا فوريًّا يُوعَد ببيعٍ لا يقع، ومشترٍ يراه يُوعَد
+ * بشراءٍ لا يقع — **وهو الزرّ الميّت على مسار مال**.
+ *
+ * ═══ وحالُ المزاد بعده ═══
+ *
+ * `ENDED_MET` لا `ENDED_UNMET`: الثانية تفتح مهلةَ قرارِ البائع في
+ * أعلى مزايدة، والمركبة قد بِيعت — فمهلةٌ تجري على قرارٍ لا معنى له.
+ * ولا قيمةَ ثالثة تُضاف للتعداد: «انتهى ببيع» هو المعنى، وهو صادق.
+ *
+ * ═══ والعرابين تُسوّى في اللحظة ═══
+ *
+ * من زايد ولم يشترِ يُرَدّ عربونه **الآن** لا حين ينقضي وقتُ المزاد:
+ * المركبة خرجت، وحبسُ ماله بعدها احتجازٌ بلا سبب.
+ */
+export async function buyNow(
+  input: { listingRef: string; buyerId: string },
+  now: Date = new Date(),
+): Promise<BuyNowResult> {
+  const { buyNowAvailable, isReserveMet, settleDeposits } = await import('./auctions');
+  const { profileCompletion } = await import('./profile');
+
+  const auction = await db.auction.findFirst({
+    where: { listing: { ref: input.listingRef } },
+    include: {
+      listing: { select: { id: true, ref: true, sellerId: true, status: true } },
+      bids: { orderBy: { amount: 'desc' }, take: 1 },
+    },
+  });
+
+  if (auction === null) return { ok: false, reason: 'AUCTION_NOT_FOUND' };
+  if (auction.buyNowPrice === null) return { ok: false, reason: 'BUY_NOW_UNAVAILABLE' };
+
+  /**
+   * **والحالة والوقت معًا.** `LIVE` مخزَّنةٌ لمزادٍ انقضى حتى تمرّ
+   * الوظيفة الدورية — وقبولُ شراءٍ فوريّ بعد انقضاء الوقت يبيع مركبةً
+   * خرجت من السوق.
+   */
+  const open = auction.status === 'LIVE'
+    && auction.startsAt.getTime() <= now.getTime()
+    && auction.endsAt.getTime() > now.getTime();
+  if (!open) return { ok: false, reason: 'NOT_LIVE' };
+
+  if (auction.listing.sellerId === input.buyerId) return { ok: false, reason: 'OWN_LISTING' };
+
+  /**
+   * **والقاعدة ١٠ تُفرَض في الخادم.** الشاشة تُخفي الزرّ متى بلغت
+   * المزايداتُ الاحتياطيَّ، ونداءٌ مباشر بعدها يسحب المركبة من
+   * مزايدين تجاوزوا هذا السعر — وحارسٌ في العميل ليس حارسًا.
+   */
+  const highest = auction.bids[0] === undefined ? null : Number(auction.bids[0].amount);
+  if (!buyNowAvailable(
+    Number(auction.buyNowPrice),
+    isReserveMet(auction.reservePrice, highest),
+    highest !== null,
+  )) {
+    return { ok: false, reason: 'BUY_NOW_UNAVAILABLE' };
+  }
+
+  const buyer = await db.user.findUnique({ where: { id: input.buyerId } });
+  if (buyer === null) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+  // القاعدة في `profileCompletion` وحدها — تتبعها الشاشة والحارس معًا
+  if (!profileCompletion(buyer).canBuy) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+  // أوّل إجراءٍ ماليّ هو لحظة السؤال — كما في الشراء المباشر
+  if (buyer.taxStatus === null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
+
+  const price = Number(auction.buyNowPrice);
+
+  const created = await db.$transaction(async (tx) => {
+    const existing = await tx.order.findFirst({
+      where: { listingId: auction.listing.id, status: 'ACTIVE' },
+      select: { id: true },
+    });
+    if (existing !== null) return { ok: false as const, reason: 'ORDER_EXISTS' as const };
+
+    if (auction.listing.status !== 'PUBLISHED' && auction.listing.status !== 'RESERVED') {
+      return { ok: false as const, reason: 'LISTING_UNAVAILABLE' as const };
+    }
+
+    const amounts = await computeOrderAmounts(tx, price, now);
+
+    /** عربونُ المشتري إن كان قد زايد — يُخصم كما في رسوّ المزاد. */
+    const own = await tx.deposit.findFirst({
+      where: {
+        auctionId: auction.id,
+        userId: input.buyerId,
+        status: { in: ['HELD', 'APPLIED'] },
+        paymentId: { not: null },
+      },
+      select: { amount: true },
+    });
+
+    const depositApplied = own?.amount ?? new Prisma.Decimal(0);
+    const paymentWindow = await deadline('paymentWindowHours');
+    const ref = await nextOrderRef(tx, now);
+
+    await tx.order.create({
+      data: {
+        ref,
+        listingId: auction.listing.id,
+        buyerId: input.buyerId,
+        sellerId: auction.listing.sellerId,
+        source: 'BUY_NOW',
+        stage: 'PAYMENT',
+        ...amounts,
+        totalAmount: amounts.totalAmount.minus(depositApplied),
+        depositApplied,
+        createdAt: now,
+        stageEnteredAt: now,
+        paymentDueAt: new Date(now.getTime() + paymentWindow * 3600 * 1000),
+      },
+    });
+
+    const order = await tx.order.findUniqueOrThrow({
+      where: { ref },
+      select: { id: true },
+    });
+
+    await reserveListing(tx, auction.listing.id, 'auction.buy_now', now);
+
+    /** والمزاد يُغلق في المعاملة نفسها — ومزادٌ مفتوح على مركبةٍ بيعت يقبل مزايدة. */
+    await tx.auction.update({
+      where: { id: auction.id },
+      data: { status: 'ENDED_MET', endsAt: now },
+    });
+
+    await tx.orderEvent.create({
+      data: {
+        orderId: order.id,
+        type: 'order.created',
+        actorType: 'user',
+        actorId: input.buyerId,
+        createdAt: now,
+        payload: { source: 'BUY_NOW', auctionId: auction.id, price: String(price) },
+      },
+    });
+
+    return { ok: true as const, ref, amount: amounts.totalAmount.minus(depositApplied).toString() };
+  });
+
+  if (!created.ok) return { ok: false, reason: created.reason };
+
+  /**
+   * **والعرابين بعد المعاملة لا فيها.** `settleDeposits` تنادي
+   * البوابة لكل مزايد، ونداءُ شبكةٍ داخل معاملةٍ يحبس الصفوف حتى
+   * يردّ طرفٌ بعيد — وتعثّرُه يُسقط طلبًا أُنشئ بنجاح.
+   */
+  await settleDeposits(auction.id, input.buyerId, now);
+
+  /**
+   * **ومن زايد يُخبَر.** مزادٌ يختفي من تحت مزايدٍ بلا كلمة يُقرأ
+   * عطلًا — وقد خسر وقتَه وحجز مالَه.
+   */
+  const bidders = await db.bid.findMany({
+    where: { auctionId: auction.id, bidderId: { not: input.buyerId } },
+    select: { bidderId: true },
+    distinct: ['bidderId'],
+  });
+
+  if (bidders.length > 0) {
+    await db.notification.createMany({
+      data: bidders.map((bid) => ({
+        userId: bid.bidderId,
+        /**
+         * **والمفتاح من القوالب المزروعة.** `auction.bought_now`
+         * ليس فيها، وإشعارٌ بمفتاحٍ بلا قالب يصل فارغًا — فيُرى
+         * سطرٌ أبيض في صندوق الوارد. و`auction.lost` نصُّها «انتهى
+         * المزاد» وهو صادقٌ هنا حرفيًّا.
+         */
+        templateKey: 'auction.lost',
+        priority: 'normal',
+        entityType: 'Auction',
+        entityId: auction.id,
+      })),
+    });
+  }
+
+  return { ok: true, orderRef: created.ref, amount: created.amount };
+}

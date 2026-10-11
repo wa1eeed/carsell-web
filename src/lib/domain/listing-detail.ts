@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { buyNowAvailable } from './auctions';
 import { publicUrl } from '@/lib/r2';
 import { citySlug, modelSlug } from './slugs';
 import { effectiveAdminFee } from './fees';
@@ -590,7 +591,25 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
         : {
             startPrice: row.auction.startPrice.toString(),
             bidIncrement: row.auction.bidIncrement.toString(),
-            buyNowPrice: row.auction.buyNowPrice?.toString() ?? null,
+            /**
+             * ═══ القاعدة ١٠ تُطبَّق هنا أيضًا ═══
+             *
+             * `getAuction` تُطبّقها، **وهذه القراءة كانت تُخرج المبلغ
+             * خامًا**. ولم يظهر أثرُه ما دامت لوحة المزايدة غير
+             * مركَّبة على هذه الصفحة — ولحظةَ تُركَّب يظهر «اشترِ
+             * الآن» على مزادٍ بلغ احتياطيَّه، فيُسحب من مزايدين
+             * تجاوزوا السعر.
+             *
+             * **وقاعدةٌ تُطبَّق في قراءةٍ وتُترك في أختها نصفُ قاعدة.**
+             */
+            buyNowPrice: buyNowAvailable(
+              row.auction.buyNowPrice === null ? null : Number(row.auction.buyNowPrice),
+              row.auction.reservePrice === null
+                || (highestBid !== null && Number(highestBid) >= Number(row.auction.reservePrice)),
+              highestBid !== null,
+            )
+              ? (row.auction.buyNowPrice?.toString() ?? null)
+              : null,
             depositAmount: row.auction.depositAmount.toString(),
             startsAt: row.auction.startsAt.toISOString(),
             endsAt: row.auction.endsAt.toISOString(),

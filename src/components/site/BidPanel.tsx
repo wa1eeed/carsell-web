@@ -56,7 +56,16 @@ export function BidPanel({
    * كانت مزايدتك تنجح ولا تظهر حتى يصل بثٌّ أو تمرّ ثلاثون ثانية —
    * فيقرأ المزايد نجاحًا ويرى سعرًا لم يتغيّر، وهو شكل الفشل تمامًا.
    */
-  onPlaced: () => void;
+  /**
+   * **اختياريّة — ومكوّنُ الخادم لا يُمرّر دالّة.** تمريرُها من مكوّن
+   * خادم يردّ ٥٠٠ كاملة لا لوحةً ناقصة (البوابة ١٨). فصفحةُ المركبة
+   * تُركّب اللوحة بلا رادّ، وتقع التحديثة على `router.refresh`.
+   *
+   * ومن يملك لقطةً حيّة يُمرّرها ليحدّثها بنفسه: `router.refresh` لا
+   * يمسّ حالةً يحفظها العميل، فتنجح المزايدة ويبقى السعر كما هو —
+   * وهو شكل الفشل تمامًا.
+   */
+  onPlaced?: () => void;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -73,12 +82,47 @@ export function BidPanel({
    */
   const [method, setMethod] = useState<string | null>(null);
   const [needsCard, setNeedsCard] = useState(false);
+  const [confirm, setConfirm] = useState(false);
 
   /** بلا جلسة: إلى الدخول ومعه وجهة العودة — لا رسالة ثم طريق مسدود. */
   const requireSession = (): boolean => {
     if (signedIn) return false;
     router.push(`/${locale}/auth?next=${encodeURIComponent(window.location.pathname)}`);
     return true;
+  };
+
+  /**
+   * **والنجاح يذهب إلى الدفع لا يُخبر عنه.** الطلب يُنشأ في مرحلة
+   * «دفع» بمهلةٍ تجري — فتركُ المشتري على شاشة المزاد بعد نجاحٍ يجعله
+   * يبحث عمّا يدفع به، والمهلة تنقضي وهو يبحث.
+   */
+  const buyNowSubmit = (): void => {
+    start(async () => {
+      const response = await fetch(`/api/v1/auctions/${listingRef}/buy-now`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+      }).catch(() => null);
+
+      const payload = (await response?.json().catch(() => null)) as
+        | { data?: { next?: string }; error?: { messageAr?: string } }
+        | null;
+
+      if (response === null || !response.ok) {
+        setConfirm(false);
+        setToast(payload?.error?.messageAr ?? 'تعذّر الشراء الفوري.');
+        return;
+      }
+
+      const next = payload?.data?.next;
+      if (typeof next === 'string' && next !== '') {
+        window.location.href = `/${locale}${next}`;
+        return;
+      }
+
+      setConfirm(false);
+      setToast('تمّ الشراء — وطلبك في مرحلة الدفع.');
+      router.refresh();
+    });
   };
 
   const submit = (): void => {
@@ -129,7 +173,8 @@ export function BidPanel({
       setToast('سُجّلت مزايدتك.');
       setOpen(false);
       setAmount('');
-      onPlaced();
+      if (onPlaced === undefined) router.refresh();
+      else onPlaced();
     });
   };
 
@@ -156,16 +201,40 @@ export function BidPanel({
       </p>
 
       {/* ═══ القاعدة ١٠ ═══ يختفي متى بلغت المزايدات الاحتياطي */}
+      {/*
+        ═══ «اشترِ الآن» — وكان يقول «قريبًا» ═══
+
+        الزرّ معروضٌ منذ بُنيت هذه اللوحة، والبائع يضبط سعره في معالج
+        البيع ويُخزَّن، والقاعدة ١٠ تحكم ظهوره — **وضغطُه يُخرج رسالة
+        «الشراء الفوري قريبًا»**. فبائعٌ يضبط سعرًا فوريًّا يُوعَد ببيعٍ
+        لا يقع، ومشترٍ يراه يُوعَد بشراءٍ لا يقع.
+
+        **ويُسأل قبل أن يقع**: الشراء الفوري يُنهي المزاد ولا رجعة فيه،
+        وزرٌّ واحد بينه وبين المال كثير.
+      */}
       {buyNowPrice === null ? null : (
         <Button
           variant="outline"
           className="w-full"
           disabled={pending}
-          onClick={() => (requireSession() ? undefined : setToast('الشراء الفوري قريبًا.'))}
+          onClick={() => (requireSession() ? undefined : setConfirm(true))}
         >
           اشترِ الآن بـ <Money amount={Number(buyNowPrice)} />
         </Button>
       )}
+
+      <Modal open={confirm} onClose={() => setConfirm(false)} title="الشراء الفوري">
+        <p className="mb-4 text-2xs leading-loose opacity-70">
+          تشتري المركبة الآن بـ{' '}
+          <b>
+            <Money amount={Number(buyNowPrice ?? 0)} />
+          </b>{' '}
+          وينتهي المزاد فورًا — ولا رجعة فيه. ويُنشأ طلبٌ في مرحلة الدفع بمهلته.
+        </p>
+        <Button className="w-full" disabled={pending} onClick={buyNowSubmit}>
+          {pending ? 'يُنفَّذ…' : 'أكّد الشراء'}
+        </Button>
+      </Modal>
 
       <Modal open={open} onClose={() => setOpen(false)} title="مزايدة">
         <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-65">

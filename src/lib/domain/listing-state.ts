@@ -41,7 +41,12 @@ type Writer = Pick<typeof db, 'listing'>;
  * ولا تقول أبيعٌ مباشر أم عرضٌ قُبل أم مزادٌ رسا — وهي ثلاثة مسارات
  * تُقرأ بعد شهور في تحقيقٍ أو نزاع.
  */
-export type ReserveReason = 'order.created' | 'offer.accepted' | 'auction.won';
+export type ReserveReason =
+  | 'order.created'
+  | 'offer.accepted'
+  | 'auction.won'
+  /** «اشترِ الآن» — المزاد لم يرسُ، بل اشتُريت المركبة بسعرٍ معلَن */
+  | 'auction.buy_now';
 
 /** حُجز لطلبٍ قائم — ويخرج من العرض العام. */
 export async function reserveListing(
