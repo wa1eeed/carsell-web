@@ -9,6 +9,15 @@ import { Button } from '@/components/ui/Button';
 import { ImageUploader, type UploadedImage } from '@/components/ui/ImageUploader';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
+import {
+  Choice,
+  Note,
+  PriceField,
+  Readout,
+  SettingsBlock,
+  Toggle,
+  trimZeros,
+} from '@/components/site/AuctionSettings';
 import { Stepper } from '@/components/ui/Stepper';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
@@ -94,41 +103,14 @@ const METHODS = ['DIRECT', 'NEGOTIATION', 'AUCTION'] as const;
  * والحالة كلّها في العميل هنا **بخلاف Wb**: هذه استمارة لا شاشة نتائج،
  * ورابطٌ يحمل نصف مركبة لا يفيد أحدًا ولا يُشارَك.
  */
-/**
- * حقل مبلغ — **يقبل كل صيغة لصق ويطبّعها**، و`dir="ltr"` لأنه يُقارن
- * خانةً بخانة. والتلميح تحته لا بجانبه: الشرطُ يُقرأ قبل الكتابة.
- */
-function PriceField({
-  label,
-  hint,
-  value,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  value: string;
-  onChange: (next: string) => void;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-60">{label}</span>
-      <input
-        dir="ltr"
-        inputMode="numeric"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
-      />
-      <span className="text-3xs leading-loose opacity-45">{hint}</span>
-    </label>
-  );
-}
-
 export type AuctionLimits = {
   durationsDays: number[];
   minIncrement: string;
   defaultDeposit: string;
   buyNowBeforeReserve: boolean;
+  /** مدّتا التمديد — تُعرضان شرطًا ولا تُدارَان من هنا. */
+  extendWindowSeconds: number;
+  extendBySeconds: number;
 };
 
 export function SellWizard({
@@ -186,6 +168,10 @@ export function SellWizard({
   const [bidIncrement, setBidIncrement] = useState('');
   const [buyNowPrice, setBuyNowPrice] = useState('');
   const [minAcceptPrice, setMinAcceptPrice] = useState('');
+  const [buyNowOn, setBuyNowOn] = useState(false);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [viewingCity, setViewingCity] = useState('');
+  const [viewingAddress, setViewingAddress] = useState('');
 
   /**
    * ═══ الوضع الضريبيّ يُسأل هنا، لا عند «ادفع» ═══
@@ -259,7 +245,10 @@ export function SellWizard({
                     startNow || startsAt === '' ? null : new Date(startsAt).toISOString(),
                   reservePrice: digits(reservePrice),
                   bidIncrement: digits(bidIncrement),
-                  buyNowPrice: digits(buyNowPrice),
+                  buyNowPrice: buyNowOn ? digits(buyNowPrice) : null,
+                  depositAmount: digits(depositAmount),
+                  viewingCity: viewingCity === '' ? null : viewingCity,
+                  viewingAddress: viewingAddress.trim() === '' ? null : viewingAddress.trim(),
                 },
               }),
 
@@ -822,72 +811,19 @@ export function SellWizard({
             وتُطال الاستمارة، ومن اختار «مباشر» لا شأن له بخطوة مزايدة.
           */}
           {method !== 'AUCTION' ? null : (
-            <div className="mb-7 rounded-xl border border-line bg-surface p-5.5">
-              <h3 className="mb-4 text-base font-bold">{t('auction.title')}</h3>
+            <div className="mb-7 flex flex-col gap-px overflow-hidden rounded-xl border border-line bg-line">
+              {/*
+                ═══ الأسعار ═══
 
-              <fieldset className="mb-5">
-                <legend className="mb-2.5 text-3xs font-bold opacity-60">
-                  {t('auction.duration')}
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {auctionLimits.durationsDays.map((days) => (
-                    <button
-                      key={days}
-                      type="button"
-                      onClick={() => setDurationDays(days)}
-                      className={cn(
-                        'rounded-btn border px-4 py-2 text-2xs font-bold',
-                        durationDays === days
-                          ? 'border-ink bg-ink text-bg'
-                          : 'border-line hover:border-ink',
-                      )}
-                    >
-                      <Quantity unit="days" count={days} />
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-
-              <fieldset className="mb-5">
-                <legend className="mb-2.5 text-3xs font-bold opacity-60">
-                  {t('auction.start')}
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setStartNow(true)}
-                    className={cn(
-                      'rounded-btn border px-4 py-2 text-2xs font-bold',
-                      startNow ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink',
-                    )}
-                  >
-                    {t('auction.startNow')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStartNow(false)}
-                    className={cn(
-                      'rounded-btn border px-4 py-2 text-2xs font-bold',
-                      startNow ? 'border-line hover:border-ink' : 'border-ink bg-ink text-bg',
-                    )}
-                  >
-                    {t('auction.startScheduled')}
-                  </button>
-                </div>
-
-                {startNow ? null : (
-                  /* الموعد يُقارن خانةً بخانة — لاتينيّ معزول */
-                  <input
-                    dir="ltr"
-                    type="datetime-local"
-                    value={startsAt}
-                    onChange={(event) => setStartsAt(event.target.value)}
-                    className="mt-2.5 rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
-                  />
-                )}
-              </fieldset>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+                **وسعر الافتتاح يُعرض ولا يُعاد سؤاله**: كتبه البائع في
+                الخطوة السابقة، وحقلٌ ثانٍ له يُنتج رقمين قد يختلفان.
+              */}
+              <SettingsBlock title={t('auction.prices')}>
+                <Readout
+                  label={t('auction.openPrice')}
+                  value={price === '' ? '—' : toArabicDigits(price)}
+                  hint={t('auction.openPriceHint')}
+                />
                 <PriceField
                   label={t('auction.reserve')}
                   hint={t('auction.reserveHint')}
@@ -896,31 +832,155 @@ export function SellWizard({
                 />
                 <PriceField
                   label={t('auction.increment')}
-                  hint={`${t('auction.incrementHint')} ${toArabicDigits(auctionLimits.minIncrement.replace(/\.00$/, ''))}`}
+                  hint={`${t('auction.incrementHint')} ${toArabicDigits(trimZeros(auctionLimits.minIncrement))}`}
                   value={bidIncrement}
                   onChange={setBidIncrement}
                 />
-                {!auctionLimits.buyNowBeforeReserve ? null : (
-                  <PriceField
-                    label={t('auction.buyNow')}
-                    hint={t('auction.buyNowHint')}
-                    value={buyNowPrice}
-                    onChange={setBuyNowPrice}
-                  />
+                <Note>{t('auction.reserveNote')}</Note>
+              </SettingsBlock>
+
+              {/* ═══ التوقيت ═══ */}
+              <SettingsBlock title={t('auction.timing')}>
+                <Choice
+                  options={[
+                    { key: 'now', label: t('auction.startNow') },
+                    { key: 'later', label: t('auction.startScheduled') },
+                  ]}
+                  active={startNow ? 'now' : 'later'}
+                  onSelect={(key) => setStartNow(key === 'now')}
+                />
+
+                {startNow ? null : (
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-3xs font-bold opacity-60">
+                      {t('auction.startAt')}
+                    </span>
+                    {/* الموعد يُقارن خانةً بخانة — لاتينيّ معزول */}
+                    <input
+                      dir="ltr"
+                      type="datetime-local"
+                      value={startsAt}
+                      onChange={(event) => setStartsAt(event.target.value)}
+                      className="w-0 min-w-0 flex-1 rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
+                    />
+                    <span className="text-3xs leading-loose opacity-45">
+                      {t('auction.startAtHint')}
+                    </span>
+                  </label>
                 )}
-              </div>
+
+                <fieldset>
+                  <legend className="mb-2.5 text-3xs font-bold opacity-60">
+                    {t('auction.duration')}
+                  </legend>
+                  <Choice
+                    options={auctionLimits.durationsDays.map((days) => ({
+                      key: String(days),
+                      label: <Quantity unit="days" count={days} />,
+                    }))}
+                    active={String(durationDays)}
+                    onSelect={(key) => setDurationDays(Number(key))}
+                  />
+                </fieldset>
+
+                {/*
+                  **والتمديد شرطٌ يُقال لا مفتاحٌ يُدار.** التصميم يرسمه
+                  مفتاحًا، ومدّتاه في لوحة المزادات لا في يد البائع —
+                  ومفتاحٌ لا يغيّر شيئًا أسوأ من سطرٍ يشرح. والأرقام من
+                  الإعداد فلا تتباعد عنه.
+                */}
+                <Note>
+                  {t('auction.extendRule', {
+                    window: toArabicDigits(String(Math.round(auctionLimits.extendWindowSeconds / 60))),
+                    by: toArabicDigits(String(Math.round(auctionLimits.extendBySeconds / 60))),
+                  })}
+                </Note>
+
+                {!auctionLimits.buyNowBeforeReserve ? null : (
+                  <>
+                    <Toggle
+                      label={t('auction.buyNow')}
+                      hint={t('auction.buyNowHint')}
+                      on={buyNowOn}
+                      onToggle={() => {
+                        setBuyNowOn(!buyNowOn);
+                        if (buyNowOn) setBuyNowPrice('');
+                      }}
+                    />
+                    {!buyNowOn ? null : (
+                      <PriceField
+                        label={t('auction.buyNowAmount')}
+                        hint={t('auction.buyNowAmountHint')}
+                        value={buyNowPrice}
+                        onChange={setBuyNowPrice}
+                      />
+                    )}
+                  </>
+                )}
+              </SettingsBlock>
+
+              {/* ═══ العربون والمزايدون ═══ */}
+              <SettingsBlock title={t('auction.depositTitle')}>
+                <PriceField
+                  label={t('auction.depositField')}
+                  hint={`${t('auction.depositHint')} ${toArabicDigits(trimZeros(auctionLimits.defaultDeposit))}`}
+                  value={depositAmount}
+                  onChange={setDepositAmount}
+                />
+                {/*
+                  **ومن يزايد شرطٌ لا خيار.** التصميم يعرضه حقلًا،
+                  والقاعدة في الخادم: حسابٌ موثّق الهوية وقادر على
+                  الشراء. فيُقال ولا يُسأل عنه.
+                */}
+                <Readout
+                  label={t('auction.whoBids')}
+                  value={t('auction.whoBidsValue')}
+                  hint={t('auction.whoBidsHint')}
+                />
+                <Note>{t('auction.depositNote')}</Note>
+              </SettingsBlock>
 
               {/*
-                **والعربون يُقال ولا يُسأل عنه**: رقمُ المشغّل لا
-                البائع. وإخفاؤه يجعل البائع يجهل ما يلتزم به المزايد.
+                ═══ موقع المعاينة — وكان يُقرأ ولا يُكتب ═══
+
+                صفحة المزاد تعرض «المعاينة متاحة في …» أو «لم يحدّد
+                البائع موقع معاينة»، والثانية كانت **الحال الوحيد
+                الممكن** لأيّ مزادٍ ينشئه بائع.
               */}
-              <p className="mt-4 text-3xs leading-loose opacity-55">
-                {t('auction.deposit')}{' '}
-                <span className="font-num font-bold">
-                  {toArabicDigits(auctionLimits.defaultDeposit.replace(/\.00$/, ''))}
-                </span>{' '}
-                {t('auction.riyal')}
-              </p>
+              <SettingsBlock title={t('auction.viewing')}>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-3xs font-bold opacity-60">{t('auction.viewingCity')}</span>
+                  <select
+                    value={viewingCity}
+                    onChange={(event) => setViewingCity(event.target.value)}
+                    className="rounded-md border border-line bg-bg px-3 py-2 text-sm"
+                  >
+                    <option value="">{t('auction.viewingNone')}</option>
+                    {cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {viewingCity === '' ? null : (
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-3xs font-bold opacity-60">
+                      {t('auction.viewingArea')}
+                    </span>
+                    <input
+                      value={viewingAddress}
+                      onChange={(event) => setViewingAddress(event.target.value)}
+                      placeholder={t('auction.viewingAreaPlaceholder')}
+                      className="rounded-md border border-line bg-bg px-3 py-2 text-sm"
+                    />
+                    <span className="text-3xs leading-loose opacity-45">
+                      {t('auction.viewingHint')}
+                    </span>
+                  </label>
+                )}
+              </SettingsBlock>
             </div>
           )}
 

@@ -1220,7 +1220,23 @@ function checkFunctionPropsAcrossBoundary() {
     const source = readFileSync(file, 'utf8');
     if (!/^\s*'use client'/.test(source)) continue;
     if (!/^\s*\w+\??:\s*\(.*\)\s*=>/m.test(source) && !/\bcell:\s*\(/.test(source)) continue;
+
+    /**
+     * ═══ والاسم من التصدير لا من اسم الملفّ ═══
+     *
+     * كانت تسجّل اسم الملفّ وحده، **فملفٌّ يصدّر ستّة مكوّنات يُسجَّل
+     * منها واحد**. أخرجتُ قطع لوحة المزاد إلى `AuctionSettings.tsx`،
+     * فمرّت `PriceField` و`Toggle` و`Choice` على البوابة — وردّت
+     * `/dev/ui` **٥٠٠ كاملة** بالعطل نفسه الذي وُلدت منه.
+     *
+     * والاسم يُجمع من كل `export function X` و`export const X =`.
+     */
     clientComponents.add(basename(file, '.tsx'));
+    for (const exported of source.matchAll(
+      /^export\s+(?:function|const)\s+([A-Z]\w*)/gm,
+    )) {
+      clientComponents.add(exported[1]);
+    }
   }
 
   if (clientComponents.size === 0) return;

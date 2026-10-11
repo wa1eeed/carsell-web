@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge, InspectedBadge } from '@/components/ui/Badge';
+import { AuctionSettingsPreview } from './AuctionSettingsPreview';
 import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Countdown } from '@/components/ui/Countdown';
 import { Percent, Quantity } from '@/components/ui/Quantity';
@@ -358,6 +359,19 @@ export default async function DevUiPage({
                 </div>
               ))}
             </div>
+          </Case>
+        </Section>
+
+        {/*
+          ═══ قطعُ لوحة إعدادات البيع — Wh3 ═══
+
+          **ولا تُفتح من المعالج بلا صورة**: خطوة طريقة البيع ثالثةٌ،
+          وقبلها رفعُ صورة يحتاج تخزينًا. فتُراجَع هنا إلى جانب بطاقة
+          التصميم — وهو ما بُني `/dev/ui` له.
+        */}
+        <Section title="إعدادات البيع (Wh3)">
+          <Case label="اللوحة بأقسامها — والفصل بالخطوط لا بالظلال">
+            <AuctionSettingsPreview />
           </Case>
         </Section>
       </div>

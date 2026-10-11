@@ -92,6 +92,25 @@ export type PublishInput = {
     bidIncrement: number | null;
     /** «اشترِ الآن» — ويختفي متى بلغت المزايدات الاحتياطي. */
     buyNowPrice: number | null;
+    /**
+     * عربون المزايدة — `null` يأخذ افتراضيّ المشغّل.
+     *
+     * **ويرفعه البائع ولا يُلغيه**: عربونٌ أعلى يقلّل المزايدين ويرفع
+     * جدّيتهم، والتصميم يوصي بـ٣–٥٪ من الاحتياطي لأنه يعكس القيمة
+     * الحقيقية لا نقطة البداية.
+     */
+    depositAmount: number | null;
+    /**
+     * موقع المعاينة — **وكان يُقرأ ولا يُكتب**.
+     *
+     * صفحة المزاد تعرض «المعاينة متاحة في …» أو «لم يحدّد البائع موقع
+     * معاينة»، والثانية كانت **الحال الوحيد الممكن** لأيّ مزادٍ ينشئه
+     * بائع: لا حقل في المنتج كلّه يكتب الحقلين.
+     *
+     * والعنوان الدقيق لا يُعرض قبل تأكيد الموعد — والمدينة وحدها تُقال.
+     */
+    viewingCity: string | null;
+    viewingAddress: string | null;
   };
   /**
    * إعدادات التفاوض — **و`minAcceptPrice` لم يكن لها كاتبٌ عند النشر**.
@@ -120,6 +139,7 @@ export type PublishFailure =
   | 'AUCTION_RESERVE_INVALID'
   | 'AUCTION_INCREMENT_TOO_SMALL'
   | 'AUCTION_BUY_NOW_INVALID'
+  | 'AUCTION_DEPOSIT_INVALID'
   | 'MIN_ACCEPT_INVALID';
 
 export type PublishResult =
@@ -254,6 +274,26 @@ export async function createListing(
       const floor = auction.reservePrice ?? input.askPrice;
       if (!Number.isFinite(auction.buyNowPrice) || auction.buyNowPrice < floor) {
         return { ok: false, reason: 'AUCTION_BUY_NOW_INVALID' };
+      }
+    }
+
+    /**
+     * ═══ العربون بين حدّين ═══
+     *
+     * **بصفرٍ تسقط جدّية المزايد** — يزايد ولا يخسر شيئًا بالانسحاب،
+     * فيُعطَّل المزاد بلا كلفة. وبرُبع قيمة المركبة لا يزايد أحد.
+     *
+     * // DESIGN-Q: الحدّ الأعلى ١٥٪ من الاحتياطي اجتهادًا — والتصميم
+     * يوصي بـ٣–٥٪ ولا يذكر سقفًا. أيُترك للبائع أم يُقيَّد بالتوصية؟
+     */
+    if (auction.depositAmount !== null) {
+      const ceiling = Math.round((auction.reservePrice ?? input.askPrice) * 0.15);
+      if (
+        !Number.isFinite(auction.depositAmount) ||
+        auction.depositAmount < Number(settings.minIncrement) ||
+        auction.depositAmount > ceiling
+      ) {
+        return { ok: false, reason: 'AUCTION_DEPOSIT_INVALID' };
       }
     }
   }
@@ -399,9 +439,16 @@ export async function createListing(
           ...(plan.buyNowPrice === null
             ? {}
             : { buyNowPrice: new Prisma.Decimal(plan.buyNowPrice) }),
-          depositAmount: new Prisma.Decimal(settings.defaultDeposit),
+          depositAmount: new Prisma.Decimal(plan.depositAmount ?? Number(settings.defaultDeposit)),
           startsAt,
           endsAt,
+          /** المدينة تُقال، والعنوان الدقيق بعد تأكيد الموعد. */
+          ...(plan.viewingCity === null || plan.viewingCity.trim() === ''
+            ? {}
+            : { viewingCity: plan.viewingCity.trim().slice(0, 60) }),
+          ...(plan.viewingAddress === null || plan.viewingAddress.trim() === ''
+            ? {}
+            : { viewingAddress: plan.viewingAddress.trim().slice(0, 200) }),
           /**
            * والمراجَع لا يُفتح مزادُه: إعلانٌ في الطابور يبقى مزادُه
            * `SCHEDULED` حتى يُعتمد — ولا يُزايَد على ما لم يُنشَر.

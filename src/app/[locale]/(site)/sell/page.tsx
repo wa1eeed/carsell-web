@@ -101,6 +101,8 @@ export default async function SellPage({
               minIncrement: auction.minIncrement,
               defaultDeposit: auction.defaultDeposit,
               buyNowBeforeReserve: auction.buyNowBeforeReserve,
+              extendWindowSeconds: auction.extendWindowSeconds,
+              extendBySeconds: auction.extendBySeconds,
             }}
             taxProfile={taxProfileOf(user)}
             brands={brands}

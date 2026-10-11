@@ -310,6 +310,9 @@ describe('المزاد يُنشأ مع إعلانه — لا بعده ولا أ�
         reservePrice: 95_000,
         bidIncrement: null,
         buyNowPrice: null,
+        depositAmount: null,
+        viewingCity: 'الرياض',
+        viewingAddress: null,
       },
     };
 
@@ -354,6 +357,7 @@ describe('المزاد يُنشأ مع إعلانه — لا بعده ولا أ�
       auction: {
         durationDays: 1, startsAt: soon, reservePrice: null,
         bidIncrement: null, buyNowPrice: null,
+        depositAmount: null, viewingCity: null, viewingAddress: null,
       },
     };
 
@@ -375,6 +379,7 @@ describe('المزاد يُنشأ مع إعلانه — لا بعده ولا أ�
     const auction = {
       durationDays: 3, startsAt: null, reservePrice: null,
       bidIncrement: null, buyNowPrice: null,
+      depositAmount: null, viewingCity: null, viewingAddress: null,
     };
 
     expect(
@@ -405,6 +410,7 @@ describe('المزاد يُنشأ مع إعلانه — لا بعده ولا أ�
         auction: {
           durationDays: 3, startsAt: null, reservePrice: 95_000,
           bidIncrement: null, buyNowPrice: 94_000,
+          depositAmount: null, viewingCity: null, viewingAddress: null,
         },
       }),
     ).toEqual({ ok: false, reason: 'AUCTION_BUY_NOW_INVALID' });

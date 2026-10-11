@@ -106,6 +106,11 @@ const PUBLISH_ERROR: Record<
     en: 'The bid increment is below the allowed minimum.',
     status: 422,
   },
+  AUCTION_DEPOSIT_INVALID: {
+    ar: 'العربون خارج الحدّ — عالٍ يطرد المزايدين، ومنخفضٌ يُفقد المزايدة جدّيتها.',
+    en: 'The deposit is out of range — too high drives bidders away, too low makes bidding costless.',
+    status: 422,
+  },
   AUCTION_BUY_NOW_INVALID: {
     ar: 'سعر «اشترِ الآن» لا يقلّ عن الاحتياطي — وإلّا بِيعت بأقلّ ممّا قبلتَ به.',
     en: 'The buy-now price cannot be below the reserve — it would sell under your floor.',
@@ -163,6 +168,10 @@ const PublishBody = z.object({
       reservePrice: z.number().int().min(1).max(100_000_000).nullable(),
       bidIncrement: z.number().int().min(1).max(1_000_000).nullable(),
       buyNowPrice: z.number().int().min(1).max(100_000_000).nullable(),
+      depositAmount: z.number().int().min(1).max(10_000_000).nullable(),
+      /** المدينة تُقال للجميع، والعنوان الدقيق بعد تأكيد الموعد. */
+      viewingCity: z.string().max(60).nullable(),
+      viewingAddress: z.string().max(200).nullable(),
     })
     .optional(),
 
