@@ -4,6 +4,7 @@ import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { advanceStage } from '@/lib/domain/orders';
+import { cancelOrder, type CancelFailure } from '@/lib/domain/order-cancel';
 
 export const runtime = 'nodejs';
 
@@ -99,4 +100,72 @@ export async function PATCH(
   }
 
   return ok(result);
+}
+
+const CancelBody = z.object({ reason: z.string().min(3).max(500) });
+
+const CANCEL_MESSAGES: Record<CancelFailure, { ar: string; en: string; status: number }> = {
+  NOT_FOUND: { ar: 'الطلب غير موجود.', en: 'Order not found.', status: 404 },
+  NOT_PARTY: {
+    ar: 'لست طرفًا في هذا الطلب.',
+    en: 'You are not a party to this order.',
+    status: 403,
+  },
+  ALREADY_CLOSED: { ar: 'الطلب مغلق بالفعل.', en: 'This order is already closed.', status: 409 },
+  TRANSFER_DONE: {
+    ar: 'نُقلت الملكية وأُفرج عن المبلغ — ولا إلغاء بعدها. افتح نزاعًا إن كان ثمّة خلاف.',
+    en: 'Ownership transferred and funds released — cancellation is no longer possible. Open a dispute if something is wrong.',
+    status: 409,
+  },
+  DISPUTED: {
+    ar: 'الطلب متنازَعٌ عليه — مجمَّد حتى يُحسم.',
+    en: 'This order is disputed and frozen until resolved.',
+    status: 409,
+  },
+  REASON_REQUIRED: { ar: 'اكتب سبب الإلغاء.', en: 'Write a reason for cancelling.', status: 422 },
+  GATEWAY_FAILED: {
+    ar: 'تعذّر إلغاء الحجز لدى بوابة الدفع — لم يتغيّر شيء، أعد المحاولة.',
+    en: 'The payment hold could not be released — nothing changed, please try again.',
+    status: 502,
+  },
+};
+
+/**
+ * `DELETE /api/v1/orders/{ref}` — إلغاء الطلب.
+ *
+ * **ولم يكن له وجود.** `OrderStatus.CANCELLED` في المخطّط، واللوحة
+ * تعدّه، و`cancelReason` تُقرأ — ولا كاتب. **وشروطُنا المنشورة تَعِد
+ * به**: «الإلغاء قبل الدفع بلا رسوم… وبعد الدفع تُطبَّق رسوم الإلغاء
+ * المعلنة في صفحة الطلب». فمن دفع ثم احتاج الإلغاء كان يفتح نزاعًا
+ * على ما ليس خلافًا.
+ *
+ * و`DELETE` لا `PATCH`: الإلغاء ليس مرحلةً تالية في المسار، بل خروجٌ
+ * منه — و`PATCH { to }` محصورةٌ في `DONE` عمدًا.
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ ref: string }> },
+) {
+  const user = await currentUser(request);
+  if (user === null) return fail(ERRORS.UNAUTHORIZED, 401);
+
+  const parsed = CancelBody.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return fail(ERRORS.VALIDATION({ reason: 'REQUIRED' }), 422);
+
+  const { ref } = await params;
+  const result = await cancelOrder({
+    orderRef: ref,
+    actorId: user.id,
+    reason: parsed.data.reason,
+  });
+
+  if (!result.ok) {
+    const message = CANCEL_MESSAGES[result.reason];
+    return fail(
+      { code: result.reason, messageAr: message.ar, messageEn: message.en },
+      message.status,
+    );
+  }
+
+  return ok({ cancelled: true, refunded: result.refunded, stage: result.stage });
 }

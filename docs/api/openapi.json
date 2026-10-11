@@ -4396,6 +4396,38 @@
             "description": "Validation failed"
           }
         }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/orders/{ref}",
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
       }
     },
     "/api/v1/orders/{ref}/disputes": {

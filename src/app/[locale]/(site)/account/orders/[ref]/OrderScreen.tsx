@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { PayPanel } from '@/components/site/PayPanel';
 import { DisputePanel } from '@/components/site/DisputePanel';
 import { StagePanel } from '@/components/site/StagePanel';
+import { CancelOrder } from '@/components/site/CancelOrder';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -160,6 +161,25 @@ export function OrderScreen({
                 }
                 hasOpen={order.dispute !== null}
               />
+
+              {/*
+                ═══ والإلغاء آخر الصفّ ═══
+
+                **ولا يُعرض بعد الإفراج**: نُقلت الملكية ووصل المال
+                البائع، فالمسار نزاعٌ لا إلغاء — وزرٌّ يردّ ٤٠٩ بعد
+                الضغط أسوأ من غيابه.
+
+                وهو **لكلا الطرفين**: البائع قد يعتذر كما ينسحب
+                المشتري، وحصرُه في أحدهما يترك الآخر يتّصل بالدعم.
+              */}
+              {order.escrow?.status === 'RELEASED' || order.stage === 'DONE' ? null : (
+                <p className="mt-1 text-center">
+                  <CancelOrder
+                    orderRef={order.ref}
+                    paid={order.escrow !== null && order.escrow.status === 'HELD'}
+                  />
+                </p>
+              )}
             </div>
           )}
 

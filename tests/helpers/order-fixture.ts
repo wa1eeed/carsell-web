@@ -55,6 +55,28 @@ export async function restoreOrder(snapshot: OrderSnapshot): Promise<void> {
     where: { orderId: id, createdAt: { gt: snapshot.order.stageEnteredAt } },
   });
 
+  /**
+   * ═══ وقيودُ الدفتر تُحذف بمعاملتها لا بصاحبها ═══
+   *
+   * صار الإلغاء يكتب في الدفتر، **فالأثر الجديد يُتبَع في الاستعادة
+   * المشتركة** — وإلّا تسرّب قيدٌ إلى التشغيل التالي.
+   *
+   * والحذف بـ`orderId` وحده **يُفسد الدفتر**: قيدٌ مزدوج طرفُه الثاني
+   * بلا `orderId` (حساب المنصّة مثلًا) يبقى يتيمًا، فتصير في الدفتر
+   * معاملةٌ غير متوازنة تُسقط كل اختبارٍ يفحص التوازن. فتُجمع
+   * المعاملات أوّلًا ثم تُحذف كاملةً.
+   */
+  const touched = await db.ledgerEntry.findMany({
+    where: { orderId: id, createdAt: { gt: snapshot.order.stageEnteredAt } },
+    select: { txnId: true },
+    distinct: ['txnId'],
+  });
+  if (touched.length > 0) {
+    await db.ledgerEntry.deleteMany({
+      where: { txnId: { in: touched.map((entry) => entry.txnId) } },
+    });
+  }
+
   const { id: _id, ...fields } = snapshot.order;
   await db.order.update({ where: { id }, data: fields });
 
