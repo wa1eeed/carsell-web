@@ -30,7 +30,8 @@
     "trial:reset": "tsx scripts/trial-reset.ts",
     "db:seed:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/seed.ts",
     "admin:sync": "tsx prisma/admin-sync.ts",
-    "admin:sync:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/admin-sync.ts"
+    "admin:sync:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/admin-sync.ts",
+    "design:audit": "node scripts/design-audit.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",
