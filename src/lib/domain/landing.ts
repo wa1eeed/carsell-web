@@ -93,6 +93,12 @@ export type LandingContent = LandingKey & {
   inspectedCount: number;
   /** مسار البحث المكافئ — الصفحة بوّابةٌ إليه لا بديلٌ عنه. */
   searchQuery: string;
+  /**
+   * معرّفا الماركة والطراز — **يُحسبان للبحث ثم يُهملان**.
+   * والصفحة تحتاجهما لتعرض شبكتها بنفسها لا لتُحيل إلى غيرها.
+   */
+  brandId: string | null;
+  modelId: string | null;
   /** وُصل إليها برابطٍ قديم — فتُحوَّل إلى المعياريّ. */
   legacySlug: boolean;
 };
@@ -177,6 +183,8 @@ export async function landingContent(
      * المعياريّ، فما فُهرس بالقديم ينتقل ولا يُفقد.
      */
     legacySlug: legacy !== undefined,
+    brandId: brandId?.id ?? null,
+    modelId: modelId?.id ?? null,
     priceMin: bounds._min.askPrice?.toString() ?? null,
     priceMax: bounds._max.askPrice?.toString() ?? null,
     inspectedCount,

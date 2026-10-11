@@ -10,6 +10,11 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
 import { landingContent, landingSiblings } from '@/lib/domain/landing';
+import { EMPTY_FILTERS, SORTS, type Sort, searchListings } from '@/lib/domain/listings';
+import { CarCard } from '@/components/ui/CarCard';
+import { toCardData } from '@/components/ui/toCardData';
+import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
+import { FilterChip } from '@/components/ui/FilterChip';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,10 +49,20 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
  * وهي **بوّابةٌ إلى البحث لا بديلٌ عنه**: الأرقام أعلاه والرابط يذهب
  * إلى نتائج البحث نفسها بمرشّحاتها.
  */
-export default async function CityBrandLanding({ params }: { params: Params }) {
+export default async function CityBrandLanding({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { locale, city, brand } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+
+  const te = await getTranslations({ locale, namespace: 'enums' });
+  const query = await searchParams;
+  const resolvedSort = (typeof query.sort === 'string' ? query.sort : 'newest') as Sort;
 
   const [content, t] = await Promise.all([
     landingContent(city, brand, null),
@@ -74,6 +89,29 @@ export default async function CityBrandLanding({ params }: { params: Params }) {
 
   // الشاشة لا تُقارن مقاطع بنفسها — المقارنة حيث الفكّ مضمون
   const siblings = await landingSiblings(city, brand);
+
+  /**
+   * ═══ وشبكةُ الإعلانات هي الصفحة ═══
+   *
+   * كانت الصفحة عنوانًا وسطرَ إحصاء وزرًّا يقول «تصفّح» — **فالزائر
+   * الآتي من محرّك بحثٍ لا يرى سيارةً واحدة**، ويُطلب منه أن ينقر
+   * ليبدأ. وصفحةُ هبوطٍ لا تعرض ما وُعد به ترتدّ عنها العين.
+   *
+   * **والترتيب يُطلب**: الأحدث لمن يتابع، والأرخص لمن يوازن.
+   */
+  const sort = SORTS.includes(resolvedSort) ? resolvedSort : 'newest';
+
+  const results = await searchListings(
+    {
+      ...EMPTY_FILTERS,
+      city: content.city,
+      brandId: content.brandId,
+      ...(content.modelId === null ? {} : { modelId: content.modelId }),
+      sort,
+      limit: 12,
+    },
+    locale,
+  );
 
   return (
     <>
@@ -106,6 +144,53 @@ export default async function CityBrandLanding({ params }: { params: Params }) {
               </>
             )}
           </p>
+
+          {/*
+            ═══ شريط الترتيب ═══
+
+            **والترتيب يُطلب لا يُفرَض**: الأحدث لمن يتابع، والأرخص
+            لمن يوازن. والعنوان يحمله فيُشارَك ويعمل بلا JS.
+          */}
+          <nav className="mb-6 flex flex-wrap items-center gap-2.5">
+            <FilterChip href={`/${locale}/browse/${city}/${brand}`} active={sort === 'newest'}>
+              الأحدث
+            </FilterChip>
+            <FilterChip
+              href={`/${locale}/browse/${city}/${brand}?sort=price_asc`}
+              active={sort === 'price_asc'}
+            >
+              الأقلّ سعرًا
+            </FilterChip>
+            <FilterChip
+              href={`/${locale}/browse/${city}/${brand}?sort=price_desc`}
+              active={sort === 'price_desc'}
+            >
+              الأعلى سعرًا
+            </FilterChip>
+          </nav>
+
+          {/*
+            ═══ والشبكة هي الصفحة ═══
+
+            كانت عنوانًا وسطرَ إحصاء وزرًّا — فالزائر الآتي من محرّك
+            بحثٍ لا يرى سيارةً واحدة، ويُطلب منه أن ينقر ليبدأ.
+          */}
+          {results.items.length === 0 ? null : (
+            <ul className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {results.items.map((item) => (
+                <li key={item.ref}>
+                  {/* التسمية من `enums` نفسها التي تقرؤها بقيّة الشاشات — لا نسخة ثانية */}
+                  {/* التحويل من `toCardData` — مرّةً لا في كل شاشة */}
+                  <CarCard
+                    data={toCardData(item, {
+                      transmission: te(`transmission.${item.transmission}`),
+                      anonymousSeller: ANONYMOUS_SELLER,
+                    })}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
 
           <Link
             href={`/${locale}/cars?${content.searchQuery}`}
