@@ -7,11 +7,13 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
+import { toArabicDigits } from '@/lib/arabic';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { sellerBook } from '@/lib/domain/seller-book';
+import { sellerPayouts } from '@/lib/domain/payouts';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +47,19 @@ export default async function EarningsPage({
   const user = await currentUserFromCookies();
   if (user === null) redirect(`/${locale}/auth`);
 
-  const book = await sellerBook(user.id, locale);
+  const [book, payouts] = await Promise.all([
+    sellerBook(user.id, locale),
+    sellerPayouts(user.id),
+  ]);
+
+  /**
+   * **والتاريخ يُصاغ على الخادم** — فلا يختلف ما يُقدَّم عمّا يُروى.
+   */
+  const dateFormat = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <>
@@ -94,6 +108,44 @@ export default async function EarningsPage({
             </dl>
           </section>
 
+          {/*
+            ═══ ما وصلك فعلًا ═══
+
+            وكان العدّاد أعلاه يقول «حُوِّل إليك» ولا سبيل إلى أن يصير
+            غير صفرٍ: لا شيء في المنتج كان يكتب `payout.sent`. فحين
+            صار له باب صار له تفصيل — ورقمٌ بلا سطرٍ يفسّره لا يُطابَق.
+          */}
+          {payouts.length === 0 ? null : (
+            <section className="mb-8">
+              <h2 className="mb-3.5 text-sm font-bold">حوالاتك</h2>
+              <div className="flex flex-col divide-y divide-line rounded-lg border border-line bg-surface">
+                {payouts.map((payout) => (
+                  <div
+                    key={payout.id}
+                    className="flex flex-wrap items-center justify-between gap-3 p-4"
+                  >
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span className="text-2xs">{dateFormat.format(new Date(payout.sentAt))}</span>
+                      <span className="text-3xs opacity-45">
+                        {payout.ibanLast4 === null ? (
+                          'إلى آيبانك'
+                        ) : (
+                          <>
+                            إلى آيبانك المنتهي بـ
+                            <span dir="ltr" className="font-num mx-1">
+                              {toArabicDigits(payout.ibanLast4)}
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    <Money amount={Number(payout.amount)} decimals={2} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <h2 className="mb-3.5 text-sm font-bold">صفقاتك</h2>
           {book.lines.length === 0 ? (
             <EmptyState
@@ -112,10 +164,18 @@ export default async function EarningsPage({
                         {line.orderRef}
                       </span>
                     </p>
-                    {line.blockedBy === null ? (
-                      <Badge tone="accent">جاهز للصرف</Badge>
-                    ) : (
+                    {/*
+                      **و«جاهز للصرف» لا تبقى بعد الإفراج.** كانت تُحسب
+                      من `blockedBy === null` وحدها — وهي صادقةٌ قبل
+                      الإفراج وبعده، فيقرأ البائع «جاهز للصرف» فوق
+                      بطاقةٍ تقول إن المال وصل آيبانه.
+                    */}
+                    {line.blockedBy !== null ? (
                       <Badge tone="warn">{BLOCKED_LABEL[line.blockedBy] ?? line.blockedBy}</Badge>
+                    ) : line.settled ? (
+                      <Badge tone="neutral">استُحقّ</Badge>
+                    ) : (
+                      <Badge tone="accent">جاهز للصرف</Badge>
                     )}
                   </div>
 
@@ -187,7 +247,14 @@ function Row({
     <div className={`flex items-center justify-between gap-4 ${strong === true ? 'font-bold' : ''}`}>
       <dt className={strong === true ? '' : 'opacity-60'}>{label}</dt>
       <dd className="font-num">
-        <ArabicNumber value={negative === true ? -Number(value) : Number(value)} decimals={2} />
+        {/*
+          **ولا إشارةَ سالبٍ على صفر.** `-٠٫٠٠` تقول للبائع إنّ شيئًا
+          خُصم ولم يُخصم شيء — والعمولة صفرٌ حتى يضبطها الأدمن.
+        */}
+        <ArabicNumber
+          value={negative === true && Number(value) !== 0 ? -Number(value) : Number(value)}
+          decimals={2}
+        />
       </dd>
     </div>
   );

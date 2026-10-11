@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { encryptSecret } from '@/lib/crypto/secrets';
 import { db } from '@/lib/db';
 import { checkIban, normalizeIban, setEmail, verifyIdentity } from '@/lib/domain/profile-edit';
 import { profileCompletion } from '@/lib/domain/profile';
@@ -62,7 +63,8 @@ describe('إكمال الملف يفكّ الحظر فعلًا', () => {
 
       await db.user.update({
         where: { id: user.id },
-        data: { iban: 'enc:probe' },
+        /** مشفَّرًا كما يكتبه المنتج — و`'enc:probe'` لا يقرؤها قارئ. */
+        data: { iban: encryptSecret('SA0380000000608010167519') },
       });
       const done = await db.user.findUniqueOrThrow({ where: { id: user.id } });
       expect(profileCompletion(done).canSell).toBe(true);

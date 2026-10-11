@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { encryptSecret } from '@/lib/crypto/secrets';
 import { db } from '@/lib/db';
 import { getOfferInbox, fileReport } from '@/lib/domain/offer-inbox';
 import { createOffer } from '@/lib/domain/offers';
@@ -232,7 +233,15 @@ describe('A5 — كل اطّلاع مسجَّل', () => {
   it('لا يُعاد الآيبان كاملًا', async () => {
     const { viewIdentity } = await import('@/lib/domain/admin-orders');
     const f = await fixture();
-    await db.user.update({ where: { id: f.buyer.id }, data: { iban: 'SA0380000000608010167519' } });
+    /**
+     * **مشفَّرًا كما يكتبه المنتج.** كان صريحًا، والفحص يمرّ لأن
+     * `ibanTail` كانت تقصّ الخام — فالطقم يثبّت عطلًا ويجعل تصحيحه
+     * يبدو كسرًا. (البوابة ٢٩.)
+     */
+    await db.user.update({
+      where: { id: f.buyer.id },
+      data: { iban: encryptSecret('SA0380000000608010167519') },
+    });
 
     const admin = await db.adminUser.create({
       data: {

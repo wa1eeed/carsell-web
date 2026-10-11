@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-82 models · 50 enums
+83 models · 51 enums
 
 ## Relationships
 
@@ -34,6 +34,7 @@ erDiagram
   User ||--o{ NotificationPreference : "pushPreferences"
   User ||--o{ DeviceToken : "deviceTokens"
   User |o--|| Wallet : "wallet"
+  User ||--o{ Payout : "payouts"
   AdminUser }o--|| AdminRole : "role"
   AdminUser ||--o{ AdminSession : "sessions"
   AdminUser ||--o{ FinanceInput : "financeInputs"
@@ -130,6 +131,8 @@ erDiagram
   Wallet }o--|| User : "user"
   Wallet ||--o{ WalletEntry : "entries"
   WalletEntry }o--|| Wallet : "wallet"
+  Payout }o--|| PayoutStatus : "status"
+  Payout }o--|| User : "seller"
   Escrow }o--|| EscrowStatus : "status"
   Escrow }o--|| Order : "order"
   Dispute }o--|| DisputeStatus : "status"
@@ -271,7 +274,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -642,6 +645,25 @@ Relations: `user` → `User` · `entries` → `WalletEntry`
 | `createdAt` | `DateTime` |  |
 
 Relations: `wallet` → `Wallet`
+
+### `Payout`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `sellerId` | `String` |  |
+| `amount` | `Decimal` |  |
+| `ibanLast4` | `String?` |  |
+| `bankRef` | `String?` |  |
+| `note` | `String?` |  |
+| `approvalRequestId` | `String?` | unique |
+| `requestedBy` | `String` |  |
+| `sentBy` | `String?` |  |
+| `createdAt` | `DateTime` |  |
+| `sentAt` | `DateTime?` |  |
+| `failedAt` | `DateTime?` |  |
+
+Relations: `status` → `PayoutStatus` · `seller` → `User`
 
 ### `Escrow`
 
@@ -1578,6 +1600,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `OrderSource` — `DIRECT`, `OFFER`, `AUCTION`, `BUY_NOW`
 - `OrderStage` — `REQUEST`, `APPROVED`, `INSPECTION`, `PAYMENT`, `TRANSFER`, `DONE`
 - `OrderStatus` — `ACTIVE`, `COMPLETED`, `CANCELLED`, `STALLED`, `DISPUTED`
+- `PayoutStatus` — `PENDING`, `SENT`, `FAILED`, `CANCELLED`
 - `EscrowStatus` — `PENDING`, `HELD`, `RELEASED`, `REFUNDED`, `PARTIAL_REFUND`
 - `DisputeStatus` — `OPEN`, `INVESTIGATING`, `RESOLVED_BUYER`, `RESOLVED_SELLER`, `CLOSED`
 - `InvoiceType` — `SALE`, `COMMISSION`, `SERVICE`, `SUBSCRIPTION`
@@ -1590,7 +1613,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`
 - `IntegrationStatus` — `ACTIVE`, `INACTIVE`, `DEGRADED`
-- `ApprovalKind` — `ESCROW_RELEASE`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
+- `ApprovalKind` — `ESCROW_RELEASE`, `SELLER_PAYOUT`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
 - `ApprovalStatus` — `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`, `EXECUTED`
 - `CampaignStatus` — `DRAFT`, `SCHEDULED`, `RUNNING`, `SENT`, `CANCELLED`
 - `PaymentPurpose` — `VEHICLE_ESCROW`, `AUCTION_DEPOSIT`, `WALLET_TOPUP`, `SERVICE_PURCHASE`, `TRANSFER_FEE`, `SUBSCRIPTION`

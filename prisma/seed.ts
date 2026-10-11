@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { hashPassword } from '../src/lib/auth/password';
+import { encryptSecret } from '../src/lib/crypto/secrets';
 import { Prisma } from '../src/generated/prisma/client';
 import type {
   BodyType,
@@ -700,7 +701,15 @@ async function main(): Promise<void> {
           identityStatus: 'VERIFIED',
           idVerified: true,
           idVerifiedAt: days(-between(30, 400)),
-          iban: `SA03${between(10, 99)}${between(1000000000000000, 9999999999999999)}`,
+          /**
+           * **مشفَّرًا كما يكتبه المنتج** — لا صريحًا. وكان صريحًا،
+           * فصار في العمود صيغتان: قارئٌ يفكّ وقارئٌ يقصّ، وكلٌّ
+           * يصيب على نصف الصفوف. والبيانات المزروعة تُحاكي شكل
+           * الحقيقيّ لا اسمه فقط.
+           */
+          iban: encryptSecret(
+            `SA03${between(10, 99)}${between(1000000000000000, 9999999999999999)}`,
+          ),
           createdAt: days(-between(60, 700)),
         },
       }),

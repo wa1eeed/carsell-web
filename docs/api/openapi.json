@@ -2511,6 +2511,101 @@
         }
       }
     },
+    "/api/v1/admin/payouts": {
+      "post": {
+        "summary": "POST /api/v1/admin/payouts",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "payouts.send",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payouts/{id}/approve": {
+      "post": {
+        "summary": "POST /api/v1/admin/payouts/{id}/approve",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "payouts.send",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payouts/{id}/reject": {
+      "post": {
+        "summary": "POST /api/v1/admin/payouts/{id}/reject",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "payouts.send",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/plans/{id}": {
       "put": {
         "summary": "PUT /api/v1/admin/plans/{id}",

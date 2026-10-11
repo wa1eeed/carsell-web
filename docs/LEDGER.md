@@ -143,7 +143,30 @@ CREDIT  ESCROW_AT_PROVIDER   865
 ```
 
 Without this entry `SELLER_PAYABLE` stays positive forever, and the seller reads
-that money is owed when it has already arrived.
+that money is owed when it has already arrived. That was literally the case until
+task 103: the function was written and tested from the day the book was built, and
+nothing in the product called it. Every seller's earnings page showed
+*"transferred to you: 0.00"* no matter how much they had sold.
+
+**Written by the second approver, not by settlement.** Settlement (`order.earned`)
+recognises the revenue and creates the seller's right; the bank transfer that
+discharges it happens later and by hand, from finance's bank to the seller's IBAN.
+So the entry is posted by `approvePayout` in `src/lib/domain/payouts.ts`, in the
+same transaction that marks the `Payout` row `SENT` and writes the audit log.
+Splitting them would leave a transfer with no entry explaining it.
+
+**Quorum of two.** Money leaving to an account outside the system cannot be sent
+by one person, and unlike a wallet adjustment it cannot be undone by a contra
+entry. One admin opens the request (`requestPayout`), a different one records the
+transfer (`approvePayout`); the requester is refused by `SELF_APPROVAL`.
+
+**A bank reference is required, not optional.** A transfer with no reference
+cannot be reconciled against the bank statement, so the book would assert money
+left with no way to prove it. `approvePayout` refuses with `BANK_REF_REQUIRED`.
+
+**The seller's right is re-checked at approval, not only at request.** Between the
+two, a refund or a dispute may reduce the balance, which would otherwise let an
+approved transfer exceed what is owed.
 
 ### 5.4 `refund.*` — returned to the buyer
 
@@ -198,7 +221,7 @@ ledger exists to solve.
 
 | Gap | Note |
 |---|---|
-| **`payout.sent` has no caller** | Nothing transfers to sellers yet, so the entry is never posted. It arrives with the payment provider's split API. |
+| **Payouts are recorded, not executed** | `approvePayout` posts the entry; the bank transfer itself is performed by finance and reconciled by `bankRef`. A provider split API would replace the manual step, not the entry. |
 | **Refunds are not wired** | `recordRefund` is written and tested but no dispute resolution calls it yet. |
 | **Discounts and coupons** | No model at all. |
 | **`PLATFORM_CASH`** | Declared, unused until the provider reports what actually reached us. |

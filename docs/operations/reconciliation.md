@@ -65,6 +65,24 @@ the release end to end on the settlements screen and reading the row afterwards
 — not by a test, because every test asserted the status and none asserted the
 reference.
 
+## Seller payouts are reconciled by `bankRef`
+
+Money leaving to a seller is a **bank transfer made by finance**, not a provider
+call. `Payout.bankRef` is the reference on the bank statement, and it is required
+before a payout can be recorded (`BANK_REF_REQUIRED`) — a transfer with no
+reference leaves the book asserting money left with no way to prove it.
+
+Two figures must agree at any moment:
+
+| Figure | Source |
+|---|---|
+| What the book says is still owed | `accountBalance('SELLER_PAYABLE')` |
+| What has been transferred | sum of `Payout` rows with `status = 'SENT'` |
+
+`/admin/payouts` shows both: the owed list is computed from the ledger, never
+from the sum of orders, so a disagreement between the two is visible rather than
+averaged away.
+
 ## Not built yet
 
 `settlementFor` on the Moyasar adapter **declares itself absent**

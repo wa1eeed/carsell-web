@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { ibanLast4 } from './iban';
 import type { AdminUser, Prisma } from '@/generated/prisma/client';
 import type { OrderStage } from '@/generated/prisma/enums';
 
@@ -264,7 +265,7 @@ export async function viewIdentity(
     email: user.email,
     idVerified: user.idVerified,
     idVerifiedAt: user.idVerifiedAt?.toISOString() ?? null,
-    ibanTail: user.iban === null || user.iban === '' ? null : user.iban.slice(-4),
+    ibanTail: ibanLast4(user.iban),
   };
 }
 

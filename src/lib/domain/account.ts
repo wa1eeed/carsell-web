@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { ibanMasked } from './iban';
 import { db } from '@/lib/db';
 import { STAGES as ORDER_STAGES } from './orders';
 import type { OrderStage } from '@/generated/prisma/enums';
@@ -211,16 +212,6 @@ export type AccountData = {
   reports: AccountReport[];
 };
 
-/**
- * قناعُ الآيبان — أوّل أربعة وآخر أربعة، وما بينهما نقاط.
- *
- * وهو يكفي ليعرف صاحبه أيّ حسابٍ سجّل، ولا يكفي لأحدٍ آخر.
- */
-function maskIban(iban: string | null): string | null {
-  if (iban === null || iban.length < 10) return iban;
-  return `${iban.slice(0, 4)}••••${iban.slice(-4)}`;
-}
-
 const title = (vehicle: { brandName: string; modelName: string; trimName: string | null }): string =>
   [vehicle.brandName, vehicle.modelName, vehicle.trimName]
     .filter((part) => part !== null && part !== '')
@@ -354,7 +345,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
        * مُسجَّل — وعرضُه كاملًا على شاشةٍ قد تُصوَّر أو تُشارَك يكشف
        * حسابًا بنكيًّا بلا سببٍ يستدعيه.
        */
-      ibanMasked: maskIban(user.iban),
+      ibanMasked: ibanMasked(user.iban),
       taxStatus: user.taxStatus,
       vatNumber: user.vatNumber,
       memberSince: user.createdAt.toISOString(),

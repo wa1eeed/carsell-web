@@ -36,6 +36,15 @@ export type BookLine = {
   net: string;
   /** ما يمنع الصرف الآن — و`null` يعني جاهزًا */
   blockedBy: 'NOT_TRANSFERRED' | 'DISPUTED' | null;
+  /**
+   * أُفرج عن ضمانه — **فلا يُقال «جاهز للصرف» بعد أن صُرف**.
+   *
+   * `blockedBy === null` تعني «لا مانع»، وهي صادقةٌ قبل الإفراج
+   * وبعده معًا — فكان السطر يحمل «جاهز للصرف» إلى الأبد، ولو وصل
+   * المال آيبان صاحبه. وسطرٌ يقول ذلك فوق بطاقةٍ تقول «حُوِّل إليك
+   * ٢٨٬٠٠٠» رقمان متناقضان في شاشةٍ واحدة.
+   */
+  settled: boolean;
   releasesAt: string | null;
 };
 
@@ -162,6 +171,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
       govtFee: str(order.transferFee),
       net: str(net),
       blockedBy: guard.allowed ? null : guard.reason,
+      settled: order.escrow?.status === 'RELEASED',
       releasesAt: null,
     });
   }

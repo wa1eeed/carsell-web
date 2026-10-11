@@ -58,6 +58,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     items: [
       { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
       { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
+      { label: 'تحويل مستحقّات البائعين', href: '/admin/payouts', permission: 'finance.view' },
       { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
       { label: 'طلبات التمويل', href: null },

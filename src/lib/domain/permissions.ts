@@ -29,6 +29,8 @@ export type Permission =
   | 'integrations.rotateKeys'
   | 'audit.view'
   | 'wallet.adjust'
+  /// تحويل مستحقّات بائعٍ إلى آيبانه — مالٌ يخرج ولا يُستردّ
+  | 'payouts.send'
   | 'team.manage';
 
 /** `true` كامل · `'read'` عرض بلا تعديل · غياب المفتاح = ممنوع. */
@@ -43,6 +45,11 @@ export const DUAL_APPROVAL: ReadonlySet<Permission> = new Set([
   'integrations.rotateKeys',
   // مالُ عميلٍ لا يمسّه واحد — والمنحة كالإفراج
   'wallet.adjust',
+  /**
+   * **والتحويل أخطر من المنحة**: المنحة رصيدٌ داخليّ يُعدَّل بقيدٍ
+   * مضادّ، والحوالة تخرج إلى بنكٍ خارج النظام فلا تُستردّ بقيد.
+   */
+  'payouts.send',
 ]);
 
 const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = {
@@ -55,6 +62,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'serviceRequests.handle': true, 'notifications.manage': true,
     'integrations.view': true, 'integrations.rotateKeys': true,
     'audit.view': true, 'team.manage': true, 'wallet.adjust': true,
+    'payouts.send': true,
   },
   OPS: {
     'dashboard.view': true, 'orders.view': true, 'orders.changeStage': true,
@@ -67,7 +75,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'dashboard.view': true, 'finance.view': true, 'orders.view': true,
     'escrow.release': true, 'services.manage': true, 'audit.view': 'read',
     // المالية تطلب وتوافق — والنصاب اثنان من هذين الدورين
-    'wallet.adjust': true,
+    'wallet.adjust': true, 'payouts.send': true,
   },
   SUPPORT: {
     'dashboard.view': true, 'orders.view': true, 'users.view': true,

@@ -120,6 +120,7 @@ model User {
   pushPreferences NotificationPreference[]
   deviceTokens    DeviceToken[]
   wallet          Wallet?
+  payouts         Payout[]
 
   @@index([status, createdAt])
   @@index([dealerId])
@@ -846,6 +847,51 @@ model WalletEntry {
 
   @@index([walletId, createdAt])
   @@index([orderId])
+}
+
+/// ═══ تحويلٌ خرج إلى آيبان البائع ═══
+///
+/// **والدفتر هو الحقيقة، وهذا سببُها.** رصيد `SELLER_PAYABLE` يُصفَّر
+/// بقيد `payout.sent`، والقيد لا يحمل رقم الحوالة ولا من اعتمدها ولا
+/// الآيبان الذي وصلت إليه — فهذا الصفّ يحمل ما لا يحمله القيد، وهو
+/// مُنشِئه لا نسخةٌ منه.
+///
+/// وكان دفتر البائع يعرض «حُوِّل إليك» صفرًا إلى الأبد: لا شيء في
+/// المنتج كلّه يكتب `payout.sent` — فالبائع يقرأ «جاهز للصرف» ينمو
+/// ولا يصل.
+model Payout {
+  id       String       @id @default(cuid())
+  sellerId String
+  amount   Decimal      @db.Decimal(12, 2)
+  status   PayoutStatus @default(PENDING)
+
+  /// آخر أربع من الآيبان — **ولا يُخزَّن كاملًا هنا**: الكامل مشفَّر في
+  /// `User.iban`، ونسخةٌ ثانية منه سطحُ تسريبٍ ثانٍ بلا فائدة.
+  ibanLast4 String?
+  /// مرجع الحوالة البنكية — يُكتب عند الاعتماد، وبه تُطابَق مع كشف البنك
+  bankRef   String?
+  note      String?
+
+  /// طلبُ الموافقة الذي أخرجها — النصاب اثنان
+  approvalRequestId String?  @unique
+  requestedBy       String
+  sentBy            String?
+
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+  failedAt  DateTime?
+
+  seller User @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([sellerId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum PayoutStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
 }
 
 model Escrow {
@@ -1641,6 +1687,8 @@ model ApprovalRequest {
 
 enum ApprovalKind {
   ESCROW_RELEASE
+  /// تحويل مستحقّات بائعٍ إلى آيبانه — مالٌ يخرج، فلا يخرجه واحد
+  SELLER_PAYOUT
   DISPUTE_RESOLUTION
   KEY_ROTATION
   /// قرار ٣٣ — تبديل بيئة تكامل بين الاختبار والإنتاج

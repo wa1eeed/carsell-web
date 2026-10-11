@@ -1566,6 +1566,102 @@ function checkFlexInputsCanShrink() {
 }
 
 
+/**
+ * ═══ البوابة ٢٩ ═══ **القيمةُ المشفَّرة تُقرأ بفاكّها لا بمِقَصّ.**
+ *
+ * `User.iban` يُكتب مشفَّرًا (`profile-edit`)، وكان **ثلاثةُ مواضع**
+ * تقصّه كنصٍّ صريح في وقتٍ واحد:
+ *
+ *   · شاشة الحساب تعرض لصاحبه آيبانه `v1._••••w4Ij`.
+ *   · شاشة الطلب تعرض للأدمن `w4Ij` «آخر أربع من آيبانه» — وبها
+ *     يطابق حوالةً بنكية.
+ *   · والبذرة تكتبه صريحًا، فصار في العمود صيغتان وكلُّ قارئٍ
+ *     يصيب على نصف الصفوف.
+ *
+ * **ولا شيء يشتكي**: `slice` على نصٍّ مشفَّر تعيد نصًّا — فالعطل
+ * يُعرض رقمًا خاطئًا لا خطأً، ويُقرأ صحيحًا حتى تُطابَق حوالة.
+ *
+ * فالقراءة من `src/lib/domain/iban.ts` وحده، والبذرة تُشفّر.
+ */
+function checkEncryptedFieldReaders() {
+  /** الحقول المشفَّرة في العمود — وكلٌّ له مدخلُ قراءةٍ واحد. */
+  const FIELDS = [{ name: 'iban', reader: 'src/lib/domain/iban.ts' }];
+
+  for (const field of FIELDS) {
+    /* ① لا قصٌّ ولا طولٌ على القيمة الخام خارج مدخلها */
+    const SLICE = new RegExp(
+      `\\b\\w*\\.?${field.name}\\b[^\\n;]{0,80}?\\.(slice|substring|substr|length|replace|padStart)\\(`,
+      'i',
+    );
+
+    for (const path of walk(join(ROOT, 'src'))) {
+      if (!/\.tsx?$/.test(path)) continue;
+      const rel = relative(ROOT, path);
+      if (rel.includes('generated') || rel === field.reader) continue;
+
+      const text = readFileSync(path, 'utf8');
+      for (const [index, line] of text.split('\n').entries()) {
+        /* التعليقات تصف ولا تُنفّذ */
+        const code = line.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '');
+        if (!SLICE.test(code)) continue;
+
+        problems.push(
+          `${rel}:${String(index + 1)}  \`${field.name}\` مشفَّر في العمود — `
+            + `يُقرأ من ${field.reader} لا بقصّ النصّ الخام`,
+        );
+      }
+    }
+
+    /*
+     * ② وكلُّ كاتبٍ يكتبه بالشكل الذي يكتبه المنتج — البذرةُ والطقم.
+     *
+     * **والطقم ليس استثناءً**: `inbox.test.ts` كان يزرعه صريحًا ويفحص
+     * الناتج الصحيح، فيمرّ **لأن القارئ كان يقصّ الخام** — فيثبّت
+     * العطل ويجعل تصحيحه يبدو كسرًا.
+     *
+     * **والفحص داخل `data:` وحدها.** أوّل صياغةٍ فحصت كل سطرٍ فيه
+     * `iban: '…'`، فأطلقت على `redact({ iban: 'SA03…' })` — وهو مفتاحٌ
+     * في كائنِ اختبارٍ لا كتابةٌ في عمود. وبوابةٌ نصفُ إنذارها كاذب
+     * تُعطَّل في يومها الأول.
+     */
+    const writers = [join(ROOT, 'prisma'), join(ROOT, 'tests'), join(ROOT, 'src')]
+      .filter((dir) => existsSync(dir));
+    const LITERAL = new RegExp(`\\b${field.name}:\\s*['\`"]`);
+
+    for (const dir of writers) {
+      for (const path of walk(dir)) {
+        if (!/\.tsx?$/.test(path)) continue;
+        const rel = relative(ROOT, path);
+        if (rel.includes('generated')) continue;
+
+        const text = readFileSync(path, 'utf8');
+
+        /* مدى كل `data: {` بعدّ الأقواس — فلا يبتلع الكائن التالي */
+        for (const open of text.matchAll(/\bdata:\s*\{/g)) {
+          let depth = 0;
+          let end = open.index;
+          for (let at = open.index + open[0].length - 1; at < text.length; at += 1) {
+            if (text[at] === '{') depth += 1;
+            else if (text[at] === '}') {
+              depth -= 1;
+              if (depth === 0) { end = at; break; }
+            }
+          }
+          const body = text.slice(open.index, end);
+          if (!LITERAL.test(body)) continue;
+
+          const line = text.slice(0, open.index + body.search(LITERAL)).split('\n').length;
+          problems.push(
+            `${rel}:${String(line)}  \`${field.name}\` يُكتب صريحًا والمنتج يكتبه `
+              + 'مشفَّرًا — صيغتان في عمودٍ واحد',
+          );
+        }
+      }
+    }
+  }
+}
+
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -1585,6 +1681,7 @@ checkEnglishFieldsAreEnglish();
 checkTranslationKeysResolve();
 checkRetiredPromises();
 checkFlexInputsCanShrink();
+checkEncryptedFieldReaders();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1595,5 +1692,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر.',
 );

@@ -51,8 +51,20 @@ export default async function globalSetup(): Promise<void> {
    * التشغيل التالي: الاختبار كان محقًّا، والبيانات هي المتّسخة.
    */
   const stalePending = await db.approvalRequest.deleteMany({
-    where: { kind: { in: ['PAYMENT_ROUTE', 'KEY_ROTATION', 'INTEGRATION_ENV'] }, status: 'PENDING' },
+    where: {
+      kind: { in: ['PAYMENT_ROUTE', 'KEY_ROTATION', 'INTEGRATION_ENV', 'SELLER_PAYOUT'] },
+      status: 'PENDING',
+    },
   });
+
+  /**
+   * **وتحويلٌ معلَّق من مشيٍ يدويّ يمنع طلبًا ثانيًا** لصاحبه
+   * (`ALREADY_PENDING`) — فيسقط اختبارُ النصاب على ما لم يصنعه.
+   */
+  const stalePayouts = await db.payout.deleteMany({ where: { status: 'PENDING' } });
+  if (stalePayouts.count > 0) {
+    console.log(`  نُظّف ${String(stalePayouts.count)} تحويلًا معلَّقًا من تحقّق سابق`);
+  }
   if (stalePending.count > 0) {
     console.log(`  نُظّف ${String(stalePending.count)} طلب موافقة معلّق من تحقّق سابق`);
   }
