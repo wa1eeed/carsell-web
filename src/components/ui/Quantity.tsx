@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn';
 /** الوحدات المعدودة — تُضاف هنا لا تُكتب في شاشة. */
 export type Unit =
   | 'weeks'
+  | 'truncatedTemplates'
   | 'orders'
   | 'taxRules'
   | 'activeRules'

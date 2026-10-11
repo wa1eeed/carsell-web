@@ -165,3 +165,52 @@ export function pushFits(title: string, body: string): { title: boolean; body: b
     body: [...body].length <= PUSH_BODY_LIMIT,
   };
 }
+
+export type PushTemplateFit = {
+  key: string;
+  titleAr: string;
+  bodyAr: string;
+  titleChars: number;
+  bodyChars: number;
+  /** يتجاوز الحدّ الآمن فيُقتطع على أندرويد */
+  titleOver: boolean;
+  bodyOver: boolean;
+};
+
+/**
+ * ═══ قوالب الدفع مقيسةً بالحدّ الآمن ═══
+ *
+ * الشاشة كانت تكتب القاعدة («٤٠ حرفًا للعنوان و١٢٠ للمتن») **ولا
+ * تقيس عليها شيئًا**. وقاعدةٌ مكتوبةٌ بلا قياس تُقرأ ولا تُطبَّق: لا
+ * أحد يعدّ حروف ثمانيةٍ وثلاثين قالبًا بيده، فيُقتطع الإشعار على
+ * الجهاز ولا يعلم أحد — ومن يقرأ «تمّت المزايدة فوقك على فورد
+ * إكسبلو…» لا يعرف أيّ مركبةٍ خسر.
+ *
+ * فالقائمة تُرتَّب بالأطول أوّلًا: ما يحتاج عملًا يظهر في الصدر.
+ */
+export async function pushTemplateFit(): Promise<PushTemplateFit[]> {
+  const rows = await db.notificationTemplate.findMany({
+    where: { channelPush: true, active: true },
+    select: { key: true, subjectAr: true, bodyAr: true },
+  });
+
+  return rows
+    .map((row) => {
+      const titleAr = row.subjectAr ?? '';
+      const bodyAr = row.bodyAr ?? '';
+      return {
+        key: row.key,
+        titleAr,
+        bodyAr,
+        titleChars: titleAr.length,
+        bodyChars: bodyAr.length,
+        titleOver: titleAr.length > PUSH_TITLE_LIMIT,
+        bodyOver: bodyAr.length > PUSH_BODY_LIMIT,
+      };
+    })
+    .sort((a, b) => {
+      // المتجاوز أوّلًا، ثمّ الأطول — فما يحتاج عملًا في الصدر
+      const over = Number(b.titleOver || b.bodyOver) - Number(a.titleOver || a.bodyOver);
+      return over !== 0 ? over : b.bodyChars - a.bodyChars;
+    });
+}

@@ -364,7 +364,8 @@
     "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
     "disputes": "{count, plural, zero{لا نزاعات} one{نزاع واحد} two{نزاعان} few{{n} نزاعات} many{{n} نزاعًا} other{{n} نزاع}}",
     "bids": "{count, plural, zero{لا مزايدات} one{مزايدة واحدة} two{مزايدتان} few{{n} مزايدات} many{{n} مزايدةً} other{{n} مزايدة}}",
-    "weeks": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعان} few{{n} أسابيع} many{{n} أسبوعًا} other{{n} أسبوع}}"
+    "weeks": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعان} few{{n} أسابيع} many{{n} أسبوعًا} other{{n} أسبوع}}",
+    "truncatedTemplates": "{count, plural, zero{لا قوالب تُقتطع} one{قالب يُقتطع} two{قالبان يُقتطعان} few{{n} قوالب تُقتطع} many{{n} قالبًا يُقتطع} other{{n} قالب يُقتطع}}"
   },
   "search": {
     "title": "تصفّح السيارات",

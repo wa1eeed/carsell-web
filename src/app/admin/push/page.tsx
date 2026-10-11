@@ -11,7 +11,9 @@ import {
   STALE_TOKEN_DAYS,
   deviceStats,
   listChannels,
+  pushTemplateFit,
 } from '@/lib/domain/push-channels';
+import { PushPreview } from '@/components/admin/PushPreview';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +31,14 @@ export default async function PushPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'notifications.manage')) redirect('/admin');
 
-  const [channels, devices] = await Promise.all([listChannels(), deviceStats()]);
+  const [channels, devices, templates] = await Promise.all([
+    listChannels(),
+    deviceStats(),
+    pushTemplateFit(),
+  ]);
+
+  /** المتجاوزون — وهم ما يحتاج عملًا، فيُعدّون في الصدر. */
+  const over = templates.filter((row) => row.titleOver || row.bodyOver);
 
   return (
     <AdminShell title="إشعارات الدفع" activeHref="/admin/push" admin={admin}>
@@ -87,6 +96,65 @@ export default async function PushPage() {
             ))}
           </tbody>
         </table>
+      </section>
+
+      {/*
+        ═══ معاينة على الجهاز — والقاعدة تُقاس لا تُكتب ═══
+
+        التصميم يضع المعاينة ثمّ يكتب تحتها الحدّ الآمن. وكانت الشاشة
+        تكتب القاعدة **ولا تقيس عليها شيئًا** — ولا أحد يعدّ حروف
+        ثمانيةٍ وثلاثين قالبًا بيده.
+      */}
+      <section className="mb-5 grid gap-5 rounded-lg border border-line bg-surface p-5.5 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div>
+          <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+            معاينة على الجهاز
+          </h2>
+          <PushPreview
+            template={templates[0] ?? null}
+            titleLimit={PUSH_TITLE_LIMIT}
+            bodyLimit={PUSH_BODY_LIMIT}
+          />
+        </div>
+
+        <div className="min-w-0">
+          <h2 className="mb-3 flex flex-wrap items-center gap-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+            قوالب الدفع مقيسةً بالحدّ
+            {over.length === 0 ? null : (
+              <Badge tone="warn">
+                {/* **والعدد لا يحكم المعدود بيدٍ** — ستّ صيغ جمعٍ لا تُكتب نصًّا */}
+                <Quantity unit="truncatedTemplates" count={over.length} />
+              </Badge>
+            )}
+          </h2>
+
+          {templates.length === 0 ? (
+            <p className="text-2xs opacity-55">لا قوالب دفع مفعَّلة.</p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-line border-y border-line">
+              {templates.slice(0, 8).map((row) => (
+                <li key={row.key} className="flex items-center gap-3 py-2.5 text-2xs">
+                  <span className="min-w-0 flex-1 truncate">{row.titleAr}</span>
+                  <span dir="ltr" className="font-num shrink-0 opacity-50">
+                    <ArabicNumber value={row.titleChars} grouped={false} />
+                    <span className="opacity-40"> · </span>
+                    <ArabicNumber value={row.bodyChars} grouped={false} />
+                  </span>
+                  {row.titleOver || row.bodyOver ? (
+                    <Badge tone="warn">يُقتطع</Badge>
+                  ) : (
+                    <span aria-hidden className="shrink-0 text-accent-700">✓</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2.5 text-3xs leading-loose opacity-45">
+            العنوان ثمّ المتن بالحروف — والحدّ{' '}
+            <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> و
+            <Quantity unit="characters" count={PUSH_BODY_LIMIT} />.
+          </p>
+        </div>
       </section>
 
       <section className="rounded-lg border border-line bg-surface p-5.5">
