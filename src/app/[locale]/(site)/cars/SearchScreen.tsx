@@ -10,6 +10,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Button } from '@/components/ui/Button';
 import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Chip } from '@/components/ui/Chip';
+import { SaveSearchButton } from '@/components/site/SaveSearchButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { RANGE_MIN_SAMPLE } from '@/components/ui/RangeBar';
@@ -39,6 +40,10 @@ export function SearchScreen({
   features,
   cities,
   query,
+  fromQuery,
+  signedIn,
+  savedAlready,
+  locale,
 }: {
   filters: Filters;
   result: SearchResult;
@@ -47,6 +52,11 @@ export function SearchScreen({
   features: readonly FeatureOption[];
   cities: readonly string[];
   query: string;
+  /** حقولٌ فسّرها شريط الجملة — فلا تُعرض شارتها ثانيةً */
+  fromQuery: readonly string[];
+  signedIn: boolean;
+  savedAlready: boolean;
+  locale: string;
 }) {
   const t = useTranslations('search');
   const te = useTranslations('enums');
@@ -60,12 +70,32 @@ export function SearchScreen({
   const apply = useCallback(
     (changes: Record<string, string | string[] | null>) => {
       const next = new URLSearchParams(params.toString());
+
+      /**
+       * ═══ وما تُلغيه الجملةُ تُعيده ═══
+       *
+       * فلترٌ جاء من جملة البحث ليس مكتوبًا في الرابط، فحذفُه منه لا
+       * يحذف شيئًا — ويُعاد تطبيقه في التصيير التالي، **فيبدو الزرّ
+       * عالقًا**: يضغطه صاحبه فلا يتغيّر شيء، ولا رسالة.
+       *
+       * و`-` تحمل ما ألغاه الزائر صراحةً، فيصمد الإلغاء. (وهي نفسها
+       * التي تستعملها شارات شريط الفهم.)
+       */
+      const dropped = new Set((next.get('-') ?? '').split(',').filter((part) => part !== ''));
+
       for (const [key, value] of Object.entries(changes)) {
         next.delete(key);
-        if (value === null) continue;
+        if (value === null) {
+          dropped.add(key);
+          continue;
+        }
+        dropped.delete(key);
         if (Array.isArray(value)) for (const v of value) next.append(key, v);
         else next.set(key, value);
       }
+
+      next.delete('-');
+      if (dropped.size > 0 && next.has('q')) next.set('-', [...dropped].join(','));
       if (!('page' in changes)) next.delete('page');
       router.push(next.toString() === '' ? '?' : `?${next.toString()}`, { scroll: false });
     },
@@ -87,8 +117,12 @@ export function SearchScreen({
    */
   const chips = useMemo(() => {
     const out: { key: string; label: ReactNode; clear: Record<string, string | null> }[] = [];
-    const add = (key: string, label: ReactNode, clear: Record<string, string | null>) =>
+    /** وما فُسِّر في شريط الجملة لا يُعاد هنا — تكرارٌ لا تأكيد. */
+    const explained = new Set(fromQuery);
+    const add = (key: string, label: ReactNode, clear: Record<string, string | null>) => {
+      if (explained.has(key)) return;
       out.push({ key, label, clear });
+    };
     /** كلمة ثم رقم — الرقم عبر `ArabicNumber` لا داخل سلسلة. */
     const withNumber = (word: string, value: number): ReactNode => (
       <>
@@ -128,7 +162,7 @@ export function SearchScreen({
       add(`f:${key}`, featureName(key), {});
     }
     return out;
-  }, [filters, t, te, brands, models, features]);
+  }, [filters, t, te, brands, models, features, fromQuery]);
 
   const toCard = (item: ListingCard): ListingCardData => ({
     ref: item.ref,
@@ -450,6 +484,17 @@ export function SearchScreen({
           <Button size="sm" variant="outline" className="lg:hidden" onClick={() => setSheet(true)}>
             {t('filters')}
           </Button>
+
+          {/*
+            «احفظ البحث» في شريط النتائج كما في التصميم — **وبعد عدد
+            النتائج لا قبله**: من يحفظ يحفظ بعد أن يرى أن الفلتر أصاب.
+          */}
+          <SaveSearchButton
+            query={query}
+            signedIn={signedIn}
+            saved={savedAlready}
+            locale={locale}
+          />
 
           {/*
             قائمة الترتيب بلا عنوان مرئيّ — فالتسمية بـ`aria-label`.

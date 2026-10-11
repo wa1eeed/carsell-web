@@ -425,7 +425,24 @@
     "conditionTitle": "حالة المركبة",
     "price": "السعر",
     "year": "سنة الصنع",
-    "sortLabel": "ترتيب النتائج"
+    "sortLabel": "ترتيب النتائج",
+    "understood": {
+      "as": "فُهم كالتالي",
+      "none": "لم نفهم من جملتك فلترًا — جرّب اسم ماركة أو مدينة أو سنة، مثل «كامري ٢٠٢٠ الرياض».",
+      "rest": "ولم نفهم:"
+    },
+    "chip": {
+      "remove": "احذف {what}",
+      "inspected": "مفحوصة",
+      "yearFrom": "من {year} وأحدث",
+      "yearTo": "{year} وأقدم",
+      "priceMin": "من {price} ريال",
+      "priceMax": "حتى {price} ريال"
+    },
+    "saved": {
+      "save": "احفظ البحث",
+      "saved": "محفوظ"
+    }
   },
   "enums": {
     "transmission": {

@@ -30,8 +30,22 @@ export function FavoriteButton({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  /** **تفاؤليّ**: القلب يمتلئ قبل أن يردّ الخادم، ويعود إن فشل. */
-  const [on, setOn] = useState(initial);
+
+  /**
+   * ═══ القلب يُشتقّ من المركبة لا يُنسخ مرّة ═══
+   *
+   * **تفاؤليّ**: يمتلئ قبل أن يردّ الخادم ويعود إن فشل — فالقلب الذي
+   * ينتظر الشبكة يُضغط مرّتين.
+   *
+   * وكان `useState(initial)`، وهو يُقرأ **عند التركيب وحده**: الانتقال
+   * من مركبةٍ إلى أخرى داخل الصفحة لا يُعيد تركيب الزرّ، فيحمل قلبُ
+   * الثانية حالَ الأولى — ممتلئًا على ما لم يُحفظ، أو فارغًا على
+   * محفوظ. والبديل اشتقاقٌ بلا مزامنة: نحفظ **أيّ مركبةٍ** قُلبت،
+   * فتصدُق على مركبتها وحدها.
+   */
+  const [flipped, setFlipped] = useState<{ ref: string; on: boolean } | null>(null);
+  const on = flipped !== null && flipped.ref === listingRef ? flipped.on : initial;
+  const setOn = (value: boolean): void => setFlipped({ ref: listingRef, on: value });
 
   const toggle = (): void => {
     if (!signedIn) {

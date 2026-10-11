@@ -51,11 +51,25 @@ export async function AccountNav() {
         </Button>
       </Link>
 
+      {/*
+        ═══ والاسم يُطوى على الهاتف لا يُحذف صاحبُه ═══
+
+        صفُّ الترويسة على ٣٧٥ يطلب ٤١٣px: شعارٌ ٨٨ · «بِع سيارتك» ١٠٤ ·
+        بطاقةُ الحساب ١٤٠ · زرُّ القائمة ٤٠ · وفجوتان ٣٢. فيخرج **زرُّ
+        القائمة** من الشاشة — وهو أوّل ما يحتاجه زائر الهاتف.
+
+        والاسم أوسعُ ما في الصفّ وأقلُّه لزومًا: صاحبُه يعرفه، ويقرؤه
+        في الدرج وفي صفحة حسابه. فيُطوى دون ٦٤٠px وتبقى الحلقةُ
+        مبلوغةً — **لا يُحذف مدخل الحساب**، فإخفاؤه يقطع الطريق إليه.
+      */}
       <Link
         href="/account"
-        className="flex items-center gap-2.5 rounded-full border border-line py-1 ps-3.5 pe-1 transition-colors hover:border-accent-700"
+        aria-label={label}
+        className="flex items-center gap-2.5 rounded-full border border-line p-1 transition-colors hover:border-accent-700 sm:py-1 sm:ps-3.5 sm:pe-1"
       >
-        <span className="bidi-isolate max-w-32 truncate text-sm font-semibold">{label}</span>
+        <span className="bidi-isolate hidden max-w-32 truncate text-sm font-semibold sm:inline">
+          {label}
+        </span>
         <span
           aria-hidden
           className="flex size-7 items-center justify-center rounded-full bg-accent-100 text-sm font-bold text-accent-700"

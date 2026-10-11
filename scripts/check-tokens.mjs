@@ -1662,6 +1662,79 @@ function checkEncryptedFieldReaders() {
 }
 
 
+/**
+ * ═══ البوابة ٣٠ ═══ **حالةٌ تُنسخ من خاصّية تتقادم عند التنقّل.**
+ *
+ * `useState(prop)` يُقرأ عند **التركيب وحده**. والتنقّل داخل التطبيق
+ * بين صفحتين من المسار نفسه لا يُعيد تركيب المكوّن، فتبقى حالتُه من
+ * الصفحة السابقة — **بلا خطأ ولا تحذير**.
+ *
+ * ووقع مرّتين في شاشةٍ واحدة:
+ *   · «احفظ البحث» يقول «محفوظ» بعد حذف شارةٍ — وهو بحثٌ آخر لم يُحفظ.
+ *   · وقلبُ المفضّلة يحمل حال المركبة السابقة عند الانتقال إلى أختها.
+ *
+ * **والعلاج اشتقاقٌ لا مزامنة**: تُحفظ هوية ما تغيّر مع قيمته، فتصدُق
+ * على صاحبها وتكذب على غيره بلا `useEffect`.
+ *
+ * ═══ وحدُّها: مكوّنٌ يحمل هوية ═══
+ *
+ * وقِيست أوّلًا على كل نسخٍ من خاصّية فأخرجت تسعة، **خمسةٌ منها
+ * مشروعة**: استمارةٌ تُبذَر من الخادم ثمّ يكتب فيها صاحبها، ونسخُها
+ * هو الصواب — ولو اشتُقّت لمُسح ما كتبه عند كل تحديث.
+ *
+ * فالفرق أن المعطوب يحمل **خاصّية هوية** (`listingRef` · `query`)
+ * تتغيّر تحت التركيب نفسه، فتتقادم النسخة معها. واستمارةٌ بلا هوية
+ * لا يتغيّر تحتها شيء.
+ */
+function checkStateCopiedFromProps() {
+  /** `useState(x)` حيث `x` معرّفٌ بسيط أو `a.b` — لا استدعاء ولا حرفيّة. */
+  const COPY = /useState\(\s*([a-z_$][\w$]*(?:\.[\w$]+)*)\s*(?:\?\?[^)]*)?\)/gi;
+  /** قيمٌ لا تأتي من خاصّية: ثابتٌ أعلى الملفّ أو قيمة من `use…`. */
+  const SAFE = /^(window|document|globalThis|crypto|Date|Math|String|Number|Boolean)\b/;
+
+  for (const path of walk(join(ROOT, 'src'))) {
+    if (!/\.tsx$/.test(path)) continue;
+    const rel = relative(ROOT, path);
+    if (rel.includes('generated')) continue;
+
+    /** التعليق يصف ولا يُنفّذ — وأوّل قياسٍ أطلق على شرح العلّة نفسه. */
+    const text = readFileSync(path, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '))
+      .replace(/\/\/[^\n]*/g, '');
+    if (!text.includes("'use client'")) continue;
+
+    /* أسماء الخاصّيات — ما يُفكّك في توقيع المكوّن */
+    const props = new Set();
+    for (const block of text.matchAll(/^export function \w+\(\{([\s\S]*?)\}:/gm)) {
+      for (const name of (block[1] ?? '').matchAll(/^\s*(\w+)\s*(?:,|$)/gm)) {
+        props.add(name[1]);
+      }
+    }
+    if (props.size === 0) continue;
+
+    /**
+     * خاصّيةُ هويةٍ تتغيّر تحت التركيب نفسه — وبلا واحدةٍ منها لا
+     * يتقادم شيء، فالنسخ مشروع.
+     */
+    const IDENTITY = /^(.*(Ref|Id|Slug)|query|ref|id|slug)$/;
+    if (![...props].some((name) => IDENTITY.test(name))) continue;
+
+    for (const match of text.matchAll(COPY)) {
+      const expression = match[1] ?? '';
+      if (SAFE.test(expression)) continue;
+      const root = expression.split('.')[0] ?? '';
+      if (!props.has(root)) continue;
+
+      const line = text.slice(0, match.index).split('\n').length;
+      problems.push(
+        `${rel}:${String(line)}  \`useState(${expression})\` ينسخ خاصّية — `
+          + 'تتقادم عند التنقّل داخل التطبيق؛ اشتقّ القيمة بدل نسخها',
+      );
+    }
+  }
+}
+
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -1682,6 +1755,7 @@ checkTranslationKeysResolve();
 checkRetiredPromises();
 checkFlexInputsCanShrink();
 checkEncryptedFieldReaders();
+checkStateCopiedFromProps();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1692,5 +1766,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية.',
 );

@@ -425,7 +425,24 @@
     "conditionTitle": "Condition",
     "price": "Price",
     "year": "Year",
-    "sortLabel": "Sort results"
+    "sortLabel": "Sort results",
+    "understood": {
+      "as": "Understood as",
+      "none": "We could not read a filter from your words — try a brand, a city or a year, like “Camry 2020 Riyadh”.",
+      "rest": "Not understood:"
+    },
+    "chip": {
+      "remove": "Remove {what}",
+      "inspected": "Inspected",
+      "yearFrom": "{year} or newer",
+      "yearTo": "{year} or older",
+      "priceMin": "From {price} SAR",
+      "priceMax": "Up to {price} SAR"
+    },
+    "saved": {
+      "save": "Save this search",
+      "saved": "Saved"
+    }
   },
   "enums": {
     "transmission": {

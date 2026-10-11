@@ -5,9 +5,12 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { AccountBrief } from '@/components/site/AccountBrief';
+import { AccountSections } from '@/components/site/AccountSections';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
+import { freshCount } from '@/lib/domain/saved-search';
+import { db } from '@/lib/db';
 import { AccountScreen } from './AccountScreen';
 
 export const dynamic = 'force-dynamic';
@@ -60,6 +63,18 @@ export default async function AccountPage({
    */
   const listed = typeof search.listed === 'string' && search.listed !== '' ? search.listed : null;
 
+  /**
+   * عدّادات الأقسام — **وما يُعرض يُحسب، وما لا يُعرض لا يُستعلم**.
+   * والعروض المنتظِرة وحدها لا كلّها: عددٌ يستدعي فعلًا، لا أرشيف.
+   */
+  const waitingOffers = data.offers.filter(
+    (offer) => offer.status === 'PENDING' || offer.status === 'COUNTERED',
+  ).length;
+  const [fresh, favorites] = await Promise.all([
+    freshCount(user.id),
+    db.favorite.count({ where: { userId: user.id } }),
+  ]);
+
   return (
     <>
       <SiteHeader />
@@ -101,6 +116,33 @@ export default async function AccountPage({
           )}
 
           <AccountScreen data={data} locale={locale} taxProfile={taxProfileOf(user)} />
+
+          <AccountSections
+            locale={locale}
+            sections={[
+              { key: 'listings', label: 'إعلاناتي', hint: 'ما عرضتَه للبيع', count: data.listings.length },
+              { key: 'orders', label: 'طلباتي', hint: 'ما اشتريتَه وما في الطريق', count: data.orders.length },
+              {
+                key: 'offers',
+                label: 'العروض',
+                hint: 'ما عُرض عليك وما عرضتَه',
+                count: waitingOffers,
+                urgent: waitingOffers > 0,
+              },
+              {
+                key: 'searches',
+                label: 'بحوثي المحفوظة',
+                hint: fresh > 0 ? 'فيها جديد يطابق بحثك' : 'نخبرك بما يُنشر مطابقًا',
+                count: fresh,
+                urgent: fresh > 0,
+              },
+              { key: 'favorites', label: 'المفضّلة', hint: 'ما حفظتَه للرجوع إليه', count: favorites },
+              { key: 'reports', label: 'تقارير الفحص', hint: 'فحوص مركباتك', count: data.reports.length },
+              { key: 'earnings', label: 'مستحقّاتي', hint: 'ما لك من كل صفقة' },
+              { key: 'wallet', label: 'المحفظة', hint: 'رصيدك وكشفه' },
+              { key: 'profile', label: 'بياناتي', hint: 'البريد والهوية والآيبان' },
+            ]}
+          />
         </div>
       </main>
     </>
