@@ -2899,6 +2899,66 @@
         }
       }
     },
+    "/api/v1/admin/push/channels/{key}": {
+      "patch": {
+        "summary": "PATCH /api/v1/admin/push/channels/{key}",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "notifications.manage",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "defaultOn": {
+                    "type": "boolean"
+                  },
+                  "nameAr": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "sort": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/reports/{ref}": {
       "post": {
         "summary": "POST /api/v1/admin/reports/{ref}",

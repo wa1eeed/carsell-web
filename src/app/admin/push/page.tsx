@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
 import { Counted } from '@/components/ui/Counted';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ChannelDefault } from './ChannelDefault';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
-import { can } from '@/lib/domain/permissions';
+import { can, canWrite } from '@/lib/domain/permissions';
 import {
   PUSH_BODY_LIMIT,
   PUSH_TITLE_LIMIT,
@@ -31,6 +32,8 @@ export default async function PushPage() {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'notifications.manage')) redirect('/admin');
+  // والقراءة تدخل، والكتابة وحدها ترى الزرّ — والخادم يفحصها ثانيةً
+  const writable = canWrite(admin.role, 'notifications.manage');
 
   const [channels, devices, templates] = await Promise.all([
     listChannels(),
@@ -85,7 +88,22 @@ export default async function PushPage() {
                     <Badge tone="warn">لا — حرِجة</Badge>
                   )}
                 </td>
-                <td className="p-3.5 opacity-70">{channel.defaultOn ? 'مفتوحة' : 'مغلقة'}</td>
+                <td className="p-3.5">
+                  {/*
+                    **حالٌ كانت تُعرض ولا تُبدَّل.** `updateChannel`
+                    مبنيّةٌ ولا ينادِيها شيء، فتبديلُ ما يصل المستخدمَ
+                    الجديد افتراضًا كان يحتاج صفًّا في القاعدة بيد.
+                  */}
+                  {writable ? (
+                    <ChannelDefault
+                      channelKey={channel.key}
+                      defaultOn={channel.defaultOn}
+                      controllable={channel.userControllable}
+                    />
+                  ) : (
+                    <span className="opacity-70">{channel.defaultOn ? 'مفتوحة' : 'مغلقة'}</span>
+                  )}
+                </td>
                 <td className="p-3.5 text-end">
                   {channel.userControllable ? (
                     <ArabicNumber value={channel.disabledBy} />
