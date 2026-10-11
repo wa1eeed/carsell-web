@@ -191,3 +191,91 @@ export async function captureForfeitedDeposit(
 
   return true;
 }
+
+/**
+ * ═══ عربون الفائز يُحصَّل ليصل البائع ═══
+ *
+ * **وكان يُخصم ولا يُحصَّل.** `createAuctionOrder` تطرح العربون من
+ * المطلوب (`totalAmount = الإجمالي − العربون`) ثمّ لا يُحصَّل حجزُه
+ * أبدًا — فيبقى `HELD` عند بطاقة المزايد حتى تنقضي مدّته عند البوابة
+ * ويعود إليه.
+ *
+ * والأثر مقيس على مزادٍ حقيقيّ (`ORD-2026-1023`): مطرقةٌ ٩٦٬٠٠٠،
+ * ودفع المشتري ٩١٬٣٥٠، **وقُيّد للبائع ٩١٬٠٠٠** بينما تقول شاشته
+ * ٩٦٬٠٠٠ — والفرق خمسةُ آلافٍ هي العربون بالضبط. فكلُّ مزادٍ ناجح
+ * كان يُنقص البائع عربونًا، ويُظهر في دفترنا نقصًا لا مصدر له.
+ *
+ * ═══ ولماذا عند التسوية لا عند الدفع ═══
+ *
+ * قبل التسوية قد يُلغى الطلب، وعندها يُردّ العربون لصاحبه — وحجزٌ
+ * قائم يُلغى بضغطة، أمّا محصَّلٌ فيحتاج استردادًا. فيبقى محجوزًا حتى
+ * تقع الواقعة التي تُملّكه: **التسوية** (فيمضي إلى البائع)، أو
+ * **الانسحاب** (فيصير للمنصّة).
+ *
+ * والقيد شكلُ `order.paid` نفسه: نقدٌ يدخل الضمان مقابل التزامٍ
+ * للمشتري — ثمّ يستهلكه `order.earned` كما يستهلك بقيّة المبلغ.
+ */
+export async function captureAppliedDeposit(
+  input: { orderId: string; buyerId: string; listingId: string },
+  now: Date = new Date(),
+): Promise<Prisma.Decimal | null> {
+  const deposit = await db.deposit.findFirst({
+    where: {
+      userId: input.buyerId,
+      status: 'APPLIED',
+      auction: { listingId: input.listingId },
+      paymentId: { not: null },
+    },
+    select: { id: true, amount: true, paymentId: true },
+  });
+  if (deposit === null || deposit.paymentId === null) return null;
+
+  const payment = await db.payment.findUnique({
+    where: { id: deposit.paymentId },
+    select: { id: true, status: true, holdRef: true, amount: true, gatewayKey: true, environment: true },
+  });
+  /**
+   * **وتحصيلٌ وقع لا يُعاد.** التسوية قد تُنادى مرّتين (ويبهوك يتكرّر،
+   * أو إفراجٌ يُعاد) — وتحصيلٌ ثانٍ يسحب من البطاقة مرّتين.
+   */
+  if (payment === null || payment.status !== 'HELD' || payment.holdRef === null) return null;
+
+  const gateway = await resolveForPayment(payment.gatewayKey, payment.environment);
+  const settled = await gateway.settle(payment.holdRef, payment.amount.toString());
+
+  // و`PENDING` ليست نجاحًا — ولا يُقيَّد ما لم يُؤكَّد
+  if (settled.state !== 'CONFIRMED') return null;
+
+  await db.$transaction(async (tx) => {
+    await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: 'SETTLED',
+        settleRef: settled.settleRef,
+        settledAmount: payment.amount,
+        settledAt: now,
+      },
+    });
+
+    await postEntries(
+      tx,
+      {
+        event: 'deposit.captured',
+        orderId: input.orderId,
+        paymentId: payment.id,
+        postings: [
+          { account: 'ESCROW_AT_PROVIDER', direction: 'DEBIT', amount: payment.amount },
+          {
+            account: 'BUYER_ADVANCE',
+            direction: 'CREDIT',
+            amount: payment.amount,
+            userId: input.buyerId,
+          },
+        ],
+      },
+      now,
+    );
+  });
+
+  return deposit.amount;
+}

@@ -202,7 +202,11 @@ async function record(
 
 export type AdvanceResult =
   | { ok: true; status: PaymentStatus }
-  | { ok: false; reason: 'PAYMENT_NOT_FOUND' | 'INVALID_TRANSITION' };
+  /**
+   * `DEPOSIT_NOT_CAPTURED` — تعذّر تحصيل عربون الفائز، فالتسوية
+   * تتوقّف. وإفراجٌ عن مالٍ ناقصٍ أسوأ من إفراجٍ يُعاد.
+   */
+  | { ok: false; reason: 'PAYMENT_NOT_FOUND' | 'INVALID_TRANSITION' | 'DEPOSIT_NOT_CAPTURED' };
 
 /**
  * نقل حالة الدفعة — **المدخل الوحيد**، ومنه يمرّ الويبهوك والأدمن معًا.
@@ -230,6 +234,52 @@ export async function applyState(
   refs?: PaymentRefs,
 ): Promise<AdvanceResult> {
   let orderId: string | null = null;
+
+  /**
+   * ═══ عربون الفائز يُحصَّل قبل أن يُقفل الاستحقاق ═══
+   *
+   * **وخارج المعاملة**: التحصيل ينادي البوابة، وشبكةٌ بطيئة داخل
+   * معاملةٍ تُبقي صفوف الدفعة والضمان مقفلة حتى تردّ.
+   *
+   * **وقبلها لا بعدها**: `recordOrderEarned` يحتسب الإجمالي زائدَ
+   * العربون، فلو فشل التحصيل بعد القيد لصار في الدفتر مالٌ لم يدخل.
+   * والفشل هنا يمنع التسوية كلّها — وهو الصواب: إفراجٌ عن مالٍ
+   * ناقصٍ أسوأ من إفراجٍ يُعاد.
+   */
+  if (to === 'SETTLED') {
+    const target = await db.payment.findUnique({
+      where: { id: paymentId },
+      select: { status: true, order: { select: { id: true, buyerId: true, listingId: true, source: true } } },
+    });
+    const order = target?.order ?? null;
+    if (target?.status === 'HELD' && order !== null && order.source === 'AUCTION') {
+      const { captureAppliedDeposit } = await import('./deposit-money');
+      const captured = await captureAppliedDeposit(
+        { orderId: order.id, buyerId: order.buyerId, listingId: order.listingId },
+        now,
+      );
+      /**
+       * `null` تعني «لا عربون يُحصَّل» أو «تعذّر». والأولى شائعة
+       * (عربونٌ دفتريّ قديم بلا دفعة)، فلا تُعامَل خطأ — ويُميَّز
+       * بينهما بأن المخصوم صفر.
+       */
+      if (captured === null) {
+        const row = await db.order.findUnique({
+          where: { id: order.id },
+          select: { depositApplied: true },
+        });
+        const owed = row?.depositApplied ?? null;
+        if (owed !== null && owed.greaterThan(0)) {
+          const { reportError } = await import('@/lib/observability/report');
+          reportError(new Error('applied deposit not captured'), {
+            where: 'payments.applyState.captureDeposit',
+            extra: { orderId: order.id, depositApplied: owed.toString() },
+          });
+          return { ok: false, reason: 'DEPOSIT_NOT_CAPTURED' };
+        }
+      }
+    }
+  }
 
   const result = await db.$transaction(async (tx): Promise<AdvanceResult> => {
     const payment = await tx.payment.findUnique({
@@ -347,10 +397,24 @@ export async function applyState(
         const order = await tx.order.findUniqueOrThrow({
           where: { id: payment.orderId },
           select: {
-            buyerId: true, sellerId: true, totalAmount: true,
+            buyerId: true, sellerId: true, totalAmount: true, depositApplied: true,
             commissionAmount: true, vatAmount: true, transferFee: true,
           },
         });
+
+        /**
+         * ═══ والعربون المخصوم جزءٌ من الثمن ═══
+         *
+         * `totalAmount` في طلب المزاد هو **الإجمالي ناقص العربون**،
+         * فاحتسابُ الاستحقاق عليه وحده يُقيّد للبائع أقلّ ممّا باع به
+         * بمقدار العربون — وقِيس على `ORD-2026-1023`: مطرقةٌ ٩٦٬٠٠٠،
+         * وقُيّد ٩١٬٠٠٠، وشاشته تقول ٩٦٬٠٠٠.
+         *
+         * والتحصيل نفسه في `captureAppliedDeposit` خارج هذه المعاملة
+         * (ينادي البوابة)، ويُستدعى **قبلها** — فالمبلغ هنا مجموعُ ما
+         * دخل الضمان فعلًا.
+         */
+        const total = order.totalAmount.plus(order.depositApplied);
 
         await recordOrderEarned(
           tx,
@@ -359,7 +423,7 @@ export async function applyState(
             paymentId: payment.id,
             buyerId: order.buyerId,
             sellerId: order.sellerId,
-            total: order.totalAmount,
+            total,
             commission: order.commissionAmount,
             vat: order.vatAmount,
             govtFee: order.transferFee,

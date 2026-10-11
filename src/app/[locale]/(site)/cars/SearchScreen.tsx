@@ -582,9 +582,12 @@ export function SearchScreen({
           </nav>
         )}
 
-        <p className="pt-2 text-3xs opacity-40" dir="ltr">
-          {query === '' ? '/cars' : `/cars?${query}`}
-        </p>
+        {/*
+          **سطرُ تطويرٍ كان يُعرض للزائر**: الرابط الخام أسفل النتائج
+          بمعرّفاتٍ داخلية (`brandId=cmsfq1khy…`). لا يقول للزائر شيئًا
+          ويُقرأ عطلًا، ويكشف شكل مفاتيحنا بلا مقابل. و`query` باقية —
+          يقرؤها زرّ «احفظ البحث».
+        */}
       </div>
 
       <Sheet open={sheet} onClose={() => setSheet(false)} title={t('filters')}>

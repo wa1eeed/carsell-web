@@ -582,6 +582,75 @@ export async function forfeitDeposit(
   return { ok: forfeited > 0 };
 }
 
+/**
+ * ═══ الانسحاب بعد الرسوّ — والباب الذي لم يكن ═══
+ *
+ * المواصفة في القاعدة ٩ ثلاثُ جُمَل: «يُرد لغير الفائزين · يُخصم
+ * للفائز · **يُصادَر عند الانسحاب**». والأوّلان مبنيّان ويُناديان،
+ * **والثالث لم يكن يناديه شيء** — `forfeitDeposit` مكتوبةٌ تُحصّل
+ * بالبوابة وتُقيّد، ولا منادي لها في المنتج كلّه.
+ *
+ * فمن رسا عليه مزادٌ ولم يدفع: يخسر المركبة (الطلب يُلغى والإعلان
+ * يعود) **ويحتفظ بعربونه**. والعربون هو الشيء الوحيد الذي يجعل
+ * المزايدة التزامًا لا نيّة — فبلا مصادرةٍ يصير المزاد بلا كلفة،
+ * ويستطيع واحدٌ أن يربح مزادًا بعد مزاد ثم ينصرف.
+ *
+ * **والشاشة كانت تَعِد بما لا يقع**: شروط المزاد تقول حرفيًّا «ولا
+ * يُقبض إلّا ممّن رسا عليه ثم انسحب».
+ *
+ * ═══ والطلب لا يحمل مزاده ═══
+ *
+ * `Order.auctionId` غير موجود — الرابط عبر الإعلان. والفحص على
+ * `source === 'AUCTION'` **وعلى وجود مزادٍ للإعلان معًا**: طلبٌ
+ * مباشرٌ على إعلانٍ كان مزادًا سابقًا لا يُصادَر عربون أحد لأجله.
+ */
+export async function forfeitOnWithdrawal(
+  input: { orderId: string; reason: 'payment.timeout' | 'buyer.cancelled' },
+  now: Date = new Date(),
+): Promise<{ forfeited: boolean }> {
+  const order = await db.order.findUnique({
+    where: { id: input.orderId },
+    select: { listingId: true, buyerId: true, source: true },
+  });
+  if (order === null || order.source !== 'AUCTION') return { forfeited: false };
+
+  // و`listingId` مفتاحٌ فريد — فالإعلان لا يحمل مزادين
+  const auction = await db.auction.findUnique({
+    where: { listingId: order.listingId },
+    select: { id: true },
+  });
+  if (auction === null) return { forfeited: false };
+
+  const result = await forfeitDeposit({ auctionId: auction.id, userId: order.buyerId }, now);
+  if (!result.ok) return { forfeited: false };
+
+  /**
+   * **والمصادرة تُقال لصاحبها.** مالٌ يخرج من بطاقة أحدهم بلا خبرٍ
+   * يصله هو أسوأ من المصادرة نفسها — ويصل أوّلًا من كشف بطاقته.
+   */
+  await db.notification.create({
+    data: {
+      userId: order.buyerId,
+      templateKey: 'deposit.forfeited',
+      priority: 'critical',
+      entityType: 'Auction',
+      entityId: auction.id,
+    },
+  });
+
+  await db.orderEvent.create({
+    data: {
+      orderId: input.orderId,
+      type: 'deposit.forfeited',
+      actorType: 'system',
+      createdAt: now,
+      payload: { reason: input.reason, auctionId: auction.id },
+    },
+  });
+
+  return { forfeited: true };
+}
+
 export type PublicAuction = {
   id: string;
   listingRef: string;

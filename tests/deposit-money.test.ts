@@ -10,8 +10,11 @@ import { forfeitDeposit, holdDeposit, settleDeposits } from '@/lib/domain/auctio
  * وقرار المالك: **الحجز ببطاقة، والمُصادَر للمنصّة**.
  */
 
-const made: { auctions: string[]; users: string[]; listings: string[]; vehicles: string[] } = {
-  auctions: [], users: [], listings: [], vehicles: [],
+const made: {
+  auctions: string[]; users: string[]; listings: string[]; vehicles: string[];
+  bids: string[]; orderRefs: string[];
+} = {
+  auctions: [], users: [], listings: [], vehicles: [], bids: [], orderRefs: [],
 };
 
 async function scaffold(): Promise<{ auctionId: string; ref: string; bidderId: string }> {
@@ -71,6 +74,23 @@ afterEach(async () => {
   });
   const payments = rows.map((r) => r.paymentId).filter((id): id is string => id !== null);
   await db.ledgerEntry.deleteMany({ where: { note: 'deposit.forfeited' } });
+
+  /**
+   * **والأثر الجديد يُتبَع في الاستعادة.** صار الطقم يُنشئ طلبًا
+   * وقيودًا ومزايدات، وتركُها يُسقط جيرانه في التشغيل التالي.
+   */
+  if (made.orderRefs.length > 0) {
+    const orders = await db.order.findMany({
+      where: { ref: { in: made.orderRefs } },
+      select: { id: true },
+    });
+    const ids = orders.map((row) => row.id);
+    await db.ledgerEntry.deleteMany({ where: { orderId: { in: ids } } });
+    await db.orderEvent.deleteMany({ where: { orderId: { in: ids } } });
+    await db.notification.deleteMany({ where: { userId: { in: made.users } } });
+    await db.order.deleteMany({ where: { id: { in: ids } } });
+  }
+  if (made.bids.length > 0) await db.bid.deleteMany({ where: { auctionId: { in: made.bids } } });
   await db.deposit.deleteMany({ where: { auctionId: { in: made.auctions } } });
   if (payments.length > 0) await db.payment.deleteMany({ where: { id: { in: payments } } });
   await db.auction.deleteMany({ where: { id: { in: made.auctions } } });
@@ -78,6 +98,7 @@ afterEach(async () => {
   await db.vehicle.deleteMany({ where: { id: { in: made.vehicles } } });
   await db.user.deleteMany({ where: { id: { in: made.users } } });
   made.auctions = []; made.listings = []; made.vehicles = []; made.users = [];
+  made.bids = []; made.orderRefs = [];
 });
 
 describe('حجز العربون', () => {
@@ -169,5 +190,154 @@ describe('مصير العربون', () => {
     expect(Number(revenue?.amount)).toBe(5_000);
     expect(cash?.direction).toBe('DEBIT');
     expect(revenue?.direction).toBe('CREDIT');
+  });
+});
+
+/**
+ * ═══ القاعدة ٩ تمامها ═══
+ *
+ * المواصفة ثلاثُ جُمَل: «يُرد لغير الفائزين · يُخصم للفائز · يُصادَر
+ * عند الانسحاب». والأوّلان كانا يُناديان، **والثالث لا**. ثمّ تبيّن
+ * أن الثاني ناقصٌ أيضًا: العربون **يُخصم من المطلوب ولا يُحصَّل**،
+ * فيبقى محجوزًا عند بطاقة المزايد ويُنقص البائع مقداره.
+ */
+describe('عربون الفائز يُحصَّل ليصل البائع', () => {
+  it('يُخصم من المطلوب ويُحصَّل قيدًا، فيتطابق الدفتر مع شاشة البائع', async () => {
+    const { auctionId, ref, bidderId } = await scaffold();
+    await holdDeposit({ auctionId, auctionRef: ref, userId: bidderId, method: 'mada', returnUrl: 'http://localhost/r' });
+
+    await db.bid.create({ data: { auctionId, bidderId, amount: 55_000 } });
+    made.bids.push(auctionId);
+
+    await settleDeposits(auctionId, bidderId);
+    const applied = await db.deposit.findFirstOrThrow({
+      where: { auctionId, userId: bidderId },
+      select: { status: true, amount: true },
+    });
+    expect(applied.status).toBe('APPLIED');
+
+    const { createAuctionOrderStandalone } = await import('@/lib/domain/auction-order');
+    const created = await createAuctionOrderStandalone(auctionId);
+    if (!created.ok) throw new Error(created.reason);
+    made.orderRefs.push(created.orderRef);
+
+    const order = await db.order.findUniqueOrThrow({
+      where: { ref: created.orderRef },
+      select: { id: true, agreedPrice: true, totalAmount: true, depositApplied: true, listingId: true },
+    });
+
+    /** **المطلوب هو الإجمالي ناقص العربون** — والمطرقة تبقى للتدقيق. */
+    expect(Number(order.depositApplied)).toBe(5_000);
+    expect(Number(order.totalAmount)).toBe(Number(order.agreedPrice) + 350 - 5_000);
+
+    const { captureAppliedDeposit } = await import('@/lib/domain/deposit-money');
+    const captured = await captureAppliedDeposit({
+      orderId: order.id,
+      buyerId: bidderId,
+      listingId: order.listingId,
+    });
+    expect(Number(captured)).toBe(5_000);
+
+    /** والمال وصل فعلًا — الدفعة لدى البوابة صارت مُسوّاة. */
+    const row = await db.deposit.findFirstOrThrow({
+      where: { auctionId, userId: bidderId },
+      select: { payment: { select: { status: true } } },
+    });
+    expect(row.payment?.status).toBe('SETTLED');
+
+    const entries = await db.ledgerEntry.findMany({
+      where: { orderId: order.id, event: 'deposit.captured' },
+      select: { account: true, direction: true, amount: true },
+    });
+    expect(entries).toHaveLength(2);
+    expect(entries.every((entry) => Number(entry.amount) === 5_000)).toBe(true);
+    // نقدٌ يدخل الضمان مقابل التزامٍ للمشتري — شكل `order.paid` نفسه
+    expect(entries.find((entry) => entry.account === 'ESCROW_AT_PROVIDER')?.direction).toBe('DEBIT');
+    expect(entries.find((entry) => entry.account === 'BUYER_ADVANCE')?.direction).toBe('CREDIT');
+  });
+
+  /** **وتحصيلٌ وقع لا يُعاد** — وإلّا سُحب من البطاقة مرّتين. */
+  it('لا يُحصَّل العربون مرّتين', async () => {
+    const { auctionId, ref, bidderId } = await scaffold();
+    await holdDeposit({ auctionId, auctionRef: ref, userId: bidderId, method: 'mada', returnUrl: 'http://localhost/r' });
+    await db.bid.create({ data: { auctionId, bidderId, amount: 55_000 } });
+    made.bids.push(auctionId);
+    await settleDeposits(auctionId, bidderId);
+
+    const { createAuctionOrderStandalone } = await import('@/lib/domain/auction-order');
+    const created = await createAuctionOrderStandalone(auctionId);
+    if (!created.ok) throw new Error(created.reason);
+    made.orderRefs.push(created.orderRef);
+
+    const order = await db.order.findUniqueOrThrow({
+      where: { ref: created.orderRef },
+      select: { id: true, listingId: true },
+    });
+
+    const { captureAppliedDeposit } = await import('@/lib/domain/deposit-money');
+    const input = { orderId: order.id, buyerId: bidderId, listingId: order.listingId };
+    expect(Number(await captureAppliedDeposit(input))).toBe(5_000);
+    expect(await captureAppliedDeposit(input)).toBeNull();
+
+    const count = await db.ledgerEntry.count({
+      where: { orderId: order.id, event: 'deposit.captured' },
+    });
+    expect(count).toBe(2);
+  });
+});
+
+describe('الانسحاب بعد الرسوّ', () => {
+  /**
+   * الجملة الثالثة من القاعدة ٩ — **ولم يكن يناديها شيء**. فمن يربح
+   * مزادًا ولا يدفع كان يخسر المركبة ويحتفظ بعربونه، والعربون هو
+   * الشيء الوحيد الذي يجعل المزايدة التزامًا لا نيّة.
+   */
+  it('يُصادَر عربون من رسا عليه ثم لم يُكمل', async () => {
+    const { auctionId, ref, bidderId } = await scaffold();
+    await holdDeposit({ auctionId, auctionRef: ref, userId: bidderId, method: 'mada', returnUrl: 'http://localhost/r' });
+    await db.bid.create({ data: { auctionId, bidderId, amount: 55_000 } });
+    made.bids.push(auctionId);
+    await settleDeposits(auctionId, bidderId);
+
+    const { createAuctionOrderStandalone } = await import('@/lib/domain/auction-order');
+    const created = await createAuctionOrderStandalone(auctionId);
+    if (!created.ok) throw new Error(created.reason);
+    made.orderRefs.push(created.orderRef);
+
+    const order = await db.order.findUniqueOrThrow({
+      where: { ref: created.orderRef },
+      select: { id: true },
+    });
+
+    const { forfeitOnWithdrawal } = await import('@/lib/domain/auctions');
+    expect(await forfeitOnWithdrawal({ orderId: order.id, reason: 'payment.timeout' })).toEqual({
+      forfeited: true,
+    });
+
+    const deposit = await db.deposit.findFirstOrThrow({
+      where: { auctionId, userId: bidderId },
+      select: { status: true, payment: { select: { status: true } } },
+    });
+    expect(deposit.status).toBe('FORFEITED');
+    // **والوسم يتبع التحصيل** — فلا يقول الدفتر إننا قبضنا ما لم نقبض
+    expect(deposit.payment?.status).toBe('SETTLED');
+
+    /** ويُقال لصاحبه — مالٌ يخرج بلا خبرٍ أسوأ من المصادرة نفسها. */
+    const told = await db.notification.count({
+      where: { userId: bidderId, templateKey: 'deposit.forfeited' },
+    });
+    expect(told).toBe(1);
+  });
+
+  /** **وطلبٌ مباشر لا يُصادَر له عربون** — ولو كان إعلانه مزادًا سابقًا. */
+  it('لا يمسّ طلبًا غير مزاديّ', async () => {
+    const direct = await db.order.findFirstOrThrow({
+      where: { source: { not: 'AUCTION' } },
+      select: { id: true },
+    });
+    const { forfeitOnWithdrawal } = await import('@/lib/domain/auctions');
+    expect(await forfeitOnWithdrawal({ orderId: direct.id, reason: 'buyer.cancelled' })).toEqual({
+      forfeited: false,
+    });
   });
 });

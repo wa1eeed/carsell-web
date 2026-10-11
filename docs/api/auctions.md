@@ -40,6 +40,11 @@ truncated id prevents matching the same bidder across two auctions.
 | Won | `APPLIED` — credited to the order |
 | Walked away | `FORFEITED` |
 
+"Walked away" has two concrete forms, and **neither had a caller** until task 105:
+the payment window expiring (`timeoutUnpaidOrders`) and the buyer cancelling the
+order themselves. A seller's cancellation is *not* a walk-away — the buyer broke
+nothing, so their deposit is released, not seized.
+
 Holding a loser's deposit after the auction ends is not a guarantee; it is
 withholding money for no reason. Deposits settle in the **same operation** that
 closes the auction, not in a later job.
@@ -91,7 +96,12 @@ forfeited deposit belongs to **the platform**.
 | later bids | nothing — one hold per (auction, bidder) |
 | auction closes, you lost | the hold is **cancelled at the gateway**, deposit `RELEASED` |
 | auction closes, you won | deposit `APPLIED`, and the amount is **deducted from the order** (`Order.depositApplied`) |
-| you won and walked away | the hold is **captured**, deposit `FORFEITED`, and two balanced ledger entries credit platform revenue |
+| you pay and the sale settles | the hold is **captured into escrow** (`deposit.captured`), so the seller receives the full hammer price |
+| you won and walked away | the hold is **captured for the platform**, deposit `FORFEITED`, two balanced entries credit platform revenue |
+
+The deposit stays held between winning and one of those two outcomes, deliberately:
+before settlement the order may still be cancelled, and a hold is released with one
+call while a capture needs a refund.
 
 ### Two rules that are easy to get wrong
 
@@ -105,6 +115,19 @@ reduced *and* the gateway hold is settled against it. Deducting in one place
 only produces an invoice that does not add up — and the order screen shows the
 deposit as its own line, because a total smaller than the lines above it reads
 as a broken calculation.
+
+> **This paragraph described an intention, not the code.** The deduction happened;
+> the capture did not. Nothing settled the winner's hold, so on every completed
+> auction the buyer paid `total − deposit`, the deposit expired back to their card,
+> and the ledger credited the seller that much less than they had sold for.
+>
+> Measured on a real walk before the fix (`ORD-2026-1023`): hammer 96,000, buyer
+> paid 91,350, **ledger credited the seller 91,000** while their own earnings page
+> said 96,000 — short by exactly the 5,000 deposit, whose payment was still `HELD`.
+> After the fix (`ORD-2026-1024`): hammer 55,000, `deposit.captured` posts 5,000
+> into escrow, the seller is credited 55,000, and both figures agree.
+>
+> A document that describes a path does not prove there is a door.
 
 ### `402`, not `409`
 

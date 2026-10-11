@@ -175,5 +175,20 @@ export async function cancelOrder(
     }
   });
 
+  /**
+   * ═══ والمشتري وحده يُصادَر عربونه ═══
+   *
+   * القاعدة ٩: «يُصادَر عند الانسحاب» — والانسحاب فعلُ من رسا عليه.
+   * **فإلغاءُ البائع ليس انسحابًا من المشتري**: لم يُخلّ بشيء،
+   * وعربونُه يبقى محجوزًا حتى يُردّ، ومصادرتُه عقوبةٌ على فعل غيره.
+   *
+   * وخارج المعاملة لأنها تنادي البوابة — والإلغاء وقع، فلا يُحتجز
+   * على نداءٍ تعثّر.
+   */
+  if (input.actorId === order.buyerId) {
+    const { forfeitOnWithdrawal } = await import('./auctions');
+    await forfeitOnWithdrawal({ orderId: order.id, reason: 'buyer.cancelled' }, now);
+  }
+
   return { ok: true, refunded: refunded.toString(), stage: order.stage };
 }

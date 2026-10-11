@@ -450,6 +450,20 @@ export async function timeoutUnpaidOrders(now: Date = new Date()): Promise<numbe
         entityId: order.ref,
       });
     });
+
+    /**
+     * ═══ ومن رسا عليه ولم يدفع يُصادَر عربونه ═══
+     *
+     * القاعدة ٩ ثلاثُ جُمَل، وهذه ثالثتها — **ولم يكن يناديها شيء**.
+     * فمن يربح مزادًا ولا يدفع كان يخسر المركبة ويحتفظ بعربونه،
+     * والعربون هو الشيء الوحيد الذي يجعل المزايدة التزامًا لا نيّة.
+     *
+     * **وخارج المعاملة**: المصادرة تنادي البوابة، وشبكةٌ بطيئة داخل
+     * معاملةٍ تُبقي صفوف الطلب مقفلة حتى تردّ — وفشلُها كان سيُلغي
+     * إلغاءً وقع. فالإلغاء يُثبَّت أوّلًا، والمصادرة تتبعه.
+     */
+    const { forfeitOnWithdrawal } = await import('./auctions');
+    await forfeitOnWithdrawal({ orderId: order.id, reason: 'payment.timeout' }, now);
   }
 
   return overdue.length;
