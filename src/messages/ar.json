@@ -301,7 +301,10 @@
         ]
       }
     },
-    "browseByBodyType": "تصفّح حسب نوع الهيكل"
+    "browseByBodyType": "تصفّح حسب نوع الهيكل",
+    "popular": "شائع",
+    "under": "أقل من",
+    "thousandRiyal": "ألف ريال"
   },
   "dev": {
     "title": "مكتبة المكوّنات",

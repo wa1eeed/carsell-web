@@ -78,6 +78,66 @@ async function signIn() {
   } catch (error) {
     console.log(`⬜ تعذّر دخول الأدمن (${error instanceof Error ? error.name : 'fetch'}).`);
   }
+
+  await signInUser();
+}
+
+/**
+ * ═══ والنصف الآخر: اثنتا عشرة شاشة حساب ═══
+ *
+ * أصلحتُ دخول الأدمن وتركتُ المستخدم، فبقيت `Wf` و`Wl` و`Wt` و`Wu`
+ * و`Wv` و`Wy` ومعالج البيع كلُّه **صفرًا** — بالسبب نفسه الذي أصلحتُه
+ * للتوّ. ونصفُ الإصلاح يُنتج رقمًا يبدو صالحًا وهو يقيس نصف المنتج.
+ *
+ * والدخول بالمسار الذي يسلكه المشتري: رمزٌ يُطلب ويُتحقّق. و`devCode`
+ * لا يُعاد إلّا في التطوير، فالقياس على غيره لا يدخل أصلًا.
+ */
+async function signInUser() {
+  if (USER_COOKIE !== '') return;
+
+  const phone = process.env.AUDIT_PHONE ?? '+966510000003';
+
+  try {
+    const asked = await fetch(`${BASE}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ phone }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    const body = await asked.json();
+    const challengeId = body?.data?.challengeId;
+    const code = body?.data?.devCode;
+
+    if (typeof challengeId !== 'string' || typeof code !== 'string') {
+      /**
+       * **والمهلة بين طلبين سببٌ متوقَّع لا عطل.** قياسٌ يتلو قياسًا
+       * يصطدم بها، فيُقال باسمه ولا يُقرأ «الشاشات لا تطابق».
+       */
+      const reason = body?.error?.code ?? `HTTP ${String(asked.status)}`;
+      console.log(`⬜ تعذّر دخول المستخدم (${String(reason)}) — شاشات الحساب لن تُقاس.`);
+      return;
+    }
+
+    const verified = await fetch(`${BASE}/api/v1/auth/otp/verify`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ challengeId, code }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    const found = (verified.headers.getSetCookie?.() ?? [])
+      .map((line) => /(?:^|;\s*)carsell_session=([^;]+)/.exec(line)?.[1])
+      .find((value) => value !== undefined);
+
+    if (found === undefined) {
+      console.log(`⬜ تعذّر دخول المستخدم (HTTP ${String(verified.status)}).`);
+      return;
+    }
+    USER_COOKIE = found;
+  } catch (error) {
+    console.log(`⬜ تعذّر دخول المستخدم (${error instanceof Error ? error.name : 'fetch'}).`);
+  }
 }
 
 /**
@@ -134,6 +194,24 @@ const ROUTES = {
 
 /** شاشاتٌ أُجّلت بقرار المالك — تُستثنى ولا تُحسب دَينًا. */
 const DEFERRED = new Set(['A24', 'Wq', 'Wr']);
+
+/**
+ * ═══ والمؤجَّل يظهر **داخل** شاشاتٍ قائمة ═══
+ *
+ * استثناء `Wq` كشاشةٍ لا يكفي: «حاسبة التمويل» و«الراجحي» و«البلاد»
+ * مرسومةٌ في الرئيسية أيضًا، فتُحسب نقصًا فيها — والمالك أجّل التمويل.
+ * فالرئيسية تُقرأ ٢٥٪ وربعُ نقصها قرارٌ لا دَين، **ويُرسَل القارئ
+ * ليبني ما قيل له ألّا يبنيه**.
+ */
+const DEFERRED_SIGNALS = [
+  /* التمويل — Wq، بعد الإطلاق */
+  'حاسبة التمويل', 'بالتقسيط', 'التمويل', 'تمويل',
+  /* أسماء الممولين في الحاسبة المؤجَّلة */
+  'الراجحي', 'البلاد', 'الإنماء', 'الجزيرة', 'الأهلي', 'سامبا',
+  'الرياض للتمويل', 'عبداللطيف جميل', 'إمكان', 'اعرف أكثر',
+  /* اللوحات المميّزة — Wr، بعد الإطلاق */
+  'لوحة مميّزة', 'اللوحات المميّزة', 'مزاد اللوحات',
+];
 
 function stripTags(html) {
   return html
@@ -237,9 +315,21 @@ async function main() {
         continue;
       }
 
+      /**
+       * ═══ والعامّة تُقاس خارجةً من الحساب ═══
+       *
+       * أرسلتُ كوكي المستخدم إلى كل مسار، فاختفت «تسجيل الدخول» من
+       * الرئيسية — الترويسة تعرض الاسم لمن دخل. فقرأتُ نقصًا صنعه
+       * القياس نفسه، وكدتُ أُصلح ترويسةً سليمة.
+       *
+       * فالجلسة لِما لا يُفتح بدونها وحده.
+       */
+      const needsUser = /^\/[a-z]{2}\/(account|sell|orders|inbox|checkout)\b/.test(route);
       const cookie = route.startsWith('/admin')
         ? `carsell_admin=${ADMIN_COOKIE}`
-        : `carsell_session=${USER_COOKIE}`;
+        : needsUser
+          ? `carsell_session=${USER_COOKIE}`
+          : '';
 
       /**
        * ═══ وجلبٌ فاشل ليس «صفر مطابقة» ═══
@@ -260,6 +350,14 @@ async function main() {
       let failure = null;
 
       for (let attempt = 1; attempt <= 3 && text === null; attempt += 1) {
+        /**
+         * **والمحاولات الثلاث كانت متلاصقة.** خادمُ تطويرٍ يترجم
+         * ستّين مسارًا بالتتابع يرفض الاتّصال لحظةً، فثلاثُ محاولاتٍ
+         * في جزءٍ من الثانية تفشل ثلاثتُها — وقرأتُ ٥٥ شاشة
+         * «لم تُقَس» وهي تردّ ٢٠٠ بعد ثانية.
+         */
+        if (attempt > 1) await new Promise((done) => setTimeout(done, attempt * 2000));
+
         try {
           const res = await fetch(`${BASE}${route}`, {
             headers: { cookie },
@@ -287,7 +385,11 @@ async function main() {
         continue;
       }
 
-      const missing = signals.filter((s) => !text.includes(s));
+      /** المؤجَّل يخرج من البسط والمقام معًا — لا يُعدّ نقصًا ولا مطابقة. */
+      const live = signals.filter(
+        (signal) => !DEFERRED_SIGNALS.some((word) => signal.includes(word)),
+      );
+      const missing = live.filter((s) => !text.includes(s));
 
       /**
        * ═══ والحالة الفارغة ليست نقصًا ═══
@@ -303,8 +405,8 @@ async function main() {
 
       rows.push({
         tag, route,
-        total: signals.length,
-        found: signals.length - missing.length,
+        total: live.length,
+        found: live.length - missing.length,
         empty,
         missing: missing.slice(0, 6),
       });

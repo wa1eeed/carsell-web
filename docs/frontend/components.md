@@ -256,3 +256,36 @@ Two props carry the variation the design actually has:
 - **`crumb`** on `AccountList` — the trail names the page as the account hub
   names it ("تقاريري"), while the heading describes it ("تقارير الفحص"). The
   design writes both; one prop stops them being forced to agree.
+
+
+## Popular searches on the homepage (task 91)
+
+The design puts a row under the hero search: "Popular: Camry 2024 · Patrol ·
+Under 50k · Electric · Today's auctions". It was never built, so the first-time
+visitor met a four-field form and no single thing to click.
+
+**Every chip is derived from stock, never written down.** A hard-coded chip
+points at an empty page the moment that model sells out — and an empty result
+reached from the platform's *own* suggestion reads as "there is nothing here",
+not "try another search". So:
+
+| Chip | Source | Omitted when |
+|---|---|---|
+| Two model names | `vehicle.groupBy(modelId)` over published listings | no published listings |
+| A price ceiling | the smallest band holding **3 or more** listings | no band qualifies |
+| Electric / hybrid | `vehicle.groupBy(fuel)` restricted to those two | none in stock |
+| Today's auctions | `status: LIVE` **and** `endsAt > now` | no open auction |
+
+The auction chip checks the clock as well as the stored status: an auction whose
+time has passed but whose sweep has not yet run still reads `LIVE`, and the chip
+would promise a page that rejects you on arrival.
+
+`popularSearches()` returns **keys, not sentences** — `priceMax:50000`,
+`fuel:ELECTRIC`. The domain cannot phrase them: it knows neither the locale nor
+`Quantity`, so a sentence it builds emits Latin digits (gate 17). The screen
+turns the key into "أقل من ٥٠ ألف ريال".
+
+`tests/popular-searches.test.ts` walks each chip's query through the same
+`parseFilters` the results page uses and asserts the result is **non-empty and
+narrower than unfiltered**. Non-empty alone would pass even if the filter key
+were misspelled and silently ignored.

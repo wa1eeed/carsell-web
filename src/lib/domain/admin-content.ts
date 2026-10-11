@@ -101,6 +101,43 @@ export type LegalRow = {
   updatedAt: string;
 };
 
+export type LegalSummary = {
+  total: number;
+  unpublished: number;
+  sections: number;
+  /** آخر مستندٍ مُسّ — والتاريخ وحده لا يقول أيّه. */
+  latest: { titleAr: string; updatedAt: string } | null;
+};
+
+/**
+ * عدّادات الشاشة — **من الصفوف لا من طول القائمة المعروضة**.
+ *
+ * الشاشة تعرض المستندات كلَّها اليوم، فالعدّ من القائمة يتفق معها
+ * صدفةً. وأوّلُ ترشيحٍ يُضاف (حالة أو بحث) يجعل «٨ مستندات» تعني
+ * «٨ معروضة» — وهو عدّادٌ يكذب بلا أن يتغيّر سطرُه.
+ */
+export async function legalSummary(): Promise<LegalSummary> {
+  const docs = await db.legalDocument.findMany({
+    select: { titleAr: true, active: true, sections: true, updatedAt: true },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  const newest = docs[0];
+
+  return {
+    total: docs.length,
+    unpublished: docs.filter((doc) => !doc.active).length,
+    sections: docs.reduce(
+      (sum, doc) => sum + (Array.isArray(doc.sections) ? doc.sections.length : 0),
+      0,
+    ),
+    latest:
+      newest === undefined
+        ? null
+        : { titleAr: newest.titleAr, updatedAt: newest.updatedAt.toISOString() },
+  };
+}
+
 export async function legalDocuments(): Promise<LegalRow[]> {
   const docs = await db.legalDocument.findMany({ orderBy: { sort: 'asc' } });
 

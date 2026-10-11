@@ -2,9 +2,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
+import { toArabicDigits } from '@/lib/arabic';
 import type { Metadata } from 'next';
 
 import { LiveBar, SiteFooter, SiteHeader } from '@/components/site/SiteHeader';
+import { popularSearches, type PopularSearch } from '@/lib/domain/popular-searches';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { BodyTypeStrip } from '@/components/ui/BodyTypeStrip';
@@ -64,6 +66,32 @@ function Icon({ children }: { children: React.ReactNode }) {
  * قبل تحميلها، وعدّاد المزاد يُصاغ على الخادم فلا يقفز الرقم مكانه بعد
  * أول ثانية، والشريط الحيّ يختفي كليًا بلا مزاد بدل أن ينكمش.
  */
+/**
+ * تسمية الشريحة — **والنطاق يعيد مفتاحًا لا جملة**.
+ *
+ * `priceMax:50000` تصير «أقل من ٥٠ ألف ريال»، و`fuel:ELECTRIC` تصير
+ * «كهربائية». والنطاق لا يستطيع صياغتها أصلًا: لا يعرف اللغة ولا يملك
+ * `Quantity`، فجملةٌ يبنيها تُخرج رقمًا لاتينيًّا (البوابة ١٧).
+ */
+function popularLabel(
+  chip: PopularSearch,
+  dict: { t: (key: string) => string; tu: (key: string) => string; te: (key: string) => string },
+): string {
+  if (chip.path !== undefined) return dict.t('nav.auctions');
+
+  const price = /^priceMax:(\d+)$/.exec(chip.label);
+  if (price !== null) {
+    const thousands = Number(price[1]) / 1000;
+    return `${dict.t('under')} ${toArabicDigits(String(thousands))} ${dict.t('thousandRiyal')}`;
+  }
+
+  const fuel = /^fuel:(\w+)$/.exec(chip.label);
+  if (fuel !== null) return dict.te(`fuel.${String(fuel[1])}`);
+
+  /** اسم الطراز كما هو — وهو ما يبحث به الناس. */
+  return chip.label;
+}
+
 export default async function HomePage({
   params,
   searchParams,
@@ -79,11 +107,12 @@ export default async function HomePage({
   const rawBand = typeof search.band === 'string' ? search.band : undefined;
   const band = PAYMENT_BANDS.find((b) => b.key === rawBand)?.key as PaymentBandKey | undefined;
 
-  const [home, cities, t, tu, te] = await Promise.all([
+  const [home, cities, popular, t, tu, te] = await Promise.all([
     getHomeData(locale, band === undefined ? {} : { band }),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
       .then((rows) => rows.map((row) => row.city).sort()),
+    popularSearches(),
     getTranslations('site'),
     getTranslations('units'),
     getTranslations('enums'),
@@ -160,6 +189,36 @@ export default async function HomePage({
             </div>
 
             <HeroSearch cities={cities} className="mt-8" />
+
+            {/*
+              ═══ «شائع» — والزائر الأوّل كان يجد استمارةً بلا مدخل ═══
+
+              التصميم يضع صفًّا تحت الباحث. وكلُّ شريحةٍ هنا **مشتقّة من
+              مخزونٍ قائم**: شريحةٌ ثابتة تُرسل إلى صفحةٍ فارغة أوّل ما
+              ينفد الطراز، ونتيجةٌ فارغة من اقتراح المنصّة نفسها تُقرأ
+              «لا شيء هنا».
+
+              والصياغة في الشاشة لا في النطاق (البوابة ١٧): النطاق يعيد
+              مفاتيح، والجملة والأرقام هنا.
+            */}
+            {popular.length === 0 ? null : (
+              <p className="mt-4 flex flex-wrap items-center gap-2 text-3xs">
+                <span className="opacity-50">{t('popular')}</span>
+                {popular.map((chip) => (
+                  <Link
+                    key={`${chip.label}-${chip.query}`}
+                    href={
+                      chip.path === undefined
+                        ? `/${locale}/cars?${chip.query}`
+                        : `/${locale}${chip.path}`
+                    }
+                    className="rounded-full border border-line bg-surface px-3 py-1.5 font-bold hover:border-ink"
+                  >
+                    {popularLabel(chip, { t, tu, te })}
+                  </Link>
+                ))}
+              </p>
+            )}
 
             {/* مدخل الجملة الحرّة غائب كليًا والراية مطفأة (قرار ٢٤) */}
           </div>

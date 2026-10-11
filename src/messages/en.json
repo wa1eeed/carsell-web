@@ -301,7 +301,10 @@
         ]
       }
     },
-    "browseByBodyType": "Browse by body type"
+    "browseByBodyType": "Browse by body type",
+    "popular": "Popular",
+    "under": "Under",
+    "thousandRiyal": "thousand SAR"
   },
   "dev": {
     "title": "Component library",
