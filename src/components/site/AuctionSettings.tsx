@@ -38,8 +38,22 @@ export function SettingsBlock({ title, children }: { title: string; children: Re
   );
 }
 
-/** قيمةٌ تُقال ولا تُسأل — شرطُ المنصّة أو رقمٌ كُتب في خطوةٍ سابقة. */
-export function Readout({ label, value, hint }: { label: string; value: string; hint?: string }) {
+/**
+ * قيمةٌ تُقال ولا تُسأل — شرطُ المنصّة أو رقمٌ كُتب في خطوةٍ سابقة.
+ *
+ * **والقيمة عقدةٌ لا نصّ**: المبلغ يحتاج `<Money>` ليُجمَّع ويحمل
+ * عملته، والمدّة تحتاج `<Quantity>` لتصيب واحدةً من ستّ صيغ جمع.
+ * وسلسلةٌ تُبنى بالضمّ تُخرج «١٤٥٠٠٠» بلا فواصل و«٤٨» بلا وحدة.
+ */
+export function Readout({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: React.ReactNode;
+  hint?: string;
+}) {
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-3xs font-bold opacity-60">{label}</span>

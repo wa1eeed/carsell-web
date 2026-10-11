@@ -83,6 +83,16 @@ const EMPTY: Vehicle = {
  * يُبلَغ بأوّل ريال، والثاني لا يوجد. وخلطُهما يجعل البائع يظنّ أن له
  * حدًّا ولا حدّ له.
  */
+/** سطرٌ في بطاقة المراجعة — تسميةٌ وقيمة، لا حقل. */
+function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-line pb-2.5 last:border-0">
+      <dt className="shrink-0 opacity-55">{label}</dt>
+      <dd className="bidi-isolate truncate font-bold">{value}</dd>
+    </div>
+  );
+}
+
 function digits(value: string): number | null {
   const clean = toLatinDigits(value).replace(/\D/g, '');
   if (clean === '') return null;
@@ -120,6 +130,7 @@ export function SellWizard({
   locale,
   vinLookupEnabled,
   auctionLimits,
+  rules,
 }: {
   taxProfile: TaxProfile;
   brands: readonly Option[];
@@ -133,6 +144,12 @@ export function SellWizard({
    * الخادم.
    */
   auctionLimits: AuctionLimits;
+  /**
+   * قواعدُ المنصّة بقيمها الحيّة — **تُعرض ولا تُسأل**. ومهلةُ عرضٍ
+   * مكتوبةٌ في الشاشة تتباعد عن الإعداد أوّل تغيير، فتَعِد البائع
+   * بمهلةٍ غير التي تقع.
+   */
+  rules: { offerTtlHours: number; paymentWindowHours: number; transferFee: number };
 }) {
   const router = useRouter();
   const t = useTranslations('sell');
@@ -821,7 +838,7 @@ export function SellWizard({
               <SettingsBlock title={t('auction.prices')}>
                 <Readout
                   label={t('auction.openPrice')}
-                  value={price === '' ? '—' : toArabicDigits(price)}
+                  value={price === '' ? '—' : <Money amount={Number(toLatinDigits(price))} />}
                   hint={t('auction.openPriceHint')}
                 />
                 <PriceField
@@ -990,21 +1007,170 @@ export function SellWizard({
             </div>
           )}
 
-          {/* ═══ إعدادات التفاوض — Wh3b ═══ */}
+          {/*
+            ═══ إعدادات التفاوض — Wh3b ═══
+
+            كانت حقلًا واحدًا في صندوق. والتصميم يقسمها كتلتين —
+            **الأسعار** و**قواعد الردّ** — ويجعل لكلٍّ شرحَه. والفرق
+            ليس زينة: البائع هنا يقرّر رقمًا **لا يراه المشتري أبدًا**،
+            فإن لم يُقَل له ما يفعله الرقم ترك الحقل فارغًا وبقي يردّ
+            يدويًّا على كل عرضٍ لا يقبله.
+          */}
           {method !== 'NEGOTIATION' ? null : (
-            <div className="mb-7 rounded-xl border border-line bg-surface p-5.5">
-              <h3 className="mb-4 text-base font-bold">{t('negotiation.title')}</h3>
-              <PriceField
-                label={t('negotiation.minAccept')}
-                hint={t('negotiation.minAcceptHint')}
-                value={minAcceptPrice}
-                onChange={setMinAcceptPrice}
-              />
-              <p className="mt-4 text-3xs leading-loose opacity-55">
-                {t('negotiation.rules')}
-              </p>
+            <div className="mb-7 flex flex-col gap-px overflow-hidden rounded-xl border border-line bg-line">
+              <SettingsBlock title={t('negotiation.prices')}>
+                {/* **والمعروض يُعرض ولا يُعاد سؤاله** — كُتب في الخطوة السابقة */}
+                <Readout
+                  label={t('negotiation.asking')}
+                  value={price === '' ? '—' : <Money amount={Number(toLatinDigits(price))} />}
+                  hint={t('negotiation.askingHint')}
+                />
+                <PriceField
+                  label={t('negotiation.minAccept')}
+                  hint={t('negotiation.minAcceptHint')}
+                  value={minAcceptPrice}
+                  onChange={setMinAcceptPrice}
+                />
+                <Note>{t('negotiation.hiddenNote')}</Note>
+              </SettingsBlock>
+
+              {/*
+                ═══ قواعد الردّ — تُقال ولا تُسأل ═══
+
+                **ولا تُعرض مفاتيحَ.** التصميم يرسمها بطاقاتٍ تشبه
+                الحقول، ومفتاحٌ لا يغيّر شيئًا أسوأ من غيابه: يضغطه
+                البائع فلا يقع شيء، ولا رسالة. فهي قراءاتٌ بقيمها
+                الحيّة من إعدادات المنصّة.
+              */}
+              <SettingsBlock title={t('negotiation.replyRules')}>
+                <Readout
+                  label={t('negotiation.window')}
+                  value={<Quantity unit="hours" count={rules.offerTtlHours} />}
+                  hint={t('negotiation.windowHint')}
+                />
+                <Readout
+                  label={t('negotiation.multiple')}
+                  value={t('negotiation.multipleValue')}
+                  hint={t('negotiation.multipleHint')}
+                />
+                {/*
+                  **والجملة نصٌّ، فلا يبلغها `<Quantity>`.** تُصاغ
+                  فلا يحكم العددُ المعدودَ — «مهلة الدفع (٢٤ ساعة)» —
+                  والرقم على `toArabicDigits`. (البوابة ١٨.)
+                */}
+                <Note>
+                  {t('negotiation.accepted', {
+                    hours: locale === 'ar'
+                      ? toArabicDigits(String(rules.paymentWindowHours))
+                      : String(rules.paymentWindowHours),
+                  })}
+                </Note>
+              </SettingsBlock>
             </div>
           )}
+
+          {/*
+            ═══ إعدادات البيع المباشر — Wh3a ═══
+
+            **ولم تكن له لوحة أصلًا.** من اختار «مباشر» رأى البطاقات
+            الثلاث ثمّ زرّ النشر — بلا ما يقول له ما السعر الذي سيُنشر،
+            ولا ما يتحمّله هو من الرسوم، ولا أن بإمكانه فتح التفاوض.
+          */}
+          {method !== 'DIRECT' ? null : (
+            <div className="mb-7 rounded-xl border border-line bg-surface p-5.5">
+              <h3 className="mb-4 text-base font-bold">{t('direct.title')}</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Readout
+                  label={t('direct.price')}
+                  value={price === '' ? '—' : <Money amount={Number(toLatinDigits(price))} />}
+                  hint={t('direct.priceHint')}
+                />
+                <Readout
+                  label={t('direct.transferFee')}
+                  value={<Money amount={rules.transferFee} />}
+                  hint={t('direct.transferFeeHint')}
+                />
+                <Note>
+                  {t('direct.rules', {
+                    hours: locale === 'ar'
+                      ? toArabicDigits(String(rules.paymentWindowHours))
+                      : String(rules.paymentWindowHours),
+                  })}
+                </Note>
+              </div>
+            </div>
+          )}
+
+          {/*
+            ═══ المراجعة قبل النشر ═══
+
+            التصميم يضع بطاقةً أخيرة تجمع **ما سيُنشر** قبل الزرّ:
+            المركبة وطريقة البيع والأرقام. والسبب ليس زينة — خطوة
+            المزاد وحدها فيها تسعةُ حقول، ومن ملأها لا يستطيع أن
+            يتذكّر ما كتب في الأولى، ولا يعود إليها خشية أن يفقد ما
+            أدخله.
+
+            **ولا تُعيد سؤالَ شيء**: قراءةٌ ممّا كُتب، فإن خالفت ما في
+            ذهنه رجع بزرّ «رجوع» وقد عرف أين.
+          */}
+          <div className="mb-6 overflow-hidden rounded-xl border border-line">
+            <h3 className="border-b border-line bg-surface px-5 py-3.5 text-sm font-bold">
+              {t('review.title')}
+            </h3>
+            <dl className="grid gap-x-8 gap-y-3 bg-bg p-5 text-2xs sm:grid-cols-2">
+              <ReviewRow
+                label={t('review.vehicle')}
+                value={
+                  [
+                    brands.find((row) => row.id === vehicle.brandId)?.nameAr ?? '',
+                    models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
+                    vehicle.year === '' ? '' : toArabicDigits(vehicle.year),
+                  ]
+                    .filter((part) => part !== '')
+                    .join(' ') || '—'
+                }
+              />
+              <ReviewRow label={t('review.method')} value={t(`method.${method}`)} />
+              {method === 'AUCTION' ? (
+                <>
+                  <ReviewRow
+                    label={t('auction.openPrice')}
+                    value={price === '' ? '—' : <Money amount={Number(toLatinDigits(price))} />}
+                  />
+                  {/*
+                    **والاحتياطيّ يُقال «مخفيّ» ويُعرض لصاحبه.** هو
+                    وحده من يراه، وإخفاؤه عنه هنا يجعله ينشر رقمًا لا
+                    يتذكّره.
+                  */}
+                  <ReviewRow
+                    label={t('review.reserve')}
+                    value={
+                      reservePrice === ''
+                        ? t('review.noReserve')
+                        : <Money amount={Number(toLatinDigits(reservePrice))} />
+                    }
+                  />
+                </>
+              ) : (
+                <ReviewRow
+                  label={t('review.price')}
+                  value={price === '' ? '—' : <Money amount={Number(toLatinDigits(price))} />}
+                />
+              )}
+              <ReviewRow label={t('review.photos')} value={<Quantity unit="photos" count={images.length} />} />
+              <ReviewRow label={t('review.city')} value={vehicle.city === '' ? '—' : vehicle.city} />
+            </dl>
+            {/*
+              **وما لا رجعة فيه يُقال قبله لا بعده.** المزاد بعد أوّل
+              مزايدة لا تُعدَّل أسعارُه ولا مدّته — ومن عرف ذلك بعد
+              النشر عرفه متأخّرًا.
+            */}
+            {method !== 'AUCTION' ? null : (
+              <p className="border-t border-line bg-warn-100 px-5 py-3.5 text-3xs leading-loose text-warn-900">
+                {t('review.auctionLock')}
+              </p>
+            )}
+          </div>
 
           {/*
             ═══ التذكير يسبق لحظة الحاجة ═══

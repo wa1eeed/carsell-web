@@ -810,7 +810,37 @@
       "title": "Negotiation settings",
       "minAccept": "Lowest price you accept (optional)",
       "minAcceptHint": "Hidden from buyers. Any offer below it is auto-rejected with a notice to them, and never reaches you.",
-      "rules": "Offers above your floor wait for your reply or a counter. Anything you do not answer lapses when its window ends."
+      "rules": "Offers above your floor wait for your reply or a counter. Anything you do not answer lapses when its window ends.",
+      "prices": "Prices",
+      "asking": "Listed price",
+      "askingHint": "What the buyer sees",
+      "hiddenNote": "The buyer never sees your floor. An offer below it gets “below the accepted range” without revealing the figure, so they raise it or walk — and you were not troubled by an offer you would not take.",
+      "replyRules": "Reply rules",
+      "window": "Offer window",
+      "windowHint": "Expires on its own if you do not reply",
+      "multiple": "Several offers at once",
+      "multipleValue": "Allowed",
+      "multipleHint": "You receive offers from several buyers and choose",
+      "accepted": "When you accept: the other offers close with a notice to their senders, the listing leaves search, and the buyer has {hours} hours to pay — if they do not, the listing returns automatically."
+    },
+    "direct": {
+      "title": "Direct sale settings",
+      "price": "Asking price",
+      "priceHint": "Fixed — the buyer buys at once",
+      "transferFee": "Ownership transfer fee",
+      "transferFeeHint": "A government fee passed through as is — no revenue for us",
+      "rules": "One price and a Buy now button. The listing is reserved the moment it sells, and the buyer has {hours} hours to pay — if they do not, the listing returns automatically."
+    },
+    "review": {
+      "title": "Review before publishing",
+      "vehicle": "Vehicle",
+      "method": "Sale method",
+      "price": "Price",
+      "reserve": "Reserve price",
+      "noReserve": "No reserve",
+      "photos": "Photos",
+      "city": "City",
+      "auctionLock": "After the first bid the opening price, the reserve and the duration cannot be changed — check them now."
     }
   },
   "order": {

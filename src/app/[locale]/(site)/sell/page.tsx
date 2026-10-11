@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { deadline } from '@/lib/domain/deadlines';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -103,6 +104,21 @@ export default async function SellPage({
               buyNowBeforeReserve: auction.buyNowBeforeReserve,
               extendWindowSeconds: auction.extendWindowSeconds,
               extendBySeconds: auction.extendBySeconds,
+            }}
+            /*
+              ═══ قواعدُ المنصّة تُعرض بقيمها الحيّة ═══
+
+              التصميم يعرض في خطوة البيع «مهلة العرض ٤٨ ساعة» و«رسوم
+              النقل ٢٠٠ ر.س» — **وهي قواعد لا خيارات**. فتُقرأ من
+              مصدرها لا تُكتب رقمًا في الشاشة: رقمٌ منسوخ يتباعد عن
+              الإعداد أوّل تغيير، فيَعِد البائع بمهلةٍ غير التي تقع.
+            */
+            rules={{
+              offerTtlHours: await deadline('offerTtlHours'),
+              paymentWindowHours: await deadline('paymentWindowHours'),
+              transferFee: Number(
+                (await db.platformSetting.findUnique({ where: { id: 'default' } }))?.transferFee ?? 0,
+              ),
             }}
             taxProfile={taxProfileOf(user)}
             brands={brands}
