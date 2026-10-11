@@ -109,12 +109,22 @@ export const ADMIN_ROLES: readonly AdminRole[] = [
   'SUPER_ADMIN', 'OPS', 'FINANCE', 'SUPPORT', 'CONTENT', 'READONLY',
 ];
 
+/**
+ * الصلاحيات كما تُعرض في A35 — **وهي القائمة الوحيدة التي تراها عين**.
+ *
+ * وصلاحيةٌ تُضاف إلى الاتّحاد وتُنسى هنا تبقى **نافذةً وغير معروضة**:
+ * المصفوفة تحرس بها والشاشة لا تذكرها، فمن يراجع من يملك ماذا يقرأ
+ * جردًا ناقصًا. وقد وقع في `payouts.send` (أُضيفت في ١٠٣ ولم تُدرَج).
+ *
+ * والبوابة ٣٢ تفحص أن كل عضوٍ في الاتّحاد هنا وفي صفّ `SUPER_ADMIN`.
+ */
 export const PERMISSION_LIST: readonly Permission[] = [
   'dashboard.view', 'finance.view', 'orders.view', 'orders.changeStage', 'escrow.release',
   'users.view', 'users.viewIdentity', 'users.suspend', 'identity.review', 'listings.review',
   'reports.handle', 'catalog.manage', 'catalog.uploadLogo', 'services.manage',
   'serviceRequests.handle', 'notifications.manage', 'integrations.view',
   'integrations.rotateKeys', 'team.manage', 'audit.view', 'wallet.adjust',
+  'payouts.send',
 ];
 
 export function can(role: AdminRole, permission: Permission): boolean {

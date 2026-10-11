@@ -1841,6 +1841,50 @@ function checkQuantityAdjacency() {
 }
 
 
+/**
+ * ═══ البوابة ٣٢ ═══ **صلاحيةٌ في الاتّحاد تُعرض وتُمنح.**
+ *
+ * `Permission` اتّحادٌ يحرس به الكود، و`PERMISSION_LIST` القائمة
+ * **الوحيدة التي تراها عين** (شاشة A35)، و`MATRIX.SUPER_ADMIN` من
+ * يملك كلّ شيء. وثلاثتها تُكتب بيد، فتتباعد صامتةً.
+ *
+ * ووقع: `payouts.send` أُضيفت إلى الاتّحاد والمصفوفة في المهمّة ١٠٣
+ * **ونُسيت في القائمة** — فصارت صلاحيةُ تحويلِ مالٍ **نافذةً وغير
+ * معروضة**، ومن يراجع «من يملك ماذا» يقرأ جردًا ناقصًا ولا يعلم.
+ */
+function checkPermissionCatalogue() {
+  const file = join(ROOT, 'src', 'lib', 'domain', 'permissions.ts');
+  if (!existsSync(file)) return;
+  const text = readFileSync(file, 'utf8');
+
+  const union = /export type Permission =([\s\S]*?);/.exec(text);
+  const list = /export const PERMISSION_LIST[^=]*=\s*\[([\s\S]*?)\]/.exec(text);
+  const superRow = /SUPER_ADMIN:\s*\{([\s\S]*?)\n  \}/.exec(text);
+  if (union === null || list === null || superRow === null) return;
+
+  const names = (block) => new Set([...(block ?? '').matchAll(/'([\w.]+)'/g)].map((m) => m[1]));
+
+  const declared = names(union[1]);
+  const shown = names(list[1]);
+  const granted = names(superRow[1]);
+
+  for (const permission of declared) {
+    if (!shown.has(permission)) {
+      problems.push(
+        `src/lib/domain/permissions.ts  «${permission}» في الاتّحاد وليست في `
+          + 'PERMISSION_LIST — نافذةٌ لا تراها شاشة الفريق',
+      );
+    }
+    if (!granted.has(permission)) {
+      problems.push(
+        `src/lib/domain/permissions.ts  «${permission}» لا يملكها SUPER_ADMIN — `
+          + 'صلاحيةٌ لا يستطيعها أحد',
+      );
+    }
+  }
+}
+
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -1863,6 +1907,7 @@ checkFlexInputsCanShrink();
 checkEncryptedFieldReaders();
 checkStateCopiedFromProps();
 checkQuantityAdjacency();
+checkPermissionCatalogue();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1873,5 +1918,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة.',
 );

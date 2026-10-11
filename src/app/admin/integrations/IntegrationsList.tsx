@@ -8,6 +8,8 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import type { IntegrationRow } from '@/lib/domain/admin-integrations';
 import { ENV_LABEL } from '@/lib/labels/admin';
+import { cn } from '@/lib/cn';
+import { toArabicDigits } from '@/lib/arabic';
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: 'تعمل',
@@ -251,22 +253,44 @@ export function IntegrationsList({
                     /* الطالب يرى أنه ينتظر غيره — ولا يُعرض له زرّ يضغطه فيُرفض */
                     <span className="text-3xs opacity-55">طلبتَه — ينتظر عضوًا آخر</span>
                   ) : (
-                    <Button
-                      size="sm"
-                      disabled={pending}
-                      onClick={() =>
-                        post(
-                          `/api/v1/admin/integrations/${row.key}/approve`,
-                          { requestId: row.pendingRotation?.id },
-                          (data) =>
-                            (data as { state?: string } | undefined)?.state === 'EXECUTED'
-                              ? 'اكتمل النصاب — دُوِّر المفتاح.'
-                              : 'سُجّلت موافقتك.',
-                        )
-                      }
-                    >
-                      اعتمد التدوير
-                    </Button>
+                    /*
+                      ═══ والمعتمِد يرى ما يعتمده ═══
+
+                      كان الزرّ «اعتمد التدوير» وحده — **فيعتمد العضو
+                      الثاني أعمى**: لا يعرف أبيئةَ اختبارٍ هي أم
+                      إنتاج، ولا كم بلغ النصاب. ونصابُ عضوين يُراد به
+                      أن يَفحص الثاني لا أن يضغط.
+                    */
+                    <div className="flex flex-col items-start gap-1.5 sm:items-end">
+                      <span className="flex flex-wrap items-center gap-2 text-3xs opacity-60">
+                        <Badge tone={row.pendingRotation.env === 'LIVE' ? 'warn' : 'neutral'}>
+                          {ENV_LABEL[row.pendingRotation.env]}
+                        </Badge>
+                        <span>
+                          النصاب{' '}
+                          <span dir="ltr" className="font-num">
+                            {toArabicDigits(String(row.pendingRotation.approvals))}/
+                            {toArabicDigits(String(row.pendingRotation.required))}
+                          </span>
+                        </span>
+                      </span>
+                      <Button
+                        size="sm"
+                        disabled={pending}
+                        onClick={() =>
+                          post(
+                            `/api/v1/admin/integrations/${row.key}/approve`,
+                            { requestId: row.pendingRotation?.id },
+                            (data) =>
+                              (data as { state?: string } | undefined)?.state === 'EXECUTED'
+                                ? 'اكتمل النصاب — دُوِّر المفتاح.'
+                                : 'سُجّلت موافقتك.',
+                          )
+                        }
+                      >
+                        اعتمد التدوير
+                      </Button>
+                    </div>
                   )}
                 </article>
               ))}
@@ -296,6 +320,42 @@ export function IntegrationsList({
               المفتاح الجديد يُشفَّر ويبقى في الطلب حتى يعتمده عضو ثانٍ. ولن يُستبدل القديم
               قبل ذلك — <strong>فالطلب وحده ليس تدويرًا</strong>.
             </p>
+
+            {/*
+              ═══ وبيئةُ المفتاح تُختار ═══
+
+              كانت مثبَّتةً على `TEST` في موضع واحد ولا خيار في اللوح
+              — **فمفتاح إنتاجٍ لا يمكن إدخاله من الشاشة أصلًا**. ويوم
+              تصل مفاتيح المزوّد يقف الإطلاق على حقلٍ لا وجود له.
+
+              **والاختبار هو الافتراض**: الإنتاج يُقصَد لا يُقع فيه.
+              وتبديل البيئة يُحذِّر قبل الضغط لا بعده.
+            */}
+            <div className="flex flex-col gap-2">
+              <span className="text-3xs font-bold opacity-55">بيئة المفتاح</span>
+              <div className="flex gap-2">
+                {(['TEST', 'LIVE'] as const).map((env) => (
+                  <button
+                    key={env}
+                    type="button"
+                    aria-pressed={draft.env === env}
+                    onClick={() => setDraft({ ...draft, env })}
+                    className={cn(
+                      'rounded-btn border px-4 py-2 text-2xs font-bold',
+                      draft.env === env ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink',
+                    )}
+                  >
+                    {ENV_LABEL[env]}
+                  </button>
+                ))}
+              </div>
+              {draft.env !== 'LIVE' ? null : (
+                <p className="rounded-md border border-warn-200 bg-warn-100 p-2.5 text-3xs leading-loose text-warn-900">
+                  مفتاحُ إنتاج — يمسّ مالًا حقيقيًّا فور اعتماده. تأكّد أنه من لوحة المزوّد
+                  لا من بيئة الاختبار.
+                </p>
+              )}
+            </div>
 
             {draft.fields.map((field, index) => (
               <div key={index} className="flex flex-col gap-1.5">
