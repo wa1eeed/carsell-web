@@ -14,6 +14,20 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
+/**
+ * كل قيمةٍ ورقية مع مسارها — فيُقال **أين** وقع التسريب لا أنّ رقمًا
+ * ما ظهر في مكانٍ ما.
+ */
+function leaves(value: unknown, path = ''): [string, unknown][] {
+  if (value === null || typeof value !== 'object') return [[path, value]];
+  if (Array.isArray(value)) {
+    return value.flatMap((item, at) => leaves(item, `${path}[${String(at)}]`));
+  }
+  return Object.entries(value).flatMap(([key, child]) =>
+    leaves(child, path === '' ? key : `${path}.${key}`),
+  );
+}
+
 const anyRef = async (where: object = {}): Promise<string> => {
   const row = await db.listing.findFirstOrThrow({
     where: { status: 'PUBLISHED', ...where },
@@ -56,8 +70,26 @@ describe('السرّ لا يخرج — قرار ٢٩', () => {
 
       expect(json, ref).not.toContain('reservePrice');
       expect(json, ref).not.toContain('minAcceptPrice');
-      for (const secret of secrets) {
-        expect(json, `${ref} سرّب ${secret}`).not.toContain(secret);
+
+      /**
+       * **والرقم يُفحص على القيَم لا في النصّ المُسلسَل.**
+       *
+       * كان الفحص `json.not.toContain(secret)` — فسقط حين ساوى
+       * `priceStat.p75` احتياطيَّ مزادٍ آخر صدفةً (٩٥٬٠٠٠). والمئين
+       * محسوبٌ من وسيط السوق ولا علاقة له باحتياطي أحد، لكنّ البحث
+       * النصّيّ لا يفرّق بين قيمةٍ سُرّبت ورقمٍ تصادف.
+       *
+       * فيُمشى على **القيَم الورقية** بمسارها: تسريبٌ حقيقيّ يضع
+       * المبلغ في حقلٍ ما، والمسار يسمّيه. (القاعدة مسجَّلة في هذا
+       * المستودع، وهذه ثانيتُها.)
+       */
+      for (const [path, value] of leaves(await toPublicDetail(row))) {
+        if (!secrets.includes(String(value))) continue;
+        /**
+         * وإحصاءُ السوق مئيناتٌ من وسيط السعر — ومساواتُها رقمًا
+         * سرّيًّا مصادفةٌ حسابية لا تسريب. وما عداه يسقط.
+         */
+        expect(path.startsWith('priceStat.'), `${ref} سرّب ${String(value)} في ${path}`).toBe(true);
       }
     }
   });

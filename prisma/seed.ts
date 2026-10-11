@@ -1440,35 +1440,58 @@ async function main(): Promise<void> {
   });
 
   // ————— إحصاءات السعر (RangeBar — المئينات ١٠/٢٥/٥٠/٧٥/٩٠) —————
-  const statsByModel = new Map<string, number[]>();
+  /**
+   * ═══ إحصاءُ السوق ليس متوسطَ مخزوننا ═══
+   *
+   * كانت تُجمَّع من إعلانات البذرة بمفتاح `model|year|bucket` — مفتاحٌ
+   * ضيّق حتى إن أكثر مجموعاته **إعلانٌ واحد**. فتخرج مئيناتٌ متساوية
+   * بحجم عيّنةٍ ١، ويرفضها `PRICE_STAT_MIN_SAMPLE = 8` كلَّها —
+   * **فبطاقة «موقع السعر في السوق» لا تظهر على إعلانٍ واحد في المنتج**
+   * وهي مبنيّةٌ بكاملها.
+   *
+   * وقِيس: أربعةٌ وخمسون إعلانًا ⇒ خمسون مجموعة، أكبرُها اثنان. فلا
+   * مفتاحَ أضيقُ ولا أوسعُ يُنتج ثمانيةً — العيب في المصدر لا في المفتاح.
+   *
+   * **والأعمق أن الاشتقاق من مخزوننا دائريّ**: أن نقول لبائعٍ إن سعره
+   * دون المتوسط ونعني متوسطَ *إعلاناتنا* ليس خبرًا عن السوق. وفي
+   * الإنتاج تأتي هذه من وظيفةٍ تقرأ مبيعاتٍ منفَّذة في السوق — فتُزرع
+   * هنا **مرجعًا مستقلًّا** بشكل الحقيقيّ: عيّنةٌ ذاتُ حجم، ومئيناتٌ
+   * متباعدة.
+   */
+  const anchorByModel = new Map<string, number[]>();
+  /** **والسنة جزءٌ من مفتاح البحث** — فيُكتب صفٌّ لكل (طراز، سنة) يقع. */
+  const modelYears = new Set<string>();
   for (const l of listings) {
     const v = await prisma.vehicle.findUniqueOrThrow({
       where: { id: l.vehicleId },
-      select: { modelId: true, year: true, mileageKm: true },
+      select: { modelId: true, year: true },
     });
-    const key = `${v.modelId}|${v.year}|${Math.floor(v.mileageKm / 10_000) * 10}`;
-    statsByModel.set(key, [...(statsByModel.get(key) ?? []), Number(l.askPrice)]);
+    anchorByModel.set(v.modelId, [...(anchorByModel.get(v.modelId) ?? []), Number(l.askPrice)]);
+    modelYears.add(`${v.modelId}|${String(v.year)}`);
   }
 
-  const pct = (sorted: number[], p: number): string => {
-    const idx = Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length));
-    return String(sorted[idx] ?? 0);
-  };
-
-  for (const [key, prices] of statsByModel) {
-    const [modelId, year, bucket] = key.split('|');
+  for (const key of modelYears) {
+    const [modelId, yearText] = key.split('|');
+    const prices = anchorByModel.get(modelId as string) ?? [];
+    // الوسيط مرساةُ السوق، والتباعد حولها بنسبٍ معقولة لسوق السيارات
     const sorted = [...prices].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+    if (median <= 0) continue;
+
+    const at = (ratio: number) => new D(String(Math.round((median * ratio) / 500) * 500));
+
     await prisma.priceStat.create({
       data: {
         modelId: modelId as string,
-        year: Number(year),
-        mileageBucket: Number(bucket),
-        p10: new D(pct(sorted, 10)),
-        p25: new D(pct(sorted, 25)),
-        p50: new D(pct(sorted, 50)),
-        p75: new D(pct(sorted, 75)),
-        p90: new D(pct(sorted, 90)),
-        sampleSize: sorted.length,
+        year: Number(yearText),
+        mileageBucket: 0,
+        p10: at(0.82),
+        p25: at(0.91),
+        p50: at(1),
+        p75: at(1.09),
+        p90: at(1.18),
+        /** حجمُ عيّنةٍ يشبه ما يأتي من مصدر سوق — لا عددَ إعلاناتنا. */
+        sampleSize: between(14, 52),
         daysToSellMedian: between(12, 45),
         computedAt: NOW,
       },
