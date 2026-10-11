@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
@@ -41,6 +43,11 @@ export default async function OrdersPage({
         title: 'لا طلبات بعد',
         description: 'حين تشتري مركبة يظهر طلبها هنا بمراحله الستّ ومهلة كل مرحلة.',
       }}
+      action={
+        <Link href={`/${locale}/cars`}>
+          <Button size="sm">تصفّح السيارات</Button>
+        </Link>
+      }
     >
       {data.orders.map((order) => (
         <AccountRow

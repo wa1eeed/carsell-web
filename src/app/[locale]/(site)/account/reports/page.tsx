@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
@@ -38,6 +40,11 @@ export default async function ReportsPage({
         title: 'لا تقارير',
         description: 'حين تُفحص مركبتك في مركز معتمد يظهر تقريرها هنا بنتيجته وتاريخه.',
       }}
+      action={
+        <Link href={`/${locale}/services/inspection`}>
+          <Button size="sm">اطلب تقريرًا</Button>
+        </Link>
+      }
     >
       {data.reports.map((report) => (
         <AccountRow

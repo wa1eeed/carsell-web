@@ -187,10 +187,24 @@ async function main() {
       }
 
       const missing = signals.filter((s) => !text.includes(s));
+
+      /**
+       * ═══ والحالة الفارغة ليست نقصًا ═══
+       *
+       * شاشةٌ بلا بيانات لا تُصيّر جدولها ولا أزرار صفوفها: «اقبل»
+       * و«قابِل» موجودان في الشيفرة ويظهران مع أوّل عرض. وعدُّهما
+       * نقصًا يُرسل القارئ ليبني ما هو مبنيّ.
+       *
+       * فتُعلَم الشاشة بأنها فارغة، ويُعلَن ذلك في النتيجة — **ولا
+       * تُحتسب في المجموع**، لأن حاصلها لا يقيس مطابقةً بل بيانات.
+       */
+      const empty = /لا (عروض|طلبات|إعلانات|مركبات|تقارير|نتائج|مفضّلة|حركة|شيء|بيانات|أحد)/.test(text);
+
       rows.push({
         tag, route,
         total: signals.length,
         found: signals.length - missing.length,
+        empty,
         missing: missing.slice(0, 6),
       });
     }
@@ -198,18 +212,33 @@ async function main() {
 
   let totalSignals = 0;
   let totalFound = 0;
+  const skipped = [];
   console.log('الشاشة  المسار                          مطابق   الناقص');
   for (const row of rows) {
-    totalSignals += row.total;
-    totalFound += row.found;
+    if (row.empty === true) {
+      skipped.push(row.tag);
+    } else {
+      totalSignals += row.total;
+      totalFound += row.found;
+    }
     const pct = row.total === 0 ? 100 : Math.round((row.found / row.total) * 100);
-    const mark = row.route === '—' ? '⬜ لا مسار' : `${String(pct).padStart(3)}٪`;
+    const mark =
+      row.route === '—'
+        ? '⬜ لا مسار'
+        : row.empty === true
+          ? '— فارغة'
+          : `${String(pct).padStart(3)}٪`;
     console.log(
       `${row.tag.padEnd(7)} ${row.route.padEnd(32)} ${mark}   ${row.missing.join(' · ')}`,
     );
   }
   const overall = totalSignals === 0 ? 0 : Math.round((totalFound / totalSignals) * 100);
   console.log(`\nالمجموع: ${totalFound}/${totalSignals} إشارة — ${overall}٪`);
+  if (skipped.length > 0) {
+    console.log(
+      `شاشاتٌ بلا بيانات (لا تُحتسب — حاصلُها يقيس بيانات لا مطابقة): ${skipped.join(' ')}`,
+    );
+  }
 }
 
 await main();

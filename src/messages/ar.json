@@ -615,13 +615,13 @@
       "iban": "الآيبان"
     },
     "stat": {
-      "listings": "مركباتي",
+      "listings": "إعلاناتي",
       "orders": "طلباتي",
       "offers": "عروض واردة",
       "favourites": "المفضّلة"
     },
     "tab": {
-      "listings": "مركباتي",
+      "listings": "إعلاناتي",
       "offers": "العروض الواردة",
       "orders": "طلباتي",
       "reports": "تقارير الفحص"

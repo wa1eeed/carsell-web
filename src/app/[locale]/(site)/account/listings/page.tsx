@@ -14,7 +14,7 @@ import { ListingControls } from '@/components/site/ListingControls';
 export const dynamic = 'force-dynamic';
 
 export function generateMetadata(): Metadata {
-  return { title: 'مركباتي', robots: { index: false, follow: false } };
+  return { title: 'إعلاناتي', robots: { index: false, follow: false } };
 }
 
 /** **المعروضة والمراجَعة والمحجوزة معًا** — وإخفاء المراجَعة يجعل البائع يظنّ نشره ضاع. */
@@ -36,7 +36,13 @@ export default async function ListingsPage({
   return (
     <AccountList
       locale={locale}
-      title="مركباتي"
+      /**
+       * **إعلاناتي لا مركباتي.** الصفحة تعرض `Listing` لا `Vehicle`،
+       * وهما كيانان منفصلان في المخطّط — ومركبةٌ في المرآب بلا إعلان
+       * لا تظهر هنا. والتصميم يسمّيها «إعلاناتي»، وقاعدةُ المستودع
+       * تقول «لا تخلطهما».
+       */
+      title="إعلاناتي"
       subtitle="ما عرضتَه، وحاله، وكم شوهد."
       empty={{
         title: 'لا مركبات معروضة',

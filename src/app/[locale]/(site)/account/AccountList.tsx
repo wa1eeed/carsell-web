@@ -38,18 +38,37 @@ export function AccountList({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <div className="mx-auto w-full max-w-3xl px-10 py-10">
-          <Link
-            href={`/${locale}/account`}
-            className="mb-6 inline-block text-2xs opacity-55 hover:opacity-100"
-          >
-            ← حسابي
-          </Link>
+          {/*
+            ═══ مسارُ تنقّلٍ لا سهمُ رجوع ═══
 
-          <h1 className="mb-1.5 text-3xl font-bold tracking-tight">{title}</h1>
-          <p className="mb-8 text-sm opacity-60">{subtitle}</p>
+            كان «← حسابي» وحده، والتصميم يكتب «حسابي › إعلاناتي».
+            **والفرق أن الأوّل يقول إلى أين تعود، والثاني يقول أين
+            أنت** — ومن يصل من نتيجة بحثٍ أو رابطٍ منسوخ لا يعرف
+            موضعَه من الشجرة إلّا منه.
+          */}
+          <nav className="mb-6 flex flex-wrap items-center gap-2 text-2xs opacity-55">
+            <Link href={`/${locale}/account`} className="hover:opacity-100 hover:underline">
+              حسابي
+            </Link>
+            <span aria-hidden className="opacity-40">›</span>
+            <span className="font-bold opacity-80">{title}</span>
+          </nav>
+
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="mb-1.5 text-3xl font-bold tracking-tight">{title}</h1>
+              <p className="text-sm opacity-60">{subtitle}</p>
+            </div>
+            {/*
+              **وفعلُ الصفحة في ترويستها لا في فراغها وحده.** كان
+              يُعرض داخل الحالة الفارغة فقط — فمن عنده مركبتان لا يجد
+              «أضف مركبة» إلّا بالعودة إلى الرئيسية.
+            */}
+            {action === undefined ? null : <div className="shrink-0">{action}</div>}
+          </div>
 
           {children.length === 0 ? (
-            <EmptyState title={empty.title} description={empty.description} action={action} />
+            <EmptyState title={empty.title} description={empty.description} />
           ) : (
             <div className="flex flex-col gap-2.5">{children}</div>
           )}
