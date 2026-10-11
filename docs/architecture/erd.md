@@ -753,6 +753,8 @@ Relations: `category` → `ServiceCategory` · `provider` → `ServiceProvider` 
 | `amount` | `Decimal` |  |
 | `adminFee` | `Decimal` |  |
 | `dueAt` | `DateTime?` |  |
+| `scheduledAt` | `DateTime?` |  |
+| `city` | `String?` |  |
 | `resultUrl` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 

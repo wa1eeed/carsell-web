@@ -91,6 +91,25 @@ export type AccountReport = {
   path: string | null;
 };
 
+/**
+ * ═══ طلبُ خدمةٍ قائم — ولم يكن له شاشة ═══
+ *
+ * شاشةُ «تقاريري» تعرض `InspectionReport` — أي **ما انتهى**. ومن دفع
+ * خمسمئة ريال واختار موعدًا لا يرى طلبَه في المنتج كلّه حتى يصدر
+ * التقرير. ورسالةُ النجاح تقول حرفيًّا «وتتابعه من ‹تقاريري›» —
+ * فالشاشة تَعِد بمتابعةٍ لا تقع.
+ */
+export type AccountServiceRequest = {
+  ref: string;
+  serviceName: string;
+  status: string;
+  title: string;
+  /** موعدُ العميل الذي اختاره — لا مهلةُ المزوّد */
+  scheduledAt: string | null;
+  city: string | null;
+  amount: string;
+};
+
 export type FavoriteListing = {
   ref: string;
   title: string;
@@ -210,6 +229,8 @@ export type AccountData = {
   offers: AccountOffer[];
   listings: AccountListing[];
   reports: AccountReport[];
+  /** قائمٌ لم يصدر تقريرُه بعد — وهو ما يتابعه الدافع */
+  serviceRequests: AccountServiceRequest[];
 };
 
 const title = (vehicle: { brandName: string; modelName: string; trimName: string | null }): string =>
@@ -227,7 +248,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
           model: { select: { nameEn: true } },
   } as const;
 
-  const [orders, offers, listings, reports, favourites] = await Promise.all([
+  const [orders, offers, listings, reports, favourites, serviceRequests] = await Promise.all([
     db.order.findMany({
       where: { buyerId: user.id },
       orderBy: { createdAt: 'desc' },
@@ -284,6 +305,24 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       },
     }),
     db.favorite.count({ where: { userId: user.id } }),
+    /**
+     * **القائم لا المنتهي.** `DONE` له تقريرٌ يظهر أعلاه، و`REFUNDED`
+     * انتهى بردّ المال — فالمعروض هنا ما ينتظره صاحبه فعلًا.
+     */
+    db.serviceRequest.findMany({
+      where: { userId: user.id, status: { in: ['NEW', 'ASSIGNED', 'IN_PROGRESS'] } },
+      orderBy: [{ scheduledAt: 'asc' }, { createdAt: 'desc' }],
+      take: 10,
+      select: {
+        ref: true,
+        status: true,
+        scheduledAt: true,
+        city: true,
+        amount: true,
+        service: { select: { nameAr: true, nameEn: true } },
+        vehicle: { select: vehicleSelect },
+      },
+    }),
   ]);
 
   const walletBalance = await walletBalanceOf(user.id);
@@ -402,6 +441,15 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       description: listing.description ?? '',
       hasActiveOrder: listing._count.orders > 0,
       path: canonicalPath(locale, listing).path,
+    })),
+    serviceRequests: serviceRequests.map((row) => ({
+      ref: row.ref,
+      serviceName: locale === 'ar' ? row.service.nameAr : row.service.nameEn,
+      status: row.status,
+      title: row.vehicle === null ? '' : title(row.vehicle),
+      scheduledAt: row.scheduledAt?.toISOString() ?? null,
+      city: row.city,
+      amount: row.amount.toString(),
     })),
     reports: reports.map((report) => {
       const listing = report.vehicle.listings[0] ?? null;

@@ -9,6 +9,15 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Quantity } from '@/components/ui/Quantity';
 import type { ServiceRequestRow } from '@/lib/domain/admin-services';
 
+const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Asia/Riyadh',
+});
+
 const STATUS_LABEL: Record<string, string> = {
   NEW: 'جديد', ASSIGNED: 'مُسنَد', IN_PROGRESS: 'قيد التنفيذ',
   DONE: 'مُنجَز', FAILED: 'فشل', REFUNDED: 'مُسترجَع',
@@ -88,6 +97,31 @@ export function RequestsTable({ requests }: { requests: readonly ServiceRequestR
                 <span className="text-3xs opacity-40">—</span>
               ) : (
                 <span className="text-3xs opacity-55">ضمن المهلة</span>
+              ),
+          },
+          {
+            id: 'when',
+            header: 'الموعد والموقع',
+            /*
+              **موعدُ العميل غيرُ مهلة المزوّد.** عمود «المهلة» يقول
+              متى ينتهي صبرُنا على المزوّد، وهذا يقول متى طلبه صاحبُه
+              وأين — وبه يُسنَد الطلب إلى من يغطّي تلك المدينة.
+
+              وكان الاثنان حقلًا واحدًا: الموعد يُكتب في `dueAt`،
+              والمدينة تُفحص مقابل التغطية **ثمّ تُرمى**.
+            */
+            cell: (request) =>
+              request.scheduledAt === null && request.city === null ? (
+                <span className="text-3xs opacity-40">—</span>
+              ) : (
+                <span className="flex flex-col gap-0.5 text-3xs">
+                  {request.scheduledAt === null ? null : (
+                    <span>{riyadh.format(new Date(request.scheduledAt))}</span>
+                  )}
+                  {request.city === null ? null : (
+                    <span className="opacity-55">{request.city}</span>
+                  )}
+                </span>
               ),
           },
           {

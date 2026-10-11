@@ -151,11 +151,21 @@ export async function purchaseService(
   /**
    * **والمهلة تُحسب عند الإنشاء لا عند العرض.** تغييرُ التزام المزوّد
    * لاحقًا لا يُحرّك مهلة طلبٍ قائم — ومن دفع على وعدٍ يُوفى له به.
+   *
+   * ═══ والموعدُ غيرُ المهلة ═══
+   *
+   * كانت `dueAt` تُكتب **بالموعد نفسه** متى اختاره الطالب، فيختلط
+   * اثنان لا يلتقيان: `dueAt` التزامُ **المزوّد** («٤٨ ساعة»)،
+   * و`scheduledAt` اختيارُ **العميل**. وشاشةُ المهل والمتأخّرات تقرأ
+   * الأولى، فكانت تُحاسب المزوّد على موعدٍ لم يَعِد به — ومن اختار
+   * موعدًا بعد أسبوع جعل طلبَه «متأخّرًا» بعد ٤٨ ساعة أو «مبكّرًا»
+   * أسبوعًا، بحسب الاتّجاه.
+   *
+   * فالمهلة تجري **من الموعد** متى وُجد: الفاحص يحضر الاثنين، وله
+   * بعده ما التزم به ليُصدر تقريره.
    */
-  const dueAt =
-    input.scheduledAt !== null
-      ? new Date(input.scheduledAt)
-      : new Date(now.getTime() + (service.slaHours ?? 48) * 3_600_000);
+  const from = input.scheduledAt === null ? now : new Date(input.scheduledAt);
+  const dueAt = new Date(from.getTime() + (service.slaHours ?? 48) * 3_600_000);
 
   await db.serviceRequest.create({
     data: {
@@ -168,6 +178,14 @@ export async function purchaseService(
       status: 'NEW',
       amount: total,
       dueAt,
+      /**
+       * **وما سألناه عنه يُحفظ.** الاستمارة تسأل عن المدينة والموعد
+       * وترسلهما، وكانت المدينة تُفحص مقابل التغطية **ثمّ تُرمى** —
+       * فيُرسَل الفاحص إلى طلبٍ بلا موضع، ويفتح العميل «تقاريري» فلا
+       * يجد موعده الذي اختاره.
+       */
+      ...(input.scheduledAt === null ? {} : { scheduledAt: new Date(input.scheduledAt) }),
+      city: input.city,
       createdAt: now,
     },
   });

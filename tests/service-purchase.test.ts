@@ -166,3 +166,82 @@ describe('الشراء يقع', () => {
     expect(payment.gatewayKey).not.toBe('');
   });
 });
+
+describe('الخدمة — الموعد والموقع يُحفظان', () => {
+  /**
+   * ═══ ما نسأل عنه يُحفظ ═══
+   *
+   * الاستمارة تسأل عن المدينة والموعد وترسلهما، ثمّ **المدينة تُفحص
+   * مقابل تغطية المزوّد وتُرمى**، و**الموعد يُكتب في `dueAt`** — وهي
+   * مهلةُ المزوّد لا موعدُ العميل. فالصفّ المحفوظ لا يقول أين يذهب
+   * الفاحص ولا متى، والعميل يفتح «تقاريري» فلا يجد موعده.
+   *
+   * ═══ واختلاطُهما يُحاسب المزوّد على ما لم يَعِد به ═══
+   *
+   * من اختار موعدًا بعد أسبوع كانت `dueAt` تساويه، فشاشةُ المهل
+   * تَعُدّ الطلب «ضمن المهلة» أسبوعًا كاملًا ثمّ تُطالب المزوّد في
+   * اللحظة التي يبدأ فيها عمله. والمهلة تجري **من الموعد**: الفاحص
+   * يحضر الاثنين، وله بعده ما التزم به.
+   */
+  it('الموعد والمدينة يُكتبان في الصفّ، والمهلة تجري من الموعد', async () => {
+    const { userId, vehicleId, city } = await ownedVehicle();
+    const now = new Date();
+    const when = new Date(now.getTime() + 5 * 86_400_000);
+
+    const result = await purchaseService(
+      {
+        ...base,
+        userId,
+        vehicleId,
+        city,
+        scheduledAt: when.toISOString(),
+        idempotencyKey: `svc-sched-${String(Date.now())}`,
+      },
+      now,
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    created.push(result.ref);
+    payments.push(result.paymentId);
+
+    const row = await db.serviceRequest.findUniqueOrThrow({ where: { ref: result.ref } });
+    expect(row.scheduledAt?.toISOString()).toBe(when.toISOString());
+    expect(row.city).toBe(city);
+
+    /**
+     * **و`dueAt` ليست الموعد.** كانت تساويه حرفيًّا — فيُقرأ اختيارُ
+     * عميلٍ على أنه التزامُ مزوّد.
+     */
+    expect(row.dueAt?.getTime()).toBeGreaterThan(when.getTime());
+  });
+
+  it('وبلا موعدٍ مختار تجري المهلة من الإنشاء كما كانت', async () => {
+    const { userId, vehicleId, city } = await ownedVehicle();
+    const now = new Date();
+
+    const result = await purchaseService(
+      {
+        ...base,
+        userId,
+        vehicleId,
+        city,
+        scheduledAt: null,
+        idempotencyKey: `svc-nosched-${String(Date.now())}`,
+      },
+      now,
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    created.push(result.ref);
+    payments.push(result.paymentId);
+
+    const row = await db.serviceRequest.findUniqueOrThrow({ where: { ref: result.ref } });
+    expect(row.scheduledAt).toBeNull();
+    expect(row.city).toBe(city);
+    expect(row.dueAt?.getTime()).toBeGreaterThan(now.getTime());
+  });
+});

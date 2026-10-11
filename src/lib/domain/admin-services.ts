@@ -19,6 +19,13 @@ export type ServiceRequestRow = {
   amount: string;
   createdAt: string;
   dueAt: string | null;
+  /**
+   * موعدُ **العميل** — غيرُ `dueAt` التي هي مهلةُ المزوّد. والمشغّل
+   * الذي يُسنِد طلبًا يحتاج أن يعرف متى طلبه صاحبُه وأين، لا متى
+   * ينتهي صبرُنا على المزوّد.
+   */
+  scheduledAt: string | null;
+  city: string | null;
   /** ساعات التأخّر عن المهلة — سالبٌ يعني أنها لم تحن بعد. */
   overdueHours: number | null;
   /** **بارز** (معيار A6): المهلة فاتت والطلب لم يُنجَز. */
@@ -32,6 +39,7 @@ const OPEN_STATUSES = ['NEW', 'ASSIGNED', 'IN_PROGRESS'] as const;
 
 const REQUEST_SELECT = {
   ref: true, status: true, amount: true, createdAt: true, dueAt: true,
+  scheduledAt: true, city: true,
   service: { select: { key: true, nameAr: true } },
   provider: { select: { nameAr: true } },
   user: { select: { name: true, phone: true } },
@@ -121,6 +129,8 @@ export async function listServiceRequests(
       amount: request.amount.toString(),
       createdAt: request.createdAt.toISOString(),
       dueAt: request.dueAt?.toISOString() ?? null,
+      scheduledAt: request.scheduledAt?.toISOString() ?? null,
+      city: request.city,
       overdueHours,
       // المنجَز لا يتأخّر — تأخّرُه انقضى بإنجازه
       overdue: open && overdueHours !== null && overdueHours > 0,
