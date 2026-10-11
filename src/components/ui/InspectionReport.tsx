@@ -101,7 +101,13 @@ export function FindingsTable({
           <thead>
             <tr className="border-b border-line text-3xs font-bold tracking-[0.1em] opacity-50">
               <th className="pb-3 text-start">{t('point')}</th>
-              <th className="pb-3 text-start">{t('state')}</th>
+              {/*
+                **ورأس العمود كان يطبع `ui.state` حرفيًّا.** المفتاح
+                خريطةٌ لتسميات الصفوف (`NOTE`/`PAINT`/`FAIL`) لا نصًّا،
+                فردّت `next-intl` اسم المفتاح نفسه — وكل من فتح تقرير
+                فحصٍ قرأ «ui.state» عنوانًا لعمود. والتصميم «الحالة».
+              */}
+              <th className="pb-3 text-start">{t('stateColumn')}</th>
               <th className="pb-3 text-start">{t('inspectorNote')}</th>
             </tr>
           </thead>

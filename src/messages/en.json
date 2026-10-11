@@ -162,7 +162,9 @@
     "reportExpired": "This report has expired",
     "reportExpiredBody": "More than 90 days have passed since the inspection, and the vehicle's condition may have changed.",
     "noReport": "No inspection report",
-    "noReportBody": "This vehicle has not been inspected. Order an inspection from the services directory."
+    "noReportBody": "This vehicle has not been inspected. Order an inspection from the services directory.",
+    "breadcrumb": "Breadcrumb",
+    "stateColumn": "Status"
   },
   "site": {
     "liveAuctions": "live auctions",
@@ -571,9 +573,11 @@
     "version": "Version",
     "effectiveFrom": "Effective from",
     "contents": "Contents",
-    "otherDocuments": "Other documents",
     "notFound": "Document not found",
-    "notFoundBody": "The link may be outdated. Browse the documents from the footer."
+    "notFoundBody": "The link may be outdated. Browse the documents from the footer.",
+    "section": "Legal",
+    "documents": "Legal pages",
+    "lastUpdated": "Last updated"
   },
   "auth": {
     "title": "Start with your mobile number",

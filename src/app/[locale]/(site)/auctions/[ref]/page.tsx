@@ -1,10 +1,10 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { closingSoon, getAuction, sellerDecisionView } from '@/lib/domain/auctions';
@@ -44,13 +44,14 @@ export default async function AuctionPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [auction, listing, viewer, t, te, soon] = await Promise.all([
+  const [auction, listing, viewer, te, nav, ui, soon] = await Promise.all([
     getAuction(ref),
     findPublishedListing(ref),
     // البائع لا يزايد على مركبته — والشاشة تقولها قبل الضغط
     currentUserFromCookies(),
-    getTranslations('auctions'),
     getTranslations('enums'),
+    getTranslations('site.nav'),
+    getTranslations('ui'),
     // مزادات تُغلق قريبًا — ومن يفوّت مزادًا يحتاج التالي
     closingSoon(ref, locale),
   ]);
@@ -104,13 +105,15 @@ export default async function AuctionPage({
       <SiteHeader active="auctions" />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
-          <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-2xs opacity-50">
-            <Link href={`/${locale}/auctions`} className="hover:underline">
-              {t('title')}
-            </Link>
-            <span aria-hidden>›</span>
-            <span className="bidi-isolate font-bold opacity-100">{title}</span>
-          </nav>
+          <Breadcrumb
+            label={ui('breadcrumb')}
+            className="mb-5"
+            items={[
+              { label: nav('home'), href: `/${locale}` },
+              { label: nav('auctions'), href: `/${locale}/auctions` },
+              { label: title },
+            ]}
+          />
 
           <AuctionScreen
             auction={auction}

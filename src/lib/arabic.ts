@@ -57,6 +57,19 @@ export function formatNumber(
     .replace(/\./g, ARABIC_DECIMAL);
 }
 
+/**
+ * نصٌّ رقميّ بفواصله العربية — **لِما ليس عددًا يُحسب**.
+ *
+ * رقم النسخة «1.1» سلسلةٌ لا عدد: تمريره على `formatNumber` يجعله
+ * `1.10` أو `1.1` بحسب الكسور المطلوبة، وهو ليس كمّيّة أصلًا. وكان
+ * يُعرض بـ`toArabicDigits` وحدها فيخرج «١.١» بنقطةٍ لاتينية بين
+ * رقمين عربيّين — والتصميم يكتب «٣٫١»، وكل عددٍ آخر في المنصّة
+ * يمرّ على `ARABIC_DECIMAL` نفسها.
+ */
+export function toArabicNumeric(value: string): string {
+  return toArabicDigits(value).replace(/\./g, ARABIC_DECIMAL);
+}
+
 /** عدّاد `HH:MM:SS` — **Latin في اللغتين** (HANDOFF §١٢: أوضح وأسرع قراءة). */
 export function formatDuration(totalSeconds: number): string {
   const safe = Math.max(0, Math.floor(totalSeconds));

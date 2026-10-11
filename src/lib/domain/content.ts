@@ -128,6 +128,14 @@ export type PublicLegalDocument = {
   effectiveAt: string;
   summaryAr: string | null;
   summaryEn: string | null;
+  /**
+   * آخر تحديث — **والتصميم يعرضه مع النسخة لا بدلًا منها**.
+   *
+   * النسخة تقول «بأيّ نصٍّ أنت محكوم»، وتاريخ السريان «منذ متى»،
+   * وآخر تحديث «هل مُسّت بعد ذلك» — وتصحيحٌ مطبعيّ يُحرّك الثالث
+   * وحده. وإخفاؤه يجعل المستند يبدو ساكنًا وهو يُمَسّ.
+   */
+  updatedAt: string;
   sections: LegalSection[];
 };
 
@@ -172,6 +180,7 @@ export async function getLegalDocument(key: string): Promise<PublicLegalDocument
     effectiveAt: row.effectiveAt.toISOString(),
     summaryAr: row.summaryAr,
     summaryEn: row.summaryEn,
+    updatedAt: row.updatedAt.toISOString(),
     sections: parseLegalSections(row.sections),
   };
 }

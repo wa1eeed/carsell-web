@@ -108,6 +108,72 @@ describe('Wo — القانونية', () => {
     expect(await getLegalDocument('nope')).toBeNull();
   });
 
+  /**
+   * ═══ الثمانية التي يرسمها التصميم ═══
+   *
+   * كان المنشور **اثنين**: الشروط والخصوصية. وستّةٌ يرسمها Wo في
+   * عموده الجانبيّ لا وجود لها — فمن قرأ الشروط وسأل عن الضمان أو
+   * العمولة لم يجد بابًا، والقاعدة مطبَّقة في الشيفرة بلا مستندٍ
+   * يقولها.
+   */
+  it('المستندات الثمانية التي يعرضها العمود الجانبيّ كلّها منشورة', async () => {
+    const keys = (await listLegalDocuments()).map((entry) => entry.key);
+
+    for (const key of [
+      'terms', 'privacy', 'auction', 'escrow',
+      'fees', 'content', 'dealers', 'cookies',
+    ]) {
+      expect(keys, key).toContain(key);
+    }
+  });
+
+  /**
+   * ═══ والقاعدة المحذوفة لا يُعيدها نصّ ═══
+   *
+   * أُلغيت نافذة الاسترجاع في المهمّة ٣٧: المال يصل البائع لحظة تأكيد
+   * النقل، و`returnWindowEndsAt` **لا يكتبه شيء في المنتج كلّه**. وبقي
+   * البند السادس من الشروط يَعِد «سبعة أيام من تاريخ الاستلام» —
+   * وعدٌ مُخلَف في مستندٍ مُلزِم، لا في شاشة.
+   *
+   * والنصّ وعدٌ لا وصف: ما دام يُعرض فهو ما نلتزم به.
+   */
+  it('لا مستند يَعِد بنافذة استرجاع بعد الاستلام — أُلغيت في المهمّة ٣٧', async () => {
+    const docs = await listLegalDocuments();
+
+    for (const entry of docs) {
+      const doc = await getLegalDocument(entry.key);
+      const text = (doc?.sections ?? [])
+        .map((section) => `${section.bodyAr} ${section.bodyEn}`)
+        .join(' ');
+
+      expect(text, `${entry.key} · عربي`).not.toMatch(/(?:من|بعد)\s+(?:تاريخ\s+)?الاستلام/);
+      expect(text, `${entry.key} · إنجليزي`).not.toMatch(/return window of|days (?:from|after) (?:the )?(?:receipt|delivery)/i);
+    }
+  });
+
+  /**
+   * **وحقل `En` يحمل عربيّة لغةٌ معروضة بلا ترجمة.** كانت الثمانية
+   * والعشرون كلُّها عربيّة، فـ`/en/legal/terms` مستندٌ عربيّ تحت واجهة
+   * إنجليزية — ولا شيء يسقط: الحقل مملوء ونوعه `string`.
+   *
+   * والبوابة ٢٥ تفحص ملفّ البذرة، وهذا يفحص **ما في القاعدة فعلًا**.
+   */
+  it('النسخة الإنجليزية إنجليزية — لا عربيّة منسوخة في حقل ترجمة', async () => {
+    const ARABIC = /[؀-ۿ]/;
+    const docs = await listLegalDocuments();
+
+    for (const entry of docs) {
+      const doc = await getLegalDocument(entry.key);
+      expect(doc, entry.key).not.toBeNull();
+      expect(ARABIC.test(doc!.titleEn), `${entry.key}.titleEn`).toBe(false);
+
+      for (const section of doc!.sections) {
+        expect(ARABIC.test(section.titleEn), `${entry.key}.${String(section.n)}.titleEn`).toBe(false);
+        expect(ARABIC.test(section.bodyEn), `${entry.key}.${String(section.n)}.bodyEn`).toBe(false);
+      }
+    }
+  });
+
   it('بند تالف لا يُسقط المستند كلّه', () => {
     const parsed = parseLegalSections([
       null,

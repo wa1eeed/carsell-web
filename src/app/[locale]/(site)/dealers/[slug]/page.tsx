@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { CarCard } from '@/components/ui/CarCard';
@@ -66,10 +67,12 @@ export default async function DealerPage({
   const rawType = typeof query.type === 'string' ? query.type : null;
   const filter = (STOCK_TABS.find((row) => row.key === rawType)?.key ?? null) as DealerStockFilter;
 
-  const [dealer, t, te] = await Promise.all([
+  const [dealer, t, te, nav, ui] = await Promise.all([
     getDealerPage(slug, locale, filter),
     getTranslations('dealer'),
     getTranslations('enums'),
+    getTranslations('site.nav'),
+    getTranslations('ui'),
   ]);
   // غير النشط ٤٠٤ — لا صفحة ثقةٍ لمن لم يُقبل بعد
   if (dealer === null) notFound();
@@ -84,6 +87,16 @@ export default async function DealerPage({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
+          <Breadcrumb
+            label={ui('breadcrumb')}
+            className="mb-5"
+            items={[
+              { label: nav('home'), href: `/${locale}` },
+              { label: nav('dealers'), href: `/${locale}/dealers` },
+              { label: dealer.name },
+            ]}
+          />
+
           <section className="mb-8 rounded-xl border border-line bg-surface p-6">
             <div className="flex flex-wrap items-start gap-5">
               <div className="min-w-0 flex-1">

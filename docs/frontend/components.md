@@ -207,3 +207,29 @@ compare. It is not published — dev routes are blocked in task 28.
 `enums` namespace read by Wb and Wc alike. They previously existed twice — the
 value maps under `search`, the field labels under `ui` — and the second copy is
 how two screens start disagreeing about what `CVT` is called.
+
+
+## `Breadcrumb` (task 89)
+
+The design puts a breadcrumb on four screens — legal documents (Wo), auction
+detail (We), dealer page (Wg) and the inspection report (Wd). **None of them
+rendered one.** A deep page without a trail is left by going back, not by going
+up: someone who arrives at a legal document from a search engine has no way to
+learn there is a section above it, let alone a site.
+
+| Rule | Why |
+|---|---|
+| The last item is never a link | A link to the page you are on reads as a destination, and a screen reader announces it as one. It is rendered as text with `aria-current="page"` **even when the caller passes an `href`**. |
+| `href` is optional on middle items | "Legal" has no index page in the product. A node that is shown but not clickable is more honest than a link that 404s — the class already fixed in the account counters and six other screens. |
+| It wraps, it does not shrink | A long trail ("Nissan Patrol Platinum 2022 · Inspection report") overflows at 375px. Shrinking deletes content; a second line keeps it readable. |
+| Each label is `bidi-isolate` | "Toyota Camry GLE 2024" mixes Latin and Arabic-Indic inside an RTL context; without isolation the Latin run migrates to the end of the line. |
+| The `aria-label` comes from the caller | The component is used in both locales. A hard-coded Arabic string would make the English page announce its navigation in Arabic. |
+
+The auction page previously hand-rolled a two-level nav: no "Home", `›` instead
+of the design's `·`, no `aria-label` and no `aria-current`. It now uses the
+shared component, so the four screens cannot drift apart.
+
+On the inspection report the breadcrumb is **computed before the "no report"
+branch**. Most listings have no inspection, so the empty state is the more
+visited of the two — a trail that only appears on the populated branch is
+missing from most of the people who need it.

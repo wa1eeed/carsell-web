@@ -1253,6 +1253,156 @@ function checkFunctionPropsAcrossBoundary() {
   }
 }
 
+/**
+ * ═══ ٢٥ · حقل `En` يحمل عربيّة = لغةٌ معروضة بلا ترجمة ═══
+ *
+ * `legal.json` كان فيه **ثمانية وعشرون** حقلًا إنجليزيًّا نصُّها عربيّ:
+ * فـ`/en/legal/terms` يعرض مستندًا عربيًّا كاملًا تحت واجهةٍ إنجليزية،
+ * ولا شيء يسقط — الحقل مملوء، والنوع `string`، والشاشة تُصيَّر.
+ *
+ * **ونسخُ العربيّ في حقل الترجمة أسوأ من تركه فارغًا**: الفارغ يُرى
+ * فيُملأ، والمنسوخ يُحتسب مترجَمًا فلا يُراجَع أبدًا.
+ *
+ * وقِيست على الشجرة قبل التفعيل: كل ملفات البذرة الأخرى نظيفة.
+ */
+function checkEnglishFieldsAreEnglish() {
+  const ARABIC = /[\u0600-\u06FF]/;
+  const dir = join(ROOT, 'prisma', 'seed-data');
+
+  let files;
+  try {
+    files = readdirSync(dir).filter((name) => name.endsWith('.json'));
+  } catch {
+    return;
+  }
+
+  for (const name of files) {
+    const rel = join('prisma', 'seed-data', name);
+    let data;
+    try {
+      data = JSON.parse(readFileSync(join(dir, name), 'utf8'));
+    } catch {
+      problems.push(`${rel}  JSON غير صالح`);
+      continue;
+    }
+
+    /** يمشي الشجرة كلّها: الحقل قد يكون داخل مصفوفة بنودٍ داخل مستند. */
+    const walkJson = (node, path) => {
+      if (Array.isArray(node)) {
+        node.forEach((item, i) => walkJson(item, `${path}[${String(i)}]`));
+        return;
+      }
+      if (node !== null && typeof node === 'object') {
+        for (const [key, value] of Object.entries(node)) {
+          walkJson(value, path === '' ? key : `${path}.${key}`);
+        }
+        return;
+      }
+      if (typeof node !== 'string') return;
+
+      /**
+       * **والاسم وحده يدلّ** — `titleEn` و`bodyEn` و`nameEn`. ولا
+       * يُفحص `En` داخل كلمة (`Engine`): الشرط أن ينتهي به المفتاح.
+       */
+      const key = path.split('.').pop() ?? '';
+
+      /**
+       * ═══ وترميزٌ لا يُصيَّره أحد يُطبَع حرفيًّا ═══
+       *
+       * `legal.json` كان فيه **ثمانية وعشرون** علامة `**…**`، ولا
+       * مُصيِّر لها في المنتج — فصفحة الشروط تعرض «المنصة \*\*وسيط
+       * تقني\*\*» لكل زائر. والنصّ مملوء والنوع `string` ولا شيء يسقط.
+       *
+       * والتصميم يكتب متن المستندات بوزنٍ واحد (`font:400`)، فالعلامة
+       * لا موضع لها أصلًا.
+       */
+      if (typeof node === 'string' && /\*\*[^*]+\*\*/.test(node)) {
+        problems.push(
+          `${rel}  ${path} ترميز Markdown في نصٍّ يُعرض كما هو — «${node.slice(0, 28)}…»`,
+        );
+      }
+
+      if (!/[a-z]En$/.test(key)) return;
+      if (!ARABIC.test(node)) return;
+
+      problems.push(
+        `${rel}  ${path} حقل إنجليزيّ نصُّه عربيّ — «${node.slice(0, 28)}…»`,
+      );
+    };
+
+    walkJson(data, '');
+  }
+}
+
+/**
+ * ═══ ٢٦ · مفتاح ترجمة لا يُفضي إلى نصّ يُطبَع حرفيًّا ═══
+ *
+ * `FindingsTable` كانت تنادي `t('state')` و`ui.state` **خريطةُ تسميات**
+ * (`NOTE`/`PAINT`/`FAIL`) لا نصًّا — فردّت `next-intl` اسم المفتاح،
+ * وقرأ كلُّ من فتح تقرير فحصٍ «ui.state» عنوانًا لعمودٍ في جدول.
+ *
+ * **ولا شيء يسقط**: الأنواع تمرّ، والاختبارات لا تفتح شاشة، والسطر
+ * يُصيَّر — بنصٍّ هو اسم المفتاح. وكذلك المفتاح الغائب تمامًا.
+ *
+ * وتُفحص الملفّات ذات النطاق الواحد: ملفٌّ ينادي نطاقين لا يُنسب
+ * نداؤه بثقة، ومفتاحٌ مبنيّ بقالب يُترك لبوابة ٢٣.
+ */
+function checkTranslationKeysResolve() {
+  const file = join(ROOT, 'src', 'messages', 'ar.json');
+  if (!existsSync(file)) return;
+
+  let messages;
+  try {
+    messages = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    problems.push('src/messages/ar.json  JSON غير صالح');
+    return;
+  }
+
+  /** يمشي المسار بالنقاط — و«غائب» و«كائن» كلاهما يُطبَع حرفيًّا. */
+  const resolve = (path) => {
+    let node = messages;
+    for (const part of path.split('.')) {
+      if (node === null || typeof node !== 'object' || !(part in node)) return 'غائب';
+      node = node[part];
+    }
+    return typeof node === 'string' ? 'نصّ' : 'كائن';
+  };
+
+  const SCOPE = /\b(?:use|get)Translations\(\s*\{?\s*(?:locale[^}]*namespace:\s*)?'([^']+)'/g;
+  const CALL = /\bt\(\s*'([^']+)'/g;
+
+  for (const path of walk(join(ROOT, 'src'))) {
+    if (!/\.tsx?$/.test(path)) continue;
+    const rel = relative(ROOT, path);
+    if (rel.includes('generated')) continue;
+
+    const text = readFileSync(path, 'utf8');
+    /**
+     * **والشرط أن تتّفق النطاقات لا أن تكون واحدة.** `InspectionReport`
+     * ينادي `useTranslations('ui')` ثلاث مرّات — مكوّنات ثلاثة في ملفّ —
+     * فـ«نطاقٌ واحد بالعدد» تخطّته، وهو **الملفّ الذي وُلدت منه البوابة**.
+     * وملفٌّ بنطاقين مختلفين يُترك: لا يُنسب نداؤه إلى أحدهما بثقة.
+     */
+    const scopes = [...new Set([...text.matchAll(SCOPE)].map((m) => m[1]))];
+    if (scopes.length !== 1) continue;
+    const namespace = scopes[0];
+
+    for (const call of text.matchAll(CALL)) {
+      const key = call[1];
+      if (key.includes('${')) continue;
+
+      const kind = resolve(`${namespace}.${key}`);
+      if (kind === 'نصّ') continue;
+
+      const line = text.slice(0, call.index).split('\n').length;
+      problems.push(
+        `${rel}:${String(line)}  t('${key}') في نطاق «${namespace}» ${kind} — يُطبَع اسم المفتاح للزائر`,
+      );
+    }
+  }
+}
+
 
 checkUnits();
 checkStringifiedNumbers();
@@ -1269,6 +1419,8 @@ checkListingState();
 checkFunctionPropsAcrossBoundary();
 checkDeadLabelKeys();
 checkIdentityFlag();
+checkEnglishFieldsAreEnglish();
+checkTranslationKeysResolve();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1279,5 +1431,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ.',
 );

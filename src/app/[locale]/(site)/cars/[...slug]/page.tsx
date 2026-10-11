@@ -18,6 +18,7 @@ import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
 
@@ -123,11 +124,42 @@ function shell(children: React.ReactNode) {
 
 /** Wd — تقرير الفحص، تحت رابط الإعلان. */
 async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
-  const [row, t, diagram] = await Promise.all([
+  const [row, t, nav, diagram] = await Promise.all([
     findReportByListingRef(resolved.row.ref),
     getTranslations('ui'),
+    getTranslations('site.nav'),
     loadBodyDiagram(),
   ]);
+
+  const carTitle = [
+    resolved.row.vehicle.brandName,
+    resolved.row.vehicle.modelName,
+    resolved.row.vehicle.trimName,
+  ]
+    .filter((part) => part !== null && part !== '')
+    .join(' ');
+
+  /**
+   * **والتقرير فرعٌ من الإعلان لا جارٌ له** — والمسار يقول ذلك: عنوان
+   * المركبة عقدةٌ تعود إلى صفحتها. ومن فتح التقرير برابطٍ مباشر كان
+   * يصل صفحةً لا تقول عن أيّ مركبةٍ هي ولا كيف يرى إعلانها.
+   *
+   * **ويُحسب قبل الفرع**: أكثر الإعلانات بلا فحص، فالحالة الفارغة هي
+   * الأكثر وصولًا — ومسارٌ يظهر في الحالة الممتلئة وحدها يغيب عن
+   * أكثر من يحتاجه.
+   */
+  const crumbs = (
+    <Breadcrumb
+      label={t('breadcrumb')}
+      className="mb-5"
+      items={[
+        { label: nav('home'), href: `/${resolved.locale}` },
+        { label: nav('cars'), href: `/${resolved.locale}/cars` },
+        { label: carTitle, href: resolved.canonical.path },
+        { label: t('inspectionReport') },
+      ]}
+    />
+  );
 
   /**
    * مركبة بلا فحص **حالة قائمة لا خطأ**: أغلب الإعلانات كذلك. حالةٌ
@@ -135,15 +167,18 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
    */
   if (row === null) {
     return shell(
-      <EmptyState
-        title={t('noReport')}
-        description={t('noReportBody')}
-        action={
-          <Link href={resolved.canonical.path}>
-            <Button variant="outline">{t('backToListing')}</Button>
-          </Link>
-        }
-      />,
+      <>
+        {crumbs}
+        <EmptyState
+          title={t('noReport')}
+          description={t('noReportBody')}
+          action={
+            <Link href={resolved.canonical.path}>
+              <Button variant="outline">{t('backToListing')}</Button>
+            </Link>
+          }
+        />
+      </>,
     );
   }
 
@@ -159,15 +194,18 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
   );
 
   return shell(
-    <InspectionScreen
-      report={report}
-      expired={expired}
-      diagram={diagram}
-      formatted={{
-        inspectedAt: dateFormat.format(inspected),
-        validUntil: dateFormat.format(new Date(report.validUntil)),
-      }}
-    />,
+    <>
+      {crumbs}
+      <InspectionScreen
+        report={report}
+        expired={expired}
+        diagram={diagram}
+        formatted={{
+          inspectedAt: dateFormat.format(inspected),
+          validUntil: dateFormat.format(new Date(report.validUntil)),
+        }}
+      />
+    </>,
   );
 }
 

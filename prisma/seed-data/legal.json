@@ -2,7 +2,7 @@
  "terms": {
   "titleAr": "الشروط والأحكام",
   "titleEn": "Terms and conditions",
-  "version": "1.0",
+  "version": "1.1",
   "summaryAr": "العلاقة بين المنصة والبائع والمشتري، وحدود مسؤولية كلٍّ منهم.",
   "summaryEn": "The relationship between the platform, sellers and buyers, and the limits of each party's responsibility.",
   "sort": 1,
@@ -10,58 +10,58 @@
    {
     "n": 1,
     "titleAr": "التعريفات",
-    "titleEn": "التعريفات",
+    "titleEn": "Definitions",
     "bodyAr": "«المنصة» carsell.one وتطبيقاتها. «البائع» من ينشر إعلانًا. «المشتري» من يقدّم عرضًا أو يزايد أو يشتري. «حساب الضمان» حساب وسيط تُحفظ فيه المبالغ حتى إتمام نقل الملكية.",
-    "bodyEn": "«المنصة» carsell.one وتطبيقاتها. «البائع» من ينشر إعلانًا. «المشتري» من يقدّم عرضًا أو يزايد أو يشتري. «حساب الضمان» حساب وسيط تُحفظ فيه المبالغ حتى إتمام نقل الملكية."
+    "bodyEn": "“The platform” means carsell.one and its applications. “Seller” means anyone who publishes a listing. “Buyer” means anyone who makes an offer, places a bid, or buys. “Escrow account” means the intermediary account in which funds are held until ownership transfer is complete."
    },
    {
     "n": 2,
     "titleAr": "الأهلية والتوثيق",
-    "titleEn": "الأهلية والتوثيق",
-    "bodyAr": "يُشترط بلوغ ثمانية عشر عامًا ورقم جوال سعودي مُفعَّل. وبيع المركبات يتطلّب توثيق الهوية، وحساب المعارض يتطلّب سجلًّا تجاريًّا ساريًا. وللمنصة تعليق أي حساب تعذّر توثيقه.",
-    "bodyEn": "يُشترط بلوغ ثمانية عشر عامًا ورقم جوال سعودي مُفعَّل. وبيع المركبات يتطلّب توثيق الهوية، وحساب المعارض يتطلّب سجلًّا تجاريًّا ساريًا. وللمنصة تعليق أي حساب تعذّر توثيقه."
+    "titleEn": "Eligibility and verification",
+    "bodyAr": "يُشترط بلوغ ثمانية عشر عامًا ورقم جوال سعودي مُفعَّل وحساب موثّق قبل أي بيع أو شراء أو مزايدة. والتصفّح متاح دون توثيق. وللمنصة إيقاف أي حساب تثبت مخالفته أو استخدامه هوية غير صاحبها.",
+    "bodyEn": "You must be eighteen or older, hold an active Saudi mobile number, and have a verified account before selling, buying, or bidding. Browsing requires no verification. The platform may suspend any account proven to be in breach or using an identity that is not its holder's."
    },
    {
     "n": 3,
     "titleAr": "دور المنصة",
-    "titleEn": "دور المنصة",
-    "bodyAr": "المنصة **وسيط تقني** لا طرف في عقد البيع. لا تملك المركبات ولا تضمن أوصافها إلا فيما تُصدره بنفسها من تقارير فحص. والعقد ينعقد بين البائع والمشتري، وتتولّى المنصة الوساطة المالية ونقل الملكية.",
-    "bodyEn": "المنصة **وسيط تقني** لا طرف في عقد البيع. لا تملك المركبات ولا تضمن أوصافها إلا فيما تُصدره بنفسها من تقارير فحص. والعقد ينعقد بين البائع والمشتري، وتتولّى المنصة الوساطة المالية ونقل الملكية."
+    "titleEn": "The platform's role",
+    "bodyAr": "المنصة وسيط تقني لا طرف في عقد البيع. لا تملك المركبات ولا تضمن حالتها الفنية، وتقارير الفحص تصدر عن مراكز مستقلة ومسؤوليتها على مُصدرها.",
+    "bodyEn": "The platform is a technical intermediary, not a party to the sale contract. It does not own the vehicles and does not warrant their mechanical condition. Inspection reports are issued by independent centres and remain the responsibility of their issuer."
    },
    {
     "n": 4,
     "titleAr": "الإعلان والمحتوى",
-    "titleEn": "الإعلان والمحتوى",
-    "bodyAr": "البائع مسؤول عن صحّة بيانات مركبته وصورها وملكيتها. ويُمنع نشر مركبة مرهونة أو محجوزة أو غير مملوكة للناشر. وللمنصة إزالة أي إعلان يخالف ذلك بلا إشعار مسبق.",
-    "bodyEn": "البائع مسؤول عن صحّة بيانات مركبته وصورها وملكيتها. ويُمنع نشر مركبة مرهونة أو محجوزة أو غير مملوكة للناشر. وللمنصة إزالة أي إعلان يخالف ذلك بلا إشعار مسبق."
+    "titleEn": "Listings and content",
+    "bodyAr": "البائع مسؤول عن صحّة بيانات مركبته وصورها وملكيتها وخلوّها من الرهن والحجز. ويُمنع نشر بيانات تواصل داخل الصور أو الوصف، أو توجيه المشتري إلى الدفع خارج المنصة — والمخالفة توجب إيقاف الإعلان والحساب.",
+    "bodyEn": "The seller is responsible for the accuracy of the vehicle's data, photographs, ownership, and freedom from any lien or seizure. Publishing contact details inside photographs or the description, or directing the buyer to pay outside the platform, is prohibited; breach warrants suspension of the listing and the account."
    },
    {
     "n": 5,
     "titleAr": "الضمان والدفع",
-    "titleEn": "الضمان والدفع",
-    "bodyAr": "يُحوَّل مبلغ الشراء إلى حساب ضمان باسم المعاملة لا باسم البائع، ولا يُفرج عنه إلا بعد إتمام نقل الملكية وتأكيد المشتري الاستلام. والأسعار المعروضة شاملة ضريبة القيمة المضافة.",
-    "bodyEn": "يُحوَّل مبلغ الشراء إلى حساب ضمان باسم المعاملة لا باسم البائع، ولا يُفرج عنه إلا بعد إتمام نقل الملكية وتأكيد المشتري الاستلام. والأسعار المعروضة شاملة ضريبة القيمة المضافة."
+    "titleEn": "Escrow and payment",
+    "bodyAr": "يُحوَّل مبلغ الشراء إلى حساب ضمان باسم المعاملة لا باسم البائع، ولا يُفرج عنه إلّا بعد إتمام نقل الملكية. ولا تُقبل أي وسيلة دفع خارج المنصة، ولا تتحمّل المنصة أي مبلغ حُوِّل خارجها.",
+    "bodyEn": "The purchase amount is transferred to an escrow account held in the name of the transaction, not the seller's name, and is released only after ownership transfer is complete. No payment method outside the platform is accepted, and the platform bears no liability for any amount transferred outside it."
    },
    {
     "n": 6,
-    "titleAr": "الإلغاء والاسترجاع",
-    "titleEn": "الإلغاء والاسترجاع",
-    "bodyAr": "للمشتري سبعة أيام من تاريخ الاستلام لطلب الاسترجاع إذا خالفت المركبة وصف الإعلان أو تقرير الفحص مخالفة جوهرية. ويُردّ المبلغ كاملًا بعد إعادة المركبة بحالتها.",
-    "bodyEn": "للمشتري سبعة أيام من تاريخ الاستلام لطلب الاسترجاع إذا خالفت المركبة وصف الإعلان أو تقرير الفحص مخالفة جوهرية. ويُردّ المبلغ كاملًا بعد إعادة المركبة بحالتها."
+    "titleAr": "الإلغاء والاعتراض",
+    "titleEn": "Cancellation and objection",
+    "bodyAr": "الإلغاء قبل الدفع بلا رسوم، عدا ما نُفِّذ فعلًا من خدمات. وبعد الدفع تُطبَّق رسوم الإلغاء المعلنة في صفحة الطلب. ولا توجد نافذة استرجاع بعد تأكيد الاستلام: المبلغ يصل البائع لحظة التأكيد، فمحلّ الاعتراض ما قبله — فاعترِض من صفحة الطلب قبل أن تؤكّد.",
+    "bodyEn": "Cancellation before payment is free of charge, except for services already performed. After payment, the cancellation fee published on the order page applies. There is no return window after you confirm receipt: the amount reaches the seller at the moment of confirmation, so the time to object is before it — raise your objection from the order page before you confirm."
    },
    {
     "n": 7,
     "titleAr": "النزاعات",
-    "titleEn": "النزاعات",
-    "bodyAr": "تُرفع النزاعات عبر المنصة خلال المدّة المذكورة، وتُدرسها بناءً على تقرير الفحص وسجلّ المراسلات ومحضر التسليم. وقرار المنصة في صرف مبلغ الضمان نهائي في حدود ما تملكه من وساطة.",
-    "bodyEn": "تُرفع النزاعات عبر المنصة خلال المدّة المذكورة، وتُدرسها بناءً على تقرير الفحص وسجلّ المراسلات ومحضر التسليم. وقرار المنصة في صرف مبلغ الضمان نهائي في حدود ما تملكه من وساطة."
+    "titleEn": "Disputes",
+    "bodyAr": "يُفتح النزاع من صفحة الطلب قبل تأكيد الاستلام، فيُجمَّد المبلغ في الضمان حتى البتّ. وتُدرس النزاعات بناءً على تقرير الفحص وسجلّ المراسلات ومحضر التسليم، ويصدر قرار مسبَّب خلال المدّة المعلنة في صفحة النزاع.",
+    "bodyEn": "A dispute is opened from the order page before confirming receipt, which freezes the amount in escrow until it is resolved. Disputes are examined on the basis of the inspection report, the message log, and the handover record, and a reasoned decision is issued within the period published on the dispute page."
    },
    {
     "n": 8,
     "titleAr": "القانون الواجب التطبيق",
-    "titleEn": "القانون الواجب التطبيق",
-    "bodyAr": "تخضع هذه الشروط لأنظمة المملكة العربية السعودية، وتختصّ المحاكم السعودية بالنظر في أي نزاع ينشأ عنها.",
-    "bodyEn": "تخضع هذه الشروط لأنظمة المملكة العربية السعودية، وتختصّ المحاكم السعودية بالنظر في أي نزاع ينشأ عنها."
+    "titleEn": "Governing law",
+    "bodyAr": "تخضع هذه الشروط لأنظمة المملكة العربية السعودية، وتختص محاكم مدينة الرياض بأي نزاع لا يُحلّ ودّيًا.",
+    "bodyEn": "These terms are governed by the laws of the Kingdom of Saudi Arabia, and the courts of Riyadh have jurisdiction over any dispute not settled amicably."
    }
   ]
  },
@@ -69,51 +69,342 @@
   "titleAr": "سياسة الخصوصية",
   "titleEn": "Privacy policy",
   "version": "1.0",
-  "summaryAr": "ما نجمعه من بيانات، ولماذا، ومن يطّلع عليه، وكيف تتحكّم فيه.",
-  "summaryEn": "What we collect, why, who sees it, and how you control it.",
+  "summaryAr": "ما نجمعه من بياناتك، ولماذا، ومن يطّلع عليه، وكم يبقى.",
+  "summaryEn": "What data we collect, why, who sees it, and how long it is kept.",
   "sort": 2,
   "sections": [
    {
     "n": 1,
     "titleAr": "البيانات التي نجمعها",
-    "titleEn": "البيانات التي نجمعها",
-    "bodyAr": "رقم الجوال والاسم عند التسجيل، وبيانات الهوية عند التوثيق، وبيانات المركبة عند النشر، وسجلّ التصفّح والبحث داخل المنصة.",
-    "bodyEn": "رقم الجوال والاسم عند التسجيل، وبيانات الهوية عند التوثيق، وبيانات المركبة عند النشر، وسجلّ التصفّح والبحث داخل المنصة."
+    "titleEn": "What we collect",
+    "bodyAr": "رقم الجوال والاسم عند التسجيل، وبيانات الهوية عند التوثيق، وبيانات المركبة عند النشر، وسجلّ المعاملات والمراسلات داخل الطلب. ولا نجمع بيانات بطاقتك — تمرّ إلى بوابة الدفع مباشرة ولا تُخزَّن عندنا.",
+    "bodyEn": "Your mobile number and name at registration, identity data at verification, vehicle data at publication, and the record of transactions and messages inside an order. We do not collect your card details; they pass directly to the payment gateway and are not stored with us."
    },
    {
     "n": 2,
     "titleAr": "لماذا نجمعها",
-    "titleEn": "لماذا نجمعها",
-    "bodyAr": "لتشغيل الحساب، ومطابقة الملكية، ومعالجة المدفوعات، ومنع الاحتيال، وتحسين نتائج البحث. ولا تُستعمل لغير ما جُمعت له.",
-    "bodyEn": "لتشغيل الحساب، ومطابقة الملكية، ومعالجة المدفوعات، ومنع الاحتيال، وتحسين نتائج البحث. ولا تُستعمل لغير ما جُمعت له."
+    "titleEn": "Why we collect it",
+    "bodyAr": "لتشغيل الحساب، ومطابقة الملكية، ومعالجة المدفوعات، والالتزام بأنظمة مكافحة غسل الأموال والفاتورة الضريبية، وللبتّ في النزاعات.",
+    "bodyEn": "To operate your account, match ownership, process payments, comply with anti-money-laundering and tax-invoicing regulations, and adjudicate disputes."
    },
    {
     "n": 3,
     "titleAr": "من يطّلع عليها",
-    "titleEn": "من يطّلع عليها",
-    "bodyAr": "فرق المنصة بحسب الصلاحية، ومزوّدو الخدمات فيما يخصّ طلبك وحده، والجهات النظامية عند طلب رسمي. ولا تُباع بياناتك لطرف ثالث.",
-    "bodyEn": "فرق المنصة بحسب الصلاحية، ومزوّدو الخدمات فيما يخصّ طلبك وحده، والجهات النظامية عند طلب رسمي. ولا تُباع بياناتك لطرف ثالث."
+    "titleEn": "Who sees it",
+    "bodyAr": "فرق المنصة بحسب الصلاحية، ومزوّدو الخدمات فيما يخصّ خدمتهم وحدها (الفحص، الشحن، بوابة الدفع)، والجهات النظامية عند طلب رسميّ. ورقم هويتك لا يُعرض في أي شاشة ولا يصل مسار بحث — يُقرأ من مسارٍ مقيَّد يُكتب في سجلّ التدقيق.",
+    "bodyEn": "Platform teams according to their permissions; service providers only as far as their own service requires (inspection, shipping, payment gateway); and regulators upon formal request. Your national ID number is not displayed on any screen and is not reachable by search — it is read through a restricted path that is written to the audit log."
    },
    {
     "n": 4,
     "titleAr": "مدّة الحفظ",
-    "titleEn": "مدّة الحفظ",
-    "bodyAr": "تُحفظ بيانات المعاملات عشر سنوات وفق الأنظمة المحاسبية. وبيانات التصفّح ثمانية عشر شهرًا. ويُحذف الحساب بطلبك فيما لا يرتبط بمعاملة قائمة.",
-    "bodyEn": "تُحفظ بيانات المعاملات عشر سنوات وفق الأنظمة المحاسبية. وبيانات التصفّح ثمانية عشر شهرًا. ويُحذف الحساب بطلبك فيما لا يرتبط بمعاملة قائمة."
+    "titleEn": "Retention",
+    "bodyAr": "تُحفظ بيانات المعاملات عشر سنوات وفق الأنظمة المحاسبية والضريبية. وما لا يرتبط بمعاملة يُحذف عند حذف الحساب.",
+    "bodyEn": "Transaction data is kept for ten years in accordance with accounting and tax regulations. Data not tied to a transaction is deleted when the account is deleted."
    },
    {
     "n": 5,
     "titleAr": "حقوقك",
-    "titleEn": "حقوقك",
+    "titleEn": "Your rights",
     "bodyAr": "لك أن تطّلع على بياناتك وتصحّحها وتطلب حذف ما لا يلزم حفظه نظامًا، وأن تسحب موافقتك على الرسائل التسويقية في أي وقت.",
-    "bodyEn": "لك أن تطّلع على بياناتك وتصحّحها وتطلب حذف ما لا يلزم حفظه نظامًا، وأن تسحب موافقتك على الرسائل التسويقية في أي وقت."
+    "bodyEn": "You may access and correct your data, request deletion of anything not required by law to be retained, and withdraw your consent to marketing messages at any time."
    },
    {
     "n": 6,
     "titleAr": "ملفات الارتباط",
-    "titleEn": "ملفات الارتباط",
-    "bodyAr": "نستعمل ملفات ارتباط أساسية لتشغيل الجلسة، وأخرى للقياس. ويمكنك رفض غير الأساسية دون أن يتعطّل الشراء.",
-    "bodyEn": "نستعمل ملفات ارتباط أساسية لتشغيل الجلسة، وأخرى للقياس. ويمكنك رفض غير الأساسية دون أن يتعطّل الشراء."
+    "titleEn": "Cookies",
+    "bodyAr": "نستعمل ملفات ارتباط أساسية لتشغيل الجلسة، وأخرى للقياس لا تعمل قبل موافقتك. وتفصيلها في سياسة ملفات تعريف الارتباط.",
+    "bodyEn": "We use essential cookies to run your session, and measurement cookies that do not operate before your consent. The detail is in the cookie policy."
+   }
+  ]
+ },
+ "auction": {
+  "titleAr": "شروط المزاد والعربون",
+  "titleEn": "Auction and deposit terms",
+  "version": "1.0",
+  "summaryAr": "المزايدة ملزمة، والعربون محجوز لا مخصوم — ومتى يُفرَج عنه ومتى يُقبض.",
+  "summaryEn": "A bid is binding, and the deposit is held and not charged — when it is released and when it is captured.",
+  "sort": 3,
+  "sections": [
+   {
+    "n": 1,
+    "titleAr": "من يزايد",
+    "titleEn": "Who may bid",
+    "bodyAr": "حساب موثّق الهوية وقادر على الشراء. ولا تُقبل مزايدة من البائع ولا من حسابٍ يتصرّف لحسابه.",
+    "bodyEn": "A buyer with a verified identity who is eligible to purchase. Bids from the seller, or from an account acting on the seller's behalf, are not accepted."
+   },
+   {
+    "n": 2,
+    "titleAr": "العربون — محجوز لا مخصوم",
+    "titleEn": "The deposit — held, not charged",
+    "bodyAr": "عند أوّل مزايدة يُحجز مبلغ العربون المعلن في صفحة المزاد على بطاقتك، ولا يُخصم. ويُفرَج عنه فور انتهاء المزاد إن لم يرسُ عليك، ويُخصم من المطلوب إن رسا.",
+    "bodyEn": "At your first bid, the deposit amount published on the auction page is held on your card and is not charged. It is released as soon as the auction ends if you are not the winner, and is deducted from the amount owed if you are."
+   },
+   {
+    "n": 3,
+    "titleAr": "متى يُقبض العربون",
+    "titleEn": "When the deposit is captured",
+    "bodyAr": "لا يُقبض إلّا ممّن رسا عليه المزاد ثم لم يسدّد في مهلته أو انسحب — ويصير حينها للمنصة تعويضًا عن تعطيل المزاد وإعادة طرحه. ومن خسر المزايدة لا يُقبض منه شيء في أي حال.",
+    "bodyEn": "It is captured only from a winner who then fails to pay within the window or withdraws; in that case it accrues to the platform as compensation for the disrupted auction and its re-listing. Nothing is ever captured from a losing bidder."
+   },
+   {
+    "n": 4,
+    "titleAr": "المزايدة ملزمة",
+    "titleEn": "A bid is binding",
+    "bodyAr": "كل مزايدة عرض شراء ملزم بقيمتها، ولا تُسحب ولا تُعدَّل بعد تسجيلها. والمزايدة التلقائية تُسجَّل باسمك وتلزمك كما لو كتبتها بيدك.",
+    "bodyEn": "Every bid is a binding offer to purchase at its value, and may not be withdrawn or amended once recorded. An automatic bid is recorded in your name and binds you as if you had entered it yourself."
+   },
+   {
+    "n": 5,
+    "titleAr": "التمديد التلقائي",
+    "titleEn": "Automatic extension",
+    "bodyAr": "أيّ مزايدة في النافذة الأخيرة تمدّد المزاد بالمدّة المعلنة في صفحته — فلا يُحسم المزاد بتوقيت الضغط. والمدّتان معروضتان في «شروط المزاد» على كل صفحة مزاد.",
+    "bodyEn": "Any bid placed within the final window extends the auction by the period published on its page, so the outcome is not decided by the timing of a click. Both periods are shown under “Auction terms” on every auction page."
+   },
+   {
+    "n": 6,
+    "titleAr": "السعر الاحتياطي",
+    "titleEn": "The reserve price",
+    "bodyAr": "للبائع أن يضع حدًّا أدنى لا يُعلَن. فإن أُغلق المزاد دونه فللبائع أن يقبل أعلى مزايدة أو يردّها خلال المهلة المعلنة، ويُفرَج عن العرابين كلّها إن ردّ.",
+    "bodyEn": "The seller may set an undisclosed minimum. If the auction closes below it, the seller may accept the highest bid or decline it within the published window; if declined, all deposits are released."
+   },
+   {
+    "n": 7,
+    "titleAr": "بعد الرسوّ",
+    "titleEn": "After winning",
+    "bodyAr": "يُنشأ الطلب باسم من رسا عليه المزاد، وتبدأ مهلة السداد المعلنة في صفحة الطلب لإيداع كامل المبلغ في حساب الضمان بعد خصم العربون. وبعدها تسري أحكام الضمان ونقل الملكية.",
+    "bodyEn": "An order is created in the winner's name, and the payment window published on the order page begins for depositing the full amount into escrow after the deposit is deducted. Thereafter the escrow and ownership-transfer provisions apply."
+   }
+  ]
+ },
+ "escrow": {
+  "titleAr": "سياسة الضمان والاسترجاع",
+  "titleEn": "Escrow and refund policy",
+  "version": "1.0",
+  "summaryAr": "من يحتفظ بالمال، وبأيّ شرطين يُفرَج عنه، وأين موضع الاعتراض.",
+  "summaryEn": "Who holds the money, the two conditions for its release, and where objections belong.",
+  "sort": 4,
+  "sections": [
+   {
+    "n": 1,
+    "titleAr": "حساب الضمان",
+    "titleEn": "The escrow account",
+    "bodyAr": "المبلغ يُودع في حساب وسيط باسم المعاملة لا باسم البائع، فلا يملكه أحد الطرفين قبل استيفاء شرطي الإفراج. وكل حركة فيه مقيَّدة في دفتر مزدوج يُراجَع.",
+    "bodyEn": "The amount is deposited into an intermediary account held in the name of the transaction, not the seller's name, so neither party owns it before the two release conditions are met. Every movement is recorded in an auditable double-entry ledger."
+   },
+   {
+    "n": 2,
+    "titleAr": "شرطا الإفراج",
+    "titleEn": "The two release conditions",
+    "bodyAr": "أن تُنقل الملكية إلى المشتري في المرور، وألّا يكون ثمّة نزاع مفتوح. ولا شرط ثالث ولا انتظار بعدهما: حين تصير المركبة باسم المشتري فقد وقع البيع.",
+    "bodyEn": "That ownership has been transferred to the buyer at the traffic department, and that no dispute is open. There is no third condition and no waiting period thereafter: once the vehicle is in the buyer's name, the sale has occurred."
+   },
+   {
+    "n": 3,
+    "titleAr": "موضع الاعتراض قبل التأكيد",
+    "titleEn": "Objections belong before confirmation",
+    "bodyAr": "المبلغ يصل البائع لحظة تأكيد النقل، فلا نافذة استرجاع بعده. فافحص المركبة واستوفِ ملاحظاتك قبل أن تؤكّد — والاعتراض من صفحة الطلب يجمّد المبلغ في مكانه.",
+    "bodyEn": "The amount reaches the seller at the moment transfer is confirmed, so there is no return window afterwards. Inspect the vehicle and settle your remarks before you confirm; an objection raised from the order page freezes the amount where it is."
+   },
+   {
+    "n": 4,
+    "titleAr": "تعثّر النقل",
+    "titleEn": "When transfer stalls",
+    "bodyAr": "لنقل الملكية سقف زمني معلن في صفحة الطلب، يُمدَّد مرّةً واحدة بسبب مكتوب. وإن انقضى بلا نقل جاز للمشتري الإلغاء واستعادة مبلغه كاملًا.",
+    "bodyEn": "Ownership transfer has a deadline published on the order page, extendable once with a written reason. If it passes without transfer, the buyer may cancel and recover the full amount."
+   },
+   {
+    "n": 5,
+    "titleAr": "الإلغاء والردّ",
+    "titleEn": "Cancellation and refunds",
+    "bodyAr": "قبل الدفع: بلا رسوم عدا ما نُفِّذ من خدمات. بعد الدفع وقبل النقل: يُردّ المبلغ بعد خصم رسوم الإلغاء المعلنة وما نُفِّذ فعلًا. والردّ يعود إلى الوسيلة التي دُفع بها.",
+    "bodyEn": "Before payment: free of charge except for services already performed. After payment and before transfer: the amount is refunded less the published cancellation fee and anything already performed. Refunds return to the method used to pay."
+   },
+   {
+    "n": 6,
+    "titleAr": "النزاع",
+    "titleEn": "Disputes",
+    "bodyAr": "يُفتح من صفحة الطلب قبل تأكيد الاستلام، ويُجمَّد المبلغ حتى البتّ. والقرار مسبَّب وصادر خلال المدّة المعلنة، والإفراج الجزئي يحتاج موافقة اثنين من فريق المنصة وسببًا مكتوبًا.",
+    "bodyEn": "Opened from the order page before confirming receipt; the amount is frozen until resolution. The decision is reasoned and issued within the published period, and a partial release requires the approval of two platform staff and a written reason."
+   }
+  ]
+ },
+ "fees": {
+  "titleAr": "سياسة العمولة والرسوم",
+  "titleEn": "Commission and fees policy",
+  "version": "1.0",
+  "summaryAr": "ما تأخذه المنصة، وما تمرّره إلى غيرها، وعلى أيٍّ منهما ضريبة.",
+  "summaryEn": "What the platform charges, what it passes through, and which of the two carries VAT.",
+  "sort": 5,
+  "sections": [
+   {
+    "n": 1,
+    "titleAr": "العمولة",
+    "titleEn": "Commission",
+    "bodyAr": "نسبة من قيمة البيع تُعرض قبل أن تلتزم وتُثبَّت في الطلب لحظة إنشائه، فلا يتغيّر ما تدفعه بتغيير الأسعار بعدها. والنسبة تختلف بنوع البائع وطريقة البيع، والمعروض في طلبك هو النافذ.",
+    "bodyEn": "A percentage of the sale value, shown before you commit and fixed in the order at the moment it is created, so what you pay does not change if pricing changes afterwards. The percentage varies by seller type and sale method; the figure shown in your order is the one that applies."
+   },
+   {
+    "n": 2,
+    "titleAr": "ضريبة القيمة المضافة",
+    "titleEn": "Value added tax",
+    "bodyAr": "خمسة عشر في المئة على العمولة والخدمات — وهي ما تورّده المنصة. وبيع فردٍ لفرد خارج نطاق الضريبة في قيمة المركبة نفسها، فلا تُحتسب عليها. والتاجر المسجَّل يُصدر فاتورة المركبة بنفسه.",
+    "bodyEn": "Fifteen percent on commission and services, which is what the platform supplies. An individual-to-individual sale is outside the scope of VAT on the vehicle's own value, so none is charged on it. A VAT-registered dealer issues the vehicle invoice itself."
+   },
+   {
+    "n": 3,
+    "titleAr": "رسوم نقل الملكية",
+    "titleEn": "Ownership transfer fees",
+    "bodyAr": "رسوم حكومية تُمرَّر كما هي ولا تُحتسب إيرادًا للمنصة ولا ضريبة عليها، وتظهر في الطلب سطرًا مستقلًّا حتى لا تُقرأ عمولةً.",
+    "bodyEn": "Government fees passed through unchanged; they are not recorded as platform revenue and carry no VAT. They appear in the order as a separate line so they are not read as commission."
+   },
+   {
+    "n": 4,
+    "titleAr": "الخدمات",
+    "titleEn": "Services",
+    "bodyAr": "الفحص والشحن والتوثيق وما شابهها بأسعارها المعلنة في صفحة كل خدمة، وعليها ضريبة القيمة المضافة على كامل القيمة. وما نُفِّذ منها لا يُردّ عند الإلغاء.",
+    "bodyEn": "Inspection, shipping, documentation and the like are charged at the prices published on each service's page, with VAT on the full value. Services already performed are not refunded on cancellation."
+   },
+   {
+    "n": 5,
+    "titleAr": "لا دفع خارج المنصة",
+    "titleEn": "No payment outside the platform",
+    "bodyAr": "كل مبلغ يُدفع خارج المنصة لا يشمله الضمان ولا النزاع ولا الفاتورة، ومن طلب ذلك أو قبله خرج عن هذه السياسة ويُوقَف حسابه.",
+    "bodyEn": "Any amount paid outside the platform is covered by neither escrow, nor the dispute process, nor the invoice. Whoever requests or accepts such a payment has stepped outside this policy, and their account is suspended."
+   },
+   {
+    "n": 6,
+    "titleAr": "الفاتورة",
+    "titleEn": "Invoicing",
+    "bodyAr": "تُصدر فاتورة ضريبية بما تورّده المنصة من عمولة وخدمات، وتُحفظ في طلبك. وفاتورة المركبة من البائع إن كان مسجَّلًا في الضريبة.",
+    "bodyEn": "A tax invoice is issued for the commission and services the platform supplies, and is kept with your order. The vehicle invoice comes from the seller if the seller is VAT-registered."
+   }
+  ]
+ },
+ "content": {
+  "titleAr": "سياسة المحتوى والإعلانات",
+  "titleEn": "Content and listings policy",
+  "version": "1.0",
+  "summaryAr": "ما يُقبل في الإعلان وما يُوقفه — والصورة ملك ناشرها.",
+  "summaryEn": "What a listing may contain and what gets it suspended — and photographs belong to whoever took them.",
+  "sort": 6,
+  "sections": [
+   {
+    "n": 1,
+    "titleAr": "صحّة البيانات",
+    "titleEn": "Accuracy",
+    "bodyAr": "الماركة والطراز والسنة والعدّاد ورقم الهيكل تصف شيئًا في الواقع لا رأيًا، وخطؤها يُوقف الإعلان. ومن أخطأ فيها يسحب إعلانه ويُنشئ غيره — ولا تُعدَّل بعد النشر.",
+    "bodyEn": "Make, model, year, odometer and VIN describe a fact, not an opinion; an error in them suspends the listing. Whoever gets them wrong withdraws the listing and creates another — they cannot be edited after publication."
+   },
+   {
+    "n": 2,
+    "titleAr": "الصور",
+    "titleEn": "Photographs",
+    "bodyAr": "صور المركبة المعروضة نفسها وبتصويرٍ حديث. ويُمنع نشر رقم جوال أو حساب أو علامة تواصل داخل الصورة. والصور المتطابقة تُكشَف آليًّا وتُحال إلى المراجعة.",
+    "bodyEn": "Photographs must be of the vehicle actually offered, taken recently. Publishing a phone number, account handle, or contact mark inside a photograph is prohibited. Matching photographs are detected automatically and referred for review."
+   },
+   {
+    "n": 3,
+    "titleAr": "الدفع داخل المنصة",
+    "titleEn": "Payment stays inside",
+    "bodyAr": "توجيه المشتري إلى الدفع خارج المنصة مخالفة توجب الإيقاف فورًا — لأنها تخرج بالمعاملة من الضمان ومن النزاع ومن الفاتورة معًا.",
+    "bodyEn": "Directing a buyer to pay outside the platform is a breach warranting immediate suspension, because it takes the transaction out of escrow, out of the dispute process, and out of invoicing all at once."
+   },
+   {
+    "n": 4,
+    "titleAr": "ما لا يُعرض",
+    "titleEn": "What may not be listed",
+    "bodyAr": "مركبة مسروقة أو مرهونة أو محجوزة، أو مُعاد بناؤها من تلف كلّي دون الإفصاح عنه في الإعلان، أو ليست في ملك ناشرها ولا بتوكيل منه.",
+    "bodyEn": "A vehicle that is stolen, mortgaged, or under seizure; one rebuilt from a total loss without disclosure in the listing; or one not owned by the publisher nor listed under a power of attorney from the owner."
+   },
+   {
+    "n": 5,
+    "titleAr": "المراجعة والإيقاف",
+    "titleEn": "Review and suspension",
+    "bodyAr": "تُراجَع الإعلانات آليًّا وبشريًّا. والإيقاف من المنصة يُسمّى سببه، ولا يرفعه البائع بنفسه. ومن أوقف إعلانه بنفسه يعيده في أي وقت.",
+    "bodyEn": "Listings are reviewed both automatically and by people. A platform suspension states its reason and cannot be lifted by the seller. A seller who paused their own listing may restore it at any time."
+   }
+  ]
+ },
+ "dealers": {
+  "titleAr": "اتفاقية التجار",
+  "titleEn": "Dealer agreement",
+  "version": "1.0",
+  "summaryAr": "ما يلتزم به المعرض، وكيف تُصدر فواتيره، وبأيّ معيار يُقاس.",
+  "summaryEn": "What a dealership commits to, how its invoices are issued, and the measures it is held to.",
+  "sort": 7,
+  "sections": [
+   {
+    "n": 1,
+    "titleAr": "التسجيل",
+    "titleEn": "Registration",
+    "bodyAr": "سجل تجاري ساري وعنوان وطني ورقم تسجيل ضريبي إن كان المعرض مسجَّلًا. والبيانات تُوثَّق قبل أوّل نشر، وتغيّرها يُبلَّغ خلال أسبوع.",
+    "bodyEn": "A valid commercial registration, a national address, and a VAT registration number if the dealership is registered. The details are verified before the first publication, and any change must be reported within a week."
+   },
+   {
+    "n": 2,
+    "titleAr": "الفاتورة ونطاق الضريبة",
+    "titleEn": "Invoicing and VAT scope",
+    "bodyAr": "المعرض المسجَّل في الضريبة يُصدر فاتورة المركبة بنفسه، والمنصة تُصدر فاتورة عمولتها وخدماتها. وبيع مركبة مستعملة لفرد قد يسري عليه نظام هامش الربح بموافقة مسبقة من المنصة، فتُحتسب الضريبة على الهامش لا على كامل القيمة.",
+    "bodyEn": "A VAT-registered dealership issues the vehicle invoice itself, while the platform issues the invoice for its commission and services. The sale of a used vehicle to an individual may fall under the profit margin scheme with the platform's prior approval, in which case VAT is computed on the margin rather than the full value."
+   },
+   {
+    "n": 3,
+    "titleAr": "المخزون والالتزام بالعرض",
+    "titleEn": "Inventory and honouring listings",
+    "bodyAr": "ما يُعرض متاح فعلًا بسعره المعلن. وبيع مركبة خارج المنصة يُسحب إعلانها في الحال — وإعلانٌ قائم لمركبة مبيعة يُحتسب نقضًا للعرض.",
+    "bodyEn": "What is listed must actually be available at its published price. A vehicle sold outside the platform must have its listing withdrawn immediately; a live listing for a sold vehicle counts as reneging on the offer."
+   },
+   {
+    "n": 4,
+    "titleAr": "التقييم والأداء",
+    "titleEn": "Rating and performance",
+    "bodyAr": "يُقاس المعرض بسرعة الردّ، ونسبة إتمام الطلبات، ومطابقة المركبة لوصفها، وتقييم المشترين. والتقييم معروض في صفحته العامة.",
+    "bodyEn": "A dealership is measured by response speed, order completion rate, how well vehicles match their descriptions, and buyer ratings. The rating is shown on its public page."
+   },
+   {
+    "n": 5,
+    "titleAr": "الإيقاف وإنهاء الاتفاقية",
+    "titleEn": "Suspension and termination",
+    "bodyAr": "للمنصة إيقاف النشر عند مخالفة متكرّرة، ولكل طرف إنهاء الاتفاقية بإشعار. والطلبات القائمة تمضي إلى تمامها بعد الإنهاء، والالتزامات المالية تبقى.",
+    "bodyEn": "The platform may suspend publishing upon repeated breach, and either party may terminate the agreement on notice. Orders already open run to completion after termination, and financial obligations survive it."
+   }
+  ]
+ },
+ "cookies": {
+  "titleAr": "ملفات تعريف الارتباط",
+  "titleEn": "Cookies",
+  "version": "1.0",
+  "summaryAr": "الأساسية تعمل لتشغيل الجلسة، وما عداها لا يعمل قبل موافقتك.",
+  "summaryEn": "Essential cookies run your session; nothing else runs before you consent.",
+  "sort": 8,
+  "sections": [
+   {
+    "n": 1,
+    "titleAr": "الأساسية",
+    "titleEn": "Essential",
+    "bodyAr": "ملفات تحفظ جلستك ولغتك وسلّة مقارنتك، ولا يعمل الموقع دونها. ولا تحتاج موافقة لأنها شرط الخدمة التي طلبتها.",
+    "bodyEn": "Cookies that keep your session, your language, and your comparison list; the site does not work without them. They need no consent because they are a condition of the service you requested."
+   },
+   {
+    "n": 2,
+    "titleAr": "القياس",
+    "titleEn": "Measurement",
+    "bodyAr": "ملفات تقول لنا أيّ صفحة تُقرأ وأين يتوقّف الزائر، مجمَّعةً لا منسوبة إلى شخص. ولا تُنشَّط قبل موافقتك، ورفضها لا يمنعك من شيء.",
+    "bodyEn": "Cookies that tell us which pages are read and where visitors stop, in aggregate and not attributed to a person. They are not activated before your consent, and declining them withholds nothing from you."
+   },
+   {
+    "n": 3,
+    "titleAr": "طرف ثالث",
+    "titleEn": "Third parties",
+    "bodyAr": "بوابة الدفع تضع ملفاتها أثناء الدفع لحماية المعاملة من الاحتيال، وهي خارج تحكّمنا وتخضع لسياستها. ولا نسمح بملفات تتبّع إعلاني.",
+    "bodyEn": "The payment gateway sets its own cookies during payment to protect the transaction against fraud; these are outside our control and subject to its policy. We do not permit advertising tracking cookies."
+   },
+   {
+    "n": 4,
+    "titleAr": "التحكّم",
+    "titleEn": "Control",
+    "bodyAr": "تستطيع تغيير موافقتك في أي وقت من إعدادات حسابك، وحذف الملفات من متصفّحك — وحذف الأساسية يُخرجك من جلستك.",
+    "bodyEn": "You may change your consent at any time from your account settings, and delete cookies from your browser — deleting the essential ones signs you out."
    }
   ]
  }

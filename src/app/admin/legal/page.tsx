@@ -10,13 +10,6 @@ import { toArabicDigits } from '@/lib/arabic';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'الصفحات القانونية' };
 
-const TITLE: Record<string, string> = {
-  terms: 'الشروط والأحكام',
-  privacy: 'سياسة الخصوصية',
-  refund: 'سياسة الاسترجاع',
-  cookies: 'ملفات الارتباط',
-};
-
 const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
   day: 'numeric',
   month: 'long',
@@ -55,7 +48,7 @@ export default async function AdminLegalPage() {
         {docs.map((doc) => (
           <MonitorRow
             key={doc.key}
-            title={TITLE[doc.key] ?? doc.titleAr}
+            title={doc.titleAr}
             subtitle={`أقسام (${toArabicDigits(String(doc.sectionCount))})`}
             meta={doc.key}
           >
