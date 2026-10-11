@@ -239,3 +239,67 @@ describe('اشترِ الآن — المشتري', () => {
     expect(await db.order.count({ where: { listingId: listing.id } })).toBe(0);
   });
 });
+
+describe('قرارُ البائع — والقارئ الذي لم يُنادَ', () => {
+  /**
+   * ═══ كلُّ شيءٍ مبنيّ إلّا السلك ═══
+   *
+   * `sellerDecisionView` و`SellerDecisionPanel` والمسار و
+   * `resolveSellerDecision(id, true)` — أربعتُها قائمة، **والوحيد
+   * الذي ينادي الأخيرة وظيفةٌ دورية تمرّر `false`**. واللوحة بلا
+   * مستوردٍ واحد، والقارئ بلا منادٍ.
+   *
+   * فكان كل مزادٍ لم يبلغ احتياطيَه ينتهي **بالردّ حتمًا** مهما أراد
+   * البائع — والمهلة تُعدّ له في لوحة الأدمن وحدها: ساعاتٌ لقرارٍ لا
+   * يستطيع اتّخاذه.
+   */
+  it('يُعطي البائع قرارَه على مزادٍ لم يبلغ احتياطيَه', async () => {
+    const { sellerDecisionView } = await import('@/lib/domain/auctions');
+    const { seller, listing, auction } = await auctionFixture({
+      buyNowPrice: null, reservePrice: 200_000, topBid: 60_000,
+    });
+
+    const now = new Date();
+    await db.auction.update({
+      where: { id: auction.id },
+      data: {
+        status: 'ENDED_UNMET',
+        endsAt: new Date(now.getTime() - 3_600_000),
+        sellerDecisionDueAt: new Date(now.getTime() + 12 * 3_600_000),
+      },
+    });
+
+    const view = await sellerDecisionView(listing.ref, seller.id, now);
+    expect(view, 'البائع لا يرى قراره').not.toBeNull();
+    expect(view?.highestBid).toBe('60000');
+    expect(view?.lapsed).toBe(false);
+  });
+
+  it('ولا يراه غير البائع', async () => {
+    const { sellerDecisionView } = await import('@/lib/domain/auctions');
+    const { seller, listing, auction } = await auctionFixture({
+      buyNowPrice: null, reservePrice: 200_000, topBid: 60_000,
+    });
+    await db.auction.update({
+      where: { id: auction.id },
+      data: { status: 'ENDED_UNMET', sellerDecisionDueAt: new Date(Date.now() + 3_600_000) },
+    });
+
+    const other = await buyer(seller.id);
+    expect(await sellerDecisionView(listing.ref, other.id)).toBeNull();
+  });
+
+  it('والمهلةُ المنقضية تُقال ولو لم تمرّ الوظيفة الدورية', async () => {
+    /** **الحالة والوقت معًا** — ولوحةٌ تعرض زرًّا بعد انقضاء المهلة تَعِد بما لا يقع. */
+    const { sellerDecisionView } = await import('@/lib/domain/auctions');
+    const { seller, listing, auction } = await auctionFixture({
+      buyNowPrice: null, reservePrice: 200_000, topBid: 60_000,
+    });
+    await db.auction.update({
+      where: { id: auction.id },
+      data: { status: 'ENDED_UNMET', sellerDecisionDueAt: new Date(Date.now() - 60_000) },
+    });
+
+    expect((await sellerDecisionView(listing.ref, seller.id))?.lapsed).toBe(true);
+  });
+});

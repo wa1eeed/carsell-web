@@ -16,7 +16,7 @@ import {
 } from '@/lib/domain/inspection';
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { currentUserFromCookies } from '@/lib/domain/account';
-import { getAuction, viewerStanding } from '@/lib/domain/auctions';
+import { getAuction, sellerDecisionView, viewerStanding } from '@/lib/domain/auctions';
 import { favoritedRefs } from '@/lib/domain/favorites';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
@@ -294,6 +294,20 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
               favorited: (await favoritedRefs(viewer?.id ?? null, [resolved.row.ref])).has(
                 resolved.row.ref,
               ),
+              /**
+               * ═══ قرارُ البائع — وقارئُه لم يكن يناديه أحد ═══
+               *
+               * `sellerDecisionView` و`SellerDecisionPanel` والمسار
+               * و`resolveSellerDecision(id, true)` كلُّها مبنيّة —
+               * **والوحيد الذي ينادي الأخيرة وظيفةٌ دورية تمرّر
+               * `false`**. فكل مزادٍ لم يبلغ احتياطيَه ينتهي بالردّ
+               * حتمًا مهما أراد البائع، والمهلة تُعدّ له في لوحة
+               * الأدمن وحدها.
+               */
+              sellerDecision:
+                viewer === null || viewer.id !== resolved.row.sellerId
+                  ? null
+                  : await sellerDecisionView(resolved.row.ref, viewer.id),
             }}
           />
         </div>

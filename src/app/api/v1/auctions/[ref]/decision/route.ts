@@ -70,9 +70,32 @@ export async function POST(
     return fail(ERRORS.AUCTION_DECISION_CLOSED, 409);
   }
 
+  /**
+   * ═══ والمرجع مرجعُ ما وقع الآن ═══
+   *
+   * كان يأخذ **أوّل طلبٍ على الإعلان أيًّا كان** — فمركبةٌ بِيعت مرّةً
+   * ثمّ أُلغي طلبها وعادت إلى المزاد تُعطي البائع مرجعَ الطلب الملغى
+   * من أغسطس. وقِيس: الردّ `ORD-2026-1013` (ملغى) والمُنشأ
+   * `ORD-2026-1025`.
+   *
+   * **ومرجعٌ خاطئ بعد فعلٍ ماليّ أسوأ من غيابه**: صاحبه يفتحه فيرى
+   * طلبًا ملغًى، فيحسب أنّ قبولَه أُلغي.
+   */
   const after = await db.auction.findUnique({
     where: { id: auction.id },
-    select: { status: true, listing: { select: { orders: { select: { ref: true } } } } },
+    select: {
+      status: true,
+      listing: {
+        select: {
+          orders: {
+            where: { status: 'ACTIVE' },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { ref: true },
+          },
+        },
+      },
+    },
   });
 
   const orderRef = after?.listing.orders[0]?.ref ?? null;

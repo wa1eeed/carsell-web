@@ -18,6 +18,8 @@ import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
 import { AuctionTerms, BidLogStats, BidStatus, BidStep } from '@/components/site/AuctionSections';
 import { BidPanel } from '@/components/site/BidPanel';
+import { SellerDecisionPanel } from '@/components/site/SellerDecisionPanel';
+import type { SellerDecision } from '@/lib/domain/auctions';
 import type { PublicAuction, ViewerStanding } from '@/lib/domain/auctions';
 import { HistoryList } from '@/components/ui/HistoryList';
 import { PaintMap } from '@/components/ui/PaintMap';
@@ -58,6 +60,8 @@ export function CarPage({
   viewer: {
     signedIn: boolean;
     isOwn: boolean;
+    /** قرارُ البائع على مزادٍ لم يبلغ احتياطيَه — `null` لغيره */
+    sellerDecision: SellerDecision | null;
     taxProfile: TaxProfile | null;
     /** طلبٌ حيّ على الإعلان — فلا يُعرض «اشترِ» ثم يُرفض */
     reserved: boolean;
@@ -280,6 +284,18 @@ export function CarPage({
                   {closed === 'SOLD' ? t('soldBody') : t('reservedBody')}
                 </p>
               </section>
+            )}
+
+            {/*
+              ═══ قرارُ البائع — ويُعرض فوق كل شيء ═══
+
+              مهلتُه ساعاتٌ تجري، وبانقضائها يُرَدّ العربون ويسقط
+              الحقّ. **وكان لا يُعرض في المنتج أصلًا**: اللوحة مبنيّة
+              بلا مستورد، وقارئُها بلا منادٍ، فينتهي كل مزادٍ لم يبلغ
+              احتياطيَه بالردّ حتمًا مهما أراد البائع.
+            */}
+            {viewer.sellerDecision === null ? null : (
+              <SellerDecisionPanel listingRef={detail.ref} decision={viewer.sellerDecision} />
             )}
 
             <BuyColumn
