@@ -432,6 +432,8 @@ async function main() {
        * فمهلةٌ قصيرة تُسقطه وهو سليم.
        */
       let text = null;
+      /** الترميز الخام — تُقرأ منه العلامات التي لا تنجو من التجريد */
+      let raw = null;
       let failure = null;
 
       for (let attempt = 1; attempt <= 3 && text === null; attempt += 1) {
@@ -449,7 +451,8 @@ async function main() {
             signal: AbortSignal.timeout(30_000),
           });
           if (res.ok) {
-            text = stripTags(await res.text());
+            raw = await res.text();
+            text = stripTags(raw);
           } else {
             failure = `HTTP ${String(res.status)}`;
           }
@@ -486,7 +489,15 @@ async function main() {
        * فتُعلَم الشاشة بأنها فارغة، ويُعلَن ذلك في النتيجة — **ولا
        * تُحتسب في المجموع**، لأن حاصلها لا يقيس مطابقةً بل بيانات.
        */
-      const empty = /لا (عروض|طلبات|إعلانات|مركبات|تقارير|نتائج|مفضّلة|حركة|شيء|بيانات|أحد)/.test(text);
+      /**
+       * **والعلامة من المكوّن لا من الصياغة.** كان يُبحث عن «لا عروض»
+       * ونحوها في نصّ الصفحة كلّه — فوسمُ صفٍّ واحد («لا عروض» تحت
+       * إعلانٍ له مشاهدات) يُخرج الشاشة كلّها من المقام. وسبعُ شاشات
+       * حسابٍ عامرةٍ كانت تُحسب «فارغة».
+       *
+       * و`EmptyState` تضع `data-empty` — فالفحص على ما يُصيَّر فعلًا.
+       */
+      const empty = raw !== null && raw.includes('data-empty="true"');
 
       rows.push({
         tag, route,
