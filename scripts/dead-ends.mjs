@@ -116,15 +116,22 @@ function domainFunctionsWithoutCaller() {
   const domainDir = join(ROOT, 'src', 'lib', 'domain');
   const WRITES = /\.(?:create|createMany|update|updateMany|upsert|delete|deleteMany)\(|postEntries\(/;
 
+  /**
+   * **والكتابة تُقاس على جسم الدالّة لا على نافذةٍ بطول ثابت.**
+   * أربعة آلاف حرفٍ بعد المطلع تتجاوز القصيرة إلى جارتها، فأبلغت
+   * الأداة أن `transferDeadlineFrom` تكتب — وهي سطرٌ يحسب تاريخًا.
+   */
   const exported = new Map();
   for (const path of walk(domainDir)) {
     const text = read(path);
-    for (const match of text.matchAll(/export\s+(?:async\s+)?function\s+(\w+)/g)) {
-      const start = match.index ?? 0;
-      const body = text.slice(start, start + 4000);
-      if (!WRITES.test(body)) continue;
-      exported.set(match[1], relative(ROOT, path));
-    }
+    const marks = [...text.matchAll(/^export\s+(?:async\s+)?function\s+(\w+)/gm)];
+
+    marks.forEach((mark, i) => {
+      const from = mark.index ?? 0;
+      const to = i + 1 < marks.length ? (marks[i + 1].index ?? text.length) : text.length;
+      if (!WRITES.test(text.slice(from, to))) return;
+      exported.set(mark[1], relative(ROOT, path));
+    });
   }
 
   /** الجذور: ما يبلغه المستخدم — شاشاتٌ ومسارات ومكوّنات ووظائف دورية. */
@@ -139,22 +146,48 @@ function domainFunctionsWithoutCaller() {
     .join('\n');
 
   /**
-   * **والإغلاق العابر**: دالّةٌ يناديها مسارٌ تُعدّ مبلوغة، وما تناديه
-   * هي كذلك. فيُعاد المسح حتى لا يُضاف شيء.
+   * ═══ والإغلاق على الأجسام لا على الملفّات ═══
+   *
+   * **ضمُّ ملفٍّ كاملًا يجعل كل صادراته مبلوغة.** `forfeitDeposit`
+   * تسكن `auctions.ts` مع `closeEndedAuctions` — وتلك تُنادى من
+   * الوظيفة الدورية، فضمُّ الملفّ جعل الأولى تبدو حيّةً وهي بلا منادٍ.
+   * فأبلغت الأداة **صفرَ دوالّ ميّتة** وفي اليد تسعٌ يثبت الفحص
+   * اليدويّ أنها كذلك.
+   *
+   * **والأمرُ مقلوبٌ عن المرّة السابقة**: ضيّقتُ فأبلغت عن حيٍّ،
+   * ووسّعتُ فسكتت عن ميّت. فالقياس على **جسم الدالّة**: من مطلعها إلى
+   * أوّل تصديرٍ بعدها.
    */
-  const domainText = new Map(
-    [...walk(domainDir)].map((path) => [relative(ROOT, path), read(path)]),
-  );
+  const bodies = new Map();
+  for (const path of walk(join(ROOT, 'src', 'lib'))) {
+    const text = read(path);
+    /**
+     * **والمعرَّفُ غير المصدَّر يُتبَع أيضًا.** قائمةُ الوظائف الدورية
+     * `const JOBS` ليست مصدَّرة، وفيها وحدها تُذكر `expireOffers` و
+     * `closeEndedAuctions` — فاقتصارُ المسح على المصدَّر قطع السلسلة عند
+     * `runJobs` وأبلغ عن ثلاثِ وظائفَ حيّة أنها ميّتة.
+     */
+    const marks = [
+      ...text.matchAll(/^(?:export\s+)?(?:async\s+)?(?:function|const|class)\s+(\w+)/gm),
+    ];
+
+    marks.forEach((mark, i) => {
+      const from = mark.index ?? 0;
+      const to = i + 1 < marks.length ? (marks[i + 1].index ?? text.length) : text.length;
+      bodies.set(mark[1], text.slice(from, to));
+    });
+  }
 
   let grew = true;
   const live = new Set();
   while (grew) {
     grew = false;
-    for (const [name, file] of exported) {
+    for (const name of bodies.keys()) {
       if (live.has(name)) continue;
       if (!new RegExp(`\\b${name}\\b`).test(reachable)) continue;
       live.add(name);
-      reachable += `\n${domainText.get(file) ?? ''}`;
+      /** وجسمُها وحده يُضمّ — فما تناديه هي يصير مبلوغًا، لا ما يجاورها. */
+      reachable += `\n${bodies.get(name) ?? ''}`;
       grew = true;
     }
   }

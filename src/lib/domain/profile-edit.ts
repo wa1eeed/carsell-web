@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
-import { recordTrialVerification } from './identity-state';
+import { APP_ENV } from '@/lib/env';
+import { recordTrialVerification, submitIdentity } from './identity-state';
 import { toLatinDigits } from '@/lib/arabic';
 import { encryptSecret } from '@/lib/crypto/secrets';
 
@@ -127,16 +128,37 @@ export async function verifyIdentity(
   if (user.idVerified) return { ok: false, reason: 'ALREADY_VERIFIED' };
 
   /**
-   * **والكتابة من مدخلها الوحيد.** كانت هنا تضبط الراية وحدها وتترك
-   * `identityStatus` على `NONE` — فيختفي الموثَّق عن شاشة الأدمن.
+   * ═══ والتوثيق الذاتيّ لا يصل الإنتاج ═══
+   *
+   * **كان بلا حدّ بيئة**: من يكتب رقمًا سليم البنية يُوثَّق حسابه
+   * فورًا — ويمرّ حارسَ الشراء، **ويُنقل باسمه ملكيةُ مركبة**. فهو
+   * بابُ احتيالٍ ومخالفةُ «اعرف عميلك» معًا، ولا يصلح إلّا ريثما
+   * يُربط نفاذ.
+   *
+   * فالتطوير وstaging يُوثِّقان ذاتيًّا (وإلّا فحسابٌ لا يشتري ولا
+   * يبيع أبدًا، ولا تُجرَّب رحلة)، و**الإنتاج يُقدِّم إلى المراجعة**:
+   * `PENDING` يصل طابور A18، ويمرّ عليه إنسان.
+   *
+   * وهو **فتحٌ للباب لا إغلاقه**: المستخدم يقدّم كما كان، والفرق أن
+   * جوابه ينتظر بدل أن يُمنح. ويوم يُربط نفاذ تصير
+   * `submitIdentity('nafath')` في البيئات كلّها.
+   *
+   * **والحدّ `APP_ENV` لا `NODE_ENV`**: الثاني `production` في
+   * staging أيضًا، فالحراسة به تُغلق بابَ التجريب على بيئة التجريب.
    */
-  await recordTrialVerification(
-    db,
-    userId,
-    // الرقم نفسه مشفَّر — يُقارن ولا يُعرض
-    { name, nationalIdEncrypted: encryptSecret(digits) },
-    now,
-  );
+  const encrypted = encryptSecret(digits);
+
+  if (APP_ENV === 'production') {
+    await submitIdentity(db, userId, 'manual', { name, nationalIdEncrypted: encrypted }, now);
+  } else {
+    await recordTrialVerification(
+      db,
+      userId,
+      // الرقم نفسه مشفَّر — يُقارن ولا يُعرض
+      { name, nationalIdEncrypted: encrypted },
+      now,
+    );
+  }
 
   await db.auditLog.create({
     data: {

@@ -40,7 +40,7 @@ describe('identity — الحقلان يُكتبان معًا', () => {
    * شاشةٍ ومنتظرًا في أخرى.
    */
   it('التقديم اليدويّ ينتظر ولا يوثِّق', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
     const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
 
     expect(user.identityStatus).toBe('PENDING');
@@ -48,7 +48,7 @@ describe('identity — الحقلان يُكتبان معًا', () => {
   });
 
   it('والنفاذ الوطنيّ يمرّ آليًّا — لا يدخل الطابور', async () => {
-    await submitIdentity(db, userId, 'nafath', T0);
+    await submitIdentity(db, userId, 'nafath', undefined, T0);
     const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
 
     expect(user.identityStatus).toBe('VERIFIED');
@@ -62,7 +62,7 @@ describe('identity — الحقلان يُكتبان معًا', () => {
 
 describe('decideIdentity — القرارات الثلاثة', () => {
   it('التوثيق يرفع الرايتين معًا', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
 
     const result = await decideIdentity({ userId, decision: 'VERIFY', note: null, ...ADMIN }, T0);
     expect(result.ok).toBe(true);
@@ -79,7 +79,7 @@ describe('decideIdentity — القرارات الثلاثة', () => {
    * نفسها التي عولجت في إرجاع الإعلان.
    */
   it('الرفض وطلب التوضيح يشترطان سببًا مكتوبًا', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
 
     const short = await decideIdentity({ userId, decision: 'REJECT', note: 'لا', ...ADMIN }, T0);
     expect(short.ok).toBe(false);
@@ -96,7 +96,7 @@ describe('decideIdentity — القرارات الثلاثة', () => {
   });
 
   it('والمُعلَّق يبقى في الطابور — لأنه ينتظر ردًّا', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
     await decideIdentity(
       { userId, decision: 'CLARIFY', note: 'ص'.repeat(MIN_IDENTITY_NOTE + 4), ...ADMIN },
       T0,
@@ -107,7 +107,7 @@ describe('decideIdentity — القرارات الثلاثة', () => {
   });
 
   it('والمرفوض يخرج ولا يبقى موثَّقًا', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
     await decideIdentity(
       { userId, decision: 'REJECT', note: 'ص'.repeat(MIN_IDENTITY_NOTE + 4), ...ADMIN },
       T0,
@@ -120,7 +120,7 @@ describe('decideIdentity — القرارات الثلاثة', () => {
   });
 
   it('ومن خرج لا يُقرَّر فيه ثانيةً', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
     await decideIdentity({ userId, decision: 'VERIFY', note: null, ...ADMIN }, T0);
 
     const again = await decideIdentity({ userId, decision: 'VERIFY', note: null, ...ADMIN }, T0);
@@ -130,7 +130,7 @@ describe('decideIdentity — القرارات الثلاثة', () => {
 
   /** **ولا يُسجَّل رقم الهوية في الأثر** — السجلّ يُقرأ لاحقًا. */
   it('الأثر يحمل القرار والملاحظة، لا الرقم', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
     await decideIdentity({ userId, decision: 'VERIFY', note: null, ...ADMIN }, T0);
 
     const entry = await db.auditLog.findFirstOrThrow({ where: { entityId: userId } });
@@ -141,7 +141,7 @@ describe('decideIdentity — القرارات الثلاثة', () => {
 
 describe('identityStats', () => {
   it('يعدّ المنتظر ويقيس نصيب النفاذ', async () => {
-    await submitIdentity(db, userId, 'manual', T0);
+    await submitIdentity(db, userId, 'manual', undefined, T0);
     const stats = await identityStats(T0);
 
     expect(stats.waiting).toBeGreaterThanOrEqual(1);

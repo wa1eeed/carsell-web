@@ -19,12 +19,23 @@ export async function submitIdentity(
   writer: Writer,
   userId: string,
   method: 'manual' | 'nafath' | 'commercial_register',
+  /**
+   * ما قدّمه المستخدم — **ويُكتب في التحديث نفسه**.
+   *
+   * وكتابتُه في نداءٍ ثانٍ تُنتج لحظةً يكون فيها الاسم الجديد على
+   * حسابٍ حالتُه القديمة، وتُطلق البوابة ٢٤ بحقّ: حقيقةٌ واحدة في
+   * كتابتين.
+   */
+  identity?: { name: string; nationalIdEncrypted: string },
   now: Date = new Date(),
 ): Promise<void> {
   const auto = method === 'nafath';
   await writer.user.update({
     where: { id: userId },
     data: {
+      ...(identity === undefined
+        ? {}
+        : { name: identity.name, nationalIdEncrypted: identity.nationalIdEncrypted }),
       identityStatus: auto ? 'VERIFIED' : 'PENDING',
       identitySubmittedAt: now,
       identityMethod: method,

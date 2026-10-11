@@ -17,6 +17,7 @@ const GUARDED = [
   'src/lib/storage/dev-store.ts',
   'src/lib/domain/auth.ts',
   'src/lib/domain/integration-env.ts',
+  'src/lib/domain/profile-edit.ts',
 ];
 
 describe('حدّ البيئة يُقرأ من APP_ENV', () => {
@@ -174,5 +175,34 @@ describe('صورة التشغيل تحمل ما يلزم الترحيل', () => 
     // الترحيل يسبق الخادم ويوقفه إن سقط
     expect(entrypoint).toMatch(/set -e/);
     expect(entrypoint.indexOf('migrate deploy')).toBeLessThan(entrypoint.indexOf('server.js'));
+  });
+});
+
+/**
+ * ═══ التوثيق الذاتيّ لا يصل الإنتاج ═══
+ *
+ * العطل الذي وُلد منه هذا الفحص: `verifyIdentity` كانت توثّق الحساب
+ * **فورًا وبلا حدّ بيئة**. فمن يكتب عشر خاناتٍ تبدأ بـ١ أو ٢ يُوثَّق،
+ * ويمرّ حارسَ الشراء، **ويُنقل باسمه ملكيةُ مركبة** — بابُ احتيالٍ
+ * ومخالفةُ «اعرف عميلك» معًا.
+ *
+ * وليست حجّتُه أنها «مؤقّتة»: المؤقّت الذي لا يحرسه فحصٌ يصل الإنتاج
+ * مع أوّل نشر. والبديل ليس المنع بل **المراجعة**: `PENDING` يصل طابور
+ * A18 ويمرّ عليه إنسان.
+ */
+describe('توثيق الهوية الذاتيّ محروسٌ بالبيئة', () => {
+  const source = readFileSync('src/lib/domain/profile-edit.ts', 'utf8');
+
+  it('التوثيق الفوريّ مشروطٌ بأن البيئة ليست إنتاجًا', () => {
+    expect(source).toContain('recordTrialVerification');
+    expect(source).toMatch(/APP_ENV === 'production'/);
+  });
+
+  /**
+   * **والإنتاج يُقدِّم إلى المراجعة لا يمنع.** شرطٌ يُفرَض ولا بابَ
+   * لاستيفائه قفلٌ بلا مفتاح — والقاعدة مسجَّلة في هذا المستودع.
+   */
+  it('والإنتاج يمرّ بـsubmitIdentity إلى الطابور', () => {
+    expect(source).toContain('submitIdentity');
   });
 });
