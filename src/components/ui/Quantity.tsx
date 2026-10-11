@@ -11,6 +11,7 @@ export type Unit =
   | 'awaitingRules'
   | 'creditNotes'
   | 'bidders'
+  | 'bids'
   | 'deals'
   | 'days'
   | 'hours'

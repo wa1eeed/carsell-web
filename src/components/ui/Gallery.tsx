@@ -20,7 +20,7 @@ export function Gallery({
   alt,
   className,
 }: {
-  images: readonly { key: string }[];
+  images: readonly { key: string; url?: string | null }[];
   alt: string;
   className?: string;
 }) {
@@ -31,13 +31,33 @@ export function Gallery({
   const count = images.length;
   const current = Math.min(index, Math.max(0, count - 1));
   const strip = images.slice(0, 6);
+  const cover = images[current];
   const rest = count - strip.length;
 
   return (
     <div className={cn('flex flex-col gap-2.5', className)}>
       <div className="washed relative aspect-16/9 overflow-hidden rounded-xl">
-        {/* الصور من R2 تأتي في المهمة ٢٠ — النمط هنا حتى ذلك الحين */}
-        <span className="sr-only">{alt}</span>
+        {/*
+          ═══ والمعرض كان يرسم الرمادي دائمًا ═══
+
+          «الصور من R2 تأتي في المهمة ٢٠» — وجاءت، فالرفع يعمل
+          والتخزين يخدم، **ولم يُوصَل أحدهما بالآخر**: المكوّن يأخذ
+          مفتاحًا ولا يملك بناء الرابط، فكل إعلانٍ في المنتج يعرض
+          مستطيلًا مخطَّطًا وصورُه مخزَّنة.
+
+          والرابط يأتي من الخادم لأن بناءه يقرأ إعداد التخزين.
+        */}
+        {cover?.url == null ? (
+          <span className="sr-only">{alt}</span>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={cover.url}
+            alt={alt}
+            className="absolute inset-0 size-full object-cover"
+            loading="eager"
+          />
+        )}
 
         {count === 0 ? null : (
           <>
@@ -68,10 +88,20 @@ export function Gallery({
               onClick={() => setIndex(i)}
               aria-label={`${i + 1}`}
               className={cn(
-                'washed h-16 flex-1 rounded-md',
+                'washed relative h-16 flex-1 overflow-hidden rounded-md',
                 i === current && 'outline-2 outline-offset-2 outline-accent',
               )}
-            />
+            >
+              {image.url == null ? null : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={image.url}
+                  alt=""
+                  className="absolute inset-0 size-full object-cover"
+                  loading="lazy"
+                />
+              )}
+            </button>
           ))}
           {rest <= 0 ? null : (
             <span className="flex h-16 flex-1 items-center justify-center rounded-md border border-line text-sm font-bold opacity-55">

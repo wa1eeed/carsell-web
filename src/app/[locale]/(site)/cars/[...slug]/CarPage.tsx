@@ -13,6 +13,9 @@ import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { Gallery } from '@/components/ui/Gallery';
+import { AuctionPulse } from '@/components/site/AuctionPulse';
+import { AuctionTerms, BidLogStats, BidStatus, BidStep } from '@/components/site/AuctionSections';
+import type { PublicAuction, ViewerStanding } from '@/lib/domain/auctions';
 import { HistoryList } from '@/components/ui/HistoryList';
 import { PaintMap } from '@/components/ui/PaintMap';
 import { Quantity } from '@/components/ui/Quantity';
@@ -40,6 +43,8 @@ export function CarPage({
   locale,
   heading,
   viewer,
+  auction,
+  standing,
 }: {
   detail: PublicListingDetail;
   faq: readonly { id: string; question: string; answer: string }[];
@@ -55,6 +60,15 @@ export function CarPage({
     reserved: boolean;
     listingId: string;
   };
+  /**
+   * المزاد بتفصيله — **و`null` لغير المزادات**.
+   *
+   * و`detail.auction` لقطةٌ خفيفة تكفي عمود الشراء (أعلى مزايدة،
+   * الحدّ التالي، العربون). وهذه تحمل السجلّ والشروط والإحصاءات —
+   * ولا تُجلب إلّا لمزاد.
+   */
+  auction: PublicAuction | null;
+  standing: ViewerStanding | null;
 }) {
   const t = useTranslations('ui');
   const te = useTranslations('enums');
@@ -198,6 +212,27 @@ export function CarPage({
           </header>
 
           <Gallery images={detail.images} alt={vehicle.title} />
+
+          {/*
+            ═══ ولا صفحةَ مزادٍ فرعية ═══
+
+            كان للمركبة صفحتان: هذه، و`/auctions/{ref}` بسجلّها
+            وشروطها. **وصفحةُ المركبة هي الصفحة** — والثانية تقسم
+            الانتباه وتُنتج رابطين لشيءٍ واحد، فتُشتّت ما يصل من بحثٍ
+            خارجيّ وتجعل المزايد يتنقّل بين وجهين للعرض نفسه.
+            (قرار المالك.)
+
+            والعدّاد والسعر **تحت الصور** لا في العمود وحده: العمود
+            يسقط على الهاتف تحت كل شيء، وهذان أعجلُ ما في الصفحة.
+          */}
+          {auction === null ? null : (
+            <AuctionPulse
+              auction={auction}
+              live={detail.auction?.live === true}
+              standing={standing}
+              className="mt-6"
+            />
+          )}
         </div>
 
         <div className="w-full lg:col-start-2 lg:row-start-1 lg:row-span-2">
@@ -395,6 +430,51 @@ export function CarPage({
         <p className="mb-4.5 text-xs opacity-50">{t('faqByType')}</p>
         <FaqAccordion rows={faq} columns={2} />
       </section>
+
+      {/*
+        ═══ سجلّ المزايدات وشروطه — هنا لا في صفحةٍ ثانية ═══
+
+        **والسجلّ يقول عن نفسه إنه لا يُعدَّل**: من يُطلب منه حجزُ
+        عربونٍ يحتاج أن يعرف أن ما يقرؤه أثرٌ لا عرضٌ يُنقّح.
+      */}
+      {auction === null ? null : (
+        <section className="mt-12 border-t border-line pt-9">
+          <h2 className="mb-1.5 text-2xl font-bold">سجلّ المزايدات</h2>
+          <p className="mb-5 text-3xs leading-loose opacity-55">
+            سجلٌّ غير قابل للتعديل — كل مزايدة موثّقة برقم المزايد وتوقيتٍ دقيق.
+            وهويات المزايدين مخفية، وأرقامهم ثابتة داخل المزاد تتيح متابعة سلوكه.
+          </p>
+
+          {auction.bids.length === 0 ? (
+            <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-60">
+              لا مزايدات بعد — وأوّل مزايدة تبدأ من سعر الافتتاح.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-px overflow-hidden rounded-xl border border-line bg-line">
+              {auction.bids.map((bid) => (
+                <li
+                  key={`${bid.alias}-${bid.at}`}
+                  className="flex flex-wrap items-center justify-between gap-3 bg-surface px-4 py-3"
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="bidi-isolate text-2xs font-bold">{bid.alias}</span>
+                    <BidStatus top={bid.top} isAuto={bid.isAuto} />
+                  </span>
+                  <span className="flex items-center gap-3.5">
+                    <BidStep step={bid.step} />
+                    <span className="font-num text-2xs font-bold">
+                      <ArabicNumber value={Number(bid.amount)} />
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <BidLogStats auction={auction} />
+          <AuctionTerms terms={auction.terms} />
+        </section>
+      )}
 
       <SimilarGrid items={similar} className="mt-12" />
     </>

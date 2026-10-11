@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { publicUrl } from '@/lib/r2';
 import { citySlug, modelSlug } from './slugs';
 import { effectiveAdminFee } from './fees';
 import { DEFAULT_VAT_PCT, vatIncluded } from './money';
@@ -152,7 +153,17 @@ export type PublicListingDetail = {
     paint: { status: PaintStatus; source: 'INSPECTION' | 'SELLER' };
   };
 
-  images: { key: string; isCover: boolean }[];
+  /**
+   * صور الإعلان — **بمفتاحها ورابطها معًا**.
+   *
+   * وكانت بالمفتاح وحده، و`Gallery` لا تملك بناء الرابط: مكوّنُ عميل
+   * لا يقرأ إعداد التخزين. فكان المعرض يرسم **مستطيلًا رماديًّا
+   * دائمًا** — في كل إعلانٍ في المنتج، والصور مرفوعةٌ ومخزَّنةٌ
+   * ومخدومة.
+   *
+   * و`null` حين لا تخزين مضبوط: الحالة الفارغة تُرسم ولا يُكسر وسم.
+   */
+  images: { key: string; isCover: boolean; url: string | null }[];
   features: { key: string; nameAr: string; nameEn: string; group: string; present: boolean }[];
 
   inspection: {
@@ -484,7 +495,11 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
       paint,
     },
 
-    images: row.images.map((image) => ({ key: image.r2Key, isCover: image.isCover })),
+    images: row.images.map((image) => ({
+      key: image.r2Key,
+      isCover: image.isCover,
+      url: publicUrl(image.r2Key),
+    })),
 
     features: row.features.map((link) => ({
       key: link.featureKey,

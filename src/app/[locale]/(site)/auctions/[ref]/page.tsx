@@ -1,149 +1,33 @@
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { notFound } from 'next/navigation';
+import { permanentRedirect, notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import type { Metadata } from 'next';
 
-import { SiteHeader } from '@/components/site/SiteHeader';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
-import { currentUserFromCookies } from '@/lib/domain/account';
-import { closingSoon, getAuction, sellerDecisionView } from '@/lib/domain/auctions';
-import { Quantity } from '@/components/ui/Quantity';
-import {
-  canonicalPath,
-  countSellerListings,
-  findPublishedListing,
-} from '@/lib/domain/listing-detail';
-import { AuctionScreen } from './AuctionScreen';
+import { canonicalPath, findPublishedListing } from '@/lib/domain/listing-detail';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string; ref: string }>;
-}): Promise<Metadata> {
-  const { locale, ref } = await params;
-  if (!hasLocale(routing.locales, locale)) return {};
-  return { title: ref };
-}
-
 /**
- * We — شاشة المزاد.
+ * ═══ صفحةُ المزاد صارت صفحةَ المركبة ═══
  *
- * **اتصال واحد، والعدّاد محلّي بمزامنة كل ٣٠ ثانية** (معيار القبول):
- * عدّادٌ يعتمد على الشبكة لكل ثانية يتوقّف عند أول انقطاع، وعدّادٌ لا
- * يُزامَن ينحرف. والحقيقة من REST عند الاتصال وعند كل فجوة.
+ * **للمركبة صفحةٌ واحدة.** كان للمزاد صفحةٌ ثانية بسجلّه وشروطه
+ * وعدّاده — فصار للشيء الواحد رابطان: يتنافسان في محرّك البحث،
+ * ويتنقّل بينهما المزايد بين وجهين للعرض نفسه، ويُقسَّم بينهما ما
+ * يصله من زيارات. (قرار المالك.)
+ *
+ * والمسار يبقى محوِّلًا **لا يُحذف**: روابطُ مشتركةٌ ومفهرسةٌ تشير
+ * إليه، وحذفُه يحوّلها إلى ٤٠٤ — والتحويل الدائم ينقل ما بُني من
+ * فهرسةٍ إلى الوجهة الجديدة بدل أن يُهدره.
  */
-export default async function AuctionPage({
+export default async function AuctionRedirect({
   params,
 }: {
   params: Promise<{ locale: string; ref: string }>;
 }) {
   const { locale, ref } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  setRequestLocale(locale);
 
-  const [auction, listing, viewer, te, nav, ui, soon] = await Promise.all([
-    getAuction(ref),
-    findPublishedListing(ref),
-    // البائع لا يزايد على مركبته — والشاشة تقولها قبل الضغط
-    currentUserFromCookies(),
-    getTranslations('enums'),
-    getTranslations('site.nav'),
-    getTranslations('ui'),
-    // مزادات تُغلق قريبًا — ومن يفوّت مزادًا يحتاج التالي
-    closingSoon(ref, locale),
-  ]);
+  const listing = await findPublishedListing(ref);
+  if (listing === null) notFound();
 
-  if (auction === null || listing === null) notFound();
-
-  /**
-   * عدد ما يعرضه هذا البائع — **بعد حارس الغياب** لا قبله: قراءةٌ من
-   * `listing` قبل فحص `null` تُسقط الصفحة بـ٥٠٠ على مرجعٍ لا وجود له،
-   * والصواب ٤٠٤. ولا يُعرض للفرد: «سيارة واحدة» تحت اسم شخصٍ لا تقول
-   * شيئًا.
-   */
-  const dealerListings =
-    listing.seller.dealer === null
-      ? 0
-      : await countSellerListings(listing.sellerId);
-
-  /**
-   * **القرار المعلَّق — للبائع وحده، وبعد أن نعرف من هو.**
-   *
-   * قراءةٌ ثانية لأنها تعتمد على `viewer`، والشكل العامّ لا يحملها:
-   * `sellerDecisionDueAt` يقول متى ينتهي حقٌّ لا يملكه غيره.
-   */
-  const decision =
-    viewer === null ? null : await sellerDecisionView(ref, viewer.id);
-
-  /**
-   * **شريط المواصفات — أربع حقائق تسبق كل شيء.**
-   *
-   * وتُبنى هنا لا في الشاشة: الشاشة مكوّن عميل يُحدَّث كل ثلاثين ثانية
-   * بلقطةٍ من `/api/v1/auctions`، وتلك لا تحمل المركبة — فبناؤها هناك
-   * يجعلها تختفي عند أوّل تحديث.
-   */
-  const specs: { label: string; value: React.ReactNode }[] = [
-    {
-      label: 'الممشى',
-      value: <Quantity unit="km" count={listing.vehicle.mileageKm} />,
-    },
-    // التسميات من `enums` نفسها التي تقرؤها صفحة المركبة — لا نسخة ثانية
-    { label: 'ناقل الحركة', value: te(`transmission.${listing.vehicle.transmission}`) },
-    { label: 'المواصفات', value: te(`spec.${listing.vehicle.spec}`) },
-    { label: 'المدينة', value: listing.city },
-  ];
-
-  const title = [listing.vehicle.brandName, listing.vehicle.modelName, listing.vehicle.trimName]
-    .filter((part) => part !== null && part !== '')
-    .join(' ');
-
-  return (
-    <>
-      <SiteHeader active="auctions" />
-      <main className="min-h-screen bg-bg text-ink">
-        <div className="page-frame">
-          <Breadcrumb
-            label={ui('breadcrumb')}
-            className="mb-5"
-            items={[
-              { label: nav('home'), href: `/${locale}` },
-              { label: nav('auctions'), href: `/${locale}/auctions` },
-              { label: title },
-            ]}
-          />
-
-          <AuctionScreen
-            auction={auction}
-            vehicle={{ title, year: listing.vehicle.year, city: listing.city }}
-            specs={specs}
-            listingPath={canonicalPath(locale, listing).path}
-            viewer={{
-              signedIn: viewer !== null,
-              isOwn: viewer !== null && viewer.id === listing.sellerId,
-            }}
-            decision={decision}
-            soon={soon}
-            seller={{
-              /**
-               * **واسم المعرض يسبق اسم الشخص.** الزائر يشتري من معرضٍ
-               * له سجلّ، لا من موظّفٍ سجّل الحساب. والفردُ بلا معرض
-               * يُقال اسمه، ومن لا اسم له يُقال «بائع» ولا تُعرض فراغة.
-               */
-              name: listing.seller.dealer?.nameAr ?? listing.seller.name ?? 'بائع',
-              isDealer: listing.seller.dealer !== null,
-              dealerPath:
-                listing.seller.dealer === null
-                  ? null
-                  : `/${locale}/dealers/${listing.seller.dealer.slug}`,
-              listingCount: dealerListings,
-            }}
-            locale={locale}
-          />
-        </div>
-      </main>
-    </>
-  );
+  permanentRedirect(canonicalPath(locale, listing).path);
 }

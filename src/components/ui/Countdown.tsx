@@ -116,7 +116,15 @@ export function Countdown({
     // في ملف الترجمة لأنها تختلف بين «و١ ساعة» و«and 1 hour».
     if (format === 'full') {
       return (
-        <span className={cn('inline-flex items-center font-bold', TONE[tone], className)}>
+        /*
+          **و`inline-flex` تبتلع المسافة بين المقطعين.** العناصر في
+          تخطيط flex تصير عناصرَ مرنة، والعقدة النصّية التي ليس فيها
+          إلّا فراغٌ تُسقَط — فتُقرأ «يومانو٢٣ ساعة» ملتصقة، والمسافة
+          موجودةٌ في ملفّ الترجمة.
+
+          وهذا سطرٌ من نصّ لا صفٌّ من عناصر، فالتدفّق الطبيعيّ أصحّ.
+        */
+        <span className={cn('font-bold', TONE[tone], className)}>
           {t.rich('durationFull', {
             d: () => days,
             h: () => <Quantity unit="hours" count={parts.hours} />,

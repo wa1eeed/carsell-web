@@ -4,6 +4,7 @@ import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { canonicalPath } from '@/lib/domain/listing-detail';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FilterChip } from '@/components/ui/FilterChip';
@@ -218,7 +219,7 @@ export default async function AuctionsPage({
                   highestBid: auction.bids[0]?.amount.toString() ?? null,
                   bidCount: auction._count.bids,
                   endsAt: auction.endsAt.toISOString(),
-                  href: `/${locale}/auctions/${auction.listing.ref}`,
+                  href: canonicalPath(locale, auction.listing).path,
                 }))}
               />
             </>

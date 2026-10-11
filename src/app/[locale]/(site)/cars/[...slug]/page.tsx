@@ -16,6 +16,7 @@ import {
 } from '@/lib/domain/inspection';
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { currentUserFromCookies } from '@/lib/domain/account';
+import { getAuction, viewerStanding } from '@/lib/domain/auctions';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
@@ -236,12 +237,30 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
    */
   const viewer = await currentUserFromCookies();
 
+  /**
+   * ═══ المزاد بتفصيله — ولا يُجلب إلّا لمزاد ═══
+   *
+   * **وصفحةُ المركبة هي الصفحة**: كان للمزاد صفحةٌ ثانية بسجلّه
+   * وشروطه، فصار للمركبة الواحدة رابطان — يتنافسان في البحث،
+   * ويتنقّل بينهما المزايد بلا سبب. (قرار المالك.)
+   *
+   * و`standing` لمن دخل وزايد وحده: جواب «أما زلتُ الأعلى؟» دون أن
+   * تخرج هويةُ أحد.
+   */
+  const auction = resolved.row.type === 'AUCTION' ? await getAuction(resolved.row.ref) : null;
+  const standing =
+    auction === null || viewer === null
+      ? null
+      : await viewerStanding(resolved.row.ref, viewer.id);
+
   return (
     <>
       <SiteHeader active="cars" />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <CarPage
+            auction={auction}
+            standing={standing}
             detail={detail satisfies PublicListingDetail}
             faq={faqRows}
             similar={similar.map((item) => ({

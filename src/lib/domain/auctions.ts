@@ -840,3 +840,57 @@ export async function closeEndedAuctions(now: Date = new Date()): Promise<number
 
   return ended.length;
 }
+
+export type ViewerStanding = {
+  /** هل زايد هذا الزائر في هذا المزاد؟ */
+  hasBid: boolean;
+  /** أهو صاحب أعلى مزايدة الآن؟ */
+  top: boolean;
+  /** آخر ما زايد به — ليقارنه بالأعلى دون أن يفتح السجلّ. */
+  amount: string | null;
+};
+
+/**
+ * ═══ موقف المزايد من مزاده ═══
+ *
+ * **ولا يُحشر في `PublicAuction`.** تلك قراءةٌ عامّة تُخدَّم للجميع،
+ * وحشوُ «هل أنت الأعلى؟» فيها يجعلها تختلف باختلاف القارئ — فتفسد
+ * كل ذاكرةٍ وسيطة، ويصير حقلٌ خاصٌّ بزائرٍ مسافرًا في استجابةٍ عامّة.
+ *
+ * **والمقارنة بالمبلغ لا بالمعرّف**: مزايدتان بالمبلغ نفسه مستحيلة
+ * (الخطوة تمنعها)، والأعلى واحدة. فمن يملك أعلى مبلغٍ هو الأعلى.
+ *
+ * ولا تُعاد هوية أحد: جواب نعم أو لا عن صاحب الجلسة وحده.
+ */
+export async function viewerStanding(
+  listingRef: string,
+  userId: string,
+): Promise<ViewerStanding> {
+  const auction = await db.auction.findFirst({
+    where: { listing: { ref: listingRef } },
+    select: {
+      bids: {
+        orderBy: { amount: 'desc' },
+        take: 1,
+        select: { bidderId: true, amount: true },
+      },
+    },
+  });
+
+  const highest = auction?.bids[0];
+  if (highest === undefined) return { hasBid: false, top: false, amount: null };
+
+  const mine = await db.bid.findFirst({
+    where: { auction: { listing: { ref: listingRef } }, bidderId: userId },
+    orderBy: { amount: 'desc' },
+    select: { amount: true },
+  });
+
+  if (mine === null) return { hasBid: false, top: false, amount: null };
+
+  return {
+    hasBid: true,
+    top: highest.bidderId === userId,
+    amount: mine.amount.toString(),
+  };
+}
