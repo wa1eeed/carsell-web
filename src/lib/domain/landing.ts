@@ -31,7 +31,7 @@ export type LandingKey = {
  * وجدولٌ مُعَدّ يصف السوق يوم أُعِدّ، ثم يعرض صفحاتٍ لتركيباتٍ نفدت
  * ويُخفي ما ظهر.
  */
-export async function landingCombinations(): Promise<LandingKey[]> {
+export async function landingCombinations(min = MIN_LISTINGS): Promise<LandingKey[]> {
   const rows = await db.listing.findMany({
     where: { status: 'PUBLISHED' },
     select: {
@@ -82,7 +82,7 @@ export async function landingCombinations(): Promise<LandingKey[]> {
   }
 
   return [...byKey.values()]
-    .filter((entry) => entry.count >= MIN_LISTINGS)
+    .filter((entry) => entry.count >= min)
     .sort((a, b) => b.count - a.count);
 }
 
@@ -190,6 +190,61 @@ export async function landingContent(
     inspectedCount,
     searchQuery: params.toString(),
   };
+}
+
+/**
+ * ═══ وما نزل تحت العتبة يُحوَّل ولا يموت ═══
+ *
+ * العتبة ثلاثةٌ **عند التوليد**، والفحص يقع عند كل طلب على بيانات
+ * اللحظة — فالتركيبة المنشورة في `sitemap.xml` اليوم تردّ ٤٠٤ غدًا
+ * متى بِيعت مركبة. وقد قِيس: `/browse/riyadh/toyota` ٤٠٤ **وفي
+ * الرياض تويوتان منشورتان**.
+ *
+ * والفرق بين «لا تستحقّ صفحةً» و«لا شيء هنا» حقيقيّ: الأولى عندها
+ * نتائج يصلها الزائر من البحث، والثانية لا. فالأولى تُحوَّل ٣٠١ إلى
+ * البحث بمرشّحاتها — فلا يُفقد ما فُهرس، ولا يُقابَل الزائر بباب
+ * مغلق وخلفه مركبتان.
+ *
+ * > **ورابطٌ نشرتَه بنفسك ثم أمَتَّه أسوأ من رابطٍ لم يُنشر.**
+ */
+export async function landingFallback(
+  rawCity: string,
+  rawBrand: string,
+  rawModel: string | null,
+): Promise<string | null> {
+  const citySlug = fromSlug(rawCity);
+  const brandSlug = fromSlug(rawBrand);
+  const modelSlug = rawModel === null ? null : fromSlug(rawModel);
+
+  // بواحدة: أيّ تركيبةٍ لها إعلانٌ منشور — لا التي تستحقّ صفحة
+  const any = await landingCombinations(1);
+  const picked = any.find(
+    (entry) =>
+      entry.citySlug === citySlug
+      && entry.brandSlug === brandSlug
+      && entry.modelSlug === modelSlug,
+  ) ?? any.find(
+    (entry) =>
+      toSlug(entry.city) === citySlug
+      && entry.brandSlug === brandSlug
+      && (modelSlug === null
+        ? entry.modelSlug === null
+        : entry.model !== null && toSlug(entry.model) === modelSlug),
+  );
+
+  if (picked === undefined) return null;
+
+  const [brand, model] = await Promise.all([
+    db.brand.findFirst({ where: { slug: picked.brandSlug }, select: { id: true } }),
+    picked.model === null
+      ? Promise.resolve(null)
+      : db.model.findFirst({ where: { nameAr: picked.model }, select: { id: true } }),
+  ]);
+
+  const params = new URLSearchParams({ city: picked.city });
+  if (brand !== null) params.set('brandId', brand.id);
+  if (model !== null) params.set('modelId', model.id);
+  return `/cars?${params.toString()}`;
 }
 
 /**

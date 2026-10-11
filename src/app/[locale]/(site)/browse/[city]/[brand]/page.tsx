@@ -9,7 +9,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
-import { landingContent, landingSiblings } from '@/lib/domain/landing';
+import { landingContent, landingFallback, landingSiblings } from '@/lib/domain/landing';
 import { EMPTY_FILTERS, SORTS, type Sort, searchListings } from '@/lib/domain/listings';
 import { CarCard } from '@/components/ui/CarCard';
 import { toCardData } from '@/components/ui/toCardData';
@@ -68,8 +68,22 @@ export default async function CityBrandLanding({
     landingContent(city, brand, null),
     getTranslations('landing'),
   ]);
-  // نفدت التركيبة ⇒ ٤٠٤ لا صفحةٌ فارغة
-  if (content === null) notFound();
+  /**
+   * ═══ نفدت التركيبة ⇒ تُحوَّل إن بقي فيها شيء ═══
+   *
+   * العتبة ثلاثةٌ عند التوليد، والفحص على بيانات اللحظة — فما نُشر في
+   * `sitemap.xml` اليوم يردّ ٤٠٤ غدًا متى بِيعت مركبة. **ورابطٌ
+   * نشرتَه بنفسك ثم أمَتَّه أسوأ من رابطٍ لم يُنشر.**
+   *
+   * فإن بقي إعلانٌ واحد تُحوَّل ٣٠١ إلى البحث بمرشّحاتها — لا تُفقد
+   * فهرسةٌ، ولا يُقابَل الزائر بباب مغلقٍ خلفه مركبتان. و٤٠٤ تبقى
+   * لما لا شيء خلفه أصلًا.
+   */
+  if (content === null) {
+    const fallback = await landingFallback(city, brand, null);
+    if (fallback !== null) permanentRedirect(`/${locale}${fallback}`);
+    notFound();
+  }
 
   /**
    * ═══ والرابط القديم يُحوَّل لا يُكسَر ═══
