@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { publicUrl } from '@/lib/r2';
 import {
   pendingAdjustment,
   walletView,
@@ -22,6 +23,15 @@ import {
 export type ListingImageRow = {
   id: string;
   r2Key: string;
+  /**
+   * الوجهة المعروضة — **وكانت الصفحة تعرض المفتاح نصًّا**.
+   *
+   * ومن يراجع صورةً ليحكم أطُمست لوحتُها أم لا، وأضبابيّةٌ هي أم لا،
+   * لا يحكم من `listings/abc123.jpg`. فنصفُ المراجعة بصريّ وكان
+   * يُقرأ حروفًا.
+   */
+  /** و`null` حين لا عنوان عامّ مضبوط — فتُرسم خانةٌ لا صورةٌ مكسورة. */
+  url: string | null;
   isCover: boolean;
   plateBlurred: boolean;
   /** بصمةٌ إدراكية — وتشابهُها هو ما يُحيل إعلانًا للمراجعة */
@@ -131,6 +141,7 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
     },
 
     images: listing.images.map((image) => ({
+      url: publicUrl(image.r2Key),
       id: image.id,
       r2Key: image.r2Key,
       isCover: image.isCover,

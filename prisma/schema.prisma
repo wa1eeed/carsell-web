@@ -520,6 +520,8 @@ model Listing {
   reviewQueuedAt DateTime?
   reviewNote     String?
   reviewedAt     DateTime?
+  /// متى أُنشئ — و`null` لما سبق الترحيل: لا نعرف، ولا يُخترَع تاريخ.
+  createdAt      DateTime? @default(now())
   reviewedBy     String?
 
   vehicle  Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Restrict)

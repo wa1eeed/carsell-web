@@ -484,6 +484,7 @@ Relations: `source` → `VehicleHistorySource` · `vehicle` → `Vehicle`
 | `reviewQueuedAt` | `DateTime?` |  |
 | `reviewNote` | `String?` |  |
 | `reviewedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime?` |  |
 | `reviewedBy` | `String?` |  |
 
 Relations: `type` → `ListingType` · `status` → `ListingStatus` · `reviewReason` → `ReviewReason` · `vehicle` → `Vehicle` · `seller` → `User` · `images` → `ListingImage` · `features` → `ListingFeature` · `offers` → `Offer` · `auction` → `Auction` · `orders` → `Order` · `serviceRequests` → `ServiceRequest`

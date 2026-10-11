@@ -14,6 +14,9 @@ import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminListingDetail } from '@/lib/domain/admin-entity-detail';
+import { listingTimeline } from '@/lib/domain/admin-listing-timeline';
+import { Timeline } from '@/components/admin/Timeline';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
@@ -49,10 +52,30 @@ const TYPE_LABEL: Record<string, string> = {
  * ما يقرّر به. والصور هنا بحالة كلٍّ منها: أطُمست لوحتُها، وأله بصمة
  * تُقارَن، وما أعلامُ جودته.
  */
+/**
+ * ═══ نظرةٌ شاملة — تابزٌ لا عمودٌ طويل ═══
+ *
+ * كانت الصفحة ستّ بطاقاتٍ تقول **الحال**: منشور، سعرُه كذا، عليه
+ * طلب. ولا تقول **كيف وصل إليها** — ومن يحقّق في شكوى («لماذا بِيعت
+ * بأقلّ من سعرها؟») يحتاج التسلسل لا اللقطة، فكان يُركّبه من خمس
+ * شاشاتٍ في رأسه.
+ *
+ * **والتابز في الرابط لا في حالة العميل**: يُشارَك ويُفتح في لسانٍ
+ * جديد، ويعود إليه من ضغط «رجوع».
+ */
+const TABS = [
+  { key: null, label: 'نظرة عامة' },
+  { key: 'history', label: 'التاريخ' },
+  { key: 'images', label: 'الصور' },
+  { key: 'money', label: 'العروض والطلبات' },
+] as const;
+
 export default async function AdminListingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ref: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -62,6 +85,13 @@ export default async function AdminListingDetailPage({
   const { ref } = await params;
   const listing = await adminListingDetail(decodeURIComponent(ref));
   if (listing === null) notFound();
+
+  const query = await searchParams;
+  const raw = typeof query.tab === 'string' ? query.tab : null;
+  const tab = TABS.find((row) => row.key === raw)?.key ?? null;
+
+  /** التاريخ يُجلب لتبويبه وحده — ولا يُحمَّل على من فتح النظرة العامّة. */
+  const events = tab === 'history' ? await listingTimeline(listing.ref) : [];
 
   return (
     <AdminShell title="تفاصيل الإعلان" activeHref="/admin/all-listings" admin={admin}>
@@ -88,66 +118,91 @@ export default async function AdminListingDetailPage({
           </>
         }
       />
+      <MonitorTabs
+        // **والعدّ يقول كم فيه قبل أن يُفتح** — وتابزٌ بلا عددٍ يُفتح ليُوجد فارغًا
+        tabs={TABS.map((row) => ({
+          key: row.key,
+          label: row.label,
+          /** **ولا عددَ على «نظرة عامة»** — صفرٌ عليها يُقرأ «فارغة». */
+          ...(row.key === 'images'
+            ? { count: listing.images.length }
+            : row.key === 'money'
+              ? { count: listing.offers.length + listing.orders.length }
+              : {}),
+        }))}
+        active={tab}
+        basePath={`/admin/listings/${encodeURIComponent(listing.ref)}`}
+        param="tab"
+      />
 
-      <DetailColumns
-        main={
-          <>
-            <DetailCard
-              title="الصور"
-              note={`صور (${displayDigits(String(listing.images.length))})`}
-            >
-              {listing.images.length === 0 ? (
-                <p className="text-2xs opacity-50">
-                  لا صور — وإعلانٌ بلا صورة لا يُنشر أصلًا.
-                </p>
-              ) : (
-                <div className="flex flex-col divide-y divide-line">
-                  {listing.images.map((image) => (
-                    <div key={image.id} className="flex items-center gap-3 py-2.5">
-                      {/* المفتاح يُقارن خانةً بخانة — لاتينيّ معزول */}
-                      <span dir="ltr" className="font-num min-w-0 flex-1 truncate text-start text-3xs opacity-60">
-                        {image.r2Key}
+      {tab !== 'history' ? null : (
+        <section className="rounded-xl border border-line p-5">
+          <h2 className="mb-1.5 text-sm font-bold">تاريخ الإعلان</h2>
+          <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-55">
+            كلُّ حدثٍ وقع عليه — من إنشائه إلى آخر خطوة، مرتَّبًا من الأقدم.
+            <b> وما لا سجلَّ له لا يُعرض</b>: لا سطرَ لتغيّر سعرٍ ما دام لا يُسجَّل،
+            وسطرٌ مخترَعٌ في تحقيقٍ أسوأ من سطرٍ غائب.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
+
+      {tab !== 'images' ? null : (
+        <section className="rounded-xl border border-line p-5">
+          <h2 className="mb-1.5 text-sm font-bold">الصور</h2>
+          <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-55">
+            <b>ونصفُ المراجعة بصريّ</b> — فالصورة هنا لا مفتاحُها: لوحةٌ ظاهرة أو
+            صورةٌ ضبابية تُردّ قبل قراءة سطر. وكانت تُعرض مفاتيحَ نصّية.
+          </p>
+
+          {listing.images.length === 0 ? (
+            <p className="text-2xs opacity-50">لا صور — وإعلانٌ بلا صورة لا يُنشر أصلًا.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {listing.images.map((image) => (
+                <figure key={image.id} className="overflow-hidden rounded-xl border border-line">
+                  <div className="aspect-4/3 bg-ink/8">
+                    {image.url === null ? (
+                      <span className="flex size-full items-center justify-center text-3xs opacity-45">
+                        لا عنوان عامّ مضبوط
                       </span>
-                      {image.isCover ? <Badge tone="neutral">غلاف</Badge> : null}
-                      {/*
-                        **اللوحة تُطمَس أو لا تُنشر.** وصورةٌ بلا طمس
-                        تنشر لوحةَ سيارةٍ لصاحبها لم يأذن بها.
-                      */}
-                      {image.plateBlurred ? (
-                        <Badge tone="accent">طُمست</Badge>
-                      ) : (
-                        <Badge tone="danger">بلا طمس</Badge>
-                      )}
-                      {image.hasFingerprint ? null : <Badge tone="warn">بلا بصمة</Badge>}
-                      {image.qualityFlags.map((flag) => (
-                        <Badge key={flag} tone="warn">
-                          {flag}
-                        </Badge>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </DetailCard>
+                    ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element -- مفتاحُ R2 لا يمرّ بمحسّن الصور */
+                      <img
+                        src={image.url}
+                        alt=""
+                        loading="lazy"
+                        className="size-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <figcaption className="flex flex-wrap items-center gap-1.5 p-3">
+                    {image.isCover ? <Badge tone="neutral">غلاف</Badge> : null}
+                    {/*
+                      **اللوحة تُطمَس أو لا تُنشر** — وصورةٌ بلا طمس تنشر
+                      لوحةَ سيارةٍ لصاحبها لم يأذن بها.
+                    */}
+                    {image.plateBlurred ? (
+                      <Badge tone="accent">طُمست اللوحة</Badge>
+                    ) : (
+                      <Badge tone="danger">بلا طمس</Badge>
+                    )}
+                    {image.hasFingerprint ? null : <Badge tone="warn">بلا بصمة</Badge>}
+                    {image.qualityFlags.map((flag) => (
+                      <Badge key={flag} tone="warn">
+                        {flag}
+                      </Badge>
+                    ))}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
-            <DetailCard title="المركبة">
-              <Field
-                label="الماركة والطراز"
-                value={`${listing.vehicle.brandName} ${listing.vehicle.modelName}`}
-              />
-              <Field label="السنة" value={displayDigits(String(listing.vehicle.year))} ltr />
-              <Field label="الهيكل" value={listing.vehicle.bodyType} ltr />
-              <Field label="ناقل الحركة" value={listing.vehicle.transmission} ltr />
-              <Field label="الوقود" value={listing.vehicle.fuel} ltr />
-              <Field
-                label="الممشى"
-                value={<ArabicNumber value={listing.vehicle.mileageKm} />}
-              />
-              <Field label="اللون" value={listing.vehicle.colorExterior} />
-              <Field label="الحالة" value={listing.vehicle.condition} ltr />
-              {/* الرقم التسلسليّ يُقارن خانةً بخانة */}
-              <Field label="الرقم التسلسليّ" value={listing.vehicle.vin ?? '—'} ltr />
-            </DetailCard>
+      {tab !== 'money' ? null : (
+        <div className="flex flex-col gap-5">
 
             {listing.offers.length === 0 ? null : (
               <DetailCard
@@ -187,6 +242,31 @@ export default async function AdminListingDetailPage({
                 ))}
               </DetailCard>
             )}
+        </div>
+      )}
+
+      {tab !== null ? null : (
+      <DetailColumns
+        main={
+          <>
+            <DetailCard title="المركبة">
+              <Field
+                label="الماركة والطراز"
+                value={`${listing.vehicle.brandName} ${listing.vehicle.modelName}`}
+              />
+              <Field label="السنة" value={displayDigits(String(listing.vehicle.year))} ltr />
+              <Field label="الهيكل" value={listing.vehicle.bodyType} ltr />
+              <Field label="ناقل الحركة" value={listing.vehicle.transmission} ltr />
+              <Field label="الوقود" value={listing.vehicle.fuel} ltr />
+              <Field
+                label="الممشى"
+                value={<ArabicNumber value={listing.vehicle.mileageKm} />}
+              />
+              <Field label="اللون" value={listing.vehicle.colorExterior} />
+              <Field label="الحالة" value={listing.vehicle.condition} ltr />
+              {/* الرقم التسلسليّ يُقارن خانةً بخانة */}
+              <Field label="الرقم التسلسليّ" value={listing.vehicle.vin ?? '—'} ltr />
+            </DetailCard>
           </>
         }
         side={
@@ -275,6 +355,7 @@ export default async function AdminListingDetailPage({
           </>
         }
       />
+      )}
     </AdminShell>
   );
 }

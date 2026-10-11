@@ -17,7 +17,14 @@ export type MonitorCard = { title: string; value: number | string; note: string 
 export type MonitorTab = {
   key: string | null;
   label: string;
-  count: number;
+  /**
+   * عددُ ما في الشريحة — **اختياريّ**.
+   *
+   * وشريحةٌ لا تُعدّ شيئًا («نظرة عامة») كانت تُجبَر على صفرٍ
+   * فيُقرأ «فارغة». والغياب يقول «لا عدّ هنا»، والصفر يقول «لا شيء
+   * هنا» — وبينهما فرق.
+   */
+  count?: number;
   /** نبرة العدّاد — تُفرَّق حين تعني الشريحة عملًا متأخّرًا. */
   tone?: 'neutral' | 'warn' | 'danger';
 };
@@ -101,6 +108,8 @@ export function MonitorTabs({
             }
           >
             {tab.label}
+            {/* **ولا شارةَ بلا عدّ** — شريحةٌ لا تُعدّ شيئًا لا تحمل صفرًا */}
+            {tab.count === undefined ? null : (
             <span
               className={
                 on
@@ -114,6 +123,7 @@ export function MonitorTabs({
             >
               {displayDigits(String(tab.count))}
             </span>
+            )}
           </a>
         );
       })}
