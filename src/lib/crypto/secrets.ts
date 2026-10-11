@@ -23,7 +23,7 @@ function key(): Buffer {
 
   const secret = process.env.SECRETS_KEY;
   if (secret === undefined || secret.length < 32) {
-    throw new Error('SECRETS_KEY غائب أو أقصر من ٣٢ محرفًا — راجع .env.example');
+    throw new Error('SECRETS_KEY غائب أو أقصر من 32 محرفًا — راجع .env.example');
   }
 
   cachedKey = scryptSync(secret, 'carsell.secrets.v1', 32);

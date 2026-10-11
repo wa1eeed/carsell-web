@@ -18,7 +18,7 @@ export type SessionClaims = {
 function secret(): Uint8Array {
   const value = process.env.JWT_SECRET;
   if (value === undefined || value.length < 32) {
-    throw new Error('JWT_SECRET غائب أو أقصر من ٣٢ بايت — راجع .env.example');
+    throw new Error('JWT_SECRET غائب أو أقصر من 32 بايت — راجع .env.example');
   }
   return new TextEncoder().encode(value);
 }

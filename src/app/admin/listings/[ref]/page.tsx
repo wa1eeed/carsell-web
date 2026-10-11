@@ -15,7 +15,7 @@ import { can } from '@/lib/domain/permissions';
 import { adminListingDetail } from '@/lib/domain/admin-entity-detail';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
 import { STAGE_LABEL } from '@/lib/labels/charts';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +93,7 @@ export default async function AdminListingDetailPage({
           <>
             <DetailCard
               title="الصور"
-              note={`صور (${toArabicDigits(String(listing.images.length))})`}
+              note={`صور (${displayDigits(String(listing.images.length))})`}
             >
               {listing.images.length === 0 ? (
                 <p className="text-2xs opacity-50">
@@ -134,7 +134,7 @@ export default async function AdminListingDetailPage({
                 label="الماركة والطراز"
                 value={`${listing.vehicle.brandName} ${listing.vehicle.modelName}`}
               />
-              <Field label="السنة" value={toArabicDigits(String(listing.vehicle.year))} ltr />
+              <Field label="السنة" value={displayDigits(String(listing.vehicle.year))} ltr />
               <Field label="الهيكل" value={listing.vehicle.bodyType} ltr />
               <Field label="ناقل الحركة" value={listing.vehicle.transmission} ltr />
               <Field label="الوقود" value={listing.vehicle.fuel} ltr />
@@ -151,7 +151,7 @@ export default async function AdminListingDetailPage({
             {listing.offers.length === 0 ? null : (
               <DetailCard
                 title="العروض"
-                note={`عروض (${toArabicDigits(String(listing.offers.length))})`}
+                note={`عروض (${displayDigits(String(listing.offers.length))})`}
               >
                 {listing.offers.map((offer) => (
                   <Field

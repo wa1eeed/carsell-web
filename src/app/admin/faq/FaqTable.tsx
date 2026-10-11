@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { FaqRow } from '@/lib/domain/admin-content';
 
 /**
@@ -100,7 +100,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               {row.missingEn ? <Badge tone="warn">بلا إنجليزية</Badge> : null}
 
               <span className="font-num text-3xs opacity-45">
-                {toArabicDigits(String(row.sort))}
+                {displayDigits(String(row.sort))}
               </span>
 
               <Badge tone={row.active ? 'accent' : 'neutral'}>

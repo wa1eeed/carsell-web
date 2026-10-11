@@ -11,7 +11,7 @@ import {
 } from '@/lib/domain/admin-dashboard';
 import { dailyOrders } from '@/lib/domain/admin-charts';
 import { dayTick } from '@/lib/labels/charts';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import {
   DASHBOARD_CARD_LABEL,
   DASHBOARD_SEGMENT_LABEL,
@@ -63,7 +63,7 @@ export async function GrowthTab() {
       <div className="mt-9 mb-3.5 flex items-baseline gap-3">
         <h2 className="text-md font-bold">حجم الطلبات اليومي</h2>
         <span className="text-2xs opacity-45">
-          أيّام ({toArabicDigits(String(RANGE_DAYS))})
+          أيّام ({displayDigits(String(RANGE_DAYS))})
         </span>
         <span className="h-px flex-1 bg-line" aria-hidden />
       </div>

@@ -23,7 +23,7 @@ import { PriceGuidance } from '@/components/site/PriceGuidance';
 import type { RangeStats } from '@/components/ui/RangeBar';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 type Option = { id: string; nameAr: string; nameEn: string };
@@ -322,7 +322,7 @@ export function SellWizard({
   /** وصفُ الشريحة التي بُني عليها الرقم — «كامري ٢٠٢٢ في الرياض». */
   const segmentLabel = [
     models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
-    vehicle.year === '' ? '' : toArabicDigits(vehicle.year),
+    vehicle.year === '' ? '' : displayDigits(vehicle.year),
     vehicle.city === '' ? '' : `${t('inCity')} ${vehicle.city}`,
   ]
     .filter((part) => part !== '')
@@ -745,7 +745,7 @@ export function SellWizard({
                   <span aria-hidden className="opacity-30">·</span>
                   {/* الجملة لا يحكمها المعدود — والعدد بين قوسين (البوابة ١٨) */}
                   <span className="font-num">
-                    المقاعد ({toArabicDigits(String(inheritedTrim.seats))})
+                    المقاعد ({displayDigits(String(inheritedTrim.seats))})
                   </span>
                 </p>
               </div>
@@ -978,7 +978,7 @@ export function SellWizard({
                 />
                 <PriceField
                   label={t('auction.increment')}
-                  hint={`${t('auction.incrementHint')} ${toArabicDigits(trimZeros(auctionLimits.minIncrement))}`}
+                  hint={`${t('auction.incrementHint')} ${displayDigits(trimZeros(auctionLimits.minIncrement))}`}
                   value={bidIncrement}
                   onChange={setBidIncrement}
                 />
@@ -1043,8 +1043,8 @@ export function SellWizard({
                 */}
                 <Note>
                   {t('auction.extendRule', {
-                    window: toArabicDigits(String(Math.round(auctionLimits.extendWindowSeconds / 60))),
-                    by: toArabicDigits(String(Math.round(auctionLimits.extendBySeconds / 60))),
+                    window: displayDigits(String(Math.round(auctionLimits.extendWindowSeconds / 60))),
+                    by: displayDigits(String(Math.round(auctionLimits.extendBySeconds / 60))),
                   })}
                 </Note>
 
@@ -1075,7 +1075,7 @@ export function SellWizard({
               <SettingsBlock title={t('auction.depositTitle')}>
                 <PriceField
                   label={t('auction.depositField')}
-                  hint={`${t('auction.depositHint')} ${toArabicDigits(trimZeros(auctionLimits.defaultDeposit))}`}
+                  hint={`${t('auction.depositHint')} ${displayDigits(trimZeros(auctionLimits.defaultDeposit))}`}
                   value={depositAmount}
                   onChange={setDepositAmount}
                 />
@@ -1185,12 +1185,12 @@ export function SellWizard({
                 {/*
                   **والجملة نصٌّ، فلا يبلغها `<Quantity>`.** تُصاغ
                   فلا يحكم العددُ المعدودَ — «مهلة الدفع (٢٤ ساعة)» —
-                  والرقم على `toArabicDigits`. (البوابة ١٨.)
+                  والرقم على `displayDigits`. (البوابة ١٨.)
                 */}
                 <Note>
                   {t('negotiation.accepted', {
                     hours: locale === 'ar'
-                      ? toArabicDigits(String(rules.paymentWindowHours))
+                      ? displayDigits(String(rules.paymentWindowHours))
                       : String(rules.paymentWindowHours),
                   })}
                 </Note>
@@ -1222,7 +1222,7 @@ export function SellWizard({
                 <Note>
                   {t('direct.rules', {
                     hours: locale === 'ar'
-                      ? toArabicDigits(String(rules.paymentWindowHours))
+                      ? displayDigits(String(rules.paymentWindowHours))
                       : String(rules.paymentWindowHours),
                   })}
                 </Note>
@@ -1253,7 +1253,7 @@ export function SellWizard({
                   [
                     brands.find((row) => row.id === vehicle.brandId)?.nameAr ?? '',
                     models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
-                    vehicle.year === '' ? '' : toArabicDigits(vehicle.year),
+                    vehicle.year === '' ? '' : displayDigits(vehicle.year),
                   ]
                     .filter((part) => part !== '')
                     .join(' ') || '—'

@@ -11,7 +11,7 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { ServiceRow } from '@/lib/domain/admin-services';
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -183,7 +183,7 @@ export function ServicesTable({
       // العددُ بين قوسين فلا يحكم المعدود — والعربية ستّ حالات جمع
       return untouched === undefined || untouched === 0
         ? 'حُفظ.'
-        : `حُفظ · الطلبات القائمة (${toArabicDigits(String(untouched))}) بقيت بسعرها.`;
+        : `حُفظ · الطلبات القائمة (${displayDigits(String(untouched))}) بقيت بسعرها.`;
     });
     setDraft(null);
   };
@@ -522,7 +522,7 @@ export function ServicesTable({
                   numeric
                   value={draft.adminFee}
                   onChange={(adminFee) => setDraft({ ...draft, adminFee })}
-                  hint="ما يُدخَل هنا هو ما يدفعه العميل: الضريبة مضمَّنة فيه ١٥/١١٥."
+                  hint="ما يُدخَل هنا هو ما يدفعه العميل — الضريبة مضمَّنة فيه وتُستخرج بالنسبة المعمول بها."
                 />
               )}
             </div>

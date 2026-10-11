@@ -286,7 +286,7 @@ export function TrimEditor({
           <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">
             معاينة — ما يراه البائع
           </h3>
-          <p className="mb-2.5 text-xs opacity-45">الخطوة ٢ — بيانات المركبة</p>
+          <p className="mb-2.5 text-xs opacity-45">الخطوة 2 — بيانات المركبة</p>
           <SpecRow label="نوع الهيكل">{BODY[draft.bodyType]}</SpecRow>
           <SpecRow label="ناقل الحركة">{TRANS[draft.transmission]}</SpecRow>
           <SpecRow label="الوقود">{FUEL[draft.fuel]}</SpecRow>

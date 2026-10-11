@@ -13,7 +13,7 @@ import {
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { auctionCounts, auctionMonitor } from '@/lib/domain/admin-monitors';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'المزادات' };
@@ -53,13 +53,13 @@ export default async function AdminAuctionsPage({
           { title: 'جارية الآن', value: counts.live, note: 'الحالة وانقضاء الوقت معًا' },
           {
             title: 'قيمة المزايدات القائمة',
-            value: `${toArabicDigits(Number(counts.liveValue).toLocaleString('en-US'))}`,
+            value: `${displayDigits(Number(counts.liveValue).toLocaleString('en-US'))}`,
             note: 'مجموع أعلى المزايدات',
           },
           { title: 'لم تبلغ الاحتياطي', value: counts.unmet, note: 'تحتاج قرار البائع' },
           {
             title: 'نسبة الرسوّ',
-            value: `${toArabicDigits(String(counts.clearancePct))}٪`,
+            value: `${displayDigits(String(counts.clearancePct))}٪`,
             note: 'من المنتهية',
           },
         ]}
@@ -123,8 +123,8 @@ export default async function AdminAuctionsPage({
                 <Money amount={Number(row.topBid)} />
               )}
               <span className="text-3xs opacity-45">
-                مزايدون ({toArabicDigits(String(row.bidderCount))}) · مزايدات (
-                {toArabicDigits(String(row.bidCount))})
+                مزايدون ({displayDigits(String(row.bidderCount))}) · مزايدات (
+                {displayDigits(String(row.bidCount))})
               </span>
             </div>
 

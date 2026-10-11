@@ -74,7 +74,7 @@ export default async function AdminAuditPage({
 
       <MonitorList
         empty={{ title: 'لا مدخلات', description: 'كل إجراء أدمن يُكتب هنا فور وقوعه.' }}
-        note="السجلّ يُضاف إليه ولا يُعدَّل. والاحتفاظ ٢٤ شهرًا، والحذف لا سبيل إليه من اللوحة."
+        note="السجلّ يُضاف إليه ولا يُعدَّل. والاحتفاظ 24 شهرًا، والحذف لا سبيل إليه من اللوحة."
       >
         {rows.map((row) => (
           <MonitorRow

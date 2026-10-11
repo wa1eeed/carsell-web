@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { ReviewEvidence, ReviewRow, ReviewStats } from '@/lib/domain/admin-listings';
 import { MIN_REVIEW_NOTE } from '@/lib/domain/review-rules';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
@@ -37,25 +37,25 @@ function evidenceText(evidence: ReviewEvidence): string {
   if (evidence.kind === 'DUPLICATE_IMAGE') {
     return evidence.otherRef === null
       ? 'صورة مكرّرة — والإعلان المطابق لم يعد قائمًا'
-      : `تطابق ${toArabicDigits(String(evidence.matchPct))}٪ مع ${evidence.otherRef}`;
+      : `تطابق ${displayDigits(String(evidence.matchPct))}٪ مع ${evidence.otherRef}`;
   }
   if (evidence.kind === 'PRICE_OUTLIER') {
     return evidence.marketP25 === null
       ? 'سعر شاذّ — ولا إحصاء سوق لهذا الطراز بعد'
-      : `أقل ${toArabicDigits(String(evidence.belowPct))}٪ من ربع السوق الأدنى`;
+      : `أقل ${displayDigits(String(evidence.belowPct))}٪ من ربع السوق الأدنى`;
   }
   if (evidence.kind === 'NEW_ACCOUNT_BURST') {
-    return `عمر الحساب (${toArabicDigits(String(evidence.accountAgeDays))}) · إعلاناته (${toArabicDigits(String(evidence.listingCount))})`;
+    return `عمر الحساب (${displayDigits(String(evidence.accountAgeDays))}) · إعلاناته (${displayDigits(String(evidence.listingCount))})`;
   }
-  return `بلاغات: ${toArabicDigits(String(evidence.reportCount))}`;
+  return `بلاغات: ${displayDigits(String(evidence.reportCount))}`;
 }
 
 /** الانتظار — دقائق ثم ساعات، فلا يُقرأ «١٤٠ دقيقة». */
 function waitedText(minutes: number): string {
-  if (minutes < 60) return `دقائق (${toArabicDigits(String(minutes))})`;
+  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${toArabicDigits(String(hours))})`;
-  return `أيّام (${toArabicDigits(String(Math.floor(hours / 24)))})`;
+  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
+  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
 }
 
 type Decision = 'APPROVE' | 'RETURN' | 'REJECT';
@@ -131,7 +131,7 @@ export function ReviewQueue({
         <Card
           title="اعتُمد اليوم"
           value={stats.approvedToday}
-          note={`${toArabicDigits(String(stats.reviewedSharePct))}٪ من المراجَع`}
+          note={`${displayDigits(String(stats.reviewedSharePct))}٪ من المراجَع`}
         />
         <Card title="أُعيد للبائع" value={stats.returnedToday} note="بملاحظة يقرؤها صاحبه" />
         {/*
@@ -141,7 +141,7 @@ export function ReviewQueue({
         <Card
           title="نُشر مباشرةً بلا مراجعة"
           value={stats.publishedDirectToday}
-          note={`${toArabicDigits(String(stats.directSharePct))}٪ من إعلانات اليوم`}
+          note={`${displayDigits(String(stats.directSharePct))}٪ من إعلانات اليوم`}
         />
       </StatGrid>
 

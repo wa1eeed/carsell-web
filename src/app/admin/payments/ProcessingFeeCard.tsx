@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { Chip } from '@/components/ui/Chip';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { ProcessingFeeRow } from '@/lib/domain/payment-routing';
 
 const BEARER_LABEL: Record<'SELLER' | 'BUYER', string> = {
@@ -65,12 +65,12 @@ export function ProcessingFeeCard({
       /**
        * **العددُ بين قوسين فلا يحكم المعدود.** «و١٠ طلبًا» تُصيب حالةً
        * من ستّ، و«الطلبات القائمة (١٠)» تصحّ في كلّها. والرقم يمرّ على
-       * `toArabicDigits` — فالعرض عربيّ-هنديّ والتخزين Latin.
+       * `displayDigits` — فالعرض عربيّ-هنديّ والتخزين Latin.
        */
       setToast(
         payload.data.openOrders === 0
           ? 'حُفظ.'
-          : `حُفظ · الطلبات القائمة (${toArabicDigits(String(payload.data.openOrders))}) تبقى بسياستها.`,
+          : `حُفظ · الطلبات القائمة (${displayDigits(String(payload.data.openOrders))}) تبقى بسياستها.`,
       );
       router.refresh();
     });

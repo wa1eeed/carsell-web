@@ -33,8 +33,8 @@ export const TYPE_LABEL: Record<string, string> = {
 export function pctLabel(value: string): string {
   const number = Number(value);
   if (!Number.isFinite(number)) return value;
-  // `toArabicDigits` لا تمسّ الفاصلة، فتُبدَّل بالعربية هنا
-  return String(number).replace('.', '٫');
+  // `displayDigits` لا تمسّ الفاصلة، فتُبدَّل بالعربية هنا
+  return String(number).replace('.', '.');
 }
 
 /** «خيارات البيع» في جدول التصميم — ثلاث خصائص مجموعةً في خليّة. */

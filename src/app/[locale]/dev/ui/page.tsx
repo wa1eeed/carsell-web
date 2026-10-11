@@ -68,7 +68,7 @@ const CAR: ListingCardData = {
 const AUCTION_CAR: ListingCardData = {
   ...CAR,
   ref: 'ADS2026A0012',
-  title: 'نيسان باترول ٢٠٢٢',
+  title: 'نيسان باترول 2022',
   type: 'AUCTION',
   highestBid: 208_500,
   bidderCount: 4,
@@ -138,7 +138,7 @@ export default async function DevUiPage({
                   <div key={cls} className="flex items-baseline gap-3">
                     <span className="w-20 text-3xs opacity-45">{cls}</span>
                     <ArabicNumber value={px} className="w-8 text-3xs opacity-45" />
-                    <span className={cls}>الأرقام ١٢٣ والحروف</span>
+                    <span className={cls}>الأرقام 123 والحروف</span>
                   </div>
                 ))}
               </div>
@@ -186,14 +186,14 @@ export default async function DevUiPage({
               <InspectedBadge />
             </Case>
 
-            <Case label="PlateBadge — sm ٨٢ · md ١٢٠ · lg ١٨٠ · المكافئ اللاتيني مشتقّ">
+            <Case label="PlateBadge — sm 82 · md 120 · lg 180 · المكافئ اللاتيني مشتقّ">
               <PlateBadge letters="أ ب ح" numbers="1234" size="sm" />
               <PlateBadge letters="أ ب ح" numbers="1234" size="md" />
               <PlateBadge letters="ب س د" numbers="4444" size="lg" />
               <PlateBadge letters="م ص ط" numbers="9078" size="md" />
             </Case>
 
-            <Case label="Countdown — دون ٢٤ ساعة: HH:MM:SS · فوقها: أيام وساعات">
+            <Case label="Countdown — دون 24 ساعة: HH:MM:SS · فوقها: أيام وساعات">
               <Countdown endsAt={SOON} />
               <Countdown endsAt={SOON} tone="warn" />
               <Countdown endsAt={SOON} tone="plain" />
@@ -296,7 +296,7 @@ export default async function DevUiPage({
               </div>
             </Case>
 
-            <Case label="RangeBar — عيّنة < ٨ ⇒ لا شيء يُعرض">
+            <Case label="RangeBar — عيّنة < 8 ⇒ لا شيء يُعرض">
               <div className="w-full text-2xs opacity-45">
                 <RangeBar
                   price={145_000}

@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { Metadata } from 'next';
 
 import { LiveBar, SiteFooter, SiteHeader } from '@/components/site/SiteHeader';
@@ -82,7 +82,7 @@ function popularLabel(
   const price = /^priceMax:(\d+)$/.exec(chip.label);
   if (price !== null) {
     const thousands = Number(price[1]) / 1000;
-    return `${dict.t('under')} ${toArabicDigits(String(thousands))} ${dict.t('thousandRiyal')}`;
+    return `${dict.t('under')} ${displayDigits(String(thousands))} ${dict.t('thousandRiyal')}`;
   }
 
   const fuel = /^fuel:(\w+)$/.exec(chip.label);

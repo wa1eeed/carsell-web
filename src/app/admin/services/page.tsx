@@ -30,8 +30,8 @@ export default async function AdminServicesPage() {
         <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">قواعد التسعير</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            السعر <strong>لقطة في الطلب</strong>: عميلٌ طلب فحصًا بـ٣٥٠ ثم رُفع السعر
-            يدفع ٣٥٠. تغييرُ العقد بعد انعقاده ليس تسعيرًا.
+            السعر <strong>لقطة في الطلب</strong>: عميلٌ طلب فحصًا بـ350 ثم رُفع السعر
+            يدفع 350. تغييرُ العقد بعد انعقاده ليس تسعيرًا.
           </li>
           <li>عمود «طلبات قائمة» يقول كم طلبًا يبقى بالسعر القديم — الأثر قبل الضغط لا بعده.</li>
           <li>إخفاء خدمة يمنع طلبات جديدة ولا يمسّ القائم.</li>

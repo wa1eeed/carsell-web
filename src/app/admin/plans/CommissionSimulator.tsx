@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 
 /**
  * ═══ A29 — محاكي العمولة ═══
@@ -111,7 +111,7 @@ export function CommissionSimulator({
         {result === null ? null : (
           <span className="flex items-baseline gap-2.5">
             <span className="text-2xs opacity-55">العمولة المحسوبة</span>
-            <span className="font-num text-xl font-bold">{toArabicDigits(result)}</span>
+            <span className="font-num text-xl font-bold">{displayDigits(result)}</span>
             <span className="text-2xs opacity-55">ريال</span>
           </span>
         )}

@@ -1,4 +1,4 @@
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 export type PlateSize = 'sm' | 'md' | 'lg';
@@ -87,7 +87,7 @@ export function PlateBadge({
       {/* الخلايا الأربع — الفواصل خطوط لا حدود صناديق */}
       <span className="flex flex-1 flex-col">
         <span className="flex flex-1">
-          <Cell grow={1}>{toArabicDigits(numbers)}</Cell>
+          <Cell grow={1}>{displayDigits(numbers)}</Cell>
           <VLine />
           <Cell grow={1.15}>{arabicLetters}</Cell>
         </span>

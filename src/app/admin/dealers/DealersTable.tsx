@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { DealerRow } from '@/lib/domain/admin-dealers';
 import { MIN_DEALER_NOTE } from '@/lib/domain/dealer-rules';
 
@@ -107,12 +107,12 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
             <div className="flex flex-wrap items-center gap-5">
               <div className="flex flex-col items-start gap-0.5">
                 <span className="text-2xs">
-                  المخزون ({toArabicDigits(String(row.inventory))})
+                  المخزون ({displayDigits(String(row.inventory))})
                 </span>
                 <span className="text-3xs opacity-45">
                   {row.ratingAvg === null
                     ? 'بلا تقييم'
-                    : `التقييم ${toArabicDigits(row.ratingAvg)} · مقيّمون (${toArabicDigits(String(row.ratingCount))})`}
+                    : `التقييم ${displayDigits(row.ratingAvg)} · مقيّمون (${displayDigits(String(row.ratingCount))})`}
                 </span>
               </div>
 
@@ -146,7 +146,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
               <Line label="السجل التجاريّ" value={open.crNumber ?? 'غير مسجَّل'} mono />
               <Line label="الرقم الضريبيّ" value={open.vatNumber ?? 'غير مسجَّل'} mono />
               <Line label="المدينة" value={open.city} />
-              <Line label="الأعضاء" value={toArabicDigits(String(open.memberCount))} />
+              <Line label="الأعضاء" value={displayDigits(String(open.memberCount))} />
             </dl>
 
             {/*

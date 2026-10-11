@@ -12,7 +12,7 @@ import {
   IMPRESSION_FLUSH_SECONDS,
   MAX_BANNERS_PER_SCREEN,
 } from '@/lib/domain/ad-rules';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
 import { NewCampaign } from './NewCampaign';
 import { CampaignActions } from './CampaignActions';
@@ -101,7 +101,7 @@ export default async function AdminAdsPage({
             // العدد قيمةً والنسبة ملاحظةً — كالتصميم، والجملة لا يحكمها المعدود
             title: 'مساحات مفعّلة',
             value: stats.activeSlots,
-            note: `من ${toArabicDigits(String(stats.slots))} — والمعطّلة لا تُعرض للزائر`,
+            note: `من ${displayDigits(String(stats.slots))} — والمعطّلة لا تُعرض للزائر`,
           },
           { title: 'حملات جارية', value: stats.liveCampaigns, note: 'بين تاريخَي البدء والانتهاء' },
           {
@@ -173,10 +173,10 @@ export default async function AdminAdsPage({
                   <td className="p-3 opacity-70">
                     {riyadh.format(new Date(row.startsAt))} — {riyadh.format(new Date(row.endsAt))}
                   </td>
-                  <td className="font-num p-3">{toArabicDigits(String(row.impressions))}</td>
-                  <td className="font-num p-3">{toArabicDigits(String(row.clicks))}</td>
+                  <td className="font-num p-3">{displayDigits(String(row.impressions))}</td>
+                  <td className="font-num p-3">{displayDigits(String(row.clicks))}</td>
                   <td className="font-num p-3 opacity-70">
-                    {toArabicDigits(row.ctrPct.toFixed(1))}٪
+                    {displayDigits(row.ctrPct.toFixed(1))}٪
                   </td>
                   <td className="p-3">
                     {/*
@@ -206,10 +206,10 @@ export default async function AdminAdsPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">قواعد تحمي التطبيق من الإعلانات</p>
           <p>
-            بنر ({toArabicDigits(String(MAX_BANNERS_PER_SCREEN))}) لكل شاشة كحدّ أقصى ·
+            بنر ({displayDigits(String(MAX_BANNERS_PER_SCREEN))}) لكل شاشة كحدّ أقصى ·
             وسم «إعلان» أو «مموّل» إلزاميّ ·{' '}
             <b>لا إعلان داخل مسار الدفع والمزايدة والنزاع</b> · وإعلانات
-            ({toArabicDigits(String(stats.sessionCap))}) كحدّ أقصى في جلسة الرئيسية
+            ({displayDigits(String(stats.sessionCap))}) كحدّ أقصى في جلسة الرئيسية
             {stats.homeServed
               ? '، والسقف يُفرَض في الخادم لا في التطبيق'
               : ' — قاعدةٌ لم يبلغها مسارٌ بعد، فلا إعلان في الرئيسية'}
@@ -221,9 +221,9 @@ export default async function AdminAdsPage({
           <p className="mb-2 font-bold">الأداء والبطارية</p>
           <p>
             طلب واحد يجلب كل مساحات الشاشة · تخزين دقائق
-            ({toArabicDigits(String(AD_CACHE_MINUTES))}) · تحميل كسول · صور WebP بمقاس
+            ({displayDigits(String(AD_CACHE_MINUTES))}) · تحميل كسول · صور WebP بمقاس
             الجهاز · <b>لا فيديو تلقائيّ</b> · أحداث الظهور تُجمَّع وتُرسل كل ثانية
-            ({toArabicDigits(String(IMPRESSION_FLUSH_SECONDS))}).
+            ({displayDigits(String(IMPRESSION_FLUSH_SECONDS))}).
           </p>
         </div>
       </div>

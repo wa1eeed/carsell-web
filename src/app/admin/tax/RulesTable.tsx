@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import {
   ANY_TYPE,
   BUYER_TYPE_LABEL,
@@ -112,7 +112,7 @@ export function RulesTable({
       setToast(
         payload.data.state === 'APPLIED'
           ? 'طُبِّق التعديل.'
-          : `سُجِّل الطلب — الموافقات (${toArabicDigits(String(payload.data.approvals ?? 1))} من ${toArabicDigits(String(payload.data.required ?? 2))}). ينتظر عضوًا ثانيًا.`,
+          : `سُجِّل الطلب — الموافقات (${displayDigits(String(payload.data.approvals ?? 1))} من ${displayDigits(String(payload.data.required ?? 2))}). ينتظر عضوًا ثانيًا.`,
       );
       setDraft(null);
       router.refresh();

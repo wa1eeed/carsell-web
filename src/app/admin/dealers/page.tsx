@@ -8,7 +8,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { dealerList, dealerStats } from '@/lib/domain/admin-dealers';
 import type { DealerStatus } from '@/generated/prisma/enums';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { DealersTable } from './DealersTable';
 
 export const dynamic = 'force-dynamic';
@@ -56,7 +56,7 @@ export default async function AdminDealersPage({
           { title: 'متوسط المخزون', value: stats.averageInventory, note: 'مركبة لكل معرض' },
           {
             title: 'حصّتها من الإعلانات',
-            value: `${toArabicDigits(String(stats.listingSharePct))}٪`,
+            value: `${displayDigits(String(stats.listingSharePct))}٪`,
             note: 'من المنشور',
           },
         ]}

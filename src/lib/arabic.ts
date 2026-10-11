@@ -1,7 +1,30 @@
 /**
- * الأرقام: التخزين والحساب Latin دائمًا، والعرض عربي-هندي.
- * لا تُستدعى هذه الدوال إلا في طبقة العرض — لا في `domain/` ولا في الـAPI.
+ * ═══ الأرقام — التخزين Latin، والعرض بمفتاحٍ واحد ═══
+ *
+ * كان العرض عربيًّا-هنديًّا في كل مكان. **وقرار المالك: تُوحَّد
+ * لاتينيّة** — أوضح للمشغّل، وأقرب لما يراه في فاتورةٍ أو كشف بنك،
+ * ويقرؤه الناطق بالعربية والإنجليزية سواءً.
+ *
+ * والتبديل هنا وحده: `DISPLAY_NUMERALS` يقلب المنصّة كلّها —
+ * ثمانيةٌ وستّون ملفًّا تنادي `displayDigits`، وواحدٌ وتسعون تستعمل
+ * `ArabicNumber`، وكلُّها تمرّ من هذا الملفّ.
+ *
+ * ═══ وثمنُه عزلٌ لا يُنسى ═══
+ *
+ * رقمٌ لاتينيّ داخل نصٍّ عربيّ **مقطعٌ معاكس الاتّجاه**: بلا عزلٍ
+ * ينزلق ما حوله («٣ ريال» تصير «ريال 3»)، وبلا `dir="ltr"` تسقط
+ * إشارةُ السالب إلى اليمين فيُرسم «892−». فكلُّ رقمٍ معروضٍ يمرّ
+ * بـ`ArabicNumber` وهي تعزل وتُثبّت الاتّجاه دائمًا.
+ *
+ * والتخزين والحساب Latin كما كانا. ولا تُستدعى هذه الدوال إلا في
+ * طبقة العرض — لا في `domain/` ولا في الـAPI.
  */
+
+/**
+ * **مفتاحُ العرض الوحيد.** `'arabic'` يعيد المنصّة إلى الأرقام
+ * العربية-الهندية في سطرٍ واحد.
+ */
+export const DISPLAY_NUMERALS: 'latin' | 'arabic' = 'latin';
 
 const ARABIC_INDIC = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'] as const;
 
@@ -9,8 +32,15 @@ const ARABIC_INDIC = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'
 const ARABIC_GROUP = '٬';
 const ARABIC_DECIMAL = '٫';
 
-/** يحوّل الأرقام اللاتينية وحدها إلى عربية-هندية، ويترك ما عداها. */
-export function toArabicDigits(value: string): string {
+/**
+ * أرقامُ العرض — **لاتينية بالمفتاح الحاليّ**.
+ *
+ * وكان اسمُها `displayDigits`: دالّةٌ بهذا الاسم تُخرج لاتينيًّا
+ * تكذب على كل من يقرأ موضع استدعائها، فيظنّ أنّ الشاشة عربية الأرقام
+ * وهي ليست. **والاسم يتبع ما تفعله لا ما كانت تفعله.**
+ */
+export function displayDigits(value: string): string {
+  if (DISPLAY_NUMERALS === 'latin') return value;
   return value.replace(/[0-9]/g, (d) => ARABIC_INDIC[Number(d)] as string);
 }
 
@@ -50,9 +80,9 @@ export function formatNumber(
     useGrouping: grouped,
   });
 
-  if (locale === 'en') return latin;
+  if (locale === 'en' || DISPLAY_NUMERALS === 'latin') return latin;
 
-  return toArabicDigits(latin)
+  return displayDigits(latin)
     .replace(/,/g, ARABIC_GROUP)
     .replace(/\./g, ARABIC_DECIMAL);
 }
@@ -62,12 +92,13 @@ export function formatNumber(
  *
  * رقم النسخة «1.1» سلسلةٌ لا عدد: تمريره على `formatNumber` يجعله
  * `1.10` أو `1.1` بحسب الكسور المطلوبة، وهو ليس كمّيّة أصلًا. وكان
- * يُعرض بـ`toArabicDigits` وحدها فيخرج «١.١» بنقطةٍ لاتينية بين
+ * يُعرض بـ`displayDigits` وحدها فيخرج «١.١» بنقطةٍ لاتينية بين
  * رقمين عربيّين — والتصميم يكتب «٣٫١»، وكل عددٍ آخر في المنصّة
  * يمرّ على `ARABIC_DECIMAL` نفسها.
  */
-export function toArabicNumeric(value: string): string {
-  return toArabicDigits(value).replace(/\./g, ARABIC_DECIMAL);
+export function displayNumeric(value: string): string {
+  if (DISPLAY_NUMERALS === 'latin') return value;
+  return displayDigits(value).replace(/\./g, ARABIC_DECIMAL);
 }
 
 /** عدّاد `HH:MM:SS` — **Latin في اللغتين** (HANDOFF §١٢: أوضح وأسرع قراءة). */

@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { SettlementBlock, SettlementRow } from '@/lib/domain/settlement-queue';
 
 /**
@@ -104,8 +104,8 @@ export function SettlementsTable({
                   <span className="text-3xs opacity-55">
                     طلبه {approval.requestedByName} · النصاب{' '}
                     <span dir="ltr" className="font-num">
-                      {toArabicDigits(String(approval.approvals))}/
-                      {toArabicDigits(String(approval.required))}
+                      {displayDigits(String(approval.approvals))}/
+                      {displayDigits(String(approval.required))}
                     </span>
                   </span>
                   {/*
@@ -217,7 +217,7 @@ function Section({
         {title}
         {/* العدد داخل الشارة لا في الجملة — فلا يحكم المعدودُ صيغةَ الجمع */}
         <Badge tone={tone === 'ok' ? 'accent' : tone === 'warn' ? 'warn' : 'neutral'}>
-          {toArabicDigits(String(count))}
+          {displayDigits(String(count))}
         </Badge>
       </h2>
       <div className="flex flex-col divide-y divide-line border-y border-line">{children}</div>

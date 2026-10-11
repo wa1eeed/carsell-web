@@ -132,7 +132,7 @@ export const ERRORS = {
   }),
   INVALID_PHONE: {
     code: 'INVALID_PHONE',
-    messageAr: 'رقم الجوال غير صحيح. اكتبه بصيغة ٠٥XXXXXXXX.',
+    messageAr: 'رقم الجوال غير صحيح. اكتبه بصيغة 05XXXXXXXX.',
     messageEn: 'Invalid mobile number. Use the format 05XXXXXXXX.',
   },
   OTP_RATE_LIMITED: {
@@ -202,7 +202,7 @@ export const ERRORS = {
   },
   UPLOAD_REJECTED: {
     code: 'UPLOAD_REJECTED',
-    messageAr: 'نوع الملف أو حجمه غير مقبول. PNG أو SVG أو WebP حتى ٨ ميجابايت.',
+    messageAr: 'نوع الملف أو حجمه غير مقبول. PNG أو SVG أو WebP حتى 8 ميجابايت.',
     messageEn: 'File type or size not accepted. PNG, SVG or WebP up to 8 MB.',
   },
   ADMIN_INVALID_CREDENTIALS: {

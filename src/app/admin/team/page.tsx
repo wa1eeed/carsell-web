@@ -64,7 +64,7 @@ export default async function AdminTeamPage() {
              * «من ٢ أدوار» خطأٌ لا يُصلحه تحويل الخانة. والقيمة
              * يحرسها `admin-copy.test.ts`.
              */
-            note: 'من ٦ أدوار',
+            note: 'من 6 أدوار',
           },
           {
             title: 'جلسات نشطة',
@@ -74,7 +74,7 @@ export default async function AdminTeamPage() {
              * يكتبها «صلاحية ٨ ساعات». والثماني مكتوبةٌ كأختَيها —
              * و`admin-provision.test.ts` يحرس الثابت.
              */
-            note: 'صلاحيتها ٨ ساعات',
+            note: 'صلاحيتها 8 ساعات',
           },
           { title: 'حسابات مقفلة', value: stats.locked, note: 'بعد محاولات فاشلة' },
           { title: 'الصلاحيات', value: PERMISSION_LIST.length, note: 'في المصفوفة' },
@@ -160,7 +160,7 @@ export default async function AdminTeamPage() {
         <div className="min-w-2xs max-w-md flex-1 rounded-xl border border-line px-5 py-5">
           <h3 className="mb-3 text-3xs font-bold tracking-wider opacity-45">لا استثناء فيها</h3>
           <p className="text-2xs leading-loose opacity-70">
-            لا تسجيل ذاتيّ ولا استرجاع كلمة بالبريد · ٥ محاولات فاشلة ⇒ قفل ١٥ دقيقة ·
+            لا تسجيل ذاتيّ ولا استرجاع كلمة بالبريد · 5 محاولات فاشلة ⇒ قفل 15 دقيقة ·
             تبديل الكلمة أو الدور يُبطل جلسات العضو فورًا · وكل تعيينٍ يُكتب في سجل التدقيق.
           </p>
         </div>

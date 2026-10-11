@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { parseFilters } from '@/lib/domain/listings';
 
 /**
@@ -15,7 +15,7 @@ export async function describeFilters(query: string, locale: string): Promise<st
   const filters = parseFilters(new URLSearchParams(query));
   const te = await getTranslations('enums');
   const t = await getTranslations('search');
-  const digits = locale === 'ar' ? toArabicDigits : (value: string): string => value;
+  const digits = locale === 'ar' ? displayDigits : (value: string): string => value;
   const arabic = locale === 'ar';
 
   const parts: string[] = [];

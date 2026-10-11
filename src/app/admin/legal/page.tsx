@@ -6,7 +6,7 @@ import { MonitorList, MonitorRow } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { legalDocuments, legalSummary } from '@/lib/domain/admin-content';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'الصفحات القانونية' };
@@ -43,7 +43,7 @@ export default async function AdminLegalPage() {
         («مستندان») — والعربية ستُّ حالات. و`subtitle` نصٌّ لا عنصر فلا
         يبلغها `<Quantity>`، فتُصاغ صيغةً لا يحكمها المعدود.
       */
-      subtitle={`المستندات (${toArabicDigits(String(summary.total))}) · تعديل جوهريّ يُخطَر قبل أسبوعين`}
+      subtitle={`المستندات (${displayDigits(String(summary.total))}) · تعديل جوهريّ يُخطَر قبل أسبوعين`}
       activeHref="/admin/legal"
       admin={admin}
     >
@@ -108,11 +108,11 @@ export default async function AdminLegalPage() {
           <MonitorRow
             key={doc.key}
             title={doc.titleAr}
-            subtitle={`أقسام (${toArabicDigits(String(doc.sectionCount))})`}
+            subtitle={`أقسام (${displayDigits(String(doc.sectionCount))})`}
             meta={doc.key}
           >
             <div className="flex flex-col items-start gap-0.5">
-              <span className="font-num text-2xs font-bold">{toArabicDigits(doc.version)}</span>
+              <span className="font-num text-2xs font-bold">{displayDigits(doc.version)}</span>
               <span className="text-3xs opacity-45">
                 يسري من {riyadh.format(new Date(doc.effectiveAt))}
               </span>

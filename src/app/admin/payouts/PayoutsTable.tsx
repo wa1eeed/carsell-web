@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { PayableSeller, PayoutRow } from '@/lib/domain/payouts';
 
 /**
@@ -162,7 +162,7 @@ export function PayoutsTable({
                         آيبان ينتهي بـ
                         {/* الأرقام اللاتينية تُعزل ويُقلَب اتجاهها — فلا تُقرأ معكوسة */}
                         <span dir="ltr" className="font-num mx-1">
-                          {toArabicDigits(row.ibanLast4)}
+                          {displayDigits(row.ibanLast4)}
                         </span>
                       </>
                     )}
@@ -217,7 +217,7 @@ export function PayoutsTable({
                     <>
                       آيبان ينتهي بـ
                       <span dir="ltr" className="font-num mx-1">
-                        {toArabicDigits(row.ibanLast4)}
+                        {displayDigits(row.ibanLast4)}
                       </span>
                     </>
                   )}
@@ -363,7 +363,7 @@ function Section({
         {title}
         {/* العدد داخل الشارة لا في الجملة — فلا يحكم المعدودُ صيغةَ الجمع */}
         <Badge tone={tone === 'ok' ? 'accent' : tone === 'warn' ? 'warn' : 'neutral'}>
-          {toArabicDigits(String(count))}
+          {displayDigits(String(count))}
         </Badge>
       </h2>
       <div className="flex flex-col divide-y divide-line border-y border-line">{children}</div>
@@ -376,7 +376,7 @@ function Line({ label, value, mono }: { label: string; value: string; mono?: boo
     <div className="flex items-baseline justify-between gap-4">
       <dt className="opacity-55">{label}</dt>
       <dd className={mono === true ? 'font-num' : 'bidi-isolate truncate'} {...(mono === true ? { dir: 'ltr' } : {})}>
-        {mono === true ? toArabicDigits(value) : value}
+        {mono === true ? displayDigits(value) : value}
       </dd>
     </div>
   );

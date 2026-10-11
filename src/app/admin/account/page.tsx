@@ -5,7 +5,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { ownAccount } from '@/lib/domain/admin-account';
 import { ADMIN_SESSION_HOURS } from '@/lib/domain/admin-auth';
 import { PERMISSION_LIST, can, canWrite } from '@/lib/domain/permissions';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { PasswordForm } from './PasswordForm';
 
 export const dynamic = 'force-dynamic';
@@ -63,7 +63,7 @@ export default async function AdminAccountPage() {
             />
             <Row
               label="جلسات حيّة"
-              value={`${toArabicDigits(String(account.activeSessions))} — صلاحيتها ساعات (${toArabicDigits(String(ADMIN_SESSION_HOURS))})`}
+              value={`${displayDigits(String(account.activeSessions))} — صلاحيتها ساعات (${displayDigits(String(ADMIN_SESSION_HOURS))})`}
             />
           </div>
 
@@ -78,7 +78,7 @@ export default async function AdminAccountPage() {
           </p>
 
           <h2 className="mt-9 mb-3.5 text-sm font-bold">
-            ما تملكه ({toArabicDigits(String(mine.length))})
+            ما تملكه ({displayDigits(String(mine.length))})
           </h2>
           <div className="flex flex-wrap gap-2">
             {mine.map((permission) => (

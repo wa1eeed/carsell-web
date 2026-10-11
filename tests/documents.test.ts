@@ -272,10 +272,19 @@ describe('السالب يحتفظ بإشارته', () => {
    * فيُقرأ الخصم زيادة.
    */
   it('التنسيق يضع الإشارة قبل الرقم في اللغتين', async () => {
-    const { formatNumber } = await import('@/lib/arabic');
+    const { formatNumber, DISPLAY_NUMERALS } = await import('@/lib/arabic');
     expect(formatNumber(-892, 'ar').startsWith('-')).toBe(true);
     expect(formatNumber(-892, 'en').startsWith('-')).toBe(true);
-    expect(formatNumber(-2465, 'ar')).toBe('-٢٬٤٦٥');
+
+    /**
+     * **والصيغة تتبع المفتاح لا الحرف.** كان الفحص على «-٢٬٤٦٥»
+     * حرفيًّا، فلمّا وُحِّدت الأرقام لاتينيّةً (قرار المالك) سقط —
+     * **وهو يثبّت قرارًا تبدّل لا سلوكًا انكسر**. والمقيس هو ما يهمّ:
+     * الإشارة قبل الرقم، والفاصلة فاصلةُ الصيغة المختارة.
+     */
+    expect(formatNumber(-2465, 'ar')).toBe(
+      DISPLAY_NUMERALS === 'latin' ? '-2,465' : '-٢٬٤٦٥',
+    );
   });
 });
 

@@ -18,7 +18,7 @@ import { ExtendTransfer } from './ExtendTransfer';
 import { adminOrderDetail } from '@/lib/domain/admin-order-detail';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { STAGE_LABEL } from '@/lib/labels/charts';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -219,7 +219,7 @@ export default async function AdminOrderDetailPage({
                 note={
                   order.ledger.length === 0
                     ? 'لا قيد بعد'
-                    : `قيود (${toArabicDigits(String(order.ledger.length))})`
+                    : `قيود (${displayDigits(String(order.ledger.length))})`
                 }
               >
                 {order.ledger.length === 0 ? (
@@ -265,7 +265,7 @@ export default async function AdminOrderDetailPage({
 
             <DetailCard
               title="السجلّ"
-              note={`آخر حدث (${toArabicDigits(String(order.timeline.length))})`}
+              note={`آخر حدث (${displayDigits(String(order.timeline.length))})`}
             >
               {order.timeline.length === 0 ? (
                 <p className="text-2xs opacity-50">لا أحداث مسجّلة.</p>
@@ -453,7 +453,7 @@ function PartyBlock({
       {/* سياقٌ لمن يقرّر في نزاع: أوّل صفقةٍ له أم العاشرة */}
       <Field
         label="طلبات سابقة"
-        value={toArabicDigits(String(party.previousOrders))}
+        value={displayDigits(String(party.previousOrders))}
         ltr
       />
     </div>

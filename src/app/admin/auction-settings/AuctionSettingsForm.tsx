@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { AuctionSettings } from '@/lib/domain/admin-auction-settings';
 
 /**
@@ -86,12 +86,12 @@ export function AuctionSettingsForm({
 
           <Readonly
             label="التمديد عند مزايدة أخيرة"
-            value={`دقائق (${toArabicDigits(String(Math.round(settings.extendBySeconds / 60)))})`}
+            value={`دقائق (${displayDigits(String(Math.round(settings.extendBySeconds / 60)))})`}
             note="يُضبط من المهل الزمنية"
           />
           <Readonly
             label="نافذة التمديد"
-            value={`ثوانٍ (${toArabicDigits(String(settings.extendWindowSeconds))})`}
+            value={`ثوانٍ (${displayDigits(String(settings.extendWindowSeconds))})`}
             note="آخر ما قبل الإغلاق"
           />
           <Field
@@ -122,7 +122,7 @@ export function AuctionSettingsForm({
                     on ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink'
                   }`}
                 >
-                  أيّام ({toArabicDigits(String(days))})
+                  أيّام ({displayDigits(String(days))})
                 </button>
               );
             })}
@@ -140,7 +140,7 @@ export function AuctionSettingsForm({
             value={form.defaultDeposit}
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, defaultDeposit: v })}
-            note="الموصى به ٣–٥٪ من الاحتياطي"
+            note="الموصى به 3–5٪ من الاحتياطي"
           />
           <Field
             label="أقلّ فرق بين مزايدتين"
@@ -176,7 +176,7 @@ export function AuctionSettingsForm({
           />
           <Readonly
             label="مهلة قرار البائع دون الاحتياطي"
-            value={`ساعات (${toArabicDigits(String(settings.sellerDecisionHours))})`}
+            value={`ساعات (${displayDigits(String(settings.sellerDecisionHours))})`}
             note="بعدها يُغلق وتُرَدّ العرابين — من المهل الزمنية"
           />
         </section>

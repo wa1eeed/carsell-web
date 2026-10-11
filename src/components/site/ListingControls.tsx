@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 
 /**
  * ═══ البائع يتحكّم بإعلانه — ولم يكن يستطيع ═══
@@ -138,7 +138,7 @@ export function ListingControls({
             />
             {priceOk ? null : (
               <span className="text-3xs text-danger">
-                أقلّ سعر مقبول {toArabicDigits(String(PRICE_MIN))} ريال.
+                أقلّ سعر مقبول {displayDigits(String(PRICE_MIN))} ريال.
               </span>
             )}
           </label>

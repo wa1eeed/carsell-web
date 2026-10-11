@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
@@ -284,7 +284,7 @@ export default async function DealerPage({
                       <dt className="opacity-60">{row.day}</dt>
                       {/* الوقت يُقرأ خانةً بخانة — لاتينيّ معزول بأرقام عربية */}
                       <dd dir="ltr" className="font-num">
-                        {toArabicDigits(row.open)} – {toArabicDigits(row.close)}
+                        {displayDigits(row.open)} – {displayDigits(row.close)}
                       </dd>
                     </div>
                   ))}

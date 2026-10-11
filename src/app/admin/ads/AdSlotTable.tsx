@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { AdSlotRow } from '@/lib/domain/admin-plans';
 
 /**
@@ -86,7 +86,7 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                 */}
                 <td className="font-num p-3 opacity-70">
                   {row.sizeLabel === ''
-                    ? `${toArabicDigits(String(row.width))}×${toArabicDigits(String(row.height))}`
+                    ? `${displayDigits(String(row.width))}×${displayDigits(String(row.height))}`
                     : row.sizeLabel}
                 </td>
                 <td className="p-3 opacity-70">
@@ -104,10 +104,10 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                 </td>
                 <td className="p-3">
                   <span className="flex flex-col gap-0.5">
-                    <span className="font-num">{toArabicDigits(String(row.campaignCount))}</span>
+                    <span className="font-num">{displayDigits(String(row.campaignCount))}</span>
                     {row.liveCampaigns === 0 ? null : (
                       <span className="text-3xs text-accent-700">
-                        جارية ({toArabicDigits(String(row.liveCampaigns))})
+                        جارية ({displayDigits(String(row.liveCampaigns))})
                       </span>
                     )}
                   </span>

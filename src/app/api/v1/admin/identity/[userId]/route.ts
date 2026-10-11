@@ -4,7 +4,7 @@ import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import { decideIdentity } from '@/lib/domain/admin-identity';
 import { MIN_IDENTITY_NOTE } from '@/lib/domain/identity-rules';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const runtime = 'nodejs';
 
@@ -22,7 +22,7 @@ const STATUS: Record<string, number> = {
 const MESSAGE: Record<string, string> = {
   USER_NOT_FOUND: 'لا حساب بهذا المعرّف.',
   NOT_IN_QUEUE: 'الحساب لم يعد في الطابور — راجعه غيرك.',
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${toArabicDigits(String(MIN_IDENTITY_NOTE))}) — صاحبها يقرؤها ليُصلح.`,
+  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_IDENTITY_NOTE))}) — صاحبها يقرؤها ليُصلح.`,
 };
 
 /**

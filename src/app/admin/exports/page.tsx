@@ -7,7 +7,7 @@ import { can } from '@/lib/domain/permissions';
 import { exportLog, exportStats } from '@/lib/domain/admin-reports-export';
 import { REPORTS, REPORT_SCHEDULING_RUNS } from '@/lib/domain/report-catalog';
 import { REPORT_CONTENT, REPORT_NAME, REPORT_SCHEDULE_LABEL } from '@/lib/labels/reports';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'التقارير والتصدير' };
@@ -46,7 +46,7 @@ export default async function AdminExportsPage() {
     <AdminShell title="التقارير والتصدير"
       subtitle="تقارير جاهزة تُنزَّل — ولا تمسّ البيانات" activeHref="/admin/exports" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
-        تقارير جاهزة ({toArabicDigits(String(stats.reports))}) — كلٌّ منها{' '}
+        تقارير جاهزة ({displayDigits(String(stats.reports))}) — كلٌّ منها{' '}
         <b>استعلامٌ مسمّى على القراءة</b>، لا لقطةُ شاشة.
       </p>
 
@@ -66,7 +66,7 @@ export default async function AdminExportsPage() {
           {
             title: 'تقارير جاهزة',
             value: stats.reports,
-            note: `يفتحها دورك (${toArabicDigits(String(mine.length))})`,
+            note: `يفتحها دورك (${displayDigits(String(mine.length))})`,
           },
           { title: 'تصديرات هذا الشهر', value: stats.exportsThisMonth, note: 'المسجَّلة منها' },
           {
@@ -129,7 +129,7 @@ export default async function AdminExportsPage() {
 
       {hidden === 0 ? null : (
         <p className="mt-3 text-3xs opacity-50">
-          وتقارير ({toArabicDigits(String(hidden))}) لا يفتحها دورك — فلا تُعرض.
+          وتقارير ({displayDigits(String(hidden))}) لا يفتحها دورك — فلا تُعرض.
         </p>
       )}
 
@@ -151,7 +151,7 @@ export default async function AdminExportsPage() {
                 {REPORT_NAME[row.reportKey as keyof typeof REPORT_NAME] ?? row.reportKey}
               </span>
               <span className="flex shrink-0 items-center gap-5 text-3xs opacity-60">
-                <span className="font-num">صفوف ({toArabicDigits(String(row.rows))})</span>
+                <span className="font-num">صفوف ({displayDigits(String(row.rows))})</span>
                 <span>{riyadh.format(new Date(row.at))}</span>
               </span>
             </div>
@@ -172,7 +172,7 @@ export default async function AdminExportsPage() {
           <p className="mb-2 font-bold">لا تُبنى التقارير من الشاشات</p>
           <p>
             كل تقرير <b>استعلامٌ مسمّى على القراءة</b> بأعمدةٍ ثابتة، وحدّه صفٌّ
-            ({toArabicDigits(String(stats.rowLimit))}) — فلا يُبطئ تقريرٌ ثقيل مزادًا
+            ({displayDigits(String(stats.rowLimit))}) — فلا يُبطئ تقريرٌ ثقيل مزادًا
             جاريًا.
           </p>
         </div>

@@ -7,7 +7,7 @@ import { ShareBars } from '@/components/ui/ShareBars';
 import { Sparkline } from '@/components/ui/Sparkline';
 import { monthlyGmv } from '@/lib/domain/admin-charts';
 import { monthTick } from '@/lib/labels/charts';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { canWrite } from '@/lib/domain/permissions';
 import {
   SIMULATED_PERCENTAGES,
@@ -139,7 +139,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       */}
       <SectionHead
         title="قيمة المبيعات والإيراد"
-        note={`شهرًا (${toArabicDigits(String(GMV_MONTHS))}) · بالريال`}
+        note={`شهرًا (${displayDigits(String(GMV_MONTHS))}) · بالريال`}
       />
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
         {/*
@@ -162,7 +162,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           }))}
           total={Number(summary.revenue.total)}
           decimals={2}
-          baseNote={`مزيج الإيراد — القاعدة ${toArabicDigits(Number(summary.revenue.total).toLocaleString('en-US', { maximumFractionDigits: 0 }))} ريال في المدى`}
+          baseNote={`مزيج الإيراد — القاعدة ${displayDigits(Number(summary.revenue.total).toLocaleString('en-US', { maximumFractionDigits: 0 }))} ريال في المدى`}
         />
       </div>
 
@@ -215,7 +215,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
               </span>
             )
           }
-          note="الجيّد ٣× فأعلى — أقلّ منه يعني أننا ندفع لجلب العميل أكثر ممّا يعطينا."
+          note="الجيّد 3× فأعلى — أقلّ منه يعني أننا ندفع لجلب العميل أكثر ممّا يعطينا."
         />
         <Indicator
           /* الوحدة في العنوان لا بعد الرقم: الكسر لا يُصرَّف جمعًا في العربية */

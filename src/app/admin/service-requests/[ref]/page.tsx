@@ -8,7 +8,7 @@ import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminServiceRequestDetail } from '@/lib/domain/admin-detail-readers';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,8 +33,8 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
 function sla(hours: number | null): string {
   if (hours === null) return 'بلا التزام';
   if (hours === 0) return 'فوريّ';
-  if (hours < 72) return `ساعات (${toArabicDigits(String(hours))})`;
-  return `أيّام (${toArabicDigits(String(Math.round(hours / 24)))})`;
+  if (hours < 72) return `ساعات (${displayDigits(String(hours))})`;
+  return `أيّام (${displayDigits(String(Math.round(hours / 24)))})`;
 }
 
 /**

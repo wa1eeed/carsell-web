@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { IdentityRow, IdentityStats } from '@/lib/domain/admin-identity';
 import { MIN_IDENTITY_NOTE } from '@/lib/domain/identity-rules';
 
@@ -40,10 +40,10 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function waitedText(minutes: number): string {
-  if (minutes < 60) return `دقائق (${toArabicDigits(String(minutes))})`;
+  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${toArabicDigits(String(hours))})`;
-  return `أيّام (${toArabicDigits(String(Math.floor(hours / 24)))})`;
+  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
+  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
 }
 
 type Decision = 'VERIFY' | 'CLARIFY' | 'REJECT';
@@ -112,7 +112,7 @@ export function IdentityQueue({
         <div className="rounded-lg border border-line bg-surface p-5">
           <p className="mb-2 text-2xs opacity-55">نسبة النفاذ الوطني</p>
           <span className="font-num text-3xl font-bold">
-            {toArabicDigits(String(stats.nafathSharePct))}٪
+            {displayDigits(String(stats.nafathSharePct))}٪
           </span>
           <p className="mt-1.5 text-3xs opacity-50">كلّما ارتفعت قلّ الطابور</p>
         </div>
@@ -162,7 +162,7 @@ export function IdentityQueue({
 
                 <div className="flex flex-col items-start gap-0.5">
                   <span className="text-2xs opacity-70">
-                    إعلاناته ({toArabicDigits(String(row.listingCount))})
+                    إعلاناته ({displayDigits(String(row.listingCount))})
                   </span>
                   <span className="text-3xs opacity-45">منذ {waitedText(row.waitingMinutes)}</span>
                 </div>

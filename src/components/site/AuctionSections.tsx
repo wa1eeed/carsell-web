@@ -5,7 +5,7 @@ import { Countdown } from '@/components/ui/Countdown';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { PublicAuction } from '@/lib/domain/auctions';
 
 /**
@@ -198,7 +198,7 @@ export function BidStep({ step }: { step: string | null }) {
   if (step === null) return <span className="opacity-35">—</span>;
   return (
     <span className="font-num text-3xs text-accent-700" dir="ltr">
-      +{toArabicDigits(step)}
+      +{displayDigits(step)}
     </span>
   );
 }

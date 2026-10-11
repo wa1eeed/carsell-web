@@ -17,7 +17,7 @@ import { STAGE_LABEL } from '@/lib/labels/charts';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { MarginPanel } from './MarginPanel';
 import { WalletPanel } from './WalletPanel';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +93,7 @@ export default async function AdminUserDetailPage({
           <>
             <DetailCard
               title="الإعلانات"
-              note={`المعروض آخر عشرة من ${toArabicDigits(String(user.counts.listings))}`}
+              note={`المعروض آخر عشرة من ${displayDigits(String(user.counts.listings))}`}
             >
               {user.listings.length === 0 ? (
                 <p className="text-2xs opacity-50">لا إعلانات.</p>
@@ -171,7 +171,7 @@ export default async function AdminUserDetailPage({
             */}
             <DetailCard
               title="كشف العمليات"
-              note={`آخر قيد (${toArabicDigits(String(user.ledger.length))})`}
+              note={`آخر قيد (${displayDigits(String(user.ledger.length))})`}
             >
               {user.ledger.length === 0 ? (
                 <p className="text-2xs opacity-50">

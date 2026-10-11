@@ -11,7 +11,7 @@ import {
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { offerCounts, offerMonitor } from '@/lib/domain/admin-monitors';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'العروض والمفاوضات' };
@@ -62,7 +62,7 @@ export default async function AdminOffersPage({
           { title: 'بلا ردّ أكثر من يوم', value: counts.stale, note: 'تسقط تلقائيًّا بانقضاء المهلة' },
           {
             title: 'نسبة القبول',
-            value: `${toArabicDigits(String(counts.acceptancePct))}٪`,
+            value: `${displayDigits(String(counts.acceptancePct))}٪`,
             note: 'ممّا نظر فيه البائع',
           },
         ]}

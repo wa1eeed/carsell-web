@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StatCard, StatGrid } from '@/components/admin/StatCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 /**
  * ═══ صدفة شاشات المراقبة — A16 · A22 · A23 · A27 ═══
@@ -24,10 +24,10 @@ export type MonitorTab = {
 
 /** الوقت المنقضي نصًّا — والجملة لا يحكمها المعدود (البوابة ١٨). */
 export function elapsed(minutes: number): string {
-  if (minutes < 60) return `دقائق (${toArabicDigits(String(minutes))})`;
+  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${toArabicDigits(String(hours))})`;
-  return `أيّام (${toArabicDigits(String(Math.floor(hours / 24)))})`;
+  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
+  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
 }
 
 /**
@@ -41,7 +41,7 @@ export function countdown(seconds: number): string {
   if (seconds <= 0) return 'انتهى — يُحتسب الآن';
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  return `${toArabicDigits(String(h).padStart(2, '0'))}:${toArabicDigits(String(m).padStart(2, '0'))}`;
+  return `${displayDigits(String(h).padStart(2, '0'))}:${displayDigits(String(m).padStart(2, '0'))}`;
 }
 
 /**
@@ -112,7 +112,7 @@ export function MonitorTabs({
                       : 'rounded-full bg-ink/8 px-1.75 py-px font-num text-3xs font-bold'
               }
             >
-              {toArabicDigits(String(tab.count))}
+              {displayDigits(String(tab.count))}
             </span>
           </a>
         );

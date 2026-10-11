@@ -8,7 +8,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminDisputeDetail } from '@/lib/domain/admin-detail-readers';
 import { STAGE_LABEL } from '@/lib/labels/charts';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +68,7 @@ export default async function AdminDisputeDetailPage({
         main={
           <DetailCard
             title="الرسائل"
-            note={`رسائل (${toArabicDigits(String(dispute.messages.length))})`}
+            note={`رسائل (${displayDigits(String(dispute.messages.length))})`}
           >
             {dispute.messages.length === 0 ? (
               <p className="text-2xs opacity-50">لا رسائل — فُتح النزاع بلا شرح.</p>

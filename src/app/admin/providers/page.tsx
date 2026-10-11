@@ -7,7 +7,7 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import { breachedRequests, providerList, providerStats } from '@/lib/domain/admin-providers';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { ProviderTable } from './ProviderTable';
 
 export const dynamic = 'force-dynamic';
@@ -68,8 +68,8 @@ export default async function AdminProvidersPage({
     <AdminShell title="مزوّدو الخدمات والتمويل"
       subtitle="المزوّدون والتزامهم" activeHref="/admin/providers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        مزوّدون ({toArabicDigits(String(rows.length))}) · خدمات مرتبطة (
-        {toArabicDigits(String(stats.servicesLinked))})
+        مزوّدون ({displayDigits(String(rows.length))}) · خدمات مرتبطة (
+        {displayDigits(String(stats.servicesLinked))})
       </p>
 
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/providers" param="type" />
@@ -79,7 +79,7 @@ export default async function AdminProvidersPage({
           {
             title: 'مزوّدون نشطون',
             value: stats.active,
-            note: `يغطّون مدنًا (${toArabicDigits(String(stats.cities))})`,
+            note: `يغطّون مدنًا (${displayDigits(String(stats.cities))})`,
           },
           { title: 'طلبات مُسنَدة', value: stats.assignedThisMonth, note: 'هذا الشهر' },
           {
@@ -88,7 +88,7 @@ export default async function AdminProvidersPage({
             note:
               stats.breached === 0
                 ? 'لا تأخّر قائم'
-                : `الإسقاط بعد تجاوزات (${toArabicDigits(String(stats.breachesBeforeSuspension))})`,
+                : `الإسقاط بعد تجاوزات (${displayDigits(String(stats.breachesBeforeSuspension))})`,
           },
           { title: 'خدمات مرتبطة', value: stats.servicesLinked, note: 'تصلها إسنادات' },
         ]}
@@ -123,7 +123,7 @@ export default async function AdminProvidersPage({
                 </span>
               </div>
               <span className="font-num shrink-0 text-2xs text-danger">
-                تأخّر ساعات ({toArabicDigits(String(row.overdueHours))})
+                تأخّر ساعات ({displayDigits(String(row.overdueHours))})
               </span>
             </div>
           ))}
@@ -142,7 +142,7 @@ export default async function AdminProvidersPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">التجاوز والإسقاط</p>
           <p>
-            تجاوز الالتزام مرّات ({toArabicDigits(String(stats.breachesBeforeSuspension))}) في شهر
+            تجاوز الالتزام مرّات ({displayDigits(String(stats.breachesBeforeSuspension))}) في شهر
             يُسقط المزوّد من الإسناد الآليّ حتى مراجعته —{' '}
             <b>العميل لا يتحمّل تأخير مزوّد</b>.
           </p>

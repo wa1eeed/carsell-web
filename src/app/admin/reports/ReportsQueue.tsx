@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { ReportRow, ReportStats } from '@/lib/domain/admin-reports';
 import { MIN_REPORT_NOTE } from '@/lib/domain/report-rules';
 
@@ -46,10 +46,10 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function waitedText(minutes: number): string {
-  if (minutes < 60) return `دقائق (${toArabicDigits(String(minutes))})`;
+  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${toArabicDigits(String(hours))})`;
-  return `أيّام (${toArabicDigits(String(Math.floor(hours / 24)))})`;
+  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
+  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
 }
 
 type Action = 'REVIEW_LISTING' | 'DISMISS' | 'ACTIONED';
@@ -178,7 +178,7 @@ export function ReportsQueue({
                     **العدد هو ما يُقرَّر عليه لا البلاغ المفرد** — قرار ٥.
                   */}
                   <span className="text-3xs opacity-50">
-                    بلاغات على الهدف ({toArabicDigits(String(row.siblingCount))})
+                    بلاغات على الهدف ({displayDigits(String(row.siblingCount))})
                   </span>
                 </div>
 

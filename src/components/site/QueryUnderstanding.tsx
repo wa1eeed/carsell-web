@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { Chip } from '@/lib/domain/query-parse';
 
 /**
@@ -51,7 +51,7 @@ export async function QueryUnderstanding({
 }: Props) {
   const t = await getTranslations('search');
   const te = await getTranslations('enums');
-  const digits = locale === 'ar' ? toArabicDigits : (value: string): string => value;
+  const digits = locale === 'ar' ? displayDigits : (value: string): string => value;
 
   /** الشارة المشتقّة (`text: ''`) لا تُعرض — الموديل يقول ماركته. */
   const removed = new Set(dropped);

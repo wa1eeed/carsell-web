@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { Modal } from '@/components/ui/Sheet';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
@@ -275,7 +275,7 @@ export function BidPanel({
                 className="rounded-full border border-line px-3.5 py-2 font-num text-3xs font-bold hover:border-ink"
                 dir="ltr"
               >
-                {toArabicDigits(String(value))}
+                {displayDigits(String(value))}
               </button>
             );
           })}

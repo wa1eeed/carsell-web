@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import { MIN_DEALER_NOTE, decideDealer } from '@/lib/domain/admin-dealers';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const runtime = 'nodejs';
 
@@ -22,7 +22,7 @@ const STATUS: Record<string, number> = {
 const MESSAGE: Record<string, string> = {
   DEALER_NOT_FOUND: 'لا معرض بهذا المعرّف.',
   CR_REQUIRED: 'لا شارة بلا سجل تجاريّ — الشارة تقول إن المنشأة مسجَّلة.',
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${toArabicDigits(String(MIN_DEALER_NOTE))}).`,
+  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_DEALER_NOTE))}).`,
   ALREADY: 'المعرض موثّق ونشط سلفًا.',
 };
 

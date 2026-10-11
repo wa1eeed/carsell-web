@@ -4,7 +4,7 @@ import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import { MIN_REVIEW_NOTE, decideReview } from '@/lib/domain/admin-listings';
 import { can } from '@/lib/domain/permissions';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +24,7 @@ const MESSAGE: Record<string, string> = {
   LISTING_NOT_FOUND: 'لا إعلان بهذا المرجع.',
   NOT_IN_QUEUE: 'الإعلان لم يعد في الطابور — راجعه غيرك.',
   // الرقم عربيّ-هنديّ ومعزول، والجملة لا يحكمها المعدود
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${toArabicDigits(String(MIN_REVIEW_NOTE))}) — البائع يقرؤها ليُصلح.`,
+  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_REVIEW_NOTE))}) — البائع يقرؤها ليُصلح.`,
   SUSPEND_NOT_ALLOWED: 'إيقاف الحساب يحتاج صلاحية أعلى.',
 };
 

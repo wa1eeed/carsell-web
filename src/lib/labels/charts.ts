@@ -1,4 +1,4 @@
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 /**
  * تسميات الرسوم — **هنا لا في النطاق** (البوابة ١٧).
@@ -33,7 +33,7 @@ const MONTHS_AR = [
 export function dayTick(iso: string): string {
   const [, month, day] = iso.split('-');
   const index = Number(month) - 1;
-  return `${toArabicDigits(String(Number(day)))} ${MONTHS_AR[index] ?? ''}`;
+  return `${displayDigits(String(Number(day)))} ${MONTHS_AR[index] ?? ''}`;
 }
 
 /** علامة محورٍ لشهر — «أغسطس ٢٠٢٦». */
@@ -41,5 +41,5 @@ export function monthTick(iso: string, withYear = false): string {
   const [year, month] = iso.split('-');
   const index = Number(month) - 1;
   const name = MONTHS_AR[index] ?? '';
-  return withYear ? `${name} ${toArabicDigits(String(year))}` : name;
+  return withYear ? `${name} ${displayDigits(String(year))}` : name;
 }

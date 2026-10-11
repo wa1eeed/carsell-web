@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -247,7 +247,7 @@ export function AccountScreen({
                   <span className="flex items-center gap-1 text-3xs opacity-50">
                     الخطوة
                     <span dir="ltr" className="font-num">
-                      {toArabicDigits(String(order.step))}/{toArabicDigits(String(order.stepCount))}
+                      {displayDigits(String(order.step))}/{displayDigits(String(order.stepCount))}
                     </span>
                   </span>
                 </span>

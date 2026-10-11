@@ -9,7 +9,7 @@ import { Toast } from '@/components/ui/Toast';
 import type { ConnectionState, IntegrationRow } from '@/lib/domain/admin-integrations';
 import { ENV_LABEL } from '@/lib/labels/admin';
 import { cn } from '@/lib/cn';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
   day: 'numeric',
@@ -324,8 +324,8 @@ export function IntegrationsList({
                         <span>
                           النصاب{' '}
                           <span dir="ltr" className="font-num">
-                            {toArabicDigits(String(row.pendingRotation.approvals))}/
-                            {toArabicDigits(String(row.pendingRotation.required))}
+                            {displayDigits(String(row.pendingRotation.approvals))}/
+                            {displayDigits(String(row.pendingRotation.required))}
                           </span>
                         </span>
                       </span>

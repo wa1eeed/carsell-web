@@ -27,10 +27,10 @@ const Body = z.discriminatedUnion('field', [
 const MESSAGES: Record<string, { ar: string; en: string }> = {
   INVALID: { ar: 'البريد غير صحيح.', en: 'That email is not valid.' },
   TAKEN: { ar: 'هذا البريد مستعمل في حساب آخر.', en: 'That email is already in use.' },
-  INVALID_FORMAT: { ar: 'الآيبان ٢٤ خانة تبدأ بـSA.', en: 'A Saudi IBAN is 24 characters starting with SA.' },
+  INVALID_FORMAT: { ar: 'الآيبان 24 خانة تبدأ بـSA.', en: 'A Saudi IBAN is 24 characters starting with SA.' },
   NOT_SAUDI: { ar: 'الآيبان يجب أن يكون سعوديًّا (SA).', en: 'The IBAN must be Saudi (SA).' },
   CHECKSUM: { ar: 'الآيبان غير صحيح — راجع الخانات.', en: 'The IBAN checksum does not match.' },
-  INVALID_ID: { ar: 'رقم الهوية ١٠ خانات تبدأ بـ١ أو ٢.', en: 'A national ID is 10 digits starting with 1 or 2.' },
+  INVALID_ID: { ar: 'رقم الهوية 10 خانات تبدأ بـ1 أو 2.', en: 'A national ID is 10 digits starting with 1 or 2.' },
   NAME_REQUIRED: { ar: 'اكتب الاسم كما في الهوية.', en: 'Enter your name as printed on the ID.' },
   ALREADY_VERIFIED: { ar: 'هويتك موثّقة بالفعل.', en: 'Your identity is already verified.' },
 };

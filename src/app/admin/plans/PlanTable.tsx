@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { EntitlementRow, PlanRow } from '@/lib/domain/admin-plans';
 import { ENTITLEMENT_LABEL, TYPE_LABEL, pctLabel, saleOptions } from './labels';
 
@@ -64,7 +64,7 @@ export function PlanTable({
                       <span className="opacity-70">مجانًا</span>
                     ) : (
                       <span className="font-num">
-                        {toArabicDigits(plan.price)} ريال /{' '}
+                        {displayDigits(plan.price)} ريال /{' '}
                         {plan.billingCycle === 'yearly' ? 'سنة' : 'شهر'}
                       </span>
                     )}
@@ -72,11 +72,11 @@ export function PlanTable({
                   <td className="p-3 opacity-75">{saleOptions(plan.entitlements)}</td>
                   <td className="font-num p-3 opacity-75">
                     {/* ‏−١ = بلا حدّ. ورقمٌ سالبٌ معروضًا يُقرأ عطلًا. */}
-                    {listings === '-1' ? 'بلا حد' : toArabicDigits(listings)}
+                    {listings === '-1' ? 'بلا حد' : displayDigits(listings)}
                   </td>
-                  <td className="font-num p-3 opacity-75">{toArabicDigits(seats)}</td>
+                  <td className="font-num p-3 opacity-75">{displayDigits(seats)}</td>
                   <td className="font-num p-3 opacity-75">
-                    {toArabicDigits(pctLabel(value('commission_pct')))}٪
+                    {displayDigits(pctLabel(value('commission_pct')))}٪
                   </td>
                   <td className="p-3 text-end">
                     {canEdit ? (
@@ -160,7 +160,7 @@ function PlanEditor({
       <div className="w-full max-w-lg rounded-lg border border-line bg-bg p-6">
         <h3 className="mb-1 text-md font-bold">{plan.nameAr}</h3>
         <p className="mb-5 text-3xs opacity-55">
-          مشتركون ({toArabicDigits(String(plan.subscriberCount))}) — والتعديل لا يمسّ اشتراكًا
+          مشتركون ({displayDigits(String(plan.subscriberCount))}) — والتعديل لا يمسّ اشتراكًا
           قائمًا حتى تجديده.
         </p>
 

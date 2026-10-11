@@ -7,7 +7,7 @@ import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminOfferDetail } from '@/lib/domain/admin-detail-readers';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,7 +72,7 @@ export default async function AdminOfferDetailPage({
         main={
           <DetailCard
             title="سلسلة التفاوض"
-            note={`خطوات (${toArabicDigits(String(offer.chain.length))})`}
+            note={`خطوات (${displayDigits(String(offer.chain.length))})`}
           >
             {offer.chain.map((step, index) => (
               <div
@@ -81,7 +81,7 @@ export default async function AdminOfferDetailPage({
               >
                 <span className="flex min-w-0 items-center gap-2.5">
                   <span className="font-num text-3xs opacity-40">
-                    {toArabicDigits(String(index + 1))}
+                    {displayDigits(String(index + 1))}
                   </span>
                   {/*
                     الاتّجاه من `parentOfferId` لا من صاحب الصفّ — والمقابل

@@ -6,7 +6,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { entitlementList, overrideList, planList, planStats } from '@/lib/domain/admin-plans';
 import { listCommissionRules } from '@/lib/domain/admin-commission';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { CommissionSimulator } from './CommissionSimulator';
 import { PlanTable } from './PlanTable';
 import { ENTITLEMENT_LABEL, TYPE_LABEL, pctLabel } from './labels';
@@ -47,12 +47,12 @@ export default async function AdminPlansPage() {
     <AdminShell title="الباقات والعمولة"
       subtitle="حزمة قيَم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        باقات ({toArabicDigits(String(stats.plans))}) ·{' '}
-        {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${toArabicDigits(String(stats.paidPlans))})`}{' '}
+        باقات ({displayDigits(String(stats.plans))}) ·{' '}
+        {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${displayDigits(String(stats.paidPlans))})`}{' '}
         · العمولة{' '}
         {seller?.enabled !== true || Number(seller.pct) === 0
           ? 'صفر'
-          : `${toArabicDigits(pctLabel(seller.pct))}٪`}
+          : `${displayDigits(pctLabel(seller.pct))}٪`}
       </p>
 
       <MonitorCards
@@ -60,14 +60,14 @@ export default async function AdminPlansPage() {
           {
             title: 'باقات',
             value: stats.plans,
-            note: `افتراضية (${toArabicDigits(String(defaults))})`,
+            note: `افتراضية (${displayDigits(String(defaults))})`,
           },
           { title: 'خصائص', value: stats.entitlements, note: 'ثابتة في الكود' },
           { title: 'تجاوزات لعملاء', value: stats.overrides, note: 'بسبب مكتوب' },
           {
             // **العمولة تُعرض ولا تُحرَّر هنا** — تحريرها في «المالية».
             title: 'العمولة النافذة',
-            value: `${toArabicDigits(pctLabel(seller?.enabled === true ? seller.pct : '0'))}٪`,
+            value: `${displayDigits(pctLabel(seller?.enabled === true ? seller.pct : '0'))}٪`,
             note: seller?.enabled === true ? 'على كل الباقات' : 'معطّلة على البائع',
           },
         ]}
@@ -131,8 +131,8 @@ export default async function AdminPlansPage() {
                       {value.value === '-1'
                         ? 'بلا حد'
                         : row.type === 'percent'
-                          ? `${toArabicDigits(pctLabel(value.value))}٪`
-                          : toArabicDigits(value.value)}
+                          ? `${displayDigits(pctLabel(value.value))}٪`
+                          : displayDigits(value.value)}
                     </td>
                   );
                 })}

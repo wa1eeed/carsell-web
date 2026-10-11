@@ -35,7 +35,7 @@ export function AuctionSettingsPreview() {
         <SettingsBlock title="الأسعار">
           <Readout
             label="سعر الافتتاح"
-            value="٧٥٬٠٠٠"
+            value="75,000"
             hint="يبدأ منه أوّل مزايد — والأقلّ يجذب مزايدين أكثر."
           />
           <PriceField
@@ -74,7 +74,7 @@ export function AuctionSettingsPreview() {
             hint="شرطٌ تفرضه المنصّة — ولا يُعدَّل."
           />
           <Note>
-            عربونٌ أعلى يقلّل عدد المزايدين ويرفع جدّيتهم. والموصى به ٣–٥٪ من
+            عربونٌ أعلى يقلّل عدد المزايدين ويرفع جدّيتهم. والموصى به 3–5٪ من
             السعر الاحتياطي، لأنه يعكس القيمة الحقيقية لا نقطة البداية.
           </Note>
         </SettingsBlock>

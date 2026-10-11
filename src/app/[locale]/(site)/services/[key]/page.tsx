@@ -8,7 +8,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { routing } from '@/i18n/routing';
 import { serviceByKey } from '@/lib/domain/content';
 import { DEFAULT_VAT_PCT } from '@/lib/domain/tax';
@@ -91,8 +91,8 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
           })
         ).map((vehicle) => ({
           id: vehicle.id,
-          // check-9-ok: وسم <option> لا يقبل عنصرًا — نصٌّ فقط، و`toArabicDigits` هي التعريب الصحيح هنا
-          title: `${vehicle.brandName} ${vehicle.modelName} ${toArabicDigits(String(vehicle.year))}`,
+          // check-9-ok: وسم <option> لا يقبل عنصرًا — نصٌّ فقط، و`displayDigits` هي التعريب الصحيح هنا
+          title: `${vehicle.brandName} ${vehicle.modelName} ${displayDigits(String(vehicle.year))}`,
         }));
 
   /** مدن المزوّد — وإن لم يحدّدها فكل مدن المنصّة. */
@@ -208,7 +208,7 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
                       عربية يُقرأ مقلوبًا، والبوابة ١٥ تمنعه.
                     */}
                     <Row
-                      label={`ضريبة القيمة المضافة ${toArabicDigits(String(vatPct))}٪`}
+                      label={`ضريبة القيمة المضافة ${displayDigits(String(vatPct))}٪`}
                       value={vat}
                     />
                     <div className="mt-2 flex items-center justify-between gap-4 border-t border-line pt-3 text-base font-bold">

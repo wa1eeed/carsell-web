@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { TeamMember } from '@/lib/domain/admin-team';
 import { Toast } from '@/components/ui/Toast';
 
@@ -85,7 +85,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                   لعضوٍ واحد ليست أربعة أجهزة غالبًا.
                 */}
                 <span className="text-3xs opacity-45">
-                  جلسات حيّة ({toArabicDigits(String(row.activeSessions))})
+                  جلسات حيّة ({displayDigits(String(row.activeSessions))})
                 </span>
               </div>
 

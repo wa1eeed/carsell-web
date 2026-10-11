@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import type { ProviderRow } from '@/lib/domain/admin-providers';
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 
@@ -19,8 +19,8 @@ import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 function sla(hours: number | null): string {
   if (hours === null) return 'بلا التزام';
   if (hours === 0) return 'فوريّ';
-  if (hours < 72) return `ساعات (${toArabicDigits(String(hours))})`;
-  return `أيّام (${toArabicDigits(String(Math.round(hours / 24)))})`;
+  if (hours < 72) return `ساعات (${displayDigits(String(hours))})`;
+  return `أيّام (${displayDigits(String(Math.round(hours / 24)))})`;
 }
 
 /**
@@ -57,7 +57,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
         row.active
           ? open === 0
             ? 'عُطّل — ولن يستلم إسنادًا جديدًا.'
-            : `عُطّل — ولن يستلم إسنادًا جديدًا. والطلبات القائمة (${toArabicDigits(String(open))}) يُكملها.`
+            : `عُطّل — ولن يستلم إسنادًا جديدًا. والطلبات القائمة (${displayDigits(String(open))}) يُكملها.`
           : 'فُعّل — ودخل الإسناد الآليّ.',
       );
       router.refresh();
@@ -91,7 +91,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                       <span className="text-3xs opacity-45">بلا خدمة مرتبطة</span>
                     ) : (
                       <span className="text-3xs opacity-45">
-                        خدمات مرتبطة ({toArabicDigits(String(row.servicesLinked))})
+                        خدمات مرتبطة ({displayDigits(String(row.servicesLinked))})
                       </span>
                     )}
                   </span>
@@ -100,7 +100,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                 <td className="font-num p-3 opacity-75">
                   {row.commissionPct === null
                     ? '—'
-                    : `${toArabicDigits(String(Number(row.commissionPct)))}٪`}
+                    : `${displayDigits(String(Number(row.commissionPct)))}٪`}
                 </td>
                 <td className="p-3 opacity-75">{sla(row.slaHours)}</td>
                 <td className="p-3 opacity-75">
@@ -108,10 +108,10 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                 </td>
                 <td className="p-3">
                   <span className="flex items-center gap-2.5">
-                    <span className="font-num">{toArabicDigits(String(row.openRequests))}</span>
+                    <span className="font-num">{displayDigits(String(row.openRequests))}</span>
                     {row.breached === 0 ? null : (
                       <Badge tone="danger">
-                        تجاوز ({toArabicDigits(String(row.breached))})
+                        تجاوز ({displayDigits(String(row.breached))})
                       </Badge>
                     )}
                   </span>

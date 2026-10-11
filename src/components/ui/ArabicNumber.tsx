@@ -7,8 +7,8 @@ import { cn } from '@/lib/cn';
  *
  * ثلاث قواعد مجتمعة في مكوّن واحد:
  *   · `font-num` — الأرقام بـArial داخل نص Tajawal.
- *   · عربي-هندي للعرض، Latin للتخزين والحساب.
- *   · `bidi-isolate` — الرقم مقطع معزول، وإلا انزلق ما حوله في RTL.
+ *   · صيغتُها من `DISPLAY_NUMERALS` — لاتينية اليوم بقرار المالك.
+ *   · `bidi-isolate` + `dir="ltr"` — الرقم مقطعٌ معاكس الاتّجاه.
  */
 export function ArabicNumber({
   value,
@@ -24,20 +24,18 @@ export function ArabicNumber({
   const locale = useLocale() as NumeralLocale;
 
   /**
-   * **السالب يحتفظ بإشارته يسارًا.**
+   * ═══ و`dir="ltr"` على كل رقمٍ لا على السالب وحده ═══
    *
-   * العزل وحده لا يكفي: داخل مقطعٍ معزول يرث اتّجاه RTL، تسقط الإشارة
-   * — وهي محايدة — إلى يمين الرقم فيُرسم «٨٩٢−» بدل «−٨٩٢». والقارئ
-   * يقرؤها ٨٩٢ ثم يرى شرطةً لا يعرف ما هي، أو لا يراها فيقرأ خصمًا
-   * زيادةً. و`dir="ltr"` على المقطع يُثبّتها في موضعها.
+   * كانت على السالب فقط: **العزل وحده لا يكفي** — داخل مقطعٍ معزول
+   * يرث RTL تسقط الإشارة المحايدة إلى يمين الرقم فيُرسم «٨٩٢−».
+   *
+   * ولمّا صارت الأرقام لاتينية صار **كلُّ رقمٍ** مقطعًا معاكس
+   * الاتّجاه داخل نصٍّ عربيّ، لا السالب وحده: «1,234» بلا تثبيتٍ
+   * قد تلتصق بما قبلها فينزلق الترتيب، و«2026-10» تُرسم مقلوبة.
+   * فالتثبيت على الجميع — وثمنُه لا شيء، وغيابُه رقمٌ يُقرأ خطأ.
    */
-  const numeric = typeof value === 'string' ? Number(value) : value;
-
   return (
-    <span
-      dir={numeric < 0 ? 'ltr' : undefined}
-      className={cn('font-num bidi-isolate', className)}
-    >
+    <span dir="ltr" className={cn('font-num bidi-isolate', className)}>
       {formatNumber(value, locale, { decimals, grouped })}
     </span>
   );

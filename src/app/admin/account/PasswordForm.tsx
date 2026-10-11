@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 /**
  * ═══ تغيير كلمة الأدمن ═══
@@ -42,7 +42,7 @@ export function PasswordForm({ minLength }: { minLength: number }) {
           field === 'WRONG_PASSWORD'
             ? 'الكلمة الحالية غير صحيحة.'
             : field === 'WEAK_PASSWORD'
-              ? `الكلمة أقصر من الحدّ — محارف (${toArabicDigits(String(minLength))}) فأكثر.`
+              ? `الكلمة أقصر من الحدّ — محارف (${displayDigits(String(minLength))}) فأكثر.`
               : field === 'SAME_PASSWORD'
                 ? 'الكلمة الجديدة هي نفسها الحالية.'
                 : 'تعذّر التغيير.',
@@ -70,7 +70,7 @@ export function PasswordForm({ minLength }: { minLength: number }) {
           label="الكلمة الجديدة"
           value={form.next}
           onChange={(v) => setForm({ ...form, next: v })}
-          note={`محارف (${toArabicDigits(String(minLength))}) فأكثر`}
+          note={`محارف (${displayDigits(String(minLength))}) فأكثر`}
           error={tooShort ? 'أقصر من الحدّ' : undefined}
         />
         <Field

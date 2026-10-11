@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 /**
  * صفُّ بحثٍ محفوظ.
@@ -78,7 +78,7 @@ export function SavedSearchRow({
                 صيغةَ الجمع. و«٠ جديد» لا تُعرض أصلًا: لا خبر خبرٌ.
               */}
               {row.fresh === 0 ? null : (
-                <Badge tone="accent">{toArabicDigits(String(row.fresh))} جديدة</Badge>
+                <Badge tone="accent">{displayDigits(String(row.fresh))} جديدة</Badge>
               )}
             </div>
             {/*

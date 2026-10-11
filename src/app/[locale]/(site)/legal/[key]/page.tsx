@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { toArabicNumeric } from '@/lib/arabic';
+import { displayNumeric } from '@/lib/arabic';
 import { routing } from '@/i18n/routing';
 import { getLegalDocument, listLegalDocuments } from '@/lib/domain/content';
 
@@ -102,7 +102,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                   كانت تحوّله أصلًا، فالشاشتان تقولان الشيء نفسه بخطّين.
                 */}
                 <span className="font-num bidi-ltr font-bold">
-                  {isArabic ? toArabicNumeric(doc.version) : doc.version}
+                  {isArabic ? displayNumeric(doc.version) : doc.version}
                 </span>
               </span>
               <span aria-hidden className="opacity-40">·</span>

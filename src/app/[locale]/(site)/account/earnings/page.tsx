@@ -7,7 +7,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
@@ -133,7 +133,7 @@ export default async function EarningsPage({
                           <>
                             إلى آيبانك المنتهي بـ
                             <span dir="ltr" className="font-num mx-1">
-                              {toArabicDigits(payout.ibanLast4)}
+                              {displayDigits(payout.ibanLast4)}
                             </span>
                           </>
                         )}

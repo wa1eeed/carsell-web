@@ -170,7 +170,7 @@ export function CommissionRules({
                 ٢٬٥٠٠ قبل أن يحفظ، لا بعد أن يشتكي بائع.
               */}
               <p className="mt-4 border-t border-line pt-3 text-2xs leading-loose opacity-70">
-                على سيارةٍ بـ<span className="font-num"> ١٠٠٬٠٠٠ </span>ريال:{' '}
+                على سيارةٍ بـ<span className="font-num"> 100,000 </span>ريال:{' '}
                 <b className="font-num">
                   {effect.toLocaleString('ar-SA', { maximumFractionDigits: 2 })}
                 </b>{' '}

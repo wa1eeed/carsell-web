@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 /**
  * ═══ إرسال حملة — والزرّ الذي لم يكن ═══
@@ -61,8 +61,8 @@ export function SendCampaignButton({
        * يبلغ نصّ الـToast، و`` `و${n} رسالة` `` تُخرج رقمًا لاتينيًّا
        * وجمعًا يُصيب حالةً من ستّ (البوابة ١٨).
        */
-      const sent = toArabicDigits(String(payload?.data?.sent ?? 0));
-      const skipped = toArabicDigits(String(payload?.data?.skipped ?? 0));
+      const sent = displayDigits(String(payload?.data?.sent ?? 0));
+      const skipped = displayDigits(String(payload?.data?.skipped ?? 0));
       setToast(`أُرسلت الحملة — الواصلون (${sent}) · المحجوبون بالسقف والتهدئة (${skipped})`);
       router.refresh();
     });

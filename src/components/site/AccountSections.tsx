@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 /**
  * ═══ أقسام الحساب — والأبواب التي لم تكن ═══
@@ -55,7 +55,7 @@ export function AccountSections({
                         : 'rounded-md bg-bg px-1.5 py-0.5 font-num text-3xs font-bold opacity-60'
                     }
                   >
-                    {toArabicDigits(String(section.count))}
+                    {displayDigits(String(section.count))}
                   </span>
                 )}
               </div>

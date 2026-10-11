@@ -12,7 +12,7 @@ import {
   dailyOrders,
   stageTimes,
 } from '@/lib/domain/admin-charts';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { STAGE_LABEL, STAGE_TIME_LABEL, dayTick } from '@/lib/labels/charts';
 
 
@@ -115,20 +115,20 @@ export async function OpsTab() {
           displayValue: row.medianHours,
           target: row.targetHours,
           valueLabel:
-            row.samples === 0 ? '—' : `${toArabicDigits(String(row.medianHours))}`,
+            row.samples === 0 ? '—' : `${displayDigits(String(row.medianHours))}`,
         }))}
         scaleMax={scaleMax}
-        scaleNote={`المحور بالساعات · حتى ${toArabicDigits(String(Math.round(scaleMax)))}`}
+        scaleNote={`المحور بالساعات · حتى ${displayDigits(String(Math.round(scaleMax)))}`}
       />
       {measured === times.length ? null : (
         // **صفٌّ بلا عيّنة صفرٌ لا «سريع»** — ويُقال بدل أن يُقرأ إنجازًا
         <p className="mt-2.5 text-3xs opacity-50">
-          مراحل ({toArabicDigits(String(times.length - measured))}) بلا عيّنة في آخر تسعين يومًا
+          مراحل ({displayDigits(String(times.length - measured))}) بلا عيّنة في آخر تسعين يومًا
           — تُعرض صفرًا لأنها لم تُقَس، لا لأنها فورية.
         </p>
       )}
 
-      <SectionHead title="حجم الطلبات اليومي" note={`أيّام (${toArabicDigits(String(RANGE_DAYS))})`} />
+      <SectionHead title="حجم الطلبات اليومي" note={`أيّام (${displayDigits(String(RANGE_DAYS))})`} />
       <Sparkline
         points={daily.map((point) => ({ label: dayTick(point.day), value: point.count }))}
       />
@@ -142,7 +142,7 @@ export async function OpsTab() {
             { label: 'أُحيلت لتكرار صورة', value: content.duplicates, tone: 'danger' },
           ]}
           total={content.uploadedImages}
-          baseNote={`القاعدة — الصور المرفوعة منذ الإطلاق (${toArabicDigits(String(content.uploadedImages))})`}
+          baseNote={`القاعدة — الصور المرفوعة منذ الإطلاق (${displayDigits(String(content.uploadedImages))})`}
         />
 
         <div className="rounded-xl border border-line bg-surface px-5 py-4.5">
@@ -152,22 +152,22 @@ export async function OpsTab() {
               value={
                 auctions.total === 0
                   ? '—'
-                  : `${toArabicDigits(String(Math.round((auctions.metReserve / auctions.total) * 100)))}٪`
+                  : `${displayDigits(String(Math.round((auctions.metReserve / auctions.total) * 100)))}٪`
               }
             />
-            <Stat label="وسيط المزايدات" value={toArabicDigits(String(auctions.medianBids))} />
+            <Stat label="وسيط المزايدات" value={displayDigits(String(auctions.medianBids))} />
             {/* الوحدة في التسمية لا بعد الرقم — والجملة لا يحكمها المعدود */}
             <Stat
               label="وسيط التمديد — بالمرّات"
-              value={toArabicDigits(String(auctions.medianExtensions))}
+              value={displayDigits(String(auctions.medianExtensions))}
             />
             <Stat
               label="عربونٌ صودر"
-              value={toArabicDigits(String(auctions.withdrawnAfterWin))}
+              value={displayDigits(String(auctions.withdrawnAfterWin))}
             />
           </div>
           <p className="mt-3 border-t border-line pt-3 text-3xs opacity-50">
-            المزادات المنتهية منذ الإطلاق ({toArabicDigits(String(auctions.total))})
+            المزادات المنتهية منذ الإطلاق ({displayDigits(String(auctions.total))})
           </p>
         </div>
       </div>

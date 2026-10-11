@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
-import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { PendingAdjustment, WalletLine } from '@/lib/domain/wallet';
 
 /**
@@ -182,7 +182,7 @@ export function WalletPanel({
               className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
             />
             <span className="text-3xs opacity-45">
-              أحرف ({toArabicDigits(String(REASON_MIN))}) فأكثر — ويُقرأ بعد سنة.
+              أحرف ({displayDigits(String(REASON_MIN))}) فأكثر — ويُقرأ بعد سنة.
             </span>
           </label>
 
@@ -198,7 +198,7 @@ export function WalletPanel({
       ) : null}
 
       <p className="mb-2.5 text-2xs font-bold opacity-60">
-        كشف المحفظة ({toArabicDigits(String(lines.length))})
+        كشف المحفظة ({displayDigits(String(lines.length))})
       </p>
 
       {lines.length === 0 ? (
@@ -218,7 +218,7 @@ export function WalletPanel({
                 {/* السالب يحتفظ بإشارته يسارًا — و`Money` تتكفّل */}
                 <Money amount={Number(line.amount)} showCurrency={false} />
                 <span className="font-num text-3xs opacity-45">
-                  الرصيد {toArabicDigits(line.runningBalance)}
+                  الرصيد {displayDigits(line.runningBalance)}
                 </span>
               </span>
             </div>

@@ -12,7 +12,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { allListings, listingCounts } from '@/lib/domain/admin-monitors';
 import type { ListingStatus } from '@/generated/prisma/enums';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'كل الإعلانات' };
@@ -74,7 +74,7 @@ export default async function AdminAllListingsPage({
           {
             title: 'نشطة',
             value: counts.published,
-            note: `${toArabicDigits(String(counts.activeSharePct))}٪ من الإجمالي`,
+            note: `${displayDigits(String(counts.activeSharePct))}٪ من الإجمالي`,
           },
           { title: 'في المراجعة', value: counts.pendingReview, note: 'طابور A15' },
           { title: 'مبيعة', value: counts.sold, note: 'اكتمل نقل ملكيتها' },
@@ -137,8 +137,8 @@ export default async function AdminAllListingsPage({
             <div className="flex flex-col items-start gap-0.5">
               <Money amount={Number(row.askPrice)} />
               <span className="text-3xs opacity-45">
-                عروض ({toArabicDigits(String(row.offerCount))}) · مشاهدات (
-                {toArabicDigits(String(row.viewCount))})
+                عروض ({displayDigits(String(row.offerCount))}) · مشاهدات (
+                {displayDigits(String(row.viewCount))})
               </span>
             </div>
 

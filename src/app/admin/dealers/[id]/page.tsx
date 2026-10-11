@@ -8,7 +8,7 @@ import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminDealerDetail } from '@/lib/domain/admin-detail-readers';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,7 +61,7 @@ export default async function AdminDealerDetailPage({
           <>
             <DetailCard
               title="الأعضاء"
-              note={`عضو (${toArabicDigits(String(dealer.members.length))})`}
+              note={`عضو (${displayDigits(String(dealer.members.length))})`}
             >
               {dealer.members.length === 0 ? (
                 // معرضٌ بلا أعضاء لا ينشر شيئًا — وهو حالٌ تُقال لا تُخفى
@@ -93,7 +93,7 @@ export default async function AdminDealerDetailPage({
 
             <DetailCard
               title="الإعلانات"
-              note={`المعروض آخر عشرة من ${toArabicDigits(String(dealer.counts.listings))}`}
+              note={`المعروض آخر عشرة من ${displayDigits(String(dealer.counts.listings))}`}
             >
               {dealer.listings.length === 0 ? (
                 <p className="text-2xs opacity-50">لا إعلانات.</p>
@@ -161,7 +161,7 @@ export default async function AdminDealerDetailPage({
                 value={
                   dealer.ratingAvg === null
                     ? 'بلا تقييم'
-                    : `${toArabicDigits(dealer.ratingAvg)} من ${toArabicDigits(String(dealer.ratingCount))}`
+                    : `${displayDigits(dealer.ratingAvg)} من ${displayDigits(String(dealer.ratingCount))}`
                 }
               />
             </DetailCard>

@@ -1,4 +1,4 @@
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 /**
@@ -72,7 +72,7 @@ export function Sparkline({
         style={{ height }}
         className="block w-full"
         role="img"
-        aria-label={`منحنى — عدد النقاط (${toArabicDigits(String(points.length))})`}
+        aria-label={`منحنى — عدد النقاط (${displayDigits(String(points.length))})`}
       >
         <polyline points={area} className="fill-accent/13" />
         <polyline

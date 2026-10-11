@@ -10,7 +10,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { FilterChip } from '@/components/ui/FilterChip';
 import { Button } from '@/components/ui/Button';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { routing } from '@/i18n/routing';
 import { listPublicDealers } from '@/lib/domain/dealer-page';
@@ -100,9 +100,9 @@ export default async function DealersPage({
             */}
             {t('indexVerified', {
               count: verifiedCount,
-              n: toArabicDigits(String(verifiedCount)),
+              n: displayDigits(String(verifiedCount)),
             })}{' '}
-            {t('indexCities', { count: cities.length, n: toArabicDigits(String(cities.length)) })}
+            {t('indexCities', { count: cities.length, n: displayDigits(String(cities.length)) })}
             {' · '}
             {t('indexBadgeMeaning')}
           </p>
@@ -193,7 +193,7 @@ export default async function DealersPage({
                           <span className="flex items-center gap-1">
                             <span aria-hidden>★</span>
                             <span dir="ltr" className="font-num">
-                              {toArabicDigits(Number(dealer.rating).toFixed(1))}
+                              {displayDigits(Number(dealer.rating).toFixed(1))}
                             </span>
                             <span className="opacity-70">
                               (<ArabicNumber value={dealer.ratingCount} />)

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminReportDetail } from '@/lib/domain/admin-detail-readers';
-import { toArabicDigits } from '@/lib/arabic';
+import { displayDigits } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,7 +80,7 @@ export default async function AdminReportDetailPage({
             {report.attachments.length === 0 ? null : (
               <DetailCard
                 title="المرفقات"
-                note={`مرفق (${toArabicDigits(String(report.attachments.length))})`}
+                note={`مرفق (${displayDigits(String(report.attachments.length))})`}
               >
                 {report.attachments.map((attachment) => (
                   // المفتاح يُقارن خانةً بخانة — لاتينيّ معزول
