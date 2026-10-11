@@ -124,9 +124,14 @@ export function CatalogTree({
   const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-55';
 
   return (
-    <div className="flex gap-4">
-      {/* الشجرة — ٢٥٠px والطراز النشط داكن */}
-      <aside className="flex w-[250px] shrink-0 flex-col gap-2.5 rounded-lg border border-line bg-surface p-3">
+    /*
+      **والعمودان يتراكبان تحت `lg`.** `w-[250px] shrink-0` على شاشة
+      ٣٧٥ تأخذ ٢٥٠ وتترك للوحة الفئات **٧٧px** — جدولٌ بستّة أعمدة
+      في عرض كلمة. والشجرة فوق واللوحة تحتها، فلكلٍّ عرضُ الشاشة.
+    */
+    <div className="flex flex-col gap-4 lg:flex-row">
+      {/* الشجرة — ٢٥٠px على الحاسوب، وعرضُ الشاشة على الهاتف */}
+      <aside className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface p-3 lg:w-[250px] lg:shrink-0">
         <label className={label}>
           الماركة
           <select

@@ -154,6 +154,12 @@ Dark 238px sidebar with **30 items in 4 groups**, matching the A1 markup exactly
 Items with `href: null` are destinations that have no designed screen yet; they
 render disabled with a "قريبًا" marker rather than being invented.
 
+Below `lg` the sidebar is `hidden` and `AdminMobileNav` takes its place — see
+*The admin on a phone* below. The nav model itself lives in
+`src/components/admin/nav.ts` so both the sidebar and the drawer read one list;
+badge counts come from `adminNavCounts()` and count **waiting work only**, so a
+zero is omitted rather than rendered.
+
 The admin panel is **Arabic only** in phase 1, so its navigation labels are
 constants in this file rather than translation keys. These are chrome, not
 content — all content still comes from Prisma.
@@ -361,3 +367,55 @@ same figure on a page with no drawer at all.
 It also carries `LocaleSwitcher`, which had been written and wired to **nothing**:
 before this, a visitor who opened the site in Arabic could reach English only by
 editing the URL.
+
+## The admin on a phone — and gate 36 (task 143)
+
+The sidebar was a flat `w-[238px]` with **no responsive class at all**. At 375px
+it ate two thirds of the width, leaving ~130px of content: the panel was usable
+only by zooming and scrolling sideways. Whoever runs a marketplace is not always
+at a desk — a report arrives at night, a payout waits on a second approval, an
+auction closes — and those are decisions measured in minutes.
+
+`AdminMobileNav` is built on the same bones as the site's `MobileNav`, not eyeballed
+from it: overlay click closes, Escape closes, body scroll is locked while open,
+focus moves to the panel, and the closed panel is clipped inside a
+`fixed inset-0 overflow-hidden` container so it cannot widen the page. `start-0`
+plus `rtl:translate-x-full ltr:-translate-x-full` puts it on the thumb side in
+both directions.
+
+**The waiting count rides on the closed button.** Badges inside the drawer are
+invisible until it is opened, and nobody opens a menu to discover whether
+something is waiting for them.
+
+### What the sweep found
+
+All **49 admin routes** were measured at 375px for horizontal overflow. One
+failed: the model catalog's `CatalogTree`, where
+`<aside className="w-[250px] shrink-0">` inside a horizontal row left the trims
+panel **77px wide** — a six-column table in the width of one word. Nothing fails
+when this happens: the page renders, and the tests pass because tests do not open
+a screen.
+
+### Gate 36 — a sidebar stacks on a phone or it hides
+
+`AdminShell` and `SearchScreen` were both already guarded by the same idiom
+(`hidden … lg:flex`); `CatalogTree` alone was not. A class that is already solved
+twice in the tree and broken once is a gate, not a third fix.
+
+The check is scoped to `<aside>` and `<nav>` deliberately. A fixed-width element
+inside a `flex-wrap` row drops to its own line and squeezes nothing — widening
+the rule to every `shrink-0` flagged `PaintMap`, which is not a defect.
+
+The gate was run against the original defect before being kept: it reported
+`CatalogTree.tsx` and fell silent once the fix was restored. A gate that has
+never fired is not known to guard anything.
+
+### The language switcher is not built here, and why
+
+The admin has **no translation layer**: ~895 Arabic string literals across 115
+files, with `next-intl` appearing in exactly one admin file (the provider in
+`layout.tsx`, there for shared UI components). A switcher added today would flip
+`<html lang>` and change no visible word — the dead-control class this codebase
+keeps closing. Extracting those strings is its own task; the switcher follows it,
+not the reverse. The **site** switcher already exists (`LocaleSwitcher`, wired in
+task 101).

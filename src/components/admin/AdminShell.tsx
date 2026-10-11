@@ -5,6 +5,7 @@ import { APP_ENV } from '@/lib/env';
 import { can } from '@/lib/domain/permissions';
 import { visibleGroups } from './nav';
 import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
+import { AdminMobileNav } from './AdminMobileNav';
 import { cn } from '@/lib/cn';
 import type { AdminUser } from '@/generated/prisma/client';
 
@@ -77,7 +78,14 @@ export async function AdminShell({
   })).filter((group) => group.items.length > 0);
   return (
     <div dir="rtl" className="flex min-h-screen bg-bg text-ink">
-      <nav className="flex w-[238px] shrink-0 flex-col bg-ink py-5 text-bg">
+      {/*
+        ═══ الشريط الجانبيّ فوق `lg` وحده ═══
+
+        كان ثابتًا بعرض ٢٣٨px **بلا صنفٍ متجاوب واحد**: على شاشة ٣٧٥
+        يبتلع ثُلثَي العرض فيبقى للجدول مئةٌ وثلاثون — وتُقرأ اللوحة
+        بتكبيرٍ وتمريرٍ أفقيّ. ودونه يحلّ الدرج.
+      */}
+      <nav className="hidden w-[238px] shrink-0 flex-col bg-ink py-5 text-bg lg:flex">
         <div className="mb-1.5 border-b border-bg/14 px-5 pb-4.5">
           <p className="font-body-en text-xl font-extrabold tracking-tight">
             carsell<span className="text-accent-400">.one</span>
@@ -132,9 +140,33 @@ export async function AdminShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <EnvBanner />
-        <header className="flex items-center gap-4 border-b border-line bg-surface px-7.5 py-4.5">
+
+        {/*
+          الدرج — ومعه شريطٌ علويّ على الهاتف. والمجموعات هي نفسها
+          المعروضة في الجانبيّ (بصلاحياتها وشاراتها)، فلا تفترقان.
+        */}
+        <AdminMobileNav
+          groups={groups.map((group) => ({
+            title: group.title,
+            items: group.items.map((item) => ({
+              label: item.label,
+              href: item.href,
+              ...(item.badge === undefined ? {} : { badge: item.badge }),
+            })),
+          }))}
+          {...(activeHref === undefined ? {} : { activeHref })}
+          title={title}
+        />
+
+        <header className="flex flex-wrap items-center gap-4 border-b border-line bg-surface px-4 py-4 sm:px-7.5 sm:py-4.5">
           <span className="flex min-w-0 flex-col">
-            <h1 className="text-lg font-bold">{title}</h1>
+            {/*
+              **ولا يُكرَّر العنوان.** الشريط العلويّ على الهاتف يحمله
+              ويبقى لاصقًا عند التمرير، فإعادتُه هنا تُظهره مرّتين في
+              شاشةٍ واحدة. ويبقى `h1` في الشجرة لقارئ الشاشة — يُنطق
+              مرّةً ويُرى على الكبير وحده.
+            */}
+            <h1 className="sr-only text-lg font-bold lg:not-sr-only">{title}</h1>
             {subtitle === undefined ? null : (
               <span className="mt-0.5 truncate text-2xs opacity-50">{subtitle}</span>
             )}
@@ -153,7 +185,8 @@ export async function AdminShell({
             <span className="text-3xs opacity-55">{admin.role}</span>
           </Link>
         </header>
-        <main className="flex-1 p-7.5">{children}</main>
+        {/* **وحشوةٌ أضيق على الهاتف** — ٣٠px من ٣٧٥ ثُمنُ العرض */}
+        <main className="min-w-0 flex-1 p-4 sm:p-7.5">{children}</main>
       </div>
     </div>
   );
