@@ -9,6 +9,7 @@ import { Prisma } from '@/generated/prisma/client';
  */
 // يُعاد التصدير ليبقى للمستدعين مدخلٌ واحد لا مدخلان
 export { DEFAULT_VAT_PCT, netOfVat, vatIncluded } from './tax';
+import { DEFAULT_VAT_PCT } from './tax';
 
 
 /** جمعٌ آمن لقائمة مبالغ — `reduce` بـ`+` على `Decimal` يُنتج نصًّا لا رقمًا. */
@@ -72,4 +73,23 @@ export function pct(
   const denominator = new Prisma.Decimal(whole);
   if (denominator.isZero()) return 0;
   return new Prisma.Decimal(part).dividedBy(denominator).times(100).toDecimalPlaces(2).toNumber();
+}
+
+/**
+ * إجماليّ خدمة — **السعر صافٍ والضريبة تُضاف فوقه**.
+ *
+ * بخلاف بيع المركبة: ثَمَّ السعر شاملٌ للضريبة وتُستخرَج منه
+ * (`vatIncluded`)، وهنا تُضاف — فخلطُ القاعدتين يُنتج فرق سبعةٍ
+ * وستّين ريالًا في كل طلب.
+ *
+ * **وتُكتب مرّة**: الشاشة تعرض الإجماليّ والشراء يحجزه، وحسابٌ في كل
+ * موضعٍ يُنتج قاعدتين تتباعدان أوّل تغيير — فيدفع المشتري غير ما رأى.
+ */
+export function serviceTotal(
+  price: Prisma.Decimal | number | string,
+  vatPct: Prisma.Decimal | number | string = DEFAULT_VAT_PCT,
+): { net: Prisma.Decimal; vat: Prisma.Decimal; total: Prisma.Decimal } {
+  const net = new Prisma.Decimal(price).toDecimalPlaces(2);
+  const vat = net.times(new Prisma.Decimal(vatPct)).dividedBy(100).toDecimalPlaces(2);
+  return { net, vat, total: net.plus(vat) };
 }

@@ -6,13 +6,16 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { toArabicDigits } from '@/lib/arabic';
 import { routing } from '@/i18n/routing';
 import { serviceByKey } from '@/lib/domain/content';
 import { DEFAULT_VAT_PCT } from '@/lib/domain/tax';
+import { serviceTotal } from '@/lib/domain/money';
+import { currentUserFromCookies } from '@/lib/domain/account';
+import { formatNumber } from '@/lib/arabic';
+import { RequestService } from '@/components/site/RequestService';
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -50,9 +53,10 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [service, platform, t] = await Promise.all([
+  const [service, platform, viewer, t] = await Promise.all([
     serviceByKey(key),
     db.platformSetting.findUnique({ where: { id: 'default' }, select: { vatPct: true } }),
+    currentUserFromCookies(),
     getTranslations('services'),
   ]);
 
@@ -60,9 +64,43 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
   if (service === null) notFound();
 
   const isArabic = locale === 'ar';
-  const price = Number(service.price);
   const vatPct = Number(platform?.vatPct ?? DEFAULT_VAT_PCT);
-  const vat = Math.round(price * vatPct) / 100;
+  /**
+   * **والقاعدة من `money.ts`** — هي نفسها التي يحجز بها الشراء. وحسابٌ
+   * في كل موضعٍ يُنتج قاعدتين تتباعدان أوّل تغيير، فيدفع الطالب غير ما
+   * رأى.
+   */
+  const money = serviceTotal(service.price, vatPct);
+  const price = Number(money.net);
+  const vat = Number(money.vat);
+
+  /**
+   * مركبات صاحب الجلسة — والاستمارة تُقال فارغةً لمن لا مركبة له،
+   * فقائمةٌ خالية تحت «اختر مركبتك» تُحيّر ولا تقول لماذا.
+   */
+  const vehicles =
+    viewer === null
+      ? []
+      : (
+          await db.vehicle.findMany({
+            where: { ownerId: viewer.id },
+            select: { id: true, brandName: true, modelName: true, year: true },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
+          })
+        ).map((vehicle) => ({
+          id: vehicle.id,
+          // check-9-ok: وسم <option> لا يقبل عنصرًا — نصٌّ فقط، و`toArabicDigits` هي التعريب الصحيح هنا
+          title: `${vehicle.brandName} ${vehicle.modelName} ${toArabicDigits(String(vehicle.year))}`,
+        }));
+
+  /** مدن المزوّد — وإن لم يحدّدها فكل مدن المنصّة. */
+  const coverage =
+    service.providerCities.length > 0
+      ? service.providerCities
+      : (await db.listing.findMany({ distinct: ['city'], select: { city: true } })).map(
+          (row) => row.city,
+        );
 
   return (
     <>
@@ -146,12 +184,23 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
                   صفحتها (يحتاج مركبةً ومكانًا وموعدًا)، ولا مسار يطلبها
                   مجرّدةً. وزرٌّ يردّ خطأً بعد الضغط أسوأ من غيابه.
                 */}
-                <Link href={`/${locale}/cars`} className="mt-4 block">
-                  <Button className="w-full">اختر مركبتك لطلب الخدمة</Button>
-                </Link>
-                <p className="mt-2.5 text-3xs leading-loose opacity-55">
-                  تُطلب من صفحة المركبة — فالموعد والموقع يتبعانها.
-                </p>
+              {/*
+                ═══ والطلب هنا لا في صفحةٍ أخرى ═══
+
+                كان زرًّا يقول «اختر مركبتك لطلب الخدمة» ويربط إلى
+                فهرس المركبات، وتحته «تُطلب من صفحة المركبة» —
+                **وصفحةُ المركبة لا زرّ فيها**. دائرةٌ مغلقة بلا مدخل،
+                وخطُّ إيرادٍ كامل لا يدخله ريال.
+
+                والتصميم يضعه هنا: المركبة والموقع والموعد ثم الدفع.
+              */}
+              <RequestService
+                serviceKey={service.key}
+                vehicles={vehicles}
+                cities={coverage}
+                total={formatNumber(Number(money.total), locale, { decimals: 2 })}
+                addVehicleHref={`/${locale}/sell`}
+              />
               </section>
 
               {service.slaHours === null ? null : (

@@ -26,6 +26,8 @@ import type { Prisma } from '@/generated/prisma/client';
  */
 
 const ORDER_START = 1000;
+/** بدايةٌ تترك مساحةً لما زرعته البذرة (٣٠٠٠+). */
+const SERVICE_START = 3000;
 
 /** أعلى تسلسلٍ قائم — والذيل غير الرقميّ يُتجاهَل لا يُسقط الحساب. */
 function highestAfter(
@@ -118,3 +120,25 @@ export async function nextCustomerRef(tx: Prisma.TransactionClient, now: Date): 
   return `${prefix}${String(next).padStart(LISTING_PAD, '0')}`;
 }
 
+
+/**
+ * مرجع طلب الخدمة — `SRV-2026-3042`.
+ *
+ * **والتسلسل من الأعلى لا من العدد**: `count() + 1` صحيحٌ ما لم يُحذف
+ * صفّ، وفجوةٌ واحدة تجعل التالي يصطدم بمرجعٍ قائم — والخطأ يقول
+ * «Unique constraint failed» فيتّهم الإنشاء لا الفجوة. (وقع في
+ * `Order` و`Listing` معًا.)
+ */
+export async function nextServiceRequestRef(
+  tx: Prisma.TransactionClient,
+  now: Date,
+): Promise<string> {
+  const prefix = `SRV-${String(now.getFullYear())}-`;
+
+  const rows = await tx.serviceRequest.findMany({
+    where: { ref: { startsWith: prefix } },
+    select: { ref: true },
+  });
+
+  return `${prefix}${String(highestAfter(rows, prefix, SERVICE_START) + 1)}`;
+}

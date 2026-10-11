@@ -861,7 +861,13 @@ export function SellWizard({
                       type="datetime-local"
                       value={startsAt}
                       onChange={(event) => setStartsAt(event.target.value)}
-                      className="w-0 min-w-0 flex-1 rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
+                      /*
+              **و`w-0 flex-1` تصلح في صفٍّ لا في عمود.** نسختُها من
+              إصلاح خانات الرمز — وهناك الحاوية أفقيّة فالعرض يأتي من
+              القسمة. وهنا `flex-col`، فـ`flex-1` تمسّ الارتفاع و`w-0`
+              تبقى عرضًا صفرًا: **فانكمش الحقل إلى نقطة.**
+            */
+            className="w-full rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
                     />
                     <span className="text-3xs leading-loose opacity-45">
                       {t('auction.startAtHint')}

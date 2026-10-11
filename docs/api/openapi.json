@@ -4584,6 +4584,86 @@
         }
       }
     },
+    "/api/v1/services/{key}/request": {
+      "post": {
+        "summary": "POST /api/v1/services/{key}/request",
+        "tags": [
+          "services"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehicleId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "mada",
+                      "visa",
+                      "mastercard",
+                      "applepay"
+                    ]
+                  },
+                  "returnUrl": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "vehicleId",
+                  "city",
+                  "scheduledAt",
+                  "method",
+                  "returnUrl"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/trims": {
       "get": {
         "summary": "GET /api/v1/trims",
