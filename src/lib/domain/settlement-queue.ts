@@ -179,3 +179,128 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
 
   return { ready, awaitingApproval, blocked, totalHeld: total.toFixed(2) };
 }
+
+export type SettledRow = {
+  orderRef: string;
+  seller: string;
+  buyer: string;
+  amount: string;
+  at: string;
+};
+
+export type RefundedRow = {
+  orderRef: string;
+  buyer: string;
+  amount: string;
+  reason: string | null;
+  at: string;
+};
+
+export type DepositRow = {
+  auctionRef: string;
+  bidder: string;
+  amount: string;
+  status: 'HELD' | 'RELEASED' | 'FORFEITED' | 'APPLIED';
+  hasPayment: boolean;
+};
+
+export type SettlementHistory = {
+  settled: SettledRow[];
+  refunded: RefundedRow[];
+  deposits: DepositRow[];
+  /** مجموع ما أُفرج عنه منذ أوّل الشهر — «مُسوّى هذا الشهر» في A25 */
+  settledThisMonth: string;
+};
+
+/**
+ * ═══ ما خرج من الطابور — والشرائح التي أُجِّلت ═══
+ *
+ * التصميم يذكر شرائح «مُسوّى» و«مُسترجَع» و«عرابين»، **وتُركت عمدًا**:
+ * الطابور طابورُ ما لم يُفرَج عنه بعد، ولم يكن في المنتج ما يملأ
+ * الثلاث — لا إلغاءَ يُرجع مالًا، ولا عربونَ بمالٍ خلفه. وشريحةٌ
+ * تفتح على فراغٍ دائم تُقرأ عطلًا لا حدًّا.
+ *
+ * **والسبب سقط**: صار الإلغاء يُرجع (`order-cancel`)، وصار العربون
+ * يمرّ بالبوابة ويُحصَّل ويُصادَر (القاعدة ٩). فالمصدر موجود، والشريحة
+ * تُفتح.
+ *
+ * > وتأجيلٌ مكتوبٌ بسببه يُراجَع حين يسقط سببه — وإلّا بقي قرارًا
+ * > قديمًا يُقرأ قاعدةً.
+ */
+export async function settlementHistory(now: Date = new Date()): Promise<SettlementHistory> {
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+  const [released, refunded, deposits, monthly] = await Promise.all([
+    db.escrow.findMany({
+      where: { status: 'RELEASED' },
+      orderBy: { releasedAt: 'desc' },
+      take: 50,
+      select: {
+        amount: true,
+        releasedAt: true,
+        order: {
+          select: {
+            ref: true,
+            seller: { select: { name: true } },
+            buyer: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    db.escrow.findMany({
+      where: { status: { in: ['REFUNDED', 'PARTIAL_REFUND'] } },
+      orderBy: { releasedAt: 'desc' },
+      take: 50,
+      select: {
+        amount: true,
+        releasedAt: true,
+        order: {
+          select: { ref: true, cancelReason: true, buyer: { select: { name: true } } },
+        },
+      },
+    }),
+    db.deposit.findMany({
+      orderBy: { id: 'desc' },
+      take: 50,
+      select: {
+        amount: true,
+        status: true,
+        paymentId: true,
+        user: { select: { name: true } },
+        auction: { select: { listing: { select: { ref: true } } } },
+      },
+    }),
+    db.escrow.aggregate({
+      where: { status: 'RELEASED', releasedAt: { gte: monthStart } },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  const text = (value: string | null): string => value ?? '—';
+
+  return {
+    settled: released.map((row) => ({
+      orderRef: row.order.ref,
+      seller: text(row.order.seller.name),
+      buyer: text(row.order.buyer.name),
+      amount: row.amount.toFixed(2),
+      at: (row.releasedAt ?? now).toISOString(),
+    })),
+    refunded: refunded.map((row) => ({
+      orderRef: row.order.ref,
+      buyer: text(row.order.buyer.name),
+      amount: row.amount.toFixed(2),
+      reason: row.order.cancelReason,
+      at: (row.releasedAt ?? now).toISOString(),
+    })),
+    deposits: deposits.map((row) => ({
+      auctionRef: row.auction.listing.ref,
+      bidder: text(row.user.name),
+      amount: row.amount.toFixed(2),
+      status: row.status,
+      /** **والدفتريّ القديم يُميَّز**: وسمٌ بلا مالٍ خلفه ليس عربونًا. */
+      hasPayment: row.paymentId !== null,
+    })),
+    settledThisMonth: (monthly._sum.amount ?? new Prisma.Decimal(0)).toFixed(2),
+  };
+}
