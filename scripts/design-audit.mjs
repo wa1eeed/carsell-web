@@ -19,7 +19,8 @@
  *   node scripts/design-audit.mjs A4 Wc      # شاشاتٌ بعينها
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
@@ -92,8 +93,36 @@ async function signIn() {
  * والدخول بالمسار الذي يسلكه المشتري: رمزٌ يُطلب ويُتحقّق. و`devCode`
  * لا يُعاد إلّا في التطوير، فالقياس على غيره لا يدخل أصلًا.
  */
+/**
+ * ملفُّ الجلسة المحفوظة — **ومهلةُ الرمز تمنع قياسين متتاليين**.
+ *
+ * `requestOtp` تفرض مهلةً بين طلبين، فقياسٌ يتلو قياسًا يسقط دخولُه
+ * ويُخرج اثنتي عشرة شاشة من المقام. والجلسة صالحةٌ شهرًا، فحفظُها
+ * يجعل الطلب مرّةً واحدة — وهي جلسةٌ نالها المسار نفسه لا التفافًا
+ * عليه.
+ */
+const SESSION_FILE = join(tmpdir(), 'carsell-design-audit-session');
+
 async function signInUser() {
   if (USER_COOKIE !== '') return;
+
+  try {
+    const cached = readFileSync(SESSION_FILE, 'utf8').trim();
+    if (cached !== '') {
+      /** تُجرَّب قبل أن يُوثَق بها: جلسةٌ منتهية أسوأ من غيابها. */
+      const probe = await fetch(`${BASE}/ar/account`, {
+        headers: { cookie: `carsell_session=${cached}` },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (probe.status === 200) {
+        USER_COOKIE = cached;
+        return;
+      }
+    }
+  } catch {
+    /* لا جلسة محفوظة — يُطلب رمزٌ جديد */
+  }
 
   const phone = process.env.AUDIT_PHONE ?? '+966510000003';
 
@@ -135,6 +164,11 @@ async function signInUser() {
       return;
     }
     USER_COOKIE = found;
+    try {
+      writeFileSync(SESSION_FILE, found, 'utf8');
+    } catch {
+      /* الحفظ تحسينٌ لا شرط — والقياس يمضي بلا ملفّ */
+    }
   } catch (error) {
     console.log(`⬜ تعذّر دخول المستخدم (${error instanceof Error ? error.name : 'fetch'}).`);
   }
@@ -346,6 +380,36 @@ async function main() {
        * فالجلسة لِما لا يُفتح بدونها وحده.
        */
       const needsUser = /^\/[a-z]{2}\/(account|sell|orders|inbox|checkout)\b/.test(route);
+
+      /**
+       * **وغيابُ الجلسة ليس «صفر مطابقة».** سقط الدخول بـ
+       * `OTP_RATE_LIMITED` فقُرئت اثنتا عشرة شاشة حساب صفرًا — وهي
+       * تعرض ما يطلبه التصميم، وأنا من لم يدخل. والقاعدة نفسها التي
+       * فُصل بها فشلُ الجلب: ما لم يُقَس يخرج من المقام.
+       */
+      if (needsUser && USER_COOKIE === '') {
+        rows.push({
+          tag, route,
+          total: signals.length,
+          found: 0,
+          failed: 'بلا جلسة',
+          empty: false,
+          missing: [],
+        });
+        continue;
+      }
+
+      if (route.startsWith('/admin') && ADMIN_COOKIE === '') {
+        rows.push({
+          tag, route,
+          total: signals.length,
+          found: 0,
+          failed: 'بلا جلسة أدمن',
+          empty: false,
+          missing: [],
+        });
+        continue;
+      }
       const cookie = route.startsWith('/admin')
         ? `carsell_admin=${ADMIN_COOKIE}`
         : needsUser

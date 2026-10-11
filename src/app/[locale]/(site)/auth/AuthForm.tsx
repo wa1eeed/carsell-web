@@ -123,7 +123,7 @@ export function AuthForm({ locale }: { locale: string }) {
 
   if (step === 'phone') {
     return (
-      <div className="max-w-sm">
+      <div className="w-full max-w-sm">
         <h1 className="mb-1.5 text-2xl font-bold">{t('title')}</h1>
         <p className="mb-7 text-xs leading-loose opacity-60">{t('subtitle')}</p>
 
@@ -178,7 +178,7 @@ export function AuthForm({ locale }: { locale: string }) {
   }
 
   return (
-    <div className="max-w-sm">
+    <div className="w-full max-w-sm">
       <h1 className="mb-1.5 text-2xl font-bold">{t('codeTitle')}</h1>
       <p className="mb-7 flex flex-wrap items-center gap-1.5 text-xs opacity-60">
         {t('sentTo')}

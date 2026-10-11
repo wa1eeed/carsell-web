@@ -745,7 +745,28 @@
     "publishFailed": "Could not publish — check the details.",
     "publishNetwork": "Connection failed — try again.",
     "colorExterior": "Exterior colour",
-    "condition": "Condition"
+    "condition": "Condition",
+    "auction": {
+      "title": "Auction settings",
+      "duration": "Auction length",
+      "start": "Starts",
+      "startNow": "Immediately",
+      "startScheduled": "At a set time",
+      "reserve": "Reserve price (optional)",
+      "reserveHint": "The lowest price you will accept. Hidden from every bidder, and never below the opening price.",
+      "increment": "Bid increment",
+      "incrementHint": "Leave empty to use the minimum:",
+      "buyNow": "Buy-now price (optional)",
+      "buyNowHint": "Ends the auction at once for whoever pays it, and disappears once bidding reaches the reserve.",
+      "deposit": "Held on each bidder's card at their first bid:",
+      "riyal": "SAR"
+    },
+    "negotiation": {
+      "title": "Negotiation settings",
+      "minAccept": "Lowest price you accept (optional)",
+      "minAcceptHint": "Hidden from buyers. Any offer below it is auto-rejected with a notice to them, and never reaches you.",
+      "rules": "Offers above your floor wait for your reply or a counter. Anything you do not answer lapses when its window ends."
+    }
   },
   "order": {
     "subtitle": "Where your order and your money stand.",

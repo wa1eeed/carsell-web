@@ -289,3 +289,39 @@ turns the key into "أقل من ٥٠ ألف ريال".
 `parseFilters` the results page uses and asserts the result is **non-empty and
 narrower than unfiltered**. Non-empty alone would pass even if the filter key
 were misspelled and silently ignored.
+
+
+## The auction a seller could never create (task 93)
+
+`type: AUCTION` was writable on a listing, but **nothing in the product created
+an `Auction` row** — the only `auction.create` in the repository was in
+`prisma/seed.ts`. Walked it: a listing published as an auction renders
+`/ar/auctions/{ref}` as **404**, while its vehicle page carries an "auction"
+badge and offers **"Buy now via escrow"** at the asking price. A listing that
+says one thing and does another.
+
+The tenth instance of "a value in the schema that nothing writes".
+
+| Field | Who chooses it |
+|---|---|
+| duration, start time, reserve, bid increment, buy-now | the seller, in the wizard |
+| deposit, minimum increment, allowed durations, extension window | the operator, in auction settings |
+
+The row is created **inside the publish transaction**. Outside it there is a
+window in which a listing is an auction with no auction, and one page view in
+that window is enough — the same rule as "what needs guarding is built guarded".
+
+`status` is computed, not assumed: an auction starting immediately is written
+`LIVE`. Writing `SCHEDULED` and waiting for a sweep means an auction whose whole
+window can elapse before the sweep opens it — closing without a single bid.
+
+`minAcceptPrice` had the same shape: the domain auto-rejects offers below it and
+the help centre tells buyers the seller sets it, but **no field at publish ever
+asked**. It is now part of the negotiation step.
+
+### The error map
+
+The route's error branch was ten nested ternaries ending in "unknown brand or
+model" as the fallback, so every new failure reason would be **born with the
+wrong message**. It is a `Record<PublishFailure, …>` now: a missing message is a
+type error, not a sentence shown to a seller.

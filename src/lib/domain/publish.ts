@@ -10,6 +10,7 @@ import type {
   VehicleSpec,
 } from '@/generated/prisma/enums';
 import { findDuplicate } from './listing-images';
+import { auctionSettings } from './admin-auction-settings';
 
 /**
  * ═══ نشر الإعلان — والحارس معه لا بعده ═══
@@ -70,6 +71,38 @@ export type PublishInput = {
    * كشف التكرار حارسًا يُطفئه من يريد تجاوزه.
    */
   images: string[];
+  /**
+   * ═══ إعدادات المزاد — **وبدونها لا يُنشأ مزاد أصلًا** ═══
+   *
+   * البائع كان يختار «مزاد» في المعالج فيُكتب `type: AUCTION` على
+   * الإعلان **ولا يُنشأ صفّ `Auction`** — ولا شيء في المنتج كلّه
+   * يُنشئه إلّا البذرة. فصفحة المزاد ٤٠٤، وصفحة المركبة تحمل وسم
+   * «مزاد» وتعرض «اشترِ الآن»: إعلانٌ يقول شيئًا ويفعل غيره.
+   *
+   * وعاشرُ مرّةٍ لنمط «قيمةٌ في المخطّط بلا كاتب».
+   */
+  auction?: {
+    /** من المدد التي يسمح بها المشغّل — ولا يخترع البائع مدّة. */
+    durationDays: number;
+    /** `null` يعني «يبدأ فور النشر» — والموعد لا يكون في الماضي. */
+    startsAt: string | null;
+    /** مخفيٌّ عن كل مزايد — ولا يخرج في أي استجابة عامّة. */
+    reservePrice: number | null;
+    /** `null` يأخذ أدنى ما يسمح به المشغّل. */
+    bidIncrement: number | null;
+    /** «اشترِ الآن» — ويختفي متى بلغت المزايدات الاحتياطي. */
+    buyNowPrice: number | null;
+  };
+  /**
+   * إعدادات التفاوض — **و`minAcceptPrice` لم يكن لها كاتبٌ عند النشر**.
+   *
+   * النطاق يرفض العروض دونها تلقائيًّا، ومركز المساعدة يقول «البائع
+   * يحدّد حدًّا أدنى مخفيًا» — ولا حقل في المعالج يسأله عنه. فالقاعدة
+   * مبنيّةٌ ومشروحةٌ للمشتري ولا يملك البائع ضبطها إلّا بعد النشر.
+   */
+  negotiation?: {
+    minAcceptPrice: number | null;
+  };
 };
 
 export type PublishFailure =
@@ -80,7 +113,14 @@ export type PublishFailure =
   | 'PRICE_INVALID'
   | 'BRAND_OR_MODEL_UNKNOWN'
   | 'TRIM_UNKNOWN'
-  | 'VIN_ALREADY_LISTED';
+  | 'VIN_ALREADY_LISTED'
+  | 'AUCTION_SETTINGS_REQUIRED'
+  | 'AUCTION_DURATION_INVALID'
+  | 'AUCTION_STARTS_IN_PAST'
+  | 'AUCTION_RESERVE_INVALID'
+  | 'AUCTION_INCREMENT_TOO_SMALL'
+  | 'AUCTION_BUY_NOW_INVALID'
+  | 'MIN_ACCEPT_INVALID';
 
 export type PublishResult =
   | { ok: true; ref: string; status: 'PUBLISHED' | 'PENDING_REVIEW'; reviewReason: ReviewReason | null }
@@ -155,6 +195,79 @@ export async function createListing(
   if (input.images.length === 0) return { ok: false, reason: 'NO_IMAGES' };
   if (!Number.isFinite(input.askPrice) || input.askPrice <= 0) {
     return { ok: false, reason: 'PRICE_INVALID' };
+  }
+
+  /**
+   * ═══ إعدادات طريقة البيع — تُفحص قبل أن يُكتب شيء ═══
+   *
+   * **والحدود من إعدادات المشغّل لا من رقمٍ هنا**: أدنى فرقٍ بين
+   * مزايدتين والمدد المسموحة والعربون كلُّها في لوحة المزادات، ونسخُها
+   * هنا يُنتج مصدرَي حقيقةٍ يتباعدان أوّل تغيير.
+   */
+  const settings = input.type === 'AUCTION' ? await auctionSettings() : null;
+
+  if (input.type === 'AUCTION') {
+    const auction = input.auction;
+    if (auction === undefined || settings === null) {
+      return { ok: false, reason: 'AUCTION_SETTINGS_REQUIRED' };
+    }
+
+    if (!settings.durationsDays.includes(auction.durationDays)) {
+      return { ok: false, reason: 'AUCTION_DURATION_INVALID' };
+    }
+
+    /**
+     * **وموعدٌ في الماضي يُغلق المزاد قبل أن يُفتح.** والسماحُ دقيقةً
+     * لفرق ساعة العميل عن الخادم: رفضُ «الآن» لمن ضغط «الآن» عبثٌ.
+     */
+    if (auction.startsAt !== null) {
+      const at = Date.parse(auction.startsAt);
+      if (!Number.isFinite(at) || at < now.getTime() - 60_000) {
+        return { ok: false, reason: 'AUCTION_STARTS_IN_PAST' };
+      }
+    }
+
+    /**
+     * **والاحتياطي لا يقلّ عن سعر الافتتاح.** احتياطيٌّ دونه يُبلَغ
+     * بأوّل مزايدة فلا معنى له، والبائع يظنّه حارسًا.
+     */
+    if (auction.reservePrice !== null) {
+      if (!Number.isFinite(auction.reservePrice) || auction.reservePrice < input.askPrice) {
+        return { ok: false, reason: 'AUCTION_RESERVE_INVALID' };
+      }
+    }
+
+    if (auction.bidIncrement !== null) {
+      if (
+        !Number.isFinite(auction.bidIncrement) ||
+        auction.bidIncrement < Number(settings.minIncrement)
+      ) {
+        return { ok: false, reason: 'AUCTION_INCREMENT_TOO_SMALL' };
+      }
+    }
+
+    /**
+     * **و«اشترِ الآن» فوق الاحتياطي.** دونه يشتري المشتري بأقلّ ممّا
+     * قَبِل به البائع — بضغطةٍ واحدة قبل أيّ مزايدة.
+     */
+    if (auction.buyNowPrice !== null) {
+      const floor = auction.reservePrice ?? input.askPrice;
+      if (!Number.isFinite(auction.buyNowPrice) || auction.buyNowPrice < floor) {
+        return { ok: false, reason: 'AUCTION_BUY_NOW_INVALID' };
+      }
+    }
+  }
+
+  /**
+   * **وحدُّ القبول لا يعلو السعر المعلن** — والقاعدة نفسها في
+   * `updateOwnListing`. حدٌّ فوقه يرفض كل عرضٍ تلقائيًّا بما فيه
+   * العرض بالسعر المطلوب، فيظنّ البائع أن لا أحد يعرض عليه.
+   */
+  const minAccept = input.negotiation?.minAcceptPrice ?? null;
+  if (input.type === 'NEGOTIATION' && minAccept !== null) {
+    if (!Number.isFinite(minAccept) || minAccept < 1000 || minAccept > input.askPrice) {
+      return { ok: false, reason: 'MIN_ACCEPT_INVALID' };
+    }
   }
 
   const [brand, model] = await Promise.all([
@@ -247,11 +360,57 @@ export async function createListing(
           : { description: input.description.trim().slice(0, 4000) }),
         taxableSupply: input.taxableSupply,
         negotiable: input.type === 'NEGOTIATION',
+        /**
+         * حدُّ القبول — **سرٌّ لا يخرج في أي استجابة عامّة**، ولم يكن
+         * له كاتبٌ عند النشر رغم أن النطاق يرفض العروض دونه.
+         */
+        ...(minAccept === null ? {} : { minAcceptPrice: new Prisma.Decimal(minAccept) }),
         city: input.vehicle.city,
         // تاريخ النشر يُكتب حين يُنشَر فعلًا — والمراجَع لم يُنشَر بعد
         publishedAt: reviewReason === null ? now : null,
       },
     });
+
+    /**
+     * ═══ والمزاد يُنشأ **مع** إعلانه لا بعده ═══
+     *
+     * خارج المعاملة نافذةٌ يكون فيها إعلانٌ نوعُه `AUCTION` بلا صفّ
+     * مزاد — وصفحتُه تعرض «اشترِ الآن» بوسم «مزاد»، ونشرةٌ واحدة في
+     * تلك النافذة تكفي. وهي القاعدة نفسها: «ما يحتاج حراسةً يُبنى
+     * محروسًا».
+     *
+     * **وحالة البدء تُحسب لا تُفترض**: مزادٌ يبدأ فورًا يُكتب `LIVE`
+     * مباشرةً — و`SCHEDULED` بموعدٍ ماضٍ تنتظر وظيفةً دورية قد لا
+     * تمرّ قبل أن ينقضي وقتُه كلُّه، فيُغلق بلا مزايدةٍ واحدة.
+     */
+    if (input.type === 'AUCTION' && input.auction !== undefined && settings !== null) {
+      const plan = input.auction;
+      const startsAt = plan.startsAt === null ? now : new Date(plan.startsAt);
+      const endsAt = new Date(startsAt.getTime() + plan.durationDays * 24 * 3600 * 1000);
+
+      await tx.auction.create({
+        data: {
+          listingId: listing.id,
+          startPrice: new Prisma.Decimal(input.askPrice),
+          ...(plan.reservePrice === null
+            ? {}
+            : { reservePrice: new Prisma.Decimal(plan.reservePrice) }),
+          bidIncrement: new Prisma.Decimal(plan.bidIncrement ?? Number(settings.minIncrement)),
+          ...(plan.buyNowPrice === null
+            ? {}
+            : { buyNowPrice: new Prisma.Decimal(plan.buyNowPrice) }),
+          depositAmount: new Prisma.Decimal(settings.defaultDeposit),
+          startsAt,
+          endsAt,
+          /**
+           * والمراجَع لا يُفتح مزادُه: إعلانٌ في الطابور يبقى مزادُه
+           * `SCHEDULED` حتى يُعتمد — ولا يُزايَد على ما لم يُنشَر.
+           */
+          status:
+            reviewReason !== null || startsAt.getTime() > now.getTime() ? 'SCHEDULED' : 'LIVE',
+        },
+      });
+    }
 
     await tx.listingImage.createMany({
       data: assets.map((asset, index) => ({

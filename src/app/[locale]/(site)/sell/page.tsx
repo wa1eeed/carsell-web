@@ -11,6 +11,7 @@ import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
+import { auctionSettings } from '@/lib/domain/admin-auction-settings';
 import { SellWizard } from './SellWizard';
 
 export const dynamic = 'force-dynamic';
@@ -46,12 +47,13 @@ export default async function SellPage({
   const user = await currentUserFromCookies();
   if (user === null) redirect(`/${locale}/auth`);
 
-  const [brands, cities, stats, t] = await Promise.all([
+  const [brands, cities, stats, auction, t] = await Promise.all([
     listBrandOptions(),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
       .then((rows) => rows.map((row) => row.city).sort()),
     db.priceStat.aggregate({ _avg: { daysToSellMedian: true } }),
+    auctionSettings(),
     getTranslations('sell'),
   ]);
 
@@ -88,6 +90,18 @@ export default async function SellPage({
 
         <div className="page-frame">
           <SellWizard
+            /*
+              **وحدود المزاد من اللوحة لا من رقمٍ في المعالج.** المدد
+              المتاحة وأدنى فرقٍ بين مزايدتين والعربون كلُّها في إعدادات
+              المزادات — ونسخُها هنا يُنتج مصدرَي حقيقةٍ يتباعدان أوّل
+              تغيير، فيعرض المعالج مدّةً يرفضها الخادم.
+            */
+            auctionLimits={{
+              durationsDays: auction.durationsDays,
+              minIncrement: auction.minIncrement,
+              defaultDeposit: auction.defaultDeposit,
+              buyNowBeforeReserve: auction.buyNowBeforeReserve,
+            }}
             taxProfile={taxProfileOf(user)}
             brands={brands}
             cities={cities}

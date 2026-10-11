@@ -1488,6 +1488,46 @@ function checkRetiredPromises() {
   }
 }
 
+/**
+ * ═══ ٢٨ · حقلٌ بـ`flex-1` بلا `min-w-0` لا ينكمش أبدًا ═══
+ *
+ * **عطلٌ قاسه المالك**: ستّ خانات رمز التحقّق بـ٢٢١px لكلٍّ على شاشة
+ * ٣٧٥ — فتظهر واحدةٌ ونصف والباقي خارج الصفحة.
+ *
+ * والسبب أن `<input>` له **حدٌّ أدنى تلقائيّ** من سمة `size` (عشرون
+ * محرفًا افتراضًا)، و`flex-1` لا تنزل تحته لأن `min-width: auto`.
+ * فالخانة تطلب عرضَ محتواها مهما ضاقت الحاوية — **و`flex-1` وحدها
+ * تبدو كافيةً وليست كذلك**، وهو ما يجعل العطل يمرّ على المراجعة.
+ *
+ * ولا يُطلق على حقلٍ اختار كاتبُه حدًّا صريحًا (`min-w-56` داخل حاوية
+ * تلتفّ): ذاك قرارٌ لا سهو.
+ */
+function checkFlexInputsCanShrink() {
+  const ELEMENT = /<(input|textarea|select)\b[\s\S]{0,900}?\/>/g;
+  const CLASSES = /'([^']*\bflex-1\b[^']*)'/g;
+
+  for (const path of walk(join(ROOT, 'src'))) {
+    if (!/\.tsx$/.test(path)) continue;
+    const rel = relative(ROOT, path);
+    if (rel.includes('generated')) continue;
+
+    const text = readFileSync(path, 'utf8');
+
+    for (const element of text.matchAll(ELEMENT)) {
+      for (const match of element[0].matchAll(CLASSES)) {
+        const classes = match[1];
+        /** حدٌّ صريح — صفرًا كان أو غيره — يعني أن الكاتب فكّر فيه. */
+        if (/\bmin-w-|\bw-0\b/.test(classes)) continue;
+
+        const line = text.slice(0, element.index).split('\n').length;
+        problems.push(
+          `${rel}:${String(line)}  حقل بـflex-1 بلا min-w-0 — لا ينكمش تحت عرض محتواه فيفيض`,
+        );
+      }
+    }
+  }
+}
+
 
 checkUnits();
 checkStringifiedNumbers();
@@ -1507,6 +1547,7 @@ checkIdentityFlag();
 checkEnglishFieldsAreEnglish();
 checkTranslationKeysResolve();
 checkRetiredPromises();
+checkFlexInputsCanShrink();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -1517,5 +1558,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا رقم Latin قبل كلمة عربية · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0.',
 );

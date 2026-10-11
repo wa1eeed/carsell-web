@@ -89,6 +89,12 @@ async function cleanup() {
     select: { id: true, vehicleId: true },
   });
   const ids = rows.map((r) => r.id);
+  /**
+   * **وأثرٌ جديد يُضاف إلى الاستعادة.** صار النشر يُنشئ `Auction`،
+   * وصفٌّ يبقى يُسقط جيرانه في التشغيل التالي — والقاعدة مسجَّلة:
+   * كل ملفّ ينظّف ما كان يعرفه **يوم كُتب**.
+   */
+  await db.auction.deleteMany({ where: { listingId: { in: ids } } });
   await db.listingImage.deleteMany({ where: { listingId: { in: ids } } });
   await db.listing.deleteMany({ where: { id: { in: ids } } });
   await db.vehicle.deleteMany({ where: { id: { in: rows.map((r) => r.vehicleId) } } });
@@ -272,5 +278,175 @@ describe('النشر — والحارس معه لا بعده', () => {
     if (foreign === null) return;
     input.vehicle.trimId = foreign.id;
     expect(await createListing(input)).toEqual({ ok: false, reason: 'TRIM_UNKNOWN' });
+  });
+});
+
+/**
+ * ═══ المزاد يُنشأ مع إعلانه ═══
+ *
+ * العطل الذي وُلدت منه هذه الكتلة: **لا شيء في المنتج كلّه يُنشئ صفّ
+ * `Auction` إلّا البذرة**. فمن اختار «مزاد» في المعالج أنشأ إعلانًا
+ * نوعُه `AUCTION` بلا مزاد — وصفحةُ المزاد ٤٠٤، وصفحةُ المركبة تحمل
+ * وسم «مزاد» وتعرض «اشترِ الآن عبر الضمان».
+ *
+ * وقِيس بالمشي: أُنشئ الصفّ يدويًّا وفُتحت صفحتاه.
+ */
+describe('المزاد يُنشأ مع إعلانه — لا بعده ولا أبدًا', () => {
+  it('«مزاد» بلا إعدادات يُرفض — ولا يُنشأ إعلانٌ أعرج', async () => {
+    const input = { ...(await base()), type: 'AUCTION' as const };
+    expect(await createListing(input)).toEqual({
+      ok: false,
+      reason: 'AUCTION_SETTINGS_REQUIRED',
+    });
+  });
+
+  it('ينشئ صفّ المزاد في المعاملة نفسها', async () => {
+    const input: PublishInput = {
+      ...(await base()),
+      type: 'AUCTION',
+      auction: {
+        durationDays: 3,
+        startsAt: null,
+        reservePrice: 95_000,
+        bidIncrement: null,
+        buyNowPrice: null,
+      },
+    };
+
+    const result = await createListing(input);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    created.push(result.ref);
+
+    const listing = await db.listing.findUniqueOrThrow({
+      where: { ref: result.ref },
+      select: { id: true, type: true },
+    });
+    expect(listing.type).toBe('AUCTION');
+
+    const auction = await db.auction.findUnique({ where: { listingId: listing.id } });
+    expect(auction, 'لا صفّ مزاد — وهو العطل نفسه').not.toBeNull();
+    expect(Number(auction!.startPrice)).toBe(input.askPrice);
+    expect(Number(auction!.reservePrice)).toBe(95_000);
+
+    /** الفرق الافتراضيّ من إعدادات المشغّل لا من رقمٍ في الشيفرة. */
+    const { auctionSettings } = await import('@/lib/domain/admin-auction-settings');
+    const settings = await auctionSettings();
+    expect(Number(auction!.bidIncrement)).toBe(Number(settings.minIncrement));
+    expect(Number(auction!.depositAmount)).toBe(Number(settings.defaultDeposit));
+
+    /**
+     * **ومَن يبدأ فورًا يُكتب `LIVE`.** و`SCHEDULED` بموعدٍ ماضٍ
+     * تنتظر وظيفةً دورية قد لا تمرّ قبل أن ينقضي وقتُه كلُّه — فيُغلق
+     * بلا مزايدةٍ واحدة.
+     */
+    expect(auction!.status).toBe('LIVE');
+    expect(auction!.endsAt.getTime() - auction!.startsAt.getTime()).toBe(3 * 24 * 3600 * 1000);
+
+    await cleanup();
+  });
+
+  it('الموعد المستقبليّ يبقى مجدولًا', async () => {
+    const soon = new Date(Date.now() + 6 * 3600 * 1000).toISOString();
+    const input: PublishInput = {
+      ...(await base()),
+      type: 'AUCTION',
+      auction: {
+        durationDays: 1, startsAt: soon, reservePrice: null,
+        bidIncrement: null, buyNowPrice: null,
+      },
+    };
+
+    const result = await createListing(input);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    created.push(result.ref);
+
+    const listing = await db.listing.findUniqueOrThrow({ where: { ref: result.ref } });
+    const auction = await db.auction.findUniqueOrThrow({ where: { listingId: listing.id } });
+    expect(auction.status).toBe('SCHEDULED');
+
+    await cleanup();
+  });
+
+  /** احتياطيٌّ دون سعر الافتتاح يُبلَغ بأوّل مزايدة — فلا معنى له. */
+  it('يرفض احتياطيًّا دون سعر الافتتاح، ومدّةً غير متاحة، وموعدًا مضى', async () => {
+    const input = await base();
+    const auction = {
+      durationDays: 3, startsAt: null, reservePrice: null,
+      bidIncrement: null, buyNowPrice: null,
+    };
+
+    expect(
+      await createListing({
+        ...input, type: 'AUCTION',
+        auction: { ...auction, reservePrice: input.askPrice - 1 },
+      }),
+    ).toEqual({ ok: false, reason: 'AUCTION_RESERVE_INVALID' });
+
+    expect(
+      await createListing({ ...input, type: 'AUCTION', auction: { ...auction, durationDays: 11 } }),
+    ).toEqual({ ok: false, reason: 'AUCTION_DURATION_INVALID' });
+
+    expect(
+      await createListing({
+        ...input, type: 'AUCTION',
+        auction: { ...auction, startsAt: new Date(Date.now() - 3_600_000).toISOString() },
+      }),
+    ).toEqual({ ok: false, reason: 'AUCTION_STARTS_IN_PAST' });
+  });
+
+  /** دون الاحتياطي يشتري المشتري بأقلّ ممّا قَبِل به البائع — بضغطة. */
+  it('يرفض «اشترِ الآن» دون الاحتياطي', async () => {
+    const input = await base();
+    expect(
+      await createListing({
+        ...input, type: 'AUCTION',
+        auction: {
+          durationDays: 3, startsAt: null, reservePrice: 95_000,
+          bidIncrement: null, buyNowPrice: 94_000,
+        },
+      }),
+    ).toEqual({ ok: false, reason: 'AUCTION_BUY_NOW_INVALID' });
+  });
+});
+
+/**
+ * ═══ وحدُّ القبول لم يكن له كاتبٌ عند النشر ═══
+ *
+ * النطاق يرفض العروض دونه تلقائيًّا، ومركز المساعدة يقول للمشتري
+ * «البائع يحدّد حدًّا أدنى مخفيًا» — ولا حقل في المعالج يسأله عنه.
+ */
+describe('حدّ القبول عند النشر', () => {
+  it('يُكتب مع الإعلان ولا يخرج في استجابة', async () => {
+    const input: PublishInput = {
+      ...(await base()),
+      type: 'NEGOTIATION',
+      negotiation: { minAcceptPrice: 80_000 },
+    };
+
+    const result = await createListing(input);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    created.push(result.ref);
+
+    const row = await db.listing.findUniqueOrThrow({ where: { ref: result.ref } });
+    expect(Number(row.minAcceptPrice)).toBe(80_000);
+    expect(row.negotiable).toBe(true);
+
+    // **ولا يخرج في الاستجابة** — والنتيجة مرجعٌ وحالةٌ وسببُ مراجعة
+    expect(JSON.stringify(result)).not.toContain('80000');
+
+    await cleanup();
+  });
+
+  it('يرفض حدًّا يعلو السعر المعلن — وإلّا رُفض كل عرض تلقائيًّا', async () => {
+    const input = await base();
+    expect(
+      await createListing({
+        ...input, type: 'NEGOTIATION',
+        negotiation: { minAcceptPrice: input.askPrice + 1 },
+      }),
+    ).toEqual({ ok: false, reason: 'MIN_ACCEPT_INVALID' });
   });
 });

@@ -67,6 +67,20 @@ const EMPTY: Vehicle = {
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
 };
 
+/**
+ * رقمٌ من حقلٍ يقبل كل صيغة لصق — **و`null` للفارغ لا صفر**.
+ *
+ * `Number('')` صفرٌ، و«احتياطيّ بصفر» ليس «بلا احتياطيّ»: الأوّل
+ * يُبلَغ بأوّل ريال، والثاني لا يوجد. وخلطُهما يجعل البائع يظنّ أن له
+ * حدًّا ولا حدّ له.
+ */
+function digits(value: string): number | null {
+  const clean = toLatinDigits(value).replace(/\D/g, '');
+  if (clean === '') return null;
+  const n = Number(clean);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 const STEPS = ['vehicle', 'photos', 'method'] as const;
 const METHODS = ['DIRECT', 'NEGOTIATION', 'AUCTION'] as const;
 
@@ -80,12 +94,50 @@ const METHODS = ['DIRECT', 'NEGOTIATION', 'AUCTION'] as const;
  * والحالة كلّها في العميل هنا **بخلاف Wb**: هذه استمارة لا شاشة نتائج،
  * ورابطٌ يحمل نصف مركبة لا يفيد أحدًا ولا يُشارَك.
  */
+/**
+ * حقل مبلغ — **يقبل كل صيغة لصق ويطبّعها**، و`dir="ltr"` لأنه يُقارن
+ * خانةً بخانة. والتلميح تحته لا بجانبه: الشرطُ يُقرأ قبل الكتابة.
+ */
+function PriceField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-3xs font-bold opacity-60">{label}</span>
+      <input
+        dir="ltr"
+        inputMode="numeric"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
+      />
+      <span className="text-3xs leading-loose opacity-45">{hint}</span>
+    </label>
+  );
+}
+
+export type AuctionLimits = {
+  durationsDays: number[];
+  minIncrement: string;
+  defaultDeposit: string;
+  buyNowBeforeReserve: boolean;
+};
+
 export function SellWizard({
   taxProfile,
   brands,
   cities,
   locale,
   vinLookupEnabled,
+  auctionLimits,
 }: {
   taxProfile: TaxProfile;
   brands: readonly Option[];
@@ -93,6 +145,12 @@ export function SellWizard({
   locale: string;
   /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
   vinLookupEnabled: boolean;
+  /**
+   * حدود المشغّل — **لا تُكتب هنا**. المدد وأدنى فرقٍ بين مزايدتين
+   * والعربون في لوحة المزادات، ونسخُها يجعل المعالج يعرض مدّةً يرفضها
+   * الخادم.
+   */
+  auctionLimits: AuctionLimits;
 }) {
   const router = useRouter();
   const t = useTranslations('sell');
@@ -107,6 +165,27 @@ export function SellWizard({
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [price, setPrice] = useState('');
   const [method, setMethod] = useState<(typeof METHODS)[number]>('DIRECT');
+
+  /**
+   * ═══ إعدادات طريقة البيع — ولم يكن للمعالج واحدةٌ منها ═══
+   *
+   * من اختار «مزاد» نشر إعلانًا نوعُه `AUCTION` **بلا مزاد**: لا مدّة
+   * ولا احتياطيّ ولا خطوة مزايدة — ولا شيء في المنتج كلّه يُنشئ الصفّ
+   * إلّا البذرة. فصفحةُ المزاد ٤٠٤، وصفحةُ المركبة تعرض «اشترِ الآن»
+   * تحت وسم «مزاد».
+   *
+   * ومن اختار «تفاوض» لم يُسأل عن حدّه الأدنى — والنطاق يرفض العروض
+   * دونه، ومركز المساعدة يقول للمشتري إن البائع يحدّده.
+   */
+  const [durationDays, setDurationDays] = useState<number>(
+    auctionLimits.durationsDays[0] ?? 3,
+  );
+  const [startNow, setStartNow] = useState(true);
+  const [startsAt, setStartsAt] = useState('');
+  const [reservePrice, setReservePrice] = useState('');
+  const [bidIncrement, setBidIncrement] = useState('');
+  const [buyNowPrice, setBuyNowPrice] = useState('');
+  const [minAcceptPrice, setMinAcceptPrice] = useState('');
 
   /**
    * ═══ الوضع الضريبيّ يُسأل هنا، لا عند «ادفع» ═══
@@ -165,6 +244,28 @@ export function SellWizard({
           },
           // المفاتيح وحدها — والخادم يقرأ بصماتها من عنده
           images: images.map((image) => image.key),
+
+          /**
+           * **والحقل الفارغ `null` لا صفر.** `Number('')` صفرٌ،
+           * و«احتياطيّ بصفر» ليس «بلا احتياطيّ» — الأوّل يُبلَغ بأوّل
+           * ريال، والثاني لا يوجد.
+           */
+          ...(method !== 'AUCTION'
+            ? {}
+            : {
+                auction: {
+                  durationDays,
+                  startsAt:
+                    startNow || startsAt === '' ? null : new Date(startsAt).toISOString(),
+                  reservePrice: digits(reservePrice),
+                  bidIncrement: digits(bidIncrement),
+                  buyNowPrice: digits(buyNowPrice),
+                },
+              }),
+
+          ...(method !== 'NEGOTIATION'
+            ? {}
+            : { negotiation: { minAcceptPrice: digits(minAcceptPrice) } }),
         }),
       }).catch(() => null);
 
@@ -713,6 +814,131 @@ export function SellWizard({
               </button>
             ))}
           </div>
+
+          {/*
+            ═══ إعدادات المزاد — Wh3 ═══
+
+            **ولا تظهر إلّا لمن اختاره.** حقولٌ لطريقةٍ لم تُختَر تُربك
+            وتُطال الاستمارة، ومن اختار «مباشر» لا شأن له بخطوة مزايدة.
+          */}
+          {method !== 'AUCTION' ? null : (
+            <div className="mb-7 rounded-xl border border-line bg-surface p-5.5">
+              <h3 className="mb-4 text-base font-bold">{t('auction.title')}</h3>
+
+              <fieldset className="mb-5">
+                <legend className="mb-2.5 text-3xs font-bold opacity-60">
+                  {t('auction.duration')}
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {auctionLimits.durationsDays.map((days) => (
+                    <button
+                      key={days}
+                      type="button"
+                      onClick={() => setDurationDays(days)}
+                      className={cn(
+                        'rounded-btn border px-4 py-2 text-2xs font-bold',
+                        durationDays === days
+                          ? 'border-ink bg-ink text-bg'
+                          : 'border-line hover:border-ink',
+                      )}
+                    >
+                      <Quantity unit="days" count={days} />
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="mb-5">
+                <legend className="mb-2.5 text-3xs font-bold opacity-60">
+                  {t('auction.start')}
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStartNow(true)}
+                    className={cn(
+                      'rounded-btn border px-4 py-2 text-2xs font-bold',
+                      startNow ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink',
+                    )}
+                  >
+                    {t('auction.startNow')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStartNow(false)}
+                    className={cn(
+                      'rounded-btn border px-4 py-2 text-2xs font-bold',
+                      startNow ? 'border-line hover:border-ink' : 'border-ink bg-ink text-bg',
+                    )}
+                  >
+                    {t('auction.startScheduled')}
+                  </button>
+                </div>
+
+                {startNow ? null : (
+                  /* الموعد يُقارن خانةً بخانة — لاتينيّ معزول */
+                  <input
+                    dir="ltr"
+                    type="datetime-local"
+                    value={startsAt}
+                    onChange={(event) => setStartsAt(event.target.value)}
+                    className="mt-2.5 rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
+                  />
+                )}
+              </fieldset>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <PriceField
+                  label={t('auction.reserve')}
+                  hint={t('auction.reserveHint')}
+                  value={reservePrice}
+                  onChange={setReservePrice}
+                />
+                <PriceField
+                  label={t('auction.increment')}
+                  hint={`${t('auction.incrementHint')} ${toArabicDigits(auctionLimits.minIncrement.replace(/\.00$/, ''))}`}
+                  value={bidIncrement}
+                  onChange={setBidIncrement}
+                />
+                {!auctionLimits.buyNowBeforeReserve ? null : (
+                  <PriceField
+                    label={t('auction.buyNow')}
+                    hint={t('auction.buyNowHint')}
+                    value={buyNowPrice}
+                    onChange={setBuyNowPrice}
+                  />
+                )}
+              </div>
+
+              {/*
+                **والعربون يُقال ولا يُسأل عنه**: رقمُ المشغّل لا
+                البائع. وإخفاؤه يجعل البائع يجهل ما يلتزم به المزايد.
+              */}
+              <p className="mt-4 text-3xs leading-loose opacity-55">
+                {t('auction.deposit')}{' '}
+                <span className="font-num font-bold">
+                  {toArabicDigits(auctionLimits.defaultDeposit.replace(/\.00$/, ''))}
+                </span>{' '}
+                {t('auction.riyal')}
+              </p>
+            </div>
+          )}
+
+          {/* ═══ إعدادات التفاوض — Wh3b ═══ */}
+          {method !== 'NEGOTIATION' ? null : (
+            <div className="mb-7 rounded-xl border border-line bg-surface p-5.5">
+              <h3 className="mb-4 text-base font-bold">{t('negotiation.title')}</h3>
+              <PriceField
+                label={t('negotiation.minAccept')}
+                hint={t('negotiation.minAcceptHint')}
+                value={minAcceptPrice}
+                onChange={setMinAcceptPrice}
+              />
+              <p className="mt-4 text-3xs leading-loose opacity-55">
+                {t('negotiation.rules')}
+              </p>
+            </div>
+          )}
 
           {/*
             ═══ التذكير يسبق لحظة الحاجة ═══

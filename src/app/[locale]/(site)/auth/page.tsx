@@ -60,7 +60,7 @@ export default async function AuthPage({
             الدعائيّ فوقه، فيمرّ من جاء ليدخل على إعلانٍ قبل الحقل الذي
             جاء لأجله — و`order` تقلبها دون أن تقلب ترتيب القراءة.
           */}
-          <aside className="order-2 flex flex-col justify-center gap-7 bg-ink p-12 text-bg lg:order-1 lg:w-[420px]">
+          <aside className="order-2 flex flex-col justify-center gap-7 bg-ink px-4 py-9 text-bg sm:p-12 lg:order-1 lg:w-[420px]">
             <p className="text-2xs font-bold tracking-[0.16em] opacity-45">{t('eyebrow')}</p>
             <h2 className="text-3xl leading-tight font-bold">{t('promiseTitle')}</h2>
             <ul className="flex flex-col gap-3.5">
@@ -78,7 +78,15 @@ export default async function AuthPage({
           </aside>
 
           {/* والنموذج في وسط عموده رأسيًّا — لا معلَّقًا في أعلاه */}
-          <div className="order-1 flex flex-1 items-center justify-center border-s border-line p-12 lg:order-2">
+          {/*
+            ═══ حاشيةُ المكتب على شاشة الهاتف ═══
+
+            `p-12` ثابتة: **ستٌّ وتسعون بكسلًا من ثلاث مئةٍ وخمسة
+            وسبعين** تذهب حاشيةً، فيبقى للمحتوى ٢٤٣ — وستّ خانات رمزٍ
+            فيها ٣٤px لكلٍّ، دون الحدّ الأدنى للمس. والحاشية على
+            الهاتف ١٦ كما في بقية الشاشات.
+          */}
+          <div className="order-1 flex flex-1 items-center justify-center border-s border-line px-4 py-9 sm:p-12 lg:order-2">
             <AuthForm locale={locale} />
           </div>
         </div>

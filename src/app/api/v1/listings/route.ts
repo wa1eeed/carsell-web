@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
 import { parseFilters, searchListings } from '@/lib/domain/listings';
-import { createListing } from '@/lib/domain/publish';
+import { createListing, type PublishFailure } from '@/lib/domain/publish';
 import {
   FuelType,
   ListingType,
@@ -39,6 +39,85 @@ export async function GET(request: NextRequest) {
   });
 }
 
+/**
+ * ═══ رسالةُ كل سبب — خريطةً لا سلسلةَ شروط ═══
+ *
+ * كانت سلسلةً من عشرة ثلاثيّاتٍ متداخلة تنتهي بـ«الماركة أو الطراز
+ * غير معروف» افتراضًا — **فكلُّ سببٍ جديد يُولد برسالةٍ خاطئة**: من
+ * يخطئ في مدّة المزاد يُقال له إن ماركته مجهولة.
+ *
+ * والخريطة تجعل النقص ظاهرًا: مفتاحٌ ناقص يسقط في الأنواع لا في وجه
+ * المستخدم.
+ */
+const PUBLISH_ERROR: Record<
+  PublishFailure,
+  { ar: string; en: string; status: number }
+> = {
+  PROFILE_INCOMPLETE: {
+    ar: 'أكمل ملفك — البريد وتوثيق الهوية والآيبان — قبل النشر.',
+    en: 'Complete your profile — email, identity and IBAN — before publishing.',
+    status: 428,
+  },
+  TAX_STATUS_REQUIRED: {
+    ar: 'حدّد وضعك الضريبي قبل النشر.',
+    en: 'Set your tax status before publishing.',
+    status: 428,
+  },
+  VIN_ALREADY_LISTED: {
+    ar: 'هذه المركبة معروضة بالفعل — اسحب الإعلان القائم أوّلًا.',
+    en: 'This vehicle is already listed — withdraw the existing listing first.',
+    status: 409,
+  },
+  NO_IMAGES: { ar: 'أضف صورة واحدة على الأقل.', en: 'Add at least one photo.', status: 422 },
+  IMAGE_NOT_UPLOADED: {
+    ar: 'إحدى الصور لم تُرفع أو ليست لك — أعد رفعها.',
+    en: 'One of the photos was not uploaded or is not yours — upload it again.',
+    status: 422,
+  },
+  PRICE_INVALID: { ar: 'أدخل سعرًا صحيحًا.', en: 'Enter a valid price.', status: 422 },
+  TRIM_UNKNOWN: { ar: 'اختر فئة المركبة.', en: 'Choose the vehicle trim.', status: 422 },
+  BRAND_OR_MODEL_UNKNOWN: {
+    ar: 'الماركة أو الطراز غير معروف.',
+    en: 'Unknown brand or model.',
+    status: 422,
+  },
+  AUCTION_SETTINGS_REQUIRED: {
+    ar: 'حدّد مدّة المزاد وموعد بدئه قبل النشر.',
+    en: 'Set the auction duration and start time before publishing.',
+    status: 422,
+  },
+  AUCTION_DURATION_INVALID: {
+    ar: 'اختر مدّة من المدد المتاحة.',
+    en: 'Choose one of the available durations.',
+    status: 422,
+  },
+  AUCTION_STARTS_IN_PAST: {
+    ar: 'موعد البدء مضى — اختر وقتًا قادمًا أو ابدأ فورًا.',
+    en: 'The start time has passed — pick a future time or start now.',
+    status: 422,
+  },
+  AUCTION_RESERVE_INVALID: {
+    ar: 'السعر الاحتياطي لا يقلّ عن سعر الافتتاح — وإلّا بلغته أوّل مزايدة.',
+    en: 'The reserve cannot be below the opening price — the first bid would meet it.',
+    status: 422,
+  },
+  AUCTION_INCREMENT_TOO_SMALL: {
+    ar: 'خطوة المزايدة أقلّ من الحدّ الأدنى المسموح.',
+    en: 'The bid increment is below the allowed minimum.',
+    status: 422,
+  },
+  AUCTION_BUY_NOW_INVALID: {
+    ar: 'سعر «اشترِ الآن» لا يقلّ عن الاحتياطي — وإلّا بِيعت بأقلّ ممّا قبلتَ به.',
+    en: 'The buy-now price cannot be below the reserve — it would sell under your floor.',
+    status: 422,
+  },
+  MIN_ACCEPT_INVALID: {
+    ar: 'أقلّ سعر تقبله لا يعلو السعر المعلن — وإلّا رُفض كل عرض تلقائيًّا.',
+    en: 'Your minimum cannot exceed the asking price — every offer would be auto-rejected.',
+    status: 422,
+  },
+};
+
 const PublishBody = z.object({
   type: z.enum(ListingType),
   askPrice: z.number().int().min(1).max(100_000_000),
@@ -66,6 +145,32 @@ const PublishBody = z.object({
   }),
   // مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل
   images: z.array(z.string().min(1).max(300)).min(1).max(10),
+
+  /**
+   * ═══ إعدادات طريقة البيع ═══
+   *
+   * **والعقد كان بلا واحدٍ منها.** من ينشر «مزادًا» كان يُنشئ إعلانًا
+   * نوعُه `AUCTION` بلا صفّ مزاد — فصفحتُه ٤٠٤ وبطاقتُه تعرض «اشترِ
+   * الآن» تحت وسم «مزاد».
+   *
+   * والحدود تُفحص في النطاق مقابل إعدادات المشغّل، وهنا الشكلُ وحده:
+   * قائمةٌ مكتوبة بالمدد هنا مصدرُ حقيقةٍ ثانٍ ينحرف عن اللوحة.
+   */
+  auction: z
+    .object({
+      durationDays: z.number().int().min(1).max(90),
+      startsAt: z.string().datetime().nullable(),
+      reservePrice: z.number().int().min(1).max(100_000_000).nullable(),
+      bidIncrement: z.number().int().min(1).max(1_000_000).nullable(),
+      buyNowPrice: z.number().int().min(1).max(100_000_000).nullable(),
+    })
+    .optional(),
+
+  negotiation: z
+    .object({
+      minAcceptPrice: z.number().int().min(1).max(100_000_000).nullable(),
+    })
+    .optional(),
 });
 
 /**
@@ -85,49 +190,10 @@ export async function POST(request: NextRequest) {
   const result = await createListing({ ...parsed.data, sellerId: user.id });
 
   if (!result.ok) {
+    const message = PUBLISH_ERROR[result.reason];
     return fail(
-      {
-        code: result.reason,
-        messageAr:
-          result.reason === 'PROFILE_INCOMPLETE'
-            ? 'أكمل ملفك — البريد وتوثيق الهوية والآيبان — قبل النشر.'
-            : result.reason === 'TAX_STATUS_REQUIRED'
-            ? 'حدّد وضعك الضريبي قبل النشر.'
-            : result.reason === 'VIN_ALREADY_LISTED'
-            ? 'هذه المركبة معروضة بالفعل — اسحب الإعلان القائم أوّلًا.'
-            : result.reason === 'NO_IMAGES'
-              ? 'أضف صورة واحدة على الأقل.'
-            : result.reason === 'IMAGE_NOT_UPLOADED'
-              ? 'إحدى الصور لم تُرفع أو ليست لك — أعد رفعها.'
-              : result.reason === 'PRICE_INVALID'
-                ? 'أدخل سعرًا صحيحًا.'
-                : result.reason === 'TRIM_UNKNOWN'
-              ? 'اختر فئة المركبة.'
-              : 'الماركة أو الطراز غير معروف.',
-        messageEn:
-          result.reason === 'PROFILE_INCOMPLETE'
-            ? 'Complete your profile — email, identity and IBAN — before publishing.'
-            : result.reason === 'TAX_STATUS_REQUIRED'
-            ? 'Set your tax status before publishing.'
-            : result.reason === 'VIN_ALREADY_LISTED'
-            ? 'This vehicle is already listed — withdraw the existing listing first.'
-            : result.reason === 'NO_IMAGES'
-              ? 'Add at least one photo.'
-            : result.reason === 'IMAGE_NOT_UPLOADED'
-              ? 'One of the photos was not uploaded or is not yours — upload it again.'
-              : result.reason === 'PRICE_INVALID'
-                ? 'Enter a valid price.'
-                : result.reason === 'TRIM_UNKNOWN'
-              ? 'Choose the vehicle trim.'
-              : 'Unknown brand or model.',
-      },
-      result.reason === 'PROFILE_INCOMPLETE'
-        ? 428
-        : result.reason === 'VIN_ALREADY_LISTED'
-        ? 409
-        : result.reason === 'TAX_STATUS_REQUIRED'
-          ? 428
-          : 422,
+      { code: result.reason, messageAr: message.ar, messageEn: message.en },
+      message.status,
     );
   }
 
