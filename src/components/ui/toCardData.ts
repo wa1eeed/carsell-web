@@ -25,6 +25,7 @@ export type SearchRow = {
   imageCount: number;
   sellerName: string | null;
   sellerVerified: boolean;
+  publishedAt: string | null;
   highestBid: string | null;
   bidderCount: number | null;
   endsAt: string | null;
@@ -45,6 +46,7 @@ export function toCardData(
      * **وحقول المزاد تُحذف لا تُصفَّر.** صفرٌ في «أعلى مزايدة» يوحي
      * بأن المركبة بلا قيمة، و`undefined` تجعل البطاقة لا تعرض السطر.
      */
+    ...(row.publishedAt === null ? {} : { publishedAt: row.publishedAt }),
     ...(row.highestBid === null ? {} : { highestBid: Number(row.highestBid) }),
     ...(row.bidderCount === null ? {} : { bidderCount: row.bidderCount }),
     ...(row.endsAt === null ? {} : { endsAt: row.endsAt }),

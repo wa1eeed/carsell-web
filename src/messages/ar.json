@@ -363,7 +363,8 @@
     "awaitingRules": "{count, plural, zero{لا شيء} one{واحدة} two{اثنتان} few{{n}} many{{n}} other{{n}}}",
     "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
     "disputes": "{count, plural, zero{لا نزاعات} one{نزاع واحد} two{نزاعان} few{{n} نزاعات} many{{n} نزاعًا} other{{n} نزاع}}",
-    "bids": "{count, plural, zero{لا مزايدات} one{مزايدة واحدة} two{مزايدتان} few{{n} مزايدات} many{{n} مزايدةً} other{{n} مزايدة}}"
+    "bids": "{count, plural, zero{لا مزايدات} one{مزايدة واحدة} two{مزايدتان} few{{n} مزايدات} many{{n} مزايدةً} other{{n} مزايدة}}",
+    "weeks": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعان} few{{n} أسابيع} many{{n} أسبوعًا} other{{n} أسبوع}}"
   },
   "search": {
     "title": "تصفّح السيارات",
@@ -1032,5 +1033,11 @@
     "offerNote": "للبائع أن يقبل أو يرفض أو يعرض مبلغًا مقابلًا. وقبولُه يفتح مهلة دفع.",
     "sendOffer": "أرسل العرض",
     "viewingSoon": "طلب المعاينة قريبًا — تواصل مع البائع من صفحة الطلب بعد الشراء."
+  },
+  "since": {
+    "today": "اليوم",
+    "days": "{count, plural, one{قبل يوم} two{قبل يومين} few{قبل {n} أيام} many{قبل {n} يومًا} other{قبل {n} يوم}}",
+    "weeks": "{count, plural, one{قبل أسبوع} two{قبل أسبوعين} few{قبل {n} أسابيع} many{قبل {n} أسبوعًا} other{قبل {n} أسبوع}}",
+    "months": "{count, plural, one{قبل شهر} two{قبل شهرين} few{قبل {n} أشهر} many{قبل {n} شهرًا} other{قبل {n} شهر}}"
   }
 }

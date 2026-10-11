@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import { Since } from './Since';
 import { ArabicNumber } from './ArabicNumber';
 import { Badge, InspectedBadge } from './Badge';
 import { Countdown } from './Countdown';
@@ -26,6 +27,12 @@ export type ListingCardData = {
   imageCount: number;
   sellerName: string;
   sellerVerified: boolean;
+  /**
+   * متى نُشر — **وليس زينة**: سعرٌ معروضٌ منذ شهرين يقول شيئًا عن
+   * قابليته للتفاوض لا يقوله الرقم وحده، وإعلانٌ نُشر اليوم يُقرأ
+   * فرصةً. وبلا التاريخ يستوي عند المتصفّح الجديدُ والراكد.
+   */
+  publishedAt?: string;
   /** للمزاد فقط */
   highestBid?: number;
   bidderCount?: number;
@@ -79,16 +86,31 @@ function MetaLine({ parts }: { parts: readonly MetaPart[] }) {
   );
 }
 
-function Seller({ name, verified }: { name: string; verified: boolean }) {
+function Seller({
+  name,
+  verified,
+  publishedAt,
+}: {
+  name: string;
+  verified: boolean;
+  publishedAt?: string;
+}) {
   return (
     <span className="flex items-center gap-2 text-2xs opacity-60">
-      <span className="size-5 rounded-full bg-ink/12" />
-      <span className="bidi-isolate">{name}</span>
+      <span className="size-5 shrink-0 rounded-full bg-ink/12" />
+      <span className="bidi-isolate min-w-0 truncate">{name}</span>
       {verified ? (
-        <svg viewBox="0 0 24 24" className="size-3 text-accent" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+        <svg viewBox="0 0 24 24" className="size-3 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 3 5 6v5c0 4 3 7.5 7 9 4-1.5 7-5 7-9V6l-7-3Z" />
         </svg>
       ) : null}
+      {/* **وتاريخُ النشر في الطرف الآخر** — فلا يُزاحم اسم البائع */}
+      {publishedAt === undefined ? null : (
+        <>
+          <span className="flex-1" />
+          <Since iso={publishedAt} className="shrink-0 whitespace-nowrap text-3xs opacity-75" />
+        </>
+      )}
     </span>
   );
 }
@@ -173,7 +195,11 @@ export function CarCard({
           )}
         </div>
 
-        <Seller name={data.sellerName} verified={data.sellerVerified} />
+        <Seller
+          name={data.sellerName}
+          verified={data.sellerVerified}
+          {...(data.publishedAt === undefined ? {} : { publishedAt: data.publishedAt })}
+        />
       </div>
     </article>
   );
@@ -213,7 +239,11 @@ export function CarRow({
         <MetaLine
           parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
         />
-        <Seller name={data.sellerName} verified={data.sellerVerified} />
+        <Seller
+          name={data.sellerName}
+          verified={data.sellerVerified}
+          {...(data.publishedAt === undefined ? {} : { publishedAt: data.publishedAt })}
+        />
       </div>
 
       <div className="flex shrink-0 flex-col items-end justify-between gap-2.5">
