@@ -1055,6 +1055,7 @@
     "overdueDisputes": "{count, plural, one{{n} dispute past its SLA} other{{n} disputes past their SLA}}",
     "unseenSince": "{count, plural, one{not seen for {n} day} other{not seen for {n} days}}",
     "agoMinutes": "{count, plural, zero{Just now} one{{n} minute ago} other{{n} minutes ago}}",
-    "agoHours": "{count, plural, zero{Just now} one{{n} hour ago} other{{n} hours ago}}"
+    "agoHours": "{count, plural, zero{Just now} one{{n} hour ago} other{{n} hours ago}}",
+    "resendIn": "{count, plural, zero{Resend now} one{Resend in {n} second} other{Resend in {n} seconds}}"
   }
 }

@@ -1753,6 +1753,40 @@ function checkStateCopiedFromProps() {
  * (وهو امتدادُ القاعدة المسجَّلة في صفر `Quantity`: «منذ لا ساعات».
  * صيغةٌ تصلح وحدها لا تصلح مضمومةً.)
  */
+/**
+ * آخرُ كلمةٍ عربية في رسالةٍ بمفتاحها — فيُكشف الجارُّ ولو كان في
+ * ملفّ الترجمة. ويُبحث بآخر مقطعٍ من المفتاح لأن المساحة تُحدَّد في
+ * `useTranslations` لا عند الاستدعاء — ومفتاحٌ مكرَّر يُترك، فظنٌّ
+ * بلا يقين يُنتج إنذارًا كاذبًا.
+ */
+function lastWordOfMessage(key) {
+  const file = join(ROOT, 'src', 'messages', 'ar.json');
+  if (!existsSync(file)) return '';
+  const leaf = key.split('.').pop() ?? key;
+
+  const collect = (node) => {
+    if (typeof node !== 'object' || node === null) return [];
+    const found = [];
+    for (const [name, child] of Object.entries(node)) {
+      if (name === leaf && typeof child === 'string') found.push(child);
+      else found.push(...collect(child));
+    }
+    return found;
+  };
+
+  /**
+   * **ورسائلُ الجمع تُطرح**: هي العلاج لا العلّة — تحمل الجارَّ
+   * داخلها. ولولا طرحُها لصار إصلاحُ عطلٍ (بإضافة صيغةٍ بالمفتاح
+   * نفسه في `counted`) يُعمي البوابةَ عن العطل الأصليّ. وقد وقع.
+   */
+  const values = collect(JSON.parse(readFileSync(file, 'utf8'))).filter(
+    (value) => !/^\s*\{\s*count\s*,/.test(value),
+  );
+  if (values.length !== 1) return '';
+  const words = (values[0] ?? '').match(/[ء-ي]+/g) ?? [];
+  return words[words.length - 1] ?? '';
+}
+
 function checkQuantityAdjacency() {
   /** حروفُ جرٍّ وظروفٌ تُغيّر إعراب ما بعدها. */
   const BEFORE = ['في', 'من', 'إلى', 'على', 'عن', 'قبل', 'بعد', 'منذ', 'خلال', 'حتى', 'لـ', 'بـ'];
@@ -1773,10 +1807,18 @@ function checkQuantityAdjacency() {
     for (const hit of text.matchAll(/<Quantity\b[^>]*\/>/g)) {
       const line = text.slice(0, hit.index).split('\n').length;
 
-      /* ① حرفُ جرٍّ قبلها — آخر كلمةٍ عربية في الستّين محرفًا السابقة */
+      /*
+       * ① حرفُ جرٍّ قبلها — في الشاشة **أو في ملفّ الترجمة**.
+       *
+       * وأخفت البوابة أوّلَ مرّةٍ عدّادَ «إعادة الإرسال بعد» لأن
+       * الجارّ كان في `t('resendIn')` لا مكتوبًا في JSX. ونصٌّ ينتهي
+       * بحرف جرٍّ ثمّ عدّادٌ بعده هو الصنف نفسه.
+       */
       const before = text.slice(Math.max(0, hit.index - 60), hit.index);
+      const viaKey = /\{\s*t\w*\(\s*'([\w.]+)'\s*\)\s*\}\s*$/.exec(before.trimEnd());
+      const fromMessages = viaKey === null ? '' : lastWordOfMessage(viaKey[1] ?? '');
       const words = before.match(/[ء-ي]+/g) ?? [];
-      const last = words[words.length - 1] ?? '';
+      const last = fromMessages !== '' ? fromMessages : (words[words.length - 1] ?? '');
       if (BEFORE.includes(last)) {
         problems.push(
           `${rel}:${String(line)}  «${last}» قبل <Quantity> — الجارّ يُدخَل في صيغة `

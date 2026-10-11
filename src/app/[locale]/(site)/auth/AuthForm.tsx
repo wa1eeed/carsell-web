@@ -6,9 +6,9 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { Counted } from '@/components/ui/Counted';
 import { OtpInput, OTP_BOXES } from '@/components/ui/OtpInput';
 import { PhoneInput } from '@/components/ui/PhoneInput';
-import { Quantity } from '@/components/ui/Quantity';
 
 /** إعادة الإرسال بعد ٣٠ ثانية (قرار ٢٨). */
 const RESEND_SECONDS = 30;
@@ -243,9 +243,14 @@ export function AuthForm({ locale }: { locale: string }) {
       </Button>
 
       {cooldown > 0 ? (
-        <p className="flex items-center justify-center gap-1.5 text-center text-2xs opacity-50">
-          {t('resendIn')}
-          <Quantity unit="seconds" count={cooldown} />
+        <p className="text-center text-2xs opacity-50">
+          {/*
+            **والجارّ داخل الصيغة.** «إعادة الإرسال بعد» + `<Quantity>`
+            تُخرج «بعد ثانيتان» عند الثانيتين — مثنًّى مرفوعٌ بعد حرف
+            جرّ، والمؤقّت يمرّ بها في كل عدٍّ تنازليّ. (والبوابة ٣١
+            أخفتها لأن الجارّ كان في ملفّ الترجمة لا في الشاشة.)
+          */}
+          <Counted message="resendIn" count={cooldown} />
         </p>
       ) : (
         <button

@@ -1055,6 +1055,7 @@
     "overdueDisputes": "{count, plural, zero{لا نزاعات فاتت مهلتها} one{نزاع واحد فاتت مهلته} two{نزاعان فاتت مهلتهما} few{{n} نزاعات فاتت مهلتها} many{{n} نزاعًا فاتت مهلته} other{{n} نزاع فاتت مهلته}}",
     "unseenSince": "{count, plural, zero{لم تُرَ اليوم} one{لم تُرَ منذ يوم} two{لم تُرَ منذ يومين} few{لم تُرَ منذ {n} أيام} many{لم تُرَ منذ {n} يومًا} other{لم تُرَ منذ {n} يوم}}",
     "agoMinutes": "{count, plural, zero{الآن} one{قبل دقيقة} two{قبل دقيقتين} few{قبل {n} دقائق} many{قبل {n} دقيقة} other{قبل {n} دقيقة}}",
-    "agoHours": "{count, plural, zero{الآن} one{قبل ساعة} two{قبل ساعتين} few{قبل {n} ساعات} many{قبل {n} ساعة} other{قبل {n} ساعة}}"
+    "agoHours": "{count, plural, zero{الآن} one{قبل ساعة} two{قبل ساعتين} few{قبل {n} ساعات} many{قبل {n} ساعة} other{قبل {n} ساعة}}",
+    "resendIn": "{count, plural, zero{أعِد الإرسال الآن} one{إعادة الإرسال بعد ثانية} two{إعادة الإرسال بعد ثانيتين} few{إعادة الإرسال بعد {n} ثوانٍ} many{إعادة الإرسال بعد {n} ثانية} other{إعادة الإرسال بعد {n} ثانية}}"
   }
 }
