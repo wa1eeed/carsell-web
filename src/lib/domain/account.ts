@@ -62,6 +62,23 @@ export type AccountOffer = {
   path: string;
 };
 
+/**
+ * ═══ أرقامُ «إعلاناتي» — صفُّ التصميم فوق الجدول ═══
+ *
+ * والتصميم يكتب «مشاهدات **هذا الأسبوع**»، و`Listing.viewCount`
+ * عدّادٌ تراكميّ بلا سجلّ زمنيّ: لا جدول مشاهداتٍ بطوابعها، فلا سبيل
+ * إلى نافذة أسبوع. **فالعنوان يقول ما يُحسب**: «مشاهدات» لا
+ * «هذا الأسبوع» — ووسمٌ يَعِد بنافذةٍ لا تُحسب أسوأ من رقمٍ أعمّ.
+ */
+export type ListingStats = {
+  views: number;
+  favorites: number;
+  /** عروضٌ تنتظر ردَّك — القائمة وحدها، لا ما انتهى */
+  pendingOffers: number;
+  /** متوسّط أيام العرض للمنشور — `null` حين لا منشور */
+  avgDaysListed: number | null;
+};
+
 export type AccountListing = {
   ref: string;
   title: string;
@@ -231,6 +248,8 @@ export type AccountData = {
   reports: AccountReport[];
   /** قائمٌ لم يصدر تقريرُه بعد — وهو ما يتابعه الدافع */
   serviceRequests: AccountServiceRequest[];
+  /** أرقامُ صفحة «إعلاناتي» — فوق الجدول كما في التصميم */
+  listingStats: ListingStats;
 };
 
 const title = (vehicle: { brandName: string; modelName: string; trimName: string | null }): string =>
@@ -324,6 +343,47 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       },
     }),
   ]);
+
+  /**
+   * ═══ أرقامُ «إعلاناتي» ═══
+   *
+   * **على الإعلانات كلّها لا على العشرة المعروضة.** الجدول يأخذ
+   * `take: 10`، ورقمٌ فوقه يُحسب على عشرةٍ وهو يقول «مشاهداتك» يُنقص
+   * من بائعٍ عنده عشرون.
+   */
+  /**
+   * **وصفٌّ واحد لكل إعلاناته** — لا للعشرة المعروضة وحدها: الجدول
+   * يأخذ `take: 10`، ورقمٌ فوقه يقول «مشاهداتك» محسوبًا على عشرةٍ
+   * يُنقص من بائعٍ عنده عشرون.
+   */
+  const myListings = await db.listing.findMany({
+    where: { sellerId: user.id },
+    select: { id: true, viewCount: true, publishedAt: true, closedAt: true },
+  });
+
+  const [favouriteCount, pendingOfferCount] = await Promise.all([
+    /** و`Favorite` بلا علاقةٍ إلى `Listing` — فالعدّ بالمعرّفات. */
+    myListings.length === 0
+      ? Promise.resolve(0)
+      : db.favorite.count({ where: { listingId: { in: myListings.map((row) => row.id) } } }),
+    db.offer.count({
+      where: { listing: { sellerId: user.id }, status: { in: ['PENDING', 'COUNTERED'] } },
+    }),
+  ]);
+
+  /**
+   * **ومتوسّطُ أيام العرض يُقاس إلى الإغلاق لا إلى اليوم.** إعلانٌ
+   * بِيع بعد أسبوع يبقى عمرُه أسبوعًا، وقياسُه إلى اليوم يجعل متوسّطَ
+   * بائعٍ قديمٍ يرتفع كلّما مرّ شهر على ما باعه.
+   */
+  const measuredAt = Date.now();
+  const days = myListings
+    .filter((row) => row.publishedAt !== null)
+    .map((row) => {
+      const from = row.publishedAt?.getTime() ?? measuredAt;
+      const to = row.closedAt?.getTime() ?? measuredAt;
+      return Math.max(0, Math.round((to - from) / 86_400_000));
+    });
 
   const walletBalance = await walletBalanceOf(user.id);
 
@@ -442,6 +502,15 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       hasActiveOrder: listing._count.orders > 0,
       path: canonicalPath(locale, listing).path,
     })),
+    listingStats: {
+      views: myListings.reduce((total, row) => total + row.viewCount, 0),
+      favorites: favouriteCount,
+      pendingOffers: pendingOfferCount,
+      avgDaysListed:
+        days.length === 0
+          ? null
+          : Math.round(days.reduce((total, value) => total + value, 0) / days.length),
+    },
     serviceRequests: serviceRequests.map((row) => ({
       ref: row.ref,
       serviceName: locale === 'ar' ? row.service.nameAr : row.service.nameEn,

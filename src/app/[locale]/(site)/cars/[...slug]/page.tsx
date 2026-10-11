@@ -16,6 +16,7 @@ import {
 } from '@/lib/domain/inspection';
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { currentUserFromCookies } from '@/lib/domain/account';
+import { recordListingView } from '@/lib/domain/listing-views';
 import { getAuction, sellerDecisionView, viewerStanding } from '@/lib/domain/auctions';
 import { favoritedRefs } from '@/lib/domain/favorites';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
@@ -241,6 +242,20 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
    * أن يُظهر خطأً بعد نداءٍ فاشل.
    */
   const viewer = await currentUserFromCookies();
+
+  /**
+   * ═══ وتُعَدّ المشاهدة ═══
+   *
+   * `viewCount` مقروءٌ في أربعة مواضع — صفحةُ «إعلاناتي» تعرضه للبائع
+   * وشاشتا الأدمن تعرضانه — **ولا شيء كان يزيده**. فالرقم تحت مركبة
+   * البائع هو ما زرعتْه البذرة، يبقى على حاله شهورًا.
+   *
+   * وعدّادٌ يراه صاحبُ الشأن ولا يتحرّك أسوأ من عدّادٍ غائب: الغائبُ
+   * يُسأل عنه، والجامدُ يُصدَّق.
+   *
+   * ولا يُنتظَر: الزيادةُ لا تؤخّر تصيير الصفحة ولا تُسقطها.
+   */
+  void recordListingView(resolved.row.id, viewer?.id ?? null, resolved.row.sellerId);
 
   /**
    * ═══ المزاد بتفصيله — ولا يُجلب إلّا لمزاد ═══

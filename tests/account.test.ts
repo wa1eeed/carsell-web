@@ -127,3 +127,76 @@ describe('Wf — الحقول الناقصة بارزة', () => {
     }
   });
 });
+
+describe('إعلاناتي — الأرقام فوق الجدول', () => {
+  /**
+   * ═══ وعدّادٌ يراه صاحبُ الشأن ولا يتحرّك ═══
+   *
+   * `Listing.viewCount` مقروءٌ في أربعة مواضع — صفحةُ «إعلاناتي»
+   * تعرضه للبائع وشاشتا الأدمن تعرضانه — **ولا شيء كان يزيده**.
+   * فالرقم تحت مركبة البائع هو ما زرعتْه البذرة، يبقى على حاله شهورًا.
+   *
+   * > والغائبُ يُسأل عنه، والجامدُ يُصدَّق — فيقيس البائع سعرَه
+   * > وتوقيتَه على رقمٍ لا يقيس شيئًا.
+   */
+  it('المشاهدة تُعَدّ — ولا تُعَدّ مشاهدةُ صاحبها', async () => {
+    const { recordListingView } = await import('@/lib/domain/listing-views');
+    const listing = await db.listing.findFirstOrThrow({
+      select: { id: true, sellerId: true, viewCount: true },
+    });
+
+    await recordListingView(listing.id, null, listing.sellerId);
+    const anon = await db.listing.findUniqueOrThrow({ where: { id: listing.id } });
+    expect(anon.viewCount).toBe(listing.viewCount + 1);
+
+    const other = await db.user.findFirstOrThrow({ where: { id: { not: listing.sellerId } } });
+    await recordListingView(listing.id, other.id, listing.sellerId);
+    expect((await db.listing.findUniqueOrThrow({ where: { id: listing.id } })).viewCount)
+      .toBe(listing.viewCount + 2);
+
+    /**
+     * **ولا يُضخّم البائع رقمَه بنفسه**: من يفتح إعلانه عشر مرّاتٍ
+     * ليراجع صوره ثمّ يقرأ العدد اهتمامًا.
+     */
+    await recordListingView(listing.id, listing.sellerId, listing.sellerId);
+    expect((await db.listing.findUniqueOrThrow({ where: { id: listing.id } })).viewCount)
+      .toBe(listing.viewCount + 2);
+
+    // الاختبار يعيد ما غيّره
+    await db.listing.update({
+      where: { id: listing.id },
+      data: { viewCount: listing.viewCount },
+    });
+  });
+
+  it('وإعلانٌ محذوف لا يُسقط الصفحة', async () => {
+    // من نقر يريد المركبة — وخسارةُ عدّةٍ أهون من صفحة خطأ
+    const { recordListingView } = await import('@/lib/domain/listing-views');
+    await expect(recordListingView('no-such-id', null, 'x')).resolves.toBeUndefined();
+  });
+
+  it('والأرقام على كل إعلاناته لا على المعروض منها', async () => {
+    /**
+     * الجدول يأخذ `take: 10`، ورقمٌ فوقه يقول «مشاهداتك» محسوبًا على
+     * عشرةٍ يُنقص من بائعٍ عنده عشرون.
+     */
+    const seller = await db.user.findFirstOrThrow({ where: { listings: { some: {} } } });
+    const data = await getAccountData(seller, 'ar');
+
+    const all = await db.listing.aggregate({
+      where: { sellerId: seller.id },
+      _sum: { viewCount: true },
+    });
+    expect(data.listingStats.views).toBe(all._sum.viewCount ?? 0);
+  });
+
+  it('وبلا منشورٍ لا يُقال «صفر يوم»', async () => {
+    // صفرٌ في «متوسط أيام العرض» يُقرأ «يُباع في يومه»
+    const fresh = await db.user.create({
+      data: { phone: `+96650${String(Date.now()).slice(-7)}`, name: 'بائع بلا نشر' },
+    });
+    const data = await getAccountData(fresh, 'ar');
+    expect(data.listingStats.avgDaysListed).toBeNull();
+    await db.user.delete({ where: { id: fresh.id } });
+  });
+});

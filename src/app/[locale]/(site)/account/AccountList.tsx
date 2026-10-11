@@ -23,6 +23,7 @@ export function AccountList({
   title,
   crumb,
   subtitle,
+  stats,
   empty,
   action,
   children,
@@ -36,6 +37,13 @@ export function AccountList({
    */
   crumb?: string;
   subtitle: string;
+  /**
+   * صفُّ أرقامٍ تحت الترويسة — كما في ترميز Wt.
+   *
+   * **ويُعرض ولو خلت الصفحة**: «صفر مشاهدة» على بائعٍ لم ينشر بعد
+   * جوابٌ، وإخفاؤه يجعل الرقم يظهر فجأةً فيبدو أنه بُني الآن.
+   */
+  stats?: ReactNode;
   empty: { title: string; description: string };
   /** زرّ الحالة الفارغة — «بِع سيارتك» أو «تصفّح» */
   action?: ReactNode;
@@ -76,6 +84,8 @@ export function AccountList({
             */}
             {action === undefined ? null : <div className="shrink-0">{action}</div>}
           </div>
+
+          {stats === undefined ? null : <div className="mb-7">{stats}</div>}
 
           {children.length === 0 ? (
             <EmptyState title={empty.title} description={empty.description} />

@@ -10,6 +10,7 @@ import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow, Money } from '../AccountList';
 import { ListingControls } from '@/components/site/ListingControls';
+import { ListingStatsRow } from '@/components/site/ListingStatsRow';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,7 @@ export default async function ListingsPage({
        */
       title="إعلاناتي"
       subtitle="ما عرضتَه، وحاله، وكم شوهد."
+      stats={<ListingStatsRow stats={data.listingStats} />}
       empty={{
         title: 'لا مركبات معروضة',
         description: 'انشر مركبتك الأولى وستظهر هنا مع عروضها ومشاهداتها.',
