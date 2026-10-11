@@ -213,8 +213,29 @@ const DEFERRED_SIGNALS = [
   'لوحة مميّزة', 'اللوحات المميّزة', 'مزاد اللوحات',
 ];
 
+/**
+ * ═══ ونصٌّ يراه الزائر وهو في خاصّيّة ═══
+ *
+ * «ابحث عن سؤالك…» عنصرُ نائبٍ في حقل، و«تنزيل PDF» قد تكون
+ * `aria-label` على أيقونة. وحذفُ الوسوم يبتلعها، فتُقرأ الشاشة ناقصةً
+ * وهي تعرضها — و`Wn` قُرئت **صفرًا** وفيها الباحث مبنيّ.
+ *
+ * **ولا يكفي أن تُستخرج قبل الحذف**: أوّلُ محاولةٍ أبدلت الخاصّيّة
+ * بقيمتها **داخل الوسم**، فحذفَها حذفُ الوسم بعد سطر. فتُجمع على حدة
+ * وتُلحَق بالمتن.
+ */
+function attributeText(html) {
+  const values = [];
+  for (const match of html.matchAll(
+    /\s(?:placeholder|aria-label|title|alt)="([^"]*)"/g,
+  )) {
+    values.push(match[1]);
+  }
+  return values.join(' ');
+}
+
 function stripTags(html) {
-  return html
+  return `${attributeText(html)} ${html}`
     .replace(/<script[\s\S]*?<\/script>/g, ' ')
     .replace(/<style[\s\S]*?<\/style>/g, ' ')
     .replace(/<[^>]+>/g, ' ')

@@ -1420,13 +1420,52 @@ function checkTranslationKeysResolve() {
  */
 const RETIRED_PROMISES = [
   {
-    pattern: /نافذة (?:الإرجاع|الاسترجاع)|مدّة الاسترجاع|أيام من (?:تاريخ )?الاستلام/,
+    /**
+     * **ولا يكفي اسم النافذة.** تاسعُ موضعٍ وُجد في إجابةٍ تقول «ولك
+     * سبعة أيام **للاسترجاع**» — صيغةٌ لا تذكر «نافذة» ولا «من
+     * الاستلام»، فكان النمط الأوّل يمرّ عليها.
+     *
+     * ويُفحص النمط في الاتّجاهين قبل تصديقه: «خلال سبعة أيام» لمهلة
+     * النقل قاعدةٌ قائمة ويجب أن تمرّ، و«سياسة الضمان والاسترجاع»
+     * عنوانُ مستندٍ لا وعد.
+     */
+    pattern:
+      /نافذة (?:الإرجاع|الاسترجاع)|مدّة الاسترجاع|أيام (?:من|بعد) (?:تاريخ )?الاستلام|أيام للاسترجاع/,
     since: 'المهمّة ٣٧',
     instead: 'الإفراج يتبع تأكيد نقل الملكية — ولا نافذة بعده',
   },
 ];
 
 function checkRetiredPromises() {
+  /**
+   * ═══ والوعد نصٌّ أينما كُتب ═══
+   *
+   * اقتصرت البوابة على `src/`، والموضع التاسع كان في `faqs.json`:
+   * «كيف تُحمى أموالي؟ … ولك سبعة أيام للاسترجاع». إجابةٌ يقرؤها
+   * المشتري في مركز المساعدة، ولا تمرّ بسطرِ شيفرةٍ واحد.
+   */
+  const seedDir = join(ROOT, 'prisma', 'seed-data');
+  let seedFiles = [];
+  try {
+    seedFiles = readdirSync(seedDir).filter((name) => name.endsWith('.json'));
+  } catch {
+    seedFiles = [];
+  }
+
+  for (const name of seedFiles) {
+    const rel = join('prisma', 'seed-data', name);
+    const lines = readFileSync(join(seedDir, name), 'utf8').split('\n');
+
+    lines.forEach((line, index) => {
+      for (const promise of RETIRED_PROMISES) {
+        if (!promise.pattern.test(line)) continue;
+        problems.push(
+          `${rel}:${String(index + 1)}  وعدٌ أُلغي في ${promise.since} — ${promise.instead}`,
+        );
+      }
+    });
+  }
+
   for (const path of walk(join(ROOT, 'src'))) {
     if (!/\.tsx?$/.test(path)) continue;
     const rel = relative(ROOT, path);

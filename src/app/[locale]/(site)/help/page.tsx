@@ -174,6 +174,31 @@ export default async function HelpPage({
                   {t('contact')}
                 </Link>
               </div>
+
+              {/*
+                ═══ ومن له نزاع لا يريد نموذج تواصل ═══
+
+                التصميم يفرد للنزاعات كتلةً — **وهو محقّ**: من دفع
+                ووجد المركبة تخالف وصفها يحتاج الباب الذي يجمّد ماله،
+                لا بريدًا يُردّ عليه خلال يوم عمل.
+
+                **والوجهة طلباتُه لا صفحةٌ تشرح.** النزاع يُفتح من
+                صفحة الطلب نفسها، فالرابط يقود إليها.
+
+                ولا تُذكر «محادثة مباشرة» ولا «تذكرة دعم» ممّا يرسمه
+                التصميم: لا وجود لهما في المنتج، وقناةٌ تُعلَن ولا تردّ
+                أسوأ من قناةٍ لا تُعلَن.
+              */}
+              <div className="mt-4 rounded-xl border border-line bg-surface p-6">
+                <h2 className="mb-2 text-base font-bold">{t('disputesTitle')}</h2>
+                <p className="mb-4 text-xs leading-loose opacity-65">{t('disputesBody')}</p>
+                <Link
+                  href={`/${locale}/account/orders`}
+                  className="inline-flex rounded-md border border-line px-5 py-2.5 text-xs font-bold hover:border-ink"
+                >
+                  {t('disputesCta')}
+                </Link>
+              </div>
             </aside>
           </div>
         </div>

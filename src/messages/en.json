@@ -570,7 +570,10 @@
     "notFoundBody": "Message us and we will reply within one working day.",
     "contact": "Contact us",
     "allTopics": "All topics",
-    "emptyTopic": "No questions in this topic yet."
+    "emptyTopic": "No questions in this topic yet.",
+    "disputesTitle": "Disputes",
+    "disputesBody": "Open a dispute from the order page before you confirm receipt. The amount is frozen in escrow until it is resolved, and the team contacts both parties.",
+    "disputesCta": "My orders"
   },
   "legal": {
     "version": "Version",
