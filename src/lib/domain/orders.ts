@@ -324,35 +324,6 @@ export async function getOrder(
   };
 }
 
-/**
- * الضمان — **وهميّ أوّلًا** (المهمة ١٨): لا مزوّد دفع بعد.
- *
- * وهذا لا يعني تخطّيه: الحالات والانتقالات والأثر المحاسبي كلّها حقيقية
- * ومسجَّلة. حين يصل المزوّد يُستبدل `providerRef` وحده — لا المنطق.
- */
-export async function holdEscrow(
-  orderRef: string,
-  now: Date = new Date(),
-): Promise<{ ok: boolean }> {
-  const order = await db.order.findUnique({
-    where: { ref: orderRef },
-    select: { id: true, totalAmount: true, escrow: true },
-  });
-  if (order === null || order.escrow !== null) return { ok: false };
-
-  await db.escrow.create({
-    data: {
-      orderId: order.id,
-      amount: order.totalAmount,
-      status: 'HELD',
-      heldAt: now,
-      // البوابة لاحقًا — والمرجع يبقى فارغًا حتى ذلك الحين لا مزوَّرًا
-      gatewayRef: null,
-    },
-  });
-  return { ok: true };
-}
-
 export type DirectBuyFailure =
   | 'PROFILE_INCOMPLETE'
   | 'LISTING_NOT_FOUND'

@@ -8,7 +8,7 @@ import {
   overdueDisputes,
   proposeResolution,
 } from '@/lib/domain/disputes';
-import { advanceStage, holdEscrow, isFrozen } from '@/lib/domain/orders';
+import { advanceStage, isFrozen } from '@/lib/domain/orders';
 
 const T0 = new Date('2026-06-01T10:00:00Z');
 const hours = (n: number): Date => new Date(T0.getTime() + n * 3600 * 1000);
@@ -75,7 +75,22 @@ async function scaffold(): Promise<void> {
   });
   orderRef = order.ref;
   orderId = order.id;
-  await holdEscrow(orderRef, T0);
+  /**
+   * ═══ والضمان يُزرع هنا لا بدالّةِ نطاق ═══
+   *
+   * كانت `holdEscrow` في `orders.ts` — بقيّةً من المهمّة ١٨ حين كان
+   * الضمان وهميًّا بلا مزوّد دفع. ثمّ صار يُحجز في `payments.ts` عند
+   * تأكيد الدفعة **مع قيد الدفتر**، وبقيت الأولى: تكتب `Escrow`
+   * بـ`gatewayRef: null` **وبلا قيد**، فمن ناداها أنشأ مالًا محجوزًا
+   * لا يعرفه الدفتر.
+   *
+   * ولا ينادِيها إلّا هذا السطر. **فدالّةُ نطاقٍ لا يستعملها إلّا
+   * اختبار هي الطريقة التي يبقى بها مسارٌ خطِر حيًّا** — حُذفت،
+   * والزرعُ صار زرعًا صريحًا.
+   */
+  await db.escrow.create({
+    data: { orderId, amount: 100_350, status: 'HELD', heldAt: T0, gatewayRef: null },
+  });
 }
 
 async function teardown(): Promise<void> {
