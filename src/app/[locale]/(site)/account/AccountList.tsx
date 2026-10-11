@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 /**
  * ═══ قائمة حسابٍ واحدة، تخدم أربع شاشات ═══
@@ -20,6 +21,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 export function AccountList({
   locale,
   title,
+  crumb,
   subtitle,
   empty,
   action,
@@ -27,6 +29,12 @@ export function AccountList({
 }: {
   locale: string;
   title: string;
+  /**
+   * اسم الصفحة في المسار حين يخالف عنوانها — **والمسارُ موضعٌ
+   * والعنوانُ وصف**. التصميم يكتب «حسابي › تقاريري» والعنوان «تقارير
+   * الفحص»: الأوّل يقول أين أنت من حسابك، والثاني ماذا في الصفحة.
+   */
+  crumb?: string;
   subtitle: string;
   empty: { title: string; description: string };
   /** زرّ الحالة الفارغة — «بِع سيارتك» أو «تصفّح» */
@@ -46,13 +54,15 @@ export function AccountList({
             أنت** — ومن يصل من نتيجة بحثٍ أو رابطٍ منسوخ لا يعرف
             موضعَه من الشجرة إلّا منه.
           */}
-          <nav className="mb-6 flex flex-wrap items-center gap-2 text-2xs opacity-55">
-            <Link href={`/${locale}/account`} className="hover:opacity-100 hover:underline">
-              حسابي
-            </Link>
-            <span aria-hidden className="opacity-40">›</span>
-            <span className="font-bold opacity-80">{title}</span>
-          </nav>
+          <Breadcrumb
+            label="مسار التنقّل"
+            separator="›"
+            className="mb-6"
+            items={[
+              { label: 'حسابي', href: `/${locale}/account` },
+              { label: crumb ?? title },
+            ]}
+          />
 
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">

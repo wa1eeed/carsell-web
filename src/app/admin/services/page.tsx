@@ -42,7 +42,7 @@ export default async function AdminServicesPage() {
       <ListFooter
         shown={services.length}
         total={null}
-        note="الخدمات وأسعارها ومواضعها"
+        note="الخدمات وأسعارها وأين تظهر"
         can="إضافة خدمة وتعديل سعرها ومهلتها وربطها بمزوّد، وإخفاؤها."
         cannot="تغيير سعر طلبٍ قائم — السعر لقطةٌ وقت الطلب، وتعديلُه هنا يمسّ القادم وحده."
       />

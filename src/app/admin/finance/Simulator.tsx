@@ -32,7 +32,7 @@ export function Simulator({
         </span>
         <span className="flex-1" />
         <span className="text-3xs opacity-45">
-          على GMV الحالي <Money amount={gmv} />
+          على مبيعات اليوم <Money amount={gmv} />
         </span>
       </div>
 
@@ -51,7 +51,7 @@ export function Simulator({
           <Figure label="إيراد العمولة" value={<Money amount={scenario.commissionRevenue} />} />
           <Figure label="الإيراد الكلي" value={<Money amount={scenario.totalRevenue} />} />
           <Figure
-            label="نسبة الأخذ"
+            label="حصّة المنصّة"
             value={
               <span className="font-num">
                 <ArabicNumber value={scenario.takeRatePct} decimals={2} grouped={false} />٪

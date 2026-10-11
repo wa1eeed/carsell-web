@@ -44,7 +44,7 @@ export default async function AdminExportsPage() {
 
   return (
     <AdminShell title="التقارير والتصدير"
-      subtitle="استعلامات مسمّاة على القراءة" activeHref="/admin/exports" admin={admin}>
+      subtitle="تقارير جاهزة تُنزَّل — ولا تمسّ البيانات" activeHref="/admin/exports" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
         تقارير جاهزة ({toArabicDigits(String(stats.reports))}) — كلٌّ منها{' '}
         <b>استعلامٌ مسمّى على القراءة</b>، لا لقطةُ شاشة.

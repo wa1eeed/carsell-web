@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 import { OfferActions } from '@/components/site/OfferActions';
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -126,6 +127,13 @@ export default async function OffersInboxPage({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
+          <Breadcrumb
+            label="مسار التنقّل"
+            separator="›"
+            className="mb-6"
+            items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'عروضي' }]}
+          />
+
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
           <p className="mb-7 text-sm opacity-60">{t('intro')}</p>
 

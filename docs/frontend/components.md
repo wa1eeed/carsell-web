@@ -233,3 +233,26 @@ On the inspection report the breadcrumb is **computed before the "no report"
 branch**. Most listings have no inspection, so the empty state is the more
 visited of the two — a trail that only appears on the populated branch is
 missing from most of the people who need it.
+
+### `Breadcrumb` — the four hand-rolled trails it replaced (task 90)
+
+Beyond the four design screens, three more places had written their own
+breadcrumb and two had none:
+
+| Place | What it was |
+|---|---|
+| `AccountList` | Its own `<nav>` with `›` — the pattern six account pages inherited |
+| `account/wallet` | A `<p>`, not a `<nav>`, so screen readers announced a paragraph rather than navigation |
+| `auctions/[ref]` | Two levels only, no "Home", `›` where the design uses `·`, no `aria-label` |
+| `account/profile`, `account/earnings` | A bare `← حسابي` back-arrow |
+
+A back-arrow says where you return to; a breadcrumb says where you are. Two
+pages with arrows and six with trails makes the pattern look accidental.
+
+Two props carry the variation the design actually has:
+
+- **`separator`** — `·` on public screens (legal, auction, dealer, inspection),
+  `›` on account pages. The design distinguishes them, so the component does.
+- **`crumb`** on `AccountList` — the trail names the page as the account hub
+  names it ("تقاريري"), while the heading describes it ("تقارير الفحص"). The
+  design writes both; one prop stops them being forced to agree.

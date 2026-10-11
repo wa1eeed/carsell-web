@@ -30,8 +30,55 @@ const CITY_NAMES = new Set([
   'الطائف', 'بريدة', 'حائل', 'نجران', 'جازان', 'الظهران',
 ]);
 const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3002';
-const ADMIN_COOKIE = process.env.AUDIT_ADMIN ?? '';
-const USER_COOKIE = process.env.AUDIT_USER ?? '';
+let ADMIN_COOKIE = process.env.AUDIT_ADMIN ?? '';
+let USER_COOKIE = process.env.AUDIT_USER ?? '';
+
+/**
+ * ═══ والقياس يدخل بنفسه ═══
+ *
+ * ثلاثٌ وثلاثون شاشة أدمن كانت تُقرأ **صفرًا** في كل تقرير — وكلُّها
+ * تردّ ٣٠٧ إلى صفحة الدخول. فالرقم لم يقل «لوحة الأدمن لا تطابق
+ * التصميم»، قال «لم أدخل» — ولا شيء في التقرير يفرّق.
+ *
+ * وتمريرُ الكوكي بيدٍ في متغيّر بيئة يُنسى، فأوّلُ قياسٍ بعد النسيان
+ * يُظهر انهيارًا في نصف المنتج. فيُؤخذ الدخول من المسار نفسه الذي
+ * يسلكه الأدمن — وفشلُه يُعلَن ولا يُبتلع.
+ *
+ * ولا يعمل إلّا على مضيفٍ محلّي: القياس أداةُ تطوير، ودخولٌ آليّ
+ * بكلمةِ بذرةٍ إلى عنوانٍ بعيد ليس منها.
+ */
+async function signIn() {
+  if (!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/.test(BASE)) {
+    console.log('⬜ القياس على مضيفٍ غير محلّي — لا دخول آليّ، وشاشات الأدمن لن تُقاس.');
+    return;
+  }
+  if (ADMIN_COOKIE !== '') return;
+
+  try {
+    const res = await fetch(`${BASE}/api/v1/admin/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: process.env.ADMIN_EMAIL ?? 'super@carsell.one',
+        password: process.env.ADMIN_PASSWORD ?? 'CarSell!dev2026',
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    const raw = res.headers.getSetCookie?.() ?? [];
+    const found = raw
+      .map((line) => /(?:^|;\s*)carsell_admin=([^;]+)/.exec(line)?.[1])
+      .find((value) => value !== undefined);
+
+    if (found === undefined) {
+      console.log(`⬜ تعذّر دخول الأدمن (HTTP ${String(res.status)}) — شاشاته لن تُقاس.`);
+      return;
+    }
+    ADMIN_COOKIE = found;
+  } catch (error) {
+    console.log(`⬜ تعذّر دخول الأدمن (${error instanceof Error ? error.name : 'fetch'}).`);
+  }
+}
 
 /**
  * خريطة الشاشة إلى مسارها. **ومسارٌ غائب يُعلن** لا يُتخطّى بصمت:
@@ -312,4 +359,5 @@ async function main() {
   }
 }
 
+await signIn();
 await main();

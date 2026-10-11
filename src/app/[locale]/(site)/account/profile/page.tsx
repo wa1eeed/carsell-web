@@ -1,10 +1,10 @@
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { profileCompletion } from '@/lib/domain/profile';
@@ -43,12 +43,17 @@ export default async function ProfilePage({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <div className="mx-auto w-full max-w-2xl px-10 py-10">
-          <Link
-            href={`/${locale}/account`}
-            className="mb-6 inline-block text-2xs opacity-55 hover:opacity-100"
-          >
-            ← حسابي
-          </Link>
+          {/*
+            **وسهمُ الرجوع يقول إلى أين تعود، لا أين أنت.** وأخواتها
+            الستّ تكتب «حسابي › …» — فصفحتان بسهمٍ وستٌّ بمسار تجعلان
+            النمط يبدو صدفةً لا قاعدة.
+          */}
+          <Breadcrumb
+            label="مسار التنقّل"
+            separator="›"
+            className="mb-6"
+            items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'إكمال الملف' }]}
+          />
 
           <h1 className="mb-1.5 text-3xl font-bold tracking-tight">إكمال الملف</h1>
           <p className="mb-8 text-sm leading-loose opacity-60">

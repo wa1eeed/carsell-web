@@ -35,6 +35,7 @@ export default async function ReportsPage({
     <AccountList
       locale={locale}
       title="تقارير الفحص"
+      crumb="تقاريري"
       subtitle="فحوص مركباتك ونتائجها."
       empty={{
         title: 'لا تقارير',

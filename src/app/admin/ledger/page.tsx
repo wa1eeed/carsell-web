@@ -57,9 +57,9 @@ export default async function LedgerPage() {
         <Figure label="إيراد المنصّة" note="العمولة والرسوم — لا قيمة المركبات" amount={book.revenue} strong />
         <Figure label="ضريبة مستحقّة" note="ضريبة على عمولتنا ورسومنا — تُدفع للهيئة" amount={book.vatPayable} strong />
         <Figure label="لدى مزوّد الدفع" note="التزامٌ تجاه الأطراف، لا مالٌ لنا" amount={book.atProvider} />
-        <Figure label="قُبض ولم يُستحقّ" note="في نافذة الإرجاع" amount={book.buyerAdvance} />
+        <Figure label="قُبض ولم يُستحقّ" note="دُفع ولم تُنقل الملكية بعد" amount={book.buyerAdvance} />
         <Figure label="حقوق البائعين" note="استُحقّت ولم تُحوَّل" amount={book.sellerPayable} />
-        <Figure label="رسوم عبور" note={`بوابة ${book.clearing.gateway} · حكومية ${book.clearing.government}`} amount={book.clearing.gateway} />
+        <Figure label="رسوم تمرّ إلى غيرنا" note={`بوابة ${book.clearing.gateway} · حكومية ${book.clearing.government}`} amount={book.clearing.gateway} />
       </div>
 
       <section className="mb-7 rounded-lg border border-line bg-surface p-5">

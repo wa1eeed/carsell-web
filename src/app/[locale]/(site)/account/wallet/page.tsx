@@ -1,10 +1,10 @@
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -74,13 +74,16 @@ export default async function WalletPage({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
-          <p className="mb-5 flex items-center gap-2 text-2xs opacity-55">
-            <Link href={`/${locale}/account`} className="hover:underline">
-              حسابي
-            </Link>
-            <span aria-hidden className="opacity-40">›</span>
-            <span>المحفظة</span>
-          </p>
+          {/*
+            **وكان `<p>` لا `<nav>`** — فقارئ الشاشة يقرؤه فقرةً، ولا
+            يبلغه بين مِلاحات الصفحة ولا يعلم أن «المحفظة» هي موضعُه.
+          */}
+          <Breadcrumb
+            label="مسار التنقّل"
+            separator="›"
+            className="mb-5"
+            items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'المحفظة' }]}
+          />
 
           <div className="mb-8 grid gap-4 md:grid-cols-3">
             <section className="rounded-xl border-2 border-ink p-5">

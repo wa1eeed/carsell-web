@@ -43,7 +43,7 @@ export default async function IntegrationsPage() {
         <Stat title="تعمل" value={summary.connected} />
         <Stat title="تحذير" value={summary.warning} />
         <Stat title="غير مفعّلة" value={summary.inactive} />
-        <Stat title="تدويرات تنتظر موافقة" value={summary.pendingRotations} />
+        <Stat title="مفاتيح تنتظر الاستبدال" value={summary.pendingRotations} />
       </div>
 
       <IntegrationsList

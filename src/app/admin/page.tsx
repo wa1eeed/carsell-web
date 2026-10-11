@@ -31,7 +31,7 @@ const PERMISSION = {
 const SUBTITLE: Record<DashboardTab, string> = {
   growth: 'نمو وأعداد — آخر ثلاثين يومًا',
   ops: 'تشغيلية — الطوابير والأزمنة',
-  finance: 'مالية — GMV والوحدة الاقتصادية',
+  finance: 'مالية — المبيعات وما تكسبه المنصّة من كل عميل',
 };
 
 export default async function AdminDashboardPage({

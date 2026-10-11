@@ -64,7 +64,11 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       </p>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card title="GMV" subtitle="قيمة البضاعة التي مرّت" amount={summary.gmv.total}>
+        <Card
+          title="قيمة المبيعات"
+          subtitle="إجمالي ما بيع عبر المنصّة — قبل أي خصم (GMV)"
+          amount={summary.gmv.total}
+        >
           {summary.gmv.bySource.map((line) => (
             <Line key={line.key} label={ORDER_SOURCE_LABEL[line.key] ?? line.key} amount={line.amount} />
           ))}
@@ -134,7 +138,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
         رقمين على شاشة واحدة يُقرآن على نافذة واحدة وهما على نافذتين.
       */}
       <SectionHead
-        title="GMV والإيراد"
+        title="قيمة المبيعات والإيراد"
         note={`شهرًا (${toArabicDigits(String(GMV_MONTHS))}) · بالريال`}
       />
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
@@ -163,27 +167,27 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       </div>
 
       <p className="mt-6 mb-3 flex items-baseline gap-2 text-2xs opacity-55">
-        <span className="font-bold">المؤشّرات المركّبة</span>
+        <span className="font-bold">مؤشّرات تُحسب من غيرها</span>
         <span aria-hidden className="opacity-40">·</span>
         <span>شهر {monthName(month)} كاملًا — لا آخر ثلاثين يومًا</span>
       </p>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Indicator
-          title="تكلفة الاكتساب CAC"
+          title="تكلفة جلب العميل"
           value={<Money amount={figures.cac} />}
           note={
             figures.newCustomers === 0 ? (
-              'لا عملاء جدد هذا الشهر — فلا تكلفة اكتساب تُقسم.'
+              'لا عملاء جدد هذا الشهر — فلا تكلفة تُقسم عليهم.'
             ) : (
               <>
-                مصروف الاكتساب ÷ <Quantity unit="newCustomers" count={figures.newCustomers} />
+                ما صُرف على التسويق ÷ <Quantity unit="newCustomers" count={figures.newCustomers} />
               </>
             )
           }
         />
         <Indicator
-          title="القيمة الدائمة LTV"
+          title="ما يدرّه العميل"
           value={<Money amount={figures.ltv} />}
           note={
             figures.payingCustomers === 0
@@ -192,52 +196,52 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           }
         />
         <Indicator
-          title="نسبة الأخذ"
+          title="حصّة المنصّة"
           value={
             <span className="font-num">
               <ArabicNumber value={figures.takeRatePct} decimals={2} grouped={false} />٪
             </span>
           }
-          note={<>من كل ريال بضاعة يبقى للمنصّة هذا القدر.</>}
+          note={<>من كل ريال مبيعات يبقى للمنصّة هذا القدر.</>}
         />
         <Indicator
-          title="LTV / CAC"
+          title="ما يدرّه العميل مقابل تكلفته"
           value={
             figures.ltvOverCac === null ? (
-              <span className="text-base opacity-60">لا تكلفة اكتساب</span>
+              <span className="text-base opacity-60">لا تكلفة تسويق</span>
             ) : (
               <span className="font-num">
                 <ArabicNumber value={figures.ltvOverCac} decimals={1} grouped={false} />×
               </span>
             )
           }
-          note="الهدف الصحّي ٣× فأعلى — أقلّ منه يعني شراء عملاء بخسارة."
+          note="الجيّد ٣× فأعلى — أقلّ منه يعني أننا ندفع لجلب العميل أكثر ممّا يعطينا."
         />
         <Indicator
           /* الوحدة في العنوان لا بعد الرقم: الكسر لا يُصرَّف جمعًا في العربية */
-          title="فترة الاسترداد بالأشهر"
+          title="كم شهرًا حتى يغطّي العميل تكلفته"
           value={
             figures.paybackMonths === null ? (
-              <span className="text-base opacity-60">لا هامش شهري</span>
+              <span className="text-base opacity-60">لا ربح شهريّ بعد</span>
             ) : (
               <ArabicNumber value={figures.paybackMonths} decimals={1} grouped={false} />
             )
           }
-          note="حتى يعيد العميل تكلفة اكتسابه."
+          note="حتى يعيد العميل ما كلّف جلبه."
         />
         <Indicator
-          title="مدرج الطيران"
+          title="النقد يكفي"
           value={
             figures.runwayMonths === null ? (
-              <span className="text-base opacity-60">لا حرق</span>
+              <span className="text-base opacity-60">لا عجز</span>
             ) : (
               <Quantity unit="months" count={figures.runwayMonths} />
             )
           }
           note={
             figures.runwayMonths === null
-              ? 'الإيراد يغطّي المصروف — والربح لا مدرج له.'
-              : <>صافي الحرق <Money amount={figures.netBurn} /> شهريًا.</>
+              ? 'الإيراد يغطّي المصروف — فلا مدّة تنفد بعدها.'
+              : <>العجز <Money amount={figures.netBurn} /> كل شهر.</>
           }
         />
       </section>

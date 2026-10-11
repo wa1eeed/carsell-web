@@ -1,7 +1,6 @@
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { sellerBook } from '@/lib/domain/seller-book';
@@ -52,17 +52,22 @@ export default async function EarningsPage({
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
         <div className="mx-auto w-full max-w-4xl px-10 py-10">
-          <Link
-            href={`/${locale}/account`}
-            className="mb-6 inline-block text-2xs opacity-55 hover:opacity-100"
-          >
-            ← حسابي
-          </Link>
+          {/*
+            **وسهمُ الرجوع يقول إلى أين تعود، لا أين أنت.** وأخواتها
+            الستّ تكتب «حسابي › …» — فصفحتان بسهمٍ وستٌّ بمسار تجعلان
+            النمط يبدو صدفةً لا قاعدة.
+          */}
+          <Breadcrumb
+            label="مسار التنقّل"
+            separator="›"
+            className="mb-6"
+            items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'مستحقّاتي' }]}
+          />
 
           <h1 className="mb-1.5 text-3xl font-bold tracking-tight">مستحقّاتي</h1>
           <p className="mb-8 text-sm leading-loose opacity-60">
             بيانُ حقوقك من كل صفقة. والمبلغ محفوظ لدى مزوّد الدفع حتى تنتقل
-            الملكية وتنقضي نافذة الإرجاع، ثم يُحوَّل إلى آيبانك.
+            الملكية ويؤكّد المشتري الاستلام، ثم يُحوَّل إلى آيبانك.
           </p>
 
           <div className="mb-8 grid gap-3 sm:grid-cols-3">

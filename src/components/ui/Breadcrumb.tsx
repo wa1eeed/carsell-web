@@ -30,9 +30,16 @@ export type Crumb = {
 export function Breadcrumb({
   items,
   label,
+  separator = '·',
   className = '',
 }: {
   items: readonly Crumb[];
+  /**
+   * الفاصل — **والتصميم يفرّق**: `·` في الشاشات العامّة (القانوني،
+   * المزاد، المعرض، التقرير)، و`›` في صفحات الحساب («حسابي › عروضي»).
+   * فالثاني يقول «نزولًا في شجرتك»، والأوّل يعدّ موضعًا بعد موضع.
+   */
+  separator?: '·' | '›';
   /**
    * تسمية المِلاحة لقارئ الشاشة — **من المنادي لا مكتوبةً هنا**.
    * المكوّن يُستعمل في اللغتين، ونصٌّ عربيّ ثابت يجعل النسخة
@@ -59,7 +66,7 @@ export function Breadcrumb({
             <li key={`${String(index)}-${item.label}`} className="flex min-w-0 items-center gap-x-2">
               {index === 0 ? null : (
                 <span aria-hidden className="opacity-60">
-                  ·
+                  {separator}
                 </span>
               )}
 
