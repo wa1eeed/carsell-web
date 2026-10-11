@@ -1,6 +1,18 @@
 import type { Permission } from '@/lib/domain/permissions';
 
 /**
+ * بادئةُ عناوين مجموعات الإعدادات — **تُقرأ لا تُكرَّر**.
+ *
+ * يميّز بها الشريطُ ما يُضبط ممّا يُعالَج، وتقرؤها صفحةُ الإعدادات
+ * لتبني أقسامَها، ويحرسها اختبار. وثلاثةُ مواضع تكتب «الإعدادات»
+ * حرفيًّا تتباعد أوّل إعادة تسمية.
+ */
+export const SETTINGS_PREFIX = 'الإعدادات';
+
+/** مدخلُ الإعدادات الوحيد — ومنه تُفتح أقسامُها. */
+export const SETTINGS_HOME = '/admin/settings';
+
+/**
  * ═══ بيانات المِلاحة — في ملفّها لا في المكوّن ═══
  *
  * فُصلت عن `AdminShell.tsx` لأن **ترتيب اللوحة قرارُ بنية يُختبَر**:
@@ -22,6 +34,13 @@ export type AdminNavItem = {
   label: string;
   href: string | null;
   badge?: number;
+  /**
+   * سطرٌ يقول **ما يُضبط هنا** — تقرؤه صفحة الإعدادات لا الشريط.
+   *
+   * وقائمةُ روابطٍ بلا وصفٍ تجعل من يبحث عن «أين أغيّر مهلة الدفع»
+   * يفتح أربع شاشاتٍ ليجدها.
+   */
+  description?: string;
   /** بند بلا صلاحية لا يُعرض معطّلًا — يُخفى. عرضه يكشف بنية اللوحة. */
   permission?: Permission;
 };
@@ -115,10 +134,10 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
      */
     title: 'الإعدادات — المال',
     items: [
-      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view' },
-      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
-      { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view' },
-      { label: 'المدد والمهل', href: '/admin/deadlines', permission: 'finance.view' },
+      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view', description: 'نِسَب الضريبة وقواعد الإصدار ومن يُصدر الفاتورة.' },
+      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view', description: 'باقات البائعين ونِسَب العمولة على كل بيعة.' },
+      { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view', description: 'أيّ بوابةٍ تستقبل كل غرض، ورسوم المعالجة.' },
+      { label: 'المدد والمهل', href: '/admin/deadlines', permission: 'finance.view', description: 'مهلة الدفع ونافذة النقل وقرار البائع وغيرها.' },
     ],
   },
   {
@@ -128,29 +147,57 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        * **والخدمةُ وسعرُها تعريفٌ كالكتالوج** — موضعُها حيث يُعرَّف
        * ما يعرضه المنتج، لا مع الطابور الذي يُعالَج يوميًّا.
        */
-      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
-      { label: 'مزوّدو الخدمات', href: '/admin/providers', permission: 'services.manage' },
-      { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage' },
-      { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
-      { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },
+      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage', description: 'الخدمات المعروضة وأسعارها ومهلة تنفيذها.' },
+      { label: 'مزوّدو الخدمات', href: '/admin/providers', permission: 'services.manage', description: 'من ينفّذ الخدمات، وتغطيتُه، وعمولتنا منه.' },
+      { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage', description: 'الماركات والموديلات والفئات التي تُبنى منها الإعلانات.' },
+      { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage', description: 'أنواع الهياكل وصورها وترتيب عرضها.' },
+      { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage', description: 'المميّزات التي يختارها البائع ويُرشّح بها المشتري.' },
       /**
        * **و«مساحات الإعلانات» حُذفت من هنا**: مسارُها `/admin/ads`
        * نفسُه الذي تحته «الإعلانات المموّلة» في «التسويق» — بندان
        * باسمين يفتحان الصفحة ذاتها. ومن ضغط الثاني ظنّ أنه أخطأ.
        * (والشاشة تجمع A30 وA31 عمدًا: من يعطّل مساحةً يرى ما سيوقفه.)
        */
-      { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view' },
-      { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage' },
-      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage' },
+      { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view', description: 'الحدّ الأدنى للمزايدة والتمديد التلقائي والعربون.' },
+      { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage', description: 'الأسئلة الشائعة ومواضع ظهورها.' },
+      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية ونسخُها المنشورة.' },
     ],
   },
   {
     title: 'الإعدادات — النظام',
     items: [
-      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage' },
-      { label: 'إشعارات الجوال', href: '/admin/push' },
-      { label: 'الربط بالخدمات الخارجية', href: '/admin/integrations', permission: 'integrations.view' },
-      { label: 'الفريق والصلاحيات', href: '/admin/team', permission: 'team.manage' },
+      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage', description: 'قوالب الرسائل ومتى تُرسل.' },
+      { label: 'إشعارات الجوال', href: '/admin/push', description: 'قنوات إشعارات الجوال وما يُفتح منها افتراضًا.' },
+      { label: 'الربط بالخدمات الخارجية', href: '/admin/integrations', permission: 'integrations.view', description: 'مفاتيح الربط وبيئاتها وحال كل تكامل.' },
+      { label: 'الفريق والصلاحيات', href: '/admin/team', permission: 'team.manage', description: 'من في الفريق وبأي دور، ومصفوفة الصلاحيات.' },
     ],
   },
 ];
+
+/**
+ * ═══ المجموعات المعروضة — والإعدادات بندٌ واحد ما لم تكن فيها ═══
+ *
+ * ستّةَ عشرَ بندًا من ثلاثين كانت إعدادات: تُضبط مرّةً في الشهر
+ * وتزاحم العمل اليوميّ في كل يوم. **فتُطوى خلف مدخلٍ واحد، فإن
+ * دخلتَها انفتحت أقسامُها** — فلا تفقد التنقّل بينها، ولا تحملها
+ * معك وأنت تعالج طابورًا.
+ *
+ * والمنطق هنا لا في المكوّن: **ترتيب اللوحة قرارُ بنية يُختبَر**.
+ */
+export function visibleGroups(activeHref?: string): readonly AdminNavGroup[] {
+  const isSettings = (group: AdminNavGroup): boolean => group.title.startsWith(SETTINGS_PREFIX);
+
+  const inside =
+    activeHref !== undefined
+    && (activeHref === SETTINGS_HOME
+      || ADMIN_NAV.some(
+        (group) => isSettings(group) && group.items.some((item) => item.href === activeHref),
+      ));
+
+  if (inside) return ADMIN_NAV;
+
+  return [
+    ...ADMIN_NAV.filter((group) => !isSettings(group)),
+    { title: SETTINGS_PREFIX, items: [{ label: 'كل الإعدادات', href: SETTINGS_HOME }] },
+  ];
+}

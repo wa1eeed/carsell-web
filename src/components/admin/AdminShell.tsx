@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { APP_ENV } from '@/lib/env';
 import { can } from '@/lib/domain/permissions';
-import { ADMIN_NAV } from './nav';
+import { visibleGroups } from './nav';
 import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
 import { cn } from '@/lib/cn';
 import type { AdminUser } from '@/generated/prisma/client';
@@ -57,8 +57,14 @@ export async function AdminShell({
    */
   const counts = await adminNavCounts();
 
+  /**
+   * **والإعدادات بندٌ واحد ما لم تكن فيها** — والمنطق في `nav.ts`
+   * لأنه قرارُ بنية يُختبَر، لا تفصيلُ تصيير.
+   */
+  const visible = visibleGroups(activeHref);
+
   // بند بلا صلاحية يُخفى لا يُعطَّل — «OPS لا يرى المالية» حرفيًا
-  const groups = ADMIN_NAV.map((group) => ({
+  const groups = visible.map((group) => ({
     ...group,
     items: group.items
       .filter((item) => item.permission === undefined || can(admin.role, item.permission))

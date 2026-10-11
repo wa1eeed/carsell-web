@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
-import { ADMIN_NAV } from '@/components/admin/nav';
+import { ADMIN_NAV, SETTINGS_HOME, SETTINGS_PREFIX, visibleGroups } from '@/components/admin/nav';
 
 afterAll(async () => {
   await db.$disconnect();
@@ -102,6 +102,56 @@ describe('شريط الأدمن — ما ينتظر عملًا', () => {
     // والسجلّان مع ما يُقرأ
     for (const href of ['/admin/ledger', '/admin/audit']) {
       expect(groupOf(href), href).toBe('المتابعة');
+    }
+  });
+
+  /**
+   * ═══ والإعدادات بندٌ واحد ما لم تكن فيها ═══
+   *
+   * ستّةَ عشرَ بندًا من ثلاثين كانت إعدادات تزاحم العمل اليوميّ في
+   * كل يوم — ومن يبحث عن «أين أغيّر مهلة الدفع» يقرأ ثلاثين سطرًا.
+   */
+  it('الشريط يطوي الإعدادات خارجها', () => {
+    const groups = visibleGroups('/admin/orders');
+    const settings = groups.filter((group) => group.title.startsWith(SETTINGS_PREFIX));
+
+    expect(settings).toHaveLength(1);
+    expect(settings[0]?.items).toHaveLength(1);
+    expect(settings[0]?.items[0]?.href).toBe(SETTINGS_HOME);
+  });
+
+  it('ويفتحها داخلها — فلا يُفقَد التنقّل بينها', () => {
+    for (const href of [SETTINGS_HOME, '/admin/tax', '/admin/team', '/admin/services']) {
+      const groups = visibleGroups(href);
+      const settings = groups.filter((group) => group.title.startsWith(SETTINGS_PREFIX));
+      expect(settings.length, href).toBeGreaterThan(1);
+    }
+  });
+
+  it('ولا يسقط بندٌ بالطيّ', () => {
+    /**
+     * **وما يُطوى يُفتح كاملًا.** بندُ إعداداتٍ يختفي في الحالين
+     * يصير شاشةً لا يصلها أحد — وهو الصنف الذي أُصلح في حساب
+     * المستخدم أربع مرّات.
+     */
+    const open = visibleGroups('/admin/tax').flatMap((group) => group.items.map((i) => i.href));
+    for (const group of ADMIN_NAV) {
+      for (const item of group.items) {
+        expect(open, item.label).toContain(item.href);
+      }
+    }
+  });
+
+  it('ولكل بند إعداداتٍ وصفٌ يقول ما يُضبط فيه', () => {
+    /**
+     * قائمةُ روابطٍ بلا وصف تجعل من يبحث عن «أين أغيّر مهلة الدفع»
+     * يفتح أربع شاشاتٍ ليجدها. **والعنوان يقول الاسم، والسطر تحته
+     * يقول الفعل.**
+     */
+    for (const group of ADMIN_NAV.filter((g) => g.title.startsWith(SETTINGS_PREFIX))) {
+      for (const item of group.items) {
+        expect(item.description, item.label).toBeTypeOf('string');
+      }
     }
   });
 });
