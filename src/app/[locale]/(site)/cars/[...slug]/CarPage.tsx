@@ -9,6 +9,7 @@ import { Badge, InspectedBadge } from '@/components/ui/Badge';
 import { BuyColumn } from '@/components/ui/BuyColumn';
 import { BuyActions } from '@/components/site/BuyActions';
 import { ReportListing } from '@/components/site/ReportListing';
+import { FavoriteButton } from '@/components/site/FavoriteButton';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
@@ -60,6 +61,8 @@ export function CarPage({
     /** طلبٌ حيّ على الإعلان — فلا يُعرض «اشترِ» ثم يُرفض */
     reserved: boolean;
     listingId: string;
+    /** أمفضَّلٌ عند هذا الزائر؟ — و`false` لمن لم يدخل. */
+    favorited: boolean;
   };
   /**
    * المزاد بتفصيله — **و`null` لغير المزادات**.
@@ -213,6 +216,19 @@ export function CarPage({
                 </span>
               </Link>
             )}
+
+            {/*
+              **والقلب في الترويسة لا على الصورة.** على الصورة يُخفي
+              جزءًا منها ويُضغط سهوًا عند التمرير، وفي الترويسة بجوار
+              الاسم حيث يقع القرار.
+            */}
+            <FavoriteButton
+              listingRef={detail.ref}
+              initial={viewer.favorited}
+              signedIn={viewer.signedIn}
+              signInHref={`/${locale}/auth`}
+              className="shrink-0"
+            />
           </header>
 
           <Gallery images={detail.images} alt={vehicle.title} />

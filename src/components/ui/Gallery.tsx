@@ -32,6 +32,8 @@ export function Gallery({
   const current = Math.min(index, Math.max(0, count - 1));
   const strip = images.slice(0, 6);
   const cover = images[current];
+  /** مفاتيحُ سقط تحميلها — تُجمع فلا تُحاوَل ثانيةً عند كل تصيير. */
+  const [broken, setBroken] = useState<ReadonlySet<string>>(new Set());
   const rest = count - strip.length;
 
   return (
@@ -47,13 +49,22 @@ export function Gallery({
 
           والرابط يأتي من الخادم لأن بناءه يقرأ إعداد التخزين.
         */}
-        {cover?.url == null ? (
+        {/*
+          ═══ والمكسور يسقط إلى النمط لا إلى أيقونة عطل ═══
+
+          مفتاحٌ يشير إلى تخزينٍ غير مضبوط (أو ملفٍّ حُذف) يُنتج
+          **أيقونة صورةٍ مكسورة** — وهي أسوأ من النمط المخطَّط: تقول
+          «عندنا عطل» حيث كان النمط يقول «لا صورة». وكلُّ ما زرعته
+          البذرة كذلك محلّيًّا.
+        */}
+        {cover?.url == null || broken.has(cover.key) ? (
           <span className="sr-only">{alt}</span>
         ) : (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={cover.url}
             alt={alt}
+            onError={() => setBroken((seen) => new Set(seen).add(cover.key))}
             className="absolute inset-0 size-full object-cover"
             loading="eager"
           />
@@ -92,11 +103,12 @@ export function Gallery({
                 i === current && 'outline-2 outline-offset-2 outline-accent',
               )}
             >
-              {image.url == null ? null : (
+              {image.url == null || broken.has(image.key) ? null : (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={image.url}
                   alt=""
+                  onError={() => setBroken((seen) => new Set(seen).add(image.key))}
                   className="absolute inset-0 size-full object-cover"
                   loading="lazy"
                 />

@@ -17,6 +17,7 @@ import {
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { getAuction, viewerStanding } from '@/lib/domain/auctions';
+import { favoritedRefs } from '@/lib/domain/favorites';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
@@ -289,6 +290,10 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
               reserved: await hasLiveOrder(resolved.row.id),
               // الإبلاغ يحتاج المعرّف لا المرجع — والمسار يقبل `targetId`
               listingId: resolved.row.id,
+              /** والقلب يُرسَم ممتلئًا من أوّل تصيير — لا يومض بعده. */
+              favorited: (await favoritedRefs(viewer?.id ?? null, [resolved.row.ref])).has(
+                resolved.row.ref,
+              ),
             }}
           />
         </div>
