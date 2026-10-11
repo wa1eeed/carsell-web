@@ -23,7 +23,7 @@ import { PriceGuidance } from '@/components/site/PriceGuidance';
 import type { RangeStats } from '@/components/ui/RangeBar';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
-import { displayDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 type Option = { id: string; nameAr: string; nameEn: string };
@@ -282,7 +282,7 @@ export function SellWizard({
     const begins = startNow || startsAt === '' ? new Date() : new Date(startsAt);
     if (Number.isNaN(begins.getTime())) return '—';
     const ends = new Date(begins.getTime() + durationDays * 86_400_000);
-    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+    return new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',

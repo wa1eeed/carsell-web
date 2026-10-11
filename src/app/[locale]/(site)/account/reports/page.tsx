@@ -9,6 +9,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow } from '../AccountList';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,7 @@ const REQUEST_STATUS: Record<string, string> = {
   IN_PROGRESS: 'قيد التنفيذ',
 };
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   weekday: 'long',
   day: 'numeric',
   month: 'short',

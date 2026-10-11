@@ -7,13 +7,14 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { auditCounts, auditTrail, type AuditLens } from '@/lib/domain/admin-monitors';
 import { AUDIT_ACTION_LABEL } from '@/lib/labels/audit';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'سجل التدقيق' };
 
 const LENSES: readonly string[] = ['money', 'identity', 'permissions'];
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',

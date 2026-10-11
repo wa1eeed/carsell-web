@@ -6,12 +6,12 @@ import { MonitorList, MonitorRow } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { legalDocuments, legalSummary } from '@/lib/domain/admin-content';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'الصفحات القانونية' };
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'long',
   year: 'numeric',

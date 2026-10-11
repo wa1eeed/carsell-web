@@ -1,9 +1,9 @@
 'use client';
 
+import { Year } from '@/components/ui/Year';
 import { StatCard as Card, StatGrid } from '@/components/admin/StatCard';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -167,7 +167,7 @@ export function ReviewQueue({
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="flex items-center gap-2.5">
                   <span className="bidi-isolate truncate text-sm font-bold">{row.title}</span>
-                  <ArabicNumber value={row.year} className="text-2xs opacity-55" />
+                  <Year value={row.year} className="text-2xs opacity-55" />
                 </span>
                 <span className="font-num text-3xs opacity-50">{row.ref}</span>
                 <span className="bidi-isolate text-2xs opacity-60">{row.sellerName}</span>

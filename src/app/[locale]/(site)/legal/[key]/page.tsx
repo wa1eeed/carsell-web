@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { displayNumeric } from '@/lib/arabic';
+import { displayNumeric, AR_DATE_LOCALE } from '@/lib/arabic';
 import { routing } from '@/i18n/routing';
 import { getLegalDocument, listLegalDocuments } from '@/lib/domain/content';
 
@@ -55,7 +55,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
   const title = isArabic ? doc.titleAr : doc.titleEn;
   const summary = isArabic ? doc.summaryAr : doc.summaryEn;
 
-  const date = new Intl.DateTimeFormat(isArabic ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const date = new Intl.DateTimeFormat(isArabic ? AR_DATE_LOCALE : 'en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

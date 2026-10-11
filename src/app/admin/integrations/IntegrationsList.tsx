@@ -9,9 +9,9 @@ import { Toast } from '@/components/ui/Toast';
 import type { ConnectionState, IntegrationRow } from '@/lib/domain/admin-integrations';
 import { ENV_LABEL } from '@/lib/labels/admin';
 import { cn } from '@/lib/cn';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',

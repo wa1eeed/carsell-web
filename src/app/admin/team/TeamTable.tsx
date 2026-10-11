@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import type { TeamMember } from '@/lib/domain/admin-team';
 import { Toast } from '@/components/ui/Toast';
 
@@ -20,7 +20,7 @@ import { Toast } from '@/components/ui/Toast';
  * في اللحظة، ولا ينتظر نشرة.
  */
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',

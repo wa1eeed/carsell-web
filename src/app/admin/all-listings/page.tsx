@@ -2,11 +2,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ExportLink } from '@/components/admin/ExportLink';
-import { Badge } from '@/components/ui/Badge';
-import { Money } from '@/components/ui/Money';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { MonitorCards, MonitorList, MonitorRow, MonitorTabs } from '@/components/admin/MonitorShell';
+import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
 import { ListSearch } from '@/components/admin/ListSearch';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ListingCard } from '@/components/admin/ListingCard';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
@@ -19,21 +18,7 @@ export const metadata = { title: 'كل الإعلانات' };
 
 const FILTERS: readonly string[] = ['PUBLISHED', 'PENDING_REVIEW', 'RESERVED', 'SOLD', 'SUSPENDED'];
 
-const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'مسودّة',
-  PENDING_REVIEW: 'في المراجعة',
-  PUBLISHED: 'نشط',
-  RESERVED: 'محجوز',
-  SOLD: 'مبيع',
-  SUSPENDED: 'موقوف',
-  EXPIRED: 'منتهٍ',
-};
 
-const TYPE_LABEL: Record<string, string> = {
-  DIRECT: 'مباشر',
-  NEGOTIATION: 'تفاوض',
-  AUCTION: 'مزاد',
-};
 
 /**
  * A27 — كل الإعلانات.
@@ -111,45 +96,25 @@ export default async function AdminAllListingsPage({
         ]}
       />
 
-      <MonitorList
-        empty={{ title: 'لا إعلانات بهذه الحالة', description: 'جرّب حالةً أخرى من التابز.' }}
-      >
-        {rows.map((row) => (
-          <MonitorRow
-            key={row.ref}
-            title={
-              <>
-                {row.title} <ArabicNumber value={row.year} className="opacity-55" />
-              </>
-            }
-            subtitle={`${row.sellerName} · ${row.city}`}
-            /* **المرجع يفتح الإعلان** — والقائمة كانت تعرض ولا تُفتح */
-            meta={
-              <Link
-                href={`/admin/listings/${encodeURIComponent(row.ref)}`}
-                dir="ltr"
-                className="font-num text-start underline underline-offset-4 hover:opacity-70"
-              >
-                {row.ref}
-              </Link>
-            }
-          >
-            <div className="flex flex-col items-start gap-0.5">
-              <Money amount={Number(row.askPrice)} />
-              <span className="text-3xs opacity-45">
-                عروض ({displayDigits(String(row.offerCount))}) · مشاهدات (
-                {displayDigits(String(row.viewCount))})
-              </span>
-            </div>
+      {/*
+        ═══ كروتٌ لا أسطر ═══
 
-            <Badge tone={row.status === 'PUBLISHED' ? 'accent' : 'neutral'}>
-              {STATUS_LABEL[row.status] ?? row.status}
-            </Badge>
-
-            <span className="text-2xs opacity-60">{TYPE_LABEL[row.type] ?? row.type}</span>
-          </MonitorRow>
-        ))}
-      </MonitorList>
+        **ومن يراجع إعلانًا يحتاج أن يعرف قبل أن يفتحه**: أيُّ مركبةٍ
+        هي (صورة)، ومن يبيعها وبأيّ صفة، وأمشترِكٌ هو، ومتى نُشر.
+        فمراجعةُ عشرين إعلانًا كانت عشرين فتحًا ورجوعًا.
+      */}
+      {rows.length === 0 ? (
+        <EmptyState
+          title="لا إعلانات بهذه الحالة"
+          description="جرّب حالةً أخرى من التابز، أو امسح البحث."
+        />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {rows.map((row) => (
+            <ListingCard key={row.ref} row={row} />
+          ))}
+        </div>
+      )}
 
       <ListFooter
         shown={rows.length}

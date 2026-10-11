@@ -12,6 +12,7 @@ import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { walletView } from '@/lib/domain/wallet';
 import { db } from '@/lib/db';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -172,7 +173,7 @@ export default async function WalletPage({
                         )}
                       </td>
                       <td className="bidi-isolate p-3 font-num text-3xs opacity-60">
-                        {new Date(line.at).toLocaleDateString('ar-SA-u-ca-gregory')}
+                        {new Date(line.at).toLocaleDateString(AR_DATE_LOCALE)}
                       </td>
                       <td className="p-3 text-end">
                         {/* السالب يحتفظ بإشارته يسارًا — و`Money` تتكفّل */}

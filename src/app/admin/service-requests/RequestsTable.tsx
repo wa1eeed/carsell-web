@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Quantity } from '@/components/ui/Quantity';
 import type { ServiceRequestRow } from '@/lib/domain/admin-services';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   weekday: 'short',
   day: 'numeric',
   month: 'short',

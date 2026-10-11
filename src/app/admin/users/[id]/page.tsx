@@ -17,11 +17,11 @@ import { STAGE_LABEL } from '@/lib/labels/charts';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { MarginPanel } from './MarginPanel';
 import { WalletPanel } from './WalletPanel';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   year: 'numeric',

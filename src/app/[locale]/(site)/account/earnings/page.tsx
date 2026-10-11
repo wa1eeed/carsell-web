@@ -7,7 +7,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
@@ -55,7 +55,7 @@ export default async function EarningsPage({
   /**
    * **والتاريخ يُصاغ على الخادم** — فلا يختلف ما يُقدَّم عمّا يُروى.
    */
-  const dateFormat = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const dateFormat = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

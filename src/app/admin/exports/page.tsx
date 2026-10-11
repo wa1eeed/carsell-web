@@ -7,12 +7,12 @@ import { can } from '@/lib/domain/permissions';
 import { exportLog, exportStats } from '@/lib/domain/admin-reports-export';
 import { REPORTS, REPORT_SCHEDULING_RUNS } from '@/lib/domain/report-catalog';
 import { REPORT_CONTENT, REPORT_NAME, REPORT_SCHEDULE_LABEL } from '@/lib/labels/reports';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'التقارير والتصدير' };
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',

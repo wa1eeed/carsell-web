@@ -2,6 +2,7 @@ import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { accountBalance } from './ledger';
 import { netToSeller } from './money';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 /**
  * ═══ الملفّ المالي للبائع — دفترٌ لا محفظة ═══
@@ -113,7 +114,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
     .then((row) => row._sum.amount ?? zero);
 
   const { canSettle } = await import('./transfer-windows');
-  const date = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const date = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

@@ -1,3 +1,4 @@
+import { Year } from '@/components/ui/Year';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
@@ -6,7 +7,6 @@ import { ListFooter } from '@/components/admin/ListFooter';
 import { ListSearch } from '@/components/admin/ListSearch';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import {
   MonitorCards, MonitorList, MonitorRow, MonitorTabs, countdown,
 } from '@/components/admin/MonitorShell';
@@ -101,7 +101,7 @@ export default async function AdminAuctionsPage({
             key={row.listingRef}
             title={
               <>
-                {row.title} <ArabicNumber value={row.year} className="opacity-55" />
+                {row.title} <Year value={row.year} className="opacity-55" />
               </>
             }
             subtitle={row.sellerName}

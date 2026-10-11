@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -73,7 +73,7 @@ export function AccountScreen({
   const [tax, setTax] = useState<TaxProfile>(taxProfile);
   const [editingTax, setEditingTax] = useState(false);
 
-  const date = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const date = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -346,7 +346,7 @@ function ProfileCard({ data, locale }: { data: AccountData; locale: string }) {
   const t = useTranslations('account');
   const { user } = data;
 
-  const joined = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const joined = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     month: 'long',
     year: 'numeric',
   }).format(new Date(user.memberSince));

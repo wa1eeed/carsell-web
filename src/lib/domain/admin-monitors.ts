@@ -1,6 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import type { AuctionStatus, ListingStatus, OfferStatus } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
+import { publicUrl } from '@/lib/r2';
 
 /**
  * ═══ شاشات المراقبة — A16 · A22 · A23 · A27 ═══
@@ -27,6 +28,16 @@ const minutesSince = (from: Date, now: Date): number =>
 //  A27 — كل الإعلانات
 // ═══════════════════════════════════════════════════════════
 
+/**
+ * ═══ صفُّ الإعلان في اللوحة — كرتٌ لا سطر ═══
+ *
+ * كان سطرًا: عنوانٌ وسعرٌ وحالة. **ومن يراجع إعلانًا يحتاج أن يعرف
+ * قبل أن يفتحه**: أيُّ مركبةٍ هي (صورة)، ومن يبيعها، وأفردٌ هو أم
+ * معرض، وأمشترِكٌ هو أم لا، ومتى نُشر — وكلُّ ذلك يُفتح اليوم في
+ * صفحةٍ أخرى أو لا يُعرض أصلًا.
+ *
+ * فمراجعةُ عشرين إعلانًا كانت عشرين فتحًا ورجوعًا.
+ */
 export type ListingRow = {
   ref: string;
   title: string;
@@ -39,6 +50,16 @@ export type ListingRow = {
   offerCount: number;
   viewCount: number;
   publishedAt: string | null;
+  /** غلافُ الإعلان — `null` حين لا صورة، فتُرسم خانةٌ لا فراغ */
+  thumbnail: string | null;
+  imageCount: number;
+  /** **صفةُ البائع**: معرضٌ موثَّق · معرض · فرد — وهي تغيّر المراجعة */
+  sellerKind: 'DEALER_VERIFIED' | 'DEALER' | 'INDIVIDUAL';
+  /** اسمُ باقته إن كان مشتركًا — و`null` لمن لا اشتراك له */
+  planName: string | null;
+  mileageKm: number;
+  /** أمفحوصةٌ هي — فالمراجع يعرف قبل أن يفتح التقرير */
+  inspected: boolean;
 };
 
 export type ListingCounts = {
@@ -95,9 +116,31 @@ export async function allListings(
       city: true,
       viewCount: true,
       publishedAt: true,
-      seller: { select: { name: true, phone: true } },
-      vehicle: { select: { brandName: true, modelName: true, trimName: true, year: true } },
-      _count: { select: { offers: true } },
+      seller: {
+        select: {
+          name: true,
+          phone: true,
+          dealer: { select: { verified: true } },
+          subscriptions: {
+            where: { status: 'active' },
+            take: 1,
+            select: { plan: { select: { nameAr: true } } },
+          },
+        },
+      },
+      vehicle: {
+        select: {
+          brandName: true, modelName: true, trimName: true, year: true, mileageKm: true,
+          inspectionReports: { take: 1, select: { id: true } },
+        },
+      },
+      /** الغلاف أوّلًا، وإلّا فأوّل صورة — ولا تُجلب البقيّة */
+      images: {
+        orderBy: [{ isCover: 'desc' }, { sort: 'asc' }],
+        take: 1,
+        select: { r2Key: true },
+      },
+      _count: { select: { offers: true, images: true } },
     },
   });
 
@@ -115,6 +158,17 @@ export async function allListings(
     offerCount: row._count.offers,
     viewCount: row.viewCount,
     publishedAt: row.publishedAt?.toISOString() ?? null,
+    thumbnail: row.images[0] === undefined ? null : publicUrl(row.images[0].r2Key),
+    imageCount: row._count.images,
+    sellerKind:
+      row.seller.dealer === null
+        ? 'INDIVIDUAL'
+        : row.seller.dealer.verified
+          ? 'DEALER_VERIFIED'
+          : 'DEALER',
+    planName: row.seller.subscriptions[0]?.plan.nameAr ?? null,
+    mileageKm: row.vehicle.mileageKm,
+    inspected: row.vehicle.inspectionReports.length > 0,
   }));
 }
 

@@ -1,3 +1,4 @@
+import { Year } from '@/components/ui/Year';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
@@ -15,11 +16,11 @@ import { can } from '@/lib/domain/permissions';
 import { adminListingDetail } from '@/lib/domain/admin-entity-detail';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
 import { STAGE_LABEL } from '@/lib/labels/charts';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',
@@ -72,7 +73,7 @@ export default async function AdminListingDetailPage({
         title={
           <>
             {listing.vehicle.brandName} {listing.vehicle.modelName}{' '}
-            <ArabicNumber value={listing.vehicle.year} /> — {listing.city}
+            <Year value={listing.vehicle.year} /> — {listing.city}
           </>
         }
         badges={

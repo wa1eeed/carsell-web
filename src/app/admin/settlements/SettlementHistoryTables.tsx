@@ -1,3 +1,4 @@
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import type {
@@ -38,7 +39,7 @@ export function SettlementHistoryTables({
   locale: string;
 }) {
   // التاريخ يُصاغ على الخادم — فلا يختلف ما يُقدَّم عمّا يُروى
-  const date = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const date = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     day: 'numeric',
     month: 'long',
   });

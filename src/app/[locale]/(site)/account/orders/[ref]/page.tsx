@@ -8,6 +8,7 @@ import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { getOrder } from '@/lib/domain/orders';
 import { OrderScreen } from './OrderScreen';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +49,7 @@ export default async function OrderPage({
   // غير الطرفين يرى ٤٠٤ لا ٤٠٣: وجود الطلب نفسه معلومة
   if (order === null) notFound();
 
-  const date = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const date = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 

@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
@@ -78,7 +78,7 @@ export default async function DealerPage({
   // غير النشط ٤٠٤ — لا صفحة ثقةٍ لمن لم يُقبل بعد
   if (dealer === null) notFound();
 
-  const joined = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+  const joined = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
     month: 'long',
     year: 'numeric',
   });

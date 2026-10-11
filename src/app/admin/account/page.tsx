@@ -5,13 +5,13 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { ownAccount } from '@/lib/domain/admin-account';
 import { ADMIN_SESSION_HOURS } from '@/lib/domain/admin-auth';
 import { PERMISSION_LIST, can, canWrite } from '@/lib/domain/permissions';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { PasswordForm } from './PasswordForm';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'حسابي' };
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',

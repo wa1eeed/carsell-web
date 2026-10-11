@@ -12,7 +12,7 @@ import {
   IMPRESSION_FLUSH_SECONDS,
   MAX_BANNERS_PER_SCREEN,
 } from '@/lib/domain/ad-rules';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
 import { NewCampaign } from './NewCampaign';
 import { CampaignActions } from './CampaignActions';
@@ -20,7 +20,7 @@ import { CampaignActions } from './CampaignActions';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'مساحات الإعلانات والحملات' };
 
-const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
   month: 'short',
   timeZone: 'Asia/Riyadh',

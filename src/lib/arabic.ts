@@ -53,6 +53,19 @@ export function toLatinDigits(value: string): string {
     .replace(new RegExp(ARABIC_DECIMAL, 'g'), '.');
 }
 
+/**
+ * ═══ لغةُ التاريخ العربيّ — وأرقامُها تتبع المفتاح ═══
+ *
+ * `Intl.DateTimeFormat('ar-SA')` تُخرج أرقامًا عربية-هندية من تلقائها
+ * مهما فعلنا بأرقامنا — **فتُخرج الشاشة «1,234 ريال» و«١١ أكتوبر» في
+ * سطرٍ واحد**. والوسم `-nu-latn` يُوحّدها.
+ *
+ * وكانت السلسلة مكتوبةً في ثلاثةٍ وثلاثين ملفًّا — فثابتٌ واحد يتبع
+ * `DISPLAY_NUMERALS` يقلبها جميعًا.
+ */
+export const AR_DATE_LOCALE =
+  DISPLAY_NUMERALS === 'latin' ? 'ar-SA-u-ca-gregory-nu-latn' : 'ar-SA-u-ca-gregory';
+
 export type NumeralLocale = 'ar' | 'en';
 
 type FormatOptions = {

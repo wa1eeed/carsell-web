@@ -6,7 +6,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { entitlementList, overrideList, planList, planStats } from '@/lib/domain/admin-plans';
 import { listCommissionRules } from '@/lib/domain/admin-commission';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { CommissionSimulator } from './CommissionSimulator';
 import { PlanTable } from './PlanTable';
 import { ENTITLEMENT_LABEL, TYPE_LABEL, pctLabel } from './labels';
@@ -179,7 +179,7 @@ export default async function AdminPlansPage() {
                   <Badge tone="warn">بلا انتهاء</Badge>
                 ) : (
                   <span className="opacity-55">
-                    ينتهي {new Date(row.expiresAt).toLocaleDateString('ar-SA-u-ca-gregory')}
+                    ينتهي {new Date(row.expiresAt).toLocaleDateString(AR_DATE_LOCALE)}
                   </span>
                 )}
               </div>

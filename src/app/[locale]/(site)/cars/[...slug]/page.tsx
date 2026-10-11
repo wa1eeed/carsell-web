@@ -24,6 +24,7 @@ import { CarPage } from './CarPage';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
 
@@ -196,7 +197,7 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
 
   // التاريخ يُصاغ على الخادم — لا اختلاف بين ما يُقدَّم وما يُروى
   const dateFormat = new Intl.DateTimeFormat(
-    resolved.locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB',
+    resolved.locale === 'ar' ? AR_DATE_LOCALE : 'en-GB',
     { day: 'numeric', month: 'long', year: 'numeric' },
   );
 

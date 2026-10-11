@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
-import { displayDigits, toLatinDigits } from '@/lib/arabic';
+import { displayDigits, toLatinDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import type { PendingAdjustment, WalletLine } from '@/lib/domain/wallet';
 
 /**
@@ -210,7 +210,7 @@ export function WalletPanel({
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="truncate text-2xs">{line.note ?? line.kind}</span>
                 <span className="font-num text-3xs opacity-45">
-                  {new Date(line.at).toLocaleDateString('ar-SA-u-ca-gregory')}
+                  {new Date(line.at).toLocaleDateString(AR_DATE_LOCALE)}
                   {line.orderRef === null ? '' : ` · ${line.orderRef}`}
                 </span>
               </span>
