@@ -1,4 +1,5 @@
 import type { Prisma } from '@/generated/prisma/client';
+import type { AdminRole } from '@/generated/prisma/enums';
 import type { db } from '@/lib/db';
 import { hashPassword, verifyPassword } from '../auth/password';
 
@@ -20,15 +21,21 @@ import { hashPassword, verifyPassword } from '../auth/password';
  * **٢· يفكّ القفل عند تعيين كلمة.** من نسي كلمته وحاول حتى أُقفل
  * حسابه يريد الدخول لا انتظار خمس عشرة دقيقة بعد أن أصلح السبب.
  *
+ * **٣· والدور يتبع الإعداد الذي سمّاه.** `ADMIN_TEAM` يكتب
+ * `ops@x:OPS:كلمة` — فالدور **مُصرَّحٌ به** في السطر، وتركُ القديم
+ * يجعل الإعداد يقول `FINANCE` والحساب يبقى `OPS`.
+ *
  * ═══ وما لا يفعله ═══
  *
- * **لا يغيّر دورًا قائمًا.** حسابٌ موجود بدور `OPS` يبقى `OPS` ولو
- * سُمّي في `ADMIN_EMAIL`: رفعُ الصلاحية من متغيّر بيئة يجعل ترقية
- * الدور أثرًا جانبيًّا لتغيير كلمة مرور — وهو آخر مكانٍ تُراجَع فيه.
+ * **لا يرفع دورًا لم يُسمَّ.** `ADMIN_EMAIL` لا تذكر دورًا — ويستنتج
+ * `provisionSuperAdmin` أنه `SUPER_ADMIN`. فحسابٌ قائم بـ`READONLY`
+ * كُتب بريده هناك (سهوًا أو لإعادة استعمال) **يبقى `READONLY`**:
+ * ترقيةٌ مستنتَجةٌ من متغيّرٍ لتبديل كلمة هي الأثرُ الجانبيّ الذي
+ * لا يُراجَع. والفرق بين البابين أن الأوّل يسمّي والثاني يستنتج.
  */
 
 /** يقبل `tx` أو `db` أو عميلًا مستقلًّا — فيُستدعى من الخادم ومن سكربت الإقلاع. */
-type Writer = Pick<typeof db, 'adminUser' | 'auditLog'>;
+type Writer = Pick<typeof db, 'adminUser' | 'auditLog' | 'adminSession'>;
 
 /**
  * الحدّ الأدنى — **اثنتا عشرة**.
@@ -40,7 +47,7 @@ export const MIN_ADMIN_PASSWORD = 12;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export type ProvisionOutcome = 'created' | 'password_set' | 'unchanged';
+export type ProvisionOutcome = 'created' | 'password_set' | 'role_changed' | 'unchanged';
 
 export type ProvisionResult =
   | {
@@ -50,9 +57,31 @@ export type ProvisionResult =
     }
   | { ok: false; reason: 'INVALID_EMAIL' | 'WEAK_PASSWORD' };
 
-export async function provisionSuperAdmin(
+/**
+ * ═══ وخمسةُ أدوارٍ من ستّة لا باب لها ═══
+ *
+ * `AdminRole` ستّة، والمصفوفة تُفصّل صلاحياتِ كلٍّ منها — **ولا
+ * يُنشأ إلّا `SUPER_ADMIN`**: لا من اللوحة (قرارٌ معلَن: «من سرق
+ * جلسةً لا يصنع لنفسه حسابًا ثانيًا»)، ولا من النشر (التوفير يكتب
+ * الدور حرفيًّا).
+ *
+ * فلم تكن تُوجد في المنتج `SUPPORT` ولا `CONTENT` ولا `READONLY`
+ * ولا `OPS` ولا `FINANCE` إلّا في البذرة — ومصفوفةٌ تحكم أدوارًا لا
+ * يملكها أحد جردٌ على الورق.
+ *
+ * **والباب هو الذي أعلنته الشاشة**: متغيّرات النشر. فيُعمَّم التوفير
+ * على الأدوار كلّها بدل أن يُفتح في اللوحة، فيبقى القرار قائمًا.
+ */
+export async function provisionAdmin(
   writer: Writer,
-  input: { email: string; password: string; name?: string },
+  input: {
+    email: string;
+    password: string;
+    name?: string;
+    role: AdminRole;
+    /** الدور مستنتَجٌ لا مُصرَّحًا به — فلا يُرفَع به حسابٌ قائم */
+    inferredRole?: true;
+  },
   now: Date = new Date(),
 ): Promise<ProvisionResult> {
   const email = input.email.trim().toLowerCase();
@@ -66,7 +95,7 @@ export async function provisionSuperAdmin(
       data: {
         email,
         name: input.name ?? email,
-        role: 'SUPER_ADMIN',
+        role: input.role,
         passwordHash: await hashPassword(input.password),
         // من ضبطها في البيئة اختارها — ولا يُطالَب بتغيير ما اختاره
         mustChangePassword: false,
@@ -78,8 +107,46 @@ export async function provisionSuperAdmin(
     return { ok: true, outcome: 'created', adminId: created.id };
   }
 
-  if (await verifyPassword(input.password, existing.passwordHash)) {
+  const samePassword = await verifyPassword(input.password, existing.passwordHash);
+  // الدور المستنتَج لا يُغيّر شيئًا — فهو «مطابق» دائمًا عند القائم
+  const sameRole = input.inferredRole === true || existing.role === input.role;
+
+  if (samePassword && sameRole) {
     return { ok: true, outcome: 'unchanged', adminId: existing.id };
+  }
+
+  /**
+   * ═══ والدور يُفحص وحده — لا تبعًا للكلمة ═══
+   *
+   * أوّل صياغةٍ وضعت `role: input.role` **داخل فرع «الكلمة تغيّرت»**
+   * وكتبت فوقه أن الدور يُحدَّث. ومن بدّل الدور في `ADMIN_TEAM`
+   * وأبقى الكلمة يمرّ بـ`verifyPassword` فيُرجَع `unchanged` —
+   * **فلا يقع التغيير**، ويقرأ مشغّلُ النشر سطرًا يقول «لا تغيير»
+   * على إعدادٍ غيّره هو. وهو الحال الشائع: الأدوار تُراجَع أكثر
+   * ممّا تُدوَّر الكلمات.
+   */
+  if (samePassword) {
+    await writer.adminUser.update({
+      where: { id: existing.id },
+      data: { role: input.role },
+    });
+
+    /**
+     * **وتغييرُ الدور يُبطل جلساته.** الدور يُقرأ من القاعدة في كل
+     * طلب فالمنع يقع على الطلب التالي، لكنّ من خُفِّض دورُه يبقى
+     * أمام لوحةٍ صُيّرت بصلاحيّته القديمة — وزرٌّ يراه ولا يملكه
+     * يُقرأ عطلًا. والإلزام بدخولٍ جديد يُنهي الالتباس.
+     */
+    await writer.adminSession.updateMany({
+      where: { adminUserId: existing.id, revokedAt: null },
+      data: { revokedAt: now },
+    });
+
+    await writeAudit(
+      writer, existing.id, 'admin.role_changed',
+      { email, from: existing.role, to: input.role }, now,
+    );
+    return { ok: true, outcome: 'role_changed', adminId: existing.id };
   }
 
   await writer.adminUser.update({
@@ -88,11 +155,26 @@ export async function provisionSuperAdmin(
       passwordHash: await hashPassword(input.password),
       passwordChangedAt: now,
       mustChangePassword: false,
+      // والدور المستنتَج لا يُكتب — انظر «ما لا يفعله» في الصدر
+      ...(input.inferredRole === true ? {} : { role: input.role }),
       // القفل يُفكّ مع الكلمة الجديدة — سببُه زال
       failedAttempts: 0,
       lockedUntil: null,
     },
   });
+
+  /**
+   * والجلسات تموت بـ`passwordChangedAt` في `resolveAdminSession` —
+   * فلا إبطال صريح هنا. **وأثرُ الدور يُكتب مستقلًّا** إن تغيّر:
+   * سطرُ «بُدّلت كلمة المرور» لا يقول أن الصلاحية ارتفعت، والسجلّ
+   * يُقرأ في تحقيق.
+   */
+  if (!sameRole) {
+    await writeAudit(
+      writer, existing.id, 'admin.role_changed',
+      { email, from: existing.role, to: input.role }, now,
+    );
+  }
 
   await writeAudit(writer, existing.id, 'admin.password_set', { email }, now);
   return { ok: true, outcome: 'password_set', adminId: existing.id };
@@ -125,4 +207,16 @@ async function writeAudit(
       createdAt: now,
     },
   });
+}
+
+/**
+ * السوبر أدمن — غلافٌ على `provisionAdmin` يحفظ المنادي القديم
+ * (`prisma/admin-sync.ts`) ويُبقي الدور صريحًا في موضع الاستدعاء.
+ */
+export async function provisionSuperAdmin(
+  writer: Writer,
+  input: { email: string; password: string; name?: string },
+  now: Date = new Date(),
+): Promise<ProvisionResult> {
+  return provisionAdmin(writer, { ...input, role: 'SUPER_ADMIN', inferredRole: true }, now);
 }

@@ -1,6 +1,12 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
-import { MIN_ADMIN_PASSWORD, provisionSuperAdmin } from '@/lib/domain/admin-provision';
+import {
+  MIN_ADMIN_PASSWORD, provisionAdmin, provisionSuperAdmin,
+} from '@/lib/domain/admin-provision';
+import {
+  ADMIN_LOCK_MINUTES, ADMIN_MAX_FAILED, ADMIN_SESSION_HOURS,
+} from '@/lib/domain/admin-auth';
+import { ADMIN_ROLES } from '@/lib/domain/permissions';
 import { verifyPassword } from '@/lib/auth/password';
 
 /**
@@ -151,5 +157,144 @@ describe('admin.provision — الحُرّاس', () => {
     const result = await provisionSuperAdmin(db, { email: 'not-an-email', password: STRONG }, T0);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe('INVALID_EMAIL');
+  });
+});
+
+describe('admin.provision — الدور المُصرَّح به', () => {
+  /**
+   * ═══ والدور يُفحص وحده لا تبعًا للكلمة ═══
+   *
+   * أوّل صياغةٍ وضعت `role` داخل فرع «الكلمة تغيّرت»: فمن بدّل الدور
+   * في `ADMIN_TEAM` وأبقى الكلمة يمرّ بـ`verifyPassword` فيُرجَع
+   * `unchanged` — **ولا يقع التغيير**، ويقرأ مشغّلُ النشر «لا تغيير»
+   * على إعدادٍ غيّره هو. وهو الحال الشائع: الأدوار تُراجَع أكثر
+   * ممّا تُدوَّر الكلمات.
+   */
+  it('يبدّل الدور والكلمة كما هي', async () => {
+    await provisionAdmin(db, { email: EMAIL, password: STRONG, role: 'SUPPORT' }, T0);
+
+    const result = await provisionAdmin(db, { email: EMAIL, password: STRONG, role: 'FINANCE' }, T0);
+    expect(result.ok && result.outcome).toBe('role_changed');
+
+    const after = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
+    expect(after.role).toBe('FINANCE');
+    // والكلمة لم تُمسّ — فلا دخولٌ يُكسر بتغيير دور
+    expect(await verifyPassword(STRONG, after.passwordHash)).toBe(true);
+  });
+
+  it('وتبديلُ الدور يُبطل جلساته', async () => {
+    const created = await provisionAdmin(
+      db, { email: EMAIL, password: STRONG, role: 'SUPPORT' }, T0,
+    );
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    await db.adminSession.create({
+      data: {
+        adminUserId: created.adminId,
+        tokenHash: `prov${stamp}-session`,
+        expiresAt: new Date(T0.getTime() + 8 * 3_600_000),
+        createdAt: T0,
+      },
+    });
+
+    await provisionAdmin(db, { email: EMAIL, password: STRONG, role: 'READONLY' }, T0);
+
+    const session = await db.adminSession.findUniqueOrThrow({
+      where: { tokenHash: `prov${stamp}-session` },
+    });
+    expect(session.revokedAt).not.toBeNull();
+  });
+
+  it('ويُكتب أثرٌ باسمه يذكر الدورين', async () => {
+    const created = await provisionAdmin(
+      db, { email: EMAIL, password: STRONG, role: 'SUPPORT' }, T0,
+    );
+    if (!created.ok) throw new Error('setup');
+
+    await provisionAdmin(db, { email: EMAIL, password: STRONG, role: 'CONTENT' }, T0);
+
+    const audit = await db.auditLog.findFirst({
+      where: { entityId: created.adminId, action: 'admin.role_changed' },
+    });
+    expect(audit).not.toBeNull();
+    /**
+     * **والدوران كلاهما في الأثر.** سطرٌ يقول «بُدّل الدور» ولا يقول
+     * من أيٍّ إلى أيٍّ لا يُجيب سؤال التحقيق: هل ارتفعت الصلاحية أم
+     * انخفضت؟
+     */
+    expect(audit?.after).toMatchObject({ from: 'SUPPORT', to: 'CONTENT' });
+  });
+
+  it('ولا أثرَ ولا إبطالَ إن كان الدور هو هو', async () => {
+    const created = await provisionAdmin(
+      db, { email: EMAIL, password: STRONG, role: 'OPS' }, T0,
+    );
+    if (!created.ok) throw new Error('setup');
+    const before = await db.auditLog.count({ where: { entityId: created.adminId } });
+
+    const again = await provisionAdmin(db, { email: EMAIL, password: STRONG, role: 'OPS' }, T0);
+    expect(again.ok && again.outcome).toBe('unchanged');
+    expect(await db.auditLog.count({ where: { entityId: created.adminId } })).toBe(before);
+  });
+
+  it('وكلمةٌ ودورٌ معًا يُكتب لهما أثران', async () => {
+    const created = await provisionAdmin(
+      db, { email: EMAIL, password: STRONG, role: 'OPS' }, T0,
+    );
+    if (!created.ok) throw new Error('setup');
+
+    const both = await provisionAdmin(
+      db, { email: EMAIL, password: `${STRONG}-2`, role: 'FINANCE' }, T0,
+    );
+    expect(both.ok && both.outcome).toBe('password_set');
+
+    const actions = await db.auditLog.findMany({
+      where: { entityId: created.adminId },
+      select: { action: true },
+    });
+    const names = actions.map((row) => row.action);
+    // سطرُ «بُدّلت الكلمة» لا يقول إن الصلاحية ارتفعت — والسجلّ يُقرأ في تحقيق
+    expect(names).toContain('admin.role_changed');
+    expect(names).toContain('admin.password_set');
+
+    const after = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
+    expect(after.role).toBe('FINANCE');
+  });
+
+  it('وكلُّ دورٍ في التعداد يُنشأ من هذا الباب', async () => {
+    /**
+     * **وهو السبب الذي بُني له.** كانت `AdminRole` ستّةً و«لا يُنشأ
+     * إلّا `SUPER_ADMIN`» — فمصفوفةُ A35 تحكم خمسةَ أدوارٍ لا يملكها
+     * أحد ولا سبيل إلى أن يملكها. فالفحص على التعداد نفسه: من أضاف
+     * دورًا سابعًا ولم يفتح له بابًا يسقط هنا.
+     */
+    for (const [index, role] of ADMIN_ROLES.entries()) {
+      const email = `prov${stamp}-r${index}@carsell.one`;
+      const result = await provisionAdmin(db, { email, password: STRONG, role }, T0);
+      expect(result.ok).toBe(true);
+      const row = await db.adminUser.findUniqueOrThrow({ where: { email } });
+      expect(row.role).toBe(role);
+    }
+  });
+});
+
+describe('A35 — الأرقام المكتوبة في الشاشة', () => {
+  /**
+   * ═══ نصٌّ يُكتب بيد يُحرَس بقياس ═══
+   *
+   * بطاقة «لا استثناء فيها» تقول «٥ محاولات فاشلة ⇒ قفل ١٥ دقيقة»،
+   * وبطاقة الأعضاء تقول «من ٦ أدوار» — **والثلاثة مكتوبة لا مُقحَمة**:
+   * البوابة ١٤ تمنع إقحام رقمٍ تليه كلمة عربية لأن الجمع لا يُصحَّح
+   * بتبديل خانة («من ٢ أدوار» خطأٌ تُنتجه أيُّ قيمة أخرى).
+   *
+   * فالحرس هنا: من بدّل ثابتًا يسقط عنده هذا الاختبار بالسطر الذي
+   * يحتاج صياغةً جديدة — لا شاشةٌ تقول رقمًا والنظام يفعل غيره.
+   */
+  it('الثوابت هي التي كُتبت الجمل لقيمها', () => {
+    expect(ADMIN_MAX_FAILED).toBe(5);
+    expect(ADMIN_LOCK_MINUTES).toBe(15);
+    expect(ADMIN_SESSION_HOURS).toBe(8);
+    expect(ADMIN_ROLES.length).toBe(6);
   });
 });

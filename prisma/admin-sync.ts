@@ -1,6 +1,11 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
-import { MIN_ADMIN_PASSWORD, provisionSuperAdmin } from '../src/lib/domain/admin-provision';
+import type { AdminRole } from '../src/generated/prisma/enums';
+import {
+  MIN_ADMIN_PASSWORD,
+  provisionAdmin,
+  provisionSuperAdmin,
+} from '../src/lib/domain/admin-provision';
 
 /**
  * ═══ مزامنة حساب الأدمن من البيئة ═══
@@ -54,10 +59,67 @@ const prisma = new PrismaClient({
 const HEADLINE = {
   created: '✓ مزامنة الأدمن: أُنشئ الحساب',
   password_set: '✓ مزامنة الأدمن: بُدّلت كلمة المرور',
+  role_changed: '✓ مزامنة الأدمن: بُدّل الدور — وأُبطلت جلساته',
   unchanged: '· مزامنة الأدمن: لا تغيير',
 } as const;
 
 /** `tsx` يُخرج CJS هنا فلا يقبل await في المستوى الأعلى — كما في الزرع. */
+/**
+ * ═══ بقيّة الفريق — `ADMIN_TEAM` ═══
+ *
+ * صيغتُها `email:ROLE:password` مفصولةً بفاصلة منقوطة:
+ *
+ *   `ops@x.com:OPS:كلمة؛finance@x.com:FINANCE:كلمة`
+ *
+ * **ولمَ من النشر لا من اللوحة**: شاشة الفريق تقول صراحةً «لا يُنشأ
+ * عضو ولا يُرفع دور من هنا — ذلك يمرّ بمتغيّرات النشر، فمن سرق
+ * جلسةً لا يصنع لنفسه حسابًا ثانيًا». والقرار قائم، **والباب لم يكن
+ * موجودًا**: التوفير يكتب `SUPER_ADMIN` حرفيًّا، فخمسةُ أدوارٍ من
+ * ستّة لا تُنشأ بشيء.
+ *
+ * وسطرٌ معطوب يُقال ويُتخطّى — ولا يُسقِط مزامنةَ البقيّة.
+ */
+async function syncTeam(): Promise<void> {
+  const raw = process.env.ADMIN_TEAM?.trim() ?? '';
+  if (raw === '') return;
+
+  const ROLES = new Set<AdminRole>(['SUPER_ADMIN', 'OPS', 'FINANCE', 'SUPPORT', 'CONTENT', 'READONLY']);
+
+  for (const entry of raw.split(';')) {
+    const text = entry.trim();
+    if (text === '') continue;
+
+    // الكلمة قد تحوي نقطتين، فالتقسيم على أوّل اثنتين وحدهما
+    const first = text.indexOf(':');
+    const second = text.indexOf(':', first + 1);
+    if (first < 1 || second < 0) {
+      console.error(`✗ الفريق: سطرٌ لا يطابق email:ROLE:password — «${text.slice(0, 24)}…»`);
+      continue;
+    }
+
+    const memberEmail = text.slice(0, first).trim();
+    const role = text.slice(first + 1, second).trim().toUpperCase() as AdminRole;
+    const memberPassword = text.slice(second + 1);
+
+    if (!ROLES.has(role)) {
+      console.error(`✗ الفريق: دورٌ غير معروف «${role}» لـ${memberEmail}`);
+      continue;
+    }
+
+    const outcome = await provisionAdmin(prisma, {
+      email: memberEmail,
+      password: memberPassword,
+      role,
+    });
+
+    console.log(
+      outcome.ok
+        ? `${HEADLINE[outcome.outcome]} — ${memberEmail} (${role})`
+        : `✗ الفريق: ${memberEmail} — ${outcome.reason}`,
+    );
+  }
+}
+
 async function main(): Promise<void> {
   const result = await provisionSuperAdmin(prisma, {
     email,
@@ -85,6 +147,9 @@ async function main(): Promise<void> {
    * السجلّات، وإلى الأبد.
    */
   console.log(`${HEADLINE[result.outcome]}  —  ${email}`);
+
+  // وبقيّة الفريق بعده — فلا يمنع عطلٌ في سطرٍ مزامنةَ السوبر أدمن
+  await syncTeam();
 }
 
 main()

@@ -1876,7 +1876,32 @@ function checkPermissionCatalogue() {
   const shown = names(list[1]);
   const granted = names(superRow[1]);
 
+  /**
+   * **والتسمية العربية ثالثُ الواجبات.** صلاحيةٌ بلا تسمية تُعرض
+   * مفتاحًا لاتينيًّا في مصفوفة A35 — فتقول الشاشة إنها تُغني عن
+   * فتح الشيفرة وهي تعرضها. ووقع في الاثنتين والعشرين كلّها.
+   */
+  const labels = join(ROOT, 'src', 'lib', 'labels', 'permissions.ts');
+  const labelled = existsSync(labels)
+    ? names(/export const PERMISSION_LABEL[^=]*=\s*\{([\s\S]*?)\n\};/.exec(readFileSync(labels, 'utf8'))?.[1])
+    : null;
+  const modules = existsSync(labels)
+    ? names(/export const PERMISSION_MODULES[^=]*=\s*\[([\s\S]*?)\n\];/.exec(readFileSync(labels, 'utf8'))?.[1])
+    : null;
+
   for (const permission of declared) {
+    if (labelled !== null && !labelled.has(permission)) {
+      problems.push(
+        `src/lib/labels/permissions.ts  «${permission}» بلا تسمية عربية — `
+          + 'تُعرض في المصفوفة مفتاحًا لاتينيًّا',
+      );
+    }
+    if (modules !== null && !modules.has(permission)) {
+      problems.push(
+        `src/lib/labels/permissions.ts  «${permission}» خارج PERMISSION_MODULES — `
+          + 'تُعرض تحت «أخرى»',
+      );
+    }
     if (!shown.has(permission)) {
       problems.push(
         `src/lib/domain/permissions.ts  «${permission}» في الاتّحاد وليست في `

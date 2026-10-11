@@ -1,6 +1,7 @@
 import type { AdminRole } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
 import { ADMIN_SESSION_HOURS } from './admin-auth';
+import { ADMIN_ROLES } from './permissions';
 
 /**
  * ═══ A35 — الفريق والصلاحيات ═══
@@ -35,7 +36,10 @@ export type TeamMember = {
 
 export type TeamStats = {
   members: number;
+  /** الأدوار **المشغولة** — وعدد المعرَّفة في `ADMIN_ROLES` */
   roles: number;
+  /** الشاغرة بأسمائها — ومصفوفةٌ تحكم دورًا فارغًا جردٌ على الورق */
+  emptyRoles: readonly AdminRole[];
   activeSessions: number;
   locked: number;
   sessionHours: number;
@@ -87,7 +91,14 @@ export async function teamStats(now: Date = new Date()): Promise<TeamStats> {
 
   return {
     members,
+    /**
+     * **الأدوار المشغولة لا المعرَّفة.** وكانت تُعرض «أدوار (٣)»
+     * فتُقرأ «في النظام ثلاثة أدوار» — والمعرَّف ستّة، وثلاثةٌ منها
+     * لا يملكها أحد. ومصفوفةٌ تحكم أدوارًا فارغة جردٌ على الورق.
+     */
     roles: roles.length,
+    /** الأدوار الشاغرة بأسمائها — فيُعرف أيُّ عمودٍ نظريّ. */
+    emptyRoles: ADMIN_ROLES.filter((role) => !roles.some((row) => row.role === role)),
     activeSessions: sessions,
     locked,
     sessionHours: ADMIN_SESSION_HOURS,

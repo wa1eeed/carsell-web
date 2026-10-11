@@ -675,3 +675,55 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 و«لا مسار» في عمود النتيجة أكبر فرقٍ ممكن: شاشةٌ في التصميم بلا مسارٍ
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
+
+## A35 permission matrix — three states where the design has two · 2026-10-11
+
+**Status: built; designer to review the third state.**
+
+A35 draws each matrix cell as a **toggle**: accent = on, grey = off. The build
+keeps the toggle's geometry (36×20 track, 16px knob, accent track, knob at the
+inline end) and adds a **third position** — knob centred on an `accent-200`
+track — for *read without write*.
+
+### Why a third state was unavoidable
+
+The design's rows are **modules** (`الطلبات`, `المدفوعات والضمان`), and at that
+grain access really is binary. The build's rows are **individual permissions**,
+and `MATRIX` grants three levels, not two. `OPS` reads finance but cannot
+release escrow; `SUPPORT` reads orders but cannot change a stage. Collapsing
+either way would be a lie:
+
+- read → shown as **on**: the matrix would claim Support can move an order.
+- read → shown as **off**: the matrix would claim Support cannot see one, while
+  the screen it governs is in their sidebar.
+
+A legend under the matrix names all three.
+
+### The cells do not toggle
+
+The design's switch affords an edit. `MATRIX` is a **constant in
+`src/lib/domain/permissions.ts`**, reviewed in code review, not rows in a table
+— so nothing on this screen can change it, and a switch that does not move is
+worse than no switch. The matrix is introduced as read-only in the line above
+it.
+
+Making it editable would mean a `RolePermission` table and a migration. That is
+a governance decision, not a UI one: it moves "who can release escrow" out of
+code review and into a session. Not taken unilaterally.
+
+### Three design elements deliberately not built
+
+| In A35 | Why not |
+|---|---|
+| `TOTP مسجَّل ٩/٩` stat card, `TOTP` member column, "TOTP إلزاميّ للجميع" in the rules card | Two-factor auth was **cancelled by the designer**. Showing it would promise a protection that is not there — the worst class of false copy. |
+| `أضف عضوًا` button | Members are provisioned from `ADMIN_TEAM` at boot, so that whoever steals a session cannot mint a second account. The screen states the rule and now **names the variable and its format**, so the door is reachable. |
+| `دعوات معلّقة` stat card | There is no `Invite` model. A card that can only ever read zero is noise. |
+
+### Measured against the design
+
+| A35 | Built |
+|---|---|
+| `من ٦ أدوار` under the members count | Same — was `أدوار (٣)`, the *occupied* count, read as "the system has three roles" |
+| `الوحدة` + Arabic row labels | Same, plus the raw permission key beneath each label for whoever edits the code, and module group headers |
+| `SUPER OPS FINANCE SUPPORT CONTENT READONLY` | Same, `SUPER` abbreviated as in the design |
+| Two rule cards, second one 420px | Same, second capped at `max-w-md` |

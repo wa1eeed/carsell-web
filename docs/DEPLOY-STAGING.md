@@ -75,7 +75,40 @@ Three properties are deliberate:
 - **It never promotes an existing account.** An address already registered as
   `OPS` stays `OPS` even when named in `ADMIN_EMAIL` — raising privilege from an
   environment variable makes a role change a side effect of a password change,
-  which is the last place anyone reviews it.
+  which is the last place anyone reviews it. `ADMIN_EMAIL` names no role; the
+  `SUPER_ADMIN` is *inferred*. `ADMIN_TEAM` below is the opposite case.
+
+### The rest of the team — `ADMIN_TEAM`
+
+`AdminRole` has six values and the permission matrix details all six, but for a
+long time **only `SUPER_ADMIN` could ever exist**: not from the console (a
+deliberate rule, stated on the screen — whoever steals a session must not be
+able to mint a second account) and not from a deploy, because provisioning wrote
+the role literally. Five of six roles governed nobody.
+
+```
+ADMIN_TEAM="ops@x.com:OPS:password;finance@x.com:FINANCE:password"
+```
+
+Semicolon-separated; each entry splits on its **first two colons only**, so a
+password may contain colons. Roles: `SUPER_ADMIN`, `OPS`, `FINANCE`, `SUPPORT`,
+`CONTENT`, `READONLY`.
+
+| Situation | What happens |
+| --- | --- |
+| Variable unset | Skipped |
+| Email not seen before | Account created with that role |
+| Role differs, password same | **Role updated, the member's sessions revoked**, `admin.role_changed` audited |
+| Password differs | Password set; sessions die by `passwordChangedAt`; role audited separately if it also changed |
+| Nothing differs | Nothing written |
+| Unknown role, or a line not matching `email:ROLE:password` | Reported on its own line and **skipped** — the rest still sync |
+
+Here the role **is** stated by the operator, which is why it is applied to an
+existing account while `ADMIN_EMAIL` never promotes one. The difference is
+between naming and inferring.
+
+Super-admin sync runs first, so a broken team line cannot keep you out of the
+console.
 
 A weak password or malformed email stops the boot rather than degrading quietly:
 a server that runs while its panel cannot be entered is a fault found late, and a
