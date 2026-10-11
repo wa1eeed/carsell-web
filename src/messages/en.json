@@ -1010,7 +1010,12 @@
     "indexSubtitle": "Car dealers on the platform.",
     "indexBadgeMeaning": "The green badge means a verified commercial registration.",
     "indexVerified": "{count, plural, one{{n} verified dealer} other{{n} verified dealers}}",
-    "indexCities": "{count, plural, one{across {n} city} other{across {n} cities}}"
+    "indexCities": "{count, plural, one{across {n} city} other{across {n} cities}}",
+    "contact": "Contact the dealer",
+    "locationHours": "Location and opening hours",
+    "showAll": "See all this dealer’s cars",
+    "closedNow": "Closed now",
+    "openNow": "Open now"
   },
   "landing": {
     "title": "{brand} cars in {city}",

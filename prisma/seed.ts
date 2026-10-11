@@ -649,15 +649,26 @@ async function main(): Promise<void> {
   }
 
   // ————— المعارض (Wg مرحلة أولى) —————
+  /**
+   * **والعنوان وساعات العمل من صلب بيانات المعرض.** زائر صفحة المعرض
+   * يسأل «أين ومتى أزوره؟» — وكانا غائبَين عن البذرة كلّها، فبطاقة
+   * «الموقع وساعات العمل» في التصميم تفتح على فراغٍ دائم.
+   */
   const dealerDefs = [
-    ['al-safwa', 'معرض الصفوة', 'Al Safwa Motors', 'الرياض', true, '4.80', 142],
-    ['al-nokhba', 'معرض النخبة', 'Al Nokhba Cars', 'الرياض', true, '4.60', 98],
-    ['jeddah-auto', 'جدة أوتو', 'Jeddah Auto', 'جدة', true, '4.40', 61],
-    ['sharq-motors', 'معرض الشرق', 'Sharq Motors', 'الدمام', false, null, 0],
+    ['al-safwa', 'معرض الصفوة', 'Al Safwa Motors', 'الرياض', true, '4.80', 142, 'طريق الملك عبدالعزيز، حي الملقا'],
+    ['al-nokhba', 'معرض النخبة', 'Al Nokhba Cars', 'الرياض', true, '4.60', 98, 'طريق الملك فهد، حي النرجس'],
+    ['jeddah-auto', 'جدة أوتو', 'Jeddah Auto', 'جدة', true, '4.40', 61, 'شارع الأمير سلطان، حي الروضة'],
+    ['sharq-motors', 'معرض الشرق', 'Sharq Motors', 'الدمام', false, null, 0, 'طريق الكورنيش، حي الشاطئ'],
   ] as const;
 
+  /** أيام الأسبوع السعوديّ: الجمعة مساءً وحده. */
+  const DEALER_HOURS = [
+    { day: 'السبت – الخميس', open: '09:00', close: '22:00' },
+    { day: 'الجمعة', open: '16:00', close: '22:00' },
+  ];
+
   const dealers = await Promise.all(
-    dealerDefs.map(([slug, nameAr, nameEn, city, verified, rating, count]) =>
+    dealerDefs.map(([slug, nameAr, nameEn, city, verified, rating, count, address]) =>
       prisma.dealer.create({
         data: {
           slug,
@@ -669,6 +680,8 @@ async function main(): Promise<void> {
           ratingCount: count,
           status: verified ? 'ACTIVE' : 'PENDING',
           phone: '+966112345678',
+          address: `${address}، ${city}`,
+          hours: DEALER_HOURS,
           aboutAr: `${nameAr} — بيع وشراء السيارات المستعملة والجديدة في ${city}.`,
           aboutEn: `${nameEn} — buying and selling used and new cars in ${city}.`,
           crNumber: `10${between(10000000, 99999999)}`,

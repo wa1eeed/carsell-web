@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { toArabicDigits } from '@/lib/arabic';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
@@ -84,7 +85,7 @@ export default async function DealerPage({
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader active="dealers" />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <Breadcrumb
@@ -148,21 +149,30 @@ export default async function DealerPage({
               </dl>
             </div>
 
-            {dealer.address === null && dealer.phone === null ? null : (
-              <p className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-line pt-4 text-2xs opacity-60">
-                {dealer.address === null ? null : (
-                  <span className="bidi-isolate">{dealer.address}</span>
-                )}
-                {dealer.address === null || dealer.phone === null ? null : (
-                  <span aria-hidden className="opacity-40">·</span>
-                )}
-                {/* الهاتف يُقرأ ويُطلَب خانةً بخانة — لاتينيّ ومعزول */}
-                {dealer.phone === null ? null : (
-                  <span dir="ltr" className="bidi-isolate font-num">
+            {/*
+              ═══ «تواصل مع المعرض» — فعلٌ لا نصّ ═══
+
+              كان الرقم يُطبَع نصًّا تحت الاسم. **ومن يفتح صفحة معرضٍ
+              يفتحها ليتواصل** — فيجد رقمًا يحفظه بيده أو ينسخه، وهو
+              الإجراء الأوّل في الشاشة كلّها عند التصميم.
+
+              و`tel:` لا زرٌّ يفتح نافذة: على الهاتف يطلب، وعلى الحاسوب
+              يفتح ما اختاره صاحبه — ولا يَعِد بمراسلةٍ لا وجود لها
+              (قرار المصمّم ١٨: المراسلة مؤجَّلة، ولا تُفتح بزر).
+            */}
+            {dealer.phone === null ? null : (
+              <div className="mt-4 border-t border-line pt-4">
+                <a
+                  href={`tel:${dealer.phone}`}
+                  className="inline-flex items-center gap-2.5 rounded-btn bg-ink px-5 py-2.5 text-2xs font-bold text-bg transition-opacity hover:opacity-85"
+                >
+                  <PhoneIcon />
+                  {t('contact')}
+                  <span dir="ltr" className="font-num opacity-70">
                     {dealer.phone}
                   </span>
-                )}
-              </p>
+                </a>
+              </div>
             )}
           </section>
 
@@ -228,8 +238,99 @@ export default async function DealerPage({
               ))}
             </div>
           )}
+
+          {/*
+            ═══ وبقيّة المخزون تُبلَغ ═══
+
+            الصفحة تعرض **أربعًا وعشرين** (`take: 24`) ولا تقول شيئًا
+            عن الباقي. فمعرضٌ بثمانيةٍ وتسعين إعلانًا يُخفي أربعةً
+            وسبعين بلا سبيلٍ إليها — وهو أكثرُ مخزونه.
+
+            **والوجهة البحثُ لا صفحةٌ ثانية**: هناك الترشيح والترتيب
+            والصفحات مبنيّةً، وصفحةُ معرضٍ ثانية تُعيدها ناقصة.
+          */}
+          {dealer.listingCount <= dealer.listings.length ? null : (
+            <div className="mt-7 flex justify-center">
+              <Link
+                href={`/${locale}/cars?city=${encodeURIComponent(dealer.city)}`}
+                className="rounded-btn border border-line px-6 py-3 text-2xs font-bold transition-colors hover:border-ink"
+              >
+                {t('showAll')}
+              </Link>
+            </div>
+          )}
+
+          {/*
+            ═══ الموقع وساعات العمل ═══
+
+            **وزائرُ المعرض يسأل «أين ومتى أزوره؟»** — والتصميم يضع
+            لذلك بطاقةً كاملة، ولم تكن في الشاشة ولا في البذرة:
+            `address` و`hours` حقلان قائمان لا يكتبهما أحد ولا يقرؤهما
+            أحد.
+          */}
+          {dealer.address === null && dealer.hours === null ? null : (
+            <section className="mt-9 rounded-xl border border-line bg-surface p-5.5">
+              <h2 className="mb-3.5 text-sm font-bold">{t('locationHours')}</h2>
+              {dealer.address === null ? null : (
+                <p className="bidi-isolate mb-3.5 flex items-start gap-2.5 text-2xs leading-loose opacity-75">
+                  <PinIcon />
+                  <span className="min-w-0 flex-1">{dealer.address}</span>
+                </p>
+              )}
+              {dealer.hours === null || dealer.hours.length === 0 ? null : (
+                <dl className="flex flex-col divide-y divide-line border-t border-line">
+                  {dealer.hours.map((row) => (
+                    <div key={row.day} className="flex items-baseline justify-between gap-4 py-2.5 text-2xs">
+                      <dt className="opacity-60">{row.day}</dt>
+                      {/* الوقت يُقرأ خانةً بخانة — لاتينيّ معزول بأرقام عربية */}
+                      <dd dir="ltr" className="font-num">
+                        {toArabicDigits(row.open)} – {toArabicDigits(row.close)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </section>
+          )}
         </div>
       </main>
     </>
+  );
+}
+
+/** أيقونة الهاتف — على زرّ التواصل. */
+function PhoneIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="size-3.5"
+    >
+      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z" />
+    </svg>
+  );
+}
+
+/** دبّوسُ موقع — والعنوان يُقرأ به قبل أن يُقرأ نصُّه. */
+function PinIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="mt-0.5 size-3.5 shrink-0 opacity-50"
+    >
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
   );
 }

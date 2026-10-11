@@ -1010,7 +1010,12 @@
     "indexSubtitle": "معارض السيارات على المنصّة.",
     "indexBadgeMeaning": "والشارة الخضراء تعني سجلًّا تجاريًّا متحقَّقًا منه.",
     "indexVerified": "{count, plural, zero{لا معارض موثّقة} one{معرض واحد موثّق} two{معرضان موثّقان} few{{n} معارض موثّقة} many{{n} معرضًا موثّقًا} other{{n} معرض موثّق}}",
-    "indexCities": "{count, plural, zero{بلا مدن} one{في مدينة واحدة} two{في مدينتين} few{في {n} مدن} many{في {n} مدينة} other{في {n} مدينة}}"
+    "indexCities": "{count, plural, zero{بلا مدن} one{في مدينة واحدة} two{في مدينتين} few{في {n} مدن} many{في {n} مدينة} other{في {n} مدينة}}",
+    "contact": "تواصل مع المعرض",
+    "locationHours": "الموقع وساعات العمل",
+    "showAll": "اعرض كل مركبات المعرض",
+    "closedNow": "مغلق الآن",
+    "openNow": "مفتوح الآن"
   },
   "landing": {
     "title": "سيارات {brand} في {city}",
