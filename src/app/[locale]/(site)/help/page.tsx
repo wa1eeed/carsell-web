@@ -45,10 +45,12 @@ export default async function HelpPage({
 
   const search = await searchParams;
   const topic = typeof search.topic === 'string' ? search.topic : undefined;
+  const query = typeof search.q === 'string' && search.q.trim() !== '' ? search.q.trim() : undefined;
 
   const [categories, faqs, t, te] = await Promise.all([
     helpCategories(),
-    helpFaqs(topic, topic === undefined ? 8 : 30),
+    // البحث يوسّع الحدّ: من يبحث يريد كل ما يطابق لا أوّل ثمانية
+    helpFaqs(topic, query === undefined && topic === undefined ? 8 : 30, query),
     getTranslations('help'),
     getTranslations('enums'),
   ]);
@@ -67,7 +69,53 @@ export default async function HelpPage({
         <div className="page-frame">
           <header className="mb-9">
             <h1 className="mb-2.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
-            <p className="max-w-2xl text-sm leading-loose opacity-68">{t('intro')}</p>
+            <p className="mb-6 max-w-2xl text-sm leading-loose opacity-68">{t('intro')}</p>
+
+            {/*
+              ═══ ابحث عن سؤالك ═══
+
+              **ومن يفتح مركز المساعدة يبحث لا يتصفّح.** تصفّحٌ بالمواضيع
+              يفترض أنه يعرف تحت أيٍّ منها سؤاله، وهو لا يعرف — يكتب
+              «عربون» ويريد الجواب أيًّا كان بابه.
+
+              **والبحث في السؤال والجواب معًا**: صياغةُ المحرّر ليست
+              صياغةَ السائل، والبحث في العنوان وحده يردّ «لا نتائج»
+              على سؤالٍ مُجاب.
+
+              ونموذجٌ لا حالةُ عميل: الرابط يُشارَك، ويعمل بلا JS.
+            */}
+            <form method="get" action={`/${locale}/help`} className="flex flex-wrap gap-2.5">
+              {topic === undefined ? null : <input type="hidden" name="topic" value={topic} />}
+              <label className="relative flex min-w-56 flex-1 items-center">
+                <span className="pointer-events-none absolute start-3.5 opacity-40">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    aria-hidden
+                  >
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-3.5-3.5" />
+                  </svg>
+                </span>
+                <input
+                  type="search"
+                  name="q"
+                  defaultValue={query ?? ''}
+                  placeholder="ابحث عن سؤالك…"
+                  className="w-full rounded-full border border-line bg-surface py-3 pe-5 ps-11 text-sm"
+                />
+              </label>
+              <button
+                type="submit"
+                className="rounded-full border border-ink px-6 py-3 text-sm font-bold hover:bg-ink hover:text-bg"
+              >
+                ابحث
+              </button>
+            </form>
           </header>
 
           <section className="mb-10">

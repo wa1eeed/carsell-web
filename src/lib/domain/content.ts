@@ -79,11 +79,33 @@ export type HelpFaq = {
   answerEn: string;
 };
 
-export async function helpFaqs(category?: string, take = 8): Promise<HelpFaq[]> {
+/**
+ * مقالات المساعدة — **وبحثٌ في السؤال والجواب معًا**.
+ *
+ * من يبحث لا يعرف كيف صاغ المحرّر السؤال: يكتب «عربون» فيجد الجواب
+ * الذي يشرحه ولو لم يحمله عنوانُه. والبحث في العنوان وحده يردّ
+ * «لا نتائج» على سؤالٍ مُجاب.
+ */
+export async function helpFaqs(
+  category?: string,
+  take = 8,
+  q?: string,
+): Promise<HelpFaq[]> {
+  const term = (q ?? '').trim();
   const rows = await db.faqItem.findMany({
     where: {
       active: true,
       ...(category === undefined ? {} : { category }),
+      ...(term === ''
+        ? {}
+        : {
+            OR: [
+              { questionAr: { contains: term, mode: 'insensitive' } },
+              { answerAr: { contains: term, mode: 'insensitive' } },
+              { questionEn: { contains: term, mode: 'insensitive' } },
+              { answerEn: { contains: term, mode: 'insensitive' } },
+            ],
+          }),
       placements: { some: { surface: 'help_center', active: true } },
     },
     orderBy: [{ sort: 'asc' }],
