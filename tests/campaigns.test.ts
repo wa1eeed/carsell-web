@@ -311,3 +311,51 @@ describe('A10 — حدّ نصّ الإشعار', () => {
     expect(over.body).toBe(false);
   });
 });
+
+describe('A10 — واللوحة لا تفتح التسويقيّ افتراضًا', () => {
+  /**
+   * ═══ وقع فعلًا ═══
+   *
+   * بُني زرُّ «الافتراض» في شاشة الإشعارات، وفُتحت به القناة
+   * التسويقية في تجريبٍ يدويّ لأرى الزرّ يعمل — **فسقط اختبار
+   * المعيار، وكان محقًّا**: الموافقة على التسويق تُطلب لا تُفترض،
+   * وفتحُها يجعل كل حسابٍ جديد موافقًا بلا أن يُسأل.
+   *
+   * **وحارسٌ في الشاشة ليس حارسًا** — فالمنع في `updateChannel`،
+   * والشاشة لا تعرض الزرّ أصلًا.
+   */
+  it('updateChannel ترفض فتح التسويقيّ', async () => {
+    const { updateChannel } = await import('@/lib/domain/push-channels');
+    const operator = await admin();
+
+    const before = await db.pushChannel.findUniqueOrThrow({ where: { key: 'marketing' } });
+    expect(before.defaultOn).toBe(false);
+
+    expect(await updateChannel(operator, 'marketing', { defaultOn: true }, null)).toEqual({
+      ok: false,
+    });
+
+    const after = await db.pushChannel.findUniqueOrThrow({ where: { key: 'marketing' } });
+    expect(after.defaultOn).toBe(false);
+  });
+
+  it('وتقبل إغلاقه، وتقبل فتح غيره', async () => {
+    const { updateChannel } = await import('@/lib/domain/push-channels');
+    const operator = await admin();
+
+    // الإغلاق مسموح — المنع في اتّجاهٍ واحد
+    expect(await updateChannel(operator, 'marketing', { defaultOn: false }, null)).toEqual({
+      ok: true,
+    });
+
+    const other = await db.pushChannel.findFirstOrThrow({
+      where: { key: { not: 'marketing' }, userControllable: true },
+    });
+    const was = other.defaultOn;
+    expect(await updateChannel(operator, other.key, { defaultOn: !was }, null)).toEqual({ ok: true });
+
+    // الاختبار يعيد ما غيّره
+    await db.pushChannel.update({ where: { key: other.key }, data: { defaultOn: was } });
+    await db.auditLog.deleteMany({ where: { action: 'push.channel_updated' } });
+  });
+});

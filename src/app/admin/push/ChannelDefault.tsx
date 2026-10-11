@@ -24,12 +24,23 @@ export function ChannelDefault({
   defaultOn: boolean;
   controllable: boolean;
 }) {
+  /**
+   * **ومعيار A10: التسويقيّ لا يُفتح افتراضًا.** الموافقة تُطلب لا
+   * تُفترض، وفتحُه يجعل كل حسابٍ جديد موافقًا بلا أن يُسأل. والخادم
+   * يمنعه — **فالزرّ لا يُعرض بدل أن يُضغط فيُردّ**.
+   */
+  const locked = channelKey === 'marketing';
   const router = useRouter();
   const [pending, start] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
 
-  if (!controllable) {
-    return <span className="opacity-70">{defaultOn ? 'مفتوحة' : 'مغلقة'}</span>;
+  if (!controllable || (locked && !defaultOn)) {
+    return (
+      <span className="flex items-center gap-2 opacity-70">
+        {defaultOn ? 'مفتوحة' : 'مغلقة'}
+        {locked ? <span className="text-3xs opacity-60">— الموافقة تُطلب</span> : null}
+      </span>
+    );
   }
 
   const toggle = (): void => {

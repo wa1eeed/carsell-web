@@ -94,6 +94,18 @@ export async function isChannelEnabled(userId: string, channelKey: string): Prom
 export type ChannelUpdate = { nameAr?: string; defaultOn?: boolean; sort?: number };
 
 /**
+ * ═══ القنوات التي لا تُفتح افتراضًا — معيار A10 ═══
+ *
+ * **التسويقيّ مغلقٌ افتراضًا، والموافقة تُطلب لا تُفترض.** وفتحُه
+ * يجعل كل حسابٍ جديد موافقًا على التسويق بلا أن يُسأل.
+ *
+ * وقد **وقع فعلًا**: فتحتُ القناة في تجريبٍ يدويّ لأرى الزرّ يعمل،
+ * فسقط اختبار المعيار — وكان محقًّا. فالحارس هنا لا في الشاشة:
+ * الشاشةُ تقترح والخادمُ يمنع.
+ */
+const NEVER_DEFAULT_ON: ReadonlySet<string> = new Set(['marketing']);
+
+/**
  * تعديل قناة من اللوحة — **و`userControllable` ليست منها**.
  *
  * جعلُ قناةٍ حرجة قابلةً للإطفاء قرارُ منتَج لا إعدادُ تشغيل، وزرٌّ
@@ -108,6 +120,9 @@ export async function updateChannel(
 ): Promise<{ ok: boolean }> {
   const before = await db.pushChannel.findUnique({ where: { key } });
   if (before === null) return { ok: false };
+
+  // معيار A10 — ولا يُفتح بضغطة ما تُطلب الموافقة عليه
+  if (update.defaultOn === true && NEVER_DEFAULT_ON.has(key)) return { ok: false };
 
   const changed = Object.entries(update).some(
     ([field, value]) => (before as unknown as Record<string, unknown>)[field] !== value,
