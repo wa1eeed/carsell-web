@@ -473,6 +473,29 @@ async function main() {
         continue;
       }
 
+      /**
+       * ═══ وخطوةٌ خلف المسار نفسه لا تُقاس بجلبه ═══
+       *
+       * `Wh` و`Wh3` و`Wh3a` و`Wh3b` أربعُ شاشاتٍ في التصميم ومسارُها
+       * واحد: `/ar/sell`. فجلبُه يُعطي **الخطوة الأولى** أربع مرّات،
+       * وتُحسب الثلاثُ الباقية أصفارًا — فيُقرأ «معالج البيع صفر٪»
+       * وفيه كلُّ ما نقص، مكتوبًا في `ar.json` ومعروضًا بعد أوّل نقرة.
+       *
+       * **وصفرٌ كاذب يُرسل القارئ ليبني ما هو مبنيّ** — وهو الوجه
+       * الآخر لإخراج الشاشة من المقام: ذاك يُخفي نقصًا، وهذا يخترع
+       * نقصًا.
+       *
+       * فالأولى على المسار تُقاس، والباقيات تُعلَن «خطوة» وتخرج من
+       * المقام — ويُقال ذلك في النتيجة لا يُسكَت عنه.
+       */
+      const first = Object.entries(ROUTES).find(([, value]) => value === route)?.[0];
+      if (first !== undefined && first !== tag) {
+        rows.push({
+          tag, route, total: 0, found: 0, empty: false, step: first, missing: [],
+        });
+        continue;
+      }
+
       /** المؤجَّل يخرج من البسط والمقام معًا — لا يُعدّ نقصًا ولا مطابقة. */
       const live = signals.filter(
         (signal) => !DEFERRED_SIGNALS.some((word) => signal.includes(word)),
@@ -512,12 +535,16 @@ async function main() {
   let totalSignals = 0;
   let totalFound = 0;
   const skipped = [];
+  const steps = [];
   const unreachable = [];
   console.log('الشاشة  المسار                          مطابق   الناقص');
   for (const row of rows) {
     /** ما لم يُقَس لا يدخل المقام — ولا يُقرأ صفرًا. */
     if (row.failed !== undefined) {
       unreachable.push(`${row.tag} (${row.failed})`);
+    } else if (row.step !== undefined) {
+      // خطوةٌ خلف المسار نفسه — تُعلَن ولا تُحتسب
+      steps.push(`${row.tag} ↪ ${row.step}`);
     } else if (row.empty === true) {
       skipped.push(row.tag);
     } else {
@@ -530,9 +557,11 @@ async function main() {
         ? `✖ ${row.failed}`
         : row.route === '—'
           ? '⬜ لا مسار'
-          : row.empty === true
-            ? '— فارغة'
-            : `${String(pct).padStart(3)}٪`;
+          : row.step !== undefined
+            ? `↪ خطوة في ${row.step}`
+            : row.empty === true
+              ? '— فارغة'
+              : `${String(pct).padStart(3)}٪`;
     console.log(
       `${row.tag.padEnd(7)} ${row.route.padEnd(32)} ${mark}   ${row.missing.join(' · ')}`,
     );
@@ -542,6 +571,11 @@ async function main() {
   if (skipped.length > 0) {
     console.log(
       `شاشاتٌ بلا بيانات (لا تُحتسب — حاصلُها يقيس بيانات لا مطابقة): ${skipped.join(' ')}`,
+    );
+  }
+  if (steps.length > 0) {
+    console.log(
+      `خطواتٌ خلف مسارٍ واحد (لا تُقاس بجلبه — صفرُها كاذب): ${steps.join(' · ')}`,
     );
   }
 
