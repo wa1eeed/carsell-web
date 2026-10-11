@@ -194,12 +194,50 @@ async function main() {
         ? `carsell_admin=${ADMIN_COOKIE}`
         : `carsell_session=${USER_COOKIE}`;
 
-      let text = '';
-      try {
-        const res = await fetch(`${BASE}${route}`, { headers: { cookie } });
-        text = stripTags(await res.text());
-      } catch {
-        text = '';
+      /**
+       * ═══ وجلبٌ فاشل ليس «صفر مطابقة» ═══
+       *
+       * كان الفشل يُبتلع إلى `text = ''`، فتُحتسب الشاشة **صفرًا** —
+       * ولا فرق في التقرير بين «الشاشة لا تطابق التصميم» و«لم أصل
+       * إليها». وخادمُ تطويرٍ يُعيد البناء تحت حمل يردّ ٥٠٠ أو يتأخّر،
+       * فقرأتُ ١٠٪ على شجرةٍ قِيست ٤٦٪ قبل ساعة — **والرقمان كلاهما
+       * غير صالح**.
+       *
+       * والقياس الذي يكذب صامتًا أسوأ من غياب القياس: يُبنى عليه قرار.
+       * فيُفصل الفشل ويُستثنى من المجموع ويُعلَن باسمه.
+       *
+       * وثلاث محاولات: أوّلُ طلبٍ لمسارٍ في Next يُصرَف في الترجمة،
+       * فمهلةٌ قصيرة تُسقطه وهو سليم.
+       */
+      let text = null;
+      let failure = null;
+
+      for (let attempt = 1; attempt <= 3 && text === null; attempt += 1) {
+        try {
+          const res = await fetch(`${BASE}${route}`, {
+            headers: { cookie },
+            signal: AbortSignal.timeout(30_000),
+          });
+          if (res.ok) {
+            text = stripTags(await res.text());
+          } else {
+            failure = `HTTP ${String(res.status)}`;
+          }
+        } catch (error) {
+          failure = error instanceof Error ? error.name : 'fetch';
+        }
+      }
+
+      if (text === null) {
+        rows.push({
+          tag, route,
+          total: signals.length,
+          found: 0,
+          failed: failure ?? 'fetch',
+          empty: false,
+          missing: [],
+        });
+        continue;
       }
 
       const missing = signals.filter((s) => !text.includes(s));
@@ -229,9 +267,13 @@ async function main() {
   let totalSignals = 0;
   let totalFound = 0;
   const skipped = [];
+  const unreachable = [];
   console.log('الشاشة  المسار                          مطابق   الناقص');
   for (const row of rows) {
-    if (row.empty === true) {
+    /** ما لم يُقَس لا يدخل المقام — ولا يُقرأ صفرًا. */
+    if (row.failed !== undefined) {
+      unreachable.push(`${row.tag} (${row.failed})`);
+    } else if (row.empty === true) {
       skipped.push(row.tag);
     } else {
       totalSignals += row.total;
@@ -239,11 +281,13 @@ async function main() {
     }
     const pct = row.total === 0 ? 100 : Math.round((row.found / row.total) * 100);
     const mark =
-      row.route === '—'
-        ? '⬜ لا مسار'
-        : row.empty === true
-          ? '— فارغة'
-          : `${String(pct).padStart(3)}٪`;
+      row.failed !== undefined
+        ? `✖ ${row.failed}`
+        : row.route === '—'
+          ? '⬜ لا مسار'
+          : row.empty === true
+            ? '— فارغة'
+            : `${String(pct).padStart(3)}٪`;
     console.log(
       `${row.tag.padEnd(7)} ${row.route.padEnd(32)} ${mark}   ${row.missing.join(' · ')}`,
     );
@@ -254,6 +298,17 @@ async function main() {
     console.log(
       `شاشاتٌ بلا بيانات (لا تُحتسب — حاصلُها يقيس بيانات لا مطابقة): ${skipped.join(' ')}`,
     );
+  }
+
+  /**
+   * **والرقم لا يُقرأ ما دامت شاشةٌ لم تُقَس.** مقامٌ ناقصٌ يُنتج نسبةً
+   * تبدو صالحة، وفرقُها عن القياس السابق يُقرأ تحسّنًا أو انحدارًا —
+   * وهو حالُ الخادم لا حالُ الشجرة. فيُعلَن صراحةً ويخرج بـ١.
+   */
+  if (unreachable.length > 0) {
+    console.log(`\n✖ لم تُقَس ${String(unreachable.length)} شاشة: ${unreachable.join(' · ')}`);
+    console.log('والرقم أعلاه ناقص المقام — أعِد القياس وخادمُ التطوير ساكن.');
+    process.exitCode = 1;
   }
 }
 

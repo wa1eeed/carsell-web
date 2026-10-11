@@ -572,7 +572,7 @@
   "legal": {
     "version": "Version",
     "effectiveFrom": "Effective from",
-    "contents": "Contents",
+    "contents": "On this page",
     "notFound": "Document not found",
     "notFoundBody": "The link may be outdated. Browse the documents from the footer.",
     "section": "Legal",
