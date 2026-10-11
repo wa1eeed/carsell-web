@@ -125,6 +125,11 @@ const PUBLISH_ERROR: Record<
 
 const PublishBody = z.object({
   type: z.enum(ListingType),
+  /**
+   * **ومسودّةٌ لا تُنشر** — فلا تُشترط لها شروط العرض على الناس.
+   * والحارس في النطاق لا هنا: حارسٌ في العميل ليس حارسًا.
+   */
+  draft: z.boolean().optional(),
   askPrice: z.number().int().min(1).max(100_000_000),
   taxableSupply: z.boolean().nullable(),
   vehicle: z.object({
@@ -148,8 +153,15 @@ const PublishBody = z.object({
     colorExterior: z.string().min(1).max(40),
     vin: z.string().max(20).nullable(),
   }),
-  // مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل
-  images: z.array(z.string().min(1).max(300)).min(1).max(10),
+  /**
+   * مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل.
+   *
+   * **ولا حدَّ أدنى هنا**: كان `.min(1)` يردّ المسودّة قبل أن يرى
+   * النطاقُ رايتَها — ومسودّةٌ بلا صور حالٌ طبيعية (يُحفظ العمل عند
+   * الخطوة الأولى). وشرطُ «صورةٌ واحدة على الأقل» قائمٌ في
+   * `createListing` لمسار النشر وحده، حيث موضعه.
+   */
+  images: z.array(z.string().min(1).max(300)).max(10),
 
   /**
    * ═══ إعدادات طريقة البيع ═══
@@ -194,7 +206,19 @@ export async function POST(request: NextRequest) {
   if (user === null) return fail(ERRORS.UNAUTHORIZED, 401);
 
   const parsed = PublishBody.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return fail(ERRORS.VALIDATION({ askPrice: 'INVALID' }), 422);
+  if (!parsed.success) {
+    /**
+     * **والحقل المُعلَّم هو الذي سقط.** كان الردّ يقول `askPrice`
+     * مهما كان الساقط — فيُرسَل سعرٌ صحيح ويُقال «السعر خاطئ»،
+     * ويُطارَد العطل في الحقل السليم. (وقع في مسودّةٍ ردّها
+     * `images` وقال «السعر».)
+     */
+    const fields: Record<string, string> = {};
+    for (const issue of parsed.error.issues.slice(0, 6)) {
+      fields[issue.path.join('.') || 'body'] = 'INVALID';
+    }
+    return fail(ERRORS.VALIDATION(fields), 422);
+  }
 
   const result = await createListing({ ...parsed.data, sellerId: user.id });
 

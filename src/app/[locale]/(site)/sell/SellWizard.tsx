@@ -213,6 +213,65 @@ export function SellWizard({
    * وهو أوّل إجراءٍ للبائع له أثر ضريبيّ: شكل السعر المعروض للمشتري
    * يتبع وضعه. فتُفتح النافذة ثم **يُستأنف النشر تلقائيًّا** بعد الحفظ.
    */
+  /**
+   * ═══ الحفظ كمسودّة ═══
+   *
+   * **ولا يمرّ بحُرّاس النشر**: المسودّة لا تُعرض على أحد، فلا تُسأل
+   * عن وضعٍ ضريبيّ ولا تنتظر توثيق هوية. وأقلُّ ما تحتاجه مركبةٌ
+   * مُعرَّفة — وهي ما تُملأ في الخطوة الأولى.
+   */
+  const saveDraft = (): void => {
+    if (publishing) return;
+    setPublishing(true);
+    setPublishError(null);
+
+    void (async () => {
+      const response = await fetch('/api/v1/listings', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          draft: true,
+          type: method,
+          // سعرٌ لم يُكتب بعد يُحفظ واحدًا — والنشر يفحصه
+          askPrice: Math.max(1, Number(toLatinDigits(price).replace(/\D/g, '')) || 1),
+          taxableSupply: null,
+          vehicle: {
+            brandId: vehicle.brandId,
+            modelId: vehicle.modelId,
+            trimId: vehicle.trimId,
+            year: Number(toLatinDigits(vehicle.year).replace(/\D/g, '')),
+            mileageKm: Number(toLatinDigits(vehicle.mileageKm).replace(/\D/g, '')),
+            transmission: vehicle.transmission,
+            fuel: vehicle.fuel,
+            spec: vehicle.spec,
+            condition: vehicle.condition,
+            city: vehicle.city,
+            colorExterior: vehicle.colorExterior,
+            vin: vehicle.vin === '' ? null : vehicle.vin,
+          },
+          images: images.map((image) => image.key),
+        }),
+      }).catch(() => null);
+
+      setPublishing(false);
+
+      if (response === null) {
+        setPublishError(t('publishNetwork'));
+        return;
+      }
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { messageAr?: string } }
+          | null;
+        setPublishError(payload?.error?.messageAr ?? t('publishFailed'));
+        return;
+      }
+
+      /** **والوجهة تقول إنها مسودّة** — ولا تُقرأ نشرًا. */
+      router.push(`/${locale}/account/listings?saved=draft`);
+    })();
+  };
+
   const publish = (): void => {
     if (tax.needsAnswer) {
       setAskingTax(true);
@@ -1200,7 +1259,19 @@ export function SellWizard({
             <Button onClick={publish} disabled={publishing}>
               {publishing ? t('publishing') : t('publish')}
             </Button>
-            <Button variant="ghost">{t('saveDraft')}</Button>
+            {/*
+              ═══ «احفظ كمسودة» — كان بلا `onClick` أصلًا ═══
+
+              يضغطه البائع بعد سبع خطواتٍ ورفعِ صور فلا يقع شيء، ولا
+              رسالة. **وزرٌّ لا يفعل شيئًا أسوأ من غيابه**: من ضغطه
+              حسب عمله محفوظًا فأغلق الصفحة.
+
+              والمسودّة لا تلتزم بشيء، فلا تُشترط لها هويةٌ ولا آيبان
+              ولا وضعٌ ضريبيّ — تلك شروط العرض على الناس.
+            */}
+            <Button variant="ghost" onClick={saveDraft} disabled={publishing}>
+              {t('saveDraft')}
+            </Button>
           </div>
         </section>
       ) : null}

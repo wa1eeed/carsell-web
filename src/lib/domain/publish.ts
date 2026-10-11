@@ -35,6 +35,18 @@ const NEW_ACCOUNT_MAX_LISTINGS = 3;
 const PRICE_OUTLIER_RATIO = 0.4;
 
 export type PublishInput = {
+  /**
+   * ═══ مسودّة: تُحفظ ولا تُنشر ═══
+   *
+   * زرّ «احفظ كمسودة» كان **بلا `onClick` أصلًا** — يضغطه البائع بعد
+   * سبع خطواتٍ ورفعِ صور فلا يقع شيء، ولا رسالة. وهو أسوأ من غيابه:
+   * من ضغطه حسب عملَه محفوظًا فأغلق الصفحة.
+   *
+   * **والمسودّة لا تلتزم بشيء** — فلا تُشترط لها هويةٌ ولا آيبان ولا
+   * وضعٌ ضريبيّ ولا صور: تلك شروطُ **العرض على الناس**، لا شروطُ أن
+   * يحفظ المرء ما كتب. وتُشترط عند النشر حيث مكانها.
+   */
+  draft?: boolean;
   sellerId: string;
   type: ListingType;
   askPrice: number;
@@ -143,10 +155,107 @@ export type PublishFailure =
   | 'MIN_ACCEPT_INVALID';
 
 export type PublishResult =
-  | { ok: true; ref: string; status: 'PUBLISHED' | 'PENDING_REVIEW'; reviewReason: ReviewReason | null }
+  | {
+      ok: true;
+      ref: string;
+      status: 'PUBLISHED' | 'PENDING_REVIEW' | 'DRAFT';
+      reviewReason: ReviewReason | null;
+    }
   | { ok: false; reason: PublishFailure };
 
 type Asset = { r2Key: string; phash: string; plateBlurred: boolean; qualityFlags: string[] };
+
+/**
+ * يحفظ ما أُدخل بحالة `DRAFT` — **ولا يُنشئ مزادًا ولا يفحص شيئًا**.
+ *
+ * والمزاد يُنشأ عند النشر: صفُّ `Auction` بمواعيده وعربونه التزامٌ
+ * قائم، ومسودّةٌ تحمله تفتح مزادًا لم يُعلنه صاحبه.
+ */
+async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult> {
+  /**
+   * **والأسماء من الكتالوج لا من المُدخَل** — كما في النشر تمامًا.
+   * وكتابةُ اسمٍ يرسله العميل تجعل الإعلان يقول ماركةً غير التي
+   * يشير إليها معرّفه.
+   */
+  const [brand, model, trim] = await Promise.all([
+    db.brand.findUnique({ where: { id: input.vehicle.brandId } }),
+    db.model.findUnique({ where: { id: input.vehicle.modelId } }),
+    db.trim.findUnique({ where: { id: input.vehicle.trimId } }),
+  ]);
+  if (brand === null || model === null) return { ok: false, reason: 'BRAND_OR_MODEL_UNKNOWN' };
+  if (trim === null) return { ok: false, reason: 'TRIM_UNKNOWN' };
+
+  const { listing } = await db.$transaction(async (tx) => {
+    const vehicle = await tx.vehicle.create({
+      data: {
+        ownerId: input.sellerId,
+        brandId: input.vehicle.brandId,
+        modelId: input.vehicle.modelId,
+        trimId: input.vehicle.trimId,
+        brandName: brand.nameAr,
+        modelName: model.nameAr,
+        trimName: trim.nameAr,
+        year: input.vehicle.year,
+        bodyType: trim.bodyType,
+        drivetrain: trim.drivetrain,
+        seats: trim.seats,
+        transmission: input.vehicle.transmission,
+        fuel: input.vehicle.fuel,
+        mileageKm: input.vehicle.mileageKm,
+        colorExterior: input.vehicle.colorExterior,
+        spec: input.vehicle.spec,
+        condition: input.vehicle.condition,
+        city: input.vehicle.city,
+        entryMode: input.vehicle.vin === null || input.vehicle.vin === '' ? 'MANUAL' : 'VIN_LOOKUP',
+        ...(input.vehicle.vin === null || input.vehicle.vin === ''
+          ? {}
+          : { vin: input.vehicle.vin }),
+      },
+    });
+
+    const ref = await nextListingRef(tx, now);
+    const row = await tx.listing.create({
+      data: {
+        ref,
+        vehicleId: vehicle.id,
+        sellerId: input.sellerId,
+        type: input.type,
+        status: 'DRAFT',
+        // سعرٌ لم يُكتب بعد يُحفظ صفرًا — والنشر يفحصه
+        askPrice: new Prisma.Decimal(Number.isFinite(input.askPrice) ? input.askPrice : 0),
+        ...(input.description === undefined || input.description.trim() === ''
+          ? {}
+          : { description: input.description.trim().slice(0, 4000) }),
+        city: input.vehicle.city,
+      },
+    });
+
+    /**
+     * **والصور تُربط بمالكها.** مفتاحٌ رفعه غيرك لا يصير صورتك بذكر
+     * مفتاحه — والشرط هنا كما في النشر.
+     */
+    const owned = await tx.uploadedAsset.findMany({
+      where: { r2Key: { in: input.images }, ownerId: input.sellerId },
+    });
+    if (owned.length > 0) {
+      await tx.listingImage.createMany({
+        data: owned.map((asset, index) => ({
+          listingId: row.id,
+          r2Key: asset.r2Key,
+          sort: index,
+          isCover: index === 0,
+          phash: asset.phash,
+          plateBlurred: asset.plateBlurred,
+          qualityFlags: asset.qualityFlags,
+        })),
+      });
+    }
+
+    return { listing: row };
+  });
+
+  return { ok: true, ref: listing.ref, status: 'DRAFT', reviewReason: null };
+}
 
 /** أيّ شرطٍ من الثلاثة انطبق — و`null` يعني نشرًا مباشرًا. */
 async function reviewReasonFor(
@@ -199,6 +308,13 @@ export async function createListing(
    */
   const seller = await db.user.findUnique({ where: { id: input.sellerId } });
   if (seller === null) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
+
+  /**
+   * **والمسودّة تخرج من هنا** — قبل حُرّاس النشر كلِّهم. وما بعدها
+   * يفحص ما يلزم للعرض على الناس: الهوية والآيبان والوضع الضريبيّ
+   * والصور وإعدادات طريقة البيع. والمسودّة لا تُعرض على أحد.
+   */
+  if (input.draft === true) return saveDraft(input, now);
 
   /**
    * **الشاشة تقول «لن تستطيع البيع قبل إكمال الثلاثة» — فليكن.**
