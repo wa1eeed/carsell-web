@@ -33,6 +33,8 @@ export type PublicDealer = {
   soldCount: number;
   // اسمٌ واحد للمسار في كل الشاشات — `href` كما في البحث والرئيسية
   listings: ListingCard[];
+  /** عدد المعروض بكل طريقة بيع — لشريط الترشيح. */
+  byType: { DIRECT: number; NEGOTIATION: number; AUCTION: number };
 };
 
 /**
@@ -41,9 +43,18 @@ export type PublicDealer = {
  * وهما بيانات تسجيلٍ لا شارات ثقة: عرضُهما يدعو إلى انتحال المعرض في
  * موضعٍ آخر، والثقة تُنقل بشارة «موثّق» التي يمنحها الأدمن.
  */
+/**
+ * ترشيحُ مخزون المعرض — **بطريقة البيع كما يرسمه التصميم**.
+ *
+ * ومعرضٌ بمئةٍ وأربعين مركبة بلا ترشيحٍ يُقرأ صفحتين ثم يُترك.
+ * و`null` تعني الكلّ، فالترشيح إضافةٌ لا بوّابة.
+ */
+export type DealerStockFilter = 'DIRECT' | 'NEGOTIATION' | 'AUCTION' | null;
+
 export async function getDealerPage(
   slug: string,
   locale: string,
+  filter: DealerStockFilter = null,
 ): Promise<PublicDealer | null> {
   const dealer = await db.dealer.findUnique({
     where: { slug },
@@ -61,9 +72,13 @@ export async function getDealerPage(
     await db.user.findMany({ where: { dealerId: dealer.id }, select: { id: true } })
   ).map((member) => member.id);
 
-  const [rows, listingCount, soldCount] = await Promise.all([
+  const [rows, listingCount, soldCount, typeCounts] = await Promise.all([
     db.listing.findMany({
-      where: { sellerId: { in: memberIds }, status: 'PUBLISHED' },
+      where: {
+        sellerId: { in: memberIds },
+        status: 'PUBLISHED',
+        ...(filter === null ? {} : { type: filter }),
+      },
       include: {
         // الفحص على المركبة لا على الإعلان — وأحدثه هو المعروض
         vehicle: {
@@ -86,6 +101,11 @@ export async function getDealerPage(
      * وعمودٌ مخزَّن يكذب أوّل مرّة يُلغى فيها طلب، ثم لا يُكتشف كذبه.
      */
     db.order.count({ where: { sellerId: { in: memberIds }, status: 'COMPLETED' } }),
+    db.listing.groupBy({
+      by: ['type'],
+      where: { sellerId: { in: memberIds }, status: 'PUBLISHED' },
+      _count: { _all: true },
+    }),
   ]);
 
   const arabic = locale === 'ar';
@@ -106,6 +126,15 @@ export async function getDealerPage(
     joinedAt: dealer.createdAt.toISOString(),
     listingCount,
     soldCount,
+    /**
+     * **وعدّاد كل طريقةٍ من الكلّ لا من المرشَّح.** عدٌّ من المعروض
+     * يجعل الشريحة المختارة وحدها تحمل رقمًا والبقيّة أصفارًا.
+     */
+    byType: {
+      DIRECT: typeCounts.find((row) => row.type === 'DIRECT')?._count._all ?? 0,
+      NEGOTIATION: typeCounts.find((row) => row.type === 'NEGOTIATION')?._count._all ?? 0,
+      AUCTION: typeCounts.find((row) => row.type === 'AUCTION')?._count._all ?? 0,
+    },
     listings: rows.map((row) => {
       const report = row.vehicle.inspectionReports[0] ?? null;
       const cover = row.images.find((image) => image.isCover) ?? row.images[0] ?? null;

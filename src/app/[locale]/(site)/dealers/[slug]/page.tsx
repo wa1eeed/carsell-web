@@ -11,7 +11,8 @@ import { CarCard } from '@/components/ui/CarCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
-import { getDealerPage } from '@/lib/domain/dealer-page';
+import { type DealerStockFilter, getDealerPage } from '@/lib/domain/dealer-page';
+import { FilterChip } from '@/components/ui/FilterChip';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,17 +44,30 @@ export async function generateMetadata({
  * **ورقم السجلّ والرقم الضريبيّ لا يخرجان**: بيانات تسجيلٍ لا شارات
  * ثقة، وعرضُها يدعو إلى انتحال المعرض في موضعٍ آخر.
  */
+const STOCK_TABS = [
+  { key: null, label: 'الكل' },
+  { key: 'DIRECT' as const, label: 'بيع مباشر' },
+  { key: 'NEGOTIATION' as const, label: 'تفاوض' },
+  { key: 'AUCTION' as const, label: 'مزاد' },
+];
+
 export default async function DealerPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, slug } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
+  const query = await searchParams;
+  const rawType = typeof query.type === 'string' ? query.type : null;
+  const filter = (STOCK_TABS.find((row) => row.key === rawType)?.key ?? null) as DealerStockFilter;
+
   const [dealer, t, te] = await Promise.all([
-    getDealerPage(slug, locale),
+    getDealerPage(slug, locale, filter),
     getTranslations('dealer'),
     getTranslations('enums'),
   ]);
@@ -139,7 +153,39 @@ export default async function DealerPage({
             )}
           </section>
 
-          <h2 className="mb-4 text-sm font-bold">{t('vehicles')}</h2>
+          {/*
+            ═══ شريط المخزون ═══
+
+            **ومعرضٌ بمئةٍ وأربعين مركبة بلا ترشيحٍ يُقرأ صفحتين ثم
+            يُترك.** والترشيح بطريقة البيع هو ما يسأل عنه الزائر فعلًا:
+            «أيّها بالمزاد؟» لا «أيّها أحدث؟».
+
+            **والعدّاد من الكلّ لا من المرشَّح** — وإلّا حملت الشريحة
+            المختارة وحدها رقمًا والبقيّةُ أصفار.
+          */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-sm font-bold">{t('vehicles')}</h2>
+            <nav className="flex flex-wrap gap-2.5">
+              {STOCK_TABS.map((row) => (
+                <FilterChip
+                  key={row.key ?? 'all'}
+                  href={
+                    row.key === null
+                      ? `/${locale}/dealers/${slug}`
+                      : `/${locale}/dealers/${slug}?type=${row.key}`
+                  }
+                  active={filter === row.key}
+                  count={
+                    row.key === null
+                      ? dealer.byType.DIRECT + dealer.byType.NEGOTIATION + dealer.byType.AUCTION
+                      : dealer.byType[row.key]
+                  }
+                >
+                  {row.label}
+                </FilterChip>
+              ))}
+            </nav>
+          </div>
           {dealer.listings.length === 0 ? (
             <EmptyState title={t('emptyTitle')} description={t('emptyBody')} />
           ) : (
