@@ -843,8 +843,10 @@
       "noReserve": "No reserve",
       "photos": "Photos",
       "city": "City",
-      "auctionLock": "After the first bid the opening price, the reserve and the duration cannot be changed — check them now."
-    }
+      "auctionLock": "After the first bid the opening price, the reserve and the duration cannot be changed — check them now.",
+      "closesAt": "Closes"
+    },
+    "inCity": "in"
   },
   "order": {
     "subtitle": "Where your order and your money stand.",
@@ -1056,6 +1058,7 @@
     "unseenSince": "{count, plural, one{not seen for {n} day} other{not seen for {n} days}}",
     "agoMinutes": "{count, plural, zero{Just now} one{{n} minute ago} other{{n} minutes ago}}",
     "agoHours": "{count, plural, zero{Just now} one{{n} hour ago} other{{n} hours ago}}",
-    "resendIn": "{count, plural, zero{Resend now} one{Resend in {n} second} other{Resend in {n} seconds}}"
+    "resendIn": "{count, plural, zero{Resend now} one{Resend in {n} second} other{Resend in {n} seconds}}",
+    "basedOnDeals": "{count, plural, one{Based on {n} deal} other{Based on {n} deals}}"
   }
 }

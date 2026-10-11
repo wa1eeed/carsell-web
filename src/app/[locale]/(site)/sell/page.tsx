@@ -60,6 +60,18 @@ export default async function SellPage({
 
   const medianDays = Math.round(stats._avg.daysToSellMedian ?? 0);
 
+  /**
+   * نسبةُ عمولة البائع السارية — من `CommissionRule` نفسها التي
+   * يقرؤها `computeOrderAmounts`. والقواعد تُضاف ولا تُعدَّل، فالأحدث
+   * سريانًا هي السارية، والمعطَّلة تعني صفرًا لا نسبةً قديمة.
+   */
+  const rule = await db.commissionRule.findFirst({
+    where: { scope: 'global', side: 'SELLER', activeFrom: { lte: new Date() } },
+    orderBy: { activeFrom: 'desc' },
+    select: { pct: true, enabled: true },
+  });
+  const sellerCommissionPct = rule === null || !rule.enabled ? 0 : Number(rule.pct);
+
   return (
     <>
       <SiteHeader />
@@ -73,7 +85,13 @@ export default async function SellPage({
 
             <dl className="flex flex-wrap gap-9">
               {[
-                { key: 'commission', value: 0, suffix: '٪' },
+                /**
+                 * **والعمولة من قاعدتها لا مكتوبةً بيد.** كانت `0`
+                 * حرفيًّا تحت عنوانٍ يقول «ومن دون عمولة» — وأوّلُ
+                 * نسبةٍ يضبطها الأدمن تجعل الصدر يَعِد بما يناقضه
+                 * الطلب، بلا تغييرِ سطرٍ وبلا ما يُنبّه أحدًا.
+                 */
+                { key: 'commission', value: sellerCommissionPct, suffix: '٪' },
                 { key: 'days', value: medianDays, suffix: null },
                 { key: 'minutes', value: 5, suffix: null },
               ].map((stat) => (

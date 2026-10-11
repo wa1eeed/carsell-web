@@ -4742,6 +4742,25 @@
         }
       }
     },
+    "/api/v1/price-stat": {
+      "get": {
+        "summary": "GET /api/v1/price-stat",
+        "tags": [
+          "price-stat"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/reports": {
       "post": {
         "summary": "POST /api/v1/reports",

@@ -1814,7 +1814,15 @@ function checkQuantityAdjacency() {
        * الجارّ كان في `t('resendIn')` لا مكتوبًا في JSX. ونصٌّ ينتهي
        * بحرف جرٍّ ثمّ عدّادٌ بعده هو الصنف نفسه.
        */
-      const before = text.slice(Math.max(0, hit.index - 60), hit.index);
+      /**
+       * **ووسمٌ مغلقٌ بينهما لا يفصل.** `<span>{t('basedOn')}</span>`
+       * ثمّ عدّادٌ هو الضمُّ نفسه — والقارئ يرى جملةً واحدة. فتُطرح
+       * الوسوم من النظر إلى الوراء. (أخفت البوابة «مبني على صفقتان»
+       * في `RangeBar` حتى طُرحت.)
+       */
+      const before = text
+        .slice(Math.max(0, hit.index - 90), hit.index)
+        .replace(/<\/?[A-Za-z][^>]*>/g, ' ');
       const viaKey = /\{\s*t\w*\(\s*'([\w.]+)'\s*\)\s*\}\s*$/.exec(before.trimEnd());
       const fromMessages = viaKey === null ? '' : lastWordOfMessage(viaKey[1] ?? '');
       const words = before.match(/[ء-ي]+/g) ?? [];

@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Money } from './Money';
-import { Quantity } from './Quantity';
+import { Counted } from './Counted';
 import { cn } from '@/lib/cn';
 
 /** الحد الأدنى للثقة — أقل منه لا يُعرض شيء (HANDOFF §١٧٫١). */
@@ -31,10 +31,18 @@ export type RangeStats = {
 export function RangeBar({
   price,
   stats,
+  segment,
   className,
 }: {
   price: number;
   stats: RangeStats;
+  /**
+   * وصفُ الشريحة التي بُني عليها الرقم — «ألتيما ٢٠٢٣ في الرياض».
+   *
+   * **وعددٌ بلا شريحته رأيٌ لا خبر**: «مبنيّ على ٤٥ صفقة» لا تقول
+   * صفقةَ ماذا، ومن يخفض سعره بناءً عليها يستحقّ أن يعرف على ماذا بنى.
+   */
+  segment?: string;
   className?: string;
 }) {
   const t = useTranslations('ui');
@@ -89,9 +97,15 @@ export function RangeBar({
         <Money amount={stats.p90} size="sm" showCurrency={false} />
       </div>
 
+      {/*
+        **والجارّ داخل الصيغة.** كان `{t('basedOn')}` («مبني على») ثمّ
+        `<Quantity unit="deals">` — فيُخرج **«مبني على صفقتان»** عند
+        الصفقتين: مثنًّى مرفوعٌ بعد حرف جرّ. (البوابة ٣١، وأخفتها
+        لأن بينهما وسمًا مغلقًا.)
+      */}
       <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-55">
-        <span>{t('basedOn')}</span>
-        <Quantity unit="deals" count={stats.sampleSize} className="font-semibold" />
+        <Counted message="basedOnDeals" count={stats.sampleSize} className="font-semibold" />
+        {segment === undefined ? null : <span className="bidi-isolate">{segment}</span>}
       </p>
     </div>
   );

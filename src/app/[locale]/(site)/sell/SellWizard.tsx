@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 
@@ -19,6 +19,8 @@ import {
   trimZeros,
 } from '@/components/site/AuctionSettings';
 import { Stepper } from '@/components/ui/Stepper';
+import { PriceGuidance } from '@/components/site/PriceGuidance';
+import type { RangeStats } from '@/components/ui/RangeBar';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { toArabicDigits, toLatinDigits } from '@/lib/arabic';
@@ -271,6 +273,60 @@ export function SellWizard({
       router.push(`/${locale}/account/listings?saved=draft`);
     })();
   };
+
+  /**
+   * متى يُغلق المزاد — **بالحساب نفسه الذي يكتبه الخادم**: بدايةٌ
+   * (الآن أو الموعد المختار) زائدَ المدّة.
+   */
+  const closesAtLabel = ((): string => {
+    const begins = startNow || startsAt === '' ? new Date() : new Date(startsAt);
+    if (Number.isNaN(begins.getTime())) return '—';
+    const ends = new Date(begins.getTime() + durationDays * 86_400_000);
+    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(ends);
+  })();
+
+  /**
+   * إحصاءُ السوق لهذه المركبة — **يُطلب عند دخول خطوة السعر وحدها**.
+   * وطلبُه مع كل ضغطةٍ في خانة السعر يُغرق الخادم بلا فائدة: الشريحة
+   * لا تتغيّر بتغيّر السعر.
+   */
+  const [priceStat, setPriceStat] = useState<RangeStats | null>(null);
+
+  useEffect(() => {
+    if (step !== 'photos' || vehicle.modelId === '' || vehicle.city === '') return;
+    const params = new URLSearchParams({
+      modelId: vehicle.modelId,
+      trimId: vehicle.trimId,
+      year: toLatinDigits(vehicle.year).replace(/\D/g, ''),
+      mileageKm: toLatinDigits(vehicle.mileageKm).replace(/\D/g, ''),
+      city: vehicle.city,
+    });
+    let alive = true;
+    void fetch(`/api/v1/price-stat?${params.toString()}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { data?: { stat: RangeStats | null } } | null) => {
+        if (alive) setPriceStat(payload?.data?.stat ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [step, vehicle.modelId, vehicle.trimId, vehicle.year, vehicle.mileageKm, vehicle.city]);
+
+  /** وصفُ الشريحة التي بُني عليها الرقم — «كامري ٢٠٢٢ في الرياض». */
+  const segmentLabel = [
+    models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
+    vehicle.year === '' ? '' : toArabicDigits(vehicle.year),
+    vehicle.city === '' ? '' : `${t('inCity')} ${vehicle.city}`,
+  ]
+    .filter((part) => part !== '')
+    .join(' ');
 
   const publish = (): void => {
     if (tax.needsAnswer) {
@@ -788,6 +844,20 @@ export function SellWizard({
             </div>
 
             {/*
+              ═══ إرشادُ السعر — ولم يكن ═══
+
+              صدرُ الصفحة يَعِد بـ«سعرٍ عادل» ثمّ تُقدَّم خانةٌ فارغة
+              بلا مرجع. **والبيانات كانت كلّها موجودة** — `PriceStat`
+              و`priceStatFor` و`RangeBar` — وستُّ سلاسلَ لهذه اللوحة
+              في `ar.json` لا يناديها أحد.
+            */}
+            <PriceGuidance
+              price={Number(toLatinDigits(price).replace(/\D/g, ''))}
+              stat={priceStat}
+              segment={segmentLabel}
+              />
+
+            {/*
               ═══ استثناء الإعلان الواحد ═══
 
               لا تظهر للمسجَّل: إعلاناته خاضعة أصلًا، وخانةٌ تسأله عمّا
@@ -1201,6 +1271,16 @@ export function SellWizard({
                     وحده من يراه، وإخفاؤه عنه هنا يجعله ينشر رقمًا لا
                     يتذكّره.
                   */}
+                  {/*
+                    ═══ وموعدُ الإغلاق يُعرض قبل أن يُقرّ ═══
+
+                    البائع يختار **مدّةً** من شرائح ولا يرى متى يُغلق
+                    مزادُه. والتحذير أسفل البطاقة يقول إن المدّة لا
+                    تُعدَّل بعد أوّل مزايدة — **فيُطلَب إقرارُ ما لا
+                    رجعة فيه بلا عرض نتيجته**، وهو عكسُ ما وُضعت
+                    البطاقة له.
+                  */}
+                  <ReviewRow label={t('review.closesAt')} value={closesAtLabel} />
                   <ReviewRow
                     label={t('review.reserve')}
                     value={
