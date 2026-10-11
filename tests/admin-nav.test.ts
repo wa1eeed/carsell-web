@@ -76,4 +76,32 @@ describe('شريط الأدمن — ما ينتظر عملًا', () => {
     expect(counts['/admin/listings'] ?? 0).toBe(pending);
     expect(Object.keys(counts)).not.toContain('/admin/all-listings');
   });
+
+  /**
+   * ═══ وما يُضبط ليس كما يُعالَج ═══
+   *
+   * سعرُ خدمةٍ يُضبط مرّةً في الشهر، وطابورُها يُعالَج كل يوم.
+   * وكانا في مجموعةٍ واحدة — فيمرّ المشغّل على شاشتَي إعدادٍ ليبلغ
+   * عملَه.
+   *
+   * **والفحص على الموضع لا على الوجود**: بندٌ يعود إلى مجموعةٍ خاطئة
+   * يسقط هنا، فيُقرأ التعليل قبل أن يُعاد.
+   */
+  it('التعريفُ في الإعدادات والطابورُ في العمل', () => {
+    const groupOf = (href: string): string =>
+      ADMIN_NAV.find((group) => group.items.some((item) => item.href === href))?.title ?? '';
+
+    for (const href of ['/admin/services', '/admin/providers']) {
+      expect(groupOf(href), href).toMatch(/^الإعدادات/);
+    }
+
+    for (const href of ['/admin/service-requests', '/admin/disputes', '/admin/reports']) {
+      expect(groupOf(href), href).not.toMatch(/^الإعدادات/);
+    }
+
+    // والسجلّان مع ما يُقرأ
+    for (const href of ['/admin/ledger', '/admin/audit']) {
+      expect(groupOf(href), href).toBe('المتابعة');
+    }
+  });
 });

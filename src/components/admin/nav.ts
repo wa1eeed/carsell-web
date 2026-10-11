@@ -76,6 +76,17 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'تحويل مستحقّات البائعين', href: '/admin/payouts', permission: 'finance.view' },
       { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
+      /**
+       * ═══ وطابورُ الخدمات طابور ═══
+       *
+       * كان في مجموعةٍ مع «الخدمات وأسعارها» و«المزوّدون» بتعليلٍ
+       * مكتوب: «المزوّدون في مكانٍ واحد — وطلباتُهم معهم». **وهذا
+       * عكسُه بأمر المالك**: الفصلُ بين ما يُضبط وما يُعالَج.
+       *
+       * وسعرُ خدمةٍ يُضبط مرّةً في الشهر، وطابورُها يُعالَج كل يوم —
+       * فجمعُهما يجعل المشغّل يمرّ على شاشتَي إعدادٍ ليبلغ عملَه.
+       */
+      { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
       { label: 'طلبات التمويل', href: null },
     ],
   },
@@ -86,15 +97,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
       { label: 'المعارض والتجار', href: '/admin/dealers', permission: 'users.view' },
       { label: 'طلبات توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
-    ],
-  },
-  {
-    /** **المزوّدون في مكانٍ واحد** — وطلباتُهم معهم لا في التشغيل. */
-    title: 'الخدمات والمزوّدون',
-    items: [
-      { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
-      { label: 'المزوّدون', href: '/admin/providers', permission: 'services.manage' },
-      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
     ],
   },
   {
@@ -122,6 +124,12 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
     title: 'الإعدادات — المحتوى',
     items: [
+      /**
+       * **والخدمةُ وسعرُها تعريفٌ كالكتالوج** — موضعُها حيث يُعرَّف
+       * ما يعرضه المنتج، لا مع الطابور الذي يُعالَج يوميًّا.
+       */
+      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
+      { label: 'مزوّدو الخدمات', href: '/admin/providers', permission: 'services.manage' },
       { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
       { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },
