@@ -181,6 +181,20 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
 
             <aside className="flex flex-col gap-5">
               <section className="rounded-xl border-2 border-ink p-5">
+                {/*
+                  ═══ وسعرٌ يُقرأ بلمحة قبل التفصيل ═══
+
+                  التصميم (Wx) يصدّر اللوحة بـ«٣٥٠ ر.س + ضريبة» ثمّ
+                  يُفصّل تحتها. والتفصيل وحده يجعل من يقارن خدمتين
+                  يجمع في رأسه قبل أن يقرأ.
+                */}
+                {Number(service.price) === 0 ? null : (
+                  <p className="mb-3.5 flex items-baseline gap-1.5">
+                    <Money amount={price} showCurrency={false} size="xl" />
+                    <span className="text-2xs opacity-55">ر.س + ضريبة</span>
+                  </p>
+                )}
+
                 <h2 className="mb-3.5 text-sm font-bold">التكلفة</h2>
 
                 {Number(service.price) === 0 ? (
@@ -222,6 +236,7 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
               */}
               <RequestService
                 serviceKey={service.key}
+                serviceName={locale === 'ar' ? service.nameAr : service.nameEn}
                 vehicles={vehicles}
                 cities={coverage}
                 total={formatNumber(Number(money.total), locale, { decimals: 2 })}

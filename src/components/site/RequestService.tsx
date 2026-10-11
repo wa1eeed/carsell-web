@@ -22,6 +22,7 @@ import { Toast } from '@/components/ui/Toast';
  */
 export function RequestService({
   serviceKey,
+  serviceName,
   vehicles,
   cities,
   total,
@@ -30,6 +31,8 @@ export function RequestService({
   serviceKey: string;
   vehicles: readonly { id: string; title: string }[];
   cities: readonly string[];
+  /** اسمُ الخدمة — يُكتب في الزرّ، فمن يضغط يعرف ما يشتري. */
+  serviceName: string;
   /** الإجماليّ شامل الضريبة — نصًّا كما تعرضه البطاقة فوقها. */
   total: string;
   addVehicleHref: string;
@@ -111,6 +114,14 @@ export function RequestService({
           </select>
         </label>
 
+        {/*
+          ═══ والموقع والموعد قسمٌ واحد — كما في التصميم ═══
+
+          كانا حقلين متجاورين بلا رابط، والتصميم يجمعهما تحت عنوانٍ
+          واحد: هما جوابُ سؤالٍ واحد — **أين يلقاك الفاحص ومتى**.
+        */}
+        <p className="mt-1 text-3xs font-bold tracking-wider opacity-45">الموقع والموعد</p>
+
         <label className="flex flex-col gap-1.5">
           <span className="text-3xs font-bold opacity-60">الموقع</span>
           <select
@@ -153,18 +164,27 @@ export function RequestService({
         كم يدفع في اللحظة نفسها — لا أن يرفع بصره إلى بطاقةٍ قرأها قبل
         دقيقة.
       */}
-      <Button className="w-full" disabled={pending} onClick={submit}>
-        {/*
-          **والصيغة لا يحكمها المعدود**: «٥١٧٫٥٠ ريالًا» تُصيب حالةً من
-          ستّ، و«(٥١٧٫٥٠ ر.س)» تصحّ في كلّها. وهي الصيغة نفسها التي
-          أُصلحت في رسائل الـToast.
-        */}
-        {pending ? 'جارٍ…' : `ادفع واطلب الخدمة (${total} ر.س)`}
-      </Button>
+      {/*
+        ═══ والمبلغ سطرٌ ثانٍ لا ذيلٌ على الأوّل ═══
 
-      <p className="mt-2.5 text-3xs leading-loose opacity-55">
-        يُحجز المبلغ على بطاقتك الآن، ولا يصل المزوّد قبل أن يُنجز الخدمة.
-      </p>
+        **والمبلغ على الزرّ لا فوقه وحده**: من يضغط «ادفع» يجب أن يرى
+        كم يدفع في اللحظة نفسها — لا أن يرفع بصره إلى بطاقةٍ قرأها
+        قبل دقيقة.
+
+        واسمُ الخدمة معه في سطرٍ واحد لا يتّسع لـ٣٧٥px: **قِيس فكان
+        عرض الصفحة ٤٠٣ على شاشة ٣٧٥**، وتمريرٌ أفقيّ على صفحةٍ كاملة
+        من زرٍّ واحد. و`Button` تمنع اللفّ (`whitespace-nowrap`) وهو
+        صحيحٌ لزرٍّ من كلمتين، و`cn` تَصِل الأصناف ولا تحلّ تعارضها —
+        فلا يُلغى بإضافة `whitespace-normal`.
+
+        فسطران صريحان: الفعل ثمّ المبلغ.
+      */}
+      <Button className="w-full" disabled={pending} onClick={submit}>
+        <span className="flex flex-col items-center gap-0.5 leading-tight">
+          <span>{pending ? 'جارٍ…' : `ادفع واطلب ${serviceName}`}</span>
+          {pending ? null : <span className="font-num text-3xs opacity-75">{total} ر.س</span>}
+        </span>
+      </Button>
 
       {toast === null ? null : <Toast title={toast} />}
     </>
