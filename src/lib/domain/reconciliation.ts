@@ -263,3 +263,80 @@ export async function runMismatches(
   if (row === null) return [];
   return Array.isArray(row.mismatches) ? (row.mismatches as unknown as Mismatch[]) : [];
 }
+
+/**
+ * ═══ المطابقة اليومية — الوظيفةُ التي لم تكن ═══
+ *
+ * `reconcileGateway` مبنيّةٌ ومختبَرة و`ReconciliationTable` تعرض
+ * نتائجها في شاشة المدفوعات — **ولا شيء يُشغّلها**. فالجدول فارغٌ
+ * أبدًا، ودفترُنا مرآةٌ لا تُقارَن بأصلٍ قطّ: كلُّ ما نعرفه أنه متّسقٌ
+ * مع نفسه.
+ *
+ * وتعليقُ سجلّ الوظائف نفسه كان يذكرها («فشلُ المطابقة لأن بوابةً لا
+ * تردّ يجب ألّا يمنع انتهاء العروض») — **كُتب احتياطًا لوظيفةٍ لم
+ * تُسجَّل**.
+ *
+ * ═══ وأمسِ لا اليوم ═══
+ *
+ * اليومُ لم ينتهِ، ومطابقتُه تُقارن نصف دفترٍ بنصف كشف فتُخرج فروقًا
+ * كاذبة كل ساعة. فاليوم المُطابَق هو المنصرم.
+ *
+ * ═══ وما طُوبق لا يُعاد ═══
+ *
+ * الصفّ فريدٌ بـ(البوابة، اليوم)، والإعادة تكتب فوقه. ومطابقةٌ
+ * «مختلفة» عالجها إنسانٌ ثمّ أعادتها وظيفةٌ إلى «مختلفة» تمحو عملَه
+ * — فما له صفٌّ يُتخطّى، وإعادتُه قرارٌ يدويّ.
+ */
+export async function reconcileYesterday(now: Date = new Date()): Promise<number> {
+  const yesterday = new Date(now.getTime() - 86_400_000);
+  const { from } = dayBounds(yesterday);
+
+  /**
+   * ═══ البوابات التي عملت ذلك اليوم — لا المفعَّلة اليوم ═══
+   *
+   * و`PaymentGateway.status` **لا يكتبه شيء بعد البذرة** (وهو عينُ
+   * ما أُصلح في `Integration`)، فالترشيح به يسأل بوابةً عن يومٍ لم
+   * تعمل فيه ويُغفل أخرى عملت ثمّ عُطّلت.
+   *
+   * والمجموعة التي تحتمل فرقًا هي التي مرّت بها دفعةٌ في ذلك اليوم —
+   * ويومَ تبديل التوجيه تكون البوابتان مسؤولتين معًا، فتُطابقان.
+   */
+  const active = await db.payment.groupBy({
+    by: ['gatewayKey'],
+    where: {
+      OR: [
+        { settledAt: { gte: from, lt: new Date(from.getTime() + 86_400_000) } },
+        {
+          status: { in: ['RETURNED', 'PARTIALLY_RETURNED'] },
+          createdAt: { gte: from, lt: new Date(from.getTime() + 86_400_000) },
+        },
+      ],
+    },
+  });
+  const gateways = active
+    .map((row) => row.gatewayKey)
+    .filter((key): key is string => key !== null)
+    .map((key) => ({ key }));
+
+  let done = 0;
+  for (const gateway of gateways) {
+    const existing = await db.reconciliationRun.findUnique({
+      where: { gatewayKey_date: { gatewayKey: gateway.key, date: from } },
+      select: { id: true },
+    });
+    if (existing !== null) continue;
+
+    /**
+     * **وواحدةٌ لا تُسقط الباقي.** بوابةٌ لا تردّ يجب ألّا تمنع
+     * مطابقة أختها — والتقرير يقول كم طُوبقت لا أنّ الجملة فشلت.
+     */
+    try {
+      await reconcileGateway(gateway.key, from, now);
+      done += 1;
+    } catch {
+      // الفشل مكتوبٌ في صفّ المطابقة نفسه حين يصل إليه، وإلّا فلا صفّ
+    }
+  }
+
+  return done;
+}

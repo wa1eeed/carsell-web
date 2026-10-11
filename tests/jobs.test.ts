@@ -25,6 +25,13 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
       'overdueTransfers',
       'overdueDisputes',
       'releaseConfirmedOrders',
+      /**
+       * **وآخرًا: المطابقة.** تقرأ ولا تكتب مالًا، وفشلُها (بوابةٌ لا
+       * تردّ) لا يؤخّر شيئًا. وكانت `reconcileGateway` مبنيّةً
+       * ومختبَرةً وجدولُها معروضًا في شاشة المدفوعات — **ولا شيء
+       * يُشغّلها**، فدفترُنا مرآةٌ لا تُقارَن بأصل.
+       */
+      'reconcileYesterday',
     ]);
     expect(run.failed).toBe(0);
     for (const outcome of run.outcomes) expect(outcome.ok).toBe(true);

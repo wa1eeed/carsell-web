@@ -5,6 +5,7 @@ import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
 import { settleableOrders } from '@/lib/domain/transfer-windows';
 import { settleOnTransferConfirmed } from '@/lib/domain/payments';
+import { reconcileYesterday } from '@/lib/domain/reconciliation';
 
 /**
  * ═══ الوظائف الزمنية — والمهلة التي لا تُنفَّذ ليست مهلة ═══
@@ -59,7 +60,23 @@ const JOBS: readonly Job[] = [
    * لم يقع — والصمت هنا لا يُكتشف إلا حين يسأل البائع.
    */
   { name: 'releaseConfirmedOrders', run: (now) => releaseConfirmedOrders(now) },
+  /**
+   * **وآخرًا: المطابقة.** تقرأ ولا تكتب مالًا، فموضعُها بعد كل ما
+   * يُحرّك مالًا — ومطابقةُ أمسِ لا تتأثّر بما يقع اليوم، لكنّ
+   * ترتيبَها آخرًا يجعل فشلَها (بوابةٌ لا تردّ) لا يؤخّر شيئًا.
+   *
+   * وكان تعليقُ هذا السجلّ يذكرها قبل أن تُسجَّل فيه.
+   */
+  { name: 'reconcileYesterday', run: (now) => reconcileYesterday(now) },
 ];
+
+/**
+ * أسماءُ الوظائف المسجَّلة — **يقرؤها اختبارٌ لا شاشة**.
+ *
+ * فدالّةٌ زمنيةٌ مبنيّةٌ ولا تُسجَّل هنا لا تعمل أبدًا، ولا يقول شيءٌ
+ * إنها لا تعمل: المهلة تُعرض والقاعدة مكتوبة والتغطية خضراء.
+ */
+export const JOB_NAMES: readonly string[] = JOBS.map((job) => job.name);
 
 /**
  * يُفرج عن كل طلبٍ نُقلت ملكيته ومالُه محجوز.

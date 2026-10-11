@@ -90,3 +90,58 @@ describe('المطابقة اليومية — دفترُنا مرآة', () => {
     }
   });
 });
+
+describe('المطابقة اليومية — الوظيفةُ التي لم تكن', () => {
+  /**
+   * ═══ مرآةٌ لا تُقارَن بأصلٍ قطّ ═══
+   *
+   * `reconcileGateway` مبنيّةٌ ومختبَرة، و`ReconciliationTable` تعرض
+   * نتائجها في شاشة المدفوعات — **ولا شيء يُشغّلها**. فالجدول فارغٌ
+   * أبدًا، وكلُّ ما نعرفه أن دفترنا متّسقٌ مع نفسه.
+   *
+   * وتعليقُ سجلّ الوظائف كان يذكرها قبل أن تُسجَّل فيه.
+   */
+  it('مُسجَّلة في سجلّ الوظائف الزمنية', async () => {
+    const { JOB_NAMES } = await import('@/lib/jobs/run');
+    expect(JOB_NAMES).toContain('reconcileYesterday');
+  });
+
+  it('وتُطابق أمسِ لا اليوم', async () => {
+    /**
+     * **اليومُ لم ينتهِ**، ومطابقتُه تُقارن نصف دفترٍ بنصف كشف فتُخرج
+     * فروقًا كاذبة كل ساعة.
+     */
+    const { reconcileYesterday } = await import('@/lib/domain/reconciliation');
+    const now = new Date();
+    await reconcileYesterday(now);
+
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const onToday = await db.reconciliationRun.count({ where: { date: today } });
+    expect(onToday).toBe(0);
+  });
+
+  it('وما طُوبق لا يُعاد — فلا يُمحى عملُ من عالج فرقًا', async () => {
+    const { reconcileYesterday } = await import('@/lib/domain/reconciliation');
+    const now = new Date();
+    const yesterday = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - 86_400_000,
+    );
+
+    const planted = await db.reconciliationRun.upsert({
+      where: { gatewayKey_date: { gatewayKey: 'sandbox', date: yesterday } },
+      create: {
+        gatewayKey: 'sandbox', date: yesterday,
+        ourTotal: '0', diff: '0', status: 'DIFFERS',
+        note: 'عالجها إنسان',
+      },
+      update: { note: 'عالجها إنسان', status: 'DIFFERS' },
+    });
+
+    await reconcileYesterday(now);
+
+    const after = await db.reconciliationRun.findUniqueOrThrow({ where: { id: planted.id } });
+    expect(after.note).toBe('عالجها إنسان');
+
+    await db.reconciliationRun.delete({ where: { id: planted.id } });
+  });
+});
