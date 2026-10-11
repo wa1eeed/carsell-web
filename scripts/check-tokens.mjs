@@ -1254,8 +1254,29 @@ function checkFunctionPropsAcrossBoundary() {
 
       while ((match = open.exec(source)) !== null) {
         // جسم العنصر حتى إغلاق وسمه الافتتاحيّ
+        /**
+         * ═══ نهاية الوسم الافتتاحيّ — بعدّ الأقواس لا بسطرٍ جديد ═══
+         *
+         * كان البحث عن سطرٍ جديد يتلوه شَرطةُ إغلاق، **فوسمٌ يُغلق في
+         * سطره** مثل `<Countdown endsAt={x} /` + `>` لا يُطابقه — فيمتدّ إلى
+         * أوّل `/>` بعده مهما بعد، ويبتلع ما ليس منه. وأطلقت البوابة
+         * على `Countdown` **لأن سهمًا في كتلةٍ تالية وقع داخل المدى**.
+         *
+         * فيُمشى الحرفُ حرفًا: `>` على عمق صفرٍ من `{}` هو النهاية،
+         * وما داخل الأقواس لا يُحسب.
+         */
         const rest = source.slice(match.index);
-        const end = rest.search(/\n\s*\/?>/);
+        let depth = 0;
+        let end = -1;
+        for (let at = 0; at < rest.length && at < 6000; at += 1) {
+          const ch = rest[at];
+          if (ch === '{') depth += 1;
+          else if (ch === '}') depth -= 1;
+          else if (ch === '>' && depth === 0) {
+            end = at;
+            break;
+          }
+        }
         const body = end === -1 ? rest.slice(0, 4000) : rest.slice(0, end);
 
         if (/=\{[^}]*=>/.test(body) || /\bcell:\s*\(/.test(body) || /\browKey=\{/.test(body)) {

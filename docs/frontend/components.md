@@ -325,3 +325,39 @@ The route's error branch was ten nested ternaries ending in "unknown brand or
 model" as the fallback, so every new failure reason would be **born with the
 wrong message**. It is a `Record<PublishFailure, …>` now: a missing message is a
 type error, not a sentence shown to a seller.
+
+
+## `MobileNav` — the drawer, and which side it opens from (task 101)
+
+Five nav links do not fit 375px. They were a horizontally scrolling row with
+`no-scrollbar`, so the last one ("Services") sat off-screen reachable only by a
+swipe **with nothing to suggest it** — no arrow, no fade, no visible scrollbar.
+
+On mobile the row is replaced by a drawer. Two things decide its side:
+
+| | Arabic (RTL) | English (LTR) |
+|---|---|---|
+| Menu button | right | left |
+| Drawer opens from | right | left |
+
+Both are the thumb side, and keeping them together means the gesture does not
+cross the whole screen.
+
+**`start-0`, not `end-0`.** The inline axis reverses with direction: in RTL
+`inline-start` is the **right** edge. Writing `end-0` first put the Arabic
+drawer on the left — the opposite of what was wanted. The button needs no
+variant at all: it is simply first in the flex row, and flex follows `dir`.
+
+**`translate-x` does not reverse.** It is a visual axis, so the closed state
+needs `rtl:translate-x-full ltr:-translate-x-full` to push the panel out through
+the edge it sits on.
+
+The drawer lives inside a `fixed inset-0 overflow-hidden pointer-events-none`
+container so the closed, off-canvas panel cannot widen the page — a real
+behaviour in browsers, though **not** the cause of the 95px overflow that first
+sent me looking: that was the preview pane's size emulation, which reported the
+same figure on a page with no drawer at all.
+
+It also carries `LocaleSwitcher`, which had been written and wired to **nothing**:
+before this, a visitor who opened the site in Arabic could reach English only by
+editing the URL.

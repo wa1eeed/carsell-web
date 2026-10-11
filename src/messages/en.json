@@ -308,7 +308,9 @@
     "browseByBodyType": "Browse by body type",
     "popular": "Popular",
     "under": "Under",
-    "thousandRiyal": "thousand SAR"
+    "thousandRiyal": "thousand SAR",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
   },
   "dev": {
     "title": "Component library",

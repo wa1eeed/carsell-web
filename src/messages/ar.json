@@ -308,7 +308,9 @@
     "browseByBodyType": "تصفّح حسب نوع الهيكل",
     "popular": "شائع",
     "under": "أقل من",
-    "thousandRiyal": "ألف ريال"
+    "thousandRiyal": "ألف ريال",
+    "menu": "القائمة",
+    "closeMenu": "أغلق القائمة"
   },
   "dev": {
     "title": "مكتبة المكوّنات",

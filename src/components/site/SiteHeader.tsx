@@ -1,9 +1,11 @@
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Countdown } from '@/components/ui/Countdown';
 import { Link } from '@/i18n/navigation';
 import { AccountNav } from './AccountNav';
+import { MobileNav } from './MobileNav';
+import type { Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
 const NAV = [
@@ -33,8 +35,19 @@ export function LiveBar({
   if (liveAuctions === 0) return null;
 
   return (
-    <div className="flex items-center gap-5 bg-ink px-10 py-3 text-sm font-medium text-bg">
-      <span className="flex items-center gap-2">
+    /*
+      ═══ والشريط يضيق فيُسقط ما يُستغنى عنه ═══
+
+      **ثلاثُ معلوماتٍ في عرض ٣٧٥ لا تتّسع**: العدّ، وأقربُ إغلاقٍ
+      باسمه وعدّاده، والمدينة. فكانت تتزاحم وتُقتطع — والعدّاد نفسه
+      يُقصّ، وهو أعجلُها.
+
+      فالترتيب بما يُفقَد أوّلًا: **المدينة** (معلومةُ سياقٍ لا فعل)
+      ثم **اسم المركبة** (العدّاد يكفي للإلحاح). والعدّ والعدّاد يبقيان
+      في كل عرض.
+    */
+    <div className="flex items-center gap-3 bg-ink px-4 py-2.5 text-2xs font-medium text-bg sm:gap-5 sm:px-10 sm:py-3 sm:text-sm">
+      <span className="flex shrink-0 items-center gap-2">
         <span className="size-1.5 animate-pulse rounded-full bg-warn-400" aria-hidden />
         <ArabicNumber value={liveAuctions} />
         <span>{t('liveAuctions')}</span>
@@ -42,19 +55,20 @@ export function LiveBar({
 
       {closingTitle !== undefined && closingAt !== undefined ? (
         <>
-          <span className="opacity-30" aria-hidden>
+          <span className="hidden opacity-30 sm:inline" aria-hidden>
             |
           </span>
-          <span className="flex items-center gap-2 opacity-72">
-            <span>{t('closingSoon')}</span>
-            <span className="bidi-isolate">{closingTitle}</span>
-            <Countdown endsAt={closingAt} tone="plain" />
+          <span className="flex min-w-0 items-center gap-2 opacity-72">
+            <span className="hidden shrink-0 sm:inline">{t('closingSoon')}</span>
+            {/* الاسم يُقتطع ولا يدفع العدّاد خارج الشاشة */}
+            <span className="bidi-isolate hidden truncate md:inline">{closingTitle}</span>
+            <Countdown endsAt={closingAt} tone="plain" className="shrink-0" />
           </span>
         </>
       ) : null}
 
       <span className="flex-1" />
-      <span className="bidi-isolate opacity-72">{city}</span>
+      <span className="bidi-isolate hidden shrink-0 opacity-72 sm:inline">{city}</span>
     </div>
   );
 }
@@ -73,6 +87,8 @@ export function SiteHeader({
   actions?: ReactNode;
 }) {
   const t = useTranslations('site');
+  const locale = useLocale() as Locale;
+  const other: Locale = locale === 'ar' ? 'en' : 'ar';
 
   return (
     /*
@@ -91,6 +107,30 @@ export function SiteHeader({
     */
     <header className="flex flex-col gap-3 border-b border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:gap-6 sm:px-10 sm:py-4">
       <div className="flex items-center justify-between gap-4 sm:contents">
+        {/*
+          ═══ وزرّ القائمة في جهة البدء ═══
+
+          **يمينٌ بالعربية ويسارٌ بالإنجليزية** — وهي جهة الإبهام في
+          كلٍّ منهما، والجهة التي يُفتح منها الدرج. وزرٌّ في جهةٍ ودرجٌ
+          في أخرى يجعل الحركة تعبر الشاشة كلَّها.
+
+          والترتيب في الشيفرة هو الترتيب على الشاشة في كلتا اللغتين:
+          `flex` يتبع `dir` وحده، فلا شرطَ ولا متغيّرَ اتّجاه.
+        */}
+        <MobileNav
+          items={NAV.map((item) => ({
+            key: item.key,
+            href: item.href,
+            label: t(`nav.${item.key}`),
+          }))}
+          active={active}
+          locale={locale}
+          otherLocale={other}
+          otherLabel={other === 'en' ? 'English' : 'العربية'}
+          menuLabel={t('menu')}
+          closeLabel={t('closeMenu')}
+        />
+
         <Link
           href="/"
           className="font-body-en shrink-0 text-xl font-extrabold tracking-tight sm:text-2xl"
@@ -110,7 +150,15 @@ export function SiteHeader({
         </span>
       </div>
 
-      <nav className="no-scrollbar -mx-4 flex gap-5 overflow-x-auto px-4 text-base font-semibold whitespace-nowrap sm:mx-0 sm:flex-1 sm:px-0">
+      {/*
+        ═══ وعلى الهاتف درجٌ لا صفٌّ يُمرَّر ═══
+
+        **خمسةُ روابط في عرض ٣٧٥ لا تتّسع**، فآخرها خارج الشاشة —
+        يُبلَغ بسحبٍ أفقيّ لا أثر له يدلّ عليه: لا سهم ولا تدرّج،
+        والشريط مخفيّ. فمن لا يعرف أنه يُسحب لا يصل إليه.
+        (وكان أوّلُ إصلاحٍ للفيض قد حذف المِلاحة كلَّها، فسُجّل.)
+      */}
+      <nav className="no-scrollbar -mx-4 hidden gap-5 overflow-x-auto px-4 text-base font-semibold whitespace-nowrap sm:mx-0 sm:flex sm:flex-1 sm:px-0">
         {NAV.map((item) => (
           <Link
             key={item.key}
