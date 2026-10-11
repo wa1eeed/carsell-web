@@ -155,6 +155,61 @@ export default async function CarsPage({
     .map((chip) => String(chip.field));
 
   /**
+   * ═══ ما تحت النتائج — وصفُ البحث وأشقّاؤه ═══
+   *
+   * **ولا استعلام جديد.** الوجوه (`facets`) محسوبةٌ أصلًا لكل بُعد
+   * **ضمن بقيّة الفلاتر ومن دون البُعد نفسه** — وهو بالضبط معنى
+   * «الشقيق»: المدن الأخرى لهذا الموديل، والماركات الأخرى في هذه
+   * المدينة. فما يُعرض له نتائج بالضرورة.
+   *
+   * وصفحةُ الهبوط علّمتنا ثمن غير ذلك: رابطٌ نشرتَه بنفسك ثمّ أمَتَّه.
+   */
+  const scopeParts = [
+    filters.modelId === null ? null : (names[filters.modelId] ?? null),
+    filters.modelId === null && filters.brandId !== null
+      ? (names[filters.brandId] ?? null)
+      : null,
+    filters.city === null ? null : `في ${filters.city}`,
+  ].filter((part): part is string => typeof part === 'string' && part !== '');
+
+  const siblingLink = (patch: Record<string, string>): string => {
+    const next = new URLSearchParams(serializeFilters(filters));
+    next.delete('page');
+    for (const [key, value] of Object.entries(patch)) next.set(key, value);
+    return `/${locale}/cars?${next.toString()}`;
+  };
+
+  const siblings = [
+    // مدنٌ أخرى لهذا البحث — الأكثر عرضًا أوّلًا
+    ...Object.entries(result.facets.city)
+      .filter(([city, count]) => city !== filters.city && count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([city, count]) => ({
+        label: [scopeParts[0] ?? 'سيارات', 'في', city].join(' '),
+        href: siblingLink({ city }),
+        count,
+      })),
+    // وماركاتٌ أخرى بالفلاتر نفسها
+    ...Object.entries(result.facets.brandId)
+      .filter(([brandId, count]) => brandId !== filters.brandId && count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([brandId, count]) => ({
+        label: [names[brandId] ?? '', filters.city === null ? '' : `في ${filters.city}`]
+          .filter((part) => part !== '')
+          .join(' '),
+        href: siblingLink({ brandId }),
+        count,
+      })),
+  ].filter((row) => row.label.trim() !== '');
+
+  const about = {
+    scope: scopeParts.length === 0 ? null : scopeParts.join(' '),
+    siblings,
+  };
+
+  /**
    * حذفُ الشارة **رابطٌ لا حالةُ عميل**: ينزع الفلتر ويسجّل الحقل في
    * `-` كي لا تعيده الجملة. فيعمل قبل وصول الحزمة، ورابطُه يُشارَك.
    */
@@ -202,6 +257,7 @@ export default async function CarsPage({
 
           <SearchScreen
             ads={ads}
+            about={about}
             filters={filters}
             result={result}
             brands={brands}

@@ -12,6 +12,7 @@ import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Chip } from '@/components/ui/Chip';
 import { SaveSearchButton } from '@/components/site/SaveSearchButton';
 import { SponsoredCard } from '@/components/site/SponsoredCard';
+import { SearchAbout, type SearchSibling } from '@/components/site/SearchAbout';
 import { SPONSORED_AFTER } from '@/lib/domain/ad-rules';
 import type { ServedAd } from '@/lib/domain/ad-rules';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -48,6 +49,7 @@ export function SearchScreen({
   savedAlready,
   locale,
   ads,
+  about,
 }: {
   filters: Filters;
   result: SearchResult;
@@ -60,6 +62,8 @@ export function SearchScreen({
   fromQuery: readonly string[];
   /** حملاتٌ صالحة لهذا البحث — فارغةٌ حين لا حملة، وهي الحال اليوم */
   ads: readonly ServedAd[];
+  /** ما تحت النتائج: وصفُ البحث وأشقّاؤه — وكلاهما من الوجوه بلا استعلام */
+  about: { scope: string | null; siblings: readonly SearchSibling[] };
   signedIn: boolean;
   savedAlready: boolean;
   locale: string;
@@ -602,6 +606,20 @@ export function SearchScreen({
             ))}
           </nav>
         )}
+
+        {/*
+          ═══ وما تحت النتائج — Wb ═══
+
+          التصميم يُنهي الصفحة بعنوانٍ عن أسعار ما بحثتَ عنه، وفقرةٍ
+          تصفُه، وبحوثٍ ذات صلة. **ولم يكن تحتها شيء** — ومن وصل آخر
+          الصفحة ولم يجد مركبته إمّا أن يخرج أو يجد أين يذهب.
+        */}
+        <SearchAbout
+          total={result.total}
+          priceRange={result.priceRange}
+          scope={about.scope}
+          siblings={about.siblings}
+        />
 
         {/*
           **سطرُ تطويرٍ كان يُعرض للزائر**: الرابط الخام أسفل النتائج
