@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import { staticSecurityHeaders } from './src/lib/security/headers';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -25,6 +26,18 @@ const nextConfig: NextConfig = {
   // بوابة الجودة (القسم ١٤): لا يُبنى شيء وفيه خطأ نوع أو تحذير لينت
   eslint: { ignoreDuringBuilds: false },
   typescript: { ignoreBuildErrors: false },
+
+  /**
+   * ═══ رؤوس الأمان — على كل مسار ═══
+   *
+   * **والوسيط لا يكفي**: `matcher` فيه يستثني `/api` و`/admin`
+   * و`/_next` — وهي أخطر ما في المنتج (الـAPI يحمل المال، واللوحة
+   * تحمل الصلاحيات). فالثابت هنا ليشمل كل شيء، والمتغيّر (الـnonce)
+   * في الوسيط.
+   */
+  async headers() {
+    return [{ source: '/:path*', headers: staticSecurityHeaders() }];
+  },
 };
 
 export default withNextIntl(nextConfig);

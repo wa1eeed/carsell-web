@@ -56,3 +56,26 @@ nothing about the system.
 
 A hosted error tracker (Sentry or equivalent). It needs an account and a DSN.
 The interface above is what it plugs into; nothing else changes.
+
+## Security headers
+
+Defined once in `src/lib/security/headers.ts`; see
+[ADR 0002](../architecture/adr/0002-security-headers.md) for the reasoning.
+
+Verify on a running environment:
+
+```bash
+curl -sD- -o /dev/null https://carsell.one/ar | grep -iE '^(content-security|x-|referrer|cross-origin|strict-)'
+```
+
+Expected on production: `Content-Security-Policy` carrying a `nonce-…` that
+**changes on every request**, plus `X-Content-Type-Options`, `X-Frame-Options`,
+`Referrer-Policy`, `Permissions-Policy`, both `Cross-Origin-*` headers, and
+`Strict-Transport-Security`.
+
+A fixed nonce across two requests means the middleware is being bypassed —
+usually a path that stopped matching `config.matcher`.
+
+`Strict-Transport-Security` is absent outside production **by design**: it is
+gated on `APP_ENV`, and sending it from a local host disables plain
+`http://localhost` for every project on that machine.
