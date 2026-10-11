@@ -31,6 +31,15 @@ const TEST_LISTING_REF = /^[A-Z]{3}\d{9,}$/;
 const TEST_ORDER_REF = /^ORD-(TST|RPT)-/;
 const TEST_SERVICE_REF = /^SRV-[A-Z]-/;
 
+/**
+ * ═══ وحملات الإعلان تتسرّب مثلها ═══
+ *
+ * اسم المعلن في الاختبار «معلن ‹طابع زمنيّ›» — والحقيقيّ اسمُ شركة.
+ * وحملةٌ متسرّبة تُعرض في نتائج البحث للزائر **وتَعُدّ ظهورًا**، أي
+ * تُفسد بندَ إيرادٍ لا عدّادَ عرضٍ فحسب.
+ */
+const TEST_ADVERTISER = /\d{9,}/;
+
 export default async function globalSetup(): Promise<void> {
   // `globalSetup` يسبق `setupFiles` — فالبيئة تُحمَّل هنا أيضًا لا هناك وحدها
   try {
@@ -67,6 +76,15 @@ export default async function globalSetup(): Promise<void> {
   }
   if (stalePending.count > 0) {
     console.log(`  نُظّف ${String(stalePending.count)} طلب موافقة معلّق من تحقّق سابق`);
+  }
+
+  const campaigns = await db.adCampaign.findMany({ select: { id: true, advertiserName: true } });
+  const staleAds = campaigns.filter((row) => TEST_ADVERTISER.test(row.advertiserName));
+  if (staleAds.length > 0) {
+    const ids = staleAds.map((row) => row.id);
+    await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
+    await db.adCampaign.deleteMany({ where: { id: { in: ids } } });
+    console.log(`  نُظّفت ${String(staleAds.length)} حملة إعلان من تشغيلات سابقة`);
   }
 
   /**

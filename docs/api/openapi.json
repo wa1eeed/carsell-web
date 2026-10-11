@@ -343,6 +343,100 @@
         }
       }
     },
+    "/api/v1/admin/ads/campaigns": {
+      "post": {
+        "summary": "POST /api/v1/admin/ads/campaigns",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "advertiserName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "slotKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "creativeUrl": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "targetUrl": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "endsAt": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "budget": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "city": {
+                    "type": "string",
+                    "maxLength": 60,
+                    "nullable": true
+                  },
+                  "brandId": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "advertiserName",
+                  "slotKey",
+                  "creativeUrl",
+                  "targetUrl",
+                  "startsAt",
+                  "endsAt",
+                  "budget"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/auction-settings": {
       "put": {
         "summary": "PUT /api/v1/admin/auction-settings",
@@ -3878,6 +3972,64 @@
           }
         ],
         "x-permission": "wallet.adjust",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/ads/{id}/click": {
+      "get": {
+        "summary": "GET /api/v1/ads/{id}/click",
+        "tags": [
+          "ads"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/ads/{id}/impression": {
+      "post": {
+        "summary": "POST /api/v1/ads/{id}/impression",
+        "tags": [
+          "ads"
+        ],
         "parameters": [
           {
             "name": "id",

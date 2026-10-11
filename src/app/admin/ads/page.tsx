@@ -14,6 +14,7 @@ import {
 } from '@/lib/domain/ad-rules';
 import { toArabicDigits } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
+import { NewCampaign } from './NewCampaign';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'مساحات الإعلانات والحملات' };
@@ -30,11 +31,12 @@ const riyadh = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
  * شاشتان في التصميم ومصدرهما واحد: المساحة وحملاتها. وفصلُهما يجعل من
  * يعطّل مساحةً لا يرى ما سيوقفه — فالحملات تحت المساحات في صفحةٍ واحدة.
  *
- * ═══ ولا يُعرض إعلانٌ في المنتج بعد ═══
+ * ═══ وصار يُعرض — المهمّة ١٢٢ ═══
  *
- * لا مسار يقرأ `AdSlot` ولا `AdCampaign` خارج هذه الشاشة. والشاشة تقول
- * ذلك صراحةً: أرقامُها **إعدادٌ لا أداء**، وقولُها «يُفرَض في الخادم»
- * قبل أن يوجد خادمٌ يفرضه وعدٌ مُخلَف.
+ * كان لا مسار يقرأ `AdSlot` ولا `AdCampaign` خارج هذه الشاشة، والشاشة
+ * تقول ذلك صراحةً. وصارت `search_inline` تُقرأ في نتائج البحث،
+ * و`ADS_SERVED` قُلبت في الالتزام نفسه — فسطرُ «لا يُعرض إعلان» يختفي
+ * من تلقائه، ولا يبقى نصٌّ يصف حالًا مضت.
  */
 /** شرائح A31 — والمرحلة من التاريخين والحالة، لا من راية وحدها. */
 const PHASES = [
@@ -105,7 +107,13 @@ export default async function AdminAdsPage({
             title: 'السقف في جلسة الرئيسية',
             value: stats.sessionCap,
             // **ولا يُقال «يُفرَض في الخادم» قبل أن يوجد خادمٌ يفرضه.**
-            note: stats.served ? 'يُفرَض في الخادم' : 'قاعدة — ولا مسار عرضٍ بعد',
+            /**
+             * **والسقف سقفُ الرئيسية وحدها.** قُلبت `ADS_SERVED`
+             * حين بُني عرضُ نتائج البحث، فصارت هذه تقول «يُفرَض في
+             * الخادم» — ولا إعلان في الرئيسية أصلًا. ورايةٌ واحدة
+             * لسطوحٍ متعدّدة تجعل أوّل سطحٍ يُبنى يَعِد عن البقيّة.
+             */
+            note: stats.homeServed ? 'يُفرَض في الخادم' : 'قاعدة — ولا إعلان في الرئيسية بعد',
           },
           {
             title: 'إجمالي الحملات',
@@ -124,12 +132,21 @@ export default async function AdminAdsPage({
         </p>
       )}
 
-      <h2 className="mt-10 mb-3.5 text-sm font-bold">الحملات المموّلة</h2>
+      <div className="mt-10 mb-3.5 flex items-center justify-between gap-4">
+        <h2 className="text-sm font-bold">الحملات المموّلة</h2>
+        {/*
+          **والزرّ هو ما كان ناقصًا.** الجدول يقرأ `AdCampaign` ولا
+          شيء يكتبه — فجدولٌ فارغ يُقرأ «لا حملات الآن» وصوابُه «لا
+          سبيل إلى حملة».
+        */}
+        {writable ? <NewCampaign slots={slots} /> : null}
+      </div>
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/ads" param="phase" />
 
       {campaigns.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
-          لا حملات. والحملة تُنشأ بعقدٍ مع المعلن، وتظهر هنا بمدّتها وأدائها.
+          لا حملات بعد. و«حملة جديدة» أعلاه تُنشئ واحدة — وتظهر في نتائج البحث بعد
+          السادسة متى حلّ تاريخ بدئها.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-line">

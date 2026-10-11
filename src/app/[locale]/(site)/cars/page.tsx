@@ -23,6 +23,7 @@ import { understand } from '@/lib/domain/query-vocabulary';
 import type { Chip } from '@/lib/domain/query-parse';
 import { QueryUnderstanding } from '@/components/site/QueryUnderstanding';
 import { SearchHeading } from './SearchHeading';
+import { adsFor } from '@/lib/domain/ads';
 import { SearchScreen } from './SearchScreen';
 
 export const dynamic = 'force-dynamic';
@@ -111,6 +112,21 @@ export default async function CarsPage({
   const models = await listModelOptions(filters.brandId);
 
   /**
+   * ═══ المموّل — والاستهداف من هذا البحث نفسه ═══
+   *
+   * `search_inline` مزروعةٌ بسعرها وموضعها («بعد كل ٦ نتائج») منذ
+   * البذرة، و`admin-finance` يجمع منها إيرادًا — **ولم يكن أحد
+   * يقرؤها خارج لوحة الأدمن**. فبندُ إيرادٍ كامل لا يمكن أن يوجد.
+   *
+   * ومرشّحا البحث يُمرَّران استهدافًا: من يبحث عن تويوتا في الرياض
+   * يرى حملة تويوتا الرياض إن وُجدت، ولا يراها من يبحث في جدة.
+   */
+  const ads = await adsFor('search_inline', {
+    city: filters.city ?? null,
+    brandId: filters.brandId ?? null,
+  });
+
+  /**
    * **والزرّ يقول حالَه قبل الضغط.** «احفظ» على بحثٍ محفوظٍ أصلًا
    * يَعِد بما وقع، فيضغطه صاحبه فيُقال له «مكرّر» — وهو لم يخطئ.
    */
@@ -185,6 +201,7 @@ export default async function CarsPage({
           />
 
           <SearchScreen
+            ads={ads}
             filters={filters}
             result={result}
             brands={brands}

@@ -4,13 +4,16 @@ import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Button } from '@/components/ui/Button';
 import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Chip } from '@/components/ui/Chip';
 import { SaveSearchButton } from '@/components/site/SaveSearchButton';
+import { SponsoredCard } from '@/components/site/SponsoredCard';
+import { SPONSORED_AFTER } from '@/lib/domain/ad-rules';
+import type { ServedAd } from '@/lib/domain/ad-rules';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { RANGE_MIN_SAMPLE } from '@/components/ui/RangeBar';
@@ -44,6 +47,7 @@ export function SearchScreen({
   signedIn,
   savedAlready,
   locale,
+  ads,
 }: {
   filters: Filters;
   result: SearchResult;
@@ -54,12 +58,15 @@ export function SearchScreen({
   query: string;
   /** حقولٌ فسّرها شريط الجملة — فلا تُعرض شارتها ثانيةً */
   fromQuery: readonly string[];
+  /** حملاتٌ صالحة لهذا البحث — فارغةٌ حين لا حملة، وهي الحال اليوم */
+  ads: readonly ServedAd[];
   signedIn: boolean;
   savedAlready: boolean;
   locale: string;
 }) {
   const t = useTranslations('search');
   const te = useTranslations('enums');
+  const tu = useTranslations('ui');
   const router = useRouter();
   const params = useSearchParams();
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -549,10 +556,23 @@ export function SearchScreen({
               كانت تلفّ بطاقاتها منذ البداية، فبقي العطل في الشاشة التي
               يصلها أكثر الناس.
             */}
-            {result.items.map((item) => (
-              <Link key={item.ref} href={item.href}>
-                <CarCard data={toCard(item)} />
-              </Link>
+            {result.items.map((item, index) => (
+              <Fragment key={item.ref}>
+                <Link href={item.href}>
+                  <CarCard data={toCard(item)} />
+                </Link>
+                {/*
+                  **والمموّل بين البطاقات لا فوقها.** المساحة
+                  `search_inline` موضعُها المكتوب «بعد كل ٦ نتائج»،
+                  وعرضُه في الصدر يجعل أوّل ما يراه الباحث إعلانًا.
+
+                  ولا يُعرض في صفحةٍ أقصر من موضعه: بطاقتان ثمّ إعلان
+                  نسبةٌ أخرى غير التي بِيعت.
+                */}
+                {index + 1 !== SPONSORED_AFTER || ads.length === 0 ? null : (
+                  <SponsoredCard ad={ads[0] as ServedAd} label={tu('sponsored')} />
+                )}
+              </Fragment>
             ))}
           </div>
         ) : (

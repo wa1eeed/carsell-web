@@ -1,6 +1,6 @@
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
-import { ADS_SERVED, HOME_SESSION_AD_CAP } from './ad-rules';
+import { ADS_SERVED, HOME_ADS_SERVED, HOME_SESSION_AD_CAP } from './ad-rules';
 import { commissionFrom } from './order-amounts';
 
 /**
@@ -283,6 +283,8 @@ export type AdStats = {
   liveCampaigns: number;
   /** هل يعرض المنتجُ إعلانًا أصلًا — والجواب اليوم لا */
   served: boolean;
+  /** والرئيسية سطحٌ آخر — سقفُها لا يفرضه شيء بعد */
+  homeServed: boolean;
 };
 
 export async function adSlots(now: Date = new Date()): Promise<AdSlotRow[]> {
@@ -331,6 +333,7 @@ export async function adStats(now: Date = new Date()): Promise<AdStats> {
     sessionCap: HOME_SESSION_AD_CAP,
     liveCampaigns: live,
     served: ADS_SERVED,
+    homeServed: HOME_ADS_SERVED,
   };
 }
 
