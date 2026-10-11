@@ -13,6 +13,7 @@ import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { Gallery } from '@/components/ui/Gallery';
+import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
 import { AuctionTerms, BidLogStats, BidStatus, BidStep } from '@/components/site/AuctionSections';
 import type { PublicAuction, ViewerStanding } from '@/lib/domain/auctions';
@@ -71,6 +72,9 @@ export function CarPage({
   standing: ViewerStanding | null;
 }) {
   const t = useTranslations('ui');
+  /** `null` للمعروض — وما عداه مغلقٌ للشراء وإن بقي معروضًا للقراءة. */
+  const closed: 'RESERVED' | 'SOLD' | null =
+    detail.status === 'RESERVED' || detail.status === 'SOLD' ? detail.status : null;
   const te = useTranslations('enums');
   const [tab, setTab] = useState('specs');
   const vehicle = detail.vehicle;
@@ -237,8 +241,33 @@ export function CarPage({
 
         <div className="w-full lg:col-start-2 lg:row-start-1 lg:row-span-2">
           <div className="flex flex-col gap-3.5 lg:sticky lg:top-4">
+            {/*
+              ═══ المحجوز والمباع يُقالان قبل كل شيء ═══
+
+              **وصفحةٌ تعرض مركبةً مباعة بزرّ «اشترِ الآن» تَعِد بما لا
+              يقع**: المشتري يضغط فيردّ الخادم، فيظنّ أن العطل فيه.
+              فتُقال الحال أوّلًا ويُسحب الزرّ — ولا يُترك معطَّلًا:
+              زرٌّ رماديّ يُغري بالمحاولة ويصمت عن السبب.
+            */}
+            {closed === null ? null : (
+              <section
+                className={cn(
+                  'rounded-xl border-2 p-5',
+                  closed === 'SOLD' ? 'border-line' : 'border-ink',
+                )}
+              >
+                <h2 className="mb-1.5 text-sm font-bold">
+                  {closed === 'SOLD' ? t('soldTitle') : t('reservedTitle')}
+                </h2>
+                <p className="text-2xs leading-loose opacity-65">
+                  {closed === 'SOLD' ? t('soldBody') : t('reservedBody')}
+                </p>
+              </section>
+            )}
+
             <BuyColumn
               actions={
+                closed !== null ? null : (
                 <BuyActions
                   listingRef={detail.ref}
                   price={Number(detail.askPrice)}
@@ -249,6 +278,7 @@ export function CarPage({
                   locale={locale}
                   taxProfile={viewer.taxProfile}
                 />
+                )
               }
               footer={
                 /*

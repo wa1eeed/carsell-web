@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
-import { canonicalPath, faqForListing, findListingForMetadata, findPublishedListing, fromSlug, hasLiveOrder, similarListings, toPublicDetail, type PublicListingDetail } from '@/lib/domain/listing-detail';
+import { canonicalPath, faqForListing, findListingForMetadata, findViewableListing, fromSlug, hasLiveOrder, similarListings, toPublicDetail, type PublicListingDetail } from '@/lib/domain/listing-detail';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
@@ -54,7 +54,11 @@ async function resolve(params: Params) {
   const ref = parts.length === 1 ? parts[0] : parts.length === 4 ? parts[3] : null;
   if (ref === undefined || ref === null) notFound();
 
-  const row = await findPublishedListing(ref);
+  /**
+   * **والمحجوز والمباع يُعرضان**: صفحتُهما كانت ٤٠٤، فمن دفع للتوّ
+   * لا يستطيع فتح صفحة ما اشترى، وكل رابطٍ مفهرس يموت عند أوّل بيع.
+   */
+  const row = await findViewableListing(ref);
   if (row === null) notFound();
 
   const canonical = canonicalPath(locale, row);

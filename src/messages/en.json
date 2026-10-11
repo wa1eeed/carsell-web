@@ -164,7 +164,11 @@
     "noReport": "No inspection report",
     "noReportBody": "This vehicle has not been inspected. Order an inspection from the services directory.",
     "breadcrumb": "Breadcrumb",
-    "stateColumn": "Status"
+    "stateColumn": "Status",
+    "reservedTitle": "Reserved by an open order",
+    "reservedBody": "Another buyer has an order in progress. If it does not complete, it returns to the market — add it to your favourites to be told.",
+    "soldTitle": "Sold",
+    "soldBody": "This sale completed and ownership transferred. The page stays for the record — similar vehicles are listed below."
   },
   "site": {
     "liveAuctions": "live auctions",

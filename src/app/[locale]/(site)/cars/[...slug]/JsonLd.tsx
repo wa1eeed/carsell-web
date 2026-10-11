@@ -12,6 +12,16 @@ import { APP_URL } from '@/lib/env';
  * والأرقام هنا **لاتينية عمدًا**: هذا حقل آلة لا نصّ قارئ، و
  * schema.org يتطلّب أرقامًا قابلة للتحليل.
  */
+/**
+ * حالة الإعلان بمفردات schema.org — والمحجوز **ليس مباعًا**: طلبٌ قد
+ * يُلغى فيعود معروضًا، فـ`LimitedAvailability` أصدق من `SoldOut`.
+ */
+const AVAILABILITY: Record<string, string> = {
+  PUBLISHED: 'https://schema.org/InStock',
+  RESERVED: 'https://schema.org/LimitedAvailability',
+  SOLD: 'https://schema.org/SoldOut',
+};
+
 export function JsonLd({
   detail,
   faq,
@@ -56,7 +66,15 @@ export function JsonLd({
       // سعر الطلب المعلن — وهو ما يراه المشتري، لا حدًّا مخفيًا
       price: detail.askPrice,
       priceCurrency: 'SAR',
-      availability: 'https://schema.org/InStock',
+      /**
+       * ═══ والتوافر يتبع الحالة ═══
+       *
+       * **كان `InStock` دائمًا** — حتى للمباع. فمحرّك البحث يُعلن
+       * مركبةً بِيعت على أنها متاحة، والزائر ينقر ويجد صفحة «بِيعت»:
+       * وعدٌ مُخلَف يراه من لم يزر المنصّة قطّ، وتكرارُه يُفقد نتائجنا
+       * الثراء الذي بُني لها.
+       */
+      availability: AVAILABILITY[detail.status] ?? 'https://schema.org/InStock',
       url,
       seller: { '@type': 'Organization', name: detail.seller.name },
     },

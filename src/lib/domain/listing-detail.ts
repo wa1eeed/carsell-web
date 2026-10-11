@@ -126,6 +126,14 @@ export type PaintPanel = { key: string; state: 'original' | 'repainted' | 'unkno
 export type PublicListingDetail = {
   ref: string;
   type: ListingType;
+  /**
+   * حالة الإعلان — **والصفحة تقولها ولا تُخفيها**.
+   *
+   * `RESERVED` و`SOLD` تُعرضان الآن بعد أن كانتا ٤٠٤، وصفحةٌ تعرض
+   * مركبةً مباعة بزرّ «اشترِ الآن» تَعِد بما لا يقع: المشتري يضغط،
+   * فيردّ الخادم، فيظنّ أن العطل فيه.
+   */
+  status: string;
   city: string;
   negotiable: boolean;
   askPrice: string;
@@ -284,6 +292,29 @@ export async function findPublishedListing(ref: string): Promise<DetailRow | nul
 }
 
 /**
+ * ═══ والمحجوز والمباع يُعرضان — ولا يُشتريان ═══
+ *
+ * **كانت صفحتُهما ٤٠٤.** فمن دفع للتوّ لا يستطيع إعادة فتح صفحة
+ * المركبة التي اشتراها — والرابط في تاريخه وفي بريده وفي طلبه، ويردّ
+ * «غير موجودة». والبائع لا يرى صفحة ما باع.
+ *
+ * **وكل رابطٍ مفهرس يموت عند أوّل بيع**: محرّك البحث يرى ٤٠٤ حيث كانت
+ * صفحةٌ قائمة، وما شورك في محادثةٍ يُكسَر. وفي سوقٍ للسيارات **المباع
+ * دليلٌ على أن البيع يقع** — فإخفاؤه يُخفي أقوى ما نملك.
+ *
+ * والحالات الأخرى تبقى ٤٠٤ بحقّ: المسودّة لم تُنشر، والمراجَع لم
+ * يُعتمد، والموقوف أوقفته الإدارة — ولا حقّ لزائرٍ في رؤية أيٍّ منها.
+ */
+const VIEWABLE = ['PUBLISHED', 'RESERVED', 'SOLD'] as const;
+
+export async function findViewableListing(ref: string): Promise<DetailRow | null> {
+  return db.listing.findFirst({
+    where: { ref, status: { in: [...VIEWABLE] } },
+    include: DETAIL_INCLUDE,
+  });
+}
+
+/**
  * ما تحتاجه `generateMetadata` وحده — **لا الصفّ كاملًا**.
  *
  * جلب الكائن كلّه لأربعة حقول يجرّ `minAcceptPrice` معه إلى كل ما
@@ -310,7 +341,12 @@ export async function hasLiveOrder(listingId: string): Promise<boolean> {
 
 export async function findListingForMetadata(ref: string) {
   return db.listing.findFirst({
-    where: { ref, status: 'PUBLISHED' },
+    /**
+     * **وما تعرضه الصفحة يُوسَم.** كانت تقرأ `PUBLISHED` وحدها،
+     * فصفحةُ المباع تُصيَّر بلا عنوان ولا رابطٍ معياريّ — والوسوم
+     * تتبع ما يُعرض لا ما كان يُعرض.
+     */
+    where: { ref, status: { in: [...VIEWABLE] } },
     select: {
       ref: true,
       city: true,
@@ -495,6 +531,7 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
       paint,
     },
 
+    status: row.status,
     images: row.images.map((image) => ({
       key: image.r2Key,
       isCover: image.isCover,
