@@ -199,6 +199,7 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
     select: {
       key: true, nameAr: true, nameEn: true, descAr: true, descEn: true,
       price: true, category: true, isAutomated: true, slaHours: true,
+      includesAr: true, includesEn: true,
       provider: { select: { nameAr: true, slaHours: true, cities: true } },
     },
   });
@@ -218,10 +219,20 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
     providerSlaHours: row.provider?.slaHours ?? null,
     /** مدن التغطية — وخدمةٌ لا تغطّي مدينتك تُقال قبل أن تُطلب. */
     providerCities: row.provider?.cities ?? [],
+    includesAr: row.includesAr,
+    includesEn: row.includesEn,
   };
 }
 
 export type PublicServiceDetail = PublicService & {
   providerSlaHours: number | null;
   providerCities: string[];
+  /**
+   * بنودُ ما تشمله الخدمة — **تُعرض قبل الدفع**.
+   *
+   * والوصف سطرٌ لا يكفي: من يدفع خمسمئة ريال مقابل «فحص شامل» لا
+   * يعرف ما اشترى. والثمن يُقارَن بما يقابله لا بوصفٍ عامّ.
+   */
+  includesAr: string[];
+  includesEn: string[];
 };

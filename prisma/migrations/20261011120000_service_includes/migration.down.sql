@@ -1,0 +1,2 @@
+ALTER TABLE "Service" DROP COLUMN IF EXISTS "includesAr";
+ALTER TABLE "Service" DROP COLUMN IF EXISTS "includesEn";

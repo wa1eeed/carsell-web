@@ -583,7 +583,8 @@
     "intro": "Every service is priced and paid for inside the platform, and its result appears in your profile. Add your vehicle first so a service reaches you without re-entering details.",
     "all": "All",
     "free": "Free",
-    "instant": "Instant"
+    "instant": "Instant",
+    "includes": "What's included"
   },
   "help": {
     "title": "Help centre",

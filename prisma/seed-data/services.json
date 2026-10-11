@@ -15,7 +15,23 @@
       "guide"
     ],
     "sort": 1,
-    "providerType": "INSPECTION"
+    "providerType": "INSPECTION",
+    "includesAr": [
+      "المحرّك وناقل الحركة — ٤٢ بندًا",
+      "الهيكل والصبغ — مخطّط كامل",
+      "المكابح والتعليق — ٣١ بندًا",
+      "الكهرباء والإلكترونيات — ٢٨ بندًا",
+      "قراءة كمبيوتر المركبة (OBD)",
+      "تجربة قيادة ٥ كم"
+    ],
+    "includesEn": [
+      "Engine and transmission — 42 points",
+      "Body and paint — full diagram",
+      "Brakes and suspension — 31 points",
+      "Electrics and electronics — 28 points",
+      "On-board diagnostics (OBD) read",
+      "5 km road test"
+    ]
   },
   {
     "key": "mojaz",
@@ -32,7 +48,21 @@
       "guide"
     ],
     "sort": 2,
-    "providerType": null
+    "providerType": null,
+    "includesAr": [
+      "سجلّ الملّاك السابقين",
+      "البلاغات والحوادث المسجَّلة",
+      "الممشى الموثّق من الفحص الدوريّ",
+      "حالة الرهن والقيود",
+      "تقرير رسميّ يُصدر باسمك"
+    ],
+    "includesEn": [
+      "Previous owners record",
+      "Registered accidents and reports",
+      "Odometer verified from periodic inspection",
+      "Liens and restrictions",
+      "An official report issued in your name"
+    ]
   },
   {
     "key": "viewing",
@@ -48,7 +78,19 @@
       "listing_banner"
     ],
     "sort": 3,
-    "providerType": null
+    "providerType": null,
+    "includesAr": [
+      "ترتيب الموعد مع البائع",
+      "موقع البائع أو نقطة محايدة",
+      "تأكيد الحضور للطرفين",
+      "الإلغاء مجانًا قبل الموعد"
+    ],
+    "includesEn": [
+      "The appointment arranged with the seller",
+      "The seller's location or a neutral point",
+      "Attendance confirmed to both sides",
+      "Free cancellation before the time"
+    ]
   },
   {
     "key": "shipping",
@@ -65,7 +107,19 @@
       "guide"
     ],
     "sort": 4,
-    "providerType": "SHIPPING"
+    "providerType": "SHIPPING",
+    "includesAr": [
+      "شاحنة مغلقة بين المدينتين",
+      "تأمين أثناء النقل",
+      "تحميل وتنزيل",
+      "تتبّع الشحنة حتى التسليم"
+    ],
+    "includesEn": [
+      "Closed truck between the two cities",
+      "Insured while in transit",
+      "Loading and unloading",
+      "Tracking until delivery"
+    ]
   },
   {
     "key": "ownership_transfer",
@@ -82,7 +136,19 @@
       "guide"
     ],
     "sort": 5,
-    "providerType": null
+    "providerType": null,
+    "includesAr": [
+      "إنهاء الإجراءات في المرور نيابةً عن الطرفين",
+      "التحقّق من استيفاء الشروط قبل الموعد",
+      "الرسم الحكوميّ يُمرَّر كما هو",
+      "إشعار الطرفين عند الإتمام"
+    ],
+    "includesEn": [
+      "The traffic department steps completed for both sides",
+      "Requirements checked before the appointment",
+      "The government fee passed through as is",
+      "Both sides notified on completion"
+    ]
   },
   {
     "key": "insurance",
@@ -99,7 +165,19 @@
       "guide"
     ],
     "sort": 6,
-    "providerType": "INSURANCE"
+    "providerType": "INSURANCE",
+    "includesAr": [
+      "عرض سعر فوريّ على المركبة نفسها",
+      "من شركاتٍ معتمدة",
+      "مقارنة التغطيات والأسعار",
+      "لا التزام قبل قبولك"
+    ],
+    "includesEn": [
+      "An instant quote on this exact vehicle",
+      "From licensed insurers",
+      "Cover and price compared",
+      "No commitment until you accept"
+    ]
   },
   {
     "key": "detailing",
@@ -116,7 +194,19 @@
       "guide"
     ],
     "sort": 7,
-    "providerType": "DETAILING"
+    "providerType": "DETAILING",
+    "includesAr": [
+      "تلميع خارجيّ كامل",
+      "تنظيف داخليّ عميق",
+      "تنظيف المحرّك وفتحات العجلات",
+      "معالجة الزجاج والمقابض"
+    ],
+    "includesEn": [
+      "Full exterior polish",
+      "Deep interior clean",
+      "Engine bay and wheel arches",
+      "Glass and handles treated"
+    ]
   },
   {
     "key": "photography",
@@ -133,7 +223,19 @@
       "guide"
     ],
     "sort": 8,
-    "providerType": "PHOTOGRAPHY"
+    "providerType": "PHOTOGRAPHY",
+    "includesAr": [
+      "جلسة تصوير بإضاءة احترافية",
+      "معالجة وتعديل الصور",
+      "صور داخلية وخارجية وتفاصيل",
+      "تُرفع إلى إعلانك مباشرةً"
+    ],
+    "includesEn": [
+      "A session with professional lighting",
+      "Images processed and corrected",
+      "Exterior, interior and detail shots",
+      "Uploaded straight to your listing"
+    ]
   },
   {
     "key": "featured_listing",
@@ -149,6 +251,18 @@
       "guide"
     ],
     "sort": 9,
-    "providerType": null
+    "providerType": null,
+    "includesAr": [
+      "رفعٌ إلى أعلى نتائج البحث",
+      "لمدّة سبعة أيام",
+      "شارة «مميّز» على البطاقة",
+      "يبدأ فور الدفع"
+    ],
+    "includesEn": [
+      "Lifted to the top of search results",
+      "For seven days",
+      "A Featured badge on the card",
+      "Starts the moment you pay"
+    ]
   }
 ]

@@ -997,6 +997,17 @@ model Service {
   /// `price` نفسه يسقط وصف «الصرف» عن المبلغ كلّه فيصير توريدنا كاملًا.
   adminFeeEnabled Boolean @default(false)
   adminFee        Decimal @default(0) @db.Decimal(10, 2)
+  /// ═══ ما تشمله الخدمة — بنودٌ تُعرض قبل الدفع ═══
+  ///
+  /// **والوصف سطرٌ لا يكفي.** من يدفع خمسمئة ريال مقابل «فحص شامل»
+  /// لا يعرف ما اشترى: أيشمل المحرك؟ أتجربةَ قيادة؟ أتقريرًا مصوّرًا؟
+  /// والتصميم (Wx) يضع قائمةً قبل زرّ الدفع لأن الثمن يُقارَن بما
+  /// يقابله لا بوصفٍ عامّ.
+  ///
+  /// ومصفوفةُ نصوصٍ لا جدولٌ: بنودٌ تُعرض بترتيبها ولا يُستعلم عنها.
+  includesAr  String[]
+  includesEn  String[]
+
   category    ServiceCategory
   providerId  String?
   isAutomated Boolean         @default(false)

@@ -204,6 +204,9 @@ type ServiceRow = {
   nameEn: string;
   descAr: string;
   descEn: string;
+  /** بنودُ ما تشمله الخدمة — تُعرض قبل الدفع (Wx). */
+  includesAr: string[];
+  includesEn: string[];
   price: string;
   category: ServiceCategory;
   isAutomated: boolean;
@@ -630,6 +633,8 @@ async function main(): Promise<void> {
         nameEn: s.nameEn,
         descAr: s.descAr,
         descEn: s.descEn,
+        includesAr: s.includesAr,
+        includesEn: s.includesEn,
         price: new D(s.price),
         category: s.category,
         isAutomated: s.isAutomated,

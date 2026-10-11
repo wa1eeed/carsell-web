@@ -71,6 +71,7 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
    * رأى.
    */
   const money = serviceTotal(service.price, vatPct);
+  const included = isArabic ? service.includesAr : service.includesEn;
   const price = Number(money.net);
   const vat = Number(money.vat);
 
@@ -124,6 +125,31 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
               <p className="mb-7 max-w-2xl text-sm leading-loose opacity-70">
                 {isArabic ? service.descAr : service.descEn}
               </p>
+
+              {/*
+                ═══ ما تشمله الخدمة — قبل الدفع لا بعده ═══
+
+                كانت الصفحة تعرض الاسم ووصفًا من سطر ثمّ التكلفة وزرّ
+                الدفع. **فمن يدفع خمسمئة ريال مقابل «فحص شامل» لا يعرف
+                ما اشترى**: أيشمل المحرك؟ أتجربةَ قيادة؟ أتقريرًا
+                مصوّرًا؟ والثمن يُقارَن بما يقابله لا بوصفٍ عامّ.
+
+                **وتُخفى حين تفرغ** — عنوانٌ فوق فراغٍ يُقرأ عطلًا،
+                وخدمةٌ بلا بنودٍ تعرض وصفها وحده كما كانت.
+              */}
+              {included.length === 0 ? null : (
+                <section className="mb-7">
+                  <h2 className="mb-3.5 text-sm font-bold">{t('includes')}</h2>
+                  <ul className="grid gap-x-8 gap-y-2.5 sm:grid-cols-2">
+                    {included.map((item) => (
+                      <li key={item} className="flex items-start gap-2.5 text-2xs leading-loose">
+                        <CheckIcon />
+                        <span className="min-w-0 flex-1">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
               {/*
                 **والمزوّد يُسمّى.** من يدفع لخدمةٍ يسأل من يؤدّيها —
@@ -224,5 +250,26 @@ function Row({ label, value }: { label: string; value: number }) {
       {/* الهللات تُعرض — فضريبةٌ بـ٦٧٫٥٠ لا تُكتب ٦٨ */}
       <Money amount={value} showCurrency={false} size="sm" decimals={2} />
     </div>
+  );
+}
+
+/**
+ * علامةُ بندٍ مشمول — **صحٌّ لا نقطة**. النقطة تعدّ، والصحّ يقول
+ * «هذا لك»؛ وهو الفرق بين قائمةٍ تُقرأ وقائمةٍ تُقنع.
+ */
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="mt-1 size-3 shrink-0 text-accent-700"
+    >
+      <path d="m5 13 4 4L19 7" />
+    </svg>
   );
 }

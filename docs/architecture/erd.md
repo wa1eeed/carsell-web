@@ -728,6 +728,8 @@ Relations: `type` → `InvoiceType` · `order` → `Order` · `user` → `User`
 | `price` | `Decimal` |  |
 | `adminFeeEnabled` | `Boolean` |  |
 | `adminFee` | `Decimal` |  |
+| `includesAr` | `String[]` |  |
+| `includesEn` | `String[]` |  |
 | `providerId` | `String?` |  |
 | `isAutomated` | `Boolean` |  |
 | `slaHours` | `Int?` |  |
