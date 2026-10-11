@@ -180,6 +180,19 @@ export type AdminUserDetail = {
   identitySubmittedAt: string | null;
   taxStatus: string | null;
   vatNumber: string | null;
+  /**
+   * ═══ هامشُ الربح — وما كان يُمنح من مكان ═══
+   *
+   * `grantMarginScheme` مبنيّةٌ بمرجعها الإلزاميّ وأثرها، **ولا ينادِيها
+   * شيء**. فبائعٌ مسجَّلٌ يستحقّ احتساب الضريبة على الهامش يُحتسب عليه
+   * على **كامل السعر** إلى الأبد — وهو فرقٌ يخرج من جيبه في كل بيعة.
+   *
+   * وصفحة المعرض تعرض «مرجع هامش الربح» متى مُنح — تعرض ما لا سبيل
+   * إلى منحه.
+   */
+  marginSchemeApproved: boolean;
+  marginSchemeRef: string | null;
+  marginSchemeAt: string | null;
   marketingConsent: boolean;
   /** لدى تاجر — والاسم لا المعرّف */
   dealerName: string | null;
@@ -221,6 +234,9 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
       identitySubmittedAt: true,
       taxStatus: true,
       vatNumber: true,
+      marginSchemeApproved: true,
+      marginSchemeRef: true,
+      marginSchemeAt: true,
       marketingConsent: true,
       dealer: { select: { nameAr: true } },
       overrides: { select: { id: true, entitlementKey: true, value: true, reason: true } },
@@ -304,6 +320,9 @@ export async function adminUserDetail(id: string): Promise<AdminUserDetail | nul
     identitySubmittedAt: user.identitySubmittedAt?.toISOString() ?? null,
     taxStatus: user.taxStatus,
     vatNumber: user.vatNumber,
+    marginSchemeApproved: user.marginSchemeApproved,
+    marginSchemeRef: user.marginSchemeRef,
+    marginSchemeAt: user.marginSchemeAt?.toISOString() ?? null,
     marketingConsent: user.marketingConsent,
     dealerName: user.dealer?.nameAr ?? null,
 

@@ -3930,6 +3930,65 @@
         }
       }
     },
+    "/api/v1/admin/users/{id}/margin-scheme": {
+      "post": {
+        "summary": "POST /api/v1/admin/users/{id}/margin-scheme",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "wallet.adjust",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "approved": {
+                    "type": "boolean"
+                  },
+                  "ref": {
+                    "type": "string",
+                    "maxLength": 60,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "approved",
+                  "ref"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/users/{id}/wallet": {
       "post": {
         "summary": "POST /api/v1/admin/users/{id}/wallet",

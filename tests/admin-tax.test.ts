@@ -152,3 +152,53 @@ describe('منح هامش الربح', () => {
     }
   });
 });
+
+describe('هامشُ الربح — والقراءة التي تعرضه', () => {
+  /**
+   * ═══ ومُنِح من لا باب له ═══
+   *
+   * `grantMarginScheme` مبنيّةٌ ومختبَرة منذ كُتبت، **ولا ينادِيها
+   * شيء في المنتج**. فبائعٌ مسجَّلٌ يستحقّ احتساب الضريبة على الهامش
+   * تُحتسب عليه على **كامل السعر** إلى الأبد — فرقٌ يخرج من جيبه في
+   * كل بيعة. وصفحةُ المعرض تعرض «مرجع هامش الربح» متى مُنح: تعرض ما
+   * لا سبيل إلى منحه.
+   *
+   * فالفحص هنا على **ما تراه الشاشة**: القراءة التي تُغذّي لوحة المنح.
+   */
+  it('قراءةُ العميل تُظهر المنح ومرجعه', async () => {
+    const { adminUserDetail } = await import('@/lib/domain/admin-entity-detail');
+    const operator = await admin('SUPER_ADMIN');
+    const user = await db.user.create({
+      data: {
+        phone: `+96650${String(Date.now()).slice(-7)}`,
+        name: 'اختبار قراءة الهامش',
+        taxStatus: 'VAT_REGISTERED',
+        vatNumber: '300000000000003',
+      },
+    });
+
+    const before = await adminUserDetail(user.id);
+    expect(before?.marginSchemeApproved).toBe(false);
+
+    const granted = await grantMarginScheme(
+      operator, user.id, { approved: true, ref: 'ZATCA-2026-001' }, null,
+    );
+    expect(granted.ok).toBe(true);
+
+    const after = await adminUserDetail(user.id);
+    expect(after?.marginSchemeApproved).toBe(true);
+    expect(after?.marginSchemeRef).toBe('ZATCA-2026-001');
+    /** والتاريخ يُعرض — فالمراجع يسأل «متى مُنح» لا «أمُنح». */
+    expect(after?.marginSchemeAt).not.toBeNull();
+
+    await grantMarginScheme(operator, user.id, { approved: false, ref: null }, null);
+    const revoked = await adminUserDetail(user.id);
+    expect(revoked?.marginSchemeApproved).toBe(false);
+    // **والمرجع يُمسح مع السحب** — ومرجعٌ باقٍ بلا منحٍ يُقرأ منحًا
+    expect(revoked?.marginSchemeRef).toBeNull();
+
+    // الاختبار يعيد ما صنعه
+    await db.auditLog.deleteMany({ where: { entityId: user.id } });
+    await db.user.delete({ where: { id: user.id } });
+  });
+});

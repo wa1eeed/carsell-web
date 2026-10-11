@@ -15,6 +15,7 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { adminUserDetail } from '@/lib/domain/admin-entity-detail';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
+import { MarginPanel } from './MarginPanel';
 import { WalletPanel } from './WalletPanel';
 import { toArabicDigits } from '@/lib/arabic';
 
@@ -278,6 +279,27 @@ export default async function AdminUserDetailPage({
               {user.vatNumber === null ? null : (
                 <Field label="الرقم الضريبيّ" value={user.vatNumber} ltr />
               )}
+
+              {/*
+                ═══ هامشُ الربح — وما كان يُمنح من مكان ═══
+
+                `grantMarginScheme` مبنيّةٌ ولا ينادِيها شيء، فبائعٌ
+                مسجَّلٌ يستحقّه تُحتسب عليه الضريبة على **كامل السعر**
+                إلى الأبد. وصلاحيّتُه صلاحيةُ المال: المنحُ يغيّر ما
+                يُحتسب على كل بيعةٍ له.
+              */}
+              {canWrite(admin.role, 'wallet.adjust') ? (
+                <div className="mt-3 border-t border-line-2 pt-3">
+                  <MarginPanel
+                    userId={user.id}
+                    approved={user.marginSchemeApproved}
+                    reference={user.marginSchemeRef}
+                    registered={user.vatNumber !== null && user.vatNumber !== ''}
+                  />
+                </div>
+              ) : user.marginSchemeApproved ? (
+                <Field label="هامش الربح" value={user.marginSchemeRef ?? 'ممنوح'} ltr />
+              ) : null}
 
               {/*
                 **الرقم لا يُقرأ من هنا.** وقراءتُه تمرّ بمسارها المُقيَّد
