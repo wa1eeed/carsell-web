@@ -17,7 +17,7 @@ import { ScoreRing } from '@/components/ui/ScoreRing';
 import { SpecRow, StatCard } from '@/components/ui/StatCard';
 import { StageTracker } from '@/components/ui/StageTracker';
 import { Toast } from '@/components/ui/Toast';
-import { ADMIN_NAV } from '@/components/admin/AdminShell';
+import { ADMIN_NAV } from '@/components/admin/nav';
 import { DevInteractive } from './DevInteractive';
 import { routing } from '@/i18n/routing';
 

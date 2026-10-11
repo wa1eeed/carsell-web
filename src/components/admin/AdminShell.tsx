@@ -2,132 +2,11 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { APP_ENV } from '@/lib/env';
-import { can, type Permission } from '@/lib/domain/permissions';
+import { can } from '@/lib/domain/permissions';
+import { ADMIN_NAV } from './nav';
+import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
 import { cn } from '@/lib/cn';
 import type { AdminUser } from '@/generated/prisma/client';
-
-/**
- * قائمة لوحة الأدمن — **٣٠ بندًا في ٤ مجموعات** كما في ترميز A1.
- *
- * لوحة الأدمن عربية فقط في المرحلة الأولى (قرار: أداة داخلية بلا ترجمة)،
- * فالتسميات ثابتة هنا لا في ملفات الترجمة. وهذه تسميات تنقّل لا محتوى —
- * المحتوى كله من Prisma كما تشترط القاعدة.
- *
- * `href: null` يعني بندًا بلا شاشة مصمَّمة: يُعرض معطّلًا بوسم «قريبًا»
- * ولا يُبنى شيء بلا ترميز (DESIGN-DECISIONS ١٠).
- */
-export type AdminNavItem = {
-  label: string;
-  href: string | null;
-  badge?: number;
-  /** بند بلا صلاحية لا يُعرض معطّلًا — يُخفى. عرضه يكشف بنية اللوحة. */
-  permission?: Permission;
-};
-
-export type AdminNavGroup = {
-  title: string;
-  items: readonly AdminNavItem[];
-};
-
-export const ADMIN_NAV: readonly AdminNavGroup[] = [
-  {
-    /** ما يُفتح كل صباح — الأرقام ثم ما ينتظر عملًا. */
-    title: 'المتابعة',
-    items: [
-      /**
-       * **ولوحة القيادة بندٌ واحد.** «المتابعة اليومية» و«المالية»
-       * تابان داخلها (A2 · A3)، والشريط في التصميم لا يذكرهما — وكانا
-       * بندين هنا، فصارت الشاشةُ الواحدة ثلاثًا.
-       */
-      { label: 'لوحة القيادة', href: '/admin', permission: 'dashboard.view' },
-      { label: 'التقارير والتصدير', href: '/admin/exports' },
-    ],
-  },
-  {
-    /** **الإعلانات في مكانٍ واحد** — كانت مفرّقةً بين ثلاث مجموعات. */
-    title: 'الإعلانات',
-    items: [
-      { label: 'إعلانات تنتظر المراجعة', href: '/admin/listings', permission: 'listings.review' },
-      { label: 'كل الإعلانات', href: '/admin/all-listings', permission: 'listings.review' },
-      { label: 'المزادات', href: '/admin/auctions', permission: 'orders.view' },
-      { label: 'العروض والمساومات', href: '/admin/offers', permission: 'orders.view' },
-    ],
-  },
-  {
-    title: 'الطلبات والمبيعات',
-    items: [
-      { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
-      { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
-      { label: 'تحويل مستحقّات البائعين', href: '/admin/payouts', permission: 'finance.view' },
-      { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
-      { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
-      { label: 'طلبات التمويل', href: null },
-    ],
-  },
-  {
-    /** **العملاء في مكانٍ واحد** — والتوثيق منهم لا من الإعدادات. */
-    title: 'العملاء',
-    items: [
-      { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
-      { label: 'المعارض والتجار', href: '/admin/dealers', permission: 'users.view' },
-      { label: 'طلبات توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
-    ],
-  },
-  {
-    /** **المزوّدون في مكانٍ واحد** — وطلباتُهم معهم لا في التشغيل. */
-    title: 'الخدمات والمزوّدون',
-    items: [
-      { label: 'طلبات الخدمات', href: '/admin/service-requests', permission: 'serviceRequests.handle' },
-      { label: 'المزوّدون', href: '/admin/providers', permission: 'services.manage' },
-      { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage' },
-    ],
-  },
-  {
-    title: 'التسويق والإعلان',
-    items: [
-      { label: 'الإعلانات المموّلة', href: '/admin/ads', permission: 'finance.view' },
-      { label: 'الحملات التسويقية', href: '/admin/campaigns' },
-    ],
-  },
-  {
-    /**
-     * ═══ الإعدادات آخرًا وبتسلسل ═══
-     *
-     * المال ثمّ المحتوى ثمّ النظام. وكانت خمسة عشر بندًا بلا ترتيب:
-     * الكتالوج بين المهل والخدمات، والباقات بين الأسئلة والمساحات.
-     */
-    title: 'الإعدادات — المال',
-    items: [
-      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view' },
-      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view' },
-      { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view' },
-      { label: 'دفتر الحسابات', href: '/admin/ledger', permission: 'finance.view' },
-      { label: 'المدد والمهل', href: '/admin/deadlines', permission: 'finance.view' },
-    ],
-  },
-  {
-    title: 'الإعدادات — المحتوى',
-    items: [
-      { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage' },
-      { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage' },
-      { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage' },
-      { label: 'مساحات الإعلانات', href: '/admin/ads', permission: 'finance.view' },
-      { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view' },
-      { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage' },
-      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage' },
-    ],
-  },
-  {
-    title: 'الإعدادات — النظام',
-    items: [
-      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage' },
-      { label: 'إشعارات الجوال', href: '/admin/push' },
-      { label: 'الربط بالخدمات الخارجية', href: '/admin/integrations', permission: 'integrations.view' },
-      { label: 'الفريق والصلاحيات', href: '/admin/team', permission: 'team.manage' },
-      { label: 'سجل العمليات', href: '/admin/audit', permission: 'audit.view' },
-    ],
-  },
-];
 
 /** شريط تنبيه أعلى اللوحة — يظهر في staging وحدها. */
 function EnvBanner() {
@@ -142,7 +21,8 @@ function EnvBanner() {
 }
 
 /** الصدفة: شريط جانبي ٢٣٨px داكن + رأس صفحة ١٧px/٣٠px (القسم ٣ قاعدة ٥). */
-export function AdminShell({
+
+export async function AdminShell({
   title,
   subtitle,
   activeHref,
@@ -163,12 +43,31 @@ export function AdminShell({
   admin: Pick<AdminUser, 'name' | 'role'>;
   children: ReactNode;
 }) {
+  /**
+   * ═══ الشارة تُملأ هنا — وكانت مبنيّةً لا تظهر ═══
+   *
+   * `AdminNavItem.badge` معرَّفٌ ومُصيَّر، و`ADMIN_NAV` ثابتٌ لا
+   * يُسند إليه عدد. فسبعُ شاراتٍ في ترميز A1 لم تظهر قطّ.
+   *
+   * **ومشغّلٌ يفتح اللوحة يسأل سؤالًا واحدًا: أين ينتظرني عمل؟**
+   * وبلا شارات يفتح تسع شاشاتٍ ليعرف — فيفتح أوّلها كل صباحٍ ويترك
+   * آخرها أسابيع.
+   *
+   * ويُقرأ مرّةً للشريط كلّه: ثماني عدّاتٍ في استدعاءٍ واحد.
+   */
+  const counts = await adminNavCounts();
+
   // بند بلا صلاحية يُخفى لا يُعطَّل — «OPS لا يرى المالية» حرفيًا
   const groups = ADMIN_NAV.map((group) => ({
     ...group,
-    items: group.items.filter(
-      (item) => item.permission === undefined || can(admin.role, item.permission),
-    ),
+    items: group.items
+      .filter((item) => item.permission === undefined || can(admin.role, item.permission))
+      .map((item) => ({
+        ...item,
+        ...(item.href !== null && counts[item.href] !== undefined
+          ? { badge: counts[item.href] }
+          : {}),
+      })),
   })).filter((group) => group.items.length > 0);
   return (
     <div dir="rtl" className="flex min-h-screen bg-bg text-ink">
