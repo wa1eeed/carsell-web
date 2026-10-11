@@ -245,6 +245,12 @@ const DEFERRED_SIGNALS = [
   'الرياض للتمويل', 'عبداللطيف جميل', 'إمكان', 'اعرف أكثر',
   /* اللوحات المميّزة — Wr، بعد الإطلاق */
   'لوحة مميّزة', 'اللوحات المميّزة', 'مزاد اللوحات',
+  /**
+   * المقارنة و٣٦٠° والمراسلة — **أُزيلت بقرار المصمّم ١٨**
+   * (`DESIGN-DECISIONS.md`): «المراسلة تحتاج إشرافًا وسياسة محتوى —
+   * لا تُفتح بزر». فعدُّها نقصًا يُرسل القارئ ليعيد ما حُذف عمدًا.
+   */
+  'راسلـه', 'راسل البائع', 'قارن', 'المقارنة', '٣٦٠',
 ];
 
 /**
@@ -328,6 +334,56 @@ function signalsOf(segment, navNoise) {
   });
 }
 
+/**
+ * ═══ ومركبةٌ محجوزة لا تُقاس عليها صفحةُ الشراء ═══
+ *
+ * `Wc` كان يُقاس على `ADS2026A0032` ثابتًا — **وهو اليوم محجوزٌ بطلبٍ
+ * قائم**. فالصفحة تُخفي «اشترِ الآن» و«قدّم عرضك» بحقّ وتقول «محجوزة»،
+ * ويُقرأ ذلك نقصًا في المطابقة: ٤١٪ وناقصُها فعلا الشراء.
+ *
+ * **ومرجعٌ ثابتٌ في أداة قياسٍ يتعفّن مع البيانات.** فيُؤخذ من الموقع
+ * نفسه: أوّل مركبةٍ في نتائج البحث معروضةٌ بالضرورة.
+ */
+async function liveRefs(base, cookie) {
+  const out = {};
+  const grab = async (listPath, into) => {
+    try {
+      const res = await fetch(`${base}${listPath}`, {
+        headers: { cookie },
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!res.ok) return;
+      const html = await res.text();
+      const found = [
+        ...html.matchAll(/href="(\/ar\/cars\/[a-z0-9-]+\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Z0-9]+)"/g),
+      ].map((m) => m[1]);
+
+      /**
+       * **ومركبةٌ عليها طلبٌ قائم تبقى في النتائج** (قرارُ منتَج: قد
+       * يسقط الطلب فتعود) — وصفحتُها تُخفي «اشترِ الآن» بحقّ وتقول
+       * «محجوزة». فأوّلُ نتيجةٍ قد تكون محجوزة، وقياسُ صفحة الشراء
+       * عليها يُخرج نقصًا ليس فيها.
+       */
+      for (const path of [...new Set(found)].slice(0, 8)) {
+        const page = await fetch(`${base}${path}`, {
+          headers: { cookie },
+          signal: AbortSignal.timeout(30_000),
+        });
+        if (!page.ok) continue;
+        if (!(await page.text()).includes('طلبٌ قائم')) {
+          out[into] = path;
+          return;
+        }
+      }
+    } catch {
+      // تعذّر الجلب — يبقى المرجع الثابت
+    }
+  };
+  await grab('/ar/cars', 'Wc');
+  await grab('/ar/auctions', 'We');
+  return out;
+}
+
 async function main() {
   const wanted = process.argv.slice(2);
   const files = [
@@ -336,6 +392,8 @@ async function main() {
   ];
 
   const rows = [];
+  /** مراجعُ حيّة من الموقع — تُغني عن ثابتٍ يتعفّن مع البيانات */
+  const liveRoutes = await liveRefs(BASE, '');
 
   for (const [path, re] of files) {
     const html = readFileSync(join(ROOT, path), 'utf8');
@@ -361,7 +419,7 @@ async function main() {
       if (wanted.length > 0 && !wanted.includes(tag)) continue;
       if (DEFERRED.has(tag)) continue;
 
-      const route = ROUTES[tag];
+      const route = liveRoutes[tag] ?? ROUTES[tag];
       const signals = signalsOf(segments.get(tag), noise);
       if (signals.length === 0) continue;
 
