@@ -131,6 +131,7 @@ export function SiteHeader({
           otherLabel={other === 'en' ? 'English' : 'العربية'}
           menuLabel={t('menu')}
           closeLabel={t('closeMenu')}
+          actions={<AccountNav stacked />}
         />
 
         <Link

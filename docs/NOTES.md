@@ -3774,3 +3774,49 @@ seller says what the spec table cannot, **was never seen in any environment**.
 It is the most-read thing after the photos: why the panel was repainted, when the
 tyres were changed, whether it can be inspected at a centre the buyer picks. Five
 descriptions in plain market language now rotate across the listings.
+
+## The header overflowed on every phone — again
+
+Measured at 375px: `document.documentElement.scrollWidth` **460**. 85px of
+sideways scroll on empty space, on every page of the site.
+
+Narrowed by elimination rather than guessed at. Hiding the drawer changed
+nothing; hiding the header removed it entirely; hiding each child of the header's
+top row in turn named the two that mattered — **the logo and the actions block,
+both `shrink-0`, alongside a `shrink-0` menu button**. Three immovable children
+plus «بِع سيارتك» and «تسجيل الدخول» do not fit in 375.
+
+The first lead was wrong and the file said so: `MobileNav` carries a comment
+recording that an earlier overflow reading there was an artefact of viewport
+emulation. It was right — the closed drawer is clipped by its own
+`fixed inset-0 overflow-hidden` container and contributes nothing.
+
+**And the obvious fix would have deleted content.** «بِع سيارتك» is not in the
+drawer; hiding it from the header on phones removes it from phones entirely —
+exactly the mistake already recorded when a first overflow fix removed the whole
+nav. So it goes **into the drawer first**, stacked full-width above the locale
+switcher, and only then is hidden from the top row below `sm`. The drawer
+receives it as a rendered node, not a function, so nothing crosses the server
+boundary (gate 22).
+
+After: 375 / 375 on home, search, auctions, dealers, services, a car page, an
+inspection report and the contact page.
+
+### Why there is no gate for this one
+
+This is the second header overflow (the first is recorded under task 29/150), and
+the standing rule is that a repeat gets a gate rather than a second fix. **A
+static gate cannot catch this one**: the cause is the rendered width of Arabic
+button text at a given font scale, which no source check can compute. A browser
+harness would catch it, and this repository deliberately has none.
+
+So the honest substitute is a cheap, written-down measurement. In the dev server,
+at a 375px viewport:
+
+```js
+({ viewport: document.documentElement.clientWidth,
+   scrollWidth: document.documentElement.scrollWidth })
+```
+
+Equal means clean. Re-run it after any change to the header, the font scale, or a
+card grid — those are the three things that have broken it.

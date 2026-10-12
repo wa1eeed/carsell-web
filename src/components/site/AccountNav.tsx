@@ -17,20 +17,28 @@ import { currentUserFromCookies } from '@/lib/domain/account';
  * إلى حسابه**، لا زرًّا يدعوه إلى ما هو فيه — فيرى اسمه وحرفه الأول،
  * وهو ما يؤكّد له أيضًا **بأيّ حساب** يتصفّح.
  */
-export async function AccountNav() {
+export async function AccountNav({
+  /**
+   * داخل درج الهاتف — **فالأزرار تملأ العرض وتتكدّس**. وصفٌّ من
+   * زرّين في درجٍ عرضُه ٢٨٨ يضغطهما حتى يُقصّ نصُّهما.
+   */
+  stacked = false,
+}: { stacked?: boolean } = {}) {
   const user = await currentUserFromCookies();
 
   if (user === null) {
     return (
-      <span className="flex items-center gap-2.5">
+      <span className={stacked ? 'flex flex-col gap-2.5' : 'flex items-center gap-2.5'}>
         {/* الزرّ عنصر تفاعل والرابط تنقّل — لا يُخلطان */}
-        <Link href="/sell">
-          <Button variant="outline" size="sm">
+        <Link href="/sell" className={stacked ? 'contents' : 'hidden sm:block'}>
+          <Button variant="outline" size="sm" className={stacked ? 'w-full' : ''}>
             بِع سيارتك
           </Button>
         </Link>
-        <Link href="/auth">
-          <Button size="sm">تسجيل الدخول</Button>
+        <Link href="/auth" className={stacked ? 'contents' : ''}>
+          <Button size="sm" className={stacked ? 'w-full' : ''}>
+            تسجيل الدخول
+          </Button>
         </Link>
       </span>
     );

@@ -81,7 +81,7 @@ Counted: **138** components in **3** directories.
 | `ListingStatsRow` | no | `stats` | 1 |
 | `LocaleSwitcher` | yes | `locale` · `label` · `className` | 1 |
 | `MarkAllRead` | yes | `label` | 1 |
-| `MobileNav` | yes | `items` · `active` · `locale` · `otherLocale` · `otherLabel` · `menuLabel` · `closeLabel` | 2 |
+| `MobileNav` | yes | `items` · `active` · `locale` · `otherLocale` · `otherLabel` · `menuLabel` · `closeLabel` · `actions` | 2 |
 | `MyAuctions` | no | `rows` | 1 |
 | `NotificationMenu` | yes | `initialItems` · `initialUnread` · `now` | 1 |
 | `OfferActions` | yes | `offerId` · `sentByMe` · `amount` · `askPrice` · `actionable` | 1 |

@@ -6,6 +6,7 @@ import type { Locale } from '@/i18n/routing';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
+import type { ReactNode } from 'react';
 
 /**
  * ═══ قائمةٌ جانبية على الهاتف واللوحي ═══
@@ -30,6 +31,7 @@ export function MobileNav({
   otherLabel,
   menuLabel,
   closeLabel,
+  actions,
 }: {
   items: readonly { key: string; href: string; label: string }[];
   active?: string;
@@ -38,6 +40,21 @@ export function MobileNav({
   otherLabel: string;
   menuLabel: string;
   closeLabel: string;
+  /**
+   * ═══ وأزرارُ الحساب في الدرج أيضًا ═══
+   *
+   * «بِع سيارتك» و«تسجيل الدخول» كانا في الصفّ العلويّ وحده، ومعهما
+   * الشعارُ وزرُّ القائمة — **وأربعتُها `shrink-0` ومجموعُها يتجاوز
+   * ٣٧٥**، فتفيض الصفحة أفقيًّا على كل شاشة هاتف. وقِيس: عرضُ المستند
+   * ٤٦٠ على منفذٍ ٣٧٥.
+   *
+   * وإخفاءُ «بِع سيارتك» من الترويسة وحدَه **يحذفها من الهاتف**
+   * — والدرج لا يحملها. فتُوضع هنا أوّلًا ثم تُخفى هناك.
+   *
+   * **وعقدةٌ لا دالّة**: مكوّن الخادم يبني `AccountNav` ويمرّرها
+   * مُصيَّرة، فلا تعبر دالّةٌ حدَّ الخادم (البوابة ٢٢).
+   */
+  actions?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
@@ -192,6 +209,10 @@ export function MobileNav({
             </Link>
           ))}
         </nav>
+
+        {actions === undefined ? null : (
+          <div className="flex flex-col gap-2.5 border-t border-line p-3">{actions}</div>
+        )}
 
         {/*
           ═══ مبدّل اللغة — وكان مبنيًّا ولا يناديه أحد ═══
