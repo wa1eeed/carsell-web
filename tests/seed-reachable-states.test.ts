@@ -97,6 +97,26 @@ describe('═══ حالات يبلغها المنتج ═══', () => {
     expect(without.filter(seededOrder).map((row) => row.ref)).toEqual([]);
   });
 
+  it('طلبٌ عليه نزاعٌ مفتوح حالتُه DISPUTED', async () => {
+    /**
+     * `openDispute` تكتب `status: 'DISPUTED'` في معاملة الفتح نفسها.
+     * **والأثر ماليّ**: لوحة المالية تقرأ «المجمَّد بنزاع» من
+     * `escrow HELD AND order DISPUTED` — فطلبٌ بقي `ACTIVE` يجعلها
+     * تقول صفرًا عن مالٍ مجمَّد.
+     */
+    const open = await db.dispute.findMany({
+      where: { status: { in: ['OPEN', 'INVESTIGATING'] } },
+      select: { order: { select: { ref: true, status: true, buyer: { select: { phone: true } } } } },
+    });
+
+    const wrong = open
+      .filter((row) => seededOrder(row.order))
+      .filter((row) => row.order.status !== 'DISPUTED')
+      .map((row) => `${row.order.ref}: ${row.order.status}`);
+
+    expect(wrong).toEqual([]);
+  });
+
   it('مزادٌ رسا بلغ احتياطيَه', async () => {
     /**
      * `closeEndedAuctions` لا تكتب `ENDED_MET` إلّا حين تتجاوز أعلى

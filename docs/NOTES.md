@@ -3446,3 +3446,59 @@ with the auction page task (live countdown, real-time bidding) that follows.
 deserved a written answer: **generated** (cannot lie), **checked** (cannot
 invent a name), **hand-written** (a discipline, not a guarantee — which is why
 anything countable is generated instead).
+
+## The numbers were checked, not trusted
+
+The owner asked for the commissions, the indicators and the platform's figures to
+be verified. Two new suites do that against the live rows rather than against a
+re-run of the same function.
+
+### `tests/order-money-invariants.test.ts`
+
+An order is created down three paths — direct sale, accepted offer, settled
+auction — and a fourth writes them in the seed. `computeOrderAmounts` is the one
+rule, but nothing checked that **what is in the database follows it**. A unit
+test checks the function against input it made up itself; this checks the rows.
+
+Five invariants, over every order:
+
+1. `commissionAmount == buyerCommission + sellerCommission`. One field used to be
+   added to the buyer's total *and* deducted from the seller's net — the
+   commission taken twice, with no field able to say which was meant.
+2. `totalAmount == agreedPrice + buyerCommission + transferFee + transferAdminFee
+   + buyer's share of the processing fee − depositApplied`.
+3. `vatAmount == ourVat(...)` from the order's own snapshot — our supplies only,
+   never the vehicle or the government fee.
+4. The seller's net is between zero and what was agreed.
+5. The displayed `commissionPct` matches the seller commission actually deducted
+   (checked only while no rule carries a fixed fee or a floor, which is the case
+   today — otherwise the deduction legitimately exceeds the percentage).
+
+Proven by adding one riyal to a single order's total: it failed naming
+`ORD-2026-1000`, green again on restore.
+
+### `tests/kpi-truth.test.ts`
+
+Six checks comparing `growthKpis` against counts and aggregates taken straight
+from the tables. GMV, order count and AOV agree; take rate equals commission over
+GMV; sell-through's numerator and denominator are both inside the window and the
+ratio never exceeds one; active buyers are distinct and never exceed the order
+count; every ratio sits in [0, 1] unless it is explicitly unknown; the funnel
+invents nothing; and the comparison period is the same length as the current one
+— an earlier window that is shorter turns window length into "+100%" growth on a
+slide shown to an investor.
+
+### The fifth seeded state the product cannot reach
+
+`openDispute` writes `status: 'DISPUTED'` on the order inside the same
+transaction. The seed opened a dispute and left the order `ACTIVE`.
+
+**The effect was financial, not cosmetic.** The finance tab reads «المجمَّد بنزاع»
+from `escrow HELD AND order DISPUTED`. It showed **0 ريال** while 84,740 sat
+frozen, and the "currently held" figure above it was overstated by exactly that
+amount. A figure shown to an investor that reads zero about frozen money is worse
+than no figure.
+
+Fixed in the seed, added to gate 39, failed naming `ORD-2026-1004: ACTIVE`, green
+after reseeding. The screen now reads: held 344,570 · live 169,830 · frozen
+84,740.

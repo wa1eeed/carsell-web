@@ -1332,6 +1332,22 @@ async function main(): Promise<void> {
         where: { orderId: order.id },
         data: { status: 'PARTIAL_REFUND' },
       });
+    } else {
+      /**
+       * ═══ والطلب يدخل `DISPUTED` بفتح النزاع ═══
+       *
+       * `openDispute` تكتبها في المعاملة نفسها، والبذرة كانت تترك
+       * الطلب `ACTIVE`. والأثر **ماليّ لا تجميليّ**: لوحة المالية
+       * تقرأ «المجمَّد بنزاع» من `escrow HELD AND order DISPUTED`،
+       * فكانت تقول صفرًا وفي الضمان أربعةٌ وثمانون ألفًا مجمَّدة.
+       *
+       * ورقمٌ يُعرض على مستثمر ويقول صفرًا عن مالٍ مجمَّد أسوأ من
+       * غيابه.
+       */
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { status: 'DISPUTED' },
+      });
     }
   }
 
