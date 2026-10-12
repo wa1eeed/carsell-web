@@ -27,6 +27,8 @@ import { db } from '@/lib/db';
 import { getHomeData, PAYMENT_BANDS, type PaymentBandKey } from '@/lib/domain/home';
 import { routing } from '@/i18n/routing';
 import { PaymentBands } from './PaymentBands';
+import { currentUserFromCookies } from '@/lib/domain/account';
+import { ownListingRefs } from '@/lib/domain/favorites';
 
 export const dynamic = 'force-dynamic';
 
@@ -118,6 +120,19 @@ export default async function HomePage({
     getTranslations('enums'),
   ]);
 
+  /**
+   * ═══ وأيُّ هذه البطاقات لمن يقرأ ═══
+   *
+   * استعلامٌ واحد لمراجع الشاشة كلّها — لا سؤالٌ لكل بطاقة. ومن لم
+   * يدخل تعود له مجموعةٌ فارغة بلا استعلامٍ أصلًا.
+   */
+  const viewer = await currentUserFromCookies();
+  const shownRefs = [
+    ...home.finance.cars,
+    ...home.recent.cars,
+  ].map((item) => item.ref);
+  const ownRefs = await ownListingRefs(viewer?.id ?? null, shownRefs);
+
   const isArabic = locale === 'ar';
   const card = (item: (typeof home.finance.cars)[number]) => ({
     ref: item.ref,
@@ -133,6 +148,8 @@ export default async function HomePage({
     imageCount: item.imageCount,
     sellerName: item.sellerName,
     sellerVerified: item.sellerVerified,
+    /** **إعلانُ من يقرأ** — ويُوسَم في الرئيسية كما في البحث. */
+    isOwn: ownRefs.has(item.ref),
   });
 
   return (

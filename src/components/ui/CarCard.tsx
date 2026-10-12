@@ -33,6 +33,12 @@ export type ListingCardData = {
    * فرصةً. وبلا التاريخ يستوي عند المتصفّح الجديدُ والراكد.
    */
   publishedAt?: string;
+  /**
+   * **إعلانُ من يقرأ.** والشاشة تقولها قبل أن يفتح: من نشر سيارته
+   * يراها في البحث كأيّ بطاقة، فيفتحها ويضغط «اشترِ» فيردّه الخادم
+   * — والحارس صحيح، والشاشة لم تقل.
+   */
+  isOwn?: boolean;
   /** للمزاد فقط */
   highestBid?: number;
   bidderCount?: number;
@@ -163,6 +169,7 @@ export function CarCard({
       <div className="washed relative aspect-16/10">
         <div className="absolute inset-x-2.5 top-2.5 flex items-start justify-between gap-2">
           <span className="flex flex-col items-start gap-1.5">
+            {data.isOwn === true ? <Badge tone="ink">{t('yourListing')}</Badge> : null}
             {sponsored ? <Badge tone="neutral">{t('sponsored')}</Badge> : null}
             {data.inspected ? <InspectedBadge /> : null}
           </span>

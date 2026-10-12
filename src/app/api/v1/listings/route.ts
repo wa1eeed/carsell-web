@@ -1,3 +1,4 @@
+import { currentUserFromCookies } from '@/lib/domain/account';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
@@ -27,7 +28,12 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   const filters = parseFilters(request.nextUrl.searchParams);
-  const result = await searchListings(filters);
+  /**
+   * **والجلسة تُقرأ وإن كان المسار عامًّا.** من دخل يرى بطاقاته
+   * موسومةً «إعلانك»، ومن لم يدخل يراها كغيرها — ولا سرَّ في الوسم.
+   */
+  const viewer = await currentUserFromCookies();
+  const result = await searchListings(filters, 'ar', viewer?.id ?? null);
 
   return ok(result.items, {
     total: result.total,

@@ -1,3 +1,4 @@
+import { currentUserFromCookies } from '@/lib/domain/account';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { notFound } from 'next/navigation';
@@ -68,8 +69,11 @@ export default async function DealerPage({
   const rawType = typeof query.type === 'string' ? query.type : null;
   const filter = (STOCK_TABS.find((row) => row.key === rawType)?.key ?? null) as DealerStockFilter;
 
+  /** صاحبُ الجلسة — ومنه تُوسَم بطاقاتُه «إعلانك». */
+  const viewer = await currentUserFromCookies();
+
   const [dealer, t, te, nav, ui] = await Promise.all([
-    getDealerPage(slug, locale, filter),
+    getDealerPage(slug, locale, filter, viewer?.id ?? null),
     getTranslations('dealer'),
     getTranslations('enums'),
     getTranslations('site.nav'),
@@ -230,6 +234,7 @@ export default async function DealerPage({
                       imageCount: listing.imageCount,
                       sellerName: listing.sellerName ?? dealer.name,
                       sellerVerified: listing.sellerVerified,
+                      isOwn: listing.isOwn,
                       ...(listing.bidderCount === null ? {} : { bidderCount: listing.bidderCount }),
                       ...(listing.endsAt === null ? {} : { endsAt: listing.endsAt }),
                     }}

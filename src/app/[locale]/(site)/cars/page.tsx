@@ -100,8 +100,10 @@ export default async function CarsPage({
   const understood = await understand(text);
   const filters = parseFilters(applyUnderstanding(query, understood.chips));
 
+  /** صاحبُ الجلسة — ومنه تُوسَم بطاقاتُه «إعلانك». */
+  const viewer = await currentUserFromCookies();
   const [result, brands, features, cities] = await Promise.all([
-    searchListings(filters, locale),
+    searchListings(filters, locale, viewer?.id ?? null),
     listBrandOptions(),
     listFeatureOptions('search_filter'),
     db.listing
@@ -130,7 +132,6 @@ export default async function CarsPage({
    * **والزرّ يقول حالَه قبل الضغط.** «احفظ» على بحثٍ محفوظٍ أصلًا
    * يَعِد بما وقع، فيضغطه صاحبه فيُقال له «مكرّر» — وهو لم يخطئ.
    */
-  const viewer = await currentUserFromCookies();
   const current = serializeFilters(filters).toString();
   const alreadySaved = await isSaved(viewer?.id ?? null, current);
 

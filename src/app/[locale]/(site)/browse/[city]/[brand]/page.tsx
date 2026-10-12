@@ -1,3 +1,4 @@
+import { currentUserFromCookies } from '@/lib/domain/account';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {notFound, permanentRedirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
@@ -115,6 +116,7 @@ export default async function CityBrandLanding({
    */
   const sort = SORTS.includes(resolvedSort) ? resolvedSort : 'newest';
 
+  const viewer = await currentUserFromCookies();
   const results = await searchListings(
     {
       ...EMPTY_FILTERS,
@@ -125,6 +127,7 @@ export default async function CityBrandLanding({
       limit: 12,
     },
     locale,
+    viewer?.id ?? null,
   );
 
   return (

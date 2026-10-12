@@ -25,6 +25,7 @@ export type SearchRow = {
   imageCount: number;
   sellerName: string | null;
   sellerVerified: boolean;
+  isOwn: boolean;
   publishedAt: string | null;
   highestBid: string | null;
   bidderCount: number | null;
@@ -65,6 +66,7 @@ export function toCardData(
     // `null` من النطاق — والتسمية من الشاشة
     sellerName: row.sellerName ?? labels.anonymousSeller,
     sellerVerified: row.sellerVerified,
+    isOwn: row.isOwn,
     /**
      * **وحقول المزاد تُحذف لا تُصفَّر.** صفرٌ في «أعلى مزايدة» يوحي
      * بأن المركبة بلا قيمة، و`undefined` تجعل البطاقة لا تعرض السطر.

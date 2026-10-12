@@ -88,3 +88,27 @@ export async function favoritedRefs(
     }),
   );
 }
+
+/**
+ * ═══ أيُّ هذه الإعلانات لك؟ ═══
+ *
+ * الشاشة تعرض بطاقاتٍ لا تقول لمن هي. ومن نشر سيارته يراها في البحث
+ * وفي الرئيسية **كأيّ بطاقة**، فيفتحها ويضغط «اشترِ» — ويردّ الخادم
+ * `OWN_LISTING`. والحارس صحيح، **والشاشة لم تقل**.
+ *
+ * ولا يُحلّ بقراءة `sellerId` في كل شاشة: أربع شاشاتٍ تبني بطاقات،
+ * وأربع نسخٍ من الشرط تتباعد. فاستعلامٌ واحد كـ`favoritedRefs`.
+ */
+export async function ownListingRefs(
+  userId: string | null,
+  refs: readonly string[],
+): Promise<Set<string>> {
+  if (userId === null || refs.length === 0) return new Set();
+
+  const rows = await db.listing.findMany({
+    where: { ref: { in: [...refs] }, sellerId: userId },
+    select: { ref: true },
+  });
+
+  return new Set(rows.map((row) => row.ref));
+}

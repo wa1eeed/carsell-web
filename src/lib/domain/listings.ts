@@ -438,6 +438,13 @@ export type ListingCard = {
   sellerName: string | null;
   sellerVerified: boolean;
   sellerIsDealer: boolean;
+  /**
+   * **إعلانُ من يقرأ** — و`false` لزائرٍ بلا جلسة.
+   *
+   * الشاشة كانت تعرضه كأيّ بطاقة، فيفتحه صاحبُه ويضغط «اشترِ»
+   * فيردّه الخادم `OWN_LISTING`. والحارس صحيح، **والشاشة لم تقل**.
+   */
+  isOwn: boolean;
   highestBid: string | null;
   bidderCount: number | null;
   endsAt: string | null;
@@ -471,6 +478,8 @@ function monthlyPayment(
 export async function searchListings(
   filters: Filters,
   locale = 'ar',
+  /** صاحبُ الجلسة — ومنه تُعرف بطاقاتُه. و`null` للزائر. */
+  viewerId: string | null = null,
 ): Promise<SearchResult> {
   const settings = await db.financeSetting.findUnique({ where: { id: 'default' } });
   const minPrice = Number(settings?.minPrice ?? 0);
@@ -554,6 +563,8 @@ export async function searchListings(
         sellerVerified:
           row.seller.idVerified || row.seller.dealer?.verified === true,
         sellerIsDealer: row.seller.dealer != null,
+        /** **إعلانُ من يقرأ** — والمقارنة هنا فلا تُنسخ في أربع شاشات. */
+        isOwn: viewerId !== null && row.sellerId === viewerId,
         highestBid: highest?._max.amount?.toString() ?? null,
         bidderCount: row.auction?._count.bids ?? null,
         endsAt: row.auction?.endsAt.toISOString() ?? null,

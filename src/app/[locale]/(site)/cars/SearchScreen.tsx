@@ -190,6 +190,7 @@ export function SearchScreen({
     // `null` من النطاق — والتسمية هنا
     sellerName: item.sellerName ?? ANONYMOUS_SELLER,
     sellerVerified: item.sellerVerified,
+    isOwn: item.isOwn,
     ...(item.publishedAt === null ? {} : { publishedAt: item.publishedAt }),
     ...(item.highestBid === null ? {} : { highestBid: Number(item.highestBid) }),
     ...(item.bidderCount === null ? {} : { bidderCount: item.bidderCount }),

@@ -3608,3 +3608,51 @@ refused.
 **And no state is copied from a prop** (gate 27): the snapshot starts `null` and
 overlays the server's value, so the server stays the source of truth and the
 overlay only wins once something newer arrives.
+
+## «إعلانك» — the guard was there, the screen was silent
+
+The server already refuses all three paths: `createOrder` and `createOffer`
+return `OWN_LISTING`, `placeBid` returns `OWN_AUCTION`. Nothing was missing in
+the rules.
+
+**The screens said nothing.** Someone who published their own car saw it in
+search, on the homepage and on their dealer page like any other card, opened it,
+pressed «اشترِ» — and was refused by the server. The guard is right and the
+reader concludes the fault is theirs.
+
+`ownListingRefs(viewerId, refs)` mirrors `favoritedRefs`: one query for a whole
+screen, an empty set and no query at all for a signed-out visitor. The flag is
+computed **inside the readers** (`searchListings`, `getDealerPage`) rather than
+in each screen — four screens render cards, and four copies of
+`sellerId === viewerId` drift apart.
+
+`CarCard` renders an ink-toned «إعلانك» badge above the inspected badge, so it
+reads first.
+
+Measured: the API returns 4 own listings out of 49 for that seller and 0 for a
+visitor; the search page renders 2 badges among 20 cards for the seller and none
+for a visitor. `tests/own-listing.test.ts` holds both halves — the flag and the
+refusal — because either alone is half a rule.
+
+The detail page already blocked both actions and keeps doing so; this is about
+the list screens, which are where the decision actually starts.
+
+## Inspection reports now exist in all three sale types
+
+The seed attached both inspection reports to `listings[0]` and `listings[1]` —
+**both `DIRECT`**. So the report screen — score, sections, paint map, findings,
+the heaviest read-only screen in the product — **could not be seen on an auction
+or a negotiation listing in any seeded environment**, and the «مفحوصة» badge
+never appeared on an auction card.
+
+That is backwards for auctions in particular: someone asked to lock up a deposit
+on a car they have not seen is buying the report before the car.
+
+One per type now, with spread scores (92 · 78 · 64) so the screen is seen in its
+states rather than only in green:
+
+- `DIRECT` — `/ar/cars/jeddah/hyundai/tucson/ADS2026A0001`
+- `NEGOTIATION` — `/ar/cars/riyadh/toyota/rav4/ADS2026A0031`
+- `AUCTION` — `/ar/cars/madinah/kia/sorento/ADS2026A0051`
+
+All three listing pages and all three `/inspection` pages return 200.

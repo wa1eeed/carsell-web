@@ -55,6 +55,8 @@ export async function getDealerPage(
   slug: string,
   locale: string,
   filter: DealerStockFilter = null,
+  /** صاحبُ الجلسة — ومنه تُعرف بطاقاتُه. و`null` للزائر. */
+  viewerId: string | null = null,
 ): Promise<PublicDealer | null> {
   const dealer = await db.dealer.findUnique({
     where: { slug },
@@ -158,6 +160,8 @@ export async function getDealerPage(
         sellerName: arabic ? dealer.nameAr : dealer.nameEn,
         sellerVerified: dealer.verified,
         sellerIsDealer: true,
+        /** **إعلانُ من يقرأ** — ومالكُ المعرض يرى بطاقاته موسومة. */
+        isOwn: viewerId !== null && row.sellerId === viewerId,
         highestBid: null,
         bidderCount: row.auction?._count.bids ?? null,
         endsAt: row.auction?.endsAt.toISOString() ?? null,

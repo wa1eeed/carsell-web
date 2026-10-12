@@ -1421,8 +1421,25 @@ async function main(): Promise<void> {
 
   const inspectionServiceId = services.get('inspection') as string;
 
-  for (let i = 0; i < 2; i += 1) {
-    const l = listings[i] as ListingRef;
+  /**
+   * ═══ تقريرُ فحصٍ في كل نوع بيع ═══
+   *
+   * كان التقريران كلاهما على `listings[0]` و`listings[1]`، **وهما
+   * بيعٌ مباشر**. فشاشةُ تقرير الفحص — وهي من أثقل ما في المنتج:
+   * درجةٌ وأقسامٌ ومخطّط هيكلٍ وملاحظات — **لا تُرى في مزادٍ ولا في
+   * مساومة** في أيّ بيئة مزروعة. وشارةُ «مفحوصة» لا تظهر على كرت
+   * مزادٍ قطّ، والمزاد أحوجُ ما يكون إليها: من يحجز عربونًا على
+   * مركبةٍ لم يرَها يشتري التقرير قبل السيارة.
+   *
+   * فواحدٌ من كل نوع — ومن أوائل القائمة، فالطلبات تُبنى عليها
+   * فتظهر البطاقة بشارتها في الرئيسية والبحث معًا.
+   */
+  const inspectables: ListingRef[] = (['DIRECT', 'NEGOTIATION', 'AUCTION'] as const)
+    .map((type) => listings.find((row) => row.type === type))
+    .filter((row): row is ListingRef => row !== undefined);
+
+  for (let i = 0; i < inspectables.length; i += 1) {
+    const l = inspectables[i] as ListingRef;
     const request = await prisma.serviceRequest.create({
       data: {
         ref: `SRV-2026-${String(3000 + i)}`,
@@ -1467,8 +1484,13 @@ async function main(): Promise<void> {
         ref: `INS-2026-${String(41800 + i)}`,
         serviceRequestId: request.id,
         vehicleId: l.vehicleId,
-        score: 92 - i * 5,
-        inspectorName: i === 0 ? 'م. تركي الشمري' : 'م. بدر المطيري',
+        /**
+         * **ودرجاتٌ متباعدة** — فالشاشة تُرى في حالاتها: ممتازٌ
+         * أخضر، ومقبولٌ أصفر، ودونه. ودرجةٌ واحدة لا تُظهر إلّا حالًا.
+         */
+        score: [92, 78, 64][i] ?? 85,
+        inspectorName:
+          ['م. تركي الشمري', 'م. بدر المطيري', 'م. عبدالعزيز الحربي'][i] ?? 'م. فاحص',
         inspectedAt: days(-between(5, 20)),
         sections,
         paintMap: {
