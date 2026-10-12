@@ -325,7 +325,27 @@ deploy with no error that explains why.
 
    That guards against guessing, not against a leak: whoever knows the password
    is in. A strong `ADMIN_PASSWORD` is not a recommendation here.
-6. **Verify** after the first deploy — see §6.
+6. **Route payments to the sandbox** — first deploy only, and after every
+   re-seed, from the container terminal:
+   ```bash
+   cd /opt/seed && ./node_modules/.bin/tsx scripts/trial-mode.ts on
+   ```
+
+   **Without this, staging cannot sell a car.** The seed routes
+   `VEHICLE_ESCROW`, `AUCTION_DEPOSIT` and `TRANSFER_FEE` to `bank_escrow`,
+   which has no adapter — so every purchase stops at
+   `GATEWAY_NOT_CONFIGURED`, and §6's manual walk (buy, pay, confirm receipt)
+   cannot be completed. §5 says staging routes to the sandbox; this is the
+   command that makes that true.
+
+   The seed does **not** do this on its own, deliberately: a routing change to
+   a fake gateway that happens by itself is the shape that reaches production.
+   The script refuses to run when `APP_ENV=production`, and says why rather
+   than failing silently.
+
+   Tests never catch this — none of them goes through the gateway.
+
+7. **Verify** after the first deploy — see §6.
 
 ---
 
@@ -370,7 +390,8 @@ the last sessions was found by clicking:
 
 - Sign in with a phone, complete the profile (email · identity · IBAN).
 - Publish a listing with a photo. Confirm **the plate is blurred** in the result.
-- Buy it from a second account, pay, confirm receipt. The order must reach
+- Buy it from a second account, pay, confirm receipt. **Needs §4.6** — without
+  it the payment stops at `GATEWAY_NOT_CONFIGURED`. The order must reach
   **DONE** and the sale agreement must be issued.
 - Open the admin panel and walk every screen. This is the one area never
   exercised by clicking during development.
