@@ -43,6 +43,38 @@ ADMIN_EMAIL=you@example.com
 ADMIN_PASSWORD=<openssl rand -base64 24 — keep it>
 ```
 
+### Boot stops if one is missing — by name
+
+The entrypoint checks all five before it migrates, and prints **every** missing
+one in a single boot:
+
+```
+✗ الإقلاع متوقّف — متغيّراتٌ لازمة ناقصة:
+  · OTP_PEPPER — غائب
+  · SECRETS_KEY — أقصر من 32 محرفًا (الطول 12)
+  راجع docs/DEPLOY-STAGING.md القسم ٢.
+```
+
+This exists because three of them — `JWT_SECRET`, `OTP_PEPPER`, `SECRETS_KEY` —
+throw at **first use**, not at boot. A container missing one of them migrates,
+syncs the admin, starts, and answers `{"ok":true}` on `/api/health`, because the
+health check touches the database and nothing else. It then returns 500 on the
+first sign-in, with the reason in the container log rather than on the screen.
+The orchestrator reports a successful deploy that nobody can log into.
+
+`CRON_SECRET` is checked for a different reason: its absence makes
+`authorized()` return `false` for every call, which locks `/api/cron/run`
+silently. No auction closes, no unpaid order times out, no deposit settles — a
+marketplace that does not move, with a clean log.
+
+`APP_URL` only warns. Its default is deliberately local, so a deploy without it
+works but publishes a sitemap pointing at `localhost`.
+
+Stopping on the first missing variable would cost one deploy cycle per variable,
+so they are collected and printed together. `tests/env-guards.test.ts` derives
+the required list **from the source** — any new `process.env.X` whose absence
+throws fails the test until the entrypoint checks it too.
+
 **The seed refuses to run outside development without `ADMIN_PASSWORD`.**
 Its development default is written in the repository, and deploying with it would
 put an admin account with a publicly known password on a public URL.

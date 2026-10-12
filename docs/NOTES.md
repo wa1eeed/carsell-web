@@ -4122,3 +4122,85 @@ decision rather than a question.
 **And `prisma format` was reverted.** It reformatted the whole file — 649 lines
 changed for a 15-line comment, burying the actual change. The comment was
 re-applied by hand.
+
+---
+
+## Deploy preflight — three secrets that throw after boot, not at it
+
+Reviewing the `Dockerfile` against the five deploy failures recorded in
+CLAUDE.md before the first deploy, all five were confirmed guarded — and a sixth
+turned up that nothing guarded.
+
+**What was wrong.** `JWT_SECRET`, `OTP_PEPPER` and `SECRETS_KEY` are each read
+inside the function that needs them, and each throws when absent:
+
+| Variable | Read in | On absence |
+| --- | --- | --- |
+| `JWT_SECRET` | `src/lib/auth/token.ts:19` | throws, < 32 bytes also throws |
+| `OTP_PEPPER` | `src/lib/domain/auth.ts:71` | throws |
+| `SECRETS_KEY` | `src/lib/crypto/secrets.ts:24` | throws, < 32 chars also throws |
+| `CRON_SECRET` | `src/app/api/cron/run/route.ts:24` | **denies** every call |
+
+Throwing is the right behaviour — none of them silently defaults, and a missing
+`CRON_SECRET` locks the endpoint rather than opening it. The defect was *when*
+the throw happens. A container missing `JWT_SECRET` runs `migrate deploy`, syncs
+the admin account, starts the server, and answers `{"ok":true}` on
+`/api/health` — because that endpoint touches the database and nothing else. The
+first sign-in then returns 500 with the reason in the container log.
+
+**So the orchestrator reports a successful deploy that nobody can log into.**
+That is worse than a visible failure: there is nothing to look at.
+
+`CRON_SECRET` fails differently and more quietly. `authorized()` returns `false`
+when it is unset, so `/api/cron/run` rejects every call. No auction closes, no
+unpaid order times out, no deposit settles. A marketplace that does not move,
+and a clean log.
+
+**What was done.** `docker-entrypoint.sh` now checks all five before migrating,
+and prints every missing one in a single boot:
+
+```
+✗ الإقلاع متوقّف — متغيّراتٌ لازمة ناقصة:
+  · OTP_PEPPER — غائب
+  · SECRETS_KEY — أقصر من 32 محرفًا (الطول 12)
+```
+
+Collected rather than fail-fast, because stopping at the first missing variable
+costs one full deploy cycle per variable — the worst possible feedback loop.
+`APP_URL` warns instead of failing: its default is deliberately local.
+
+**Measured, not assumed.** POSIX `sh` indirect expansion (`eval "value=\${$1-}"`)
+and `${#value}` were run three ways — all unset, one short secret, all valid —
+under both `sh` and `dash` (closest to the busybox `ash` in `node:22-alpine`).
+All unset named all five and never reached migrate; `JWT_SECRET=short` reported
+`الطول 5` while a valid `SECRETS_KEY` passed; all valid warned on `APP_URL` and
+proceeded to migrate.
+
+**Gate 43** (`tests/env-guards.test.ts`) derives the required list **from the
+source**: every `process.env.X` with a `throw` before the paragraph's first
+`return` must have a matching `require X` in the entrypoint. A new throwing
+secret fails the test until the entrypoint checks it. Proven by deleting
+`require JWT_SECRET 32` — the test failed with
+`expected [ 'JWT_SECRET' ] to deeply equal []`, naming the variable.
+
+**And the first version of the gate sliced at a comment.** The boundary was
+`indexOf('migrate deploy')`, and line 6 of the entrypoint *mentions*
+`migrate deploy` in a comment explaining what it does — so the "preflight"
+region was the first six lines, and all three checks failed against an empty
+window. The boundary is now `indexOf('(cd /opt/prisma')`, the executed line.
+Same class as gate 42's ±6-line window: **a region bounded by a phrase catches
+the prose that describes the code.**
+
+### The five recorded failures, re-confirmed
+
+| # | Failure | Guard in the image |
+| --- | --- | --- |
+| ① | `NODE_ENV=production` at install skips `devDependencies` | `ENV NODE_ENV=development` + `npm ci --include=dev` in deps; `production` in build and run |
+| ② | `prisma.config.ts` not copied | `COPY prisma.config.ts ./` |
+| ③ | prisma CLI copied selectively, missing `effect` | **installed** in `/opt/prisma`, not copied |
+| ④ | `--omit=optional` drops `@node-rs/argon2`'s native binary | deliberately absent from `/opt/seed`, with the reason beside it |
+| ⑤ | `chown -R` after copying 870 MB killed the build (exit 255) | `COPY --chown` throughout; the one `chown -R` is on the ~15 MB installed `/opt/seed` tree |
+
+And the two from the scheduler session: the healthcheck uses busybox `wget`
+(`Dockerfile:153`), and the scheduled task runs `node /app/scripts/ops/cron-tick.mjs`
+— `curl` is not in `node:22-alpine` and no `apk add` installs it.

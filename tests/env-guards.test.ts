@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 /**
  * ═══ حُرّاس البيئة يقرؤون `APP_ENV` لا `NODE_ENV` ═══
@@ -166,6 +166,75 @@ describe('صورة التشغيل تحمل ما يلزم الترحيل', () => 
     const section = doc.slice(doc.indexOf('## 3. The scheduler'), doc.indexOf('## 3b.'));
     expect(section).toMatch(/node \/app\/scripts\/ops\/cron-tick\.mjs/);
     expect(section).not.toMatch(/```bash\ncurl/);
+  });
+
+  /**
+   * ═══ البوابة ٤٣: ما يرمي لاحقًا يُفحص عند الإقلاع ═══
+   *
+   * `JWT_SECRET` و`OTP_PEPPER` و`SECRETS_KEY` ترمي عند **أوّل استعمال**
+   * لا عند الإقلاع. فحاويةٌ بلا واحدٍ منها: تُرحّل، وتُزامن الأدمن،
+   * وتقلع، **وتردّ `{ok:true}` على الفحص الصحّي** — لأنه يلمس القاعدة
+   * وحدها. ثم تسقط ٥٠٠ على أوّل دخول، والسبب في سجلّ الحاوية.
+   *
+   * **فالمُنسِّق يقول «نُشر» ولا أحد يستطيع الدخول** — وهو صنف «نجاحٌ
+   * مُعلَنٌ ليس نجاحًا»، أخطر من عطلٍ ظاهر.
+   *
+   * والقائمة **مشتقّة من المصدر لا مكتوبة**: كل `process.env.X` يتبعه
+   * `throw` يجب أن يقابله `require X` في نقطة الدخول. فسرٌّ جديد يرمي
+   * يُسقط هذا الفحص حتى يُفحص عند الإقلاع.
+   */
+  it('وكلُّ سرٍّ يرمي عند الاستعمال يُفحص قبل الترحيل', () => {
+    const files = readdirSync('src', { recursive: true })
+      .map((entry) => `src/${String(entry)}`)
+      .filter((name) => /\.tsx?$/.test(name));
+
+    /** المتغيّرات التي يرمي غيابُها — تُقرأ من المصدر. */
+    const throwing = new Set<string>();
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      for (const match of source.matchAll(/process\.env\.([A-Z_][A-Z_0-9]*)/g)) {
+        const name = match[1];
+        if (name === undefined) continue;
+        const after = source.slice(match.index ?? 0, (match.index ?? 0) + 400);
+        // الرمي داخل الفقرة نفسها، قبل أيّ `return` يُنجّي الغياب
+        const stop = after.search(/\breturn\b/);
+        const window = stop === -1 ? after : after.slice(0, stop);
+        if (window.includes('throw new Error')) throwing.add(name);
+      }
+    }
+
+    // قياسُ العتبة: ثلاثةٌ لا يُكتشف غيابُها إلا بالاستعمال، ورابعٌ يُرحّل
+    expect(throwing.size).toBeGreaterThanOrEqual(4);
+
+    const entrypoint = readFileSync('docker-entrypoint.sh', 'utf8');
+    const preflight = entrypoint.slice(0, entrypoint.indexOf('(cd /opt/prisma'));
+
+    const unchecked = [...throwing].filter(
+      (name) => !new RegExp(`^require ${name}\\b`, 'm').test(preflight),
+    );
+    expect(unchecked, 'أسرارٌ ترمي ولا تُفحص عند الإقلاع').toEqual([]);
+  });
+
+  /**
+   * و`CRON_SECRET` **لا يرمي** — غيابُه يجعل `authorized()` تردّ
+   * `false` على كل نداء، فيُغلق `/api/cron/run` بلا رسالة: لا مزادٌ
+   * يُغلق، ولا طلبٌ غيرُ مدفوعٍ تنقضي مهلتُه، ولا تسويةُ عربون.
+   * **سوقٌ لا يتحرّك، وسجلٌّ نظيف.** فيُفحص هو أيضًا.
+   */
+  it('و`CRON_SECRET` يُفحص — فغيابُه يُجمّد المُجدوِل بصمت', () => {
+    const entrypoint = readFileSync('docker-entrypoint.sh', 'utf8');
+    const preflight = entrypoint.slice(0, entrypoint.indexOf('(cd /opt/prisma'));
+    expect(preflight).toMatch(/^require CRON_SECRET\b/m);
+  });
+
+  /** والفحص يُطبع كلَّ الناقص — لا يتوقّف عند أوّله. */
+  it('والناقص كلُّه يُطبع في إقلاعٍ واحد', () => {
+    const entrypoint = readFileSync('docker-entrypoint.sh', 'utf8');
+    const preflight = entrypoint.slice(0, entrypoint.indexOf('(cd /opt/prisma'));
+    // تراكمٌ في متغيّر ثم خروجٌ واحد — لا `exit 1` داخل الدالّة
+    expect(preflight).toMatch(/missing="\$missing/);
+    const requireBody = preflight.slice(preflight.indexOf('require() {'), preflight.indexOf('require DATABASE_URL'));
+    expect(requireBody).not.toMatch(/exit 1/);
   });
 
   it('ونقطة الدخول تنادي الأداة من مكانها', () => {
