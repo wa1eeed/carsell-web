@@ -3820,3 +3820,72 @@ at a 375px viewport:
 
 Equal means clean. Re-run it after any change to the header, the font scale, or a
 card grid — those are the three things that have broken it.
+
+## Three screens, three numbers, one pile of money
+
+`/admin/settlements` read **0 held**. `/admin/ledger` read **207,750 at the
+provider**. The finance tab read **169,830 live in escrow**. All three describe
+the same money.
+
+### The settlements queue could not work in any environment
+
+It selects orders that have a `Payment` with status `HELD`. The seed created
+`Escrow` rows and **not one `Payment`** — the table was empty. In the product
+`applyState` creates the escrow *from* a held payment; neither exists without the
+other.
+
+So the release queue — built with a two-approver quorum, the single most guarded
+flow in the product — showed «لا مبالغ محجوزة» everywhere. Every seeded escrow
+now has its payment. The screen reads 254,570 across four orders, each with its
+reason: «لم تُؤكَّد ملكية المركبة» · «نزاعٌ قائم».
+
+### The ledger was test residue
+
+`LedgerEntry` has no foreign key to `Order`, so `TRUNCATE … CASCADE` never
+touched it. It accumulated across every test run since the table was created and
+**was never cleared** — the 207,750 was whatever the last suite left behind.
+
+The seed wrote no ledger entries at all. An accountant opening `/admin/ledger` in
+any environment saw a ledger with no relation to the money in the system.
+
+Both fixed: `LedgerEntry` is in the truncate list, and the seed posts
+`recordOrderPaid` for every paid order, `recordOrderEarned` for completed ones and
+`recordRefund` for the partial settlement — **through the single entry point that
+checks balance** (gate 20), never by writing rows.
+
+The ledger now reads 361,925 at the provider, which is exactly the six escrows
+(363,425) less the 1,500 refunded, and «قُبض ولم يُستحقّ» 253,070 against 254,570
+held, the difference again being that refund. Gate 39 gained the invariant: the
+provider balance is never below what the escrow table holds — if it is, there is
+money in the boxes the books do not know about.
+
+**A held auction deposit is deliberately not in the ledger.** It is an
+authorisation at the gateway, not cash we have received; it is posted when
+forfeited or captured.
+
+The ledger module has to be imported lazily in the seed: it builds the app's
+Prisma client at module load, which reads `DATABASE_URL` before the seed has
+loaded its own env — the seed died with "DATABASE_URL غير مضبوط" while it was set.
+
+### Two tests that were asserting global state
+
+- `payment-routing` created one held payment on `VEHICLE_ESCROW`, settled it, and
+  asserted the route could then be disabled. Seeded holds on that purpose made
+  the second half false. It now measures `WALLET_TOPUP`, which has a seeded route
+  and no payments, so the only change it sees is its own. (CLAUDE.md already
+  records a manual order breaking this exact test.)
+- My own `own-listing` test took an auction with status `LIVE` without requiring
+  its end time to be in the future, so `placeBid` returned `ENDED` before it ever
+  looked at ownership.
+
+### And there was no live auction at all
+
+Chasing that failure surfaced the cause: the seed opened the live auction with
+`endsAt: hours(4)`, so **every live auction died the same afternoon it was
+seeded**. After that, no auction in the environment can be bid on — the auction
+page says «انتهى», the realtime work cannot be demonstrated and «مزادات تُغلق
+قريبًا» has nothing to show.
+
+Now three days for the ones meant to be browsed, and **two hours for one of
+them**, so the countdown is seen in its urgent state and the closing-soon rail
+has something in it.

@@ -64,6 +64,23 @@ if (connectionString === undefined || connectionString === '') {
   process.exit(1);
 }
 
+/**
+ * ═══ ووحدةُ الدفتر تُحمَّل كسولًا ═══
+ *
+ * `ledger-events` تجرّ `ledger.ts` التي تبني عميل التطبيق **وقت
+ * تحميل الوحدة**، وهو يقرأ `DATABASE_URL` عندها. والبذرة تُحمّل
+ * بيئتها بنفسها في أعلى الملفّ — لكنّ استيرادًا ساكنًا يسبقها،
+ * فيسقط الزرع بـ«DATABASE_URL غير مضبوط» وهو مضبوط.
+ */
+type LedgerEvents = Awaited<ReturnType<typeof loadLedger>>;
+const loadLedger = () => import('../src/lib/domain/ledger-events');
+
+let ledgerModule: LedgerEvents | null = null;
+async function ledgerEvents(): Promise<LedgerEvents> {
+  ledgerModule ??= await loadLedger();
+  return ledgerModule;
+}
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
   log: ['error'],
@@ -329,7 +346,12 @@ async function reset(): Promise<void> {
       "ServiceProvider","Invoice","Dispute","Escrow","OrderEvent","Order",
       "Deposit","Bid","Auction","Offer","ListingFeature","ListingImage","Listing",
       "VehicleHistoryItem","Vehicle","TrimFeature","Feature","Trim","Model","Brand",
-      "OtpChallenge","AdminUser","User","Dealer"
+      "OtpChallenge","AdminUser","User","Dealer",
+      -- **والدفتر ليس له مفتاحٌ خارجيّ إلى الطلب، فلا يُفرَّغ بالتعاقب.**
+      -- فكان يتراكم عبر كل تشغيل اختبار ولا يُمسح أبدًا: قرأتُ فيه
+      -- ٢٠٧٬٧٥٠ «لدى مزوّد الدفع» والمال الفعليّ ٣٤٤٬٥٧٠ — ورقمٌ في
+      -- دفترٍ لا يطابق ما في الصناديق ليس خطأ عرضٍ بل دفترٌ غير موثوق.
+      "LedgerEntry"
     RESTART IDENTITY CASCADE;
   `);
 }
@@ -1073,10 +1095,22 @@ async function main(): Promise<void> {
    * بعدها يدور عليها — فلا يبقى إعلانٌ بلا مزاده.
    */
   const auctionListings = listings.filter((l) => l.type === 'AUCTION');
+  /**
+   * ═══ ونافذةُ المزاد الجاري تطول بما يكفي لتُستعمل ═══
+   *
+   * كانت `endsAt: hours(4)`، **فيموت كلُّ مزادٍ جارٍ بعد ظهر يوم
+   * الزرع**. وبعدها لا مزادَ يُزايَد عليه في البيئة كلّها: صفحةُ
+   * المزاد تقول «انتهى»، والمزايدةُ تردّ `ENDED`، والبثّ اللحظيّ
+   * وشريطُ «تُغلق قريبًا» لا يُرى أيٌّ منهما عاملًا.
+   *
+   * فثلاثةُ أيّام لمن يُراد تصفّحه، **وساعتان لواحدٍ** — فالعدّاد
+   * يُرى في حالته العاجلة أيضًا، وشريطُ «تُغلق قريبًا» يجد ما يعرضه.
+   */
   const auctionSpecs = [
-    { status: 'LIVE' as const, startsAt: hours(-6), endsAt: hours(4) },
+    { status: 'LIVE' as const, startsAt: hours(-6), endsAt: days(3) },
     { status: 'SCHEDULED' as const, startsAt: days(2), endsAt: days(4) },
     { status: 'ENDED_MET' as const, startsAt: days(-6), endsAt: days(-3) },
+    { status: 'LIVE' as const, startsAt: hours(-20), endsAt: hours(2) },
   ];
 
   for (let i = 0; i < auctionListings.length; i += 1) {
@@ -1227,15 +1261,83 @@ async function main(): Promise<void> {
     });
 
     if (STAGES.indexOf(stage) >= STAGES.indexOf('PAYMENT')) {
+      const heldAt = days(-between(2, 10));
+
+      /**
+       * ═══ ولا ضمانَ بلا دفعته ═══
+       *
+       * `applyState` تُنشئ `Escrow` **من دفعةٍ محجوزة** — لا تُكتب
+       * واحدةٌ بلا الأخرى. والبذرة كانت تكتب الضمان وحده، وجدولُ
+       * `Payment` **فارغٌ تمامًا**.
+       *
+       * والأثر شاشةٌ كاملة: `/admin/settlements` تقرأ الطلبات التي
+       * لها دفعةٌ `HELD`، فتقول «لا مبالغ محجوزة» بينما يقول الدفتر
+       * «٢٠٧٬٧٥٠ لدى مزوّد الدفع» والماليةُ «١٦٩٬٨٣٠ محتجزًا» —
+       * **ثلاث شاشات وثلاثة أرقام عن المال نفسه**، وطابورُ الإفراج
+       * الذي بُني بنصاب عضوين لا يُرى عاملًا في أيّ بيئة.
+       */
+      const settled = stage === 'DONE';
+      await prisma.payment.create({
+        data: {
+          orderId: order.id,
+          purpose: 'VEHICLE_ESCROW',
+          gatewayKey: 'bank_escrow',
+          amount: total,
+          method: 'mada',
+          status: settled ? 'SETTLED' : 'HELD',
+          holdRef: `hold_seed_${String(1000 + i)}`,
+          ...(settled ? { settleRef: `stl_seed_${String(1000 + i)}`, settledAmount: total, settledAt: days(-1) } : {}),
+          heldAt,
+          createdAt: heldAt,
+        },
+      });
+
       await prisma.escrow.create({
         data: {
           orderId: order.id,
           amount: total,
-          status: stage === 'DONE' ? 'RELEASED' : 'HELD',
-          heldAt: days(-between(2, 10)),
-          releasedAt: stage === 'DONE' ? days(-1) : null,
+          status: settled ? 'RELEASED' : 'HELD',
+          heldAt,
+          releasedAt: settled ? days(-1) : null,
+          gatewayRef: 'bank_escrow',
         },
       });
+      /**
+       * ═══ والدفتر يُكتب مع المال لا بعده ═══
+       *
+       * البذرة كانت تُنشئ ضمانًا وعرابين وحوالات **ولا قيدًا واحدًا**،
+       * فصفحة `/admin/ledger` تعرض ما تركته الاختبارات لا ما في
+       * المنتج. ومحاسبٌ يفتحها يجد دفترًا لا يطابق الصناديق.
+       *
+       * والقيد يمرّ بـ`recordOrderPaid` و`recordOrderEarned` —
+       * مدخلُه الوحيد الذي يفحص التوازن (البوابة ٢٠) — لا بكتابةٍ
+       * مباشرة تُنتج معاملةً لا تتوازن.
+       */
+      const { recordOrderEarned, recordOrderPaid } = await ledgerEvents();
+
+      await recordOrderPaid(
+        prisma,
+        { orderId: order.id, paymentId: null, buyerId: buyer.id, total },
+        heldAt,
+      );
+
+      if (settled) {
+        await recordOrderEarned(
+          prisma,
+          {
+            orderId: order.id,
+            paymentId: null,
+            buyerId: buyer.id,
+            sellerId: l.sellerId,
+            total,
+            commission: new D('0.00'),
+            vat,
+            govtFee: transferFee,
+          },
+          days(-1),
+        );
+      }
+
       await prisma.invoice.create({
         data: {
           ref: `INV-2026-${String(2000 + i)}`,
@@ -1353,6 +1455,23 @@ async function main(): Promise<void> {
         where: { orderId: order.id },
         data: { status: 'PARTIAL_REFUND' },
       });
+
+      /**
+       * **وردُّ المال يُقيَّد.** الضمان يصير `PARTIAL_REFUND` والدفتر
+       * لا يعلم — فيقول «لدى مزوّد الدفع» مبلغًا خرج نصفُه. والردّ
+       * هنا **قبل الاستحقاق**: الطلب لم يُكمَل، فلا إيرادَ يُعكَس.
+       */
+      const { recordRefund } = await ledgerEvents();
+      await recordRefund(
+        prisma,
+        {
+          orderId: order.id,
+          buyerId: order.buyerId,
+          amount: new D('1500.00'),
+          afterEarning: false,
+        },
+        new Date(openedAt.getTime() + 36 * 3600 * 1000),
+      );
     } else {
       /**
        * ═══ والطلب يدخل `DISPUTED` بفتح النزاع ═══

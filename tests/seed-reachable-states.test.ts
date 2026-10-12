@@ -166,6 +166,50 @@ describe('═══ حالات يبلغها المنتج ═══', () => {
     expect(off).toEqual([]);
   });
 
+  it('ضمانٌ له دفعتُه — ولا يُكتب أحدهما بلا الآخر', async () => {
+    /**
+     * `applyState` تُنشئ `Escrow` **من دفعةٍ محجوزة**. وضمانٌ بلا
+     * دفعة يُفرِغ `/admin/settlements` كاملةً — فتقول «لا مبالغ
+     * محجوزة» بينما يقول الدفتر مئتي ألفٍ لدى المزوّد. **ثلاث
+     * شاشات وثلاثة أرقام عن المال نفسه.**
+     */
+    const orphans = await db.order.findMany({
+      where: { escrow: { isNot: null }, payments: { none: {} } },
+      select: { ref: true, buyer: { select: { phone: true } } },
+    });
+
+    expect(orphans.filter(seededOrder).map((row) => row.ref)).toEqual([]);
+  });
+
+  it('الدفتر لا يقول عند المزوّد أقلَّ ممّا نحجزه', async () => {
+    /**
+     * ═══ ودفترٌ لا يطابق الصناديق ليس دفترًا ═══
+     *
+     * `ESCROW_AT_PROVIDER` رصيدٌ يقول كم من المال عندنا هناك. وضمانٌ
+     * `HELD` مالٌ محجوزٌ باسم صفقة — **فرصيدُ الحساب لا يقلّ عنه
+     * أبدًا**، وإن قلّ فثمّ مالٌ في الصناديق لا يعرفه الدفتر.
+     *
+     * وقِيس قبل الإصلاح: الدفتر ٢٠٧٬٧٥٠ والمحجوز ٢٥٤٬٥٧٠ — والفرق
+     * أنّ البذرة كانت تُنشئ الضمان **بلا قيدٍ واحد**، فما في الدفتر
+     * بقايا اختباراتٍ لا مالُ المنتج.
+     *
+     * **والعربون المحجوز ليس منه**: تفويضٌ لدى البوابة لا نقدٌ
+     * قبضناه، فلا يُقيَّد حتى يُصادَر أو يُحصَّل.
+     */
+    const rows = await db.ledgerEntry.groupBy({
+      by: ['direction'],
+      where: { account: 'ESCROW_AT_PROVIDER' },
+      _sum: { amount: true },
+    });
+    const side = (key: 'DEBIT' | 'CREDIT'): number =>
+      Number(rows.find((row) => row.direction === key)?._sum.amount ?? 0);
+
+    const atProvider = side('DEBIT') - side('CREDIT');
+    const held = await db.escrow.aggregate({ where: { status: 'HELD' }, _sum: { amount: true } });
+
+    expect(atProvider).toBeGreaterThanOrEqual(Number(held._sum.amount ?? 0));
+  });
+
   it('طلبٌ مكتملٌ وإعلانُه مُغلق', async () => {
     /** الطلب يُكمل فيُغلق إعلانه — وإعلانٌ يبقى معروضًا يُباع مرّتين. */
     const stillOpen = await db.order.findMany({

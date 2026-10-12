@@ -58,8 +58,13 @@ describe('═══ ولا يشتري أحدٌ من نفسه ═══', () => {
   });
 
   it('مزايدةُ البائع على مزاده تُرفض', async () => {
+    /**
+     * **والحالة وانقضاء الوقت معًا.** `LIVE` مخزَّنةٌ لمزادٍ انقضى
+     * وقتُه حتى تمرّ الوظيفة الدورية، و`placeBid` تردّ `ENDED` قبل
+     * أن تنظر في المالك — فيقيس الاختبار شيئًا لم يقصده.
+     */
     const auction = await db.auction.findFirstOrThrow({
-      where: { status: 'LIVE' },
+      where: { status: 'LIVE', endsAt: { gt: new Date() } },
       select: { id: true, startPrice: true, listing: { select: { sellerId: true } } },
     });
 

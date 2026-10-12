@@ -138,26 +138,36 @@ describe('═══ قرار ٣٦ ═══ السبب إلزاميّ', () => {
 
 describe('═══ القاعدة ٣ ═══ غرضٌ له معاملات جارية لا يُعطَّل', () => {
   it('التعطيل يُرفض ما دام هناك حجز قائم', async () => {
+    /**
+     * ═══ والغرضُ المقيس لا تُشاركه البذرة ═══
+     *
+     * كان يقيس `VEHICLE_ESCROW`، ثمّ صارت البذرة تُنشئ دفعاتٍ محجوزة
+     * عليه (كما يفعل المنتج: لا ضمانَ بلا دفعته). **فالشطر الثاني
+     * يسقط**: يُنهي الاختبار دفعتَه فيبقى حجزٌ مزروعٌ آخر، فيُرفض
+     * التعطيل في الحالين ويقيس الاختبار شيئًا لم يُحدثه.
+     *
+     * و`WALLET_TOPUP` له مسارٌ مزروع **ولا دفعةَ عليه**، فالتبديل
+     * الذي يراه الاختبار تبديلُه هو.
+     */
     const operator = await admin();
-    const order = await db.order.findFirstOrThrow();
 
     const payment = await db.payment.create({
       data: {
-        orderId: order.id, purpose: 'VEHICLE_ESCROW', gatewayKey: 'bank_escrow',
+        purpose: 'WALLET_TOPUP', gatewayKey: 'moyasar',
         amount: 1000, method: 'mada', status: 'HELD', heldAt: new Date(),
       },
     });
 
-    const blocked = await setRouteEnabled(operator, 'VEHICLE_ESCROW', false, null);
+    const blocked = await setRouteEnabled(operator, 'WALLET_TOPUP', false, null);
     expect(blocked.ok).toBe(false);
     if (!blocked.ok) expect(blocked.reason).toBe('HAS_IN_FLIGHT');
 
     // وبعد انتهائه يُعطَّل
     await db.payment.update({ where: { id: payment.id }, data: { status: 'SETTLED' } });
-    const allowed = await setRouteEnabled(operator, 'VEHICLE_ESCROW', false, null);
+    const allowed = await setRouteEnabled(operator, 'WALLET_TOPUP', false, null);
     expect(allowed.ok).toBe(true);
 
-    await setRouteEnabled(operator, 'VEHICLE_ESCROW', true, null);
+    await setRouteEnabled(operator, 'WALLET_TOPUP', true, null);
     await db.payment.delete({ where: { id: payment.id } });
     await db.auditLog.deleteMany({ where: { actorId: operator.id } });
     await db.adminUser.delete({ where: { id: operator.id } });
