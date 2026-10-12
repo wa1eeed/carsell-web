@@ -3407,3 +3407,42 @@ noun.
 
 Measured at 30 before, 0 after, then proven by putting one back: two violations
 named with file and line, green again on restore.
+
+## The component inventory is now generated — and it found three dead blocks
+
+The owner asked whether documentation is written continuously or at the end, and
+whether it might be incomplete. Measuring was more useful than reassuring:
+**38 of 71 component files had no mention anywhere in `components.md`.** Over
+half the library was unindexed, and every new task widened the gap.
+
+`components.md` is a narrative — *why* each component exists, which states it
+must cover — and it is worth keeping. It simply never claimed to be an
+inventory, and nothing checked that it was.
+
+So the inventory is generated: `scripts/generate-component-docs.mjs` →
+`docs/frontend/component-index.md`, wired into `npm run docs:generate` and
+`npm run docs:check`, which `verify` runs. 135 components, each with its file,
+whether it crosses the client boundary, its props, and how many files reference
+it. Proven by adding a throwaway export: the check failed by name, green again
+on revert.
+
+**The "referenced nowhere" column paid for the generator immediately.** Three
+components in `src/components/site/AuctionSections.tsx` are exported and never
+imported:
+
+- `SpecStrip` — the four facts that sit under the title
+- `ClosingSoonRail` — other auctions ending soon
+- `SellerCard` — who is selling
+
+The file's own header says why: the We design has nine blocks and only one was
+built. These three were built and then never wired into `CarPage.tsx`. The
+eleventh instance of *built but nothing reaches it* — and it lands exactly where
+the next piece of work goes, the public vehicle and auction pages.
+
+Not fixed here: wiring them is page work, not inventory work, and it belongs
+with the auction page task (live countdown, real-time bidding) that follows.
+
+`docs/README.md` now states the three guarantees plainly, because the question
+deserved a written answer: **generated** (cannot lie), **checked** (cannot
+invent a name), **hand-written** (a discipline, not a guarantee — which is why
+anything countable is generated instead).

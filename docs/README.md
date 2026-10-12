@@ -41,6 +41,17 @@ PostgreSQL via Prisma, Arabic-first with English alongside.
 - [`operations/integrations.md`](operations/integrations.md) — every external
   dependency and what happens when it is down.
 
+**4b · What is on the screen**
+
+- [`frontend/component-index.md`](frontend/component-index.md) — every exported
+  component, its file, whether it crosses into the client, its props, and how
+  many files reference it. **Generated**; `npm run verify` fails if it is stale.
+  Components nothing imports are listed first, because "built but never wired"
+  is the single most repeated defect in this repository.
+- [`frontend/components.md`](frontend/components.md) — the narrative: *why* each
+  component exists and which states it must cover. Hand-written, and it does not
+  claim to be an inventory — that is what the index is for.
+
 **5 · Why things are the way they are**
 
 - [`DESIGN-DECISIONS.md`](DESIGN-DECISIONS.md) — the binding decisions, in order,
@@ -79,13 +90,33 @@ approvers, and the quorum was written with the feature rather than after it —
 between building and guarding there is a window, and one release in that window
 is enough.
 
+## How this documentation is kept true
+
+Three kinds of file, three different guarantees:
+
+1. **Generated** — `architecture/erd.md`, `api/openapi.json`,
+   `frontend/component-index.md`. Built from the source by
+   `npm run docs:generate`, and `npm run verify` fails when they drift. These
+   cannot lie.
+2. **Checked** — `workflows/state-machines.md`. Hand-drawn, but every state name
+   in it is verified against the schema enums, so it cannot invent a state.
+3. **Hand-written** — everything else. Each task updates the matching file **in
+   the same commit**; a task without its documentation is not finished. This is
+   a discipline, not a guarantee, which is why anything countable is generated
+   instead.
+
+The failure mode this guards against: a hand-written document describes the tree
+**on the day it was written**, then is read for a year while it lies. It was
+measured once — 38 of 71 components had no mention anywhere — which is why the
+inventory became generated.
+
 ## Verifying
 
 ```
 npm run verify
 ```
 
-Types, lint, eighteen repository gates, generated-documentation freshness, and
+Types, lint, forty-one repository gates, generated-documentation freshness, and
 the test suite. It stops at the first failure — do not read the tail of a chained
 command instead, because the tail shows the last command that ran, not the first
 that failed.
