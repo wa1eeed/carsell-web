@@ -77,8 +77,32 @@ export type OrderTabCounts = {
   disputed: number;
 };
 
-export async function orderTabCounts(): Promise<OrderTabCounts> {
-  const [stages, statuses, disputed] = await Promise.all([
+/**
+ * ═══ متى يُعدّ الطلب متعثّرًا ═══
+ *
+ * **القاعدة تُكتب مرّة.** كان الصفُّ يُرشَّح بالمحسوب (`critical`)
+ * والشريحةُ تُعدّ بالمخزَّن (`OrderStatus.STALLED`) — **ولا كاتب
+ * لـ`STALLED` في المنتج كلّه**. فالشريحة تقول «متعثّرة ٠» والنقرُ
+ * عليها يعرض تسعة: رقمان متناقضان في شاشةٍ واحدة.
+ *
+ * والتعثّر هنا هو ما تعرضه الشاشة أصلًا: **تجاوزُ ضعفِ هدف المرحلة**
+ * — لا قاعدةٌ جديدة تُخترع، بل الحدُّ المرسوم على كل صفّ.
+ *
+ * والمقارنة على **الساعات الصحيحة** لا على الكسر: الشارة تُحسب من
+ * الرقم المعروض، فصفٌّ يقول «٢٤٠ ساعة» ولا يحمل شارةَ تجاوزِ ٢٤٠.
+ */
+// DESIGN-Q: أيبقى `OrderStatus.STALLED` حالةً يضعها المشغّل بيده، أم يُحذف؟
+//            التعثّر محسوبٌ الآن، والقيمة بلا كاتبٍ ولا قارئ — عدا بقائها
+//            في مرشّحات «المفتوحة» تحسّبًا لصفٍّ قديم يحملها.
+export function isStalled(stage: OrderStage, stageEnteredAt: Date, now: Date): boolean {
+  const target = STAGE_TARGET_HOURS[stage];
+  if (target <= 0) return false;
+  const dwellHours = Math.floor((now.getTime() - stageEnteredAt.getTime()) / 3_600_000);
+  return dwellHours > target * 2;
+}
+
+export async function orderTabCounts(now: Date = new Date()): Promise<OrderTabCounts> {
+  const [stages, statuses, disputed, open] = await Promise.all([
     db.order.groupBy({
       by: ['stage'],
       where: { status: { in: ['ACTIVE', 'DISPUTED', 'STALLED'] } },
@@ -86,6 +110,11 @@ export async function orderTabCounts(): Promise<OrderTabCounts> {
     }),
     db.order.groupBy({ by: ['status'], _count: { _all: true } }),
     db.order.count({ where: { disputes: { some: { status: { in: ['OPEN', 'INVESTIGATING'] } } } } }),
+    /* المتعثّرة تُحسب من المرحلة ووقت دخولها — لا من عمودٍ لا يكتبه أحد */
+    db.order.findMany({
+      where: { status: { in: ['ACTIVE', 'DISPUTED', 'STALLED'] } },
+      select: { stage: true, stageEnteredAt: true },
+    }),
   ]);
 
   const byStage: Record<string, number> = {};
@@ -99,7 +128,7 @@ export async function orderTabCounts(): Promise<OrderTabCounts> {
     byStage,
     completed: ofStatus('COMPLETED'),
     cancelled: ofStatus('CANCELLED'),
-    stalled: ofStatus('STALLED'),
+    stalled: open.filter((row) => isStalled(row.stage, row.stageEnteredAt, now)).length,
     disputed,
   };
 }
@@ -169,6 +198,8 @@ export async function listAdminOrders(
       (now.getTime() - order.stageEnteredAt.getTime()) / 3_600_000,
     );
     const targetHours = STAGE_TARGET_HOURS[order.stage];
+    /* والشريحةُ تعدّ بهذه الدالّة نفسها — فلا يتباعد العدُّ عن الترشيح */
+    const critical = isStalled(order.stage, order.stageEnteredAt, now);
 
     return {
       ref: order.ref,
@@ -177,7 +208,7 @@ export async function listAdminOrders(
       dwellHours,
       targetHours,
       late: targetHours > 0 && dwellHours > targetHours,
-      critical: targetHours > 0 && dwellHours > targetHours * 2,
+      critical,
       total: order.totalAmount.toString(),
       // الاسم أو آخر أربعة من الجوال — لا الرقم كاملًا في جدول
       buyer: order.buyer.name ?? order.buyer.phone.slice(-4),

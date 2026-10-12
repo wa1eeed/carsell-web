@@ -189,3 +189,30 @@ describe('خطوطُ الزمن', () => {
     expect(await reportTimeline('لا-وجود-له')).toEqual([]);
   });
 });
+
+describe('شريحةُ المتعثّرة', () => {
+  it('تَعُدّ ما تُرشّحه — لا عمودًا لا يكتبه أحد', async () => {
+    const { listAdminOrders, orderTabCounts } = await import('@/lib/domain/admin-orders');
+    const now = new Date();
+
+    const [counts, rows] = await Promise.all([orderTabCounts(now), listAdminOrders({}, now)]);
+
+    /*
+      **الشريحة كانت تَعُدّ `OrderStatus.STALLED`** — ولا كاتب له في
+      المنتج كلّه — **والنقرُ عليها يُرشّح بالمحسوب**. فتقول «٠» وتعرض
+      تسعة. والعدُّ والترشيح من دالّةٍ واحدة الآن.
+    */
+    expect(counts.stalled).toBe(rows.filter((row) => row.critical).length);
+  });
+
+  it('والتعثّر تجاوزُ ضعفِ الهدف لا أقلّ', async () => {
+    const { isStalled, STAGE_TARGET_HOURS } = await import('@/lib/domain/admin-orders');
+    const now = new Date('2026-06-10T00:00:00Z');
+    const target = STAGE_TARGET_HOURS.PAYMENT;
+    const at = (hours: number): Date => new Date(now.getTime() - hours * 3_600_000);
+
+    expect(isStalled('PAYMENT', at(target * 2), now)).toBe(false);
+    expect(isStalled('PAYMENT', at(target * 2 + 1), now)).toBe(true);
+    expect(isStalled('PAYMENT', at(target), now)).toBe(false);
+  });
+});
