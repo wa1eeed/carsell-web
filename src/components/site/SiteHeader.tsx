@@ -5,6 +5,7 @@ import { Countdown } from '@/components/ui/Countdown';
 import { Link } from '@/i18n/navigation';
 import { AccountNav } from './AccountNav';
 import { MobileNav } from './MobileNav';
+import { NotificationBell } from './NotificationBell';
 import type { Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
@@ -145,7 +146,13 @@ export function SiteHeader({
 
           وهو في الصفّ الأوّل على الهاتف، وفي آخر الصفّ على الواسع.
         */}
-        <span className="shrink-0 sm:order-last">
+        <span className="flex shrink-0 items-center gap-2.5 sm:order-last">
+          {/*
+            **والجرس قبل بطاقة الحساب لا داخلها.** ما ينتظرك يُرى قبل
+            أن تُفتح قائمةٌ لرؤيته — و`NotificationBell` لا يُصيَّر
+            شيئًا لمن لا جلسة له، فلا فجوة في صفّ الزائر.
+          */}
+          <NotificationBell />
           <AccountNav />
         </span>
       </div>

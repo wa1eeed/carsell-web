@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { notify } from './notifications';
 import { cancelDepositHold, captureForfeitedDeposit, holdDepositMoney } from './deposit-money';
 import { canonicalPath } from './listing-detail';
 import { createAuctionOrderStandalone } from './auction-order';
@@ -640,14 +641,12 @@ export async function forfeitOnWithdrawal(
    * **والمصادرة تُقال لصاحبها.** مالٌ يخرج من بطاقة أحدهم بلا خبرٍ
    * يصله هو أسوأ من المصادرة نفسها — ويصل أوّلًا من كشف بطاقته.
    */
-  await db.notification.create({
-    data: {
-      userId: order.buyerId,
-      templateKey: 'deposit.forfeited',
-      priority: 'critical',
-      entityType: 'Auction',
-      entityId: auction.id,
-    },
+  await notify({
+    userId: order.buyerId,
+    templateKey: 'deposit.forfeited',
+    priority: 'critical',
+    entityType: 'Auction',
+    entityId: auction.id,
   });
 
   await db.orderEvent.create({

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { notify as notifyOne, type NotifyInput } from './notifications';
 import { nextOrderRef } from './refs';
 import { republishListing, reserveListing } from './listing-state';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
@@ -47,28 +48,10 @@ export type CreateOfferResult =
  * **يقع الإشعار** لا أن يصل. فالسجلّ داخل المعاملة مع الحدث الذي
  * سبّبه، والإرسال يقرأ منه لاحقًا.
  */
-async function notify(
+const notify = async (
   tx: Prisma.TransactionClient,
-  input: {
-    userId: string;
-    templateKey: string;
-    priority?: string;
-    payload?: Prisma.InputJsonValue;
-    entityType?: string;
-    entityId?: string;
-  },
-): Promise<void> {
-  await tx.notification.create({
-    data: {
-      userId: input.userId,
-      templateKey: input.templateKey,
-      priority: input.priority ?? 'normal',
-      ...(input.payload === undefined ? {} : { payload: input.payload }),
-      ...(input.entityType === undefined ? {} : { entityType: input.entityType }),
-      ...(input.entityId === undefined ? {} : { entityId: input.entityId }),
-    },
-  });
-}
+  input: Omit<NotifyInput, 'userId'> & { userId: string },
+): Promise<void> => notifyOne(input, tx);
 
 /**
  * ═══ القاعدة ١ ═══ عرض دون `minAcceptPrice` يُرفض تلقائيًا مع إشعار.

@@ -419,3 +419,95 @@ files, with `next-intl` appearing in exactly one admin file (the provider in
 keeps closing. Extracting those strings is its own task; the switcher follows it,
 not the reverse. The **site** switcher already exists (`LocaleSwitcher`, wired in
 task 101).
+
+## The notification centre (task 144)
+
+`Notification` rows were written from five places under twelve template keys and
+read by **nothing a user could see** — the only reader in the product was a count
+on an admin statistics card. A seller received an offer and a row was written;
+no screen showed it.
+
+### One door in
+
+`src/lib/domain/notifications.ts` owns every write (`notify`, `notifyMany`) the
+way `postEntries` owns the ledger and `applyState` owns order state. Each writer
+had its own `db.notification.create` before, and one of them forgot the template:
+`offer.lost`, `listing.relisted` and `order.payment_timeout` were written with no
+template to render, so they would have arrived blank.
+
+`notify` publishes `notification.created` on the recipient's private channel after
+the write, never before, and never throws on a publish failure — the truth is in
+Postgres and the message is only a hint that it changed.
+
+### Gate 37
+
+Every `templateKey` written under `src/lib/domain/` must exist in
+`prisma/seed-data/notification-templates.json`, have `channelInApp: true`, and
+carry a non-empty `bodyAr`. A comment in `auction-order.ts` already described this
+exact failure in prose, and three keys fell into it afterwards — a comment does
+not guard. The gate was run against the original defect before being kept: it
+reported both the missing key and the disabled channel, and fell silent once they
+were fixed.
+
+### Text comes from the template, not from a labels file
+
+`NotificationTemplate` is edited by admins on A8, and until now it governed text
+**nothing displayed**. The centre renders from it, so the editor controls what
+users actually read and there is no second copy to drift. The twelve live bodies
+were rewritten: every one ended with "التفاصيل في التطبيق" — displayed *inside*
+the app, telling the reader to go where they already are.
+
+Unresolved `{placeholders}` are left as-is by `renderTemplate`, and no live body
+uses a variable today; the admin editor's `undeclaredVariables` check is what
+keeps it that way.
+
+### Destinations are looked up, never constructed
+
+`entityId` is not one kind of value: an order holds a **ref**, a listing holds an
+**id**, an auction holds its **auction id** rather than its listing's ref. Orders
+were the one case built without a query — the ref is right there, so why look it
+up? Because **the name is not the existence**: clicking the notification landed on
+"لا توجد هذه الصفحة" for an order that had been deleted.
+
+Ownership is the second condition: `/account/orders/[ref]` serves the order's two
+parties, and a recipient may be a losing bidder rather than a party, so both are
+in the same query. A dispute has no user-facing screen at all, so it gets no link —
+a row that cannot be clicked beats a row that 404s.
+
+Two tests cover this and both fail against the original code.
+
+### The bell lives in another tree
+
+"Mark all as read" succeeded, `router.refresh()` re-rendered the server tree and
+the dots went — and the bell still read "3". The page said everything was read
+while the badge above it said three were waiting.
+
+The fix is not copying the prop into state (gate 27 forbids it) but an explicit
+one-way signal in `src/lib/notifications-signal.ts`: whoever changes the count
+announces, whoever displays it listens and re-reads from the server.
+
+### "Real time" is a poll, and is described as one
+
+The `user:{id}` channel has existed since the event system was built, carrying
+four private event types — **with no publisher and no subscriber anywhere**. The
+realtime service refuses private channels outright: its README says the ticket
+endpoint does not exist yet.
+
+So `notification.created` is now published, and nothing subscribes. What actually
+happens is a 30-second poll, paused while the tab is hidden, plus a refetch on
+window focus and on opening the menu. When the ticket issuer is built, the
+subscription replaces the timer and nothing else changes.
+
+### `TimeAgo`
+
+Zero is not a number in a time phrase: `Quantity` renders it as "لا دقائق", and
+"منذ لا دقائق" is the string every reader would see in the first minute after a
+notification arrives. Zero gets its own sentence — "الآن".
+
+The preposition sits **inside** each plural branch (gate 18): "منذ" before a count
+leaves the dual nominative — "منذ ساعتان" instead of "منذ ساعتين". Past thirty days
+it prints the date instead, because "منذ ٤٧ يومًا" is arithmetic the reader has to
+redo.
+
+`now` arrives as a prop so server and client start from the same instant and
+hydration matches, then ticks forward once a minute after mount.

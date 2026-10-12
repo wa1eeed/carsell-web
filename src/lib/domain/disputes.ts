@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { notify, notifyMany } from './notifications';
 import { republishListing, suspendListing } from './listing-state';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import type { DisputeStatus } from '@/generated/prisma/enums';
@@ -135,8 +136,8 @@ export async function openDispute(
       },
     });
 
-    await tx.notification.create({
-      data: {
+    await notify(
+      {
         userId: order.sellerId,
         templateKey: 'dispute.opened',
         // فوات المهلة يُحسم النزاع بلا ردّه — فالإشعار حرج (قاعدة ١٧)
@@ -144,7 +145,8 @@ export async function openDispute(
         entityType: 'Dispute',
         entityId: dispute.id,
       },
-    });
+      tx,
+    );
 
     return { ok: true, disputeId: dispute.id, slaDueAt };
   });
@@ -466,18 +468,17 @@ async function executeResolution(
     },
   });
 
-  for (const userId of [order.buyerId, order.sellerId]) {
-    await tx.notification.create({
-      data: {
-        userId,
-        templateKey: 'dispute.resolved',
-        priority: 'critical',
-        payload: { resolution },
-        entityType: 'Dispute',
-        entityId: disputeId,
-      },
-    });
-  }
+  await notifyMany(
+    [order.buyerId, order.sellerId].map((userId) => ({
+      userId,
+      templateKey: 'dispute.resolved',
+      priority: 'critical' as const,
+      payload: { resolution },
+      entityType: 'Dispute' as const,
+      entityId: disputeId,
+    })),
+    tx,
+  );
 }
 
 /**

@@ -89,6 +89,26 @@ export const OrderStageChanged = z.object({
   ...Sequenced,
 });
 
+/**
+ * **وصلك إشعار.** القناة `user:{id}` كانت معرَّفةً **بلا ناشرٍ واحد**:
+ * أربعةُ أحداثٍ خاصّة مكتوبةٌ ومتحقَّقةٌ ولا يُرسلها أحد.
+ *
+ * والحمولة معرّفٌ وعدّاد لا نصّ: النصّ يُصاغ من قالبٍ يحرّره الأدمن،
+ * وتضمينُه هنا يجعل رسالةً قديمة في الهواء تحمل صياغةً أُلغيت.
+ *
+ * و`notificationId` يكون `null` حين يُكتب الإشعار دفعةً لعدّة
+ * مستلمين — `createMany` لا تُعيد المعرّفات، والعميل يقرأ القائمة.
+ */
+export const NotificationCreated = z.object({
+  type: z.literal('notification.created'),
+  notificationId: z.string().min(1).nullable(),
+  templateKey: z.string().min(1),
+  priority: z.enum(['critical', 'high', 'normal']),
+  /** عدد غير المقروء بعد هذا الإشعار — فالنقطة تُرسم بلا طلبٍ ثانٍ. */
+  unread: z.number().int().nonnegative(),
+  ...Sequenced,
+});
+
 export const RealtimeEvent = z.discriminatedUnion('type', [
   BidPlaced,
   AuctionExtended,
@@ -97,6 +117,7 @@ export const RealtimeEvent = z.discriminatedUnion('type', [
   OfferCountered,
   OfferAccepted,
   OrderStageChanged,
+  NotificationCreated,
 ]);
 
 export type RealtimeEvent = z.infer<typeof RealtimeEvent>;
@@ -129,7 +150,8 @@ export function channelFor(
     case 'offer.received':
     case 'offer.countered':
     case 'offer.accepted':
-    case 'order.stage_changed': {
+    case 'order.stage_changed':
+    case 'notification.created': {
       if (recipientId === undefined || recipientId === '') {
         throw new Error(`Event ${event.type} is private and requires a recipient id`);
       }

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { notifyMany } from './notifications';
 import { Prisma } from '@/generated/prisma/client';
 import { computeOrderAmounts } from './order-amounts';
 import { deadline } from './deadlines';
@@ -336,8 +337,8 @@ export async function buyNow(
   });
 
   if (bidders.length > 0) {
-    await db.notification.createMany({
-      data: bidders.map((bid) => ({
+    await notifyMany(
+      bidders.map((bid) => ({
         userId: bid.bidderId,
         /**
          * **والمفتاح من القوالب المزروعة.** `auction.bought_now`
@@ -347,10 +348,10 @@ export async function buyNow(
          */
         templateKey: 'auction.lost',
         priority: 'normal',
-        entityType: 'Auction',
+        entityType: 'Auction' as const,
         entityId: auction.id,
       })),
-    });
+    );
   }
 
   return { ok: true, orderRef: created.ref, amount: created.amount };

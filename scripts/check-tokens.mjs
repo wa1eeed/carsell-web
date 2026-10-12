@@ -2118,6 +2118,58 @@ function checkSidebarsStack() {
 }
 
 
+/**
+ * ═══ البوابة ٣٧ ═══ **مفتاحٌ يُكتب لا قالبَ له = إشعارٌ يصل فارغًا.**
+ *
+ * `notify({ templateKey: 'offer.lost' })` يكتب صفًّا، والعرض يُصيَّر من
+ * `NotificationTemplate` — فمفتاحٌ لا قالب له **يصل سطرًا فارغًا** في
+ * مركز الإشعارات. ولا شيء يسقط: الصفّ كُتب، والمعاملة نجحت، والعطل
+ * لا يُرى إلّا في عين المستلم.
+ *
+ * **وكان الكاتب يعرف**: تعليقٌ في `auction-order.ts` يشرح الصنف
+ * حرفيًّا («إشعارٌ بمفتاحٍ بلا قالب يصل فارغًا») — وثلاثةُ مفاتيح
+ * سقطت فيه بعده: `offer.lost` و`listing.relisted` و
+ * `order.payment_timeout`. فالتعليق لا يحرس، والبوابة تحرس.
+ *
+ * **ويُفحص `channelInApp`** كذلك: قالبٌ مُطفأ في القناة التي نعرض
+ * منها هو غيابٌ بصيغة أخرى.
+ */
+function checkNotificationTemplates() {
+  const SEED = 'prisma/seed-data/notification-templates.json';
+  const templates = JSON.parse(readFileSync(join(ROOT, SEED), 'utf8'));
+  const byKey = new Map(templates.map((row) => [row.key, row]));
+
+  const WRITE = /templateKey:\s*'([a-z_.]+)'/g;
+
+  for (const path of walk(join(ROOT, 'src', 'lib', 'domain'))) {
+    if (!/\.ts$/.test(path)) continue;
+    const rel = relative(ROOT, path);
+    const text = readFileSync(path, 'utf8');
+
+    for (const match of text.matchAll(WRITE)) {
+      const key = match[1];
+      const line = text.slice(0, match.index).split('\n').length;
+      const template = byKey.get(key);
+
+      if (template === undefined) {
+        problems.push(
+          `${rel}:${String(line)}  «${key}» يُكتب ولا قالب له في ${SEED} — الإشعار يصل فارغًا`,
+        );
+        continue;
+      }
+      if (template.channelInApp !== true) {
+        problems.push(
+          `${rel}:${String(line)}  «${key}» قالبُه مُطفأ في channelInApp — يُكتب ولا يُعرض`,
+        );
+      }
+      if (template.bodyAr === null || template.bodyAr === undefined || template.bodyAr === '') {
+        problems.push(`${rel}:${String(line)}  «${key}» قالبُه بلا bodyAr — سطرٌ بلا نصّ`);
+      }
+    }
+  }
+}
+
+
 checkUnits();
 checkStringifiedNumbers();
 checkColourUtilities();
@@ -2144,6 +2196,7 @@ checkPermissionCatalogue();
 checkNavTargets();
 checkYearGrouping();
 checkSidebarsStack();
+checkNotificationTemplates();
 
 // ————— النتيجة —————
 if (problems.length > 0) {
@@ -2154,5 +2207,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا تسلسل رقميّ بمحايدٍ في نصّ عربيّ · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار · الضمان يُنشأ مع قيده · والسنة لا تُجمَّع · وكل سلّمٍ جانبيّ يتراكب على الهاتف.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا تسلسل رقميّ بمحايدٍ في نصّ عربيّ · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار · الضمان يُنشأ مع قيده · والسنة لا تُجمَّع · وكل سلّمٍ جانبيّ يتراكب على الهاتف · وكل مفتاح إشعارٍ له قالبٌ يُعرض.',
 );

@@ -149,7 +149,21 @@ POST /orders/{id}/pay { method }
 GET  /wallet                                 → { available, held, tx[] }
 POST /mojaz/reports { vehicle_id }           → { file_url, invoice_url }
 POST /disputes { order_id, reason, … }
+GET  /notifications?unread=1&limit=            → { items[], unread }
+POST /notifications/read { ids[] | all: true } → { marked, unread }
 ```
+
+**الإشعارات**: `items[].title` و`body` **مُصاغان على الخادم** من
+`NotificationTemplate` — فالتطبيق يعرضهما كما وصلا ولا يحمل جدول نصوص،
+وتعديلُ الأدمن للقالب يصل التطبيق بلا إصدار. و`href` وجهةٌ داخلية قد
+تكون `null` حين لا شاشة للكيان، **فلا يُبنى رابطٌ من `entityId`**: قد
+يكون الطلب محذوفًا أو المستلم ليس طرفًا فيه.
+
+والقناة `user:{id}` تنشر `notification.created` عند كل كتابة
+(`{ notificationId, templateKey, priority, unread }`) — **ولا يُشترَك
+فيها بعد**: مُصدِر التذاكر غير مبنيّ، وخدمة البثّ ترفض القنوات الخاصّة
+بلا تذكرة. فالويب يستطلع كلّ ثلاثين ثانية، والتطبيق مثله حتى تصل
+التذكرة.
 
 ---
 

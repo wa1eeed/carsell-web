@@ -4796,6 +4796,54 @@
         }
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "GET /api/v1/notifications",
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/read": {
+      "post": {
+        "summary": "POST /api/v1/notifications/read",
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/offers": {
       "post": {
         "summary": "POST /api/v1/offers",

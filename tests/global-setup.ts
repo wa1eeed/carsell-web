@@ -40,6 +40,20 @@ const TEST_SERVICE_REF = /^SRV-[A-Z]-/;
  */
 const TEST_ADVERTISER = /\d{9,}/;
 
+/**
+ * ═══ وحسابات المستخدمين تتسرّب مثلها — ومعها إشعاراتها ═══
+ *
+ * الهاتف السعوديّ في E.164 ثلاثةَ عشر حرفًا: `+966` ثمّ تسعة. والاختبار
+ * يبني هاتفه من طابعٍ زمنيّ فيطول إلى سبعةَ عشر — فالشكل يفرّق بلا وسمٍ
+ * يُضاف ولا عمودٍ يُستحدث.
+ *
+ * **وقد تسرّب خمسُمئة وثمانيةٌ وأربعون حسابًا** عبر تشغيلاتٍ متتابعة،
+ * وعليها **تسعُمئة وتسعة إشعارات** مقابل سبعةَ عشر على المزروعين — أي
+ * أنّ ثمانيةً وتسعين في المئة ممّا في الجدول ظلٌّ لا يقرؤه أحد. ولم
+ * يكشفها شيء لأن `User` لم يكن يُنظَّف أصلًا.
+ */
+const TEST_USER_PHONE = /^\+9665\d{11,}$/;
+
 export default async function globalSetup(): Promise<void> {
   // `globalSetup` يسبق `setupFiles` — فالبيئة تُحمَّل هنا أيضًا لا هناك وحدها
   try {
@@ -167,6 +181,29 @@ export default async function globalSetup(): Promise<void> {
     await db.inspectionReport.deleteMany({ where: { serviceRequestId: { in: staleRequests } } });
     await db.serviceRequest.deleteMany({ where: { id: { in: staleRequests } } });
     console.log(`  نُظّف ${String(staleRequests.length)} طلب خدمة من تشغيلات سابقة`);
+  }
+
+  /**
+   * **والمستخدم يُحذف آخرًا** — ما يتعلّق به (`Notification`,
+   * `Favorite`, `SavedSearch`…) موصولٌ بـ`onDelete: Cascade`، وما ليس
+   * كذلك (`Listing`, `Order`) نُظّف بشكله أعلاه. وحذفُه قبلها يرتطم
+   * بقيدٍ أجنبيّ فيسقط الإعداد كلُّه.
+   */
+  const people = await db.user.findMany({ select: { id: true, phone: true } });
+  const staleUsers = people.filter((row) => TEST_USER_PHONE.test(row.phone)).map((row) => row.id);
+  if (staleUsers.length > 0) {
+    const detached = await db.user.deleteMany({
+      where: {
+        id: { in: staleUsers },
+        /* ما بقي له إعلانٌ أو طلبٌ حقيقيّ لا يُمسّ — الشكل يرشّح، والعلاقة تحكم */
+        listings: { none: {} },
+        ordersAsBuyer: { none: {} },
+        ordersAsSeller: { none: {} },
+      },
+    });
+    if (detached.count > 0) {
+      console.log(`  نُظّف ${String(detached.count)} مستخدم اختبار من تشغيلات سابقة`);
+    }
   }
 
   if (ids.length > 0) {

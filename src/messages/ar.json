@@ -1060,5 +1060,23 @@
     "agoHours": "{count, plural, zero{الآن} one{قبل ساعة} two{قبل ساعتين} few{قبل {n} ساعات} many{قبل {n} ساعة} other{قبل {n} ساعة}}",
     "resendIn": "{count, plural, zero{أعِد الإرسال الآن} one{إعادة الإرسال بعد ثانية} two{إعادة الإرسال بعد ثانيتين} few{إعادة الإرسال بعد {n} ثوانٍ} many{إعادة الإرسال بعد {n} ثانية} other{إعادة الإرسال بعد {n} ثانية}}",
     "basedOnDeals": "{count, plural, zero{بلا صفقات} one{مبنيّ على صفقة واحدة} two{مبنيّ على صفقتين} few{مبنيّ على {n} صفقات} many{مبنيّ على {n} صفقة} other{مبنيّ على {n} صفقة}}"
+  },
+  "notificationCenter": {
+    "title": "الإشعارات",
+    "unread": "غير مقروء",
+    "markAll": "علِّم الكلّ مقروءًا",
+    "viewAll": "كل الإشعارات",
+    "tabAll": "الكلّ",
+    "tabUnread": "غير المقروء",
+    "empty": "لا إشعارات بعد",
+    "emptyBody": "ما يقع على إعلاناتك وعروضك وطلباتك يصلك هنا أوّلًا.",
+    "emptyUnread": "لا شيء ينتظر قراءتك",
+    "emptyUnreadBody": "قرأتَ كل ما وصلك. وما يصل لاحقًا يظهر هنا.",
+    "openEntity": "افتح",
+    "now": "الآن",
+    "agoMinutes": "{count, plural, zero{الآن} one{منذ دقيقة} two{منذ دقيقتين} few{منذ {n} دقائق} many{منذ {n} دقيقة} other{منذ {n} دقيقة}}",
+    "agoHours": "{count, plural, zero{الآن} one{منذ ساعة} two{منذ ساعتين} few{منذ {n} ساعات} many{منذ {n} ساعة} other{منذ {n} ساعة}}",
+    "agoDays": "{count, plural, zero{اليوم} one{منذ يوم} two{منذ يومين} few{منذ {n} أيام} many{منذ {n} يومًا} other{منذ {n} يوم}}",
+    "critical": "حرج"
   }
 }
