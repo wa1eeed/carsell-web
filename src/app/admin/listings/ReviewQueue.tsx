@@ -120,11 +120,11 @@ export function ReviewQueue({
     <>
       <StatGrid>
         <Card
-          title="في الطابور"
+          title="قيد المراجعة"
           value={stats.queued}
           note={
             stats.oldestMinutes === null
-              ? 'الطابور فارغ'
+              ? 'لا توجد إعلانات للمراجعة'
               : `أقدمها منذ ${waitedText(stats.oldestMinutes)}`
           }
         />
@@ -155,7 +155,7 @@ export function ReviewQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا شيء ينتظر المراجعة"
-          description="الطابور للمرشَّح آليًّا وحده — وأكثر الإعلانات تُنشر بلا مروره."
+          description="القائمة للمرشَّح آليًّا وحده — وأكثر الإعلانات تُنشر بلا مروره."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -209,8 +209,8 @@ export function ReviewQueue({
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-65">
-        هذا الطابور <b>للمرشَّح آليًّا وحده</b> — ولو مرّ به كل إعلان لتوقّف السوق. راجِع
-        قواعد الترشيح إن تجاوز الطابور خمسين.
+        هذه القائمة <b>للإعلانات المرشحة تلقائيًا فقط</b> — ولو مرّ به كل إعلان لتوقّف السوق. راجِع
+        قواعد الترشيح إذا تجاوزت القائمة خمسين إعلانًا.
       </p>
 
       <Modal
@@ -222,7 +222,7 @@ export function ReviewQueue({
           <>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-70">
               يعود الإعلان مسودّةً عند صاحبه، <b>ويقرأ ملاحظتك</b>. وإعادةٌ بلا سبب تجعله
-              ينشره كما هو فيعود إلى الطابور.
+              ينشره كما هو فيعود إلى القائمة.
             </p>
 
             <label className="flex flex-col gap-1.5">

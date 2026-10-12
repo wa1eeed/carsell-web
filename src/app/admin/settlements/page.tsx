@@ -46,7 +46,7 @@ const GROUPS = [
   { key: 'awaiting', label: 'ينتظر اعتمادًا' },
   { key: 'blocked', label: 'محجوب' },
   { key: 'settled', label: 'مُسوّى' },
-  { key: 'refunded', label: 'مُسترجَع' },
+  { key: 'refunded', label: 'مسترجع' },
   { key: 'deposits', label: 'عرابين' },
 ] as const;
 
@@ -138,7 +138,7 @@ export default async function SettlementsPage({
         total={null}
         note={
           isHistory
-            ? 'سجلٌّ لما خرج من الطابور — قراءةٌ بلا إجراء'
+            ? 'سجل ما تمت تسويته · للقراءة فقط'
             : 'ما لم يُفرَج عنه بعد'
         }
         can="طلب الإفراج عن مبلغٍ محجوز، واعتماد طلب غيره."

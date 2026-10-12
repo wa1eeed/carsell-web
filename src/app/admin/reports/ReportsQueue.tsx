@@ -146,7 +146,7 @@ export function ReportsQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا بلاغات هنا"
-          description="حين يُبلغ مستخدم عن إعلان أو حساب يظهر بلاغه في هذا الطابور."
+          description="عندما يُبلغ مستخدم عن إعلان أو حساب، يظهر البلاغ في هذه القائمة."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">

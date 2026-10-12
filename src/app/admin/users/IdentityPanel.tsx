@@ -70,9 +70,9 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
         {identity === null ? (
           <>
             <p className="mb-4 text-sm leading-loose opacity-70">
-              هذا الاطّلاع يُسجَّل باسمك وبالسبب الذي تكتبه، ويظهر للعميل في سجلّه.
+              هذا الاطلاع يُسجَّل باسمك وبالسبب الذي تكتبه، ويظهر للعميل في سجلّه.
             </p>
-            <label className="mb-2 block text-2xs font-semibold opacity-60">سبب الاطّلاع</label>
+            <label className="mb-2 block text-2xs font-semibold opacity-60">سبب الاطلاع</label>
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
@@ -113,7 +113,7 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
             </dl>
 
             <h3 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
-              سجلّ الاطّلاع
+              سجلّ الاطلاع
             </h3>
             <ul className="flex flex-col gap-2.5 text-2xs">
               {log.map((entry, i) => (
@@ -122,7 +122,7 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
                   <span className="bidi-isolate flex-1 opacity-70">{entry.reason ?? '—'}</span>
                 </li>
               ))}
-              {log.length === 0 ? <li className="opacity-50">لا اطّلاع سابق.</li> : null}
+              {log.length === 0 ? <li className="opacity-50">لا اطلاع سابق.</li> : null}
             </ul>
             <p className="mt-4 flex items-center gap-1.5 text-3xs opacity-45">
               <Quantity unit="accesses" count={log.length} />

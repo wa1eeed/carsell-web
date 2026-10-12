@@ -60,7 +60,7 @@ export default async function AdminIdentityPage({
   const tabs: MonitorTab[] = [
     {
       key: null,
-      label: 'الطابور',
+      label: 'قائمة التوثيق',
       count: stats.waiting + stats.clarification,
       tone: stats.waiting > 0 ? ('warn' as const) : undefined,
     },
@@ -73,9 +73,9 @@ export default async function AdminIdentityPage({
 
   return (
     <AdminShell title="توثيق الهوية"
-      subtitle="طابور توثيق الهوية" activeHref="/admin/identity" admin={admin}>
+      subtitle="طلبات توثيق الهوية" activeHref="/admin/identity" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        الطابور اليدويّ وحده — النفاذ الوطنيّ يُوثَّق آليًّا. والهدف أقلّ من ساعة.
+        الطلبات اليدوية فقط. التوثيق عبر النفاذ الوطني يتم تلقائيًا، والهدف أقل من ساعة.
       </p>
 
       <MonitorTabs tabs={tabs} active={status} basePath="/admin/identity" param="status" />
@@ -85,9 +85,9 @@ export default async function AdminIdentityPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="الطابور اليدويّ وحده — والنفاذ الوطنيّ آليّ"
+        note="الطلبات اليدوية فقط · النفاذ الوطني تلقائي"
         can="التوثيق أو طلب توضيح أو الرفض بسببٍ مكتوب."
-        cannot="عرض صورة الهوية أو رقمها كاملًا من الجدول — الاطّلاع فعلٌ مقصود يُقيَّد قبل أن يُعرض شيء."
+        cannot="عرض صورة الهوية أو رقمها كاملًا من الجدول — الاطلاع فعلٌ مقصود يُقيَّد قبل أن يُعرض شيء."
       />
     </AdminShell>
   );

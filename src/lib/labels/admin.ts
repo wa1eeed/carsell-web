@@ -173,7 +173,7 @@ export const SUPPLY_TYPE_LABEL: Record<string, string> = {
   COMMISSION: 'العمولة',
   SERVICE: 'الخدمات',
   ADMIN_FEE: 'رسوم إدارية',
-  DISBURSEMENT: 'صرف نيابةً عن العميل',
+  DISBURSEMENT: 'صرف بدلًا عن العميل',
 };
 
 export const TAXABLE_BASE_LABEL: Record<string, string> = {
@@ -186,7 +186,7 @@ export const TAXABLE_BASE_LABEL: Record<string, string> = {
 export const INVOICE_ISSUER_LABEL: Record<string, string> = {
   PLATFORM: 'المنصّة',
   SELLER: 'البائع',
-  PLATFORM_ON_BEHALF: 'المنصّة نيابةً',
+  PLATFORM_ON_BEHALF: 'المنصة بالنيابة',
   NONE: 'لا أحد',
 };
 

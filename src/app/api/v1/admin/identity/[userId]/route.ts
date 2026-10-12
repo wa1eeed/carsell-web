@@ -21,7 +21,7 @@ const STATUS: Record<string, number> = {
 
 const MESSAGE: Record<string, string> = {
   USER_NOT_FOUND: 'لا حساب بهذا المعرّف.',
-  NOT_IN_QUEUE: 'الحساب لم يعد في الطابور — راجعه غيرك.',
+  NOT_IN_QUEUE: 'الحساب لم يعد في القائمة — راجعه غيرك.',
   NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_IDENTITY_NOTE))}) — صاحبها يقرؤها ليُصلح.`,
 };
 

@@ -160,7 +160,7 @@ export default async function PushPage() {
                     <ArabicNumber value={row.bodyChars} grouped={false} />
                   </span>
                   {row.titleOver || row.bodyOver ? (
-                    <Badge tone="warn">يُقتطع</Badge>
+                    <Badge tone="warn">سيُختصر</Badge>
                   ) : (
                     <span aria-hidden className="shrink-0 text-accent-700">✓</span>
                   )}
@@ -187,7 +187,7 @@ export default async function PushPage() {
           <li>التسويقي مغلق افتراضيًا — الموافقة تُطلب لا تُفترض.</li>
           <li>
             الحدّ الآمن للنصّ: <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> للعنوان و
-            <Quantity unit="characters" count={PUSH_BODY_LIMIT} /> للمتن — وما زاد يُقتطع على
+            <Quantity unit="characters" count={PUSH_BODY_LIMIT} /> للمتن — وما زاد سيُختصر على
             أندرويد.
           </li>
           <li>طلب الإذن بعد أوّل تفاعل ذي قيمة لا عند التشغيل.</li>

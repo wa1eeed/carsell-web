@@ -42,10 +42,10 @@ export default async function AdminListingsPage({
 
   return (
     <AdminShell title="مراجعة الإعلانات"
-      subtitle="الطابور — والقرار بدليله" activeHref="/admin/listings" admin={admin}>
+      subtitle="قائمة المراجعة · والقرار بدليله" activeHref="/admin/listings" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        الطابور الآليّ — لا مراجعةُ كل إعلان. يدخله ما رشّحته قاعدة: صورة مكرّرة، أو
-        سعر شاذّ، أو حساب جديد، أو بلاغ.
+        الترشيح تلقائي ولا تُراجع كل الإعلانات. تدخل القائمة الإعلانات التي ترشحها
+        القواعد: صورة مكررة، أو سعر غير منطقي، أو حساب جديد، أو بلاغ.
       </p>
 
       <ReviewQueue
@@ -58,10 +58,10 @@ export default async function AdminListingsPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="الطابور الآليّ — لا مراجعةُ كل إعلان"
+        note="ترشيح تلقائي · لا تُراجع كل الإعلانات"
         can="الموافقة على الإعلان أو إعادته لصاحبه بملاحظةٍ يقرؤها."
         cannot="تعديل محتوى الإعلان — الإرجاع بملاحظةٍ يجعل صاحبه يُصلح، والتعديل منّا يجعله يوقّع ما لم يكتب."
-        automatic="يدخل الطابور ما رشّحته قاعدة: صورة مكرّرة أو سعر شاذّ أو حساب جديد أو بلاغ."
+        automatic="تدخل القائمة الإعلانات التي ترشحها القواعد: صورة مكررة أو سعر غير منطقي أو حساب جديد أو بلاغ."
       />
     </AdminShell>
   );

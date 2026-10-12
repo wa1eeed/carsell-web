@@ -270,7 +270,7 @@ export function TrimEditor({
 
         <section className="rounded-lg border border-line bg-surface p-5.5">
           <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-45">
-            قيَم يدخلها البائع
+            قيَم تدخلهاا البائع
           </h3>
           <p className="mb-3 text-xs opacity-55">لا تُحرَّر هنا</p>
           <ul className="flex flex-col gap-2 text-sm opacity-72">

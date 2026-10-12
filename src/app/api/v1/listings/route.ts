@@ -112,7 +112,7 @@ const PUBLISH_ERROR: Record<
     status: 422,
   },
   AUCTION_BUY_NOW_INVALID: {
-    ar: 'سعر «اشترِ الآن» لا يقلّ عن الاحتياطي — وإلّا بِيعت بأقلّ ممّا قبلتَ به.',
+    ar: 'سعر «اشترِ الآن» لا يقلّ عن الاحتياطي — وإلّا بيعت السيارة بأقلّ ممّا قبلتَ به.',
     en: 'The buy-now price cannot be below the reserve — it would sell under your floor.',
     status: 422,
   },

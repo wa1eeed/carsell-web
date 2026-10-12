@@ -71,7 +71,7 @@ export function SettlementHistoryTables({
       )}
 
       {refunded.length === 0 ? null : (
-        <Section title="مُسترجَع">
+        <Section title="مسترجع">
           {refunded.map((row) => (
             <Row
               key={row.orderRef}

@@ -56,7 +56,7 @@ export default async function AdminAuditPage({
         cards={[
           { title: 'إجمالي المدخلات', value: counts.total ?? 0, note: 'منذ البداية' },
           { title: 'تمسّ المال', value: counts.money ?? 0, note: 'إفراج · عمولة · مهل' },
-          { title: 'تمسّ بيانات شخصية', value: counts.identity ?? 0, note: 'اطّلاع وتوثيق' },
+          { title: 'تمسّ بيانات شخصية', value: counts.identity ?? 0, note: 'اطلاع وتوثيق' },
           { title: 'تمسّ الصلاحيات', value: counts.permissions ?? 0, note: 'حسابات وأدوار' },
         ]}
       />

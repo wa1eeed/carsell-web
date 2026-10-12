@@ -338,12 +338,12 @@ export default async function AdminListingDetailPage({
                 )}
                 {listing.reviewQueuedAt === null ? null : (
                   <Field
-                    label="دخل الطابور"
+                    label="دخل المراجعة"
                     value={riyadh.format(new Date(listing.reviewQueuedAt))}
                   />
                 )}
                 {listing.reviewedAt === null ? (
-                  <Field label="القرار" value="ما زال في الطابور" />
+                  <Field label="القرار" value="ما زال قيد المراجعة" />
                 ) : (
                   <Field label="روجِع" value={riyadh.format(new Date(listing.reviewedAt))} />
                 )}

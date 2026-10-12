@@ -21,7 +21,7 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
 
 const STATUS_LABEL: Record<string, string> = {
   NEW: 'جديد', ASSIGNED: 'مُسنَد', IN_PROGRESS: 'قيد التنفيذ',
-  DONE: 'مُنجَز', FAILED: 'فشل', REFUNDED: 'مُسترجَع',
+  DONE: 'منجز', FAILED: 'فشل', REFUNDED: 'مسترجع',
 };
 
 /**

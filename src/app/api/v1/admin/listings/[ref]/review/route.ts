@@ -22,7 +22,7 @@ const STATUS: Record<string, number> = {
 
 const MESSAGE: Record<string, string> = {
   LISTING_NOT_FOUND: 'لا إعلان بهذا المرجع.',
-  NOT_IN_QUEUE: 'الإعلان لم يعد في الطابور — راجعه غيرك.',
+  NOT_IN_QUEUE: 'الإعلان لم يعد في القائمة — راجعه غيرك.',
   // الرقم عربيّ-هنديّ ومعزول، والجملة لا يحكمها المعدود
   NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_REVIEW_NOTE))}) — البائع يقرؤها ليُصلح.`,
   SUSPEND_NOT_ALLOWED: 'إيقاف الحساب يحتاج صلاحية أعلى.',

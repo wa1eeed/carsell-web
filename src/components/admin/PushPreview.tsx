@@ -95,7 +95,7 @@ function Measure({
         <span className="opacity-40">/</span>
         <ArabicNumber value={limit} grouped={false} />
       </dd>
-      {over ? <Badge tone="warn">يُقتطع</Badge> : null}
+      {over ? <Badge tone="warn">سيُختصر</Badge> : null}
     </span>
   );
 }

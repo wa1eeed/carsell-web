@@ -84,7 +84,7 @@ export function IdentityQueue({
         decision === 'VERIFY'
           ? 'وُثّق الحساب — وصار يستطيع النشر والشراء.'
           : decision === 'CLARIFY'
-            ? 'طُلب التوضيح — يبقى في الطابور.'
+            ? 'تم طلب التوضيح. يبقى في قائمة التوثيق.'
             : 'رُفض التوثيق، والسبب مسجَّل.',
       );
       router.refresh();
@@ -99,7 +99,7 @@ export function IdentityQueue({
           value={stats.waiting}
           note={
             stats.oldestMinutes === null
-              ? 'الطابور فارغ'
+              ? 'لا توجد طلبات توثيق'
               : `أقدمها منذ ${waitedText(stats.oldestMinutes)}`
           }
         />
@@ -114,7 +114,7 @@ export function IdentityQueue({
           <span className="font-num text-3xl font-bold">
             {displayDigits(String(stats.nafathSharePct))}٪
           </span>
-          <p className="mt-1.5 text-3xs opacity-50">كلّما ارتفعت قلّ الطابور</p>
+          <p className="mt-1.5 text-3xs opacity-50">كلما ارتفعت قلّت الطلبات المعلّقة</p>
         </div>
       </StatGrid>
 
@@ -210,7 +210,7 @@ export function IdentityQueue({
             */}
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-65">
               رقم الهوية لا يُعرض في هذه الشاشة. كشفُه من شاشة العملاء بسببٍ مكتوب،
-              وكل اطّلاع مسجَّل.
+              وكل عملية اطلاع مسجلة.
             </p>
 
             <label className="flex flex-col gap-1.5">
@@ -236,7 +236,7 @@ export function IdentityQueue({
                 disabled={pending || note.trim().length < MIN_IDENTITY_NOTE}
                 onClick={() => decide(open, 'CLARIFY')}
               >
-                اطلب توضيحًا — يبقى في الطابور
+                اطلب توضيحًا (يبقى في القائمة)
               </Button>
               <Button
                 variant="outline"
