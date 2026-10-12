@@ -213,6 +213,8 @@ export type AuctionRow = {
 };
 
 export type AuctionCounts = {
+  /** كلُّ المزادات — **عدًّا لا جمعَ شرائح**. */
+  all: number;
   live: number;
   scheduled: number;
   unmet: number;
@@ -307,7 +309,14 @@ export async function auctionMonitor(
 }
 
 export async function auctionCounts(now: Date = new Date()): Promise<AuctionCounts> {
-  const [live, scheduled, unmet, met, liveRows] = await Promise.all([
+  const [all, live, scheduled, unmet, met, liveRows] = await Promise.all([
+    /**
+     * **«الكل» تُعَدّ ولا تُجمَع.** كانت الشاشة تجمع `live + scheduled
+     * + ended`، و**المزاد الذي انقضى وقتُه وحالتُه `LIVE` بعد** ليس في
+     * أيٍّ منها (الوظيفة تمرّ كل خمس دقائق) — فتقول الشريحة أقلَّ ممّا
+     * تعرض القائمة. (البوابة ٤٠.)
+     */
+    db.auction.count(),
     // **الحالة وانقضاء الوقت معًا** — و`LIVE` وحدها تعدّ المنتهي جاريًا
     db.auction.count({ where: { status: 'LIVE', endsAt: { gt: now } } }),
     db.auction.count({ where: { status: 'SCHEDULED' } }),
@@ -326,6 +335,7 @@ export async function auctionCounts(now: Date = new Date()): Promise<AuctionCoun
   const ended = met + unmet;
 
   return {
+    all,
     live,
     scheduled,
     unmet,
@@ -353,9 +363,29 @@ export type OfferRow = {
   /** انقضت مهلته وإن بقيت حالته نشطة في الجدول */
   lapsed: boolean;
   waitingMinutes: number;
+  /**
+   * ═══ ما يحتاجه المراقب قبل أن يفتح العرض ═══
+   *
+   * الصفّ كان يقول اسمين نصًّا لا يُفتح أيٌّ منهما، ولا يقول أيّ
+   * مركبةٍ هي بصورتها، ولا **كم بقي من المهلة** — وعرضٌ بقيت له ساعة
+   * غير عرضٍ بقي له يومان، والصفّ كان يسوّيهما بـ«منذ».
+   */
+  buyerId: string;
+  sellerId: string;
+  thumbnail: string | null;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehicleYear: number;
+  city: string;
+  /** ساعاتٌ حتى انقضاء المهلة — سالبٌ حين انقضت. */
+  hoursToExpiry: number;
+  /** عددُ جولات المفاوضة — عرضٌ ومقابلُه ومقابلُ مقابله. */
+  round: number;
 };
 
 export type OfferCounts = {
+  /** كلُّ العروض — **عدًّا لا جمعَ شرائح**: الجمع يُسقط ما لا شريحةَ له. */
+  all: number;
   active: number;
   countered: number;
   accepted: number;
@@ -397,17 +427,40 @@ export async function offerMonitor(
       parentOfferId: true,
       createdAt: true,
       expiresAt: true,
-      buyer: { select: { name: true, phone: true } },
+      buyer: { select: { id: true, name: true, phone: true } },
       listing: {
         select: {
           ref: true,
           askPrice: true,
-          seller: { select: { name: true, phone: true } },
+          city: true,
+          seller: { select: { id: true, name: true, phone: true } },
           vehicle: { select: { brandName: true, modelName: true, year: true } },
+          images: {
+            orderBy: [{ isCover: 'desc' }, { sort: 'asc' }],
+            take: 1,
+            select: { r2Key: true },
+          },
         },
       },
     },
   });
+
+  /**
+   * ═══ جولةُ التفاوض — وتُحسب بصعود السلسلة ═══
+   *
+   * `parentOfferId` يقول «هذا مقابل» ولا يقول الكم. والفرق قرارٌ:
+   * عرضٌ في جولته الرابعة مفاوضةٌ جادّة تقترب، وعرضٌ أوّل جسّ نبض.
+   */
+  const parents = new Map(rows.map((row) => [row.id, row.parentOfferId]));
+  const roundOf = (id: string): number => {
+    let depth = 1;
+    let cursor = parents.get(id) ?? null;
+    while (cursor !== null && depth < 20) {
+      depth += 1;
+      cursor = parents.get(cursor) ?? null;
+    }
+    return depth;
+  };
 
   return rows.map((row) => ({
     id: row.id,
@@ -422,13 +475,32 @@ export async function offerMonitor(
     isCounter: row.parentOfferId !== null,
     lapsed: row.expiresAt <= now,
     waitingMinutes: minutesSince(row.createdAt, now),
+    buyerId: row.buyer.id,
+    sellerId: row.listing.seller.id,
+    /** مفتاحُ R2 ليس رابطًا — ويُمرَّر خامًا فتُرسم صورةٌ مكسورة. */
+    thumbnail:
+      row.listing.images[0] === undefined ? null : publicUrl(row.listing.images[0].r2Key),
+    vehicleBrand: row.listing.vehicle.brandName,
+    vehicleModel: row.listing.vehicle.modelName,
+    vehicleYear: row.listing.vehicle.year,
+    city: row.listing.city,
+    hoursToExpiry: (row.expiresAt.getTime() - now.getTime()) / 3_600_000,
+    round: roundOf(row.id),
   }));
 }
 
 export async function offerCounts(now: Date = new Date()): Promise<OfferCounts> {
   const dayAgo = new Date(now.getTime() - 86_400_000);
 
-  const [active, countered, accepted, autoRejected, stale, decided] = await Promise.all([
+  const [all, active, countered, accepted, autoRejected, stale, decided] = await Promise.all([
+    /**
+     * ═══ «الكل» تُعَدّ ولا تُجمَع ═══
+     *
+     * كانت الشاشة تجمع أربعَ شرائح من ستّ حالات، والقائمةُ بلا ترشيحٍ
+     * تعيد الستّ — فقالت «٤» وعرضت «٧». **رقمان متناقضان في شاشة.**
+     * (ثاني وقوعٍ للصنف بعد «متعثّرة» في الطلبات؛ البوابة ٤٠.)
+     */
+    db.offer.count(),
     // **نشط = الحالة ولم تنقضِ المهلة** — والحالة وحدها تعدّ الميّت حيًّا
     db.offer.count({ where: { status: 'PENDING', expiresAt: { gt: now } } }),
     db.offer.count({ where: { status: 'COUNTERED' } }),
@@ -441,6 +513,7 @@ export async function offerCounts(now: Date = new Date()): Promise<OfferCounts> 
   ]);
 
   return {
+    all,
     active,
     countered,
     accepted,

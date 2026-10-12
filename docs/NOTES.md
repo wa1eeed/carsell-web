@@ -3202,3 +3202,69 @@ no escrow — in the dev database, permanently.
 It now goes through `snapshotOrder`/`restoreOrder`, the single restore point.
 The rule it broke is already written down: a test returns what it changed, and
 the restore lives in `tests/helpers/order-fixture.ts` alone.
+
+## Offers as cards — and gate 40: a tab counts what it filters
+
+### The card
+
+`/admin/offers` is titled "monitoring, not intervention", so it has no buttons.
+The only decision it supports is **which negotiation is worth looking at**, and
+the row answered none of the three things that decide it:
+
+- **The gap.** The row printed offer and ask side by side and left the
+  subtraction to the reader, on every row. 2% below ask is a deal about to
+  close; 38% is someone testing the water. The card prints «دونه بـ١٢٪», amber
+  from 15%.
+- **The round.** `parentOfferId` says "this is a counter"; it does not say how
+  many. A fourth-round offer is a live negotiation; a first is an opening bid.
+  Depth is walked over the chain in memory, not re-queried.
+- **Time left, not time spent.** «منذ ساعتين» ranks nothing. «بقي ٤ ساعات»
+  (amber under 6h) does.
+
+Buyer and seller are now real links. They were plain text in a row whose only
+link was the listing ref.
+
+### Gate 40 — `tests/tab-counts-match.test.ts`
+
+A tab reading «٠» that opens onto ten rows is two contradictory numbers in one
+screen, each correct on its own: the counter reads a column, the filter
+computes a bound, and nothing ties them together.
+
+Second occurrence (task 150 fixed «متعثّرة» on orders without building a gate),
+so this one is a gate: for every screen, each tab's count is compared with the
+length of what that tab's filter returns. Six screens are covered — offers,
+disputes, service requests, auctions, orders, customers.
+
+It found three live defects:
+
+1. **Offers «الكل» summed four tabs out of six states** — it said 4 while the
+   list showed 7. `offerCounts` now counts; it does not add up tabs.
+2. **Auctions «الكل» summed live + scheduled + ended** — an auction whose time
+   has passed while its status is still `LIVE` (the job runs every five
+   minutes) is in none of the three. Same fix.
+3. **Every status tab on `/admin/service-requests` showed everything.** The
+   query built `{ ...extra, status: { in: OPEN_STATUSES } }` where `extra`
+   already held `status: pick` — **the second key silently overwrote the
+   first**. Nothing throws; the filter just evaporates. The wanted status is now
+   intersected with each query's range, and a query that cannot match returns an
+   empty list instead of an unfiltered one.
+
+### Orders: a tab that carried a count and opened onto a paragraph
+
+«مكتملة ٢» rendered a note saying the queue is for live orders only, with the
+archive elsewhere. The reasoning was sound and written down, but a tab that
+carries a number and shows no row is a promise not kept.
+
+`listAdminOrders` hardcoded `status: { in: ['ACTIVE','DISPUTED','STALLED'] }`,
+so finished orders could not be fetched at all. It now takes a `status` filter,
+the finished tabs fetch their own rows, and the note moved above the list: these
+are finished, shown for review, full archive in reports.
+
+### One unexplained failure
+
+A single `npm run verify` failed once with `expected true to be false` — no test
+name captured. Four runs since (two `vitest run`, two `verify`) are clean, and
+the config has no shuffle and no retry, so it is not ordering. **It is not
+fixed and not explained.** Logged here so the next occurrence is linked to this
+one rather than treated as new; capture `npm run verify` to a file so the
+failing test names itself.

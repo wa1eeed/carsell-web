@@ -84,7 +84,7 @@ export default async function AdminAuctionsPage({
         basePath="/admin/auctions"
         active={active}
         tabs={[
-          { key: null, label: 'الكل', count: counts.live + counts.scheduled + counts.ended },
+          { key: null, label: 'الكل', count: counts.all },
           { key: 'live', label: 'جارية', count: counts.live },
           { key: 'scheduled', label: 'قادمة', count: counts.scheduled },
           { key: 'unmet', label: 'دون الاحتياطي', count: counts.unmet },

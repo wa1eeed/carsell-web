@@ -1,13 +1,10 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ListSearch } from '@/components/admin/ListSearch';
 import { ListFooter } from '@/components/admin/ListFooter';
-import { Badge } from '@/components/ui/Badge';
-import { Money } from '@/components/ui/Money';
-import {
-  MonitorCards, MonitorList, MonitorRow, MonitorTabs, elapsed,
-} from '@/components/admin/MonitorShell';
+import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
+import { OfferCard } from '@/components/admin/OfferCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { offerCounts, offerMonitor } from '@/lib/domain/admin-monitors';
@@ -19,14 +16,6 @@ export const metadata = { title: 'العروض والمفاوضات' };
 const FILTERS = ['active', 'countered', 'accepted', 'auto'] as const;
 type Filter = (typeof FILTERS)[number];
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'بانتظار البائع',
-  COUNTERED: 'عرض مقابل',
-  ACCEPTED: 'مقبول',
-  REJECTED: 'مرفوض',
-  WITHDRAWN: 'مسحوب',
-  EXPIRED: 'انتهت مهلته',
-};
 
 /**
  * A23 — العروض والمفاوضات.
@@ -79,11 +68,7 @@ export default async function AdminOffersPage({
         basePath="/admin/offers"
         active={active}
         tabs={[
-          {
-            key: null,
-            label: 'الكل',
-            count: counts.active + counts.countered + counts.accepted + counts.autoRejected,
-          },
+          { key: null, label: 'الكل', count: counts.all },
           { key: 'active', label: 'بانتظار البائع', count: counts.active },
           { key: 'countered', label: 'عرض مقابل', count: counts.countered },
           { key: 'accepted', label: 'مقبولة', count: counts.accepted },
@@ -91,57 +76,24 @@ export default async function AdminOffersPage({
         ]}
       />
 
-      <MonitorList
-        empty={{ title: 'لا عروض هنا', description: 'حين يقدّم مشترٍ عرضًا يظهر هنا بحاله.' }}
-        note="لا زرّ في هذه الشاشة عمدًا: المفاوضة بين طرفين، ومن يملك زرًّا فيها يملك ترجيح أحدهما."
-      >
-        {rows.map((row) => (
-          <MonitorRow
-            key={row.id}
-            title={row.title}
-            subtitle={`${row.buyerName} ← ${row.sellerName}`}
-            /* **الصفّ يُفتح** — وقائمةٌ لا تُفتح صفوفُها لا يُتصرَّف فيها */
-            meta={
-              <Link
-                href={`/admin/offers/${row.id}`}
-                dir="ltr"
-                className="font-num text-start underline underline-offset-4 hover:opacity-70"
-              >
-                {row.listingRef}
-              </Link>
-            }
-          >
-            <div className="flex flex-col items-start gap-0.5">
-              <Money amount={Number(row.amount)} />
-              <span className="text-3xs opacity-45">
-                المطلوب <Money amount={Number(row.askPrice)} showCurrency={false} />
-              </span>
-            </div>
+      {rows.length === 0 ? (
+        <EmptyState
+          title="لا عروض هنا"
+          description="حين يقدّم مشترٍ عرضًا يظهر هنا بحاله ومهلته."
+        />
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {rows.map((row) => (
+            <OfferCard key={row.id} row={row} />
+          ))}
+        </div>
+      )}
 
-            <div className="flex flex-col items-start gap-1">
-              <Badge
-                tone={
-                  row.autoRejected ? 'neutral' : row.status === 'ACCEPTED' ? 'accent' : 'warn'
-                }
-              >
-                {row.autoRejected
-                  ? 'رُفض تلقائيًّا'
-                  : (STATUS_LABEL[row.status] ?? row.status)}
-              </Badge>
-              {/*
-                **الحالة المخزَّنة وانقضاء الوقت معًا**: عرضٌ `PENDING`
-                فاتت مهلته ليس بانتظار أحد — والوظيفة تمرّ كل خمس دقائق.
-              */}
-              {row.lapsed && row.status === 'PENDING' ? (
-                <span className="text-3xs opacity-50">انقضت مهلته — يُسقَط قريبًا</span>
-              ) : null}
-            </div>
+      <p className="mt-4 text-3xs leading-relaxed opacity-45">
+        لا زرّ في هذه الشاشة عمدًا: المفاوضة بين طرفين، ومن يملك زرًّا فيها يملك
+        ترجيح أحدهما.
+      </p>
 
-            <span className="text-3xs opacity-45">منذ {elapsed(row.waitingMinutes)}</span>
-          </MonitorRow>
-        ))}
-      </MonitorList>
-    
       <ListFooter
         shown={rows.length}
         total={null}

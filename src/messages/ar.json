@@ -363,6 +363,7 @@
     "awaitingRules": "{count, plural, zero{لا شيء} one{واحدة} two{اثنتان} few{{n}} many{{n}} other{{n}}}",
     "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
     "disputes": "{count, plural, zero{لا نزاعات} one{نزاع واحد} two{نزاعان} few{{n} نزاعات} many{{n} نزاعًا} other{{n} نزاع}}",
+    "rounds": "{count, plural, zero{لا جولات} one{جولة واحدة} two{جولتان} few{{n} جولات} many{{n} جولة} other{{n} جولة}}",
     "bids": "{count, plural, zero{لا مزايدات} one{مزايدة واحدة} two{مزايدتان} few{{n} مزايدات} many{{n} مزايدةً} other{{n} مزايدة}}",
     "weeks": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعان} few{{n} أسابيع} many{{n} أسبوعًا} other{{n} أسبوع}}",
     "truncatedTemplates": "{count, plural, zero{لا قوالب ستُختصر} one{قالب سيُختصر} two{قالبان سيُختصران} few{{n} قوالب ستُختصر} many{{n} قالبًا سيُختصر} other{{n} قالب سيُختصر}}"

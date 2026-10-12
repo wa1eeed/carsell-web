@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
@@ -56,6 +58,8 @@ export default async function AdminOrdersPage({
   const stage = STAGES.find((key) => key === raw);
   const closed = CLOSED.find((key) => key === raw);
   const active: string | null = stage ?? closed ?? null;
+  /** الشريحة المنتهية — مكتملةً أو ملغاة. */
+  const closedTab = closed === 'completed' || closed === 'cancelled' ? closed : null;
 
   const [orders, counts] = await Promise.all([
     /**
@@ -63,18 +67,29 @@ export default async function AdminOrdersPage({
      * الجلب يجعل `take: 200` يقصّ قبل أن يُرشَّح، فتُعرض شريحةٌ ناقصة
      * وتبدو أصغر ممّا هي.
      */
-    listAdminOrders({ ...(stage === undefined ? {} : { stage }), q }),
+    /**
+     * **والشريحة المنتهية تُطلب بحالتها.** كانت تُرشَّح من القائمة
+     * القائمة — وتلك لا تحمل مكتملًا ولا ملغيًّا أصلًا، فتعرضان
+     * فراغًا أبدًا وعدّادُهما يقول رقمًا.
+     */
+    listAdminOrders({
+      ...(stage === undefined ? {} : { stage }),
+      ...(closed === 'completed'
+        ? { status: 'COMPLETED' as const }
+        : closed === 'cancelled'
+          ? { status: 'CANCELLED' as const }
+          : {}),
+      q,
+    }),
     orderTabCounts(),
   ]);
 
   const rows =
-    closed === undefined
+    closed === undefined || closed === 'completed' || closed === 'cancelled'
       ? orders
       : closed === 'disputed'
         ? orders.filter((order) => order.hasDispute)
-        : closed === 'stalled'
-          ? orders.filter((order) => order.critical)
-          : [];
+        : orders.filter((order) => order.critical);
 
   const late = orders.filter((order) => order.late).length;
   const critical = orders.filter((order) => order.critical).length;
@@ -118,49 +133,66 @@ export default async function AdminOrdersPage({
       </div>
 
       {/*
-        **والشريحة المنتهية تقول أين تُقرأ.** `listAdminOrders` تجلب
-        النشط وحده عمدًا (الطابور عملٌ لا أرشيف)، فجدولٌ فارغ تحت
-        «مكتملة ٩٦» يُقرأ على أنه عطل لا على أنه حدّ.
+        ═══ والشريحة تَفي بما وعدت ═══
+
+        كانت «مكتملة ٢» تُفتح على **فقرةٍ** تقول إن القائمة للجاري
+        وحده — وشريحةٌ تحمل عددًا ولا تعرض صفًّا وعدٌ مُخلَف، مهما كان
+        سببُه مكتوبًا تحتها.
+
+        والسبب نفسُه ما زال صحيحًا: الطابور عملٌ لا أرشيف. فالصفوف
+        تُعرض، **ويُقال فوقها إنها منتهية** — فلا يُخلط ما يُتابَع بما
+        انتهى، ولا تُفتح شريحةٌ على فراغ.
       */}
-      {closed === 'completed' || closed === 'cancelled' ? (
-        <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
-          هذه القائمة للطلبات الجارية فقط. المنتهية تجدها في <b>التقارير والتصدير</b>،
-          حتى لا يختلط ما يحتاج متابعة بما انتهى.
+      {closedTab === null ? null : (
+        <p className="mb-3 rounded-lg border border-line bg-surface px-4 py-3 text-3xs leading-relaxed opacity-65">
+          هذه طلبات منتهية — معروضة للمراجعة لا للمتابعة. وللأرشيف الكامل
+          والتصدير:{' '}
+          <Link href="/admin/exports" className="font-bold underline underline-offset-2">
+            التقارير والتصدير
+          </Link>
+          .
         </p>
-      ) : (
-        <>
-          {/*
-            **والكروت لا الجدول.** الصفّ كان مرجعًا ومرحلةً ومبلغًا،
-            فمراجعةُ عشرين طلبًا عشرون فتحًا ورجوعًا. والكرت يحمل
-            المركبة والطرفين وتوثيقَهما وحالَ الضمان — وهي ما يُقرَّر به.
-          */}
-          <div className="flex flex-col gap-2.5">
-            {rows.map((order) => (
-              <OrderCard key={order.ref} row={order} />
-            ))}
-          </div>
-
-          <ListFooter
-            shown={rows.length}
-            /**
-             * **والمقام هو القائم لا الكلّ.** `counts.all` يضمّ
-             * المكتمل والملغى، والطابور لا يعرضهما — فـ«٨ من ١٤» تقرأ
-             * على أن ستّة أُخفيت، وهي منتهيةٌ أصلًا. فالمقام مجموع
-             * المراحل.
-             */
-            total={
-              stage === undefined && closed === undefined
-                ? Object.values(counts.byStage).reduce((sum, n) => sum + n, 0)
-                : null
-            }
-            note="القائمة تعرض الطلبات الجارية فقط · المنتهية في التقارير"
-
-            can="نقل الطلب للمرحلة التالية إذا توقف التحديث التلقائي، وتمديد مهلة نقل الملكية مرة واحدة مع ذكر السبب، وإلغاء الطلب بدلًا عن الطرفين."
-            cannot="الإفراج عن مبلغ الضمان بضغطة — يحتاج موافقة شخصين وسببًا مكتوبًا، ويُقيَّد في سجلّ التدقيق."
-            automatic="طلبٌ تجاوز ضعف هدف مرحلته يظهر أوكر، وثلاثة أضعافه أحمر."
-          />
-        </>
       )}
+
+      {/*
+        **والكروت لا الجدول.** الصفّ كان مرجعًا ومرحلةً ومبلغًا،
+        فمراجعةُ عشرين طلبًا عشرون فتحًا ورجوعًا. والكرت يحمل
+        المركبة والطرفين وتوثيقَهما وحالَ الضمان — وهي ما يُقرَّر به.
+      */}
+      {rows.length === 0 ? (
+        <EmptyState
+          title="لا طلبات في هذه الشريحة"
+          description="اختر شريحةً أخرى، أو ابحث بمرجع الطلب أو اسم أحد الطرفين."
+        />
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {rows.map((order) => (
+            <OrderCard key={order.ref} row={order} />
+          ))}
+        </div>
+      )}
+
+      <ListFooter
+        shown={rows.length}
+        /**
+         * **والمقام هو القائم لا الكلّ.** `counts.all` يضمّ المكتمل
+         * والملغى، والطابور لا يعرضهما — فـ«٨ من ١٤» تقرأ على أن ستّة
+         * أُخفيت، وهي منتهيةٌ أصلًا. فالمقام مجموع المراحل.
+         */
+        total={
+          stage === undefined && closedTab === null
+            ? Object.values(counts.byStage).reduce((sum, n) => sum + n, 0)
+            : null
+        }
+        note={
+          closedTab === null
+            ? 'القائمة تعرض الطلبات الجارية · والمنتهية في شريحتيها'
+            : 'طلبات منتهية — للمراجعة لا للمتابعة'
+        }
+        can="نقل الطلب للمرحلة التالية إذا توقف التحديث التلقائي، وتمديد مهلة نقل الملكية مرة واحدة مع ذكر السبب، وإلغاء الطلب بدلًا عن الطرفين."
+        cannot="الإفراج عن مبلغ الضمان بضغطة — يحتاج موافقة شخصين وسببًا مكتوبًا، ويُقيَّد في سجلّ التدقيق."
+        automatic="طلبٌ تجاوز ضعف هدف مرحلته يظهر أوكر، وثلاثة أضعافه أحمر."
+      />
     </AdminShell>
   );
 }

@@ -50,6 +50,8 @@ export type Unit =
   | 'gateways'
   | 'inFlight'
   | 'disputes'
+  /** جولةُ التفاوض — عرضٌ ثم مقابلُه ثم مقابلُ مقابله. */
+  | 'rounds'
   | 'km';
 
 /**

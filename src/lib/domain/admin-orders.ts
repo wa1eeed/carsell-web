@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { publicUrl } from '@/lib/r2';
 import { ibanLast4 } from './iban';
 import type { AdminUser, Prisma } from '@/generated/prisma/client';
-import type { OrderStage } from '@/generated/prisma/enums';
+import type { OrderStage, OrderStatus } from '@/generated/prisma/enums';
 
 /**
  * الطلبات والتشغيل في اللوحة — A4 وA2.
@@ -160,15 +160,31 @@ function orderSearch(q: string | null): Prisma.OrderWhereInput {
   };
 }
 
+/** الحالات القائمة — وهي ما تعرضه الشاشة ما لم تُطلب شريحةٌ منتهية. */
+const LIVE_STATUSES = ['ACTIVE', 'DISPUTED', 'STALLED'] as const;
+
 export async function listAdminOrders(
-  filters: { stage?: OrderStage; onlyLate?: boolean; q?: string | null } = {},
+  filters: {
+    stage?: OrderStage;
+    onlyLate?: boolean;
+    q?: string | null;
+    /**
+     * ═══ والشريحة المنتهية تحتاج بابًا ═══
+     *
+     * كانت الحالات الثلاث القائمة **مثبَّتةً في الدالّة**، فشريحتا
+     * «مكتملة» و«ملغاة» تعرضان فراغًا أبدًا وعدّادُهما يقول رقمًا —
+     * ثالثُ وقوعٍ لـ«شريحةٍ تَعُدّ غيرَ ما تُرشّح». (البوابة ٤٠.)
+     */
+    status?: OrderStatus;
+  } = {},
   now: Date = new Date(),
 ): Promise<OrderRow[]> {
   const rows = await db.order.findMany({
     where: {
       ...(filters.stage === undefined ? {} : { stage: filters.stage }),
       ...orderSearch(filters.q ?? null),
-      status: { in: ['ACTIVE', 'DISPUTED', 'STALLED'] },
+      status:
+        filters.status === undefined ? { in: [...LIVE_STATUSES] } : filters.status,
     },
     orderBy: { stageEnteredAt: 'asc' },
     take: 200,

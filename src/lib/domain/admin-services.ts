@@ -87,12 +87,35 @@ export async function listServiceRequests(
   const pick = filters.filter ?? null;
   const STATUSES = ['NEW', 'ASSIGNED', 'IN_PROGRESS', 'DONE', 'FAILED', 'REFUNDED'];
   const byStatus = pick !== null && STATUSES.includes(pick);
-  const extra =
-    pick === null
-      ? {}
-      : byStatus
-        ? { status: pick as ServiceRequestStatus }
-        : { service: { key: pick } };
+
+  /**
+   * ═══ المفتاحان لا يجتمعان في كائنٍ واحد ═══
+   *
+   * كان `{ ...extra, status: { in: OPEN_STATUSES } }` — و`extra` يحمل
+   * `status: pick`، **فالمفتاح الثاني يطمس الأوّل صامتًا**. فكان ترشيح
+   * الحالة يسقط ولا يرمي شيئًا: شريحة «معلّقة» تعرض المكتملة، وكلُّ
+   * شريحةٍ تعرض كلَّ شيء. ولا شيء يكشفه إلا أن يُقارَن العدّاد بالقائمة.
+   *
+   * فالحالة المطلوبة تُقاطَع مع نطاق كلِّ استعلام: المفتوحُ لا يُسأل
+   * عن `DONE`، والمغلقُ لا يُسأل عن `NEW` — والجواب قائمةٌ فارغة.
+   */
+  const service = pick !== null && !byStatus ? { service: { key: pick } } : {};
+  const wanted = byStatus ? (pick as ServiceRequestStatus) : null;
+  const isOpen = (status: ServiceRequestStatus): boolean =>
+    (OPEN_STATUSES as readonly string[]).includes(status);
+
+  const openStatus =
+    wanted === null
+      ? { in: [...OPEN_STATUSES] }
+      : isOpen(wanted)
+        ? wanted
+        : null;
+  const closedStatus =
+    wanted === null
+      ? { notIn: [...OPEN_STATUSES] }
+      : isOpen(wanted)
+        ? null
+        : wanted;
   /**
    * استعلامان لا واحد: **المفتوح لا يُقتطَع.**
    *
@@ -101,17 +124,21 @@ export async function listServiceRequests(
    * يُقرأ أحدثه.
    */
   const [openRows, closedRows] = await Promise.all([
-    db.serviceRequest.findMany({
-      where: { ...extra, status: { in: [...OPEN_STATUSES] } },
-      orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
-      select: REQUEST_SELECT,
-    }),
-    db.serviceRequest.findMany({
-      where: { ...extra, status: { notIn: [...OPEN_STATUSES] } },
-      orderBy: { createdAt: 'desc' },
-      take: CLOSED_HISTORY,
-      select: REQUEST_SELECT,
-    }),
+    openStatus === null
+      ? Promise.resolve([])
+      : db.serviceRequest.findMany({
+          where: { ...service, status: openStatus },
+          orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
+          select: REQUEST_SELECT,
+        }),
+    closedStatus === null
+      ? Promise.resolve([])
+      : db.serviceRequest.findMany({
+          where: { ...service, status: closedStatus },
+          orderBy: { createdAt: 'desc' },
+          take: CLOSED_HISTORY,
+          select: REQUEST_SELECT,
+        }),
   ]);
 
   const mapped: ServiceRequestRow[] = [...openRows, ...closedRows].map((request) => {
