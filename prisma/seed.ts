@@ -75,6 +75,15 @@ if (connectionString === undefined || connectionString === '') {
 type LedgerEvents = Awaited<ReturnType<typeof loadLedger>>;
 const loadLedger = () => import('../src/lib/domain/ledger-events');
 
+type Documents = Awaited<ReturnType<typeof loadDocuments>>;
+const loadDocuments = () => import('../src/lib/domain/documents');
+
+let documentsModule: Documents | null = null;
+async function documents(): Promise<Documents> {
+  documentsModule ??= await loadDocuments();
+  return documentsModule;
+}
+
 let ledgerModule: LedgerEvents | null = null;
 async function ledgerEvents(): Promise<LedgerEvents> {
   ledgerModule ??= await loadLedger();
@@ -1322,6 +1331,23 @@ async function main(): Promise<void> {
       );
 
       if (settled) {
+        /**
+         * ═══ والمستندات الثلاثة تُصدَر كما يُصدرها المنتج ═══
+         *
+         * إتمامُ البيع في `applyState` يُصدر **عقد بيع** و**كشف
+         * تسوية** و**فاتورة ضريبية** على عمولتنا. والبذرة كانت
+         * تُنشئ `Invoice` البسيط وحده — فصفر فاتورةٍ ضريبية وصفر
+         * كشفٍ وصفر عقد في كل بيئة.
+         *
+         * والأثر: عمود «فواتير صدرت» في شاشة الضرائب صفرٌ أبدًا،
+         * **وفرعُ الجدول الذي يعرضها لم يُصيَّر قطّ** — وهو الفرع
+         * الذي سقط فيه تمريرُ دالّةٍ عبر حدّ الخادم من قبل، فلم
+         * يكشفه إلّا `curl`. وتنزيلاتُ المشتري والبائع فارغة كذلك.
+         */
+        const { issueSaleAgreement, issueSettlementDocuments } = await documents();
+        await issueSaleAgreement(order.id, enteredAt);
+        await issueSettlementDocuments(order.id, enteredAt);
+
         await recordOrderEarned(
           prisma,
           {

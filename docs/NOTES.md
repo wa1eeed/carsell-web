@@ -3916,3 +3916,40 @@ Measured at zero on the tree before enabling.
 
 The homepage now reads «الأقرب إغلاقًا كيا سورينتو يومان ١٥ س», and the auction
 rail no longer leads with an expired lot.
+
+## The three documents a completed sale issues — none existed
+
+`applyState` issues three documents when a sale completes: a **sale agreement**,
+a **settlement statement**, and a **tax invoice** on our commission. The seed
+wrote the simple `Invoice` row and none of these.
+
+So in every environment: zero sale agreements, zero settlement statements, zero
+tax invoices. The buyer's and seller's downloads were empty, and the «فواتير
+صدرت» column on the tax screen read zero on every rule.
+
+The seed now calls `issueSaleAgreement` and `issueSettlementDocuments` — the
+product's own functions, not a reconstruction — for each completed order. Two
+agreements and two statements now exist.
+
+**Zero tax invoices is correct, and stays zero.** `issueSettlementDocuments`
+reported its reasons: the government transfer fee is `OUT_OF_SCOPE_NO_INVOICE`
+(we are not its supplier), and the vehicle itself is `RULE_AWAITING_APPROVAL` —
+the "deemed supplier" question still with the tax adviser. Commission is 0%
+today, so there is nothing to invoice. Inventing one would have put a fictional
+tax liability on a screen an accountant reads.
+
+### But an empty table proves nothing
+
+The three existing assertions all passed against zero rows: totals were zero,
+rows were never read, **and the branch of the screen that renders them was never
+rendered**. That is the branch that once returned a full 500 by passing a
+function across the server boundary — caught then only by a `curl`, because no
+invoice existed and no test made one.
+
+`admin-tax.test.ts` now issues a real commission invoice, reads it back through
+`listInvoices`, checks the VAT is **inclusive** (15/115 of the amount, not 15%
+added on top), and deletes it in a `finally`.
+
+Then measured on the screen itself with one present: `/admin/tax` and
+`?supply=COMMISSION` both 200, rendering `INV-2026-000001 · العمولة · 2,000.00 +
+300.00 = 2,300`. The measurement invoice was removed afterwards.

@@ -1,9 +1,11 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
+import { issueInvoice } from '@/lib/domain/tax';
 import {
   approveRuleChange,
   grantMarginScheme,
   invoiceTotals,
+  listInvoices,
   listTaxRules,
   requestRuleChange,
   summarize,
@@ -46,6 +48,53 @@ describe('A21 — القواعد تُعرض كلّها', () => {
     const totals = await invoiceTotals();
     expect(totals.all).toBe(await db.taxInvoice.count());
     expect(totals.bySupply.reduce((n, row) => n + row.count, 0)).toBe(totals.all);
+  });
+
+  /**
+   * ═══ وجدولٌ فارغ لا يُثبت شيئًا ═══
+   *
+   * الفحوص أعلاه تمرّ على صفر فاتورة: المجاميع صفرٌ، والصفوف لا
+   * تُقرأ، **وفرعُ الجدول الذي يعرضها لا يُصيَّر قطّ**. وقد سقط ذلك
+   * الفرع من قبل بتمرير دالّةٍ عبر حدّ الخادم، فلم يكشفه إلّا طلبٌ
+   * بـ`curl` — لأن لا فاتورة في القاعدة ولا اختبارٍ يصنع واحدة.
+   *
+   * وصفرُ الفواتير اليوم **صحيح**: عمولتنا ٠٪ وقاعدة المركبة تنتظر
+   * المذكّرة الضريبية. فالاختبار يُصدر فاتورته بنفسه ويحذفها.
+   */
+  it('الصفّ يُقرأ كما يُعرض — على فاتورةٍ حقيقية', async () => {
+    const issued = await issueInvoice({
+      sellerType: 'INDIVIDUAL',
+      buyerType: 'INDIVIDUAL',
+      supplyType: 'COMMISSION',
+      amount: '2300.00',
+      supplierName: 'كارز CARZ',
+      customerName: 'مشترٍ للاختبار',
+      description: 'commission',
+      suppliedAt: new Date(),
+    });
+
+    expect(issued.ok).toBe(true);
+    if (!issued.ok) return;
+
+    try {
+      const rows = await listInvoices(5, 'COMMISSION');
+      const row = rows.find((entry) => entry.number === issued.number);
+
+      expect(row).toBeDefined();
+      expect(row?.supplyType).toBe('COMMISSION');
+      /** **والضريبة مضمَّنة**: ١٥/١١٥ من المبلغ، لا ١٥٪ فوقه. */
+      expect(Number(row?.total)).toBeCloseTo(2300, 2);
+      expect(Number(row?.subtotal) + Number(row?.taxTotal)).toBeCloseTo(2300, 2);
+      expect(Number(row?.taxTotal)).toBeGreaterThan(0);
+
+      const totals = await invoiceTotals();
+      expect(totals.all).toBeGreaterThan(0);
+      expect(totals.bySupply.some((entry) => entry.count > 0)).toBe(true);
+    } finally {
+      /** **والاختبار يعيد ما غيّره** — والفاتورة تحمل تسلسلًا. */
+      await db.taxInvoiceLine.deleteMany({ where: { invoiceId: issued.invoiceId } });
+      await db.taxInvoice.delete({ where: { id: issued.invoiceId } });
+    }
   });
 });
 
