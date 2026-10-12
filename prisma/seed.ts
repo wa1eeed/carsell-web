@@ -15,6 +15,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
+import { devPut, devStoreAllowed } from '../src/lib/storage/dev-store';
+import { placeholderPng } from './placeholder-image';
 import { hashPassword } from '../src/lib/auth/password';
 import { encryptSecret } from '../src/lib/crypto/secrets';
 import { Prisma } from '../src/generated/prisma/client';
@@ -896,10 +898,28 @@ async function main(): Promise<void> {
 
     // الصور: أربع على الأقل (قرار ٣٣)، اللوحة مطموسة دائمًا (القاعدة ١٤)
     const imageCount = between(4, 10);
+    /**
+     * ═══ وتُكتب الملفّات التي تدّعيها ═══
+     *
+     * كانت الصفوف تُكتب بمفاتيح لا ملفّ خلفها، فكلُّ كرتٍ في اللوحة
+     * وكلُّ معرضٍ في الموقع صندوقٌ فارغ — **والعدّاد يقول «٦ صور»
+     * ولا تُفتح واحدة**. ولا شيء يسقط: الصفّ مكتوب والاختبار يعدّه.
+     *
+     * **وفي التطوير وحده**: `devPut` ترمي خارجه، والتخزين هناك R2.
+     */
+    const imageKeys = Array.from(
+      { length: imageCount },
+      (_, n) => `staging/listings/${ref}/${n + 1}.png`,
+    );
+    if (devStoreAllowed()) {
+      await Promise.all(
+        imageKeys.map((key, n) => devPut(key, placeholderPng(ref.charCodeAt(ref.length - 1) + n))),
+      );
+    }
     await prisma.listingImage.createMany({
       data: Array.from({ length: imageCount }, (_, n) => ({
         listingId: listing.id,
-        r2Key: `staging/listings/${ref}/${n + 1}.webp`,
+        r2Key: imageKeys[n] as string,
         sort: n,
         isCover: n === 0,
         plateBlurred: true,

@@ -3,6 +3,14 @@ import { devGet, devStoreAllowed } from '@/lib/storage/dev-store';
 
 export const runtime = 'nodejs';
 
+const TYPES: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  avif: 'image/avif',
+};
+
 /**
  * يخدم صور التطوير من القرص — **ولا وجود له في الإنتاج**.
  *
@@ -22,7 +30,12 @@ export async function GET(
 
   return new NextResponse(new Uint8Array(body), {
     headers: {
-      'content-type': 'image/jpeg',
+      /*
+        **والنوع من الامتداد لا ثابتًا.** كان كلُّ ملفٍّ يُقدَّم
+        `image/jpeg` — بما فيه `.webp` و`.png`. والمتصفّحات تتسامح
+        بالاستنتاج، فمرّ العطل صامتًا حتى صار الملفّ ليس jpeg حقًّا.
+      */
+      'content-type': TYPES[key[key.length - 1]?.split('.').pop()?.toLowerCase() ?? ''] ?? 'application/octet-stream',
       // لا تخزين: الملف يُستبدل بالمفتاح نفسه أثناء التطوير
       'cache-control': 'no-store',
     },
