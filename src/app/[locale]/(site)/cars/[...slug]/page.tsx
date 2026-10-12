@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
-import { canonicalPath, faqForListing, findListingForMetadata, findViewableListing, fromSlug, hasLiveOrder, similarListings, toPublicDetail, type PublicListingDetail } from '@/lib/domain/listing-detail';
+import { canonicalPath, faqForListing, servicesForListing, findListingForMetadata, findViewableListing, fromSlug, hasLiveOrder, similarListings, toPublicDetail, type PublicListingDetail } from '@/lib/domain/listing-detail';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
@@ -282,6 +282,12 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
    */
   const closing =
     auction === null ? [] : await closingSoon(resolved.row.ref, resolved.locale);
+
+  /**
+   * خدماتٌ تُطلب على هذه المركبة — `placements: ['listing_banner']`
+   * معلنةٌ في بيانات الخدمات منذ بُنيت **ولا قارئ لها**.
+   */
+  const services = await servicesForListing(resolved.locale);
   const standing =
     auction === null || viewer === null
       ? null
@@ -296,6 +302,7 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
             auction={auction}
             standing={standing}
             closing={closing}
+            services={services}
             detail={detail satisfies PublicListingDetail}
             faq={faqRows}
             similar={similar.map((item) => ({

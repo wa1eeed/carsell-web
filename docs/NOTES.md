@@ -3742,3 +3742,35 @@ A real market median comes from **completed deals at a data provider**, not from
 what we are asking. It now drifts per model-year by a deterministic hash
 (0.90–1.10), so listings fall above and below it as they do in a market. Measured
 after reseeding: «أقلّ بـ ٩٬٠٠٠» and «أقلّ بـ ٢٠٬٥٠٠» on two different listings.
+
+## Four services declared they belong on the listing page; nothing read the field
+
+`Service.placements` has carried `listing_banner` for inspection, mojaz, viewing
+and insurance since the service data was written. **No code reads
+`Service.placements`** outside the admin screen that edits it.
+
+So `/services/mojaz` renders — ownership history, incident reports, verified
+odometer, lien status, 25 SAR — and **no link reaches it from a car page**, which
+is its one natural home: the person reading about a specific vehicle is the
+person who needs that vehicle's ownership history.
+
+Twelfth instance of *a value in the data with no reader*.
+
+`servicesForListing()` now reads the placement, and `ListingServices` renders it
+in the side column with the price stated **before** the click — «اطلبه» with no
+price reads as an unknown commitment and gets skipped. A zero price reads
+«مجّانًا», because a bare 0 reads as a fault.
+
+Inspection and viewing are filtered out deliberately: viewing already has its
+button in the buy column and inspection already has its badge on the vehicle. Two
+signs for one thing weaken both.
+
+## No listing had a seller description
+
+`Listing.description` stayed `null` for every seeded row, and the «وصف البائع»
+tab only appears when there is one — so the block the design draws, where the
+seller says what the spec table cannot, **was never seen in any environment**.
+
+It is the most-read thing after the photos: why the panel was repainted, when the
+tyres were changed, whether it can be inspected at a centre the buyer picks. Five
+descriptions in plain market language now rotate across the listings.

@@ -817,3 +817,51 @@ export async function similarListings(
 export async function countSellerListings(sellerId: string): Promise<number> {
   return db.listing.count({ where: { sellerId, status: 'PUBLISHED' } });
 }
+
+/**
+ * ═══ خدمات تُعرض في صفحة الإعلان ═══
+ *
+ * `Service.placements` تحمل `listing_banner` لأربع خدمات منذ بُنيت
+ * بيانات الخدمات — **ولا قارئ لها في المنتج كلّه**. فصفحة `/services`
+ * موجودة و`/services/mojaz` تُفتح، **ولا رابط يصلها من صفحة السيارة**
+ * — وهي موضعُها: من يقرأ عن مركبةٍ بعينها هو من يحتاج سجلّ ملّاكها
+ * وحالة رهنها.
+ *
+ * ثاني عشرَ وقوعٍ لـ«قيمةٍ في البيانات بلا قارئ».
+ *
+ * ═══ وما يُطلب من الشاشة لا يُعرض هنا ═══
+ *
+ * «طلب معاينة» له زرُّه في عمود الشراء، و«فحص فني» شارتُه على المركبة
+ * المفحوصة. فتُستبعد المكرَّرة: لافتتان لشيءٍ واحد تُضعفان كلتيهما.
+ */
+export type ListingService = {
+  key: string;
+  name: string;
+  description: string;
+  /** صفرٌ يعني مجّانية — والشاشة تقولها كلمةً لا رقمًا. */
+  price: string;
+  path: string;
+};
+
+/** ما يُعرض في عمود الإعلان — وما عداه له موضعُه. */
+const LISTING_SURFACE = 'listing_banner';
+const SHOWN_ELSEWHERE: readonly string[] = ['viewing', 'inspection'];
+
+export async function servicesForListing(locale: string): Promise<ListingService[]> {
+  const rows = await db.service.findMany({
+    where: { active: true },
+    orderBy: { sort: 'asc' },
+    select: { key: true, nameAr: true, nameEn: true, descAr: true, descEn: true, price: true, placements: true },
+  });
+
+  return rows
+    .filter((row) => row.placements.includes(LISTING_SURFACE))
+    .filter((row) => !SHOWN_ELSEWHERE.includes(row.key))
+    .map((row) => ({
+      key: row.key,
+      name: locale === 'ar' ? row.nameAr : row.nameEn,
+      description: locale === 'ar' ? row.descAr : row.descEn,
+      price: row.price.toString(),
+      path: `/${locale}/services/${encodeURIComponent(row.key)}`,
+    }));
+}

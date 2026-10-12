@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **137** components in **3** directories.
+Counted: **138** components in **3** directories.
 
 ## `src/components/admin`
 
@@ -77,6 +77,7 @@ Counted: **137** components in **3** directories.
 | `DisputePanel` | yes | `orderRef` · `canOpen` · `hasOpen` | 1 |
 | `FavoriteButton` | yes | `listingRef` · `initial` · `signedIn` · `signInHref` · `className` | 1 |
 | `ListingControls` | yes | `listingRef` · `status` · `price` · `negotiable` · `description` · `hasActiveOrder` | 1 |
+| `ListingServices` | no | `services` | 1 |
 | `ListingStatsRow` | no | `stats` | 1 |
 | `LocaleSwitcher` | yes | `locale` · `label` · `className` | 1 |
 | `MarkAllRead` | yes | `label` | 1 |
@@ -136,7 +137,7 @@ Counted: **137** components in **3** directories.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 6 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 69 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 70 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 1 |
 | `PaintMap` | no | `panels` · `className` | 1 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 1 |

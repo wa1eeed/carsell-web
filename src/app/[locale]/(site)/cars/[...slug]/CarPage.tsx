@@ -11,6 +11,7 @@ import { BuyActions } from '@/components/site/BuyActions';
 import { ReportListing } from '@/components/site/ReportListing';
 import { FavoriteButton } from '@/components/site/FavoriteButton';
 import { ShareListing } from '@/components/site/ShareListing';
+import { ListingServices } from '@/components/site/ListingServices';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
@@ -41,7 +42,7 @@ import { ScoreRing } from '@/components/ui/ScoreRing';
 import { SimilarGrid, type SimilarItem } from '@/components/ui/SimilarGrid';
 import { SpecTable } from '@/components/ui/SpecTable';
 import { Tabs } from '@/components/ui/Tabs';
-import type { Canonical, PublicListingDetail } from '@/lib/domain/listing-detail';
+import type { Canonical, ListingService, PublicListingDetail } from '@/lib/domain/listing-detail';
 
 const TYPE_TONE = { DIRECT: 'neutral', NEGOTIATION: 'accent', AUCTION: 'ink' } as const;
 
@@ -63,6 +64,7 @@ export function CarPage({
   auction,
   standing,
   closing,
+  services,
 }: {
   detail: PublicListingDetail;
   faq: readonly { id: string; question: string; answer: string }[];
@@ -96,6 +98,8 @@ export function CarPage({
    * لا مزاد آخر: قسمٌ فارغ بعنوانٍ يقول إنّ المنصّة خالية.
    */
   closing: readonly ClosingSoonItem[];
+  /** خدماتٌ تُطلب على هذه المركبة — من `placements` في بيانات الخدمات. */
+  services: readonly ListingService[];
 }) {
   const t = useTranslations('ui');
   /** `null` للمعروض — وما عداه مغلقٌ للشراء وإن بقي معروضًا للقراءة. */
@@ -486,6 +490,13 @@ export function CarPage({
                       },
               }}
             />
+
+            {/*
+              **وخدماتُ المركبة في عمودها** — لا في صفحةٍ لا يصلها
+              أحد. ومن يقرأ عن مركبةٍ بعينها هو من يحتاج سجلّ ملّاكها
+              وحالة رهنها.
+            */}
+            <ListingServices services={services} />
 
             {/* يعيد `null` دون عتبة العيّنة — لا شرط خارجي (قرار ٣٠) */}
             {detail.priceStat === null ? null : (
