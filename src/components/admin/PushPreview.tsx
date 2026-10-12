@@ -43,7 +43,7 @@ export function PushPreview({
       <article className="rounded-xl border border-line bg-bg p-4 shadow-[0_1px_0_0_var(--color-line)]">
         <div className="mb-2 flex items-center gap-2 text-3xs opacity-50">
           <span aria-hidden className="size-4 rounded-md bg-ink/15" />
-          <span className="font-body-en">carsell.one</span>
+          <span className="font-body-en">CARZ</span>
           <span className="flex-1" />
           <span>الآن</span>
         </div>

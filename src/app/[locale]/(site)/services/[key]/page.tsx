@@ -160,7 +160,7 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
                 <h2 className="mb-2.5 text-sm font-bold">المزوّد</h2>
                 <p className="flex flex-wrap items-center gap-2.5 text-2xs">
                   <span className="bidi-isolate font-bold">
-                    {service.providerName ?? 'تُؤدّى من carsell.one'}
+                    {service.providerName ?? 'تُؤدى من كارز'}
                   </span>
                   {service.providerSlaHours === null ? null : (
                     <>

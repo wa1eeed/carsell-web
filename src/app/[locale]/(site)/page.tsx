@@ -212,7 +212,12 @@ export default async function HomePage({
                         ? `/${locale}/cars?${chip.query}`
                         : `/${locale}${chip.path}`
                     }
-                    className="rounded-full border border-line bg-surface px-3 py-1.5 font-bold hover:border-ink"
+                    /*
+                      **واللون يُثبَّت ولا يُورَث.** الشريحة خلفيتها
+                      فاتحة (`bg-surface`) وهي داخل قسم الهيرو الداكن،
+                      فكانت ترث أبيضه — أبيض على فاتح، فلا تُقرأ.
+                    */
+                    className="rounded-full border border-line bg-surface px-3 py-1.5 font-bold text-ink hover:border-ink"
                   >
                     {popularLabel(chip, { t, tu, te })}
                   </Link>

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "CarSell — Saudi car marketplace",
+    "title": "CARZ — Saudi car marketplace",
     "description": "Direct sale · Offer negotiation · Reserve auctions · Services · Escrow."
   },
   "foundation": {
@@ -118,7 +118,7 @@
     "save": "Save",
     "share": "Share",
     "faqTitle": "Frequently asked",
-    "faqByType": "Curated by the carsell.one team for each selling method",
+    "faqByType": "Curated by the CARZ team for each selling method",
     "inspectionPoints": "210-point inspection",
     "readFullReport": "Read the full report →",
     "notInspected": "This vehicle is not inspected",
@@ -181,7 +181,7 @@
       "dealers": "Dealers",
       "services": "Services"
     },
-    "metaTitle": "carsell.one — the Saudi car marketplace",
+    "metaTitle": "CARZ — the Saudi car marketplace",
     "metaDescription": "Vehicles with verified ownership and an independent inspection report. Buy outright, by instalments, or bid at auction — funds held in escrow until ownership transfers to you.",
     "sellYourCar": "Sell your car",
     "signIn": "Sign in",
@@ -235,7 +235,7 @@
     "showAll": "Show all →",
     "liveAuctionsTitle": "Live auctions",
     "recentIn": "Recently added in {city}",
-    "howToBuy": "How do you buy a car on carsell.one?",
+    "howToBuy": "How do you buy a car on CARZ?",
     "step": {
       "1": {
         "title": "Choose your car",
@@ -254,7 +254,7 @@
         "body": "A managed transfer appointment, and a 7-day return guarantee."
       }
     },
-    "whyTitle": "Why buy from carsell.one?",
+    "whyTitle": "Why buy from CARZ?",
     "whyBody": "Four written guarantees, not marketing promises.",
     "why": {
       "1": {
@@ -1007,7 +1007,7 @@
     "vehicles": "Vehicles",
     "emptyTitle": "No vehicles listed right now",
     "emptyBody": "This dealer has no published listings at the moment — check back later.",
-    "metaFallback": "Car dealer in {city} on carsell.one",
+    "metaFallback": "Car dealer in {city} on CARZ",
     "indexTitle": "Dealers and showrooms",
     "indexSubtitle": "Car dealers on the platform.",
     "indexBadgeMeaning": "The green badge means a verified commercial registration.",
@@ -1022,8 +1022,8 @@
   "landing": {
     "title": "{brand} cars in {city}",
     "titleModel": "{model} in {city}",
-    "meta": "{count} {brand} cars listed in {city} on carsell.one — inspected, ownership verified.",
-    "metaModel": "{count} {model} listed in {city} on carsell.one — inspected, ownership verified.",
+    "meta": "{count} {brand} cars listed in {city} on CARZ — inspected, ownership verified.",
+    "metaModel": "{count} {model} listed in {city} on CARZ — inspected, ownership verified.",
     "browse": "Browse {brand} cars in {city}",
     "browseModel": "Browse {model} in {city}",
     "inspected": "inspected",

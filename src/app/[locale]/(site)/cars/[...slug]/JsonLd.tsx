@@ -97,7 +97,7 @@ export function JsonLd({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { name: 'carsell.one', item: `${site}/${locale}` },
+      { name: 'CARZ', item: `${site}/${locale}` },
       { name: detail.city, item: `${site}/${locale}/cars/${canonical.city}` },
       { name: detail.vehicle.brandName, item: `${site}/${locale}/cars/${canonical.city}/${canonical.brand}` },
       { name: detail.vehicle.modelName, item: `${site}/${locale}/cars/${canonical.city}/${canonical.brand}/${canonical.model}` },

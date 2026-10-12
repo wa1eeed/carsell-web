@@ -14,6 +14,7 @@ import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { Gallery } from '@/components/ui/Gallery';
+import { APP_URL } from '@/lib/env';
 import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
 import { AuctionTerms, BidLogStats, BidStatus, BidStep } from '@/components/site/AuctionSections';
@@ -157,8 +158,14 @@ export function CarPage({
           {vehicle.title}
         </span>
         <span className="flex-1" />
+        {/*
+          **والنطاق من الإعداد لا مكتوبًا بيد.** هذا عنوان الصفحة لا
+          اسم المنصة، فنقلُ المنصة إلى نطاق آخر كان يترك هنا نطاقًا
+          قديمًا يقرؤه الزائر على أنه عنوانها.
+        */}
         <span dir="ltr" className="font-num text-3xs opacity-70">
-          carsell.one{canonical.display}
+          {APP_URL.replace(/^https?:\/\//, '')}
+          {canonical.display}
         </span>
       </nav>
 
