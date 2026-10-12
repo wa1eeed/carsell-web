@@ -17,7 +17,16 @@ import { Gallery } from '@/components/ui/Gallery';
 import { APP_URL } from '@/lib/env';
 import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
-import { AuctionTerms, BidLogStats, BidStatus, BidStep } from '@/components/site/AuctionSections';
+import {
+  AuctionTerms,
+  BidLogStats,
+  BidStatus,
+  BidStep,
+  ClosingSoonRail,
+  SellerCard,
+  SpecStrip,
+} from '@/components/site/AuctionSections';
+import type { ClosingSoon as ClosingSoonItem } from '@/lib/domain/auctions';
 import { BidPanel } from '@/components/site/BidPanel';
 import { SellerDecisionPanel } from '@/components/site/SellerDecisionPanel';
 import type { SellerDecision } from '@/lib/domain/auctions';
@@ -51,6 +60,7 @@ export function CarPage({
   viewer,
   auction,
   standing,
+  closing,
 }: {
   detail: PublicListingDetail;
   faq: readonly { id: string; question: string; answer: string }[];
@@ -79,6 +89,11 @@ export function CarPage({
    */
   auction: PublicAuction | null;
   standing: ViewerStanding | null;
+  /**
+   * مزاداتٌ تُغلق قريبًا — **وفارغةٌ لغير المزادات**. ولا تُعرض حين
+   * لا مزاد آخر: قسمٌ فارغ بعنوانٍ يقول إنّ المنصّة خالية.
+   */
+  closing: readonly ClosingSoonItem[];
 }) {
   const t = useTranslations('ui');
   /** `null` للمعروض — وما عداه مغلقٌ للشراء وإن بقي معروضًا للقراءة. */
@@ -244,6 +259,28 @@ export function CarPage({
           </header>
 
           <Gallery images={detail.images} alt={vehicle.title} />
+
+          {/*
+            ═══ شريط المواصفات — في شاشة المزاد وحدها ═══
+
+            التصميم يفرّق بينهما: `Wc` يضع الحقائق **سطرًا** تحت
+            العنوان، و`We` يضعها **شبكةً مُعنونة** تحت المعرض. والفرق
+            مقصود: من يزايد يقرأ ولا يمسح، و«خليجي» بلا عنوانٍ فوقها
+            لا تقول لقارئها إنها المواصفات.
+
+            والمكوّن كان مبنيًّا ولا يستورده أحد — كشفه فهرسُ المكوّنات
+            المولَّد لا التصفّح.
+          */}
+          {auction === null ? null : (
+            <SpecStrip
+              items={[
+                { label: 'الممشى', value: <Quantity unit="km" count={vehicle.mileageKm} /> },
+                { label: 'ناقل الحركة', value: te(`transmission.${vehicle.transmission}`) },
+                { label: 'المواصفات', value: te(`spec.${vehicle.spec}`) },
+                { label: 'المدينة', value: detail.city },
+              ]}
+            />
+          )}
 
           {/*
             ═══ ولا صفحةَ مزادٍ فرعية ═══
@@ -571,6 +608,28 @@ export function CarPage({
           <AuctionTerms terms={auction.terms} />
         </section>
       )}
+
+      {/*
+        ═══ من يبيع ═══
+
+        **ومن يزايد بمئتي ألف يسأل عمّن يبيع.** والتاجر يُميَّز عن
+        الفرد: صفحةُ معرضٍ فيها سجلُّه كلّه، والفردُ لا صفحة له فيُقال
+        اسمه بلا رابطٍ يقود إلى ٤٠٤.
+      */}
+      <SellerCard
+        name={detail.seller.name}
+        isDealer={detail.seller.dealerSlug !== null}
+        dealerPath={
+          detail.seller.dealerSlug === null
+            ? null
+            : `/${locale}/dealers/${detail.seller.dealerSlug}`
+        }
+        listingCount={detail.seller.listingCount}
+        ratingAvg={detail.seller.ratingAvg}
+        ratingCount={detail.seller.ratingCount}
+      />
+
+      <ClosingSoonRail items={closing} />
 
       <SimilarGrid items={similar} className="mt-12" />
     </>

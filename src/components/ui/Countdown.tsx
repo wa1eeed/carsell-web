@@ -64,6 +64,21 @@ export function Countdown({
    */
   const at = target === null || Number.isNaN(target.getTime()) ? null : target.getTime();
 
+  /**
+   * ═══ والخادم والعميل يرسمان ثانيتين مختلفتين ═══
+   *
+   * `Date.now()` في مُهيّئ الحالة تُقرأ **مرّتين**: مرّةً في الخادم
+   * وقت التصيير، ومرّةً في المتصفّح وقت الترطيب. وبينهما جزءٌ من
+   * ثانيةٍ يكفي لأن يُرسم `03:10:43` هناك و`03:10:44` هنا — فيرمي
+   * React «Hydration failed» **ويُعيد بناء الشجرة كلّها في العميل**.
+   *
+   * وقِيس: الخطأ يقع في كل صفحة مزاد وفي الرئيسية (`LiveBar`) — أي
+   * في أكثر صفحتين يصلهما الزائر، ومعه ومضةٌ وإعادةُ رسم.
+   *
+   * **و`suppressHydrationWarning` هو جواب React لهذا بعينه**: النصّ
+   * المتغيّر بالزمن يُستثنى من المطابقة، ويُعتمد ما في العميل. وأوّل
+   * نبضةٍ في `useEffect` تصحّحه فورًا — فلا يُرى الفرق أصلًا.
+   */
   const [remaining, setRemaining] = useState(() =>
     at === null ? 0 : Math.max(0, Math.floor((at - Date.now()) / 1000)),
   );
@@ -123,7 +138,10 @@ export function Countdown({
      */
     if (parts.hours === 0) {
       return (
-        <span className={cn('inline-flex items-center font-bold', TONE[tone], className)}>
+        <span
+          suppressHydrationWarning
+          className={cn('inline-flex items-center font-bold', TONE[tone], className)}
+        >
           {days}
         </span>
       );
@@ -141,7 +159,7 @@ export function Countdown({
 
           وهذا سطرٌ من نصّ لا صفٌّ من عناصر، فالتدفّق الطبيعيّ أصحّ.
         */
-        <span className={cn('font-bold', TONE[tone], className)}>
+        <span suppressHydrationWarning className={cn('font-bold', TONE[tone], className)}>
           {t.rich('durationFull', {
             d: () => days,
             h: () => <Quantity unit="hours" count={parts.hours} />,
@@ -152,7 +170,10 @@ export function Countdown({
 
     // مقطعان معزولان بفراغ تخطيطي — لا فاصل نصّي بينهما
     return (
-      <span className={cn('inline-flex items-center gap-1.5 font-bold', TONE[tone], className)}>
+      <span
+        suppressHydrationWarning
+        className={cn('inline-flex items-center gap-1.5 font-bold', TONE[tone], className)}
+      >
         {days}
         <Quantity unit="hoursShort" count={parts.hours} />
       </span>
@@ -162,6 +183,7 @@ export function Countdown({
   return (
     <span
       dir="ltr"
+      suppressHydrationWarning
       className={cn('font-num inline-block font-bold tabular-nums', TONE[tone], className)}
     >
       {parts.clock}

@@ -17,7 +17,7 @@ import {
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { recordListingView } from '@/lib/domain/listing-views';
-import { getAuction, sellerDecisionView, viewerStanding } from '@/lib/domain/auctions';
+import { closingSoon, getAuction, sellerDecisionView, viewerStanding } from '@/lib/domain/auctions';
 import { favoritedRefs } from '@/lib/domain/favorites';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
@@ -269,6 +269,19 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
    * تخرج هويةُ أحد.
    */
   const auction = resolved.row.type === 'AUCTION' ? await getAuction(resolved.row.ref) : null;
+
+  /**
+   * ═══ ومزاداتٌ تُغلق قريبًا — قارئُها وشاشتُها مبنيّان ولا ينادِيهما أحد ═══
+   *
+   * `closingSoon` في النطاق و`ClosingSoonRail` في المكوّنات، كلتاهما
+   * مكتوبةٌ موثَّقة — **ولا سطر يصل بينهما**. كشفه فهرسُ المكوّنات
+   * المولَّد في عموده «لا يستورده أحد»، لا التصفّح.
+   *
+   * **ومن يفوّت مزادًا يحتاج التالي**: صفحةٌ تنتهي عند «انتهى» تُخرج
+   * الزائر من المنصّة في اللحظة التي هو فيها أكثر استعدادًا للشراء.
+   */
+  const closing =
+    auction === null ? [] : await closingSoon(resolved.row.ref, resolved.locale);
   const standing =
     auction === null || viewer === null
       ? null
@@ -282,6 +295,7 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
           <CarPage
             auction={auction}
             standing={standing}
+            closing={closing}
             detail={detail satisfies PublicListingDetail}
             faq={faqRows}
             similar={similar.map((item) => ({

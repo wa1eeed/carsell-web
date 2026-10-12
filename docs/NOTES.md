@@ -3502,3 +3502,50 @@ than no figure.
 Fixed in the seed, added to gate 39, failed naming `ORD-2026-1004: ACTIVE`, green
 after reseeding. The screen now reads: held 344,570 · live 169,830 · frozen
 84,740.
+
+## The auction page — three designed blocks, and a hydration error on every visit
+
+### The error nobody saw
+
+`Countdown` seeded its state from `Date.now()` **inside the `useState`
+initialiser**. That runs twice: once on the server at render, once in the browser
+at hydration. A fraction of a second between them is enough to render `03:10:43`
+there and `03:10:44` here, so React threw *Hydration failed* and **rebuilt the
+whole tree on the client**.
+
+It fired on the homepage (`LiveBar`) and on every auction page
+(`AuctionPulse`) — the two most-visited screens — with a flash and a full
+re-render each time. `suppressHydrationWarning` is React's own answer for
+time-dependent text: the mismatch is excluded from matching, the client value
+wins, and the first tick in `useEffect` corrects it immediately. Verified in a
+fresh tab: zero console errors.
+
+### The three blocks the generated index found
+
+The `We` design has nine blocks. `SpecStrip`, `SellerCard` and `ClosingSoonRail`
+were built, documented, exported — and never imported. `closingSoon()` in the
+domain was likewise written, tested and **called by nothing**. The file's own
+header says why they exist; nothing said they were not reached.
+
+All three are wired now:
+
+- **`SpecStrip` on auction pages only.** The design distinguishes them: `Wc`
+  puts the facts in an inline line under the title, `We` puts them in a
+  **labelled grid** under the gallery. The distinction is deliberate — a bidder
+  reads where a browser skims, and «خليجي» with no label above it does not tell
+  its reader it is the spec.
+- **`SellerCard`** below the terms. It showed a grey circle and the name; it now
+  carries the initial as an avatar and, for a dealer, the inventory count and
+  rating the design asks for. A seller with no ratings shows no rating line —
+  «٠ من ٥» for someone new reads as a verdict.
+- **`ClosingSoonRail`** below that, for live auctions only. Each card drew a grey
+  rectangle where the car should be; `ClosingSoon` now carries a thumbnail. This
+  block is shown to someone who has just missed an auction — the moment they are
+  most ready to buy — and a card with no picture does not get clicked.
+
+### And the generated index proved itself
+
+`npm run verify` failed on the stale component index the moment these components
+gained props, exactly as intended. After regenerating, the **"Referenced nowhere
+else" section is gone**: it listed three components this morning and lists none
+now.

@@ -1,3 +1,4 @@
+import { publicUrl } from '@/lib/r2';
 import { db } from '@/lib/db';
 import { notify } from './notifications';
 import { cancelDepositHold, captureForfeitedDeposit, holdDepositMoney } from './deposit-money';
@@ -448,6 +449,12 @@ export type ClosingSoon = {
   endsAt: string;
   price: string;
   path: string;
+  /**
+   * **وبطاقةٌ بلا صورة لا تُنقَر.** كان الشريط يرسم مستطيلًا رماديًّا
+   * لكل مزاد — وهو في موضعٍ يُعرض لمن فاته مزاد، أي حين يكون أقربَ ما
+   * يكون إلى النقر. و`null` حين لا صورة، فتُرسم الحالة الفارغة.
+   */
+  thumbnail: string | null;
 };
 
 export async function closingSoon(
@@ -471,6 +478,11 @@ export async function closingSoon(
       listing: {
         select: {
           ref: true, city: true,
+          images: {
+            orderBy: [{ isCover: 'desc' }, { sort: 'asc' }],
+            take: 1,
+            select: { r2Key: true },
+          },
           vehicle: {
             select: {
               brandName: true, modelName: true, trimName: true, year: true,
@@ -493,6 +505,9 @@ export async function closingSoon(
     // أعلى مزايدة، وسعر الافتتاح حين لا مزايدة — والصفر يوحي بأنها بلا قيمة
     price: (row.bids[0]?.amount ?? row.startPrice).toString(),
     path: canonicalPath(locale, row.listing).path,
+    /** مفتاحُ R2 ليس رابطًا — ويُمرَّر خامًا فتُرسم صورةٌ مكسورة. */
+    thumbnail:
+      row.listing.images[0] === undefined ? null : publicUrl(row.listing.images[0].r2Key),
   }));
 }
 

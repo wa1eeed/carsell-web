@@ -221,6 +221,7 @@ export function ClosingSoonRail({
     endsAt: string;
     price: string;
     path: string;
+    thumbnail: string | null;
   }[];
 }) {
   if (items.length === 0) return null;
@@ -235,7 +236,22 @@ export function ClosingSoonRail({
               href={item.path}
               className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-4 hover:border-ink"
             >
-              <span className="washed aspect-16/9 rounded-lg" />
+              {/* **وبطاقةٌ بلا صورة لا تُنقَر** — والرماديّ كان لكلّ مزاد */}
+              <span className="relative block aspect-16/9 overflow-hidden rounded-lg bg-ink/8">
+                {item.thumbnail === null ? (
+                  <span className="flex size-full items-center justify-center text-3xs opacity-45">
+                    لا صور
+                  </span>
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element -- مفتاحُ R2 لا يمرّ بمحسّن الصور */
+                  <img
+                    src={item.thumbnail}
+                    alt=""
+                    loading="lazy"
+                    className="size-full object-cover"
+                  />
+                )}
+              </span>
               <span className="flex flex-wrap items-baseline gap-1.5 text-2xs font-bold">
                 <span className="bidi-isolate">{item.title}</span>
                 <ArabicNumber value={item.year} grouped={false} />
@@ -263,22 +279,50 @@ export function SellerCard({
   isDealer,
   dealerPath,
   listingCount,
+  ratingAvg,
+  ratingCount,
 }: {
   name: string;
   isDealer: boolean;
   dealerPath: string | null;
   listingCount: number;
+  /** متوسّط التقييم — و`null` لمن لم يُقيَّم بعد، فلا يُعرض صفرًا. */
+  ratingAvg?: string | null;
+  ratingCount?: number;
 }) {
+  /** الحرف الأوّل بديلَ الصورة — ولا صورة لحسابٍ في المنصّة اليوم. */
+  const initial = name.trim() === '' ? '؟' : name.trim().charAt(0);
+  const rated = ratingAvg !== null && ratingAvg !== undefined && (ratingCount ?? 0) > 0;
+
   return (
     <section className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-5">
-      <span className="washed size-12 shrink-0 rounded-full" />
+      <span
+        aria-hidden
+        className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink/8 text-sm font-bold"
+      >
+        {initial}
+      </span>
       <span className="flex min-w-40 flex-1 flex-col gap-1">
         <span className="bidi-isolate text-2xs font-bold">{name}</span>
-        <span className="text-3xs opacity-55">
-          {isDealer ? (
-            <Quantity unit="cars" count={listingCount} />
-          ) : (
-            'بائع فرد'
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+          {isDealer ? <Quantity unit="cars" count={listingCount} /> : <span>بائع فرد</span>}
+          {/*
+            **والتقييم يُعرض متى وُجد.** «٠ من ٥» لمن لم يُقيَّم بعد
+            تُقرأ ذمًّا، وغيابُ السطر يقول إنه جديد — وهو الصحيح.
+          */}
+          {!rated ? null : (
+            <>
+              <span aria-hidden className="opacity-40">
+                ·
+              </span>
+              <span>
+                تقييم <ArabicNumber value={Number(ratingAvg)} decimals={1} grouped={false} />
+              </span>
+              <span aria-hidden className="opacity-40">
+                ·
+              </span>
+              <Quantity unit="reviews" count={ratingCount ?? 0} />
+            </>
           )}
         </span>
       </span>

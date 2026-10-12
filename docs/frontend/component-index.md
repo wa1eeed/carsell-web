@@ -11,16 +11,6 @@ The narrative — *why* each one exists and what states it must cover — is in
 
 Counted: **135** components in **3** directories.
 
-## Referenced nowhere else
-
-A component nothing imports is either dead or about to be. This repo has
-closed that class a dozen times; the list is here so it is seen in a table
-rather than found by chance.
-
-- `ClosingSoonRail` — `src/components/site/AuctionSections.tsx`
-- `SellerCard` — `src/components/site/AuctionSections.tsx`
-- `SpecStrip` — `src/components/site/AuctionSections.tsx`
-
 ## `src/components/admin`
 
 | Component | Client | Props | Referenced in |
@@ -70,9 +60,9 @@ rather than found by chance.
 | `BidLogStats` | no | `auction` | 1 |
 | `BidStatus` | no | `top` · `isAuto` | 1 |
 | `BidStep` | no | `step` | 1 |
-| `ClosingSoonRail` | no | `items` | 0 |
-| `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` | 0 |
-| `SpecStrip` | no | `items` | 0 |
+| `ClosingSoonRail` | no | `items` | 2 |
+| `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
+| `SpecStrip` | no | `items` | 1 |
 | `Choice` | yes | `options` · `active` · `onSelect` | 2 |
 | `Note` | yes | `children` | 86 |
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
@@ -100,7 +90,7 @@ rather than found by chance.
 | `SaveSearchButton` | yes | `query` · `signedIn` · `saved` · `locale` | 1 |
 | `SearchAbout` | no | `total` · `priceRange` · `scope` · `siblings` | 1 |
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
-| `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 1 |
+| `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
 | `SiteFooter` | no | `columns` | 1 |
 | `SiteHeader` | no | `active` · `actions` | 23 |
 | `SponsoredCard` | yes | `ad` · `label` | 1 |
