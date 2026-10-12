@@ -202,6 +202,7 @@ export function priceBoundsForPayment(
 export async function getHomeData(
   locale: string,
   options: { city?: string; band?: PaymentBandKey } = {},
+  now: Date = new Date(),
 ): Promise<HomeData> {
   const published = { status: 'PUBLISHED' } as const;
 
@@ -251,9 +252,19 @@ export async function getHomeData(
     services,
     faqRows,
   ] = await Promise.all([
-    db.auction.count({ where: { status: 'LIVE' } }),
+    /**
+     * ═══ والحالة وانقضاء الوقت معًا ═══
+     *
+     * `LIVE` مخزَّنةٌ لمزادٍ انقضى وقتُه حتى تمرّ الوظيفة الدورية
+     * (كل خمس دقائق). والعدُّ بالحالة وحدها **يعدّ الميّت حيًّا**،
+     * و«الأقرب إغلاقًا» بـ`endsAt asc` تختار **أقدمَ منقضٍ** —
+     * فيرسم الشريط عدّادًا على `00:00:00` في أعلى الرئيسية.
+     *
+     * وهو الصنف نفسه الذي أُصلح في المزادات والعروض ولوحة الأدمن.
+     */
+    db.auction.count({ where: { status: 'LIVE', endsAt: { gt: now } } }),
     db.auction.findFirst({
-      where: { status: 'LIVE', listing: published },
+      where: { status: 'LIVE', endsAt: { gt: now }, listing: published },
       orderBy: { endsAt: 'asc' },
       select: { endsAt: true, listing: { select: { ref: true, city: true, vehicle: { select: { brandName: true, modelName: true, brand: { select: { slug: true } },
           model: { select: { nameEn: true } } } } } } },
@@ -299,8 +310,20 @@ export async function getHomeData(
           orderBy: { publishedAt: 'desc' },
           take: 4,
         }),
+    /**
+     * **وشريطُ المزادات لا يعرض منقضيًا**: `LIVE` بوقتٍ مضى تُرتَّب
+     * أوّلًا بـ`endsAt asc`، فتتصدّر الرئيسيةَ بطاقةٌ عدّادُها صفر.
+     */
     db.listing.findMany({
-      where: { ...published, auction: { status: { in: ['LIVE', 'SCHEDULED'] } } },
+      where: {
+        ...published,
+        auction: {
+          OR: [
+            { status: 'LIVE', endsAt: { gt: now } },
+            { status: 'SCHEDULED' },
+          ],
+        },
+      },
       include: CARD_INCLUDE,
       orderBy: { auction: { endsAt: 'asc' } },
       take: 4,

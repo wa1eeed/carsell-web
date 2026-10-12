@@ -3889,3 +3889,30 @@ page says «انتهى», the realtime work cannot be demonstrated and «مزا�
 Now three days for the ones meant to be browsed, and **two hours for one of
 them**, so the countdown is seen in its urgent state and the closing-soon rail
 has something in it.
+
+## Gate 42 — a stored status is not enough when it has a clock
+
+The homepage's live bar read «الأقرب إغلاقًا نيسان باثفايندر **00:00:00**» — the
+first thing a visitor sees, a countdown already at zero.
+
+`getHomeData` counted and ranked auctions by `status: 'LIVE'` alone. An auction
+whose end time has passed keeps that status until the sweep runs (every five
+minutes), and ordering by `endsAt asc` then picks **the oldest expired one** and
+puts it at the top of the page.
+
+Fifth occurrence of this class — offers, the admin auctions screen, the auction
+card, the admin counters, and now the homepage — so it gets a gate rather than a
+fifth fix: every **read** of `status: 'LIVE'` must carry a bound on `endsAt`.
+Writes (`data: { status: 'LIVE' }`) are exempt; they create the state rather than
+ask about it.
+
+**The first version of the gate passed the bug it was written for.** It looked at
+a window of ±6 lines and found `endsAt` belonging to *the next query in the same
+`Promise.all`*. It now walks braces to the enclosing object literal and checks
+only inside it — proven by putting the defect back: it named
+`home.ts:265`, and went green on restore.
+
+Measured at zero on the tree before enabling.
+
+The homepage now reads «الأقرب إغلاقًا كيا سورينتو يومان ١٥ س», and the auction
+rail no longer leads with an expired lot.
