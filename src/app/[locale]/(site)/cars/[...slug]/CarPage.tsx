@@ -491,7 +491,17 @@ export function CarPage({
             {detail.priceStat === null ? null : (
               <section className="rounded-xl border border-line p-5">
                 <h3 className="mb-3.5 text-xs font-bold">{t('marketPosition')}</h3>
-                <RangeBar price={Number(detail.askPrice)} stats={detail.priceStat} />
+                {/*
+                  **والشريحة تُمرَّر.** `segment` موثَّقٌ في المكوّن
+                  بأن «عددًا بلا شريحته رأيٌ لا خبر» — **ولم يُمرَّر
+                  قطّ**. فيقرأ الزائر «مبنيّ على ٢٧ صفقة» ولا يعرف
+                  صفقةَ ماذا، ويخفض سعره عليها.
+                */}
+                <RangeBar
+                  price={Number(detail.askPrice)}
+                  stats={detail.priceStat}
+                  segment={`${vehicle.modelName} ${String(vehicle.year)} · ${detail.city}`}
+                />
               </section>
             )}
           </div>

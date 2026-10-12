@@ -1824,6 +1824,13 @@ async function main(): Promise<void> {
     modelYears.add(`${v.modelId}|${String(v.year)}`);
   }
 
+  /** تجزئةٌ ثابتة — فالزرع يُعيد الانحراف نفسه في كل تشغيل. */
+  const hashOf = (value: string): number => {
+    let total = 0;
+    for (let n = 0; n < value.length; n += 1) total = (total * 31 + value.charCodeAt(n)) % 100_003;
+    return total;
+  };
+
   for (const key of modelYears) {
     const [modelId, yearText] = key.split('|');
     const prices = anchorByModel.get(modelId as string) ?? [];
@@ -1832,7 +1839,22 @@ async function main(): Promise<void> {
     const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
     if (median <= 0) continue;
 
-    const at = (ratio: number) => new D(String(Math.round((median * ratio) / 500) * 500));
+    /**
+     * ═══ ووسيطُ السوق ليس وسيطَ أسعارنا ═══
+     *
+     * كان الوسيط يُشتقّ من أسعار إعلاناتنا نفسها، وأكثرُ طرازٍ-سنة
+     * له إعلانٌ واحد — **فالوسيط يساوي سعرَ الإعلان بالضبط**، وتقول
+     * الشاشة «عند متوسّط السوق» لكلّ سيارة في المنتج. فمؤشّرٌ بُني
+     * ليقول «أقلّ بسبعة آلاف» لا يقول شيئًا أبدًا.
+     *
+     * ووسيطُ السوق في الحقيقة من **صفقاتٍ مكتملة** لدى مزوّد بيانات،
+     * لا من أسعار طلبنا. فينحرف عنها انحرافًا ثابتًا لكل طراز-سنة —
+     * فتقع إعلاناتُنا فوقه وتحته كما تقع في السوق.
+     */
+    const drift = 0.9 + ((hashOf(`${modelId as string}|${yearText as string}`) % 21) / 100);
+    const anchor = median * drift;
+
+    const at = (ratio: number) => new D(String(Math.round((anchor * ratio) / 500) * 500));
 
     await prisma.priceStat.create({
       data: {

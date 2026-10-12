@@ -3709,3 +3709,36 @@ Gate 6 caught the first version interpolating `${String(vehicle.year)}` into the
 share text. The year is passed as a number and formatted inside the component, in
 Latin digits, because this string is read on devices that may not carry a full
 Arabic font.
+
+## The price-position card showed a bar and left the arithmetic to the reader
+
+`Wc` asks for five things under «موقع السعر في السوق». Three were missing, and
+their data had been in `PriceStat` since the model was written:
+
+- **`p50` — the market median.** The card drew p10, the fair band and p90, and
+  never named the middle.
+- **The gap.** «أقلّ بـ ٩٬٠٠٠ من المتوسّط» is the strongest single line on the
+  page, and the reader was subtracting it in their head on every listing.
+- **`daysToSellMedian`.** «يُباع في ١٥ يومًا» is what tells a buyer whether to
+  hurry.
+
+The gap is worded, not signed: «−٧٬٠٠٠» reads as a discount being applied, and
+inside an RTL run a bare minus lands on the wrong side. A difference under one
+percent reads «عند متوسّط السوق» — precision there would invent a distinction.
+
+**`segment` was a documented parameter that was never passed.** The component's
+own comment says «وعددٌ بلا شريحته رأيٌ لا خبر» — a number without its segment is
+an opinion, not information — and the screen rendered «مبنيّ على ٢٧ صفقة» with no
+statement of what those deals were. It now reads «راف٤ 2025 · الرياض».
+
+### And the seeded median was our own asking price
+
+The seed derived the market median from the prices of our own listings, and most
+model-year combinations have exactly one listing — **so the median equalled that
+listing's price**, and every car in the product read «عند متوسّط السوق». A card
+built to say "9,000 below market" could never say anything.
+
+A real market median comes from **completed deals at a data provider**, not from
+what we are asking. It now drifts per model-year by a deterministic hash
+(0.90–1.10), so listings fall above and below it as they do in a market. Measured
+after reseeding: «أقلّ بـ ٩٬٠٠٠» and «أقلّ بـ ٢٠٬٥٠٠» on two different listings.
