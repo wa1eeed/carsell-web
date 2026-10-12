@@ -3549,3 +3549,62 @@ All three are wired now:
 gained props, exactly as intended. After regenerating, the **"Referenced nowhere
 else" section is gone**: it listed three components this morning and lists none
 now.
+
+## Bidding is live — the publisher had no subscriber
+
+`publishBid` has pushed `bid.placed` to `auction:{id}` since the bidding route
+was written. **Nothing in the browser listened.** Someone else's bid did not
+reach you until you reloaded by hand — the worst failure on an urgent screen:
+you read «أعلى مزايدة ٨٤٬٠٠٠» when it became 87,500 a minute ago, bid below the
+floor, get refused by the server, and conclude the fault is yours.
+
+Half a loop, the eleventh time this class has appeared here.
+
+### One connection, multiplexed
+
+`docs/architecture/realtime.md` says it plainly: one connection per client,
+multiplexed by subscription, never a socket per channel. The only subscriber
+opened its own socket, so adding the auction channel the same way would have
+opened a second — two sockets, two tickets, two backoffs racing on every service
+restart.
+
+`src/lib/realtime/connection.ts` now owns the socket and fans messages out by
+channel. First subscriber opens it, last one closes it. `subscribeToOwnChannel`
+is a thin wrapper that asks REST for its channel name and subscribes.
+
+### The message says "something changed"; REST says what
+
+Per the same document, `AuctionLive` re-fetches `GET /api/v1/auctions/{ref}` on
+`bid.placed` and `auction.extended` rather than building state from a payload
+that may arrive duplicated or out of order.
+
+**Polling is the floor and is never removed:** no Redis in development, no ticket
+for a signed-out visitor, and the service can fall over. It polls every 15s, and
+60s once an authenticated socket is up, so the socket relieves the server instead
+of replacing it.
+
+### The bug the measurement caught
+
+First version kept connection state in `useState`, which put it in the effect's
+dependency array. Every connectivity change tore the effect down and rebuilt it,
+raising the `cancelled` flag on every in-flight fetch — so **the request went
+out, the answer came back, and nothing used it**. Measured: five fetches in
+150ms, every one discarded, screen frozen while the network was busy.
+
+Connection state and the callback now live in refs, so the effect runs once per
+auction. The loop also re-schedules itself *after* each response instead of on a
+fixed interval, so a slow network cannot stack requests.
+
+### Proven end to end
+
+Page open on the auction, bid inserted from outside the browser, page untouched:
+70,625 / 10 bids → **72,125 / 11 bids**. The same run also lifted the reserve
+state from «لم يبلغ الاحتياطي» to «بلغ».
+
+`BidPanel`'s minimum, the bid ledger, the log statistics and the terms all read
+the live snapshot when one has arrived — a stale floor is what gets a bid
+refused.
+
+**And no state is copied from a prop** (gate 27): the snapshot starts `null` and
+overlays the server's value, so the server stays the source of truth and the
+overlay only wins once something newer arrives.

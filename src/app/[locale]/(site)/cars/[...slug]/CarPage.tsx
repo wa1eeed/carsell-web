@@ -17,6 +17,7 @@ import { Gallery } from '@/components/ui/Gallery';
 import { APP_URL } from '@/lib/env';
 import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
+import { AuctionLive } from '@/components/site/AuctionLive';
 import {
   AuctionTerms,
   BidLogStats,
@@ -103,6 +104,16 @@ export function CarPage({
   const [tab, setTab] = useState('specs');
   const vehicle = detail.vehicle;
   const inspection = detail.inspection;
+
+  /**
+   * ═══ لقطةٌ أحدث من الخاصّية — إن وصلت ═══
+   *
+   * **ولا تُنسخ الخاصّية في حالة** (البوابة ٢٧): المبدأ `null`، فما
+   * يأتي من الخادم في كل تصيير يبقى هو المصدر، وهذه تعلوه حين يبثّ
+   * المزاد تغيّرًا. ونسخُ الخاصّية ابتداءً يجمّدها على أوّل قيمة.
+   */
+  const [fresh, setFresh] = useState<PublicAuction | null>(null);
+  const shown = fresh ?? auction;
 
   const crumbs = [
     { label: heading.home, href: `/${locale}` },
@@ -295,12 +306,21 @@ export function CarPage({
             يسقط على الهاتف تحت كل شيء، وهذان أعجلُ ما في الصفحة.
           */}
           {auction === null ? null : (
-            <AuctionPulse
-              auction={auction}
-              live={detail.auction?.live === true}
-              standing={standing}
-              className="mt-6"
-            />
+            <>
+              {/* يُحيي اللقطة بالبثّ فوق أرضيّة الاستطلاع — ولا يرسم شيئًا */}
+              <AuctionLive
+                listingRef={detail.ref}
+                auctionId={auction.id}
+                live={detail.auction?.live === true}
+                onSnapshot={setFresh}
+              />
+              <AuctionPulse
+                auction={shown ?? auction}
+                live={detail.auction?.live === true}
+                standing={standing}
+                className="mt-6"
+              />
+            </>
           )}
         </div>
 
@@ -356,13 +376,19 @@ export function CarPage({
                      * وخيارُ البيع بالمزاد كلُّه معروضٌ لا يُستعمل.
                      */
                     bidActions: (
+                      /**
+                       * **والحدّ الأدنى من اللقطة الحيّة متى وصلت.**
+                       * `detail.auction` لقطةُ الخادم وقت التصيير،
+                       * ومزايدةُ غيرك ترفع الحدّ — فالمزايدة بالقديم
+                       * تُردّ، ويقرأ المزايد رفضًا سببُه أنه لم يُحدّث.
+                       */
                       <BidPanel
                         listingRef={detail.ref}
                         live={detail.auction.live}
-                        minimumNext={detail.auction.minimumBid}
+                        minimumNext={shown?.minimumBid ?? detail.auction.minimumBid}
                         increment={detail.auction.bidIncrement}
                         depositAmount={detail.auction.depositAmount}
-                        buyNowPrice={detail.auction.buyNowPrice}
+                        buyNowPrice={shown?.buyNowPrice ?? detail.auction.buyNowPrice}
                         signedIn={viewer.signedIn}
                         isOwn={viewer.isOwn}
                         locale={locale}
@@ -578,13 +604,13 @@ export function CarPage({
             وهويات المزايدين مخفية، وأرقامهم ثابتة داخل المزاد تتيح متابعة سلوكه.
           </p>
 
-          {auction.bids.length === 0 ? (
+          {(shown ?? auction).bids.length === 0 ? (
             <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-60">
               لا مزايدات بعد — وأوّل مزايدة تبدأ من سعر الافتتاح.
             </p>
           ) : (
             <ul className="flex flex-col gap-px overflow-hidden rounded-xl border border-line bg-line">
-              {auction.bids.map((bid) => (
+              {(shown ?? auction).bids.map((bid) => (
                 <li
                   key={`${bid.alias}-${bid.at}`}
                   className="flex flex-wrap items-center justify-between gap-3 bg-surface px-4 py-3"
@@ -604,8 +630,8 @@ export function CarPage({
             </ul>
           )}
 
-          <BidLogStats auction={auction} />
-          <AuctionTerms terms={auction.terms} />
+          <BidLogStats auction={shown ?? auction} />
+          <AuctionTerms terms={(shown ?? auction).terms} />
         </section>
       )}
 

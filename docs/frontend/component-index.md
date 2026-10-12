@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **135** components in **3** directories.
+Counted: **136** components in **3** directories.
 
 ## `src/components/admin`
 
@@ -55,6 +55,7 @@ Counted: **135** components in **3** directories.
 | --- | --- | --- | --- |
 | `AccountBrief` | no | `data` · `locale` | 1 |
 | `AccountSections` | no | `locale` · `sections` | 1 |
+| `AuctionLive` | yes | `listingRef` · `auctionId` · `live` · `onSnapshot` | 1 |
 | `AuctionPulse` | no | `auction` · `live` · `standing` · `className` | 1 |
 | `AuctionTerms` | no | `terms` | 1 |
 | `BidLogStats` | no | `auction` | 1 |
