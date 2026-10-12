@@ -343,8 +343,22 @@ async function main(): Promise<void> {
   await reset();
 
   // ————— إعدادات المنصة —————
+  /**
+   * ═══ وقنوات الدعم تُزرع ═══
+   *
+   * صفحة «تواصل معنا» تقرأ هذه الثلاثة، فبيئةٌ بلا قيمة فيها تعرض
+   * «غير مضبوطة بعد» — وهي الحال التي بقيت عليها منذ بُنيت الصفحة.
+   *
+   * **والبريد وحده قيمةٌ رسمية**: الجوال افتراضيٌّ يُضبط من
+   * `/admin/contact`، فرقمٌ في الشيفرة يبقى بعد أن يتغيّر.
+   */
   await prisma.platformSetting.create({
-    data: { id: 'default', transferFee: new D('350.00'), vatPct: new D('15.00') },
+    data: {
+      id: 'default',
+      transferFee: new D('350.00'),
+      vatPct: new D('15.00'),
+      supportEmail: 'info@carz.sa',
+    },
   });
   await prisma.financeSetting.create({
     data: {

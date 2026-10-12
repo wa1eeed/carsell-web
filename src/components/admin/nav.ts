@@ -167,6 +167,12 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        */
       { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view', description: 'الحدّ الأدنى للمزايدة والتمديد التلقائي والعربون.' },
       { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage', description: 'الأسئلة الشائعة ومواضع ظهورها.' },
+      /**
+       * **وقنوات الدعم محتوى لا نظام**: هي ما يظهر للزائر في صفحة
+       * «تواصل معنا» — موضعُها مع الأسئلة الشائعة والصفحات القانونية،
+       * لا مع المفاتيح والبيئات.
+       */
+      { label: 'قنوات الدعم', href: '/admin/contact', permission: 'notifications.manage', description: 'الهاتف والواتساب والبريد الظاهرة في «تواصل معنا».' },
       { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية ونسخُها المنشورة.' },
     ],
   },

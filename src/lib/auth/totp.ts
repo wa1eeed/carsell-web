@@ -112,7 +112,7 @@ export function verifyTotp(
 }
 
 /** رابط `otpauth://` لتطبيق المصادقة. */
-export function totpUri(secret: string, email: string, issuer = 'CarSell Admin'): string {
+export function totpUri(secret: string, email: string, issuer = 'CARZ Admin'): string {
   const label = encodeURIComponent(`${issuer}:${email}`);
   const params = new URLSearchParams({
     secret,

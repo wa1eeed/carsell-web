@@ -3094,3 +3094,51 @@ Repeat Rate) — وهو ما يُكتب في عرض المستثمر، فمن ت
 كل رابط أُضيف فُحص بطلب حقيقي من الصفحة التي يظهر فيها — **ستة روابط
 وثلاثة مراجع، كلها ٢٠٠**. ولولا ذلك لمرّ رابط مبني من معرف خاطئ بلا أن
 يشتكي أحد: الصفحة تُصيَّر، والاختبارات لا تنقر.
+
+## Three fields read by nobody's writer — support channels
+
+`/help/contact` has read `PlatformSetting.supportEmail`, `supportPhone` and
+`supportWhatsapp` since the day it was built. **Nothing wrote them.** No admin
+screen, no API route, no seed value. So the page rendered "قنوات التواصل غير
+مضبوطة بعد" for every visitor, forever — and that page is the last stop for
+someone who did not find their answer in the FAQ.
+
+This is the eleventh instance of the same class in this repo: *a value, model,
+function or screen element that nothing writes, calls or reaches.* The measure
+that finds it is one `grep` per field: **who writes this?**
+
+Built in full:
+
+- `src/lib/domain/admin-contact.ts` — `contactChannels()` reads,
+  `saveContactChannels()` writes and audits.
+- `PUT /api/v1/admin/contact` — guarded by `notifications.manage`.
+- `/admin/contact` — a form with a **live preview** of what the visitor sees,
+  listed under «الإعدادات — المحتوى» next to the FAQ and the legal pages
+  (support channels are content, not system configuration).
+- `prisma/seed.ts` seeds `supportEmail: 'info@carz.sa'`.
+
+### The field accepts every paste shape
+
+`normaliseSaudiPhone` takes `0501234567`, `501234567`, `+966 50 123 4567`,
+`00966501234567` and `٠٥٠١٢٣٤٥٦٧`, and stores `+9665XXXXXXXX`. Digit
+conversion reuses `toLatinDigits` from `src/lib/arabic.ts` — **the rule is
+written once**; a second copy here would diverge on the first change.
+
+The route returns the stored value, and the form re-renders from it, so the
+operator sees the normalisation instead of guessing at it.
+
+A rejected save writes nothing: a valid phone next to an invalid email is not
+half-saved.
+
+### The brand name is written once
+
+Task 157 replaced the name in 16 UI strings and missed three places, one of
+which was the **supplier name on tax invoices** (`documents.ts`) — a legal
+document. The other two were the admin tab title and the TOTP issuer.
+
+`src/lib/brand.ts` now holds `BRAND_AR` / `BRAND_EN`. It is not in
+`src/lib/domain/` because gate 17 forbids Arabic literals there; a company name
+is not a sentence, but it is displayed text, so the domain imports it.
+
+`token.ts`'s JWT `issuer: 'carsell.one'` stays. Changing it invalidates every
+live session — that is not a rename, it is a forced logout.

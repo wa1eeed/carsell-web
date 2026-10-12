@@ -1,3 +1,4 @@
+import { BRAND_AR } from '@/lib/brand';
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import { issueInvoice, vatIncluded } from './tax';
@@ -358,7 +359,8 @@ export async function issueSettlementDocuments(
         supplyType: supply.supplyType,
         amount: supply.amount,
         marginApproved: marginApprovedFor(order.seller),
-        supplierName: supply.supplyType === 'VEHICLE' ? sellerName : 'CarSell',
+        // اسم المورّد في فاتورة ضريبية — مستند رسميّ يحمل اسم الشركة
+        supplierName: supply.supplyType === 'VEHICLE' ? sellerName : BRAND_AR,
         supplierVatNo:
           supply.supplyType === 'VEHICLE'
             ? (order.seller.dealer?.vatNumber ?? null)

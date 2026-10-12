@@ -1,3 +1,4 @@
+import { BRAND_AR } from '@/lib/brand';
 import type { ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { Figtree, Tajawal } from 'next/font/google';
@@ -19,7 +20,7 @@ const figtree = Figtree({
 });
 
 export const metadata = {
-  title: 'CarSell — لوحة الأدمن',
+  title: `${BRAND_AR} — لوحة الأدمن`,
   robots: { index: false, follow: false },
 };
 
