@@ -8,7 +8,7 @@ import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
 
 /**
- * ═══ قائمةٌ جانبية على الهاتف ═══
+ * ═══ قائمةٌ جانبية على الهاتف واللوحي ═══
  *
  * **وكان الصفّ يُمرَّر أفقيًّا.** خمسةُ روابط في عرض ٣٧٥ لا تتّسع،
  * فآخرها («الخدمات») خارج الشاشة — يُبلَغ بسحبٍ أفقيّ **لا أثر له
@@ -77,7 +77,7 @@ export function MobileNav({
         aria-label={menuLabel}
         aria-expanded={open}
         aria-controls="site-drawer"
-        className="flex size-10 shrink-0 items-center justify-center rounded-md border border-line sm:hidden"
+        className="flex size-10 shrink-0 items-center justify-center rounded-md border border-line lg:hidden"
       >
         <svg
           viewBox="0 0 24 24"
@@ -100,7 +100,7 @@ export function MobileNav({
         onClick={() => setOpen(false)}
         aria-hidden
         className={cn(
-          'fixed inset-0 z-40 bg-ink/45 transition-opacity sm:hidden',
+          'fixed inset-0 z-40 bg-ink/45 transition-opacity lg:hidden',
           open ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       />
@@ -124,7 +124,7 @@ export function MobileNav({
       <div
         aria-hidden={!open}
         className={cn(
-          'pointer-events-none fixed inset-0 z-50 overflow-hidden sm:hidden',
+          'pointer-events-none fixed inset-0 z-50 overflow-hidden lg:hidden',
           open ? '' : 'invisible',
         )}
       >

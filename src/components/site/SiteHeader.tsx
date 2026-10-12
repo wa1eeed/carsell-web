@@ -166,7 +166,7 @@ export function SiteHeader({
         والشريط مخفيّ. فمن لا يعرف أنه يُسحب لا يصل إليه.
         (وكان أوّلُ إصلاحٍ للفيض قد حذف المِلاحة كلَّها، فسُجّل.)
       */}
-      <nav className="no-scrollbar -mx-4 hidden gap-5 overflow-x-auto px-4 text-base font-semibold whitespace-nowrap sm:mx-0 sm:flex sm:flex-1 sm:px-0">
+      <nav className="hidden gap-5 text-base font-semibold whitespace-nowrap lg:flex lg:flex-1">
         {NAV.map((item) => (
           <Link
             key={item.key}

@@ -660,3 +660,14 @@ space it is given instead of sitting small inside a square.
 
 Width and height are passed explicitly. Without them the browser reserves zero
 and pushes the page down when the image arrives — the thing CLS measures.
+
+### The drawer now covers tablets too (task 155)
+
+The inline nav row appeared from 640px up, so a tablet in portrait showed five
+links squeezed beside the logo, the account card and two buttons. The drawer now
+holds until **1024px** — the same breakpoint the admin rail uses, so both sides
+of the product switch at one width instead of two.
+
+Measured at the boundary: at 768 the hamburger is present and the row is gone;
+at 1024 the five links are back and the hamburger is gone. No horizontal
+overflow at either.
