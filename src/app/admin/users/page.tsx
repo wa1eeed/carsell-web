@@ -3,7 +3,7 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { ExportLink } from '@/components/admin/ExportLink';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
-import { can, canWrite } from '@/lib/domain/permissions';
+import { can } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
 import {
   listAdminUsers,
@@ -13,7 +13,8 @@ import {
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { ListSearch } from '@/components/admin/ListSearch';
 import { ListFooter } from '@/components/admin/ListFooter';
-import { UsersTable } from './UsersTable';
+import { UserCard } from '@/components/admin/UserCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,8 @@ const SEGMENTS: readonly { key: UserSegment; label: string }[] = [
   { key: 'all', label: 'الكل' },
   { key: 'buyers', label: 'مشترون' },
   { key: 'sellers', label: 'بائعون' },
-  { key: 'dealers', label: 'تجار' },
+  { key: 'individuals', label: 'أفراد' },
+  { key: 'dealers', label: 'معارض' },
   { key: 'verified', label: 'موثّقون' },
   { key: 'unverified', label: 'غير موثّقين' },
   { key: 'repeat', label: 'متكرّرون' },
@@ -99,7 +101,23 @@ export default async function AdminUsersPage({
         <StatCard label="موثّق" value={users.filter((user) => user.idVerified).length} />
       </div>
 
-      <UsersTable users={users} canViewIdentity={canWrite(admin.role, 'users.viewIdentity')} />
+      {/*
+        **والكروت لا الجدول.** الصف كان اسمًا وآخر أربعة من الجوال
+        وعددين، فمراجعة عشرين حسابًا عشرون فتحًا ورجوعًا. والكرت يحمل
+        التصنيف والتوثيق والحالة وثلاثة أرقام وتاريخ الانضمام.
+      */}
+      {users.length === 0 ? (
+        <EmptyState
+          title="لا عملاء في هذه الشريحة"
+          description="جرّب شريحة أخرى أو امسح البحث."
+        />
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {users.map((user) => (
+            <UserCard key={user.id} row={user} />
+          ))}
+        </div>
+      )}
       <ListFooter
         shown={users.length}
         total={segment === 'all' && term === null ? segments.all : null}

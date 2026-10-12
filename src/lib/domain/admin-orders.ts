@@ -370,6 +370,8 @@ export async function identityAccessLog(userId: string) {
 
 export type UserRow = {
   id: string;
+  /** رقم العميل المقروء — وهو ما يقوله في مكالمة. */
+  ref: string | null;
   name: string | null;
   /** آخر أربعة وحدها — الرقم كاملًا لا يعبر إلى العميل. */
   phoneTail: string;
@@ -377,6 +379,21 @@ export type UserRow = {
   idVerified: boolean;
   listingCount: number;
   orderCount: number;
+  /**
+   * ═══ التصنيف — فرد أو معرض ═══
+   *
+   * **ويُشتق من الارتباط لا من `role`.** `UserRole.DEALER` تكتبه البذرة
+   * وحدها ولا يكتبه المنتج، فحساب ينضم لمعرض اليوم يبقى `USER` ولا
+   * تراه شريحة «المعارض». والارتباط `dealerId` هو ما يقع فعلًا.
+   *
+   * ولوحة المعارض لم تُبن بعد، فكل من على المنصة اليوم فرد بعضوية
+   * واحدة يبيع ويشتري بها.
+   */
+  kind: 'INDIVIDUAL' | 'DEALER';
+  dealerName: string | null;
+  /** ما باعه فعلًا — والإعلان نية والطلب بيعة. */
+  soldCount: number;
+  joinedAt: string;
 };
 
 /**
@@ -397,7 +414,7 @@ export type UserRow = {
  * له إعلانٌ بائع، وقد يكون الاثنين معًا. فالشريحة شرطُ وجودٍ لا مساواة.
  */
 export type UserSegment =
-  | 'all' | 'buyers' | 'sellers' | 'dealers'
+  | 'all' | 'buyers' | 'sellers' | 'individuals' | 'dealers'
   | 'verified' | 'unverified' | 'repeat' | 'suspended' | 'banned';
 
 /**
@@ -421,7 +438,13 @@ const SEGMENT_WHERE: Record<UserSegment, Prisma.UserWhereInput> = {
   all: {},
   buyers: { ordersAsBuyer: { some: {} } },
   sellers: { listings: { some: {} } },
-  dealers: { role: 'DEALER' },
+  /**
+   * **والتصنيف من الارتباط**: من له `dealerId` معرض، وما عداه فرد.
+   * ولوحة المعارض لم تُبن بعد، فكل من على المنصة اليوم فرد بعضوية
+   * واحدة يبيع ويشتري بها.
+   */
+  individuals: { dealerId: null },
+  dealers: { dealerId: { not: null } },
   verified: { idVerified: true },
   unverified: { idVerified: false },
   // «متكرّر» = أكثر من طلب شراءٍ واحد — والعدّ في SQL لا في الذاكرة
@@ -456,19 +479,26 @@ export async function listAdminUsers(
     orderBy: { createdAt: 'desc' },
     take: 100,
     select: {
-      id: true, name: true, phone: true, status: true, idVerified: true,
-      _count: { select: { listings: true, ordersAsBuyer: true } },
+      id: true, ref: true, name: true, phone: true, status: true, idVerified: true,
+      createdAt: true, dealerId: true,
+      dealer: { select: { nameAr: true } },
+      _count: { select: { listings: true, ordersAsBuyer: true, ordersAsSeller: true } },
     },
   });
 
   const mapped = rows.map((user) => ({
     id: user.id,
+    ref: user.ref,
     name: user.name,
     phoneTail: user.phone.slice(-4),
     status: user.status,
     idVerified: user.idVerified,
     listingCount: user._count.listings,
     orderCount: user._count.ordersAsBuyer,
+    kind: (user.dealerId === null ? 'INDIVIDUAL' : 'DEALER') as 'INDIVIDUAL' | 'DEALER',
+    dealerName: user.dealer?.nameAr ?? null,
+    soldCount: user._count.ordersAsSeller,
+    joinedAt: user.createdAt.toISOString(),
   }));
 
   /**

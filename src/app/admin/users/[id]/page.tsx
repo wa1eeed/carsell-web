@@ -8,6 +8,7 @@ import {
   DetailStats,
   Field,
 } from '@/components/admin/DetailShell';
+import { IdentityPanel } from '@/components/admin/IdentityPanel';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -380,6 +381,19 @@ export default async function AdminUserDetailPage({
             </DetailCard>
 
             <DetailCard title="التوثيق والضريبة">
+              {/*
+                ═══ والاطلاع على الهوية هنا لا في القائمة ═══
+
+                كان `IdentityPanel` في جدول العملاء، فلمّا صار الجدول
+                كروتًا كادت القدرة كلها تذهب معه — **والدمج يُيتّم ما
+                كان في المحذوف**، وهو صنف وقع في هذا المستودع من قبل.
+
+                وموضعها هنا أصح أصلًا: الاطلاع فعل مقصود على **عميل
+                واحد** بسبب مكتوب ويُسجَّل باسم من اطّلع — لا شيء
+                يُعرض في صف من مئة.
+              */}
+              <IdentityPanel userId={user.id} allowed={canWrite(admin.role, 'users.viewIdentity')} />
+              <div className="h-3" />
               <Field label="حالة الهوية" value={user.identityStatus} ltr />
               {user.identitySubmittedAt === null ? null : (
                 <Field

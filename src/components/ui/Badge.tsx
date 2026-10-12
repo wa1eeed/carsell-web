@@ -17,20 +17,32 @@ const TONE: Record<BadgeTone, string> = {
   ink: 'bg-ink text-bg',
 };
 
-/** وسم حالة. المقاس واحد — التمييز باللون لا بالحجم. */
+/**
+ * وسم حالة — **والتمييز باللون لا بالحجم**.
+ *
+ * ومقاسان لا واحد: المقاس العادي للشارة التي هي حالة الشيء نفسه
+ * (حالة الطلب، حالة الإعلان)، و`sm` للصفة المرافقة لاسم في كرت.
+ *
+ * **والسبب قياس**: اسم العميل في الكرت `text-xs` والشارة `text-2xs`،
+ * فهما متقاربتان — فتُقرأ الصفة بثقل الاسم وتسحب العين إليها قبله،
+ * وهي أقل أهمية منه.
+ */
 export function Badge({
   tone = 'neutral',
+  size = 'md',
   children,
   className,
 }: {
   tone?: BadgeTone;
+  size?: 'md' | 'sm';
   children: ReactNode;
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-2xs font-bold whitespace-nowrap',
+        'inline-flex items-center gap-1 rounded-sm font-bold whitespace-nowrap',
+        size === 'sm' ? 'px-1.5 py-px text-3xs' : 'px-2.5 py-1 text-2xs',
         TONE[tone],
         className,
       )}
