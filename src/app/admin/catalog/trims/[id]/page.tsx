@@ -1,5 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { DetailStats } from '@/components/admin/DetailShell';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Year } from '@/components/ui/Year';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
@@ -55,6 +58,21 @@ export default async function TrimEditorPage({
       activeHref="/admin/catalog/brands"
       admin={admin}
     >
+      {/*
+        **وعددُ المركبات نطاقُ الأثر.** ما يُعدَّل هنا يُورَّث، فمن
+        يعدّل فئةً تحتها مئتا مركبة يحتاج أن يعرف ذلك **قبل** لا بعد.
+      */}
+      <DetailStats
+        items={[
+          { label: 'مركبات تستعملها', value: <ArabicNumber value={trim._count.vehicles} /> },
+          { label: 'من سنة', value: <Year value={trim.yearFrom} /> },
+          {
+            label: 'إلى سنة',
+            value: trim.yearTo === null ? 'ما زالت تُنتج' : <Year value={trim.yearTo} />,
+          },
+        ]}
+      />
+
       <MonitorTabs
         basePath={`/admin/catalog/trims/${encodeURIComponent(trim.id)}`}
         param="tab"

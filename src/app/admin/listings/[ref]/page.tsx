@@ -6,6 +6,7 @@ import {
   DetailCard,
   DetailColumns,
   DetailHeader,
+  DetailStats,
   Field,
 } from '@/components/admin/DetailShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -118,6 +119,24 @@ export default async function AdminListingDetailPage({
           </>
         }
       />
+
+      {/*
+        **وشريطُ الأرقام أُلحق بها.** بُنيت هذه الصفحة قبل أن يوجد
+        `DetailStats`، فبقيت وحدها بين العشر بلا جوابٍ قبل التابز —
+        والأوّل ما يُسأل: بكم، وكم عرضًا عليها، ومتى نُشرت.
+      */}
+      <DetailStats
+        items={[
+          { label: 'السعر المعروض', value: <Money amount={Number(listing.askPrice)} /> },
+          { label: 'العروض', value: <ArabicNumber value={listing.offers.length} /> },
+          { label: 'المشاهدات', value: <ArabicNumber value={listing.viewCount} /> },
+          {
+            label: 'نُشر',
+            value: listing.publishedAt === null ? 'لم يُنشر' : riyadh.format(new Date(listing.publishedAt)),
+          },
+        ]}
+      />
+
       <MonitorTabs
         // **والعدّ يقول كم فيه قبل أن يُفتح** — وتابزٌ بلا عددٍ يُفتح ليُوجد فارغًا
         tabs={TABS.map((row) => ({
