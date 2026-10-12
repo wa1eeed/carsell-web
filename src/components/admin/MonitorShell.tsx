@@ -13,7 +13,7 @@ import { displayDigits } from '@/lib/arabic';
  * فالتخطيط هنا مرّةً واحدة، ولكل شاشة صفوفها وبطاقاتها.
  */
 
-export type MonitorCard = { title: string; value: number | string; note: string };
+export type MonitorCard = { title: string; value: number | string; note: ReactNode };
 export type MonitorTab = {
   key: string | null;
   label: string;
@@ -138,7 +138,11 @@ export function MonitorList({
 }: {
   children: ReactNode;
   empty: { title: string; description: string };
-  note?: string;
+  /**
+   * **والملاحظة عنصرٌ لا نصّ** — فالمدّة والعدد يُصاغان بـ`<Duration>`
+   * و`<Quantity>`، لا «ساعات (٣)» فرارًا من بوابة الجمع (البوابة ٤١).
+   */
+  note?: ReactNode;
 }) {
   const rows = Array.isArray(children) ? children : [children];
   const isEmpty = rows.flat().filter(Boolean).length === 0;

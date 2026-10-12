@@ -14,6 +14,7 @@ import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
 import type { ReportRow, ReportStats } from '@/lib/domain/admin-reports';
 import { MIN_REPORT_NOTE } from '@/lib/domain/report-rules';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A17 — البلاغات ═══
@@ -178,7 +179,7 @@ export function ReportsQueue({
                     **العدد هو ما يُقرَّر عليه لا البلاغ المفرد** — قرار ٥.
                   */}
                   <span className="text-3xs opacity-50">
-                    بلاغات على الهدف ({displayDigits(String(row.siblingCount))})
+                    على الهدف <Quantity unit="reportsReady" count={row.siblingCount} />
                   </span>
                 </div>
 

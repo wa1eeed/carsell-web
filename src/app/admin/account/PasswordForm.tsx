@@ -5,6 +5,8 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
+import type { ReactNode } from 'react';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ تغيير كلمة الأدمن ═══
@@ -70,7 +72,7 @@ export function PasswordForm({ minLength }: { minLength: number }) {
           label="الكلمة الجديدة"
           value={form.next}
           onChange={(v) => setForm({ ...form, next: v })}
-          note={`محارف (${displayDigits(String(minLength))}) فأكثر`}
+          note={<><Quantity unit="characters" count={minLength} /> فأكثر</>}
           error={tooShort ? 'أقصر من الحدّ' : undefined}
         />
         <Field
@@ -106,7 +108,7 @@ function Field({
   label: string;
   value: string;
   onChange: (value: string) => void;
-  note?: string;
+  note?: ReactNode;
   error?: string;
 }) {
   return (

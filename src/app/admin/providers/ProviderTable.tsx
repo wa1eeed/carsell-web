@@ -8,6 +8,7 @@ import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
 import type { ProviderRow } from '@/lib/domain/admin-providers';
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * الالتزام نصًّا — **كما يكتبه التصميم**: «فوريّ» ثم بالساعات حتى
@@ -91,7 +92,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                       <span className="text-3xs opacity-45">بلا خدمة مرتبطة</span>
                     ) : (
                       <span className="text-3xs opacity-45">
-                        خدمات مرتبطة ({displayDigits(String(row.servicesLinked))})
+                        <Quantity unit="linkedServices" count={row.servicesLinked} />
                       </span>
                     )}
                   </span>
@@ -111,7 +112,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                     <span className="font-num">{displayDigits(String(row.openRequests))}</span>
                     {row.breached === 0 ? null : (
                       <Badge tone="danger">
-                        تجاوز ({displayDigits(String(row.breached))})
+                        <Quantity unit="breaches" count={row.breached} />
                       </Badge>
                     )}
                   </span>

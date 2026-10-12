@@ -123,12 +123,12 @@ export async function OpsTab() {
       {measured === times.length ? null : (
         // **صفٌّ بلا عيّنة صفرٌ لا «سريع»** — ويُقال بدل أن يُقرأ إنجازًا
         <p className="mt-2.5 text-3xs opacity-50">
-          مراحل ({displayDigits(String(times.length - measured))}) بلا عيّنة في آخر تسعين يومًا
+          <Quantity unit="stages" count={times.length - measured} /> بلا عيّنة في آخر تسعين يومًا
           — تُعرض صفرًا لأنها لم تُقَس، لا لأنها فورية.
         </p>
       )}
 
-      <SectionHead title="حجم الطلبات اليومي" note={`أيّام (${displayDigits(String(RANGE_DAYS))})`} />
+      <SectionHead title="حجم الطلبات اليومي" note={<Quantity unit="days" count={RANGE_DAYS} />} />
       <Sparkline
         points={daily.map((point) => ({ label: dayTick(point.day), value: point.count }))}
       />
@@ -167,7 +167,7 @@ export async function OpsTab() {
             />
           </div>
           <p className="mt-3 border-t border-line pt-3 text-3xs opacity-50">
-            المزادات المنتهية منذ الإطلاق ({displayDigits(String(auctions.total))})
+            منذ الإطلاق: <Quantity unit="endedAuctions" count={auctions.total} />
           </p>
         </div>
       </div>

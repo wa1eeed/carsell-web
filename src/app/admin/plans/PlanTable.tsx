@@ -8,6 +8,7 @@ import { Toast } from '@/components/ui/Toast';
 import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { EntitlementRow, PlanRow } from '@/lib/domain/admin-plans';
 import { ENTITLEMENT_LABEL, TYPE_LABEL, pctLabel, saleOptions } from './labels';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A29 — الباقات ═══
@@ -160,7 +161,7 @@ function PlanEditor({
       <div className="w-full max-w-lg rounded-lg border border-line bg-bg p-6">
         <h3 className="mb-1 text-md font-bold">{plan.nameAr}</h3>
         <p className="mb-5 text-3xs opacity-55">
-          مشتركون ({displayDigits(String(plan.subscriberCount))}) — والتعديل لا يمسّ اشتراكًا
+          <Quantity unit="subscribers" count={plan.subscriberCount} /> — والتعديل لا يمسّ اشتراكًا
           قائمًا حتى تجديده.
         </p>
 

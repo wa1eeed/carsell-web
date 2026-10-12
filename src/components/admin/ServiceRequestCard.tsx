@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Duration } from '@/components/admin/Dwell';
+import { Duration } from '@/components/ui/Duration';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { AR_DATE_LOCALE } from '@/lib/arabic';

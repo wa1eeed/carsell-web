@@ -8,6 +8,7 @@ import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits, toLatinDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import type { PendingAdjustment, WalletLine } from '@/lib/domain/wallet';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ محفظة العميل — والمال لا يمسّه واحد ═══
@@ -182,7 +183,7 @@ export function WalletPanel({
               className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
             />
             <span className="text-3xs opacity-45">
-              أحرف ({displayDigits(String(REASON_MIN))}) فأكثر — ويُقرأ بعد سنة.
+              <Quantity unit="characters" count={REASON_MIN} /> فأكثر — ويُقرأ بعد سنة.
             </span>
           </label>
 
@@ -198,7 +199,7 @@ export function WalletPanel({
       ) : null}
 
       <p className="mb-2.5 text-2xs font-bold opacity-60">
-        كشف المحفظة ({displayDigits(String(lines.length))})
+        كشف المحفظة — <Quantity unit="walletLines" count={lines.length} />
       </p>
 
       {lines.length === 0 ? (

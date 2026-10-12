@@ -16,6 +16,7 @@ import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
 import { NewCampaign } from './NewCampaign';
 import { CampaignActions } from './CampaignActions';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'مساحات الإعلانات والحملات' };
@@ -206,10 +207,10 @@ export default async function AdminAdsPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">قواعد تحمي التطبيق من الإعلانات</p>
           <p>
-            بنر ({displayDigits(String(MAX_BANNERS_PER_SCREEN))}) لكل شاشة كحدّ أقصى ·
+            <Quantity unit="banners" count={MAX_BANNERS_PER_SCREEN} /> لكل شاشة كحدّ أقصى ·
             وسم «إعلان» أو «مموّل» إلزاميّ ·{' '}
-            <b>لا إعلان داخل مسار الدفع والمزايدة والنزاع</b> · وإعلانات
-            ({displayDigits(String(stats.sessionCap))}) كحدّ أقصى في جلسة الرئيسية
+            <b>لا إعلان داخل مسار الدفع والمزايدة والنزاع</b> ·{' '}
+            <Quantity unit="ads" count={stats.sessionCap} /> كحدّ أقصى في جلسة الرئيسية
             {stats.homeServed
               ? '، والسقف يُفرَض في الخادم لا في التطبيق'
               : ' — قاعدةٌ لم يبلغها مسارٌ بعد، فلا إعلان في الرئيسية'}
@@ -220,10 +221,10 @@ export default async function AdminAdsPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">الأداء والبطارية</p>
           <p>
-            طلب واحد يجلب كل مساحات الشاشة · تخزين دقائق
-            ({displayDigits(String(AD_CACHE_MINUTES))}) · تحميل كسول · صور WebP بمقاس
-            الجهاز · <b>لا فيديو تلقائيّ</b> · أحداث الظهور تُجمَّع وتُرسل كل ثانية
-            ({displayDigits(String(IMPRESSION_FLUSH_SECONDS))}).
+            طلب واحد يجلب كل مساحات الشاشة · يُخزَّن{' '}
+            <Quantity unit="minutes" count={AD_CACHE_MINUTES} /> · تحميل كسول · صور WebP بمقاس
+            الجهاز · <b>لا فيديو تلقائيّ</b> · أحداث الظهور تُجمَّع وتُرسل كل{' '}
+            <Quantity unit="seconds" count={IMPRESSION_FLUSH_SECONDS} />.
           </p>
         </div>
       </div>

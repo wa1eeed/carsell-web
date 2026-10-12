@@ -25,6 +25,7 @@ import { orderTimeline } from '@/lib/domain/admin-order-timeline';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -379,7 +380,7 @@ export default async function AdminOrderDetailPage({
 
             <DetailCard
               title="أحداث الطلب"
-              note={`آخر حدث (${displayDigits(String(order.timeline.length))})`}
+              note={<>آخر <Quantity unit="events" count={order.timeline.length} /></>}
             >
               {order.timeline.length === 0 ? (
                 <p className="text-2xs opacity-50">لا أحداث مسجّلة.</p>

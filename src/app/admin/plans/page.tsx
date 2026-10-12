@@ -10,6 +10,7 @@ import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { CommissionSimulator } from './CommissionSimulator';
 import { PlanTable } from './PlanTable';
 import { ENTITLEMENT_LABEL, TYPE_LABEL, pctLabel } from './labels';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'الباقات والعمولة' };
@@ -47,7 +48,7 @@ export default async function AdminPlansPage() {
     <AdminShell title="الباقات والعمولة"
       subtitle="حزمة قيَم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        باقات ({displayDigits(String(stats.plans))}) ·{' '}
+        <Quantity unit="plans" count={stats.plans} /> ·{' '}
         {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${displayDigits(String(stats.paidPlans))})`}{' '}
         · العمولة{' '}
         {seller?.enabled !== true || Number(seller.pct) === 0
@@ -60,7 +61,7 @@ export default async function AdminPlansPage() {
           {
             title: 'باقات',
             value: stats.plans,
-            note: `افتراضية (${displayDigits(String(defaults))})`,
+            note: <><Quantity unit="plans" count={defaults} /> افتراضية</>,
           },
           { title: 'خصائص', value: stats.entitlements, note: 'ثابتة في الكود' },
           { title: 'تجاوزات لعملاء', value: stats.overrides, note: 'بسبب مكتوب' },

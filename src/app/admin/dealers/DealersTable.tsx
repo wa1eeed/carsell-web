@@ -10,6 +10,7 @@ import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
 import type { DealerRow } from '@/lib/domain/admin-dealers';
 import { MIN_DEALER_NOTE } from '@/lib/domain/dealer-rules';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A26 — التجار والمعارض ═══
@@ -107,7 +108,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
             <div className="flex flex-wrap items-center gap-5">
               <div className="flex flex-col items-start gap-0.5">
                 <span className="text-2xs">
-                  المخزون ({displayDigits(String(row.inventory))})
+                  المخزون <Quantity unit="inventory" count={row.inventory} />
                 </span>
                 <span className="text-3xs opacity-45">
                   {row.ratingAvg === null

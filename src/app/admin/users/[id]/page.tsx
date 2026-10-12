@@ -23,6 +23,7 @@ import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { MarginPanel } from './MarginPanel';
 import { WalletPanel } from './WalletPanel';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -264,7 +265,7 @@ export default async function AdminUserDetailPage({
             */}
             <DetailCard
               title="كشف العمليات"
-              note={`آخر قيد (${displayDigits(String(user.ledger.length))})`}
+              note={<>آخر <Quantity unit="ledgerLines" count={user.ledger.length} /></>}
             >
               {user.ledger.length === 0 ? (
                 <p className="text-2xs opacity-50">

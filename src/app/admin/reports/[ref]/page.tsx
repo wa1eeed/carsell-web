@@ -9,7 +9,8 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminReportDetail } from '@/lib/domain/admin-detail-readers';
 import { reportTimeline } from '@/lib/domain/admin-entity-timelines';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,7 +110,7 @@ export default async function AdminReportDetailPage({
             {report.attachments.length === 0 ? null : (
               <DetailCard
                 title="المرفقات"
-                note={`مرفق (${displayDigits(String(report.attachments.length))})`}
+                note={<Quantity unit="attachments" count={report.attachments.length} />}
               >
                 {report.attachments.map((attachment) => (
                   // المفتاح يُقارن خانةً بخانة — لاتينيّ معزول

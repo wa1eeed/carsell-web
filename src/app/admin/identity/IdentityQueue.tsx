@@ -12,6 +12,8 @@ import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
 import type { IdentityRow, IdentityStats } from '@/lib/domain/admin-identity';
 import { MIN_IDENTITY_NOTE } from '@/lib/domain/identity-rules';
+import { Duration } from '@/components/ui/Duration';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A18 — توثيق الهوية ═══
@@ -39,12 +41,6 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: 'مرفوض',
 };
 
-function waitedText(minutes: number): string {
-  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
-}
 
 type Decision = 'VERIFY' | 'CLARIFY' | 'REJECT';
 
@@ -100,7 +96,11 @@ export function IdentityQueue({
           note={
             stats.oldestMinutes === null
               ? 'لا توجد طلبات توثيق'
-              : `أقدمها منذ ${waitedText(stats.oldestMinutes)}`
+              : (
+                  <>
+                    أقدمها منذ <Duration hours={stats.oldestMinutes / 60} />
+                  </>
+                )
           }
         />
         <Card title="مُعلَّق للتوضيح" value={stats.clarification} note="ينتظر ردّ صاحبه" />
@@ -162,9 +162,9 @@ export function IdentityQueue({
 
                 <div className="flex flex-col items-start gap-0.5">
                   <span className="text-2xs opacity-70">
-                    إعلاناته ({displayDigits(String(row.listingCount))})
+                    <Quantity unit="listings" count={row.listingCount} />
                   </span>
-                  <span className="text-3xs opacity-45">منذ {waitedText(row.waitingMinutes)}</span>
+                  <span className="text-3xs opacity-45">منذ <Duration hours={row.waitingMinutes / 60} /></span>
                 </div>
 
                 <Button

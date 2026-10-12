@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { displayDigits } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ تمديد سقف النقل — مرّة واحدة بسببٍ مكتوب ═══
@@ -80,7 +80,7 @@ export function ExtendTransfer({
     <>
       <div className="mt-2.5 rounded-md border border-line p-3.5">
         <p className="mb-2.5 text-3xs leading-loose opacity-70">
-          يُضاف أيّام ({displayDigits(String(days))}) إلى السقف، مرّة واحدة. والسبب
+          يُضاف <Quantity unit="days" count={days} /> إلى السقف، مرّة واحدة. والسبب
           إلزاميّ لأن التمديد يؤخّر مال المشتري — فمن يؤخّره يُسمّي لماذا.
         </p>
         <textarea

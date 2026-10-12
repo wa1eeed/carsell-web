@@ -100,7 +100,7 @@ export async function GrowthTab() {
       <div className="mt-9 mb-3.5 flex items-baseline gap-3">
         <h2 className="text-md font-bold">حجم الطلبات اليومي</h2>
         <span className="text-2xs opacity-45">
-          أيّام ({displayDigits(String(RANGE_DAYS))})
+          <Quantity unit="days" count={RANGE_DAYS} />
         </span>
         <span className="h-px flex-1 bg-line" aria-hidden />
       </div>

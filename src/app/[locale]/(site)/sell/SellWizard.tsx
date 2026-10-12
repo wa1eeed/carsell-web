@@ -745,7 +745,7 @@ export function SellWizard({
                   <span aria-hidden className="opacity-30">·</span>
                   {/* الجملة لا يحكمها المعدود — والعدد بين قوسين (البوابة ١٨) */}
                   <span className="font-num">
-                    المقاعد ({displayDigits(String(inheritedTrim.seats))})
+                    <Quantity unit="seats" count={inheritedTrim.seats} />
                   </span>
                 </p>
               </div>

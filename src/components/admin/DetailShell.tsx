@@ -73,7 +73,11 @@ export function DetailCard({
   className,
 }: {
   title: string;
-  note?: string;
+  /**
+   * **والملاحظة عنصرٌ لا نصّ** — فالمدّة والعدد يُصاغان بـ`<Duration>`
+   * و`<Quantity>`، لا «ساعات (٣)» فرارًا من بوابة الجمع (البوابة ٤١).
+   */
+  note?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
@@ -134,7 +138,11 @@ export function TimelineRow({
   tone,
 }: {
   title: string;
-  note?: string;
+  /**
+   * **والملاحظة عنصرٌ لا نصّ** — فالمدّة والعدد يُصاغان بـ`<Duration>`
+   * و`<Quantity>`، لا «ساعات (٣)» فرارًا من بوابة الجمع (البوابة ٤١).
+   */
+  note?: ReactNode;
   at: string;
   tone?: 'accent' | 'warn' | 'danger';
 }) {

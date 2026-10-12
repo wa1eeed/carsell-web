@@ -3370,3 +3370,40 @@ compiler caught it only because a dev page used the old props. Restored from
 git, and the new card uses the real component.
 
 Read before you write, even when you are sure the file is new.
+
+## Gate 41 — a count in brackets to dodge the plural rule
+
+Gate 16 forbids a numeral immediately before an Arabic word, because Arabic has
+six plural forms: «٢ ساعة» is wrong, «ساعتان» is right. A workaround grew around
+it — put the word first and the number in brackets: **«ساعات (٢)»**. It passes
+the gate and fails the reader.
+
+It had reached **thirty sites** across the admin panel: «أقدمها منذ أيّام (٣)»,
+«المخزون (٥)», «مزايدون (٦)», «تقارير جاهزة (٦)». This is the single clearest
+tell that a product's copy was machine-written, and the owner named it directly.
+
+All thirty are migrated to `<Quantity unit>` and `<Duration hours>`, which
+render the six forms from `units` in the message files. That needed 27 new plural
+units (seats, stages, banners, plans, subscribers, providers, breaches, rows,
+sessions, cities, deposits, members, attachments, ledger entries, events …) —
+which is the point of that file: a unit is declared once, never written into a
+screen.
+
+Supporting changes:
+
+- `Duration` moved from `components/admin/Dwell` to `components/ui/Duration`.
+  Dispute SLAs, offer deadlines, provider SLAs and auction timers all need it,
+  and so will the public vehicle page.
+- `note` on `StatCard`, `SectionHead`, `MonitorCard`, `DetailShell` and
+  `ListFooter` now takes `ReactNode`. It was `string`, which is *why* the
+  bracket workaround existed in those call sites — there was no way to pass a
+  component.
+
+**The gate checks JSX only.** `({displayDigits(` inside rendered text is the
+workaround; `` `(${displayDigits(` `` inside a template literal is the
+documented solution for toast strings, where no component can reach and the rule
+is already written down: compose the sentence so the number does not govern the
+noun.
+
+Measured at 30 before, 0 after, then proven by putting one back: two violations
+named with file and line, green again on restore.

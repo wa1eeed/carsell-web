@@ -12,7 +12,8 @@ import { can } from '@/lib/domain/permissions';
 import { adminDisputeDetail } from '@/lib/domain/admin-detail-readers';
 import { disputeTimeline } from '@/lib/domain/admin-entity-timelines';
 import { STAGE_LABEL } from '@/lib/labels/charts';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,7 +120,7 @@ export default async function AdminDisputeDetailPage({
         main={
           <DetailCard
             title="الرسائل"
-            note={`رسائل (${displayDigits(String(dispute.messages.length))})`}
+            note={<Quantity unit="messages" count={dispute.messages.length} />}
           >
             {dispute.messages.length === 0 ? (
               <p className="text-2xs opacity-50">لا رسائل — فُتح النزاع بلا شرح.</p>

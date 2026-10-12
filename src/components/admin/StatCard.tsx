@@ -1,5 +1,6 @@
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { cn } from '@/lib/cn';
+import type { ReactNode } from 'react';
 
 /**
  * ═══ بطاقة الإحصاء — أكثرُ عنصرٍ تكرارًا في اللوحة ═══
@@ -30,7 +31,12 @@ export function StatCard({
 }: {
   title: string;
   value: number | string;
-  note: string;
+  /**
+   * **والملاحظة عنصرٌ لا نصّ.** كانت نصًّا، فالمدّة تُكتب «ساعات (٣)»
+   * — التفافًا على بوابة الجمع لا صياغةً. و`ReactNode` تُدخل
+   * `<Duration>` و`<Quantity>` فتُقرأ «٣ ساعات» و«ساعتان».
+   */
+  note: ReactNode;
   className?: string;
 }) {
   return (

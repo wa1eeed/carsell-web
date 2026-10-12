@@ -7,7 +7,8 @@ import { can } from '@/lib/domain/permissions';
 import { exportLog, exportStats } from '@/lib/domain/admin-reports-export';
 import { REPORTS, REPORT_SCHEDULING_RUNS } from '@/lib/domain/report-catalog';
 import { REPORT_CONTENT, REPORT_NAME, REPORT_SCHEDULE_LABEL } from '@/lib/labels/reports';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'التقارير والتصدير' };
@@ -46,7 +47,7 @@ export default async function AdminExportsPage() {
     <AdminShell title="التقارير والتصدير"
       subtitle="تقارير جاهزة تُنزَّل — ولا تمسّ البيانات" activeHref="/admin/exports" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
-        تقارير جاهزة ({displayDigits(String(stats.reports))}) — كلٌّ منها{' '}
+        <Quantity unit="reportsReady" count={stats.reports} /> جاهزة — كلٌّ منها{' '}
         <b>استعلامٌ مسمّى على القراءة</b>، لا لقطةُ شاشة.
       </p>
 
@@ -66,7 +67,7 @@ export default async function AdminExportsPage() {
           {
             title: 'تقارير جاهزة',
             value: stats.reports,
-            note: `يفتحها دورك (${displayDigits(String(mine.length))})`,
+            note: <>يفتحها دورك: <Quantity unit="reportsReady" count={mine.length} /></>,
           },
           { title: 'تصديرات هذا الشهر', value: stats.exportsThisMonth, note: 'المسجَّلة منها' },
           {
@@ -129,7 +130,7 @@ export default async function AdminExportsPage() {
 
       {hidden === 0 ? null : (
         <p className="mt-3 text-3xs opacity-50">
-          وتقارير ({displayDigits(String(hidden))}) لا يفتحها دورك — فلا تُعرض.
+          و<Quantity unit="reportsReady" count={hidden} /> لا يفتحها دورك — فلا تُعرض.
         </p>
       )}
 
@@ -151,7 +152,7 @@ export default async function AdminExportsPage() {
                 {REPORT_NAME[row.reportKey as keyof typeof REPORT_NAME] ?? row.reportKey}
               </span>
               <span className="flex shrink-0 items-center gap-5 text-3xs opacity-60">
-                <span className="font-num">صفوف ({displayDigits(String(row.rows))})</span>
+                <span><Quantity unit="rows" count={row.rows} /></span>
                 <span>{riyadh.format(new Date(row.at))}</span>
               </span>
             </div>
@@ -171,8 +172,8 @@ export default async function AdminExportsPage() {
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">لا تُبنى التقارير من الشاشات</p>
           <p>
-            كل تقرير <b>استعلامٌ مسمّى على القراءة</b> بأعمدةٍ ثابتة، وحدّه صفٌّ
-            ({displayDigits(String(stats.rowLimit))}) — فلا يُبطئ تقريرٌ ثقيل مزادًا
+            كل تقرير <b>استعلامٌ مسمّى على القراءة</b> بأعمدةٍ ثابتة، وحدُّه{' '}
+            <Quantity unit="rows" count={stats.rowLimit} /> — فلا يُبطئ تقريرٌ ثقيل مزادًا
             جاريًا.
           </p>
         </div>

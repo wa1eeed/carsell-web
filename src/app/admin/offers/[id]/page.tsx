@@ -13,6 +13,7 @@ import { can } from '@/lib/domain/permissions';
 import { adminOfferDetail } from '@/lib/domain/admin-detail-readers';
 import { offerTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,7 +129,7 @@ export default async function AdminOfferDetailPage({
         main={
           <DetailCard
             title="سلسلة التفاوض"
-            note={`خطوات (${displayDigits(String(offer.chain.length))})`}
+            note={<Quantity unit="steps" count={offer.chain.length} />}
           >
             {offer.chain.map((step, index) => (
               <div

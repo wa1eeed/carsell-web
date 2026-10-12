@@ -139,7 +139,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       */}
       <SectionHead
         title="قيمة المبيعات والإيراد"
-        note={`شهرًا (${displayDigits(String(GMV_MONTHS))}) · بالريال`}
+        note={<><Quantity unit="monthsRange" count={GMV_MONTHS} /> · بالريال</>}
       />
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
         {/*

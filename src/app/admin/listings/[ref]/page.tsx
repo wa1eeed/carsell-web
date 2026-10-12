@@ -21,6 +21,7 @@ import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -226,7 +227,7 @@ export default async function AdminListingDetailPage({
             {listing.offers.length === 0 ? null : (
               <DetailCard
                 title="العروض"
-                note={`عروض (${displayDigits(String(listing.offers.length))})`}
+                note={<Quantity unit="offers" count={listing.offers.length} />}
               >
                 {listing.offers.map((offer) => (
                   <Field

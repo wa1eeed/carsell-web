@@ -9,6 +9,8 @@ import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import { breachedRequests, providerList, providerStats } from '@/lib/domain/admin-providers';
 import { displayDigits } from '@/lib/arabic';
 import { ProviderTable } from './ProviderTable';
+import { Duration } from '@/components/ui/Duration';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'مزوّدو الخدمات والتمويل' };
@@ -68,8 +70,8 @@ export default async function AdminProvidersPage({
     <AdminShell title="مزوّدو الخدمات والتمويل"
       subtitle="المزوّدون والتزامهم" activeHref="/admin/providers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        مزوّدون ({displayDigits(String(rows.length))}) · خدمات مرتبطة (
-        {displayDigits(String(stats.servicesLinked))})
+        <Quantity unit="providers" count={rows.length} /> ·{' '}
+        <Quantity unit="linkedServices" count={stats.servicesLinked} />
       </p>
 
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/providers" param="type" />
@@ -79,7 +81,7 @@ export default async function AdminProvidersPage({
           {
             title: 'مزوّدون نشطون',
             value: stats.active,
-            note: `يغطّون مدنًا (${displayDigits(String(stats.cities))})`,
+            note: <>يغطّون <Quantity unit="cities" count={stats.cities} /></>,
           },
           { title: 'طلبات مُسنَدة', value: stats.assignedThisMonth, note: 'هذا الشهر' },
           {
@@ -123,7 +125,7 @@ export default async function AdminProvidersPage({
                 </span>
               </div>
               <span className="font-num shrink-0 text-2xs text-danger">
-                تأخّر ساعات ({displayDigits(String(row.overdueHours))})
+                تأخّر <Duration hours={row.overdueHours} />
               </span>
             </div>
           ))}
@@ -142,7 +144,7 @@ export default async function AdminProvidersPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">التجاوز والإسقاط</p>
           <p>
-            تجاوز الالتزام مرّات ({displayDigits(String(stats.breachesBeforeSuspension))}) في شهر
+            تجاوز الالتزام <Quantity unit="breaches" count={stats.breachesBeforeSuspension} /> في شهر
             يُسقط المزوّد من الإسناد الآليّ حتى مراجعته —{' '}
             <b>العميل لا يتحمّل تأخير مزوّد</b>.
           </p>

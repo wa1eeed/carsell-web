@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 import type { TeamMember } from '@/lib/domain/admin-team';
 import { Toast } from '@/components/ui/Toast';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A35 — الفريق ═══
@@ -85,7 +86,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                   لعضوٍ واحد ليست أربعة أجهزة غالبًا.
                 */}
                 <span className="text-3xs opacity-45">
-                  جلسات حيّة ({displayDigits(String(row.activeSessions))})
+                  <Quantity unit="sessions" count={row.activeSessions} /> حيّة
                 </span>
               </div>
 

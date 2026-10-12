@@ -8,6 +8,7 @@ import { Toast } from '@/components/ui/Toast';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { displayDigits } from '@/lib/arabic';
 import type { AdSlotRow } from '@/lib/domain/admin-plans';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A30 — مساحات الإعلانات وتسعيرها ═══
@@ -107,7 +108,7 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                     <span className="font-num">{displayDigits(String(row.campaignCount))}</span>
                     {row.liveCampaigns === 0 ? null : (
                       <span className="text-3xs text-accent-700">
-                        جارية ({displayDigits(String(row.liveCampaigns))})
+                        <Quantity unit="campaignsLive" count={row.liveCampaigns} />
                       </span>
                     )}
                   </span>

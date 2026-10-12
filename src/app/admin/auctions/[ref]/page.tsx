@@ -13,6 +13,7 @@ import { can } from '@/lib/domain/permissions';
 import { adminAuctionDetail } from '@/lib/domain/admin-detail-readers';
 import { auctionTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +71,7 @@ export default async function AdminAuctionDetailPage({
             </Badge>
             {auction.extendedCount === 0 ? null : (
               <Badge tone="neutral">
-                تمديدات ({displayDigits(String(auction.extendedCount))})
+                <Quantity unit="extensions" count={auction.extendedCount} />
               </Badge>
             )}
           </>
@@ -132,7 +133,7 @@ export default async function AdminAuctionDetailPage({
 
             <DetailCard
               title="العرابين"
-              note={`عربون (${displayDigits(String(auction.deposits.length))})`}
+              note={<Quantity unit="deposits" count={auction.deposits.length} />}
             >
               {auction.deposits.length === 0 ? (
                 <p className="text-2xs opacity-50">لا عرابين محجوزة.</p>

@@ -15,6 +15,7 @@ import { displayDigits } from '@/lib/arabic';
 import type { ReviewEvidence, ReviewRow, ReviewStats } from '@/lib/domain/admin-listings';
 import { MIN_REVIEW_NOTE } from '@/lib/domain/review-rules';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
+import { Duration } from '@/components/ui/Duration';
 
 /**
  * ═══ A15 — مراجعة الإعلانات ═══
@@ -51,12 +52,6 @@ function evidenceText(evidence: ReviewEvidence): string {
 }
 
 /** الانتظار — دقائق ثم ساعات، فلا يُقرأ «١٤٠ دقيقة». */
-function waitedText(minutes: number): string {
-  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
-}
 
 type Decision = 'APPROVE' | 'RETURN' | 'REJECT';
 
@@ -125,7 +120,11 @@ export function ReviewQueue({
           note={
             stats.oldestMinutes === null
               ? 'لا توجد إعلانات للمراجعة'
-              : `أقدمها منذ ${waitedText(stats.oldestMinutes)}`
+              : (
+                  <>
+                    أقدمها منذ <Duration hours={stats.oldestMinutes / 60} />
+                  </>
+                )
           }
         />
         <Card
@@ -183,7 +182,7 @@ export function ReviewQueue({
 
                 <div className="flex flex-col items-start gap-0.5">
                   <Money amount={Number(row.askPrice)} />
-                  <span className="text-3xs opacity-45">منذ {waitedText(row.waitingMinutes)}</span>
+                  <span className="text-3xs opacity-45">منذ <Duration hours={row.waitingMinutes / 60} /></span>
                 </div>
 
                 <div className="flex items-center gap-2">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { AuctionSettings } from '@/lib/domain/admin-auction-settings';
+import { Quantity } from '@/components/ui/Quantity';
 
 /**
  * ═══ A32 — إعدادات المزادات ═══
@@ -122,7 +123,7 @@ export function AuctionSettingsForm({
                     on ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink'
                   }`}
                 >
-                  أيّام ({displayDigits(String(days))})
+                  <Quantity unit="days" count={days} />
                 </button>
               );
             })}

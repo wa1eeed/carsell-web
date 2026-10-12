@@ -12,6 +12,7 @@ import { can } from '@/lib/domain/permissions';
 import { adminDealerDetail } from '@/lib/domain/admin-detail-readers';
 import { dealerTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,7 +101,7 @@ export default async function AdminDealerDetailPage({
           <>
             <DetailCard
               title="الأعضاء"
-              note={`عضو (${displayDigits(String(dealer.members.length))})`}
+              note={<Quantity unit="members" count={dealer.members.length} />}
             >
               {dealer.members.length === 0 ? (
                 // معرضٌ بلا أعضاء لا ينشر شيئًا — وهو حالٌ تُقال لا تُخفى
