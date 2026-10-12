@@ -97,6 +97,33 @@ describe('═══ حالات يبلغها المنتج ═══', () => {
     expect(without.filter(seededOrder).map((row) => row.ref)).toEqual([]);
   });
 
+  it('مزادٌ رسا بلغ احتياطيَه', async () => {
+    /**
+     * `closeEndedAuctions` لا تكتب `ENDED_MET` إلّا حين تتجاوز أعلى
+     * مزايدةٍ الاحتياطيَ. ومزادٌ «رسا» وأعلى مزايدته دونه يعرض على
+     * الكرت «رسا» و«لم يُبلغ» معًا — سطرٌ يناقض نفسه.
+     */
+    const met = await db.auction.findMany({
+      where: { status: 'ENDED_MET' },
+      select: {
+        reservePrice: true,
+        listing: { select: { ref: true } },
+        bids: { orderBy: { amount: 'desc' }, take: 1, select: { amount: true } },
+      },
+    });
+
+    const below = met
+      .filter((row) => {
+        const top = row.bids[0]?.amount;
+        /** **واحتياطيٌّ غائب لا يُقارَن** — مزادٌ بلا احتياطيّ يرسو بأي مبلغ. */
+        if (row.reservePrice === null) return false;
+        return top === undefined || top.lessThan(row.reservePrice);
+      })
+      .map((row) => row.listing.ref);
+
+    expect(below.filter((ref) => !TEST_LISTING_REF.test(ref))).toEqual([]);
+  });
+
   it('طلبٌ مكتملٌ وإعلانُه مُغلق', async () => {
     /** الطلب يُكمل فيُغلق إعلانه — وإعلانٌ يبقى معروضًا يُباع مرّتين. */
     const stillOpen = await db.order.findMany({

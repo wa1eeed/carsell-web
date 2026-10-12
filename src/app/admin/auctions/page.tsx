@@ -1,15 +1,11 @@
-import { Year } from '@/components/ui/Year';
-import Link from 'next/link';
+import { AuctionCard } from '@/components/admin/AuctionCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ExportLink } from '@/components/admin/ExportLink';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { ListSearch } from '@/components/admin/ListSearch';
-import { Badge } from '@/components/ui/Badge';
-import { Money } from '@/components/ui/Money';
-import {
-  MonitorCards, MonitorList, MonitorRow, MonitorTabs, countdown,
-} from '@/components/admin/MonitorShell';
+import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { auctionCounts, auctionMonitor } from '@/lib/domain/admin-monitors';
@@ -92,51 +88,23 @@ export default async function AdminAuctionsPage({
         ]}
       />
 
-      <MonitorList
-        empty={{ title: 'لا مزادات هنا', description: 'حين يُنشأ مزاد يظهر هنا بمزايداته ووقته.' }}
-        note="الاحتياطي سرّ البائع — تعرض الشاشة بلوغَه لا قيمته، فلا يمرّ في لقطة شاشة."
-      >
-        {rows.map((row) => (
-          <MonitorRow
-            key={row.listingRef}
-            title={
-              <>
-                {row.title} <Year value={row.year} className="opacity-55" />
-              </>
-            }
-            subtitle={row.sellerName}
-            /* **الصفّ يُفتح** — وقائمةٌ لا تُفتح صفوفُها لا يُتصرَّف فيها */
-            meta={
-              <Link
-                href={`/admin/auctions/${encodeURIComponent(row.listingRef)}`}
-                dir="ltr"
-                className="font-num text-start underline underline-offset-4 hover:opacity-70"
-              >
-                {row.listingRef}
-              </Link>
-            }
-          >
-            <div className="flex flex-col items-start gap-0.5">
-              {row.topBid === null ? (
-                <span className="text-2xs opacity-45">لا مزايدات</span>
-              ) : (
-                <Money amount={Number(row.topBid)} />
-              )}
-              <span className="text-3xs opacity-45">
-                مزايدون ({displayDigits(String(row.bidderCount))}) · مزايدات (
-                {displayDigits(String(row.bidCount))})
-              </span>
-            </div>
+      {rows.length === 0 ? (
+        <EmptyState
+          title="لا مزادات هنا"
+          description="حين يُنشأ مزاد يظهر هنا بمزايداته ووقته."
+        />
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {rows.map((row) => (
+            <AuctionCard key={row.listingRef} row={row} />
+          ))}
+        </div>
+      )}
 
-            <Badge tone={row.reserveMet ? 'accent' : 'warn'}>
-              {row.reserveMet ? 'بلغ الاحتياطي' : 'لم يُبلغ'}
-            </Badge>
+      <p className="mt-4 text-3xs leading-relaxed opacity-45">
+        الاحتياطي سرّ البائع — تعرض الشاشة بلوغَه لا قيمته، فلا يمرّ في لقطة شاشة.
+      </p>
 
-            <span className="font-num text-2xs">{countdown(row.secondsLeft)}</span>
-          </MonitorRow>
-        ))}
-      </MonitorList>
-    
       <ListFooter
         shown={rows.length}
         total={null}

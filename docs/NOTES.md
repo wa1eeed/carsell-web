@@ -3326,3 +3326,47 @@ Noted while there: `Favorite.listingId` has no relation to `Listing` in the
 schema — a foreign key with no referential integrity, so a deleted listing
 leaves orphan favourites behind. Not changed here (migration), but it is why the
 test has to resolve listing ids by hand.
+
+## Auctions as cards — and «رسا» stacked on «لم يُبلغ»
+
+### The card
+
+The row carried the vehicle as text, a seller name that **did not open**, the
+top bid, a reserve badge, and a static countdown. No picture of the car being
+bid on — the first thing anyone looks at in an auction — and no city, though an
+auction is a local market.
+
+**The countdown now counts.** `secondsLeft` was computed server-side and drawn
+as a frozen number, so a screen open for two minutes stated something no longer
+true, and an auction in its last minutes is exactly where the second matters.
+The existing `Countdown` component already handles this properly — it stops in a
+hidden tab and guards invalid dates — so it is reused rather than rewritten.
+
+**Each state gets its own question.** Running asks "how long left", scheduled
+asks "when does it start", ended asks "when did it end". The row showed a
+countdown for all three, telling a scheduled auction it was about to close.
+
+**And stored status alone is not enough when time is involved.** An auction with
+status `LIVE` whose end time has passed is not running — the job sweeps every
+five minutes. Between expiry and settlement we do not know whether the reserve
+was met, so the card says «انقضى — يُحتسب» and claims neither.
+
+### The seed again: settled auctions below their reserve
+
+`closeEndedAuctions` only writes `ENDED_MET` when the top bid clears the
+reserve. The seed hardcoded the status and then bid upward by a random
+increment, so two of three settled auctions ended **below** their own reserve.
+The card showed «رسا» and «لم يُبلغ» side by side — a line contradicting itself.
+
+Fourth defect caught by the same class, so it joins gate 39 as an invariant: a
+settled auction's top bid is at or above its reserve. It failed naming both
+listings, then passed after reseeding.
+
+### A mistake worth recording
+
+I wrote `src/components/ui/Countdown.tsx` from scratch without reading it first
+— **the file already existed**, better than what I replaced it with. The
+compiler caught it only because a dev page used the old props. Restored from
+git, and the new card uses the real component.
+
+Read before you write, even when you are sure the file is new.

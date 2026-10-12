@@ -200,6 +200,19 @@ export type AuctionRow = {
   title: string;
   year: number;
   sellerName: string;
+  /**
+   * ═══ ما يحتاجه المراقب قبل أن يفتح المزاد ═══
+   *
+   * الصفّ كان يقول مركبةً نصًّا واسمَ بائعٍ **لا يُفتح**، ولا صورةَ
+   * للمركبة التي يُزايَد عليها، ولا مدينتَها — والمزاد سوقٌ محلّيّ.
+   */
+  sellerId: string;
+  thumbnail: string | null;
+  brand: string;
+  model: string;
+  city: string;
+  /** متى يبدأ — والقادمُ يُقاس ببدئه لا بانتهائه. */
+  startsAt: string;
   /** أعلى مزايدة — و`null` حين لا مزايد */
   topBid: string | null;
   /** **بلغ الاحتياطي؟** — والاحتياطي نفسه لا يخرج في استجابة عامة */
@@ -251,11 +264,18 @@ export async function auctionMonitor(
       status: true,
       endsAt: true,
       reservePrice: true,
+      startsAt: true,
       listing: {
         select: {
           ref: true,
-          seller: { select: { name: true, phone: true } },
+          city: true,
+          seller: { select: { id: true, name: true, phone: true } },
           vehicle: { select: { brandName: true, modelName: true, year: true } },
+          images: {
+            orderBy: [{ isCover: 'desc' }, { sort: 'asc' }],
+            take: 1,
+            select: { r2Key: true },
+          },
         },
       },
       bids: { orderBy: { amount: 'desc' }, take: 1, select: { amount: true } },
@@ -292,6 +312,14 @@ export async function auctionMonitor(
       title: `${row.listing.vehicle.brandName} ${row.listing.vehicle.modelName}`,
       year: row.listing.vehicle.year,
       sellerName: row.listing.seller.name ?? row.listing.seller.phone,
+      sellerId: row.listing.seller.id,
+      /** مفتاحُ R2 ليس رابطًا — ويُمرَّر خامًا فتُرسم صورةٌ مكسورة. */
+      thumbnail:
+        row.listing.images[0] === undefined ? null : publicUrl(row.listing.images[0].r2Key),
+      brand: row.listing.vehicle.brandName,
+      model: row.listing.vehicle.modelName,
+      city: row.listing.city,
+      startsAt: row.startsAt.toISOString(),
       topBid: top === null ? null : top.toFixed(2),
       /**
        * **`reserveMet` لا `reservePrice`.** الاحتياطي سرّ البائع، وقد

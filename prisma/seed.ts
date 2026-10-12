@@ -1082,9 +1082,24 @@ async function main(): Promise<void> {
 
     if (spec.status !== 'SCHEDULED') {
       const bidderPool = buyers.slice(0, 6);
+      const reserve = Number(auction.reservePrice);
       let amount = Number(start);
-      for (let n = 0; n < between(8, 18); n += 1) {
+      const total = between(8, 18);
+      for (let n = 0; n < total; n += 1) {
         amount += Number(increment) * between(1, 4);
+        /**
+         * ═══ ومزادٌ «رسا» بلغ احتياطيَه بالتعريف ═══
+         *
+         * المزايدات تتصاعد بمقدارٍ عشوائيّ والحالة مكتوبةٌ `ENDED_MET`
+         * سلفًا، فقد تنتهي أعلى مزايدةٍ **دون الاحتياطي** — فيعرض
+         * الكرت «رسا» و«لم يُبلغ» معًا: حالةٌ لا يبلغها المنتج، لأن
+         * `closeEndedAuctions` لا تكتب `ENDED_MET` إلّا ببلوغه.
+         *
+         * فآخرُ مزايدةٍ في المزاد الراسي تتجاوز الاحتياطيَ يقينًا.
+         */
+        if (spec.status === 'ENDED_MET' && n === total - 1 && amount <= reserve) {
+          amount = reserve + Number(increment);
+        }
         const bidder = bidderPool[n % bidderPool.length] as (typeof buyers)[number];
         await prisma.bid.create({
           data: {
