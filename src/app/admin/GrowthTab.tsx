@@ -10,6 +10,9 @@ import {
   type MetricCard,
 } from '@/lib/domain/admin-dashboard';
 import { dailyOrders } from '@/lib/domain/admin-charts';
+import { growthKpis } from '@/lib/domain/admin-kpis';
+import { KpiCard } from '@/components/admin/KpiCard';
+import { FUNNEL_LABEL, NOT_MEASURED } from '@/lib/labels/kpis';
 import { dayTick } from '@/lib/labels/charts';
 import { displayDigits } from '@/lib/arabic';
 import {
@@ -39,10 +42,11 @@ export async function GrowthTab() {
   const to = new Date();
   const from = new Date(to.getTime() - RANGE_DAYS * 86_400_000);
 
-  const [cards, cities, daily] = await Promise.all([
+  const [cards, cities, daily, growth] = await Promise.all([
     dashboardCards(from, to),
     listingsByCity(from, to),
     dailyOrders(RANGE_DAYS, to),
+    growthKpis(from, to),
   ]);
 
   const topCity = cities.reduce((most, city) => Math.max(most, city.count), 0);
@@ -59,6 +63,39 @@ export async function GrowthTab() {
           <Card key={card.key} card={card} />
         ))}
       </div>
+
+      {/*
+        ═══ مؤشرات النمو ═══
+
+        البطاقات فوق تقول «كم». وهذه تقول **هل نكبر، وهل يعود العميل،
+        وأين يتسرب في الرحلة** — وهي أسئلة مدير النمو والمستثمر.
+
+        ولكل مؤشر اختصاره المتعارف عليه وأيقونة تشرح ما هو وكيف يُحسب
+        وكيف يتحسن.
+      */}
+      <Section title="المال والسوق" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {(['gmv', 'aov', 'takeRate', 'sellThrough'] as const).map((key) => (
+          <KpiCard key={key} kpi={growth.kpis[key]} />
+        ))}
+      </div>
+
+      <Section title="العميل — قيمته وعودته" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {(['repeatRate', 'return90', 'ordersPerBuyer', 'buyerLifespan'] as const).map((key) => (
+          <KpiCard key={key} kpi={growth.kpis[key]} />
+        ))}
+      </div>
+
+      <Section title="الرحلة — من التسجيل إلى البيع" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {(['timeToFirstOrder', 'offerToOrder', 'daysToSell', 'activeBuyers'] as const).map((key) => (
+          <KpiCard key={key} kpi={growth.kpis[key]} />
+        ))}
+      </div>
+
+      <Section title="القمع" />
+      <Funnel steps={growth.funnel} />
 
       <div className="mt-9 mb-3.5 flex items-baseline gap-3">
         <h2 className="text-md font-bold">حجم الطلبات اليومي</h2>
@@ -171,5 +208,77 @@ function segmentLabel(segment: { key: string; serviceName?: string | null }): st
     ORDER_STATUS_LABEL[segment.key] ??
     AUCTION_STATUS_LABEL[segment.key] ??
     segment.key
+  );
+}
+
+/** فاصل قسم — عنوان وخط، فالفصل بالخطوط لا بالظلال. */
+function Section({ title }: { title: string }) {
+  return (
+    <div className="mt-9 mb-3.5 flex items-baseline gap-3">
+      <h2 className="text-md font-bold">{title}</h2>
+      <span className="h-px flex-1 bg-line" aria-hidden />
+    </div>
+  );
+}
+
+/**
+ * ═══ القمع — وأين يتسرب الناس ═══
+ *
+ * خمس خطوات بعددها ونسبة من بقي من الخطوة التي قبلها. **والنسبة من
+ * السابقة لا من الأولى**: «٣٪ من المسجلين اشتروا» رقم صحيح لا يقول
+ * أين الخلل، و«من كل عشرة عروض ينتهي واحد بطلب» يقول.
+ *
+ * **ولا خطوة بلا سابقة تُقارن بها**: الأولى تعرض عددها وحده.
+ */
+function Funnel({ steps }: { steps: readonly { key: string; count: number }[] }) {
+  const top = steps.reduce((most, step) => Math.max(most, step.count), 0);
+
+  return (
+    <ol className="flex flex-col gap-2.5">
+      {steps.map((step, at) => {
+        const before = at === 0 ? null : (steps[at - 1]?.count ?? 0);
+        const share = top === 0 ? 0 : step.count / top;
+
+        return (
+          <li key={step.key} className="flex items-center gap-4">
+            <span className="w-32 shrink-0 text-2xs opacity-70">{FUNNEL_LABEL[step.key] ?? step.key}</span>
+
+            <span className="h-7 flex-1 overflow-hidden rounded-md bg-ink/6">
+              <span
+                className="flex h-full items-center justify-end rounded-md bg-accent/25 px-2.5"
+                style={{ width: `${Math.max(share * 100, step.count > 0 ? 6 : 0)}%` }}
+              >
+                <ArabicNumber value={step.count} className="text-2xs font-bold" />
+              </span>
+            </span>
+
+            <span className="w-24 shrink-0 text-start text-3xs opacity-45">
+              {before === null || before === 0 ? (
+                ''
+              ) : (
+                <>
+                  {displayDigits(((step.count / before) * 100).toFixed(0))}٪ من السابقة
+                </>
+              )}
+            </span>
+          </li>
+        );
+      })}
+
+      {/*
+        **وما لا يُقاس يُقال.** بطاقة بصفر تُقرأ «لا أحد يزورنا»،
+        والصمت يُقرأ «لم نفكر فيه» — وكلاهما غير صحيح.
+      */}
+      <li className="mt-3 rounded-lg border border-line bg-surface p-4">
+        <p className="mb-2 text-3xs font-bold opacity-55">ما لا يُقاس اليوم</p>
+        <ul className="flex flex-col gap-1.5">
+          {NOT_MEASURED.map((line) => (
+            <li key={line} className="text-3xs leading-relaxed opacity-55">
+              {line}
+            </li>
+          ))}
+        </ul>
+      </li>
+    </ol>
   );
 }
