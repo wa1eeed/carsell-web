@@ -10,6 +10,8 @@ import {
   TimelineRow,
 } from '@/components/admin/DetailShell';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { PartyLink } from '@/components/admin/PartyLink';
+import { Dwell } from '@/components/admin/Dwell';
 import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -33,6 +35,22 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   minute: '2-digit',
   timeZone: 'Asia/Riyadh',
 });
+
+/** حالاتُ النزاع بالعربية — **ومن التعداد لا من الذاكرة**: لا `RESOLVED` فيه. */
+const DISPUTE_STATUS: Record<string, string> = {
+  OPEN: 'مفتوح',
+  INVESTIGATING: 'قيد التحقيق',
+  RESOLVED_BUYER: 'حُسم للمشتري',
+  RESOLVED_SELLER: 'حُسم للبائع',
+  CLOSED: 'مُغلق',
+};
+
+/** قراراتُ الحسم — وهي نصٌّ في العمود لا تعداد. */
+const RESOLUTION_LABEL: Record<string, string> = {
+  FULL_REFUND: 'ردٌّ كامل للمشتري',
+  PARTIAL_SETTLEMENT: 'تسويةٌ جزئية',
+  RELEASE_TO_SELLER: 'إفراجٌ للبائع',
+};
 
 const SOURCE_LABEL: Record<string, string> = {
   DIRECT: 'بيع مباشر',
@@ -189,7 +207,17 @@ export default async function AdminOrderDetailPage({
               مهلتُها والوظيفة الدورية لم تمرّ تُعرض سليمةً وهي متأخّرة.
             */}
             {order.overdue ? <Badge tone="danger">تجاوز المهلة</Badge> : null}
-            {order.dispute === null ? null : <Badge tone="danger">نزاع مفتوح</Badge>}
+            {/*
+              **والشارةُ بابٌ لا وسم.** من يراها يريد النزاع، وكانت
+              تقف عنده وتتركه يبحث.
+            */}
+            {order.dispute === null ? null : (
+              <Link href={`/admin/disputes/${encodeURIComponent(order.dispute.id)}`}>
+                <Badge tone="danger">
+                  {order.dispute.slaBreached ? 'نزاع — فاتت المهلة' : 'نزاع مفتوح'}
+                </Badge>
+              </Link>
+            )}
           </>
         }
       />
@@ -198,6 +226,15 @@ export default async function AdminOrderDetailPage({
         items={[
           { label: 'الإجماليّ', value: <Money amount={Number(order.money.totalAmount)} /> },
           { label: 'المرحلة', value: STAGE_LABEL[order.stage] ?? order.stage },
+          {
+            /*
+              **والرقم الذي لا يُقرأ له بيتٌ هنا.** الكرت كان يعرض
+              «120 / 2,037» ولا شرح له في هذه الصفحة أصلًا.
+            */
+            label: 'مدة المرحلة',
+            value: <Dwell hours={order.dwellHours} targetHours={order.targetHours} />,
+            ...(order.overdue ? { tone: 'warn' as const } : {}),
+          },
           {
             label: 'المهلة',
             value: order.dueAt === null ? 'لا مهلة' : riyadh.format(new Date(order.dueAt)),
@@ -572,15 +609,63 @@ export default async function AdminOrderDetailPage({
                 <p className="text-2xs opacity-55">لا نزاع على هذا الطلب.</p>
               </DetailCard>
             ) : (
-              <DetailCard title="النزاع">
-                <Field label="الحالة" value={order.dispute.status} ltr />
+              <DetailCard
+                title="النزاع"
+                note={order.dispute.slaBreached ? 'فاتت مهلة الردّ' : undefined}
+              >
+                <Field
+                  label="الحالة"
+                  value={DISPUTE_STATUS[order.dispute.status] ?? order.dispute.status}
+                  strong
+                />
                 <Field label="السبب" value={order.dispute.reason} />
                 <Field label="فُتح" value={riyadh.format(new Date(order.dispute.openedAt))} />
+                {/*
+                  **ومهلةُ الردّ أوّلُ ما يُستعجَل**: فواتُها يحسم
+                  النزاع بلا ردّ البائع — فهي قرارٌ يقع بالصمت.
+                */}
+                <Field
+                  label="مهلة الردّ"
+                  value={
+                    order.dispute.slaDueAt === null ? (
+                      'لا مهلة'
+                    ) : (
+                      <span className={order.dispute.slaBreached ? 'text-danger' : undefined}>
+                        {riyadh.format(new Date(order.dispute.slaDueAt))}
+                      </span>
+                    )
+                  }
+                  strong
+                />
+                <Field
+                  label="الرسائل"
+                  value={<ArabicNumber value={order.dispute.messageCount} />}
+                />
+                {order.dispute.resolvedAt === null ? null : (
+                  <>
+                    <Field
+                      label="القرار"
+                      value={
+                        order.dispute.resolution === null
+                          ? 'بلا قرار مسجَّل'
+                          : (RESOLUTION_LABEL[order.dispute.resolution] ?? order.dispute.resolution)
+                      }
+                    />
+                    <Field
+                      label="حُسم"
+                      value={riyadh.format(new Date(order.dispute.resolvedAt))}
+                    />
+                  </>
+                )}
+                {/*
+                  **والرابط إلى نزاعه هو لا إلى القائمة.** كان يفتح
+                  قائمة النزاعات، فمن رأى الشارة يبحث عن نزاعه فيها.
+                */}
                 <Link
-                  href="/admin/disputes"
-                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  href={`/admin/disputes/${encodeURIComponent(order.dispute.id)}`}
+                  className="mt-3 inline-block text-2xs font-semibold text-accent-700 underline underline-offset-4"
                 >
-                  افتح النزاعات
+                  افتح النزاع ←
                 </Link>
               </DetailCard>
             )}
@@ -588,8 +673,14 @@ export default async function AdminOrderDetailPage({
           }
           side={
             <DetailCard title="الأطراف">
-              <Field label="المشتري" value={order.buyer.name} />
-              <Field label="البائع" value={order.seller.name} />
+              <Field
+                label="المشتري"
+                value={<PartyLink party={order.buyer} role="المشتري" />}
+              />
+              <Field
+                label="البائع"
+                value={<PartyLink party={order.seller} role="البائع" />}
+              />
             </DetailCard>
           }
         />
@@ -604,6 +695,7 @@ function PartyBlock({
 }: {
   label: string;
   party: {
+    id: string;
     name: string;
     phone: string;
     email: string | null;
@@ -617,7 +709,8 @@ function PartyBlock({
         {label}
         {party.idVerified ? <Badge tone="accent">موثَّق</Badge> : <Badge tone="warn">بلا توثيق</Badge>}
       </p>
-      <Field label="الاسم" value={party.name} />
+      {/* **والاسم يفتح ملفّه** — وكان نصًّا ميّتًا في أكثر شاشةٍ يُحقَّق فيها */}
+      <Field label="الاسم" value={<PartyLink party={party} role={label} />} />
       {/* الهاتف يُقارن خانةً بخانة — لاتينيّ معزول */}
       <Field label="الهاتف" value={party.phone} ltr />
       {party.email === null ? null : <Field label="البريد" value={party.email} ltr />}

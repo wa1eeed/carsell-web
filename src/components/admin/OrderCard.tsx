@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Dwell } from '@/components/admin/Dwell';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import type { OrderRow } from '@/lib/domain/admin-orders';
@@ -62,10 +62,19 @@ export function OrderCard({ row }: { row: OrderRow }) {
   const escrow = row.escrowStatus === null ? null : ESCROW[row.escrowStatus];
 
   return (
-    <Link
-      href={`/admin/orders/${encodeURIComponent(row.ref)}`}
-      className="group flex gap-4 rounded-xl border border-line bg-surface p-3.5 transition duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none"
-    >
+    /*
+      ═══ الكرتُ حاويةٌ، والمرجعُ رابطٌ يمتدّ فوقه ═══
+
+      كان الكرت كلُّه `<Link>`. ورابطٌ داخل رابطٍ **لا يصحّ في HTML** —
+      فاسمُ المشتري لا يستطيع أن يفتح ملفّه ما دام داخله.
+
+      والحلّ المعروف: الحاوية `relative`، ورابطُ المرجع يُمدّد بـ
+      `after:absolute after:inset-0` فيغطّيها — **فالنقر في أيّ موضعٍ
+      فارغ يفتح الطلب كما كان** — وما بداخلها من روابط يرتفع فوقه
+      بـ`relative z-10`. فلا تعشيش، وكلُّ رابطٍ حقيقيّ: يُفتح بلوحة
+      المفاتيح وبالزرّ الأوسط وفي تبويبةٍ جديدة.
+    */
+    <div className="group relative flex gap-4 rounded-xl border border-line bg-surface p-3.5 transition duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-ink/8">
         {row.thumbnail === null ? (
           <span className="flex size-full items-center justify-center text-3xs opacity-45">
@@ -85,9 +94,13 @@ export function OrderCard({ row }: { row: OrderRow }) {
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-2">
           {/* المرجع يُنسخ ويُقارن خانةً بخانة — لاتينيّ معزول */}
-          <span dir="ltr" className="font-num text-start text-xs font-bold">
+          <Link
+            href={`/admin/orders/${encodeURIComponent(row.ref)}`}
+            dir="ltr"
+            className="font-num text-start text-xs font-bold after:absolute after:inset-0 after:content-['']"
+          >
             {row.ref}
-          </span>
+          </Link>
           <Badge tone="neutral">{STAGE[row.stage] ?? row.stage}</Badge>
           {row.hasDispute ? <Badge tone="danger">نزاع مفتوح</Badge> : null}
           {escrow === undefined || escrow === null ? null : (
@@ -114,13 +127,17 @@ export function OrderCard({ row }: { row: OrderRow }) {
           بفتح الطلب ثم فتح كلّ طرفٍ على حدة.
         */}
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
-          <span className="bidi-isolate">{row.buyer}</span>
-          {row.buyerVerified ? null : <span className="text-warn-900">بلا توثيق</span>}
+          {/*
+            **والطرفان يُفتحان من هنا.** وكرتُ الطلب رابطٌ بكامله، فلا
+            يُعشَّش رابطٌ في رابط: هذان `span` يحملان الوجهة ويوقفان
+            انتشار النقر — ولولا ذلك لفتح اسمُ المشتري **الطلبَ**.
+          */}
+          {/* **والطرفان رابطان حقيقيّان** — فوق الرابط الممدود لا داخله */}
+          <PartyOnCard id={row.buyerId} name={row.buyer} verified={row.buyerVerified} />
           <span aria-hidden className="opacity-40">
             ←
           </span>
-          <span className="bidi-isolate">{row.seller}</span>
-          {row.sellerVerified ? null : <span className="text-warn-900">بلا توثيق</span>}
+          <PartyOnCard id={row.sellerId} name={row.seller} verified={row.sellerVerified} />
         </span>
       </div>
 
@@ -128,15 +145,15 @@ export function OrderCard({ row }: { row: OrderRow }) {
         <Money amount={Number(row.total)} size="sm" showCurrency={false} className="font-bold" />
 
         {/*
-          **والمدّة مقابل هدفها لا وحدها.** «٤٨ ساعة» لا تقول شيئًا؛
-          و«٤٨ من ٢٤» تقول إنه تجاوز الضعف. والشارة تُحسب من الرقم
-          المعروض لا من الدقيق.
+          **والمدّة تُصاغ ولا تُعرض نسبةً عارية.** كانت «120 / 2,037»
+          بلا تسمية — ويُرسم الهدفُ يمينًا في RTL فتُقرأ معكوسةً:
+          «١٢٠ من أصل ٢٬٠٣٧» عن طلبٍ مكث ٢٬٠٣٧ وهدفُه ١٢٠.
         */}
-        <span className="flex items-center gap-1 text-3xs opacity-50">
-          <ArabicNumber value={row.dwellHours} />
-          <span aria-hidden>/</span>
-          <ArabicNumber value={row.targetHours} />
-        </span>
+        <Dwell
+          hours={row.dwellHours}
+          targetHours={row.targetHours}
+          className="text-3xs opacity-50"
+        />
 
         {row.critical ? (
           <Badge tone="danger">متأخّر جدًّا</Badge>
@@ -146,6 +163,29 @@ export function OrderCard({ row }: { row: OrderRow }) {
 
         <span className="font-num text-3xs opacity-35">{date.format(new Date(row.createdAt))}</span>
       </div>
-    </Link>
+    </div>
+  );
+}
+
+/** طرفٌ على الكرت — رابطٌ يرتفع فوق الرابط الممدود. */
+function PartyOnCard({
+  id,
+  name,
+  verified,
+}: {
+  id: string;
+  name: string;
+  verified: boolean;
+}) {
+  return (
+    <>
+      <Link
+        href={`/admin/users/${encodeURIComponent(id)}`}
+        className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
+      >
+        {name}
+      </Link>
+      {verified ? null : <span className="text-warn-900">بلا توثيق</span>}
+    </>
   );
 }

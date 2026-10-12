@@ -1,5 +1,6 @@
 import type { OrderStage, OrderStatus } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
+import { STAGE_TARGET_HOURS } from './admin-orders';
 import { netToSeller } from './money';
 
 /**
@@ -80,6 +81,16 @@ export type AdminOrderDetail = {
   /** انقضت المهلة ولم تمرّ الوظيفة الدورية — والحالة وحدها لا تكفي */
   overdue: boolean;
   /**
+   * **والمكوثُ وهدفُه هنا لأن الكرت يعرضهما ولا شرح لهما.** كان
+   * «120 / 2,037» في القائمة بلا تسمية، وصفحةُ التفاصيل — موضعُ
+   * الشرح — لا تذكرهما أصلًا.
+   *
+   * والقاعدة واحدة: `STAGE_TARGET_HOURS` نفسها التي تقرؤها القائمة،
+   * فلا رقمان لمعنًى واحد.
+   */
+  dwellHours: number;
+  targetHours: number;
+  /**
    * سقف النقل — **ويُمدَّد مرّة واحدة بسببٍ مكتوب**.
    *
    * والحقول الثلاثة تخرج معًا: بلا `extendedAt` تعرض الشاشة زرًّا
@@ -101,7 +112,25 @@ export type AdminOrderDetail = {
   payments: { id: string; purpose: string; status: string; amount: string; at: string }[];
   ledger: OrderLedgerLine[];
   timeline: OrderTimelineEntry[];
-  dispute: { id: string; status: string; reason: string; openedAt: string } | null;
+  /**
+   * **والنزاع يُقرَّر فيه من هنا أو يُفتح.** كان الطلب يحمل شارة «نزاع
+   * مفتوح» وبطاقةً فيها ثلاثةُ حقول ورابطًا إلى **قائمة** النزاعات —
+   * فمن رأى الشارة لا يصل إلى نزاعه إلّا بالبحث عنه في قائمة.
+   *
+   * ومهلةُ الردّ هنا لأنها ما يُستعجَل به: **فواتُها يحسم النزاع بلا
+   * ردّ البائع**.
+   */
+  dispute: {
+    id: string;
+    status: string;
+    reason: string;
+    openedAt: string;
+    slaDueAt: string | null;
+    slaBreached: boolean;
+    resolution: string | null;
+    resolvedAt: string | null;
+    messageCount: number;
+  } | null;
   documents: { kind: string; ref: string; at: string }[];
 };
 
@@ -199,6 +228,8 @@ export async function adminOrderDetail(ref: string, now: Date = new Date()): Pro
     stageEnteredAt: order.stageEnteredAt.toISOString(),
     dueAt: dueAt?.toISOString() ?? null,
     overdue: dueAt !== null && dueAt.getTime() < now.getTime(),
+    dwellHours: Math.floor((now.getTime() - order.stageEnteredAt.getTime()) / 3_600_000),
+    targetHours: STAGE_TARGET_HOURS[order.stage],
     transferDeadlineAt: order.transferDeadlineAt?.toISOString() ?? null,
     transferExtendedAt: order.transferDeadlineExtendedAt?.toISOString() ?? null,
     transferExtensionReason: order.transferExtensionReason,
@@ -283,6 +314,15 @@ export async function adminOrderDetail(ref: string, now: Date = new Date()): Pro
             status: dispute.status,
             reason: dispute.reason,
             openedAt: dispute.openedAt.toISOString(),
+            slaDueAt: dispute.slaDueAt?.toISOString() ?? null,
+            /* المهلةُ والحالة معًا — ومهلةٌ فاتت على نزاعٍ محسوم ليست فوتًا */
+            slaBreached:
+              dispute.slaDueAt !== null &&
+              dispute.slaDueAt.getTime() < now.getTime() &&
+              (dispute.status === 'OPEN' || dispute.status === 'INVESTIGATING'),
+            resolution: dispute.resolution,
+            resolvedAt: dispute.resolvedAt?.toISOString() ?? null,
+            messageCount: Array.isArray(dispute.messages) ? dispute.messages.length : 0,
           },
 
     documents,

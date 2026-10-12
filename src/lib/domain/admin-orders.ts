@@ -54,6 +54,14 @@ export type OrderRow = {
   escrowStatus: string | null;
   buyerVerified: boolean;
   sellerVerified: boolean;
+  /**
+   * **ومعرّفا الطرفين ليُفتح ملفّاهما.** كان الاسم نصًّا ميّتًا، فمن
+   * رأى طرفًا في نزاعٍ ينسخ اسمه ويبحث عنه في قائمة العملاء.
+   */
+  buyerId: string;
+  sellerId: string;
+  buyerPhone: string;
+  sellerPhone: string;
 };
 
 /**
@@ -179,8 +187,8 @@ export async function listAdminOrders(
           },
         },
       },
-      buyer: { select: { name: true, phone: true, idVerified: true } },
-      seller: { select: { name: true, phone: true, idVerified: true } },
+      buyer: { select: { id: true, name: true, phone: true, idVerified: true } },
+      seller: { select: { id: true, name: true, phone: true, idVerified: true } },
       escrow: { select: { status: true } },
       disputes: { where: { status: { in: ['OPEN', 'INVESTIGATING'] } }, select: { id: true } },
     },
@@ -232,6 +240,10 @@ export async function listAdminOrders(
       escrowStatus: order.escrow?.status ?? null,
       buyerVerified: order.buyer.idVerified,
       sellerVerified: order.seller.idVerified,
+      buyerId: order.buyer.id,
+      sellerId: order.seller.id,
+      buyerPhone: order.buyer.phone,
+      sellerPhone: order.seller.phone,
     };
   });
 
