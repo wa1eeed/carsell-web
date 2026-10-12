@@ -20,6 +20,19 @@ import type { PublicOrder } from '@/lib/domain/orders';
  * ويريد أن يعرف أن مبلغه محجوز ولم يصل البائع؛ والبائع يريد أن يعرف أنه
  * محجوز فعلًا لا موعودًا.
  */
+/**
+ * مسارُ المستند — و`null` لما لا صفحةَ له.
+ *
+ * **والفاتورة الضريبية ليست منها**: رقمُها يُعرض ويكفي للمراجعة،
+ * وصفحتُها مستندٌ قانونيّ بشكلٍ تُمليه الهيئة — فلا تُفتح بشكلٍ
+ * نخترعه. ورابطٌ إلى صفحةٍ لا توجد أسوأ من غيابه.
+ */
+function docPath(kind: string): string | null {
+  if (kind === 'AGREEMENT') return 'agreement';
+  if (kind === 'SETTLEMENT') return 'settlement';
+  return null;
+}
+
 export function OrderScreen({
   order,
   formatted,
@@ -327,6 +340,23 @@ export function OrderScreen({
                           {doc.reference}
                         </span>
                       </p>
+                    )}
+
+                    {/*
+                      ═══ والمعروضُ يُفتح ═══
+
+                      كانت القائمة نهايةَ الطريق: «عقد البيع ✓» وبلا
+                      رابط. ومن اشترى بسبعين ألفًا يحتاج عقده في
+                      المرور، والبائعُ يحتاج كشفه ليعرف لماذا وصله
+                      هذا المبلغ بالذات.
+                    */}
+                    {doc.state !== 'READY' || docPath(doc.kind) === null ? null : (
+                      <Link
+                        href={`/${locale}/account/orders/${encodeURIComponent(order.ref)}/documents/${String(docPath(doc.kind))}`}
+                        className="mt-1 inline-block text-3xs font-bold underline underline-offset-4"
+                      >
+                        {t('openDocument')}
+                      </Link>
                     )}
                   </div>
                 </li>

@@ -926,6 +926,7 @@
     },
     "documents": "مستندات الصفقة",
     "documentsNote": "المستندات الصادرة والقادمة.",
+    "openDocument": "افتح المستند ←",
     "docKind": {
       "AGREEMENT": "عقد البيع",
       "SETTLEMENT": "كشف التسوية",

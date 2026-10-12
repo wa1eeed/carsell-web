@@ -3953,3 +3953,43 @@ added on top), and deletes it in a `finally`.
 Then measured on the screen itself with one present: `/admin/tax` and
 `?supply=COMMISSION` both 200, rendering `INV-2026-000001 · العمولة · 2,000.00 +
 300.00 = 2,300`. The measurement invoice was removed afterwards.
+
+## «عقد البيع ✓» — and no way to open it
+
+The order screen listed the issued documents and linked to none of them. A buyer
+who had just paid 70,000 SAR saw a green dot next to «عقد البيع» and could not
+open the document they need at the traffic department; the seller saw «كشف
+التسوية ✓» and still did not know why that particular amount arrived.
+
+Thirteenth instance of *shown but unreachable*. Everything was already stored —
+`VehicleSaleAgreement` and `SettlementStatement` carry every field — what was
+missing was a page.
+
+`/account/orders/{ref}/documents/{agreement|settlement}` renders each as a
+document rather than a screen: the header, nav and buttons drop under `print:`,
+and `globals.css` already whitens the background for print, so the component does
+not need a colour of its own (gate 7 caught `bg-white` — it is not a token here).
+
+Downloading is `window.print()`, the same decision the inspection report made: an
+Arabic PDF generator needs font embedding and shaping the print dialog already
+does correctly. One rule, not two.
+
+**The sale agreement says what it is.** The platform is not a party to it — it
+issues and keeps it — so it states that, and leaves hand-signature boxes rather
+than claiming an electronic signature it has no accreditation for.
+
+**The settlement statement shows the arithmetic.** Vehicle value, each deduction
+on its own line, then the net. A statement that asserts a net with no lines above
+it reads as a claim. The test checks the lines actually sum to the net.
+
+**The tax invoice deliberately has no page.** Its number is shown and that is
+enough to reconcile; its layout is prescribed by the authority, and inventing one
+would be worse than linking nowhere.
+
+### The guard is on the server
+
+`saleAgreementFor` and `settlementStatementFor` each check the viewer is a party
+to the order. Hiding a link is not a guard — anyone who knows the reference can
+open the URL. Measured on the running server: owner **200**, a third signed-in
+user **404**, no session **307** to login. `tests/order-documents.test.ts` holds
+both halves.

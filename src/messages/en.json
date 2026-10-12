@@ -926,6 +926,7 @@
     },
     "documents": "Deal documents",
     "documentsNote": "Issued and upcoming — each at its own moment.",
+    "openDocument": "Open document →",
     "docKind": {
       "AGREEMENT": "Sale agreement",
       "SETTLEMENT": "Settlement statement",

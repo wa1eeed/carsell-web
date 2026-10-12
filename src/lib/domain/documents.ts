@@ -460,3 +460,124 @@ export async function orderDocuments(
 
   return out;
 }
+
+/**
+ * ═══ المستند كما يُقرأ — لا كما يُخزَّن ═══
+ *
+ * `orderDocuments` تقول **ما صدر**، والشاشة تعرضه قائمةً. وكانت
+ * القائمة نهايةَ الطريق: من اشترى بسبعين ألفًا يرى «عقد البيع ✓»
+ * **ولا سبيل له إلى فتحه** — وهو ما يحمله إلى المرور.
+ *
+ * ثالثَ عشرَ وقوعٍ لـ«معروضٌ لا يُبلَغ»: البيانات كلّها مخزَّنة منذ
+ * صدر المستند، والناقص صفحةٌ تعرضها.
+ */
+export type SaleAgreementView = {
+  orderRef: string;
+  vin: string;
+  sellerName: string;
+  sellerIdNo: string | null;
+  buyerName: string;
+  buyerIdNo: string | null;
+  price: string;
+  inspectionRef: string | null;
+  deliveryTerms: string | null;
+  issuedAt: string;
+  vehicle: string;
+  year: number;
+  plate: string | null;
+};
+
+export type SettlementStatementView = {
+  orderRef: string;
+  sellerName: string;
+  vehicleValue: string;
+  commission: string;
+  commissionTax: string;
+  gatewayFee: string;
+  servicesTotal: string;
+  netToSeller: string;
+  heldAmount: string;
+  returnedAmount: string;
+  issuedAt: string;
+};
+
+/**
+ * **والطلب خاصٌّ بطرفيه** — والفحص هنا لا في الشاشة: حارسٌ في العميل
+ * ليس حارسًا، ومن يعرف المرجع يفتح الرابط مباشرةً.
+ */
+export async function saleAgreementFor(
+  orderRef: string,
+  viewerId: string,
+): Promise<SaleAgreementView | null> {
+  const order = await db.order.findUnique({
+    where: { ref: orderRef },
+    include: {
+      agreement: true,
+      listing: {
+        select: {
+          vehicle: {
+            select: {
+              brandName: true, modelName: true, trimName: true, year: true,
+              plateLetters: true, plateNumbers: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (order === null || order.agreement === null) return null;
+  if (order.buyerId !== viewerId && order.sellerId !== viewerId) return null;
+
+  const vehicle = order.listing.vehicle;
+  const plate =
+    vehicle.plateLetters === null || vehicle.plateNumbers === null
+      ? null
+      : `${vehicle.plateLetters} ${vehicle.plateNumbers}`;
+
+  return {
+    orderRef: order.ref,
+    vin: order.agreement.vin,
+    sellerName: order.agreement.sellerName,
+    sellerIdNo: order.agreement.sellerIdNo,
+    buyerName: order.agreement.buyerName,
+    buyerIdNo: order.agreement.buyerIdNo,
+    price: order.agreement.price.toString(),
+    inspectionRef: order.agreement.inspectionRef,
+    deliveryTerms: order.agreement.deliveryTerms,
+    issuedAt: order.agreement.issuedAt.toISOString(),
+    vehicle: [vehicle.brandName, vehicle.modelName, vehicle.trimName]
+      .filter((part) => part !== null && part !== '')
+      .join(' '),
+    year: vehicle.year,
+    plate,
+  };
+}
+
+export async function settlementStatementFor(
+  orderRef: string,
+  viewerId: string,
+): Promise<SettlementStatementView | null> {
+  const order = await db.order.findUnique({
+    where: { ref: orderRef },
+    include: { settlement: true, seller: { select: { name: true } } },
+  });
+
+  if (order === null || order.settlement === null) return null;
+  if (order.buyerId !== viewerId && order.sellerId !== viewerId) return null;
+
+  const row = order.settlement;
+  return {
+    orderRef: order.ref,
+    sellerName: order.seller.name ?? '',
+    vehicleValue: row.vehicleValue.toString(),
+    commission: row.commission.toString(),
+    commissionTax: row.commissionTax.toString(),
+    gatewayFee: row.gatewayFee.toString(),
+    servicesTotal: row.servicesTotal.toString(),
+    netToSeller: row.netToSeller.toString(),
+    heldAmount: row.heldAmount.toString(),
+    returnedAmount: row.returnedAmount.toString(),
+    issuedAt: row.issuedAt.toISOString(),
+  };
+}
