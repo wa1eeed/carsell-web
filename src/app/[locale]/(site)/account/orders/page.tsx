@@ -6,6 +6,7 @@ import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
 
 import { routing } from '@/i18n/routing';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow, Money } from '../AccountList';
 
@@ -33,6 +34,13 @@ export default async function OrdersPage({
 
   // التسمية من `enums` نفسها التي تقرؤها بطاقة الحساب — لا نسخة ثانية
   const [data, te] = await Promise.all([getAccountData(user, locale), getTranslations('enums')]);
+
+  const date = new Intl.DateTimeFormat(locale === 'ar' ? AR_DATE_LOCALE : 'en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Riyadh',
+  });
 
   return (
     <AccountList
@@ -64,7 +72,13 @@ export default async function OrdersPage({
               {/* المرجع يُنسخ ويُقارن — لاتينيّ معزول */}
               <span dir="ltr" className="font-num">{order.ref}</span>
               <span aria-hidden className="opacity-40">·</span>
-              <span>{order.createdAt}</span>
+              {/*
+                **والتاريخ يُصاغ.** كان يُطبع خامًا كما يصل من النطاق
+                — `2026-09-15T09:00:00.000Z` في شاشةٍ يقرؤها مشترٍ
+                عن صفقته. والنطاق يعيد ISO وهو الصحيح، والصياغة في
+                الشاشة التي تعرف اللغة.
+              */}
+              <span className="font-num">{date.format(new Date(order.createdAt))}</span>
             </>
           }
           value={<Money amount={order.amount} />}

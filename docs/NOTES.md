@@ -3993,3 +3993,20 @@ to the order. Hiding a link is not a guard — anyone who knows the reference ca
 open the URL. Measured on the running server: owner **200**, a third signed-in
 user **404**, no session **307** to login. `tests/order-documents.test.ts` holds
 both halves.
+
+## A raw timestamp on «طلباتي»
+
+`/account/orders` printed the order date exactly as the domain returns it:
+`2026-09-15T09:00:00.000Z`, in the screen a buyer opens to look at their own
+purchase.
+
+The domain returning ISO is correct — it does not know the locale. The screen
+does, and every other account screen formats it; this one printed the string.
+
+Fixed with the same `Intl.DateTimeFormat` the sibling screens use: «١٥ سبتمبر
+٢٠٢٦».
+
+**Measured before deciding whether it needs a gate.** Every account screen and
+every admin screen was fetched and scanned for `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}` in
+the rendered `<main>`: this was the only one. A single occurrence is a fix, not a
+class — the two-strikes rule applies to repeats.
