@@ -192,13 +192,34 @@ export default async function globalSetup(): Promise<void> {
   const people = await db.user.findMany({ select: { id: true, phone: true } });
   const staleUsers = people.filter((row) => TEST_USER_PHONE.test(row.phone)).map((row) => row.id);
   if (staleUsers.length > 0) {
+    /**
+     * **والشرط كلُّ علاقةٍ تمنع الحذف، لا ثلاثٌ منها.**
+     *
+     * حرستُ الإعلانات والطلبات وحدها فارتطم التنظيف بـ
+     * `Vehicle_ownerId_fkey` — مركبةٌ يتيمة بقيت من تشغيلٍ سقط قبل
+     * `afterAll`. **وسقوطُه يُسقط الإعداد كلَّه**، فلا يعمل اختبارٌ
+     * واحد حتى يُحذف الصفّ بيد.
+     *
+     * والقائمة مُستخرَجةٌ من المخطّط لا من الذاكرة: كلُّ علاقةٍ إلى
+     * `User` بـ`onDelete: Restrict`. ولإعادة استخراجها:
+     *   grep -nE "@relation\([^)]*references: \[id\]" prisma/schema.prisma \
+     *     | grep -v "onDelete: Cascade"
+     */
     const detached = await db.user.deleteMany({
       where: {
         id: { in: staleUsers },
-        /* ما بقي له إعلانٌ أو طلبٌ حقيقيّ لا يُمسّ — الشكل يرشّح، والعلاقة تحكم */
+        vehicles: { none: {} },
         listings: { none: {} },
+        offers: { none: {} },
+        bids: { none: {} },
+        deposits: { none: {} },
         ordersAsBuyer: { none: {} },
         ordersAsSeller: { none: {} },
+        serviceRequests: { none: {} },
+        invoices: { none: {} },
+        reports: { none: {} },
+        payouts: { none: {} },
+        wallet: { is: null },
       },
     });
     if (detached.count > 0) {

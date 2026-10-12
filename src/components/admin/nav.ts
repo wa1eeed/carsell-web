@@ -73,6 +73,13 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        *
        * فموضعُهما مع ما يُقرأ: المتابعة.
        */
+      /**
+       * **ومجرى النشاط غيرُ سجلّ العمليات.** الثاني أثرُ الأدمن وحده،
+       * والأوّل ما يفعله السوق بنفسه: إعلانٌ نُشر، عرضٌ قُبل، دفعةٌ
+       * ارتدّت. وكانت اللوحة تُجيب «كم» و«ما ينتظرني» ولا تُجيب
+       * «ماذا يحدث».
+       */
+      { label: 'مجرى النشاط', href: '/admin/activity', permission: 'audit.view' },
       { label: 'دفتر الحسابات', href: '/admin/ledger', permission: 'finance.view' },
       { label: 'سجل العمليات', href: '/admin/audit', permission: 'audit.view' },
     ],

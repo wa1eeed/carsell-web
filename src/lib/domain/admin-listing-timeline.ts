@@ -66,7 +66,7 @@ export async function listingTimeline(ref: string): Promise<TimelineEvent[]> {
       seller: { select: { name: true, phone: true } },
       offers: {
         orderBy: { createdAt: 'asc' },
-        select: { id: true, amount: true, status: true, createdAt: true },
+        select: { id: true, amount: true, status: true, autoRejected: true, createdAt: true },
       },
       orders: {
         orderBy: { createdAt: 'asc' },
@@ -201,12 +201,19 @@ export async function listingTimeline(ref: string): Promise<TimelineEvent[]> {
 
   /* ③ العروض */
   for (const offer of listing.offers) {
+    /**
+     * **والرفض التلقائيّ رايةٌ لا حالة.** `OfferStatus` ليس فيها
+     * `AUTO_REJECTED` — بل `REJECTED` ومعها `autoRejected`. فكان
+     * الفرعُ هنا ميّتًا منذ بُني، والتسمية «رُفض تلقائيًّا — دون
+     * الحدّ» لا تُعرض أبدًا: يُقرأ الرفضُ بالحدّ كرفضٍ من البائع.
+     */
+    const status = offer.status === 'REJECTED' && offer.autoRejected ? 'AUTO_REJECTED' : offer.status;
     add({
       at: offer.createdAt.toISOString(),
-      kind: `offer.${offer.status}`,
+      kind: `offer.${status}`,
       detail: offer.amount.toString(),
       actor: null,
-      tone: OFFER_TONE[offer.status] ?? 'neutral',
+      tone: OFFER_TONE[status] ?? 'neutral',
       href: null,
     });
   }

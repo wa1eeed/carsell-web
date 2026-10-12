@@ -511,3 +511,63 @@ redo.
 
 `now` arrives as a prop so server and client start from the same instant and
 hydration matches, then ticks forward once a minute after mount.
+
+## The activity stream (task 145)
+
+The dashboard answers **"how many"** (cards) and **"what is waiting for me"**
+(queues). It does not answer **"what is happening"** — whoever opens it in the
+morning cannot know three disputes were opened overnight without opening three
+screens, and does not see a payment bounce until it becomes a queue.
+
+`/admin/audit` is not this: it is **admin actions only**, so what the marketplace
+does by itself is absent from it.
+
+`src/lib/domain/admin-activity.ts` merges eight sources the way the listing
+timeline merges its own: listings, offers, order events, payment events, bids,
+disputes, new accounts, and the team's audit trail.
+
+### The cursor is a time, not an offset
+
+`skip` across eight merged sources is meaningless — an offset in one of them is
+not an offset in the stream. Each source is asked for its newest page *before a
+given instant*; the results are merged and cut.
+
+Counts come from the database, not from the cut page: deriving them from what is
+displayed makes every chip report the page size.
+
+### Auto-rejection is a flag, not a status
+
+`OfferStatus` has no `AUTO_REJECTED` member — it is `REJECTED` plus
+`autoRejected`. A key built from the status alone can never produce it.
+
+**The listing timeline carried the same dead branch since it was built**: the
+label "رُفض تلقائيًّا — دون الحدّ" sits in `labels/timeline.ts` and never rendered,
+so a rejection by the seller's floor price read as a rejection by the seller —
+two different pieces of news for the buyer.
+
+Gate 19 (dead label keys) did not catch it, because `AUTO_REJECTED` *is* present
+in the source — as a key in a tone table. **A string existing is not a writer
+existing.**
+
+### A missing name is not the system acting
+
+Rows read "حسابٌ جديد … بالنظام" about a person who had signed up themselves and
+simply had no name yet: the row inferred the actor from an empty `actor` field.
+The distinction is now explicit in `bySystem`.
+
+### Key collisions drop a row silently
+
+The row key was `${at}-${kind}-${key}-${subject ?? ''}`; two accounts created in
+the same millisecond with no ref produced the same key, so React dropped one.
+That arrives as a console warning, not a visible failure — the list is read one
+row short and nobody notices. The index is part of the key now.
+
+### `AutoRefresh`
+
+The stream is opened and left open on a side monitor, and a static page lies
+within a minute. `AutoRefresh` calls `router.refresh()` every 30 seconds — server
+components only, so scroll position survives — and **only while the tab is
+visible**, with an immediate refresh when the reader comes back.
+
+Like the user-facing bell, this is a poll and is described as one: the realtime
+service still refuses private channels until the ticket issuer exists.
