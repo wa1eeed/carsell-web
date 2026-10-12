@@ -77,7 +77,7 @@ async function disputesScreen(): Promise<Screen> {
 
 async function serviceRequestsScreen(): Promise<Screen> {
   const counts = await serviceRequestCounts();
-  const keys = [null, 'NEW', 'ASSIGNED', 'IN_PROGRESS', 'DONE', 'FAILED'] as const;
+  const keys = [null, 'NEW', 'ASSIGNED', 'IN_PROGRESS', 'DONE', 'FAILED', 'REFUNDED'] as const;
   const tabs = await Promise.all(
     keys.map(async (key) => ({
       key,

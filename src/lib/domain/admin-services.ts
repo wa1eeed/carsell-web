@@ -33,6 +33,14 @@ export type ServiceRequestRow = {
   providerName: string | null;
   customer: string;
   listingRef: string | null;
+  /**
+   * ═══ وكلُّ اسمٍ يفتح صفحته ═══
+   *
+   * الصفّ كان يعرض اسم العميل نصًّا، ومن يُسنِد طلبًا يحتاج أن يعرف
+   * من هو — أموثَّقٌ وكم طلبًا له — وكان ذلك بحثًا في شاشةٍ أخرى.
+   */
+  customerId: string;
+  providerId: string | null;
 };
 
 const OPEN_STATUSES = ['NEW', 'ASSIGNED', 'IN_PROGRESS'] as const;
@@ -41,8 +49,8 @@ const REQUEST_SELECT = {
   ref: true, status: true, amount: true, createdAt: true, dueAt: true,
   scheduledAt: true, city: true,
   service: { select: { key: true, nameAr: true } },
-  provider: { select: { nameAr: true } },
-  user: { select: { name: true, phone: true } },
+  provider: { select: { id: true, nameAr: true } },
+  user: { select: { id: true, name: true, phone: true } },
   listing: { select: { ref: true } },
 } as const;
 
@@ -164,6 +172,8 @@ export async function listServiceRequests(
       providerName: request.provider?.nameAr ?? null,
       customer: request.user.name ?? request.user.phone.slice(-4),
       listingRef: request.listing?.ref ?? null,
+      customerId: request.user.id,
+      providerId: request.provider?.id ?? null,
     };
   });
 

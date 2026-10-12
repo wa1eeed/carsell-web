@@ -661,6 +661,8 @@ async function main(): Promise<void> {
 
   const serviceRows = load<ServiceRow[]>('services.json');
   const services = new Map<string, string>();
+  /** سعرُ كلِّ خدمة — فطلبُ الخدمة لا يُسعَّر برقمٍ مكتوبٍ بيد. */
+  const servicePrices = new Map<string, Prisma.Decimal>();
   for (const s of serviceRows) {
     const created = await prisma.service.create({
       data: {
@@ -682,6 +684,7 @@ async function main(): Promise<void> {
       },
     });
     services.set(s.key, created.id);
+    servicePrices.set(s.key, created.price);
   }
 
   // ————— المعارض (Wg مرحلة أولى) —————
@@ -1452,6 +1455,56 @@ async function main(): Promise<void> {
           rightRearDoor: 'original',
           leftRearDoor: 'original',
         },
+      },
+    });
+  }
+
+  /**
+   * ═══ وطابورٌ فيه عمل ═══
+   *
+   * الطلبان أعلاه **منجَزان كلاهما**، فشاشة طلبات الخدمات تُفتح وكلُّ
+   * شريحةٍ فيها صفر عدا «مكتملة» — والطابور الذي بُني لإسناد الطلبات
+   * وملاحقة مهلها لا يُرى عاملًا في أيّ بيئة.
+   *
+   * فهذه خمسةٌ تملأ الحالات التي يُدار بها: جديدٌ بلا مزوّد ينتظر
+   * الإسناد، ومُسنَدٌ في مهلته، وقيد تنفيذٍ **تجاوز مهلته**، وفاشلٌ،
+   * ومستردّ. وكلُّها على خدماتٍ مختلفة فتُقرأ الشرائح بالنوع أيضًا.
+   */
+  const QUEUE: readonly {
+    service: string;
+    status: 'NEW' | 'ASSIGNED' | 'IN_PROGRESS' | 'FAILED' | 'REFUNDED';
+    provider: 'INSPECTION' | 'SHIPPING' | 'DETAILING' | null;
+    /** ساعاتٌ من الآن — سالبٌ يعني أن المهلة فاتت. */
+    dueInHours: number;
+    scheduledInHours: number | null;
+  }[] = [
+    { service: 'inspection', status: 'NEW', provider: null, dueInHours: 20, scheduledInHours: 28 },
+    { service: 'shipping', status: 'ASSIGNED', provider: 'SHIPPING', dueInHours: 44, scheduledInHours: 50 },
+    { service: 'ownership_transfer', status: 'IN_PROGRESS', provider: null, dueInHours: -9, scheduledInHours: -2 },
+    { service: 'inspection', status: 'FAILED', provider: 'INSPECTION', dueInHours: -60, scheduledInHours: -72 },
+    { service: 'detailing', status: 'REFUNDED', provider: 'DETAILING', dueInHours: -96, scheduledInHours: -100 },
+  ];
+
+  for (const [n, plan] of QUEUE.entries()) {
+    const serviceId = services.get(plan.service);
+    const l = listings[n + 2] as ListingRef | undefined;
+    if (serviceId === undefined || l === undefined) continue;
+    const price = servicePrices.get(plan.service) ?? new D('450.00');
+
+    await prisma.serviceRequest.create({
+      data: {
+        ref: `SRV-2026-${String(3100 + n)}`,
+        serviceId,
+        userId: l.sellerId,
+        listingId: l.id,
+        vehicleId: l.vehicleId,
+        providerId: plan.provider === null ? null : (providers.get(plan.provider) ?? null),
+        status: plan.status,
+        amount: price,
+        city: l.city,
+        dueAt: hours(plan.dueInHours),
+        scheduledAt: plan.scheduledInHours === null ? null : hours(plan.scheduledInHours),
+        createdAt: hours(plan.dueInHours - 48),
       },
     });
   }

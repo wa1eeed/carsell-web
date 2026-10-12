@@ -20,7 +20,7 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
-async function pair(): Promise<{ userId: string; ref: string }> {
+async function pair(): Promise<{ userId: string; ref: string; listingId: string }> {
   const listing = await db.listing.findFirstOrThrow({
     where: { status: 'PUBLISHED' },
     select: { id: true, ref: true, sellerId: true },
@@ -37,17 +37,20 @@ async function pair(): Promise<{ userId: string; ref: string }> {
     },
     select: { id: true },
   });
-  return { userId: user.id, ref: listing.ref };
+  return { userId: user.id, ref: listing.ref, listingId: listing.id };
 }
 
 describe('قلبُ المفضّلة', () => {
   it('يضيف ثم يحذف بالعملية نفسها', async () => {
-    const { userId, ref } = await pair();
+    const { userId, ref, listingId } = await pair();
 
     const added = await toggleFavorite(userId, ref);
     expect(added).toEqual({ ok: true, favorited: true });
 
-    const row = await db.favorite.findFirst({ where: { userId }, select: { id: true } });
+    const row = await db.favorite.findFirst({
+      where: { userId, listingId },
+      select: { id: true },
+    });
     if (row !== null) made.push(row.id);
 
     /**
@@ -67,18 +70,39 @@ describe('قلبُ المفضّلة', () => {
    * نتائجٍ بعشرين مركبة تُطلق عشرين استعلامًا.
    */
   it('يقرأ شبكةً كاملة بمجموعةٍ واحدة', async () => {
-    const { userId, ref } = await pair();
+    const { userId, ref, listingId } = await pair();
+    /**
+     * **والشرط يُفرَض على الثلاثة أيضًا، لا على الأوّل وحده.**
+     * `pair` تضمن أن المستخدم لم يُفضّل الإعلان المعنيّ، وكان البقيّة
+     * يُؤخذون بلا شرطٍ ولا ترتيب — والبذرة تصنع سبعًا وعشرين مفضّلة.
+     * فيكفي أن يُغيّر زرعٌ ترتيبَ الصفوف الفعليّ ليعود إعلانٌ مفضَّلٌ
+     * أصلًا فيسقط «لم يُفضّله» — ويبدو تقطّعًا وهو شرطٌ ناقص.
+     */
+    const mine = await db.favorite.findMany({ where: { userId }, select: { listingId: true } });
     const others = (
       await db.listing.findMany({
-        where: { status: 'PUBLISHED', ref: { not: ref } },
+        where: {
+          status: 'PUBLISHED',
+          ref: { not: ref },
+          id: { notIn: mine.map((row) => row.listingId) },
+        },
         select: { ref: true },
+        orderBy: { ref: 'asc' },
         take: 3,
       })
     ).map((row) => row.ref);
 
     const added = await toggleFavorite(userId, ref);
     expect(added).toMatchObject({ ok: true });
-    const row = await db.favorite.findFirst({ where: { userId }, select: { id: true } });
+    /**
+     * **والصفُّ يُلتقَط بإعلانه لا بصاحبه.** `findFirst({ userId })`
+     * قد يعيد مفضّلةً **مزروعة** لهذا المستخدم، فيحذفها `afterAll`
+     * — والاختبار يحذف ما لم يصنعه.
+     */
+    const row = await db.favorite.findFirst({
+      where: { userId, listingId },
+      select: { id: true },
+    });
     if (row !== null) made.push(row.id);
 
     const marked = await favoritedRefs(userId, [ref, ...others]);

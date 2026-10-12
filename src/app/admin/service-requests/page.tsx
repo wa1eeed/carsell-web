@@ -8,7 +8,7 @@ import { can } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
 import { listServiceRequests, serviceRequestCounts } from '@/lib/domain/admin-services';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
-import { RequestsTable } from './RequestsTable';
+import { RequestsQueue } from './RequestsQueue';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +30,11 @@ const SEGMENTS: readonly { key: string | null; label: string }[] = [
   { key: 'IN_PROGRESS', label: 'قيد التنفيذ' },
   { key: 'DONE', label: 'مكتملة' },
   { key: 'FAILED', label: 'ملغاة' },
+  /**
+   * **وحالةٌ بلا شريحة لا تُرى.** `REFUNDED` موجودةٌ في التعداد ويكتبها
+   * المنتج، ولم تكن لها شريحة — فطلبٌ مستردٌّ لا يُبلَغ إلا من «الكل».
+   */
+  { key: 'REFUNDED', label: 'مستردّة' },
 ];
 
 export default async function ServiceRequestsPage({
@@ -101,7 +106,7 @@ export default async function ServiceRequestsPage({
         <StatCard label="الإجمالي" value={requests.length} />
       </div>
 
-      <RequestsTable requests={requests} />
+      <RequestsQueue requests={requests} />
     
       <ListFooter
         shown={requests.length}

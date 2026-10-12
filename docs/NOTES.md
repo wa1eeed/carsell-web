@@ -3268,3 +3268,61 @@ the config has no shuffle and no retry, so it is not ordering. **It is not
 fixed and not explained.** Logged here so the next occurrence is linked to this
 one rather than treated as new; capture `npm run verify` to a file so the
 failing test names itself.
+
+## Service requests as cards — and a seed that gave the queue nothing to do
+
+### The card
+
+The table had seven columns and scrolled sideways on a phone. Someone assigning
+a request asks three things: what service and for whom, when the customer is
+booked, and how long the provider has left.
+
+**Two deadlines, not one.** `scheduledAt` is the *customer's* appointment — when
+they turn up to be inspected. `dueAt` is the *provider's* SLA — when our
+patience runs out. The table put them in adjacent columns with nothing marking
+the difference, so they read as one thing. The card labels them: «موعد العميل
+الثلاثاء ٤:٠٠ م» and «بقي للمزوّد ٢١ ساعة» / «تأخّر ٨ ساعات».
+
+An unassigned request now says «بلا مزوّد — ينتظر الإسناد» instead of leaving the
+cell blank, which read as "this service has no provider" rather than "nobody has
+picked it up".
+
+### The queue had nothing in it
+
+The seed created exactly two service requests, **both `DONE`**. So every tab
+read zero except «مكتملة», and the queue built for assigning work and chasing
+SLAs could not be seen working in any environment.
+
+Five more now cover the states it is actually operated through: new and
+unassigned, assigned and inside its SLA, in progress and **past its SLA**,
+failed, refunded — across four different services so the per-service tabs have
+something in them too.
+
+`REFUNDED` also had **no tab at all**. The status exists in the enum and the
+product writes it; a refunded request could only be reached through «الكل».
+
+### `favorites.test.ts` — the intermittent failure from the previous entry
+
+It has a name now: `قلبُ المفضّلة > يقرأ شبكةً كاملة بمجموعةٍ واحدة`, failing
+`expected true to be false`.
+
+`pair()` already guarantees the user has not favourited *the listing under
+test* — that guard was added for this exact reason. The three **other** listings
+it then asserts are not favourited were fetched with no such condition and **no
+`orderBy`**, and the seed creates 27 favourites. Postgres returns unordered rows
+in whatever physical order it likes, so reseeding was enough to bring back a
+listing the user had already favourited.
+
+The fix is the rule already written down: a fixture asserts its preconditions
+instead of hoping. The query now excludes the user's favourites and orders by
+`ref`.
+
+**A second defect in the same file:** `db.favorite.findFirst({ where: { userId } })`
+pushed the row id into the `afterAll` delete list. With no listing in the
+filter, it could pick up a **seeded** favourite — so the test deleted a row it
+had not created. It now filters by `listingId`.
+
+Noted while there: `Favorite.listingId` has no relation to `Listing` in the
+schema — a foreign key with no referential integrity, so a deleted listing
+leaves orphan favourites behind. Not changed here (migration), but it is why the
+test has to resolve listing ids by hand.
