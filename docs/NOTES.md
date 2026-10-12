@@ -3677,3 +3677,35 @@ Also verified while there: the «تحميل PDF» button is not dead. With no st
 PDF it calls `window.print()`, which is the documented decision — an Arabic PDF
 generator on the server needs font embedding and shaping that the print dialog
 already does correctly.
+
+## Share — the design asked for it and it was never built
+
+`Wc` shows «حفظ · مشاركة» together. The heart existed; **sharing did not**.
+
+In this market that is not decoration: a car is sent to a brother or a friend on
+WhatsApp before it is bought. Without a button the visitor copies the address bar
+— and sends a link carrying their filters, their scroll position and whatever
+tracking was on it, or sends nothing.
+
+Three paths, first available wins:
+
+1. `navigator.share` — the system sheet on a phone, which already holds WhatsApp,
+   Messages and Copy in the order its owner is used to.
+2. A direct WhatsApp link on desktop, where there is no system sheet and WhatsApp
+   is the destination anyway. Hidden on phones, where the sheet covers it.
+3. Copy to clipboard, announced **in the button itself** rather than in a toast
+   that disappears.
+
+None of them throws. A share sheet the user dismisses is not an error, and a
+blocked clipboard in a non-secure context is an expected state — each failure
+falls silently to the next rather than telling the user they did something wrong.
+
+**The URL is absolute and canonical, built on the server from `APP_URL`.**
+Building it from `window.location` differs between server and client (breaking
+hydration) and sends *the environment's* address rather than the platform's — so
+a link shared from a staging build reaches someone who cannot open it.
+
+Gate 6 caught the first version interpolating `${String(vehicle.year)}` into the
+share text. The year is passed as a number and formatted inside the component, in
+Latin digits, because this string is read on devices that may not carry a full
+Arabic font.

@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **136** components in **3** directories.
+Counted: **137** components in **3** directories.
 
 ## `src/components/admin`
 
@@ -91,6 +91,7 @@ Counted: **136** components in **3** directories.
 | `SaveSearchButton` | yes | `query` · `signedIn` · `saved` · `locale` | 1 |
 | `SearchAbout` | no | `total` · `priceRange` · `scope` · `siblings` | 1 |
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
+| `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
 | `SiteFooter` | no | `columns` | 1 |
 | `SiteHeader` | no | `active` · `actions` | 23 |

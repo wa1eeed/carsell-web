@@ -10,6 +10,7 @@ import { BuyColumn } from '@/components/ui/BuyColumn';
 import { BuyActions } from '@/components/site/BuyActions';
 import { ReportListing } from '@/components/site/ReportListing';
 import { FavoriteButton } from '@/components/site/FavoriteButton';
+import { ShareListing } from '@/components/site/ShareListing';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
@@ -260,13 +261,30 @@ export function CarPage({
               جزءًا منها ويُضغط سهوًا عند التمرير، وفي الترويسة بجوار
               الاسم حيث يقع القرار.
             */}
-            <FavoriteButton
-              listingRef={detail.ref}
-              initial={viewer.favorited}
-              signedIn={viewer.signedIn}
-              signInHref={`/${locale}/auth`}
-              className="shrink-0"
-            />
+            <span className="flex shrink-0 items-center gap-2">
+              <FavoriteButton
+                listingRef={detail.ref}
+                initial={viewer.favorited}
+                signedIn={viewer.signedIn}
+                signInHref={`/${locale}/auth`}
+              />
+              {/*
+                **والمشاركة بجوار الحفظ** كما في التصميم — والسيارة
+                تُرسَل إلى من يُستشار قبل أن تُشترى. والرابط أساسيّ:
+                ما ينسخه الزائر من شريط المتصفّح يحمل ترشيحًا وأثرًا
+                لا تخصّ من يصله.
+              */}
+              <ShareListing
+                /**
+                 * **ونصُّ المشاركة نصٌّ لا عنصر**، فلا يبلغه
+                 * `<ArabicNumber>`. والسنة تُمرَّر رقمًا والمكوّن
+                 * يصوغها — فلا تُلصق في قالبٍ نصّيّ (البوابة ٦).
+                 */
+                title={vehicle.title}
+                year={vehicle.year}
+                url={`${APP_URL.replace(/\/$/, '')}${canonical.path}`}
+              />
+            </span>
           </header>
 
           <Gallery images={detail.images} alt={vehicle.title} />
