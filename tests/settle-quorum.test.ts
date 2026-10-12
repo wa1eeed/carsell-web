@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { approveSettle, canTransition, requestSettle } from '@/lib/domain/payments';
+import { type OrderSnapshot, restoreOrder, snapshotOrder } from './helpers/order-fixture';
 
 afterAll(async () => {
   await db.$disconnect();
@@ -18,9 +19,23 @@ async function admin() {
   });
 }
 
+/**
+ * ═══ الاستعادة من الموضع الواحد — لا بيدٍ هنا ═══
+ *
+ * كان هذا الملف يأخذ **أوّل طلبٍ مزروع** ويحرّكه، ثم «يستعيده» إلى
+ * `TRANSFER` مكتوبةً بيد — و`ORD-2026-1000` مزروعٌ في `REQUEST`. فكان
+ * يتركه في مرحلةٍ بلغت الدفع **بلا ضمان**: حالةٌ لا يبلغها المنتج،
+ * تبقى في قاعدة التطوير بعد كل تشغيل.
+ *
+ * واللقطة تُعيد الصفّ حرفيًّا — ويتبع الأثرَ الجديد موضعٌ واحد.
+ */
+let snapshot: OrderSnapshot | null = null;
+
 /** طلبٌ محجوز ماله ونافذته منقضية — الحال التي يجوز فيها الإفراج. */
 async function settleableOrder(stage: 'DONE' | 'TRANSFER' = 'DONE') {
   const order = await db.order.findFirstOrThrow({ orderBy: { ref: 'asc' } });
+  snapshot = await snapshotOrder(order.id);
+
   await db.payment.deleteMany({ where: { orderId: order.id } });
   await db.escrow.deleteMany({ where: { orderId: order.id } });
   await db.approvalRequest.deleteMany({ where: { entityId: order.ref } });
@@ -42,19 +57,13 @@ async function settleableOrder(stage: 'DONE' | 'TRANSFER' = 'DONE') {
 }
 
 async function cleanup(orderRef: string, ids: string[]) {
-  const order = await db.order.findUniqueOrThrow({ where: { ref: orderRef } });
-  await db.paymentEvent.deleteMany({
-    where: { payment: { orderId: order.id } },
-  });
-  await db.payment.deleteMany({ where: { orderId: order.id } });
-  await db.escrow.deleteMany({ where: { orderId: order.id } });
   await db.approvalRequest.deleteMany({ where: { entityId: orderRef } });
   await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
   await db.adminUser.deleteMany({ where: { id: { in: ids } } });
-  await db.order.update({
-    where: { id: order.id },
-    data: { stage: 'TRANSFER', status: 'ACTIVE', returnWindowEndsAt: null },
-  });
+  if (snapshot !== null) {
+    await restoreOrder(snapshot);
+    snapshot = null;
+  }
 }
 
 describe('═══ القاعدة ١٢ ═══ الإفراج بموافقة عضوين — مبنيّ محروسًا', () => {
@@ -156,12 +165,14 @@ describe('تأكيد النقل يحرس الإفراج — لا الشاشة', 
   it('ولا إفراج على طلب بلا حجز', async () => {
     const requester = await admin();
     const order = await db.order.findFirstOrThrow({ orderBy: { ref: 'asc' } });
+    const taken = await snapshotOrder(order.id);
     await db.payment.deleteMany({ where: { orderId: order.id } });
 
     const result = await requestSettle(requester.id, order.ref);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe('NO_HELD_PAYMENT');
 
+    await restoreOrder(taken);
     await db.adminUser.delete({ where: { id: requester.id } });
   });
 });

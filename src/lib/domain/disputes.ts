@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { publicUrl } from '@/lib/r2';
 import { notify, notifyMany } from './notifications';
 import { republishListing, suspendListing } from './listing-state';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
@@ -504,6 +505,30 @@ export type DisputeRow = {
   slaDueAt: Date;
   overdue: boolean;
   messageCount: number;
+  /**
+   * ═══ ما يحتاجه المراجع قبل أن يفتح النزاع ═══
+   *
+   * الصفّ كان يقول: مرجعٌ وسببٌ ومبلغٌ وحالة. **ولا يقول من الطرفان**
+   * — وأوّل سؤالٍ في نزاع: من يشكو ومن المشكوّ منه، وأموثَّقان هما.
+   * وكان يُعرف بفتح النزاع ثم فتح الطلب ثم فتح كلّ طرف.
+   */
+  buyerId: string;
+  buyerName: string;
+  buyerVerified: boolean;
+  sellerId: string;
+  sellerName: string;
+  sellerVerified: boolean;
+  /** من فتح النزاع — والمشتري غالبًا، لا دائمًا. */
+  openedByBuyer: boolean;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehicleYear: number;
+  thumbnail: string | null;
+  /** حالة الضمان — أمحجوزٌ المال أم خرج. */
+  escrowStatus: string | null;
+  /** ساعات مضت منذ الفتح، وساعات بقيت من المهلة (سالبٌ إن فاتت). */
+  hoursOpen: number;
+  hoursToSla: number;
   resolution: string | null;
   resolutionAmount: string | null;
   /** الطلب المعلَّق إن وُجد — به يعرف الثاني أن عليه اعتمادًا */
@@ -561,7 +586,29 @@ export async function listDisputes(
   const rows = await db.dispute.findMany({
     ...(statuses === null ? {} : { where: { status: { in: statuses } } }),
     orderBy: [{ status: 'asc' }, { slaDueAt: 'asc' }],
-    include: { order: { select: { ref: true, totalAmount: true } } },
+    include: {
+      order: {
+        select: {
+          ref: true,
+          totalAmount: true,
+          buyerId: true,
+          sellerId: true,
+          buyer: { select: { id: true, name: true, idVerified: true } },
+          seller: { select: { id: true, name: true, idVerified: true } },
+          escrow: { select: { status: true } },
+          listing: {
+            select: {
+              vehicle: { select: { brandName: true, modelName: true, year: true } },
+              images: {
+                orderBy: [{ isCover: 'desc' }, { sort: 'asc' }],
+                take: 1,
+                select: { r2Key: true },
+              },
+            },
+          },
+        },
+      },
+    },
     take: 200,
   });
 
@@ -589,6 +636,25 @@ export async function listDisputes(
         (row.status === 'OPEN' || row.status === 'INVESTIGATING') &&
         row.slaDueAt.getTime() <= now.getTime(),
       messageCount: row.messages.length,
+      buyerId: row.order.buyer.id,
+      buyerName: row.order.buyer.name ?? '',
+      buyerVerified: row.order.buyer.idVerified,
+      sellerId: row.order.seller.id,
+      sellerName: row.order.seller.name ?? '',
+      sellerVerified: row.order.seller.idVerified,
+      openedByBuyer: row.openedBy === row.order.buyerId,
+      vehicleBrand: row.order.listing.vehicle.brandName,
+      vehicleModel: row.order.listing.vehicle.modelName,
+      vehicleYear: row.order.listing.vehicle.year,
+      /** مفتاح R2 ليس رابطًا — ويُمرَّر خامًا فتُرسم صورةٌ مكسورة. */
+      thumbnail:
+        row.order.listing.images[0] === undefined
+          ? null
+          : publicUrl(row.order.listing.images[0].r2Key),
+      escrowStatus: row.order.escrow?.status ?? null,
+      hoursOpen: Math.max(0, (now.getTime() - row.openedAt.getTime()) / 3_600_000),
+      /** سالبٌ حين فاتت — فالشاشة تقول «تأخّر كذا» لا «بقي سالبًا». */
+      hoursToSla: (row.slaDueAt.getTime() - now.getTime()) / 3_600_000,
       resolution: row.resolution,
       resolutionAmount: row.resolutionAmount?.toString() ?? null,
       approval:

@@ -912,17 +912,26 @@ async function main(): Promise<void> {
     });
     vehicleIds.push(vehicle.id);
 
-    // حالات متنوّعة: منشور في الغالب، ومسودّة وقيد مراجعة وموقوف ومباع
+    /**
+     * ═══ حالات متنوّعة — **و«مُباع» ليست منها** ═══
+     *
+     * `SOLD` لا يكتبها في المنتج إلا `closeListingSold` عند اكتمال
+     * طلب، بـ`closeReason: 'order.completed'`. وبذرةٌ تعلنها بعدّاد
+     * (`i % 20 === 13`) تُنتج **إعلانًا مباعًا بلا مشترٍ ولا طلب** —
+     * وهي حالةٌ لا يبلغها المنتج.
+     *
+     * وأثرُها ليس تجميليًّا: مؤشّر «نسبة البيع من المعروض» يقسم
+     * المباع على المنشور، فإعلانان بلا طلب **يضخّمانه بلا بيعة**.
+     * فالبيع يُكتب بعد الطلبات، من الطلبات نفسها.
+     */
     const status =
       i % 20 === 5
         ? 'DRAFT'
         : i % 20 === 9
           ? 'PENDING_REVIEW'
-          : i % 20 === 13
-            ? 'SOLD'
-            : i % 20 === 17
-              ? 'SUSPENDED'
-              : 'PUBLISHED';
+          : i % 20 === 17
+            ? 'SUSPENDED'
+            : 'PUBLISHED';
 
     const ref = `ADS2026A${String(i + 1).padStart(4, '0')}`;
     const listing = await prisma.listing.create({
@@ -941,8 +950,9 @@ async function main(): Promise<void> {
         city,
         viewCount: between(12, 2400),
         publishedAt: status === 'DRAFT' ? null : days(-between(1, 90)),
-        closedAt: status === 'SOLD' ? days(-between(1, 20)) : null,
-        closeReason: status === 'SOLD' ? 'بيع' : null,
+        /* الإغلاق يُكتب مع البيعة، بعد الطلبات — لا هنا بعدّاد */
+        closedAt: null,
+        closeReason: null,
         reviewReason: status === 'PENDING_REVIEW' ? 'DUPLICATE_IMAGE' : null,
         featuredUntil: i % 12 === 0 ? days(between(1, 7)) : null,
       },
@@ -988,7 +998,7 @@ async function main(): Promise<void> {
       data: [...extra].map((featureKey) => ({ listingId: listing.id, featureKey })),
     });
 
-    if (status === 'PUBLISHED' || status === 'SOLD') {
+    if (status === 'PUBLISHED') {
       listings.push({
         id: listing.id,
         ref,
@@ -1200,6 +1210,17 @@ async function main(): Promise<void> {
         },
       });
     }
+
+    /**
+     * **والإعلان يُغلق ببيعه لا بعدّاد** — وبالسبب نفسه الذي يكتبه
+     * `closeListingSold`، فما في القاعدة هو ما ينتجه المنتج.
+     */
+    if (stage === 'DONE') {
+      await prisma.listing.update({
+        where: { id: l.id },
+        data: { status: 'SOLD', closedAt: enteredAt, closeReason: 'order.completed' },
+      });
+    }
   }
 
   // ————— العروض والنزاعات والبلاغات —————
@@ -1281,6 +1302,19 @@ async function main(): Promise<void> {
         ],
       },
     });
+
+    /**
+     * **والضمان يتبع القرار.** `resolveDispute` تكتب `PARTIAL_REFUND`
+     * مع التسوية الجزئية، وبذرةٌ تترك الضمان `RELEASED` تُنتج حالةً
+     * **لا يستطيع المنتج إنتاجها**: «حُسم للمشتري» فوق «أُفرج للبائع».
+     * والشاشة تعرضهما معًا فيبدو العطل فيها وهو في البيانات.
+     */
+    if (resolved) {
+      await prisma.escrow.updateMany({
+        where: { orderId: order.id },
+        data: { status: 'PARTIAL_REFUND' },
+      });
+    }
   }
 
   /** بلاغان على إعلانين — أحدهما مفتوحٌ والآخر مُغلق. */

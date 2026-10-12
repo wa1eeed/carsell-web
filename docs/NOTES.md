@@ -3142,3 +3142,63 @@ is not a sentence, but it is displayed text, so the domain imports it.
 
 `token.ts`'s JWT `issuer: 'carsell.one'` stays. Changing it invalidates every
 live session — that is not a rename, it is a forced logout.
+
+## Disputes as cards — and a seeded state the product cannot produce
+
+### The card
+
+`/admin/disputes` rendered a table whose row said: reference, reason, total,
+status, message count. **It never said who the parties were** — the first
+question in any dispute is who is complaining and about whom, and whether
+either is verified. Answering it took three page-opens.
+
+`DisputeCard` is the sibling of `OrderCard` and `UserCard`: cover, identity,
+parties, figures. It adds the escrow state (is the money still with us?) and a
+real SLA reading.
+
+**The SLA counts instead of announcing expiry.** The row said «فاتت المهلة» or
+nothing at all, and everything that matters lives between those two: a dispute
+with three hours left outranks one with two days, and the table flattened them.
+Now: «بقي ٦ ساعات» (amber under 24h), «تأخّر يومان» (red), «استغرق ١٥ يومًا»
+once settled. `Duration` was extracted from `Dwell` rather than copied — a
+second copy renders «٢ ساعة» instead of «ساعتان».
+
+### Gate 39 — seeded rows must be states the product can reach
+
+The seed writes rows directly, so it can assemble a state **no code path can
+produce**. Each row is valid alone; the contradiction is between rows. Nothing
+fails: types pass, screens render, tests are green because each builds its own
+fixtures. The defect then reads as a screen bug while it lives in the data.
+
+Third occurrence of this class (after the hamming-distance image fingerprints
+and the escrow mismatch below), so it gets a gate rather than a third fix:
+`tests/seed-reachable-states.test.ts`.
+
+Two defects it found, both fixed in `prisma/seed.ts`:
+
+1. A dispute resolved as `PARTIAL_SETTLEMENT` with its escrow left `RELEASED`.
+   `resolveDispute` writes `PARTIAL_REFUND`. The card showed «حُسم للمشتري»
+   stacked on «أُفرج للبائع».
+2. **Two listings marked `SOLD` with no order at all.** `closeListingSold` is
+   the only writer of `SOLD` and is only called when an order completes. The
+   seed declared it by counter (`i % 20 === 13`). This was not cosmetic: the
+   sell-through KPI divides sold by published, so two orderless listings
+   inflated it by two sales that never happened. Listings are now closed from
+   the completed orders themselves, with the same `closeReason`.
+
+**The gate judges seeded rows, not a global count.** A first version asserted
+over every row and failed on an order another test file had created and had not
+yet torn down — it passed or failed on file order. It now filters by the same
+shapes `global-setup` uses: test users carry `+9665` + 11 digits, test listing
+refs are a prefix plus a timestamp.
+
+### A test that moved a seeded order and put it back wrong
+
+`settle-quorum.test.ts` took the first seeded order, stripped its escrow, ran it
+through settlement, and then "restored" it to a hardcoded `stage: 'TRANSFER'`.
+`ORD-2026-1000` is seeded at `REQUEST`. So every run left it past payment with
+no escrow — in the dev database, permanently.
+
+It now goes through `snapshotOrder`/`restoreOrder`, the single restore point.
+The rule it broke is already written down: a test returns what it changed, and
+the restore lives in `tests/helpers/order-fixture.ts` alone.

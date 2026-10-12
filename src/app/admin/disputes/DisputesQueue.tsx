@@ -1,17 +1,15 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Money } from '@/components/ui/Money';
-import { Quantity } from '@/components/ui/Quantity';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { toLatinDigits } from '@/lib/arabic';
-import { DISPUTE_STATUS_LABEL, RESOLUTION_LABEL } from '@/lib/labels/admin';
+import { Money } from '@/components/ui/Money';
+import { RESOLUTION_LABEL } from '@/lib/labels/admin';
+import { DisputeCard } from '@/components/admin/DisputeCard';
 import type { DisputeRow } from '@/lib/domain/disputes';
 
 const RESOLUTIONS = ['FULL_REFUND', 'PARTIAL_SETTLEMENT', 'RELEASE_TO_SELLER'] as const;
@@ -29,7 +27,7 @@ const SETTLED: readonly string[] = ['RESOLVED_BUYER', 'RESOLVED_SELLER', 'CLOSED
  * **والاقتراح منفصل عن الاعتماد** في الشاشة كما هو في النطاق: من يقترح
  * لا يجد زرًّا يعتمد به، فلا يبدو النصاب إجراءً شكليًّا يضغطه واحد مرّتين.
  */
-export function DisputesTable({
+export function DisputesQueue({
   disputes,
   adminId,
   canResolve,
@@ -103,111 +101,51 @@ export function DisputesTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
-        <table className="w-full min-w-[880px] text-2xs">
-          <thead className="border-b border-line text-3xs opacity-45">
-            <tr>
-              <th className="p-3.5 text-start font-bold">الطلب</th>
-              <th className="p-3.5 text-start font-bold">السبب</th>
-              <th className="p-3.5 text-end font-bold">إجمالي الطلب</th>
-              <th className="p-3.5 text-start font-bold">الحالة</th>
-              <th className="p-3.5 text-start font-bold">المهلة</th>
-              <th className="p-3.5 text-start font-bold" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {disputes.map((row) => {
-              const isProposer = row.approval?.requestedBy === adminId;
-              return (
-                <tr key={row.id}>
-                  <td className="p-3.5">
-                    {/* المرجع يُنسخ ويُقارن — لاتينيّ معزول */}
-                    <span dir="ltr" className="font-num font-bold">
-                      <Link
-                        href={`/admin/disputes/${row.id}`}
-                        className="underline underline-offset-4 hover:opacity-70"
-                      >
-                        {row.orderRef}
-                      </Link>
+      <div className="flex flex-col gap-2.5">
+        {disputes.map((row) => {
+          const isProposer = row.approval?.requestedBy === adminId;
+          return (
+            <DisputeCard key={row.id} row={row}>
+              {!canResolve || SETTLED.includes(row.status) ? null : row.approval === null ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setTarget(row);
+                    setResolution('FULL_REFUND');
+                    setAmount('');
+                  }}
+                >
+                  اقترح قرارًا
+                </Button>
+              ) : (
+                /*
+                  **والاقتراح منفصل عن الاعتماد** كما هو في النطاق: من
+                  اقترح لا يجد زرًّا يعتمد به، فلا يبدو النصاب إجراءً
+                  شكليًّا يضغطه واحدٌ مرّتين.
+                */
+                <span className="flex flex-col items-start gap-1.5 sm:items-end">
+                  <span className="text-3xs opacity-55">
+                    {RESOLUTION_LABEL[row.approval.resolution] ?? row.approval.resolution}
+                    <span aria-hidden className="mx-1 opacity-40">
+                      ·
                     </span>
-                  </td>
-                  <td className="max-w-[280px] p-3.5 leading-loose">{row.reason}</td>
-                  <td className="p-3.5 text-end">
-                    <Money amount={row.orderTotal} />
-                  </td>
-                  <td className="p-3.5">
-                    <Badge
-                      tone={
-                        SETTLED.includes(row.status) ? 'accent' : row.overdue ? 'warn' : 'neutral'
-                      }
-                    >
-                      {DISPUTE_STATUS_LABEL[row.status] ?? row.status}
-                    </Badge>
-                    {row.resolution === null ? null : (
-                      <span className="mt-1 block text-3xs opacity-55">
-                        {RESOLUTION_LABEL[row.resolution] ?? row.resolution}
-                        {row.resolutionAmount === null ? null : (
-                          <>
-                            {' · '}
-                            <Money amount={row.resolutionAmount} />
-                          </>
-                        )}
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3.5">
-                    {/*
-                      المتأخّر يُعلَّم ولا يُحسم: قرارٌ ماليّ لا يصدر
-                      بانقضاء وقت، بل يُعرض على الفريق.
-                    */}
-                    {row.overdue ? (
-                      <span className="text-warn">فاتت المهلة</span>
-                    ) : (
-                      <span className="opacity-55">
-                        <Quantity unit="messages" count={row.messageCount} />
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3.5">
-                    {!canResolve || SETTLED.includes(row.status) ? null : row.approval === null ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setTarget(row);
-                          setResolution('FULL_REFUND');
-                          setAmount('');
-                        }}
-                      >
-                        اقترح قرارًا
-                      </Button>
-                    ) : (
-                      <span className="flex flex-col items-start gap-1.5">
-                        <span className="text-3xs opacity-55">
-                          {RESOLUTION_LABEL[row.approval.resolution] ?? row.approval.resolution} ·{' '}
-                          <span className="font-num">
-                            <ArabicNumber value={row.approval.approvals} grouped={false} />
-                          </span>{' '}
-                          من{' '}
-                          <span className="font-num">
-                            <ArabicNumber value={row.approval.required} grouped={false} />
-                          </span>
-                        </span>
-                        <Button
-                          size="sm"
-                          disabled={pending || isProposer}
-                          onClick={() => approve(row)}
-                        >
-                          {isProposer ? 'اقترحتَه — ينتظر عضوًا آخر' : 'اعتمد القرار'}
-                        </Button>
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <span className="font-num">
+                      <ArabicNumber value={row.approval.approvals} grouped={false} />
+                    </span>{' '}
+                    من{' '}
+                    <span className="font-num">
+                      <ArabicNumber value={row.approval.required} grouped={false} />
+                    </span>
+                  </span>
+                  <Button size="sm" disabled={pending || isProposer} onClick={() => approve(row)}>
+                    {isProposer ? 'اقترحتَه — ينتظر عضوًا آخر' : 'اعتمد القرار'}
+                  </Button>
+                </span>
+              )}
+            </DisputeCard>
+          );
+        })}
       </div>
 
       <Sheet

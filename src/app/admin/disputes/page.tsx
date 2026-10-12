@@ -7,7 +7,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { type DisputeFilter, disputeCounts, listDisputes } from '@/lib/domain/disputes';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
-import { DisputesTable } from './DisputesTable';
+import { DisputesQueue } from './DisputesQueue';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +73,7 @@ export default async function DisputesPage({
           description="حين يفتح مشترٍ نزاعًا على طلب يظهر هنا بمهلته، ويُحسم بقرارٍ يعتمده عضوان."
         />
       ) : (
-        <DisputesTable
+        <DisputesQueue
           disputes={disputes}
           adminId={admin.id}
           canResolve={canWrite(admin.role, 'escrow.release')}

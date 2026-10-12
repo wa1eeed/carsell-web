@@ -31,7 +31,11 @@ function scale(hours: number): { unit: Unit; count: number } {
   return { unit: 'months', count: Math.floor(days / 30) };
 }
 
-function Span({ hours }: { hours: number }) {
+/**
+ * مدّةٌ بوحدتها الطبيعية — **وتُصدَّر لأن غير الطلبات يحتاجها**: مهلة
+ * نزاعٍ ومهلة عرضٍ ومهلة مزاد. ونسخةٌ ثانية منها تصوغ «٢ ساعة».
+ */
+export function Duration({ hours }: { hours: number }) {
   /**
    * **وأقلُّ من ساعةٍ تُقال بجملتها.** `Quantity` تصوغ الصفر نفيًا
    * («لا ساعات») — وهي حالُ كل طلبٍ في دقائقه الأولى، أي حين يفتحه
@@ -55,7 +59,7 @@ export function Dwell({
   return (
     <span className={className}>
       <span className="opacity-55">مدة المرحلة </span>
-      <Span hours={hours} />
+      <Duration hours={hours} />
       {/**
        * **ولا هدفَ لمرحلةٍ بلا هدف.** الأخيرة صفرٌ، و«الهدف لا ساعات»
        * جملةٌ تُقرأ عطلًا لا معلومة.
@@ -66,7 +70,7 @@ export function Dwell({
             ·
           </span>
           <span className="opacity-55">المستهدف </span>
-          <Span hours={targetHours} />
+          <Duration hours={targetHours} />
         </>
       )}
     </span>
