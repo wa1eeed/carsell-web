@@ -1,9 +1,9 @@
-import Redis from 'ioredis';
 import {
   RealtimeEvent,
   channelFor,
   type UnsequencedEvent,
 } from '@/lib/domain/events';
+import { realtimeRedis as client, withRealtimeTimeout } from './client';
 import { sequenceKey } from './channels';
 
 /**
@@ -19,35 +19,6 @@ import { sequenceKey } from './channels';
  * المزايدة محفوظة، وغاية ما يقع أن يتأخّر التحديث حتى الاستطلاع
  * التالي أو اللقطة التالية.
  */
-
-const globalForRedis = globalThis as unknown as { realtimePublisher?: Redis | null };
-
-function client(): Redis | null {
-  if (globalForRedis.realtimePublisher !== undefined) {
-    return globalForRedis.realtimePublisher;
-  }
-
-  const url = process.env.REDIS_URL;
-  if (url === undefined || url === '') {
-    globalForRedis.realtimePublisher = null;
-    return null;
-  }
-
-  const redis = new Redis(url, {
-    maxRetriesPerRequest: 1,
-    enableOfflineQueue: false,
-    lazyConnect: true,
-    retryStrategy: (times) => Math.min(times * 500, 10_000),
-  });
-
-  // تعطّل Redis لا يكسر الموقع — يُسجَّل ولا يُرمى
-  redis.on('error', (error: Error) => {
-    console.warn('[realtime] Redis غير متاح:', error.message);
-  });
-
-  globalForRedis.realtimePublisher = redis;
-  return redis;
-}
 
 export type PublishResult =
   | { published: true; seq: number; channel: string }
@@ -71,9 +42,13 @@ export async function publish(
   const channel = channelFor(event, recipientId);
 
   try {
-    const seq = await redis.incr(sequenceKey(channel));
+    /* **ومهلةٌ على كل أمر** — التعطّل أسوأ من الفشل، والنشر تحسين */
+    const seq = await withRealtimeTimeout(redis.incr(sequenceKey(channel)));
+    if (seq === null) return { published: false, reason: 'FAILED' };
+
     const message = RealtimeEvent.parse({ ...event, seq });
-    await redis.publish(channel, JSON.stringify(message));
+    const sent = await withRealtimeTimeout(redis.publish(channel, JSON.stringify(message)));
+    if (sent === null) return { published: false, reason: 'FAILED' };
     return { published: true, seq, channel };
   } catch (error) {
     // الحفظ نجح والنشر فشل: العميل سيلحق باللقطة التالية
@@ -85,11 +60,10 @@ export async function publish(
   }
 }
 
-/** للاختبارات وإغلاق العمليات القصيرة. */
-export async function disconnectPublisher(): Promise<void> {
-  const redis = globalForRedis.realtimePublisher;
-  if (redis !== null && redis !== undefined) {
-    await redis.quit().catch(() => undefined);
-  }
-  globalForRedis.realtimePublisher = undefined;
-}
+/**
+ * للاختبارات وإغلاق العمليات القصيرة.
+ *
+ * **ويُعاد تصديرها باسمها القديم**: نقلُ الاتّصال موضعًا لا يَعني كسرَ
+ * من يناديها — والاسم جزءٌ من عقدٍ قائم.
+ */
+export { disconnectRealtimeRedis as disconnectPublisher } from './client';

@@ -6,6 +6,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { TimeAgo } from '@/components/ui/TimeAgo';
 import { Link } from '@/i18n/navigation';
 import { NOTIFICATIONS_CHANGED } from '@/lib/notifications-signal';
+import { subscribeToOwnChannel } from '@/lib/realtime/subscribe';
 import { cn } from '@/lib/cn';
 
 type Item = {
@@ -50,6 +51,12 @@ export function NotificationMenu({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<readonly Item[]>(initialItems);
   const [unread, setUnread] = useState(initialUnread);
+  /**
+   * **والاستطلاع يبقى سقفًا لا يُرفع.** البثّ تحسينٌ لا شرط: لا Redis
+   * في التطوير، وقد تسقط الخدمة. فحين يحيا الاشتراك يتباعد الاستطلاع
+   * ولا يتوقّف — ونزعُه يجعل عطلًا في ناقلٍ عطلًا في المنتج.
+   */
+  const [streaming, setStreaming] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async (): Promise<void> => {
@@ -64,11 +71,28 @@ export function NotificationMenu({
     }
   }, []);
 
+  /**
+   * ═══ الاشتراك — والمسار الذي وصفته الوثيقة منذ المهمة ١٠ ═══
+   *
+   * `notification.created` تُنشر على `user:{id}` منذ بُني المركز،
+   * **ولا مشترِك لها**. والتذكرة تُطلب من REST ثم تُقدَّم في أوّل
+   * إطار — ولا تدخل العنوان.
+   */
+  useEffect(() => {
+    return subscribeToOwnChannel({
+      onLive: setStreaming,
+      onMessage: (message) => {
+        /* الرسالة إشعارٌ بتغيّر لا مصدرُ بيانات — والتفاصيل من REST */
+        if (message.type === 'notification.created') void refresh();
+      },
+    });
+  }, [refresh]);
+
   useEffect(() => {
     const poll = (): void => {
       if (document.visibilityState === 'visible') void refresh();
     };
-    const timer = setInterval(poll, 30_000);
+    const timer = setInterval(poll, streaming ? 120_000 : 30_000);
     const sync = (): void => {
       void refresh();
     };
@@ -82,7 +106,7 @@ export function NotificationMenu({
       document.removeEventListener('visibilitychange', poll);
       window.removeEventListener(NOTIFICATIONS_CHANGED, sync);
     };
-  }, [refresh]);
+  }, [refresh, streaming]);
 
   useEffect(() => {
     if (!open) return undefined;

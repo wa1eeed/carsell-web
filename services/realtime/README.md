@@ -13,10 +13,20 @@ invisibly.
 
 ## Channels
 
-`auction:*` is public and needs no ticket. `user:*` requires short-lived ticket
-authentication, and **the ticket endpoint does not exist yet** — so subscribing to
-a user channel is refused outright. An open subscription to a private channel is
-worse than a missing feature.
+`auction:*` is public and needs no ticket. `user:*` requires a short-lived,
+single-use ticket.
+
+The client calls `POST /api/v1/realtime/ticket` with its session, receives an
+opaque 256-bit id (60s TTL) and the channel name, then sends
+`{action: "auth", ticket}` as its **first frame** — never in the URL, which ends
+up in proxy logs, history and referrers.
+
+This service resolves the ticket with `GETDEL` on the same Redis it already
+subscribes to: **atomic, so two connections cannot use one ticket**, and there is
+no shared signing secret to distribute or leak. It then applies `canSubscribe()`
+— imported from the app, not copied — to every subscribe frame.
+
+A connection that never authenticates stays a visitor: public channels only.
 
 ## Run
 

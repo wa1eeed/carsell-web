@@ -90,11 +90,6 @@ Money is a decimal **string**, never a float, even in a message.
 
 ## Authentication
 
-> **Not implemented — built in task 19.** The protocol is settled here so the
-> client code written before then targets the right shape, but the ticket
-> endpoint does not exist yet: an authentication endpoint with no consumer is
-> attack surface without benefit.
-
 The session JWT is never put in a WebSocket URL — URLs end up in proxy logs,
 browser history and referrers.
 
@@ -103,6 +98,37 @@ browser history and referrers.
 3. Client connects and presents the ticket in the first frame.
 4. The service resolves the ticket to a user id, then applies `canSubscribe()`
    to every subscribe frame on that connection.
+
+### Why the ticket is not a JWT
+
+The contract above requires **single use**, and a stateless token cannot be
+burned: whoever captures it keeps it until it expires. So the ticket is an opaque
+256-bit id written to Redis with a 60-second TTL, and the service resolves it with
+`GETDEL` — atomic, so two connections racing on one ticket cannot both win.
+
+A second consequence: **there is no signing secret to distribute**. The service
+already connects to Redis; it needs no key, and compromising it forges nothing.
+That is one fewer environment variable to forget — the failure mode this codebase
+has recorded more than once.
+
+`canSubscribe()` is imported by the service from `src/lib/realtime/channels.ts`,
+not copied. A copied gate drifts from its original and ends up permitting what
+the original denies.
+
+### Everything here degrades to polling
+
+No `REDIS_URL` → no ticket. No `NEXT_PUBLIC_REALTIME_URL` → no socket. A ticket
+refused → the client closes and asks for another. In every case the 30-second
+poll underneath is still running, so a broken notification carrier is never a
+broken product.
+
+**Every Redis command is bounded at one second.** A port that accepts a
+connection and never answers — a stopped container behind a proxy — makes a
+command wait out the connect timeout and then retry forever. Measured: one
+order-cancellation test took **638 seconds** and then failed; the cancellation
+itself had succeeded, and what hung was its notification. In production that is a
+user's request frozen. Hanging is worse than failing, and the publisher's own
+documentation already said failure must not block.
 
 ## Connection rules
 
