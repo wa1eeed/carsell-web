@@ -571,3 +571,59 @@ visible**, with an immediate refresh when the reader comes back.
 
 Like the user-facing bell, this is a poll and is described as one: the realtime
 service still refuses private channels until the ticket issuer exists.
+
+## The remaining eight detail pages (task 148)
+
+Ten admin detail pages were measured: **nine had no tabs and no timeline**.
+Listings and orders were done first, leaving eight — and writing the pattern
+eight more times by hand produces eight layouts that drift on the first edit,
+exactly as happened with the monitor screens before them.
+
+`src/lib/domain/admin-entity-timelines.ts` merges the sources per entity; the
+shell and the renderer are shared (`Timeline`, `TIMELINE_LABEL`, `DetailStats`).
+
+### Short pages get two tabs, not four
+
+Orders and customers carry four tabs. Dealers, auctions, offers, disputes,
+reports and service requests get two — overview and timeline. Splitting a page
+of three cards into five tabs hides what was visible.
+
+### Nothing is invented where there is no source
+
+`Offer` and `Report` have **no event table**: a current status and a couple of
+timestamps. Their timelines derive from those plus `AuditLog`, and no "an admin
+changed the status" row is invented when no status history is recorded.
+
+A counter-offer is **another offer row**, not a field on the first, so the
+negotiation chain is read from the listing's offers between the two parties.
+
+### What the merge exposed in the seed
+
+Three things only became visible once sources were merged into one ordered line:
+
+- **Three screens were always empty.** The seed created no offers, no disputes
+  and no reports at all, so `/admin/offers`, `/admin/disputes` and
+  `/admin/reports` opened empty in every seeded environment and their detail
+  pages had nothing to open. Tests never noticed because each builds its own rows.
+- **The seeded environment could not buy.** The purchase guard checks email,
+  identity **and tax status** together, and the seed left `taxStatus` null for
+  everyone: zero users could complete a purchase. This surfaced as
+  `auction-buy-now` failing after a reseed — not because code changed, but
+  because the environment was never capable.
+- **Orders were born after their own events.** `createdAt` defaulted to *now*
+  while `stageEnteredAt` and the order events were backdated two weeks, so the
+  timeline showed "order created" as the **last** row and a dispute preceded the
+  order it belonged to by two months. Every row was individually valid; the
+  contradiction was between them.
+
+### Two label defects of the same class
+
+`DisputeStatus` has no `RESOLVED` member — it is `RESOLVED_BUYER`,
+`RESOLVED_SELLER`, `CLOSED`. The compiler caught it in the seed. **The screen
+had carried the same wrong key since it was built**: `STATUS_TONE.RESOLVED`
+meant every resolved dispute rendered in a neutral tone. A key that does not
+exist fails silently into `?? 'neutral'` and reads as a decision.
+
+The offer page showed "Status: lapsed" above a badge reading `ACCEPTED`: lapsing
+was computed from the date alone. **It only applies to what was still open** —
+an offer accepted before its deadline has not lapsed.

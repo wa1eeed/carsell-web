@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { DetailCard, DetailColumns, DetailHeader, Field } from '@/components/admin/DetailShell';
+import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
 import { Badge } from '@/components/ui/Badge';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminReportDetail } from '@/lib/domain/admin-detail-readers';
+import { reportTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
@@ -34,8 +37,10 @@ const TARGET_LABEL: Record<string, string> = {
  */
 export default async function AdminReportDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ref: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -44,6 +49,11 @@ export default async function AdminReportDetailPage({
   const { ref } = await params;
   const report = await adminReportDetail(decodeURIComponent(ref));
   if (report === null) notFound();
+
+  const search = await searchParams;
+  /* **ويُجلَب خطُّ الزمن لتبويبته وحدها** — استعلامُه يمرّ على عدّة جداول */
+  const timeline = search.tab === 'timeline';
+  const events = timeline ? await reportTimeline(report.ref) : [];
 
   const targetHref =
     report.targetType === 'listing' && report.targetRef !== null
@@ -64,6 +74,25 @@ export default async function AdminReportDetailPage({
         }
       />
 
+      <DetailStats
+        items={[
+          { label: 'الحالة', value: report.status },
+          { label: 'الهدف', value: report.targetRef ?? report.targetId },
+          { label: 'قُدّم', value: riyadh.format(new Date(report.createdAt)) },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/reports/${encodeURIComponent(report.ref)}`}
+        param="tab"
+        active={timeline ? 'timeline' : null}
+        tabs={[
+          { key: null, label: 'نظرة عامة' },
+          { key: 'timeline', label: 'خطّ الزمن' },
+        ]}
+      />
+
+      {timeline ? null : (
       <DetailColumns
         main={
           <>
@@ -132,6 +161,17 @@ export default async function AdminReportDetailPage({
           </>
         }
       />
+      )}
+
+      {!timeline ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            تقديمُ البلاغ وما فعله الفريق به.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
     </AdminShell>
   );
 }

@@ -1,12 +1,15 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { DetailCard, DetailColumns, DetailHeader, Field } from '@/components/admin/DetailShell';
+import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminDisputeDetail } from '@/lib/domain/admin-detail-readers';
+import { disputeTimeline } from '@/lib/domain/admin-entity-timelines';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
@@ -20,10 +23,24 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   timeZone: 'Asia/Riyadh',
 });
 
+/**
+ * حالاتُ النزاع بالعربية — **ومن التعداد لا من الذاكرة**: لا
+ * `RESOLVED` فيه، بل بمن حُسم لصالحه.
+ */
+const DISPUTE_STATUS: Record<string, string> = {
+  OPEN: 'مفتوح',
+  INVESTIGATING: 'قيد التحقيق',
+  RESOLVED_BUYER: 'حُسم للمشتري',
+  RESOLVED_SELLER: 'حُسم للبائع',
+  CLOSED: 'مُغلق',
+};
+
+/* **ومفتاحٌ لا وجود له يسقط إلى محايد**: كان `RESOLVED` هنا والتعداد لا يعرفه */
 const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
   OPEN: 'danger',
   INVESTIGATING: 'warn',
-  RESOLVED: 'accent',
+  RESOLVED_BUYER: 'accent',
+  RESOLVED_SELLER: 'accent',
   CLOSED: 'neutral',
 };
 
@@ -37,8 +54,10 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
  */
 export default async function AdminDisputeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -47,6 +66,11 @@ export default async function AdminDisputeDetailPage({
   const { id } = await params;
   const dispute = await adminDisputeDetail(id);
   if (dispute === null) notFound();
+
+  const search = await searchParams;
+  /* **ويُجلَب خطُّ الزمن لتبويبته وحدها** — استعلامُه يمرّ على عدّة جداول */
+  const timeline = search.tab === 'timeline';
+  const events = timeline ? await disputeTimeline(dispute.id) : [];
 
   return (
     <AdminShell title="تفاصيل النزاع" activeHref="/admin/disputes" admin={admin}>
@@ -57,13 +81,39 @@ export default async function AdminDisputeDetailPage({
         title={`${dispute.reason} — فتحه ${dispute.openedByName}`}
         badges={
           <>
-            <Badge tone={STATUS_TONE[dispute.status] ?? 'neutral'}>{dispute.status}</Badge>
+            <Badge tone={STATUS_TONE[dispute.status] ?? 'neutral'}>
+              {DISPUTE_STATUS[dispute.status] ?? dispute.status}
+            </Badge>
             {/* المهلة والزمن معًا — ونزاعٌ فات موعدُه وهو مفتوح متجاوز */}
             {dispute.slaBreached ? <Badge tone="danger">تجاوز المهلة</Badge> : null}
           </>
         }
       />
 
+      <DetailStats
+        items={[
+          { label: 'الحالة', value: DISPUTE_STATUS[dispute.status] ?? dispute.status },
+          {
+            label: 'مهلة الردّ',
+            value: dispute.slaDueAt === null ? 'لا مهلة' : riyadh.format(new Date(dispute.slaDueAt)),
+            ...(dispute.slaBreached ? { tone: 'danger' as const } : {}),
+          },
+          { label: 'الطلب', value: dispute.order.ref },
+          { label: 'فُتح', value: riyadh.format(new Date(dispute.openedAt)) },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/disputes/${encodeURIComponent(dispute.id)}`}
+        param="tab"
+        active={timeline ? 'timeline' : null}
+        tabs={[
+          { key: null, label: 'نظرة عامة' },
+          { key: 'timeline', label: 'خطّ الزمن' },
+        ]}
+      />
+
+      {timeline ? null : (
       <DetailColumns
         main={
           <DetailCard
@@ -160,6 +210,17 @@ export default async function AdminDisputeDetailPage({
           </>
         }
       />
+      )}
+
+      {!timeline ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            الطلبُ الذي نشأ عنه، وفتحُ النزاع، ورسائلُه، وقرارُه، وأثر الفريق.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
     </AdminShell>
   );
 }

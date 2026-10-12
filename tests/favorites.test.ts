@@ -23,10 +23,18 @@ afterAll(async () => {
 async function pair(): Promise<{ userId: string; ref: string }> {
   const listing = await db.listing.findFirstOrThrow({
     where: { status: 'PUBLISHED' },
-    select: { ref: true, sellerId: true },
+    select: { id: true, ref: true, sellerId: true },
   });
+  /**
+   * **والطقم يشترط ما يفترضه.** كان يأخذ أيَّ مستخدمٍ غير البائع
+   * **ويفترض** أنه لم يُفضّل هذا الإعلان — والبذرة تصنع مفضّلاتٍ
+   * عشوائية، فيسقط الاختبار على زرعٍ بعينه ويبدو تقطّعًا وهو شرطٌ ناقص.
+   */
   const user = await db.user.findFirstOrThrow({
-    where: { id: { not: listing.sellerId } },
+    where: {
+      id: { not: listing.sellerId },
+      favorites: { none: { listingId: listing.id } },
+    },
     select: { id: true },
   });
   return { userId: user.id, ref: listing.ref };

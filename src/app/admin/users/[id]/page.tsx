@@ -5,14 +5,18 @@ import {
   DetailCard,
   DetailColumns,
   DetailHeader,
+  DetailStats,
   Field,
 } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { adminUserDetail } from '@/lib/domain/admin-entity-detail';
+import { userTimeline } from '@/lib/domain/admin-entity-timelines';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { MarginPanel } from './MarginPanel';
@@ -56,10 +60,30 @@ const TAX_LABEL: Record<string, string> = {
  * هذه الشاشة يجعل القراءة تقع بلا أن يقصدها أحد وبلا أن تُسجَّل**.
  * فالمعروض هنا حالةُ التوثيق لا الرقم.
  */
+/**
+ * ═══ والتابز — ونظرةٌ شاملة على العميل ═══
+ *
+ * الصفحة كانت عمودين فيهما كلُّ شيء: الإعلانات والطلبات والمحفظة
+ * والتجاوزات والحساب والأرقام والتوثيق. **ومن يحقّق في شكوى يسأل
+ * «ماذا فعل هذا الحساب ومتى»** — ولا ترتيب زمنيّ في الصفحة كلّها:
+ * إعلاناته في بطاقة وطلباته في أخرى ومحفظته في ثالثة، وأيُّها سبق
+ * الآخر لا يُعرف.
+ */
+const TABS = [
+  { key: null, label: 'نظرة عامة' },
+  { key: 'activity', label: 'خطّ الزمن' },
+  { key: 'money', label: 'المحفظة والدفتر' },
+  { key: 'access', label: 'التوثيق والصلاحيات' },
+] as const;
+
+type UserTab = (typeof TABS)[number]['key'];
+
 export default async function AdminUserDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -68,6 +92,13 @@ export default async function AdminUserDetailPage({
   const { id } = await params;
   const user = await adminUserDetail(id);
   if (user === null) notFound();
+
+  const search = await searchParams;
+  const raw = typeof search.tab === 'string' ? search.tab : undefined;
+  const tab: UserTab = TABS.map((row) => row.key).find((key) => key === raw) ?? null;
+
+  /* **ويُجلَب لتبويبته وحدها** — استعلامه يمرّ على خمسة جداول */
+  const events = tab === 'activity' ? await userTimeline(user.id) : [];
 
   return (
     <AdminShell title="ملفّ العميل" activeHref="/admin/users" admin={admin}>
@@ -88,6 +119,39 @@ export default async function AdminUserDetailPage({
         }
       />
 
+      <DetailStats
+        items={[
+          { label: 'إعلاناته', value: <ArabicNumber value={user.counts.listings} /> },
+          { label: 'اشترى', value: <ArabicNumber value={user.counts.asBuyer} /> },
+          { label: 'باع', value: <ArabicNumber value={user.counts.asSeller} /> },
+          {
+            label: 'رصيد المحفظة',
+            value:
+              user.wallet === null ? 'لا محفظة' : <Money amount={Number(user.wallet.balance)} />,
+          },
+          {
+            label: 'عضوٌ منذ',
+            value: riyadh.format(new Date(user.createdAt)),
+          },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/users/${encodeURIComponent(user.id)}`}
+        param="tab"
+        active={tab}
+        tabs={TABS.map((row) => ({
+          key: row.key,
+          label: row.label,
+          ...(row.key === 'money'
+            ? { count: user.ledger.length }
+            : row.key === 'access'
+              ? { count: user.overrides.length }
+              : {}),
+        }))}
+      />
+
+      {tab !== null ? null : (
       <DetailColumns
         main={
           <>
@@ -154,6 +218,34 @@ export default async function AdminUserDetailPage({
               )}
             </DetailCard>
 
+          </>
+        }
+        side={
+          <DetailCard title="لمحة">
+            <Field label="الاسم" value={user.name} />
+            <Field label="الهاتف" value={user.phone} ltr />
+            {user.email === null ? null : <Field label="البريد" value={user.email} ltr />}
+            {user.dealerName === null ? null : <Field label="المعرض" value={user.dealerName} />}
+          </DetailCard>
+        }
+      />
+      )}
+
+      {tab !== 'activity' ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            ما فعله هذا الحساب في السوق مرتَّبًا: إنشاؤه، وإعلاناته، وعروضه،
+            وما اشتراه وما باعه، وبلاغاتُه، وأثر الفريق عليه.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
+
+      {tab !== 'money' ? null : (
+      <DetailColumns
+        main={
+          <>
             <DetailCard title="المحفظة" note="الرصيد وحركته وأدوات التعديل">
               <WalletPanel
                 userId={user.id}
@@ -216,8 +308,30 @@ export default async function AdminUserDetailPage({
                 </div>
               )}
             </DetailCard>
+          </>
+        }
+        side={
+          <DetailCard title="لمحة">
+            <Field
+              label="الرصيد"
+              value={user.wallet === null ? 'لا محفظة' : <Money amount={Number(user.wallet.balance)} />}
+              strong
+            />
+          </DetailCard>
+        }
+      />
+      )}
 
-            {user.overrides.length === 0 ? null : (
+      {tab !== 'access' ? null : (
+      <DetailColumns
+        main={
+          <>
+            {user.overrides.length === 0 ? (
+              <DetailCard title="تجاوزات الخصائص">
+                {/* **وغيابُه يُقال** — بطاقةٌ تُحذف تجعل القارئ يظنّ أنه لم يبحث */}
+                <p className="text-2xs opacity-55">لا تجاوزات على هذا الحساب.</p>
+              </DetailCard>
+            ) : (
               <DetailCard title="تجاوزات الخصائص" note="بسببها">
                 {user.overrides.map((override) => (
                   <Field
@@ -233,6 +347,7 @@ export default async function AdminUserDetailPage({
         }
         side={
           <>
+            {/* **والحساب والأرقام والتوثيق معًا هنا** — وهي ما يُقرَّر به في هذه التبويبة */}
             <DetailCard title="الحساب">
               <Field label="رقم العميل" value={user.ref ?? 'لم يُمنح بعد'} ltr strong />
               <Field label="الاسم" value={user.name} />
@@ -320,6 +435,7 @@ export default async function AdminUserDetailPage({
           </>
         }
       />
+      )}
     </AdminShell>
   );
 }

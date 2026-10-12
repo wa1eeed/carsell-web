@@ -28,6 +28,26 @@ export const TIMELINE_LABEL: Record<string, string> = {
     مقصودًا. وخطُّ زمن الطلب يكتبها من `Escrow.heldAt`/`releasedAt`
     و`TaxInvoice` و`PaymentEvent`.
   */
+  /* ═══ الحساب والمعرض والبلاغ والخدمة — ولكلٍّ كاتبٌ في `admin-entity-timelines` ═══ */
+  'trim.create': 'أُنشئت الفئة',
+  'trim.update': 'عُدِّلت الفئة',
+  'trim.delete': 'حُذفت الفئة',
+
+  'user.joined': 'أُنشئ الحساب',
+  /** **والدورُ يُقال**: «أُنشئ طلب» لا تقول أمشتريًا كان أم بائعًا. */
+  'order.asBuyer': 'اشترى',
+  'order.asSeller': 'باع',
+  'report.filed': 'قدّم بلاغًا',
+
+  'dealer.registered': 'سُجّل المعرض',
+  'dealer.marginScheme': 'مُنح نظام هامش الربح',
+
+  'deposit.released': 'رُدّ العربون',
+  'dispute.message': 'رسالةٌ في النزاع',
+
+  'service.requested': 'طُلبت خدمة',
+  'service.scheduled': 'حُدّد موعد الخدمة',
+
   'escrow.held': 'حُجز المبلغ في الضمان',
   'escrow.released': 'أُفرج عن الضمان',
   'invoice.issued': 'صدرت فاتورة ضريبية',

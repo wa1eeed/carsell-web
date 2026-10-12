@@ -1,13 +1,16 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { DetailCard, DetailColumns, DetailHeader, Field } from '@/components/admin/DetailShell';
+import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminAuctionDetail } from '@/lib/domain/admin-detail-readers';
+import { auctionTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
@@ -31,8 +34,10 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
  */
 export default async function AdminAuctionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ref: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -41,6 +46,11 @@ export default async function AdminAuctionDetailPage({
   const { ref } = await params;
   const auction = await adminAuctionDetail(decodeURIComponent(ref));
   if (auction === null) notFound();
+
+  const search = await searchParams;
+  /* **ويُجلَب خطُّ الزمن لتبويبته وحدها** — استعلامُه يمرّ على عدّة جداول */
+  const timeline = search.tab === 'timeline';
+  const events = timeline ? await auctionTimeline(auction.listingRef) : [];
 
   const pending = auction.status === 'LIVE' && auction.timeElapsed;
 
@@ -66,6 +76,26 @@ export default async function AdminAuctionDetailPage({
         }
       />
 
+      <DetailStats
+        items={[
+          { label: 'أعلى مزايدة', value: auction.topBid === null ? 'لا مزايدات' : <Money amount={Number(auction.topBid)} /> },
+          { label: 'المزايدات', value: <ArabicNumber value={auction.bids.length} /> },
+          { label: 'العربون', value: <Money amount={Number(auction.depositAmount)} /> },
+          { label: 'يُغلق', value: riyadh.format(new Date(auction.endsAt)) },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/auctions/${encodeURIComponent(auction.listingRef)}`}
+        param="tab"
+        active={timeline ? 'timeline' : null}
+        tabs={[
+          { key: null, label: 'نظرة عامة' },
+          { key: 'timeline', label: 'خطّ الزمن' },
+        ]}
+      />
+
+      {timeline ? null : (
       <DetailColumns
         main={
           <>
@@ -190,6 +220,17 @@ export default async function AdminAuctionDetailPage({
           </>
         }
       />
+      )}
+
+      {!timeline ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            فتحُ المزاد ومزايداتُه وعرابينُه وإغلاقُه — ولا هويّة مزايدٍ هنا ولا في غيرها.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
     </AdminShell>
   );
 }

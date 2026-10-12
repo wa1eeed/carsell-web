@@ -1,12 +1,16 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { DetailCard, DetailColumns, DetailHeader, Field } from '@/components/admin/DetailShell';
+import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminOfferDetail } from '@/lib/domain/admin-detail-readers';
+import { offerTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +22,16 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   minute: '2-digit',
   timeZone: 'Asia/Riyadh',
 });
+
+/** حالاتُ العرض بالعربية — ولا شيفرةٌ في ترويسةٍ يقرؤها مشغّل. */
+const OFFER_STATUS: Record<string, string> = {
+  PENDING: 'قائم',
+  COUNTERED: 'ردّ البائع بمقابل',
+  ACCEPTED: 'مقبول',
+  REJECTED: 'مرفوض',
+  WITHDRAWN: 'سحبه المشتري',
+  EXPIRED: 'سقط بانقضاء مهلته',
+};
 
 const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
   ACCEPTED: 'accent',
@@ -38,8 +52,10 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
  */
 export default async function AdminOfferDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -48,6 +64,11 @@ export default async function AdminOfferDetailPage({
   const { id } = await params;
   const offer = await adminOfferDetail(id);
   if (offer === null) notFound();
+
+  const search = await searchParams;
+  /* **ويُجلَب خطُّ الزمن لتبويبته وحدها** — استعلامُه يمرّ على عدّة جداول */
+  const timeline = search.tab === 'timeline';
+  const events = timeline ? await offerTimeline(offer.id) : [];
 
   return (
     <AdminShell title="تفاصيل العرض" activeHref="/admin/offers" admin={admin}>
@@ -58,7 +79,9 @@ export default async function AdminOfferDetailPage({
         title={`${offer.listing.title} — عرض من ${offer.buyer.name}`}
         badges={
           <>
-            <Badge tone={STATUS_TONE[offer.status] ?? 'neutral'}>{offer.status}</Badge>
+            <Badge tone={STATUS_TONE[offer.status] ?? 'neutral'}>
+              {OFFER_STATUS[offer.status] ?? offer.status}
+            </Badge>
             {/* المهلة والزمن معًا — وعرضٌ انقضت مهلتُه ليس «قائمًا» */}
             {offer.expired && offer.status === 'PENDING' ? (
               <Badge tone="danger">انقضت مهلته</Badge>
@@ -68,6 +91,38 @@ export default async function AdminOfferDetailPage({
         }
       />
 
+      <DetailStats
+        items={[
+          { label: 'المبلغ', value: <Money amount={Number(offer.amount)} /> },
+          {
+            label: 'الحالة',
+            /**
+             * **والانقضاء لا يُقال إلّا على ما كان قائمًا.** عرضٌ
+             * `ACCEPTED` مضى تاريخ مهلته ليس ساقطًا بالانقضاء — قُبل
+             * قبلها. وكانت الشارة تقول `ACCEPTED` والشريط «سقط
+             * بانقضاء مهلته» في شاشةٍ واحدة.
+             */
+            value:
+              offer.expired && (offer.status === 'PENDING' || offer.status === 'COUNTERED')
+                ? 'سقط بانقضاء مهلته'
+                : (OFFER_STATUS[offer.status] ?? offer.status),
+          },
+          { label: 'جولات التفاوض', value: <ArabicNumber value={offer.chain.length} /> },
+          { label: 'تنتهي مهلته', value: riyadh.format(new Date(offer.expiresAt)) },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/offers/${encodeURIComponent(offer.id)}`}
+        param="tab"
+        active={timeline ? 'timeline' : null}
+        tabs={[
+          { key: null, label: 'نظرة عامة' },
+          { key: 'timeline', label: 'خطّ الزمن' },
+        ]}
+      />
+
+      {timeline ? null : (
       <DetailColumns
         main={
           <DetailCard
@@ -151,6 +206,17 @@ export default async function AdminOfferDetailPage({
           </>
         }
       />
+      )}
+
+      {!timeline ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            سلسلةُ التفاوض كاملةً بين هذا المشتري وهذا الإعلان، وما انتهت إليه.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
     </AdminShell>
   );
 }

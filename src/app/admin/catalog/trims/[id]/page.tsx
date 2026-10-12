@@ -3,6 +3,9 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
+import { trimTimeline } from '@/lib/domain/admin-entity-timelines';
 import { TrimEditor } from './TrimEditor';
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +15,10 @@ export const dynamic = 'force-dynamic';
  */
 export default async function TrimEditorPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -30,6 +35,14 @@ export default async function TrimEditorPage({
   });
   if (trim === null) notFound();
 
+  /**
+   * **وتعديلُ الفئة يغيّر مركباتٍ قائمة** — فمن غيّرها ومتى سؤالٌ
+   * يُسأل حين تُشتكى سيارةٌ لا تطابق وصفَها.
+   */
+  const search = await searchParams;
+  const timeline = search.tab === 'timeline';
+  const events = timeline ? await trimTimeline(trim.id) : [];
+
   // المميّزات المعروضة في محرّر الفئة وحدها (موضع trim_editor)
   const features = await db.feature.findMany({
     where: { active: true, placements: { has: 'trim_editor' } },
@@ -42,6 +55,28 @@ export default async function TrimEditorPage({
       activeHref="/admin/catalog/brands"
       admin={admin}
     >
+      <MonitorTabs
+        basePath={`/admin/catalog/trims/${encodeURIComponent(trim.id)}`}
+        param="tab"
+        active={timeline ? 'timeline' : null}
+        tabs={[
+          { key: null, label: 'المحرّر' },
+          { key: 'timeline', label: 'سجلّ التعديل' },
+        ]}
+      />
+
+      {!timeline ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">سجلّ التعديل</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            ما يُعدَّل هنا يُورَّث إلى كل مركبةٍ تُنشأ من هذه الفئة — فمن غيّره ومتى
+            سؤالٌ يُسأل حين تُشتكى سيارةٌ لا تطابق وصفَها.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
+
+      {timeline ? null : (
       <TrimEditor
         trim={{
           id: trim.id,
@@ -74,6 +109,7 @@ export default async function TrimEditorPage({
         selected={trim.features.map((f) => f.featureKey)}
         canEdit={canWrite(admin.role, 'catalog.manage')}
       />
+      )}
     </AdminShell>
   );
 }

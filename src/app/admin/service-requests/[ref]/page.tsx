@@ -1,13 +1,16 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { DetailCard, DetailColumns, DetailHeader, Field } from '@/components/admin/DetailShell';
+import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminServiceRequestDetail } from '@/lib/domain/admin-detail-readers';
+import { serviceRequestTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
@@ -45,8 +48,10 @@ function sla(hours: number | null): string {
  */
 export default async function AdminServiceRequestDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ref: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -55,6 +60,11 @@ export default async function AdminServiceRequestDetailPage({
   const { ref } = await params;
   const request = await adminServiceRequestDetail(decodeURIComponent(ref));
   if (request === null) notFound();
+
+  const search = await searchParams;
+  /* **ويُجلَب خطُّ الزمن لتبويبته وحدها** — استعلامُه يمرّ على عدّة جداول */
+  const timeline = search.tab === 'timeline';
+  const events = timeline ? await serviceRequestTimeline(request.ref) : [];
 
   return (
     <AdminShell title="تفاصيل طلب الخدمة" activeHref="/admin/service-requests" admin={admin}>
@@ -71,6 +81,26 @@ export default async function AdminServiceRequestDetailPage({
         }
       />
 
+      <DetailStats
+        items={[
+          { label: 'المبلغ', value: <Money amount={Number(request.amount)} /> },
+          { label: 'الحالة', value: request.status },
+          { label: 'المهلة', value: request.dueAt === null ? 'لا مهلة' : riyadh.format(new Date(request.dueAt)), ...(request.overdue ? { tone: 'danger' as const } : {}) },
+          { label: 'طُلبت', value: riyadh.format(new Date(request.createdAt)) },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/service-requests/${encodeURIComponent(request.ref)}`}
+        param="tab"
+        active={timeline ? 'timeline' : null}
+        tabs={[
+          { key: null, label: 'نظرة عامة' },
+          { key: 'timeline', label: 'خطّ الزمن' },
+        ]}
+      />
+
+      {timeline ? null : (
       <DetailColumns
         main={
           <>
@@ -166,6 +196,17 @@ export default async function AdminServiceRequestDetailPage({
           </>
         }
       />
+      )}
+
+      {!timeline ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            طلبُ الخدمة وإسنادُها وموعدُها ونتيجتُها، وأثر الفريق.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
     </AdminShell>
   );
 }

@@ -764,6 +764,24 @@ async function main(): Promise<void> {
           identityStatus: i % 3 !== 0 ? 'VERIFIED' : i % 3 === 0 && i % 2 === 0 ? 'PENDING' : 'NONE',
           idVerified: i % 3 !== 0,
           ...(i % 3 === 0 && i % 2 === 0 ? { identitySubmittedAt: days(-between(1, 4)) } : {}),
+          /**
+           * ═══ ومشترٍ مكتملُ الملفّ — وإلّا فالبيئة لا تشتري ═══
+           *
+           * حارسُ الشراء يفحص **البريد والهوية والوضع الضريبيّ** معًا
+           * (`profileCompletion`). والبذرة كانت تترك `taxStatus` فارغًا
+           * للجميع — **فصفرُ مستخدمين يستطيعون الشراء** في كل بيئةٍ
+           * مزروعة، ولا مشي رحلةٍ يكتمل.
+           *
+           * ولا يُجعل الكلُّ مكتملًا: طابور «أكمل ملفّك» جزءٌ من المنتج،
+           * فالثلث الأوّل مكتمل وما بقي على حاله.
+           */
+          ...(i % 3 === 1
+            ? {
+                email: `buyer${String(i + 1)}@example.com`,
+                taxStatus: 'INDIVIDUAL' as const,
+                taxStatusSetAt: days(-between(5, 60)),
+              }
+            : {}),
           createdAt: days(-between(5, 300)),
         },
       }),
@@ -1069,6 +1087,19 @@ async function main(): Promise<void> {
      */
     const vat = new D('0.00');
 
+    /**
+     * ═══ والطلبُ يُولد قبل أحداثه ═══
+     *
+     * كان `createdAt` متروكًا لافتراضيّه (**الآن**) و`stageEnteredAt`
+     * مؤرَّخًا قبل أسبوعين وأحداثُه قبل أربعةَ عشر يومًا — **فالإنشاء
+     * يقع بعد ما نشأ عنه**. وخطُّ زمن الطلب يعرض «أُنشئ طلب» آخرَ
+     * سطرٍ، ونزاعٌ عليه يسبق مولدَه.
+     *
+     * ولا شيء يسقط: الصفوف صحيحةٌ كلٌّ على حدة، **والتناقض بينها**.
+     */
+    const bornAt = days(-between(16, 30));
+    const enteredAt = days(-between(1, 14));
+
     const order = await prisma.order.create({
       data: {
         ref: `ORD-2026-${String(1000 + i)}`,
@@ -1089,21 +1120,26 @@ async function main(): Promise<void> {
         transferFee,
         vatAmount: vat,
         totalAmount: total,
-        stageEnteredAt: days(-between(1, 14)),
+        createdAt: bornAt,
+        stageEnteredAt: enteredAt,
         paymentDueAt: stage === 'PAYMENT' ? hours(between(2, 22)) : null,
         transferAppointmentAt: stage === 'TRANSFER' ? days(between(1, 5)) : null,
       },
     });
 
     await prisma.orderEvent.createMany({
-      data: STAGES.slice(0, STAGES.indexOf(stage) + 1).map((s, n) => ({
+      data: STAGES.slice(0, STAGES.indexOf(stage) + 1).map((s, n, all) => ({
         orderId: order.id,
         // نفس اسم `advanceStage` — واسمان لحدث واحد أسوأ من اسم غير مثالي
         type: 'stage.advanced',
         fromStage: n === 0 ? null : (STAGES[n - 1] ?? null),
         toStage: s,
         actorType: 'system',
-        createdAt: days(-14 + n),
+        /* موزَّعةٌ بين المولد ودخول المرحلة — فالتسلسل يُقرأ كما وقع */
+        createdAt: new Date(
+          bornAt.getTime() +
+            ((enteredAt.getTime() - bornAt.getTime()) * (n + 1)) / all.length,
+        ),
       })),
     });
 
@@ -1130,6 +1166,105 @@ async function main(): Promise<void> {
         },
       });
     }
+  }
+
+  // ————— العروض والنزاعات والبلاغات —————
+  /**
+   * ═══ وثلاثُ شاشاتٍ كانت فارغةً دائمًا ═══
+   *
+   * البذرة تُنشئ إعلاناتٍ ومزاداتٍ وطلبات، **ولا عرضًا ولا نزاعًا ولا
+   * بلاغًا واحدًا**. فـ`/admin/offers` و`/admin/disputes` و
+   * `/admin/reports` تُفتح فارغةً في كل بيئةٍ مزروعة — وصفحاتُ
+   * تفاصيلها لا شيء يُفتح فيها.
+   *
+   * ولا شيء يسقط: الشاشة تُصيَّر والاختبار يمرّ (يصنع صفوفه بنفسه) —
+   * **والفراغ يُقرأ «لم يُبنَ» لا «لا بيانات»**.
+   *
+   * **والحالاتُ تُغطّى كلُّها**: شاشةٌ فيها `PENDING` وحدها لا تُظهر
+   * نبراتِ الشارات ولا فروعَ العرض — ومراجعةُ التصميم عليها تُخطئ.
+   */
+  const negotiables = listings.filter((l) => l.type === 'NEGOTIATION').slice(0, 6);
+  const offerPlan = [
+    { status: 'PENDING' as const, autoRejected: false, ratio: 0.93 },
+    { status: 'COUNTERED' as const, autoRejected: false, ratio: 0.96 },
+    { status: 'ACCEPTED' as const, autoRejected: false, ratio: 0.98 },
+    { status: 'REJECTED' as const, autoRejected: true, ratio: 0.62 },
+    { status: 'REJECTED' as const, autoRejected: false, ratio: 0.88 },
+    { status: 'WITHDRAWN' as const, autoRejected: false, ratio: 0.9 },
+    { status: 'EXPIRED' as const, autoRejected: false, ratio: 0.85 },
+  ];
+
+  for (const [n, plan] of offerPlan.entries()) {
+    const listing = negotiables[n % negotiables.length];
+    if (listing === undefined) break;
+    const offerBuyer = buyers[n % buyers.length];
+    if (offerBuyer === undefined || offerBuyer.id === listing.sellerId) continue;
+
+    const madeAt = days(-between(2, 20));
+    await prisma.offer.create({
+      data: {
+        listingId: listing.id,
+        buyerId: offerBuyer.id,
+        amount: new Prisma.Decimal(Math.round(Number(listing.askPrice) * plan.ratio)),
+        status: plan.status,
+        autoRejected: plan.autoRejected,
+        createdAt: madeAt,
+        /* **والمنتهي مهلتُه في الماضي** — وإلّا قُرئ نشطًا رغم حالته */
+        expiresAt: new Date(madeAt.getTime() + (plan.status === 'EXPIRED' ? 1 : 96) * 3600 * 1000),
+      },
+    });
+  }
+
+  /** نزاعان: واحدٌ مفتوحٌ ينتظر، وواحدٌ حُسم — فالشاشة تُظهر الطرفين. */
+  const disputable = await prisma.order.findMany({
+    where: { stage: { in: ['TRANSFER', 'DONE'] } },
+    select: { id: true, buyerId: true, createdAt: true },
+    take: 2,
+  });
+  for (const [n, order] of disputable.entries()) {
+    const resolved = n === 1;
+    /** **والنزاع يُفتح بعد طلبه** — ومرساه تاريخُ الطلب لا «الآن». */
+    const openedAt = new Date(order.createdAt.getTime() + 3 * 24 * 3600 * 1000);
+    await prisma.dispute.create({
+      data: {
+        orderId: order.id,
+        openedBy: order.buyerId,
+        reason: resolved ? 'تأخّر نقل الملكية عن الموعد' : 'المركبة بحالةٍ غير الموصوفة في الإعلان',
+        /* **والتعدادُ يُقرأ لا يُتذكَّر**: لا `RESOLVED` فيه — بل بمن حُسم لصالحه */
+        status: resolved ? 'RESOLVED_BUYER' : 'OPEN',
+        slaDueAt: new Date(openedAt.getTime() + 48 * 3600 * 1000),
+        openedAt,
+        ...(resolved
+          ? {
+              resolution: 'PARTIAL_SETTLEMENT',
+              resolutionAmount: new Prisma.Decimal(1500),
+              resolvedAt: new Date(openedAt.getTime() + 36 * 3600 * 1000),
+            }
+          : {}),
+        messages: [
+          { at: new Date(openedAt.getTime() + 3600 * 1000).toISOString(), by: 'buyer', text: 'أرفقت صور الحالة.' },
+          { at: new Date(openedAt.getTime() + 7200 * 1000).toISOString(), by: 'seller', text: 'الوصف مطابق، والصور بعد التسليم.' },
+        ],
+      },
+    });
+  }
+
+  /** بلاغان على إعلانين — أحدهما مفتوحٌ والآخر مُغلق. */
+  for (const [n, listing] of listings.slice(0, 2).entries()) {
+    const reporter = buyers[n % buyers.length];
+    if (reporter === undefined) continue;
+    await prisma.report.create({
+      data: {
+        ref: `RPT-2026-${String(100 + n)}`,
+        reporterId: reporter.id,
+        targetType: 'listing',
+        targetId: listing.id,
+        reason: n === 0 ? 'سعرٌ مضلّل' : 'صورٌ لا تخصّ المركبة',
+        details: n === 0 ? 'السعر المعروض أقلّ ممّا يطلبه البائع عند التواصل.' : null,
+        status: n === 0 ? 'open' : 'closed',
+        createdAt: days(-between(1, 12)),
+      },
+    });
   }
 
   // ————— تقريرا فحص كاملان — ٢١٠ نقطة لكلٍّ منهما —————
