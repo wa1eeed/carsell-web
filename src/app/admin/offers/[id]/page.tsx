@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -183,8 +184,14 @@ export default async function AdminOfferDetailPage({
             </DetailCard>
 
             <DetailCard title="الأطراف">
-              <Field label="المشتري" value={offer.buyer.name} />
-              <Field label="البائع" value={offer.listing.sellerName} />
+              <Field
+                label="المشتري"
+                value={<AdminLink href={`/admin/users/${encodeURIComponent(offer.buyer.id)}`}>{offer.buyer.name}</AdminLink>}
+              />
+              <Field
+                label="البائع"
+                value={<AdminLink href={`/admin/users/${encodeURIComponent(offer.listing.sellerId)}`}>{offer.listing.sellerName}</AdminLink>}
+              />
               <Link
                 href={`/admin/users/${offer.buyer.id}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
@@ -194,7 +201,11 @@ export default async function AdminOfferDetailPage({
             </DetailCard>
 
             <DetailCard title="الإعلان">
-              <Field label="المرجع" value={offer.listing.ref} ltr />
+              <Field
+                label="المرجع"
+                value={<AdminLink href={`/admin/listings/${encodeURIComponent(offer.listing.ref)}`} ltr>{offer.listing.ref}</AdminLink>}
+                ltr
+              />
               <Field label="المركبة" value={offer.listing.title} />
               <Link
                 href={`/admin/listings/${encodeURIComponent(offer.listing.ref)}`}

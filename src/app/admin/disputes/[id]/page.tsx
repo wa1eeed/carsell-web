@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
 import { Badge } from '@/components/ui/Badge';
@@ -189,7 +190,11 @@ export default async function AdminDisputeDetailPage({
             )}
 
             <DetailCard title="الطلب">
-              <Field label="المرجع" value={dispute.order.ref} ltr />
+              <Field
+                label="المرجع"
+                value={<AdminLink href={`/admin/orders/${encodeURIComponent(dispute.order.ref)}`} ltr>{dispute.order.ref}</AdminLink>}
+                ltr
+              />
               <Field
                 label="المرحلة"
                 value={STAGE_LABEL[dispute.order.stage] ?? dispute.order.stage}
@@ -198,8 +203,14 @@ export default async function AdminDisputeDetailPage({
                 label="السعر المتّفق"
                 value={<Money amount={Number(dispute.order.agreedPrice)} />}
               />
-              <Field label="المشتري" value={dispute.order.buyerName} />
-              <Field label="البائع" value={dispute.order.sellerName} />
+              <Field
+                label="المشتري"
+                value={<AdminLink href={`/admin/users/${encodeURIComponent(dispute.order.buyerId)}`}>{dispute.order.buyerName}</AdminLink>}
+              />
+              <Field
+                label="البائع"
+                value={<AdminLink href={`/admin/users/${encodeURIComponent(dispute.order.sellerId)}`}>{dispute.order.sellerName}</AdminLink>}
+              />
               <Link
                 href={`/admin/orders/${encodeURIComponent(dispute.order.ref)}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"

@@ -117,7 +117,7 @@ export type AdminOfferDetail = {
   expired: boolean;
   createdAt: string;
   buyer: { id: string; name: string };
-  listing: { ref: string; title: string; askPrice: string; sellerName: string };
+  listing: { ref: string; title: string; askPrice: string; sellerName: string; sellerId: string };
   /** السلسلة كاملةً من الجذر — والمقابل يحتفظ بـ`buyerId` الأصليّ */
   chain: { id: string; amount: string; status: string; fromBuyer: boolean; at: string }[];
 };
@@ -171,6 +171,7 @@ export async function adminOfferDetail(
       title: `${offer.listing.vehicle.brandName} ${offer.listing.vehicle.modelName}`,
       askPrice: offer.listing.askPrice.toFixed(2),
       sellerName: nameOf(offer.listing.seller),
+      sellerId: offer.listing.seller.id,
     },
     chain: chain.map((row) => ({
       id: row.id,
@@ -198,7 +199,15 @@ export type AdminDisputeDetail = {
   resolvedAt: string | null;
   openedAt: string;
   openedByName: string;
-  order: { ref: string; stage: string; agreedPrice: string; buyerName: string; sellerName: string };
+  order: {
+    ref: string;
+    stage: string;
+    agreedPrice: string;
+    buyerName: string;
+    buyerId: string;
+    sellerName: string;
+    sellerId: string;
+  };
   /**
    * **الرسائل عمودُ `Json[]` لا علاقة.** وشكلُها
    * `{ authorId, body, at }` كما يكتبها `addDisputeMessage` — ولا
@@ -221,8 +230,8 @@ export async function adminDisputeDetail(
           agreedPrice: true,
           buyerId: true,
           sellerId: true,
-          buyer: { select: { name: true, phone: true } },
-          seller: { select: { name: true, phone: true } },
+          buyer: { select: { id: true, name: true, phone: true } },
+          seller: { select: { id: true, name: true, phone: true } },
         },
       },
     },
@@ -256,7 +265,9 @@ export async function adminDisputeDetail(
       stage: dispute.order.stage,
       agreedPrice: dispute.order.agreedPrice.toFixed(2),
       buyerName: nameOf(dispute.order.buyer),
+      buyerId: dispute.order.buyer.id,
       sellerName: nameOf(dispute.order.seller),
+      sellerId: dispute.order.seller.id,
     },
     messages: dispute.messages.map((raw, index) => {
       const message = raw as { authorId?: string; body?: string; at?: string } | null;

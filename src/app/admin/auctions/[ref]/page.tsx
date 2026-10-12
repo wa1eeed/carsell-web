@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -209,7 +210,11 @@ export default async function AdminAuctionDetailPage({
             </DetailCard>
 
             <DetailCard title="الإعلان">
-              <Field label="المرجع" value={auction.listingRef} ltr />
+              <Field
+                label="المرجع"
+                value={<AdminLink href={`/admin/listings/${encodeURIComponent(auction.listingRef)}`} ltr>{auction.listingRef}</AdminLink>}
+                ltr
+              />
               <Link
                 href={`/admin/listings/${encodeURIComponent(auction.listingRef)}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"

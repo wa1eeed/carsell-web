@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -172,9 +173,16 @@ export default async function AdminServiceRequestDetailPage({
             </DetailCard>
 
             <DetailCard title="العميل والإعلان">
-              <Field label="العميل" value={request.customer.name} />
+              <Field
+                label="العميل"
+                value={<AdminLink href={`/admin/users/${encodeURIComponent(request.customer.id)}`}>{request.customer.name}</AdminLink>}
+              />
               {request.listingRef === null ? null : (
-                <Field label="الإعلان" value={request.listingRef} ltr />
+                <Field
+                  label="الإعلان"
+                  value={<AdminLink href={`/admin/listings/${encodeURIComponent(request.listingRef)}`} ltr>{request.listingRef}</AdminLink>}
+                  ltr
+                />
               )}
               <div className="mt-3 flex flex-wrap gap-4">
                 <Link
