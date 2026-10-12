@@ -373,6 +373,37 @@ export async function approveRouteSwitch(
       data: { approvedBy: approvals, status: 'APPROVED', executedAt: now },
     });
 
+    /**
+     * ═══ وتاريخُ المسار يُكتب — لا سجلُّ التدقيق وحده ═══
+     *
+     * `PaymentRouteChange` جدولٌ كامل: من أيّ بوابةٍ وإلى أيّها،
+     * وبأيّ بيئة، **وبسببٍ إلزاميّ** — وتعليقُه يقول لماذا:
+     * «بعد سنة لا يتذكّر أحد لماذا، والقرار بلا سببه يُعاد نقضه».
+     *
+     * **ولم يكن له كاتبٌ ولا قارئ.** وسجلُّ التدقيق يحفظ الفعل
+     * لا القصّة: من يسأل «لماذا تحوّلنا عن ميسر في مارس؟» يحتاج
+     * سببًا ومُوافِقين، لا صفًّا يقول `route.switched`.
+     *
+     * رابعَ عشرَ وقوعٍ لـ«قيمةٍ لا يكتبها كاتب».
+     */
+    await tx.paymentRouteChange.create({
+      data: {
+        purpose,
+        fromGatewayKey: before?.gatewayKey ?? null,
+        toGatewayKey,
+        fromEnvironment: before?.environment ?? null,
+        toEnvironment: payload.toEnvironment ?? 'TEST',
+        reason: typeof request.payload === 'object' && request.payload !== null
+          && 'reason' in request.payload && typeof request.payload.reason === 'string'
+          ? request.payload.reason
+          : '—',
+        at: now,
+        approvalId: requestId,
+        requestedBy: request.requestedBy,
+        approvedBy: approvals,
+      },
+    });
+
     await tx.auditLog.create({
       data: {
         actorId: admin.id,
@@ -574,4 +605,41 @@ export async function setProcessingFee(
   });
 
   return { ok: true, row: await getProcessingFee(), openOrders };
+}
+
+/**
+ * ═══ تاريخ تبديل المسارات ═══
+ *
+ * **والجدولُ يُكتب الآن ولا يُقرأ** — وهو الصنف نفسه بوجهه الآخر.
+ * ومن يسأل «لماذا تحوّلنا عن ميسر في مارس؟» يحتاج السبب والمُوافِقين،
+ * لا صفًّا في سجلّ التدقيق يقول `route.switched`.
+ */
+export type RouteChangeRow = {
+  purpose: string;
+  fromGatewayKey: string | null;
+  toGatewayKey: string;
+  fromEnvironment: string | null;
+  toEnvironment: string;
+  reason: string;
+  at: string;
+  /** عددُ من اعتمده — والنصاب عضوان. */
+  approvals: number;
+};
+
+export async function routeChanges(limit = 30): Promise<RouteChangeRow[]> {
+  const rows = await db.paymentRouteChange.findMany({
+    orderBy: { at: 'desc' },
+    take: limit,
+  });
+
+  return rows.map((row) => ({
+    purpose: row.purpose,
+    fromGatewayKey: row.fromGatewayKey,
+    toGatewayKey: row.toGatewayKey,
+    fromEnvironment: row.fromEnvironment,
+    toEnvironment: row.toEnvironment,
+    reason: row.reason,
+    at: row.at.toISOString(),
+    approvals: row.approvedBy.length,
+  }));
 }

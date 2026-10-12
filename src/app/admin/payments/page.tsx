@@ -11,8 +11,12 @@ import {
   listGateways,
   listRoutes,
   pendingSwitches,
+  routeChanges,
 } from '@/lib/domain/payment-routing';
 import { listRuns } from '@/lib/domain/reconciliation';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { PAYMENT_PURPOSE_LABEL } from '@/lib/labels/admin';
+import type { PaymentPurpose } from '@/generated/prisma/enums';
 import { ProcessingFeeCard } from './ProcessingFeeCard';
 import { ReconciliationTable } from './ReconciliationTable';
 import { RoutesTable } from './RoutesTable';
@@ -31,12 +35,13 @@ export default async function PaymentsRoutingPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [routes, awaiting, gateways, processingFee, runs] = await Promise.all([
+  const [routes, awaiting, gateways, processingFee, runs, changes] = await Promise.all([
     listRoutes(),
     pendingSwitches(),
     listGateways(),
     getProcessingFee(),
     listRuns(),
+    routeChanges(),
   ]);
   const linked = gateways.filter((gateway) => gateway.status !== 'INACTIVE');
 
@@ -148,9 +153,61 @@ export default async function PaymentsRoutingPage() {
           </li>
         </ul>
       </section>
+      {/*
+        ═══ ولماذا تحوّلنا ═══
+
+        سجلُّ التدقيق يحفظ الفعل (`route.switched`) لا القصّة. ومن
+        يسأل بعد سنة «لماذا تركنا ميسر في مارس؟» يحتاج السبب
+        والمُوافِقين — و`PaymentRouteChange` بُني لذلك ولم يكن له
+        كاتبٌ ولا قارئ.
+      */}
+      <section className="mt-10">
+        <h2 className="mb-1 text-sm font-bold">تاريخ التبديل</h2>
+        <p className="mb-3.5 text-3xs opacity-55">
+          كلُّ تبديلٍ بسببه ومن اعتمده — والقرار بلا سببه يُعاد نقضه.
+        </p>
+
+        {changes.length === 0 ? (
+          <p className="rounded-lg border border-line border-dashed p-5 text-2xs opacity-55">
+            لم يُبدَّل مسارٌ بعد. وأوّل تبديل يُسجَّل هنا بسببه ومن اعتمده.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2.5">
+            {changes.map((change) => (
+              <li
+                key={`${change.purpose}-${change.at}`}
+                className="rounded-lg border border-line bg-surface p-4"
+              >
+                <p className="mb-1 flex flex-wrap items-center gap-2 text-2xs font-bold">
+                  <span>{PAYMENT_PURPOSE_LABEL[change.purpose as PaymentPurpose] ?? change.purpose}</span>
+                  <span className="font-normal opacity-55">
+                    {change.fromGatewayKey ?? '—'} ← {change.toGatewayKey}
+                  </span>
+                  <Badge size="sm" tone="neutral">
+                    <Quantity unit="approvals" count={change.approvals} />
+                  </Badge>
+                </p>
+                <p className="text-3xs leading-relaxed opacity-70">{change.reason}</p>
+                <p className="font-num mt-1 text-3xs opacity-40">
+                  {changeDate.format(new Date(change.at))}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </AdminShell>
   );
 }
+
+const changeDate = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Asia/Riyadh',
+});
 
 function Capability({ on, label }: { on: boolean; label: string }) {
   return on ? (

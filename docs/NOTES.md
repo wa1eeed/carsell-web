@@ -4010,3 +4010,44 @@ Fixed with the same `Intl.DateTimeFormat` the sibling screens use: «١٥ سبت
 every admin screen was fetched and scanned for `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}` in
 the rendered `<main>`: this was the only one. A single occurrence is a fix, not a
 class — the two-strikes rule applies to repeats.
+
+## A table built to answer "why did we switch?" — written by nobody, read by nobody
+
+`npm run dead-ends` reports 47 items. Most are reference data the admin screens
+edit but only the seed creates, which is expected. A few are real, and this one
+is the sharpest.
+
+`PaymentRouteChange` records a gateway switch: from which gateway to which, in
+which environment, by whom, approved by whom, and **with a mandatory reason**.
+Its own schema comment says why the reason is mandatory: *"after a year nobody
+remembers why, and a decision without its reason gets reversed again."*
+
+**Nothing wrote it and nothing read it.** The switch flow wrote an `AuditLog` row
+saying `route.switched` — which records the act, not the story. Someone asking
+next March why we moved off a gateway needs the reason and the approvers.
+
+Fourteenth instance of *a value with no writer*. `approveRouteSwitch` now writes
+the row inside the same transaction as the switch, and `/admin/payments` shows
+«تاريخ التبديل» with each change, its reason and its approver count — plus an
+explicit empty state, because a missing section reads as a missing feature.
+
+`tests/route-history.test.ts` walks it end to end: request, approve with a second
+admin, read the history back, check it names the source gateway, the target and
+the approvers.
+
+### And the quorum counts the requester
+
+The test first asserted two approvers and found one. `approveRouteSwitch`
+computes `approvals.length + 1` — the requester is one of the two, and
+`approvedBy` stores only the *other* approvers. The assertion was wrong, not the
+code; the test now states what is actually stored and why.
+
+### Cleanup belongs in `finally`
+
+The first run of this test failed mid-body, so the restore lines at the end never
+ran: `SERVICE_PURCHASE` stayed on the wrong gateway and a PENDING approval
+survived, and a test in a neighbouring file failed on state it had not created.
+
+Moved into `finally`, then proven by forcing a failure: the test failed, and
+`payment-routing.test.ts` stayed green. **A test returns what it changed — most
+of all when it fails**, which is exactly when a tail never executes.

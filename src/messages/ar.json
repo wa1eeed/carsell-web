@@ -371,6 +371,7 @@
     "creditNotes": "{count, plural, zero{لا إشعارات} one{إشعار دائن} two{إشعاران} few{{n} إشعارات} many{{n} إشعارًا} other{{n} إشعار}}",
     "disputes": "{count, plural, zero{لا نزاعات} one{نزاع واحد} two{نزاعان} few{{n} نزاعات} many{{n} نزاعًا} other{{n} نزاع}}",
     "rounds": "{count, plural, zero{لا جولات} one{جولة واحدة} two{جولتان} few{{n} جولات} many{{n} جولة} other{{n} جولة}}",
+    "approvals": "{count, plural, zero{لا موافقات} one{موافقة واحدة} two{موافقتان} few{{n} موافقات} many{{n} موافقةً} other{{n} موافقة}}",
     "ads": "{count, plural, zero{لا إعلانات} one{إعلان واحد} two{إعلانان} few{{n} إعلانات} many{{n} إعلانًا} other{{n} إعلان}}",
     "cities": "{count, plural, zero{لا مدن} one{مدينة واحدة} two{مدينتان} few{{n} مدن} many{{n} مدينةً} other{{n} مدينة}}",
     "steps": "{count, plural, zero{لا خطوات} one{خطوة واحدة} two{خطوتان} few{{n} خطوات} many{{n} خطوةً} other{{n} خطوة}}",

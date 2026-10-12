@@ -52,6 +52,7 @@ export type Unit =
   | 'disputes'
   /** جولةُ التفاوض — عرضٌ ثم مقابلُه ثم مقابلُ مقابله. */
   | 'rounds'
+  | 'approvals'
   | 'ads'
   | 'cities'
   | 'steps'
