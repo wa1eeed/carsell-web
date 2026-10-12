@@ -5,9 +5,12 @@ import {
   DetailCard,
   DetailColumns,
   DetailHeader,
+  DetailStats,
   Field,
   TimelineRow,
 } from '@/components/admin/DetailShell';
+import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Timeline } from '@/components/admin/Timeline';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -16,6 +19,7 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { TRANSFER_EXTENSION_DAYS } from '@/lib/domain/transfer-windows';
 import { ExtendTransfer } from './ExtendTransfer';
 import { adminOrderDetail } from '@/lib/domain/admin-order-detail';
+import { orderTimeline } from '@/lib/domain/admin-order-timeline';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
@@ -116,10 +120,33 @@ const DOCUMENT_LABEL: Record<string, string> = {
  * رقمٌ في بطاقةٍ يُتأمَّل، وقيدٌ بطرفيه يُراجَع. فمن يشكّ في مبلغٍ يرى
  * من أين جاء في الشاشة نفسها لا في دفترٍ آخر.
  */
+/**
+ * ═══ والتابز — وكانت لفيفةً واحدة ═══
+ *
+ * الصفحة كانت تسع بطاقاتٍ في عمودين وطولُها أربعُمئةٍ وستّون سطرًا:
+ * المال والدفتر والسجلّ والأطراف والمركبة والتوقيت والضمان والدفعات
+ * والمستندات والنزاع، كلُّها معًا. **ومن يبحث عن قيدٍ يمرّ على
+ * الأطراف، ومن يبحث عن مهلةٍ يمرّ على الدفتر.**
+ *
+ * فصارت خمس تبويبات بعدّاداتها، ويسبقها شريطُ أرقامٍ يُجيب ما يُسأل
+ * قبل اختيار تبويبة: كم المبلغ، وكم في هذه المرحلة، ومتى المهلة.
+ */
+const TABS = [
+  { key: null, label: 'نظرة عامة' },
+  { key: 'money', label: 'المال والدفتر' },
+  { key: 'timeline', label: 'خطّ الزمن' },
+  { key: 'payments', label: 'المدفوعات والضمان' },
+  { key: 'documents', label: 'المستندات والنزاع' },
+] as const;
+
+type OrderTab = (typeof TABS)[number]['key'];
+
 export default async function AdminOrderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ref: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
@@ -129,6 +156,17 @@ export default async function AdminOrderDetailPage({
   const { ref } = await params;
   const order = await adminOrderDetail(decodeURIComponent(ref));
   if (order === null) notFound();
+
+  const search = await searchParams;
+  const raw = typeof search.tab === 'string' ? search.tab : undefined;
+  const tab: OrderTab = TABS.map((row) => row.key).find((key) => key === raw) ?? null;
+
+  /**
+   * **وخطُّ الزمن يُجلَب لتبويبته وحدها.** استعلامُه يمرّ على الدفعات
+   * وأحداثها والفواتير والنزاعات وسجلّ التدقيق — وتحميلُه مع كل فتحةٍ
+   * يُبطئ تسعًا من عشر زياراتٍ لا تطلبه.
+   */
+  const events = tab === 'timeline' ? await orderTimeline(order.ref) : [];
 
   const canFinance = can(admin.role, 'finance.view');
   // التمديد تصرّفٌ في مسار الطلب لا قراءةٌ له — والفحص هنا وفي المسار
@@ -156,9 +194,48 @@ export default async function AdminOrderDetailPage({
         }
       />
 
-      <DetailColumns
-        main={
-          <>
+      <DetailStats
+        items={[
+          { label: 'الإجماليّ', value: <Money amount={Number(order.money.totalAmount)} /> },
+          { label: 'المرحلة', value: STAGE_LABEL[order.stage] ?? order.stage },
+          {
+            label: 'المهلة',
+            value: order.dueAt === null ? 'لا مهلة' : riyadh.format(new Date(order.dueAt)),
+            ...(order.overdue ? { tone: 'danger' as const } : {}),
+          },
+          {
+            label: 'الضمان',
+            value:
+              order.escrow === null ? 'لا ضمان' : <Money amount={Number(order.escrow.amount)} />,
+          },
+        ]}
+      />
+
+      <MonitorTabs
+        basePath={`/admin/orders/${encodeURIComponent(order.ref)}`}
+        param="tab"
+        active={tab}
+        tabs={TABS.map((row) => ({
+          key: row.key,
+          label: row.label,
+          /** **ولا عددَ على «نظرة عامة»** — صفرٌ عليها يُقرأ «فارغة». */
+          ...(row.key === 'money'
+            ? { count: order.ledger.length }
+            : row.key === 'payments'
+              ? { count: order.payments.length + (order.escrow === null ? 0 : 1) }
+              : row.key === 'documents'
+                ? {
+                    count: order.documents.length + (order.dispute === null ? 0 : 1),
+                    ...(order.dispute === null ? {} : { tone: 'danger' as const }),
+                  }
+                : {}),
+        }))}
+      />
+
+      {tab !== 'money' ? null : (
+        <DetailColumns
+          main={
+            <>
             <DetailCard title="المال" note="المتّفق عليه والنهائيّ والرسوم">
               <Field
                 label="السعر المتّفق"
@@ -264,7 +341,7 @@ export default async function AdminOrderDetailPage({
             ) : null}
 
             <DetailCard
-              title="السجلّ"
+              title="أحداث الطلب"
               note={`آخر حدث (${displayDigits(String(order.timeline.length))})`}
             >
               {order.timeline.length === 0 ? (
@@ -293,10 +370,34 @@ export default async function AdminOrderDetailPage({
                 </div>
               )}
             </DetailCard>
-          </>
-        }
-        side={
-          <>
+            </>
+          }
+          side={
+            <DetailCard title="الملخّص">
+              <Field label="المشتري" value={order.buyer.name} />
+              <Field label="البائع" value={order.seller.name} />
+              <Field label="الإعلان" value={order.listing.ref} ltr />
+              <Field label="المصدر" value={SOURCE_LABEL[order.source] ?? order.source} />
+            </DetailCard>
+          }
+        />
+      )}
+
+      {tab !== 'timeline' ? null : (
+        <section className="rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+            أحداثُ الطلب والدفعات والضمان والفواتير والنزاعات وأثر الفريق في تسلسلٍ
+            واحد — والأقدم أوّلًا، فالقصّة تُقرأ من بدايتها.
+          </p>
+          <Timeline events={events} />
+        </section>
+      )}
+
+      {tab !== null ? null : (
+        <DetailColumns
+          main={
+            <>
             <DetailCard title="الأطراف">
               <PartyBlock label="المشتري" party={order.buyer} />
               <div className="h-4" />
@@ -359,7 +460,33 @@ export default async function AdminOrderDetailPage({
               )}
             </DetailCard>
 
-            {order.escrow === null ? null : (
+            </>
+          }
+          side={
+            <DetailCard title="المصدر">
+              <Field label="كيف نشأ" value={SOURCE_LABEL[order.source] ?? order.source} />
+              <Field label="الإجماليّ" value={<Money amount={Number(order.money.totalAmount)} />} strong />
+              <Link
+                href={`/admin/orders/${encodeURIComponent(order.ref)}?tab=money`}
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+              >
+                تفصيل المال والدفتر
+              </Link>
+            </DetailCard>
+          }
+        />
+      )}
+
+      {tab !== 'payments' ? null : (
+        <DetailColumns
+          main={
+            <>
+            {order.escrow === null ? (
+              <DetailCard title="الضمان">
+                {/* **وغيابُه يُقال** — بطاقةٌ تُحذف تجعل القارئ يظنّ أنه لم يبحث جيّدًا */}
+                <p className="text-2xs opacity-55">لا ضمان على هذا الطلب.</p>
+              </DetailCard>
+            ) : (
               <DetailCard title="الضمان">
                 <Field label="الحالة" value={order.escrow.status} ltr />
                 <Field label="المبلغ" value={<Money amount={Number(order.escrow.amount)} />} strong />
@@ -382,7 +509,11 @@ export default async function AdminOrderDetailPage({
               </DetailCard>
             )}
 
-            {order.payments.length === 0 ? null : (
+            {order.payments.length === 0 ? (
+              <DetailCard title="الدفعات">
+                <p className="text-2xs opacity-55">لا دفعة مسجّلة بعد.</p>
+              </DetailCard>
+            ) : (
               <DetailCard title="الدفعات">
                 {order.payments.map((payment) => (
                   <Field
@@ -394,7 +525,36 @@ export default async function AdminOrderDetailPage({
               </DetailCard>
             )}
 
-            {order.documents.length === 0 ? null : (
+            </>
+          }
+          side={
+            <DetailCard title="التوقيت">
+              <Field label="أُنشئ" value={riyadh.format(new Date(order.createdAt))} />
+              {order.dueAt === null ? null : (
+                <Field
+                  label="المهلة"
+                  value={
+                    <span className={order.overdue ? 'text-danger' : undefined}>
+                      {riyadh.format(new Date(order.dueAt))}
+                    </span>
+                  }
+                  strong
+                />
+              )}
+            </DetailCard>
+          }
+        />
+      )}
+
+      {tab !== 'documents' ? null : (
+        <DetailColumns
+          main={
+            <>
+            {order.documents.length === 0 ? (
+              <DetailCard title="المستندات">
+                <p className="text-2xs opacity-55">لا مستند صادر بعد.</p>
+              </DetailCard>
+            ) : (
               <DetailCard title="المستندات">
                 {order.documents.map((document) => (
                   <Field
@@ -407,7 +567,11 @@ export default async function AdminOrderDetailPage({
               </DetailCard>
             )}
 
-            {order.dispute === null ? null : (
+            {order.dispute === null ? (
+              <DetailCard title="النزاع">
+                <p className="text-2xs opacity-55">لا نزاع على هذا الطلب.</p>
+              </DetailCard>
+            ) : (
               <DetailCard title="النزاع">
                 <Field label="الحالة" value={order.dispute.status} ltr />
                 <Field label="السبب" value={order.dispute.reason} />
@@ -420,9 +584,16 @@ export default async function AdminOrderDetailPage({
                 </Link>
               </DetailCard>
             )}
-          </>
-        }
-      />
+            </>
+          }
+          side={
+            <DetailCard title="الأطراف">
+              <Field label="المشتري" value={order.buyer.name} />
+              <Field label="البائع" value={order.seller.name} />
+            </DetailCard>
+          }
+        />
+      )}
     </AdminShell>
   );
 }

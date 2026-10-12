@@ -9,7 +9,7 @@ import { can } from '@/lib/domain/permissions';
 import { listAdminOrders, orderTabCounts } from '@/lib/domain/admin-orders';
 import { STAGE_LABEL } from '@/lib/labels/charts';
 import type { OrderStage } from '@/generated/prisma/enums';
-import { OrdersTable } from './OrdersTable';
+import { OrderCard } from '@/components/admin/OrderCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,7 +129,16 @@ export default async function AdminOrdersPage({
         </p>
       ) : (
         <>
-          <OrdersTable orders={rows} />
+          {/*
+            **والكروت لا الجدول.** الصفّ كان مرجعًا ومرحلةً ومبلغًا،
+            فمراجعةُ عشرين طلبًا عشرون فتحًا ورجوعًا. والكرت يحمل
+            المركبة والطرفين وتوثيقَهما وحالَ الضمان — وهي ما يُقرَّر به.
+          */}
+          <div className="flex flex-col gap-2.5">
+            {rows.map((order) => (
+              <OrderCard key={order.ref} row={order} />
+            ))}
+          </div>
 
           <ListFooter
             shown={rows.length}

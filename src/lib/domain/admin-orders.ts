@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { publicUrl } from '@/lib/r2';
 import { ibanLast4 } from './iban';
 import type { AdminUser, Prisma } from '@/generated/prisma/client';
 import type { OrderStage } from '@/generated/prisma/enums';
@@ -37,6 +38,22 @@ export type OrderRow = {
   seller: string;
   listingRef: string;
   hasDispute: boolean;
+  /**
+   * ═══ وما يحتاجه الكرت ليُقرَّر فيه بلا فتحه ═══
+   *
+   * الصفّ كان مرجعًا ومرحلةً ومبلغًا — **ومن يراجع عشرين طلبًا كان
+   * يفتح عشرين**: أيُّ مركبةٍ هي، وأطرفٌ موثَّقان أم لا، وأمحجوزٌ
+   * مالُها أم بعد، ومتى أُنشئ الطلب.
+   */
+  vehicle: string;
+  city: string;
+  thumbnail: string | null;
+  createdAt: string;
+  source: string;
+  /** حالةُ الضمان — `null` حين لا ضمان لهذا الطلب بعد. */
+  escrowStatus: string | null;
+  buyerVerified: boolean;
+  sellerVerified: boolean;
 };
 
 /**
@@ -120,9 +137,22 @@ export async function listAdminOrders(
     take: 200,
     select: {
       ref: true, stage: true, status: true, stageEnteredAt: true, totalAmount: true,
-      listing: { select: { ref: true } },
-      buyer: { select: { name: true, phone: true } },
-      seller: { select: { name: true, phone: true } },
+      createdAt: true, source: true,
+      listing: {
+        select: {
+          ref: true,
+          city: true,
+          vehicle: { select: { brandName: true, modelName: true, year: true } },
+          images: {
+            orderBy: [{ isCover: 'desc' }, { sort: 'asc' }],
+            take: 1,
+            select: { r2Key: true },
+          },
+        },
+      },
+      buyer: { select: { name: true, phone: true, idVerified: true } },
+      seller: { select: { name: true, phone: true, idVerified: true } },
+      escrow: { select: { status: true } },
       disputes: { where: { status: { in: ['OPEN', 'INVESTIGATING'] } }, select: { id: true } },
     },
   });
@@ -154,6 +184,23 @@ export async function listAdminOrders(
       seller: order.seller.name ?? order.seller.phone.slice(-4),
       listingRef: order.listing.ref,
       hasDispute: order.disputes.length > 0,
+      /* النصّ يُركَّب في الشاشة — والنطاق يعيد بيانات لا جُملًا (البوابة ١٧) */
+      vehicle: `${order.listing.vehicle.brandName} ${order.listing.vehicle.modelName}`,
+      city: order.listing.city,
+      /*
+        **ومفتاحُ R2 ليس رابطًا.** مرّرتُه خامًا فرُسمت أيقونةُ صورةٍ
+        مكسورة في كل كرت — ولا شيء يسقط: الصفحة تُصيَّر والاختبار يمرّ،
+        والعطل لا يُرى إلّا بعين.
+      */
+      thumbnail:
+        order.listing.images[0] === undefined
+          ? null
+          : publicUrl(order.listing.images[0].r2Key),
+      createdAt: order.createdAt.toISOString(),
+      source: order.source,
+      escrowStatus: order.escrow?.status ?? null,
+      buyerVerified: order.buyer.idVerified,
+      sellerVerified: order.seller.idVerified,
     };
   });
 

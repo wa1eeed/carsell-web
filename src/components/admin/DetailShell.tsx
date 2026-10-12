@@ -160,3 +160,38 @@ export function TimelineRow({
     </div>
   );
 }
+
+/**
+ * ═══ شريطُ أرقامِ التفاصيل ═══
+ *
+ * صفحةُ التفاصيل تبدأ بترويسةٍ ثمّ تابز، **فما بينهما فراغ** — ومن
+ * يفتحها يسأل أوّلًا «كم المبلغ؟ وكم بقي من المهلة؟» قبل أن يختار
+ * تبويبة. وكانت الإجابة داخل بطاقةٍ في التبويبة الأولى: نقرةٌ لمعرفة
+ * ما يُقرَّر به.
+ *
+ * **وهو غيرُ `StatCard`**: تلك بطاقةُ لوحةٍ بخطٍّ ٣xl وحدودٍ وخلفية،
+ * وهذه سطرٌ واحد يسبق التابز ولا ينافسها.
+ */
+export function DetailStats({
+  items,
+}: {
+  items: readonly { label: string; value: ReactNode; tone?: 'danger' | 'warn' }[];
+}) {
+  return (
+    <dl className="mb-6 flex flex-wrap items-stretch gap-x-9 gap-y-4 border-y border-line py-4">
+      {items.map((item) => (
+        <div key={item.label} className="flex min-w-24 flex-col gap-1">
+          <dt className="text-3xs opacity-45">{item.label}</dt>
+          <dd
+            className={cn(
+              'text-sm font-bold',
+              item.tone === 'danger' ? 'text-danger' : item.tone === 'warn' ? 'text-warn-900' : undefined,
+            )}
+          >
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}

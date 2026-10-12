@@ -20,6 +20,32 @@ export const TIMELINE_LABEL: Record<string, string> = {
   'auction.bid': 'مزايدة',
   'auction.closed': 'أُغلق المزاد',
 
+  /*
+    ═══ الضمان والفواتير والدفعات ═══
+
+    **ولكلٍّ كاتبٌ الآن.** البوابة ١٩ لدغت `escrow.released` حين
+    أُضيفت تحسّبًا بلا كاتب — ومفتاحٌ لا يكتبه أحد يُعرض خامًا ويبدو
+    مقصودًا. وخطُّ زمن الطلب يكتبها من `Escrow.heldAt`/`releasedAt`
+    و`TaxInvoice` و`PaymentEvent`.
+  */
+  'escrow.held': 'حُجز المبلغ في الضمان',
+  'escrow.released': 'أُفرج عن الضمان',
+  'invoice.issued': 'صدرت فاتورة ضريبية',
+
+  'payment.CREATED': 'أُنشئت دفعة',
+  'payment.REQUIRES_ACTION': 'الدفعة تنتظر تحقّق المستخدم',
+  'payment.PENDING': 'الدفعة بانتظار تأكيد البوابة',
+  'payment.HELD': 'حُجز المبلغ لدى البوابة',
+  'payment.SETTLED': 'سُوّيت الدفعة',
+  'payment.PARTIALLY_SETTLED': 'سُوّيت الدفعة جزئيًّا',
+  'payment.CANCELLED': 'أُلغي الحجز',
+  'payment.RETURNED': 'رُدّ المبلغ',
+  'payment.PARTIALLY_RETURNED': 'رُدّ جزءٌ من المبلغ',
+  'payment.FAILED': 'فشلت الدفعة',
+
+  'dispute.opened': 'فُتح نزاع',
+  'dispute.resolved': 'حُسم النزاع',
+
   'offer.PENDING': 'عرضٌ وصل',
   'offer.COUNTERED': 'عرضٌ مقابل',
   'offer.ACCEPTED': 'قُبل العرض',
@@ -64,6 +90,21 @@ export const TIMELINE_DETAIL: Record<string, string> = {
   'auction.won': 'رسا المزاد',
   'auction.buy_now': 'شُري فورًا',
 
+  /*
+    **ومراحلُ الطلب كلُّها هنا.** كانت `REQUEST` و`APPROVED` و
+    `INSPECTION` و`DONE` غائبةً، فسطرُ «تقدّم الطلب مرحلةً» يعرض
+    `DONE` خامًا بينما أخوه يعرض «نقل الملكية» — جدولٌ واحد بصيغتين.
+  */
+  /* مصدرُ الطلب — يُعرض تفصيلًا على سطر «أُنشئ طلب» */
+  DIRECT: 'بيع مباشر',
+  OFFER: 'قبول عرض',
+  AUCTION: 'رسوّ مزاد',
+  BUY_NOW: 'اشترِ الآن',
+
+  REQUEST: 'الطلب',
+  APPROVED: 'موافقة البائع',
+  INSPECTION: 'الفحص',
+  DONE: 'الإنهاء',
   PAYMENT: 'الدفع',
   TRANSFER: 'نقل الملكية',
   HANDOVER: 'التسليم',

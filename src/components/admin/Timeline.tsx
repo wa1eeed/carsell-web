@@ -25,6 +25,16 @@ const dt = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   timeZone: 'Asia/Riyadh',
 });
 
+/** فاعلٌ بمفتاحه — وما عداه اسمُ شخصٍ يُعرض حرفيًّا. */
+const ACTOR_LABEL: Record<string, string> = {
+  admin: 'الإدارة',
+  user: 'المستخدم',
+  system: 'النظام',
+  gateway: 'بوابة الدفع',
+  buyer: 'المشتري',
+  seller: 'البائع',
+};
+
 const DOT: Record<TimelineEvent['tone'], string> = {
   accent: 'bg-accent',
   warn: 'bg-warn',
@@ -90,9 +100,14 @@ export function Timeline({ events }: { events: readonly TimelineEvent[] }) {
               {event.actor === null ? null : (
                 <>
                   <span aria-hidden>·</span>
-                  {/* `admin` مفتاحٌ من النطاق — وما عداه اسمُ شخص */}
+                  {/*
+                    **ومفاتيحُ النوع تُصاغ كلُّها لا `admin` وحدها.**
+                    كان السطر يقول «سُوّيت الدفعة · gateway» و«تقدّم
+                    الطلب · user» — شيفرةٌ في جملةٍ عربية. وما ليس
+                    مفتاحًا فهو اسمُ شخصٍ يُعرض كما هو.
+                  */}
                   <span className="bidi-isolate">
-                    {event.actor === 'admin' ? 'الإدارة' : event.actor}
+                    {ACTOR_LABEL[event.actor] ?? event.actor}
                   </span>
                 </>
               )}
