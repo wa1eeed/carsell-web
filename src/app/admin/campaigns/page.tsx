@@ -12,8 +12,10 @@ import {
   MARKETING_CAP_PER_MONTH,
   listCampaigns,
   listSegments,
+  SEGMENT_FIELDS,
 } from '@/lib/domain/admin-campaigns';
 import { SendCampaignButton } from './SendButton';
+import { NewSegment } from './NewSegment';
 
 export const dynamic = 'force-dynamic';
 
@@ -158,10 +160,20 @@ export default async function CampaignsPage({
         </table>
       </section>
 
-      <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">الشرائح</h2>
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">الشرائح</h2>
+        {/*
+          **والطرف الثاني يُبنى مع الأوّل.** `saveSegment` مبنيّةٌ
+          بتحقّقها وأثرها ولا زرّ يبلغها، والشاشة تعرض الشرائح ولا
+          تُنشئ واحدة — والحملة بلا شريحة لا تُرسَل.
+        */}
+        {canSend ? <NewSegment fields={SEGMENT_FIELDS} /> : null}
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {segments.length === 0 ? (
-          <p className="text-2xs opacity-45">لا شرائح معرَّفة بعد.</p>
+          <p className="text-2xs opacity-45">
+            لا شرائح معرَّفة بعد — وأوّل شريحةٍ تُعرَّف من «عرِّف شريحة».
+          </p>
         ) : (
           segments.map((segment) => (
             <section key={segment.id} className="rounded-lg border border-line bg-surface p-5">

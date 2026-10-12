@@ -4051,3 +4051,35 @@ survived, and a test in a neighbouring file failed on state it had not created.
 Moved into `finally`, then proven by forcing a failure: the test failed, and
 `payment-routing.test.ts` stayed green. **A test returns what it changed — most
 of all when it fails**, which is exactly when a tail never executes.
+
+## Walking the dead-ends report
+
+`npm run dead-ends` lists 47 items. Most are reference data the admin screens
+edit but only the seed creates — expected, not a defect. Three looked real; two
+turned out to be legitimate and one was a genuine half-built feature.
+
+**`DeviceToken` — no writer, and correctly so.** Only a mobile app can register a
+push token and the app is not built. What matters is that the screen says so, and
+it does: `/admin/push` leads with «FCM لأندرويد و APNs لآيفون · التسجيل والإرسال
+يُفعَّلان مع التطبيق». The zeros are declared, not swallowed. Left alone.
+
+**`saveSegment` — built and unreachable.** It validates the rules, refuses a
+duplicate key and writes its audit entry. **No route called it and no button
+reached it.** `/admin/campaigns` listed segments and could not create one — and a
+campaign with no segment cannot be sent, so the whole marketing path ended at a
+list it could not add to.
+
+Fifteenth instance of *built but nothing reaches it*.
+`POST /api/v1/admin/campaigns/segments` and a sheet on the campaigns screen now
+close it. Each condition cycles through three states — not required / required /
+required-negated — because "does **not** have favourites" is a legitimate segment
+and giving it its own field would double the list.
+
+Walked end to end on the running server: the segment saved and came back
+computed — 3 matched, 1 consented to marketing, 1 actually reachable. The three
+numbers narrowing like that is the point of the screen: an audience is not who
+matches, it is who matches **and** agreed **and** can be reached.
+
+`tests/segments.test.ts` covers the save, the live recount, the duplicate key and
+the empty-rules refusal — a segment with no condition is every user, which is
+exactly what the marketing cap exists to prevent.
