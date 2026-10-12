@@ -4083,3 +4083,42 @@ matches, it is who matches **and** agreed **and** can be reached.
 `tests/segments.test.ts` covers the save, the live recount, the duplicate key and
 the empty-rules refusal — a segment with no condition is every user, which is
 exactly what the marketing cap exists to prevent.
+
+## Three approval kinds with no flow — and why none of them is a gap
+
+`ApprovalKind` has nine values. Six have a complete request-and-approve path.
+Three are defined and nothing writes them: `COMMISSION_CHANGE`, `PLAN_CHANGE`,
+`USER_BAN`.
+
+A declared guard that is not enforced would be serious, so I measured each.
+
+**`COMMISSION_CHANGE` — no quorum, and that is a documented decision.** I had
+already drafted the quorum and written the designer question before reading the
+route that writes commission. `PUT /api/v1/admin/commission` states it plainly:
+commission applies to what is **created after it**, touches no existing order and
+no held money — unlike a release — and every order snapshots its own rate. The
+asymmetry is real and the reasoning is sound. The implementation was reverted.
+
+I came close to imposing a business rule against a written decision because I
+read the enum and not the route. **Read the writer before concluding there is
+none.**
+
+**`PLAN_CHANGE`** — every plan is free today, so the change has no effect worth
+two people. Revisit when a plan has a price.
+
+**`USER_BAN`** — a ban is **reversible with one click**, and quorum in this
+repository is for what cannot be undone: money leaving, a key rotating, a legal
+document. `users.suspend` is deliberately absent from `DUAL_APPROVAL` for the
+same reason.
+
+So all three are dead enum values, not missing guards. Gate 19 is right not to
+flag them: it checks that every kind which **is created** has an approver
+reachable from a route, and an unused value is not a broken quorum.
+
+The verdict with its evidence now sits beside the values in `schema.prisma`,
+because `dead-ends` will list them on every run and the next reader should find a
+decision rather than a question.
+
+**And `prisma format` was reverted.** It reformatted the whole file — 649 lines
+changed for a 15-line comment, burying the actual change. The comment was
+re-applied by hand.
