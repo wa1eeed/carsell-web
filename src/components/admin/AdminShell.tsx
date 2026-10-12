@@ -6,6 +6,7 @@ import { can } from '@/lib/domain/permissions';
 import { visibleGroups } from './nav';
 import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
 import { AdminMobileNav } from './AdminMobileNav';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
 import type { AdminUser } from '@/generated/prisma/client';
 
@@ -87,9 +88,7 @@ export async function AdminShell({
       */}
       <nav className="hidden w-[238px] shrink-0 flex-col bg-ink py-5 text-bg lg:flex">
         <div className="mb-1.5 border-b border-bg/14 px-5 pb-4.5">
-          <p className="font-body-en text-xl font-extrabold tracking-tight">
-            carsell<span className="text-accent-400">.one</span>
-          </p>
+          <Logo variant="white" priority className="h-7" />
           <p className="mt-1.5 text-3xs font-semibold tracking-[0.12em] opacity-50">
             ADMIN CONSOLE
           </p>

@@ -7,6 +7,7 @@ import { AccountNav } from './AccountNav';
 import { MobileNav } from './MobileNav';
 import { NotificationBell } from './NotificationBell';
 import type { Locale } from '@/i18n/routing';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
 
 const NAV = [
@@ -134,9 +135,9 @@ export function SiteHeader({
 
         <Link
           href="/"
-          className="font-body-en shrink-0 text-xl font-extrabold tracking-tight sm:text-2xl"
+          className="shrink-0"
         >
-          carsell<span className="text-accent">.one</span>
+          <Logo priority className="h-7 sm:h-8" />
         </Link>
 
         {/*
@@ -199,9 +200,7 @@ export function SiteFooter({
     <footer className="border-t border-line bg-surface px-10 py-10">
       <div className="mx-auto flex w-full max-w-page flex-wrap gap-10">
         <div className="min-w-56 flex-1">
-          <p className="font-body-en text-2xl font-extrabold tracking-tight">
-            carsell<span className="text-accent">.one</span>
-          </p>
+          <Logo className="h-9" />
           <p className="mt-2.5 max-w-72 text-xs leading-loose opacity-60">
             {t('tagline')}
           </p>

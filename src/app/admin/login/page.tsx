@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { currentAdmin } from '@/lib/auth/admin-session';
+import { Logo } from '@/components/ui/Logo';
 import { AdminLoginForm } from './AdminLoginForm';
 import { APP_ENV } from '@/lib/env';
 
@@ -37,9 +38,9 @@ export default async function AdminLoginPage({
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-100 rounded-xl bg-bg p-10 text-ink">
           <header className="mb-8 text-center">
-            <p className="font-body-en text-3xl font-extrabold tracking-tight">
-              carsell<span className="text-accent">.one</span>
-            </p>
+            <span className="flex justify-center">
+              <Logo priority className="h-10" />
+            </span>
             <p className="mt-2 text-3xs font-semibold tracking-[0.12em] opacity-55">
               ADMIN CONSOLE
             </p>

@@ -627,3 +627,36 @@ exist fails silently into `?? 'neutral'` and reads as a decision.
 The offer page showed "Status: lapsed" above a badge reading `ACCEPTED`: lapsing
 was computed from the date alone. **It only applies to what was still open** —
 an offer accepted before its deadline has not lapsed.
+
+## `Logo` (task 154)
+
+The wordmark was inline text in **eight places** — `carsell` plus `.one` in the
+accent colour, with slightly different sizes and colour tokens each time. Text
+duplicated eight times changes in seven and stays in one; this repository has
+hit that exact failure more than once. One component now, and a change reaches
+every surface.
+
+Two files, not one with a CSS filter: `logo.png` for light surfaces and
+`logo-white.png` for the dark admin rail. A `filter: brightness(0) invert(1)`
+would depend on filter support and would also invert any future multi-colour
+variant.
+
+### Removing the white background
+
+No image tooling was available on the machine — no ImageMagick, no sharp, no
+PIL. The PNG decoder and encoder are written in `node:zlib` directly
+(~60 lines each: inflate, undo the five row filters, re-deflate).
+
+**The background is removed by unmatting, not by thresholding.** A threshold
+("white is transparent, everything else is opaque") leaves a pale halo around
+every letter, because edge pixels are a blend of ink and paper and so are
+neither. Unmatting takes `w = min(r, g, b)` as the amount of white in a pixel,
+sets `alpha = 255 - w`, and divides the remainder by the coverage to recover the
+original colour. Antialiased edges survive onto any background.
+
+The source was 300×300 with the artwork occupying the middle; it is cropped to
+its alpha bounding box plus two pixels, giving 262×109, so the logo fills the
+space it is given instead of sitting small inside a square.
+
+Width and height are passed explicitly. Without them the browser reserves zero
+and pushes the page down when the image arrives — the thing CLS measures.

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
 import { LocaleSwitcher } from './LocaleSwitcher';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
 
 /**
@@ -152,9 +153,7 @@ export function MobileNav({
         )}
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
-          <span className="font-body-en text-lg font-extrabold tracking-tight">
-            carsell<span className="text-accent">.one</span>
-          </span>
+          <Logo className="h-6" />
           <button
             type="button"
             onClick={() => setOpen(false)}

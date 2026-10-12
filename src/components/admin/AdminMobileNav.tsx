@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
 
 /**
@@ -101,8 +102,8 @@ export function AdminMobileNav({
           {title}
         </p>
 
-        <Link href="/admin" className="font-body-en text-sm font-extrabold tracking-tight">
-          carsell<span className="text-accent-400">.one</span>
+        <Link href="/admin" className="shrink-0">
+          <Logo variant="white" className="h-5" />
         </Link>
       </header>
 
@@ -142,9 +143,7 @@ export function AdminMobileNav({
           )}
         >
           <div className="flex items-center justify-between gap-3 border-b border-bg/14 px-5 py-4">
-            <p className="font-body-en text-lg font-extrabold tracking-tight">
-              carsell<span className="text-accent-400">.one</span>
-            </p>
+            <Logo variant="white" className="h-6" />
             <button
               type="button"
               onClick={() => setOpen(false)}
