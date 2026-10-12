@@ -1455,10 +1455,23 @@ async function main(): Promise<void> {
       },
     });
 
+    /** فارقُ هذا التقرير عن الأساس — صفرٌ للأوّل، ثم أعمقُ فأعمق. */
+    const SECTION_DROP = [0, 14, 28][i] ?? 0;
+
     const sections = Object.entries(POINTS).map(([key, section]) => ({
       key,
       name: section.name,
-      score: SECTION_SCORES[key] ?? 90,
+      /**
+       * ═══ والدرجة الكلّية من أقسامها ═══
+       *
+       * كانت درجاتُ الأقسام ثابتةً للتقارير الثلاثة والدرجةُ الكلّية
+       * مكتوبةً بيد، فخرج تقريرٌ **كلّيُّه ٦٤ وكلُّ أقسامه ٨٦ فأعلى**
+       * — ومتوسّطُها ٩٢. وتقريرٌ كهذا لا يُنتجه فاحص، والقارئ يرى
+       * الرقمين فلا يصدّق أيًّا منهما.
+       *
+       * فالأقسام تهبط بفارقٍ واحد عن الأساس، والكلّيّة متوسّطُها.
+       */
+      score: Math.max(35, (SECTION_SCORES[key] ?? 90) - SECTION_DROP),
       note: SECTION_NOTES[key] ?? null,
       points: section.points.map((label, n) => {
         /**
@@ -1488,7 +1501,9 @@ async function main(): Promise<void> {
          * **ودرجاتٌ متباعدة** — فالشاشة تُرى في حالاتها: ممتازٌ
          * أخضر، ومقبولٌ أصفر، ودونه. ودرجةٌ واحدة لا تُظهر إلّا حالًا.
          */
-        score: [92, 78, 64][i] ?? 85,
+        score: Math.round(
+          sections.reduce((total, section) => total + section.score, 0) / sections.length,
+        ),
         inspectorName:
           ['م. تركي الشمري', 'م. بدر المطيري', 'م. عبدالعزيز الحربي'][i] ?? 'م. فاحص',
         inspectedAt: days(-between(5, 20)),

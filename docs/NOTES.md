@@ -3656,3 +3656,24 @@ states rather than only in green:
 - `AUCTION` — `/ar/cars/madinah/kia/sorento/ADS2026A0051`
 
 All three listing pages and all three `/inspection` pages return 200.
+
+## A report scoring 64 whose every section scored 86 or better
+
+Spreading the seeded inspection scores (92 · 78 · 64) exposed that the overall
+score was written by hand while the section scores were a fixed table shared by
+every report. So the auction's report read **64 / 100** above six sections of
+96, 94, 89, 91, 86, 95 — an average of 92.
+
+No inspector produces that, and a reader who sees both numbers believes neither.
+
+The sections now drop by a per-report offset and the overall score is their
+average, so the three read 92 / 78 / 64 with sections to match
+(96…86, 82…72, 68…58). Added to gate 39 with a 10-point tolerance — rounding and
+weighting may legitimately move it a little, twenty-eight points is not a little.
+
+Checked on the screen itself after reseeding: overall 64, engine 68, body 58.
+
+Also verified while there: the «تحميل PDF» button is not dead. With no stored
+PDF it calls `window.print()`, which is the documented decision — an Arabic PDF
+generator on the server needs font embedding and shaping that the print dialog
+already does correctly.

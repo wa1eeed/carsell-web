@@ -144,6 +144,28 @@ describe('═══ حالات يبلغها المنتج ═══', () => {
     expect(below.filter((ref) => !TEST_LISTING_REF.test(ref))).toEqual([]);
   });
 
+  it('درجةُ تقرير الفحص من أقسامه', async () => {
+    /**
+     * تقريرٌ كلّيُّه ٦٤ وكلُّ أقسامه ٨٦ فأعلى لا يُنتجه فاحص — والقارئ
+     * يرى الرقمين فلا يصدّق أيًّا منهما. والفرق يُحتمل في حدود
+     * التقريب والترجيح، لا في ثمانٍ وعشرين درجة.
+     */
+    const reports = await db.inspectionReport.findMany({
+      select: { ref: true, score: true, sections: true },
+    });
+
+    const off = reports
+      .map((row) => {
+        const sections = (row.sections as unknown as { score: number }[]) ?? [];
+        if (sections.length === 0) return null;
+        const average = sections.reduce((total, s) => total + s.score, 0) / sections.length;
+        return Math.abs(average - row.score) > 10 ? `${row.ref}: ${row.score} ≠ ${Math.round(average)}` : null;
+      })
+      .filter((row): row is string => row !== null);
+
+    expect(off).toEqual([]);
+  });
+
   it('طلبٌ مكتملٌ وإعلانُه مُغلق', async () => {
     /** الطلب يُكمل فيُغلق إعلانه — وإعلانٌ يبقى معروضًا يُباع مرّتين. */
     const stillOpen = await db.order.findMany({
