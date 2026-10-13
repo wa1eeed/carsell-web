@@ -100,6 +100,21 @@ export default async function globalSetup(): Promise<void> {
    * و«يغطّون ن مدينة» و«خدمات مرتبطة» كلُّها تُحسب من الصفوف، فبقايا
    * تشغيلٍ مقتول تُغيّر أرقامًا يقرؤها المشغّل على أنها حالُ السوق.
    */
+  /**
+   * **وسؤالٌ صنعه اختبارٌ يصل الزائر.** بنك الأسئلة يُقرأ في صفحة
+   * السيارة والرئيسية والمساعدة، وعدّادُ «ترجمة ناقصة» يُحسب من الصفوف
+   * — فبقايا تشغيلٍ مقتول تظهر للناس وتضخّم رقمًا يقرؤه المحرّر.
+   */
+  const faqs = await db.faqItem.findMany({ select: { id: true, questionEn: true } });
+  const staleFaqs = faqs.filter((row) => TEST_PROVIDER.test(row.questionEn));
+  if (staleFaqs.length > 0) {
+    const ids = staleFaqs.map((row) => row.id);
+    await db.faqPlacement.deleteMany({ where: { faqId: { in: ids } } });
+    await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
+    await db.faqItem.deleteMany({ where: { id: { in: ids } } });
+    console.log(`  نُظّف ${String(staleFaqs.length)} سؤال اختبار من تشغيلات سابقة`);
+  }
+
   const providers = await db.serviceProvider.findMany({ select: { id: true, nameEn: true } });
   const staleProviders = providers.filter((row) => TEST_PROVIDER.test(row.nameEn));
   if (staleProviders.length > 0) {

@@ -1373,6 +1373,75 @@
         }
       }
     },
+    "/api/v1/admin/faq": {
+      "post": {
+        "summary": "POST /api/v1/admin/faq",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "notifications.manage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "questionAr": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "questionEn": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "answerAr": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "answerEn": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "category": {
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "sort": {
+                    "type": "string",
+                    "maxLength": 5,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "questionAr",
+                  "questionEn",
+                  "answerAr",
+                  "answerEn",
+                  "category"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/faq/{id}": {
       "patch": {
         "summary": "PATCH /api/v1/admin/faq/{id}",

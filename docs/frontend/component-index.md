@@ -33,7 +33,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 9 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 9 |
 | `DetailStats` | no | `items` | 11 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 105 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 106 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -161,8 +161,8 @@ rather than found by chance.
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 4 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 22 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 34 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 23 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 35 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
 | `Sparkline` | no | `points` · `height` · `className` | 3 |

@@ -113,6 +113,17 @@ domain, audited, walked end to end).
   commission) with a form on the page; `active` stays with the row's own button
   so saving a phone number cannot disable a company by accident.
 
+- `/admin/faq` — `FaqItem` had **no writer but the seed**: the screen hides,
+  shows and places questions, but could not add one or fix a character in one.
+  And it **counts «ترجمة ناقصة» and badges every row missing English** — a
+  problem tallied, its rows named, with no door to fix it. `saveFaq` (create +
+  edit, audited, order derived from the top of its category rather than from a
+  count) with a text editor on the row. English is warned about, never required:
+  blocking the save pushes the editor to write bad English just to get past it.
+  Hiding and placement stay on their own buttons — a form that does not send
+  `active` would read as «hide it», so fixing a typo would pull a question off
+  the site.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

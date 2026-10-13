@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import type { Prisma } from '@/generated/prisma/client';
 import type { ListingType } from '@/generated/prisma/enums';
 
 /**
@@ -18,6 +19,10 @@ import type { ListingType } from '@/generated/prisma/enums';
 export type FaqRow = {
   id: string;
   questionAr: string;
+  /** نصُّ الصفّ كاملًا — تُفتح به استمارة التحرير، فلا حقلَ تجهل قيمته. */
+  questionEn: string;
+  answerAr: string;
+  answerEn: string;
   category: string;
   sort: number;
   active: boolean;
@@ -44,6 +49,7 @@ export async function faqList(category: string | null = null): Promise<FaqRow[]>
       id: true,
       questionAr: true,
       questionEn: true,
+      answerAr: true,
       answerEn: true,
       category: true,
       sort: true,
@@ -55,6 +61,9 @@ export async function faqList(category: string | null = null): Promise<FaqRow[]>
   return items.map((item) => ({
     id: item.id,
     questionAr: item.questionAr,
+    questionEn: item.questionEn,
+    answerAr: item.answerAr,
+    answerEn: item.answerEn,
     category: item.category,
     sort: item.sort,
     active: item.active,
@@ -158,11 +167,133 @@ export type ToggleFailure = 'NOT_FOUND';
 export type ToggleResult = { ok: true; active: boolean } | { ok: false; reason: ToggleFailure };
 
 /**
- * تفعيل سؤالٍ أو تعطيله — **وهو كل ما تملكه الشاشة اليوم**.
+ * ═══ إنشاءُ سؤالٍ وتحريرُ نصّه ═══
  *
- * والتحرير الكامل (نصّ السؤال والجواب ومواضعه) شاشةٌ أكبر: نصٌّ عربيّ
- * وإنجليزيّ ومحرّرٌ للمواضع بشروطها. فالإخفاء يكفي لسحب سؤالٍ خاطئ
- * فورًا، وهو ما يُحتاج في اللحظة — والتحرير يليه.
+ * `FaqItem` كان **لا يكتبه إلا الزرع**: الشاشة تُخفي وتُظهر وتضبط
+ * المواضع، ولا تملك إضافة سؤالٍ ولا تصحيح حرفٍ فيه. **وهي تعدّ
+ * «ترجمة ناقصة» وتضع وسمًا على كل صفٍّ ينقصه الإنجليزيّ** — مشكلةٌ
+ * تُحصى ولا بابَ لحلّها، وهو الصنف الذي يتكرّر في هذا المستودع.
+ *
+ * والتحقّق يعيد مفاتيح لا جُملًا (البوابة ١٧)، والصياغة في الشاشة.
+ */
+export type FaqDraft = {
+  questionAr: string;
+  questionEn: string;
+  answerAr: string;
+  answerEn: string;
+  category: string;
+  sort?: number | string | null;
+};
+
+export type FaqSaveResult =
+  | { ok: true; id: string; created: boolean }
+  | { ok: false; reason: 'NOT_FOUND' }
+  | { ok: false; reason: 'VALIDATION'; fields: Record<string, string> };
+
+function trimmed(value: string | null | undefined): string {
+  return (value ?? '').trim();
+}
+
+function validateFaq(draft: FaqDraft): Record<string, string> {
+  const fields: Record<string, string> = {};
+
+  if (trimmed(draft.questionAr) === '') fields.questionAr = 'REQUIRED';
+  if (trimmed(draft.answerAr) === '') fields.answerAr = 'REQUIRED';
+  if (trimmed(draft.category) === '') fields.category = 'REQUIRED';
+
+  /**
+   * **والإنجليزيّ يُحذَّر منه ولا يُمنع.** سؤالٌ عربيٌّ عاجل خيرٌ من لا
+   * سؤال، والشاشة تعدّ ناقصي الترجمة وتسمّيهم — فمنعُ الحفظ هنا يدفع
+   * المحرّر إلى كتابة إنجليزيّةٍ رديئة ليمرّ.
+   */
+
+  const sort = draft.sort ?? null;
+  if (sort !== null && sort !== '') {
+    const order = Number(sort);
+    if (!Number.isInteger(order) || order < 0 || order > 9_999) fields.sort = 'RANGE';
+  }
+
+  return fields;
+}
+
+/** إنشاءُ سؤالٍ أو تحريرُه — ومعرّفٌ غائب يعني إنشاءً. */
+export async function saveFaq(
+  input: { id: string | null; draft: FaqDraft; adminId: string; ip: string | null },
+  now: Date = new Date(),
+): Promise<FaqSaveResult> {
+  const fields = validateFaq(input.draft);
+  if (Object.keys(fields).length > 0) return { ok: false, reason: 'VALIDATION', fields };
+
+  const sortText = input.draft.sort ?? null;
+  const data = {
+    questionAr: trimmed(input.draft.questionAr),
+    questionEn: trimmed(input.draft.questionEn),
+    answerAr: trimmed(input.draft.answerAr),
+    answerEn: trimmed(input.draft.answerEn),
+    category: trimmed(input.draft.category),
+    ...(sortText === null || sortText === '' ? {} : { sort: Number(sortText) }),
+  };
+
+  if (input.id === null) {
+    /**
+     * **والترتيبُ يُشتقّ من الأعلى لا من العدد.** `count() + 1` يصطدم
+     * بأوّل صفٍّ محذوف — وهو العطل نفسه الذي وقع في `Order` و`Listing`.
+     */
+    const last = await db.faqItem.findFirst({
+      where: { category: data.category },
+      orderBy: { sort: 'desc' },
+      select: { sort: true },
+    });
+    const created = await db.faqItem.create({
+      data: { ...data, sort: data.sort ?? (last?.sort ?? 0) + 1 },
+      select: { id: true },
+    });
+    await writeFaqAudit(created.id, 'faq.created', null, data, input, now);
+    return { ok: true, id: created.id, created: true };
+  }
+
+  const before = await db.faqItem.findUnique({
+    where: { id: input.id },
+    select: {
+      questionAr: true, questionEn: true, answerAr: true,
+      answerEn: true, category: true, sort: true,
+    },
+  });
+  if (before === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  await db.faqItem.update({ where: { id: input.id }, data });
+  await writeFaqAudit(input.id, 'faq.updated', before, data, input, now);
+  return { ok: true, id: input.id, created: false };
+}
+
+async function writeFaqAudit(
+  id: string,
+  action: string,
+  before: unknown,
+  after: unknown,
+  input: { adminId: string; ip: string | null },
+  now: Date,
+): Promise<void> {
+  await db.auditLog.create({
+    data: {
+      actorId: input.adminId,
+      actorType: 'admin',
+      entity: 'FaqItem',
+      entityId: id,
+      action,
+      before: before as Prisma.InputJsonValue,
+      after: after as Prisma.InputJsonValue,
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
+}
+
+/**
+ * تفعيل سؤالٍ أو تعطيله — **وهو سحبُه من الظهور فورًا**.
+ *
+ * ويبقى منفصلًا عن الحفظ: استمارةٌ لا ترسل `active` كانت ستُقرأ
+ * «أخفِه»، فتصحيحُ حرفٍ يسحب سؤالًا من الموقع بالسهو.
  */
 export async function toggleFaq(
   input: { id: string; active: boolean; adminId: string; ip: string | null },

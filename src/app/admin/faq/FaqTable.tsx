@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
+import { cn } from '@/lib/cn';
 import { displayDigits } from '@/lib/arabic';
 import type { FaqRow } from '@/lib/domain/admin-content';
 
@@ -41,6 +43,49 @@ const CATEGORY_LABEL: Record<string, string> = {
   services: 'الخدمات',
 };
 
+const field =
+  'rounded-md border border-line bg-bg px-3 py-2.25 text-2xs outline-none focus:border-ink';
+
+const FIELD_ERROR: Record<string, string> = {
+  REQUIRED: 'هذا الحقل مطلوب',
+  RANGE: 'القيمة خارج المدى',
+};
+
+/**
+ * ═══ ونصُّ السؤال يُكتب ويُصحَّح ═══
+ *
+ * `FaqItem` كان **لا يكتبه إلا الزرع**: تُخفيه الشاشة وتُظهره وتضبط
+ * مواضعه، ولا تملك إضافة سؤالٍ ولا تصحيح حرفٍ فيه. **وهي تعدّ «ترجمة
+ * ناقصة» وتضع وسمًا على كل صفٍّ ينقصه الإنجليزيّ** — مشكلةٌ تُحصى
+ * ويُسمّى أصحابُها ولا بابَ لحلّها.
+ */
+type TextDraft = {
+  id: string | null;
+  questionAr: string;
+  questionEn: string;
+  answerAr: string;
+  answerEn: string;
+  category: string;
+  sort: string;
+};
+
+const EMPTY_TEXT: TextDraft = {
+  id: null, questionAr: '', questionEn: '', answerAr: '',
+  answerEn: '', category: 'buying', sort: '',
+};
+
+function toTextDraft(row: FaqRow): TextDraft {
+  return {
+    id: row.id,
+    questionAr: row.questionAr,
+    questionEn: row.questionEn,
+    answerAr: row.answerAr,
+    answerEn: row.answerEn,
+    category: row.category,
+    sort: String(row.sort),
+  };
+}
+
 export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -59,6 +104,47 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
    */
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ surface: string; listingType: string | null }[]>([]);
+
+  const [text, setText] = useState<TextDraft | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+
+  async function saveText(): Promise<void> {
+    if (text === null) return;
+    setBusy(true);
+    setErrors({});
+    try {
+      const response = await fetch(
+        text.id === null ? '/api/v1/admin/faq' : `/api/v1/admin/faq/${text.id}`,
+        {
+          method: text.id === null ? 'POST' : 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            questionAr: text.questionAr,
+            questionEn: text.questionEn,
+            answerAr: text.answerAr,
+            answerEn: text.answerEn,
+            category: text.category,
+            sort: text.sort,
+          }),
+        },
+      );
+      const json = (await response.json().catch(() => null)) as
+        | { error?: { messageAr?: string; fields?: Record<string, string> } }
+        | null;
+
+      if (!response.ok || json?.error !== undefined) {
+        setErrors(json?.error?.fields ?? {});
+        setToast(json?.error?.messageAr ?? 'تعذّر الحفظ.');
+        return;
+      }
+      setToast(text.id === null ? 'أُضيف السؤال.' : 'حُفظ السؤال.');
+      setText(null);
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const openEditor = (row: FaqRow): void => {
     setEditing(row.id);
@@ -109,6 +195,12 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <Button size="sm" onClick={() => setText(EMPTY_TEXT)}>
+          أضِف سؤالًا
+        </Button>
+      </div>
+
       <div className="flex flex-col divide-y divide-line border-y border-line">
         {rows.map((row) => (
           <div key={row.id}>
@@ -152,6 +244,15 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
 
               <Button size="sm" variant="outline" disabled={pending} onClick={() => toggle(row)}>
                 {row.active ? 'أخفِه' : 'أظهِره'}
+              </Button>
+
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={pending}
+                onClick={() => setText(toTextDraft(row))}
+              >
+                النصّ
               </Button>
 
               <Button
@@ -237,7 +338,129 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
         ))}
       </div>
 
+      <Modal
+        open={text !== null}
+        onClose={() => setText(null)}
+        title={text?.id === null ? 'سؤال جديد' : 'تعديل السؤال'}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setText(null)}>
+              إلغاء
+            </Button>
+            <Button disabled={busy} onClick={() => void saveText()}>
+              احفظ
+            </Button>
+          </>
+        }
+      >
+        {text === null ? null : (
+          <div className="flex flex-col gap-3.5">
+            <Field label="السؤال بالعربية — إلزامي" error={errors.questionAr}>
+              <input
+                value={text.questionAr}
+                onChange={(e) => setText({ ...text, questionAr: e.target.value })}
+                className={cn(field, errors.questionAr !== undefined && 'border-danger')}
+              />
+            </Field>
+
+            <Field label="الجواب بالعربية — إلزامي" error={errors.answerAr}>
+              <textarea
+                rows={4}
+                value={text.answerAr}
+                onChange={(e) => setText({ ...text, answerAr: e.target.value })}
+                className={cn(field, 'resize-y', errors.answerAr !== undefined && 'border-danger')}
+              />
+            </Field>
+
+            {/*
+              **والإنجليزيّ يُحذَّر منه ولا يُمنع.** سؤالٌ عربيٌّ عاجل خيرٌ
+              من لا سؤال، والشاشة تعدّ ناقصي الترجمة وتسمّيهم — فمنعُ
+              الحفظ هنا يدفع المحرّر إلى إنجليزيّةٍ رديئة ليمرّ.
+            */}
+            <Field label="السؤال بالإنجليزية" error={errors.questionEn}>
+              <input
+                dir="ltr"
+                value={text.questionEn}
+                onChange={(e) => setText({ ...text, questionEn: e.target.value })}
+                className={cn(field, 'bidi-ltr')}
+              />
+            </Field>
+
+            <Field label="الجواب بالإنجليزية" error={errors.answerEn}>
+              <textarea
+                dir="ltr"
+                rows={4}
+                value={text.answerEn}
+                onChange={(e) => setText({ ...text, answerEn: e.target.value })}
+                className={cn(field, 'bidi-ltr resize-y')}
+              />
+            </Field>
+
+            {text.questionEn.trim() === '' || text.answerEn.trim() === '' ? (
+              <p className="text-3xs text-warn-700">
+                بلا إنجليزية يظهر السؤال بالعربية للزائر الإنجليزيّ. يُحفظ، ويبقى موسومًا هنا.
+              </p>
+            ) : null}
+
+            <div className="grid grid-cols-2 gap-3.5">
+              <Field label="التصنيف" error={errors.category}>
+                <select
+                  value={text.category}
+                  onChange={(e) => setText({ ...text, category: e.target.value })}
+                  className={field}
+                >
+                  {Object.entries(CATEGORY_LABEL).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="الترتيب — فارغٌ يضعه آخرًا" error={errors.sort}>
+                <input
+                  dir="ltr"
+                  inputMode="numeric"
+                  value={text.sort}
+                  onChange={(e) => setText({ ...text, sort: e.target.value })}
+                  className={cn(field, 'bidi-ltr font-num')}
+                />
+              </Field>
+            </div>
+
+            {/*
+              **ولا يُخفى ولا يُوضَع من هنا.** الإخفاء يسحب السؤال من
+              الموقع فورًا، والمواضع تُستبدل كاملةً — واستمارةٌ لا ترسلهما
+              كانت تُقرأ «أخفِه وامسح مواضعه»، فتصحيحُ حرفٍ يسحب سؤالًا.
+            */}
+            <p className="text-3xs opacity-45">
+              الإظهار والمواضع من أزرار الصفّ — ولكلٍّ أثرُه على ما يراه الزائر.
+            </p>
+          </div>
+        )}
+      </Modal>
+
       {toast === null ? null : <Toast title={toast} />}
     </>
+  );
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-2xs font-semibold opacity-55">{label}</span>
+      {children}
+      {error === undefined ? null : (
+        <span className="text-3xs text-danger">{FIELD_ERROR[error] ?? error}</span>
+      )}
+    </label>
   );
 }
