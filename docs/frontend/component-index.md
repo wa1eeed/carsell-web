@@ -133,7 +133,7 @@ rather than found by chance.
 | `Duration` | no | `hours` | 10 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 34 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` | 3 |
-| `FilterChip` | no | `href` · `active` · `count` · `children` | 6 |
+| `FilterChip` | no | `href` · `active` · `count` · `children` | 7 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
 | `HistoryList` | no | `entries` · `className` | 1 |

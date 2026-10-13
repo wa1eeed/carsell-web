@@ -25,8 +25,14 @@ export function ListingStatsRow({ stats }: { stats: ListingStats }) {
     },
   ];
 
+  /*
+    **وعمودان من أصغر مقاس.** كانت `sm:grid-cols-2` فتتكدّس الأربع
+    واحدةً فوق أخرى دون ٦٤٠px — ويُدفع أوّلُ إعلانٍ إلى ٦٨١px، فيمرّر
+    البائع أربع بطاقاتٍ قبل أن يرى ما جاء لأجله. وشبكةُ ٢×٢ تقرأ
+    الأربعة في لمحة.
+  */
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map((card) => (
         <div key={card.label} className="rounded-xl border border-line p-4">
           <p className="mb-1.5 text-2xs opacity-55">{card.label}</p>

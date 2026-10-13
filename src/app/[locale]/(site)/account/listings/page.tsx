@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { Button } from '@/components/ui/Button';
+import { FilterChip } from '@/components/ui/FilterChip';
 import { Quantity } from '@/components/ui/Quantity';
 import { Badge } from '@/components/ui/Badge';
 import { routing } from '@/i18n/routing';
@@ -20,10 +21,38 @@ export function generateMetadata(): Metadata {
 }
 
 /** **المعروضة والمراجَعة والمحجوزة معًا** — وإخفاء المراجَعة يجعل البائع يظنّ نشره ضاع. */
+/**
+ * ═══ ترشيح «إعلاناتي» ═══
+ *
+ * ثماني حالاتٍ في المخطّط، وأربعٌ منها تظهر معًا في قائمةٍ واحدة:
+ * مسودّة وقيد مراجعة ومنشور ومباع. **فالبائع يبحث عن إعلانه بين
+ * حالاتٍ لا تخصّه** — والمسودّة التي لم تكتمل تختفي بين منشورين.
+ *
+ * وثلاثٌ لأنها ثلاثةُ أسئلة: **ما يعمل الآن** · **ما ينتظرني** ·
+ * **ما انتهى**. والحالة التي لا جواب لها ليست تبويبًا.
+ */
+const GROUPS = ['live', 'waiting', 'closed'] as const;
+type Group = (typeof GROUPS)[number];
+
+const GROUP_LABEL: Record<Group, string> = {
+  live: 'معروضة',
+  waiting: 'تنتظرك',
+  closed: 'منتهية',
+};
+
+/** `DRAFT` تنتظر صاحبها ليكملها، و`PENDING_REVIEW` تنتظرنا — وكلتاهما لا تُعرض. */
+function groupOf(status: string): Group {
+  if (status === 'PUBLISHED' || status === 'RESERVED') return 'live';
+  if (status === 'DRAFT' || status === 'PENDING_REVIEW') return 'waiting';
+  return 'closed';
+}
+
 export default async function ListingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -33,7 +62,20 @@ export default async function ListingsPage({
   if (user === null) redirect(`/${locale}/auth`);
 
   // التسمية من `enums` نفسها التي تقرؤها بطاقة الحساب — لا نسخة ثانية
-  const [data, te] = await Promise.all([getAccountData(user, locale), getTranslations('enums')]);
+  const [data, te, query] = await Promise.all([
+    getAccountData(user, locale),
+    getTranslations('enums'),
+    searchParams,
+  ]);
+
+  /** الترشيح بالعنوان — يُشارَك ويعمل بلا JS، والشاشة خادمية. */
+  const asked = typeof query.group === 'string' ? query.group : 'live';
+  const group: Group = (GROUPS as readonly string[]).includes(asked) ? (asked as Group) : 'live';
+
+  /** العدد من التصنيف نفسه الذي يُرشَّح به — لا شرطان يتباعدان. */
+  const countOf = (which: Group): number =>
+    data.listings.filter((row) => groupOf(row.status) === which).length;
+  const shown = data.listings.filter((row) => groupOf(row.status) === group);
 
   return (
     <AccountList
@@ -47,17 +89,61 @@ export default async function ListingsPage({
       title="إعلاناتي"
       subtitle="ما عرضتَه، وحاله، وكم شوهد."
       stats={<ListingStatsRow stats={data.listingStats} />}
-      empty={{
-        title: 'لا مركبات معروضة',
-        description: 'انشر مركبتك الأولى وستظهر هنا مع عروضها ومشاهداتها.',
-      }}
+      filters={
+        data.listings.length === 0 ? undefined : (
+          <nav className="flex flex-wrap items-center gap-2.5">
+            {GROUPS.map((key) => {
+              const count = countOf(key);
+              return (
+                <FilterChip
+                  key={key}
+                  href={
+                    key === 'live'
+                      ? `/${locale}/account/listings`
+                      : `/${locale}/account/listings?group=${key}`
+                  }
+                  active={group === key}
+                  {...(count === 0 ? {} : { count })}
+                >
+                  {GROUP_LABEL[key]}
+                </FilterChip>
+              );
+            })}
+          </nav>
+        )
+      }
+      /*
+        **والحالة الفارغة تتبع التبويب.** «انشر مركبتك الأولى» جوابٌ
+        صحيح لمن لا إعلان له، وخاطئٌ لمن له ستّةٌ ورشّح إلى «منتهية».
+      */
+      empty={
+        data.listings.length === 0
+          ? {
+              title: 'لا مركبات معروضة',
+              description: 'انشر مركبتك الأولى وستظهر هنا مع عروضها ومشاهداتها.',
+            }
+          : group === 'live'
+            ? {
+                title: 'لا إعلان معروضًا الآن',
+                description: 'ما يراه المشترون يظهر هنا مع مشاهداته وعروضه.',
+              }
+            : group === 'waiting'
+              ? {
+                  title: 'لا شيء ينتظرك',
+                  description: 'المسودّات وما هو قيد المراجعة يظهران هنا.',
+                }
+              : {
+                  title: 'لا إعلان منتهيًا',
+                  description: 'المباع والموقوف والمنتهي يظهر هنا.',
+                }
+      }
       action={
         <Link href={`/${locale}/sell`}>
           <Button size="sm">بِع سيارتك</Button>
         </Link>
       }
     >
-      {data.listings.map((listing) => (
+      {shown.map((listing) => (
         <div key={listing.ref}>
         <AccountRow
           href={listing.path}
