@@ -510,6 +510,7 @@ export function CarPage({
                         minimumBid: Number(detail.auction.minimumBid),
                         depositAmount: Number(detail.auction.depositAmount),
                         bidCount: detail.auction.bidCount,
+                        bidderCount: detail.auction.bidderCount,
                         highestBid:
                           detail.auction.highestBid === null ? null : Number(detail.auction.highestBid),
                         endsAt: detail.auction.endsAt,

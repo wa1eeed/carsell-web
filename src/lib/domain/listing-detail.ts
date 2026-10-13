@@ -227,6 +227,15 @@ export type PublicListingDetail = {
     endsAt: string;
     status: string;
     bidCount: number;
+    /**
+     * ═══ والمزايدون غيرُ المزايدات ═══
+     *
+     * عمودُ الشراء كان يعرض `bidCount` موسومًا «مزايدين»، وسجلُّ
+     * المزايدات تحته يقول «٦ مزايدين · ٩ مزايدات» — **رقمان متناقضان
+     * في شاشةٍ واحدة**، والخطأ منهما يبالغ في المنافسة فيرفع ما يدفعه
+     * المشتري. فيُحسب هنا مرّةً ويقرأه الاثنان.
+     */
+    bidderCount: number;
     highestBid: string | null;
     /** أعلى مزايدة + خطوة — آمن ولا يُشتق منه الاحتياطي (قرار ٢٩). */
     minimumBid: string;
@@ -285,7 +294,13 @@ const DETAIL_INCLUDE = {
   seller: { include: { dealer: true } },
   images: { orderBy: { sort: 'asc' } },
   features: { include: { feature: true } },
-  auction: { include: { _count: { select: { bids: true } } } },
+  auction: {
+    include: {
+      _count: { select: { bids: true } },
+      // المزايدون يُعدّون بأسمائهم المستعارة — لا بعدد المزايدات
+      bids: { select: { bidderId: true }, distinct: 'bidderId' },
+    },
+  },
 } as const;
 
 type DetailRow = Prisma.ListingGetPayload<{ include: typeof DETAIL_INCLUDE }>;
@@ -631,6 +646,7 @@ export async function toPublicDetail(
             endsAt: row.auction.endsAt.toISOString(),
             status: row.auction.status,
             bidCount: row.auction._count.bids,
+            bidderCount: row.auction.bids.length,
             highestBid: highestBid?.toString() ?? null,
             minimumBid: (
               Number(highestBid ?? row.auction.startPrice) +

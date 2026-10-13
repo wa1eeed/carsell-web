@@ -38,6 +38,13 @@ export type BuyColumnData = {
     minimumBid: number;
     depositAmount: number;
     bidCount: number;
+    /**
+     * **والمزايدون غيرُ المزايدات.** كان هذا العمود يعرض `bidCount`
+     * موسومًا «مزايدين»، وسجلُّ المزايدات تحته يقول «٦ مزايدين · ٩
+     * مزايدات» — رقمان متناقضان في شاشةٍ واحدة، والخطأ منهما يبالغ في
+     * المنافسة فيرفع ما يدفعه المشتري.
+     */
+    bidderCount: number;
     highestBid: number | null;
     endsAt: string;
     /** مفتوحٌ للمزايدة الآن — حالةً ووقتًا */
@@ -171,7 +178,7 @@ export function BuyColumn({
             </div>
             <Money amount={auction.highestBid ?? auction.startPrice} size="xl" />
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs opacity-60">
-              <Quantity unit="bidders" count={auction.bidCount} />
+              <Quantity unit="bidders" count={auction.bidderCount} />
               <span className="flex items-center gap-1">
                 {t('minimumBid')} <ArabicNumber value={auction.minimumBid} />
               </span>
