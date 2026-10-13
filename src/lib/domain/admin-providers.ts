@@ -1,5 +1,7 @@
 import type { ProviderType } from '@/generated/prisma/enums';
+import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
+import { normalizeSaudiPhone } from './phone';
 import { SLA_BREACHES_BEFORE_SUSPENSION } from './provider-rules';
 
 /**
@@ -24,6 +26,10 @@ import { SLA_BREACHES_BEFORE_SUSPENSION } from './provider-rules';
 export type ProviderRow = {
   id: string;
   nameAr: string;
+  /** يُقرأ في استمارة التعديل — ولا تُفتح استمارةٌ بحقلٍ لا تعرف قيمته. */
+  nameEn: string;
+  contactPhone: string | null;
+  contactEmail: string | null;
   type: ProviderType;
   commissionPct: string | null;
   slaHours: number | null;
@@ -82,6 +88,9 @@ export async function providerList(now: Date = new Date()): Promise<ProviderRow[
   return providers.map((provider) => ({
     id: provider.id,
     nameAr: provider.nameAr,
+    nameEn: provider.nameEn,
+    contactPhone: provider.contactPhone,
+    contactEmail: provider.contactEmail,
     type: provider.type,
     commissionPct: provider.commissionPct?.toFixed(2) ?? null,
     slaHours: provider.slaHours,
@@ -169,6 +178,171 @@ export async function toggleProvider(
   });
 
   return { ok: true, active: input.active, openRequests };
+}
+
+/**
+ * ═══ المزوّد يُنشأ ويُعدَّل — لا يُزرَع وحده ═══
+ *
+ * `ServiceProvider` كان **لا يكتبه إلا الزرع**: الشاشة تعرض وتُعطّل
+ * وتُفعّل، ولا باب لإضافة شركة فحصٍ جديدة ولا لتصحيح رقم هاتفٍ تغيّر.
+ * وطابورُ الخدمات يُسنِد إلى مزوّد — فنموُّ الخدمات كان موقوفًا على
+ * كتابةٍ يدويّة في القاعدة.
+ *
+ * **والتحقّق يعيد مفاتيح لا جُملًا** (البوابة ١٧): الصياغة في الشاشة.
+ */
+export type ProviderDraft = {
+  nameAr: string;
+  nameEn: string;
+  type: string;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  /** نسبةٌ مئوية نصًّا — `Decimal` في القاعدة، ولا `Float` للمال. */
+  commissionPct?: string | null;
+  /**
+   * **والساعاتُ تصل نصًّا كذلك.** الحقل نصٌّ في الاستمارة، وتحويلُه عند
+   * الحافّة يجعل «ساعتان» تصير `NaN` فيردّ المسار خطأً عامًّا — والمدى
+   * يُفحص هنا مع إخوته فيعود الجواب كاملًا مرّة.
+   */
+  slaHours?: string | null;
+  cities?: readonly string[];
+};
+
+/** الفراغُ غيابٌ لا قيمة — وقرارُه هنا لا في كل مسارٍ يستدعي. */
+function clean(value: string | null | undefined): string | null {
+  const text = (value ?? '').trim();
+  return text === '' ? null : text;
+}
+
+export type ProviderSaveResult =
+  | { ok: true; id: string; created: boolean }
+  | { ok: false; reason: 'PROVIDER_NOT_FOUND' }
+  | { ok: false; reason: 'VALIDATION'; fields: Record<string, string> };
+
+const PROVIDER_TYPES: readonly string[] = [
+  'INSPECTION', 'SHIPPING', 'INSURANCE', 'DETAILING', 'PHOTOGRAPHY', 'FINANCE', 'OTHER',
+];
+
+/** سنةٌ بالساعات — التزامٌ أطول منها خطأُ إدخالٍ لا سياسة. */
+const MAX_SLA_HOURS = 8_760;
+
+function validate(draft: ProviderDraft): Record<string, string> {
+  const fields: Record<string, string> = {};
+
+  if (clean(draft.nameAr) === null) fields.nameAr = 'REQUIRED';
+  if (clean(draft.nameEn) === null) fields.nameEn = 'REQUIRED';
+  if (!PROVIDER_TYPES.includes(draft.type)) fields.type = 'INVALID';
+
+  const pctText = clean(draft.commissionPct);
+  if (pctText !== null) {
+    const pct = Number(pctText);
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) fields.commissionPct = 'RANGE';
+  }
+
+  const slaText = clean(draft.slaHours);
+  if (slaText !== null) {
+    const hours = Number(slaText);
+    if (!Number.isInteger(hours) || hours < 0 || hours > MAX_SLA_HOURS) fields.slaHours = 'RANGE';
+  }
+
+  /**
+   * **والهاتف يُطبَّع لا يُرفض.** من يلصق «+966 50 123 4567» لم يخطئ،
+   * ومن يمنع اللصق يصنع الخطأ الذي يظنّ أنه يمنعه.
+   */
+  const phone = clean(draft.contactPhone);
+  if (phone !== null && normalizeSaudiPhone(phone) === null) fields.contactPhone = 'INVALID';
+
+  const email = clean(draft.contactEmail);
+  if (email !== null && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fields.contactEmail = 'INVALID';
+
+  return fields;
+}
+
+/**
+ * إنشاءُ مزوّدٍ أو تعديلُه — ومعرّفٌ غائب يعني إنشاءً.
+ *
+ * **ولا يُمَسُّ `active` من هنا.** التفعيل والتعطيل قرارٌ له أثرُه على
+ * الإسناد الجاري، و`toggleProvider` تقوله وتقول كم طلبًا سيُكمله
+ * المزوّد. ودمجُهما يجعل حفظَ رقم هاتفٍ يُعطّل شركةً بالسهو.
+ */
+export async function saveProvider(
+  input: {
+    providerId: string | null;
+    draft: ProviderDraft;
+    adminId: string;
+    ip: string | null;
+  },
+  now: Date = new Date(),
+): Promise<ProviderSaveResult> {
+  const fields = validate(input.draft);
+  if (Object.keys(fields).length > 0) return { ok: false, reason: 'VALIDATION', fields };
+
+  const phone = clean(input.draft.contactPhone);
+  const pct = clean(input.draft.commissionPct);
+  const sla = clean(input.draft.slaHours);
+
+  const data = {
+    nameAr: input.draft.nameAr.trim(),
+    nameEn: input.draft.nameEn.trim(),
+    type: input.draft.type as ProviderType,
+    contactPhone: phone === null ? null : normalizeSaudiPhone(phone),
+    contactEmail: clean(input.draft.contactEmail),
+    commissionPct: pct === null ? null : new Prisma.Decimal(pct),
+    slaHours: sla === null ? null : Number(sla),
+    // مدينةٌ فارغة ليست مدينة، والتكرار يُفسد عدّاد «المدن المغطّاة»
+    cities: [
+      ...new Set((input.draft.cities ?? []).map((city) => city.trim()).filter((city) => city !== '')),
+    ],
+  };
+
+  if (input.providerId === null) {
+    const created = await db.serviceProvider.create({ data, select: { id: true } });
+    await writeAudit(created.id, 'provider.created', null, data, input, now);
+    return { ok: true, id: created.id, created: true };
+  }
+
+  const before = await db.serviceProvider.findUnique({
+    where: { id: input.providerId },
+    select: {
+      nameAr: true, nameEn: true, type: true, contactPhone: true,
+      contactEmail: true, commissionPct: true, slaHours: true, cities: true,
+    },
+  });
+  if (before === null) return { ok: false, reason: 'PROVIDER_NOT_FOUND' };
+
+  await db.serviceProvider.update({ where: { id: input.providerId }, data });
+  await writeAudit(
+    input.providerId,
+    'provider.updated',
+    { ...before, commissionPct: before.commissionPct?.toString() ?? null },
+    data,
+    input,
+    now,
+  );
+  return { ok: true, id: input.providerId, created: false };
+}
+
+async function writeAudit(
+  providerId: string,
+  action: string,
+  before: unknown,
+  data: { commissionPct: Prisma.Decimal | null },
+  input: { adminId: string; ip: string | null },
+  now: Date,
+): Promise<void> {
+  await db.auditLog.create({
+    data: {
+      actorId: input.adminId,
+      actorType: 'admin',
+      entity: 'ServiceProvider',
+      entityId: providerId,
+      action,
+      before: before as Prisma.InputJsonValue,
+      // **والقيمة العشرية تُسجَّل نصًّا** — `Decimal` في JSON يفقد دقّته
+      after: { ...data, commissionPct: data.commissionPct?.toString() ?? null },
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
 }
 
 export type BreachedRequest = {

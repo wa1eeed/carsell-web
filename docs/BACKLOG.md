@@ -97,6 +97,22 @@ all while `/admin/plans` counted it and promised «وكل تجاوزٍ يُمن�
 بسببه ومدّته». That door is now open (`grantOverride`, reason required in the
 domain, audited, walked end to end).
 
+**Swept again 2026-10-13 (service requests, providers):**
+
+- `/admin/service-requests` — the four stat cards were computed from the
+  *filtered* list, so clicking one made the other three describe themselves:
+  `?overdue=1` read «الإجمالي ١» with eight in the queue. «تجاوزت المهلة» was
+  defined in four places (row badge, card, a client-state button, a domain
+  filter) and two of them disagreed on the one-hour boundary. One `scopeWhere`
+  now feeds both the counter and the query; the card *is* the filter; gate 40
+  was extended to the cards and proved by reverting the defect. `26cfea9`
+- `/admin/providers` — `ServiceProvider` had **no writer but the seed**, while
+  the page footer promised «إضافة مزوّد وتعديل بياناته». Service requests are
+  assigned to providers, so onboarding an inspection company meant writing SQL
+  by hand. `saveProvider` (create + edit, audited, phone normalised, `Decimal`
+  commission) with a form on the page; `active` stays with the row's own button
+  so saving a phone number cannot disable a company by accident.
+
 - [ ] `ApiKey` — no writer anywhere, while `public-key.ts` authenticates
       partners by key: **the partner API cannot be reached by anyone.** Issuing
       keys is an access-control decision (who may hold one, what it may read,

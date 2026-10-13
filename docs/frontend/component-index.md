@@ -33,7 +33,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 9 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 9 |
 | `DetailStats` | no | `items` | 11 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 104 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 105 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -80,7 +80,7 @@ rather than found by chance.
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
 | `SettingsBlock` | yes | `title` · `children` | 2 |
-| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 4 |
+| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 5 |
 | `BidPanel` | yes | `listingRef` · `live` · `minimumNext` · `increment` · `depositAmount` · `buyNowPrice` · `signedIn` · `isOwn` · `locale` · `onPlaced` | 2 |
 | `BuyActions` | yes | `listingRef` · `price` · `type` · `isOwn` · `reserved` · `signedIn` · `locale` · `taxProfile` | 1 |
 | `CancelOrder` | yes | `orderRef` | 1 |
@@ -161,8 +161,8 @@ rather than found by chance.
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 4 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 21 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 33 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 22 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 34 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
 | `Sparkline` | no | `points` · `height` · `className` | 3 |

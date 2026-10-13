@@ -40,6 +40,9 @@ const TEST_SERVICE_REF = /^SRV-[A-Z]-/;
  */
 const TEST_ADVERTISER = /\d{9,}/;
 
+/** مزوّدٌ صنعه اختبار — الطابع في اسمه اللاتينيّ، كما في المعلن. */
+const TEST_PROVIDER = /\d{9,}/;
+
 /**
  * ═══ وحسابات المستخدمين تتسرّب مثلها — ومعها إشعاراتها ═══
  *
@@ -90,6 +93,21 @@ export default async function globalSetup(): Promise<void> {
   }
   if (stalePending.count > 0) {
     console.log(`  نُظّف ${String(stalePending.count)} طلب موافقة معلّق من تحقّق سابق`);
+  }
+
+  /**
+   * **ومزوّدٌ صنعه اختبارٌ يضخّم عدّادات شاشةٍ كاملة.** «مزوّدون نشطون»
+   * و«يغطّون ن مدينة» و«خدمات مرتبطة» كلُّها تُحسب من الصفوف، فبقايا
+   * تشغيلٍ مقتول تُغيّر أرقامًا يقرؤها المشغّل على أنها حالُ السوق.
+   */
+  const providers = await db.serviceProvider.findMany({ select: { id: true, nameEn: true } });
+  const staleProviders = providers.filter((row) => TEST_PROVIDER.test(row.nameEn));
+  if (staleProviders.length > 0) {
+    const ids = staleProviders.map((row) => row.id);
+    await db.serviceRequest.updateMany({ where: { providerId: { in: ids } }, data: { providerId: null } });
+    await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
+    await db.serviceProvider.deleteMany({ where: { id: { in: ids } } });
+    console.log(`  نُظّف ${String(staleProviders.length)} مزوّد اختبار من تشغيلات سابقة`);
   }
 
   const campaigns = await db.adCampaign.findMany({ select: { id: true, advertiserName: true } });

@@ -3042,6 +3042,86 @@
         }
       }
     },
+    "/api/v1/admin/providers": {
+      "post": {
+        "summary": "POST /api/v1/admin/providers",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "services.manage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nameAr": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "nameEn": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "type": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "contactPhone": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "nullable": true
+                  },
+                  "contactEmail": {
+                    "type": "string",
+                    "maxLength": 160,
+                    "nullable": true
+                  },
+                  "commissionPct": {
+                    "type": "string",
+                    "maxLength": 10,
+                    "nullable": true
+                  },
+                  "slaHours": {
+                    "type": "string",
+                    "maxLength": 10,
+                    "nullable": true
+                  },
+                  "cities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "nameAr",
+                  "nameEn",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/providers/{id}": {
       "patch": {
         "summary": "PATCH /api/v1/admin/providers/{id}",
