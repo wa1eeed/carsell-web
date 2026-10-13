@@ -406,18 +406,74 @@ account read «يحتاج توضيحًا» plus the note. `account.iban_required
 unwritten — the completion banner already says it continuously, which beats one
 bell.
 
-**Still silent — 13 keys, grouped by what each costs:**
+**And listings and offers (5 keys) — § G is closed.** `listing.published` ·
+`listing.under_review` · `listing.rejected` · `offer.expired` ·
+`offer.expiring`. A report pulling a live listing off the market now tells its
+owner (written inside `sendListingToReview`, the single transition, not in its
+two callers). An offer that lapses tells the buyer, and a new
+`remindExpiringOffers` job tells **both** parties before it does — the seller
+can still accept, the buyer can still change it.
 
-| Group | Keys | What the silence costs |
-| --- | --- | --- |
-| **Listings** | `listing.published` · `listing.under_review` · `listing.rejected` · `listing.expiring` | A seller submits a listing and learns its fate only by reopening the page. |
-| **Offers** | `offer.expired` · `offer.expiring` · `offer.rejected` | The other `offer.*` keys are wired; these three were missed. |
-| **Other** | `service.completed` · `auth.new_device` | Both need a trigger that does not exist yet (report delivery; device fingerprinting). |
-| **Covered elsewhere** | `account.iban_required` · `order.payment_overdue` · `auth.otp` | The IBAN is already demanded by the completion banner on every account screen. An overdue order does not survive one scheduler pass — `timeoutUnpaidOrders` cancels it and sends `order.payment_timeout`. And `auth.otp` goes by SMS, not through `notify`. None is a gap; all are recorded so the gate can name them. |
+**Gate 45 is now live.** Every template in the seed must have a writer, or be
+named in `DECLARED_SILENT` with a reason. Measured before enabling, as the repo
+requires: the 29 moved in three passes until 7 remained that have no honest
+moment, each declared with why. Proved in both directions — an unwired template
+is caught, and a declared key that gains a writer is caught too, so the list
+cannot rot into a dumping ground.
 
-**Next:** listings, then the three `offer.*` keys. **Then the gate** — every
-template must have a writer or be named in a declared-silent list with a
-reason. 9 live alarms now, so one more sweep clears the way for it.
+**The 7 declared silent, and why:**
+
+| Key | Why |
+| --- | --- |
+| `auth.otp` | Delivered by SMS, never through `notify`. |
+| `account.iban_required` | The completion banner says it on every account screen, continuously. |
+| `order.payment_overdue` | An overdue order does not survive one scheduler pass. |
+| `offer.rejected` | No manual reject in the design; auto-reject and lost-to-another each have their own key. |
+| `listing.expiring` | **Listings have no expiry in the schema** — no field, no job. A product decision, not a missing line. |
+| `auth.new_device` | Needs device fingerprinting, which the model does not have. |
+| `service.completed` | **Nothing in the product completes a service request** — see § I. |
+
+### I · The services vertical takes money and cannot deliver
+
+Found while measuring `service.completed`, and it is larger than a
+notification:
+
+- `ServiceRequestStatus` is `NEW | ASSIGNED | IN_PROGRESS | DONE | FAILED |
+  REFUNDED`. **`service-purchase.ts` writes `NEW` and nothing anywhere writes
+  anything else** — one `serviceRequest.create` in the whole tree and zero
+  updates.
+- The admin screens (`/admin/service-requests` and its detail page) are
+  **read-only**: no assign, no start, no complete, no fail. The queue health,
+  the SLA, the overdue calculation and the provider list all exist and are
+  rendered; none of them can be acted on.
+- `InspectionReport` is written **only by the seed**. The product cannot
+  produce one.
+- The buyer's money is **held on their card** at purchase and never captured or
+  released, and **no ledger entry is written at all** — `SERVICE_PURCHASE`
+  appears in no `postEntries` call, so the ledger does not know service revenue
+  exists.
+
+So a customer can pay for an inspection and the request sits at `NEW` forever,
+the provider is never told, the report never exists, and the hold never
+resolves.
+
+**Two decisions needed before this is built:**
+
+1. **When is a service earned, and what does the provider get?**
+   `ServiceProvider.commissionPct` exists and nothing computes a payout.
+   `docs/tax-model.md` already settles the tax side — «the supply happened when
+   the service was delivered» — so recognition at `DONE` is decided; the split
+   is not.
+2. **Does the services vertical ship with the marketplace, or after it?** The
+   lifecycle, the provider payouts and the report builder are a body of work on
+   the scale of the auction, not a patch.
+
+Until then the honest state is the current one: nothing pretends a service is
+progressing. The gap is now named rather than silent.
+
+**Still silent — 7 keys, all declared, grouped by what each costs:**
+
+See the table above. Nothing is left that has a moment to fire in.
 
 ### H · Three truths measured while walking Wj — **closed**
 

@@ -32,6 +32,7 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
        */
       'remindPaymentDue',
       'remindClosingAuctions',
+      'remindExpiringOffers',
       'overdueTransfers',
       'overdueDisputes',
       'releaseConfirmedOrders',

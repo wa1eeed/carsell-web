@@ -45,8 +45,15 @@ export type NotifyInput = {
   entityId?: string;
 };
 
-/** ما يقبله `notify` من معاملة — أو العميل نفسه خارجها. */
-type Writer = Prisma.TransactionClient | typeof db;
+/**
+ * ما يقبله `notify` من معاملة — أو العميل نفسه خارجها.
+ *
+ * **وهو ما تلمسه الدالّة لا أكثر.** كان النوع `TransactionClient` كاملًا،
+ * فلا يقبل كاتبًا مُضيَّقًا عمدًا (`listing-state.ts` يحصر نفسه في
+ * `listing`) — فيُجبَر المُنادي على توسيع نفسه أو على نسخ الإشعار إلى
+ * مُنادِييه. والنوع يصف الحاجة: `notification` وحدها.
+ */
+type Writer = Pick<Prisma.TransactionClient, 'notification'>;
 
 function data(input: NotifyInput): Prisma.NotificationUncheckedCreateInput {
   return {

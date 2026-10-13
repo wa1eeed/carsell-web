@@ -380,11 +380,104 @@ export async function acceptOffer(
  * والتقرير — لا في من تذكّر مقارنة التاريخ.
  */
 export async function expireOffers(now: Date = new Date()): Promise<number> {
-  const { count } = await db.offer.updateMany({
+  /**
+   * **ومن يسقط عرضُه يُعرَف قبل أن يسقط.** `updateMany` تعيد عددًا لا
+   * صفوفًا، فالقراءة أوّلًا — وإلّا سقطت العروض ولم يُعرف أصحابها،
+   * فلا أحد يُخبَر.
+   */
+  const dying = await db.offer.findMany({
     where: { status: { in: [...ACTIVE_STATUSES] }, expiresAt: { lte: now } },
+    select: { id: true, buyerId: true, listingId: true, listing: { select: { ref: true } } },
+  });
+  if (dying.length === 0) return 0;
+
+  const { count } = await db.offer.updateMany({
+    where: { id: { in: dying.map((offer) => offer.id) } },
     data: { status: 'EXPIRED' },
   });
+
+  /**
+   * ═══ والعرض يسقط صامتًا ═══
+   *
+   * **قدّم المشتري عرضًا وانتظر ثمّ لا شيء.** ولا يعرف أرُفض أم نُسي
+   * أم سقط بمهلته — فيبقى ينتظر ردًّا لن يأتي، أو يعيد تقديم العرض
+   * نفسه. و«سقط» خبرٌ يُحرّره ليشتري غيرها.
+   */
+  const { notifyMany } = await import('./notifications');
+  await notifyMany(
+    dying.map((offer) => ({
+      userId: offer.buyerId,
+      templateKey: 'offer.expired',
+      priority: 'normal' as const,
+      payload: { ref: offer.listing.ref },
+      entityType: 'Listing' as const,
+      entityId: offer.listingId,
+    })),
+  );
+
   return count;
+}
+
+/**
+ * ═══ وتذكير قبل سقوطه ═══
+ *
+ * **التذكير يسبق لحظة الحاجة.** عرضٌ بمهلة ٤٨ ساعة يسقط على بائعٍ
+ * نسيه، وعلى مشترٍ ظنّ أن الصمت ردّ — وكلاهما يملك أن يتحرّك قبل
+ * السقوط: هذا يقبل أو يقابل، وذاك يسحب ويعرض على غيرها.
+ *
+ * **ويُرسَل للطرفين**: البائع يملك القبول، والمشتري يملك التعديل.
+ * والعلامة وجودُ الإشعار نفسه، فمرورُ المُجدوِل لا يكرّره.
+ */
+export async function remindExpiringOffers(now: Date = new Date()): Promise<number> {
+  const hours = await deadline('offerReminderHours');
+  const horizon = new Date(now.getTime() + hours * 3_600_000);
+
+  const soon = await db.offer.findMany({
+    where: {
+      status: { in: [...ACTIVE_STATUSES] },
+      expiresAt: { gt: now, lte: horizon },
+    },
+    select: {
+      id: true,
+      buyerId: true,
+      expiresAt: true,
+      listingId: true,
+      listing: { select: { ref: true, sellerId: true } },
+    },
+  });
+  if (soon.length === 0) return 0;
+
+  const already = await db.notification.findMany({
+    where: {
+      templateKey: 'offer.expiring',
+      entityType: 'Listing',
+      entityId: { in: soon.map((offer) => offer.listingId) },
+    },
+    select: { entityId: true, userId: true },
+  });
+  const sent = new Set(already.map((row) => `${row.entityId ?? ''}:${row.userId}`));
+
+  const { notifyMany } = await import('./notifications');
+  const bells = soon.flatMap((offer) => {
+    /** الساعات محسوبة من المهلة — مُجدوِلٌ تأخّر يجعل الرقم يكذب. */
+    const left = String(
+      Math.max(1, Math.round((offer.expiresAt.getTime() - now.getTime()) / 3_600_000)),
+    );
+    return [offer.buyerId, offer.listing.sellerId]
+      .filter((userId) => !sent.has(`${offer.listingId}:${userId}`))
+      .map((userId) => ({
+        userId,
+        templateKey: 'offer.expiring',
+        priority: 'normal' as const,
+        payload: { ref: offer.listing.ref, hours: left },
+        entityType: 'Listing' as const,
+        entityId: offer.listingId,
+      }));
+  });
+
+  if (bells.length === 0) return 0;
+  await notifyMany(bells);
+  return bells.length;
 }
 
 /**

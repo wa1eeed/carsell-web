@@ -159,14 +159,54 @@ already existed, so the loop closes where it is answered.
 `account.iban_required` stays unwritten: the profile-completion banner already
 says it on every account screen, continuously, which is better than one bell.
 
+## Listings and offers
+
+| Moment | Key | Who receives it | Written in |
+| --- | --- | --- | --- |
+| Review approved | `listing.published` | the seller | `admin-listings.decideReview` |
+| Returned or suspended | `listing.rejected` | the seller, with the reviewer's note as `reason` | same |
+| A report pulls a live listing | `listing.under_review` | the seller | `listing-state.sendListingToReview` |
+| An offer lapses | `offer.expired` | the buyer | `offers.expireOffers` |
+| An offer is about to lapse | `offer.expiring` | **both** parties | `offers.remindExpiringOffers` |
+
+`listing.under_review` is written **inside the transition**, not in its two
+callers (a user report and an admin action) — two copies of "who gets told"
+drift on the first change. No reason is passed with it: the report is someone
+else's words, and sending them to the person reported on identifies the
+reporter.
+
+The expiry reminder goes to both sides because both can still act: the seller
+can accept, the buyer can change or withdraw. Threshold:
+`offerReminderHours`, default 6.
+
+## Gate 45
+
+Every template in `prisma/seed-data/notification-templates.json` must have a
+writer, or be named in `DECLARED_SILENT` inside the gate **with a reason**.
+
+The gate finds a key written anywhere in `src/lib` as a quoted literal, with
+comments stripped first — so a ternary (`cond ? 'account.id_verified' :
+'account.id_rejected'`) counts and a mention in a comment does not.
+
+It checks **both** directions: a template with no writer fails, and a declared
+key that later gains a writer fails too. Without the second check the list
+becomes the place anything awkward goes to be forgotten.
+
+It was measured before being enabled, per the repo's ten-alarm rule: 29 at the
+start, moved in three passes, until 7 remained with no honest moment — each
+declared with why. The table is in `docs/BACKLOG.md` § G.
+
 ## What is still silent
 
-13 of 42. Listing review outcomes, three `offer.*` keys, `service.completed`,
-`auth.new_device`, `account.iban_required` (covered by the banner, above), and
-`order.payment_overdue` (above). `auth.otp` is
-legitimately writerless: it goes by SMS, not through `notify`. The table with
-what each silence costs is in `docs/BACKLOG.md` § G.
+7 of 42, all declared in the gate with a reason, and the reasons are the
+point: five are covered elsewhere or have no moment to fire in, and two are
+real holes that a notification cannot fill on its own.
 
-A gate requiring every template to have a writer is the right close for this
-class. 9 live alarms is still just short of a clean sweep, so listings and the
-remaining `offer.*` keys get wired first, then the gate.
+`listing.expiring` has no trigger because **listings do not expire** — no
+field, no job. That is a product decision.
+
+`service.completed` has no trigger because **nothing in the product completes a
+service request**: one `serviceRequest.create` in the whole tree and zero
+updates, read-only admin screens, inspection reports written only by the seed,
+and the buyer's money held on their card with no ledger entry at all. That is
+`docs/BACKLOG.md` § I, and it needs two owner decisions before it is built.

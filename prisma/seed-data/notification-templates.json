@@ -376,8 +376,8 @@
     "key": "listing.published",
     "subjectAr": "نُشر إعلانك",
     "subjectEn": "Your listing is live",
-    "bodyAr": "نُشر إعلانك. التفاصيل في التطبيق.",
-    "bodyEn": "Your listing is live. Details in the app.",
+    "bodyAr": "صار إعلانك معروضًا في السوق، ويصلك إشعارٌ بأوّل عرضٍ عليه.",
+    "bodyEn": "Your listing is now on the market; you will be notified of the first offer.",
     "smsAr": null,
     "smsEn": null,
     "priority": "normal",
@@ -386,17 +386,16 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [
-      "ref",
-      "title"
+      "ref"
     ],
     "active": true
   },
   {
     "key": "listing.rejected",
-    "subjectAr": "رُفض إعلانك",
-    "subjectEn": "Your listing was rejected",
-    "bodyAr": "رُفض إعلانك. التفاصيل في التطبيق.",
-    "bodyEn": "Your listing was rejected. Details in the app.",
+    "subjectAr": "لم يُعتمد إعلانك",
+    "subjectEn": "Your listing was not approved",
+    "bodyAr": "{reason} — عدّل ما ذُكر وأعد إرساله من «إعلاناتي».",
+    "bodyEn": "{reason} — fix what is noted and resubmit from «My listings».",
     "smsAr": null,
     "smsEn": null,
     "priority": "high",
@@ -449,8 +448,8 @@
     "key": "listing.under_review",
     "subjectAr": "إعلانك قيد المراجعة",
     "subjectEn": "Your listing is under review",
-    "bodyAr": "إعلانك قيد المراجعة. التفاصيل في التطبيق.",
-    "bodyEn": "Your listing is under review. Details in the app.",
+    "bodyAr": "سُحب الإعلان من العرض مؤقّتًا حتى يراجعه فريقنا، ونخبرك بالنتيجة.",
+    "bodyEn": "The listing is off the market until our team reviews it; we will tell you the outcome.",
     "smsAr": null,
     "smsEn": null,
     "priority": "high",
@@ -459,8 +458,7 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [
-      "ref",
-      "reason"
+      "ref"
     ],
     "active": true
   },
@@ -524,8 +522,8 @@
     "key": "offer.expired",
     "subjectAr": "سقط عرضك",
     "subjectEn": "Your offer expired",
-    "bodyAr": "سقط عرضك. التفاصيل في التطبيق.",
-    "bodyEn": "Your offer expired. Details in the app.",
+    "bodyAr": "انقضت مهلة عرضك دون ردّ. تستطيع تقديم عرضٍ جديد ما دام الإعلان معروضًا.",
+    "bodyEn": "Your offer lapsed with no answer. You can make a new one while the listing is live.",
     "smsAr": null,
     "smsEn": null,
     "priority": "normal",
@@ -540,10 +538,10 @@
   },
   {
     "key": "offer.expiring",
-    "subjectAr": "عرضك يسقط قريبًا",
-    "subjectEn": "Your offer expires soon",
-    "bodyAr": "عرضك يسقط قريبًا. التفاصيل في التطبيق.",
-    "bodyEn": "Your offer expires soon. Details in the app.",
+    "subjectAr": "عرضٌ يسقط قريبًا",
+    "subjectEn": "An offer expires soon",
+    "bodyAr": "بقي وقتٌ قصير قبل أن يسقط العرض. افتحه لتقبله أو تردّ عليه.",
+    "bodyEn": "There is little time left before this offer lapses. Open it to accept or answer.",
     "smsAr": null,
     "smsEn": null,
     "priority": "normal",

@@ -47,7 +47,9 @@ export type DeadlineKey =
    */
   | 'paymentReminderHours'
   /** وكم دقيقة قبل إغلاق المزاد يُنبَّه من زايد فيه. */
-  | 'auctionClosingReminderMinutes';
+  | 'auctionClosingReminderMinutes'
+  /** وكم ساعة قبل سقوط العرض يُنبَّه طرفاه. */
+  | 'offerReminderHours';
 
 /**
  * القيَم الافتراضية — **هي الثوابت التي كانت في الشيفرة حرفيًّا**.
@@ -66,6 +68,7 @@ export const DEADLINE_DEFAULTS: Readonly<Record<DeadlineKey, number>> = {
   reportValidityDays: 90,
   paymentReminderHours: 6,
   auctionClosingReminderMinutes: 15,
+  offerReminderHours: 6,
 };
 
 /**
@@ -89,6 +92,7 @@ export const DEADLINE_BOUNDS: Readonly<Record<DeadlineKey, { min: number; max: n
   /** أقلُّه ساعة — وتذكيرٌ قبل دقيقة ليس تذكيرًا. والسقف دون أطول نافذة دفع. */
   paymentReminderHours: { min: 1, max: 72 },
   auctionClosingReminderMinutes: { min: 1, max: 720 },
+  offerReminderHours: { min: 1, max: 168 },
 };
 
 export const DEADLINE_KEYS = Object.keys(DEADLINE_DEFAULTS) as DeadlineKey[];

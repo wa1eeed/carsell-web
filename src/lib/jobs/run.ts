@@ -1,6 +1,6 @@
 import { closeEndedAuctions,
   openScheduledAuctions, expireSellerDecisions } from '@/lib/domain/auctions';
-import { expireOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
+import { expireOffers, remindExpiringOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
 import { remindClosingAuctions, remindPaymentDue } from '@/lib/domain/reminders';
@@ -65,6 +65,7 @@ const JOBS: readonly Job[] = [
    */
   { name: 'remindPaymentDue', run: (now) => remindPaymentDue(now) },
   { name: 'remindClosingAuctions', run: (now) => remindClosingAuctions(now) },
+  { name: 'remindExpiringOffers', run: (now) => remindExpiringOffers(now) },
   { name: 'overdueTransfers', run: async (now) => (await overdueTransfers(now)).length },
   { name: 'overdueDisputes', run: async (now) => (await overdueDisputes(now)).length },
   /**

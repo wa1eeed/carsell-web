@@ -300,6 +300,11 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
     unit: 'دقيقة',
     effect: 'يصل من زايد تنبيهٌ واحد قبل الإغلاق بهذه المدّة.',
   },
+  offerReminderHours: {
+    name: 'تذكير سقوط العرض',
+    unit: 'ساعة',
+    effect: 'يصل طرفَي العرض تنبيهٌ واحد قبل سقوطه بهذه المدّة.',
+  },
 };
 
 /** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */

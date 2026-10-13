@@ -313,5 +313,33 @@ export async function decideReview(
 
   const status =
     input.decision === 'APPROVE' ? 'PUBLISHED' : input.decision === 'RETURN' ? 'DRAFT' : 'SUSPENDED';
+
+  /**
+   * ═══ وصاحبُ الإعلان يُخبَر بما وقع له ═══
+   *
+   * **ولم يكن يُخبَر.** يرفع البائع إعلانه فيدخل الطابور، ثمّ يُعتمد
+   * أو يُردّ بملاحظةٍ أو يُعلَّق — ولا يعلم بشيءٍ من ذلك إلا إن فتح
+   * «إعلاناتي» وقارن. وهذه هي الدورة التي يشرحها `returnListingToSeller`
+   * نفسُه: «إرجاعٌ صامت يجعل البائع يعيد نشره كما هو فيعود».
+   *
+   * والملاحظة تُمرَّر كما كتبها المراجع — فـ«رُفض» بلا سببٍ تُعيده
+   * إلى الدورة نفسها.
+   */
+  try {
+    const { notify } = await import('./notifications');
+    await notify({
+      userId: listing.sellerId,
+      templateKey: input.decision === 'APPROVE' ? 'listing.published' : 'listing.rejected',
+      priority: input.decision === 'APPROVE' ? 'normal' : 'high',
+      payload:
+        input.decision === 'APPROVE' ? { ref: input.ref } : { ref: input.ref, reason: note },
+      entityType: 'Listing',
+      entityId: listing.id,
+    });
+  } catch (error) {
+    const { reportError } = await import('@/lib/observability/report');
+    reportError(error, { where: 'admin-listings.decideReview.notify', extra: { ref: input.ref } });
+  }
+
   return { ok: true, status };
 }

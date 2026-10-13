@@ -35,6 +35,14 @@ import type { db } from '@/lib/db';
 type Writer = Pick<typeof db, 'listing'>;
 
 /**
+ * **وكاتبٌ أوسع لمن يُخطِر معه.** `Writer` ضيّقٌ عمدًا: هذا الملفّ
+ * يكتب حالة الإعلان ولا شيء غيرها. و`sendListingToReview` وحدها
+ * تُرسل إشعارًا في المعاملة نفسها — فتطلب كاتبًا يسع `notification`،
+ * ولا تُوسَّع به بقيّةُ الملفّ.
+ */
+type NotifyingWriter = Writer & Pick<typeof db, 'notification'>;
+
+/**
  * لماذا أُغلق الإعلان — مفتاحٌ لاتينيّ تصوغه `src/lib/labels/`.
  *
  * والسبب يُخزَّن لأن الحالة وحدها لا تكفي: `RESERVED` تقول «محجوز»
@@ -196,7 +204,7 @@ export async function approveReviewedListing(
  * يُنتجا إحالتين، ومحجوزٌ أو مباعٌ لا يُسحب من تحت طلبٍ قائم.
  */
 export async function sendListingToReview(
-  writer: Writer,
+  writer: NotifyingWriter,
   listingId: string,
   reviewReason: 'USER_REPORT',
   now: Date = new Date(),
@@ -206,5 +214,39 @@ export async function sendListingToReview(
     // لحظة دخول الطابور — وبدونها لا يُقاس انتظارُ صاحبه
     data: { status: 'PENDING_REVIEW', reviewReason, reviewQueuedAt: now },
   });
-  return count > 0;
+  if (count === 0) return false;
+
+  /**
+   * ═══ وإعلانٌ سُحب من السوق يُقال لصاحبه ═══
+   *
+   * **بلاغٌ يُحيل إعلانًا منشورًا إلى المراجعة فيختفي من السوق** —
+   * ولا شيء كان يقول لصاحبه. فيرى مشاهداته تتوقّف وعروضه تنقطع ويظنّ
+   * السوق كاسدًا، وهو موقوفٌ ينتظر مراجعًا.
+   *
+   * **والإشعار هنا لا عند مُنادِيها**: الدالّة تُنادى من موضعين
+   * (بلاغُ مستخدم وقرارُ أدمن)، ونسختان تتباعدان أوّل تعديل.
+   *
+   * ولا سبب يُمرَّر: البلاغ نصُّ غيرِه، وإرسالُه إلى المبلَّغ عنه
+   * يكشف مُبلِّغَه ويفتح بابًا للانتقام.
+   */
+  const listing = await writer.listing.findUnique({
+    where: { id: listingId },
+    select: { ref: true, sellerId: true },
+  });
+  if (listing === null) return true;
+
+  const { notify } = await import('./notifications');
+  await notify(
+    {
+      userId: listing.sellerId,
+      templateKey: 'listing.under_review',
+      priority: 'high',
+      payload: { ref: listing.ref },
+      entityType: 'Listing',
+      entityId: listingId,
+    },
+    writer,
+  );
+
+  return true;
 }
