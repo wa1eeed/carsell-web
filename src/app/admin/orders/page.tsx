@@ -42,6 +42,29 @@ const CLOSED_LABEL: Record<(typeof CLOSED)[number], string> = {
   disputed: 'نزاع',
 };
 
+/**
+ * ═══ بطاقةٌ تُفتح متى كان فيها ما يُفتح ═══
+ *
+ * **والصفر لا يُربط**: «عليها نزاع ٠» رابطُه يقود إلى قائمةٍ فارغة —
+ * ووعدٌ بشيءٍ ثم فراغٌ أسوأ من رقمٍ ساكن.
+ */
+function StatLink({
+  href,
+  show,
+  children,
+}: {
+  href: string;
+  show: boolean;
+  children: React.ReactNode;
+}) {
+  if (!show) return <>{children}</>;
+  return (
+    <Link href={href} className="transition-opacity hover:opacity-80">
+      {children}
+    </Link>
+  );
+}
+
 export default async function AdminOrdersPage({
   searchParams,
 }: {
@@ -140,11 +163,37 @@ export default async function AdminOrdersPage({
 
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/orders" param="tab" />
 
-      <div className="mb-5 grid gap-4 md:grid-cols-4">
+      {/*
+        ═══ وبطاقةٌ تعدّ مشكلةً تفتح قائمتها ═══
+
+        «تجاوزت الهدف ٧» و«متأخّرة جدًّا» و«عليها نزاع» أرقامٌ **يُقرَّر
+        عليها** — وكانت نصًّا جامدًا: يقرأ المشغّل أن سبعةً تأخّرت ثم
+        يبحث عنها بين المئتين بعينه.
+
+        والرابط يحمل ما تعدّه البطاقة بعينه: `late` لتجاوز الهدف،
+        و`critical` لضعفه، وتبويب النزاع للنزاع — فلا يُضغط رقمٌ
+        ويُعرض غيرُه.
+
+        **وعمودان من أصغر مقاس**: `md:grid-cols-4` تتكدّس أربعًا دون
+        ٧٦٨px فتملأ الشاشة قبل أوّل طلب.
+      */}
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="طلبات جارية" value={orders.length} />
-        <StatCard label="تجاوزت الهدف" value={late} tone={late > 0 ? 'warn' : 'plain'} />
-        <StatCard label="متأخّرة جدًّا" value={critical} tone={critical > 0 ? 'warn' : 'plain'} />
-        <StatCard label="عليها نزاع" value={disputed} tone={disputed > 0 ? 'warn' : 'plain'} />
+        <StatLink
+          href={`/admin/orders?late=1${active === null ? '' : `&tab=${active}`}`}
+          show={late > 0}
+        >
+          <StatCard label="تجاوزت الهدف" value={late} tone={late > 0 ? 'warn' : 'plain'} />
+        </StatLink>
+        <StatLink
+          href={`/admin/orders?critical=1${active === null ? '' : `&tab=${active}`}`}
+          show={critical > 0}
+        >
+          <StatCard label="متأخّرة جدًّا" value={critical} tone={critical > 0 ? 'warn' : 'plain'} />
+        </StatLink>
+        <StatLink href="/admin/orders?tab=disputed" show={disputed > 0}>
+          <StatCard label="عليها نزاع" value={disputed} tone={disputed > 0 ? 'warn' : 'plain'} />
+        </StatLink>
       </div>
 
       {/*
