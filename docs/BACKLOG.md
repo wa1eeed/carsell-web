@@ -109,8 +109,12 @@ The design treats a plate as a first-class listing beside cars: it appears in
 لوحة · ر ك م ٧٨٩»), and the mobile empty state reads «أول إضافة، سيارة **أو
 لوحة**». It carries its own explanation:
 
-> لوحة معروضة. النقل إلكترونيّ عبر أبشر بعد الدفع — بلا فحص ولا معاينة،
-> ويشترط أن تكون لديك مركبة قابلة لتركيبها.
+> لوحة معروضة. النقل إلكترونيّ عبر أبشر بعد الدفع — بلا فحص ولا معاينة.
+
+**The owner has overruled the design's last clause** (2026-10-13): a buyer is
+**not** required to own a vehicle that can carry the plate. A plate may be
+bought to hold, to gift, or for a car not yet owned — and a platform that asks
+"do you have a car for this?" turns away a buyer for no benefit of its own.
 
 **The product has none of it.** `Vehicle.plateLetters` / `plateNumbers` are the
 plate *of a car*, for identification and blurring in photos. `ListingType` is
@@ -126,7 +130,7 @@ A plate is not a cheaper car — it is a different journey:
 | Viewing | appointment and place | none |
 | Transfer | traffic appointment | Absher, electronic |
 | Data | brand · model · mileage · colour | letters · numbers · class |
-| Buyer condition | verified identity | **+ owns a vehicle that can carry it** |
+| Buyer condition | verified identity | same — **no vehicle requirement** |
 | Search | brand, year | pattern: triple, repeated, short number |
 
 Escrow still applies — but what *proves* transfer differs: an appointment for a
@@ -140,11 +144,13 @@ car, an Absher notification for a plate.
    several hundred thousand?
 3. Who verifies the plate belongs to the seller, with no Absher integration?
    Manual review by the team, or seller's word plus escrow?
-4. Is «you must own a vehicle that can carry it» enforced by the platform before
-   purchase — now possible, since «سياراتي» knows what the buyer owns — or left
-   to the buyer?
+4. ~~Is «you must own a vehicle that can carry it» enforced?~~ **Answered
+   2026-10-13: no such condition.** The buyer needs nothing beyond the identity
+   verification any purchase requires.
 
-**Recommendation on file: after launch.** The core market is cars; plates double
+**Decided 2026-10-13: after launch.** The owner confirmed plates are a new
+journey to be built once the core marketplace has shipped. Original reasoning
+below. The core market is cars; plates double
 the test surface and the money path without adding liquidity in the first
 months. And «سياراتي» now exists, which is where a plate naturally lives when it
 comes.
