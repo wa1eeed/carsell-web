@@ -198,5 +198,44 @@ export async function decideIdentity(
 
   const status: IdentityStatus =
     input.decision === 'VERIFY' ? 'VERIFIED' : input.decision === 'CLARIFY' ? 'CLARIFICATION' : 'REJECTED';
+
+  /**
+   * ═══ والقرار يصل صاحبه ═══
+   *
+   * **الشاشة تسأل المراجع «ما الذي ينقص أو يمنع؟ — يقرؤه صاحبه»،
+   * ولا أحد كان يوصلها.** فيكتب المراجع «صورة الهوية غير واضحة، أعِد
+   * رفعها» وتُحفظ في `identityNote` ولا يقرؤها إنسان.
+   *
+   * وأثقلُ من ذلك: **التوثيق يفتح كل معاملة** — نشرٌ وعرضٌ ومزايدةٌ
+   * وشراء. فمن وُثّق لا يعرف أن الباب فُتح، ومن رُفض لا يعرف أنه
+   * أُغلق ولا لماذا، فيعيد المحاولة بالصورة نفسها أو ينتظر أبدًا.
+   *
+   * وخارج ما يكتب الحال: قرارٌ وقع لا يُبطَل لأن جرسًا لم يرنّ.
+   */
+  try {
+    const { notify } = await import('./notifications');
+    const person = await db.user.findUniqueOrThrow({
+      where: { id: user.id },
+      select: { name: true },
+    });
+
+    await notify({
+      userId: user.id,
+      templateKey: input.decision === 'VERIFY' ? 'account.id_verified' : 'account.id_rejected',
+      priority: 'high',
+      /**
+       * **والسبب يُمرَّر كما كتبه المراجع.** «تعذّر التوثيق» وحدها
+       * تُعيد صاحبها إلى الدورة نفسها: يرفع ما رُفض فيُرفض.
+       */
+      payload:
+        input.decision === 'VERIFY'
+          ? { name: person.name ?? '' }
+          : { reason: note },
+    });
+  } catch (error) {
+    const { reportError } = await import('@/lib/observability/report');
+    reportError(error, { where: 'admin-identity.decide.notify', extra: { userId: user.id } });
+  }
+
   return { ok: true, status };
 }

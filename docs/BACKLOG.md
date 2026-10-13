@@ -395,20 +395,29 @@ the bidder, and a forced close produced `auction.won` to the winner,
 `deposit.released` to five losers, and `auction.reserve_not_met` to the seller
 and the top bidder on a below-reserve close.
 
-**Still silent — 14 keys, grouped by what each costs:**
+**And identity (2 keys).** `account.id_verified` and `account.id_rejected`. The
+reviewer's note was stored and never delivered, and the account row was computed
+from `idVerified` alone — so awaiting review, asked-for-clarification, rejected
+and never-submitted all read the same sentence. Fixed together: the bell carries
+the reviewer's text as `reason`, the row names the real state, and the note
+appears with a link to the anchor that answers it. Walked by clicking: an admin
+clarification request produced the bell with its text, and the applicant's
+account read «يحتاج توضيحًا» plus the note. `account.iban_required` stays
+unwritten — the completion banner already says it continuously, which beats one
+bell.
+
+**Still silent — 13 keys, grouped by what each costs:**
 
 | Group | Keys | What the silence costs |
 | --- | --- | --- |
-| **Identity** | `account.id_verified` · `account.id_rejected` · `account.iban_required` | A18 asks the reviewer for a note «يقرؤه صاحبه» — and nothing delivers it. A rejected applicant is never told why, or that a decision was made at all. **Highest remaining cost**, because verification gates every transaction. |
 | **Listings** | `listing.published` · `listing.under_review` · `listing.rejected` · `listing.expiring` | A seller submits a listing and learns its fate only by reopening the page. |
 | **Offers** | `offer.expired` · `offer.expiring` · `offer.rejected` | The other `offer.*` keys are wired; these three were missed. |
 | **Other** | `service.completed` · `auth.new_device` | Both need a trigger that does not exist yet (report delivery; device fingerprinting). |
-| **No honest moment** | `order.payment_overdue` · `auth.otp` | An overdue order does not survive one scheduler pass — `timeoutUnpaidOrders` cancels it and sends `order.payment_timeout`. And `auth.otp` is delivered by SMS, not through `notify`. Neither is a gap; both are recorded so the gate can name them. |
+| **Covered elsewhere** | `account.iban_required` · `order.payment_overdue` · `auth.otp` | The IBAN is already demanded by the completion banner on every account screen. An overdue order does not survive one scheduler pass — `timeoutUnpaidOrders` cancels it and sends `order.payment_timeout`. And `auth.otp` goes by SMS, not through `notify`. None is a gap; all are recorded so the gate can name them. |
 
-**Next:** identity, then listings, then the three `offer.*` keys. **Then the
-gate** — every template must have a writer or be named in a declared-silent
-list with a reason. 13 live alarms is still past the repo's ten-alarm
-threshold, so the move keeps coming before the gate.
+**Next:** listings, then the three `offer.*` keys. **Then the gate** — every
+template must have a writer or be named in a declared-silent list with a
+reason. 9 live alarms now, so one more sweep clears the way for it.
 
 ### H · Three truths measured while walking Wj — **closed**
 

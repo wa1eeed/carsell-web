@@ -223,6 +223,14 @@ export type AccountData = {
     email: string | null;
     idVerified: boolean;
     identityStatus: string;
+    /**
+     * ما كتبه المراجع — **ولم يكن يصل أحدًا**.
+     *
+     * شاشةُ المراجعة تطلبه بنصّها («يقرؤه صاحبه») ويُحفظ في
+     * `identityNote`، ولا شاشةَ تعرضه ولا إشعارَ ينقله. فيُطلب توضيحٌ
+     * ولا يصل من يستطيع تقديمه.
+     */
+    identityNote: string | null;
     city: string | null;
     /** الآيبان **مقنَّعًا** — يُعرض ليطمئنّ صاحبه أنه مُسجَّل، لا ليُقرأ */
     ibanMasked: string | null;
@@ -445,6 +453,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       email: user.email,
       idVerified: user.idVerified,
       identityStatus: user.identityStatus,
+      identityNote: user.identityNote,
       city: null,
       /**
        * **الآيبان مقنَّعًا لا كاملًا.** يُعرض ليطمئنّ صاحبه أنه

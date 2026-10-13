@@ -796,7 +796,12 @@
     "taxStatus": {
       "INDIVIDUAL": "غير مسجل في الضريبة",
       "VAT_REGISTERED": "مسجل في الضريبة"
-    }
+    },
+    "identityPending": "قيد المراجعة",
+    "identityClarification": "يحتاج توضيحًا",
+    "identityRejected": "لم يكتمل",
+    "identityNoteTitle": "ما طلبه المراجع",
+    "identityResubmit": "عدّل وأعد الإرسال ←"
   },
   "sell": {
     "title": "بِع سيارتك بسعر عادل",

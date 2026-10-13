@@ -796,7 +796,12 @@
     "taxStatus": {
       "INDIVIDUAL": "Not VAT registered",
       "VAT_REGISTERED": "VAT registered"
-    }
+    },
+    "identityPending": "Under review",
+    "identityClarification": "Needs clarification",
+    "identityRejected": "Not complete",
+    "identityNoteTitle": "What the reviewer asked for",
+    "identityResubmit": "Fix it and resubmit →"
   },
   "sell": {
     "title": "Sell your car at a fair price",

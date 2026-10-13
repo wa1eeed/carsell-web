@@ -631,9 +631,28 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
       <dl className="flex flex-col gap-px bg-line">
         <Row label={t('field.phone')} value={user.phone} ltr />
         <Row label={t('field.email')} value={user.email} ltr missing={t('notSet')} />
+        {/*
+          ═══ والحالة تُقال كما هي ═══
+
+          كان السطر منطقيًّا: `idVerified` موثّقةٌ أو «غير موثقة» —
+          **فمن قدّم هويته وينتظر، ومن طُلب منه توضيح، ومن رُفض، ومن
+          لم يقدّم أصلًا، يقرؤون الجملة نفسها**. فيعيد المنتظرُ
+          الإرسال، ويظنّ المرفوضُ أنه لم يُرسل، ولا يعرف أحدٌ أن
+          قرارًا وقع.
+        */}
         <Row
           label={t('field.identity')}
-          value={user.idVerified ? t('identityVerified') : null}
+          value={
+            user.idVerified
+              ? t('identityVerified')
+              : user.identityStatus === 'PENDING'
+                ? t('identityPending')
+                : user.identityStatus === 'CLARIFICATION'
+                  ? t('identityClarification')
+                  : user.identityStatus === 'REJECTED'
+                    ? t('identityRejected')
+                    : null
+          }
           missing={t('identityMissing')}
           good={user.idVerified}
         />
@@ -647,6 +666,27 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
           <Row label={t('field.vatNumber')} value={user.vatNumber} ltr />
         )}
       </dl>
+
+      {/*
+        ═══ وما كتبه المراجع يصل صاحبه ═══
+
+        شاشةُ المراجعة تطلب الملاحظة بنصّها — **«ما الذي ينقص أو يمنع؟
+        — يقرؤه صاحبه»** — وتُحفظ في `identityNote` ولا شاشة تعرضها.
+        فيُكتب «صورة الهوية غير واضحة، أعِد رفعها بإضاءة أفضل» ولا يصل
+        من يستطيع أن يفعل ذلك: دورةٌ يسأل فيها المراجع ولا يُسمَع.
+      */}
+      {user.identityNote === null || user.identityNote === '' || user.idVerified ? null : (
+        <div className="bg-warn-100 p-4 text-warn-900">
+          <p className="mb-1.5 text-2xs font-bold">{t('identityNoteTitle')}</p>
+          <p className="text-2xs leading-loose">{user.identityNote}</p>
+          <Link
+            href={`/${locale}/account/profile#idVerification`}
+            className="mt-2.5 inline-block text-2xs font-bold underline underline-offset-4"
+          >
+            {t('identityResubmit')}
+          </Link>
+        </div>
+      )}
 
       <Link
         href={`/${locale}/account/profile`}

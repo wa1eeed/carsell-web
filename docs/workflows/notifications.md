@@ -130,15 +130,43 @@ cancels it on the first pass after its window and sends
 `order.payment_timeout`. There is no honest moment for a second key, and a key
 sent at a moment that never arrives is noise, not coverage.
 
+## Identity
+
+The reviewer's screen (A18) asks for a note in so many words — «ما الذي ينقص أو
+يمنع؟ — **يقرؤه صاحبه**» — stores it in `identityNote`, and **nothing delivered
+it**. No notification, and no screen showed it. A loop where one side asks a
+question the other side cannot receive.
+
+Worse, the account row was computed from `idVerified` alone, so four different
+people read the same sentence: someone awaiting review, someone asked for a
+clarification, someone rejected, and someone who never submitted. The waiting
+one resubmits; the rejected one thinks nothing was ever sent.
+
+| Moment | Key | Who receives it | Written in |
+| --- | --- | --- | --- |
+| Verified | `account.id_verified` | the applicant | `admin-identity.decideIdentity` |
+| Clarification or rejection | `account.id_rejected` | the applicant, **with the reviewer's text as `reason`** | same |
+
+Verification gates every transaction — listing, offering, bidding, buying — so
+being verified and not knowing is as costly as being rejected and not knowing.
+
+Three things had to move together, and a notification alone would not have been
+enough: the bell carries the reason, the account row now names the real state
+(`PENDING` / `CLARIFICATION` / `REJECTED` / verified / never submitted), and the
+note is shown with a link to `/account/profile#idVerification` — the anchor that
+already existed, so the loop closes where it is answered.
+
+`account.iban_required` stays unwritten: the profile-completion banner already
+says it on every account screen, continuously, which is better than one bell.
+
 ## What is still silent
 
-14 of 42. Identity decisions (`account.id_verified` / `id_rejected` /
-`iban_required` — the reviewer writes a note «يقرؤه صاحبه» and nothing delivers
-it), listing review outcomes, three `offer.*` keys, `service.completed`,
-`auth.new_device`, and `order.payment_overdue` (above). `auth.otp` is
+13 of 42. Listing review outcomes, three `offer.*` keys, `service.completed`,
+`auth.new_device`, `account.iban_required` (covered by the banner, above), and
+`order.payment_overdue` (above). `auth.otp` is
 legitimately writerless: it goes by SMS, not through `notify`. The table with
 what each silence costs is in `docs/BACKLOG.md` § G.
 
 A gate requiring every template to have a writer is the right close for this
-class. 13 live alarms is still past the repo's ten-alarm threshold, so the
-remaining groups get wired first, then the gate.
+class. 9 live alarms is still just short of a clean sweep, so listings and the
+remaining `offer.*` keys get wired first, then the gate.
