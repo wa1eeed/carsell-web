@@ -180,8 +180,13 @@ export default async function MyVehiclesPage({
              * **والمعروضة تفتح إعلانها، والمرآبيّة لا تفتح شيئًا.**
              * صفٌّ يربط إلى لا شيء أسوأ من صفٍّ لا يربط: الأوّل يَعِد
              * ثم يخيب. والأفعال تحته صريحة.
+             *
+             * **وإعلانُها هو إعلانُها لا قائمةُ الإعلانات**: كان الصفّ
+             * يربط إلى «إعلاناتي»، فمن ينقر سيارةً بعينها يصل قائمةً
+             * يبحث فيها عنها ثانيةً. ومن يقرأ «معروضة للبيع» يريد أن
+             * يرى كيف تظهر لمن يشتري.
              */
-            href={vehicle.listingRef === null ? null : `/${locale}/account/listings`}
+            href={vehicle.listingPath}
             title={vehicle.title}
             year={vehicle.year}
             badge={<Badge tone={state.tone}>{state.label}</Badge>}

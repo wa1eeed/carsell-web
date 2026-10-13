@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { canonicalPath } from './listing-detail';
 import { vehicleFields, type PublishInput } from './publish';
 import { vehicleTitle } from './vehicle-title';
 
@@ -79,6 +80,14 @@ export type GarageVehicle = {
   state: VehicleState;
   /** مرجع الإعلان الحيّ أو المُباع — ومنه يُفتح. و`null` لما في المرآب. */
   listingRef: string | null;
+  /**
+   * ═══ مسارُ إعلانها — لا قائمةُ الإعلانات ═══
+   *
+   * كان الصفّ يربط إلى «إعلاناتي»، فمن ينقر سيارةً بعينها يصل قائمةً
+   * يبحث فيها عنها ثانيةً. والمسار **قانونيٌّ من أوّله**: يُبنى من
+   * المقاطع لا من المرجع وحده، فلا تحويل ٣٠١ عند كل نقرة.
+   */
+  listingPath: string | null;
   listingStatus: string | null;
   /** طلبات خدمةٍ قائمة على هذه المركبة — فيعرف صاحبُها أن عليها عملًا. */
   openServices: number;
@@ -110,12 +119,13 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
     select: {
       id: true, year: true, city: true, mileageKm: true, colorExterior: true,
       brandName: true, modelName: true, trimName: true,
-      brand: { select: { nameEn: true } },
+      brand: { select: { nameEn: true, slug: true } },
       model: { select: { nameEn: true } },
       trim: { select: { nameEn: true } },
       listings: {
         orderBy: { publishedAt: 'desc' },
-        select: { ref: true, status: true },
+        // المدينة من الإعلان لا من المركبة — فالمسار يُبنى بما بُني به
+        select: { ref: true, status: true, city: true },
       },
       serviceRequests: {
         where: { status: { in: ['NEW', 'ASSIGNED', 'IN_PROGRESS'] } },
@@ -139,6 +149,19 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
       colorExterior: row.colorExterior,
       state: sold !== undefined ? 'sold' : live !== undefined ? 'listed' : 'garage',
       listingRef: shown?.ref ?? null,
+      listingPath:
+        shown === null || shown === undefined
+          ? null
+          : canonicalPath(locale, {
+              ref: shown.ref,
+              city: shown.city,
+              vehicle: {
+                brandName: row.brandName,
+                modelName: row.modelName,
+                brand: row.brand,
+                model: row.model,
+              },
+            }).path,
       listingStatus: shown?.status ?? null,
       openServices: row.serviceRequests.length,
       canRemove: row._count.listings === 0 && row._count.inspectionReports === 0,

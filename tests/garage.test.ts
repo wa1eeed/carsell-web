@@ -146,4 +146,38 @@ describe('تعديل المركبة وحذفها', () => {
       if (vehicle.state !== 'garage') expect(vehicle.canRemove).toBe(false);
     }
   });
+
+  /**
+   * ═══ والمعروضة تفتح إعلانها ═══
+   *
+   * كان الصفّ يربط إلى «إعلاناتي»، فمن ينقر سيارةً بعينها يصل قائمةً
+   * يبحث فيها عنها ثانيةً — ومن يقرأ «معروضة للبيع» يريد أن يرى كيف
+   * تظهر لمن يشتري.
+   *
+   * **والمسار قانونيٌّ من أوّله**: يحمل مقاطعَه كاملةً ومرجعَه، فلا
+   * يُحوَّل ٣٠١ عند كل نقرة — وتحويلٌ متكرّر إشارةٌ لمحرّك البحث أن
+   * عناويننا ليست نهائية.
+   */
+  it('ومسارُ الإعلان يُبنى متى كان له مرجع', async () => {
+    const owner = await db.vehicle.findFirst({
+      where: { listings: { some: {} } },
+      select: { ownerId: true },
+    });
+    if (owner === null) return;
+
+    const mine = await myVehicles(owner.ownerId, 'ar');
+    expect(mine.length).toBeGreaterThan(0);
+
+    for (const vehicle of mine) {
+      if (vehicle.listingRef === null) {
+        // صفٌّ يربط إلى لا شيء أسوأ من صفٍّ لا يربط
+        expect(vehicle.listingPath, vehicle.id).toBeNull();
+        continue;
+      }
+      expect(vehicle.listingPath, vehicle.id).not.toBeNull();
+      expect(vehicle.listingPath ?? '').toContain(vehicle.listingRef);
+      // اللغة ثمّ `cars` ثمّ المدينة والماركة والطراز والمرجع
+      expect((vehicle.listingPath ?? '').split('/').filter(Boolean).length).toBe(6);
+    }
+  });
 });
