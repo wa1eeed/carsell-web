@@ -32,15 +32,26 @@ type Draft = {
   placements: string[];
 };
 
+type Tab = 'ALL' | 'ORPHANS' | keyof typeof GROUP;
+
 export function FeaturesTable({
   features,
   canEdit,
+  initialTab,
 }: {
   features: readonly FeatureRow[];
   canEdit: boolean;
+  /**
+   * ═══ والشريحة تُفتح من العنوان ═══
+   *
+   * بطاقة «غير مربوطة بأي فئة ٣٤» كانت رقمًا بلا باب: يقرؤه المحرّر
+   * ثمّ يبحث عن أربعٍ وثلاثين ميزةً في تسعٍ وثلاثين صفًّا. والعدّاد
+   * يربط إلى شاشة أو لا يُعرض.
+   */
+  initialTab?: Tab;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<'ALL' | keyof typeof GROUP>('ALL');
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'ALL');
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,7 +62,7 @@ export function FeaturesTable({
     const needle = query.trim().toLowerCase();
     return features.filter(
       (f) =>
-        (tab === 'ALL' || f.group === tab) &&
+        (tab === 'ALL' || (tab === 'ORPHANS' ? f.trimCount === 0 : f.group === tab)) &&
         (needle === '' ||
           f.key.includes(needle) ||
           f.nameAr.includes(query.trim()) ||
@@ -136,9 +147,15 @@ export function FeaturesTable({
               label: l,
               count: features.filter((f) => f.group === id).length,
             })),
+            // **والميزة اليتيمة لا تظهر لأحد** — فشريحتُها أولى من رقمٍ ساكن
+            {
+              id: 'ORPHANS',
+              label: 'بلا فئة',
+              count: features.filter((f) => f.trimCount === 0).length,
+            },
           ]}
           active={tab}
-          onChange={(id) => setTab(id as 'ALL' | keyof typeof GROUP)}
+          onChange={(id) => setTab(id as Tab)}
           className="flex-1"
         />
         <input
