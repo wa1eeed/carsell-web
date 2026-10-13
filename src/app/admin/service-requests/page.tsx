@@ -99,7 +99,7 @@ export default async function ServiceRequestsPage({
 
       <MonitorTabs tabs={tabs} active={filter} basePath="/admin/service-requests" param="filter" />
 
-      <div className="mb-5 grid gap-4 md:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="مفتوحة" value={open} />
         <StatCard label="تجاوزت المهلة" value={overdue} tone={overdue > 0 ? 'warn' : 'plain'} />
         <StatCard label="بلا مزوّد" value={unassigned} tone={unassigned > 0 ? 'warn' : 'plain'} />

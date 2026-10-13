@@ -132,7 +132,7 @@ export default async function AdminProvidersPage({
         </div>
       )}
 
-      <div className="mt-10 grid gap-5 lg:grid-cols-2">
+      <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-2">
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">قواعد الإسناد</p>
           <p>

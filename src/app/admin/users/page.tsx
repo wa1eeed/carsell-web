@@ -94,7 +94,7 @@ export default async function AdminUsersPage({
 
       <MonitorTabs tabs={tabs} active={segment === 'all' ? null : segment} basePath="/admin/users" param="tab" />
 
-      <div className="mb-5 grid gap-4 md:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="نشط" value={countOf('ACTIVE')} />
         <StatCard label="موقوف" value={countOf('SUSPENDED')} tone={countOf('SUSPENDED') > 0 ? 'warn' : 'plain'} />
         <StatCard label="محظور" value={countOf('BANNED')} />

@@ -117,7 +117,7 @@ export function TrimEditor({
         ) : null}
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <section className="rounded-lg border border-line bg-surface p-5.5">
           <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">الهوية</h3>
           <div className="flex flex-col gap-3.5">
@@ -233,7 +233,7 @@ export function TrimEditor({
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <section className="rounded-lg border border-line bg-surface p-5.5 lg:col-span-2">
           <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">
             المميّزات الافتراضية للفئة
@@ -281,7 +281,7 @@ export function TrimEditor({
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-2">
         <section className="rounded-lg border border-line bg-surface p-5.5">
           <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">
             معاينة — ما يراه البائع

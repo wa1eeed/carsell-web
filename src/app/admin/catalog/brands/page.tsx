@@ -26,7 +26,7 @@ export default async function BrandsPage() {
       activeHref="/admin/catalog/brands"
       admin={admin}
     >
-      <div className="mb-5 grid gap-4 md:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="الماركات" value={counts.brands} />
         <StatCard label="الطرازات" value={counts.models} />
         <StatCard label="الفئات" value={counts.trims} />

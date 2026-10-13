@@ -160,7 +160,7 @@ export default async function AdminExportsPage() {
         </div>
       )}
 
-      <div className="mt-10 grid gap-5 lg:grid-cols-2">
+      <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-2">
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
           <p className="mb-2 font-bold">أي تصدير يحمل بيانات شخصية يُسجَّل</p>
           <p>

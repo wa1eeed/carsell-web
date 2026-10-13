@@ -20,7 +20,7 @@ export default async function FeaturesPage() {
 
   return (
     <AdminShell title="المميّزات" activeHref="/admin/catalog/brands" admin={admin}>
-      <div className="mb-5 grid gap-4 md:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="الأمان" value={counts.byGroup.SAFETY} />
         <StatCard label="الراحة" value={counts.byGroup.COMFORT} />
         <StatCard label="التقنية" value={counts.byGroup.TECH} />

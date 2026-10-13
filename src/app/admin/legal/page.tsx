@@ -57,7 +57,7 @@ export default async function AdminLegalPage() {
         كلَّها اليوم، فالعدّان يتفقان صدفةً — وأوّلُ ترشيحٍ يُضاف يجعل
         «٨ مستندات» تعني «٨ معروضة».
       */}
-      <div className="mb-5 grid gap-4 md:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard
           label="مستندات"
           value={summary.total}

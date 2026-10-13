@@ -61,7 +61,7 @@ export function StatGrid({
   className?: string;
 }) {
   return (
-    <section className={cn('mb-8 grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4', className)}>
+    <section className={cn('mb-8 grid grid-cols-2 gap-3.5 xl:grid-cols-4', className)}>
       {children}
     </section>
   );
