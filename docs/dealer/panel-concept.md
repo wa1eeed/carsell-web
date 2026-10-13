@@ -84,3 +84,48 @@ The mockup is a teal sidebar on white, in English with an `العربية` switc
 marketplace is cream and ink, Arabic-first. A separate product may well want its
 own skin — but it needs its own tokens, because every component in
 `src/components/ui/` reads the marketplace's.
+
+## A second batch of screens (2026-10-13)
+
+The owner sent a strip of panel screens — «نريد مثلها وأفضل منها». Read at the
+resolution supplied, they cover:
+
+- **My Showroom** — a listing grid with filters above a table.
+- **Add / edit a vehicle** — a long modal form over the showroom.
+- **Client Orders** — tabbed table with a per-row action button, plus two small
+  confirmation dialogs.
+- **Dashboard** — the counters, donut and line chart already recorded above.
+- **Mojaz report** — a branded dialog for ordering/reading the report.
+- **A statement view** — three figures over a transactions table.
+- **Wallet** — balance card beside a transactions list.
+- **Settings / Point of Sale** — a form-heavy page.
+- **Services** — three service cards (Mojaz report among them).
+- **Vehicle detail** — specs page.
+- **A three-option chooser** modal.
+- **Auction screens** — a score ring beside the car, bidding, and a browse grid.
+
+These are listed so nothing is lost. **They are not read in detail here** — the
+resolution does not carry the field names, and a list written from a squint is
+the kind of document this repo refuses (`الوثيقة تُولَّد أو تُفحَص`). Each screen
+is read against its own image when its task starts.
+
+## Commission and collection — the owner's note
+
+> رحلة البيع والشراء مشابهة، ولكن ربما إعدادات العمولة وتطبيقها على المعرض من
+> عدمه، وآلية تحصيل قيم البيع لسيارات المعرض، تحتاج إعدادات نتحكم بها ونقرر من
+> خلالها بكل مرونة.
+
+So the dealer's journey reuses the buyer/seller flow, and what differs is
+**policy, not mechanics**:
+
+1. **Does the platform commission apply to a dealer's sale, and at what rate?**
+   `CommissionRule` already carries `scope` and `scopeId` beside `global`, so a
+   per-dealer or per-segment rule has a home without a schema change. The screen
+   that writes it does not exist.
+2. **How is a dealer's sale collected?** A marketplace sale is held in escrow and
+   released on transfer. A showroom sale through the panel's point of sale may be
+   collected by the dealer directly, with only our fee owed to us — which is a
+   different money path, not a different label.
+
+Both are settings, and both are the owner's to decide. They are listed here so
+the panel is not built with either assumed.
