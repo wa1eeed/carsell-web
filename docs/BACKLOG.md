@@ -37,7 +37,7 @@ are examples, not the whole set — each screen is compared against its block in
       grid with quality badges, price range bar with days-to-sell.
 - [ ] **Order detail** — escrow panel, stage timeline, documents, cancel block.
 
-### B · My cars (the garage) — **first half shipped**
+### B · My cars (the garage) — **usable end to end**
 
 The design has had it from the start: «٣ مركباتي · ٢ معروضة · ١ في المرآب» on
 the account home, and «سياراتي ٣» first in the sidebar. The admin dashboard
@@ -53,9 +53,11 @@ creates a listing row with it, draft included.
       «اعرضها للبيع» on garage cars.
 - [x] Account stat «مركباتي» with its listed / garage breakdown, and
       «سياراتي» first in the sections list.
-- [ ] `/sell` able to finish as "save to my cars" instead of publishing —
-      the wizard still ends in a listing. `addVehicle` is ready for it.
+- [x] `/sell` finishes as «احفظ في سياراتي» from the vehicle step —
+      `POST /api/v1/vehicles`, walked by clicking end to end.
 - [ ] Edit and remove a vehicle from the garage.
+- [ ] A plate («لوحة») in the garage — the mobile design's empty state says
+      «أول إضافة، سيارة أو لوحة», and plates are sold on the platform.
 
 ### C · Every account section and every admin page, one by one
 

@@ -1,0 +1,67 @@
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { ERRORS, fail, ok } from '@/lib/api/response';
+import { currentUser } from '@/lib/auth/session';
+import { addVehicle } from '@/lib/domain/garage';
+import {
+  FuelType,
+  Transmission,
+  VehicleCondition,
+  VehicleSpec,
+} from '@/generated/prisma/enums';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * ═══ `POST /api/v1/vehicles` — أضف سيارةً إلى سياراتك ═══
+ *
+ * **ولا تُعرض للبيع.** التصميم يرسم «مركباتي: ٢ معروضة · ١ في المرآب»،
+ * ولم يكن للمرآب طريقٌ يُنتجه: كلّ ما يُنشئ مركبةً كان يكتب إعلانًا
+ * معها — حتى المسودّة. فكان العدّاد صفرًا بنيويًّا، وزرُّ «أضف سيارة»
+ * يقود إلى معالجٍ ينتهي بالنشر.
+ *
+ * ═══ وشروطُه شروطُ المِلك لا شروطُ العرض ═══
+ *
+ * لا هويةَ ولا آيبان ولا وضعَ ضريبيّ ولا صور. من يسجّل سيارةً ليطلب
+ * عليها فحصًا لا يُسأل عمّا يُسأل عنه من يعرضها على الناس — وهي الحجّة
+ * التي كُتبت للمسودّة، والمِلك أبعد عن العرض منها.
+ *
+ * **والتعدادات من المخطّط لا مكتوبةً بيد** — كما في مسار الإعلانات.
+ */
+const Body = z.object({
+  brandId: z.string().min(1).max(40),
+  modelId: z.string().min(1).max(40),
+  trimId: z.string().min(1).max(40),
+  year: z.number().int().min(1950).max(2100),
+  mileageKm: z.number().int().min(0).max(2_000_000),
+  transmission: z.enum(Transmission),
+  fuel: z.enum(FuelType),
+  spec: z.enum(VehicleSpec),
+  condition: z.enum(VehicleCondition),
+  city: z.string().min(1).max(60),
+  colorExterior: z.string().min(1).max(40),
+  vin: z.string().max(20).nullable(),
+});
+
+export async function POST(request: NextRequest) {
+  const user = await currentUser(request);
+  if (user === null) return fail(ERRORS.UNAUTHORIZED, 401);
+
+  const parsed = Body.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    /** **والحقل المُعلَّم هو الذي سقط** — لا حقلٌ ثابت مهما كان الساقط. */
+    const fields: Record<string, string> = {};
+    for (const issue of parsed.error.issues.slice(0, 6)) {
+      fields[issue.path.join('.') || 'body'] = 'INVALID';
+    }
+    return fail(ERRORS.VALIDATION(fields), 422);
+  }
+
+  const result = await addVehicle({ sellerId: user.id, vehicle: parsed.data });
+  if (!result.ok) {
+    return fail(ERRORS.VALIDATION({ trimId: result.reason }), 422);
+  }
+
+  return ok({ vehicleId: result.vehicleId }, undefined, { status: 201 });
+}

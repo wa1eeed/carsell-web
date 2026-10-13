@@ -50,6 +50,16 @@ export default async function ServicesPage({
   const raw = typeof search.category === 'string' ? search.category : undefined;
   const active = SERVICE_CATEGORIES.find((key) => key === raw) ?? null;
 
+  /**
+   * ═══ والمركبة تعبر الفهرس ═══
+   *
+   * من ضغط «اطلب خدمة» على سيارةٍ في «سياراتي» يصل هنا ليختار أيّ
+   * خدمة — **وكان المعامل يسقط عند هذه الخطوة**، فيُسأل عن المركبة
+   * مرّةً ثانية بعد أن اختارها. فيُحمل إلى رابط كل خدمة.
+   */
+  const vehicle = typeof search.vehicle === 'string' ? search.vehicle : null;
+  const carry = vehicle === null ? '' : `?vehicle=${encodeURIComponent(vehicle)}`;
+
   const [services, t, te] = await Promise.all([
     listServices(),
     getTranslations('services'),
@@ -92,7 +102,7 @@ export default async function ServicesPage({
                     */
                     <Link
                       key={service.key}
-                      href={`/${locale}/services/${service.key}`}
+                      href={`/${locale}/services/${service.key}${carry}`}
                       className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface hover:border-ink"
                     >
                       <span className="washed relative block aspect-16/10">

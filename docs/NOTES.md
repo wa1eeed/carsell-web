@@ -4633,3 +4633,35 @@ it; the dashboard counts vehicles, not rows.
 The sell wizard still always ends in a listing — "save to my cars" is not wired
 to `addVehicle` yet, and a garage car cannot be edited or removed. Tracked in
 `docs/BACKLOG.md`.
+
+---
+
+## The garage could not grow from the screen
+
+Shipping the garage left a promise I had made and not kept: `/account/vehicles`
+offers «أضف سيارة», which leads to `/sell` — and every path through that wizard
+ends in a `Listing`, draft included. So the screen invited the user to add a car
+and had no way to accept one. The same class the repo keeps closing: a condition
+with no door, this time one I built myself.
+
+`POST /api/v1/vehicles` calls `addVehicle`, and the wizard's **first step** now
+offers «احفظ في سياراتي» beside «التالي». The vehicle step alone carries
+everything `addVehicle` needs — photos and a sale method are conditions for
+offering a car to the public, not for recording that you own one.
+
+Walked by clicking, as a seller with three cars and none in the garage: picked
+نيسان ألتيما S, filled year, mileage and colour, pressed «احفظ في سياراتي»,
+landed on `/account/vehicles?saved=1` with the car at the top marked
+**«في المرآب»** and the counter moved from «٣ سيارات · ٢ معروضة» to
+«٤ سيارات · ٢ معروضة · ١ في المرآب».
+
+**And the car was being forgotten one click later.** «اطلب خدمة» on a garage car
+links to the services **index** so the owner can pick which service — and the
+index read `category` and dropped `vehicle`, so the next page asked again for the
+car they had just chosen. The index now carries it onto every service link.
+Verified: `/ar/services?vehicle=…` emits
+`/ar/services/inspection?vehicle=…`, `/ar/services/mojaz?vehicle=…` and the rest,
+and the service page selects «نيسان ألتيما 2022» rather than its first option.
+
+The hand-added test car was deleted afterwards; the two seeded garage vehicles
+remain, so the state stays reproducible.

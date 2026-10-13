@@ -222,6 +222,59 @@ export function SellWizard({
    * عن وضعٍ ضريبيّ ولا تنتظر توثيق هوية. وأقلُّ ما تحتاجه مركبةٌ
    * مُعرَّفة — وهي ما تُملأ في الخطوة الأولى.
    */
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  /**
+   * ═══ احفظ في سياراتي — بلا إعلان ═══
+   *
+   * **وزرُّ «أضف سيارة» في «سياراتي» كان يقود إلى هنا** ولا طريق
+   * ينتهي بمركبةٍ بلا إعلان: المسودّة نفسها تكتب `Listing`. فكان
+   * المرآب لا ينمو من الشاشة أبدًا.
+   */
+  const saveVehicle = (): void => {
+    if (publishing) return;
+    setPublishing(true);
+    setSaveError(null);
+
+    void (async () => {
+      const response = await fetch('/api/v1/vehicles', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          brandId: vehicle.brandId,
+          modelId: vehicle.modelId,
+          trimId: vehicle.trimId,
+          year: Number(toLatinDigits(vehicle.year).replace(/\D/g, '')),
+          mileageKm: Number(toLatinDigits(vehicle.mileageKm).replace(/\D/g, '')),
+          transmission: vehicle.transmission,
+          fuel: vehicle.fuel,
+          spec: vehicle.spec,
+          condition: vehicle.condition,
+          city: vehicle.city,
+          colorExterior: vehicle.colorExterior,
+          vin: vehicle.vin === '' ? null : vehicle.vin,
+        }),
+      }).catch(() => null);
+
+      setPublishing(false);
+
+      if (response === null) {
+        setSaveError(t('publishNetwork'));
+        return;
+      }
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { messageAr?: string } }
+          | null;
+        setSaveError(payload?.error?.messageAr ?? t('publishFailed'));
+        return;
+      }
+
+      /** **والوجهة تقول أين حُفظت** — ومنها يُعرض أو يُطلب عليه خدمة. */
+      router.push(`/${locale}/account/vehicles?saved=1`);
+    })();
+  };
+
   const saveDraft = (): void => {
     if (publishing) return;
     setPublishing(true);
@@ -818,9 +871,33 @@ export function SellWizard({
             </label>
           </div>
 
-          <Button onClick={() => setStep('photos')} disabled={!vehicleReady} className="mt-7">
-            {t('next')}
-          </Button>
+          {/*
+            ═══ وطريقان من هنا ═══
+
+            **ليس كلُّ من يضيف سيارةً يبيعها.** من يريد عليها فحصًا أو
+            تأمينًا أو تقرير «موجز» يحتاج أن تكون في المنصّة لا أن
+            تُعرض على الناس — وربطُ وجودها بعرضها يُخرج من السوق كلَّ
+            من يريد خدمةً ولا يبيع.
+            وبيانات هذه الخطوة وحدها تكفي لحفظها: الصور وطريقة البيع
+            شرطا **العرض**.
+          */}
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Button onClick={() => setStep('photos')} disabled={!vehicleReady}>
+              {t('next')}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={saveVehicle}
+              disabled={!vehicleReady || publishing}
+            >
+              احفظ في سياراتي
+            </Button>
+          </div>
+
+          {saveError === null ? null : (
+            <p className="mt-3 text-2xs text-danger">{saveError}</p>
+          )}
         </section>
       ) : null}
 

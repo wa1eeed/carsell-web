@@ -5472,6 +5472,112 @@
         }
       }
     },
+    "/api/v1/vehicles": {
+      "post": {
+        "summary": "POST /api/v1/vehicles",
+        "tags": [
+          "vehicles"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "brandId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "modelId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "trimId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "year": {
+                    "type": "integer",
+                    "minimum": 1950,
+                    "maximum": 2100
+                  },
+                  "mileageKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2000000
+                  },
+                  "transmission": {
+                    "type": "string",
+                    "enum": []
+                  },
+                  "fuel": {
+                    "type": "string",
+                    "enum": []
+                  },
+                  "spec": {
+                    "type": "string",
+                    "enum": []
+                  },
+                  "condition": {
+                    "type": "string",
+                    "enum": []
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "colorExterior": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "vin": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "brandId",
+                  "modelId",
+                  "trimId",
+                  "year",
+                  "mileageKm",
+                  "transmission",
+                  "fuel",
+                  "spec",
+                  "condition",
+                  "city",
+                  "colorExterior",
+                  "vin"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/vin/lookup": {
       "post": {
         "summary": "POST /api/v1/vin/lookup",
