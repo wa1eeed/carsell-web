@@ -71,6 +71,7 @@ export default async function SellPage({
     select: { pct: true, enabled: true },
   });
   const sellerCommissionPct = rule === null || !rule.enabled ? 0 : Number(rule.pct);
+  const vinLookup = isFeatureOn('VIN_LOOKUP');
 
   return (
     <>
@@ -82,6 +83,21 @@ export default async function SellPage({
               {t('title')}
               <span className="block opacity-70">{t('titleTail')}</span>
             </h1>
+
+            {/*
+              ═══ وسطرُ الصدر يقول ما يحتاجه البائع قبل أن يبدأ ═══
+
+              التصميم يضع تحت العنوان فقرةً تقول ثلاثًا: النشر مجاني،
+              والدفع عبر الضمان، والسعر مقترحٌ من صفقات حقيقية. وكان
+              الصدر عنوانًا وأرقامًا بلا جملةٍ واحدة — فمن يقف عليه أوّل
+              مرّة لا يعرف أيأخذ منه مالًا أم لا.
+
+              **وجلبُ الرقم التسلسلي خلف راية**، فلا يُوعَد به وهو
+              مُطفأ: وعدٌ لا يجد صاحبُه حقلَه أسوأ من سطرٍ أقصر.
+            */}
+            <p className="mb-7 max-w-2xl text-sm leading-loose opacity-70">
+              {vinLookup ? t('leadVin') : t('lead')}
+            </p>
 
             <dl className="flex flex-wrap gap-9">
               {[
@@ -142,7 +158,7 @@ export default async function SellPage({
             brands={brands}
             cities={cities}
             locale={locale}
-            vinLookupEnabled={isFeatureOn('VIN_LOOKUP')}
+            vinLookupEnabled={vinLookup}
           />
         </div>
       </main>

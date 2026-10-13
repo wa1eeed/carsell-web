@@ -727,3 +727,10 @@ code review and into a session. Not taken unilaterally.
 | `الوحدة` + Arabic row labels | Same, plus the raw permission key beneath each label for whoever edits the code, and module group headers |
 | `SUPER OPS FINANCE SUPPORT CONTENT READONLY` | Same, `SUPER` abbreviated as in the design |
 | Two rule cards, second one 420px | Same, second capped at `max-w-md` |
+
+## Wh — Sell your car
+
+| Design | Built |
+|---|---|
+| Hero sub-paragraph: "أدخل الرقم التسلسلي فنجلب بيانات المركبة من النظام الحكومي، ونقترح عليك سعرًا مبنيًا على صفقات حقيقية. النشر مجاني والدفع عبر الضمان." | The paragraph is there, in **two versions**. VIN lookup sits behind `VIN_LOOKUP`, and while the flag is off the field is not rendered — so the copy does not offer it. A promise whose field cannot be found is worse than a shorter line. With the flag on, the design's sentence is used in full. |
+| "عند سعرك ٥٢ يومًا · عند ١٣٥٬٠٠٠ ١٨ يومًا" under the price | **Not built.** This projects price onto time-to-sell, and no such rule exists: `daysToSellMedian` is one number for the whole segment, not a function of price. Inventing a curve would have the screen promise a sale in eighteen days with nothing behind it. The range bar, the above/below-market line and the basis sentence are all built. |

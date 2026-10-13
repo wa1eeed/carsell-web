@@ -50,8 +50,16 @@ are examples, not the whole set — each screen is compared against its block in
         column holding the profile card and the sections, one column inside it
         and two below `lg`.
   - [ ] Plates — see **F** below.
-- [ ] **Sell wizard — vehicle step** — hero with stats, 3-step progress, photo
-      grid with quality badges, price range bar with days-to-sell.
+- [x] **Sell wizard** — walked against Wh. The 3-step progress, the stats row
+      (commission read from `CommissionRule`, not written by hand), the photo
+      grid with its cover / plate-blurred / blurry badges and duplicate check,
+      and the price range bar with the above-below-market line were all already
+      built. What was missing was the **hero's sub-paragraph** — the screen went
+      from a headline straight to numbers, so a first-time seller never read that
+      listing is free and the money comes through escrow. Added, in two versions:
+      the design's sentence promises VIN lookup, which sits behind a flag, so the
+      copy only offers it when the field is actually rendered. Days-to-sell at
+      two prices stays out, with the reason recorded in `DESIGN-DEVIATIONS.md`.
 - [x] **Order detail** — walked as both parties: escrow panel, stage tracker,
       order path, amounts, documents and the cancel block are all there, and the
       cancel button is correct for the seller too (`cancelOrder` admits either

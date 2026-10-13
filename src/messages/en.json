@@ -753,6 +753,8 @@
   "sell": {
     "title": "Sell your car at a fair price",
     "titleTail": "and with no commission",
+    "lead": "Listing is free, and the money reaches you through escrow once ownership transfers. We suggest a price built on real deals for cars like yours.",
+    "leadVin": "Enter the VIN and we pull your vehicle’s details, then suggest a price built on real deals. Listing is free, and the money reaches you through escrow once ownership transfers.",
     "stat": {
       "commission": "Sale commission",
       "days": "days median time to sell",
