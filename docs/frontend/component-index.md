@@ -170,7 +170,7 @@ rather than found by chance.
 | `SpecRow` | no | `label` · `children` · `className` | 3 |
 | `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 16 |
 | `Stepper` | no | `steps` · `active` · `onSelect` · `className` | 1 |
-| `Tabs` | yes | `items` · `active` · `onChange` · `className` | 5 |
+| `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 2 |
 | `Toast` | no | `tone` · `title` · `description` · `className` | 53 |

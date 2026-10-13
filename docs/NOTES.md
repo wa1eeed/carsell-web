@@ -4713,3 +4713,44 @@ silently changed.
   rule, so it is a question for the owner rather than a layout to copy.
 - **Inline event rows** for extensions and cancellations — the stats strip
   already counts extensions, but the individual events are not recorded.
+
+---
+
+## The account home hid itself behind tabs
+
+The design draws the account home as **stacked sections** — طلباتي, العروض
+الواردة على مركباتك, مزاداتي — each showing three rows with «عرض الكل» beside
+the heading, above four stat cards that each carry a sub-line:
+
+> ٤ طلبات جارية — ٢ تحت المعالجة · ٢ مكتملة
+> ٦ عروض واردة — أعلى عرض ١٤١٬٠٠٠ ريال
+> ٢ مزادات نشطة — واحد تزايد فيه وواحد تعرضه
+> ٣ مركباتي — ٢ معروضة · ١ في المرآب
+
+The build had a **tab bar** with four panels and bare numbers on the cards. So
+the page a user opens to learn where they stand showed one quarter of it, and
+each number said how many without saying of what.
+
+### Stacked, not tabbed
+
+Four tab panels became four `HomeSection`s: heading, a rule, «عرض الكل» when
+there is more than three, and the first three rows. A section with nothing in it
+is not rendered — a heading over emptiness reads as a broken page.
+
+This also moved the order sub-tabs (قيد الإجراء · المكتملة · الملغاة) off the
+home and left them on `/account/orders`, where they belong: **the home is a
+digest and the dedicated page is what filters.** The file lost the tab state,
+the sub-tab state and their machinery.
+
+### Every card says what it is made of
+
+`StatCard` already had `breakdown`; nothing passed it. Now orders carry
+«تحت المعالجة · مكتملة», offers carry the highest offer, auctions split
+«تزايد فيه · تعرضه», and vehicles carry «معروضة · مخفية». Rows worth zero are
+dropped — «٠ مكتملة» occupies a line and says nothing, and its absence is the
+same information.
+
+Measured across three accounts: a seller with 3 listings shows the section
+without «عرض الكل», one with 6 shows it, and a buyer with one order and five
+auctions shows «طلباتي ١ · تحت المعالجة ١» and «مزادات نشطة ٥ · تزايد فيه ٥»
+with the empty sections absent.

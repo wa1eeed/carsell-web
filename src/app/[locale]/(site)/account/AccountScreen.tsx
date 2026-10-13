@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { displayDigits, formatNumber, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -16,14 +16,12 @@ import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import { MyAuctions } from '@/components/site/MyAuctions';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { StatCard } from '@/components/ui/StatCard';
-import { Tabs } from '@/components/ui/Tabs';
 import { cn } from '@/lib/cn';
 import { OrderStatusBadge } from '@/components/ui/OrderStatusBadge';
 import {
   isClosedOrder,
   orderGroup,
   orderNeedsBuyer,
-  type OrderGroup,
 } from '@/lib/domain/order-state';
 import type { AccountData } from '@/lib/domain/account';
 
@@ -65,6 +63,49 @@ function MissingFields({ data, locale }: { data: AccountData; locale: string }) 
   );
 }
 
+/**
+ * ═══ قسمٌ في لوحة الحساب — عنوانٌ و«عرض الكل» ═══
+ *
+ * **والتصميم يكدّس الأقسام ولا يُخفيها خلف تابز.** صاحب الحساب يفتحه
+ * ليعرف حاله، وتابزٌ تعرض واحدًا تجعله ينقر ثلاث مرّات ليراه — وقد
+ * يغادر قبل أن يصل إلى ما ينتظره.
+ *
+ * ولكلّ قسمٍ ثلاثةُ صفوفٍ و«عرض الكل» إلى صفحته: اللوحة خلاصة،
+ * والصفحة المخصّصة هي التي تُرشِّح وتستوعب.
+ *
+ * **ويختفي بلا محتوى**: عنوانٌ فوق فراغٍ يقول إن المنصّة خالية.
+ */
+function HomeSection({
+  title,
+  href,
+  all,
+  children,
+}: {
+  title: string;
+  href: string;
+  /** العدد الكامل — و«عرض الكل» تظهر حين يزيد عمّا عُرض. */
+  all: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-9">
+      <div className="mb-3.5 flex flex-wrap items-baseline gap-3.5">
+        <h2 className="text-sm font-bold">{title}</h2>
+        <span className="h-px flex-1 bg-line" />
+        {all > HOME_ROWS ? (
+          <Link href={href} className="text-2xs font-bold text-accent-700 hover:underline">
+            عرض الكل
+          </Link>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** ثلاثةٌ كما في التصميم — والرابع في صفحته. */
+const HOME_ROWS = 3;
+
 export function AccountScreen({
   data,
   locale,
@@ -80,14 +121,6 @@ export function AccountScreen({
   const t = useTranslations('account');
   const te = useTranslations('enums');
   const tx = useTranslations('tax');
-  const [tab, setTab] = useState('listings');
-  /**
-   * ═══ تبويبٌ فرعيّ تحت «طلباتي» ═══
-   *
-   * القائمة كانت واحدة: الجاري والمكتمل والملغى في صفٍّ واحد مرتَّبين
-   * بالتاريخ — **فالطلب الذي ينتظر دفعًا يختفي بين ملغيَيْن**.
-   */
-  const [orderGroupTab, setOrderGroupTab] = useState<OrderGroup>('live');
 
   /**
    * **والعدد من التصنيف نفسه الذي يُرشِّح به.** عددٌ يُحسب بشرطٍ
@@ -100,10 +133,33 @@ export function AccountScreen({
     cancelled: data.orders.filter((order) => orderGroup(order.status) === 'cancelled').length,
   };
 
-  const shownOrders = data.orders.filter((order) => orderGroup(order.status) === orderGroupTab);
 
-  /** ما ينتظر فعلًا منه — دفعًا أو تأكيد استلام. */
-  const needsAction = data.orders.some((order) => orderNeedsBuyer(order.status, order.stage));
+  /**
+   * ═══ تفكيك البطاقات — كما يكتبه التصميم ═══
+   *
+   * **ولا يُعرض ما لا عدد له**: «٠ مكتملة» سطرٌ يشغل مكانًا ولا يقول
+   * شيئًا، وغيابُه نفسه خبر.
+   */
+  const orderSplit = [
+    { label: 'تحت المعالجة', value: groupCounts.live },
+    { label: 'مكتملة', value: groupCounts.done },
+  ].filter((row) => row.value > 0);
+
+  const topOffer =
+    data.offers.length === 0
+      ? null
+      : formatNumber(
+          Math.max(...data.offers.map((offer) => Number(offer.amount))),
+          locale === 'en' ? 'en' : 'ar',
+        );
+
+  /** **والمزاد الحيّ بالحالة والوقت معًا** — لا بالحالة وحدها. */
+  const liveAuctions = data.auctions.filter((row) => row.live);
+  const auctionSplit = [
+    { label: 'تزايد فيه', value: liveAuctions.filter((row) => row.role === 'bidder').length },
+    { label: 'تعرضه', value: liveAuctions.filter((row) => row.role === 'seller').length },
+  ].filter((row) => row.value > 0);
+
   const [tax, setTax] = useState<TaxProfile>(taxProfile);
   const [editingTax, setEditingTax] = useState(false);
 
@@ -120,12 +176,6 @@ export function AccountScreen({
     </span>
   );
 
-  const tabs = [
-    { id: 'listings', label: t('tab.listings'), count: data.listings.length },
-    { id: 'offers', label: t('tab.offers'), count: data.offers.length },
-    { id: 'orders', label: t('tab.orders'), count: data.orders.length },
-    { id: 'reports', label: t('tab.reports'), count: data.reports.length },
-  ];
 
   return (
     <>
@@ -152,13 +202,31 @@ export function AccountScreen({
           breakdown={[
             { label: 'معروضة', value: garage.listed },
             { label: 'مخفية', value: garage.garage },
-          ]}
+          ].filter((row) => row.value > 0)}
         />
-        {data.stats
-          .filter((stat) => stat.key !== 'listings')
-          .map((stat) => (
-            <StatCard key={stat.key} label={t(`stat.${stat.key}`)} value={stat.value} />
-          ))}
+        {/*
+          ═══ وكل بطاقةٍ تقول ممّ تتكوّن ═══
+
+          التصميم يكتب تحت كل رقمٍ سطرًا يفكّه: «٤ طلبات جارية — ٢ تحت
+          المعالجة · ٢ مكتملة» و«٦ عروض واردة — أعلى عرض ١٤١٬٠٠٠».
+          **ورقمٌ بلا تفكيكه لا يُقرَّر عليه**: «٦ عروض» لا تقول أتستحقّ
+          فتحَ الصفحة الآن أم تنتظر.
+        */}
+        <StatCard
+          label={t('stat.orders')}
+          value={data.orders.length}
+          breakdown={orderSplit}
+        />
+        <StatCard
+          label={t('stat.offers')}
+          value={data.offers.length}
+          breakdown={topOffer === null ? undefined : [{ label: 'أعلى عرض', value: topOffer }]}
+        />
+        <StatCard
+          label="مزادات نشطة"
+          value={liveAuctions.length}
+          breakdown={auctionSplit}
+        />
       </div>
 
       {/*
@@ -180,10 +248,15 @@ export function AccountScreen({
         </Link>
       )}
 
-      <Tabs items={tabs} active={tab} onChange={setTab} className="mb-6" />
+      
 
-      {tab === 'listings' ? (
-        data.listings.length === 0 ? (
+      {data.listings.length === 0 ? null : (
+        <HomeSection
+          title={t('tab.listings')}
+          href={`/${locale}/account/listings`}
+          all={data.listings.length}
+        >
+          {false ? (
           <EmptyState
             title={t('noListings')}
             description={t('noListingsBody')}
@@ -195,7 +268,7 @@ export function AccountScreen({
           />
         ) : (
           <ul className="flex flex-col gap-3">
-            {data.listings.map((listing) => (
+            {data.listings.slice(0, HOME_ROWS).map((listing) => (
               <li
                 key={listing.ref}
                 className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-4.5"
@@ -221,15 +294,21 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
-        )
-      ) : null}
+        )}
+        </HomeSection>
+      )}
 
-      {tab === 'offers' ? (
-        data.offers.length === 0 ? (
+      {data.offers.length === 0 ? null : (
+        <HomeSection
+          title="العروض الواردة على مركباتك"
+          href={`/${locale}/account/offers`}
+          all={data.offers.length}
+        >
+          {false ? (
           <EmptyState title={t('noOffers')} description={t('noOffersBody')} />
         ) : (
           <ul className="flex flex-col gap-3">
-            {data.offers.map((offer) => (
+            {data.offers.slice(0, HOME_ROWS).map((offer) => (
               <li
                 key={offer.id}
                 className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-4.5"
@@ -259,57 +338,22 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
-        )
-      ) : null}
+        )}
+        </HomeSection>
+      )}
 
-      {tab === 'orders' ? (
-        data.orders.length === 0 ? (
+      {data.orders.length === 0 ? null : (
+        <HomeSection
+          title={t('tab.orders')}
+          href={`/${locale}/account/orders`}
+          all={data.orders.length}
+        >
+          {false ? (
           <EmptyState title={t('noOrders')} description={t('noOrdersBody')} />
         ) : (
           <>
-            {/*
-              **والعدّاد على «قيد الإجراء» وحده.** «الملغاة (٤)» رقمٌ
-              لا يُفعل به شيء، و«المكتملة (٢)» كذلك — والعدد يُعرض حيث
-              يُقرَّر عليه. والنقطة تنبض متى كان بينها ما ينتظر فعلًا
-              من صاحبه: دفعًا أو تأكيد استلام.
-            */}
-            <Tabs
-              items={[
-                {
-                  id: 'live',
-                  label: 'قيد الإجراء',
-                  /** وصفرٌ لا يُعرض — «قيد الإجراء (٠)» ضجيجٌ، والفراغ أبلغ. */
-                  ...(groupCounts.live === 0 ? {} : { count: groupCounts.live }),
-                  alert: needsAction,
-                },
-                { id: 'done', label: 'المكتملة' },
-                { id: 'cancelled', label: 'الملغاة' },
-              ]}
-              active={orderGroupTab}
-              onChange={(id) => setOrderGroupTab(id as OrderGroup)}
-              className="mb-5"
-            />
-
-            {shownOrders.length === 0 ? (
-              <EmptyState
-                title={
-                  orderGroupTab === 'live'
-                    ? 'لا طلبات قيد الإجراء'
-                    : orderGroupTab === 'done'
-                      ? 'لا طلبات مكتملة'
-                      : 'لا طلبات ملغاة'
-                }
-                description={
-                  orderGroupTab === 'live'
-                    ? 'ما يحتاج منك إجراءً يظهر هنا، ومعه مهلتُه.'
-                    : orderGroupTab === 'done'
-                      ? 'الصفقات التي تمّت ونُقلت ملكيتها تظهر هنا مع عقودها.'
-                      : 'الطلبات التي أُلغيت تبقى هنا بسبب إلغائها.'
-                }
-              />
-            ) : (
           <ul className="flex flex-col gap-3">
-            {shownOrders.map((order) => (
+            {data.orders.slice(0, HOME_ROWS).map((order) => (
               <li
                 key={order.ref}
                 /*
@@ -371,17 +415,22 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
-            )}
           </>
-        )
-      ) : null}
+        )}
+        </HomeSection>
+      )}
 
-      {tab === 'reports' ? (
-        data.reports.length === 0 ? (
+      {data.reports.length === 0 ? null : (
+        <HomeSection
+          title={t('tab.reports')}
+          href={`/${locale}/account/reports`}
+          all={data.reports.length}
+        >
+          {false ? (
           <EmptyState title={t('noReports')} description={t('noReportsBody')} />
         ) : (
           <ul className="flex flex-col gap-3">
-            {data.reports.map((report) => (
+            {data.reports.slice(0, HOME_ROWS).map((report) => (
               <li
                 key={report.ref}
                 className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-4.5"
@@ -406,8 +455,9 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
-        )
-      ) : null}
+        )}
+        </HomeSection>
+      )}
 
       {/* مزاداتي — ما أعرضه وما أزايد فيه، والقسم يختفي بلا مزاد */}
       <MyAuctions rows={data.auctions} />
