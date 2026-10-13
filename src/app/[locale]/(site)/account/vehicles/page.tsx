@@ -5,6 +5,7 @@ import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
 
 import { Badge } from '@/components/ui/Badge';
+import { FilterChip } from '@/components/ui/FilterChip';
 import { Button } from '@/components/ui/Button';
 import { Quantity } from '@/components/ui/Quantity';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -43,10 +44,29 @@ const STATE: Record<VehicleState, { label: string; tone: 'accent' | 'warn' | 'ne
  * يريد بيعها**. وربطُ وجودِها في المنصّة بعرضِها للبيع يجعل كلَّ خدمةٍ
  * تمرّ بإعلان — ويُخرج من السوق كلَّ من يريد خدمةً ولا يبيع.
  */
+const TABS = ['all', 'listed', 'garage', 'sold'] as const;
+type Tab = (typeof TABS)[number];
+
+/**
+ * ═══ التسمية ═══
+ *
+ * **«في المرآب» لا «خارج السوق»**: الثانية تُقرأ إقصاءً — كأنّ السيارة
+ * أُخرجت من شيء. والأولى كلمةُ التصميم نفسه («١ في المرآب») وهي وسم
+ * الحالة على البطاقات، فلا تسميتان لحالٍ واحدة.
+ */
+const TAB_LABEL: Record<Tab, string> = {
+  all: 'الكل',
+  listed: 'معروضة',
+  garage: 'في المرآب',
+  sold: 'مباعة',
+};
+
 export default async function MyVehiclesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -55,8 +75,20 @@ export default async function MyVehiclesPage({
   const user = await currentUserFromCookies();
   if (user === null) redirect(`/${locale}/auth`);
 
-  const vehicles = await myVehicles(user.id, locale);
+  const [vehicles, query] = await Promise.all([myVehicles(user.id, locale), searchParams]);
   const counts = garageCounts(vehicles);
+
+  /**
+   * **والترشيح بالعنوان لا بحالةٍ في المتصفّح**: الشاشة خادمية،
+   * ويُشارَك الرابط، ويعمل بلا JS، ويعود إليه زرُّ الرجوع.
+   */
+  const asked = typeof query.tab === 'string' ? query.tab : 'all';
+  const tab: Tab = (TABS as readonly string[]).includes(asked) ? (asked as Tab) : 'all';
+
+  /** العدد من التصنيف نفسه الذي يُرشَّح به — لا شرطان يتباعدان. */
+  const countOf = (which: Tab): number =>
+    which === 'all' ? counts.total : vehicles.filter((row) => row.state === which).length;
+  const shown = tab === 'all' ? vehicles : vehicles.filter((row) => row.state === tab);
 
   return (
     <AccountList
@@ -88,17 +120,62 @@ export default async function MyVehiclesPage({
           </p>
         )
       }
-      empty={{
-        title: 'سياراتك فارغة',
-        description: 'أضف سيارتك لتطلب عليها فحصًا أو تأمينًا — واعرضها للبيع متى شئت.',
-      }}
+      filters={
+        counts.total === 0 ? undefined : (
+          <nav className="flex flex-wrap items-center gap-2.5">
+            {TABS.map((key) => {
+              const count = countOf(key);
+              return (
+                <FilterChip
+                  key={key}
+                  href={
+                    key === 'all'
+                      ? `/${locale}/account/vehicles`
+                      : `/${locale}/account/vehicles?tab=${key}`
+                  }
+                  active={tab === key}
+                  {...(count === 0 ? {} : { count })}
+                >
+                  {TAB_LABEL[key]}
+                </FilterChip>
+              );
+            })}
+          </nav>
+        )
+      }
+      /*
+        **والحالة الفارغة تتبع التبويب.** «سياراتك فارغة» جوابٌ صحيح
+        لمن لا سيارة له، وخاطئٌ لمن له أربع ورشّح إلى «مباعة» فلم يجد
+        فيها شيئًا.
+      */
+      empty={
+        counts.total === 0
+          ? {
+              title: 'سياراتك فارغة',
+              description: 'أضف سيارتك لتطلب عليها فحصًا أو تأمينًا — واعرضها للبيع متى شئت.',
+            }
+          : tab === 'listed'
+            ? {
+                title: 'لا سيارة معروضة',
+                description: 'ما تعرضه للبيع يظهر هنا مع إعلانه.',
+              }
+            : tab === 'garage'
+              ? {
+                  title: 'لا سيارة في المرآب',
+                  description: 'كل سياراتك معروضة أو مباعة — وما تضيفه ولا تعرضه يظهر هنا.',
+                }
+              : {
+                  title: 'لا سيارة مباعة',
+                  description: 'ما تمّ بيعه ونُقلت ملكيته يظهر هنا.',
+                }
+      }
       action={
         <Link href={`/${locale}/sell`}>
           <Button size="sm">أضف سيارة</Button>
         </Link>
       }
     >
-      {vehicles.map((vehicle) => {
+      {shown.map((vehicle) => {
         const state = STATE[vehicle.state];
         return (
           <AccountRow
