@@ -4482,3 +4482,43 @@ ship the data fix now. The decision is recorded here because the English site
 remains partly Arabic until it is done — that is known, not missed.
 
 Seller names stay Arabic in both locales, correctly: they are people's names.
+
+---
+
+## Browse defaults to the list, and the list row fits a phone
+
+Two requests from the owner: the browse page should open in **list** view rather
+than grid, with list offered first; and in the list row the car name must sit on
+one line and fit the card at every width.
+
+### The default
+
+`useState<'grid' | 'list'>('grid')` → `'list'`, and the toggle renders
+`['list', 'grid']` instead of `['grid', 'list']` — the order of two options says
+which one is the norm. The grid shows a large photo and two lines; the list shows
+mileage, transmission, city and price in one row, and that is the view you
+compare with.
+
+### The row was broken below 640px, in three ways
+
+Measured at 375: the title read only «هيوندا», the meta wrapped to three lines,
+and the price overlapped the seller's name.
+
+1. **`truncate` sat on the `h3`, which is a flex container.** `white-space:
+   nowrap` inherits to the children but the ellipsis belongs to the container's
+   own text, so the name was clipped with nothing to show it had been clipped —
+   or the year was pushed outside the card. The truncation now sits on the name
+   span (`min-w-0 truncate`) and the year is `shrink-0`, so it is never displaced.
+2. **The photo was a fixed `w-40`.** 160px of a 375px screen left the text
+   column too narrow for any car name. Now `w-28 sm:w-40`.
+3. **Three columns do not fit a phone.** Photo, text and a price column meant
+   none of them had room. The price and type badge now sit in their own row under
+   the text on mobile and return to a side column from `sm`, as the design draws
+   them.
+
+The title size scales too: `text-sm sm:text-lg`.
+
+Measured after, at 375: **0 overflow, 0 clipped titles** — the longest seeded
+name («نيسان باترول LE بلاتينيوم», 25 characters) renders in full at 155px. Same
+at 608. Below 375 the ellipsis appears, which is the graceful case rather than a
+silent cut.

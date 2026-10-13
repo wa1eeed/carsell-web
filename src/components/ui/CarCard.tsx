@@ -225,37 +225,58 @@ export function CarRow({
   return (
     <article
       className={cn(
-        'flex gap-4 overflow-hidden rounded-xl border border-line bg-surface p-3.5',
+        'flex gap-3 overflow-hidden rounded-xl border border-line bg-surface p-3 sm:gap-4 sm:p-3.5',
         className,
       )}
     >
-      <div className="washed relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg">
+      {/* **والصورة تنكمش على الهاتف.** ١٦٠px من ٣٧٥ تترك للنصّ عمودًا
+          لا يسع اسم سيارة، فيُقطع عند «هيوندا». */}
+      <div className="washed relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg sm:w-40">
         {data.inspected ? (
           <InspectedBadge className="absolute top-2 start-2" />
         ) : null}
       </div>
 
-      {/* العنوان والبيانات يأخذان الفراغ، والسعر والرقاقة مجموعان في
-          نهاية الصفّ. لا `justify-between` على ثلاثة عناصر — تُنتج
-          فجوة في الوسط وتترك الرقاقة معلّقة وحدها. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <h3 className="flex items-baseline gap-1.5 truncate text-lg font-bold">
-          <span className="bidi-isolate">{data.title}</span>
-          <ArabicNumber value={data.year} grouped={false} />
-        </h3>
-        <MetaLine
-          parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
-        />
-        <Seller
-          name={data.sellerName}
-          verified={data.sellerVerified}
-          {...(data.publishedAt === undefined ? {} : { publishedAt: data.publishedAt })}
-        />
-      </div>
+      {/*
+        ═══ والسعر صفٌّ أسفل على الهاتف لا عمودٌ ثالث ═══
 
-      <div className="flex shrink-0 flex-col items-end justify-between gap-2.5">
-        <Badge tone={TYPE_TONE[data.type]}>{te(`listingType.${data.type}`)}</Badge>
-        <Price data={data} />
+        ثلاثةُ أعمدة في ٣٧٥px تترك لكلٍّ منها ما لا يسعه: فيتراكب السعر
+        على اسم البائع، ويلتفّ سطر البيانات ثلاثة أسطر. ومن `sm` يعود
+        العمود الجانبيّ كما في التصميم.
+      */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:gap-2">
+          {/*
+            ═══ الاسم والسنة في سطرٍ واحد ═══
+
+            **و`truncate` على حاوية `flex` لا تقصّ أبناءها**: كانت على
+            `h3` فيُقطع الاسم بلا نقاطٍ تدلّ على القطع، أو تُدفع السنة
+            خارج الكرت. فالقصّ على الاسم نفسه (`min-w-0 truncate`)
+            والسنة `shrink-0` فلا تُزاح أبدًا.
+
+            والحجم يتدرّج: `text-sm` على الهاتف حيث العمود ضيّق،
+            و`text-lg` من `sm` كما في التصميم.
+          */}
+          <h3 className="flex items-baseline gap-1.5 text-sm font-bold sm:text-lg">
+            <span className="bidi-isolate min-w-0 truncate">{data.title}</span>
+            <span className="shrink-0">
+              <ArabicNumber value={data.year} grouped={false} />
+            </span>
+          </h3>
+          <MetaLine
+            parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
+          />
+          <Seller
+            name={data.sellerName}
+            verified={data.sellerVerified}
+            {...(data.publishedAt === undefined ? {} : { publishedAt: data.publishedAt })}
+          />
+        </div>
+
+        <div className="flex shrink-0 items-end justify-between gap-2.5 sm:flex-col sm:items-end">
+          <Badge tone={TYPE_TONE[data.type]}>{te(`listingType.${data.type}`)}</Badge>
+          <Price data={data} />
+        </div>
       </div>
     </article>
   );

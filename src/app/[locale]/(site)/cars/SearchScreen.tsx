@@ -73,7 +73,14 @@ export function SearchScreen({
   const tu = useTranslations('ui');
   const router = useRouter();
   const params = useSearchParams();
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  /**
+   * ═══ والقائمة هي الافتراض ═══
+   *
+   * الشبكة تعرض صورةً كبيرة وسطرين، والقائمة تعرض الممشى والناقل
+   * والمدينة والسعر في صفٍّ واحد — **وهذه هي التي يُقارَن بها**. ومن
+   * يتصفّح سوق سيارات يوازن لا يتفرّج، فالافتراض ما يُوازن به.
+   */
+  const [view, setView] = useState<'grid' | 'list'>('list');
   const [sheet, setSheet] = useState(false);
   const [featureSheet, setFeatureSheet] = useState(false);
 
@@ -527,7 +534,8 @@ export function SearchScreen({
           </select>
 
           <div className="flex overflow-hidden rounded-md border border-line">
-            {(['grid', 'list'] as const).map((mode) => (
+            {/* والقائمة أوّلًا — ترتيبُ الخيارين يقول أيّهما الأصل. */}
+            {(['list', 'grid'] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
