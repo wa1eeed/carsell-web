@@ -48,8 +48,7 @@ are examples, not the whole set — each screen is compared against its block in
       stat card carries the sub-line the design draws under it. Still missing:
   - [ ] The left **sidebar** («لوحة الحساب») the design puts beside the
         content — the build has «أقسام حسابي» as a grid at the bottom instead.
-  - [ ] Plates («لوحة · ر ك م ٧٨٩») appear in the design's offers and auctions
-        rows; the product has no plate listings yet.
+  - [ ] Plates — see **F** below.
 - [ ] **Sell wizard — vehicle step** — hero with stats, 3-step progress, photo
       grid with quality badges, price range bar with days-to-sell.
 - [ ] **Order detail** — escrow panel, stage timeline, documents, cancel block.
@@ -102,3 +101,50 @@ comment claims the last one wins. A base utility can silently defeat one passed
 by a caller, with the class visible in the DOM so inspection looks right. It hid
 the logo's size for as long as the header has existed. `tailwind-merge` fixes it
 everywhere and adds a dependency; the alternative is auditing each component.
+
+### F · Plates as a sellable item — **awaiting the owner's decision**
+
+The design treats a plate as a first-class listing beside cars: it appears in
+«مزاداتي» («لوحة · أ ب ج ١٢٣ — ٦ مزايدين»), in incoming offers («فيصل ن. —
+لوحة · ر ك م ٧٨٩»), and the mobile empty state reads «أول إضافة، سيارة **أو
+لوحة**». It carries its own explanation:
+
+> لوحة معروضة. النقل إلكترونيّ عبر أبشر بعد الدفع — بلا فحص ولا معاينة،
+> ويشترط أن تكون لديك مركبة قابلة لتركيبها.
+
+**The product has none of it.** `Vehicle.plateLetters` / `plateNumbers` are the
+plate *of a car*, for identification and blurring in photos. `ListingType` is
+`DIRECT | NEGOTIATION | AUCTION` with no plate anywhere. Every screen assumes a
+listing is a car: inspection, viewing, mileage, brand and model, a transfer
+appointment at the traffic department.
+
+A plate is not a cheaper car — it is a different journey:
+
+| | Car | Plate |
+| --- | --- | --- |
+| Inspection | central | none |
+| Viewing | appointment and place | none |
+| Transfer | traffic appointment | Absher, electronic |
+| Data | brand · model · mileage · colour | letters · numbers · class |
+| Buyer condition | verified identity | **+ owns a vehicle that can carry it** |
+| Search | brand, year | pattern: triple, repeated, short number |
+
+Escrow still applies — but what *proves* transfer differs: an appointment for a
+car, an Absher notification for a plate.
+
+**Four decisions needed before any of it is built:**
+
+1. Before launch or after? This is a new listing type with a full journey, not
+   a field.
+2. Commission — the same rate as cars, on an item that ranges from 28,000 to
+   several hundred thousand?
+3. Who verifies the plate belongs to the seller, with no Absher integration?
+   Manual review by the team, or seller's word plus escrow?
+4. Is «you must own a vehicle that can carry it» enforced by the platform before
+   purchase — now possible, since «سياراتي» knows what the buyer owns — or left
+   to the buyer?
+
+**Recommendation on file: after launch.** The core market is cars; plates double
+the test surface and the money path without adding liquidity in the first
+months. And «سياراتي» now exists, which is where a plate naturally lives when it
+comes.
