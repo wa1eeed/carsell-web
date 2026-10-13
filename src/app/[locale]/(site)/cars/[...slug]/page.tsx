@@ -327,6 +327,15 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
               reserved: await hasLiveOrder(resolved.row.id),
               // الإبلاغ يحتاج المعرّف لا المرجع — والمسار يقبل `targetId`
               listingId: resolved.row.id,
+              /**
+               * **ومعرّف المركبة لمالكها وحده.** بنر الخدمات يحمله
+               * فتُختار مركبتُه سلفًا — ومن لا يملكها لا يطلب لها خدمة
+               * أصلًا (`VEHICLE_NOT_YOURS`)، فحملُه إليه يَعِد بما يُردّ.
+               */
+              ownVehicleId:
+                viewer !== null && viewer.id === resolved.row.sellerId
+                  ? resolved.row.vehicleId
+                  : null,
               /** والقلب يُرسَم ممتلئًا من أوّل تصيير — لا يومض بعده. */
               favorited: (await favoritedRefs(viewer?.id ?? null, [resolved.row.ref])).has(
                 resolved.row.ref,

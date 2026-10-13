@@ -24,12 +24,19 @@ export function RequestService({
   serviceKey,
   serviceName,
   vehicles,
+  initialVehicleId,
   cities,
   total,
   addVehicleHref,
 }: {
   serviceKey: string;
   vehicles: readonly { id: string; title: string }[];
+  /**
+   * المركبة المختارة سلفًا — تصل من صفحة المركبة حين يفتح صاحبُها
+   * خدمةً من بنرها. **ولا تُوثق بها**: إن لم تكن في قائمته سقطت إلى
+   * الأولى، فمعرّفٌ ملفَّق في العنوان لا يختار له مركبةَ غيره.
+   */
+  initialVehicleId?: string | undefined;
   cities: readonly string[];
   /** اسمُ الخدمة — يُكتب في الزرّ، فمن يضغط يعرف ما يشتري. */
   serviceName: string;
@@ -39,7 +46,11 @@ export function RequestService({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [vehicleId, setVehicleId] = useState(vehicles[0]?.id ?? '');
+  const [vehicleId, setVehicleId] = useState(
+    vehicles.some((vehicle) => vehicle.id === initialVehicleId)
+      ? (initialVehicleId ?? '')
+      : (vehicles[0]?.id ?? ''),
+  );
   const [city, setCity] = useState(cities[0] ?? '');
   const [when, setWhen] = useState('');
   const [toast, setToast] = useState<string | null>(null);

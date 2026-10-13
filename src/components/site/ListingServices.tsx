@@ -14,7 +14,23 @@ import type { ListingService } from '@/lib/domain/listing-detail';
  * والسعرُ يُقال قبل النقر: «اطلبه» بلا ثمنٍ يُقرأ التزامًا مجهولًا،
  * فيُترك.
  */
-export function ListingServices({ services }: { services: readonly ListingService[] }) {
+export function ListingServices({
+  services,
+  ownVehicleId,
+}: {
+  services: readonly ListingService[];
+  /**
+   * ═══ والرابط يحمل المركبة لصاحبها ═══
+   *
+   * كان يذهب إلى الخدمة **بلا أن يقول أيّ مركبة**، فيصل صاحبُها إلى
+   * قائمةٍ تطلب منه أن يختار ما كان يقف عليه قبل نقرة.
+   *
+   * **ولمن يملكها وحده**: النطاق يردّ `VEHICLE_NOT_YOURS` لغيره (تقرير
+   * الفحص يُعلَّق على الإعلان ويقرؤه كل مشترٍ، فطلبُه من غير المالك
+   * يُدخل في صفحة بائعٍ تقريرًا لم يطلبه). فحملُه إلى غيره وعدٌ يُردّ.
+   */
+  ownVehicleId: string | null;
+}) {
   if (services.length === 0) return null;
 
   return (
@@ -25,7 +41,11 @@ export function ListingServices({ services }: { services: readonly ListingServic
         {services.map((service) => (
           <li key={service.key}>
             <Link
-              href={service.path}
+              href={
+                ownVehicleId === null
+                  ? service.path
+                  : `${service.path}?vehicle=${encodeURIComponent(ownVehicleId)}`
+              }
               className="flex flex-col gap-1.5 rounded-lg border border-line p-3.5 transition-colors hover:border-ink"
             >
               <span className="flex flex-wrap items-baseline justify-between gap-2">

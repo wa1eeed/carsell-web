@@ -48,8 +48,26 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
  * مكتوبةً هنا: نسبةٌ مكتوبة تتباعد عن الإعداد أوّل تغيير، فيقرأ الطالب
  * رقمًا ويُفوتَر بغيره.
  */
-export default async function ServiceDetailPage({ params }: { params: Params }) {
+export default async function ServiceDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { locale, key } = await params;
+  /**
+   * ═══ المركبة تصل من بنر صفحتها ═══
+   *
+   * من فتح خدمةً من بنر مركبته يقصدها هي — وكان البنر يربط إلى الخدمة
+   * **بلا أن يقول أيّ مركبة**، فيصل صاحبُها إلى قائمةٍ تطلب منه أن
+   * يختار ما كان يقف عليه قبل نقرة.
+   *
+   * ولا يُوثق بالمعامل: الملتقط لا يعرض إلّا مركبات صاحب الجلسة، فما
+   * لا يطابق واحدةً منها يسقط إلى الأولى.
+   */
+  const query = await searchParams;
+  const askedVehicle = typeof query.vehicle === 'string' ? query.vehicle : undefined;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
@@ -238,6 +256,7 @@ export default async function ServiceDetailPage({ params }: { params: Params }) 
                 serviceKey={service.key}
                 serviceName={locale === 'ar' ? service.nameAr : service.nameEn}
                 vehicles={vehicles}
+                initialVehicleId={askedVehicle}
                 cities={coverage}
                 total={formatNumber(Number(money.total), locale, { decimals: 2 })}
                 addVehicleHref={`/${locale}/sell`}

@@ -4522,3 +4522,54 @@ Measured after, at 375: **0 overflow, 0 clipped titles** — the longest seeded
 name («نيسان باترول LE بلاتينيوم», 25 characters) renders in full at 155px. Same
 at 608. Below 375 the ellipsis appears, which is the graceful case rather than a
 silent cut.
+
+---
+
+## Services: the banner knew the car and did not say so
+
+Two requests: the services shown on a car page should be admin-controlled and
+**linked to the car they appear on**; and the services page should let the buyer
+pick one of their own cars.
+
+### What already existed
+
+Both halves were further along than they looked.
+
+- `Service.placements` is a `String[]` (`home_services` · `listing_banner` ·
+  `vehicle_page` · `order_page` · `guide` · `pricing`) with a **full chip editor**
+  in the admin services table under «مواضع الظهور». The admin already decides
+  where each service appears.
+- `/services/[key]` already fetched the viewer's own vehicles, rendered them in a
+  picker, and showed an explicit empty state for someone with no cars. Verified
+  by clicking as a seller with six vehicles: the picker listed all six.
+
+### What was missing
+
+The banner on the car page linked to `service.path` — **the service, with no
+mention of which car**. So the owner of a listing clicked a service from their
+own car's page and landed on a form asking them to choose the car they had been
+looking at a moment earlier.
+
+The link now carries `?vehicle=<id>`, and the service page reads it and
+preselects that car.
+
+### And only for the owner
+
+`requestService` rejects a vehicle the requester does not own
+(`VEHICLE_NOT_YOURS`), for a recorded reason: an inspection report is attached to
+the listing and read by every buyer, so letting a stranger order one would put a
+report on a seller's page that they neither asked for nor paid for.
+
+So the vehicle id is passed to the banner **only when the viewer owns the
+listing**, and is `null` otherwise. Carrying it to a buyer would promise a flow
+the server refuses.
+
+Measured both ways: the owner's listing emits
+`/ar/services/mojaz?vehicle=…`, and the page selects «هيونداي أيونيك ٥ 2025»
+while the list's first entry is «جي إم سي يوكن 2025» — so the selection is the
+listing's car, not a default. A listing owned by someone else emits
+`/ar/services/mojaz` with no parameter at all.
+
+The parameter is not trusted: `RequestService` falls back to the first vehicle
+unless the id matches one the viewer actually owns, and the server guard is
+unchanged and still tested.

@@ -77,6 +77,8 @@ export function CarPage({
   viewer: {
     signedIn: boolean;
     isOwn: boolean;
+    /** مركبةُ هذا الإعلان لمالكها — و`null` لغيره. */
+    ownVehicleId: string | null;
     /** قرارُ البائع على مزادٍ لم يبلغ احتياطيَه — `null` لغيره */
     sellerDecision: SellerDecision | null;
     taxProfile: TaxProfile | null;
@@ -510,7 +512,7 @@ export function CarPage({
               أحد. ومن يقرأ عن مركبةٍ بعينها هو من يحتاج سجلّ ملّاكها
               وحالة رهنها.
             */}
-            <ListingServices services={services} />
+            <ListingServices services={services} ownVehicleId={viewer.ownVehicleId} />
 
             {/* يعيد `null` دون عتبة العيّنة — لا شرط خارجي (قرار ٣٠) */}
             {detail.priceStat === null ? null : (
