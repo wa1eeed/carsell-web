@@ -133,10 +133,12 @@ export function computeTax(
     return { subtotal: gross.toString(), taxTotal: '0', total: gross.toString() };
   }
 
-  const taxed =
-    base === 'MARGIN'
-      ? new Prisma.Decimal(marginAmount ?? 0)
-      : gross;
+  /**
+   * **والهامشُ الغائب ليس صفرًا.** صفرٌ هنا يعني «بِيعت بسعر شرائها»،
+   * وغيابُه يعني «لا نعرف» — وحسابُ الثاني على الأوّل يُصدر فاتورةً
+   * بضريبةٍ صفرية على بيعةٍ مستحقّة. فالنداء يُردّ قبلها (`taxFor`).
+   */
+  const taxed = base === 'MARGIN' ? new Prisma.Decimal(marginAmount ?? 0) : gross;
 
   const tax = vatIncluded(taxed, ratePct);
   return {
@@ -157,6 +159,18 @@ export type IssueFailure =
    */
   | 'RULE_AWAITING_APPROVAL'
   | 'MARGIN_NOT_APPROVED'
+  /**
+   * ═══ هامشٌ بلا مقداره ═══
+   *
+   * `computeTax` كانت تقرأ `marginAmount ?? 0` — فقاعدةٌ تقول `MARGIN`
+   * بلا مقدارٍ مُمرَّر تحسب الضريبة **على صفر**، فتصدر فاتورةٌ بضريبةٍ
+   * صفرية على بيعةٍ مستحقّة. ولا شيء يمرّرها اليوم: لا سعرَ شراءٍ على
+   * `Vehicle` أصلًا، والقاعدة الوحيدة معطَّلة ولا معتمَد لها.
+   *
+   * **وما يحتاج حراسةً يُبنى محروسًا**: بين تفعيل القاعدة وبناء
+   * الحارس نافذةٌ تُصدر فيها فواتير بصفر، وواحدةٌ منها تكفي.
+   */
+  | 'MARGIN_AMOUNT_MISSING'
   | 'OUT_OF_SCOPE_NO_INVOICE'
   | 'ALREADY_ISSUED';
 
@@ -240,6 +254,16 @@ export async function issueInvoice(
    */
   if (rule.taxableBase === 'MARGIN' && input.marginApproved !== true) {
     return { ok: false, reason: 'MARGIN_NOT_APPROVED' };
+  }
+
+  /**
+   * **ولا هامشَ بلا مقداره.** معتمَدٌ بلا رقمٍ يُمرَّر كان يُنتج ضريبةً
+   * على صفر — فتصدر فاتورةٌ صفرية على بيعةٍ مستحقّة، ولا شيء يقول.
+   * ومصدرُ الرقم (سعرُ شراء المركبة) غيرُ مبنيٍّ بعد، فالردّ هنا هو
+   * ما يمنع الفاتورة الكاذبة حتى يُبنى.
+   */
+  if (rule.taxableBase === 'MARGIN' && input.marginAmount === undefined) {
+    return { ok: false, reason: 'MARGIN_AMOUNT_MISSING' };
   }
 
   /**

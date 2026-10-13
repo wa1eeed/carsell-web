@@ -179,6 +179,7 @@ export const INVOICE_BLOCK_REASON: Record<string, string> = {
   NO_MATCHING_RULE: 'لا قاعدة تطابق هذه الحالة — اكتب قاعدةً لها',
   RULE_AWAITING_APPROVAL: 'القاعدة المطابِقة تنتظر الإقرار — أقِرّها',
   MARGIN_NOT_APPROVED: 'نظام هامش الربح غير معتمد لهذا البائع',
+  MARGIN_AMOUNT_MISSING: 'هامش الربح غير معروف — لا سعر شراء مسجَّل للمركبة',
   OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة تُستحقّ',
   ALREADY_ISSUED: 'صدرت من قبل',
   INVOICED_WITH_ITS_OWN_PAYMENT: 'فُوتِرت مع دفعتها لا مع التسوية',
