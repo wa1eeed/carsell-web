@@ -12,6 +12,8 @@ import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
 import { SERVICE_CATEGORIES, listServices } from '@/lib/domain/content';
 import { CategoryFilter } from './CategoryFilter';
+import { SponsoredCard } from '@/components/site/SponsoredCard';
+import { adsFor } from '@/lib/domain/ads';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,10 +62,19 @@ export default async function ServicesPage({
   const vehicle = typeof search.vehicle === 'string' ? search.vehicle : null;
   const carry = vehicle === null ? '' : `?vehicle=${encodeURIComponent(vehicle)}`;
 
-  const [services, t, te] = await Promise.all([
+  const [services, sponsored, t, te, tui] = await Promise.all([
     listServices(),
+    /**
+     * ═══ `service_featured` — «أول الدليل» ═══
+     *
+     * مسعَّرةٌ ٢٨٠٠ للشهر ومقاسُها «بطاقة خدمة»، ولم يكن في المنتج ما
+     * ينادي مفتاحها. وموضعُها المكتوب «أول الدليل» — أوّل خانةٍ في أوّل
+     * قسمٍ فيه خدمات، لا خانةٌ في وسط الصفحة.
+     */
+    adsFor('service_featured', { city: null }),
     getTranslations('services'),
     getTranslations('enums'),
+    getTranslations('ui'),
   ]);
 
   const isArabic = locale === 'ar';
@@ -82,9 +93,16 @@ export default async function ServicesPage({
             <CategoryFilter active={active} />
           </header>
 
-          {shown.map((category) => {
+          {shown.map((category, categoryIndex) => {
             const rows = services.filter((service) => service.category === category);
             if (rows.length === 0) return null;
+
+            // **وأوّل الدليل أوّل قسمٍ فيه خدمات** — لا أوّل قسمٍ في القائمة
+            const firstWithRows =
+              shown.findIndex((key) =>
+                services.some((service) => service.category === key),
+              ) === categoryIndex;
+            const ad = firstWithRows ? sponsored[0] : undefined;
 
             return (
               <section key={category} className="border-t border-line py-9 first:border-0 first:pt-0">
@@ -94,6 +112,11 @@ export default async function ServicesPage({
                 </p>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* ولا تُحجَز خانة قبل أن تُباع */}
+                  {ad === undefined ? null : (
+                    <SponsoredCard ad={ad} label={tui('ad')} ratio="16/10" />
+                  )}
+
                   {rows.map((service) => (
                     /*
                       **والبطاقة تُفتح.** كانت تسع خدماتٍ تُعرض ولا

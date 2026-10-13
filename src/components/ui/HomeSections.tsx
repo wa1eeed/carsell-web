@@ -2,6 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from './ArabicNumber';
+import { SponsoredTile } from '@/components/site/SponsoredCard';
+import type { ServedAd } from '@/lib/domain/ad-rules';
 import { Money } from './Money';
 import { Quantity } from './Quantity';
 import { cn } from '@/lib/cn';
@@ -96,15 +98,26 @@ export function BrandGrid({
   brands,
   remaining,
   locale,
+  sponsored,
 }: {
   brands: readonly { id: string; nameAr: string; nameEn: string; slug: string; count: number }[];
   remaining: number;
   locale: string;
+  /**
+   * `brand_featured` — ٦٠٠٠ للشهر، ١:١، موضعُها المكتوب «أول خانة».
+   * والمساحة بِيعت بالموضع: خانةٌ في الوسط ليست أوّل خانة.
+   */
+  sponsored?: readonly ServedAd[];
 }) {
   const t = useTranslations('site');
+  const tu = useTranslations('ui');
+  const ad = sponsored?.[0];
 
   return (
     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      {/* **ولا تُحجَز خانة قبل أن تُباع** — فشبكةٌ بخانةٍ رماديّة ناقصة */}
+      {ad === undefined ? null : <SponsoredTile ad={ad} label={tu('ad')} />}
+
       {brands.map((brand) => (
         <Link
           key={brand.id}

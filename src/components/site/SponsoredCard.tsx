@@ -67,7 +67,19 @@ function useImpression<T extends HTMLElement>(adId: string) {
   return box;
 }
 
-export function SponsoredCard({ ad, label }: { ad: ServedAd; label: string }) {
+export function SponsoredCard({
+  ad,
+  label,
+  ratio = '4/3',
+}: {
+  ad: ServedAd;
+  label: string;
+  /**
+   * نسبةُ الصورة كما تُباع: `4/3` لبطاقة السيارة في البحث، و`16/10`
+   * لبطاقة الخدمة في الدليل — فبطاقةٌ بنسبةٍ أخرى تُزيح صفَّ الشبكة.
+   */
+  ratio?: '4/3' | '16/10';
+}) {
   const box = useImpression<HTMLDivElement>(ad.id);
 
   return (
@@ -81,7 +93,8 @@ export function SponsoredCard({ ad, label }: { ad: ServedAd; label: string }) {
           src={ad.creativeUrl}
           alt={ad.advertiserName}
           loading="lazy"
-          className="aspect-4/3 w-full object-cover"
+          className="w-full object-cover"
+          style={{ aspectRatio: ratio }}
         />
         <span className="absolute top-2 start-2 rounded-md bg-ink/85 px-2 py-0.5 text-3xs font-bold text-bg">
           {label}
@@ -229,6 +242,38 @@ export function SponsoredLine({ ad, label }: { ad: ServedAd; label: string }) {
         loading="lazy"
         className="h-12 min-w-0 flex-1 object-cover"
       />
+    </a>
+  );
+}
+
+/**
+ * ═══ البلاطة المربّعة — `brand_featured` ═══
+ *
+ * المساحة ٤٠٠×٤٠٠ (١:١) وموضعُها «أول خانة» في شبكة الماركات. وهي
+ * تجاور خاناتٍ متطابقة، فأيُّ مقاسٍ آخر يُزيح الشبكة سطرًا — والوسم
+ * داخلها لأن خانةً بوسمٍ فوقها تكسر الصفّ.
+ */
+export function SponsoredTile({ ad, label }: { ad: ServedAd; label: string }) {
+  const box = useImpression<HTMLAnchorElement>(ad.id);
+
+  return (
+    <a
+      ref={box}
+      href={ad.clickPath}
+      rel="nofollow sponsored noopener"
+      target="_blank"
+      className="relative aspect-square overflow-hidden rounded-lg border border-line"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- وجهةٌ خارجية يضبطها المعلن، ولا تمرّ بمحسّن الصور */}
+      <img
+        src={ad.creativeUrl}
+        alt={ad.advertiserName}
+        loading="lazy"
+        className="size-full object-cover"
+      />
+      <span className="absolute top-1.5 start-1.5 rounded-md bg-ink/85 px-1.5 py-0.5 text-3xs font-bold text-bg">
+        {label}
+      </span>
     </a>
   );
 }

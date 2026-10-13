@@ -7,6 +7,9 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { AccountBrief } from '@/components/site/AccountBrief';
 import { AccountSections } from '@/components/site/AccountSections';
 import { garageCounts, myVehicles } from '@/lib/domain/garage';
+import { adsFor } from '@/lib/domain/ads';
+import { SponsoredBanner } from '@/components/site/SponsoredCard';
+import type { ServedAd } from '@/lib/domain/ad-rules';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
@@ -50,9 +53,10 @@ export default async function AccountPage({
   // بلا جلسة: إلى الدخول لا إلى ٤٠٤ — الصفحة موجودة والزائر ليس داخلًا
   if (user === null) redirect(`/${locale}/auth`);
 
-  const [data, t, search] = await Promise.all([
+  const [data, t, tui, search] = await Promise.all([
     getAccountData(user, locale),
     getTranslations('account'),
+    getTranslations('ui'),
     searchParams,
   ]);
 
@@ -71,10 +75,19 @@ export default async function AccountPage({
   const waitingOffers = data.offers.filter(
     (offer) => offer.status === 'PENDING' || offer.status === 'COUNTERED',
   ).length;
-  const [fresh, favorites, vehicles] = await Promise.all([
+  /**
+   * ═══ `empty_state` — «بعد النشر» ═══
+   *
+   * مسعَّرةٌ ١٢ للألف ظهور، ١٦:٩، وموضعُها المكتوب «بعد النشر» — ولم
+   * يكن في المنتج ما ينادي مفتاحها. وهي **لحظةُ النشر وحدها**: من
+   * فرغ لتوّه من سبع خطوات ينتظر ما يفعله بعدها، ولا تُعرض لمن فتح
+   * حسابه لسببٍ آخر.
+   */
+  const [fresh, favorites, vehicles, afterPublish] = await Promise.all([
     freshCount(user.id),
     db.favorite.count({ where: { userId: user.id } }),
     myVehicles(user.id, locale),
+    listed === null ? Promise.resolve([]) : adsFor('empty_state', { city: null }),
   ]);
   const garage = garageCounts(vehicles);
 
@@ -116,6 +129,17 @@ export default async function AccountPage({
                 </p>
               )}
             </section>
+          )}
+
+          {/* ولا يُحجَز مكانٌ قبل أن يُباع */}
+          {afterPublish.length === 0 ? null : (
+            <div className="mb-7">
+              <SponsoredBanner
+                ad={afterPublish[0] as ServedAd}
+                label={tui('ad')}
+                ratio="16/9"
+              />
+            </div>
           )}
 
           {/*

@@ -112,7 +112,7 @@ export default async function HomePage({
   const rawBand = typeof search.band === 'string' ? search.band : undefined;
   const band = PAYMENT_BANDS.find((b) => b.key === rawBand)?.key as PaymentBandKey | undefined;
 
-  const [home, cities, popular, banner, t, tu, te, tui] = await Promise.all([
+  const [home, cities, popular, banner, brandAd, t, tu, te, tui] = await Promise.all([
     getHomeData(locale, band === undefined ? {} : { band }),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
@@ -129,6 +129,8 @@ export default async function HomePage({
      * «إعلان» ثم مساحةٌ ١٦:٦ بارتفاع ٨٨px.
      */
     adsFor('home_banner', { city: null }),
+    /** `brand_featured` — «أول خانة» في شبكة الماركات، ١:١، ٦٠٠٠ للشهر. */
+    adsFor('brand_featured', { city: null }),
     getTranslations('site'),
     getTranslations('units'),
     getTranslations('enums'),
@@ -316,6 +318,7 @@ export default async function HomePage({
               href={`/${locale}/cars`}
             />
             <BrandGrid
+              sponsored={brandAd}
               brands={home.brands.top}
               remaining={Math.max(0, home.brands.total - home.brands.top.length)}
               locale={locale}
