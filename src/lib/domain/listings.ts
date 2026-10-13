@@ -511,7 +511,13 @@ export async function searchListings(
         },
         seller: { include: { dealer: true } },
         images: { orderBy: { sort: 'asc' } },
-        auction: { include: { _count: { select: { bids: true } } } },
+        auction: {
+          include: {
+            _count: { select: { bids: true } },
+            // المزايدون بأشخاصهم لا بعدد مزايداتهم — والبطاقة تقول «مزايدًا»
+            bids: { select: { bidderId: true }, distinct: 'bidderId' },
+          },
+        },
       },
     }),
     computeFacets(filters, minPrice),
@@ -569,8 +575,26 @@ export async function searchListings(
         /** **إعلانُ من يقرأ** — والمقارنة هنا فلا تُنسخ في أربع شاشات. */
         isOwn: viewerId !== null && row.sellerId === viewerId,
         highestBid: highest?._max.amount?.toString() ?? null,
-        bidderCount: row.auction?._count.bids ?? null,
-        endsAt: row.auction?.endsAt.toISOString() ?? null,
+        /**
+         * **والمزايدون غيرُ المزايدات.** كان هذا `_count.bids` تحت اسم
+         * المزايدين، فتقول البطاقة «١٦ مزايدًا» وهم أقلّ — والمبالغة في
+         * المنافسة ترفع ما يدفعه المشتري. والعطل نفسه كان في عمود
+         * الشراء.
+         */
+        bidderCount: row.auction === null ? null : row.auction.bids.length,
+        /**
+         * ═══ ولا عدّادَ لمزادٍ انقضى وقتُه ═══
+         *
+         * الحالة المخزَّنة `LIVE` والوظيفة الدورية لم تمرّ بعد، فتعرض
+         * البطاقة عدّادًا على **`00:00:00`** تحت «أعلى مزايدة» — فيُقرأ
+         * مزادًا حيًّا انتهى توًّا، وهو منتهٍ منذ ساعات.
+         *
+         * والفحص على الحالة **وانقضاء الوقت معًا** (البوابة ٤٢).
+         */
+        endsAt:
+          row.auction === null || row.auction.endsAt.getTime() <= Date.now()
+            ? null
+            : row.auction.endsAt.toISOString(),
       };
     }),
   );

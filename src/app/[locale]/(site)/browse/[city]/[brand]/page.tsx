@@ -198,12 +198,23 @@ export default async function CityBrandLanding({
                 <li key={item.ref}>
                   {/* التسمية من `enums` نفسها التي تقرؤها بقيّة الشاشات — لا نسخة ثانية */}
                   {/* التحويل من `toCardData` — مرّةً لا في كل شاشة */}
-                  <CarCard
-                    data={toCardData(item, {
-                      transmission: te(`transmission.${item.transmission}`),
-                      anonymousSeller: ANONYMOUS_SELLER,
-                    })}
-                  />
+                  {/*
+                    ═══ والبطاقة تُفتح ═══
+
+                    كانت ثلاثُ بطاقاتٍ تُعرض ولا تُفتح واحدة — و`href`
+                    يعود من `searchListings` منذ بُنيت، فالشاشة وحدها لم
+                    تلفّها. **وهذه صفحةُ هبوط**: من يصلها من محرّك بحثٍ
+                    يرى سياراتٍ لا يستطيع فتح واحدة منها فيعود من حيث أتى.
+                    والصنف نفسه وقع في نتائج البحث وفي الرئيسية.
+                  */}
+                  <Link href={item.href}>
+                    <CarCard
+                      data={toCardData(item, {
+                        transmission: te(`transmission.${item.transmission}`),
+                        anonymousSeller: ANONYMOUS_SELLER,
+                      })}
+                    />
+                  </Link>
                 </li>
               ))}
             </ul>
