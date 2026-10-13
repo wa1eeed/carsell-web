@@ -107,8 +107,8 @@ export function SiteHeader({
       تُمرَّر داخل حدّها — **وكلّ رابطٍ يبقى مبلوغًا**. وصفٌّ واحد من
       `sm` فصاعدًا كالتصميم.
     */
-    <header className="flex flex-col gap-3 border-b border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:gap-6 sm:px-10 sm:py-4">
-      <div className="flex items-center justify-between gap-4 sm:contents">
+    <header className="flex flex-col gap-3 border-b border-line bg-surface px-3 py-3.5 sm:flex-row sm:items-center sm:gap-6 sm:px-10 sm:py-4">
+      <div className="flex items-center justify-between gap-2 sm:contents">
         {/*
           ═══ وزرّ القائمة في جهة البدء ═══
 
@@ -138,7 +138,14 @@ export function SiteHeader({
           href="/"
           className="shrink-0"
         >
-          <Logo priority className="h-7 sm:h-8" />
+          {/*
+            ═══ والشعار يُقاس لا يُقدَّر ═══
+
+            كان `h-7` فعرضُه **١٣١px** — وإصلاحُ الفيض السابق كان قد
+            قاس ٨٨ وبنى عليه بلا هامش، فكبرُ الشعار وحده أعاد الفيض
+            (٤١٦px على شاشة ٣٧٥). والقياس في `tests` الآن يحرسه.
+          */}
+          <Logo priority className="h-6 sm:h-8" />
         </Link>
 
         {/*
@@ -157,7 +164,7 @@ export function SiteHeader({
 
           و`ms-auto` تدفعه بنفسها، فلا يعتمد موضعُه على وجود جاره.
         */}
-        <span className="flex shrink-0 items-center gap-2.5 sm:order-last sm:ms-auto lg:ms-0">
+        <span className="flex shrink-0 items-center gap-1.5 sm:gap-2.5 sm:order-last sm:ms-auto lg:ms-0">
           {/*
             **والجرس قبل بطاقة الحساب لا داخلها.** ما ينتظرك يُرى قبل
             أن تُفتح قائمةٌ لرؤيته — و`NotificationBell` لا يُصيَّر

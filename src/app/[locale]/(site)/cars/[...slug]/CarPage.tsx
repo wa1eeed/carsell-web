@@ -194,7 +194,13 @@ export function CarPage({
           اسم المنصة، فنقلُ المنصة إلى نطاق آخر كان يترك هنا نطاقًا
           قديمًا يقرؤه الزائر على أنه عنوانها.
         */}
-        <span dir="ltr" className="font-num text-3xs opacity-70">
+        {/*
+          **وعلى الهاتف يُطوى.** العنوان الكامل يلتفّ سطرًا كاملًا تحت
+          المسار فيُقرأ أثرَ تطوير لا جزءًا من الصفحة — **وشريط
+          المتصفّح يعرضه أصلًا**. وهو في التصميم على سطح المكتب، حيث
+          يتّسع له ذيل المسار.
+        */}
+        <span dir="ltr" className="hidden font-num text-3xs opacity-70 sm:inline">
           {APP_URL.replace(/^https?:\/\//, '')}
           {canonical.display}
         </span>
@@ -213,8 +219,14 @@ export function CarPage({
       */}
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
         <div className="flex min-w-0 flex-col gap-7 lg:col-start-1 lg:row-start-1">
-          <header className="flex flex-wrap items-start gap-6">
-            <div className="min-w-0 flex-1">
+          <header className="flex flex-wrap items-start gap-4 sm:gap-6">
+            {/*
+              **وعلى الهاتف يأخذ العمود السطر كلَّه.** كان `flex-1`
+              وحده، فيتقاسم الصفَّ مع زرّي الحفظ والمشاركة — فتنضغط
+              الوسوم في عرضٍ لا يسعها وتتراكب سطرين، ويقف الزرّان
+              بمحاذاتها بلا صفٍّ يجمعهما.
+            */}
+            <div className="w-full min-w-0 sm:w-auto sm:flex-1">
               <div className="mb-2.5 flex flex-wrap items-center gap-2">
                 <Badge tone="neutral" className="font-num">
                   {detail.ref}
@@ -223,7 +235,7 @@ export function CarPage({
                 <Badge tone="neutral">{te(`condition.${vehicle.condition}`)}</Badge>
                 {inspection === null ? null : <InspectedBadge />}
               </div>
-              <h1 className="mb-2.5 flex flex-wrap items-baseline gap-2 text-4xl font-bold tracking-tight">
+              <h1 className="mb-2.5 flex flex-wrap items-baseline gap-2 text-2xl font-bold tracking-tight sm:text-4xl">
                 <span className="bidi-isolate">{vehicle.title}</span>
                 <ArabicNumber value={vehicle.year} grouped={false} />
               </h1>
@@ -265,7 +277,7 @@ export function CarPage({
               جزءًا منها ويُضغط سهوًا عند التمرير، وفي الترويسة بجوار
               الاسم حيث يقع القرار.
             */}
-            <span className="flex shrink-0 items-center gap-2">
+            <span className="order-first flex shrink-0 items-center gap-2 sm:order-none">
               <FavoriteButton
                 listingRef={detail.ref}
                 initial={viewer.favorited}

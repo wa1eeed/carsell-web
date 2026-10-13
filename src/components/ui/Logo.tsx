@@ -37,7 +37,18 @@ export function Logo({
       width={WIDTH}
       height={HEIGHT}
       priority={priority}
-      className={cn('h-auto w-auto object-contain', className)}
+      /*
+        ═══ ولا `h-auto` في الأساس ═══
+
+        كانت `h-auto w-auto`، و`cn` **ضمُّ نصوصٍ لا دمجُ أدوات** — فلا
+        يفوز الأخير في السمة بل الأخيرُ في ورقة الأنماط. فـ`h-7` التي
+        تمرّرها الترويسة كانت **بلا أثر**، والشعار يُرسم بنصف مقاسه
+        الطبيعيّ (١٣١px) لا بالثمانية والثمانين التي قاسها إصلاحُ
+        الفيض السابق وبنى عليها.
+
+        فالارتفاع للمنادي، والعرض `w-auto` يتبعه بنسبة ٢٦٢×١٠٩.
+      */
+      className={cn('w-auto object-contain', className)}
     />
   );
 }

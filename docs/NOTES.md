@@ -4333,3 +4333,70 @@ the order page (tracker stopped at دفع, no pay button, no deadline box), and 
 admin order page (one badge, «تجاوز المهلة» gone). Then called
 `POST /api/v1/payments` for the cancelled order from the signed-in session:
 **409 `ORDER_CLOSED`** — the refusal is the server's, not a hidden button.
+
+---
+
+## The logo class that never applied — and 41px of mobile overflow
+
+Reported: the car detail page on a phone shows a stray URL on its own line, tags
+stacked over each other, and the brand name broken across lines.
+
+Measured at 375px: `scrollWidth` **416** against a 375 viewport — **41px of
+horizontal overflow**, and the whole page scrolled sideways. Hiding elements one
+by one narrowed it to the site header, then to its three children:
+
+| child | width |
+| --- | --- |
+| menu button | 40px |
+| **logo** | **131px** |
+| bell + «بِع سيارتك» + account chip | 198px |
+
+With gaps and padding the row needed ~433px.
+
+### The logo was never the size anyone thought
+
+`AccountNav` carries a comment from an earlier fix of this same overflow:
+
+> صفُّ الترويسة على ٣٧٥ يطلب ٤١٣px: شعارٌ **٨٨** · «بِع سيارتك» ١٠٤ · …
+
+The logo was measured at 88px then and is 131px now — but nothing had changed
+its class. `Logo` renders `cn('h-auto w-auto object-contain', className)`, and
+the header passes `h-7`.
+
+**`cn` is string concatenation, not Tailwind merging.** Its own comment says
+"آخر صنف يفوز كما في CSS" — which is false: in CSS the winner is decided by
+stylesheet order, not by the order of names in the `class` attribute. So
+`h-auto` and `h-7` both applied, `h-auto` won, and **every height ever passed to
+`Logo` was inert**. The 88px in that comment was a number taken from a browser
+that was never rendering what the code said.
+
+Removing `h-auto` from the base (keeping `w-auto`, so the 262×109 ratio still
+drives the width) made `h-6` apply: 131px → 58px. Overflow went 41 → 0, with
+~69px of headroom instead of the 3px the arithmetic had been living on.
+
+Measured after: `/ar`, `/ar/cars`, `/ar/account`, `/ar/auctions` all **0
+overflow** at 375px — the header is on every page, so the fix is global.
+
+### The three reported symptoms
+
+- The canonical URL printed under the breadcrumb is in the design, but as a tail
+  on a wide row. At 375 it wraps to its own line and reads as a development
+  artifact — and the address bar already shows it. Now `hidden sm:inline`.
+- The title column was `flex-1` beside the save/share buttons, so the badges were
+  squeezed into a narrow column and wrapped over two rows while the buttons sat
+  alongside. It is now `w-full sm:flex-1`, and the buttons take their own row.
+- `text-4xl` broke «جي إم سي سييرا SLE 2019» across three lines at 375. Now
+  `text-2xl sm:text-4xl`.
+
+### What is still open
+
+**`cn` does not merge Tailwind utilities, and nothing says so.** Any component
+that puts an overridable utility in its base and accepts `className` can fail
+the same way, silently — the class is present in the DOM, so inspection looks
+right. `Logo` is fixed; the general case is a decision for the owner:
+`tailwind-merge` would fix it everywhere but adds a dependency against the
+"لا مكتبة" note in `cn.ts`, which this bug has now proven costly.
+
+**And the overflow measurement has now regressed twice** (task 29, then here)
+because nothing guards it — `verify` has no browser. Worth a small headless
+check over a handful of routes at 375px.
