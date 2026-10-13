@@ -457,19 +457,62 @@ So a customer can pay for an inspection and the request sits at `NEW` forever,
 the provider is never told, the report never exists, and the hold never
 resolves.
 
-**Two decisions needed before this is built:**
+#### The owner's rules (2026-10-14) — and what they cost
 
-1. **When is a service earned, and what does the provider get?**
-   `ServiceProvider.commissionPct` exists and nothing computes a payout.
-   `docs/tax-model.md` already settles the tax side — «the supply happened when
-   the service was delivered» — so recognition at `DONE` is decided; the split
-   is not.
-2. **Does the services vertical ship with the marketplace, or after it?** The
-   lifecycle, the provider payouts and the report builder are a body of work on
-   the scale of the auction, not a patch.
+Logged in full in `docs/DESIGN-DECISIONS.md`. Two decisions:
 
-Until then the honest state is the current one: nothing pretends a service is
-progressing. The gap is now named rather than silent.
+**Whoever requests the service pays**, buyer or seller — one membership, two
+roles. A seller buys an inspection to put a report on their listing; a buyer
+buys one on a car before committing to it.
+
+**A buyer's request needs the seller's consent**, which makes inspection a
+**three-party journey** — buyer, seller, inspector. The seller's contact
+details and city are revealed to the inspector **after** the seller accepts,
+and the request goes to **inspectors in the car's city**.
+
+Measured against the model, those four rules need more than a relaxed guard:
+
+| Rule | What exists | What is missing |
+| --- | --- | --- |
+| Anyone may request | `purchaseService` requires `ownerId === userId`; the form lists only the viewer's garage | Accept a published listing as the subject |
+| Seller must accept | — | No status for it: `ServiceRequestStatus` goes `NEW → ASSIGNED → …` with no consent step, and no screen for the seller |
+| Three parties | The request holds `userId` only | A seller party, and per-party visibility |
+| Contact revealed after acceptance | `ServiceProvider` has `contactPhone` / `contactEmail`; **the seller's are not exposed anywhere** | A disclosure step — and an audit trail, exactly as A18 logs every ID reveal |
+| Goes to the city's inspectors | `ServiceProvider.cities` exists | **`Service.providerId` binds one provider per service** — there is no pool, and no dispatch. And the city is taken from the requester's input, not from the listing |
+| The inspector acts | — | **There is no provider surface at all**: `src/app` holds `[locale]` and `admin`, nothing else. An inspector has no login and no screen |
+
+A first pass that only relaxes the ownership guard was written and **reverted
+before commit**: on its own it lets a buyer pay for an inspection on a
+stranger's car with no consent from its owner — the opposite of the rule.
+
+**Three questions still open, all about money:**
+
+1. **When is the buyer charged — at request, or after the seller accepts?**
+   Suggested: hold at request, as the auction deposit already does, so the
+   request is a commitment and not a free way to pester sellers.
+2. **And if the seller declines, or never answers?** Suggested: full release,
+   no fee, with a decision window like `sellerDecisionHours`. Declining is not
+   a breach.
+3. **Who owns a report a buyer paid for?** `InspectionReport` attaches to the
+   **vehicle**, and `findReportByListingRef` shows any report on the listing to
+   everyone — so today a buyer's paid report would appear free on the seller's
+   public page for every competing buyer. Suggested: the payer owns it. A
+   seller-paid report is public on the listing (today's behaviour, screen Wd); a
+   buyer-paid one stays private to that buyer until they share it or the seller
+   buys it. Publishing can be added later; it cannot be undone.
+
+**And the two from before:**
+
+4. **What does the provider get?** `ServiceProvider.commissionPct` exists and
+   nothing computes a payout. `docs/tax-model.md` settles the tax timing —
+   «the supply happened when the service was delivered» — so recognition at
+   `DONE` is decided; the split is not.
+5. **Does this ship with the marketplace or after it?** The lifecycle, the
+   consent step, city dispatch, a provider surface, payouts and the report
+   builder are a body of work on the scale of the auction, not a patch.
+
+Until they are answered the honest state is the current one: nothing pretends a
+service is progressing, and no money moves on a rule nobody has set.
 
 **Still silent — 7 keys, all declared, grouped by what each costs:**
 
