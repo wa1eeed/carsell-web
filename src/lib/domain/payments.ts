@@ -3,7 +3,7 @@ import { DEADLINE_DEFAULTS } from './deadlines';
 import { recordOrderEarned, recordOrderPaid } from './ledger-events';
 import type { Prisma } from '@/generated/prisma/client';
 import type { PaymentPurpose, PaymentStatus } from '@/generated/prisma/enums';
-import { resolveForPayment, resolveGateway } from '@/lib/payments/resolve';
+import { gatewayImplemented, resolveForPayment, resolveGateway } from '@/lib/payments/resolve';
 import { canSettle } from './transfer-windows';
 import { isLiveOrder } from './order-state';
 
@@ -612,7 +612,9 @@ export type SettleFailure =
   | 'SELF_APPROVAL'
   | 'NOT_PENDING'
   | 'EXPIRED'
-  | 'GATEWAY_FAILED';
+  | 'GATEWAY_FAILED'
+  /** بوابةُ الحجز بلا وصلة — فالإفراج يسقط ولو وافق عضوان. */
+  | 'GATEWAY_UNAVAILABLE';
 
 export type SettleResult =
   | { ok: true; state: 'PENDING'; approvals: number; required: number }
@@ -637,11 +639,20 @@ export async function requestSettle(
     where: { ref: orderRef },
     select: {
       id: true, stage: true, status: true,
-      payments: { where: { status: 'HELD' }, select: { id: true } },
+      payments: { where: { status: 'HELD' }, select: { id: true, gatewayKey: true } },
     },
   });
   if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
   if (order.payments.length === 0) return { ok: false, reason: 'NO_HELD_PAYMENT' };
+
+  /**
+   * **والبوابة تُفحص هنا لا في الشاشة وحدها.** حارسٌ في العميل اقتراح:
+   * نداءٌ مباشر يفتح طلب موافقة، فيوافق عضوان ثمّ يفشل النداء عند
+   * الإفراج — وموافقتان تُنفَقان على ما لا يقع.
+   */
+  if (order.payments.some((payment) => !gatewayImplemented(payment.gatewayKey))) {
+    return { ok: false, reason: 'GATEWAY_UNAVAILABLE' };
+  }
 
   const guard = canSettle(order);
   if (!guard.allowed) return { ok: false, reason: guard.reason };

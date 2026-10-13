@@ -3,6 +3,7 @@ import type { OrderStage } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
 import { netToSeller } from './money';
 import { canSettle } from './transfer-windows';
+import { gatewayImplemented } from '@/lib/payments/resolve';
 
 /**
  * ═══ طابور الإفراج — الباب الذي لم يكن موجودًا ═══
@@ -24,7 +25,13 @@ import { canSettle } from './transfer-windows';
  * الصفّ غائبًا فيظنّه ضائعًا.
  */
 
-export type SettlementBlock = 'NOT_TRANSFERRED' | 'DISPUTED';
+/**
+ * **وبوابةٌ بلا وصلة سببُ حجبٍ ثالث.** `status: ACTIVE` صفٌّ في القاعدة
+ * والمُهايئ شيفرة: كلُّ المحجوز اليوم (٢٥٤٬٥٧٠) على `bank_escrow` ولا
+ * وصلة لها — فالصفّ كان يُعرض «جاهز للإفراج»، ويطلب موافقة شخصين،
+ * **ثمّ يفشل النداء**. وموافقتان تُنفَقان على ما لا يقع.
+ */
+export type SettlementBlock = 'NOT_TRANSFERRED' | 'DISPUTED' | 'GATEWAY_UNAVAILABLE';
 
 export type PendingApproval = {
   id: string;
@@ -82,7 +89,7 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
       sellerId: true,
       buyer: { select: { name: true, phone: true } },
       seller: { select: { name: true, phone: true } },
-      payments: { where: { status: 'HELD' }, select: { amount: true } },
+      payments: { where: { status: 'HELD' }, select: { amount: true, gatewayKey: true } },
       settlement: { select: { gatewayFee: true } },
       disputes: { where: { status: { in: ['OPEN', 'INVESTIGATING'] } }, select: { id: true } },
     },
@@ -128,10 +135,23 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
      * وإلّا عرضت الشاشة «جاهز» وردّ الخادم بالرفض. والنزاع يُفحص
      * صراحةً: نزاعٌ في مرحلةٍ أخرى قد لا يبلغ `status`.
      */
-    const guard =
+    const ordered =
       order.disputes.length > 0
         ? ({ allowed: false, reason: 'DISPUTED' } as const)
         : canSettle(order);
+
+    /**
+     * **والبوابة تُفحص آخرًا.** سببٌ واحد يُعرض، فليكن الذي يُتصرَّف فيه
+     * الآن: طلبٌ لم تُنقل ملكيّتُه فعلُه تأكيدُ النقل، والبوابة لا تعنيه
+     * بعد. وكان الفحص أوّلًا فقرأ المشغّل «بوابة بلا وصلة» على ثلاثة
+     * طلبات سببُها الحقيقيّ «لم تُؤكَّد الملكية» — فأخفى ما يُفعل بما
+     * لا يُفعل فيه شيء.
+     */
+    const guard = ordered.allowed
+      ? order.payments.some((payment) => !gatewayImplemented(payment.gatewayKey))
+        ? ({ allowed: false, reason: 'GATEWAY_UNAVAILABLE' } as const)
+        : ordered
+      : ordered;
 
     /**
      * **والانقضاء يُفحص هنا لا في الحالة المخزَّنة.** طلبٌ مضت مهلته

@@ -203,6 +203,16 @@ domain, audited, walked end to end).
   owner deferred, so it was **not** built — the measurement said so before the
   work started.
 
+- `/admin/settlements` — all 254,570 SAR held sits on `bank_escrow`, the gateway
+  with no adapter, and the screen promises «عند الاعتماد يُنادى المزوّد». Two
+  people would spend their approvals and the release would then fail.
+  `GATEWAY_UNAVAILABLE` is now a settlement block, enforced in `requestSettle`
+  as well as shown (a guard only on the screen is a suggestion). **Order
+  matters**: checking the gateway first relabelled three orders whose real
+  blocker was «لم تُؤكَّد الملكية», hiding what the operator can act on behind
+  what they cannot — so it is checked last, and only speaks when everything else
+  is clear.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the
