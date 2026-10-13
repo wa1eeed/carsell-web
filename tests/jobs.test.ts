@@ -22,6 +22,16 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
       'openScheduledAuctions',
       'closeEndedAuctions',
       'expireSellerDecisions',
+      /**
+       * ═══ والتذكير بعد الإغلاق لا قبله ═══
+       *
+       * **موضعُهما محروسٌ لا مذكور**: لو سبقا `timeoutUnpaidOrders`
+       * و`closeEndedAuctions` لذُكِّر صاحبُ طلبٍ يُلغى في السطر
+       * التالي، ومزايدٌ في مزادٍ يُغلق بعد لحظة — فيصل التنبيه بعد
+       * فوات ما ينبّه إليه. والترتيب هنا هو الفحص.
+       */
+      'remindPaymentDue',
+      'remindClosingAuctions',
       'overdueTransfers',
       'overdueDisputes',
       'releaseConfirmedOrders',

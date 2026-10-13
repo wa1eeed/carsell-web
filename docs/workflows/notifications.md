@@ -69,14 +69,76 @@ it:
 Without the second, one manual walk left five bells ringing in a seeded seller's
 account about a deal that no longer existed. That happened, and was cleaned.
 
+## The auction
+
+Wired in the same sweep. `auction.outbid` is not a courtesy — it is the
+mechanic an auction runs on: you are outbid, you are told, you come back and
+raise. Without it the format ends on whichever bid its owner walked away from.
+And an auction closes on a scheduler, not a click, so **no party is at a screen
+when it matters**.
+
+| Moment | Key | Who receives it | Written in |
+| --- | --- | --- | --- |
+| A higher bid lands | `auction.outbid` | the **previous** top bidder (never the person who just bid) | `auctions.placeBid` |
+| A last-minute bid extends closing | `auction.extended` | every other bidder | `auctions.placeBid` |
+| Deposit held on a card | `deposit.held` | the bidder | `auctions.holdDeposit` |
+| Auction opens | `auction.starting` | everyone who favourited the listing | `auctions.openScheduledAuctions` |
+| Closing soon | `auction.closing` | everyone who bid | `reminders.remindClosingAuctions` |
+| Closed, reserve met | `auction.won` / `auction.lost` | winner / every other bidder | `auctions.closeEndedAuctions` |
+| Closed, reserve not met | `auction.reserve_not_met` | seller **and** top bidder | `auctions.closeEndedAuctions` |
+| Deposits returned | `deposit.released` | each loser | `auctions.settleDeposits` |
+
+`auction.lost` already existed, but only on the buy-now path — the rarest way an
+auction ends. A bidder who lost by the clock got «رُدّ عربونك» and nothing
+saying the auction was over.
+
+**Destinations key on the auction id, not the listing ref.** `destinations()`
+maps `Auction:{id}` → `/auctions/{listing.ref}`; passing the ref as `entityId`
+produces a line with no link — nothing throws, nothing opens.
+
+**Who is the audience before anyone has bid?** Whoever favourited the listing.
+They declared intent before the window opened, which is exactly when the news is
+useful.
+
+## Reminders
+
+`order.payment_due` and `auction.closing` had no writer because **nothing in the
+product looked at a deadline before it passed**. Every timed job looked after:
+`timeoutUnpaidOrders` cancels the order *then* tells the buyer. Discovering a
+deadline after it lapsed is discovering it after losing.
+
+`src/lib/domain/reminders.ts` adds `remindPaymentDue` and
+`remindClosingAuctions`, both registered in `src/lib/jobs/run.ts` **after** the
+closers — put them before and you would remind someone about an order the next
+job cancels.
+
+Thresholds are admin settings (`paymentReminderHours`, default 6;
+`auctionClosingReminderMinutes`, default 15), not constants.
+
+**Sent once.** The scheduler runs every few minutes and a deadline six hours out
+stays six hours out, so the marker is the notification row itself: a key already
+present for that entity means it was sent. No new column, no migration.
+
+The hours in the payment reminder are **computed from the deadline**, not copied
+from the setting — a late scheduler pass would otherwise tell someone with two
+hours left that they have six.
+
+### Why `order.payment_overdue` stays unwritten
+
+An overdue order does not exist for any length of time: `timeoutUnpaidOrders`
+cancels it on the first pass after its window and sends
+`order.payment_timeout`. There is no honest moment for a second key, and a key
+sent at a moment that never arrives is noise, not coverage.
+
 ## What is still silent
 
-22 seeded templates still have no writer — auctions (including
-`auction.outbid`, which an auction format depends on), payment-deadline
-reminders, identity decisions, listing review outcomes, deposits, and three
-`offer.*` keys. The full table, with what each silence costs, is in
-`docs/BACKLOG.md` § G.
+14 of 42. Identity decisions (`account.id_verified` / `id_rejected` /
+`iban_required` — the reviewer writes a note «يقرؤه صاحبه» and nothing delivers
+it), listing review outcomes, three `offer.*` keys, `service.completed`,
+`auth.new_device`, and `order.payment_overdue` (above). `auth.otp` is
+legitimately writerless: it goes by SMS, not through `notify`. The table with
+what each silence costs is in `docs/BACKLOG.md` § G.
 
-A gate that requires every template to have a writer is the right close for this
-class, but 22 alarms is far past the repo's ten-alarm threshold — so the
+A gate requiring every template to have a writer is the right close for this
+class. 13 live alarms is still past the repo's ten-alarm threshold, so the
 remaining groups get wired first, then the gate.

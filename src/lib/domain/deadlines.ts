@@ -37,7 +37,17 @@ export type DeadlineKey =
   | 'settleWindowHours'
   | 'auctionExtendWindowSeconds'
   | 'auctionExtendBySeconds'
-  | 'reportValidityDays';
+  | 'reportValidityDays'
+  /**
+   * ═══ ومتى يُذكَّر — لا متى تنقضي ═══
+   *
+   * **التذكير يسبق لحظة الحاجة.** مهلةُ الدفع تُقاس بـ
+   * `paymentWindowHours`، وهذه تقول كم قبل انقضائها يُنبَّه صاحبُها —
+   * فمن يكتشف المهلة بعد سقوطها اكتشفها بعد أن خسر.
+   */
+  | 'paymentReminderHours'
+  /** وكم دقيقة قبل إغلاق المزاد يُنبَّه من زايد فيه. */
+  | 'auctionClosingReminderMinutes';
 
 /**
  * القيَم الافتراضية — **هي الثوابت التي كانت في الشيفرة حرفيًّا**.
@@ -54,6 +64,8 @@ export const DEADLINE_DEFAULTS: Readonly<Record<DeadlineKey, number>> = {
   auctionExtendWindowSeconds: 60,
   auctionExtendBySeconds: 300,
   reportValidityDays: 90,
+  paymentReminderHours: 6,
+  auctionClosingReminderMinutes: 15,
 };
 
 /**
@@ -74,6 +86,9 @@ export const DEADLINE_BOUNDS: Readonly<Record<DeadlineKey, { min: number; max: n
   auctionExtendWindowSeconds: { min: 10, max: 3600 },
   auctionExtendBySeconds: { min: 30, max: 3600 },
   reportValidityDays: { min: 7, max: 365 },
+  /** أقلُّه ساعة — وتذكيرٌ قبل دقيقة ليس تذكيرًا. والسقف دون أطول نافذة دفع. */
+  paymentReminderHours: { min: 1, max: 72 },
+  auctionClosingReminderMinutes: { min: 1, max: 720 },
 };
 
 export const DEADLINE_KEYS = Object.keys(DEADLINE_DEFAULTS) as DeadlineKey[];

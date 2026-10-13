@@ -110,7 +110,7 @@ export async function placeBid(
   return db.$transaction(async (tx) => {
     const auction = await tx.auction.findUnique({
       where: { id: input.auctionId },
-      include: { listing: { select: { sellerId: true } } },
+      include: { listing: { select: { sellerId: true, ref: true } } },
     });
 
     if (auction === null) return { ok: false, reason: 'AUCTION_NOT_FOUND' };
@@ -124,6 +124,17 @@ export async function placeBid(
       select: { id: true },
     });
     if (deposit === null) return { ok: false, reason: 'NO_DEPOSIT' };
+
+    /**
+     * **ومن يحمل الأعلى الآن؟** كان الإجمال يقول «كم» و«بكم» ولا يقول
+     * «من» — وهو ما يحتاجه الجرس: صاحبُ الأعلى قبل هذه المزايدة هو من
+     * فقد موقعه ولا يعلم.
+     */
+    const leader = await tx.bid.findFirst({
+      where: { auctionId: auction.id },
+      orderBy: { amount: 'desc' },
+      select: { bidderId: true },
+    });
 
     const top = await tx.bid.aggregate({
       where: { auctionId: auction.id },
@@ -175,6 +186,34 @@ export async function placeBid(
         where: { id: auction.id },
         data: { endsAt, extendedCount: { increment: 1 } },
       });
+    }
+
+    /**
+     * ═══ والجرس هنا — **وهو آلة المزاد لا زينتُه** ═══
+     *
+     * `auction.outbid` قالبٌ مزروع بلا كاتب: تُتجاوَز مزايدتُك ولا
+     * تُخبَر، فلا تعود لترفع — وينتهي المزاد على أوّل مزايدةٍ تركها
+     * صاحبُها. ومزادٌ لا يُنبّه ليس مزادًا.
+     */
+    const { notifyOutbid, notifyExtended } = await import('./auction-notify');
+    const bell = { id: auction.id, listingRef: auction.listing.ref };
+
+    await notifyOutbid(tx, bell, leader?.bidderId ?? null, input.bidderId, input.amount);
+
+    if (shouldExtend) {
+      /** ومن ضبط منبّهًا على وقتٍ لم يعد الوقت يُخبَر. */
+      const bidders = await tx.bid.findMany({
+        where: { auctionId: auction.id },
+        select: { bidderId: true },
+        distinct: ['bidderId'],
+      });
+      await notifyExtended(
+        tx,
+        bell,
+        bidders.map((row) => row.bidderId),
+        input.bidderId,
+        Math.round(extendBy / 60),
+      );
     }
 
     return {
@@ -265,7 +304,7 @@ export async function holdDeposit(
 ): Promise<DepositResult> {
   const auction = await db.auction.findUnique({
     where: { id: input.auctionId },
-    select: { id: true, status: true, depositAmount: true },
+    select: { id: true, status: true, depositAmount: true, listing: { select: { ref: true } } },
   });
   if (auction === null) return { ok: false, reason: 'AUCTION_NOT_FOUND' };
   if (auction.status !== 'LIVE' && auction.status !== 'SCHEDULED') {
@@ -315,6 +354,16 @@ export async function holdDeposit(
       paymentId: held.paymentId,
     },
   });
+
+  /** **وحجزُ مالٍ على بطاقةٍ يُقرّ به.** مبلغٌ اختفى بلا سطرٍ يفسّره يُقرأ خصمًا. */
+  const { notifyDepositHeld } = await import('./auction-notify');
+  await notifyDepositHeld(
+    db,
+    { id: auction.id, listingRef: auction.listing.ref },
+    input.userId,
+    auction.depositAmount.toString(),
+  ).catch(() => undefined);
+
   return { ok: true, depositId: deposit.id };
 }
 
@@ -371,6 +420,28 @@ export async function settleDeposits(
       where: { id: winner.id },
       data: { status: 'APPLIED', releasedAt: now },
     });
+  }
+
+  /**
+   * ═══ ومن رُدّ عربونه يُخبَر ═══
+   *
+   * **إلغاءُ الحجز لا يُرى**: المبلغ يختفي من كشف البطاقة بلا سطر،
+   * فمن لا يُخبَر يظنّ مالَه مأخوذًا ويفتح شكوى على مالٍ عاد إليه.
+   */
+  if (losers.length > 0) {
+    const row = await db.auction.findUnique({
+      where: { id: auctionId },
+      select: { depositAmount: true, listing: { select: { ref: true } } },
+    });
+    if (row !== null) {
+      const { notifyDepositsReleased } = await import('./auction-notify');
+      await notifyDepositsReleased(
+        db,
+        { id: auctionId, listingRef: row.listing.ref },
+        losers.map((deposit) => deposit.userId),
+        row.depositAmount.toString(),
+      ).catch(() => undefined);
+    }
   }
 
   return {
@@ -876,15 +947,41 @@ export async function getAuction(
  * لا كاتب لها — تاسعُ مرّة.
  */
 export async function openScheduledAuctions(now: Date = new Date()): Promise<number> {
+  /**
+   * **ومن يُفتح له يُعرَف قبل الفتح.** `updateMany` تعيد عددًا لا
+   * صفوفًا، فالقراءة أوّلًا — وإلّا فُتحت المزادات ولم يُعرف أيّها
+   * فُتح، فلا أحد يُخبَر.
+   */
+  const opening = await db.auction.findMany({
+    where: { status: 'SCHEDULED', startsAt: { lte: now }, endsAt: { gt: now } },
+    select: { id: true, listingId: true, listing: { select: { ref: true } } },
+  });
+  if (opening.length === 0) return 0;
+
   const { count } = await db.auction.updateMany({
-    where: {
-      status: 'SCHEDULED',
-      startsAt: { lte: now },
-      // ولا يُفتح ما انقضى وقتُه — `closeEndedAuctions` تتولّاه
-      endsAt: { gt: now },
-    },
+    where: { id: { in: opening.map((row) => row.id) } },
     data: { status: 'LIVE' },
   });
+
+  /**
+   * ═══ ولمن حفظ الإعلان ═══
+   *
+   * لا أحد زايد بعد، فالجمهور الوحيد الصادق هو من وضعه في مفضّلته:
+   * دلّ على نيّته قبل أن تفتح النافذة، وهي اللحظة التي ينفعه فيها
+   * الخبر. وبلا هذا تفتح نافذةٌ لا يعلم بها أحد وتُغلق على لا شيء.
+   */
+  const { notifyStarting } = await import('./auction-notify');
+  for (const auction of opening) {
+    const watchers = await db.favorite.findMany({
+      where: { listingId: auction.listingId },
+      select: { userId: true },
+    });
+    await notifyStarting(
+      db,
+      { id: auction.id, listingRef: auction.listing.ref },
+      watchers.map((row) => row.userId),
+    ).catch(() => undefined);
+  }
 
   return count;
 }
@@ -892,8 +989,13 @@ export async function openScheduledAuctions(now: Date = new Date()): Promise<num
 export async function closeEndedAuctions(now: Date = new Date()): Promise<number> {
   const ended = await db.auction.findMany({
     where: { status: 'LIVE', endsAt: { lte: now } },
-    include: { bids: { orderBy: { amount: 'desc' }, take: 1 } },
+    include: {
+      bids: { orderBy: { amount: 'desc' }, take: 1 },
+      listing: { select: { ref: true, sellerId: true } },
+    },
   });
+
+  const { notifyWon, notifyLost, notifyReserveNotMet } = await import('./auction-notify');
 
   for (const auction of ended) {
     const top = auction.bids[0] ?? null;
@@ -928,9 +1030,58 @@ export async function closeEndedAuctions(now: Date = new Date()): Promise<number
       if (top !== undefined) {
         await createAuctionOrderStandalone(auction.id, now).catch(() => undefined);
       }
+
+      /**
+       * ═══ والفائز يُخبَر ═══
+       *
+       * **`auction.lost` موصولةٌ للخاسرين منذ بُنيت، والفائز وحده بلا
+       * خبر.** والمزاد يُغلقه مُجدوِلٌ لا إنسان، فلا أحد أمام شاشة:
+       * رسا عليه، وله مهلة دفعٍ تجري منذ هذه اللحظة، ولا شيء يقول له
+       * إنها بدأت — فتنقضي ويُلغى طلبُه وهو لا يدري أنه ربح.
+       */
+      if (top !== null) {
+        const hours = await deadline('paymentWindowHours');
+        await notifyWon(
+          db,
+          { id: auction.id, listingRef: auction.listing.ref },
+          top.bidderId,
+          top.amount.toString(),
+          hours,
+        ).catch(() => undefined);
+
+        /**
+         * **والخاسر يُخبَر أنه خسر.** `auction.lost` كانت موصولةً في
+         * مسار «اشترِ الآن» وحده — أي في الحالة الأندر. ومن خسر
+         * بانتهاء الوقت كان يصله «رُدّ عربونك» وحدها، وهي لا تقول
+         * «انتهى المزاد ولم ترسُ عليك»، فيبقى يتابع مزادًا انتهى.
+         */
+        const losers = await db.bid.findMany({
+          where: { auctionId: auction.id, bidderId: { not: top.bidderId } },
+          select: { bidderId: true },
+          distinct: ['bidderId'],
+        });
+        await notifyLost(
+          db,
+          { id: auction.id, listingRef: auction.listing.ref },
+          losers.map((row) => row.bidderId),
+        ).catch(() => undefined);
+      }
     } else {
       // الأعلى يبقى محجوزًا حتى يقرّر البائع؛ والباقون يُرَدّون الآن
       await settleDeposits(auction.id, null, now, { holdFor: top?.bidderId ?? null });
+
+      /**
+       * **والقرار على البائع الآن ومهلتُه تجري** — فبلا خبرٍ تنقضي
+       * وتُحسب رفضًا، ويخسر بيعًا لم يُسأل عنه. وأعلى مزايدٍ معه:
+       * عربونُه محجوزٌ بانتظار ذلك القرار، واحتجازُ مالٍ بلا كلمةٍ
+       * تفسّره أسوأ من الانتظار.
+       */
+      await notifyReserveNotMet(
+        db,
+        { id: auction.id, listingRef: auction.listing.ref },
+        auction.listing.sellerId,
+        top?.bidderId ?? null,
+      ).catch(() => undefined);
     }
   }
 

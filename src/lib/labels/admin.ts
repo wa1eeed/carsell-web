@@ -290,6 +290,16 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
     unit: 'يوم',
     effect: 'بعدها يُعدّ التقرير قديمًا ويُطلب فحصٌ جديد.',
   },
+  paymentReminderHours: {
+    name: 'تذكير الدفع قبل انقضاء المهلة',
+    unit: 'ساعة',
+    effect: 'يصل المشتري تنبيهٌ واحد قبل سقوط طلبه بهذه المدّة.',
+  },
+  auctionClosingReminderMinutes: {
+    name: 'تذكير إغلاق المزاد',
+    unit: 'دقيقة',
+    effect: 'يصل من زايد تنبيهٌ واحد قبل الإغلاق بهذه المدّة.',
+  },
 };
 
 /** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */

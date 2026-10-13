@@ -3,6 +3,7 @@ import { closeEndedAuctions,
 import { expireOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
+import { remindClosingAuctions, remindPaymentDue } from '@/lib/domain/reminders';
 import { settleableOrders } from '@/lib/domain/transfer-windows';
 import { settleOnTransferConfirmed } from '@/lib/domain/payments';
 import { reconcileYesterday } from '@/lib/domain/reconciliation';
@@ -51,6 +52,19 @@ const JOBS: readonly Job[] = [
   { name: 'openScheduledAuctions', run: (now) => openScheduledAuctions(now) },
   { name: 'closeEndedAuctions', run: (now) => closeEndedAuctions(now) },
   { name: 'expireSellerDecisions', run: (now) => expireSellerDecisions(now) },
+  /**
+   * ═══ والتذكير بعد الإغلاق لا قبله ═══
+   *
+   * **موضعُهما هنا مقصود**: لو سبقا `timeoutUnpaidOrders` و
+   * `closeEndedAuctions` لذُكِّر صاحبُ طلبٍ على وشك أن يُلغى في
+   * السطر التالي، ومزايدٌ في مزادٍ يُغلق بعد لحظة — فيصل التنبيه
+   * بعد فوات ما ينبّه إليه.
+   *
+   * **وتذكيرٌ واحد لكلٍّ**: العلامة وجودُ الإشعار نفسه، فمرورُ
+   * المُجدوِل كل دقائق لا يُكرّره.
+   */
+  { name: 'remindPaymentDue', run: (now) => remindPaymentDue(now) },
+  { name: 'remindClosingAuctions', run: (now) => remindClosingAuctions(now) },
   { name: 'overdueTransfers', run: async (now) => (await overdueTransfers(now)).length },
   { name: 'overdueDisputes', run: async (now) => (await overdueDisputes(now)).length },
   /**
