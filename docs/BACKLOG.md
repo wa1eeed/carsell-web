@@ -124,6 +124,24 @@ domain, audited, walked end to end).
   `active` would read as «hide it», so fixing a typo would pull a question off
   the site.
 
+- `/admin/ads` — `AdSlot` is a **catalogue of placements**, each rendered by a
+  hard-coded key in a screen, so creating one from the panel would sell a product
+  nothing can show. Create stays with the seed, as it does for
+  `NotificationTemplate`. What the measurement did find: of the seven priced
+  slots (1,200–6,000 SAR), **only `search_inline` is called anywhere in the
+  product** — and it rendered in grid mode only, while the owner made the list
+  the default view, so the one wired placement was invisible to most visitors.
+  Fixed with `SponsoredRow` (same shape and rhythm as `CarRow`, sharing the
+  impression counter so a CPM slot cannot bill differently per view mode).
+
+- [ ] **Six sold ad placements render nowhere.** `home_story` («أعلى الرئيسية»,
+  1,200/day) · `home_banner` («أسفل الملخّصات», 3,500/week) · `brand_featured`
+  («أول خانة», 6,000/month) · `vehicle_inline` («أسفل السعر», 35 CPM) ·
+  `service_featured` («أول الدليل», 2,800/month) · `empty_state` («بعد النشر»,
+  12 CPM). Each carries its placement in the row, each is active and priced, and
+  `/admin/ads` sells them. Nothing renders today because there are no live
+  campaigns, so wiring them changes no pixel until one is sold.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

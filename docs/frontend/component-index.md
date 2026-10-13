@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **142** components in **3** directories.
+Counted: **143** components in **3** directories.
 
 ## Referenced nowhere else
 
@@ -108,6 +108,7 @@ rather than found by chance.
 | `SiteFooter` | no | `columns` | 1 |
 | `SiteHeader` | no | `active` · `actions` | 24 |
 | `SponsoredCard` | yes | `ad` · `label` | 1 |
+| `SponsoredRow` | yes | `ad` · `label` | 1 |
 | `StagePanel` | yes | `orderRef` · `stage` · `viewerIsBuyer` · `frozen` | 1 |
 | `TaxStatusDialog` | yes | `open` · `onClose` · `onSaved` · `initial` | 3 |
 | `VehicleControls` | yes | `vehicleId` · `mileageKm` · `colorExterior` · `city` · `cities` · `canRemove` | 1 |
@@ -125,7 +126,7 @@ rather than found by chance.
 | `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 75 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 7 |
-| `CarRow` | no | `data` · `className` | 2 |
+| `CarRow` | no | `data` · `className` | 3 |
 | `Chip` | yes | `active` · `count` · `onRemove` · `onClick` · `disabled` · `children` · `className` | 12 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 6 |

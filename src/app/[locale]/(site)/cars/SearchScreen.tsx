@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
 import { Chip } from '@/components/ui/Chip';
 import { SaveSearchButton } from '@/components/site/SaveSearchButton';
-import { SponsoredCard } from '@/components/site/SponsoredCard';
+import { SponsoredCard, SponsoredRow } from '@/components/site/SponsoredCard';
 import { SearchAbout, type SearchSibling } from '@/components/site/SearchAbout';
 import { SPONSORED_AFTER } from '@/lib/domain/ad-rules';
 import type { ServedAd } from '@/lib/domain/ad-rules';
@@ -590,10 +590,23 @@ export function SearchScreen({
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {result.items.map((item) => (
-              <Link key={item.ref} href={item.href}>
-                <CarRow data={toCard(item)} />
-              </Link>
+            {/*
+              **والمموّل في القائمة كما في الشبكة.** كان يُعرض في نمط
+              الشبكة وحده، ثمّ صار الافتراضيّ القائمة — فالمساحة الوحيدة
+              الموصولة في المنتج لم يعد يراها أكثرُ الزوّار، وهي مبيعةٌ
+              بالنقرة ومعروضةٌ في لوحة الأدمن بموضعها «بعد كل ٦ نتائج».
+
+              والموضع واحدٌ في الشكلين: نسبةٌ أخرى غير التي بِيعت.
+            */}
+            {result.items.map((item, index) => (
+              <Fragment key={item.ref}>
+                <Link href={item.href}>
+                  <CarRow data={toCard(item)} />
+                </Link>
+                {index + 1 !== SPONSORED_AFTER || ads.length === 0 ? null : (
+                  <SponsoredRow ad={ads[0] as ServedAd} label={tu('sponsored')} />
+                )}
+              </Fragment>
             ))}
           </div>
         )}
