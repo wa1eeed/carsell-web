@@ -43,6 +43,12 @@ const Body = z.discriminatedUnion('field', [
   z.object({ field: z.literal('city'), city: z.string().max(60) }),
   z.object({ field: z.literal('address'), address: z.string().max(200) }),
   z.object({ field: z.literal('bankName'), bankName: z.string().max(80) }),
+  /**
+   * **ورقمُ السجلّ يُحفظ حيث يُكتب.** كان يُكتب في خطوة التهيئة ولا
+   * يُقرأ — فيُدخله المعرض ثمّ تقول نسبتُه إنه ناقص، وهو الصنف الذي
+   * يتكرّر: معاملٌ يُرسَل ولا يُقرأ.
+   */
+  z.object({ field: z.literal('crNumber'), crNumber: z.string().max(20) }),
   z.object({
     field: z.literal('business'),
     signatoryName: z.string().max(120),
@@ -75,14 +81,31 @@ export async function PATCH(request: NextRequest) {
 
   const input = parsed.data;
 
-  if (input.field === 'city' || input.field === 'address' || input.field === 'bankName') {
-    const value = (input.field === 'city'
-      ? input.city
-      : input.field === 'address'
-        ? input.address
-        : input.bankName
-    ).trim();
+  if (
+    input.field === 'city' ||
+    input.field === 'address' ||
+    input.field === 'bankName' ||
+    input.field === 'crNumber'
+  ) {
+    const raw =
+      input.field === 'city'
+        ? input.city
+        : input.field === 'address'
+          ? input.address
+          : input.field === 'bankName'
+            ? input.bankName
+            : input.crNumber;
+
+    // والسجلّ يُطبَّع: من يلصقه بفواصل لم يخطئ
+    const value =
+      input.field === 'crNumber'
+        ? raw.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660)).replace(/[^0-9]/g, '')
+        : raw.trim();
+
     if (value === '') return fail(ERRORS.VALIDATION({ [input.field]: 'REQUIRED' }), 422);
+    if (input.field === 'crNumber' && value.length !== 10) {
+      return fail(ERRORS.VALIDATION({ crNumber: 'LENGTH' }), 422);
+    }
 
     await db.user.update({ where: { id: user.id }, data: { [input.field]: value } });
     const saved = await db.user.findUniqueOrThrow({ where: { id: user.id } });

@@ -381,3 +381,83 @@
     content: '';
   }
 }
+
+/**
+ * ═══ حركةُ التهيئة — B2B ═══
+ *
+ * معرضٌ يسجّل حسابًا تجاريًّا يمرّ بأربع خطوات ويُدخل سجلًّا وآيبانًا؛
+ * والحركة هنا **تقول أين هو** لا تزيّن: دخولُ الخطوة يأتي من الجهة التي
+ * جاء منها، والجلب من السجلّ يمسح الحقل مسحًا فيُرى أن شيئًا يجري.
+ *
+ * **ومن طلب تقليل الحركة لا يُحرَم المحتوى**: الحركة وحدها تسقط،
+ * والعناصر تبقى في مواضعها كاملةَ الظهور. ودوّارٌ لا يتوقّف عند من
+ * يُصاب بالدوار ليس تفصيلًا.
+ */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes registry-scan {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes rail-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.step-in {
+  animation: step-in 0.32s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+/** مسحةُ الجلب — تمرّ على الحقل ما دام النداء قائمًا. */
+.registry-scan::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-accent) 22%, transparent),
+    transparent
+  );
+  animation: registry-scan 1.1s linear infinite;
+}
+
+/** الشريط يمتلئ من جهة البداية — ويتبع اتّجاه الصفحة. */
+.rail-fill {
+  transform-origin: right;
+  animation: rail-fill 0.45s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+:dir(ltr) .rail-fill {
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-in,
+  .rail-fill,
+  .registry-scan::after {
+    animation: none;
+  }
+
+  .registry-scan::after {
+    display: none;
+  }
+}

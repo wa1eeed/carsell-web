@@ -5581,6 +5581,30 @@
         }
       }
     },
+    "/api/v1/registry/corporate": {
+      "post": {
+        "summary": "POST /api/v1/registry/corporate",
+        "tags": [
+          "registry"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/reports": {
       "post": {
         "summary": "POST /api/v1/reports",

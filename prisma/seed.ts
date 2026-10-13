@@ -1992,6 +1992,8 @@ async function main(): Promise<void> {
       ['nafath', 'النفاذ الوطني', 'Nafath', 'IDENTITY', 'INACTIVE', 'المسار اليدوي دائمًا متاح'],
       ['payments', 'بوابة الدفع', 'Moyasar', 'PAYMENT', 'INACTIVE', 'رسالة واضحة وإعادة محاولة'],
       ['vin_lookup', 'بيانات المركبة', 'Tamm', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي'],
+      // سجلُّ المنشأة وعقدُ التأسيس والمفوَّضون — بالرقم الموحَّد
+      ['lean', 'سجل المنشأة', 'Lean', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي'],
       ['mojaz', 'تقارير موجز', 'Mojaz', 'GOVERNMENT', 'INACTIVE', 'ردّ المبلغ تلقائيًا'],
       ['r2', 'الوسائط', 'Cloudflare R2', 'INFRASTRUCTURE', 'ACTIVE', 'عرض من الذاكرة المؤقتة'],
       ['email', 'البريد المعاملاتي', 'Resend', 'INFRASTRUCTURE', 'INACTIVE', 'طابور إعادة إرسال'],

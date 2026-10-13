@@ -301,6 +301,43 @@ would leave every unregistered individual permanently incomplete.
   the dealer panel when that is built. Flagged for the owner in case they want
   one entity instead of two.
 
+### Dealer registration and the registry lookup
+
+**Owner's direction, 2026-10-13.** Dealer sign-up is a **KYC/KYB onboarding**,
+not a form: showroom name, phone, email and password, then the commercial
+register, then the bank account. On the register step it should pull the data
+from **Lean Technologies** — commercial registration, articles of association,
+authorised managers — so what was typed is replaced by what the registry says.
+
+Built: `/[locale]/auth/dealer`, four steps with a rail that shows where you are;
+the account exists after the **phone is verified**, so an interruption later does
+not lose it and the completion banner carries the rest. `src/lib/integrations/lean.ts`
+speaks Lean's real API — `POST /oauth2/token` with `client_credentials`, then
+`POST /verifications/v1/corporates` with `type: FULL` — and the identifier Lean
+accepts is the **unified number**, not the CR number, so the screen asks for the
+unified number and the CR comes back from the register. With no keys the lookup
+returns `NOT_CONFIGURED`, the field is not even rendered, and manual entry stays
+open with one grey line: a deferred integration failing is the expected state,
+and turning the expected into an error tells the dealer they erred when they did
+not.
+
+Motion is in `globals.css` behind `prefers-reduced-motion`: steps enter from the
+side they came from, the rail fills, and the register field is scanned while the
+call is in flight — the animation says where you are, it does not decorate.
+
+**The dealer panel is a separate route tree.** Owner's direction: it is a full
+operations system for the showroom — dashboard, order management, POS, the lot —
+meant to replace whatever the showroom runs today. It is not a section of the
+site account, and it is not `/admin`. It stays deferred until the marketplace is
+solid; what exists now is the account it will belong to.
+
+- [ ] Lean credentials — the integration row (`lean`) is seeded `INACTIVE`;
+  `client_id` / `client_secret` go in through `/admin/integrations` like any
+  other, and the lookup turns itself on when they land.
+- [ ] Articles of association and manager permissions are fetched (`type: FULL`
+  returns them) but only the managers are shown and nothing is stored as review
+  evidence yet.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

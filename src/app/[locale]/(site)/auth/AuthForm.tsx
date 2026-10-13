@@ -237,6 +237,22 @@ export function AuthForm({
             </div>
           )}
 
+          {/*
+            **والمعرض له تهيئةٌ لا استمارة.** أربع خطوات وسجلٌّ يُجلب
+            وآيبانٌ يُحفظ — وحشرُها في شاشة دخولٍ عامّة يجعل الحساب
+            التجاريّ يُفتح ناقصًا ثمّ يُطارَد صاحبُه ببنر.
+          */}
+          {mode !== 'register' || accountType !== 'BUSINESS' ? null : (
+            <p className="mb-4">
+              <Link
+                href={`/${locale}/auth/dealer`}
+                className="text-2xs font-bold text-accent-700 underline"
+              >
+                {t('dealerLink')}
+              </Link>
+            </p>
+          )}
+
           {mode !== 'register' ? null : (
             <label className="mb-4 flex flex-col gap-1.5">
               <span className="text-2xs font-semibold opacity-60">
