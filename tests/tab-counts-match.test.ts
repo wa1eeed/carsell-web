@@ -14,7 +14,11 @@ import {
   type UserSegment,
 } from '@/lib/domain/admin-orders';
 import { disputeCounts, listDisputes } from '@/lib/domain/disputes';
-import { serviceRequestCounts, listServiceRequests } from '@/lib/domain/admin-services';
+import {
+  serviceRequestCounts,
+  listServiceRequests,
+  serviceQueueHealth,
+} from '@/lib/domain/admin-services';
 
 /**
  * ═══ الشريحة تَعُدّ ما تُرشّح ═══
@@ -87,6 +91,39 @@ async function serviceRequestsScreen(): Promise<Screen> {
     })),
   );
   return { name: 'service-requests', tabs };
+}
+
+/**
+ * ═══ والبطاقةُ شريحةٌ أيضًا ═══
+ *
+ * «مفتوحة» و«تجاوزت المهلة» و«بلا مزوّد» أرقامٌ يُنقَر عليها فتفتح
+ * قوائمها — فهي شرائحُ بشكلٍ آخر، وينطبق عليها ما ينطبق عليها.
+ *
+ * وكانت تُحسب من **القائمة المعروضة** لا من الطابور، فتصف نفسها بعد
+ * أوّل نقرة: على `?overdue=1` تقول «الإجمالي ١» والطابور ثمانية.
+ * والعدُّ الآن من `serviceQueueHealth` والقائمةُ من مرشّحٍ في الاستعلام،
+ * وهذه البوابة تمنع تباعدهما.
+ *
+ * **و`now` واحدةٌ للطرفين**: الحدّ ساعةٌ بعد المهلة، وصفٌّ عليها
+ * بالضبط يقلب الفحص لو قُرئ الوقتُ مرّتين.
+ */
+async function serviceCardsScreen(): Promise<Screen> {
+  const now = new Date();
+  const health = await serviceQueueHealth(now);
+  const cards = [
+    { key: 'open', count: health.open, filters: { onlyOpen: true } },
+    { key: 'overdue', count: health.overdue, filters: { onlyOverdue: true } },
+    { key: 'unassigned', count: health.unassigned, filters: { onlyUnassigned: true } },
+  ] as const;
+
+  const tabs = await Promise.all(
+    cards.map(async (card) => ({
+      key: card.key as string | null,
+      count: card.count,
+      rows: (await listServiceRequests(card.filters, now)).length,
+    })),
+  );
+  return { name: 'service-cards', tabs };
 }
 
 async function auctionsScreen(): Promise<Screen> {
@@ -190,6 +227,10 @@ describe('═══ كل شريحةٍ تَعُدّ ما تُرشّح ═══',
   it('طلبات الخدمات', async () => {
     const screen = await serviceRequestsScreen();
     expect(wrongTabs(screen)).toEqual([]);
+  });
+
+  it('بطاقاتُ طلبات الخدمات', async () => {
+    expect(wrongTabs(await serviceCardsScreen())).toEqual([]);
   });
 
   it('المزادات', async () => {

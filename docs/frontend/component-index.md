@@ -122,7 +122,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 9 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 76 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 75 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 7 |
 | `CarRow` | no | `data` · `className` | 2 |
@@ -130,7 +130,7 @@ rather than found by chance.
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 6 |
 | `DataTable` | yes | — | 11 |
-| `Duration` | no | `hours` | 10 |
+| `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 34 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` | 3 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 9 |

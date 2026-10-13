@@ -45,6 +45,61 @@ export type ServiceRequestRow = {
 
 const OPEN_STATUSES = ['NEW', 'ASSIGNED', 'IN_PROGRESS'] as const;
 
+/** المفتوحُ — ما لم يُنجَز ولم يُلغَ. يقرؤه العدّاد والقائمة معًا. */
+const OPEN_WHERE: Prisma.ServiceRequestWhereInput = { status: { in: [...OPEN_STATUSES] } };
+
+/**
+ * ═══ «تجاوزت المهلة» تُعرَّف مرّة ═══
+ *
+ * كانت في أربعة مواضع: رايةُ الصفّ (`overdueHours > 0`)، وبطاقةُ
+ * الشاشة، وزرٌّ داخل مكوّن العميل، ومرشّحُ النطاق — وأيُّ اثنين منها
+ * يتباعدان أوّلَ تعديل. وقد تباعدا فعلًا: راية الصفّ تشترط ساعةً
+ * كاملة، ومرشّحٌ بـ`dueAt < now` كان سيُرجع طلبًا متجاوزًا بعشرين
+ * دقيقة **بلا شارةٍ حمراء** — صفٌّ يقول الجدولُ إنه متأخّر ولا يقول.
+ *
+ * والساعةُ ليست تسامحًا بل شرطُ العرض: `Duration hours={0}` تُخرج «لا
+ * ساعات»، فالطلبُ يُقال متجاوزًا حين يصير لتجاوزه مدّةٌ تُقرأ.
+ */
+const OVERDUE_GRACE_MS = 3_600_000;
+
+function overdueBoundary(now: Date): Date {
+  return new Date(now.getTime() - OVERDUE_GRACE_MS);
+}
+
+/**
+ * مواضعُ الطابور الثلاثة قيدًا واحدًا — تقرؤه `serviceQueueHealth`
+ * للعدّ و`listServiceRequests` للقائمة، فالبطاقةُ تفتح ما عدّته بالضبط.
+ */
+function scopeWhere(
+  scope: { onlyOverdue?: boolean; onlyUnassigned?: boolean },
+  now: Date,
+): Prisma.ServiceRequestWhereInput {
+  return {
+    ...(scope.onlyOverdue === true ? { dueAt: { lte: overdueBoundary(now) } } : {}),
+    ...(scope.onlyUnassigned === true ? { providerId: null } : {}),
+  };
+}
+
+/**
+ * ═══ صحّةُ الطابور — أرقامُ البطاقات ═══
+ *
+ * **ولا تُحسب من القائمة المعروضة.** كانت تُحسب منها، فأوّلُ نقرةٍ على
+ * بطاقة تجعل البطاقات تصف نفسها: على `?overdue=1` تقول «الإجمالي ١»
+ * والطابور فيه ثمانية، و«بلا مزوّد» تنزل من ٢ إلى ١. فالبطاقاتُ حالُ
+ * الطابور كلِّه، والجدولُ وحده يتبع المرشّح.
+ */
+export type QueueHealth = { open: number; overdue: number; unassigned: number; total: number };
+
+export async function serviceQueueHealth(now: Date = new Date()): Promise<QueueHealth> {
+  const [total, open, overdue, unassigned] = await Promise.all([
+    db.serviceRequest.count(),
+    db.serviceRequest.count({ where: OPEN_WHERE }),
+    db.serviceRequest.count({ where: { ...OPEN_WHERE, ...scopeWhere({ onlyOverdue: true }, now) } }),
+    db.serviceRequest.count({ where: { ...OPEN_WHERE, ...scopeWhere({ onlyUnassigned: true }, now) } }),
+  ]);
+  return { open, overdue, unassigned, total };
+}
+
 const REQUEST_SELECT = {
   ref: true, status: true, amount: true, createdAt: true, dueAt: true,
   scheduledAt: true, city: true,
@@ -85,7 +140,18 @@ export async function serviceRequestCounts(): Promise<Record<string, number>> {
 }
 
 export async function listServiceRequests(
-  filters: { onlyOverdue?: boolean; filter?: RequestFilter } = {},
+  filters: {
+    onlyOverdue?: boolean;
+    /**
+     * **بلا مزوّدٍ مُسنَد** — وهي الحال التي لا يتحرّك فيها الطلب:
+     * مدفوعٌ ولا أحد يعمل عليه. وبطاقةُ «بلا مزوّد» كانت تعدّها ولا
+     * تفتحها، فيقرأ المشغّل «٢» ويبحث عنهما بين الجدول.
+     */
+    onlyUnassigned?: boolean;
+    /** المفتوحةُ وحدها — بطاقةُ «مفتوحة» كانت تعدّ ولا تفتح. */
+    onlyOpen?: boolean;
+    filter?: RequestFilter;
+  } = {},
   now: Date = new Date(),
 ): Promise<ServiceRequestRow[]> {
   /**
@@ -131,15 +197,25 @@ export async function listServiceRequests(
    * جدول واحد كان سيُسقطه لأنه ليس ضمن الأحدث. أمّا المنجَز فتاريخٌ
    * يُقرأ أحدثه.
    */
+  /**
+   * **والمرشّحُ في الاستعلام هو الذي يعدّه العدّاد.** كان يُطبَّق بعد
+   * الجلب بـ`filter` على الصفوف — تعريفٌ ثانٍ بجوار تعريف البطاقة،
+   * وهما يتباعدان. والثلاثةُ مفتوحةُ الحال كلُّها، فالمنجَزُ لا يُجلَب
+   * أصلًا متى سُئل عن أحدها.
+   */
+  const extra = scopeWhere(filters, now);
+  const openOnly =
+    filters.onlyOpen === true || filters.onlyOverdue === true || filters.onlyUnassigned === true;
+
   const [openRows, closedRows] = await Promise.all([
     openStatus === null
       ? Promise.resolve([])
       : db.serviceRequest.findMany({
-          where: { ...service, status: openStatus },
+          where: { ...service, ...extra, status: openStatus },
           orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
           select: REQUEST_SELECT,
         }),
-    closedStatus === null
+    closedStatus === null || openOnly
       ? Promise.resolve([])
       : db.serviceRequest.findMany({
           where: { ...service, status: closedStatus },
@@ -167,8 +243,9 @@ export async function listServiceRequests(
       scheduledAt: request.scheduledAt?.toISOString() ?? null,
       city: request.city,
       overdueHours,
-      // المنجَز لا يتأخّر — تأخّرُه انقضى بإنجازه
-      overdue: open && overdueHours !== null && overdueHours > 0,
+      // المنجَز لا يتأخّر — تأخّرُه انقضى بإنجازه. والحدُّ حدُّ العدّاد.
+      overdue:
+        open && request.dueAt !== null && request.dueAt.getTime() <= overdueBoundary(now).getTime(),
       providerName: request.provider?.nameAr ?? null,
       customer: request.user.name ?? request.user.phone.slice(-4),
       listingRef: request.listing?.ref ?? null,
@@ -186,7 +263,7 @@ export async function listServiceRequests(
    */
   mapped.sort((a, b) => rank(a) - rank(b) || key(a) - key(b));
 
-  return filters.onlyOverdue === true ? mapped.filter((row) => row.overdue) : mapped;
+  return mapped;
 }
 
 function rank(row: ServiceRequestRow): number {
