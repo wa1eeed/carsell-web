@@ -106,32 +106,16 @@ export default async function MyVehiclesPage({
     <AccountList
       locale={locale}
       title="سياراتي"
-      subtitle="ما تملكه — اعرضه للبيع أو اطلب عليه خدمة."
-      stats={
-        counts.total === 0 ? undefined : (
-          <p className="flex flex-wrap items-center gap-2.5 text-2xs opacity-65">
-            <Quantity unit="cars" count={counts.total} />
-            {counts.listed === 0 ? null : (
-              <>
-                <span aria-hidden className="opacity-40">·</span>
-                <span className="flex items-center gap-1.5">
-                  <ArabicNumber value={counts.listed} />
-                  <span>معروضة</span>
-                </span>
-              </>
-            )}
-            {counts.garage === 0 ? null : (
-              <>
-                <span aria-hidden className="opacity-40">·</span>
-                <span className="flex items-center gap-1.5">
-                  <ArabicNumber value={counts.garage} />
-                  <span>مخفية</span>
-                </span>
-              </>
-            )}
-          </p>
-        )
-      }
+      subtitle="سياراتك كلها هنا. اعرضها للبيع أو اطلب عليها خدمة."
+      /*
+        ═══ والعدد في الشريحة لا فوقها ═══
+
+        كان سطرٌ يقول «٦ سيارات · ٥ معروضة · ١ مخفية»، وتحته مباشرةً
+        شرائحُ تقول «معروضة ٥ · مخفية ١ · مباعة» — **الأرقام نفسها
+        مرّتين، إحداهما فوق الأخرى**.
+
+        والشريحة تُخبر وتَفعل، والسطر يُخبر فقط. فبقي الذي يُفعل به.
+      */
       filters={
         counts.total === 0 ? undefined : (
           <nav className="flex flex-wrap items-center gap-2.5">
@@ -163,22 +147,22 @@ export default async function MyVehiclesPage({
       empty={
         counts.total === 0
           ? {
-              title: 'سياراتك فارغة',
-              description: 'أضف سيارتك لتطلب عليها فحصًا أو تأمينًا — واعرضها للبيع متى شئت.',
+              title: 'ما ضفت أي سيارة بعد',
+              description: 'ضيف سيارتك وتقدر تطلب عليها فحص أو تأمين، وتعرضها للبيع وقت ما تحب.',
             }
           : tab === 'listed'
             ? {
-                title: 'لا سيارة معروضة',
+                title: 'ما عندك سيارة معروضة',
                 description: 'ما تعرضه للبيع يظهر هنا مع إعلانه.',
               }
             : tab === 'garage'
               ? {
-                  title: 'لا سيارة مخفية',
-                  description: 'كل سياراتك معروضة أو مباعة — وما تضيفه ولا تعرضه يظهر هنا.',
+                  title: 'ما عندك سيارة مخفية',
+                  description: 'كل سياراتك معروضة أو مباعة. أي سيارة تضيفها ولا تعرضها بتظهر هنا.',
                 }
               : {
-                  title: 'لا سيارة مباعة',
-                  description: 'ما تمّ بيعه ونُقلت ملكيته يظهر هنا.',
+                  title: 'ما عندك سيارة مباعة',
+                  description: 'السيارات اللي بعتها وانتقلت ملكيتها تظهر هنا.',
                 }
       }
       action={

@@ -68,7 +68,7 @@ export default async function OrdersPage({
     <AccountList
       locale={locale}
       title="طلباتي"
-      subtitle="كل صفقة ومرحلتها وأين مبلغها الآن."
+      subtitle="كل صفقة ومرحلتها، ووين مبلغها الحين."
       filters={
         <nav className="flex flex-wrap items-center gap-2.5">
           {/*
@@ -120,16 +120,16 @@ export default async function OrdersPage({
           : group === 'live'
             ? {
                 title: 'لا طلبات قيد الإجراء',
-                description: 'ما يحتاج منك إجراءً يظهر هنا، ومعه مهلتُه.',
+                description: 'الطلبات اللي تنتظر منك شي تلقاها هنا مع مهلتها.',
               }
             : group === 'done'
               ? {
                   title: 'لا طلبات مكتملة',
-                  description: 'الصفقات التي تمّت ونُقلت ملكيتها تظهر هنا مع عقودها.',
+                  description: 'الصفقات اللي تمت وانتقلت ملكيتها تلقاها هنا مع عقودها.',
                 }
               : {
                   title: 'لا طلبات ملغاة',
-                  description: 'الطلبات التي أُلغيت تبقى هنا بسبب إلغائها.',
+                  description: 'الطلبات الملغاة تبقى هنا، ومعها سبب الإلغاء.',
                 }
       }
       action={
