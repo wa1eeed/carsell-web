@@ -229,6 +229,17 @@ domain, audited, walked end to end).
   a run leaves the database as it found it. Measured after a full run: 3 admins,
   0 stamped, 0 test campaigns, 0 stray events.
 
+- **Three screens claimed automation that does not exist.** `/admin/identity`
+  said «التوثيق عبر النفاذ الوطني يتم تلقائيًا» and its empty state repeated it —
+  but `submitIdentity('nafath')` has no caller and the integration is «بلا
+  مفاتيح», so *every* verification passes a human; an operator reading that line
+  staffs the queue as if it were a residue. The lead now reads the integration
+  row, so it corrects itself when the keys arrive. `/admin/providers` said «الطلب
+  يُسنَد آليًّا للمزوّد المفعّل في مدينة العميل بأقلّ حِمل قائم» — none of that
+  happens: `service-purchase` writes the provider linked to the service in the
+  catalogue, with no city match and no load balancing, which is also why requests
+  arrive unassigned.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

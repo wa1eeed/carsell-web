@@ -121,7 +121,7 @@ export function IdentityQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا أحد ينتظر التوثيق"
-          description="النفاذ الوطني يُوثَّق آليًّا — وما يصل هنا هو الإدخال اليدويّ والسجلّ التجاريّ."
+          description="ما يصل هنا هو الإدخال اليدويّ والسجلّ التجاريّ — وكلُّه يمرّ بمراجعة إنسان."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">

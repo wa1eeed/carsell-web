@@ -4,6 +4,7 @@ import { ListFooter } from '@/components/admin/ListFooter';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { identityQueue, identityStats } from '@/lib/domain/admin-identity';
+import { db } from '@/lib/db';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import type { IdentityStatus } from '@/generated/prisma/enums';
 import { IdentityQueue } from './IdentityQueue';
@@ -57,6 +58,16 @@ export default async function AdminIdentityPage({
     REJECTED: stats.rejectedTotal,
   };
 
+  /**
+   * **ومربوطٌ يعني يعمل.** `status: ACTIVE` وحدها صفٌّ، والمفاتيح شرط —
+   * فتكاملٌ مفعَّل بلا مفاتيح لا يوثّق أحدًا.
+   */
+  const nafath = await db.integration.findUnique({
+    where: { key: 'nafath' },
+    select: { status: true },
+  });
+  const nafathLive = nafath?.status === 'ACTIVE';
+
   const tabs: MonitorTab[] = [
     {
       key: null,
@@ -74,8 +85,20 @@ export default async function AdminIdentityPage({
   return (
     <AdminShell title="توثيق الهوية"
       subtitle="طلبات توثيق الهوية" activeHref="/admin/identity" admin={admin}>
+      {/*
+        ═══ والسطر يقرأ حالَ التكامل لا يفترضه ═══
+
+        كان يقول «الطلبات اليدوية فقط · التوثيق عبر النفاذ الوطني يتم
+        تلقائيًا» — **و`submitIdentity('nafath')` لا يناديها أحد**، والنفاذ
+        في `/admin/integrations` «بلا مفاتيح». فكلُّ توثيقٍ يمرّ بإنسان،
+        ويقرأ المشغّل أن الطابور بقيّةٌ صغيرة فلا يرصد له أحدًا.
+
+        ويوم تصل المفاتيح يتغيّر السطر وحده — فلا جملةٌ تُنسى في ملفّ.
+      */}
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
-        الطلبات اليدوية فقط. التوثيق عبر النفاذ الوطني يتم تلقائيًا، والهدف أقل من ساعة.
+        {nafathLive
+          ? 'الطلبات اليدوية فقط. التوثيق عبر النفاذ الوطني يتم تلقائيًا، والهدف أقل من ساعة.'
+          : 'كل طلب هنا يمرّ بمراجعة إنسان — النفاذ الوطني لم يُربط بعد، فلا توثيق تلقائيّ. والهدف أقل من ساعة.'}
       </p>
 
       <MonitorTabs tabs={tabs} active={status} basePath="/admin/identity" param="status" />
@@ -85,7 +108,11 @@ export default async function AdminIdentityPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="الطلبات اليدوية فقط · النفاذ الوطني تلقائي"
+        note={
+          nafathLive
+            ? 'الطلبات اليدوية فقط · النفاذ الوطني تلقائي'
+            : 'كل الطلبات يدوية · النفاذ الوطني غير مربوط'
+        }
         can="التوثيق أو طلب توضيح أو الرفض بسببٍ مكتوب."
         cannot="عرض صورة الهوية أو رقمها كاملًا من الجدول — الاطلاع فعلٌ مقصود يُقيَّد قبل أن يُعرض شيء."
       />
