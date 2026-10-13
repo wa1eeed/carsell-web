@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { StageTracker } from '@/components/ui/StageTracker';
+import { OrderStatusBadge } from '@/components/ui/OrderStatusBadge';
+import { isClosedOrder, isLiveOrder } from '@/lib/domain/order-state';
 import type { PublicOrder } from '@/lib/domain/orders';
 
 /**
@@ -52,15 +54,26 @@ export function OrderScreen({
 
   const days = Math.floor(order.dwellSeconds / 86_400);
   const frozen = order.status === 'DISPUTED';
+  /** **والطلب المغلق ليس مجمَّدًا بل منتهيًا** — فلا شيء منه يُستأنف. */
+  const live = isLiveOrder(order.status);
 
   /**
    * **الدفع للمشتري وحده وفي مرحلته وحدها**، وما دام لا حجز قائمًا.
    * و`counterparty.isSeller` تعني أن الرائي هو المشتري — الطرف الآخر بائع.
    *
    * وطلبٌ متنازَعٌ عليه لا يُدفع: الحال مجمَّدة حتى يُحسم النزاع.
+   *
+   * ═══ والحالة تُفحص لا المرحلة وحدها ═══
+   *
+   * كان الشرط `!frozen` وحده، وهو `status === 'DISPUTED'` — **فالملغى
+   * والمكتمل والمتوقّف كلُّها تمرّ**. والإلغاء حالةٌ لا مرحلة: طلبٌ
+   * أُلغي عند الدفع تبقى مرحلتُه `PAYMENT`، فكان الزرّ يُعرض ويعمل.
+   * والحارس في الخادم (`startHold`) يرفضه الآن بـ`ORDER_CLOSED` — وهذا
+   * الشرط يمنع عرضَ زرٍّ لا يصحّ أصلًا.
    */
   const canPay =
     order.counterparty.isSeller &&
+    live &&
     order.stage === 'PAYMENT' &&
     order.escrow === null &&
     !frozen;
@@ -88,7 +101,21 @@ export function OrderScreen({
         </section>
       )}
 
-      <StageTracker current={order.stage} className="mb-8" />
+      {/*
+        **والوسم قبل المسار.** من فتح طلبًا ملغى كان يرى مسارًا يقول
+        «دفع» ولا شيء يقول إنه أُلغي حتى يقرأ أسفل الصفحة. فالحال
+        تتصدّر، والمسار تحتها يقول أين توقّف.
+      */}
+      {live ? null : (
+        <p className="mb-5 flex flex-wrap items-center gap-2.5">
+          <OrderStatusBadge status={order.status} stage={order.stage} />
+          {order.cancelReason === null || order.cancelReason === '' ? null : (
+            <span className="text-2xs opacity-65">{order.cancelReason}</span>
+          )}
+        </p>
+      )}
+
+      <StageTracker current={order.stage} stopped={!live} className="mb-8" />
 
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="min-w-0 flex-1">
@@ -150,7 +177,14 @@ export function OrderScreen({
             الخطوة التالية — **ولم يكن للطلب ما يحرّكه**. تُعرض بعد
             الدفع: البائع يبدأ النقل، والمشتري يؤكّد الاستلام.
           */}
-          {canPay ? null : (
+          {/*
+            **والمغلَق لا خطوةَ له.** كانت اللوحة تُعرض لطلبٍ ملغى
+            فتقول «بعد أن يُحجز مبلغك ينتقل الطلب إلى نقل الملكية» —
+            وعدٌ بخطوةٍ لن تأتي. والحدُّ `isClosedOrder` هو نفسه الذي
+            يفرضه `openDispute`، فلا تُخفى عن المتوقّف بابٌ يفتحه له
+            الخادم.
+          */}
+          {canPay || isClosedOrder(order.status) ? null : (
             <div className="mb-3.5">
               <StagePanel
                 orderRef={order.ref}
@@ -366,11 +400,24 @@ export function OrderScreen({
 
           <section className="rounded-xl border border-line p-5">
             <h2 className="mb-3 text-xs font-bold">{t('status')}</h2>
+            {/*
+              ═══ وسمٌ واحد لا وسمان يتناقضان ═══
+
+              كان هنا وسمان: `orderStatus` بلون `accent` و`orderStage`
+              بلون `neutral`. فطلبٌ ملغى يُقرأ **«ملغى» بالأخضر
+              وبجانبه «دفع»** — جملتان في سطرٍ واحد تنفي كلٌّ منهما
+              الأخرى، والأولى بلونِ نجاح.
+              والقرار ١٧ يحسمها: «أُلغي عند الدفع» قراءةً واحدة.
+            */}
             <p className="mb-2.5 flex flex-wrap items-center gap-2">
-              <Badge tone={frozen ? 'warn' : 'accent'}>{te(`orderStatus.${order.status}`)}</Badge>
-              <Badge tone="neutral">{te(`orderStage.${order.stage}`)}</Badge>
+              <OrderStatusBadge status={order.status} stage={order.stage} />
             </p>
-            {/* مدّة البقاء **محسوبة** — تخزينها يجعلها تكذب بعد ساعة */}
+            {/*
+              مدّة البقاء **محسوبة** — تخزينها يجعلها تكذب بعد ساعة.
+              **ولا تُقال لطلبٍ مغلق**: «في هذه المرحلة منذ ثلاثة أيّام»
+              تقول إنه فيها الآن وينتظر — والوسمُ أعلاه قال إنه انتهى.
+            */}
+            {isClosedOrder(order.status) ? null : (
             <p className="flex items-center gap-1.5 text-2xs opacity-55">
               {t('inStageFor')}
               {/*
@@ -387,7 +434,14 @@ export function OrderScreen({
                 <Quantity unit="hours" count={Math.floor(order.dwellSeconds / 3600)} />
               )}
             </p>
-            {order.paymentDueAt === null || order.stage !== 'PAYMENT' ? null : (
+            )}
+            {/*
+              **و«ادفع قبل ‹تاريخ›» وعدٌ لا وصف.** كان الشرط على
+              المرحلة وحدها، فيُعرض صندوقٌ أوكرُ بمهلةِ دفعٍ على طلبٍ
+              أُلغي — يُطالب صاحبَه بدفعٍ لا يُقبل منه، والخادم يردّه
+              بـ`ORDER_CLOSED`.
+            */}
+            {order.paymentDueAt === null || !live || order.stage !== 'PAYMENT' ? null : (
               <p className="mt-2.5 flex flex-wrap items-center gap-1.5 rounded-md bg-warn-100 px-3 py-2 text-2xs text-warn-900">
                 {t('payBy')}
                 <span className="bidi-isolate font-bold">{formatted.paymentDueAt}</span>

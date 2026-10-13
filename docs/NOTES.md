@@ -4204,3 +4204,132 @@ the prose that describes the code.**
 And the two from the scheduler session: the healthcheck uses busybox `wget`
 (`Dockerfile:153`), and the scheduled task runs `node /app/scripts/ops/cron-tick.mjs`
 — `curl` is not in `node:22-alpine` and no `apk add` installs it.
+
+---
+
+## A cancelled order that still asked to be paid
+
+Reported from the product: a cancelled order showed a banner on the account page
+saying a payment was waiting, a "ملغى" tag beside a "دفع" tag on the order, the
+stage tracker sitting on payment, and payment still available.
+
+All four were true, and there were five more nobody had reported.
+
+### The root
+
+`cancelOrder` writes `status: 'CANCELLED'` and **deliberately leaves `stage`
+alone** — the stage records where the order died. That follows the designer's
+decision of 2026-08-02:
+
+> **الإلغاء حالة لا مرحلة**: الطلب يبقى عند المرحلة التي مات فيها، فيُقرأ
+> «أُلغي عند الدفع» لا «أُلغي». المخطط محقّ في ألّا يجعل `CANCELLED` مرحلة.
+
+The decision is right. Every reader of `stage` ignored it.
+
+### What was wrong, in order of harm
+
+| # | Place | Defect |
+| --- | --- | --- |
+| 1 | `payments.ts` `startHold` | Selected `status` in its query and **never read it** — a cancelled order could actually be paid |
+| 2 | `OrderScreen` `canPay` | Checked `DISPUTED` only, so the pay button rendered |
+| 3 | `OrderScreen` status section | Two contradicting tags: «ملغى» in **accent green** beside «دفع» |
+| 4 | `OrderScreen` | «ادفع قبل ‹تاريخ›» deadline box on a dead order |
+| 5 | `account.ts` | The buyer-orders query **never selected `status`** — screens could not know |
+| 6 | `AccountBrief` | Banner filtered on stage alone: «طلبٌ ينتظر الدفع» about a cancelled order |
+| 7 | `AccountScreen` + orders list | Stage badge with `tone="accent"`, plus «الخطوة ٤/٦» |
+| 8 | `OrderCard`, admin order/listing/user/dispute screens | Stage label alone; two of them printed raw English `CANCELLED` beside the Arabic stage |
+| 9 | `admin-order-detail`, `admin-orders` | `overdue` / `late` / `critical` computed from dwell, so a cancelled order sat in the late queue forever |
+
+(1) is the only one that moved money. `advanceStage` had guarded `status` since
+it was built; `startHold` was the one entry point left open — and the field was
+sitting in its own `select`, unread.
+
+### The shape of the fix
+
+`src/lib/domain/order-state.ts` — a dependency-free module, because `orders.ts`
+already imports `payments.ts` lazily to dodge a cycle and a static import back
+would restore it:
+
+- `isLiveOrder(status)` — `ACTIVE`. Read by the server guard and the screens.
+- `isClosedOrder(status)` — `CANCELLED | COMPLETED`, **narrower**: `STALLED` and
+  `DISPUTED` still have paths, and `openDispute` allows them. A screen that hid
+  more than the server rejects would close a door the server leaves open.
+- `orderNeedsBuyer(status, stage)` — for the banner and the pulse.
+- `orderGroup(status)` — the three tabs.
+
+Wording goes through one component per surface, never concatenation — «نقل
+ملكية» with the article prefixed yields «النقل ملكية», so the six phrasings are
+written out in `enums.orderStoppedAt`:
+
+- `OrderStatusBadge` (site, reads `next-intl`)
+- `orderStateLabel` in `src/lib/labels/orders.ts` (admin, which is Arabic-only
+  by a recorded decision and does not read the bundle)
+
+`StageTracker` gained a `stopped` state: the current dot becomes a muted dash
+instead of the filled dark dot, so the tracker reads "reached here and stopped"
+rather than "you are here now". Not red — a cancellation is a closed door, not a
+fault.
+
+### Tabs under طلباتي
+
+Three groups — قيد الإجراء · المكتملة · الملغاة — in both the account tab
+(client state) and `/account/orders` (URL, so it survives sharing and works
+without JS; a function prop cannot cross the server boundary anyway, gate 22).
+
+The count sits on قيد الإجراء only: «الملغاة (٤)» is a number nobody acts on.
+Zero is not rendered. A `motion-safe:animate-pulse` dot appears when something
+genuinely waits on the buyer — payment or confirming receipt — and the row
+itself is marked with a border rather than a second animation, because three
+pulsing rows say nothing about which comes first.
+
+Counts and filters both call `orderGroup`, so they cannot drift (gate 40's
+lesson).
+
+### Gate 39 — a stage is never displayed alone
+
+`STAGE_LABEL[x.stage]` or `` te(`orderStage.${x.stage}`) `` fails the build
+unless the file is `OrderStatusBadge`, `StageTracker` or `labels/orders.ts`.
+`metric.stage` is exempt (an aggregate across orders has no status);
+`event.toStage` needs no exemption since the pattern requires a literal
+`.stage`.
+
+**The first version of this gate passed the bug it was written for, twice.**
+First it exempted root `row`, and `row.stage` in `OrderCard` is a live order —
+the exact defect. Then, after that was fixed, it called `fail()`, **a function
+that does not exist in this script**; it would have thrown `ReferenceError` on
+the first violation and never did, because there was none left. Both were found
+by reverting the defect and watching the gate stay silent. It now reports
+through `problems.push` like every other gate, and was re-proven against both
+defect shapes.
+
+### Two things the seed was hiding
+
+**There was no cancelled order in the database at all.** The status is in the
+schema and `cancelOrder` writes it, but nothing seeded it — so every screen that
+renders an order had never once been seen in this state, and nine defects lived
+there undisturbed. `ORD-2026-1012` is now seeded: cancelled at `PAYMENT`, with
+no payment and no escrow, which is exactly what `cancelOrder` produces when an
+order is cancelled before paying.
+
+That change made `seed-reachable-states` fail on "an order at PAYMENT or beyond
+has an escrow". The invariant was incomplete, not the data — it was written when
+no cancelled order existed. It now excludes `CANCELLED`.
+
+**And live auctions were seeded contradictorily.** `NOW` is pinned to 09:00 UTC
+so seeded data is stable, but the live-auction window was measured from it:
+`hours(-6)` is 03:00, so a seed run before 03:00 UTC wrote `status: 'LIVE'` with
+`startsAt` **in the future**; `hours(2)` is 11:00, so a run after that wrote
+`LIVE` with `endsAt` already past. The product reads `live` as status **and**
+start **and** end, so it correctly said "not live" — and an unrelated test
+failed, looking like flake when it was the hour of the day. Live auctions are
+now measured from real time (`SEED_NOW` still honoured), and that test picks its
+row with `orderBy` instead of hoping.
+
+### Verified by clicking, not by tests
+
+Signed in as the buyer, opened the account page (no banner), the orders tabs
+(correct empty state per group), the cancelled row (one tag, «أُلغي عند الدفع»),
+the order page (tracker stopped at دفع, no pay button, no deadline box), and the
+admin order page (one badge, «تجاوز المهلة» gone). Then called
+`POST /api/v1/payments` for the cancelled order from the signed-in session:
+**409 `ORDER_CLOSED`** — the refusal is the server's, not a hidden button.

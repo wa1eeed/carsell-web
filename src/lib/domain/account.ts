@@ -32,6 +32,13 @@ export type AccountOrder = {
   ref: string;
   stage: string;
   /**
+   * **والحالة لم تكن تُختار إطلاقًا.** الإلغاء حالةٌ لا مرحلة، فطلبٌ
+   * ملغى في `PAYMENT` تبقى مرحلتُه `PAYMENT` — وبلا هذا الحقل لا
+   * تستطيع الشاشة أن تعرف أنه ملغى، فتعرض شارة «دفع» وبنرًا يقول
+   * «طلبٌ ينتظر الدفع».
+   */
+  status: string;
+  /**
    * موضع المرحلة من ستّ — **والتصميم يعرضه «الخطوة ٥ من ٦»**.
    * واسمُ المرحلة وحده لا يقول كم بقي، ومن يقرأ «نقل الملكية» لا يعرف
    * أهو في أوّل الطريق أم آخره.
@@ -273,7 +280,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       orderBy: { createdAt: 'desc' },
       take: 10,
       select: {
-        ref: true, stage: true, totalAmount: true, createdAt: true,
+        ref: true, stage: true, status: true, totalAmount: true, createdAt: true,
         listing: { select: { ref: true, city: true, vehicle: { select: vehicleSelect } } },
       },
     }),
@@ -462,6 +469,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     orders: orders.map((order) => ({
       ref: order.ref,
       stage: order.stage,
+      status: order.status,
       /**
        * **والترتيب من `STAGES` لا مكتوبًا هنا.** قائمةٌ ثانية تتباعد
        * عن الأولى أوّل مرحلةٍ تُضاف، فيقول الحساب «٥ من ٦» والطلب

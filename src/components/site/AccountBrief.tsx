@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Quantity } from '@/components/ui/Quantity';
 import type { AccountData } from '@/lib/domain/account';
+import { orderNeedsBuyer } from '@/lib/domain/order-state';
 
 /**
  * ═══ خلاصةٌ تُقرأ فيُعمَل بها ═══
@@ -20,10 +21,16 @@ export function AccountBrief({ data, locale }: { data: AccountData; locale: stri
     (offer) => offer.status === 'PENDING' || offer.status === 'COUNTERED',
   ).length;
 
-  /** الطلب في مرحلةٍ تحتاجه هو — لا كل طلبٍ جارٍ. */
-  const actionable = data.orders.filter(
-    (order) => order.stage === 'PAYMENT' || order.stage === 'TRANSFER',
-  );
+  /**
+   * الطلب في مرحلةٍ تحتاجه هو — لا كل طلبٍ جارٍ.
+   *
+   * **والحالة تُقرأ مع المرحلة.** كان الفحص على المرحلة وحدها، والإلغاء
+   * حالةٌ لا مرحلة — فطلبٌ أُلغي عند الدفع تبقى مرحلتُه `PAYMENT`،
+   * فيُعلن هذا البنر بلونٍ أخضر «طلبٌ ينتظر الدفع» عن طلبٍ مات، ويربط
+   * إلى شاشةٍ فيها زرُّ دفعٍ كان يعمل. والمحكّ في `order-state` يقرؤه
+   * هذا البنر والحارس معًا.
+   */
+  const actionable = data.orders.filter((order) => orderNeedsBuyer(order.status, order.stage));
 
   const liveAuctions = data.auctions.filter((row) => row.live).length;
   const inReview = data.listings.filter((row) => row.status === 'PENDING_REVIEW').length;

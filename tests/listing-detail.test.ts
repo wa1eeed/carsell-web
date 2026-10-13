@@ -304,9 +304,15 @@ describe('═══ صفحة السيارة في المزاد ═══', () => 
    * حتى تمرّ الوظيفة الدورية — والزرّ كان يتبع الحالة وحدها.
    */
   it('مزادٌ انقضى وقتُه ليس حيًّا ولو بقيت حالته LIVE', async () => {
+    /**
+     * **مثبَّتٌ بـ`orderBy`.** كان `findFirst` بلا ترتيب، فالصفُّ الذي
+     * يقع عليه يختلف بين زرعٍ وآخر — فيسقط على صفٍّ ويمرّ على جاره،
+     * ويبدو تقطّعًا وهو عدمُ تثبيت.
+     */
     const row = await db.listing.findFirst({
       where: { status: 'PUBLISHED', type: 'AUCTION', auction: { status: 'LIVE' } },
-      select: { ref: true, auction: { select: { endsAt: true } } },
+      orderBy: { ref: 'asc' },
+      select: { ref: true, auction: { select: { startsAt: true, endsAt: true } } },
     });
     if (row === null || row.auction === null) return;
 
@@ -314,7 +320,15 @@ describe('═══ صفحة السيارة في المزاد ═══', () => 
     if (detail === null) return;
     const view = await toPublicDetail(detail);
 
-    const ended = row.auction.endsAt.getTime() <= Date.now();
-    expect(view.auction?.live).toBe(!ended);
+    /**
+     * **والحيُّ طرفان لا طرف.** كان الفحص على الانقضاء وحده، فمزادٌ
+     * حالتُه `LIVE` وبدايتُه في المستقبل يُحسب حيًّا في الاختبار وغيرَ
+     * حيٍّ في المنتج — والمنتج محقّ. (وكانت البذرة تُنتج هذا الصفّ
+     * متى شُغّلت قبل الثالثة فجرًا UTC.)
+     */
+    const now = Date.now();
+    const open =
+      row.auction.startsAt.getTime() <= now && row.auction.endsAt.getTime() > now;
+    expect(view.auction?.live).toBe(open);
   });
 });

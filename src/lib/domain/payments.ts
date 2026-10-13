@@ -5,6 +5,7 @@ import type { Prisma } from '@/generated/prisma/client';
 import type { PaymentPurpose, PaymentStatus } from '@/generated/prisma/enums';
 import { resolveForPayment, resolveGateway } from '@/lib/payments/resolve';
 import { canSettle } from './transfer-windows';
+import { isLiveOrder } from './order-state';
 
 /**
  * مسار الدفع — **بلغة الضمان** (قرار ٣٤).
@@ -46,6 +47,7 @@ const LIVE: readonly PaymentStatus[] = ['CREATED', 'REQUIRES_ACTION', 'PENDING',
 export type StartFailure =
   | 'ORDER_NOT_FOUND'
   | 'NOT_BUYER'
+  | 'ORDER_CLOSED'
   | 'WRONG_STAGE'
   | 'WINDOW_PASSED'
   | 'ALREADY_HELD'
@@ -79,6 +81,18 @@ export async function startHold(
 
   if (order === null) return { ok: false, reason: 'ORDER_NOT_FOUND' };
   if (order.buyerId !== input.buyerId) return { ok: false, reason: 'NOT_BUYER' };
+  /**
+   * ═══ والحالة تُفحص قبل المرحلة ═══
+   *
+   * **`status` كان مختارًا في الاستعلام ولا يقرؤه أحد.** والإلغاء حالةٌ
+   * لا مرحلة: طلبٌ ملغى في `PAYMENT` تبقى مرحلتُه `PAYMENT`، فكل
+   * الحُرّاس تحته تمرّ — ويُحجَز مبلغٌ لطلبٍ ميّتٍ أُعيد إعلانُه
+   * معروضًا للآخرين. فالمال يُؤخَذ مرّتين عن مركبةٍ واحدة.
+   *
+   * و`advanceStage` كان يفحصها منذ بُني (`ORDER_CLOSED`) — فهذا المدخل
+   * وحده كان مكشوفًا.
+   */
+  if (!isLiveOrder(order.status)) return { ok: false, reason: 'ORDER_CLOSED' };
   if (order.stage !== 'PAYMENT') return { ok: false, reason: 'WRONG_STAGE' };
   if (order.paymentDueAt !== null && order.paymentDueAt.getTime() <= now.getTime()) {
     return { ok: false, reason: 'WINDOW_PASSED' };

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { SiteHeader } from '@/components/site/SiteHeader';
@@ -24,6 +23,7 @@ export function AccountList({
   crumb,
   subtitle,
   stats,
+  filters,
   empty,
   action,
   children,
@@ -44,6 +44,14 @@ export function AccountList({
    * جوابٌ، وإخفاؤه يجعل الرقم يظهر فجأةً فيبدو أنه بُني الآن.
    */
   stats?: ReactNode;
+  /**
+   * صفُّ ترشيحٍ بين الترويسة والقائمة.
+   *
+   * **وموضعُه فوق الحالة الفارغة لا تحتها**: من رشّح إلى مجموعةٍ خالية
+   * يجب أن يبقى أمامه ما يعيده إلى غيرها — وإلّا صار «لا طلبات ملغاة»
+   * بابًا مغلقًا لا مخرجَ منه إلّا الرجوع.
+   */
+  filters?: ReactNode;
   empty: { title: string; description: string };
   /** زرّ الحالة الفارغة — «بِع سيارتك» أو «تصفّح» */
   action?: ReactNode;
@@ -87,6 +95,8 @@ export function AccountList({
 
           {stats === undefined ? null : <div className="mb-7">{stats}</div>}
 
+          {filters === undefined ? null : <div className="mb-6">{filters}</div>}
+
           {children.length === 0 ? (
             <EmptyState title={empty.title} description={empty.description} />
           ) : (
@@ -116,7 +126,12 @@ export function AccountRow({
   year?: number;
   meta: ReactNode;
   value?: ReactNode;
-  badge?: { text: string; tone: 'accent' | 'warn' | 'neutral' };
+  /**
+   * وسمُ الصفّ **عقدةً لا بيانات**. كان `{text, tone}`، فلمّا صار وسمُ
+   * الطلب يجمع حالتَه ومرحلتَه في قراءةٍ واحدة («أُلغي عند الدفع») لم
+   * يكفِ نصٌّ ولونٌ — والمنطق موضعُه المكوّن لا الصفّ.
+   */
+  badge?: ReactNode;
 }) {
   const body = (
     <div className="flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4">
@@ -128,7 +143,7 @@ export function AccountRow({
               <ArabicNumber value={year} grouped={false} />
             </span>
           )}
-          {badge === undefined ? null : <Badge tone={badge.tone}>{badge.text}</Badge>}
+          {badge}
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-2 text-2xs opacity-55">{meta}</p>
       </div>

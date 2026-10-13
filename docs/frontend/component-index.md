@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **138** components in **3** directories.
+Counted: **139** components in **3** directories.
 
 ## `src/components/admin`
 
@@ -106,7 +106,7 @@ Counted: **138** components in **3** directories.
 | --- | --- | --- | --- |
 | `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 97 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 81 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 83 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 9 |
@@ -121,7 +121,7 @@ Counted: **138** components in **3** directories.
 | `Duration` | no | `hours` | 10 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 34 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` | 3 |
-| `FilterChip` | no | `href` · `active` · `count` · `children` | 4 |
+| `FilterChip` | no | `href` · `active` · `count` · `children` | 5 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
 | `HistoryList` | no | `entries` · `className` | 1 |
@@ -138,6 +138,7 @@ Counted: **138** components in **3** directories.
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 6 |
 | `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 72 |
+| `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 1 |
 | `PaintMap` | no | `panels` · `className` | 1 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 1 |
@@ -154,7 +155,7 @@ Counted: **138** components in **3** directories.
 | `Since` | no | `iso` · `className` | 1 |
 | `Sparkline` | no | `points` · `height` · `className` | 3 |
 | `SpecTable` | no | `entries` · `columns` · `className` | 1 |
-| `StageTracker` | no | `current` · `orientation` · `className` | 2 |
+| `StageTracker` | no | `current` · `stopped` · `orientation` · `className` | 2 |
 | `SpecRow` | no | `label` · `children` · `className` | 3 |
 | `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 16 |
 | `Stepper` | no | `steps` · `active` · `onSelect` · `className` | 1 |

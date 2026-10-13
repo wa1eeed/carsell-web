@@ -614,6 +614,19 @@
       "ENDED_MET": "Ended — reserve met",
       "ENDED_UNMET": "Ended — reserve not met",
       "CANCELLED": "Cancelled"
+    },
+    "orderStoppedAt": {
+      "REQUEST": "at request",
+      "APPROVED": "at approval",
+      "INSPECTION": "at inspection",
+      "PAYMENT": "at payment",
+      "TRANSFER": "at transfer",
+      "DONE": "at completion"
+    },
+    "orderStopped": {
+      "CANCELLED": "Cancelled",
+      "STALLED": "Stalled",
+      "DISPUTED": "Disputed"
     }
   },
   "services": {

@@ -24,6 +24,7 @@ import { adminOrderDetail } from '@/lib/domain/admin-order-detail';
 import { orderTimeline } from '@/lib/domain/admin-order-timeline';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { STAGE_LABEL } from '@/lib/labels/charts';
+import { orderStateLabel } from '@/lib/labels/orders';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
 
@@ -60,11 +61,6 @@ const SOURCE_LABEL: Record<string, string> = {
   BUY_NOW: 'اشترِ الآن',
 };
 
-const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
-  ACTIVE: 'accent',
-  COMPLETED: 'accent',
-  CANCELLED: 'danger',
-};
 
 /**
  * ═══ تسميات أحداث الطلب — مقيسة على ما يُكتب فعلًا ═══
@@ -176,6 +172,9 @@ export default async function AdminOrderDetailPage({
   const order = await adminOrderDetail(decodeURIComponent(ref));
   if (order === null) notFound();
 
+  /** الصياغة من `labels/orders` — قاعدةٌ واحدة تقرؤها اللوحة كلُّها. */
+  const state = orderStateLabel(order.status, order.stage);
+
   const search = await searchParams;
   const raw = typeof search.tab === 'string' ? search.tab : undefined;
   const tab: OrderTab = TABS.map((row) => row.key).find((key) => key === raw) ?? null;
@@ -200,8 +199,15 @@ export default async function AdminOrderDetailPage({
         title={`${order.listing.title} — ${order.listing.city}`}
         badges={
           <>
-            <Badge tone={STATUS_TONE[order.status] ?? 'neutral'}>{order.status}</Badge>
-            <Badge tone="neutral">{STAGE_LABEL[order.stage] ?? order.stage}</Badge>
+            {/*
+              ═══ وسمٌ واحد لا وسمان يتناقضان ═══
+
+              كانا `order.status` خامًّا بالإنجليزية (`CANCELLED`) ثم
+              تسمية المرحلة بالعربية («الدفع») — فيقرأ المشغّل جملتين
+              تنفي كلٌّ منهما الأخرى، ويبني عليهما قرارًا. والقرار ١٧:
+              «أُلغي عند الدفع» قراءةً واحدة.
+            */}
+            <Badge tone={state.tone}>{state.text}</Badge>
             <Badge tone="neutral">{SOURCE_LABEL[order.source] ?? order.source}</Badge>
             {/*
               **المهلة والزمن معًا** — لا الحالة وحدها. ومرحلةٌ انقضت
@@ -226,7 +232,12 @@ export default async function AdminOrderDetailPage({
       <DetailStats
         items={[
           { label: 'الإجماليّ', value: <Money amount={Number(order.money.totalAmount)} /> },
-          { label: 'المرحلة', value: STAGE_LABEL[order.stage] ?? order.stage },
+          /*
+            **والحقل يقول الحال لا المرحلة.** «المرحلة: الدفع» على
+            طلبٍ ملغى صحيحٌ حرفيًّا ومُضِلٌّ عمليًّا — فالعنوان صار
+            «الحال» ومعه ما يُقيّدها.
+          */
+          { label: 'الحال', value: state.text },
           {
             /*
               **والرقم الذي لا يُقرأ له بيتٌ هنا.** الكرت كان يعرض

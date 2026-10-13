@@ -170,6 +170,24 @@ const NOW = (() => {
   return today;
 })();
 const days = (n: number): Date => new Date(NOW.getTime() + n * 86_400_000);
+
+/**
+ * ═══ والمزاد الحيّ يُقاس بالساعة الحقيقية لا بالمرساة ═══
+ *
+ * `NOW` مثبَّتةٌ عند التاسعة صباحًا UTC ليستقرّ ما يُزرع. **ونافذةُ
+ * المزاد الحيّ لا تحتمل ذلك**: `hours(-6)` تساوي الثالثة فجرًا، فبذرةٌ
+ * تُشغَّل قبلها تكتب `LIVE` ببدايةٍ **في المستقبل**؛ و`hours(2)` تساوي
+ * الحادية عشرة، فبذرةٌ بعدها تكتب `LIVE` بنهايةٍ **منقضية**.
+ *
+ * وفي الحالين صفٌّ متناقض: الشاشة تحسبه غير حيٍّ (بحقّ) وحالتُه تقول
+ * `LIVE` — فيسقط اختبارٌ لا علاقة له بما غُيّر، ويبدو تقطّعًا وهو
+ * ساعةُ التشغيل. و`SEED_NOW` تظلّ مُطاعة فيبقى الزرع قابلًا للتثبيت.
+ */
+const REAL_NOW = (() => {
+  const fixed = process.env.SEED_NOW;
+  return fixed !== undefined && fixed !== '' ? new Date(fixed) : new Date();
+})();
+const realHours = (n: number): Date => new Date(REAL_NOW.getTime() + n * 3_600_000);
 const hours = (n: number): Date => new Date(NOW.getTime() + n * 3_600_000);
 
 const CITIES = [
@@ -1116,10 +1134,10 @@ async function main(): Promise<void> {
    * يُرى في حالته العاجلة أيضًا، وشريطُ «تُغلق قريبًا» يجد ما يعرضه.
    */
   const auctionSpecs = [
-    { status: 'LIVE' as const, startsAt: hours(-6), endsAt: days(3) },
+    { status: 'LIVE' as const, startsAt: realHours(-6), endsAt: days(3) },
     { status: 'SCHEDULED' as const, startsAt: days(2), endsAt: days(4) },
     { status: 'ENDED_MET' as const, startsAt: days(-6), endsAt: days(-3) },
-    { status: 'LIVE' as const, startsAt: hours(-20), endsAt: hours(2) },
+    { status: 'LIVE' as const, startsAt: realHours(-20), endsAt: realHours(2) },
   ];
 
   for (let i = 0; i < auctionListings.length; i += 1) {
@@ -1197,10 +1215,26 @@ async function main(): Promise<void> {
     'DONE',
   ] as const;
 
-  const orderListings = listings.slice(0, 12);
+  /**
+   * ═══ وطلبٌ ملغى في البذرة ═══
+   *
+   * **لم يكن في القاعدة طلبٌ `CANCELLED` واحد** — والحالة معرَّفةٌ في
+   * المخطّط ويكتبها `cancelOrder`. فكلُّ شاشةٍ تعرض طلبًا لم تُجرَّب
+   * قطُّ في هذه الحال، ومرّ عطلٌ في ثمانية مواضع بلا أن يراه أحد:
+   * بنرٌ أخضر يقول «طلبٌ ينتظر الدفع» عن طلبٍ أُلغي، ووسمان
+   * متجاوران يتناقضان، وزرُّ دفعٍ يعمل.
+   *
+   * **والإلغاء قبل الدفع**، فلا دفعةَ له ولا ضمان — وهو الشكل الذي
+   * ينتجه `cancelOrder` حين يُلغى الطلب في مرحلة الدفع.
+   */
+  const CANCELLED_INDEX = 12;
+  const orderListings = listings.slice(0, CANCELLED_INDEX + 1);
   for (let i = 0; i < orderListings.length; i += 1) {
     const l = orderListings[i] as ListingRef;
-    const stage = STAGES[i % STAGES.length] as (typeof STAGES)[number];
+    const cancelled = i === CANCELLED_INDEX;
+    const stage = cancelled
+      ? ('PAYMENT' as const)
+      : (STAGES[i % STAGES.length] as (typeof STAGES)[number]);
     const buyer = buyers[i % buyers.length] as (typeof buyers)[number];
     const agreed = new D(String(Math.round(Number(l.askPrice) * 0.97)));
     // رسمٌ حكوميّ يُمرَّر كما هو — صرفٌ نيابةً عن العميل، لا ضريبة لنا فيه
@@ -1239,7 +1273,11 @@ async function main(): Promise<void> {
               ? 'OFFER'
               : 'DIRECT',
         stage,
-        status: stage === 'DONE' ? 'COMPLETED' : 'ACTIVE',
+        status: cancelled ? 'CANCELLED' : stage === 'DONE' ? 'COMPLETED' : 'ACTIVE',
+        /** **ومن ألغى يُكتب ولماذا** — «أُلغي» وحدها لا تقول شيئًا. */
+        ...(cancelled
+          ? { cancelReason: 'انسحب المشتري قبل الدفع', cancelledBy: buyer.id }
+          : {}),
         agreedPrice: agreed,
         commissionPct: new D('0.00'),
         commissionAmount: new D('0.00'),
@@ -1269,7 +1307,8 @@ async function main(): Promise<void> {
       })),
     });
 
-    if (STAGES.indexOf(stage) >= STAGES.indexOf('PAYMENT')) {
+    /** **ولا ضمانَ لملغًى قبل الدفع** — لا دفعةَ وقعت فلا شيء يُحجز. */
+    if (!cancelled && STAGES.indexOf(stage) >= STAGES.indexOf('PAYMENT')) {
       const heldAt = days(-between(2, 10));
 
       /**

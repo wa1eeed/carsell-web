@@ -89,8 +89,19 @@ describe('═══ حالات يبلغها المنتج ═══', () => {
 
   it('طلبٌ بلغ الدفع فما بعده له ضمان', async () => {
     const PAID = ['PAYMENT', 'TRANSFER', 'DONE'] as const;
+    /**
+     * ═══ والملغى مستثنى — المرحلة تسجّل أين مات ═══
+     *
+     * الإلغاء حالةٌ لا مرحلة (قرار المصمّم ١٧): الطلب يبقى عند المرحلة
+     * التي مات فيها. فطلبٌ أُلغي **عند دخوله** مرحلة الدفع مرحلتُه
+     * `PAYMENT` ولا دفعةَ له ولا ضمان — وهو ما يُنتجه `cancelOrder`
+     * بالضبط.
+     *
+     * وكانت الثابتة تشمله فتقرأ بلوغَ المرحلة إقرارًا بأن مالًا
+     * أُخذ. (كُتبت يوم لم يكن في البذرة طلبٌ ملغى واحد.)
+     */
     const without = await db.order.findMany({
-      where: { stage: { in: [...PAID] }, escrow: { is: null } },
+      where: { stage: { in: [...PAID] }, status: { not: 'CANCELLED' }, escrow: { is: null } },
       select: { ref: true, buyer: { select: { phone: true } } },
     });
 

@@ -11,7 +11,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminDisputeDetail } from '@/lib/domain/admin-detail-readers';
 import { disputeTimeline } from '@/lib/domain/admin-entity-timelines';
-import { STAGE_LABEL } from '@/lib/labels/charts';
+import { orderStateLabel } from '@/lib/labels/orders';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
 
@@ -196,9 +196,13 @@ export default async function AdminDisputeDetailPage({
                 value={<AdminLink href={`/admin/orders/${encodeURIComponent(dispute.order.ref)}`} ltr>{dispute.order.ref}</AdminLink>}
                 ltr
               />
+              {/*
+                **والحقل يقول الحال.** وحلُّ النزاع قد يُلغي الطلب، فـ
+                «المرحلة: الدفع» تبقى صحيحةً حرفيًّا ومُضِلّة عمليًّا.
+              */}
               <Field
-                label="المرحلة"
-                value={STAGE_LABEL[dispute.order.stage] ?? dispute.order.stage}
+                label="حال الطلب"
+                value={orderStateLabel(dispute.order.status, dispute.order.stage).text}
               />
               <Field
                 label="السعر المتّفق"

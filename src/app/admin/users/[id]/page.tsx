@@ -18,7 +18,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { adminUserDetail } from '@/lib/domain/admin-entity-detail';
 import { userTimeline } from '@/lib/domain/admin-entity-timelines';
-import { STAGE_LABEL } from '@/lib/labels/charts';
+import { orderStateLabel } from '@/lib/labels/orders';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { MarginPanel } from './MarginPanel';
 import { WalletPanel } from './WalletPanel';
@@ -211,8 +211,14 @@ export default async function AdminUserDetailPage({
                       <Badge tone="neutral">{order.side === 'buyer' ? 'مشتريًا' : 'بائعًا'}</Badge>
                     </span>
                     <span className="flex items-center gap-3 text-3xs opacity-60">
-                      <span>{STAGE_LABEL[order.stage] ?? order.stage}</span>
-                      <span>{order.status}</span>
+                      {/*
+                        **قراءةٌ واحدة لا قراءتان.** كانت المرحلة
+                        بالعربية و`status` خامًّا بالإنجليزية بجوارها:
+                        «الدفع  CANCELLED» — جملتان تتناقضان، وإحداهما
+                        غير مترجمة في لوحةٍ عربية. والقرار ١٧: «أُلغي
+                        عند الدفع».
+                      */}
+                      <span>{orderStateLabel(order.status, order.stage).text}</span>
                       <span>{riyadh.format(new Date(order.at))}</span>
                     </span>
                   </div>

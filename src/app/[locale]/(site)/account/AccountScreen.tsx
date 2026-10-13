@@ -17,6 +17,14 @@ import { MyAuctions } from '@/components/site/MyAuctions';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { StatCard } from '@/components/ui/StatCard';
 import { Tabs } from '@/components/ui/Tabs';
+import { cn } from '@/lib/cn';
+import { OrderStatusBadge } from '@/components/ui/OrderStatusBadge';
+import {
+  isClosedOrder,
+  orderGroup,
+  orderNeedsBuyer,
+  type OrderGroup,
+} from '@/lib/domain/order-state';
 import type { AccountData } from '@/lib/domain/account';
 
 /**
@@ -70,6 +78,29 @@ export function AccountScreen({
   const te = useTranslations('enums');
   const tx = useTranslations('tax');
   const [tab, setTab] = useState('listings');
+  /**
+   * ═══ تبويبٌ فرعيّ تحت «طلباتي» ═══
+   *
+   * القائمة كانت واحدة: الجاري والمكتمل والملغى في صفٍّ واحد مرتَّبين
+   * بالتاريخ — **فالطلب الذي ينتظر دفعًا يختفي بين ملغيَيْن**.
+   */
+  const [orderGroupTab, setOrderGroupTab] = useState<OrderGroup>('live');
+
+  /**
+   * **والعدد من التصنيف نفسه الذي يُرشِّح به.** عددٌ يُحسب بشرطٍ
+   * والقائمة تُرشَّح بآخر يقول التبويب «٣» ويعرض اثنين — والبوابة ٤٠
+   * وُلدت من هذا بعينه.
+   */
+  const groupCounts = {
+    live: data.orders.filter((order) => orderGroup(order.status) === 'live').length,
+    done: data.orders.filter((order) => orderGroup(order.status) === 'done').length,
+    cancelled: data.orders.filter((order) => orderGroup(order.status) === 'cancelled').length,
+  };
+
+  const shownOrders = data.orders.filter((order) => orderGroup(order.status) === orderGroupTab);
+
+  /** ما ينتظر فعلًا منه — دفعًا أو تأكيد استلام. */
+  const needsAction = data.orders.some((order) => orderNeedsBuyer(order.status, order.stage));
   const [tax, setTax] = useState<TaxProfile>(taxProfile);
   const [editingTax, setEditingTax] = useState(false);
 
@@ -217,11 +248,64 @@ export function AccountScreen({
         data.orders.length === 0 ? (
           <EmptyState title={t('noOrders')} description={t('noOrdersBody')} />
         ) : (
+          <>
+            {/*
+              **والعدّاد على «قيد الإجراء» وحده.** «الملغاة (٤)» رقمٌ
+              لا يُفعل به شيء، و«المكتملة (٢)» كذلك — والعدد يُعرض حيث
+              يُقرَّر عليه. والنقطة تنبض متى كان بينها ما ينتظر فعلًا
+              من صاحبه: دفعًا أو تأكيد استلام.
+            */}
+            <Tabs
+              items={[
+                {
+                  id: 'live',
+                  label: 'قيد الإجراء',
+                  /** وصفرٌ لا يُعرض — «قيد الإجراء (٠)» ضجيجٌ، والفراغ أبلغ. */
+                  ...(groupCounts.live === 0 ? {} : { count: groupCounts.live }),
+                  alert: needsAction,
+                },
+                { id: 'done', label: 'المكتملة' },
+                { id: 'cancelled', label: 'الملغاة' },
+              ]}
+              active={orderGroupTab}
+              onChange={(id) => setOrderGroupTab(id as OrderGroup)}
+              className="mb-5"
+            />
+
+            {shownOrders.length === 0 ? (
+              <EmptyState
+                title={
+                  orderGroupTab === 'live'
+                    ? 'لا طلبات قيد الإجراء'
+                    : orderGroupTab === 'done'
+                      ? 'لا طلبات مكتملة'
+                      : 'لا طلبات ملغاة'
+                }
+                description={
+                  orderGroupTab === 'live'
+                    ? 'ما يحتاج منك إجراءً يظهر هنا، ومعه مهلتُه.'
+                    : orderGroupTab === 'done'
+                      ? 'الصفقات التي تمّت ونُقلت ملكيتها تظهر هنا مع عقودها.'
+                      : 'الطلبات التي أُلغيت تبقى هنا بسبب إلغائها.'
+                }
+              />
+            ) : (
           <ul className="flex flex-col gap-3">
-            {data.orders.map((order) => (
+            {shownOrders.map((order) => (
               <li
                 key={order.ref}
-                className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-4.5"
+                /*
+                  **والصفّ الذي ينتظره يُميَّز بحدٍّ لا بوميض.** وميضٌ
+                  في كل سطر يُلغي نفسه — وثلاثةٌ تنبض معًا لا تقول أيَّها
+                  أوّلًا. فالنقطة على التبويب وحدها، والصفُّ هنا يُعرف
+                  بحدِّه.
+                */
+                className={cn(
+                  'flex flex-wrap items-center gap-4 rounded-xl border bg-surface p-4.5',
+                  orderNeedsBuyer(order.status, order.stage)
+                    ? 'border-warn-400'
+                    : 'border-line',
+                )}
               >
                 <span className="min-w-40 flex-1">
                   <Title title={order.title} year={order.year} />
@@ -232,7 +316,12 @@ export function AccountScreen({
                   </span>
                 </span>
                 <span className="flex shrink-0 flex-col items-start gap-1">
-                  <Badge tone="accent">{te(`orderStage.${order.stage}`)}</Badge>
+                  {/*
+                    **وكان وسمَ المرحلة بلون `accent`** — فطلبٌ ملغى
+                    يحمل وسمًا أخضر يقول «دفع». والوسم الواحد يجمع
+                    الحال والمرحلة: «أُلغي عند الدفع» (قرار المصمّم ١٧).
+                  */}
+                  <OrderStatusBadge status={order.status} stage={order.stage} />
                   {/*
                     **والخطوة تُقال بعددها.** اسم المرحلة وحده لا يقول
                     كم بقي — ومن يقرأ «نقل الملكية» لا يعرف أهو في أوّل
@@ -244,12 +333,18 @@ export function AccountScreen({
                     ستّ حالات جمع. فتُصاغ «الخطوة (١/٦)» — والكسر
                     لاتينيٌّ معزول يُقرأ خانةً بخانة.
                   */}
-                  <span className="flex items-center gap-1 text-3xs opacity-50">
-                    الخطوة
-                    <span dir="ltr" className="font-num">
-                      {displayDigits(String(order.step))}/{displayDigits(String(order.stepCount))}
+                  {/*
+                    **و«الخطوة ٤/٦» لا تُقال لطلبٍ مغلق.** الكسر يقول
+                    «بقي اثنتان» — ولا بقيّةَ طريقٍ في طلبٍ أُلغي.
+                  */}
+                  {isClosedOrder(order.status) ? null : (
+                    <span className="flex items-center gap-1 text-3xs opacity-50">
+                      الخطوة
+                      <span dir="ltr" className="font-num">
+                        {displayDigits(String(order.step))}/{displayDigits(String(order.stepCount))}
+                      </span>
                     </span>
-                  </span>
+                  )}
                 </span>
                 <Money amount={Number(order.amount)} size="md" showCurrency={false} />
                 <Link href={`/${locale}/account/orders/${order.ref}`} className="text-xs font-bold text-accent-700 hover:underline">
@@ -258,6 +353,8 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
+            )}
+          </>
         )
       ) : null}
 

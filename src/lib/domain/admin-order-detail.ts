@@ -1,4 +1,5 @@
 import type { OrderStage, OrderStatus } from '@/generated/prisma/enums';
+import { isLiveOrder } from './order-state';
 import { db } from '@/lib/db';
 import { STAGE_TARGET_HOURS } from './admin-orders';
 import { netToSeller } from './money';
@@ -227,7 +228,13 @@ export async function adminOrderDetail(ref: string, now: Date = new Date()): Pro
     createdAt: order.createdAt.toISOString(),
     stageEnteredAt: order.stageEnteredAt.toISOString(),
     dueAt: dueAt?.toISOString() ?? null,
-    overdue: dueAt !== null && dueAt.getTime() < now.getTime(),
+    /**
+     * **ولا مهلةَ على طلبٍ مغلق.** الإلغاء حالةٌ لا مرحلة، فمهلةُ
+     * الدفع تبقى مكتوبةً على طلبٍ أُلغي وتنقضي بمرور الزمن — فتُعلن
+     * اللوحة «تجاوز المهلة» على طلبٍ لا أحد ينتظره، ويدخل طابورَ
+     * المتأخّرين ما لا إجراءَ فيه.
+     */
+    overdue: isLiveOrder(order.status) && dueAt !== null && dueAt.getTime() < now.getTime(),
     dwellHours: Math.floor((now.getTime() - order.stageEnteredAt.getTime()) / 3_600_000),
     targetHours: STAGE_TARGET_HOURS[order.stage],
     transferDeadlineAt: order.transferDeadlineAt?.toISOString() ?? null,

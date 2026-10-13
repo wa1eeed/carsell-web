@@ -19,7 +19,7 @@ import { listingTimeline } from '@/lib/domain/admin-listing-timeline';
 import { Timeline } from '@/components/admin/Timeline';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
-import { STAGE_LABEL } from '@/lib/labels/charts';
+import { orderStateLabel } from '@/lib/labels/orders';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
 
@@ -254,8 +254,14 @@ export default async function AdminListingDetailPage({
                       {order.ref}
                     </Link>
                     <span className="flex items-center gap-3 text-3xs opacity-60">
-                      <span>{STAGE_LABEL[order.stage] ?? order.stage}</span>
-                      <span>{order.status}</span>
+                      {/*
+                        **قراءةٌ واحدة لا قراءتان.** كانت المرحلة
+                        بالعربية و`status` خامًّا بالإنجليزية بجوارها:
+                        «الدفع  CANCELLED» — جملتان تتناقضان، وإحداهما
+                        غير مترجمة في لوحةٍ عربية. والقرار ١٧: «أُلغي
+                        عند الدفع».
+                      */}
+                      <span>{orderStateLabel(order.status, order.stage).text}</span>
                       <span>{riyadh.format(new Date(order.at))}</span>
                     </span>
                   </div>

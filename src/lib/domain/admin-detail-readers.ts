@@ -202,6 +202,11 @@ export type AdminDisputeDetail = {
   order: {
     ref: string;
     stage: string;
+    /**
+     * **وحلُّ النزاع قد يُلغي الطلب** (`resolveDispute` يكتب
+     * `CANCELLED`) — فالمرحلة وحدها تقول «الدفع» عن طلبٍ أُلغي.
+     */
+    status: string;
     agreedPrice: string;
     buyerName: string;
     buyerId: string;
@@ -227,6 +232,7 @@ export async function adminDisputeDetail(
         select: {
           ref: true,
           stage: true,
+          status: true,
           agreedPrice: true,
           buyerId: true,
           sellerId: true,
@@ -262,6 +268,7 @@ export async function adminDisputeDetail(
         : nameOf(dispute.order.seller),
     order: {
       ref: dispute.order.ref,
+      status: dispute.order.status,
       stage: dispute.order.stage,
       agreedPrice: dispute.order.agreedPrice.toFixed(2),
       buyerName: nameOf(dispute.order.buyer),

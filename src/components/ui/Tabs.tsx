@@ -7,6 +7,17 @@ export type TabItem = {
   id: string;
   label: string;
   count?: number;
+  /**
+   * ═══ نقطةٌ تنبض: هنا ما ينتظرك ═══
+   *
+   * **والعدّاد لا يكفي.** «قيد الإجراء (٣)» تقول كم، ولا تقول أنّ
+   * واحدًا منها ينتظر **فعلًا منك** — ومن لا يفتح التبويب لا يعرف.
+   * فالنقطة تُحمل على التبويب نفسه، فتُرى قبل النقر.
+   *
+   * و`motion-safe` تُسكتها لمن طلب تقليل الحركة: وميضٌ لا يُكتَم
+   * إعلانٌ لا تنبيه.
+   */
+  alert?: boolean;
 };
 
 /**
@@ -53,6 +64,15 @@ export function Tabs({
             )}
           >
             {item.label}
+            {item.alert !== true ? null : (
+              <span
+                className={cn(
+                  'size-1.5 shrink-0 rounded-full motion-safe:animate-pulse',
+                  isActive ? 'bg-bg' : 'bg-warn-400',
+                )}
+                aria-hidden
+              />
+            )}
             {item.count === undefined ? null : (
               <span
                 className={cn(

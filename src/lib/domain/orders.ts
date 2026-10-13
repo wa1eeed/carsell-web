@@ -182,6 +182,14 @@ export type PublicOrder = {
   ref: string;
   stage: OrderStage;
   status: string;
+  /**
+   * سببُ الإلغاء كما كتبه من ألغى — و`null` لطلبٍ لم يُلغَ.
+   *
+   * **ومن أُلغي طلبُه يحقّ له أن يعرف لماذا.** كان يُكتب عند الإلغاء
+   * (`order-cancel.ts`) ولا يقرؤه أحد: فيجد المشتري طلبَه ميّتًا بلا
+   * كلمة، ويظنّ عطلًا ما كان قرارًا.
+   */
+  cancelReason: string | null;
   source: string;
   /** ثوانٍ منذ دخول المرحلة — **محسوبة** لا مخزَّنة. */
   dwellSeconds: number;
@@ -267,6 +275,7 @@ export async function getOrder(
     ref: order.ref,
     stage: order.stage,
     status: order.status,
+    cancelReason: order.cancelReason,
     source: order.source,
     dwellSeconds: Math.max(
       0,

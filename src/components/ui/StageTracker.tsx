@@ -21,10 +21,23 @@ export type OrderStage = (typeof ORDER_STAGES)[number];
  */
 export function StageTracker({
   current,
+  stopped = false,
   orientation = 'horizontal',
   className,
 }: {
   current: OrderStage;
+  /**
+   * ═══ وصل هنا وتوقّف — لا «هو الآن هنا» ═══
+   *
+   * الإلغاء حالةٌ لا مرحلة (قرار المصمّم ١٧): الطلب يبقى عند المرحلة
+   * التي مات فيها، **فموضعُه على المسار صحيح والمظهر هو الكاذب**.
+   * فنقطةٌ داكنة ممتلئة تقول «أنت الآن هنا» عن طلبٍ أُلغي، ومعها
+   * مراحلُ تاليةٌ تبدو قادمة ولن تأتي.
+   *
+   * فالنقطة تصير شرطةً رماديةً مكتومة: موضعٌ بلا تقدّم. **ولا تُصبغ
+   * أحمر** — الإلغاء بابٌ أُغلق لا عطلٌ وقع.
+   */
+  stopped?: boolean;
   orientation?: 'horizontal' | 'vertical';
   className?: string;
 }) {
@@ -42,7 +55,8 @@ export function StageTracker({
       )}
     >
       {ORDER_STAGES.map((stage, i) => {
-        const state = i < currentIndex ? 'done' : i === currentIndex ? 'now' : 'next';
+        const state =
+          i < currentIndex ? 'done' : i === currentIndex ? (stopped ? 'stopped' : 'now') : 'next';
         const isLast = i === ORDER_STAGES.length - 1;
 
         return (
@@ -59,10 +73,15 @@ export function StageTracker({
                   'z-1 flex size-6 shrink-0 items-center justify-center rounded-full text-3xs font-bold',
                   state === 'done' && 'bg-accent text-bg',
                   state === 'now' && 'bg-ink text-bg',
+                  state === 'stopped' && 'bg-ink/15 text-ink/65',
                   state === 'next' && 'border border-line bg-bg text-ink/45',
                 )}
               >
-                {state === 'done' ? (
+                {state === 'stopped' ? (
+                  <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round">
+                    <path d="M5 12h14" />
+                  </svg>
+                ) : state === 'done' ? (
                   <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 12l6 6L20 6" />
                   </svg>
@@ -85,6 +104,7 @@ export function StageTracker({
               className={cn(
                 'text-2xs',
                 state === 'next' ? 'opacity-45' : 'font-semibold',
+                state === 'stopped' && 'opacity-65',
                 vertical && '-mt-6 pb-2',
               )}
             >

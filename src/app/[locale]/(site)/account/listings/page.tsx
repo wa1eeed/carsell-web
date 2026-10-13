@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 import { Button } from '@/components/ui/Button';
 import { Quantity } from '@/components/ui/Quantity';
+import { Badge } from '@/components/ui/Badge';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow, Money } from '../AccountList';
@@ -62,15 +63,19 @@ export default async function ListingsPage({
           href={listing.path}
           title={listing.title}
           year={listing.year}
-          badge={{
-            text: te(`listingStatus.${listing.status}`),
-            tone:
-              listing.status === 'PUBLISHED'
-                ? 'accent'
-                : listing.status === 'PENDING_REVIEW'
-                  ? 'warn'
-                  : 'neutral',
-          }}
+          badge={
+            <Badge
+              tone={
+                listing.status === 'PUBLISHED'
+                  ? 'accent'
+                  : listing.status === 'PENDING_REVIEW'
+                    ? 'warn'
+                    : 'neutral'
+              }
+            >
+              {te(`listingStatus.${listing.status}`)}
+            </Badge>
+          }
           meta={
             <>
               <Quantity unit="views" count={listing.viewCount} />

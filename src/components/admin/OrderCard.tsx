@@ -3,6 +3,7 @@ import { Dwell } from '@/components/admin/Dwell';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import type { OrderRow } from '@/lib/domain/admin-orders';
+import { orderStateLabel } from '@/lib/labels/orders';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 /**
@@ -18,14 +19,6 @@ import { AR_DATE_LOCALE } from '@/lib/arabic';
  * الأخرى فلا تتباعدان.
  */
 
-const STAGE: Record<string, string> = {
-  REQUEST: 'الطلب',
-  APPROVED: 'موافقة البائع',
-  INSPECTION: 'الفحص',
-  PAYMENT: 'الدفع',
-  TRANSFER: 'نقل الملكية',
-  DONE: 'الإنهاء',
-};
 
 const SOURCE: Record<string, string> = {
   DIRECT: 'بيع مباشر',
@@ -60,6 +53,8 @@ const date = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
 
 export function OrderCard({ row }: { row: OrderRow }) {
   const escrow = row.escrowStatus === null ? null : ESCROW[row.escrowStatus];
+  /** الصياغة من `labels/orders` — قاعدةٌ واحدة تقرؤها اللوحة كلُّها. */
+  const state = orderStateLabel(row.status, row.stage);
 
   return (
     /*
@@ -101,7 +96,7 @@ export function OrderCard({ row }: { row: OrderRow }) {
           >
             {row.ref}
           </Link>
-          <Badge tone="neutral">{STAGE[row.stage] ?? row.stage}</Badge>
+          <Badge tone={state.tone}>{state.text}</Badge>
           {row.hasDispute ? <Badge tone="danger">نزاع مفتوح</Badge> : null}
           {escrow === undefined || escrow === null ? null : (
             <Badge tone={escrow.tone}>{escrow.label}</Badge>

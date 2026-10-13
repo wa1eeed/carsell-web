@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { isLiveOrder } from './order-state';
 import { publicUrl } from '@/lib/r2';
 import { ibanLast4 } from './iban';
 import type { AdminUser, Prisma } from '@/generated/prisma/client';
@@ -223,7 +224,14 @@ export async function listAdminOrders(
     );
     const targetHours = STAGE_TARGET_HOURS[order.stage];
     /* والشريحةُ تعدّ بهذه الدالّة نفسها — فلا يتباعد العدُّ عن الترشيح */
-    const critical = isStalled(order.stage, order.stageEnteredAt, now);
+    /**
+     * **ولا تأخّرَ على طلبٍ مغلق.** الإلغاء حالةٌ لا مرحلة، فالمكث
+     * يتراكم على طلبٍ أُلغي بمرور الزمن وحده — فيُحسب «متأخّرًا»
+     * و«حرجًا» ما لا إجراءَ فيه، ويُرشَّح إليه المشغّل في طابورٍ
+     * يُفترض أنه عمله.
+     */
+    const live = isLiveOrder(order.status);
+    const critical = live && isStalled(order.stage, order.stageEnteredAt, now);
 
     return {
       ref: order.ref,
@@ -231,7 +239,7 @@ export async function listAdminOrders(
       status: order.status,
       dwellHours,
       targetHours,
-      late: targetHours > 0 && dwellHours > targetHours,
+      late: live && targetHours > 0 && dwellHours > targetHours,
       critical,
       total: order.totalAmount.toString(),
       // الاسم أو آخر أربعة من الجوال — لا الرقم كاملًا في جدول

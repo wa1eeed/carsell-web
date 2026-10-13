@@ -614,6 +614,19 @@
       "ENDED_MET": "انتهى — بلغ الاحتياطي",
       "ENDED_UNMET": "انتهى — لم يبلغ الاحتياطي",
       "CANCELLED": "ملغى"
+    },
+    "orderStoppedAt": {
+      "REQUEST": "عند الطلب",
+      "APPROVED": "عند الموافقة",
+      "INSPECTION": "عند الفحص",
+      "PAYMENT": "عند الدفع",
+      "TRANSFER": "عند نقل الملكية",
+      "DONE": "عند الإتمام"
+    },
+    "orderStopped": {
+      "CANCELLED": "أُلغي",
+      "STALLED": "توقّف",
+      "DISPUTED": "نزاع"
     }
   },
   "services": {

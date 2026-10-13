@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import { Button } from '@/components/ui/Button';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, favoriteListings } from '@/lib/domain/account';
+import { Badge } from '@/components/ui/Badge';
 import { AccountList, AccountRow, Money } from '../AccountList';
 
 export const dynamic = 'force-dynamic';
@@ -51,10 +52,10 @@ export default async function FavoritesPage({
           href={item.path}
           title={item.title}
           year={item.year}
-          {...(item.available
-            ? {}
-            : /* المسحوب يبقى ويُقال — حذفه يوهم المستخدم أنه لم يحفظه */
-              { badge: { text: 'لم تعد معروضة', tone: 'warn' as const } })}
+          badge={
+            /* المسحوب يبقى ويُقال — حذفه يوهم المستخدم أنه لم يحفظه */
+            item.available ? undefined : <Badge tone="warn">لم تعد معروضة</Badge>
+          }
           meta={<span>{item.city}</span>}
           value={<Money amount={item.price} />}
         />
