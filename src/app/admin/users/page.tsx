@@ -98,7 +98,16 @@ export default async function AdminUsersPage({
         <StatCard label="نشط" value={countOf('ACTIVE')} />
         <StatCard label="موقوف" value={countOf('SUSPENDED')} tone={countOf('SUSPENDED') > 0 ? 'warn' : 'plain'} />
         <StatCard label="محظور" value={countOf('BANNED')} />
-        <StatCard label="موثّق" value={users.filter((user) => user.idVerified).length} />
+        {/*
+          ═══ وبطاقاتُ الصفّ الواحد تصف شيئًا واحدًا ═══
+
+          كانت هذه وحدَها تُحسب من `users` — **القائمة المرشَّحة** —
+          وجاراتُها من القاعدة. فعلى شريحة «معارض» يقرأ المشغّل «نشط ٢٦
+          · موثّق ٤»: ثلاثٌ تصف المنصّة وواحدةٌ تصف الصفحة، في صفٍّ
+          واحد ولا شيء يفرّق. فيُقرأ أن ستّةً وعشرين نشطًا منهم أربعةٌ
+          موثّقون.
+        */}
+        <StatCard label="موثّق" value={segments.verified} />
       </div>
 
       {/*
