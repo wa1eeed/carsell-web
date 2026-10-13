@@ -29,8 +29,19 @@ The owner supplied screenshots of the original design next to the build. These
 are examples, not the whole set — each screen is compared against its block in
 `design/Front-end Web.dc.html` before it is called done.
 
-- [ ] **Auction detail** — countdown, bid ladder, bid history table with CSV,
-      "closing soon" rail, dealer card, stats row.
+- [~] **Auction detail** — the bid log is now the design's table (bidder ·
+      timestamp · step · type · status · amount), with the «٦ مزايدات · ٤
+      مزايدين» header and a card layout below `sm` so the amount is never
+      behind a horizontal scroll. Countdown, closing-soon rail, dealer card and
+      the stats strip were already built. Still missing from the design:
+  - [ ] **CSV download** of the bid log — needs a route.
+  - [ ] **Cancelled bids** («ملغاة · إخلال بالشروط») — `Bid` has no
+        cancellation field. Who may void a bid and on what grounds is a
+        business rule, not a layout question.
+  - [ ] **Inline event rows** — «مُدّد وقت الإغلاق ٥ دقائق» and «أُلغيت
+        مزايدة #U-… — إخلال بشروط المزاد» between the bid rows. Needs the
+        extension and cancellation events to be recorded per auction.
+  - [ ] **«اعرض الـ١٣ مزايدة الأقدم»** — the log shows every bid today.
 - [ ] **Account home** — the design draws a sidebar, stat cards, orders with
       progress bars, incoming offers with accept/counter, auctions, reports.
 - [ ] **Sell wizard — vehicle step** — hero with stats, 3-step progress, photo

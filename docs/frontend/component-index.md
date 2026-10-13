@@ -9,7 +9,16 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **139** components in **3** directories.
+Counted: **141** components in **3** directories.
+
+## Referenced nowhere else
+
+A component nothing imports is either dead or about to be. This repo has
+closed that class a dozen times; the list is here so it is seen in a table
+rather than found by chance.
+
+- `BidStatus` — `src/components/site/AuctionSections.tsx`
+- `BidStep` — `src/components/site/AuctionSections.tsx`
 
 ## `src/components/admin`
 
@@ -58,9 +67,11 @@ Counted: **139** components in **3** directories.
 | `AuctionLive` | yes | `listingRef` · `auctionId` · `live` · `onSnapshot` | 1 |
 | `AuctionPulse` | no | `auction` · `live` · `standing` · `className` | 1 |
 | `AuctionTerms` | no | `terms` | 1 |
+| `BidLogHead` | no | `bids` | 1 |
 | `BidLogStats` | no | `auction` | 1 |
-| `BidStatus` | no | `top` · `isAuto` | 1 |
-| `BidStep` | no | `step` | 1 |
+| `BidLogTable` | no | `bids` · `locale` | 1 |
+| `BidStatus` | no | `top` · `isAuto` | 0 |
+| `BidStep` | no | `step` | 0 |
 | `ClosingSoonRail` | no | `items` | 2 |
 | `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
 | `SpecStrip` | no | `items` | 1 |

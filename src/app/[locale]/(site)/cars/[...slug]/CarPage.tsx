@@ -24,9 +24,9 @@ import { AuctionPulse } from '@/components/site/AuctionPulse';
 import { AuctionLive } from '@/components/site/AuctionLive';
 import {
   AuctionTerms,
+  BidLogHead,
   BidLogStats,
-  BidStatus,
-  BidStep,
+  BidLogTable,
   ClosingSoonRail,
   SellerCard,
   SpecStrip,
@@ -653,7 +653,15 @@ export function CarPage({
       */}
       {auction === null ? null : (
         <section className="mt-12 border-t border-line pt-9">
-          <h2 className="mb-1.5 text-2xl font-bold">سجلّ المزايدات</h2>
+          {/*
+            **والعنوان يحمل عدَّديه** كما في التصميم: «٦ مزايدات · ٤
+            مزايدين» — فستٌّ من أربعةٍ منافسةٌ متبادلة، وستٌّ من ستّةٍ
+            محاولاتٌ أُولى، والرقم وحده لا يفرّق.
+          */}
+          <span className="mb-1.5 flex flex-wrap items-baseline gap-3.5">
+            <h2 className="text-2xl font-bold">سجلّ المزايدات</h2>
+            <BidLogHead bids={(shown ?? auction).bids} />
+          </span>
           <p className="mb-5 text-3xs leading-loose opacity-55">
             سجلٌّ غير قابل للتعديل — كل مزايدة موثّقة برقم المزايد وتوقيتٍ دقيق.
             وهويات المزايدين مخفية، وأرقامهم ثابتة داخل المزاد تتيح متابعة سلوكه.
@@ -664,25 +672,7 @@ export function CarPage({
               لا مزايدات بعد — وأوّل مزايدة تبدأ من سعر الافتتاح.
             </p>
           ) : (
-            <ul className="flex flex-col gap-px overflow-hidden rounded-xl border border-line bg-line">
-              {(shown ?? auction).bids.map((bid) => (
-                <li
-                  key={`${bid.alias}-${bid.at}`}
-                  className="flex flex-wrap items-center justify-between gap-3 bg-surface px-4 py-3"
-                >
-                  <span className="flex min-w-0 flex-1 items-center gap-3">
-                    <span className="bidi-isolate text-2xs font-bold">{bid.alias}</span>
-                    <BidStatus top={bid.top} isAuto={bid.isAuto} />
-                  </span>
-                  <span className="flex items-center gap-3.5">
-                    <BidStep step={bid.step} />
-                    <span className="font-num text-2xs font-bold">
-                      <ArabicNumber value={Number(bid.amount)} />
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <BidLogTable bids={(shown ?? auction).bids} locale={locale} />
           )}
 
           <BidLogStats auction={shown ?? auction} />

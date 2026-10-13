@@ -4665,3 +4665,51 @@ and the service page selects «نيسان ألتيما 2022» rather than its fi
 
 The hand-added test car was deleted afterwards; the two seeded garage vehicles
 remain, so the state stays reproducible.
+
+---
+
+## The bid log promised a precise timestamp and showed none
+
+Comparing `design/Front-end Web.dc.html` against the built auction page, the bid
+log was the clearest gap. The design draws a table of six columns — المزايد ·
+التاريخ والوقت · الفرق · النوع · الحالة · المبلغ — under a heading that carries
+two counts, «٦ مزايدات · ٤ مزايدين».
+
+The build had a flat list: alias, a status badge, the step and the amount.
+
+**And above it sat this sentence, which the build also had:**
+
+> سجلٌّ غير قابل للتعديل — كل مزايدة موثّقة برقم المزايد وتوقيتٍ دقيق.
+
+There was no time anywhere in the log. `at` has been carried in
+`PublicAuction.bids` since it was built; nothing rendered it. A promise written
+over a log that does not keep it is worse than a silent log — someone asked to
+put down a deposit reads the line and then finds nothing to check it against.
+
+### What was built
+
+`BidLogTable` renders the design's six columns with the top bid's row in accent,
+and `BidLogHead` carries both counts — six bids from four people is a different
+auction from six bids from six, and one number cannot say which.
+
+**Below `sm` it is not a table.** Six columns measure 576px and the container on
+a phone is 361, so the **amount** — the reason the log is read — ended up behind
+a horizontal scroll with nothing to indicate it. The design is a desktop mock and
+says nothing about phones. The same fields now render as two lines per bid, the
+amount largest, with no scrolling. Measured: 0 overflow at 395px.
+
+### Deliberate deviation
+
+The design shows bidder numbers like `#U-40912`; the build numbers them per
+auction (`#U-1`, `#U-5`). Both are stable within the auction and neither reveals
+identity, and the short form is easier to scan down a column. Noted rather than
+silently changed.
+
+### Not built, and why
+
+- **CSV download** — the design has the link; it needs a route.
+- **«ملغاة · إخلال بالشروط»** — `Bid` has no cancellation field at all. Who may
+  void a bid, on what grounds, and what happens to the deposit is a business
+  rule, so it is a question for the owner rather than a layout to copy.
+- **Inline event rows** for extensions and cancellations — the stats strip
+  already counts extensions, but the individual events are not recorded.
