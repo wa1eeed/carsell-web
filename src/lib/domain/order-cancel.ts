@@ -63,7 +63,7 @@ export async function cancelOrder(
   const order = await db.order.findUnique({
     where: { ref: input.orderRef },
     select: {
-      id: true, stage: true, status: true, buyerId: true, sellerId: true,
+      id: true, ref: true, stage: true, status: true, buyerId: true, sellerId: true,
       totalAmount: true, listingId: true,
     },
   });
@@ -173,6 +173,22 @@ export async function cancelOrder(
     if (listing?.status === 'RESERVED') {
       await republishListing(tx, order.listingId);
     }
+
+    /**
+     * ═══ ومن أُلغي عليه طلبُه لا يُخبَر ═══
+     *
+     * `cancelReason` تُكتب هنا منذ بُنيت الدالّة، وصفحةُ الطلب تعرضها
+     * — **لمن يفتحها**. والطرف الآخر لا يفتحها: البائع ينتظر دفعةً لن
+     * تأتي ومركبتُه عادت معروضة وهو لا يدري، والمشتري ينتظر مركبةً
+     * اعتذر عنها صاحبُها. وقالب `order.cancelled` مزروعٌ بلا كاتب.
+     */
+    const { notifyOrderCancelled } = await import('./order-notify');
+    await notifyOrderCancelled(
+      tx,
+      { ref: order.ref, buyerId: order.buyerId, sellerId: order.sellerId },
+      input.actorId,
+      input.reason.trim().slice(0, 500),
+    );
   });
 
   /**

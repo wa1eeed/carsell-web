@@ -349,6 +349,25 @@ export async function acceptOffer(
       entityId: ref,
     });
 
+    /**
+     * **والبائع يُخطَر هنا أيضًا.** قَبِل العرض فيعرف أنه قَبِل، لكنّه
+     * لا يعرف أن قبولَه **صنع طلبًا** له مرجعٌ ومراحلُ ومهلة — فيبقى
+     * ينتظر «شيئًا» بلا بابٍ يفتحه. والإشعار هو بابُه.
+     *
+     * والمشتري أُخطر سطرًا أعلاه برسالةٍ أدقّ، فلا يُكرَّر عليه.
+     */
+    const { notifyOrderCreated } = await import('./order-notify');
+    await notifyOrderCreated(
+      tx,
+      {
+        ref,
+        buyerId: offer.buyerId,
+        sellerId: offer.listing.sellerId,
+        amount: String(offer.amount),
+      },
+      { buyer: false },
+    );
+
     return { ok: true, orderRef: ref, closedOffers: others.length };
   });
 }

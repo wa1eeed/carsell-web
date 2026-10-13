@@ -984,6 +984,9 @@
       "other": "Order update",
       "order": {
         "created": "Order created"
+      },
+      "invoice": {
+        "blocked": "Invoice could not be issued"
       }
     },
     "escrowState": {
@@ -1020,7 +1023,19 @@
       "gatewayFee": "Payment gateway fee",
       "netToSeller": "Your net"
     },
-    "adminFee": "Administrative fee"
+    "adminFee": "Administrative fee",
+    "sellerParty": "Seller",
+    "buyerParty": "Buyer",
+    "partyVerified": "Verified",
+    "partyUnverified": "Not verified",
+    "docBlocked": "Not issued yet",
+    "docBlockedReason": {
+      "RULE_AWAITING_APPROVAL": "The tax rule for this deal awaits approval. We issue it as soon as it is approved.",
+      "NO_MATCHING_RULE": "No matching tax rule for this deal yet — we are reviewing it.",
+      "OUT_OF_SCOPE_NO_INVOICE": "This deal is out of VAT scope, so no invoice is due.",
+      "INVOICED_WITH_ITS_OWN_PAYMENT": "Invoiced with its own payment, not with the settlement.",
+      "other": "It could not be issued; our team is following it up."
+    }
   },
   "auctions": {
     "title": "Auctions",

@@ -406,6 +406,27 @@ export type OrderDocument = {
  * وقسمٌ فارغ يجعل المستخدم يظنّ أن شيئًا ضاع. فالقادم يُعرض بموعده:
  * «عقد البيع — يصدر عند تأكيد النقل» أوضح من غيابه.
  */
+/**
+ * سببُ الحجب كما يعني **صاحب الطلب**.
+ *
+ * الحمولة قائمةُ توريدات، والمشتري يسأل عن فاتورة مركبته — لا عن
+ * المصروفات المسدَّدة نيابةً. فتوريد `VEHICLE` أوّلًا، وإلّا فأوّل ما
+ * في القائمة.
+ */
+function blockedReasonOf(payload: Prisma.JsonValue | null): string | undefined {
+  if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
+  const rows = (payload as { blocked?: unknown }).blocked;
+  if (!Array.isArray(rows)) return undefined;
+
+  const entries = rows.filter(
+    (row): row is { supplyType?: string; reason?: string } =>
+      row !== null && typeof row === 'object' && !Array.isArray(row),
+  );
+  const vehicle = entries.find((row) => row.supplyType === 'VEHICLE');
+  const reason = (vehicle ?? entries[0])?.reason;
+  return typeof reason === 'string' && reason !== '' ? reason : undefined;
+}
+
 export async function orderDocuments(
   orderRef: string,
   viewerId: string,
@@ -450,11 +471,33 @@ export async function orderDocuments(
   }
 
   if (order.taxInvoices.length === 0) {
+    /**
+     * ═══ والوعد لا يبقى بعد موعده ═══
+     *
+     * «فاتورة ضريبية — يصدر عند الإفراج عن المبلغ» صادقةٌ قبل
+     * الإفراج. **وبعده تصير كذبًا**: أُفرج ولم تصدر، والسطر يَعِد
+     * بموعدٍ مضى — فينتظر المشتري ورقةً لن تأتي ولا يعرف أنه ينتظر.
+     *
+     * و`BLOCKED` و`blockedReason` معرَّفان في النوع منذ كُتب **ولا
+     * شيء يكتبهما** — والسبب نفسه مكتوبٌ في `invoice.blocked` التي
+     * يكتبها `applyState`، فيقرؤها الأدمن ولا يقرؤها صاحب الطلب.
+     */
+    const settled = order.settlement !== null;
+
+    const blocked = settled
+      ? await db.orderEvent.findFirst({
+          where: { orderId: order.id, type: 'invoice.blocked' },
+          orderBy: { createdAt: 'desc' },
+          select: { payload: true },
+        })
+      : null;
+
     out.push({
       kind: 'INVOICE',
-      state: 'PENDING',
-      availableAt: 'SETTLED',
+      state: settled ? 'BLOCKED' : 'PENDING',
+      availableAt: settled ? null : 'SETTLED',
       reference: null,
+      ...(blocked === null ? {} : { blockedReason: blockedReasonOf(blocked.payload) }),
     });
   }
 

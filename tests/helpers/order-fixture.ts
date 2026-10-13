@@ -77,6 +77,20 @@ export async function restoreOrder(snapshot: OrderSnapshot): Promise<void> {
     });
   }
 
+  /**
+   * **والإشعار أثرٌ جديد على كيانٍ مشترك.** صارت رحلةُ الطلب تُخطِر
+   * طرفيها، فاختبارٌ يُكمل طلبًا يترك ستّة صفوفٍ في جرس مستخدمٍ مزروع
+   * — ولا يراها أحد حتى يعدّ اختبارٌ آخر إشعاراته. والقاعدة واحدة:
+   * الأثر الجديد يُتبَع في الاستعادة المشتركة مرّةً واحدة.
+   */
+  await db.notification.deleteMany({
+    where: {
+      entityType: 'Order',
+      entityId: snapshot.order.ref,
+      createdAt: { gt: snapshot.order.stageEnteredAt },
+    },
+  });
+
   const { id: _id, ...fields } = snapshot.order;
   await db.order.update({ where: { id }, data: fields });
 

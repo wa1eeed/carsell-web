@@ -116,6 +116,18 @@ export async function advanceStage(
       },
     });
 
+    /**
+     * **ومن ينتظر هو من لا يعرف.** من ضغط الزرّ رأى نتيجته، والطرف
+     * الآخر كان يتابع الشاشة يدويًّا أو لا يتابع.
+     */
+    const { notifyStageAdvanced } = await import('./order-notify');
+    await notifyStageAdvanced(
+      tx,
+      { ref: input.orderRef, buyerId: order.buyerId, sellerId: order.sellerId },
+      input.to,
+      input.actorId,
+    );
+
     orderId = order.id;
     return { ok: true, stage: input.to };
   });
@@ -173,6 +185,27 @@ export async function advanceStage(
       const { reportError } = await import('@/lib/observability/report');
       reportError(error, { where: 'orders.advanceStage.autoRelease', extra: { orderId } });
     }
+
+    /**
+     * **«بِيعت مركبتك» — ولا أحد كان يقولها.** القالب مزروع منذ بُني
+     * المنتج بلا كاتب، فيكتمل البيع وتنتقل الملكية ويصل المال، ولا
+     * يصل صاحبَ المركبة سطرٌ واحد يقول إن صفقته تمّت.
+     *
+     * وخارج المعاملة كأختها: إشعارٌ لا يُبطل نقل ملكيةٍ وقع.
+     */
+    try {
+      const sold = await db.order.findUnique({
+        where: { ref: input.orderRef },
+        select: { ref: true, sellerId: true, agreedPrice: true },
+      });
+      if (sold !== null) {
+        const { notifyListingSold } = await import('./order-notify');
+        await notifyListingSold(db, sold, sold.agreedPrice.toString());
+      }
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'orders.advanceStage.notifySold', extra: { orderId } });
+    }
   }
 
   return result;
@@ -224,7 +257,16 @@ export type PublicOrder = {
   settlement: SettlementFigures | null;
   dispute: { id: string; status: string; slaDueAt: string; openedAt: string } | null;
   listing: { ref: string; title: string; year: number; path: string };
-  counterparty: { name: string; isSeller: boolean };
+  /**
+   * الطرف الآخر — **ولم يكن يُعرض قطّ**.
+   *
+   * التصميم (Wj) يقول «البائع · فهد · موثّق»، والاسم يُعاد من هنا منذ
+   * بُنيت الدالّة ولا شاشة تقرؤه: فيفتح المشتري طلبًا بثلاثين ألفًا
+   * ولا يعرف ممّن يشتري، والبائع لا يعرف لمن يبيع.
+   *
+   * و`isSeller` تعني أن الطرف الآخر بائع، أي أن الرائي مشترٍ.
+   */
+  counterparty: { name: string; isSeller: boolean; verified: boolean };
   events: { type: string; fromStage: string | null; toStage: string | null; createdAt: string }[];
 };
 
@@ -242,8 +284,8 @@ const ORDER_INCLUDE = {
       },
     },
   },
-  buyer: { select: { id: true, name: true } },
-  seller: { select: { id: true, name: true } },
+  buyer: { select: { id: true, name: true, idVerified: true } },
+  seller: { select: { id: true, name: true, idVerified: true } },
   escrow: true,
   disputes: { orderBy: { openedAt: 'desc' as const }, take: 1 },
   events: { orderBy: { createdAt: 'asc' as const } },
@@ -323,7 +365,7 @@ export async function getOrder(
       year: order.listing.vehicle.year,
       path: canonicalPath(locale, order.listing).path,
     },
-    counterparty: { name: other.name ?? '', isSeller: viewerIsBuyer },
+    counterparty: { name: other.name ?? '', isSeller: viewerIsBuyer, verified: other.idVerified },
     events: order.events.map((event) => ({
       type: event.type,
       fromStage: event.fromStage,
@@ -444,6 +486,18 @@ export async function buyDirect(
         createdAt: now,
       },
     });
+
+    /**
+     * **والبائع لم يكن يعلم.** مركبتُه حُجزت، وعروضُها القائمة رُفضت
+     * كلّها في السطور أعلاه، وهو لم يفعل شيئًا ليعرف — ولا إشعار ولا
+     * قائمةَ طلباتٍ له. فيبقى إعلانُه «محجوزًا» في عينه بلا سبب.
+     */
+    const { notifyOrderCreated } = await import('./order-notify');
+    await notifyOrderCreated(
+      tx,
+      { ref, buyerId: input.buyerId, sellerId: listing.sellerId, amount: String(listing.askPrice) },
+      { buyer: true },
+    );
 
     return { ok: true, orderRef: ref };
   });

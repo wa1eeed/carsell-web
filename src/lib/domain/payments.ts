@@ -392,6 +392,21 @@ export async function applyState(
           },
         });
       }
+
+      /**
+       * ═══ والبائع يُخطَر هنا ═══
+       *
+       * **هذه لحظتُه**: المشتري ضغط «ادفع» ورأى نتيجته على شاشته،
+       * والبائع كان ينتظر مالًا لا يعرف أوصل أم لا — ولا شيء في
+       * المنتج كان يقول له. وعليه واجبٌ يبدأ الآن (إجراء النقل)،
+       * فالخبرُ بلا تبليغٍ واجبٌ بلا موعد.
+       */
+      const { notifyEscrowHeld } = await import('./order-notify');
+      await notifyEscrowHeld(
+        tx,
+        { ref: order.ref, buyerId: order.buyerId, sellerId: order.sellerId },
+        payment.amount.toString(),
+      );
     }
 
     if (to === 'SETTLED' && payment.orderId !== null) {
@@ -411,6 +426,7 @@ export async function applyState(
         const order = await tx.order.findUniqueOrThrow({
           where: { id: payment.orderId },
           select: {
+            ref: true,
             buyerId: true, sellerId: true, totalAmount: true, depositApplied: true,
             commissionAmount: true, vatAmount: true, transferFee: true,
           },
@@ -443,6 +459,18 @@ export async function applyState(
             govtFee: order.transferFee,
           },
           now,
+        );
+
+        /**
+         * **«حُوّل المبلغ إليك» — قالبٌ مزروع بلا كاتب.** أُفرج عن
+         * مال البائع ولا شيء يقول له، فيبقى يفتح «مستحقّاتي» كلّ
+         * يومٍ ليرى أتغيّر رقمٌ أم لا. والخبر يتبع المال في لحظته.
+         */
+        const { notifyEscrowReleased } = await import('./order-notify');
+        await notifyEscrowReleased(
+          tx,
+          { ref: order.ref, sellerId: order.sellerId },
+          total.toString(),
         );
       }
     }

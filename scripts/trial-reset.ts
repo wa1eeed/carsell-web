@@ -67,6 +67,16 @@ async function removeOrder(orderId: string): Promise<void> {
     await db.payment.deleteMany({ where: { id: { in: ids } } });
   }
 
+  /**
+   * **والإشعار أثرٌ جديد كذلك.** صارت رحلةُ الطلب تُخطِر طرفيها خمس
+   * مرّات، فمشيٌ يدويّ واحد يترك خمسة أجراسٍ ترنّ في حساب بائعٍ
+   * مزروع عن صفقةٍ لا وجود لها. و`entityId` هو المرجع لا المعرّف.
+   */
+  const ref = (await db.order.findUnique({ where: { id: orderId }, select: { ref: true } }))?.ref;
+  if (ref !== undefined) {
+    await db.notification.deleteMany({ where: { entityType: 'Order', entityId: ref } });
+  }
+
   // قيود الدفتر أثرٌ جديد على الطلب — تُتبَع في الاستعادة المشتركة
   await db.ledgerEntry.deleteMany({ where: { orderId } });
   await db.escrow.deleteMany({ where: { orderId } });

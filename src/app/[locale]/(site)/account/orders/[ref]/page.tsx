@@ -71,6 +71,7 @@ export default async function OrderPage({
                 order.paymentDueAt === null ? null : date.format(new Date(order.paymentDueAt)),
               slaDueAt:
                 order.dispute === null ? null : date.format(new Date(order.dispute.slaDueAt)),
+              events: order.events.map((event) => date.format(new Date(event.createdAt))),
             }}
           />
         </div>

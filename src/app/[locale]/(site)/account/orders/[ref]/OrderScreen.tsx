@@ -47,6 +47,8 @@ export function OrderScreen({
     stageEnteredAt: string;
     paymentDueAt: string | null;
     slaDueAt: string | null;
+    /** وقتُ كل حدث بترتيب `order.events` — الصياغة في الخادم */
+    events: readonly string[];
   };
 }) {
   const t = useTranslations('order');
@@ -135,6 +137,28 @@ export function OrderScreen({
               <span aria-hidden className="opacity-40">·</span>
               <span className="bidi-isolate">{formatted.createdAt}</span>
             </p>
+
+            {/*
+              ═══ ومن الطرف الآخر؟ ═══
+
+              **لم يكن يُعرض قطّ.** التصميم يقول «البائع · فهد · موثّق»،
+              و`counterparty.name` يُعاد من النطاق منذ بُني ولا شاشة
+              تقرؤه — فيفتح المشتري طلبًا بثلاثين ألفًا ولا يعرف ممّن
+              يشتري، والبائع لا يعرف لمن يبيع ولا إلى من يسلّم.
+
+              والتوثيق معه: اسمٌ بلا صفةٍ لا يقول شيئًا عمّن أمامك.
+            */}
+            {order.counterparty.name === '' ? null : (
+              <p className="mt-3.5 flex flex-wrap items-baseline gap-2.5 border-t border-line pt-3.5 text-2xs">
+                <span className="opacity-55">
+                  {order.counterparty.isSeller ? t('sellerParty') : t('buyerParty')}
+                </span>
+                <span className="bidi-isolate font-bold">{order.counterparty.name}</span>
+                <Badge tone={order.counterparty.verified ? 'accent' : 'neutral'}>
+                  {order.counterparty.verified ? t('partyVerified') : t('partyUnverified')}
+                </Badge>
+              </p>
+            )}
           </section>
 
           <section className="mb-6 rounded-xl border border-line bg-surface p-5">
@@ -153,9 +177,22 @@ export function OrderScreen({
                     <p className="text-xs font-bold">
                       {t.has(`event.${event.type}`) ? t(`event.${event.type}`) : t('event.other')}
                     </p>
+                    {/*
+                      **ومتى وقعت؟** كان المسار أربعة أسطر متطابقة تقول
+                      «انتقال مرحلة» بلا وقت — و`createdAt` يُعاد لكل
+                      حدث ولا يُقرأ. ومن يتابع صفقته يسأل «متى وافق
+                      البائع؟» لا «هل وافق؟»، والتصميم يضع التاريخ
+                      تحت كل خطوة.
+                    */}
                     <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-50">
                       {event.toStage === null ? null : (
                         <span>{te(`orderStage.${event.toStage}`)}</span>
+                      )}
+                      {formatted.events[i] === undefined ? null : (
+                        <>
+                          <span aria-hidden className="opacity-40">·</span>
+                          <span className="bidi-isolate">{formatted.events[i]}</span>
+                        </>
                       )}
                     </p>
                   </div>
@@ -350,7 +387,11 @@ export function OrderScreen({
                   <span
                     aria-hidden
                     className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
-                      doc.state === 'READY' ? 'bg-accent' : 'bg-line'
+                      doc.state === 'READY'
+                        ? 'bg-accent'
+                        : doc.state === 'BLOCKED'
+                          ? 'bg-warn-700'
+                          : 'bg-line'
                     }`}
                   />
                   <div className={`min-w-0 ${doc.state === 'READY' ? '' : 'opacity-45'}`}>
@@ -365,6 +406,29 @@ export function OrderScreen({
                     </p>
                     {doc.availableAt === null ? null : (
                       <p className="mt-0.5 text-3xs">{t(`docAt.${doc.availableAt}`)}</p>
+                    )}
+                    {/*
+                      ═══ وما لم يصدر يُقال لماذا ═══
+
+                      **الوعد لا يبقى بعد موعده.** كان السطر يقول
+                      «يصدر عند الإفراج عن المبلغ» بعد أن أُفرج —
+                      فينتظر المشتري فاتورةً لن تأتي ولا يعرف أنه
+                      ينتظر. والسبب مكتوبٌ عندنا منذ وقع، يقرؤه
+                      الأدمن ولا يقرؤه صاحب الطلب.
+                    */}
+                    {doc.state !== 'BLOCKED' ? null : (
+                      <p className="mt-0.5 text-3xs leading-loose">
+                        {t('docBlocked')}
+                        {' — '}
+                        {t(
+                          `docBlockedReason.${
+                            doc.blockedReason !== undefined &&
+                            t.has(`docBlockedReason.${doc.blockedReason}`)
+                              ? doc.blockedReason
+                              : 'other'
+                          }`,
+                        )}
+                      </p>
                     )}
                     {doc.kind !== 'INVOICE' || doc.reference === null ? null : (
                       <p className="mt-0.5 flex items-center gap-1.5 text-3xs opacity-60">

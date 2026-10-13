@@ -984,6 +984,9 @@
       "other": "تحديث على الطلب",
       "order": {
         "created": "تم إنشاء الطلب"
+      },
+      "invoice": {
+        "blocked": "تعذّر إصدار الفاتورة"
       }
     },
     "escrowState": {
@@ -1020,7 +1023,19 @@
       "gatewayFee": "رسوم بوابة الدفع",
       "netToSeller": "الصافي لك"
     },
-    "adminFee": "رسوم إدارية"
+    "adminFee": "رسوم إدارية",
+    "sellerParty": "البائع",
+    "buyerParty": "المشتري",
+    "partyVerified": "موثّق",
+    "partyUnverified": "غير موثّق",
+    "docBlocked": "لم تصدر بعد",
+    "docBlockedReason": {
+      "RULE_AWAITING_APPROVAL": "قاعدة الضريبة لهذه الصفقة تنتظر الإقرار، ونصدرها فور إقرارها.",
+      "NO_MATCHING_RULE": "لا قاعدة ضريبة مطابقة لهذه الصفقة بعد — نراجعها ونصدرها.",
+      "OUT_OF_SCOPE_NO_INVOICE": "هذه الصفقة خارج نطاق الضريبة، فلا فاتورة تُستحقّ عليها.",
+      "INVOICED_WITH_ITS_OWN_PAYMENT": "فُوتِرت مع دفعتها لا مع التسوية.",
+      "other": "تعذّر إصدارها، وفريقنا يتابعها."
+    }
   },
   "auctions": {
     "title": "المزادات",

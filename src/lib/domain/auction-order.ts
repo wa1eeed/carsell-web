@@ -145,6 +145,23 @@ export async function createAuctionOrder(
     },
   });
 
+  /**
+   * **ولا طرفَ يعلم هنا.** المزاد يُغلقه مُجدوِلٌ لا إنسان: فالفائز
+   * ليس أمام شاشة، والبائع أولى — نافذتُه انتهت وصار له طلبٌ ومهلة
+   * ومشترٍ، ولا شيء كان يقول له.
+   */
+  const { notifyOrderCreated } = await import('./order-notify');
+  await notifyOrderCreated(
+    tx,
+    {
+      ref,
+      buyerId: top.bidderId,
+      sellerId: auction.listing.sellerId,
+      amount: top.amount.toString(),
+    },
+    { buyer: true },
+  );
+
   return { ok: true, orderRef: ref, buyerId: top.bidderId, amount: top.amount.toString() };
 }
 
@@ -313,6 +330,19 @@ export async function buyNow(
         payload: { source: 'BUY_NOW', auctionId: auction.id, price: String(price) },
       },
     });
+
+    /** و«اشترِ الآن» تُنهي مزاد البائع فجأةً — فهو أحوج الناس إلى الخبر. */
+    const { notifyOrderCreated } = await import('./order-notify');
+    await notifyOrderCreated(
+      tx,
+      {
+        ref,
+        buyerId: input.buyerId,
+        sellerId: auction.listing.sellerId,
+        amount: String(price),
+      },
+      { buyer: true },
+    );
 
     return { ok: true as const, ref, amount: amounts.totalAmount.minus(depositApplied).toString() };
   });

@@ -362,6 +362,41 @@ stays mobile-only (it receives the OTP).
       closed surface list, audited), walked end to end to the car page.
 - [ ] `DeviceToken` — no writer until the mobile app exists.
 
+### G · The product's bell is mostly silent — **measured, partly closed**
+
+`prisma/seed-data/notification-templates.json` holds 42 templates. On
+2026-10-13 a count of `templateKey:` writes across `src/` found **29 of 41 with
+no writer at all**: the row is seeded, the screen renders from it, and nothing
+in the product ever creates a notification with that key. This is the repo's
+signature defect (a value in the schema nobody writes), at the scale of a whole
+table.
+
+**Closed in this commit — the order journey (7 keys).** `order.received` (new,
+for the seller), `order.created`, `order.stage_changed`, `order.cancelled`,
+`escrow.held`, `escrow.released`, `listing.sold`. Walked end to end: a direct
+buy, a sandbox payment, a buyer-confirmed transfer. The seller's bell went from
+**0 to 5** across one deal. Guarded by `tests/order-notifications.test.ts`,
+which checks the *recipient*, not the count — the error that happens is the
+message going to whoever just acted instead of whoever is waiting.
+
+**Still silent — 22 keys, grouped by what each costs:**
+
+| Group | Keys | What the silence costs |
+| --- | --- | --- |
+| **Auctions** | `auction.outbid` · `auction.won` · `auction.closing` · `auction.starting` · `auction.extended` · `auction.reserve_not_met` | `auction.outbid` is the mechanic an auction runs on: you are outbid and never told, so you never come back to raise. Without it the format barely functions. |
+| **Deadlines** | `order.payment_due` · `order.payment_overdue` | No job reminds a buyer before the payment window closes; `timeoutUnpaidOrders` only tells them **after** their order was cancelled. The repo's own rule: a reminder comes before the moment of need. |
+| **Identity** | `account.id_verified` · `account.id_rejected` · `account.iban_required` | A18 asks the reviewer for a note «يقرؤه صاحبه» — and nothing delivers it. A rejected applicant is never told why, or that a decision was made. |
+| **Listings** | `listing.published` · `listing.under_review` · `listing.rejected` · `listing.expiring` | A seller submits a listing and learns its fate only by reopening the page. |
+| **Deposits** | `deposit.held` · `deposit.released` | Money held on a card and later returned, with no word either way. |
+| **Offers** | `offer.expired` · `offer.expiring` · `offer.rejected` | The other `offer.*` keys are wired; these three were missed. |
+| **Other** | `service.completed` · `auth.new_device` · `auth.otp` | `auth.otp` is legitimately writerless — it is delivered by SMS, not through `notify`. |
+
+**Next:** wire the auction and deadline groups (highest cost), then identity and
+listings. **Then the gate** — every template must have a writer or be named in a
+declared-silent list with a reason. Measured first per the repo's rule: 22
+alarms today is far past the ten-alarm threshold, so the move comes before the
+gate.
+
 ### D · English UI strings — deferred by the owner
 
 **624 lines across 68 files** of Arabic written into the public site's
