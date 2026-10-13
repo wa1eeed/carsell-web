@@ -58,3 +58,24 @@ export function normalizeArabic(value: string): string {
 export const CITY_SLUG_NORMALIZED: Record<string, string> = Object.fromEntries(
   Object.entries(CITY_SLUG).map(([key, value]) => [normalizeArabic(key), value]),
 );
+
+/**
+ * ═══ اسم المدينة بلغة القارئ ═══
+ *
+ * **ويُشتقّ من المقطع لا من جدولٍ ثانٍ.** `CITY_SLUG` يحمل المقابل
+ * اللاتينيّ أصلًا (`الرياض` ← `riyadh`)، وجدولٌ ثانٍ للعرض يتباعد عنه
+ * أوّل مدينةٍ تُضاف إلى أحدهما.
+ *
+ * **وما لا مقطع له يسقط إلى العربية** — كما يسقط المقطع نفسه. ومدينةٌ
+ * عربية في صفحةٍ إنجليزية أوضح من فراغٍ أو من نقلٍ صوتيّ يُخرج
+ * `almdynh almnwrh`.
+ */
+export function cityLabel(city: string, locale: string): string {
+  if (locale !== 'en') return city;
+  const slug = CITY_SLUG[city];
+  if (slug === undefined) return city;
+  return slug
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}

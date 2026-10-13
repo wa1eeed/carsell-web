@@ -4431,3 +4431,54 @@ and the page returned 500 — `Failed to read source code from .../finance/Commi
 The error names a file that no longer exists rather than the stale graph holding
 it. Restarting the dev server fixed it; this is the same class as the Prisma
 client surviving `generate`.
+
+---
+
+## The English site was showing Arabic data
+
+Reported: on `/en` the brands, colours, city and some headings render in Arabic.
+
+Measured on the English car page by walking every text node for Arabic
+characters: **38 hits**. They split cleanly into two kinds.
+
+### Kind one — data that has an English form nobody reads
+
+`Brand`, `Model` and `Trim` each carry `nameAr` **and** `nameEn` in the schema,
+and have since they were built. But `Vehicle` stores a denormalised Arabic
+snapshot — `brandName`, `modelName`, `trimName` — with the comment «لقطة
+الكتالوج وقت الإضافة». The snapshot is right: a catalogue rename must not
+rewrite what was sold under the old name. **But a snapshot is one language**, and
+every screen joined those three strings directly.
+
+`src/lib/domain/vehicle-title.ts` resolves the display name instead:
+`vehicleTitle` / `brandLabel` / `modelLabel` read `nameEn` **when the relation is
+loaded** and fall back to the snapshot otherwise — so a query that was never
+given the `select` degrades to Arabic rather than to blank or a throw.
+
+City and colour had no English form at all. `cityLabel` derives it from the
+`CITY_SLUG` table already in the repo (`الرياض` → `riyadh` → `Riyadh`) rather
+than a second table that would drift from the first; `colourLabel` is a small
+table over a closed list, with the stored value as fallback since colour is a
+free field.
+
+**And the trim was a wrong assumption of mine.** I left `trimName` alone
+reasoning that trims are latin codes (`SLE`, `AT4`) — then the related-cars rail
+printed «GMC Yukon **دينالي**». `Trim.nameEn` exists like its siblings.
+
+Fixed across the public surfaces: car detail (title, breadcrumb, spec rows,
+market-range caption, `<title>`), search cards, the auctions list, and related
+cars. Verified in the browser on both locales — `/en` reads
+`Home › Browse cars › Riyadh › GMC Sierra SLE`, `Makkah`/`Jeddah`/`Dammam` on
+cards, `Grey` for colour; `/ar` is unchanged.
+
+### Kind two — Arabic written into the components
+
+Everything left is hardcoded: «مشاركة», «أبلغ عن هذا الإعلان», «خدمات على هذه
+المركبة», «وصف البائع», «بائع فرد», «بِع سيارتك». Measured across the public
+site with comments stripped: **624 lines in 68 files**.
+
+That is a translation project, not a fix, and the owner chose to defer it and
+ship the data fix now. The decision is recorded here because the English site
+remains partly Arabic until it is done — that is known, not missed.
+
+Seller names stay Arabic in both locales, correctly: they are people's names.

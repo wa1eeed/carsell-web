@@ -1,4 +1,6 @@
 import { db } from '@/lib/db';
+import { cityLabel } from '@/lib/labels/cities';
+import { brandLabel, modelLabel, vehicleTitle } from './vehicle-title';
 import { buyNowAvailable } from './auctions';
 import { publicUrl } from '@/lib/r2';
 import { citySlug, modelSlug } from './slugs';
@@ -144,6 +146,9 @@ export type PublicListingDetail = {
 
   vehicle: {
     title: string;
+    /** الاسم المعروض بلغة الصفحة — واللقطة تحته لمن يحتاج ما بِيع تحته. */
+    brandLabel: string;
+    modelLabel: string;
     brandName: string;
     modelName: string;
     trimName: string | null;
@@ -270,8 +275,9 @@ export type PublicListingDetail = {
 const DETAIL_INCLUDE = {
   vehicle: {
     include: {
-      brand: { select: { slug: true } },
+      brand: { select: { slug: true, nameEn: true } },
           model: { select: { nameEn: true } },
+          trim: { select: { nameEn: true } },
       inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
       history: { orderBy: { occurredAt: 'desc' } },
     },
@@ -358,8 +364,9 @@ export async function findListingForMetadata(ref: string) {
           trimName: true,
           year: true,
           mileageKm: true,
-          brand: { select: { slug: true } },
+          brand: { select: { slug: true, nameEn: true } },
           model: { select: { nameEn: true } },
+          trim: { select: { nameEn: true } },
         },
       },
     },
@@ -414,7 +421,11 @@ function findings(sections: unknown): string[] {
   return out;
 }
 
-export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetail> {
+export async function toPublicDetail(
+  row: DetailRow,
+  /** لغةُ القارئ — تُختار بها أسماء الكتالوج. والافتراض لقطةُ المركبة العربية. */
+  locale = 'ar',
+): Promise<PublicListingDetail> {
   const report = row.vehicle.inspectionReports[0] ?? null;
   const price = Number(row.askPrice);
 
@@ -512,9 +523,14 @@ export async function toPublicDetail(row: DetailRow): Promise<PublicListingDetai
     viewCount: row.viewCount,
 
     vehicle: {
-      title: [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
-        .filter((p) => p !== null && p !== '')
-        .join(' '),
+      title: vehicleTitle(row.vehicle, locale),
+      /**
+       * **واللقطة تبقى، والمعروض يُحلّ هنا.** `brandName` هي ما بِيع
+       * تحته فلا يُغيَّر، و`brandLabel` ما يُقرأ — والشاشة لا تحمل
+       * شرطَ لغةٍ ولا تعرف الكتالوج.
+       */
+      brandLabel: brandLabel(row.vehicle, locale),
+      modelLabel: modelLabel(row.vehicle, locale),
       brandName: row.vehicle.brandName,
       modelName: row.vehicle.modelName,
       trimName: row.vehicle.trimName,
@@ -774,6 +790,7 @@ export type SimilarCard = {
 export async function similarListings(
   row: DetailRow,
   take = 4,
+  locale = 'ar',
 ): Promise<SimilarCard[]> {
   const price = Number(row.askPrice);
 
@@ -796,14 +813,12 @@ export async function similarListings(
     .slice(0, take)
     .map((listing) => ({
       ref: listing.ref,
-      title: [listing.vehicle.brandName, listing.vehicle.modelName, listing.vehicle.trimName]
-        .filter((p) => p !== null && p !== '')
-        .join(' '),
+      title: vehicleTitle(listing.vehicle, locale),
       year: listing.vehicle.year,
       mileageKm: listing.vehicle.mileageKm,
       price: listing.askPrice.toString(),
       inspected: listing.vehicle.inspectionReports.length > 0,
-      city: listing.city,
+      city: cityLabel(listing.city, locale),
       path: (locale: string) => canonicalPath(locale, listing).path,
     }));
 }

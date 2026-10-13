@@ -17,6 +17,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { Gallery } from '@/components/ui/Gallery';
 import { APP_URL } from '@/lib/env';
+import { cityLabel } from '@/lib/labels/cities';
+import { colourLabel } from '@/lib/labels/colours';
 import { cn } from '@/lib/cn';
 import { AuctionPulse } from '@/components/site/AuctionPulse';
 import { AuctionLive } from '@/components/site/AuctionLive';
@@ -123,11 +125,11 @@ export function CarPage({
   const crumbs = [
     { label: heading.home, href: `/${locale}` },
     { label: heading.cars, href: `/${locale}/cars` },
-    { label: detail.city, href: `/${locale}/cars?city=${encodeURIComponent(detail.city)}` },
+    { label: cityLabel(detail.city, locale), href: `/${locale}/cars?city=${encodeURIComponent(detail.city)}` },
   ];
 
   const specs = [
-    { label: t('brandAndModel'), value: `${vehicle.brandName} · ${vehicle.modelName}` },
+    { label: t('brandAndModel'), value: `${vehicle.brandLabel} · ${vehicle.modelLabel}` },
     ...(vehicle.trimName === null ? [] : [{ label: t('trim'), value: vehicle.trimName }]),
     { label: t('modelYear'), value: <ArabicNumber value={vehicle.year} grouped={false} /> },
     { label: t('mileage'), value: <Quantity unit="km" count={vehicle.mileageKm} /> },
@@ -136,7 +138,7 @@ export function CarPage({
     { label: t('bodyType'), value: te(`bodyType.${vehicle.bodyType}`) },
     { label: t('drivetrain'), value: te(`drivetrain.${vehicle.drivetrain}`) },
     { label: t('spec'), value: te(`spec.${vehicle.spec}`) },
-    { label: t('colorExterior'), value: vehicle.colorExterior },
+    { label: t('colorExterior'), value: colourLabel(vehicle.colorExterior, locale) },
     { label: t('seats'), value: <ArabicNumber value={vehicle.seats} grouped={false} /> },
     {
       label: t('paintStatus'),
@@ -245,7 +247,7 @@ export function CarPage({
                   <span key="tr" className="bidi-isolate">{te(`transmission.${vehicle.transmission}`)}</span>,
                   <span key="fu" className="bidi-isolate">{te(`fuel.${vehicle.fuel}`)}</span>,
                   <span key="sp" className="bidi-isolate">{te(`spec.${vehicle.spec}`)}</span>,
-                  <span key="ci" className="bidi-isolate">{detail.city}</span>,
+                  <span key="ci" className="bidi-isolate">{cityLabel(detail.city, locale)}</span>,
                 ].map((part, i) => (
                   <span key={i} className="flex items-center gap-2">
                     {i > 0 ? <span aria-hidden className="opacity-35">·</span> : null}
@@ -322,7 +324,7 @@ export function CarPage({
                 { label: 'الممشى', value: <Quantity unit="km" count={vehicle.mileageKm} /> },
                 { label: 'ناقل الحركة', value: te(`transmission.${vehicle.transmission}`) },
                 { label: 'المواصفات', value: te(`spec.${vehicle.spec}`) },
-                { label: 'المدينة', value: detail.city },
+                { label: 'المدينة', value: cityLabel(detail.city, locale) },
               ]}
             />
           )}
@@ -523,7 +525,7 @@ export function CarPage({
                 <RangeBar
                   price={Number(detail.askPrice)}
                   stats={detail.priceStat}
-                  segment={`${vehicle.modelName} ${String(vehicle.year)} · ${detail.city}`}
+                  segment={`${vehicle.modelLabel} ${String(vehicle.year)} · ${cityLabel(detail.city, locale)}`}
                 />
               </section>
             )}

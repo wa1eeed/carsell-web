@@ -1,4 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { vehicleTitle } from '@/lib/domain/vehicle-title';
+import { cityLabel } from '@/lib/labels/cities';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -101,8 +103,9 @@ export default async function AuctionsPage({
             vehicle: {
               select: {
                 brandName: true, modelName: true, trimName: true, year: true,
-                brand: { select: { slug: true } },
-          model: { select: { nameEn: true } },
+                brand: { select: { slug: true, nameEn: true } },
+                model: { select: { nameEn: true } },
+                trim: { select: { nameEn: true } },
               },
             },
           },
@@ -210,11 +213,9 @@ export default async function AuctionsPage({
               <AuctionRail
                 auctions={auctions.map((auction) => ({
                   ref: auction.listing.ref,
-                  title: [auction.listing.vehicle.brandName, auction.listing.vehicle.modelName, auction.listing.vehicle.trimName]
-                    .filter((part) => part !== null && part !== '')
-                    .join(' '),
+                  title: vehicleTitle(auction.listing.vehicle, locale),
                   year: auction.listing.vehicle.year,
-                  city: auction.listing.city,
+                  city: cityLabel(auction.listing.city, locale),
                   price: auction.startPrice.toString(),
                   highestBid: auction.bids[0]?.amount.toString() ?? null,
                   bidCount: auction._count.bids,

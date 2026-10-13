@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { vehicleTitle } from '@/lib/domain/vehicle-title';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -99,9 +100,8 @@ export async function generateMetadata({
   if (row === null) return {};
 
   const canonical = canonicalPath(locale, row);
-  const title = [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
-    .filter((part) => part !== null && part !== '')
-    .join(' ');
+  /** **وعنوان التبويب بلغة الصفحة** — كان اللقطة العربية على `/en` أيضًا. */
+  const title = vehicleTitle(row.vehicle, locale);
 
   // التقرير محتوى فرعي — الإعلان هو ما يُفهرَس
   if (report) {
@@ -224,9 +224,9 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
   if (resolved.wantsReport) return inspectionView(resolved);
 
   const [detail, faq, similar, t] = await Promise.all([
-    toPublicDetail(resolved.row),
+    toPublicDetail(resolved.row, resolved.locale),
     faqForListing(resolved.row.type),
-    similarListings(resolved.row),
+    similarListings(resolved.row, 4, resolved.locale),
     getTranslations('ui'),
   ]);
 

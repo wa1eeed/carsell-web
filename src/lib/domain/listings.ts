@@ -1,4 +1,6 @@
 import { db } from '@/lib/db';
+import { cityLabel } from '@/lib/labels/cities';
+import { vehicleTitle } from './vehicle-title';
 import { canonicalPath } from './listing-detail';
 import { verifiedSellerWhere } from './seller';
 import type { Prisma } from '@/generated/prisma/client';
@@ -502,8 +504,9 @@ export async function searchListings(
              * الصفحة ٣٠١ إلى `/nissan/` — تحويلٌ على **كل** نقرة نتيجة:
              * بطءٌ للزائر، وإشارةٌ لمحرّك البحث أن روابطنا ليست نهائية.
              */
-            brand: { select: { slug: true } },
+            brand: { select: { slug: true, nameEn: true } },
           model: { select: { nameEn: true } },
+          trim: { select: { nameEn: true } },
           },
         },
         seller: { include: { dealer: true } },
@@ -534,10 +537,10 @@ export async function searchListings(
       return {
         ref: row.ref,
         href: canonicalPath(locale, row).path,
-        title: [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
-          .filter((p) => p !== null && p !== '')
-          .join(' '),
-        city: row.city,
+        title: vehicleTitle(row.vehicle, locale),
+        /** **والمدينة تُحلّ هنا.** البطاقة تعرضها، وكانت تمرّ خامًّا
+         * فتُقرأ «جدة» تحت «GMC Yukon SLE» في صفحةٍ إنجليزية. */
+        city: cityLabel(row.city, locale),
         year: row.vehicle.year,
         mileageKm: row.vehicle.mileageKm,
         transmission: row.vehicle.transmission,
