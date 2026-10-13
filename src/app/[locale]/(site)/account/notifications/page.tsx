@@ -1,12 +1,11 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { FilterChip } from '@/components/ui/FilterChip';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { MarkAllRead } from '@/components/site/MarkAllRead';
 import { SiteHeader } from '@/components/site/SiteHeader';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TimeAgo } from '@/components/ui/TimeAgo';
@@ -85,25 +84,24 @@ export default async function NotificationsPage({
             {unread === 0 ? null : <MarkAllRead label={t('markAll')} />}
           </div>
 
-          <nav className="mb-6 flex flex-wrap gap-2.5">
+          {/*
+            **والشريحة من `FilterChip`** — كانت نسخةً ثالثة بأصنافها
+            (مع «إعلاناتي» و«العروض»)، وثلاثُ نسخٍ لشيءٍ واحد تتباعد
+            أوّلَ تغييرٍ في الشكل فتبدو صفحاتٌ من منصّاتٍ شتّى.
+          */}
+          <nav className="mb-6 flex flex-wrap items-center gap-2.5">
             {([
               { key: 'all', href: `/${locale}/account/notifications`, on: !unreadOnly },
               { key: 'unread', href: `/${locale}/account/notifications?tab=unread`, on: unreadOnly },
             ] as const).map((tab) => (
-              <Link
+              <FilterChip
                 key={tab.key}
                 href={tab.href}
-                className={
-                  tab.on
-                    ? 'flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-bg'
-                    : 'flex items-center gap-2 rounded-full border border-line px-4 py-2.5 text-sm font-semibold hover:bg-ink/5'
-                }
+                active={tab.on}
+                {...(tab.key === 'unread' && unread > 0 ? { count: unread } : {})}
               >
                 {t(tab.key === 'all' ? 'tabAll' : 'tabUnread')}
-                {tab.key === 'unread' && unread > 0 ? (
-                  <ArabicNumber value={unread} className="opacity-60" />
-                ) : null}
-              </Link>
+              </FilterChip>
             ))}
           </nav>
 

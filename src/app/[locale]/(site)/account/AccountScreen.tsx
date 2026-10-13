@@ -181,7 +181,7 @@ export function AccountScreen({
     <>
       <MissingFields data={data} locale={locale} />
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {/*
           **وبطاقة المركبات تُفصَّل.** التصميم يكتب «٣ مركباتي · ٢
           معروضة · ١ مخفية» — والعدد وحده لا يقول أيُّها في السوق

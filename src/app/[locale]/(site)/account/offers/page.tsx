@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { routing } from '@/i18n/routing';
+import { FilterChip } from '@/components/ui/FilterChip';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { getOfferInbox, type InboxOffer, type InboxTab } from '@/lib/domain/offer-inbox';
 
@@ -137,21 +138,28 @@ export default async function OffersInboxPage({
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
           <p className="mb-7 text-sm opacity-60">{t('intro')}</p>
 
-          <nav className="mb-6 flex flex-wrap gap-2.5">
-            {TABS.map((key) => (
-              <Link
-                key={key}
-                href={`/${locale}/account/offers?tab=${key}`}
-                className={
-                  key === tab
-                    ? 'flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-bg'
-                    : 'flex items-center gap-2 rounded-full border border-line px-4 py-2.5 text-sm font-semibold hover:bg-ink/5'
-                }
-              >
-                {t(`tab.${key}`)}
-                <ArabicNumber value={inbox[key].length} className="opacity-60" />
-              </Link>
-            ))}
+          {/*
+            **والشريحة من `FilterChip` لا مكتوبةً بيد.** كانت نسخةً
+            ثانية بأصنافها — تتباعد عن الأولى أوّل تغييرٍ في الشكل،
+            فتبدو صفحتان من منصّتين.
+
+            **وصفرٌ لا يُعرض**: «منتهية (٠)» رقمٌ يشغل مكانًا ولا يقول
+            شيئًا، وغيابُه هو الخبر نفسه — كما في «طلباتي» و«سياراتي».
+          */}
+          <nav className="mb-6 flex flex-wrap items-center gap-2.5">
+            {TABS.map((key) => {
+              const count = inbox[key].length;
+              return (
+                <FilterChip
+                  key={key}
+                  href={`/${locale}/account/offers?tab=${key}`}
+                  active={key === tab}
+                  {...(count === 0 ? {} : { count })}
+                >
+                  {t(`tab.${key}`)}
+                </FilterChip>
+              );
+            })}
           </nav>
 
           {rows.length === 0 ? (

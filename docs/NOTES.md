@@ -4948,3 +4948,38 @@ re-run afterwards so the test edits did not persist.
 **And a gate caught my own code**: `useState(colorExterior)` copies a prop into
 state, which goes stale on client navigation. The form is now filled when it
 opens rather than at mount.
+
+---
+
+## Walking the account pages: two defects that repeat
+
+Opening each account page in turn rather than reading code found two patterns
+that recur, and both are invisible in a desktop browser.
+
+### Stats stacked instead of paired
+
+`/account/listings` carried four stat cards at `sm:grid-cols-2`, so **below
+640px they stack four high** and the first listing starts at 681px. The seller
+scrolls past four cards to reach what they came for. `grid-cols-2` from the
+smallest size reads all four at a glance: **681 → 473**.
+
+Scanning for the same class found it in two more places — the account home's
+four cards and `/account/earnings`' three. Both fixed; measured at 375 the
+columns are 141.5px each with zero overflow.
+
+### Three hand-written copies of one chip
+
+`FilterChip` exists and handles the active state and the count pill. The offers
+inbox and the notifications page each had their **own** copy of the markup —
+different enough already that a change to one would not reach the others, which
+is how two screens of one product start to look like two products. Both now use
+the component.
+
+And both printed `0` counts. «منتهية (٠)» occupies space and says nothing; its
+absence is the same information, which is already the rule on «طلباتي» and
+«سياراتي».
+
+### What the other pages needed
+
+Nothing. favourites, searches, reports, wallet and profile each render content,
+a real empty state and an action. Short because their job is short.

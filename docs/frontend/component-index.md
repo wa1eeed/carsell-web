@@ -116,7 +116,7 @@ rather than found by chance.
 
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 98 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 97 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 84 |
 | `InspectedBadge` | no | `className` | 3 |
@@ -133,7 +133,7 @@ rather than found by chance.
 | `Duration` | no | `hours` | 10 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 34 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` | 3 |
-| `FilterChip` | no | `href` · `active` · `count` · `children` | 7 |
+| `FilterChip` | no | `href` · `active` · `count` · `children` | 9 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
 | `HistoryList` | no | `entries` · `className` | 1 |

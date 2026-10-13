@@ -84,7 +84,7 @@ export default async function EarningsPage({
             الملكية ويؤكّد المشتري الاستلام، ثم يُحوَّل إلى آيبانك.
           </p>
 
-          <div className="mb-8 grid gap-3 sm:grid-cols-3">
+          <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Card label="محتجز" note="لم يُستحقّ بعد" amount={book.held} />
             <Card label="جاهز للصرف" note="حقّك القائم" amount={book.payable} strong />
             <Card label="حُوِّل إليك" note="وصل آيبانك" amount={book.paidOut} />
