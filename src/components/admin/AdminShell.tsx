@@ -5,6 +5,7 @@ import { APP_ENV } from '@/lib/env';
 import { can } from '@/lib/domain/permissions';
 import { visibleGroups } from './nav';
 import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
+import { SignOut } from '@/components/ui/SignOut';
 import { AdminMobileNav } from './AdminMobileNav';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
@@ -183,6 +184,17 @@ export async function AdminShell({
             <span className="text-sm font-bold">{admin.name}</span>
             <span className="text-3xs opacity-55">{admin.role}</span>
           </Link>
+
+          {/*
+            ═══ والخروج هنا — ومسارُه مبنيٌّ بلا نادٍ ═══
+
+            `POST /api/v1/admin/auth/logout` موجودٌ منذ بُني الدخول،
+            **ولا شيء في اللوحة يناديه** — فمحرّرٌ يقوم عن جهازٍ مشترك
+            في المكتب يترك خلفه إفراجاتٍ عن أموالٍ وقراراتِ توثيق.
+            وهو أثقل من خروج الموقع: الجلسة صفٌّ يُبطَل، لا كعكةٌ
+            تُمحى.
+          */}
+          <SignOut path="/api/v1/admin/auth/logout" next="/admin/login" label="خروج" />
         </header>
         {/* **وحشوةٌ أضيق على الهاتف** — ٣٠px من ٣٧٥ ثُمنُ العرض */}
         <main className="min-w-0 flex-1 p-4 sm:p-7.5">{children}</main>

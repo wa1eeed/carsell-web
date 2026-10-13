@@ -35,8 +35,15 @@ export type BookLine = {
   gatewayFee: string;
   govtFee: string;
   net: string;
-  /** ما يمنع الصرف الآن — و`null` يعني جاهزًا */
-  blockedBy: 'NOT_TRANSFERRED' | 'DISPUTED' | null;
+  /**
+   * ما يمنع الصرف الآن — و`null` يعني جاهزًا.
+   *
+   * **و`AWAITING_PAYMENT` تسبق `NOT_TRANSFERRED`.** طلبٌ لم يدفع
+   * المشتري فيه ريالًا كان يُوسم «بانتظار نقل الملكية» — وهو بانتظار
+   * الدفع، ولا ملكيةَ تُنقل قبله. فالوسم يسمّي المانع الحقيقيّ،
+   * وإلّا انتظر البائع المرورَ وهو ينتظر مشتريًا.
+   */
+  blockedBy: 'AWAITING_PAYMENT' | 'NOT_TRANSFERRED' | 'DISPUTED' | null;
   /**
    * أُفرج عن ضمانه — **فلا يُقال «جاهز للصرف» بعد أن صُرف**.
    *
@@ -66,6 +73,13 @@ export type SellerBook = {
   payable: string;
   /** ما وصلك فعلًا */
   paidOut: string;
+  /**
+   * ما لم يُحسب في الإجمالي — **ورقمٌ محذوفٌ بلا ذكرٍ يبدو خطأً**.
+   *
+   * صفقاتٌ قائمة لم يصل مالها، فلا تدخل المبيعات ولا المستحقّ. وحذفُها
+   * صامتةً يجعل البائع يجمع أسطره فلا تساوي إجماليه.
+   */
+  awaitingPayment: { count: number; amount: string };
   lines: BookLine[];
 };
 
@@ -127,6 +141,8 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
   let govtFees = zero;
   let held = zero;
   let earned = zero;
+  let awaiting = zero;
+  let awaitingCount = 0;
 
   const lines: BookLine[] = [];
 
@@ -135,12 +151,32 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
     // القاعدة في `money.ts` — ويقرؤها كشف التسوية وشاشة الإفراج
     const net = netToSeller({ ...order, gatewayFee });
 
-    sales = sales.plus(order.agreedPrice);
-    // **عمولته هو** — و`commissionAmount` مجموع الطرفين، فعرضُه يُحمّله نصيب المشتري
-    commission = commission.plus(order.sellerCommission);
-    commissionVat = commissionVat.plus(order.vatAmount);
-    gatewayFees = gatewayFees.plus(gatewayFee);
-    govtFees = govtFees.plus(order.transferFee);
+    /**
+     * ═══ وما لم يُقبض ليس مبيعًا ═══
+     *
+     * كان الإجمالي يمرّ على **كل** طلبٍ قائم، فيدخل فيه طلبٌ عند مرحلة
+     * «موافقة» لم يدفع المشتري فيه ريالًا — وقِيس: بائعٌ يقرأ «صافي ما
+     * استُحقّ لك ١٥٣٬٧٤٥» وبطاقاتُه فوقها تقول محتجز ٧٤٬٢٠٥ وجاهز صفر
+     * وحُوِّل صفر. فالرقمان في شاشةٍ واحدة لا يلتقيان، والفرق صفقةٌ قد
+     * تُلغى غدًا فتتبخّر.
+     *
+     * **والدفتر يعترف عند `HELD`** (`recordOrderPaid`)، فالبيان يتبع
+     * الحدث نفسه الذي يتبعه الدفتر — وإلّا صار لرقمٍ واحد مصدران.
+     * و`PENDING` ليست قبضًا: المشتري عند البوابة ولم يُحجز شيء.
+     */
+    const collected = order.escrow !== null && order.escrow.status !== 'PENDING';
+
+    if (!collected) {
+      awaitingCount += 1;
+      awaiting = awaiting.plus(net);
+    } else {
+      sales = sales.plus(order.agreedPrice);
+      // **عمولته هو** — و`commissionAmount` مجموع الطرفين، فعرضُه يُحمّله نصيب المشتري
+      commission = commission.plus(order.sellerCommission);
+      commissionVat = commissionVat.plus(order.vatAmount);
+      gatewayFees = gatewayFees.plus(gatewayFee);
+      govtFees = govtFees.plus(order.transferFee);
+    }
 
     /**
      * **الحارس نفسه الذي يفرض الإفراج** — `canSettle` لا نسخةٌ منه.
@@ -150,10 +186,12 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
      */
     const guard = order.disputes.length > 0
       ? ({ allowed: false, reason: 'DISPUTED' } as const)
-      : canSettle({ stage: order.stage, status: order.status });
+      : !collected
+        ? ({ allowed: false, reason: 'AWAITING_PAYMENT' } as const)
+        : canSettle({ stage: order.stage, status: order.status });
 
     if (!guard.allowed && order.escrow?.status === 'HELD') held = held.plus(net);
-    earned = earned.plus(net);
+    if (collected) earned = earned.plus(net);
 
     lines.push({
       orderRef: order.ref,
@@ -196,6 +234,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
     held: str(held),
     payable: str(payable),
     paidOut: str(paidOut),
+    awaitingPayment: { count: awaitingCount, amount: str(awaiting) },
     lines,
   };
 }

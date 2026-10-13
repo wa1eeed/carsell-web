@@ -125,18 +125,25 @@ export function Quantity({
  * نسبة مئوية.
  * الإشارة والرقم وعلامة النسبة في **مقطع واحد** — تقسيمها إلى
  * ثلاثة عناصر يجعل الاتجاه يفرّقها فتُقرأ «٪ ٤٠ −».
+ *
+ * **و`signed` تُطلب للفرق وحده.** «+٥٠٪ اكتمال الملف» تقرأ المستوى
+ * زيادةً، والتصميم يكتب الفروق بإشارةٍ والمستويات بلا — انظر
+ * `formatPercent`.
  */
 export function Percent({
   value,
+  signed,
   className,
 }: {
   value: number;
+  /** فرقٌ لا مستوى: «+١٤٪» صعودًا و«−٣٪» هبوطًا */
+  signed?: boolean;
   className?: string;
 }) {
   const locale = useLocale() as NumeralLocale;
   return (
     <span className={cn('bidi-isolate', className)}>
-      {formatPercent(value, locale)}
+      {formatPercent(value, locale, { signed })}
     </span>
   );
 }

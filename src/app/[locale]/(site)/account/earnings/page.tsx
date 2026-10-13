@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
+import { Quantity } from '@/components/ui/Quantity';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
@@ -23,6 +24,12 @@ export function generateMetadata(): Metadata {
 }
 
 const BLOCKED_LABEL: Record<string, string> = {
+  /**
+   * **والمانع يُسمّى كما هو.** طلبٌ لم يدفع المشتري فيه ريالًا كان
+   * يُوسم «بانتظار نقل الملكية» — فينتظر البائع موعد المرور وهو ينتظر
+   * مشتريًا لم يدفع.
+   */
+  AWAITING_PAYMENT: 'بانتظار دفع المشتري',
   NOT_TRANSFERRED: 'بانتظار نقل الملكية',
   DISPUTED: 'نزاع مفتوح',
 };
@@ -107,6 +114,29 @@ export default async function EarningsPage({
                 <Row label="صافي ما استُحقّ لك" value={book.totals.earned} strong />
               </div>
             </dl>
+
+            {/*
+              ═══ وما حُذف من الإجمالي يُذكَر ═══
+
+              **رقمٌ محذوفٌ بلا ذكرٍ يبدو خطأً.** صفقةٌ قائمة لم يصل
+              مالها ليست مبيعًا — ولو حُذفت صامتةً لجمع البائع أسطره
+              فلم تساوِ إجماليه، فظنّ العدّاد مكسورًا.
+            */}
+            {book.awaitingPayment.count === 0 ? null : (
+              <p className="mt-3.5 flex flex-wrap items-center gap-1.5 border-t border-line pt-3 text-3xs leading-loose opacity-60">
+                ولا يشمل
+                <span className="font-bold">
+                  <Quantity unit="deals" count={book.awaitingPayment.count} />
+                </span>
+                لم يصل مالها بعد — تدخل الإجمالي حين يدفع المشتري. وقيمتها
+                {/* **ويُجمَّع كجيرانه** — «79540.00» بين «79,540.00» تبدو رقمًا آخر */}
+                <ArabicNumber
+                  value={Number(book.awaitingPayment.amount)}
+                  decimals={2}
+                  className="font-bold"
+                />
+              </p>
+            )}
           </section>
 
           {/*

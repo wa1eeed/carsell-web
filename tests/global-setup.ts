@@ -224,6 +224,34 @@ async function sweep(when: string): Promise<void> {
     console.log(`  نُظّف ${String(staleOrders.length)} طلب اختبار ${when}`);
   }
 
+  /**
+   * ═══ وإشعارُ طلبٍ لم يعد موجودًا ═══
+   *
+   * **التسرّب الصامت يُقاس لا يُلاحَظ.** صارت رحلةُ الطلب تُخطِر
+   * طرفيها، واختبارٌ يُنشئ طلبًا جديدًا (لا يمرّ بـ`withOrder`) ثم
+   * يُحذف صفُّه يترك إشعاراته خلفه — **ولا قيدَ أجنبيّ يمنع**:
+   * `entityId` نصٌّ لا مرجع، فلا شيء يسقط ولا شيء يقول.
+   *
+   * وقِيس: اثنا عشر صفًّا لطلبٍ واحد بعد تشغيلٍ واحد. والتنظيف
+   * بالشكل — كل إشعار طلبٍ لا يقابله صفٌّ قائم يتيمٌ يُحذف.
+   */
+  const orderBells = await db.notification.findMany({
+    where: { entityType: 'Order' },
+    select: { id: true, entityId: true },
+  });
+  if (orderBells.length > 0) {
+    const liveRefs = new Set(
+      (await db.order.findMany({ select: { ref: true } })).map((row) => row.ref),
+    );
+    const orphanBells = orderBells
+      .filter((row) => row.entityId === null || !liveRefs.has(row.entityId))
+      .map((row) => row.id);
+    if (orphanBells.length > 0) {
+      await db.notification.deleteMany({ where: { id: { in: orphanBells } } });
+      console.log(`  نُظّف ${String(orphanBells.length)} إشعار طلبٍ يتيم ${when}`);
+    }
+  }
+
   const requests = await db.serviceRequest.findMany({ select: { id: true, ref: true } });
   const staleRequests = requests.filter((row) => TEST_SERVICE_REF.test(row.ref)).map((r) => r.id);
   if (staleRequests.length > 0) {

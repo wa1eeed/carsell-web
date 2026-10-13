@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **146** components in **3** directories.
+Counted: **147** components in **3** directories.
 
 ## Referenced nowhere else
 
@@ -53,7 +53,7 @@ rather than found by chance.
 | `PushPreview` | no | `template` · `titleLimit` · `bodyLimit` | 1 |
 | `SectionHead` | no | `title` · `note` | 7 |
 | `ServiceRequestCard` | no | `row` | 1 |
-| `StatCard` | no | `title` · `value` · `note` · `className` | 16 |
+| `StatCard` | no | `title` · `value` · `note` · `className` | 17 |
 | `StatGrid` | no | `children` · `className` | 4 |
 | `Timeline` | no | `events` | 11 |
 | `UserCard` | no | `row` | 2 |
@@ -126,7 +126,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 9 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 76 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 77 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 7 |
 | `CarRow` | no | `data` · `className` | 3 |
@@ -159,21 +159,22 @@ rather than found by chance.
 | `PaintMap` | no | `panels` · `className` | 1 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 2 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
-| `Percent` | no | `value` · `className` | 4 |
-| `Quantity` | no | `unit` · `count` · `className` | 95 |
+| `Percent` | no | `value` · `signed` · `className` | 5 |
+| `Quantity` | no | `unit` · `count` · `className` | 96 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 4 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 23 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 35 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 24 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 36 |
+| `SignOut` | yes | `path` · `next` · `label` · `className` | 2 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
 | `Sparkline` | no | `points` · `height` · `className` | 3 |
 | `SpecTable` | no | `entries` · `columns` · `className` | 1 |
 | `StageTracker` | no | `current` · `stopped` · `orientation` · `className` | 2 |
 | `SpecRow` | no | `label` · `children` · `className` | 3 |
-| `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 16 |
+| `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 17 |
 | `Stepper` | no | `steps` · `active` · `onSelect` · `className` | 1 |
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |

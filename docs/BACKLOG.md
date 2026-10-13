@@ -397,6 +397,47 @@ declared-silent list with a reason. Measured first per the repo's rule: 22
 alarms today is far past the ten-alarm threshold, so the move comes before the
 gate.
 
+### H · Three truths measured while walking Wj — **closed**
+
+All three surfaced from walking the order page and the seller's path to it, and
+all three are the same family: a screen stating something the system does not do.
+
+**1 · The seller's earnings page contradicted itself.** `sellerBook` summed
+`sales` and `earned` over *every* live order, paid or not. On a seeded seller
+the three cards read held 74,205 · payable 0 · paid out 0, and the total below
+read **«صافي ما استُحقّ لك 153,745»** — the difference being an order at stage
+`APPROVED` where the buyer had not paid a riyal and might never. A deal now
+counts only once its money is collected (escrow exists and is not `PENDING`),
+which is the same event the ledger recognises at (`recordOrderPaid` on `HELD`) —
+one number, one source. Excluded deals are disclosed under the total rather than
+dropped silently, and the per-line badge says «بانتظار دفع المشتري» instead of
+«بانتظار نقل الملكية», which was waiting on the wrong thing entirely.
+
+**2 · `formatPercent` signed levels as if they were changes.** The `+` was
+unconditional, so the account read **«+50٪ اكتمال الملف»** — half a profile is
+not growth of anything. Measured: two of three real call sites were levels
+(profile completion, campaign open/click rates) and one was a delta
+(`StatCard.delta`); a fourth built the sign by hand in `GrowthTab` and printed
+«+0٪» for no change. The sign is now opt-in (`signed`), matching the design,
+which writes «+١٤٪» / «−٣٪» for changes and «٩٤٪» / «٥٨٪» for levels.
+
+**3 · There was no way to sign out.** No button and no route on the public site;
+the admin panel had `POST /api/v1/admin/auth/logout` built and **nothing calling
+it** — a route with no screen, the same class as the rest. Anyone signing in on
+a shared machine stayed signed in for 30 days, with their orders, IBAN and
+earnings one click away for whoever sat down next. One `SignOut` component now
+serves both, with a confirmation step (getting back in costs an SMS code).
+Walked by clicking in both panels, and the session was verified dead afterwards,
+not just visually gone.
+
+Guarded by `tests/seller-book-truth.test.ts`, proved by reverting each defect.
+
+**Known limit, not a defect:** the site's session is a signed token with no
+stored id, so signing out clears the cookie on that device and cannot revoke a
+token already copied elsewhere. Revocation needs a session id in the claims —
+a change to the session model, not to this button. The admin side already
+revokes its row.
+
 ### D · English UI strings — deferred by the owner
 
 **624 lines across 68 files** of Arabic written into the public site's

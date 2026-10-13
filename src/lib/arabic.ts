@@ -148,9 +148,24 @@ export function splitDuration(totalSeconds: number): {
 /**
  * نسبة مئوية في **مقطع نصّي واحد**: الإشارة والرقم والعلامة معًا.
  * تقسيمها إلى ثلاثة عناصر يجعل الاتجاه يفرّقها فتُقرأ «٪ ٤٠ −».
+ *
+ * ═══ والإشارة للفرق لا للمستوى ═══
+ *
+ * كانت `+` تُكتب دائمًا للموجب، فقرأ صاحب الحساب **«+٥٠٪ اكتمال
+ * الملف»** — ونصفُ ملفٍ ليس زيادةً على شيء. وقِيس: موضعان من ثلاثة
+ * مستويات لا فروق (اكتمال الملف · نِسَب فتح الحملات ونقرها)، والثالث
+ * وحده فرق (`StatCard.delta`).
+ *
+ * والتصميم يفرّق بينهما حرفيًّا: «+١٤٪» و«−٣٪» للفروق، و«٩٤٪» و«٥٨٪»
+ * للمستويات. فالافتراضيّ مستوًى، والإشارة تُطلب — وافتراضُها إشارةً
+ * يجعل الخطأ صامتًا.
  */
-export function formatPercent(value: number, locale: NumeralLocale): string {
-  const sign = value > 0 ? '+' : value < 0 ? '\u2212' : '';
+export function formatPercent(
+  value: number,
+  locale: NumeralLocale,
+  options: { signed?: boolean } = {},
+): string {
+  const sign = options.signed !== true ? '' : value > 0 ? '+' : value < 0 ? '\u2212' : '';
   const digits = formatNumber(Math.abs(value), locale, { grouped: false });
   return locale === 'ar' ? `${sign}${digits}٪` : `${sign}${digits}%`;
 }

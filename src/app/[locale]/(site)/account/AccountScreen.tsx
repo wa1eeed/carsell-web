@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { displayDigits, formatNumber, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
+import { SignOut } from '@/components/ui/SignOut';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
@@ -508,6 +509,23 @@ export function AccountScreen({
             {tx('edit')}
           </Button>
         </div>
+      </section>
+
+      {/*
+        ═══ وبابُ الخروج — ولم يكن في المنتج كلّه ═══
+
+        لا زرّ ولا مسار. فمن دخل من جهازٍ مشترك — حاسوب معرضٍ أو جهاز
+        صديق — يبقى داخلًا ثلاثين يومًا، ومن يجلس بعده يفتح طلباته
+        وآيبانه ومستحقّاته.
+
+        وموضعُه آخرُ الحساب لا الترويسة: فعلٌ يُقصَد لا يُلمس عرَضًا،
+        والترويسة بلا قائمةٍ منسدلة أصلًا.
+      */}
+      <section className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+        <p className="min-w-0 flex-1 text-2xs leading-loose opacity-55">
+          تخرج من هذا الجهاز وحده. وبياناتك وطلباتك تبقى كما هي.
+        </p>
+        <SignOut path="/api/v1/auth/logout" next={`/${locale}`} />
       </section>
 
       <TaxStatusDialog

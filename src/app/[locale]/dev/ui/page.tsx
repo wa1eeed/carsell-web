@@ -209,10 +209,10 @@ export default async function DevUiPage({
             </Case>
 
             <Case label="Percent — الإشارة والرقم والعلامة مقطع واحد">
-              <Percent value={18} className="text-2xl font-bold text-accent-700" />
-              <Percent value={-40} className="text-2xl font-bold text-warn-700" />
-              <Percent value={180} className="text-2xl font-bold text-accent-700" />
-              <Percent value={0} className="text-2xl font-bold opacity-55" />
+              <Percent signed value={18} className="text-2xl font-bold text-accent-700" />
+              <Percent signed value={-40} className="text-2xl font-bold text-warn-700" />
+              <Percent signed value={180} className="text-2xl font-bold text-accent-700" />
+              <Percent signed value={0} className="text-2xl font-bold opacity-55" />
             </Case>
 
             <Case label="ScoreRing — sm · md · lg · عتبات اللون">

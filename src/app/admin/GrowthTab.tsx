@@ -1,7 +1,7 @@
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Counted } from '@/components/ui/Counted';
 import { Badge } from '@/components/ui/Badge';
-import { Quantity } from '@/components/ui/Quantity';
+import { Percent, Quantity } from '@/components/ui/Quantity';
 import { Sparkline } from '@/components/ui/Sparkline';
 import {
   dashboardCards,
@@ -164,12 +164,16 @@ function Card({ card }: { card: MetricCard }) {
         <h2 className="flex-1 text-3xs font-bold tracking-[0.14em] opacity-45">
           {DASHBOARD_CARD_LABEL[card.key] ?? card.key}
         </h2>
+        {/*
+          ═══ والصياغة واحدة ═══
+
+          كانت الإشارة تُبنى هنا بيد، فـ«+٠٪» تقول نموًّا لم يقع —
+          وصفرٌ لا اتّجاه له. و`Percent` تعرف القاعدة (الإشارة للفرق،
+          ولا إشارة للصفر)، ونسختان لرقمٍ واحد تتباعدان.
+        */}
         {delta === null ? null : (
           <Badge tone={delta >= 0 ? 'accent' : 'danger'}>
-            <span className="bidi-isolate" dir="ltr">
-              {delta >= 0 ? '+' : '−'}
-              <ArabicNumber value={Math.abs(delta)} grouped={false} />٪
-            </span>
+            <Percent signed value={delta} />
           </Badge>
         )}
       </div>

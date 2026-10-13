@@ -50,6 +50,7 @@ export function StatCard({
         {delta === undefined ? null : (
           <Percent
             value={delta}
+            signed
             className={cn(
               'text-3xs font-bold',
               delta >= 0
