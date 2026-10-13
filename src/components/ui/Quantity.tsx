@@ -48,6 +48,8 @@ export type Unit =
   | 'messages'
   | 'paymentPurposes'
   | 'gateways'
+  | 'linkedGateways'
+  | 'servableGateways'
   | 'inFlight'
   | 'disputes'
   /** جولةُ التفاوض — عرضٌ ثم مقابلُه ثم مقابلُ مقابله. */

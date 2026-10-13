@@ -158,6 +158,24 @@ domain, audited, walked end to end).
   `/admin/ads` sells them. Nothing renders today because there are no live
   campaigns, so wiring them changes no pixel until one is sold.
 
+- `/admin/payments` — **«مربوطة» is a row, «تُحصّل» is code.** Four gateways sat
+  in the database, all `ACTIVE`; two adapters exist (`moyasar`, `sandbox`). The
+  screen read «4 بوابات مربوطة», put «بيع المركبات — الضمان» on the bank gateway
+  and showed «254,570 ريال محجوز الآن» with its full capability list — while
+  every payment through it returns `GATEWAY_NOT_CONFIGURED`. The buyer finds out
+  by pressing «ادفع». `resolve.ts` knew it, in a comment.
+  `IMPLEMENTED_GATEWAYS` is now **derived** from the adapter registry (writing it
+  by hand did not hold: a test that compared the list to behaviour passed when
+  `tap` was added to it falsely, because it only checked what was outside the
+  list). The screen counts «بوابتان تُحصّلان» beside «4 مربوطة», badges a gateway
+  with no adapter «بلا وصلة», and warns by name which purposes accept no payment
+  right now — before anyone tries, not after.
+
+- [ ] **`VEHICLE_ESCROW` and `TRANSFER_FEE` route to `bank_escrow`, which has no
+  adapter.** On seed data, buying a car cannot be paid for at all. `npm run
+  trial:on` moves them to the sandbox for walking the journey; the real fix is a
+  bank-escrow adapter, which waits on the bank integration.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

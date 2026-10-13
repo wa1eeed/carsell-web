@@ -4,7 +4,10 @@ import type { IntegrationEnv, PaymentPurpose } from '@/generated/prisma/enums';
 import { effectiveEnvironment } from '@/lib/domain/integration-env';
 import { createMoyasarAdapter } from './adapters/moyasar';
 import { SANDBOX_KEY, createSandboxAdapter } from './adapters/sandbox';
+
 import { pendingGateway, readCapabilities, type PaymentGatewayPort } from './gateway';
+
+const MOYASAR_KEY = 'moyasar';
 
 /**
  * يبني بوابة الغرض — **من التوجيه لا من إعدادٍ عامّ**.
@@ -22,6 +25,42 @@ export type Resolved = {
 
 /** أسرار البوابة — تُفكّ هنا وحدها ولا تخرج. */
 type Secrets = { secretKey?: string; webhookSecret?: string };
+
+/**
+ * ═══ سجلُّ المُهايئات — ومنه تُشتقّ القائمة ═══
+ *
+ * ما ليس فيه يُحَلّ إلى `pendingGateway`، فيُردّ كلُّ دفعٍ بـ
+ * `GATEWAY_NOT_CONFIGURED`. وكان هذا معروفًا **في تعليقٍ وحده**: أربع
+ * بوّابات في القاعدة كلُّها `ACTIVE` ومُهايئان في الشيفرة، و`/admin/payments`
+ * يقول «٤ بوابات مربوطة» ويضع «بيع المركبات — الضمان» على المصرفية
+ * ويعرض «٢٥٤٬٥٧٠ ريال محجوز الآن» — وهي لا تستطيع تحصيل ريال.
+ *
+ * **والقائمة تُشتقّ ولا تُكتب.** كتبتُها أوّلًا بيدٍ واختبارًا يقابلها
+ * بالسلوك، فأضفتُ `tap` إليها كذبًا **ومرّ الاختبار**: من يفحص «ما
+ * خارج القائمة» لا يرى ما دخلها زورًا. ومصدرٌ واحد لا يحتاج حارسًا.
+ *
+ * والبنّاء يعيد `null` حين ينقص سرٌّ — فالبوابة مُنفَّذةٌ وتنتظر مفتاحًا،
+ * وهي حالٌ غيرُ «لا وصلة لها».
+ */
+const ADAPTERS: Record<string, (secrets: Secrets) => PaymentGatewayPort | null> = {
+  [MOYASAR_KEY]: (secrets) =>
+    secrets.secretKey === undefined || secrets.webhookSecret === undefined
+      ? null
+      : createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret),
+  /**
+   * والتجريبية بلا أسرار تُفكّ — فبنّاؤها لا يقرأ `secrets`. وهي ترمي
+   * في الإنتاج من داخلها، فلا يحرسها هذا الموضع وحده.
+   */
+  [SANDBOX_KEY]: () => createSandboxAdapter(readCapabilities(null)),
+};
+
+/** البوّابات التي للمنتج وصلةٌ إليها — مشتقّةٌ من السجلّ نفسه. */
+export const IMPLEMENTED_GATEWAYS: readonly string[] = Object.keys(ADAPTERS);
+
+/** أللمنتج وصلةٌ إلى هذه البوابة؟ — سؤالُ الشاشة قبل أن تَعِد. */
+export function gatewayImplemented(key: string): boolean {
+  return IMPLEMENTED_GATEWAYS.includes(key);
+}
 
 function readSecrets(blob: string | null): Secrets {
   if (blob === null || blob === '') return {};
@@ -71,12 +110,10 @@ export async function resolveGateway(purpose: PaymentPurpose): Promise<Resolved 
     };
   }
 
+  // بوابةٌ لا وصلة لها **لا تُشتقّ من قدراتها**: القدرات تصف ما تستطيع،
+  // لا كيف تُنادى. وتاب والمصرفية بلا وصلةٍ بعد.
   const gateway =
-    route.gatewayKey === 'moyasar'
-      ? createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret)
-      : // بوابةٌ لا مُهايئ لها **لا تُشتقّ من قدراتها**: القدرات تصف ما
-        // تستطيع، لا كيف تُنادى. وتاب والمصرفية بلا مُهايئ بعد.
-        pendingGateway(route.gatewayKey, environment);
+    ADAPTERS[route.gatewayKey]?.(secrets) ?? pendingGateway(route.gatewayKey, environment);
 
   return {
     // القدرات من الصفّ لا من المُهايئ: المشغّل يعدّلها بلا نشر
@@ -103,7 +140,7 @@ export async function resolveForPayment(
     return createSandboxAdapter(readCapabilities(gateway?.capabilities ?? null));
   }
 
-  if (gatewayKey === 'moyasar' && secrets.secretKey !== undefined && secrets.webhookSecret !== undefined) {
+  if (gatewayKey === MOYASAR_KEY && secrets.secretKey !== undefined && secrets.webhookSecret !== undefined) {
     return createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret);
   }
   return pendingGateway(gatewayKey, environment);

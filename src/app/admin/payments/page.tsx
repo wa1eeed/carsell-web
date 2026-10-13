@@ -44,16 +44,53 @@ export default async function PaymentsRoutingPage() {
     routeChanges(),
   ]);
   const linked = gateways.filter((gateway) => gateway.status !== 'INACTIVE');
+  /**
+   * **ومربوطةٌ ليست مُهيَّأة.** `status: ACTIVE` صفٌّ في القاعدة، والمُهايئ
+   * شيفرة. وأربعُ بوّابات كلُّها `ACTIVE` ومُهايئان — فكانت الشاشة تقول
+   * «٤ بوابات مربوطة» وتضع «بيع المركبات — الضمان» على المصرفية وتقول
+   * «٢٥٤٬٥٧٠ ريال محجوز الآن»، وهي لا تستطيع تحصيل ريال.
+   */
+  const servable = gateways.filter((gateway) => gateway.implemented);
+  const blockedPurposes = routes.filter((route) => !route.gatewayImplemented && route.enabled);
 
   return (
     <AdminShell title="إعدادات الدفع والتوجيه" activeHref="/admin/payments" admin={admin}>
       <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
         <Quantity unit="paymentPurposes" count={routes.length} />
         <span aria-hidden className="opacity-40">·</span>
-        <Quantity unit="gateways" count={linked.length} /> مربوطة
+        {/*
+          **والاتّفاق داخل صيغة الجمع لا بعدها**: «بوابتان مربوطة» خطأ،
+          وصوابُها «مربوطتان» — والعربية ستُّ حالات، فالوصف يُكتب في كلٍّ.
+        */}
+        <Quantity unit="linkedGateways" count={linked.length} />
+        <span aria-hidden className="opacity-40">·</span>
+        <Quantity unit="servableGateways" count={servable.length} />
         <span aria-hidden className="opacity-40">·</span>
         <span>التبديل يحتاج موافقة عضوين</span>
       </p>
+
+      {/*
+        **والإنذار قبل أن يدفع أحد لا بعده.** غرضٌ مفعَّلٌ على بوابةٍ بلا
+        مُهايئ يردّ كلَّ دفعٍ بـ`GATEWAY_NOT_CONFIGURED` — ويكتشفه المشتري
+        عند الضغط على «ادفع»، والمشغّل لا يعرف السبب.
+      */}
+      {blockedPurposes.length === 0 ? null : (
+        <section className="mb-5 rounded-lg border border-warn/35 bg-warn-100 p-4.5">
+          <p className="mb-1.5 text-xs font-bold">أغراضٌ لا يُقبل فيها دفعٌ الآن</p>
+          <p className="mb-2.5 text-2xs leading-loose opacity-75">
+            بوابتها مربوطةٌ في القاعدة ولا وصلةَ لها في المنتج بعد — فكلُّ محاولة دفع
+            تُردّ. وجّهها إلى بوابةٍ تُحصّل، أو عطّل الغرض حتى تصل الوصلة.
+          </p>
+          <ul className="flex flex-col gap-1 text-2xs">
+            {blockedPurposes.map((route) => (
+              <li key={route.purpose}>
+                <span className="font-bold">{PAYMENT_PURPOSE_LABEL[route.purpose]}</span>
+                <span className="opacity-55"> — {route.gatewayNameAr ?? route.gatewayKey}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
         أغراض الدفع — لكلٍّ بوابته
@@ -76,6 +113,8 @@ export default async function PaymentsRoutingPage() {
               <Badge tone={gateway.status === 'ACTIVE' ? 'accent' : 'neutral'}>
                 {gateway.status === 'ACTIVE' ? 'مربوطة' : 'غير مفعّلة'}
               </Badge>
+              {/* القدرات تصف ما تستطيعه البوابة، لا أنّ لنا طريقًا إليها */}
+              {gateway.implemented ? null : <Badge tone="warn">بلا وصلة</Badge>}
             </div>
 
             {/* القدرات معلَنة — والنطاق يقرأها ولا يفترض */}

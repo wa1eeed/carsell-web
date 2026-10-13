@@ -10,6 +10,7 @@ import {
   type HoldShortfall,
 } from '@/lib/payments/gateway';
 import { effectiveEnvironment } from './integration-env';
+import { gatewayImplemented } from '@/lib/payments/resolve';
 
 /**
  * A20 — إعدادات الدفع والتوجيه (قرار ٣٤).
@@ -25,6 +26,12 @@ export type GatewayRow = {
   nameEn: string;
   status: string;
   capabilities: GatewayCapabilities;
+  /**
+   * **أيستطيع المنتج مناداتها؟** — والقدرات لا تجيب: هي تصف ما تستطيع
+   * البوابة، لا أنّ لنا طريقًا إليها. وصفٌّ `ACTIVE` بقدراتٍ كاملة
+   * وبلا مُهايئ يردّ كلَّ دفعٍ بـ`GATEWAY_NOT_CONFIGURED`.
+   */
+  implemented: boolean;
 };
 
 export type RouteRow = {
@@ -41,6 +48,8 @@ export type RouteRow = {
   heldNow: string;
   /** معاملات جارية تمنع التعطيل (قاعدة ٣). */
   inFlight: number;
+  /** بوابةُ هذا الغرض بلا مُهايئ — فلا دفعَ يُقبل فيه أصلًا. */
+  gatewayImplemented: boolean;
   shortfall: HoldShortfall | null;
 };
 
@@ -55,6 +64,7 @@ export async function listGateways(): Promise<GatewayRow[]> {
     nameEn: row.nameEn,
     status: row.status,
     capabilities: readCapabilities(row.capabilities),
+    implemented: gatewayImplemented(row.key),
   }));
 }
 
@@ -100,6 +110,7 @@ export async function listRoutes(now: Date = new Date()): Promise<RouteRow[]> {
       ).toString(),
       heldNow: (held.find((row) => row.purpose === purpose)?._sum.amount ?? 0).toString(),
       inFlight: inFlight.find((row) => row.purpose === purpose)?._count._all ?? 0,
+      gatewayImplemented: route === undefined ? false : gatewayImplemented(route.gatewayKey),
       shortfall: check.eligible ? check.shortfall : null,
     };
   });
