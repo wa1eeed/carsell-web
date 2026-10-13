@@ -14,6 +14,8 @@ import {
   type UserSegment,
 } from '@/lib/domain/admin-orders';
 import { disputeCounts, listDisputes } from '@/lib/domain/disputes';
+import { allListings, listingCounts } from '@/lib/domain/admin-monitors';
+import type { ListingStatus } from '@/generated/prisma/enums';
 import {
   serviceRequestCounts,
   listServiceRequests,
@@ -126,6 +128,51 @@ async function serviceCardsScreen(): Promise<Screen> {
   return { name: 'service-cards', tabs };
 }
 
+/**
+ * ═══ كل الإعلانات — وحالةٌ بلا شريحة لا تُرى ═══
+ *
+ * مجموع الشرائح الخمس كان ٥٧ و«الكل» ٦٠: **ثلاثُ مسودّات لا تُبلَغ إلا
+ * من «الكل»**، ومن يفتح «الجرد الكامل بحالاته» يظنّ أنه رآها كلّها.
+ * ثمّ أُضيفت الشريحة فقالت «مسودّة ٣» وفتحت ستّين — لأن المفتاح غير
+ * المدرَج في `FILTERS` يسقط إلى «الكل» صامتًا.
+ *
+ * فهنا الطرفان معًا: **مجموعُ الشرائح يساوي الكلّ**، وكلُّ شريحةٍ
+ * تَعُدّ ما تُرشّح.
+ *
+ * **وقائمةُ المقبول في الشاشة لا يحرسها هذا الملفّ**: جرّبتُ حذف
+ * `DRAFT` منها فمرّ — لأن الاختبار ينادي النطاق مباشرةً فيتخطّاها.
+ * فصارت `FILTERS` **مشتقّةً من الشرائح نفسها** في الصفحة، وشريحةٌ بلا
+ * مرشّحها لا تُكتب أصلًا. والاشتقاق هو الحارس، لا هذا الاختبار.
+ */
+async function allListingsScreen(): Promise<Screen> {
+  const counts = await listingCounts();
+  const keys = [
+    ['PUBLISHED', counts.published],
+    ['PENDING_REVIEW', counts.pendingReview],
+    ['RESERVED', counts.reserved],
+    ['SOLD', counts.sold],
+    ['SUSPENDED', counts.suspended],
+    ['DRAFT', counts.draft],
+  ] as const;
+
+  const tabs = await Promise.all(
+    keys.map(async ([key, count]) => ({
+      key: key as string | null,
+      count,
+      rows: (await allListings(key as ListingStatus, 500, null)).length,
+    })),
+  );
+
+  return {
+    name: 'all-listings',
+    tabs: [
+      // والكلُّ مجموعُ ما تحته — وإلّا فحالةٌ لا تُرى
+      { key: 'all', count: counts.total, rows: keys.reduce((sum, [, n]) => sum + n, 0) },
+      ...tabs,
+    ],
+  };
+}
+
 async function auctionsScreen(): Promise<Screen> {
   const counts = await auctionCounts();
   const keys = [null, 'live', 'scheduled', 'unmet', 'ended'] as const;
@@ -231,6 +278,10 @@ describe('═══ كل شريحةٍ تَعُدّ ما تُرشّح ═══',
 
   it('بطاقاتُ طلبات الخدمات', async () => {
     expect(wrongTabs(await serviceCardsScreen())).toEqual([]);
+  });
+
+  it('كل الإعلانات', async () => {
+    expect(wrongTabs(await allListingsScreen())).toEqual([]);
   });
 
   it('المزادات', async () => {

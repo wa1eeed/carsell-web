@@ -69,6 +69,14 @@ export type ListingCounts = {
   reserved: number;
   sold: number;
   suspended: number;
+  /**
+   * ═══ وحالةٌ بلا شريحة لا تُرى ═══
+   *
+   * `DRAFT` يكتبه المنتج (معالج البيع يحفظ مسودّة) ولم تكن له شريحة —
+   * فمجموع الشرائح الخمس ٥٧ و«الكل» ٦٠، وثلاثُ مسودّات لا تُبلَغ إلا
+   * من «الكل». والصنف نفسه أُصلح في `REFUNDED` بطلبات الخدمة.
+   */
+  draft: number;
   /** نصيب المنشور من الإجمالي — والانخفاض يعني طابورًا أو إيقافات */
   activeSharePct: number;
 };
@@ -187,6 +195,7 @@ export async function listingCounts(): Promise<ListingCounts> {
     reserved: at('RESERVED'),
     sold: at('SOLD'),
     suspended: at('SUSPENDED'),
+    draft: at('DRAFT'),
     activeSharePct: total === 0 ? 0 : Math.round((published / total) * 100),
   };
 }

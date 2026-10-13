@@ -16,7 +16,36 @@ import { displayDigits } from '@/lib/arabic';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'كل الإعلانات' };
 
-const FILTERS: readonly string[] = ['PUBLISHED', 'PENDING_REVIEW', 'RESERVED', 'SOLD', 'SUSPENDED'];
+/**
+ * ═══ الشرائح تُعرَّف مرّة، والمرشّح يُشتقّ منها ═══
+ *
+ * المفتاحُ غيرُ المدرَج في قائمة المقبول يسقط إلى «الكل» **صامتًا** —
+ * فشريحة «مسودّة ٣» كانت تفتح ستّين صفًّا. وقائمتان تُكتبان بيد
+ * تتباعدان أوّل شريحةٍ تُضاف، وقد تباعدتا.
+ *
+ * فالوسوم والمفاتيح هنا، و`FILTERS` مشتقّةٌ منها — فشريحةٌ بلا مرشّحها
+ * لا تُكتب أصلًا.
+ */
+const SEGMENTS = [
+  { key: 'PUBLISHED', label: 'نشطة' },
+  { key: 'PENDING_REVIEW', label: 'مراجعة' },
+  { key: 'RESERVED', label: 'محجوزة' },
+  { key: 'SOLD', label: 'مبيعة' },
+  { key: 'SUSPENDED', label: 'موقوفة' },
+  { key: 'DRAFT', label: 'مسودّة' },
+] as const;
+
+const FILTERS: readonly string[] = SEGMENTS.map((row) => row.key);
+
+/** عدّادُ كل شريحة — بالمفتاح نفسه الذي تُرشَّح به. */
+const COUNT_OF = {
+  PUBLISHED: 'published',
+  PENDING_REVIEW: 'pendingReview',
+  RESERVED: 'reserved',
+  SOLD: 'sold',
+  SUSPENDED: 'suspended',
+  DRAFT: 'draft',
+} as const;
 
 
 
@@ -88,11 +117,11 @@ export default async function AdminAllListingsPage({
         active={active}
         tabs={[
           { key: null, label: 'الكل', count: counts.total },
-          { key: 'PUBLISHED', label: 'نشطة', count: counts.published },
-          { key: 'PENDING_REVIEW', label: 'مراجعة', count: counts.pendingReview },
-          { key: 'RESERVED', label: 'محجوزة', count: counts.reserved },
-          { key: 'SOLD', label: 'مبيعة', count: counts.sold },
-          { key: 'SUSPENDED', label: 'موقوفة', count: counts.suspended },
+          ...SEGMENTS.map((row) => ({
+            key: row.key as string,
+            label: row.label,
+            count: counts[COUNT_OF[row.key]],
+          })),
         ]}
       />
 
