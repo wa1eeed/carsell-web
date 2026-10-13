@@ -57,7 +57,18 @@ const TEST_PROVIDER = /\d{9,}/;
  */
 const TEST_USER_PHONE = /^\+9665\d{11,}$/;
 
-export default async function globalSetup(): Promise<void> {
+/**
+ * ═══ والتنظيف يقع في الطرفين لا في البداية وحدها ═══
+ *
+ * كان يُنادى قبل التشغيل فقط، فيخرج التشغيل تاركًا ما صنعه إلى أن يبدأ
+ * الذي بعده. وبين التشغيلين **قاعدةُ التطوير هي ما يراه المالك**:
+ * قِيس فوُجد فيها أحدَ عشرَ حساب أدمن ثلاثةٌ منها حقيقية، وفي الثمانية
+ * **سوبر أدمن** — و«الفريق والصلاحيات» يعرضها كلَّها كأنها موظّفون.
+ *
+ * وتسعةُ ملفّات تصنع أدمن بلا `afterAll` — فهذه فئةٌ لا حالات، وموضع
+ * إغلاقها واحد. و`globalSetup` في vitest تُعيد دالّة تفكيك.
+ */
+export default async function globalSetup(): Promise<() => Promise<void>> {
   // `globalSetup` يسبق `setupFiles` — فالبيئة تُحمَّل هنا أيضًا لا هناك وحدها
   try {
     process.loadEnvFile();
@@ -65,6 +76,11 @@ export default async function globalSetup(): Promise<void> {
     // المتغيّرات من البيئة نفسها
   }
 
+  await sweep('من تشغيلات سابقة');
+  return () => sweep('بعد التشغيل');
+}
+
+async function sweep(when: string): Promise<void> {
   const { db } = await import('@/lib/db');
 
   const candidates = await db.adminUser.findMany({ select: { id: true, email: true } });
@@ -112,7 +128,7 @@ export default async function globalSetup(): Promise<void> {
     await db.faqPlacement.deleteMany({ where: { faqId: { in: ids } } });
     await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
     await db.faqItem.deleteMany({ where: { id: { in: ids } } });
-    console.log(`  نُظّف ${String(staleFaqs.length)} سؤال اختبار من تشغيلات سابقة`);
+    console.log(`  نُظّف ${String(staleFaqs.length)} سؤال اختبار ${when}`);
   }
 
   const providers = await db.serviceProvider.findMany({ select: { id: true, nameEn: true } });
@@ -122,7 +138,7 @@ export default async function globalSetup(): Promise<void> {
     await db.serviceRequest.updateMany({ where: { providerId: { in: ids } }, data: { providerId: null } });
     await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
     await db.serviceProvider.deleteMany({ where: { id: { in: ids } } });
-    console.log(`  نُظّف ${String(staleProviders.length)} مزوّد اختبار من تشغيلات سابقة`);
+    console.log(`  نُظّف ${String(staleProviders.length)} مزوّد اختبار ${when}`);
   }
 
   const campaigns = await db.adCampaign.findMany({ select: { id: true, advertiserName: true } });
@@ -131,7 +147,7 @@ export default async function globalSetup(): Promise<void> {
     const ids = staleAds.map((row) => row.id);
     await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
     await db.adCampaign.deleteMany({ where: { id: { in: ids } } });
-    console.log(`  نُظّفت ${String(staleAds.length)} حملة إعلان من تشغيلات سابقة`);
+    console.log(`  نُظّفت ${String(staleAds.length)} حملة إعلان ${when}`);
   }
 
   /**
@@ -196,7 +212,7 @@ export default async function globalSetup(): Promise<void> {
     await db.listing.deleteMany({ where: { id: { in: listingIds } } });
     await db.vehicle.deleteMany({ where: { id: { in: stale.map((row) => row.vehicleId) } } });
 
-    console.log(`  نُظّف ${String(stale.length)} إعلان اختبار من تشغيلات سابقة`);
+    console.log(`  نُظّف ${String(stale.length)} إعلان اختبار ${when}`);
   }
 
   const orders = await db.order.findMany({ select: { id: true, ref: true } });
@@ -205,7 +221,7 @@ export default async function globalSetup(): Promise<void> {
     await db.orderEvent.deleteMany({ where: { orderId: { in: staleOrders } } });
     await db.escrow.deleteMany({ where: { orderId: { in: staleOrders } } });
     await db.order.deleteMany({ where: { id: { in: staleOrders } } });
-    console.log(`  نُظّف ${String(staleOrders.length)} طلب اختبار من تشغيلات سابقة`);
+    console.log(`  نُظّف ${String(staleOrders.length)} طلب اختبار ${when}`);
   }
 
   const requests = await db.serviceRequest.findMany({ select: { id: true, ref: true } });
@@ -213,7 +229,7 @@ export default async function globalSetup(): Promise<void> {
   if (staleRequests.length > 0) {
     await db.inspectionReport.deleteMany({ where: { serviceRequestId: { in: staleRequests } } });
     await db.serviceRequest.deleteMany({ where: { id: { in: staleRequests } } });
-    console.log(`  نُظّف ${String(staleRequests.length)} طلب خدمة من تشغيلات سابقة`);
+    console.log(`  نُظّف ${String(staleRequests.length)} طلب خدمة ${when}`);
   }
 
   /**
@@ -256,7 +272,7 @@ export default async function globalSetup(): Promise<void> {
       },
     });
     if (detached.count > 0) {
-      console.log(`  نُظّف ${String(detached.count)} مستخدم اختبار من تشغيلات سابقة`);
+      console.log(`  نُظّف ${String(detached.count)} مستخدم اختبار ${when}`);
     }
   }
 
@@ -264,7 +280,7 @@ export default async function globalSetup(): Promise<void> {
     await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
     await db.adminSession.deleteMany({ where: { adminUserId: { in: ids } } });
     await db.adminUser.deleteMany({ where: { id: { in: ids } } });
-    console.log(`  نُظّف ${String(ids.length)} حساب اختبار من تشغيل سابق`);
+    console.log(`  نُظّف ${String(ids.length)} حساب اختبار ${when}`);
   }
 
   await db.$disconnect();

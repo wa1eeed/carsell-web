@@ -220,6 +220,15 @@ domain, audited, walked end to end).
   what they cannot — so it is checked last, and only speaks when everything else
   is clear.
 
+- **Test rows were cleaned before a run, never after it.** Between `npm run
+  verify` and the next one, the dev database — which is what the owner actually
+  looks at — held **11 admin accounts where 3 are real, one of the eight a
+  `SUPER_ADMIN`**, and «الفريق والصلاحيات» listed them all as staff. Nine test
+  files create an admin with no `afterAll`, so this is a class, not nine
+  oversights: the sweep in `global-setup` now also runs as vitest's teardown, so
+  a run leaves the database as it found it. Measured after a full run: 3 admins,
+  0 stamped, 0 test campaigns, 0 stray events.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the
