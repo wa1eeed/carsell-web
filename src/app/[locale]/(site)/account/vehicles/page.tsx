@@ -23,7 +23,7 @@ export function generateMetadata(): Metadata {
 
 const STATE: Record<VehicleState, { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   listed: { label: 'معروضة للبيع', tone: 'accent' },
-  garage: { label: 'في المرآب', tone: 'neutral' },
+  garage: { label: 'مخفية عن السوق', tone: 'neutral' },
   sold: { label: 'مُباعة', tone: 'neutral' },
 };
 
@@ -44,20 +44,24 @@ const STATE: Record<VehicleState, { label: string; tone: 'accent' | 'warn' | 'ne
  * يريد بيعها**. وربطُ وجودِها في المنصّة بعرضِها للبيع يجعل كلَّ خدمةٍ
  * تمرّ بإعلان — ويُخرج من السوق كلَّ من يريد خدمةً ولا يبيع.
  */
-const TABS = ['all', 'listed', 'garage', 'sold'] as const;
+const TABS = ['listed', 'garage', 'sold'] as const;
 type Tab = (typeof TABS)[number];
 
 /**
- * ═══ التسمية ═══
+ * ═══ التسمية — قرار المالك ═══
  *
- * **«في المرآب» لا «خارج السوق»**: الثانية تُقرأ إقصاءً — كأنّ السيارة
- * أُخرجت من شيء. والأولى كلمةُ التصميم نفسه («١ في المرآب») وهي وسم
- * الحالة على البطاقات، فلا تسميتان لحالٍ واحدة.
+ * **«مخفية عن السوق»** لا «في المرآب» ولا «خارج السوق». وهي تقول ما
+ * وقع فعلًا: السيارة عند صاحبها ولا يراها أحد — بينما «خارج السوق»
+ * تُقرأ إقصاءً كأنها أُخرجت.
+ *
+ * وملفّ التصميم يكتب «في المرآب»، وهذا تجاوزٌ مقصود من المالك مسجَّلٌ
+ * في `DESIGN-DECISIONS`. **والاسم واحدٌ في كل موضع**: التبويب والوسم
+ * على البطاقة وبطاقة الحساب — فاسمان لحالٍ واحدة يجعل القارئ يظنّهما
+ * حالين.
  */
 const TAB_LABEL: Record<Tab, string> = {
-  all: 'الكل',
   listed: 'معروضة',
-  garage: 'في المرآب',
+  garage: 'مخفية عن السوق',
   sold: 'مباعة',
 };
 
@@ -82,13 +86,13 @@ export default async function MyVehiclesPage({
    * **والترشيح بالعنوان لا بحالةٍ في المتصفّح**: الشاشة خادمية،
    * ويُشارَك الرابط، ويعمل بلا JS، ويعود إليه زرُّ الرجوع.
    */
-  const asked = typeof query.tab === 'string' ? query.tab : 'all';
-  const tab: Tab = (TABS as readonly string[]).includes(asked) ? (asked as Tab) : 'all';
+  const asked = typeof query.tab === 'string' ? query.tab : 'listed';
+  const tab: Tab = (TABS as readonly string[]).includes(asked) ? (asked as Tab) : 'listed';
 
   /** العدد من التصنيف نفسه الذي يُرشَّح به — لا شرطان يتباعدان. */
   const countOf = (which: Tab): number =>
-    which === 'all' ? counts.total : vehicles.filter((row) => row.state === which).length;
-  const shown = tab === 'all' ? vehicles : vehicles.filter((row) => row.state === tab);
+    vehicles.filter((row) => row.state === which).length;
+  const shown = vehicles.filter((row) => row.state === tab);
 
   return (
     <AccountList
@@ -113,7 +117,7 @@ export default async function MyVehiclesPage({
                 <span aria-hidden className="opacity-40">·</span>
                 <span className="flex items-center gap-1.5">
                   <ArabicNumber value={counts.garage} />
-                  <span>في المرآب</span>
+                  <span>مخفية</span>
                 </span>
               </>
             )}
@@ -129,7 +133,7 @@ export default async function MyVehiclesPage({
                 <FilterChip
                   key={key}
                   href={
-                    key === 'all'
+                    key === 'listed'
                       ? `/${locale}/account/vehicles`
                       : `/${locale}/account/vehicles?tab=${key}`
                   }
@@ -161,7 +165,7 @@ export default async function MyVehiclesPage({
               }
             : tab === 'garage'
               ? {
-                  title: 'لا سيارة في المرآب',
+                  title: 'لا سيارة مخفية',
                   description: 'كل سياراتك معروضة أو مباعة — وما تضيفه ولا تعرضه يظهر هنا.',
                 }
               : {

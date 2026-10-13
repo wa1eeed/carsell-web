@@ -136,7 +136,7 @@ export default async function AccountPage({
                 */
                 key: 'vehicles',
                 label: 'سياراتي',
-                hint: garage.garage > 0 ? 'منها ما في المرآب' : 'ما تملكه من مركبات',
+                hint: garage.garage > 0 ? 'منها ما هو مخفيّ عن السوق' : 'ما تملكه من مركبات',
                 count: garage.total,
               },
               { key: 'listings', label: 'إعلاناتي', hint: 'ما عرضتَه للبيع', count: data.listings.length },

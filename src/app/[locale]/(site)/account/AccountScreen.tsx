@@ -74,7 +74,7 @@ export function AccountScreen({
   data: AccountData;
   locale: string;
   taxProfile: TaxProfile;
-  /** عدّادات المرآب — «٢ معروضة · ١ في المرآب» كما في التصميم. */
+  /** عدّادات المرآب — «٢ معروضة · ١ مخفية» (التسمية قرارُ المالك). */
   garage: { total: number; listed: number; garage: number; sold: number };
 }) {
   const t = useTranslations('account');
@@ -143,7 +143,7 @@ export function AccountScreen({
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/*
           **وبطاقة المركبات تُفصَّل.** التصميم يكتب «٣ مركباتي · ٢
-          معروضة · ١ في المرآب» — والعدد وحده لا يقول أيُّها في السوق
+          معروضة · ١ مخفية» — والعدد وحده لا يقول أيُّها في السوق
           وأيُّها ينتظر قرار صاحبه.
         */}
         <StatCard
@@ -151,7 +151,7 @@ export function AccountScreen({
           value={garage.total}
           breakdown={[
             { label: 'معروضة', value: garage.listed },
-            { label: 'في المرآب', value: garage.garage },
+            { label: 'مخفية', value: garage.garage },
           ]}
         />
         {data.stats
