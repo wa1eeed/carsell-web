@@ -54,6 +54,19 @@ export default async function AdminOrdersPage({
   const search = await searchParams;
   const raw = typeof search.tab === 'string' ? search.tab : 'all';
   const q = typeof search.q === 'string' && search.q.trim() !== '' ? search.q.trim() : null;
+  /**
+   * ═══ `?late=1` و`?critical=1` ═══
+   *
+   * `onlyLate` موجودٌ في مرشّحات النطاق منذ بُنيت **ولا يمرّره أحد**.
+   * ولوحةُ القيادة تقول «واحد تجاوز ضعف المدّة» ولا تعطي طريقًا إليه —
+   * فتُخبر المشغّل بمشكلةٍ ثمّ تتركه يبحث عنها في قائمةٍ من مئتين.
+   *
+   * **واثنان لأنهما حدّان مختلفان**: `late` تجاوزَ الهدف، و`critical`
+   * تجاوزَ ضعفَه. **وشارةٌ تعدّ أحدهما وتربط إلى الآخر تعرض رقمًا غير
+   * الذي ضُغط** — وهو الصنف الذي تمنعه البوابة ٤٠.
+   */
+  const onlyLate = search.late === '1';
+  const onlyCritical = search.critical === '1';
 
   const stage = STAGES.find((key) => key === raw);
   const closed = CLOSED.find((key) => key === raw);
@@ -80,16 +93,18 @@ export default async function AdminOrdersPage({
           ? { status: 'CANCELLED' as const }
           : {}),
       q,
+      ...(onlyLate ? { onlyLate: true } : {}),
     }),
     orderTabCounts(),
   ]);
 
+  const filtered = onlyCritical ? orders.filter((order) => order.critical) : orders;
   const rows =
     closed === undefined || closed === 'completed' || closed === 'cancelled'
-      ? orders
+      ? filtered
       : closed === 'disputed'
-        ? orders.filter((order) => order.hasDispute)
-        : orders.filter((order) => order.critical);
+        ? filtered.filter((order) => order.hasDispute)
+        : filtered.filter((order) => order.critical);
 
   const late = orders.filter((order) => order.late).length;
   const critical = orders.filter((order) => order.critical).length;

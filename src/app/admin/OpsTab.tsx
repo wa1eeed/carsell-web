@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { SectionHead } from '@/components/admin/SectionHead';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -91,13 +92,42 @@ export async function OpsTab() {
                 <ArabicNumber value={metric.targetHours} />
               </p>
 
+              {/*
+                ═══ ورقمٌ يُقرَّر عليه يربط إلى قائمته ═══
+
+                كانت الشارة تقول «واحد تجاوز ضعف المدّة» **ولا رابط في
+                التاب كلّه** غير التبويبات الثلاثة. فتُخبر المشغّل
+                بمشكلةٍ ثم تتركه يبحث عنها في قائمةٍ من مئتين.
+
+                والرابط يحمل المرحلة و`critical=1` — **بما تعدّه الشارة نفسها**
+                لا بحدٍّ أوسع، وإلّا عُرض رقمٌ غير الذي ضُغط.
+              */}
               {metric.critical === 0 ? null : (
-                <Badge tone="danger" className="mt-3">
-                  <span className="flex items-center gap-1.5">
-                    <Quantity unit="exceeded" count={metric.critical} />
-                    <span>ضعف المدّة</span>
-                  </span>
-                </Badge>
+                <Link
+                  href={`/admin/orders?tab=${metric.stage}&critical=1`}
+                  className="mt-3 inline-block"
+                >
+                  <Badge tone="danger">
+                    <span className="flex items-center gap-1.5">
+                      <Quantity unit="exceeded" count={metric.critical} />
+                      <span>ضعف المدّة</span>
+                      <span aria-hidden>←</span>
+                    </span>
+                  </Badge>
+                </Link>
+              )}
+
+              {/*
+                **والعدد نفسه بابٌ إلى مرحلته** — ومن قرأ «٢ في مرحلة
+                الدفع» أراد أن يرى أيَّ طلبين.
+              */}
+              {metric.count === 0 ? null : (
+                <Link
+                  href={`/admin/orders?tab=${metric.stage}`}
+                  className="mt-3 block text-3xs font-bold text-accent-700 hover:underline"
+                >
+                  افتح طلبات هذه المرحلة ←
+                </Link>
               )}
             </section>
           );
