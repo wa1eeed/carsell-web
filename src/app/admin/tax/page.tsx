@@ -10,6 +10,7 @@ import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import {
   invoiceCountsByType,
   invoiceTotals,
+  blockedInvoices,
   listInvoices,
   listTaxRules,
   pendingRuleChanges,
@@ -17,6 +18,8 @@ import {
 } from '@/lib/domain/admin-tax';
 import { SUPPLY_TYPE_LABEL } from '@/lib/labels/admin';
 import { InvoicesTable } from './InvoicesTable';
+import Link from 'next/link';
+import { INVOICE_BLOCK_REASON } from '@/lib/labels/admin';
 import { RulesTable } from './RulesTable';
 
 export const dynamic = 'force-dynamic';
@@ -58,11 +61,12 @@ export default async function TaxEnginePage({
     count: counts[row.key ?? 'all'] ?? 0,
   }));
 
-  const [rules, awaiting, invoices, totals] = await Promise.all([
+  const [rules, awaiting, invoices, totals, blocked] = await Promise.all([
     listTaxRules(),
     pendingRuleChanges(),
     listInvoices(60, active),
     invoiceTotals(),
+    blockedInvoices(),
   ]);
   const summary = summarize(rules);
 
@@ -158,10 +162,54 @@ export default async function TaxEnginePage({
         <Count label="إشعارات دائنة" value={totals.creditNotes} />
       </div>
 
+      {/*
+        ═══ والمنع غيرُ الانتظار ═══
+
+        «لا فواتير بعد · تصدر عند التسوية المؤكَّدة» تُقرأ «لم تقع تسوية».
+        وقد وقعت وحُجبت الفاتورة: الحدث مكتوبٌ على الطلب منذ بُني
+        (`invoice.blocked`) ويُقرأ في خطّه الزمنيّ — **ولا يصل الشاشة
+        التي يقف عندها من يراقب الامتثال**، وهو لا يعرف أيّ طلبٍ يفتح.
+        وأوّلُ مطابقةٍ شهرية تكشف فرقًا بلا جوابٍ مكتوب.
+      */}
+      {blocked.length === 0 ? null : (
+        <section className="mb-4 rounded-lg border border-warn/35 bg-warn-100 p-4.5">
+          <p className="mb-1.5 text-xs font-bold">
+            <Quantity unit="blockedSettlements" count={blocked.length} />
+          </p>
+          <p className="mb-3 text-2xs leading-loose opacity-75">
+            تأكّدت التسوية ولم تصدر الفاتورة. وكلُّ سطرٍ يقول أيّ توريدٍ حُجب ولماذا —
+            وأكثرُه يُحَلّ بإقرار قاعدةٍ قائمة لا بكتابة جديدة.
+          </p>
+          <ul className="flex flex-col gap-2 text-2xs">
+            {blocked.map((row) => (
+              <li key={`${row.orderId}-${row.at}`} className="flex flex-wrap items-baseline gap-2">
+                <Link
+                  href={`/admin/orders/${row.orderRef}`}
+                  dir="ltr"
+                  className="font-num font-bold underline"
+                >
+                  {row.orderRef}
+                </Link>
+                {row.lines.map((line) => (
+                  <span key={`${line.supplyType}-${line.reason}`} className="opacity-75">
+                    {SUPPLY_TYPE_LABEL[line.supplyType] ?? line.supplyType} —{' '}
+                    {INVOICE_BLOCK_REASON[line.reason] ?? line.reason}
+                  </span>
+                ))}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {invoices.length === 0 ? (
         <EmptyState
-          title="لا فواتير بعد"
-          description="تصدر الفاتورة عند التسوية المؤكَّدة — و«ينتظر التأكيد» ليست واقعة بعد."
+          title={blocked.length === 0 ? 'لا فواتير بعد' : 'لا فاتورة صدرت'}
+          description={
+            blocked.length === 0
+              ? 'تصدر الفاتورة عند التسوية المؤكَّدة — و«ينتظر التأكيد» ليست واقعة بعد.'
+              : 'وقعت تسويات ولم تصدر لها فاتورة — السبب في الإنذار أعلاه.'
+          }
         />
       ) : (
         <InvoicesTable invoices={invoices} canCancel={canWrite(admin.role, 'finance.view')} />

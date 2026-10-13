@@ -334,6 +334,7 @@
     "gateways": "{count, plural, one{{n} gateway} other{{n} gateways}}",
     "linkedGateways": "{count, plural, =0{no gateways linked} one{1 gateway linked} other{{n} gateways linked}}",
     "servableGateways": "{count, plural, =0{none can charge} one{1 can charge} other{{n} can charge}}",
+    "blockedSettlements": "{count, plural, =0{no settlement left uninvoiced} one{1 settlement left uninvoiced} other{{n} settlements left uninvoiced}}",
     "inFlight": "{count, plural, one{{n} in flight} other{{n} in flight}}",
     "messages": "{count, plural, one{{n} message} other{{n} messages}}",
     "transactionalNotifications": "{count, plural, one{{n} transactional notification} other{{n} transactional notifications}}",

@@ -168,6 +168,23 @@ export const BUYER_TYPE_LABEL: Record<string, string> = {
   COMPANY: 'شركة',
 };
 
+/**
+ * ═══ لماذا لم تصدر الفاتورة ═══
+ *
+ * والفعلان مختلفان: «اكتب قاعدة» و«أقِرّ القاعدة التي عندك». فسببٌ
+ * واحدٌ غامض يرسل المشغّل ليكتب قاعدةً قائمةً أصلًا، فتتزاحم قاعدتان
+ * على الحالة نفسها.
+ */
+export const INVOICE_BLOCK_REASON: Record<string, string> = {
+  NO_MATCHING_RULE: 'لا قاعدة تطابق هذه الحالة — اكتب قاعدةً لها',
+  RULE_AWAITING_APPROVAL: 'القاعدة المطابِقة تنتظر الإقرار — أقِرّها',
+  MARGIN_NOT_APPROVED: 'نظام هامش الربح غير معتمد لهذا البائع',
+  OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة تُستحقّ',
+  ALREADY_ISSUED: 'صدرت من قبل',
+  INVOICED_WITH_ITS_OWN_PAYMENT: 'فُوتِرت مع دفعتها لا مع التسوية',
+  UNKNOWN: 'سببٌ غير معروف',
+};
+
 export const SUPPLY_TYPE_LABEL: Record<string, string> = {
   VEHICLE: 'المركبة',
   COMMISSION: 'العمولة',

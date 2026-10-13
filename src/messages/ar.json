@@ -334,6 +334,7 @@
     "gateways": "{count, plural, zero{لا بوابات} one{بوابة واحدة} two{بوابتان} few{{n} بوابات} many{{n} بوابة} other{{n} بوابة}}",
     "linkedGateways": "{count, plural, zero{لا بوابة مربوطة} one{بوابة واحدة مربوطة} two{بوابتان مربوطتان} few{{n} بوابات مربوطة} many{{n} بوابة مربوطة} other{{n} بوابة مربوطة}}",
     "servableGateways": "{count, plural, zero{لا بوابة تُحصّل} one{بوابة واحدة تُحصّل} two{بوابتان تُحصّلان} few{{n} بوابات تُحصّل} many{{n} بوابة تُحصّل} other{{n} بوابة تُحصّل}}",
+    "blockedSettlements": "{count, plural, zero{لا تسوية بلا فاتورة} one{تسويةٌ سُوّيت ولم تُفوتَر} two{تسويتان سُوّيتا ولم تُفوتَرا} few{{n} تسويات سُوّيت ولم تُفوتَر} many{{n} تسويةً سُوّيت ولم تُفوتَر} other{{n} تسوية سُوّيت ولم تُفوتَر}}",
     "inFlight": "{count, plural, zero{لا معاملات جارية} one{معاملة جارية} two{معاملتان جاريتان} few{{n} معاملات جارية} many{{n} معاملة جارية} other{{n} معاملة جارية}}",
     "messages": "{count, plural, zero{لا رسائل} one{رسالة واحدة} two{رسالتان} few{{n} رسائل} many{{n} رسالة} other{{n} رسالة}}",
     "transactionalNotifications": "{count, plural, zero{لا إشعارات معاملاتية} one{إشعار معاملاتي واحد} two{إشعاران معاملاتيان} few{{n} إشعارات معاملاتية} many{{n} إشعارًا معاملاتيًّا} other{{n} إشعار معاملاتي}}",

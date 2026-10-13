@@ -393,3 +393,49 @@ export async function grantMarginScheme(
 
   return { ok: true, approved: input.approved };
 }
+
+/**
+ * ═══ الفواتير المحجوبة — صفقةٌ سُوّيت ولم تُفوتَر ═══
+ *
+ * `issueSettlementDocuments` تبني `blocked` وتقول أيّ توريد لم يُفوتَر
+ * ولماذا، ويُكتب حدثًا على الطلب — **ولا يصل شاشة الضريبة**. فتقرأ هي
+ * «لا فواتير بعد · تصدر الفاتورة عند التسوية المؤكَّدة»، وقد تأكّدت
+ * تسويتان ولم تصدر لهما فاتورة: المنع لا الانتظار.
+ *
+ * ومن يراقب الامتثال هنا لا في الخطّ الزمنيّ لطلبٍ بعينه — ولا يعرف
+ * أيّ طلبٍ يفتح أصلًا. وأوّلُ مطابقةٍ شهرية تكشف فرقًا بلا جوابٍ مكتوب.
+ */
+export type BlockedInvoice = {
+  orderRef: string;
+  orderId: string;
+  at: string;
+  /** مفاتيح — والصياغة في الشاشة (البوابة ١٧). */
+  lines: { supplyType: string; reason: string }[];
+};
+
+export async function blockedInvoices(limit = 50): Promise<BlockedInvoice[]> {
+  const events = await db.orderEvent.findMany({
+    where: { type: 'invoice.blocked' },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    select: {
+      orderId: true,
+      createdAt: true,
+      payload: true,
+      order: { select: { ref: true } },
+    },
+  });
+
+  return events.map((event) => {
+    const payload = event.payload as { blocked?: { supplyType?: string; reason?: string }[] } | null;
+    return {
+      orderRef: event.order.ref,
+      orderId: event.orderId,
+      at: event.createdAt.toISOString(),
+      lines: (payload?.blocked ?? []).map((line) => ({
+        supplyType: typeof line.supplyType === 'string' ? line.supplyType : 'UNKNOWN',
+        reason: typeof line.reason === 'string' ? line.reason : 'UNKNOWN',
+      })),
+    };
+  });
+}

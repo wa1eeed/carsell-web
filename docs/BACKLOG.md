@@ -176,6 +176,33 @@ domain, audited, walked end to end).
   trial:on` moves them to the sandbox for walking the journey; the real fix is a
   bank-escrow adapter, which waits on the bank integration.
 
+- `/admin/tax` — the screen read «لا فواتير بعد · تصدر الفاتورة عند التسوية
+  المؤكَّدة», which reads as *no settlement has happened yet*. Two had, and the
+  invoices were **blocked**: `issueSettlementDocuments` builds `blocked` with a
+  reason per supply, writes it as an `invoice.blocked` order event, and the event
+  was readable only in that one order's timeline — not on the screen where
+  whoever watches compliance stands, and they do not know which order to open.
+  The first monthly reconciliation would surface a gap with no written answer.
+  `blockedInvoices()` now lists them by order reference, each line naming the
+  supply and the reason, and the empty state says «لا فاتورة صدرت» with a
+  pointer rather than implying nothing settled.
+
+- [ ] **The platform charges zero.** `CommissionRule` is 0% + 0 fixed on the
+  seller side, the buyer side is disabled, and completed orders carry
+  `commissionAmount: 0`, `transferAdminFee: 0`, `processingFee: 0` — on a 70,810
+  SAR sale, CARZ earns nothing. The screen says «كلها مجانية اليوم · العمولة
+  صفر», so it is honest, not broken: the number is unset. Owner's decision
+  before launch.
+- [ ] **No tax invoice can be issued for a vehicle sale.** Four rules sit in
+  `AWAITING_MEMO` pending the «المورِّد المفترض» classification, so `VEHICLE`
+  issuance is blocked by `RULE_AWAITING_APPROVAL`; with commission at zero there
+  is no commission invoice either. The twelve questions for the adviser are in
+  `docs/tax-model.md`.
+- Plans: all three are priced 0 and every subscriber is on `free`; `Subscription`
+  has no writer in the product. Buying a plan belongs with the dealer panel the
+  owner deferred, so it was **not** built — the measurement said so before the
+  work started.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

@@ -50,6 +50,7 @@ export type Unit =
   | 'gateways'
   | 'linkedGateways'
   | 'servableGateways'
+  | 'blockedSettlements'
   | 'inFlight'
   | 'disputes'
   /** جولةُ التفاوض — عرضٌ ثم مقابلُه ثم مقابلُ مقابله. */
