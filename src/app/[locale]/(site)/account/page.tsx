@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { AccountBrief } from '@/components/site/AccountBrief';
 import { AccountSections } from '@/components/site/AccountSections';
+import { garageCounts, myVehicles } from '@/lib/domain/garage';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
@@ -70,10 +71,12 @@ export default async function AccountPage({
   const waitingOffers = data.offers.filter(
     (offer) => offer.status === 'PENDING' || offer.status === 'COUNTERED',
   ).length;
-  const [fresh, favorites] = await Promise.all([
+  const [fresh, favorites, vehicles] = await Promise.all([
     freshCount(user.id),
     db.favorite.count({ where: { userId: user.id } }),
+    myVehicles(user.id, locale),
   ]);
+  const garage = garageCounts(vehicles);
 
   return (
     <>
@@ -115,11 +118,27 @@ export default async function AccountPage({
             </section>
           )}
 
-          <AccountScreen data={data} locale={locale} taxProfile={taxProfileOf(user)} />
+          <AccountScreen
+            data={data}
+            locale={locale}
+            taxProfile={taxProfileOf(user)}
+            garage={garage}
+          />
 
           <AccountSections
             locale={locale}
             sections={[
+              {
+                /*
+                  **وسياراتي أوّلًا** — كما يرسمها التصميم (الشريط
+                  الجانبيّ يبدأ بـ«سياراتي ٣»). وهي الكيان الذي يملكه
+                  صاحب الحساب، والإعلان حالةٌ من حالاته لا العكس.
+                */
+                key: 'vehicles',
+                label: 'سياراتي',
+                hint: garage.garage > 0 ? 'منها ما في المرآب' : 'ما تملكه من مركبات',
+                count: garage.total,
+              },
               { key: 'listings', label: 'إعلاناتي', hint: 'ما عرضتَه للبيع', count: data.listings.length },
               { key: 'orders', label: 'طلباتي', hint: 'ما اشتريتَه وما في الطريق', count: data.orders.length },
               {

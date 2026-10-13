@@ -69,10 +69,13 @@ export function AccountScreen({
   data,
   locale,
   taxProfile,
+  garage,
 }: {
   data: AccountData;
   locale: string;
   taxProfile: TaxProfile;
+  /** عدّادات المرآب — «٢ معروضة · ١ في المرآب» كما في التصميم. */
+  garage: { total: number; listed: number; garage: number; sold: number };
 }) {
   const t = useTranslations('account');
   const te = useTranslations('enums');
@@ -138,9 +141,24 @@ export function AccountScreen({
       <ProfileCard data={data} locale={locale} />
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {data.stats.map((stat) => (
-          <StatCard key={stat.key} label={t(`stat.${stat.key}`)} value={stat.value} />
-        ))}
+        {/*
+          **وبطاقة المركبات تُفصَّل.** التصميم يكتب «٣ مركباتي · ٢
+          معروضة · ١ في المرآب» — والعدد وحده لا يقول أيُّها في السوق
+          وأيُّها ينتظر قرار صاحبه.
+        */}
+        <StatCard
+          label={t('stat.vehicles')}
+          value={garage.total}
+          breakdown={[
+            { label: 'معروضة', value: garage.listed },
+            { label: 'في المرآب', value: garage.garage },
+          ]}
+        />
+        {data.stats
+          .filter((stat) => stat.key !== 'listings')
+          .map((stat) => (
+            <StatCard key={stat.key} label={t(`stat.${stat.key}`)} value={stat.value} />
+          ))}
       </div>
 
       {/*

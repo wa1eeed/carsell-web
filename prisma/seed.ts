@@ -1429,6 +1429,45 @@ async function main(): Promise<void> {
     }
   }
 
+  /**
+   * ═══ ومركبتان في المرآب ═══
+   *
+   * **مركبةٌ بلا إعلان لم تكن تُزرع قطّ** — ولا يمكن أن توجد أصلًا:
+   * الطريق الوحيد لإنشاء مركبة كان النشر، وهو يكتب إعلانًا معها
+   * دائمًا حتى في المسودّة. فشريحة `garage` في لوحة الأدمن كانت صفرًا
+   * بنيويًّا، وبطاقة الحساب التي يرسمها التصميم («٢ معروضة · ١ في
+   * المرآب») لا تصل إلى شطرها الثاني.
+   *
+   * وهي الحال الطبيعية لمن أضاف سيارته ليطلب عليها فحصًا أو تأمينًا
+   * ولا يريد بيعها.
+   */
+  for (const [n, owner] of buyers.slice(0, 2).entries()) {
+    const trim = buildableTrims[(n * 7) % buildableTrims.length] as TrimRef;
+    await prisma.vehicle.create({
+      data: {
+        ownerId: owner.id,
+        brandId: trim.brandId,
+        modelId: trim.modelId,
+        trimId: trim.id,
+        brandName: trim.brandNameAr,
+        modelName: trim.modelNameAr,
+        trimName: trim.row.nameAr,
+        year: 2024 - n,
+        bodyType: trim.row.bodyType,
+        drivetrain: trim.row.drivetrain,
+        seats: trim.row.seats,
+        transmission: 'AUTOMATIC',
+        fuel: 'PETROL',
+        mileageKm: between(8_000, 60_000),
+        colorExterior: pick(COLORS),
+        spec: 'GCC',
+        condition: 'USED',
+        city: pick(CITIES),
+        entryMode: 'MANUAL',
+      },
+    });
+  }
+
   // ————— العروض والنزاعات والبلاغات —————
   /**
    * ═══ وثلاثُ شاشاتٍ كانت فارغةً دائمًا ═══

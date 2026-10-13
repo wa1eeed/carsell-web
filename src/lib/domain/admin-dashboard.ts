@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { LIVE_LISTING_STATUSES } from './garage';
 import { REST_OF_CITIES } from '@/lib/labels/admin';
 
 /**
@@ -64,8 +65,19 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
 
     db.vehicle.count({ where: { createdAt: window } }),
     db.vehicle.count({ where: { createdAt: before } }),
-    db.listing.count({ where: { vehicle: { createdAt: window } } }),
-    db.listing.count({ where: { vehicle: { createdAt: window }, status: 'SOLD' } }),
+    /**
+     * **مركباتٌ لا صفوفُ إعلانات.** كان العدّ على `listing` فمركبةٌ
+     * لها إعلانان تُعدّ مرّتين، ومسودّةٌ تُخرج صاحبها من المرآب —
+     * فقالت شاشة «سياراتي» اثنين وقالت اللوحة واحدًا عن القاعدة نفسها.
+     * والتعريف الآن واحدٌ مصدَّرٌ من `garage`.
+     */
+    db.vehicle.count({
+      where: {
+        createdAt: window,
+        listings: { some: { status: { in: [...LIVE_LISTING_STATUSES] } } },
+      },
+    }),
+    db.vehicle.count({ where: { createdAt: window, listings: { some: { status: 'SOLD' } } } }),
 
     // `Listing` لا `createdAt` له — والنشر هو ميلاده في السوق
     db.listing.groupBy({ by: ['type'], where: { publishedAt: window }, _count: { _all: true } }),
@@ -133,9 +145,9 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
       total: vehicles,
       previous: vehiclesBefore,
       segments: [
-        { key: 'listed', count: listedVehicles - soldVehicles },
-        // في الجراج فقط: مركبة بلا إعلان — والفرق هو التعريف نفسه
-        { key: 'garage', count: Math.max(0, vehicles - listedVehicles) },
+        { key: 'listed', count: listedVehicles },
+        // في الجراج: مملوكةٌ ولا إعلانَ حيًّا لها — والمسودّة منها
+        { key: 'garage', count: Math.max(0, vehicles - listedVehicles - soldVehicles) },
         { key: 'sold', count: soldVehicles },
       ],
     },

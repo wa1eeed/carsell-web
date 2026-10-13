@@ -4573,3 +4573,63 @@ listing's car, not a default. A listing owned by someone else emits
 The parameter is not trusted: `RequestService` falls back to the first vehicle
 unless the id matches one the viewer actually owns, and the server guard is
 unchanged and still tested.
+
+---
+
+## The garage the design assumed and nothing could produce
+
+The owner asked for `/sell` to become a place where a user keeps their cars and
+decides per car whether to list it or order a service on it — pointing out that
+the admin dashboard already counts cars **not** offered for sale, which only
+makes sense if such a thing exists.
+
+It does not, and could not.
+
+- `design/Front-end Web.dc.html` line 1303 draws the account card as
+  **«٣ مركباتي · ٢ معروضة · ١ في المرآب»**, and line 1282 puts «سياراتي ٣»
+  first in the sidebar.
+- `admin-dashboard.ts` has a `garage` segment commented «في الجراج فقط: مركبة
+  بلا إعلان».
+- **Measured: 61 vehicles, 61 listings, 0 in the garage.** The only path that
+  creates a `Vehicle` is publishing, and it writes a `Listing` in the same
+  transaction — a draft included. The segment could never be anything but zero.
+
+This is the repo's familiar class, at a larger size: not a value nobody writes,
+but a **whole screen** the design assumes, the admin counts, and the product
+cannot reach.
+
+### What shipped
+
+`src/lib/domain/garage.ts`:
+- `addVehicle` creates a `Vehicle` with no listing. It demands nothing the
+  publish path demands — no identity, no IBAN, no tax status, no photos. Those
+  are conditions for offering a car to the public, not for recording that you
+  own one; the same argument the repo already wrote for drafts.
+- `myVehicles` / `garageCounts` return each car as `listed` · `garage` · `sold`.
+
+`/account/vehicles` lists them with a state badge, «اطلب خدمة» on every car
+(which now lands on the services form with that car preselected) and
+«اعرضها للبيع» on the ones in the garage. The account home shows the design's
+card — «٧ سيارات · ٥ معروضة · ٢ في المرآب» — and «سياراتي» leads the sections.
+
+Two vehicles are seeded with no listing, so the state is reachable in
+development rather than only in theory.
+
+### A duplication removed on the way, and a definition unified
+
+`saveDraft` and `createListing` each carried a ~40-line vehicle mapping, and
+**the two had already drifted**: one wrote `brandId` from the input and the
+other from the catalogue, and one omitted `city`. The garage would have been a
+third copy. It is now `vehicleFields`, called by all three.
+
+And the first version of the screen disagreed with the admin: the screen said
+«٢ في المرآب», the dashboard said 1. The dashboard counted **listing rows**, so
+a car with two listings counted twice and a draft pushed its owner out of the
+garage. `LIVE_LISTING_STATUSES` is now exported from `garage.ts` and both read
+it; the dashboard counts vehicles, not rows.
+
+### Still open
+
+The sell wizard still always ends in a listing — "save to my cars" is not wired
+to `addVehicle` yet, and a garage car cannot be edited or removed. Tracked in
+`docs/BACKLOG.md`.

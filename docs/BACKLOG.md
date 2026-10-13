@@ -37,7 +37,7 @@ are examples, not the whole set — each screen is compared against its block in
       grid with quality badges, price range bar with days-to-sell.
 - [ ] **Order detail** — escrow panel, stage timeline, documents, cancel block.
 
-### B · My cars (the garage) — **in progress**
+### B · My cars (the garage) — **first half shipped**
 
 The design has had it from the start: «٣ مركباتي · ٢ معروضة · ١ في المرآب» on
 the account home, and «سياراتي ٣» first in the sidebar. The admin dashboard
@@ -47,11 +47,15 @@ counts a `garage` segment («مركبة بلا إعلان»).
 exceed zero, because the only path that creates a vehicle (`/sell`) always
 creates a listing row with it, draft included.
 
-- [ ] A path that creates a vehicle with no listing.
-- [ ] `/account/vehicles` — cars with their state, and per car: list for sale ·
-      request a service · edit · remove.
-- [ ] Account stat «مركباتي» split listed / in the garage, and a nav entry.
-- [ ] `/sell` able to finish as "save to my cars" instead of publishing.
+- [x] A path that creates a vehicle with no listing — `addVehicle` in
+      `src/lib/domain/garage.ts`, and two seeded so the state is reachable.
+- [x] `/account/vehicles` — state badge per car, «اطلب خدمة» on all,
+      «اعرضها للبيع» on garage cars.
+- [x] Account stat «مركباتي» with its listed / garage breakdown, and
+      «سياراتي» first in the sections list.
+- [ ] `/sell` able to finish as "save to my cars" instead of publishing —
+      the wizard still ends in a listing. `addVehicle` is ready for it.
+- [ ] Edit and remove a vehicle from the garage.
 
 ### C · Every account section and every admin page, one by one
 

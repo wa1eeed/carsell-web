@@ -2,6 +2,8 @@ import { db } from '@/lib/db';
 import { nextListingRef } from './refs';
 import { Prisma } from '@/generated/prisma/client';
 import type {
+  BodyType,
+  Drivetrain,
   FuelType,
   ListingType,
   ReviewReason,
@@ -171,6 +173,55 @@ type Asset = { r2Key: string; phash: string; plateBlurred: boolean; qualityFlags
  * والمزاد يُنشأ عند النشر: صفُّ `Auction` بمواعيده وعربونه التزامٌ
  * قائم، ومسودّةٌ تحمله تفتح مزادًا لم يُعلنه صاحبه.
  */
+/**
+ * ═══ حقول المركبة — تُكتب مرّة ═══
+ *
+ * كانت منسوخةً في `saveDraft` وفي `createListing`، والنسختان تختلفان
+ * بالفعل: إحداهما تكتب `brandId` من المُدخَل والأخرى من الكتالوج،
+ * وإحداهما بلا `city`. **ونسختان لحقول كيانٍ واحد تتباعدان أوّل حقلٍ
+ * يُضاف** — ويُضاف إلى واحدة.
+ *
+ * وصار لها نادٍ ثالث: المرآب يُنشئ مركبةً بلا إعلان، فلا تُنسخ ثالثةً.
+ */
+export function vehicleFields(
+  input: Pick<PublishInput, 'sellerId' | 'vehicle'>,
+  catalogue: {
+    brand: { id: string; nameAr: string };
+    model: { id: string; nameAr: string };
+    trim: { id: string; nameAr: string; bodyType: BodyType; drivetrain: Drivetrain; seats: number };
+  },
+): Prisma.VehicleUncheckedCreateInput {
+  const { brand, model, trim } = catalogue;
+  const vin = input.vehicle.vin;
+  const entered = vin !== null && vin !== '';
+
+  return {
+    ownerId: input.sellerId,
+    brandId: brand.id,
+    modelId: model.id,
+    trimId: trim.id,
+    // لقطة الكتالوج وقت الإضافة — لا تُقرأ من `Trim` لاحقًا (قرار ٣٢)
+    brandName: brand.nameAr,
+    modelName: model.nameAr,
+    trimName: trim.nameAr,
+    year: input.vehicle.year,
+    // موروثة من الفئة — لقطةً لا مرجعًا (قرار ٣٢)
+    bodyType: trim.bodyType,
+    drivetrain: trim.drivetrain,
+    seats: trim.seats,
+    // ومن إدخال البائع: نسخته قد تخالف الفئة القياسية
+    transmission: input.vehicle.transmission,
+    fuel: input.vehicle.fuel,
+    mileageKm: input.vehicle.mileageKm,
+    colorExterior: input.vehicle.colorExterior,
+    spec: input.vehicle.spec,
+    condition: input.vehicle.condition,
+    city: input.vehicle.city,
+    entryMode: entered ? 'VIN_LOOKUP' : 'MANUAL',
+    ...(entered ? { vin } : {}),
+  };
+}
+
 async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult> {
   /**
    * **والأسماء من الكتالوج لا من المُدخَل** — كما في النشر تمامًا.
@@ -187,30 +238,7 @@ async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult>
 
   const { listing } = await db.$transaction(async (tx) => {
     const vehicle = await tx.vehicle.create({
-      data: {
-        ownerId: input.sellerId,
-        brandId: input.vehicle.brandId,
-        modelId: input.vehicle.modelId,
-        trimId: input.vehicle.trimId,
-        brandName: brand.nameAr,
-        modelName: model.nameAr,
-        trimName: trim.nameAr,
-        year: input.vehicle.year,
-        bodyType: trim.bodyType,
-        drivetrain: trim.drivetrain,
-        seats: trim.seats,
-        transmission: input.vehicle.transmission,
-        fuel: input.vehicle.fuel,
-        mileageKm: input.vehicle.mileageKm,
-        colorExterior: input.vehicle.colorExterior,
-        spec: input.vehicle.spec,
-        condition: input.vehicle.condition,
-        city: input.vehicle.city,
-        entryMode: input.vehicle.vin === null || input.vehicle.vin === '' ? 'MANUAL' : 'VIN_LOOKUP',
-        ...(input.vehicle.vin === null || input.vehicle.vin === ''
-          ? {}
-          : { vin: input.vehicle.vin }),
-      },
+      data: vehicleFields(input, { brand, model, trim }),
     });
 
     const ref = await nextListingRef(tx, now);
@@ -469,33 +497,7 @@ export async function createListing(
 
   return db.$transaction(async (tx): Promise<PublishResult> => {
     const vehicle = await tx.vehicle.create({
-      data: {
-        ownerId: input.sellerId,
-        brandId: brand.id,
-        modelId: model.id,
-        trimId: trim.id,
-        // لقطة الكتالوج وقت الإضافة — لا تُقرأ من `Trim` لاحقًا (قرار ٣٢)
-        brandName: brand.nameAr,
-        modelName: model.nameAr,
-        trimName: trim.nameAr,
-        year: input.vehicle.year,
-        // موروثة من الفئة — لقطةً لا مرجعًا (قرار ٣٢)
-        bodyType: trim.bodyType,
-        drivetrain: trim.drivetrain,
-        seats: trim.seats,
-        // ومن إدخال البائع: نسخته قد تخالف الفئة القياسية
-        transmission: input.vehicle.transmission,
-        fuel: input.vehicle.fuel,
-        mileageKm: input.vehicle.mileageKm,
-        colorExterior: input.vehicle.colorExterior,
-        spec: input.vehicle.spec,
-        condition: input.vehicle.condition,
-        city: input.vehicle.city,
-        entryMode: input.vehicle.vin === null || input.vehicle.vin === '' ? 'MANUAL' : 'VIN_LOOKUP',
-        ...(input.vehicle.vin === null || input.vehicle.vin === ''
-          ? {}
-          : { vin: input.vehicle.vin }),
-      },
+      data: vehicleFields(input, { brand, model, trim }),
     });
 
     const ref = await nextListingRef(tx, now);
