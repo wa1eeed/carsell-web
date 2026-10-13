@@ -72,7 +72,8 @@ creates a listing row with it, draft included.
       «سياراتي» first in the sections list.
 - [x] `/sell` finishes as «احفظ في سياراتي» from the vehicle step —
       `POST /api/v1/vehicles`, walked by clicking end to end.
-- [ ] Edit and remove a vehicle from the garage.
+- [x] Edit (mileage · colour · city) and remove a vehicle — the schema's own
+      `Restrict` on `Listing` and `InspectionReport` writes the delete rule.
 - [ ] A plate («لوحة») in the garage — the mobile design's empty state says
       «أول إضافة، سيارة أو لوحة», and plates are sold on the platform.
 

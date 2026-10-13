@@ -13,7 +13,15 @@ import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { myVehicles, garageCounts, type VehicleState } from '@/lib/domain/garage';
 import { cityLabel } from '@/lib/labels/cities';
+import { VehicleControls } from '@/components/site/VehicleControls';
+import { CITY_SLUG } from '@/lib/labels/cities';
 import { AccountList, AccountRow } from '../AccountList';
+
+/**
+ * مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط، فلا قائمتان
+ * تتباعدان. والمكرّرة تُطوى (مكة/مكة المكرمة مقطعٌ واحد).
+ */
+const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
 
 export const dynamic = 'force-dynamic';
 
@@ -229,6 +237,20 @@ export default async function MyVehiclesPage({
                     اعرضها للبيع
                   </Link>
                 ) : null}
+
+                {/*
+                  **والتعديل والحذف حيث السيارة** — لا في شاشةٍ ثانية.
+                  والحذف يُعرض لما يمكن حذفُه وحده: زرٌّ يُرفض دائمًا
+                  أسوأ من غيابه.
+                */}
+                <VehicleControls
+                  vehicleId={vehicle.id}
+                  mileageKm={vehicle.mileageKm}
+                  colorExterior={vehicle.colorExterior}
+                  city={vehicle.city}
+                  cities={CITY_NAMES}
+                  canRemove={vehicle.canRemove}
+                />
               </span>
             }
           />

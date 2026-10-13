@@ -74,12 +74,19 @@ export type GarageVehicle = {
   year: number;
   city: string;
   mileageKm: number;
+  /** ما يُعدَّل — تقرؤه الاستمارة بلا نداءٍ ثانٍ. */
+  colorExterior: string;
   state: VehicleState;
   /** مرجع الإعلان الحيّ أو المُباع — ومنه يُفتح. و`null` لما في المرآب. */
   listingRef: string | null;
   listingStatus: string | null;
   /** طلبات خدمةٍ قائمة على هذه المركبة — فيعرف صاحبُها أن عليها عملًا. */
   openServices: number;
+  /**
+   * **أيمكن حذفها؟** معروضةٌ أو مفحوصة ⇒ لا. ويُحسب هنا فتعرفه الشاشة
+   * قبل أن تعرض زرًّا — وزرٌّ يُرفض دائمًا أسوأ من غيابه.
+   */
+  canRemove: boolean;
 };
 
 /**
@@ -101,7 +108,7 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
     where: { ownerId: userId },
     orderBy: { createdAt: 'desc' },
     select: {
-      id: true, year: true, city: true, mileageKm: true,
+      id: true, year: true, city: true, mileageKm: true, colorExterior: true,
       brandName: true, modelName: true, trimName: true,
       brand: { select: { nameEn: true } },
       model: { select: { nameEn: true } },
@@ -114,6 +121,7 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
         where: { status: { in: ['NEW', 'ASSIGNED', 'IN_PROGRESS'] } },
         select: { id: true },
       },
+      _count: { select: { listings: true, inspectionReports: true } },
     },
   });
 
@@ -128,10 +136,12 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
       year: row.year,
       city: row.city,
       mileageKm: row.mileageKm,
+      colorExterior: row.colorExterior,
       state: sold !== undefined ? 'sold' : live !== undefined ? 'listed' : 'garage',
       listingRef: shown?.ref ?? null,
       listingStatus: shown?.status ?? null,
       openServices: row.serviceRequests.length,
+      canRemove: row._count.listings === 0 && row._count.inspectionReports === 0,
     };
   });
 }
@@ -149,4 +159,72 @@ export function garageCounts(vehicles: readonly GarageVehicle[]): {
     garage: vehicles.filter((vehicle) => vehicle.state === 'garage').length,
     sold: vehicles.filter((vehicle) => vehicle.state === 'sold').length,
   };
+}
+
+/**
+ * ═══ تعديل مركبة — ما يتغيّر منها وحده ═══
+ *
+ * **لا الماركة ولا الطراز ولا الفئة**: تلك لقطةُ الكتالوج وقت الإضافة
+ * (قرار ٣٢)، وتغييرُها يجعل المركبة شيئًا آخر — ومن أخطأ فيها يحذفها
+ * ويضيف غيرها. والذي يتغيّر حقًّا: الممشى (يزيد كل يوم) واللون (يُصبغ)
+ * والمدينة (ينتقل صاحبها).
+ */
+export type EditVehicleFailure = 'NOT_YOURS' | 'BAD_MILEAGE';
+
+export async function editVehicle(input: {
+  userId: string;
+  vehicleId: string;
+  mileageKm: number;
+  colorExterior: string;
+  city: string;
+}): Promise<{ ok: true } | { ok: false; reason: EditVehicleFailure }> {
+  if (!Number.isInteger(input.mileageKm) || input.mileageKm < 0 || input.mileageKm > 2_000_000) {
+    return { ok: false, reason: 'BAD_MILEAGE' };
+  }
+
+  /** **والملكية تُفحص في الاستعلام لا بعده** — فلا نافذةَ بين الفحص والكتابة. */
+  const updated = await db.vehicle.updateMany({
+    where: { id: input.vehicleId, ownerId: input.userId },
+    data: {
+      mileageKm: input.mileageKm,
+      colorExterior: input.colorExterior.trim().slice(0, 40),
+      city: input.city,
+    },
+  });
+
+  if (updated.count === 0) return { ok: false, reason: 'NOT_YOURS' };
+  return { ok: true };
+}
+
+/**
+ * ═══ حذف مركبة — والمخطّط يكتب القاعدة ═══
+ *
+ * `Listing` و`InspectionReport` يشيران إلى المركبة بـ`onDelete: Restrict`.
+ * **وهذا ليس قيدًا تقنيًّا بل قاعدةً صحيحة**: مركبةٌ عُرضت للبيع صارت
+ * جزءًا من تاريخ السوق — عروضٌ وطلباتٌ ومشاهدات تشير إليها؛ ومركبةٌ
+ * فُحصت لها تقريرٌ يقرؤه مشترٍ. فالمحذوف ما لم يُعرض ولم يُفحص: سيارةٌ
+ * أُضيفت إلى المرآب ثم تبيّن أنها خطأ.
+ *
+ * **ويُفحص الشرط قبل المحاولة لا بعدها**: تركُ القاعدة ترمي يُخرج
+ * رسالةً عن قيدٍ أجنبيّ لا يفهمها صاحب الحساب.
+ */
+export type RemoveVehicleFailure = 'NOT_YOURS' | 'HAS_LISTING' | 'HAS_INSPECTION';
+
+export async function removeVehicle(input: {
+  userId: string;
+  vehicleId: string;
+}): Promise<{ ok: true } | { ok: false; reason: RemoveVehicleFailure }> {
+  const vehicle = await db.vehicle.findFirst({
+    where: { id: input.vehicleId, ownerId: input.userId },
+    select: {
+      id: true,
+      _count: { select: { listings: true, inspectionReports: true } },
+    },
+  });
+  if (vehicle === null) return { ok: false, reason: 'NOT_YOURS' };
+  if (vehicle._count.listings > 0) return { ok: false, reason: 'HAS_LISTING' };
+  if (vehicle._count.inspectionReports > 0) return { ok: false, reason: 'HAS_INSPECTION' };
+
+  await db.vehicle.delete({ where: { id: vehicle.id } });
+  return { ok: true };
 }

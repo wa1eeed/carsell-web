@@ -57,3 +57,93 @@ describe('المرآب يُنتَج فعلًا', () => {
     expect(found?.listingRef).toBeNull();
   });
 });
+
+describe('تعديل المركبة وحذفها', () => {
+  /**
+   * **والملكية تُفحص في الاستعلام لا بعده** — فلا نافذةَ بين فحصٍ
+   * وكتابة يسبقها طلبٌ ثانٍ.
+   */
+  it('لا يعدّل من لا يملك', async () => {
+    const { editVehicle } = await import('@/lib/domain/garage');
+    const mine = await db.vehicle.findFirst({ select: { id: true, ownerId: true } });
+    if (mine === null) return;
+
+    const other = await db.user.findFirst({
+      where: { id: { not: mine.ownerId } },
+      select: { id: true },
+    });
+    if (other === null) return;
+
+    const result = await editVehicle({
+      userId: other.id,
+      vehicleId: mine.id,
+      mileageKm: 1,
+      colorExterior: 'أحمر',
+      city: 'الرياض',
+    });
+    expect(result).toEqual({ ok: false, reason: 'NOT_YOURS' });
+  });
+
+  it('وممشًى خارج المدى يُردّ قبل الكتابة', async () => {
+    const { editVehicle } = await import('@/lib/domain/garage');
+    const row = await db.vehicle.findFirst({ select: { id: true, ownerId: true } });
+    if (row === null) return;
+
+    for (const mileageKm of [-1, 3_000_000, 1.5]) {
+      const result = await editVehicle({
+        userId: row.ownerId,
+        vehicleId: row.id,
+        mileageKm,
+        colorExterior: 'أحمر',
+        city: 'الرياض',
+      });
+      expect(result).toEqual({ ok: false, reason: 'BAD_MILEAGE' });
+    }
+  });
+
+  /**
+   * **والمخطّط يكتب قاعدة الحذف**: `Listing` و`InspectionReport` يشيران
+   * بـ`Restrict`. ومركبةٌ عُرضت صارت جزءًا من تاريخ السوق، ومفحوصةٌ لها
+   * تقريرٌ يقرؤه مشترٍ — فالمحذوف ما لم يُعرض ولم يُفحص.
+   *
+   * **والسبب يُفحص قبل المحاولة**: تركُ القاعدة ترمي يُخرج رسالةً عن
+   * قيدٍ أجنبيّ لا يفهمها صاحب الحساب.
+   */
+  it('ومعروضةٌ لا تُحذف — ويُسمّى السبب', async () => {
+    const { removeVehicle } = await import('@/lib/domain/garage');
+    const listed = await db.vehicle.findFirst({
+      where: { listings: { some: {} } },
+      select: { id: true, ownerId: true },
+    });
+    if (listed === null) return;
+
+    const result = await removeVehicle({ userId: listed.ownerId, vehicleId: listed.id });
+    expect(result).toEqual({ ok: false, reason: 'HAS_LISTING' });
+  });
+
+  it('ومفحوصةٌ لا تُحذف', async () => {
+    const { removeVehicle } = await import('@/lib/domain/garage');
+    const inspected = await db.vehicle.findFirst({
+      where: { listings: { none: {} }, inspectionReports: { some: {} } },
+      select: { id: true, ownerId: true },
+    });
+    if (inspected === null) return;
+
+    const result = await removeVehicle({ userId: inspected.ownerId, vehicleId: inspected.id });
+    expect(result).toEqual({ ok: false, reason: 'HAS_INSPECTION' });
+  });
+
+  /** و`canRemove` تقول للشاشة قبل أن تعرض زرًّا — وزرٌّ يُرفض دائمًا أسوأ من غيابه. */
+  it('و`canRemove` تطابق ما يقبله النطاق', async () => {
+    const owner = await db.vehicle.findFirst({
+      where: { listings: { some: {} } },
+      select: { ownerId: true },
+    });
+    if (owner === null) return;
+
+    const mine = await myVehicles(owner.ownerId, 'ar');
+    for (const vehicle of mine) {
+      if (vehicle.state !== 'garage') expect(vehicle.canRemove).toBe(false);
+    }
+  });
+});

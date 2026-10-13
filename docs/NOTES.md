@@ -4902,3 +4902,49 @@ it is a place you aim for, not something read on the way.
 Measured at 375: identity at 278px, content at 820, sections at 2371 with
 `order: 9999`, 0 overflow. At 1180: card and sections both at x=840 w=300 in one
 column, content at x=40 w=768 starting at the same height, 0 overflow.
+
+---
+
+## Editing and removing a car, with the rule the schema already wrote
+
+«سياراتي» displayed and linked; it could not change anything. Someone who
+mistyped their mileage lived with it, and a car added twice stayed twice.
+
+### What may be edited
+
+Mileage, colour, city — the things that actually change. **Not brand, model or
+trim**: those are the catalogue snapshot taken when the car was added (decision
+32), and changing them makes it a different car. Whoever got them wrong deletes
+and adds again, and the form says so rather than leaving them hunting for the
+field.
+
+Ownership is checked **inside the query** (`updateMany` with `ownerId`), not read
+and then written — there is no window between the check and the write.
+
+### What may be removed, and why that rule is right
+
+`Listing` and `InspectionReport` both point at `Vehicle` with
+`onDelete: Restrict`. That is not a technical obstacle to work around — it is the
+correct rule stated in the schema: a car that was offered is part of the market's
+history (offers, orders and views refer to it), and an inspected car has a report
+a buyer reads. What may be deleted is a car never offered and never inspected: a
+garage entry that turned out to be a mistake.
+
+The condition is checked **before** attempting the delete. Letting the database
+throw would surface a foreign-key message to the person who owns the car.
+
+`canRemove` is computed in the domain so the screen knows before it draws a
+button — **a button that is always refused is worse than no button.** Verified:
+the listed tab renders no delete control at all, and a request sent anyway gets
+409 `HAS_LISTING`.
+
+### Walked end to end
+
+Edit → 200 and the new values render (44,444 · أزرق · الرياض). Mileage of -5 →
+422. Delete a listed car → 409 `HAS_LISTING`, and no button for it on screen.
+Delete someone else's → 404. Delete a garage car → 200 and it is gone. Seed
+re-run afterwards so the test edits did not persist.
+
+**And a gate caught my own code**: `useState(colorExterior)` copies a prop into
+state, which goes stale on client navigation. The form is now filled when it
+opens rather than at mount.
