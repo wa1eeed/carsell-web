@@ -88,6 +88,17 @@ disputes · services · campaigns · catalog · finance · tax · payouts · led
 settlements · deadlines · plans · payments · team · audit · exports · ads ·
 faq · contact · settings.
 
+**Swept 2026-10-13:** all 37 routes fetched with a signed-in session — every one
+200, none redirecting to login, so no page is broken. `npm run dead-ends` was run
+instead of eyeballing them; it named `EntitlementOverride` as having no writer at
+all while `/admin/plans` counted it and promised «وكل تجاوزٍ يُمنح يظهر هنا
+بسببه ومدّته». That door is now open (`grantOverride`, reason required in the
+domain, audited, walked end to end).
+
+- [ ] `ApiKey` — no writer anywhere. The panel has no way to issue one.
+- [ ] `FaqPlacement` — no writer. FAQ items exist; placing them does not.
+- [ ] `DeviceToken` — no writer until the mobile app exists.
+
 ### D · English UI strings — deferred by the owner
 
 **624 lines across 68 files** of Arabic written into the public site's

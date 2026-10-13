@@ -413,3 +413,89 @@ export async function toggleAdSlot(
 
   return { ok: true, active: input.active };
 }
+
+/**
+ * ═══ منح تجاوزٍ لعميل — البابُ الذي لم يكن ═══
+ *
+ * `EntitlementOverride` **لا كاتبَ له إطلاقًا** في المنتج (كاشفُ
+ * `dead-ends` يسمّيه)، وشاشةُ الباقات تعدّه («تجاوزات لعملاء») وتكتب
+ * تحته: «وكل تجاوزٍ يُمنح يظهر هنا بسببه ومدّته» — **ولا سبيل لمنحه**.
+ *
+ * وهو صنفُ هذا المستودع المعروف: شاشةٌ تَعِد بما لا يقع.
+ *
+ * ═══ والسبب إلزاميّ ═══
+ *
+ * استثناءٌ مُنح لعميلٍ بلا سببٍ مكتوب يُقرأ بعد سنةٍ على أنه خطأ — أو
+ * أسوأ. فالسبب شرطٌ في الدالّة لا حقلٌ اختياريّ في الاستمارة.
+ *
+ * **والمدّة اختيارية**: تجاوزٌ دائم حالٌ مشروعة (عميلٌ مؤسّسيّ)، لكنّه
+ * يبقى مكتوبًا بسببه فيُراجَع.
+ */
+export type GrantOverrideFailure =
+  | 'USER_NOT_FOUND'
+  | 'UNKNOWN_ENTITLEMENT'
+  | 'BAD_VALUE'
+  | 'REASON_REQUIRED';
+
+export async function grantOverride(
+  input: {
+    adminId: string;
+    userId: string;
+    entitlementKey: string;
+    value: string;
+    reason: string;
+    expiresAt: Date | null;
+    ip?: string | undefined;
+  },
+  now: Date = new Date(),
+): Promise<{ ok: true; id: string } | { ok: false; reason: GrantOverrideFailure }> {
+  const reason = input.reason.trim();
+  if (reason.length < 4) return { ok: false, reason: 'REASON_REQUIRED' };
+
+  const user = await db.user.findUnique({ where: { id: input.userId }, select: { id: true } });
+  if (user === null) return { ok: false, reason: 'USER_NOT_FOUND' };
+
+  /** **والمفتاح من الكتالوج لا من المُدخَل** — ومفتاحٌ مخترَع لا يقرؤه الكود. */
+  const entitlement = await db.entitlement.findUnique({
+    where: { key: input.entitlementKey },
+    select: { type: true },
+  });
+  if (entitlement === null) return { ok: false, reason: 'UNKNOWN_ENTITLEMENT' };
+  if (!validValue(entitlement.type, input.value)) return { ok: false, reason: 'BAD_VALUE' };
+
+  const row = await db.entitlementOverride.create({
+    data: {
+      userId: user.id,
+      entitlementKey: input.entitlementKey,
+      value: input.value,
+      reason: reason.slice(0, 500),
+      expiresAt: input.expiresAt,
+      createdBy: input.adminId,
+      createdAt: now,
+    },
+    select: { id: true },
+  });
+
+  /** وكلُّ إجراء أدمن يكتب `AuditLog` — ومنحُ استثناءٍ أولى بذلك. */
+  await db.auditLog.create({
+    data: {
+      actorId: input.adminId,
+      actorType: 'admin',
+      entity: 'EntitlementOverride',
+      entityId: row.id,
+      action: 'entitlement.override_granted',
+      before: undefined,
+      after: {
+        userId: user.id,
+        entitlementKey: input.entitlementKey,
+        value: input.value,
+        reason,
+        expiresAt: input.expiresAt?.toISOString() ?? null,
+      },
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true, id: row.id };
+}

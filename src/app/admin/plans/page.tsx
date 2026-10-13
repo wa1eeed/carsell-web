@@ -7,6 +7,7 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { entitlementList, overrideList, planList, planStats } from '@/lib/domain/admin-plans';
 import { listCommissionRules } from '@/lib/domain/admin-commission';
 import { CommissionRules } from './CommissionRules';
+import { GrantOverride } from './GrantOverride';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { CommissionSimulator } from './CommissionSimulator';
 import { PlanTable } from './PlanTable';
@@ -171,6 +172,8 @@ export default async function AdminPlansPage() {
         يُقرأ بعد سنةٍ على أنه خطأ — أو أسوأ.
       */}
       <h2 className="mt-10 mb-3.5 text-sm font-bold">تجاوزات لعملاء</h2>
+      {/* **والبابُ تحت الوعد مباشرةً** — لا في شاشةٍ ثانية. */}
+      {writable ? <GrantOverride entitlements={entitlements} /> : null}
       {overrides.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
           لا تجاوزات. وكل تجاوزٍ يُمنح يظهر هنا بسببه ومدّته.

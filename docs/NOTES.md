@@ -4754,3 +4754,52 @@ Measured across three accounts: a seller with 3 listings shows the section
 without «عرض الكل», one with 6 shows it, and a buyer with one order and five
 auctions shows «طلباتي ١ · تحت المعالجة ١» and «مزادات نشطة ٥ · تزايد فيه ٥»
 with the empty sections absent.
+
+---
+
+## Sweeping the admin panel, and the counter with no door
+
+With the public pages matched against the design, the remaining block was the
+owner's standing instruction to walk every admin screen.
+
+**First, measure rather than polish.** All 37 admin routes were fetched with a
+real signed-in session: every one returned 200, none redirected to login. Gate
+22's class — a page that returns 500 because a function prop crossed the server
+boundary — is clean.
+
+Then the thin ones were measured by rendered text: `contact` (484 chars) and
+`identity` (730) are the shortest. Both turned out to be substantive — contact is
+a three-channel settings form with a live preview, identity is a review queue
+with its counters and rows. Short because their job is short, not because they
+are unfinished.
+
+### So the repo's own detector was run instead
+
+`npm run dead-ends` reports 46 findings. Most are reference data the seed writes
+and the admin edits. **Four have no writer at all**, and one of them is a counter
+on a screen that explains itself:
+
+`/admin/plans` shows «تجاوزات لعملاء» with the note «بسبب مكتوب», and under the
+empty list it says:
+
+> لا تجاوزات. وكل تجاوزٍ يُمنح يظهر هنا بسببه ومدّته.
+
+`overrideList()` reads them. **Nothing in the product creates one.** The screen
+counts a thing, explains how it will be displayed, and offers no way to grant it.
+
+`grantOverride` now writes it, with the reason **required in the domain**, not
+just marked required in the form — a guard in the screen is not a guard. It
+writes `AuditLog` like every admin action, and the entitlement key is checked
+against the catalogue rather than trusted from the request.
+
+Walked end to end: a made-up key (`listing_limit`) is refused with
+`UNKNOWN_ENTITLEMENT`; a real one (`bulk_upload`) returns 201, the counter moves
+from 0 to 1, and the reason «اتفاقية سنوية» appears in the list. The test row and
+its audit entry were deleted afterwards, and `dead-ends` no longer names
+`EntitlementOverride`.
+
+### Still named by the detector
+
+`ApiKey`, `FaqPlacement` and `DeviceToken` have no writer either. `DeviceToken`
+waits on the mobile app. The other two are worth the same treatment and are in
+`docs/BACKLOG.md`.
