@@ -240,6 +240,38 @@ domain, audited, walked end to end).
   catalogue, with no city match and no load balancing, which is also why requests
   arrive unassigned.
 
+### KYC / KYB — identity for people and for businesses
+
+**Owner's direction, 2026-10-13:** Nafath will not be connected now (contracting
+with the provider takes time), so registration should get smarter instead —
+KYC-style for individuals, KYB-style for the commercial side (showrooms and
+agencies).
+
+Built: `AccountType` on `User` (`INDIVIDUAL | BUSINESS`) plus `businessName`,
+`crNumber`, `crExpiresAt`; `vatNumber` was already there. `identityMethod`
+carried `commercial_register` from the first schema **with no writer** — nothing
+in the product could mark an account as a business, so verifying an agency went
+down the individual path and asked only for the signatory's national ID. The
+account type is asked at **first verification**, not at sign-up: sign-in is a
+phone and a code, and a step there taxes the majority for the minority's sake,
+while the answer is needed exactly when identity is.
+
+Person and entity are **one submission and one decision**: splitting them makes
+the reviewer rule twice on half a picture, and leaves an account whose person is
+verified and whose business is not — buying as itself and selling as the firm.
+An expired CR is refused at submission, not at review, so nobody waits two days
+to be told. The admin queue row now says «منشأة», names it and shows the CR, and
+badges an expired register, because reviewing a business is not reviewing a
+person.
+
+- [ ] **Documents are not collected.** KYB normally takes the CR certificate and
+  the authorisation; today only the numbers are typed. Needs the owner's call on
+  which documents are required before launch.
+- [ ] **Business accounts and `Dealer`.** A verified business is a `User` with
+  `accountType: BUSINESS` — the `Dealer` row stays the *storefront*, created with
+  the dealer panel when that is built. Flagged for the owner in case they want
+  one entity instead of two.
+
 **Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
 writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
 approve/verify/suspend buttons for a queue nothing can ever add to, and the

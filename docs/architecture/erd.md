@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-83 models · 51 enums
+83 models · 52 enums
 
 ## Relationships
 
@@ -13,6 +13,7 @@ erDiagram
   User }o--|| UserRole : "role"
   User }o--|| UserStatus : "status"
   User }o--|| IdentityStatus : "identityStatus"
+  User }o--|| AccountType : "accountType"
   User |o--|| TaxStatus : "taxStatus"
   User |o--|| Dealer : "dealer"
   User ||--o{ Vehicle : "vehicles"
@@ -262,6 +263,9 @@ erDiagram
 | `identityNote` | `String?` |  |
 | `identityReviewedBy` | `String?` |  |
 | `nationalIdEncrypted` | `String?` |  |
+| `businessName` | `String?` |  |
+| `crNumber` | `String?` |  |
+| `crExpiresAt` | `DateTime?` |  |
 | `vatNumber` | `String?` |  |
 | `taxStatusSetAt` | `DateTime?` |  |
 | `marginSchemeApproved` | `Boolean` |  |
@@ -274,7 +278,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -1623,6 +1627,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `CampaignStatus` — `DRAFT`, `SCHEDULED`, `RUNNING`, `SENT`, `CANCELLED`
 - `PaymentPurpose` — `VEHICLE_ESCROW`, `AUCTION_DEPOSIT`, `WALLET_TOPUP`, `SERVICE_PURCHASE`, `TRANSFER_FEE`, `SUBSCRIPTION`
 - `PaymentStatus` — `CREATED`, `REQUIRES_ACTION`, `PENDING`, `HELD`, `SETTLED`, `PARTIALLY_SETTLED`, `CANCELLED`, `RETURNED`, `PARTIALLY_RETURNED`, `FAILED`
+- `AccountType` — `INDIVIDUAL`, `BUSINESS`
 - `TaxStatus` — `INDIVIDUAL`, `VAT_REGISTERED`
 - `SellerType` — `INDIVIDUAL`, `DEALER_VAT`, `DEALER_NO_VAT`, `COMPANY`
 - `BuyerType` — `INDIVIDUAL`, `DEALER`, `COMPANY`

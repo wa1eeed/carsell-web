@@ -148,6 +148,33 @@ export function IdentityQueue({
                 <span dir="ltr" className="font-num text-2xs opacity-60">
                   {row.phone}
                 </span>
+
+                {/*
+                  ═══ ومراجعةُ المنشأة غيرُ مراجعة الفرد ═══
+
+                  الأولى تُقابل السجلّ بالشهادة وتفحص سريانه، والثانية
+                  تُقابل الاسم بالهوية. وصفٌّ لا يقول أيَّهما يجعل
+                  المحرّر يفتح كلَّ طلبٍ ليعرف ما يطلبه.
+
+                  **والمنتهي يُقال هنا**: سجلٌّ انتهى يُردّ، ومعرفتُه
+                  قبل الفتح توفّر فتحةً كاملة.
+                */}
+                {row.business === null ? null : (
+                  <span className="flex flex-wrap items-center gap-2 text-3xs">
+                    <Badge tone="neutral">منشأة</Badge>
+                    <span className="opacity-70">{row.business.name}</span>
+                    <span dir="ltr" className="font-num opacity-50">
+                      {displayDigits(row.business.crNumber)}
+                    </span>
+                    {row.business.crExpiresAt === null ||
+                    Date.parse(row.business.crExpiresAt) > Date.now() ? null : (
+                      <Badge tone="danger">سجل منتهٍ</Badge>
+                    )}
+                    {row.business.vatNumber === null ? (
+                      <span className="opacity-45">غير مسجَّل في الضريبة</span>
+                    ) : null}
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-5">

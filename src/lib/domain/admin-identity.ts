@@ -35,6 +35,14 @@ export type IdentityRow = {
   waitingMinutes: number;
   /** لهم إعلانات أو طلبات؟ فالتأخير عليهم أثقل */
   listingCount: number;
+  /**
+   * ═══ ومراجعةُ المنشأة غيرُ مراجعة الفرد ═══
+   *
+   * الأولى تُقابل السجلّ التجاريّ بالشهادة وتفحص سريانه، والثانية
+   * تُقابل الاسم بالهوية. وصفٌّ لا يقول أيَّهما يجعل المحرّر يفتح كلَّ
+   * طلبٍ ليعرف ما يطلبه — وهو ما يُبطئ الطابور الذي يُقاس زمنُه.
+   */
+  business: { name: string; crNumber: string; crExpiresAt: string | null; vatNumber: string | null } | null;
 };
 
 export type IdentityStats = {
@@ -67,6 +75,11 @@ export async function identityQueue(
       identityMethod: true,
       identityNote: true,
       identitySubmittedAt: true,
+      accountType: true,
+      businessName: true,
+      crNumber: true,
+      crExpiresAt: true,
+      vatNumber: true,
       _count: { select: { listings: true } },
     },
   });
@@ -81,6 +94,15 @@ export async function identityQueue(
     waitingMinutes:
       user.identitySubmittedAt === null ? 0 : minutesSince(user.identitySubmittedAt, now),
     listingCount: user._count.listings,
+    business:
+      user.accountType === 'BUSINESS'
+        ? {
+            name: user.businessName ?? '',
+            crNumber: user.crNumber ?? '',
+            crExpiresAt: user.crExpiresAt?.toISOString() ?? null,
+            vatNumber: user.vatNumber,
+          }
+        : null,
   }));
 }
 

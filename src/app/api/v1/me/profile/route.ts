@@ -5,6 +5,7 @@ import { currentUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { profileCompletion } from '@/lib/domain/profile';
 import { setEmail, setIban, verifyIdentity } from '@/lib/domain/profile-edit';
+import { submitBusinessIdentity } from '@/lib/domain/business-identity';
 
 export const runtime = 'nodejs';
 
@@ -22,6 +23,25 @@ const Body = z.discriminatedUnion('field', [
     nationalId: z.string().min(5).max(20),
     fullName: z.string().min(1).max(120),
   }),
+  /**
+   * ═══ وفرعُ المنشأة — KYB ═══
+   *
+   * `commercial_register` قيمةٌ في المخطّط بلا كاتب: كان توثيقُ وكالةٍ
+   * يمرّ بمسار الفرد، فلا يُعرَف من الحساب أنه معرضٌ ولا باسم مَن
+   * تُصدَر فاتورته. والشخصُ والمنشأة في طلبٍ واحد: قرارٌ واحد على صورةٍ
+   * كاملة لا قراران على نصفين.
+   *
+   * **وzod تحرس الشكل والحجم، والمعنى في النطاق** — فتعود الأخطاء دفعةً.
+   */
+  z.object({
+    field: z.literal('business'),
+    signatoryName: z.string().max(120),
+    signatoryNationalId: z.string().max(20),
+    businessName: z.string().max(160),
+    crNumber: z.string().max(20),
+    crExpiresAt: z.string().max(10),
+    vatNumber: z.string().max(20).nullable().optional(),
+  }),
 ]);
 
 const MESSAGES: Record<string, { ar: string; en: string }> = {
@@ -31,6 +51,7 @@ const MESSAGES: Record<string, { ar: string; en: string }> = {
   NOT_SAUDI: { ar: 'الآيبان يجب أن يكون سعوديًّا (SA).', en: 'The IBAN must be Saudi (SA).' },
   CHECKSUM: { ar: 'الآيبان غير صحيح — راجع الخانات.', en: 'The IBAN checksum does not match.' },
   INVALID_ID: { ar: 'رقم الهوية 10 خانات تبدأ بـ1 أو 2.', en: 'A national ID is 10 digits starting with 1 or 2.' },
+  USER_NOT_FOUND: { ar: 'الحساب غير موجود.', en: 'Account not found.' },
   NAME_REQUIRED: { ar: 'اكتب الاسم كما في الهوية.', en: 'Enter your name as printed on the ID.' },
   ALREADY_VERIFIED: { ar: 'هويتك موثّقة بالفعل.', en: 'Your identity is already verified.' },
 };
@@ -43,6 +64,25 @@ export async function PATCH(request: NextRequest) {
   if (!parsed.success) return fail(ERRORS.VALIDATION({ field: 'INVALID' }), 422);
 
   const input = parsed.data;
+
+  if (input.field === 'business') {
+    const saved = await submitBusinessIdentity(user.id, input);
+    if (!saved.ok) {
+      if (saved.reason === 'VALIDATION') return fail(ERRORS.VALIDATION(saved.fields), 422);
+      const text = MESSAGES[saved.reason];
+      return fail(
+        {
+          code: saved.reason,
+          messageAr: text?.ar ?? 'تعذّر الحفظ.',
+          messageEn: text?.en ?? 'Could not save.',
+        },
+        422,
+      );
+    }
+    const after = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    return ok(profileCompletion(after));
+  }
+
   const result =
     input.field === 'email'
       ? await setEmail(user.id, input.email)

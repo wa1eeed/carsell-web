@@ -28,6 +28,22 @@ export async function submitIdentity(
    */
   identity?: { name: string; nationalIdEncrypted: string },
   now: Date = new Date(),
+  /**
+   * ═══ وحقولُ المنشأة تُكتب في التحديث نفسه ═══
+   *
+   * `commercial_register` قيمةٌ في المخطّط منذ أوّله **بلا كاتب**: لا
+   * شيء في المنتج يعرّف حسابًا بأنه منشأة، فتوثيقُ وكالةٍ يمرّ بمسار
+   * الفرد ويُسأل صاحبُها عن رقم هويّته وحده.
+   *
+   * وكتابتُها في نداءٍ ثانٍ تُنتج لحظةً يكون فيها السجلّ على حسابٍ
+   * نوعُه `INDIVIDUAL` — وهي العلّة التي كُتب رأسُ هذا الملفّ لأجلها.
+   */
+  business?: {
+    businessName: string;
+    crNumber: string;
+    crExpiresAt: Date;
+    vatNumber: string | null;
+  },
 ): Promise<void> {
   const auto = method === 'nafath';
   await writer.user.update({
@@ -36,6 +52,15 @@ export async function submitIdentity(
       ...(identity === undefined
         ? {}
         : { name: identity.name, nationalIdEncrypted: identity.nationalIdEncrypted }),
+      ...(business === undefined
+        ? {}
+        : {
+            accountType: 'BUSINESS' as const,
+            businessName: business.businessName,
+            crNumber: business.crNumber,
+            crExpiresAt: business.crExpiresAt,
+            ...(business.vatNumber === null ? {} : { vatNumber: business.vatNumber }),
+          }),
       identityStatus: auto ? 'VERIFIED' : 'PENDING',
       identitySubmittedAt: now,
       identityMethod: method,
@@ -64,14 +89,31 @@ export async function recordTrialVerification(
   userId: string,
   input: { name: string; nationalIdEncrypted: string },
   now: Date = new Date(),
+  /** وحقولُ المنشأة معها — فالتجريب يسلك ما يسلكه الإنتاج. */
+  business?: {
+    businessName: string;
+    crNumber: string;
+    crExpiresAt: Date;
+    vatNumber: string | null;
+  },
 ): Promise<void> {
   await writer.user.update({
     where: { id: userId },
     data: {
       name: input.name,
       nationalIdEncrypted: input.nationalIdEncrypted,
+      ...(business === undefined
+        ? {}
+        : {
+            accountType: 'BUSINESS' as const,
+            businessName: business.businessName,
+            crNumber: business.crNumber,
+            crExpiresAt: business.crExpiresAt,
+            ...(business.vatNumber === null ? {} : { vatNumber: business.vatNumber }),
+          }),
       identityStatus: 'VERIFIED',
-      identityMethod: 'manual',
+      // والطريقة تتبع ما قُدّم: سجلٌّ تجاريّ لا هويةُ فرد
+      identityMethod: business === undefined ? 'manual' : 'commercial_register',
       identitySubmittedAt: now,
       identityNote: null,
       idVerified: true,
