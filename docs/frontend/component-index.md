@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **143** components in **3** directories.
+Counted: **145** components in **3** directories.
 
 ## Referenced nowhere else
 
@@ -107,7 +107,9 @@ rather than found by chance.
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
 | `SiteFooter` | no | `columns` | 1 |
 | `SiteHeader` | no | `active` · `actions` | 24 |
-| `SponsoredCard` | yes | `ad` · `label` | 1 |
+| `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 1 |
+| `SponsoredCard` | yes | `ad` · `label` | 3 |
+| `SponsoredLine` | yes | `ad` · `label` | 1 |
 | `SponsoredRow` | yes | `ad` · `label` | 1 |
 | `StagePanel` | yes | `orderRef` · `stage` · `viewerIsBuyer` · `frozen` | 1 |
 | `TaxStatusDialog` | yes | `open` · `onClose` · `onSaved` · `initial` | 3 |

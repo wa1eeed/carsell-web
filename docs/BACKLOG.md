@@ -134,7 +134,24 @@ domain, audited, walked end to end).
   Fixed with `SponsoredRow` (same shape and rhythm as `CarRow`, sharing the
   impression counter so a CPM slot cannot bill differently per view mode).
 
-- [ ] **Six sold ad placements render nowhere.** `home_story` («أعلى الرئيسية»,
+- [ ] **Three sold ad placements still render nowhere.** `brand_featured` («أول
+  خانة», 6,000/month, 1:1) · `service_featured` («أول الدليل», 2,800/month) ·
+  `empty_state` («بعد النشر», 12 CPM, 16:9). Wired so far: `search_inline`,
+  `home_banner` (at the position the design draws it, between the auction rail
+  and «أُضيفت حديثًا») and `vehicle_inline` (directly under the price, as the
+  row says — it first landed under the services block, which is a different
+  placement from the one that was sold).
+- [ ] **`home_story` (1080×1920, «أعلى الرئيسية», 1,200/day) has no design.** It
+  appears in neither `Front-end Web.dc.html` nor `Supper App.dc.html`, and a
+  9:16 creative at the top of the home page is a format, not a banner — a story
+  rail, a takeover, or an interstitial are all readings of the same row. Asked
+  of the designer rather than invented.
+- [ ] **Gate: every active priced slot is called by a screen.** Not built yet —
+  it would fail on four slots the day it ships, and a gate that fails on day one
+  is disabled on day one. Activate it when the list above reaches zero, the same
+  way the dead-domain-function gate waits.
+
+- [ ] ~~Six sold ad placements render nowhere.~~ `home_story` («أعلى الرئيسية»,
   1,200/day) · `home_banner` («أسفل الملخّصات», 3,500/week) · `brand_featured`
   («أول خانة», 6,000/month) · `vehicle_inline` («أسفل السعر», 35 CPM) ·
   `service_featured` («أول الدليل», 2,800/month) · `empty_state` («بعد النشر»,

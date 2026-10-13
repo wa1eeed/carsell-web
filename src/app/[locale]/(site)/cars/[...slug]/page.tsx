@@ -26,6 +26,7 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { InspectionScreen } from './InspectionScreen';
 import { JsonLd } from './JsonLd';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { adsFor } from '@/lib/domain/ads';
 
 export const dynamic = 'force-dynamic';
 
@@ -288,6 +289,18 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
    * معلنةٌ في بيانات الخدمات منذ بُنيت **ولا قارئ لها**.
    */
   const services = await servicesForListing(resolved.locale);
+
+  /**
+   * ═══ `vehicle_inline` — والاستهداف بالمدينة والماركة ═══
+   *
+   * المساحة مسعَّرةٌ بالظهور وموضعُها المكتوب «أسفل السعر»، ولم يكن في
+   * المنتج ما ينادي مفتاحها. و`adsFor` تقرأ الاستهداف — فمعلنٌ اشترى
+   * الرياض لا تُحسب عليه ظهورٌ في جدة.
+   */
+  const sponsored = await adsFor('vehicle_inline', {
+    city: detail.city,
+    brandId: resolved.row.vehicle.brandId,
+  });
   const standing =
     auction === null || viewer === null
       ? null
@@ -299,6 +312,7 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <CarPage
+            sponsored={sponsored}
             auction={auction}
             standing={standing}
             closing={closing}

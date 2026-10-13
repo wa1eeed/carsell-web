@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { SponsoredLine } from '@/components/site/SponsoredCard';
+import type { ServedAd } from '@/lib/domain/ad-rules';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -67,8 +69,19 @@ export function CarPage({
   standing,
   closing,
   services,
+  sponsored,
 }: {
   detail: PublicListingDetail;
+  /**
+   * ═══ `vehicle_inline` — مساحةٌ تُباع ولم يكن لها موضع ═══
+   *
+   * مسعَّرةٌ ٣٥ للألف ظهور، مقاسُها «٤٨px سطر»، وموضعُها المكتوب في
+   * اللوحة «أسفل السعر» — **ولا شيء في المنتج كان ينادي مفتاحها**.
+   *
+   * وتصل خاصّيةً لا تُجلَب هنا: الشاشة `'use client'`، والبيانات تعبر
+   * الحدّ والدوالّ لا (البوابة ٢٢).
+   */
+  sponsored: readonly ServedAd[];
   faq: readonly { id: string; question: string; answer: string }[];
   similar: readonly SimilarItem[];
   canonical: Canonical;
@@ -506,6 +519,17 @@ export function CarPage({
                       },
               }}
             />
+
+            {/*
+              **وموضعُه «أسفل السعر» حرفيًّا.** كان بعد الخدمات فصار بينه وبين
+              السعر كتلةٌ كاملة — والمساحة بِيعت بموضعها لا بعمودها.
+
+              **ولا يُحجَز له سطرٌ قبل أن يُباع**: `adsFor` تعيد فارغًا
+              بلا حملةٍ حيّة، فلا إطارَ على صفحةٍ لا إعلان فيها.
+            */}
+            {sponsored.length === 0 ? null : (
+              <SponsoredLine ad={sponsored[0] as ServedAd} label={t('ad')} />
+            )}
 
             {/*
               **وخدماتُ المركبة في عمودها** — لا في صفحةٍ لا يصلها

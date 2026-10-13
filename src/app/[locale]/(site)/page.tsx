@@ -8,6 +8,9 @@ import type { Metadata } from 'next';
 import { LiveBar, SiteFooter, SiteHeader } from '@/components/site/SiteHeader';
 import { popularSearches, type PopularSearch } from '@/lib/domain/popular-searches';
 import { AuctionRail } from '@/components/ui/AuctionRail';
+import { SponsoredBanner } from '@/components/site/SponsoredCard';
+import { adsFor } from '@/lib/domain/ads';
+import type { ServedAd } from '@/lib/domain/ad-rules';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { BodyTypeStrip } from '@/components/ui/BodyTypeStrip';
 import { CarCard } from '@/components/ui/CarCard';
@@ -109,15 +112,27 @@ export default async function HomePage({
   const rawBand = typeof search.band === 'string' ? search.band : undefined;
   const band = PAYMENT_BANDS.find((b) => b.key === rawBand)?.key as PaymentBandKey | undefined;
 
-  const [home, cities, popular, t, tu, te] = await Promise.all([
+  const [home, cities, popular, banner, t, tu, te, tui] = await Promise.all([
     getHomeData(locale, band === undefined ? {} : { band }),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
       .then((rows) => rows.map((row) => row.city).sort()),
     popularSearches(),
+    /**
+     * ═══ `home_banner` — مساحةٌ تُباع ولم يكن لها موضع ═══
+     *
+     * مسعَّرةٌ ٣٥٠٠ للأسبوع ومعروضةٌ في `/admin/ads` بموضعها المكتوب
+     * «أسفل الملخّصات»، **ولا شيء في المنتج كان ينادي مفتاحها**. وستٌّ
+     * من سبعٍ على هذه الحال.
+     *
+     * والتصميم يرسمها صفًّا بين كتلة المزاد و«أُضيفت حديثًا»: وسمُ
+     * «إعلان» ثم مساحةٌ ١٦:٦ بارتفاع ٨٨px.
+     */
+    adsFor('home_banner', { city: null }),
     getTranslations('site'),
     getTranslations('units'),
     getTranslations('enums'),
+    getTranslations('ui'),
   ]);
 
   /**
@@ -414,6 +429,19 @@ export default async function HomePage({
                   href: auction.href,
                 }))}
               />
+            </div>
+          </section>
+        )}
+
+        {/*
+          **والبانر لا يُحجَز له مكان قبل أن يُباع.** `adsFor` تعيد
+          فارغًا بلا حملةٍ حيّة، فلا إطارَ ولا وسمَ «إعلان» على صفحةٍ
+          لا إعلان فيها — ومساحةٌ رماديّة تقول للزائر إن الصفحة ناقصة.
+        */}
+        {banner.length === 0 ? null : (
+          <section className="border-t border-line">
+            <div className="page-frame">
+              <SponsoredBanner ad={banner[0] as ServedAd} label={tui('ad')} ratio="16/6" />
             </div>
           </section>
         )}

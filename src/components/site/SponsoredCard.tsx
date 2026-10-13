@@ -23,8 +23,8 @@ import type { ServedAd } from '@/lib/domain/ad-rules';
  * `cpm` — فنسخُه في الشكلين يجعل أحدهما يعدّ عند التصيير والآخر عند
  * الرؤية، فتختلف فاتورتان لإعلانٍ واحد بحسب نمط العرض.
  */
-function useImpression(adId: string) {
-  const box = useRef<HTMLDivElement>(null);
+function useImpression<T extends HTMLElement>(adId: string) {
+  const box = useRef<T>(null);
   const counted = useRef(false);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ function useImpression(adId: string) {
 }
 
 export function SponsoredCard({ ad, label }: { ad: ServedAd; label: string }) {
-  const box = useImpression(ad.id);
+  const box = useImpression<HTMLDivElement>(ad.id);
 
   return (
     <div
@@ -120,7 +120,7 @@ export function SponsoredCard({ ad, label }: { ad: ServedAd; label: string }) {
  * نصّ — فإعلانٌ بمقاسٍ آخر يكسر إيقاع القائمة ويُقرأ خطأً في الصفحة.
  */
 export function SponsoredRow({ ad, label }: { ad: ServedAd; label: string }) {
-  const box = useImpression(ad.id);
+  const box = useImpression<HTMLElement>(ad.id);
 
   return (
     <article
@@ -153,5 +153,82 @@ export function SponsoredRow({ ad, label }: { ad: ServedAd; label: string }) {
         </a>
       </div>
     </article>
+  );
+}
+
+/**
+ * ═══ البانر العريض — `home_banner` و`empty_state` ═══
+ *
+ * التصميم يرسمه صفًّا: وسمُ «إعلان» ثم مساحةٌ ١٦:٦. والوسم فوق المساحة
+ * لا عليها — فبانرٌ بعرض الصفحة يُقرأ قسمًا من الموقع ما لم يُقَل إنه
+ * إعلان، وهو الشكل الذي يجعل الزائر يشكّ في كل قسمٍ بعده.
+ *
+ * والنسبة من المساحة المبيعة لا من الشاشة: ١٦:٦ لـ`home_banner`
+ * و١٦:٩ لـ`empty_state` — ومساحةٌ تُعرض بنسبةٍ أخرى ليست ما بِيع.
+ */
+export function SponsoredBanner({
+  ad,
+  label,
+  ratio = '16/6',
+}: {
+  ad: ServedAd;
+  label: string;
+  /** نسبة المساحة كما تُباع — `16/6` أو `16/9`. */
+  ratio?: '16/6' | '16/9';
+}) {
+  const box = useImpression<HTMLDivElement>(ad.id);
+
+  return (
+    <div ref={box} className="flex flex-col gap-2">
+      <span className="text-3xs font-bold opacity-45">{label}</span>
+
+      <a
+        href={ad.clickPath}
+        rel="nofollow sponsored noopener"
+        target="_blank"
+        className="block overflow-hidden rounded-xl border border-line"
+        style={{ aspectRatio: ratio }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- وجهةٌ خارجية يضبطها المعلن، ولا تمرّ بمحسّن الصور */}
+        <img
+          src={ad.creativeUrl}
+          alt={ad.advertiserName}
+          loading="lazy"
+          className="size-full object-cover"
+        />
+      </a>
+    </div>
+  );
+}
+
+/**
+ * ═══ السطر الرفيع — `vehicle_inline` ═══
+ *
+ * المساحة ١٢٠٠×٩٦ ومقاسُها المكتوب «٤٨px سطر»، وموضعُها «أسفل السعر»
+ * في صفحة السيارة. وهي أقربُ ما يكون إلى المحتوى في المنتج كلّه —
+ * فالوسم داخلها لا فوقها، وإلّا قُرئت بندًا من بيانات السيارة.
+ */
+export function SponsoredLine({ ad, label }: { ad: ServedAd; label: string }) {
+  const box = useImpression<HTMLAnchorElement>(ad.id);
+
+  return (
+    <a
+      ref={box}
+      href={ad.clickPath}
+      rel="nofollow sponsored noopener"
+      target="_blank"
+      className="flex items-center gap-3 overflow-hidden rounded-lg border border-line bg-surface p-2"
+    >
+      <span className="shrink-0 rounded-md bg-ink/85 px-2 py-0.5 text-3xs font-bold text-bg">
+        {label}
+      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element -- وجهةٌ خارجية يضبطها المعلن، ولا تمرّ بمحسّن الصور */}
+      <img
+        src={ad.creativeUrl}
+        alt={ad.advertiserName}
+        loading="lazy"
+        className="h-12 min-w-0 flex-1 object-cover"
+      />
+    </a>
   );
 }
