@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
@@ -159,10 +160,24 @@ export default async function EarningsPage({
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                     <p className="flex flex-wrap items-baseline gap-2 text-sm font-bold">
                       {line.title}
-                      {/* المرجع يُنسخ ويُقارن — لاتينيّ معزول */}
-                      <span dir="ltr" className="font-num text-2xs opacity-45">
+                      {/*
+                        ═══ والمرجع بابٌ لا نصّ ═══
+
+                        كان نصًّا، وصفحةُ الطلب تقبل البائع كما تقبل
+                        المشتري — فيقرأ من باع سيارته «ORD-2026-1007»
+                        ولا يستطيع فتحها، ولا شاشةَ أخرى تربط إليها:
+                        **«طلباتي» تعرض ما اشتراه وحده**. فمن بِيعت
+                        مركبتُه لا يرى مرحلة صفقته ولا خطّها ولا عقدها.
+
+                        والمرجع يُنسخ ويُقارن — لاتينيّ معزول.
+                      */}
+                      <Link
+                        href={`/${locale}/account/orders/${line.orderRef}`}
+                        dir="ltr"
+                        className="font-num text-2xs underline opacity-45 hover:opacity-80"
+                      >
                         {line.orderRef}
-                      </span>
+                      </Link>
                     </p>
                     {/*
                       **و«جاهز للصرف» لا تبقى بعد الإفراج.** كانت تُحسب

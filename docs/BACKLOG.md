@@ -52,7 +52,14 @@ are examples, not the whole set — each screen is compared against its block in
   - [ ] Plates — see **F** below.
 - [ ] **Sell wizard — vehicle step** — hero with stats, 3-step progress, photo
       grid with quality badges, price range bar with days-to-sell.
-- [ ] **Order detail** — escrow panel, stage timeline, documents, cancel block.
+- [x] **Order detail** — walked as both parties: escrow panel, stage tracker,
+      order path, amounts, documents and the cancel block are all there, and the
+      cancel button is correct for the seller too (`cancelOrder` admits either
+      party, which the screen states). What was missing was the **way in for the
+      seller**: «طلباتي» lists what the user *bought*, and the order reference on
+      «مستحقّاتي» was plain text — so whoever sold the car could not open the
+      page at all, while the page itself accepts them. The reference is now a
+      link (verified signed in as a seller with two sales: both refs open, 200).
 
 ### B · My cars (the garage) — **usable end to end**
 
@@ -149,14 +156,6 @@ domain, audited, walked end to end).
   9:16 creative is a format, not a banner. Question logged in
   `DESIGN-DECISIONS.md` with a proposal (a story rail under the header);
   exempted by name in gate 44 until it is answered.
-
-- [ ] ~~Six sold ad placements render nowhere.~~ `home_story` («أعلى الرئيسية»,
-  1,200/day) · `home_banner` («أسفل الملخّصات», 3,500/week) · `brand_featured`
-  («أول خانة», 6,000/month) · `vehicle_inline` («أسفل السعر», 35 CPM) ·
-  `service_featured` («أول الدليل», 2,800/month) · `empty_state` («بعد النشر»,
-  12 CPM). Each carries its placement in the row, each is active and priced, and
-  `/admin/ads` sells them. Nothing renders today because there are no live
-  campaigns, so wiring them changes no pixel until one is sold.
 
 - `/admin/payments` — **«مربوطة» is a row, «تُحصّل» is code.** Four gateways sat
   in the database, all `ACTIVE`; two adapters exist (`moyasar`, `sandbox`). The
