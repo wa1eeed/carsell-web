@@ -284,9 +284,15 @@ the newly required fields is a lock without a key. The VAT row completes on
 **being answered** — «لا تنطبق عليّ» is a complete answer, and requiring a number
 would leave every unregistered individual permanently incomplete.
 
-- [ ] **Registration with a password is not built yet** — sign-up is still phone
-  + one-time code, and the dealer registration path (showroom name, email,
-  password) with its onboarding screen is the next piece.
+- Registration is built. Individuals give name, phone, city and a password;
+  dealers give showroom name, phone, email and a password. The phone is still
+  verified by code **first** — a sign-up that writes the account and then asks
+  for verification leaves rows for numbers nobody owns — so the form is carried
+  on the verify call and only written once the code is right. Password sign-in
+  was added as a **second** door: 29 existing accounts have no password, and
+  making it the only way would lock them out. An unknown number and a wrong
+  password get the same answer, and the hash comparison runs even when no account
+  exists, so neither the message nor the timing says «this number is registered».
 - [ ] **Documents are not collected.** KYB normally takes the CR certificate and
   the authorisation; today only the numbers are typed. Needs the owner's call on
   which documents are required before launch.

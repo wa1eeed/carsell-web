@@ -688,7 +688,22 @@
       "1": "Escrow holds the money until ownership transfers",
       "2": "Vehicle data fetched, not typed",
       "3": "Zero commission on sales"
-    }
+    },
+    "modeSignIn": "I have an account",
+    "modeRegister": "Create an account",
+    "typeIndividual": "Individual",
+    "typeBusiness": "Showroom or agency",
+    "fullName": "Name",
+    "showroomName": "Showroom name",
+    "city": "City",
+    "cityPick": "Pick a city",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least eight characters — you can sign in with it instead of a code.",
+    "usePassword": "Sign in with a password",
+    "useCode": "Sign in with a code",
+    "signIn": "Sign in",
+    "wrongCredentials": "That number or password is not right."
   },
   "account": {
     "title": "My account",

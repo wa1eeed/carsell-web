@@ -1,4 +1,8 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { CITY_SLUG } from '@/lib/labels/cities';
+
+/** مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط. */
+const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -87,7 +91,7 @@ export default async function AuthPage({
             الهاتف ١٦ كما في بقية الشاشات.
           */}
           <div className="order-1 flex flex-1 items-center justify-center border-s border-line px-4 py-9 sm:p-12 lg:order-2">
-            <AuthForm locale={locale} />
+            <AuthForm locale={locale} cities={CITY_NAMES} />
           </div>
         </div>
       </main>

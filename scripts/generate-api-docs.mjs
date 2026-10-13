@@ -193,6 +193,39 @@ function zodField(expr) {
     return wrap({ type: 'string', enum: value === null ? [] : [value[1]] });
   }
   if (/^z\.record\(/.test(expr)) return wrap({ type: 'object' });
+
+  /**
+   * ═══ كائنٌ متداخل — `z.object({ … })` داخل حقل ═══
+   *
+   * ومسارٌ يحمله كان يظهر في `unparsed` كأن مخطّطه غامض، وهو مفهومٌ
+   * تمامًا: `registration` في تحقّق الرمز كائنٌ من خمسة حقول. فيُحلّ
+   * بالعودة إلى `splitFields` نفسها — والتكرار يقف حيث يقف التداخل.
+   */
+  if (/^z\.object\(/.test(expr)) {
+    const open = expr.indexOf('{');
+    const close = expr.lastIndexOf('}');
+    if (open === -1 || close <= open) return wrap({ type: 'object' });
+
+    const properties = {};
+    const required = [];
+    for (const pair of splitFields(expr.slice(open + 1, close))) {
+      const at = pair.indexOf(':');
+      if (at === -1) continue;
+      const key = pair.slice(0, at).trim().replace(/['"]/g, '');
+      const parsed = zodField(pair.slice(at + 1).trim());
+      if (parsed === null) continue;
+      const { __optional, ...schema } = parsed;
+      properties[key] = schema;
+      if (__optional !== true) required.push(key);
+    }
+
+    return wrap({
+      type: 'object',
+      properties,
+      ...(required.length === 0 ? {} : { required }),
+    });
+  }
+
   return null;
 }
 
