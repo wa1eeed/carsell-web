@@ -33,6 +33,16 @@ const Body = z.discriminatedUnion('field', [
    *
    * **وzod تحرس الشكل والحجم، والمعنى في النطاق** — فتعود الأخطاء دفعةً.
    */
+  /**
+   * ═══ وحقولُ الملف البسيطة ═══
+   *
+   * المدينة والعنوان واسم المصرف — تُكتب كما تُكتب، ولا منطقَ لها غير
+   * ألّا تكون فارغة. وفصلُها عن التوثيق مقصود: هذه تُصحَّح متى شاء
+   * صاحبُها، وذاك يمرّ بمراجعة.
+   */
+  z.object({ field: z.literal('city'), city: z.string().max(60) }),
+  z.object({ field: z.literal('address'), address: z.string().max(200) }),
+  z.object({ field: z.literal('bankName'), bankName: z.string().max(80) }),
   z.object({
     field: z.literal('business'),
     signatoryName: z.string().max(120),
@@ -64,6 +74,20 @@ export async function PATCH(request: NextRequest) {
   if (!parsed.success) return fail(ERRORS.VALIDATION({ field: 'INVALID' }), 422);
 
   const input = parsed.data;
+
+  if (input.field === 'city' || input.field === 'address' || input.field === 'bankName') {
+    const value = (input.field === 'city'
+      ? input.city
+      : input.field === 'address'
+        ? input.address
+        : input.bankName
+    ).trim();
+    if (value === '') return fail(ERRORS.VALIDATION({ [input.field]: 'REQUIRED' }), 422);
+
+    await db.user.update({ where: { id: user.id }, data: { [input.field]: value } });
+    const saved = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    return ok(profileCompletion(saved));
+  }
 
   if (input.field === 'business') {
     const saved = await submitBusinessIdentity(user.id, input);

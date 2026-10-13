@@ -697,12 +697,19 @@
     "subtitle": "Your vehicles, offers, orders and reports in one place.",
     "completeTitle": "Complete your profile before your first transaction",
     "completeBody": "These fields are needed before buying or selling — not at sign-up.",
+    "completeStrength": "The fuller your profile, the more whoever deals with you can trust the account.",
+    "completePercent": "Profile completion",
     "blocksBuying": "You cannot buy until your email and identity verification are complete.",
     "blocksSelling": "You cannot receive sale proceeds until you add an IBAN.",
     "missing": {
       "email": "Email address",
       "idVerification": "Identity verification",
-      "iban": "IBAN"
+      "iban": "IBAN",
+      "city": "City",
+      "taxStatus": "VAT status",
+      "bankName": "Bank name",
+      "crNumber": "Commercial register",
+      "address": "Business address"
     },
     "stat": {
       "listings": "My vehicles",

@@ -74,13 +74,23 @@ describe('Wm — حدود الإرسال', () => {
 });
 
 describe('Wf — الحقول الناقصة بارزة', () => {
+  /**
+   * **والمطلوب تغيّر، والحارس لم يتغيّر.** كان المطلوب ثلاثةً فصار
+   * ستّة للفرد وسبعةً للمنشأة (قرار المالك ١٣ أكتوبر). ويبقى ما يحرسه
+   * هذا الاختبار كما هو: **الشراء لا يحتاج آيبانًا، والبيع يحتاجه** —
+   * ولا يُمنع أحدٌ من معاملةٍ لأن مدينتَه ناقصة.
+   */
   it('الناقص يُحسب، وما يمنعه يُشتقّ منه', () => {
     const base = {
-      email: null, idVerified: false, iban: null,
+      email: null, idVerified: false, iban: null, city: null, bankName: null,
+      address: null, crNumber: null, taxStatusSetAt: null, accountType: 'INDIVIDUAL',
     } as unknown as Parameters<typeof profileCompletion>[0];
 
     const empty = profileCompletion(base);
-    expect(empty.missing).toEqual(['email', 'idVerification', 'iban']);
+    expect(empty.missing).toEqual([
+      'email', 'idVerification', 'city', 'taxStatus', 'bankName', 'iban',
+    ]);
+    expect(empty.percent).toBe(0);
     expect(empty.canBuy).toBe(false);
     expect(empty.canSell).toBe(false);
 
@@ -88,9 +98,46 @@ describe('Wf — الحقول الناقصة بارزة', () => {
     const buyer = profileCompletion({
       ...base, email: 'a@b.co', idVerified: true,
     } as unknown as Parameters<typeof profileCompletion>[0]);
-    expect(buyer.missing).toEqual(['iban']);
     expect(buyer.canBuy).toBe(true);
     expect(buyer.canSell).toBe(false);
+    expect(buyer.missing).toContain('iban');
+
+    // ومدينةٌ ناقصة لا تمنع شراءً ولا بيعًا — وتنقص النسبة وحدها
+    const seller = profileCompletion({
+      ...base, email: 'a@b.co', idVerified: true, iban: 'x',
+    } as unknown as Parameters<typeof profileCompletion>[0]);
+    expect(seller.canSell).toBe(true);
+    expect(seller.missing).toEqual(['city', 'taxStatus', 'bankName']);
+    expect(seller.percent).toBe(50);
+  });
+
+  /**
+   * **ومتطلّباتُ المنشأة غيرُ متطلّبات الفرد**: تزيد السجلّ والعنوان،
+   * ولا تُسأل عن مدينةٍ مفردة لأن عنوانها يحملها.
+   */
+  it('والمنشأة تُسأل عن سجلّها وعنوانها لا عن مدينتها', () => {
+    const business = {
+      email: null, idVerified: false, iban: null, city: null, bankName: null,
+      address: null, crNumber: null, taxStatusSetAt: null, accountType: 'BUSINESS',
+    } as unknown as Parameters<typeof profileCompletion>[0];
+
+    const result = profileCompletion(business);
+    expect(result.missing).toContain('crNumber');
+    expect(result.missing).toContain('address');
+    expect(result.missing).not.toContain('city');
+  });
+
+  /**
+   * **والوضع الضريبيّ يُجاب لا يُملأ.** «لا تنطبق عليّ» جوابٌ كامل —
+   * وإلّا بقي ملفُّ كلِّ فردٍ غير مسجَّل ناقصًا إلى الأبد مهما فعل.
+   */
+  it('و«لا تنطبق عليّ» تُكمل الوضع الضريبيّ', () => {
+    const answered = profileCompletion({
+      email: null, idVerified: false, iban: null, city: null, bankName: null,
+      address: null, crNumber: null, taxStatusSetAt: new Date(), vatNumber: null,
+      accountType: 'INDIVIDUAL',
+    } as unknown as Parameters<typeof profileCompletion>[0]);
+    expect(answered.missing).not.toContain('taxStatus');
   });
 
   it('لوحة الحساب تُبنى من بيانات المستخدم وحده', async () => {

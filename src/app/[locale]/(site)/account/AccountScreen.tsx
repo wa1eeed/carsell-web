@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Percent } from '@/components/ui/Quantity';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -35,7 +36,7 @@ import type { AccountData } from '@/lib/domain/account';
  */
 function MissingFields({ data, locale }: { data: AccountData; locale: string }) {
   const t = useTranslations('account');
-  const { missing, canBuy, canSell } = data.completion;
+  const { missing, canBuy, canSell, percent } = data.completion;
   if (missing.length === 0) return null;
 
   return (
@@ -45,6 +46,31 @@ function MissingFields({ data, locale }: { data: AccountData; locale: string }) 
         {/* ما يمنعه النقص يُقال صراحةً — «أكمل ملفك» وحدها لا تدفع أحدًا */}
         {!canBuy ? t('blocksBuying') : !canSell ? t('blocksSelling') : t('completeBody')}
       </p>
+
+      {/*
+        ═══ والنسبة تُرى قبل أن تُقرأ ═══
+
+        قائمةُ نواقصَ تقول «ما المطلوب» ولا تقول «كم بقي» — ومن يرى
+        ثلاثة حقول لا يعرف أهي ثلاثةٌ من أربعة أم من ثمانية. والشريط
+        يجيب في لمحة، والرقم بجواره يجيب بالضبط.
+
+        **والمعروض هو المحسوب**: النسبة من `profileCompletion` لا من
+        عدٍّ ثانٍ في الشاشة — فرقمان يُحسبان في موضعين يتباعدان.
+      */}
+      <div className="mb-4 flex items-center gap-3">
+        <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-warn-200">
+          <span
+            className="block h-full rounded-full bg-warn-700"
+            style={{ width: `${String(percent)}%` }}
+          />
+        </span>
+        <span className="flex shrink-0 items-baseline gap-1 text-2xs font-bold">
+          <Percent value={percent} />
+          <span className="font-normal opacity-65">{t('completePercent')}</span>
+        </span>
+      </div>
+
+      <p className="mb-4 text-2xs leading-loose opacity-70">{t('completeStrength')}</p>
 
       <ul className="flex flex-wrap gap-2.5">
         {missing.map((field) => (

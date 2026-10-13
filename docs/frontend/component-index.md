@@ -159,7 +159,7 @@ rather than found by chance.
 | `PaintMap` | no | `panels` · `className` | 1 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
-| `Percent` | no | `value` · `className` | 3 |
+| `Percent` | no | `value` · `className` | 4 |
 | `Quantity` | no | `unit` · `count` · `className` | 95 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |

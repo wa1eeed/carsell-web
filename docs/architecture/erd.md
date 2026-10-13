@@ -263,6 +263,10 @@ erDiagram
 | `identityNote` | `String?` |  |
 | `identityReviewedBy` | `String?` |  |
 | `nationalIdEncrypted` | `String?` |  |
+| `city` | `String?` |  |
+| `address` | `String?` |  |
+| `bankName` | `String?` |  |
+| `passwordHash` | `String?` |  |
 | `businessName` | `String?` |  |
 | `crNumber` | `String?` |  |
 | `crExpiresAt` | `DateTime?` |  |

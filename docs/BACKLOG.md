@@ -264,6 +264,29 @@ to be told. The admin queue row now says «منشأة», names it and shows the 
 badges an expired register, because reviewing a business is not reviewing a
 person.
 
+**Owner's spec, 2026-10-13 — registration and onboarding.** Individuals register
+with name, phone, city and a password; afterwards the profile still needs the VAT
+answer (plus the number if registered) and the bank details (bank name + IBAN).
+The commercial side registers as a **dealer account** with showroom name, phone,
+email and password, then an onboarding completes CR number, address and IBAN to
+reach 100%. Both see a completion percentage and a banner at the top of the
+account that leads to the data page and points at what is missing.
+
+Built in this pass: `city`, `bankName`, `address` and `passwordHash` on `User`
+(password nullable — 29 existing accounts have none and keep the one-time code,
+and a required column would lock them out); `profileCompletion` now returns
+`percent` and a **per-type** required list (individuals are not asked for an
+address, businesses are not asked for a single city because their address carries
+it); the banner on the account home shows the bar, the percentage and the trust
+line, and each missing field still links to its anchor on the profile page; and
+the profile page grew the city / address / bank-name / VAT-status rows so none of
+the newly required fields is a lock without a key. The VAT row completes on
+**being answered** — «لا تنطبق عليّ» is a complete answer, and requiring a number
+would leave every unregistered individual permanently incomplete.
+
+- [ ] **Registration with a password is not built yet** — sign-up is still phone
+  + one-time code, and the dealer registration path (showroom name, email,
+  password) with its onboarding screen is the next piece.
 - [ ] **Documents are not collected.** KYB normally takes the CR certificate and
   the authorisation; today only the numbers are typed. Needs the owner's call on
   which documents are required before launch.

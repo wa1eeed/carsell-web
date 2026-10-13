@@ -23,9 +23,24 @@ type Field = MissingField;
 export function ProfileForm({
   initial,
   missing,
+  cities,
 }: {
-  initial: { email: string | null; name: string | null; idVerified: boolean; hasIban: boolean };
+  initial: {
+    email: string | null;
+    name: string | null;
+    idVerified: boolean;
+    hasIban: boolean;
+    city: string | null;
+    address: string | null;
+    bankName: string | null;
+    isBusiness: boolean;
+    /** `null` تعني: لم يُسأل بعد — وهي غيرُ «لا تنطبق عليّ». */
+    vatRegistered: boolean | null;
+    vatNumber: string | null;
+  };
   missing: readonly Field[];
+  /** مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط. */
+  cities: readonly string[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -50,8 +65,49 @@ export function ProfileForm({
   const [businessName, setBusinessName] = useState('');
   const [crNumber, setCrNumber] = useState('');
   const [crExpiresAt, setCrExpiresAt] = useState('');
-  const [vatNumber, setVatNumber] = useState('');
+  const [vatNumber, setVatNumber] = useState(initial.vatNumber ?? '');
+  const [city, setCity] = useState(initial.city ?? '');
+  const [address, setAddress] = useState(initial.address ?? '');
+  const [bankName, setBankName] = useState(initial.bankName ?? '');
+  /**
+   * **والرقم الضريبيّ حالةٌ واحدة لحقلٍ واحد.** يكتبه صفُّ الضريبة
+   * ويقرؤه فرعُ المنشأة — وحالتان له تجعلان المحرّر يكتبه في موضعٍ
+   * ويحفظه من الآخر فارغًا.
+   */
+  const [vatRegistered, setVatRegistered] = useState(initial.vatRegistered);
   const [iban, setIban] = useState('');
+
+  /**
+   * **ومسارُ الضريبة غيرُ مسار الملف.** `PUT /account/tax-status` يكتب
+   * الحالة والرقم معًا ويفحص بنيته — ونسخُ فحصِه هنا يُنتج قاعدتين.
+   */
+  const saveTax = (registered: boolean): void => {
+    start(async () => {
+      const response = await fetch('/api/v1/account/tax-status', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          status: registered ? 'VAT_REGISTERED' : 'INDIVIDUAL',
+          ...(registered ? { vatNumber } : {}),
+        }),
+      }).catch(() => null);
+
+      const payload = (await response?.json().catch(() => null)) as
+        | { error?: { messageAr?: string; fields?: Record<string, string> } }
+        | null;
+
+      if (response === null || !response.ok || payload?.error !== undefined) {
+        setErrors((prev) => ({
+          ...prev,
+          taxStatus: payload?.error?.fields?.vatNumber ?? payload?.error?.messageAr ?? 'تعذّر الحفظ.',
+        }));
+        return;
+      }
+      setErrors((prev) => ({ ...prev, taxStatus: undefined }));
+      setToast('حُفظ الوضع الضريبي.');
+      router.refresh();
+    });
+  };
 
   const save = (field: Field, body: Record<string, string>): void => {
     start(async () => {
@@ -248,6 +304,149 @@ export function ProfileForm({
             </div>
           </div>
         )}
+      </Row>
+
+      {/*
+        ═══ والمدينة للفرد والعنوان للمنشأة ═══
+
+        عنوانُ منشأةٍ يحمل مدينتَها، فسؤالُها عنهما معًا تكرار. ومن
+        يفتح ملفَّه لا يرى إلا ما يلزمه — واستمارةٌ تعرض الكلّ ثمّ
+        تتجاهل نصفه تُعلّم الناس أن الحقول اختيارية.
+      */}
+      {initial.isBusiness ? (
+        <Row
+          id="address"
+          title="عنوان المنشأة"
+          note="كما في السجل التجاري — يظهر في فاتورتك."
+          done={!missing.includes('address')}
+          error={errors.address}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              placeholder="الحي، الشارع، المدينة"
+              className="min-w-0 flex-1 rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
+            />
+            <Button
+              size="sm"
+              disabled={pending || address.trim() === ''}
+              onClick={() => save('address', { field: 'address', address })}
+            >
+              حفظ
+            </Button>
+          </div>
+        </Row>
+      ) : (
+        <Row
+          id="city"
+          title="المدينة"
+          note="تُرشَّح بها العروض القريبة منك، وتُعرف منها نقطة الاستلام."
+          done={!missing.includes('city')}
+          error={errors.city}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+              className="min-w-0 flex-1 rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
+            >
+              <option value="">اختر المدينة</option>
+              {cities.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <Button
+              size="sm"
+              disabled={pending || city.trim() === ''}
+              onClick={() => save('city', { field: 'city', city })}
+            >
+              حفظ
+            </Button>
+          </div>
+        </Row>
+      )}
+
+      {/*
+        ═══ والوضع الضريبيّ يُجاب لا يُملأ ═══
+
+        «لا تنطبق عليّ» جوابٌ كامل — فالحقل يكتمل بأن يُسأل ويُجاب، لا
+        بوجود رقم. وإلّا بقي ملفُّ كلِّ فردٍ غير مسجَّل ناقصًا إلى الأبد
+        مهما فعل.
+      */}
+      <Row
+        id="taxStatus"
+        title="الوضع الضريبي"
+        note="هل تنطبق عليك ضريبة القيمة المضافة؟ — يحدّد شكل فاتورتك."
+        done={!missing.includes('taxStatus')}
+        error={errors.taxStatus}
+      >
+        <div className="flex flex-col gap-2.5">
+          <div className="flex flex-wrap gap-2">
+            <TypeChip on={vatRegistered === false} onClick={() => setVatRegistered(false)}>
+              لا تنطبق عليّ
+            </TypeChip>
+            <TypeChip on={vatRegistered === true} onClick={() => setVatRegistered(true)}>
+              مسجَّل في الضريبة
+            </TypeChip>
+          </div>
+
+          {vatRegistered !== true ? null : (
+            <input
+              dir="ltr"
+              inputMode="numeric"
+              value={vatNumber}
+              onChange={(event) => setVatNumber(event.target.value)}
+              placeholder="3XXXXXXXXXXXXX3"
+              className="font-num rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
+            />
+          )}
+
+          <div>
+            <Button
+              size="sm"
+              disabled={
+                pending ||
+                vatRegistered === null ||
+                (vatRegistered && vatNumber.trim() === '')
+              }
+              onClick={() => saveTax(vatRegistered === true)}
+            >
+              حفظ
+            </Button>
+          </div>
+        </div>
+      </Row>
+
+      {/*
+        **واسمُ المصرف مع الآيبان لا بعده.** من يطابق كشف تحويلٍ بيد
+        يقرأ اسمًا لا أربعًا وعشرين خانة — والصفّان متجاوران لأنهما
+        جوابٌ واحد.
+      */}
+      <Row
+        id="bankName"
+        title="اسم المصرف"
+        note="يُقرأ في كشف التحويل — والآيبان وحده لا يُطابَق بالعين."
+        done={!missing.includes('bankName')}
+        error={errors.bankName}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={bankName}
+            onChange={(event) => setBankName(event.target.value)}
+            placeholder="مصرف الراجحي"
+            className="min-w-0 flex-1 rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
+          />
+          <Button
+            size="sm"
+            disabled={pending || bankName.trim() === ''}
+            onClick={() => save('bankName', { field: 'bankName', bankName })}
+          >
+            حفظ
+          </Button>
+        </div>
       </Row>
 
       <Row

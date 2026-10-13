@@ -6,6 +6,10 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
+import { CITY_SLUG } from '@/lib/labels/cities';
+
+/** مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط. */
+const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { profileCompletion } from '@/lib/domain/profile';
 import { ProfileForm } from './ProfileForm';
@@ -74,8 +78,16 @@ export default async function ProfilePage({
               name: user.name,
               idVerified: user.idVerified,
               hasIban: user.iban !== null && user.iban !== '',
+              city: user.city,
+              address: user.address,
+              bankName: user.bankName,
+              isBusiness: user.accountType === 'BUSINESS',
+              // `null` تعني «لم يُسأل بعد» — وهي غيرُ «لا تنطبق عليّ»
+              vatRegistered: user.taxStatusSetAt === null ? null : user.taxStatus === 'VAT_REGISTERED',
+              vatNumber: user.vatNumber,
             }}
             missing={completion.missing}
+            cities={CITY_NAMES}
           />
         </div>
       </main>
