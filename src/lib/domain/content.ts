@@ -199,6 +199,7 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
     select: {
       key: true, nameAr: true, nameEn: true, descAr: true, descEn: true,
       price: true, category: true, isAutomated: true, slaHours: true,
+      adminFeeEnabled: true, adminFee: true, adminFeeMode: true,
       includesAr: true, includesEn: true,
       provider: { select: { nameAr: true, slaHours: true, cities: true } },
     },
@@ -221,6 +222,13 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
     providerCities: row.provider?.cities ?? [],
     includesAr: row.includesAr,
     includesEn: row.includesEn,
+    /**
+     * رسمُ المنصّة — **يُعرض لأنه يُحصَّل**. والشاشة تقرأ القاعدة نفسها
+     * التي يقرؤها الحجز (`serviceTotal`)، فلا يدفع المشتري غير ما رأى.
+     */
+    adminFeeEnabled: row.adminFeeEnabled,
+    adminFee: row.adminFee.toString(),
+    adminFeeMode: row.adminFeeMode,
   };
 }
 
@@ -235,4 +243,7 @@ export type PublicServiceDetail = PublicService & {
    */
   includesAr: string[];
   includesEn: string[];
+  adminFeeEnabled: boolean;
+  adminFee: string;
+  adminFeeMode: 'FIXED' | 'PERCENT';
 };

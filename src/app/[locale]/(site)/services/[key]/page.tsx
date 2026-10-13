@@ -88,7 +88,15 @@ export default async function ServiceDetailPage({
    * في كل موضعٍ يُنتج قاعدتين تتباعدان أوّل تغيير، فيدفع الطالب غير ما
    * رأى.
    */
-  const money = serviceTotal(service.price, vatPct);
+  /**
+   * **والرسم في العرض كما هو في الحجز** — وحسابان لرقمٍ واحد يجعلان
+   * المشتري يدفع غير ما رأى.
+   */
+  const money = serviceTotal(service.price, vatPct, {
+    mode: service.adminFeeMode,
+    amount: service.adminFee,
+    enabled: service.adminFeeEnabled,
+  });
   const included = isArabic ? service.includesAr : service.includesEn;
   const price = Number(money.net);
   const vat = Number(money.vat);

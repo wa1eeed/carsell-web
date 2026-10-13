@@ -131,6 +131,27 @@ non-expired user override.
 **The golden rule:** code asks `entitlement("can_auction")`. It never asks "is
 this a dealer?" or "what plan is this?". One exception destroys the system later.
 
+## `POST /api/v1/auth/logout`
+
+Clears the session cookie with the **same attributes it was written with** — a
+cookie cleared on a different path survives. Returns `{signedOut: true}`.
+
+**It did not exist.** There was no route and no button anywhere on the public
+site, and the admin panel had `POST /api/v1/admin/auth/logout` built with
+nothing calling it. Anyone who signed in on a shared machine — a showroom
+computer, a friend's phone — stayed signed in for 30 days, with their orders,
+IBAN and earnings one click away for whoever sat down next.
+
+The button is at the end of the account page, not in the header: signing out is
+an action you mean to take, and the header has no dropdown to hide it in. It
+confirms first, because getting back in costs an SMS round trip.
+
+**A known limit, not a defect.** The site's session is a signed JWT with no
+stored id, so clearing the cookie ends the session *on that device* and cannot
+revoke a token already copied elsewhere. Revocation needs a session id in the
+claims — a change to the session model, not to this route. The admin side does
+revoke: its session is a row, and `revokeAdminSession` marks it.
+
 ## Not yet built
 
 - SMS delivery (task 27) — `devCode` stands in until then.

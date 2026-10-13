@@ -136,7 +136,7 @@ describe('A7 — الإنشاء والترتيب', () => {
       {
         key, category: 'SELLER', nameAr: 'خدمة اختبار', nameEn: 'Test service',
         descAr: '', descEn: '', price: 99, slaHours: null, placements: [],
-        adminFeeEnabled: true, adminFee: 25,
+        adminFeeEnabled: true, adminFee: 25, adminFeeMode: 'FIXED',
       },
       null,
     );
@@ -163,7 +163,7 @@ describe('A7 — الإنشاء والترتيب', () => {
       {
         key, category: 'SELLER', nameAr: 'x', nameEn: 'x',
         descAr: '', descEn: '', price: 1, slaHours: null, placements: [],
-        adminFeeEnabled: false, adminFee: 0,
+        adminFeeEnabled: false, adminFee: 0, adminFeeMode: 'FIXED',
       },
       null,
     );

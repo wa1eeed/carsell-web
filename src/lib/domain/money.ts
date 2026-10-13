@@ -85,11 +85,48 @@ export function pct(
  * **وتُكتب مرّة**: الشاشة تعرض الإجماليّ والشراء يحجزه، وحسابٌ في كل
  * موضعٍ يُنتج قاعدتين تتباعدان أوّل تغيير — فيدفع المشتري غير ما رأى.
  */
+export type ServiceFee = {
+  /** `FIXED` يقرأ `amount` ريالًا، و`PERCENT` يقرؤه نسبةً من سعر المزوّد */
+  mode: 'FIXED' | 'PERCENT';
+  amount: Prisma.Decimal | number | string;
+  enabled: boolean;
+};
+
 export function serviceTotal(
   price: Prisma.Decimal | number | string,
   vatPct: Prisma.Decimal | number | string = DEFAULT_VAT_PCT,
-): { net: Prisma.Decimal; vat: Prisma.Decimal; total: Prisma.Decimal } {
-  const net = new Prisma.Decimal(price).toDecimalPlaces(2);
+  fee: ServiceFee | null = null,
+): {
+  /** حصّة المزوّد — سعرُ خدمته كما ضبطه */
+  providerNet: Prisma.Decimal;
+  /** حصّتنا — تُضاف فوق سعره لا تُقتطع منه */
+  platformFee: Prisma.Decimal;
+  net: Prisma.Decimal;
+  vat: Prisma.Decimal;
+  total: Prisma.Decimal;
+} {
+  const providerNet = new Prisma.Decimal(price).toDecimalPlaces(2);
+
+  /**
+   * ═══ ورسمُنا يُضاف فوق سعر المزوّد ═══
+   *
+   * قرار المالك (٢٠٢٦-١٠-١٤): «رسوم المنصّة … تفرضه المنصّة على خدمة
+   * المزوّد **وتُضاف عليه**». فالمزوّد يقبض سعرَه كاملًا، والعميل يدفع
+   * السعر والرسم — واقتطاعُه من سعره يجعل كل رفعٍ لرسمنا خفضًا لدخله
+   * بلا أن يُسأل.
+   *
+   * **وكان الرسم يُضبط ولا يُحصَّل**: `adminFeeEnabled` و`adminFee`
+   * في `Service` ولهما محرّرٌ كامل في اللوحة، **وصفرُ قرّاءٍ في مسار
+   * الشراء** — فيُفعّله المشغّل ويُسعّره ولا يدخل ريالٌ منه.
+   */
+  const platformFee =
+    fee === null || !fee.enabled
+      ? new Prisma.Decimal(0)
+      : fee.mode === 'PERCENT'
+        ? providerNet.times(new Prisma.Decimal(fee.amount)).dividedBy(100).toDecimalPlaces(2)
+        : new Prisma.Decimal(fee.amount).toDecimalPlaces(2);
+
+  const net = providerNet.plus(platformFee);
   const vat = net.times(new Prisma.Decimal(vatPct)).dividedBy(100).toDecimalPlaces(2);
-  return { net, vat, total: net.plus(vat) };
+  return { providerNet, platformFee, net, vat, total: net.plus(vat) };
 }

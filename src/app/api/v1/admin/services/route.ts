@@ -20,6 +20,8 @@ const Body = z.object({
   // يُقبلان هنا كما يُقبلان في التعديل — والشاشة ترسلهما في الحالين
   adminFeeEnabled: z.boolean().default(false),
   adminFee: z.number().int().min(0).max(1_000_000).default(0),
+  /** والسقف يختلف بالوضع — نسبةٌ فوق ١٠٠ ليست رسمًا بل مصادرة. */
+  adminFeeMode: z.enum(['FIXED', 'PERCENT']).default('FIXED'),
 });
 
 /** `POST /api/v1/admin/services` — خدمة جديدة، تُنشأ مخفيّة. */

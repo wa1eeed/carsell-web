@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-83 models · 52 enums
+83 models · 53 enums
 
 ## Relationships
 
@@ -141,6 +141,7 @@ erDiagram
   Invoice }o--|| InvoiceType : "type"
   Invoice |o--|| Order : "order"
   Invoice }o--|| User : "user"
+  Service }o--|| ServiceFeeMode : "adminFeeMode"
   Service }o--|| ServiceCategory : "category"
   Service |o--|| ServiceProvider : "provider"
   Service ||--o{ ServiceRequest : "requests"
@@ -746,7 +747,7 @@ Relations: `type` → `InvoiceType` · `order` → `Order` · `user` → `User`
 | `active` | `Boolean` |  |
 | `sort` | `Int` |  |
 
-Relations: `category` → `ServiceCategory` · `provider` → `ServiceProvider` · `requests` → `ServiceRequest`
+Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategory` · `provider` → `ServiceProvider` · `requests` → `ServiceRequest`
 
 ### `ServiceRequest`
 
@@ -1622,6 +1623,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `CommissionSide` — `BUYER`, `SELLER`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
+- `ServiceFeeMode` — `FIXED`, `PERCENT`
 - `ProviderType` — `INSPECTION`, `SHIPPING`, `INSURANCE`, `DETAILING`, `PHOTOGRAPHY`, `FINANCE`, `OTHER`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`

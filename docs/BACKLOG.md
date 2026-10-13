@@ -485,34 +485,62 @@ A first pass that only relaxes the ownership guard was written and **reverted
 before commit**: on its own it lets a buyer pay for an inspection on a
 stranger's car with no consent from its owner — the opposite of the rule.
 
-**Three questions still open, all about money:**
+#### Answered 2026-10-14 — all of it
 
-1. **When is the buyer charged — at request, or after the seller accepts?**
-   Suggested: hold at request, as the auction deposit already does, so the
-   request is a commitment and not a free way to pester sellers.
-2. **And if the seller declines, or never answers?** Suggested: full release,
-   no fee, with a decision window like `sellerDecisionHours`. Declining is not
-   a breach.
-3. **Who owns a report a buyer paid for?** `InspectionReport` attaches to the
-   **vehicle**, and `findReportByListingRef` shows any report on the listing to
-   everyone — so today a buyer's paid report would appear free on the seller's
-   public page for every competing buyer. Suggested: the payer owns it. A
-   seller-paid report is public on the listing (today's behaviour, screen Wd); a
-   buyer-paid one stays private to that buyer until they share it or the seller
-   buys it. Publishing can be added later; it cannot be undone.
+Logged in `docs/DESIGN-DECISIONS.md`. In short:
 
-**And the two from before:**
+- **Payment is requested after the seller accepts**, not held at request. The
+  amount and *when* it will be asked for are shown from the moment the request
+  is made, so nobody is surprised by a demand.
+- **The payer owns the report** — the proposal was accepted verbatim. A
+  seller-paid report is public on the listing; a buyer-paid one stays private
+  until shared or bought. `findReportByListingRef` currently shows **any**
+  report on the vehicle to everyone, so it needs an ownership condition.
+- **The platform's share comes from service settings** — a percentage or a
+  fixed amount, charged on the provider's price and **added on top**. Built:
+  `Service.adminFeeMode`.
+- **Two gateways, not one.** The marketplace keeps an ordinary Moyasar merchant
+  account; providers run on the **Moyasar Platform API** (provider payment
+  accounts, split payment, authorization & capture, onboarding). Admin settings
+  separate them: «إعدادات الدفع الإلكتروني للمنصّة» and «إعدادات الدفع
+  للمزوّدين».
+- **The provider detail page becomes complete** — balance, received requests,
+  dues, payout state, split, capture, release, account-opening status.
 
-4. **What does the provider get?** `ServiceProvider.commissionPct` exists and
-   nothing computes a payout. `docs/tax-model.md` settles the tax timing —
-   «the supply happened when the service was delivered» — so recognition at
-   `DONE` is decided; the split is not.
-5. **Does this ship with the marketplace or after it?** The lifecycle, the
-   consent step, city dispatch, a provider surface, payouts and the report
-   builder are a body of work on the scale of the auction, not a patch.
+Authorization & capture is what makes "pay after the seller accepts" buildable,
+and split payment is what makes the fee above collectible automatically rather
+than by invoice.
 
-Until they are answered the honest state is the current one: nothing pretends a
-service is progressing, and no money moves on a rule nobody has set.
+#### Done so far
+
+**The platform fee is charged.** `Service.adminFeeMode` (`FIXED` | `PERCENT`),
+computed in `serviceTotal` so the screen that quotes it and the purchase that
+charges it read one rule, snapshotted onto the request. It had been configured
+and never charged — the editor, the toggle and the amount all existed with zero
+readers in the purchase path.
+
+#### What remains, in build order
+
+1. **Two gateway configurations in `/admin/integrations`**, with the Moyasar
+   Platform credentials entered there — encrypted in `IntegrationCredential`,
+   **never in the repo**. The Platform Key arrived empty and is entered at
+   link-up time.
+2. **A Moyasar Platform adapter**: onboarding, account status, split, authorize
+   and capture, release, balance.
+3. **The request lifecycle with the consent step** — a status for "awaiting the
+   seller", the seller's screen, and the decision window.
+4. **City dispatch.** `Service.providerId` binds one provider per service;
+   "goes to the inspectors in the car's city" needs a pool and the city taken
+   from the **listing**.
+5. **A provider surface.** `src/app` holds `[locale]` and `admin` and nothing
+   else — an inspector has no login and no screen, so "the seller's contact is
+   revealed to the inspector" has nowhere to appear.
+6. **Contact disclosure with an audit trail**, as A18 already logs every ID
+   reveal.
+7. **The provider detail page** in admin, and the report builder.
+
+Nothing above moves money until the adapter exists, so the honest state stays:
+nothing pretends a service is progressing.
 
 **Still silent — 7 keys, all declared, grouped by what each costs:**
 

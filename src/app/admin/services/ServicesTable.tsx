@@ -45,6 +45,7 @@ type Draft = {
   price: string;
   adminFeeEnabled: boolean;
   adminFee: string;
+  adminFeeMode: 'FIXED' | 'PERCENT';
   slaHours: string;
   placements: string[];
 };
@@ -62,6 +63,7 @@ function draftOf(service: ServiceRow): Draft {
     price: service.price,
     adminFeeEnabled: service.adminFeeEnabled,
     adminFee: service.adminFee,
+    adminFeeMode: service.adminFeeMode,
     slaHours: service.slaHours === null ? '' : String(service.slaHours),
     placements: [...service.placements],
   };
@@ -79,6 +81,7 @@ const BLANK: Draft = {
   price: '0',
   adminFeeEnabled: false,
   adminFee: '0',
+  adminFeeMode: 'FIXED',
   slaHours: '',
   placements: [],
 };
@@ -158,6 +161,7 @@ export function ServicesTable({
       price,
       adminFeeEnabled: draft.adminFeeEnabled,
       adminFee,
+      adminFeeMode: draft.adminFeeMode,
     };
 
     if (draft.isNew) {
@@ -515,9 +519,39 @@ export function ServicesTable({
                 يُضاف سطرًا مستقلًّا فوق السعر — لا يُدمج فيه. وهو إيرادٌ لنا فتسري
                 عليه الضريبة، بخلاف ما يُمرَّر لجهةٍ أخرى كما هو.
               </p>
+              {/*
+                **ونسبةً أو مبلغًا — قرار المالك.** خدمةٌ بخمسين ريالًا
+                وأخرى بألفين لا يصلح لهما رسمٌ واحد: الثابت يبتلع الأولى
+                ويختفي في الثانية. وحقلٌ واحد ووضعٌ يفسّره، لا حقلان
+                يتناقضان إن مُلئا معًا.
+              */}
+              {!draft.adminFeeEnabled ? null : (
+                <div className="flex gap-2.5">
+                  {(
+                    [
+                      ['FIXED', 'مبلغ ثابت'],
+                      ['PERCENT', 'نسبة من سعر المزوّد'],
+                    ] as const
+                  ).map(([mode, label]) => (
+                    <label key={mode} className="flex items-center gap-2 text-2xs">
+                      <input
+                        type="radio"
+                        name="adminFeeMode"
+                        checked={draft.adminFeeMode === mode}
+                        onChange={() => setDraft({ ...draft, adminFeeMode: mode })}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              )}
               {!draft.adminFeeEnabled ? null : (
                 <Field
-                  label="الرسم بالريال — شامل الضريبة"
+                  label={
+                    draft.adminFeeMode === 'PERCENT'
+                      ? 'النسبة من سعر المزوّد — شاملة الضريبة'
+                      : 'الرسم بالريال — شامل الضريبة'
+                  }
                   ltr
                   numeric
                   value={draft.adminFee}

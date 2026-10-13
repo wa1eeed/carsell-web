@@ -294,6 +294,8 @@ export type ServiceRow = {
    */
   adminFeeEnabled: boolean;
   adminFee: string;
+  /** `FIXED` ريالًا، و`PERCENT` نسبةً من سعر المزوّد — قرار المالك ٢٠٢٦-١٠-١٤ */
+  adminFeeMode: 'FIXED' | 'PERCENT';
   category: string;
   active: boolean;
   slaHours: number | null;
@@ -315,7 +317,7 @@ export async function listServicesForAdmin(): Promise<ServiceRow[]> {
       orderBy: [{ sort: 'asc' }, { category: 'asc' }],
       select: {
         id: true, key: true, nameAr: true, nameEn: true, descAr: true, descEn: true,
-        price: true, adminFeeEnabled: true, adminFee: true,
+        price: true, adminFeeEnabled: true, adminFee: true, adminFeeMode: true,
         category: true, active: true, slaHours: true, isAutomated: true,
         placements: true, sort: true,
         provider: { select: { nameAr: true } },
@@ -349,6 +351,7 @@ export async function listServicesForAdmin(): Promise<ServiceRow[]> {
       price: service.price.toString(),
       adminFeeEnabled: service.adminFeeEnabled,
       adminFee: service.adminFee.toString(),
+      adminFeeMode: service.adminFeeMode,
       category: service.category,
       active: service.active,
       slaHours: service.slaHours,
@@ -440,6 +443,7 @@ export type ServiceCreate = {
    */
   adminFeeEnabled: boolean;
   adminFee: number;
+  adminFeeMode: 'FIXED' | 'PERCENT';
 };
 
 /**
@@ -453,8 +457,18 @@ export async function createService(
   input: ServiceCreate,
   ip: string | null,
   now = new Date(),
-): Promise<{ ok: true; key: string } | { ok: false; reason: 'KEY_TAKEN' | 'PRICE_INVALID' }> {
+): Promise<{
+  ok: true;
+  key: string;
+} | { ok: false; reason: 'KEY_TAKEN' | 'PRICE_INVALID' | 'FEE_PCT_RANGE' }> {
   if (!Number.isFinite(input.price) || input.price < 0) return { ok: false, reason: 'PRICE_INVALID' };
+  /**
+   * **ونسبةٌ فوق المئة ليست رسمًا بل مصادرة.** الحدّ في الخادم لا في
+   * الشاشة — حارسٌ في العميل ليس حارسًا.
+   */
+  if (input.adminFeeMode === 'PERCENT' && input.adminFee > 100) {
+    return { ok: false, reason: 'FEE_PCT_RANGE' };
+  }
   if ((await db.service.count({ where: { key: input.key } })) > 0) {
     return { ok: false, reason: 'KEY_TAKEN' };
   }
@@ -474,6 +488,7 @@ export async function createService(
       placements: input.placements,
       adminFeeEnabled: input.adminFeeEnabled,
       adminFee: new Prisma.Decimal(input.adminFee),
+      adminFeeMode: input.adminFeeMode,
       sort: (last?.sort ?? 0) + 1,
       active: false,
     },

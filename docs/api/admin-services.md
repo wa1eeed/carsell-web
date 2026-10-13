@@ -131,6 +131,35 @@ The renderer also falls back to `event.other` for an unknown type, because the
 key is derived from a database value and a value with no message must never reach
 the screen as a key path.
 
+## The platform fee on a service
+
+`adminFeeEnabled` · `adminFee` · `adminFeeMode` (`FIXED` | `PERCENT`).
+
+**The owner's rule (2026-10-14):** the fee is charged by the platform **on the
+provider's service and added on top of it**. The provider is paid their price in
+full; the customer pays price + fee. Taking it out of the provider's price would
+make every increase of our fee a cut to their income without asking them.
+
+`FIXED` reads `adminFee` as riyals; `PERCENT` reads it as a percentage of the
+provider's price. One field and a mode that explains it, not two fields that
+contradict each other when both are filled. A percentage above 100 is refused in
+the **server** — a screen-side limit is a suggestion.
+
+It stays a **separate line, never folded into `price`**. `price` may be a
+disbursement — a government charge or a provider's fee passed through unchanged
+— and the moment a margin is hidden inside it, the whole amount becomes our
+taxable supply rather than just our margin. The split is a condition of the
+classification, not a presentation choice (`docs/tax-model.md`).
+
+**It was configured and never charged.** The editor, the toggle, the amount and
+the explanatory text all existed; `purchaseService` never read any of it, and
+`ServiceRequest.adminFee` — whose own comment calls it a snapshot — was never
+written. An operator could enable a 50-riyal fee, price it, and see no riyal of
+it. The amount is now computed in `serviceTotal` (`src/lib/domain/money.ts`), so
+the screen that quotes it and the purchase that charges it read **one rule**, and
+it is snapshotted onto the request: changing the fee later does not touch an
+existing one.
+
 ## Deviations from the design
 
 - **No image column.** `Service` has no image field; the design shows a thumbnail

@@ -1020,6 +1020,15 @@ model Service {
   /// `price` نفسه يسقط وصف «الصرف» عن المبلغ كلّه فيصير توريدنا كاملًا.
   adminFeeEnabled Boolean @default(false)
   adminFee        Decimal @default(0) @db.Decimal(10, 2)
+  /// ═══ ونسبةً أو مبلغًا — قرار المالك (٢٠٢٦-١٠-١٤) ═══
+  ///
+  /// «رسوم المنصّة من إجمالي قيمة الخدمة تُفرض من إعدادات الخدمات، حيث
+  /// توجد حقول سواء نسبة مئوية أو مبلغ ثابت تفرضه المنصّة على خدمة
+  /// المزوّد وتُضاف عليه.»
+  ///
+  /// و`FIXED` تقرأ `adminFee` ريالًا، و`PERCENT` تقرؤه نسبةً من `price`.
+  /// حقلٌ واحد ووضعٌ يفسّره — لا حقلان يتناقضان إن مُلئا معًا.
+  adminFeeMode    ServiceFeeMode @default(FIXED)
   /// ═══ ما تشمله الخدمة — بنودٌ تُعرض قبل الدفع ═══
   ///
   /// **والوصف سطرٌ لا يكفي.** من يدفع خمسمئة ريال مقابل «فحص شامل»
@@ -1617,6 +1626,12 @@ model ServiceProvider {
   requests ServiceRequest[]
 
   @@index([type, active])
+}
+
+/// كيف يُقرأ `Service.adminFee`: ريالًا ثابتًا أم نسبةً من سعر المزوّد.
+enum ServiceFeeMode {
+  FIXED
+  PERCENT
 }
 
 enum ProviderType {

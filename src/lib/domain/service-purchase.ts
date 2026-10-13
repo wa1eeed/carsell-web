@@ -52,6 +52,7 @@ export async function purchaseService(
     where: { key: input.serviceKey, active: true },
     select: {
       id: true, price: true, slaHours: true,
+      adminFeeEnabled: true, adminFee: true, adminFeeMode: true,
       provider: { select: { id: true, cities: true } },
     },
   });
@@ -88,8 +89,21 @@ export async function purchaseService(
     where: { id: 'default' },
     select: { vatPct: true },
   });
-  /** والقاعدة من `money.ts` — هي نفسها التي تعرضها الشاشة. */
-  const { total } = serviceTotal(service.price, platform?.vatPct ?? DEFAULT_VAT_PCT);
+  /**
+   * والقاعدة من `money.ts` — هي نفسها التي تعرضها الشاشة.
+   *
+   * **ورسمُ المنصّة كان يُضبط ولا يُحصَّل**: `adminFeeEnabled` و`adminFee`
+   * لهما محرّرٌ كامل في اللوحة ومفتاحُ تشغيل، **ولا قارئَ في مسار
+   * الشراء** — فيُفعّله المشغّل ويُسعّره ولا يدخل ريالٌ منه. ويُحفظ
+   * على الطلب لقطةً كما يُحفظ السعر: تغييرُ الرسم لاحقًا لا يمسّ
+   * طلبًا قائمًا.
+   */
+  const money = serviceTotal(service.price, platform?.vatPct ?? DEFAULT_VAT_PCT, {
+    mode: service.adminFeeMode,
+    amount: service.adminFee,
+    enabled: service.adminFeeEnabled,
+  });
+  const total = money.total;
 
   const resolved = await resolveGateway('SERVICE_PURCHASE');
   if (resolved === null) return { ok: false, reason: 'NO_ROUTE' };
@@ -177,6 +191,7 @@ export async function purchaseService(
       ...(service.provider === null ? {} : { providerId: service.provider.id }),
       status: 'NEW',
       amount: total,
+      adminFee: money.platformFee,
       dueAt,
       /**
        * **وما سألناه عنه يُحفظ.** الاستمارة تسأل عن المدينة والموعد

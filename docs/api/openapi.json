@@ -3421,6 +3421,13 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 1000000
+                  },
+                  "adminFeeMode": {
+                    "type": "string",
+                    "enum": [
+                      "FIXED",
+                      "PERCENT"
+                    ]
                   }
                 },
                 "required": [
@@ -3434,7 +3441,8 @@
                   "slaHours",
                   "placements",
                   "adminFeeEnabled",
-                  "adminFee"
+                  "adminFee",
+                  "adminFeeMode"
                 ]
               }
             }
