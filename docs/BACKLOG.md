@@ -113,6 +113,22 @@ domain, audited, walked end to end).
   commission) with a form on the page; `active` stays with the row's own button
   so saving a phone number cannot disable a company by accident.
 
+**Deferred by the owner, 2026-10-13 — dealer onboarding.** `Dealer` has no
+writer but the seed, so `/admin/dealers` counts «تنتظر التحقّق ٢» and carries
+approve/verify/suspend buttons for a queue nothing can ever add to, and the
+public `/dealers` page can only ever show the seeded showrooms. A join form was
+built and walked end to end (application → admin queue → verify → status on the
+account), then **reverted on the owner's instruction**: the dealer control panel
+is to become an operating system for the showroom's business — inventory, sales,
+POS, invoicing — alongside listing into the CARZ market, and what the join form
+asks for, what the dealer commits to and which plan they enter on all follow that
+design. Building it now means building it twice. Revisit with D1–D11.
+
+Kept from that work: `normalizeSaudiContactPhone`. A showroom's or an inspection
+company's number is a **business** line, usually a landline — the provider form
+shipped in `98d78b4` rejected `+966 11 234 5678` as invalid. Account identity
+stays mobile-only (it receives the OTP).
+
 - [ ] `ApiKey` — no writer anywhere, while `public-key.ts` authenticates
       partners by key: **the partner API cannot be reached by anyone.** Issuing
       keys is an access-control decision (who may hold one, what it may read,

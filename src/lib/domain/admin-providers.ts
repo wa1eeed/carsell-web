@@ -1,7 +1,7 @@
 import type { ProviderType } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
-import { normalizeSaudiPhone } from './phone';
+import { normalizeSaudiContactPhone } from './phone';
 import { SLA_BREACHES_BEFORE_SUSPENSION } from './provider-rules';
 
 /**
@@ -249,7 +249,7 @@ function validate(draft: ProviderDraft): Record<string, string> {
    * ومن يمنع اللصق يصنع الخطأ الذي يظنّ أنه يمنعه.
    */
   const phone = clean(draft.contactPhone);
-  if (phone !== null && normalizeSaudiPhone(phone) === null) fields.contactPhone = 'INVALID';
+  if (phone !== null && normalizeSaudiContactPhone(phone) === null) fields.contactPhone = 'INVALID';
 
   const email = clean(draft.contactEmail);
   if (email !== null && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fields.contactEmail = 'INVALID';
@@ -284,7 +284,7 @@ export async function saveProvider(
     nameAr: input.draft.nameAr.trim(),
     nameEn: input.draft.nameEn.trim(),
     type: input.draft.type as ProviderType,
-    contactPhone: phone === null ? null : normalizeSaudiPhone(phone),
+    contactPhone: phone === null ? null : normalizeSaudiContactPhone(phone),
     contactEmail: clean(input.draft.contactEmail),
     commissionPct: pct === null ? null : new Prisma.Decimal(pct),
     slaHours: sla === null ? null : Number(sla),
