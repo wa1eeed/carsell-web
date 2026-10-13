@@ -128,10 +128,21 @@ export default async function AccountPage({
 
             وعمودٌ لاصق يُبقي الاسم والرصيد مرئيَّين وأنت تقرأ طلباتك.
           */}
-          <div className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
-            <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
-              <ProfileCard data={data} locale={locale} />
+          <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-8">
+            {/*
+              ═══ وعلى الهاتف: الهوية ثمّ المحتوى ثمّ الأقسام ═══
 
+              الشريط عمودٌ على الويب، وعلى الهاتف ينهار إلى صفوف. ولو
+              بقي بترتيبه لمرّ صاحبُ الحساب على **عشرة أقسامٍ** قبل أن
+              يرى طلبًا واحدًا — فالهويّة والرصيد أوّلًا (وهما ما يُفتح
+              الحساب لأجلهما)، ثمّ ما ينتظره، والأقسامُ آخرًا: هي
+              مِلاحةٌ يُقصد إليها لا شيءٌ يُقرأ في الطريق.
+            */}
+            <div className="lg:sticky lg:top-6 lg:col-start-1 lg:row-start-1">
+              <ProfileCard data={data} locale={locale} />
+            </div>
+
+            <div className="order-last lg:order-none lg:col-start-1 lg:row-start-2">
               <AccountSections
             locale={locale}
             sections={[
@@ -169,9 +180,9 @@ export default async function AccountPage({
               { key: 'profile', label: 'بياناتي', hint: 'البريد والهوية والآيبان' },
             ]}
               />
-            </aside>
+            </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2">
               <AccountScreen
                 data={data}
                 locale={locale}

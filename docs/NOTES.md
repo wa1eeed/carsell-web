@@ -4871,3 +4871,34 @@ aside is a full-width row again.
 Measured at 1180: aside 300px, content 768px, `position: sticky`, 0 overflow,
 the sections beginning with «سياراتي». At 375: one column of 343px, `static`,
 0 overflow.
+
+---
+
+## The wallet balance read like a footnote
+
+The owner asked for the balance and the customer card to be made attractive.
+Looking at it: the name was plain text, the customer reference sat beside it
+undistinguished, and «رصيد المحفظة ٠ ريال» was grey text under the name — a
+number the owner **acts on**, rendered as an aside.
+
+- The identity now opens with the initial in an accent ring, so the card is
+  recognised at a glance, and the customer reference sits in a chip because it
+  is **quoted in a support call**, not decoration.
+- **The balance is a panel, not a line.** `bg-ink text-bg` is how the design
+  treats its decisive numbers — the auction countdown, the price — so the weight
+  is read before the digits are. The held amount sits inside it on a translucent
+  chip, and «كشف المحفظة» is a bordered row rather than a faint underline.
+- Fields became flush rows separated by hairlines, and a verified identity is
+  rendered in accent: «موثقة» in the same grey as «لم يُطلب بعد» read the same.
+
+### And the sections now sit where each screen wants them
+
+On the web they are the sidebar column. On a phone the aside collapses into
+rows, and left in place it would have put **ten section cards between the
+greeting and the first order**. The order is now identity → content → sections:
+what the account is opened for, then what is waiting, and the navigation last —
+it is a place you aim for, not something read on the way.
+
+Measured at 375: identity at 278px, content at 820, sections at 2371 with
+`order: 9999`, 0 overflow. At 1180: card and sections both at x=840 w=300 in one
+column, content at x=40 w=768 starting at the same height, 0 overflow.

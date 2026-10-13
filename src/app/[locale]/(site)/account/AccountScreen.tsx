@@ -514,56 +514,84 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
     year: 'numeric',
   }).format(new Date(user.memberSince));
 
+  const initial = (user.name ?? 'ح').trim().charAt(0);
+
   return (
-    <section className="mb-8 rounded-xl border border-line bg-surface p-6">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
+    <section className="overflow-hidden rounded-xl border border-line bg-surface">
+      {/*
+        ═══ الهوية: حرفٌ واسمٌ ورقمٌ يُقتبس ═══
+
+        كان الاسم نصًّا عاديًّا ورقمُ العميل بجواره بلا تمييز. والحرفُ
+        في حلقةٍ يجعل البطاقة تُعرف بنظرة، ورقمُ العميل في رقاقةٍ يُقال
+        إنه **يُقتبس في مكالمة دعم** لا أنه زينة.
+      */}
+      <div className="flex items-start gap-3.5 p-5">
+        <span
+          aria-hidden
+          className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent-100 text-lg font-bold text-accent-700"
+        >
+          {initial}
+        </span>
+
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span className="bidi-isolate truncate text-xl font-bold">
+          <span className="bidi-isolate truncate text-base font-bold">
             {user.name ?? t('noName')}
           </span>
-          <span className="flex flex-wrap items-center gap-2.5 text-2xs opacity-60">
-            {/* رقم العميل يُقتبس في مكالمة — لاتينيّ معزول ويُنسخ خانةً بخانة */}
+          <span className="flex flex-wrap items-center gap-2 text-3xs opacity-60">
             {user.ref === null ? null : (
-              <span dir="ltr" className="font-num">
+              <span dir="ltr" className="rounded-full bg-ink/8 px-2 py-0.5 font-num">
                 {user.ref}
               </span>
             )}
-            <span aria-hidden className="opacity-40">·</span>
             <span>{t('memberSince', { date: joined })}</span>
           </span>
         </div>
-
-        <div className="flex flex-col items-end gap-1">
-          <span className="text-2xs opacity-55">{t('walletBalance')}</span>
-          <Money amount={Number(data.walletBalance)} size="lg" />
-          {/*
-            **والمحجوز يُقال.** رصيدٌ يُعرض كاملًا وبعضُه عربونُ مزادٍ
-            لم يُحسم يجعل صاحبه يخطّط لما لا يملك التصرّف فيه.
-          */}
-          {Number(data.walletHeld) === 0 ? null : (
-            <span className="flex items-center gap-1 text-3xs opacity-55">
-              منها
-              <Money amount={Number(data.walletHeld)} showCurrency={false} size="sm" />
-              محجوزة كعربون مزاد
-            </span>
-          )}
-          {/* **والعدّاد يربط إلى شاشة أو لا يُعرض** — والقاعدة مسجَّلة */}
-          <Link
-            href={`/${locale}/account/wallet`}
-            className="text-3xs font-bold underline underline-offset-2 opacity-70 hover:opacity-100"
-          >
-            كشف المحفظة ←
-          </Link>
-        </div>
       </div>
 
-      <dl className="grid gap-x-8 gap-y-3.5 sm:grid-cols-2">
+      {/*
+        ═══ الرصيد لوحةٌ لا سطرٌ ═══
+
+        كان نصًّا رماديًّا تحت الاسم: «رصيد المحفظة ٠ ريال» — فرقمٌ
+        **يُتصرَّف به** يُقرأ حاشيةً. واللوحة الداكنة هي ما يعامل به
+        التصميم أرقامَه الحاسمة (عدّاد المزاد والسعر)، فيُعرف وزنُه
+        قبل قراءته.
+      */}
+      <div className="mx-5 mb-5 rounded-lg bg-ink p-4 text-bg">
+        <span className="block text-3xs opacity-70">{t('walletBalance')}</span>
+        <span className="mt-1 block">
+          <Money amount={Number(data.walletBalance)} size="lg" />
+        </span>
+
+        {/*
+          **والمحجوز يُقال.** رصيدٌ يُعرض كاملًا وبعضُه عربونُ مزادٍ لم
+          يُحسم يجعل صاحبه يخطّط لما لا يملك التصرّف فيه.
+        */}
+        {Number(data.walletHeld) === 0 ? null : (
+          <span className="mt-2 flex flex-wrap items-center gap-1 rounded-md bg-bg/12 px-2 py-1 text-3xs">
+            منها
+            <Money amount={Number(data.walletHeld)} showCurrency={false} size="sm" />
+            محجوزة كعربون مزاد
+          </span>
+        )}
+
+        {/* **والعدّاد يربط إلى شاشة أو لا يُعرض** — والقاعدة مسجَّلة */}
+        <Link
+          href={`/${locale}/account/wallet`}
+          className="mt-3 flex items-center justify-between gap-2 rounded-md border border-bg/25 px-3 py-2 text-3xs font-bold transition-colors hover:bg-bg/10"
+        >
+          <span>كشف المحفظة</span>
+          <span aria-hidden>←</span>
+        </Link>
+      </div>
+
+      <dl className="flex flex-col gap-px bg-line">
         <Row label={t('field.phone')} value={user.phone} ltr />
         <Row label={t('field.email')} value={user.email} ltr missing={t('notSet')} />
         <Row
           label={t('field.identity')}
           value={user.idVerified ? t('identityVerified') : null}
           missing={t('identityMissing')}
+          good={user.idVerified}
         />
         <Row label={t('field.iban')} value={user.ibanMasked} ltr missing={t('notSet')} />
         <Row
@@ -578,9 +606,10 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
 
       <Link
         href={`/${locale}/account/profile`}
-        className="mt-5 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+        className="flex items-center justify-between gap-2 bg-surface p-4 text-2xs font-bold transition-colors hover:bg-ink/4"
       >
-        {t('editProfile')}
+        <span>{t('editProfile')}</span>
+        <span aria-hidden className="opacity-40">←</span>
       </Link>
     </section>
   );
@@ -592,21 +621,24 @@ function Row({
   value,
   ltr,
   missing,
+  good,
 }: {
   label: string;
   value: string | null;
   ltr?: boolean;
   missing?: string;
+  /** حالةٌ محقَّقة تُقال بلونها — «موثّقة» رماديةً كـ«لم يُضف» تُقرأ سواء. */
+  good?: boolean;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-line-2 pb-2.5">
+    <div className="flex items-baseline justify-between gap-4 bg-surface px-5 py-3">
       <dt className="shrink-0 text-2xs opacity-55">{label}</dt>
       <dd
         dir={ltr === true && value !== null ? 'ltr' : undefined}
         className={
           value === null
             ? 'text-2xs opacity-45'
-            : `truncate text-2xs font-semibold ${ltr === true ? 'font-num' : 'bidi-isolate'}`
+            : `truncate text-2xs font-semibold ${good === true ? 'text-accent-700 ' : ''}${ltr === true ? 'font-num' : 'bidi-isolate'}`
         }
       >
         {value ?? missing ?? '—'}
