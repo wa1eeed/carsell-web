@@ -6,6 +6,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { entitlementList, overrideList, planList, planStats } from '@/lib/domain/admin-plans';
 import { listCommissionRules } from '@/lib/domain/admin-commission';
+import { CommissionRules } from './CommissionRules';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { CommissionSimulator } from './CommissionSimulator';
 import { PlanTable } from './PlanTable';
@@ -22,10 +23,16 @@ export const metadata = { title: 'الباقات والعمولة' };
  * تفعله الباقة ضبطُ قيمة خاصّيةٍ يقرؤها الكود، لا إضافةُ سلوكٍ جديد —
  * والكود يسأل عن **الخاصّية** لا عن الباقة.
  *
- * ═══ والعمولة تُعرض هنا وتُحرَّر في «المالية» ═══
+ * ═══ والعمولة تُعرض **وتُحرَّر** هنا ═══
  *
- * شاشتان تكتبان قاعدة مالٍ واحدة تتباعدان أوّل تغيير. فهنا المحاكاة
- * والعرض، والكتابة هناك حيث نصاب العضوين وسجلّ التغييرات.
+ * كانت تُعرض هنا وتُحرَّر في تاب «المالية» بلوحة القيادة — **وهو عكس
+ * الصواب**: تابُ المالية مؤشّراتٌ تُتابَع، والعمولة قاعدةٌ تُضبط مرّةً
+ * وتحكم ما بعدها. فمن أراد تغييرها كان يبحث عنها في لوحة متابعة، ومن
+ * فتح «الباقات والعمولة» وجد رقمًا لا يستطيع تغييره وسطرًا يحيله إلى
+ * مكانٍ آخر.
+ *
+ * وشاشةٌ واحدة تكتبها: نصاب العضوين وسجلّ التغييرات في المسار نفسه،
+ * فلا يتغيّر شيءٌ من ضماناتها بانتقال الواجهة.
  */
 export default async function AdminPlansPage() {
   const admin = await currentAdmin();
@@ -66,7 +73,7 @@ export default async function AdminPlansPage() {
           { title: 'خصائص', value: stats.entitlements, note: 'ثابتة في الكود' },
           { title: 'تجاوزات لعملاء', value: stats.overrides, note: 'بسبب مكتوب' },
           {
-            // **العمولة تُعرض ولا تُحرَّر هنا** — تحريرها في «المالية».
+            // والتحرير أسفل الصفحة — والبطاقة تقول النافذة الآن.
             title: 'العمولة النافذة',
             value: `${displayDigits(pctLabel(seller?.enabled === true ? seller.pct : '0'))}٪`,
             note: seller?.enabled === true ? 'على كل الباقات' : 'معطّلة على البائع',
@@ -74,7 +81,14 @@ export default async function AdminPlansPage() {
         ]}
       />
 
-      <h2 className="mb-3.5 text-sm font-bold">الباقات — حزمة قيَم للخصائص، لا منطق</h2>
+      {/*
+        **والعمولة قبل الباقات.** هي ما يُسأل عنه ويُغيَّر، والباقات
+        اليوم كلّها مجانية — فالأهمّ أعلى.
+      */}
+      <h2 className="mb-3.5 text-sm font-bold">العمولة — ما يُخصم من كل بيعة</h2>
+      <CommissionRules rows={commission} canEdit={writable} />
+
+      <h2 className="mt-10 mb-3.5 text-sm font-bold">الباقات — حزمة قيَم للخصائص، لا منطق</h2>
       {/* القراءة للجميع، والتعديل لمن يملك الكتابة — وحارسُه في المسار أيضًا. */}
       <PlanTable plans={plans} entitlements={entitlements} canEdit={writable} />
 

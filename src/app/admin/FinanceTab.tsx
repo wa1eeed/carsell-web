@@ -18,8 +18,6 @@ import {
   simulateCommission,
 } from '@/lib/domain/admin-finance';
 import { ORDER_SOURCE_LABEL, REVENUE_STREAM_LABEL } from '@/lib/labels/admin';
-import { listCommissionRules } from '@/lib/domain/admin-commission';
-import { CommissionRules } from './finance/CommissionRules';
 import { FinanceInputs } from './finance/FinanceInputs';
 import { Simulator } from './finance/Simulator';
 
@@ -43,11 +41,10 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
   const from = new Date(now.getTime() - RANGE_DAYS * 86_400_000);
   const month = monthKey(now);
 
-  const [summary, figures, inputs, rules, months] = await Promise.all([
+  const [summary, figures, inputs, months] = await Promise.all([
     financeSummary(from, now),
     indicators(month),
     financeInputs(month),
-    listCommissionRules(now),
     monthlyGmv(GMV_MONTHS),
   ]);
 
@@ -248,7 +245,11 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
 
       <Simulator scenarios={scenarios} gmv={summary.gmv.total} />
 
-      <CommissionRules rows={rules} canEdit={canWrite(admin.role, 'finance.view')} />
+      {/*
+        **ولا محرّرَ عمولةٍ في لوحة متابعة.** كان هنا، وهذا التاب
+        مؤشّراتٌ تُقرأ — والعمولة قاعدةٌ تُضبط مرّةً وتحكم ما بعدها،
+        فموضعُها «الإعدادات ← الباقات والعمولة».
+      */}
 
       <FinanceInputs
         month={month}

@@ -4400,3 +4400,34 @@ right. `Logo` is fixed; the general case is a decision for the owner:
 **And the overflow measurement has now regressed twice** (task 29, then here)
 because nothing guards it — `verify` has no browser. Worth a small headless
 check over a handful of routes at 375px.
+
+---
+
+## The commission editor lived in a monitoring dashboard
+
+Reported: the admin dashboard's "مالية" tab ends with what looks like commission
+settings, while that tab is supposed to show indicators to watch.
+
+It was worse than misplaced — it was **inverted**. `/admin/plans`, titled
+«الباقات والعمولة» and listed under **الإعدادات — المال** in the nav with the
+description «نِسَب العمولة على كل بيعة», showed commission **read-only** and
+carried a comment saying editing happens in "المالية". The dashboard tab held
+the editor and carried the mirror comment.
+
+So whoever wanted to change the commission went looking in a monitoring screen,
+and whoever opened the settings page found a number they could not change and a
+line pointing somewhere else.
+
+`CommissionRules` moved to `src/app/admin/plans/`, rendered above the plans
+table — commission is what gets asked about and changed, and every plan is free
+today. The dashboard tab keeps its financial **inputs** (salaries, paid ads,
+referral incentives), which are inputs to its own metrics and belong there.
+
+Nothing about the guarantees changed: the quorum and the change log live in the
+route, not the screen.
+
+**And the dev server kept the old module path.** After `git mv`, `tsc` was clean
+and the page returned 500 — `Failed to read source code from .../finance/CommissionRules.tsx`.
+The error names a file that no longer exists rather than the stale graph holding
+it. Restarting the dev server fixed it; this is the same class as the Prisma
+client surviving `generate`.
