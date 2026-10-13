@@ -95,8 +95,12 @@ all while `/admin/plans` counted it and promised «وكل تجاوزٍ يُمن�
 بسببه ومدّته». That door is now open (`grantOverride`, reason required in the
 domain, audited, walked end to end).
 
-- [ ] `ApiKey` — no writer anywhere. The panel has no way to issue one.
-- [ ] `FaqPlacement` — no writer. FAQ items exist; placing them does not.
+- [ ] `ApiKey` — no writer anywhere, while `public-key.ts` authenticates
+      partners by key: **the partner API cannot be reached by anyone.** Issuing
+      keys is an access-control decision (who may hold one, what it may read,
+      how it is revoked), not a missing form — needs the owner's call.
+- [x] `FaqPlacement` — a placement editor per question (replace-not-append,
+      closed surface list, audited), walked end to end to the car page.
 - [ ] `DeviceToken` — no writer until the mobile app exists.
 
 ### D · English UI strings — deferred by the owner

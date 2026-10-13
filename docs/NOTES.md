@@ -4803,3 +4803,48 @@ its audit entry were deleted afterwards, and `dead-ends` no longer names
 `ApiKey`, `FaqPlacement` and `DeviceToken` have no writer either. `DeviceToken`
 waits on the mobile app. The other two are worth the same treatment and are in
 `docs/BACKLOG.md`.
+
+---
+
+## FAQ placements: written once by the seed, never again
+
+`FaqPlacement` was the second model with no writer. It is read in three live
+paths — the car page's FAQ block, the home page, and an admin counter — so it is
+not dead data: **it decides where every question appears.** The seed writes it
+and nothing else ever does.
+
+The admin FAQ screen says «ومواضعُ كل سؤال تتبع طريقة البيع», counts «في صفحة
+السيارة: ٤ إلى ٦ كحدّ أقصى», and prints each row's surfaces — including the
+honest «بلا موضع — لا يظهر لأحد». It could not change any of it.
+
+The deferral was explicit in the code («التحرير الكامل شاشةٌ أكبر») and was
+reasonable when written. Its effect was not: a content manager could write a
+question and had no way to place it.
+
+### Replace, not append
+
+`setFaqPlacements` takes the **final state**: what is not sent is deleted.
+Appending would let the same surface accumulate and the question appear twice on
+one page. The surface is checked against a closed list — an invented surface
+would save and never be read, and the question would vanish silently.
+
+Audited like every admin action, with the previous placements in `before`.
+
+### The route takes one or the other
+
+`PATCH /api/v1/admin/faq/[id]` now accepts `{active}` **or** `{placements}`, as
+a union rather than one object with both optional. Mixing them would let "hide
+this question" also wipe its placements, so re-showing it would bring it back
+with nowhere to appear.
+
+### Walked end to end
+
+Cleared a question's placements → 200, zero placements, and the admin list
+switched to «بلا موضع». Set it to `listing_page` + `AUCTION` → 200, one
+placement, and **it appeared on the auction car page and disappeared from the
+negotiation one**. An invented surface → 422. Original placements restored and
+the audit rows removed; `dead-ends` no longer names `FaqPlacement`.
+
+`ApiKey` remains: the public API authenticates partners by key and no key can be
+issued, so the partner API is unreachable by anyone. Left in `docs/BACKLOG.md` —
+issuing API keys is an access-control decision, not a missing form.

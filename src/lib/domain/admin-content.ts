@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import type { ListingType } from '@/generated/prisma/enums';
 
 /**
  * ═══ A33 · A34 — الأسئلة الشائعة والصفحات القانونية ═══
@@ -187,4 +188,84 @@ export async function toggleFaq(
   });
 
   return { ok: true, active: input.active };
+}
+
+/**
+ * ═══ مواضع السؤال — البابُ الذي كان مؤجَّلًا ═══
+ *
+ * `FaqPlacement` **بلا كاتبٍ في المنتج**: يقرؤه ثلاثة مواضع (صفحة
+ * السيارة والرئيسية وعدّادُ اللوحة)، ويزرعه الزرع، ولا شيء يُنشئه.
+ * فشاشةُ الأسئلة تعرض «المواضع» للقراءة وتعدّ «في صفحة السيارة»،
+ * **وما زُرع هو كلُّ ما سيكون**.
+ *
+ * وكان التأجيل مكتوبًا («التحرير الكامل شاشةٌ أكبر») — والتأجيل صحيحٌ
+ * يوم كُتب، لكنّ أثرَه أن مديرَ المحتوى يكتب سؤالًا ولا يستطيع وضعه.
+ *
+ * ═══ والوضع استبدالٌ لا إضافة ═══
+ *
+ * لو أضفنا لتكرّرت المواضع بلا حدّ، ولظهر السؤال مرّتين في صفحةٍ
+ * واحدة. فالمُرسَل هو الحال النهائية: ما ليس فيه يُحذف.
+ */
+export type PlacementInput = {
+  surface: string;
+  /** `null` يعني كلَّ طرق البيع — والمحدَّد يسبق العامّ في العرض. */
+  listingType: ListingType | null;
+};
+
+const SURFACES = ['listing_page', 'help_center', 'checkout'] as const;
+
+export async function setFaqPlacements(
+  input: {
+    id: string;
+    placements: readonly PlacementInput[];
+    adminId: string;
+    ip: string | null;
+  },
+  now: Date = new Date(),
+): Promise<{ ok: true; count: number } | { ok: false; reason: 'NOT_FOUND' | 'BAD_SURFACE' }> {
+  const item = await db.faqItem.findUnique({ where: { id: input.id }, select: { id: true } });
+  if (item === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  /** **والسطح من قائمةٍ مغلقة** — سطحٌ مخترَع لا يقرؤه أحد فيختفي السؤال صامتًا. */
+  for (const placement of input.placements) {
+    if (!(SURFACES as readonly string[]).includes(placement.surface)) {
+      return { ok: false, reason: 'BAD_SURFACE' };
+    }
+  }
+
+  const before = await db.faqPlacement.findMany({
+    where: { faqId: input.id },
+    select: { surface: true, listingType: true },
+  });
+
+  await db.$transaction(async (tx) => {
+    await tx.faqPlacement.deleteMany({ where: { faqId: input.id } });
+    if (input.placements.length > 0) {
+      await tx.faqPlacement.createMany({
+        data: input.placements.map((placement, index) => ({
+          faqId: input.id,
+          surface: placement.surface,
+          listingType: placement.listingType,
+          sort: index,
+          active: true,
+        })),
+      });
+    }
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: input.adminId,
+      actorType: 'admin',
+      entity: 'FaqItem',
+      entityId: input.id,
+      action: 'faq.placements_set',
+      before: { placements: before },
+      after: { placements: input.placements },
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true, count: input.placements.length };
 }
