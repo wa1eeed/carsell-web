@@ -181,15 +181,6 @@ export function AccountScreen({
     <>
       <MissingFields data={data} locale={locale} />
 
-      {/*
-        ═══ بطاقة الحساب — من أنتَ ورقمُك ورصيدك ═══
-
-        كانت الصفحة تبدأ بأربع عدّادات ثم قوائم، **بلا سطرٍ واحد يقول
-        من صاحبها**: لا رقم عميلٍ يُقتبس في مكالمة دعم، ولا بريدٌ ولا
-        حالةُ توثيقٍ ولا رصيدٌ لمحفظة.
-      */}
-      <ProfileCard data={data} locale={locale} />
-
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/*
           **وبطاقة المركبات تُفصَّل.** التصميم يكتب «٣ مركباتي · ٢
@@ -507,7 +498,14 @@ export function AccountScreen({
 }
 
 /** بطاقة الحساب — الهويّة والتواصل والمال في مكانٍ واحد. */
-function ProfileCard({ data, locale }: { data: AccountData; locale: string }) {
+/**
+ * ═══ بطاقة الهوية — في الشريط الجانبيّ ═══
+ *
+ * **والتصميم يضعها عمودًا لا صفًّا**: الاسم والرصيد وأقسام الحساب في
+ * عمودٍ أيسر ثابت، والمحتوى بجواره. فتبقى هويّتُك ورصيدُك مرئيّين
+ * وأنت تقرأ طلباتك، ولا تُدفع الأقسام إلى قاع الصفحة حيث لا يصلها أحد.
+ */
+export function ProfileCard({ data, locale }: { data: AccountData; locale: string }) {
   const t = useTranslations('account');
   const { user } = data;
 

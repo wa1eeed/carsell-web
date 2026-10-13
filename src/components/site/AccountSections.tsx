@@ -37,7 +37,12 @@ export function AccountSections({
   return (
     <section className="mt-9">
       <h2 className="mb-3.5 text-sm font-bold">أقسام حسابي</h2>
-      <div className="grid gap-2.5 sm:grid-cols-2">
+      {/*
+        **عمودٌ واحد داخل الشريط، وعمودان خارجه.** صارت الأقسام في
+        شريطٍ جانبيٍّ عرضُه ٣٠٠px من `lg`، فعمودان فيه يقطعان العناوين —
+        وتحت `lg` يعود الشريط صفًّا كاملًا فيتّسع لاثنين.
+      */}
+      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
         {sections.map((section) => (
           <Link
             key={section.key}

@@ -46,8 +46,9 @@ are examples, not the whole set — each screen is compared against its block in
       sections (إعلاناتي · العروض الواردة على مركباتك · طلباتي · مزاداتي ·
       تقارير الفحص), three rows each with «عرض الكل» to the full page, and each
       stat card carries the sub-line the design draws under it. Still missing:
-  - [ ] The left **sidebar** («لوحة الحساب») the design puts beside the
-        content — the build has «أقسام حسابي» as a grid at the bottom instead.
+  - [x] The **sidebar** the design puts beside the content — a sticky 300px
+        column holding the profile card and the sections, one column inside it
+        and two below `lg`.
   - [ ] Plates — see **F** below.
 - [ ] **Sell wizard — vehicle step** — hero with stats, 3-step progress, photo
       grid with quality badges, price range bar with days-to-sell.

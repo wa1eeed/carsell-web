@@ -12,7 +12,7 @@ import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { freshCount } from '@/lib/domain/saved-search';
 import { db } from '@/lib/db';
-import { AccountScreen } from './AccountScreen';
+import { AccountScreen, ProfileCard } from './AccountScreen';
 
 export const dynamic = 'force-dynamic';
 
@@ -118,14 +118,21 @@ export default async function AccountPage({
             </section>
           )}
 
-          <AccountScreen
-            data={data}
-            locale={locale}
-            taxProfile={taxProfileOf(user)}
-            garage={garage}
-          />
+          {/*
+            ═══ عمودان: الهوية والأقسام يمينًا، والمحتوى بجوارها ═══
 
-          <AccountSections
+            **والتصميم يرسمها كذلك**: «لوحة الحساب» عمودٌ ثابت يبدأ
+            بـ«سياراتي ٣». وكانت الأقسام شبكةً في **قاع** الصفحة — بعد
+            الإعلانات والطلبات والعروض والمزادات والإعدادات الضريبية،
+            فمن يبحث عن «المفضّلة» يمرّر الصفحة كلَّها ليجدها.
+
+            وعمودٌ لاصق يُبقي الاسم والرصيد مرئيَّين وأنت تقرأ طلباتك.
+          */}
+          <div className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+            <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
+              <ProfileCard data={data} locale={locale} />
+
+              <AccountSections
             locale={locale}
             sections={[
               {
@@ -161,7 +168,18 @@ export default async function AccountPage({
               { key: 'wallet', label: 'المحفظة', hint: 'رصيدك وكشفه' },
               { key: 'profile', label: 'بياناتي', hint: 'البريد والهوية والآيبان' },
             ]}
-          />
+              />
+            </aside>
+
+            <div className="min-w-0">
+              <AccountScreen
+                data={data}
+                locale={locale}
+                taxProfile={taxProfileOf(user)}
+                garage={garage}
+              />
+            </div>
+          </div>
         </div>
       </main>
     </>

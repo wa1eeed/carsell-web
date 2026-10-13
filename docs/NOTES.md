@@ -4848,3 +4848,26 @@ the audit rows removed; `dead-ends` no longer names `FaqPlacement`.
 `ApiKey` remains: the public API authenticates partners by key and no key can be
 issued, so the partner API is unreachable by anyone. Left in `docs/BACKLOG.md` —
 issuing API keys is an access-control decision, not a missing form.
+
+---
+
+## The account sidebar the design draws, and the build buried
+
+`design/Front-end Web.dc.html` puts the account identity, the wallet and
+«لوحة الحساب» in a **left column beside the content**, starting with
+«سياراتي ٣».
+
+The build had the profile card as a full-width row at the top and «أقسام حسابي»
+as a grid at the very **bottom** — below listings, orders, offers, auctions and
+the tax settings. Someone looking for «المفضّلة» scrolled the whole page to find
+it, and their own name and balance scrolled away while they read their orders.
+
+`ProfileCard` is now exported from `AccountScreen` and the page renders a
+`lg:grid-cols-[300px_minmax(0,1fr)]` with a sticky aside: profile card, then the
+sections. `AccountSections` drops to one column inside it (`lg:grid-cols-1`) —
+two columns in 300px would cut the labels — and keeps two below `lg`, where the
+aside is a full-width row again.
+
+Measured at 1180: aside 300px, content 768px, `position: sticky`, 0 overflow,
+the sections beginning with «سياراتي». At 375: one column of 343px, `static`,
+0 overflow.
