@@ -1054,7 +1054,10 @@
     "countLive": "live",
     "countSoon": "upcoming",
     "countEnded": "ended",
-    "settling": "Ended — being finalised"
+    "settling": "Ended — being finalised",
+    "emptyInCity": "No auctions in this city right now",
+    "emptyInCityBody": "There are auctions in other cities — clear the city filter to see them.",
+    "clearCity": "All cities"
   },
   "inbox": {
     "title": "Offers",

@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import Link from 'next/link';
 import { vehicleTitle } from '@/lib/domain/vehicle-title';
 import { cityLabel } from '@/lib/labels/cities';
 import { notFound } from 'next/navigation';
@@ -142,6 +143,12 @@ export default async function AuctionsPage({
   ]);
 
   const [liveCount, soonCount, endedCount] = counts;
+
+  /**
+   * **وعددُ الشريحة بلا مدينة** — فهو ما يقيس «أهناك مزادات في مدنٍ
+   * أخرى؟»، وهو السؤال الذي يجيبه الفراغ.
+   */
+  const inTab = tab === 'live' ? liveCount : tab === 'soon' ? soonCount : endedCount;
   const cities = cityRows.map((row) => row.city);
   const countOf = (key: 'live' | 'soon' | 'ended'): number =>
     key === 'live' ? liveCount : key === 'soon' ? soonCount : endedCount;
@@ -206,7 +213,28 @@ export default async function AuctionsPage({
           )}
 
           {auctions.length === 0 ? (
-            <EmptyState title={t(`empty.${tab}`)} description={t('emptyBody')} />
+            /*
+              ═══ والفراغُ يقول سببَه ═══
+
+              ترشيحٌ بالرياض كان يقول «لا مزادات مباشرة الآن — تابع
+              الصفحة، نضيف مزادات أسبوعيًا» **وثلاثةٌ مباشرة** في مدنٍ
+              أخرى. فيقرأ الزائر أن لا شيء ويغادر، والثلاثة نقرةٌ واحدة
+              منه. والصنف نفسه أُصلح في طابور الخدمات.
+            */
+            <EmptyState
+              title={city !== null && inTab > 0 ? t('emptyInCity') : t(`empty.${tab}`)}
+              description={city !== null && inTab > 0 ? t('emptyInCityBody') : t('emptyBody')}
+              action={
+                city === null || inTab === 0 ? undefined : (
+                  <Link
+                    href={`/${locale}/auctions?tab=${tab}`}
+                    className="rounded-lg border border-line px-4 py-2 text-2xs font-bold hover:border-ink"
+                  >
+                    {t('clearCity')}
+                  </Link>
+                )
+              }
+            />
           ) : (
             <>
               <SectionHead title={t(`tab.${tab}`)} />
