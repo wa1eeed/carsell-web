@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ServiceRequestStatus } from '@/generated/prisma/enums';
 import { deadline } from './deadlines';
+import { MIN_DECLINE_REASON } from './service-rules';
 
 /**
  * ═══ رحلةُ طلب الخدمة — ثلاثةُ أطراف لا طرفان ═══
@@ -46,8 +47,11 @@ export type DecisionFailure =
   | 'WINDOW_LAPSED'
   | 'REASON_REQUIRED';
 
-/** سببُ الرفض يُكتب — و«رُفض» بلا سببٍ تُعيد الطالب إلى الحيرة. */
-export const MIN_DECLINE_REASON = 10;
+/**
+ * سببُ الرفض يُكتب — و«رُفض» بلا سببٍ تُعيد الطالب إلى الحيرة.
+ * **والقاعدة في وحدةٍ بلا `db`** لتقرأها الشاشة بلا أن تجرّ Prisma.
+ */
+export { MIN_DECLINE_REASON } from './service-rules';
 
 /**
  * من يملك المركبة، وهل تُفتح لغيره؟
@@ -389,4 +393,208 @@ export async function sellerContactFor(
   if (party === null) return null;
 
   return { name: party.name, phone: party.phone, city: request.city };
+}
+
+export type PayFailure =
+  | 'REQUEST_NOT_FOUND'
+  | 'NOT_REQUESTER'
+  /** ينتظر إذن البائع — والسداد بعده بقرار المالك */
+  | 'NOT_AWAITING_PAYMENT'
+  | 'NO_ROUTE'
+  | 'ROUTE_DISABLED'
+  | 'GATEWAY_FAILED'
+  | 'REQUIRES_ACTION';
+
+export type PayResult =
+  | { ok: true; paymentId: string; total: string }
+  | { ok: false; reason: PayFailure; code?: string; actionUrl?: string };
+
+/**
+ * ═══ السداد — **بعد الإذن، وبمبلغ الطلب لا بسعر اليوم** ═══
+ *
+ * قرار المالك: «بعد قبول البائع يُطلب الدفع من المشتري». فالحجز هنا لا
+ * عند الطلب، ودفعةٌ تُؤخذ قبل إذنٍ قد لا يأتي تحبس مالًا بلا صفقة.
+ *
+ * **والمبلغ من الصفّ لا من الخدمة**: سعرٌ يتغيّر بين الطلب والسداد
+ * يجعل الطالب يدفع غير ما وُعد به، والوعد قيل له من اللحظة الأولى.
+ */
+export async function payServiceRequest(
+  input: {
+    ref: string;
+    requesterId: string;
+    method: string;
+    returnUrl: string;
+    idempotencyKey: string;
+  },
+  now: Date = new Date(),
+): Promise<PayResult> {
+  const request = await db.serviceRequest.findUnique({
+    where: { ref: input.ref },
+    select: { id: true, ref: true, status: true, userId: true, amount: true, paymentId: true },
+  });
+
+  if (request === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
+  if (request.userId !== input.requesterId) return { ok: false, reason: 'NOT_REQUESTER' };
+  if (request.status !== 'AWAITING_PAYMENT') return { ok: false, reason: 'NOT_AWAITING_PAYMENT' };
+
+  const { resolveGateway } = await import('@/lib/payments/resolve');
+  const resolved = await resolveGateway('SERVICE_PURCHASE');
+  if (resolved === null) return { ok: false, reason: 'NO_ROUTE' };
+  if (!resolved.enabled) return { ok: false, reason: 'ROUTE_DISABLED' };
+
+  const payment = await db.payment.create({
+    data: {
+      purpose: 'SERVICE_PURCHASE',
+      // **لقطة لا إعداد**: ما حُجز هنا يُسوّى من حيث حُجز
+      gatewayKey: resolved.gatewayKey,
+      environment: resolved.environment,
+      amount: request.amount,
+      method: input.method,
+      status: 'CREATED',
+      createdAt: now,
+    },
+  });
+
+  const held = await resolved.gateway.hold({
+    purpose: 'SERVICE_PURCHASE',
+    ref: request.ref,
+    amount: request.amount.toString(),
+    currency: 'SAR',
+    method: input.method,
+    returnUrl: input.returnUrl,
+    idempotencyKey: input.idempotencyKey,
+  });
+
+  if (held.state === 'FAILED') {
+    await db.payment.update({
+      where: { id: payment.id },
+      data: { status: 'FAILED', failedAt: now, failureCode: held.code },
+    });
+    return { ok: false, reason: 'GATEWAY_FAILED', code: held.code };
+  }
+
+  if (held.state === 'REQUIRES_ACTION') {
+    await db.payment.update({
+      where: { id: payment.id },
+      data: { status: 'PENDING', holdRef: held.holdRef, actionUrl: held.actionUrl },
+    });
+    /** **والطلب لا يتقدّم قبل أن يُحجز المال** — تحدٍّ لم يُكمَل ليس سدادًا. */
+    await db.serviceRequest.update({
+      where: { id: request.id },
+      data: { paymentId: payment.id },
+    });
+    return { ok: false, reason: 'REQUIRES_ACTION', actionUrl: held.actionUrl };
+  }
+
+  await db.payment.update({
+    where: { id: payment.id },
+    data: { status: 'HELD', heldAt: now, holdRef: held.holdRef },
+  });
+
+  /**
+   * **وهنا يدخل الطلب طابور المزوّدين** — وهو معنى `NEW` منذ كُتبت:
+   * دُفع المال فصار للمزوّد ما يعمل عليه ومستحقٌّ يقابله.
+   */
+  await db.serviceRequest.update({
+    where: { id: request.id },
+    data: { status: 'NEW', paymentId: payment.id },
+  });
+
+  return { ok: true, paymentId: payment.id, total: request.amount.toString() };
+}
+
+/**
+ * ═══ ما يراه طرفا الطلب — ولكلٍّ بقدره ═══
+ *
+ * شاشةٌ واحدة بوجهين: الطالبُ يرى حالَه ومبلغَه وزرَّ سداده، والبائعُ
+ * يرى ما يُطلب على مركبته وقرارَه. **ولا يرى أحدُهما ما ليس له**:
+ * بيانات التواصل للفاحص وحده بعد دخول الطابور.
+ */
+export type RequestView = {
+  ref: string;
+  /** الرائي: طالبٌ أم صاحبُ المركبة */
+  role: 'REQUESTER' | 'SELLER';
+  status: ServiceRequestStatus;
+  serviceName: string;
+  vehicleTitle: string;
+  city: string | null;
+  total: string;
+  platformFee: string;
+  createdAt: string;
+  scheduledAt: string | null;
+  decisionDueAt: string | null;
+  declineReason: string | null;
+  /** أينتظر هذا الرائي فعلًا شيئًا منه الآن؟ */
+  awaitingYou: boolean;
+  paid: boolean;
+};
+
+export async function serviceRequestView(
+  ref: string,
+  viewerId: string,
+): Promise<RequestView | null> {
+  const row = await db.serviceRequest.findUnique({
+    where: { ref },
+    select: {
+      ref: true,
+      status: true,
+      userId: true,
+      sellerId: true,
+      city: true,
+      amount: true,
+      adminFee: true,
+      createdAt: true,
+      scheduledAt: true,
+      decisionDueAt: true,
+      declineReason: true,
+      service: { select: { nameAr: true } },
+      vehicle: { select: { brandName: true, modelName: true, trimName: true, year: true } },
+    },
+  });
+  if (row === null) return null;
+
+  /** **وغيرُ طرفيه يرى ٤٠٤ لا ٤٠٣**: وجودُ الطلب نفسه معلومة. */
+  const role =
+    row.userId === viewerId ? 'REQUESTER' : row.sellerId === viewerId ? 'SELLER' : null;
+  if (role === null) return null;
+
+  const vehicleTitle = [row.vehicle?.brandName, row.vehicle?.modelName, row.vehicle?.trimName]
+    .filter((part) => part !== null && part !== undefined && part !== '')
+    .join(' ');
+
+  return {
+    ref: row.ref,
+    role,
+    status: row.status,
+    serviceName: row.service.nameAr,
+    vehicleTitle,
+    city: row.city,
+    total: row.amount.toString(),
+    platformFee: row.adminFee.toString(),
+    createdAt: row.createdAt.toISOString(),
+    scheduledAt: row.scheduledAt?.toISOString() ?? null,
+    decisionDueAt: row.decisionDueAt?.toISOString() ?? null,
+    declineReason: row.declineReason,
+    awaitingYou:
+      (role === 'SELLER' && row.status === 'AWAITING_SELLER') ||
+      (role === 'REQUESTER' && row.status === 'AWAITING_PAYMENT'),
+    paid: isPaidStatus(row.status),
+  };
+}
+
+/**
+ * طلباتٌ تنتظر إذنَ هذا البائع — **وعدّادٌ بلا باب لا يُعرض**.
+ *
+ * فمن تُطلب مركبتُه للفحص لا يفتح الطلب إلّا من إشعارٍ قد يفوته، وهو
+ * الصنف الذي تكرّر: طرفٌ يُبنى بلا الطرف الثاني.
+ */
+export async function consentsAwaiting(sellerId: string, now: Date = new Date()): Promise<number> {
+  return db.serviceRequest.count({
+    where: {
+      sellerId,
+      status: 'AWAITING_SELLER',
+      /** **والحالة وانقضاءُ الوقت معًا** (البوابة ٤٢) — فالوظيفة قد لا تمرّ */
+      OR: [{ decisionDueAt: null }, { decisionDueAt: { gt: now } }],
+    },
+  });
 }

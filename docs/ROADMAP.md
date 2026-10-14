@@ -96,15 +96,16 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       and validates splits before they are sent. Documented in
       `docs/api/provider-payments.md`. **Unproven against the live API** until a
       key arrives; tested against a stub of the same shape.
-- [~] **The request lifecycle with the seller's consent step.** The domain is
-      built: `src/lib/domain/service-lifecycle.ts` — request (no money), the
-      seller's decision, the lapse job, and the disclosure rule. **The screens
-      are not** (next row).
+- [x] **The request lifecycle with the seller's consent step**, end to end:
+      request (no money) → seller's decision → payment → the providers' queue,
+      with the lapse job and the disclosure rule. Routes, both faces of
+      `/account/reports/[ref]`, and the seller's entry point on the account
+      home. Walked by clicking the whole way. `docs/workflows/service-request.md`.
 - [x] **City dispatch** — the city comes from the **listing**, and the pool is
       every provider of the service's `providerType` covering that city with a
       usable payment account. `Service.providerId` stays the preferred one.
-- [ ] **The screens**: the requester's view, the seller's accept/decline, and
-      the payment step. Until these exist the lifecycle has no door.
+- [ ] **Notifications for each step** — the seller is not yet told a request
+      awaits them, nor the requester of the decision.
 - [ ] **A provider surface.** `src/app` holds `[locale]` and `admin` and nothing
       else, so "the seller's contact is revealed to the inspector" has nowhere
       to appear.

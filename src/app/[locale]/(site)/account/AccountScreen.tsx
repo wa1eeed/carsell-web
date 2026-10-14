@@ -208,6 +208,33 @@ export function AccountScreen({
     <>
       <MissingFields data={data} locale={locale} />
 
+      {/*
+        ═══ ويُطلب فحصُ مركبتك ═══
+
+        قرار المالك: طلبُ المشتري يمرّ بالبائع. **وبلا هذا السطر لا
+        باب**: من تُطلب مركبتُه لا يفتح الطلب إلّا من إشعارٍ قد يفوته،
+        فتنقضي مهلتُه ويسقط الطلب — وهو الصنف الذي تكرّر: طرفٌ يُبنى
+        بلا الطرف الثاني.
+
+        ويتصدّر لأن له مهلةً تجري، ولا يُعرض صفرًا.
+      */}
+      {data.consentsAwaiting === 0 ? null : (
+        <Link
+          href={`/${locale}/account/reports`}
+          className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-ink p-5 transition-colors hover:bg-ink/4"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">
+              <Quantity unit="serviceConsents" count={data.consentsAwaiting} />
+            </span>
+            <span className="mt-1 block text-2xs leading-loose opacity-65">
+              أذِن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئًا.
+            </span>
+          </span>
+          <span aria-hidden className="opacity-40">←</span>
+        </Link>
+      )}
+
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {/*
           **وبطاقة المركبات تُفصَّل.** التصميم يكتب «٣ مركباتي · ٢

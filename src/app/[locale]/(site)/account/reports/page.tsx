@@ -10,6 +10,7 @@ import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow } from '../AccountList';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { SERVICE_REQUEST_NEXT, SERVICE_REQUEST_STATUS } from '@/lib/labels/services';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,11 +18,11 @@ export function generateMetadata(): Metadata {
   return { title: 'تقارير الفحص', robots: { index: false, follow: false } };
 }
 
-const REQUEST_STATUS: Record<string, string> = {
-  NEW: 'جديد',
-  ASSIGNED: 'مُسنَد إلى المزوّد',
-  IN_PROGRESS: 'قيد التنفيذ',
-};
+/**
+ * **والقائمة كانت ناقصة**: ثلاثُ حالاتٍ من تسع، وما عداها يُعرض مفتاحًا
+ * خامًا. والصياغة في `labels/services.ts` تقرؤها هذه الشاشة وصفحةُ
+ * الطلب معًا — ونسختان تتباعدان أوّل حالٍ تُضاف.
+ */
 
 const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   weekday: 'long',
@@ -78,13 +79,20 @@ export default async function ReportsPage({
         ...data.serviceRequests.map((request) => (
         <AccountRow
           key={request.ref}
-          href={null}
+          /**
+            ═══ والمعروضُ يُفتح ═══
+
+            كان `null` — فيقرأ من طلب فحصًا مرجعَه ولا يستطيع فتحه،
+            ولا يعرف أينتظر إذنًا أم سدادًا أم تقريرًا. **والعدّاد
+            يربط إلى شاشة أو لا يُعرض.**
+          */
+          href={`/${locale}/account/reports/${encodeURIComponent(request.ref)}`}
           title={`${request.serviceName}${request.title === '' ? '' : ` — ${request.title}`}`}
           meta={
             <>
               <span dir="ltr" className="font-num">{request.ref}</span>
               <span aria-hidden className="opacity-40">·</span>
-              <span>{REQUEST_STATUS[request.status] ?? request.status}</span>
+              <span>{SERVICE_REQUEST_STATUS[request.status] ?? request.status}</span>
               {request.city === null ? null : (
                 <>
                   <span aria-hidden className="opacity-40">·</span>
@@ -99,7 +107,15 @@ export default async function ReportsPage({
               )}
             </>
           }
-          value={<span className="text-2xs opacity-55">بانتظار التقرير</span>}
+          /*
+            **و«بانتظار التقرير» كانت تُقال لكل حال** — حتى لمن رُفض
+            طلبُه، فيقرأ أنه ينتظر تقريرًا لن يأتي.
+          */
+          value={
+            <span className="text-2xs opacity-55">
+              {SERVICE_REQUEST_NEXT[request.status] ?? ''}
+            </span>
+          }
         />
         )),
         ...data.reports.map((report) => (

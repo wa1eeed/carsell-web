@@ -2,31 +2,39 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
-import {
-  purchaseService,
-  type ServicePurchaseFailure,
-} from '@/lib/domain/service-purchase';
+import { requestService, type RequestFailure } from '@/lib/domain/service-lifecycle';
 
 export const runtime = 'nodejs';
 
+/**
+ * `POST /api/v1/services/{key}/request` — **الطلب يُنشأ بلا مال**.
+ *
+ * قرار المالك (٢٠٢٦-١٠-١٤): «بعد قبول البائع يُطلب الدفع من المشتري،
+ * حيث يوضَّح المبلغ ومتى يتمّ طلب السداد **من اللحظة الأولى للطلب**».
+ *
+ * فلا وسيلةَ دفعٍ هنا ولا `Idempotency-Key`: لا مال يتحرّك، وإعادةُ
+ * الطلب تُنشئ صفًّا لا دفعة. والسداد في مسارٍ مستقلّ بعد الإذن.
+ *
+ * **والمدينة لا تُرسَل**: تُؤخذ من الإعلان — «الطلب يذهب لفاحصي نفس
+ * المدينة التي فيها السيارة». ومن يطلب فحصًا لسيارةٍ في جدّة وهو في
+ * الرياض كان يُرسل الفاحص إلى مدينته هو.
+ */
 const Body = z.object({
   vehicleId: z.string().min(1).max(40),
-  city: z.string().min(1).max(60),
   scheduledAt: z.string().datetime().nullable(),
-  method: z.enum(['mada', 'visa', 'mastercard', 'applepay']),
-  returnUrl: z.string().url().max(500),
 });
 
-const MESSAGES: Record<ServicePurchaseFailure, { ar: string; en: string; status: number }> = {
+const MESSAGES: Record<RequestFailure, { ar: string; en: string; status: number }> = {
   SERVICE_UNKNOWN: { ar: 'هذه الخدمة غير متاحة.', en: 'This service is unavailable.', status: 404 },
-  VEHICLE_NOT_YOURS: {
-    ar: 'اختر مركبةً من مركباتك.',
-    en: 'Choose one of your own vehicles.',
+  VEHICLE_NOT_FOUND: { ar: 'لم نجد هذه المركبة.', en: 'Vehicle not found.', status: 404 },
+  NOT_LISTED: {
+    ar: 'هذه السيارة غير معروضة للبيع، فلا يُطلب لها فحص إلّا من صاحبها.',
+    en: 'This car is not on the market, so only its owner can request an inspection.',
     status: 403,
   },
   CITY_NOT_COVERED: {
-    ar: 'المزوّد لا يغطّي هذه المدينة بعد.',
-    en: 'The provider does not cover this city yet.',
+    ar: 'لا مزوّد يغطّي مدينة السيارة بعد.',
+    en: 'No provider covers the car’s city yet.',
     status: 422,
   },
   DATE_IN_PAST: {
@@ -34,36 +42,13 @@ const MESSAGES: Record<ServicePurchaseFailure, { ar: string; en: string; status:
     en: 'That time has passed — pick a future one.',
     status: 422,
   },
-  NO_ROUTE: {
-    ar: 'الدفع غير متاح الآن.',
-    en: 'Payment is unavailable right now.',
-    status: 503,
-  },
-  ROUTE_DISABLED: {
-    ar: 'شراء الخدمات متوقّف مؤقّتًا.',
-    en: 'Service purchases are paused.',
-    status: 503,
-  },
-  GATEWAY_FAILED: {
-    ar: 'لم تُقبل البطاقة — جرّب وسيلةً أخرى.',
-    en: 'The card was declined — try another method.',
-    status: 402,
-  },
-  REQUIRES_ACTION: {
-    ar: 'يلزم تأكيد البطاقة.',
-    en: 'Card verification is required.',
-    status: 402,
+  OWN_LISTING_NO_CONSENT: {
+    ar: 'تعذّر تحديد صاحب المركبة.',
+    en: 'Could not determine the vehicle owner.',
+    status: 409,
   },
 };
 
-/**
- * `POST /api/v1/services/{key}/request` — شراء خدمة.
- *
- * **ولم يكن له وجود.** تسع خدماتٍ تُعرض وطابورٌ كامل في اللوحة، ولا
- * شيء يُنشئ `ServiceRequest` إلّا البذرة — فصفحة الخدمة تقول «تُطلب
- * من صفحة المركبة» وصفحةُ المركبة لا زرّ فيها. **دائرةٌ مغلقة بلا
- * مدخل**، وخطُّ إيرادٍ كامل لا يدخله ريال.
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> },
@@ -71,38 +56,31 @@ export async function POST(
   const user = await currentUser(request);
   if (user === null) return fail(ERRORS.UNAUTHORIZED, 401);
 
-  /**
-   * **`Idempotency-Key` إلزامي** (القسم ٦): الشبكة تُعيد الطلب بلا أن
-   * يعرف المستخدم، فيُحجز المال مرّتين ويصل المزوّد طلبان.
-   */
-  const key = request.headers.get('idempotency-key');
-  if (key === null || key.trim() === '') {
-    return fail(ERRORS.VALIDATION({ 'idempotency-key': 'REQUIRED' }), 422);
-  }
-
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(ERRORS.VALIDATION({ body: 'INVALID' }), 422);
 
   const { key: serviceKey } = await params;
-  const result = await purchaseService({
-    ...parsed.data,
+  const result = await requestService({
     serviceKey,
-    userId: user.id,
-    idempotencyKey: key,
+    requesterId: user.id,
+    vehicleId: parsed.data.vehicleId,
+    scheduledAt: parsed.data.scheduledAt,
   });
 
   if (!result.ok) {
     const message = MESSAGES[result.reason];
-    return fail(
-      {
-        code: result.reason,
-        messageAr: message.ar,
-        messageEn: message.en,
-        ...(result.actionUrl === undefined ? {} : { actionUrl: result.actionUrl }),
-      },
-      message.status,
-    );
+    return fail({ code: result.reason, messageAr: message.ar, messageEn: message.en }, message.status);
   }
 
-  return ok({ ref: result.ref, total: result.total });
+  /**
+   * **ويُعاد ما يُعرض من اللحظة الأولى**: المبلغ، ومتى يُطلب السداد،
+   * ومتى تنقضي مهلة الإذن. فلا يُفاجأ الطالب بمطالبةٍ ولا بصمت.
+   */
+  return ok({
+    ref: result.ref,
+    status: result.status,
+    total: result.total,
+    payAt: result.payAt,
+    decisionDueAt: result.decisionDueAt,
+  });
 }

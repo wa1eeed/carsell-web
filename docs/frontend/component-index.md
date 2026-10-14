@@ -106,7 +106,7 @@ rather than found by chance.
 | `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
 | `SiteFooter` | no | `columns` | 1 |
-| `SiteHeader` | no | `active` · `actions` | 25 |
+| `SiteHeader` | no | `active` · `actions` | 26 |
 | `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 2 |
 | `SponsoredCard` | yes | `ad` · `label` · `ratio` | 6 |
 | `SponsoredLine` | yes | `ad` · `label` | 1 |
@@ -120,13 +120,13 @@ rather than found by chance.
 
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 98 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 99 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 84 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 85 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 9 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 77 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 10 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 78 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 7 |
 | `CarRow` | no | `data` · `className` | 3 |
@@ -165,8 +165,8 @@ rather than found by chance.
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 4 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 24 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 36 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 25 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 37 |
 | `SignOut` | yes | `path` · `next` · `label` · `className` | 2 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
@@ -179,5 +179,5 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 2 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 54 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 55 |
 | `Year` | no | `value` · `className` | 5 |

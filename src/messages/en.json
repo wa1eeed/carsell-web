@@ -405,7 +405,8 @@
     "ownedExports": "{count, plural, one{{n} report} other{{n} reports}}",
     "bids": "{count, plural, one{# bid} other{# bids}}",
     "weeks": "{count, plural, one{{n} week} other{{n} weeks}}",
-    "truncatedTemplates": "{count, plural, one{{n} template truncated} other{{n} templates truncated}}"
+    "truncatedTemplates": "{count, plural, one{{n} template truncated} other{{n} templates truncated}}",
+    "serviceConsents": "{count, plural, one{An inspection request awaits your consent} other{{n} inspection requests await your consent}}"
   },
   "search": {
     "title": "Browse cars",
