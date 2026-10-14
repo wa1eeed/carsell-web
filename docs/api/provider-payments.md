@@ -105,9 +105,47 @@ server boundary runs through imports, not directives.
 
 `moyasar_platform` takes one field: `platformKey`.
 
-## Not yet connected
+## Verified against the sandbox
 
-The platform key has not been supplied, so nothing here has touched the service.
-The tests run against a stub implementing the same shape, which covers the
-translation and the checks — **field-for-field agreement with the live API
-remains unproven** until a key arrives.
+A test platform key arrived on 2026-10-14 and is stored in the admin panel
+(encrypted, never in the repo). Three calls were made against
+`https://apimig.moyasar.com/v1`:
+
+| Call | Result |
+| --- | --- |
+| `GET /platform` | **200** — returns the exact platform id we were given, so the auth header and the id mapping are proven |
+| `GET /merchants` | **200** — `{merchants: [...], meta: {...}}` |
+| `GET /balance` | **403 `User not authorized`** |
+
+**Two things only a live call could show.**
+
+**The balance is not a platform-key endpoint.** The documentation says it in one
+word — "using the **entity** secret API key" — and I had read it as the
+platform's balance and written a method that cannot work. The shape was right,
+the path exists, the key is valid, and the answer is a refusal. `balance()` now
+takes the account's own key and returns `NOT_CONFIGURED` when we do not hold
+one; merchant keys come back in `api_keys` when an account is created.
+
+**The merchant list is paged**, not a bare array. Reading it as an array returns
+nothing *without an error* — the quietest possible failure.
+
+## The connection check actually calls now
+
+`/admin/integrations` has a «افحص الاتصال» button that used to ask "is a secret
+stored?" and answer "untested". **A label is a promise, not a description**:
+whoever pressed it believed their key worked when nothing had tried it, and the
+error would surface at the first paying customer.
+
+`src/lib/domain/integration-probes.ts` holds a probe per integration. For
+`moyasar_platform` it is `GET /platform` — the lightest call that proves the
+key: it reads nothing, writes nothing, and returns the id our share is split to.
+Integrations with no adapter stay honestly "untested" rather than being called
+"connected".
+
+Walked from the panel: `moyasar_platform` → `LIVE_OK`, `lean` → `NO_SECRET`.
+
+## Still unproven
+
+Creating a merchant, submitting one for review, and sending splits with a
+payment. Those write, so they wait for a deliberate sandbox run rather than a
+read-only probe.

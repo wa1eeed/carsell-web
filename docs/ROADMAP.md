@@ -27,6 +27,7 @@ below against it, not instead of it.
 | 2 | Settle the order stages | not started — **needs the owner** |
 | 3 | The services vertical and the two gateways | 1 of 8 steps done |
 | 4 | The dealer panel | deferred by the owner, fully specified |
+| 5 | Drop the two-approval requirement in the admin panel | owner's decision, sequenced after the above |
 
 ---
 
@@ -87,15 +88,21 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       للمنصّة» (`payments`) and «بوابة الدفع للمزوّدين» (`moyasar_platform`),
       seeded and distinct on screen. Credential field names are now **declared
       per integration** instead of typed free-form, so a mistyped name can no
-      longer store a secret nobody reads. **The Platform Key is still
-      missing** — it is entered from the panel when it arrives.
+      longer store a secret nobody reads. **The test Platform Key arrived
+      2026-10-14** and is stored through the real dual-approval path, encrypted,
+      and left there as the test data the owner asked for.
 - [x] **A Moyasar Platform adapter** — `src/lib/payments/provider-platform.ts`
       (the port, in our vocabulary) and
       `src/lib/payments/adapters/moyasar-platform.ts` (the only translating
       file). Opens an account, reads its state and balance, submits for review,
       and validates splits before they are sent. Documented in
-      `docs/api/provider-payments.md`. **Unproven against the live API** until a
-      key arrives; tested against a stub of the same shape.
+      `docs/api/provider-payments.md`. **Reads verified against the sandbox**,
+      which corrected two assumptions: the balance needs the *account's* own key
+      (the platform key is refused), and the merchant list is paged, not a bare
+      array. Writes — create, submit, split — still unproven.
+- [x] **«افحص الاتصال» actually calls now.** It used to ask whether a secret was
+      stored and answer «untested», so whoever pressed it believed their key
+      worked when nothing had tried it.
 - [x] **The request lifecycle with the seller's consent step**, end to end:
       request (no money) → seller's decision → payment → the providers' queue,
       with the lapse job and the disclosure rule. Routes, both faces of
@@ -155,6 +162,30 @@ smart reports.
       engine exists and its input (purchase price + add-on costs) does not.
 
 ---
+
+## 5 · Drop the two-approval requirement in the admin panel — *owner's decision*
+
+> «موافقة العضوين يجب أن نعمل على إزالة هذا القيد من لوحة الأدمن، حيث الأدمن
+> يملك صلاحية مطلقة. أضف هذه المهمة في جدول المهام… وسنصل إليها عند إنجاز باقي
+> المهام التي تسبقها» — 2026-10-14
+
+Dual approval guards four things today, enforced by **gate 19** in
+`scripts/check-tokens.mjs`: key rotation, environment switch, payouts, and
+dispute resolution. Removing it is a business decision the owner has made; the
+work is not a one-line deletion:
+
+- [ ] Remove the requirement from the flows that enforce it
+      (`requiredApprovals`, `approveRotation` and its siblings).
+- [ ] **Retire or re-aim gate 19.** It exists because half-built quorums shipped
+      three times — an approver with no function, a function with no button, a
+      check on a weaker permission. Deleting the rule without deleting the gate
+      leaves a gate guarding a rule nobody follows.
+- [ ] Decide what replaces it for **money movements**. An absolute admin still
+      leaves a record: every such action already writes `AuditLog`, and that
+      becomes the only control. Worth confirming that is the intent for payouts
+      specifically.
+
+Sequenced after the current work, as the owner asked.
 
 ## Also open, outside the four stages
 

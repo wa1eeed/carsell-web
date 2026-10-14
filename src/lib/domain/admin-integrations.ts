@@ -456,14 +456,28 @@ export async function checkConnection(
   key: string,
   ip: string | null,
   now = new Date(),
-): Promise<{ ok: boolean; result: 'NO_SECRET' | 'UNTESTED' }> {
+): Promise<{ ok: boolean; result: 'NO_SECRET' | 'UNTESTED' | 'LIVE_OK' | 'LIVE_FAILED' }> {
   const secret = await activeSecret(key);
   const integration = await db.integration.findUnique({ where: { key } });
   if (integration === null) return { ok: false, result: 'NO_SECRET' };
 
   const configured = secret !== null && secret !== '';
 
-  await db.integration.update({ where: { key }, data: { lastCheckAt: now, lastCheckOk: null } });
+  /**
+   * ═══ والفحصُ نداءٌ حين تكون له وصلة ═══
+   *
+   * كان الزرُّ يقرأ «أثمّة سرٌّ محفوظ؟» ويردّ «غير مُختبَر» — **فالنصّ
+   * المعروض وعدٌ لا وصف**: من ضغطه ظنّ مفتاحه صالحًا وهو لم يُجرَّب،
+   * ولا يُعرف خطؤه إلّا عند أوّل عميلٍ يدفع.
+   *
+   * وما لا وصلةَ له يبقى «غير مُختبَر» صراحةً — حالٌ صادقة، بخلاف
+   * «متّصل» تُقال عن مفتاحٍ لم يلمسه أحد.
+   */
+  const { probeIntegration } = await import('./integration-probes');
+  const probe = await probeIntegration(key, secret);
+  const live = probe.state === 'NO_PROBE' ? null : probe.state === 'OK';
+
+  await db.integration.update({ where: { key }, data: { lastCheckAt: now, lastCheckOk: live } });
   await db.auditLog.create({
     data: {
       actorId: admin.id,
@@ -472,13 +486,21 @@ export async function checkConnection(
       entityId: key,
       action: 'integration.checked',
       before: {},
-      after: { configured, env: effectiveEnvironment(integration.activeEnv) },
+      after: {
+        configured,
+        env: effectiveEnvironment(integration.activeEnv),
+        /** **وتفصيلُ الفشل يُسجَّل** — «فشل» وحدها لا تُصلَح */
+        probe: probe.state,
+        ...(probe.state === 'NO_PROBE' || probe.detail === null ? {} : { detail: probe.detail }),
+      },
       ip,
       createdAt: now,
     },
   });
 
-  return { ok: true, result: configured ? 'UNTESTED' : 'NO_SECRET' };
+  if (!configured) return { ok: true, result: 'NO_SECRET' };
+  if (probe.state === 'NO_PROBE') return { ok: true, result: 'UNTESTED' };
+  return { ok: true, result: probe.state === 'OK' ? 'LIVE_OK' : 'LIVE_FAILED' };
 }
 
 export type IntegrationSummary = {

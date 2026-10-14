@@ -106,7 +106,7 @@ describe('حساب المزوّد', () => {
   /** وشبكةٌ لا تردّ حالٌ متوقَّعة تُعرض سطرًا، لا خطأً يُرمى. */
   it('وانقطاع الشبكة لا يرمي', async () => {
     vi.stubGlobal('fetch', () => Promise.reject(new Error('offline')));
-    const result = await createMoyasarPlatformAdapter('k').balance();
+    const result = await createMoyasarPlatformAdapter('k').balance('entity-key');
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.reason).toBe('UPSTREAM');
@@ -122,12 +122,61 @@ describe('الرصيد', () => {
         body: { currency: 'SAR', total: 125_050, available: 100_000, transferred: 25_050 },
       },
     });
-    const result = await createMoyasarPlatformAdapter('k').balance();
+    const result = await createMoyasarPlatformAdapter('k').balance('entity-key');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.total).toBe('1250.50');
     expect(result.value.available).toBe('1000.00');
     expect(result.value.transferred).toBe('250.50');
+  });
+
+  /**
+   * ═══ **وبمفتاح الحساب لا بمفتاح المنصّة** ═══
+   *
+   * قِيس على البيئة التجريبية: `GET /balance` بمفتاح المنصّة يردّ ٤٠٣
+   * `User not authorized`. والشكل صحيح والمسار موجود والمفتاح صالح —
+   * **ولا يكشفه إلّا نداءٌ حقيقيّ**.
+   */
+  it('ويُنادى بمفتاح الحساب', async () => {
+    const { calls } = stubFetch({ '/balance': { status: 200, body: { total: 0 } } });
+    await createMoyasarPlatformAdapter('platform-key').balance('entity-key');
+
+    const header = (calls[0]?.init?.headers as Record<string, string> | undefined)?.authorization;
+    expect(Buffer.from((header ?? '').slice(6), 'base64').toString()).toBe('entity-key:');
+  });
+
+  /** ومن لا مفتاح لحسابه لا رصيدَ يُقرأ — حالٌ تُعرض سطرًا لا خطأً. */
+  it('وبلا مفتاحٍ يُقال «غير مضبوط» لا «عطل»', async () => {
+    const result = await createMoyasarPlatformAdapter('k').balance(null);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('NOT_CONFIGURED');
+  });
+});
+
+/**
+ * ═══ وقائمةُ الحسابات مغلَّفةٌ بصفحات ═══
+ *
+ * `{merchants: [...], meta: {...}}` لا مصفوفةً عارية — قِيس على البيئة
+ * التجريبية. وقراءتُه مصفوفةً تُعيد لا شيء **بلا خطأ**.
+ */
+describe('قائمة الحسابات', () => {
+  it('تُقرأ من داخل الغلاف', async () => {
+    stubFetch({
+      '/merchants': {
+        status: 200,
+        body: {
+          merchants: [{ id: 'm-1', entity_id: 'e-1', status: 'active' }],
+          meta: { current_page: 1, total_count: 1 },
+        },
+      },
+    });
+    const result = await createMoyasarPlatformAdapter('k').listAccounts();
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0]?.payoutRef).toBe('e-1');
+    expect(result.value[0]?.status).toBe('ACTIVE');
   });
 });
 

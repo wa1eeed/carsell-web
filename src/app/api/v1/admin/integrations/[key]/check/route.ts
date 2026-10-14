@@ -46,7 +46,15 @@ export async function POST(
    * و`UNTESTED` أمانةٌ لا نقص: المفاتيح مضبوطة **ولم يُنادَ المزوّد
    * فعلًا**. ونداءٌ حقيقيّ هنا يعني معاملةً في حسابٍ حيّ لمجرّد فحص.
    */
-  return ok({ configured: result.result === 'UNTESTED', result: result.result });
+  /**
+   * **و`UNTESTED` بقيت لمن لا وصلةَ له**، أمّا من له مُهايئ فيُنادى
+   * فعلًا: `LIVE_OK` أو `LIVE_FAILED`. وزرٌّ اسمُه «افحص الاتصال» لا
+   * يفحص شيئًا يجعل المشغّل يظنّ مفتاحه صالحًا وهو لم يُجرَّب.
+   */
+  return ok({
+    configured: result.result !== 'NO_SECRET',
+    result: result.result,
+  });
 }
 
 /** تمييز «تكاملٌ لا وجود له» عن «تكاملٌ بلا سرّ» — والأول وحده ٤٠٤. */

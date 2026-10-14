@@ -279,11 +279,23 @@ export function IntegrationsList({
                     variant="ghost"
                     disabled={pending}
                     onClick={() =>
-                      post(`/api/v1/admin/integrations/${row.key}/check`, {}, (data) =>
-                        (data as { configured?: boolean } | undefined)?.configured === true
-                          ? 'المفاتيح مضبوطة — ولم يُنادَ المزوّد فعلًا.'
-                          : 'لا مفاتيح مضبوطة لهذا التكامل بعد.',
-                      )
+                      post(`/api/v1/admin/integrations/${row.key}/check`, {}, (data) => {
+                        /**
+                          **وثلاثُ نتائج لا اثنتان.** «مضبوطة ولم
+                          يُنادَ المزوّد» أمانةٌ لمن لا وصلةَ له،
+                          أمّا من له مُهايئ فيُنادى — ويُقال نجاحُه
+                          أو فشلُه.
+                        */
+                        const result = (data as { result?: string } | undefined)?.result;
+                        if (result === 'LIVE_OK') return 'نُودي المزوّد وردّ — المفاتيح تعمل.';
+                        if (result === 'LIVE_FAILED') {
+                          return 'نُودي المزوّد ورفض — راجع المفاتيح أو البيئة.';
+                        }
+                        if (result === 'UNTESTED') {
+                          return 'المفاتيح مضبوطة — ولا وصلة لهذا التكامل بعد لتُجرَّب.';
+                        }
+                        return 'لا مفاتيح مضبوطة لهذا التكامل بعد.';
+                      })
                     }
                   >
                     افحص الاتصال

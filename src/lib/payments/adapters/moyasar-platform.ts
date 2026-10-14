@@ -101,18 +101,22 @@ function failureOf(status: number, body: Json | null): PlatformResult<never> {
   return { ok: false, reason: 'UPSTREAM', message };
 }
 
+function basic(key: string): string {
+  /** المفتاح اسمَ مستخدم والكلمة **فارغة** — بنصّ الوثيقة، وأُثبت بنداء. */
+  return `Basic ${Buffer.from(`${key}:`).toString('base64')}`;
+}
+
 export function createMoyasarPlatformAdapter(platformKey: string): ProviderPlatformPort {
   async function call(
     path: string,
-    init?: { method: string; body?: Json },
+    init?: { method: string; body?: Json; key?: string },
   ): Promise<PlatformResult<Json>> {
     let response: Response;
     try {
       response = await fetch(`${BASE_URL}${path}`, {
         method: init?.method ?? 'GET',
         headers: {
-          /** المفتاح اسمَ مستخدم والكلمة **فارغة** — بنصّ الوثيقة. */
-          authorization: `Basic ${Buffer.from(`${platformKey}:`).toString('base64')}`,
+          authorization: basic(init?.key ?? platformKey),
           ...(init?.body === undefined ? {} : { 'content-type': 'application/json' }),
         },
         ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
@@ -175,8 +179,28 @@ export function createMoyasarPlatformAdapter(platformKey: string): ProviderPlatf
       return result.ok ? { ok: true, value: toState(result.value) } : result;
     },
 
-    async balance(): Promise<PlatformResult<AccountBalance>> {
-      const result = await call('/balance');
+    async listAccounts(): Promise<PlatformResult<AccountState[]>> {
+      const result = await call('/merchants');
+      if (!result.ok) return result;
+      /**
+       * **والردّ مغلَّف بصفحات**: `{merchants: [...], meta: {...}}` لا
+       * مصفوفةً عارية — قِيس على البيئة التجريبية. وقراءتُه مصفوفةً
+       * تُعيد لا شيء بلا خطأ.
+       */
+      const list = result.value.merchants;
+      if (!Array.isArray(list)) return { ok: false, reason: 'UPSTREAM', message: 'NO_LIST' };
+      return { ok: true, value: list.map((row) => toState(row as Json)) };
+    },
+
+    async balance(entityKey: string | null): Promise<PlatformResult<AccountBalance>> {
+      /**
+       * **ولا يُنادى بمفتاح المنصّة**: قِيس فردّ ٤٠٣. ومن لا مفتاح
+       * لحسابه لا رصيدَ يُقرأ — حالٌ تُعرض سطرًا لا خطأً.
+       */
+      if (entityKey === null || entityKey === '') {
+        return { ok: false, reason: 'NOT_CONFIGURED', message: null };
+      }
+      const result = await call('/balance', { method: 'GET', key: entityKey });
       if (!result.ok) return result;
       /** يردّ بأصغر وحدة — والعرض بالريال، فالقسمة هنا لا في الشاشة. */
       const major = (value: unknown): string => (Number(value ?? 0) / 100).toFixed(2);

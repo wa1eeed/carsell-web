@@ -62,7 +62,21 @@ export type AccountDraft = {
   licenceRequired: boolean;
 };
 
-/** رصيدٌ لدى البوّابة — **بالوحدة الكبرى** لا بأصغرها. */
+/**
+ * رصيدٌ لدى البوّابة — **بالوحدة الكبرى** لا بأصغرها.
+ *
+ * ═══ ويُقرأ بمفتاح الحساب نفسه لا بمفتاح المنصّة ═══
+ *
+ * قِيس على البيئة التجريبية: `GET /balance` بمفتاح المنصّة يردّ **٤٠٣
+ * `User not authorized`**. والوثيقة تقولها بكلمةٍ واحدة — «using the
+ * **entity** secret API key» — وقد قرأتُها «رصيد المنصّة» فبنيتُ
+ * دالّةً لا تعمل. **ولا يكشفها إلّا نداءٌ حقيقيّ**: الشكل صحيح،
+ * والمسار موجود، والمفتاح صالح — والردّ رفض.
+ *
+ * فالرصيد رصيدُ **حسابٍ بعينه**، ويُقرأ بمفتاحه هو. ومفاتيحُ الحساب
+ * تُعاد عند إنشائه (`api_keys`)، فما لم تُحفظ فلا رصيد يُقرأ — وهي
+ * حالٌ تُعرض سطرًا لا خطأً.
+ */
 export type AccountBalance = {
   currency: string;
   total: string;
@@ -113,7 +127,13 @@ export type ProviderPlatformPort = {
   accountState: (accountRef: string) => Promise<PlatformResult<AccountState>>;
   /** يُقدَّم للمراجعة بعد اكتمال مستنداته */
   submitForReview: (accountRef: string) => Promise<PlatformResult<AccountState>>;
-  balance: () => Promise<PlatformResult<AccountBalance>>;
+  /**
+   * **بمفتاح الحساب لا بمفتاح المنصّة** — قِيس: الثاني يردّ ٤٠٣.
+   * و`null` حين لا نحفظ مفتاحه، فتُعاد `NOT_CONFIGURED`.
+   */
+  balance: (entityKey: string | null) => Promise<PlatformResult<AccountBalance>>;
+  /** حساباتُ المنصّة — **وردُّها مغلَّف بصفحات** (`merchants` + `meta`). */
+  listAccounts: () => Promise<PlatformResult<AccountState[]>>;
   /**
    * يتحقّق من صحّة التوزيع **قبل** أن يُرسَل مع دفعة.
    *
