@@ -8,6 +8,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import type { ConnectionState, IntegrationRow } from '@/lib/domain/admin-integrations';
 import { ENV_LABEL } from '@/lib/labels/admin';
+import { secretFieldsFor } from '@/lib/domain/integration-fields';
 import { cn } from '@/lib/cn';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 
@@ -298,7 +299,13 @@ export function IntegrationsList({
                           nameAr: row.nameAr,
                           // الاختبار افتراضًا: الإنتاج يُقصَد لا يُقع فيه
                           env: 'TEST',
-                          fields: [{ name: 'apiKey', value: '' }],
+                          /**
+                            **والحقول مُعلَنةٌ لا مكتوبةٌ بيد.** اسمٌ
+                            بحرفٍ زائد يحفظ سرًّا لا يقرؤه أحد:
+                            يُضبط التكامل في عين المشغّل ويبقى
+                            معطَّلًا في عين الكود، ولا شيء يسقط.
+                          */
+                          fields: secretFieldsFor(row.key).map((name) => ({ name, value: '' })),
                         })
                       }
                     >

@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-83 models · 53 enums
+83 models · 54 enums
 
 ## Relationships
 
@@ -177,6 +177,7 @@ erDiagram
   AdCampaign }o--|| AdSlot : "slot"
   Report }o--|| User : "reporter"
   ServiceProvider }o--|| ProviderType : "type"
+  ServiceProvider }o--|| ProviderAccountStatus : "accountStatus"
   ServiceProvider ||--o{ Service : "services"
   ServiceProvider ||--o{ ServiceRequest : "requests"
   EntitlementOverride |o--|| User : "user"
@@ -1160,8 +1161,12 @@ Relations: `reporter` → `User`
 | `slaHours` | `Int?` |  |
 | `cities` | `String[]` |  |
 | `active` | `Boolean` |  |
+| `accountRef` | `String?` | unique |
+| `payoutRef` | `String?` |  |
+| `accountNote` | `String?` |  |
+| `accountSyncAt` | `DateTime?` |  |
 
-Relations: `type` → `ProviderType` · `services` → `Service` · `requests` → `ServiceRequest`
+Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `services` → `Service` · `requests` → `ServiceRequest`
 
 ### `EntitlementOverride`
 
@@ -1624,6 +1629,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
 - `ServiceFeeMode` — `FIXED`, `PERCENT`
+- `ProviderAccountStatus` — `NONE`, `PENDING`, `MISSING_DOCS`, `UNDER_REVIEW`, `SEMI_ACTIVE`, `ACTIVE`, `HOLD`, `REJECTED`, `DISABLED`
 - `ProviderType` — `INSPECTION`, `SHIPPING`, `INSURANCE`, `DETAILING`, `PHOTOGRAPHY`, `FINANCE`, `OTHER`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`

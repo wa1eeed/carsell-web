@@ -1,0 +1,214 @@
+/**
+ * ⚠️ **لم يُختبَر مقابل المزوّد — بُني على وثائقه الخاصّة.**
+ *
+ * مفتاح المنصّة لم يصل بعد (وصل فارغًا في رسالة المالك)، فما تحته لم
+ * يلمس الخدمة قطّ. واختباراته تجري على خادمٍ وهميّ يطبّق الواجهة نفسها،
+ * فتُغطّى المسارات بلا اتصال — **ومطابقة الحقول تبقى غير مُثبَتة** حتى
+ * يصل المفتاح.
+ *
+ * ═══ وهذا الملف وحده يترجم ═══
+ *
+ * البوابة ١٥ تستثني `adapters/`، فمفردات المزوّد مسموحة هنا:
+ *
+ *   حساب → merchant · معرّف التحويل → entity_id · التوزيع → splits
+ *   فتحُ حساب → create merchant · التقديم للمراجعة → submit
+ *
+ * ولا تخرج واحدةٌ منها إلى النطاق ولا إلى الشاشة.
+ *
+ * ═══ والمصادقة Basic بكلمةِ مرورٍ فارغة ═══
+ *
+ * اسمُ المستخدم هو مفتاح المنصّة، **والكلمة فارغة بنصّ الوثيقة**. وهو
+ * شكلٌ غير مألوف يُغري بوضع المفتاح في الكلمة — فيردّ المزوّد ٤٠١ بلا
+ * ما يقول إن الحقلين مقلوبان.
+ */
+
+import type { ProviderAccountStatus } from '@/generated/prisma/enums';
+import {
+  checkShares,
+  halalas,
+  type AccountBalance,
+  type AccountDraft,
+  type AccountState,
+  type PlatformResult,
+  type ProviderPlatformPort,
+  type Share,
+} from '../provider-platform';
+
+export const MOYASAR_PLATFORM_KEY = 'moyasar_platform';
+
+/** قاعدةُ المنصّة — وهي غيرُ قاعدة بوّابة الدفع العادية. */
+const BASE_URL = 'https://apimig.moyasar.com/v1';
+
+/** أحوالُ الحساب كما يسمّيها المزوّد ← كما نسمّيها. */
+const STATE: Record<string, ProviderAccountStatus> = {
+  pending: 'PENDING',
+  missing_docs: 'MISSING_DOCS',
+  under_review: 'UNDER_REVIEW',
+  semi_active: 'SEMI_ACTIVE',
+  active: 'ACTIVE',
+  hold: 'HOLD',
+  rejected: 'REJECTED',
+  disabled: 'DISABLED',
+};
+
+const KIND: Record<AccountDraft['kind'], string> = {
+  FREELANCER: 'freelancer',
+  ESTABLISHMENT: 'establishment',
+  COMPANY: 'company',
+  GOVERNMENT: 'government',
+  CHARITY: 'charity',
+};
+
+const SIGNATORY: Record<AccountDraft['signatory'], string> = {
+  OWNER: 'owner',
+  COMMERCIAL_CONTRACT: 'commercial_contract',
+  POWER_OF_ATTORNEY: 'power_of_attorney',
+};
+
+type Json = Record<string, unknown>;
+
+function str(value: unknown): string | null {
+  return typeof value === 'string' && value !== '' ? value : null;
+}
+
+/**
+ * ردُّ المزوّد ← حالُ الحساب عندنا.
+ *
+ * **والحقلان مفصولان**: `id` يُدار به الحساب، و`entity_id` يُوجَّه إليه
+ * التوزيع. وأخذُ الأوّل للتوزيع يُرسل المال إلى عدم، والمزوّد يقبله
+ * شكلًا لأنّ كليهما UUID.
+ */
+function toState(body: Json): AccountState {
+  const signature = (body.signature ?? {}) as Json;
+  return {
+    accountRef: String(body.id ?? ''),
+    payoutRef: str(body.entity_id),
+    status: STATE[String(body.status ?? '')] ?? 'PENDING',
+    /** أسبابُ النقص كما ردّها — تُعرض بلا ترجمةٍ تخمينية */
+    note: Array.isArray(body.reasons) && body.reasons.length > 0
+      ? body.reasons.map((reason) => String(reason)).join(' · ')
+      : null,
+    signatureUrl: str(signature.url),
+    documentsComplete: body.documents_complete === true,
+  };
+}
+
+function failureOf(status: number, body: Json | null): PlatformResult<never> {
+  const message = str(body?.message);
+  if (status === 401 || status === 403) return { ok: false, reason: 'UNAUTHORIZED', message };
+  if (status === 404) return { ok: false, reason: 'NOT_FOUND', message };
+  if (status === 422 || status === 400) return { ok: false, reason: 'INVALID', message };
+  return { ok: false, reason: 'UPSTREAM', message };
+}
+
+export function createMoyasarPlatformAdapter(platformKey: string): ProviderPlatformPort {
+  async function call(
+    path: string,
+    init?: { method: string; body?: Json },
+  ): Promise<PlatformResult<Json>> {
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}${path}`, {
+        method: init?.method ?? 'GET',
+        headers: {
+          /** المفتاح اسمَ مستخدم والكلمة **فارغة** — بنصّ الوثيقة. */
+          authorization: `Basic ${Buffer.from(`${platformKey}:`).toString('base64')}`,
+          ...(init?.body === undefined ? {} : { 'content-type': 'application/json' }),
+        },
+        ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+      });
+    } catch {
+      /** شبكةٌ لم تردّ — وهي حالٌ متوقّعة تُعرض سطرًا لا تُرمى خطأً. */
+      return { ok: false, reason: 'UPSTREAM', message: null };
+    }
+
+    const body = (await response.json().catch(() => null)) as Json | null;
+    if (!response.ok) return failureOf(response.status, body);
+    return { ok: true, value: body ?? {} };
+  }
+
+  return {
+    key: MOYASAR_PLATFORM_KEY,
+
+    async platformPayoutRef(): Promise<PlatformResult<string>> {
+      const result = await call('/platform');
+      if (!result.ok) return result;
+      const id = str(result.value.id);
+      return id === null
+        ? { ok: false, reason: 'UPSTREAM', message: 'NO_PLATFORM_ID' }
+        : { ok: true, value: id };
+    },
+
+    async openAccount(draft: AccountDraft): Promise<PlatformResult<AccountState>> {
+      const result = await call('/merchants', {
+        method: 'POST',
+        body: {
+          type: KIND[draft.kind],
+          name: draft.slug,
+          public_name: draft.publicName,
+          country: 'SA',
+          website: draft.website,
+          email: draft.email,
+          admin_email: draft.adminEmail,
+          owners_count: draft.ownersCount,
+          signatory: SIGNATORY[draft.signatory],
+          /** يُرسَل حين لا يكون التوقيع للمالك — وإرسالُه دائمًا يُرفض */
+          ...(draft.signatory === 'OWNER' || draft.signatoryCount === null
+            ? {}
+            : { signatory_count: draft.signatoryCount }),
+          activity_license_required: draft.licenceRequired,
+          time_zone: 'Asia/Riyadh',
+        },
+      });
+      return result.ok ? { ok: true, value: toState(result.value) } : result;
+    },
+
+    async accountState(accountRef: string): Promise<PlatformResult<AccountState>> {
+      const result = await call(`/merchants/${encodeURIComponent(accountRef)}`);
+      return result.ok ? { ok: true, value: toState(result.value) } : result;
+    },
+
+    async submitForReview(accountRef: string): Promise<PlatformResult<AccountState>> {
+      const result = await call(`/merchants/${encodeURIComponent(accountRef)}/submit`, {
+        method: 'POST',
+      });
+      return result.ok ? { ok: true, value: toState(result.value) } : result;
+    },
+
+    async balance(): Promise<PlatformResult<AccountBalance>> {
+      const result = await call('/balance');
+      if (!result.ok) return result;
+      /** يردّ بأصغر وحدة — والعرض بالريال، فالقسمة هنا لا في الشاشة. */
+      const major = (value: unknown): string => (Number(value ?? 0) / 100).toFixed(2);
+      return {
+        ok: true,
+        value: {
+          currency: str(result.value.currency) ?? 'SAR',
+          total: major(result.value.total),
+          available: major(result.value.available),
+          transferred: major(result.value.transferred),
+        },
+      };
+    },
+
+    checkShares(total: string, shares: readonly Share[]): PlatformResult<true> {
+      return checkShares(total, shares);
+    },
+  };
+}
+
+/**
+ * الحصص بالشكل الذي يقبله المزوّد — **وهنا تُحوَّل إلى قروش**.
+ *
+ * والتحويل في المُهايئ لا في النطاق: وحدةُ المبلغ تفصيلُ مزوّدٍ، ونطاقٌ
+ * يحسب بالقروش يفرض شكل مزوّدٍ على كل حسابٍ فيه.
+ */
+export function toMoyasarSplits(shares: readonly Share[]): Json[] {
+  return shares.map((share) => ({
+    recipient_id: share.payoutRef,
+    amount: halalas(share.amount),
+    ...(share.reference === undefined ? {} : { reference: share.reference }),
+    ...(share.description === undefined ? {} : { description: share.description }),
+    ...(share.bearsGatewayFee === true ? { fee_source: true } : {}),
+  }));
+}

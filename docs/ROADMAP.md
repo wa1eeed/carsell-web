@@ -83,12 +83,19 @@ Measurement and build order: `docs/BACKLOG.md` § I.
 - [x] **The platform fee is charged.** `Service.adminFeeMode` (`FIXED` |
       `PERCENT`), added on top of the provider's price. It had been configured
       in the admin panel and never collected.
-- [ ] **Two gateway configurations** in `/admin/integrations`: «إعدادات الدفع
-      الإلكتروني للمنصّة» (ordinary Moyasar merchant) and «إعدادات الدفع
-      للمزوّدين» (Moyasar Platform API). Credentials entered there, encrypted,
-      **never in the repo**. The Platform Key has not been supplied yet.
-- [ ] **A Moyasar Platform adapter** — onboarding, account status, split
-      payment, authorize & capture, release, balance.
+- [x] **Two gateway configurations** in `/admin/integrations`: «بوابة الدفع
+      للمنصّة» (`payments`) and «بوابة الدفع للمزوّدين» (`moyasar_platform`),
+      seeded and distinct on screen. Credential field names are now **declared
+      per integration** instead of typed free-form, so a mistyped name can no
+      longer store a secret nobody reads. **The Platform Key is still
+      missing** — it is entered from the panel when it arrives.
+- [x] **A Moyasar Platform adapter** — `src/lib/payments/provider-platform.ts`
+      (the port, in our vocabulary) and
+      `src/lib/payments/adapters/moyasar-platform.ts` (the only translating
+      file). Opens an account, reads its state and balance, submits for review,
+      and validates splits before they are sent. Documented in
+      `docs/api/provider-payments.md`. **Unproven against the live API** until a
+      key arrives; tested against a stub of the same shape.
 - [ ] **The request lifecycle with the seller's consent step.** Nothing in the
       product currently moves a `ServiceRequest` off `NEW`.
 - [ ] **City dispatch** — the request goes to the inspectors in the **car's**
