@@ -235,20 +235,43 @@ async function sweep(when: string): Promise<void> {
    * وقِيس: اثنا عشر صفًّا لطلبٍ واحد بعد تشغيلٍ واحد. والتنظيف
    * بالشكل — كل إشعار طلبٍ لا يقابله صفٌّ قائم يتيمٌ يُحذف.
    */
-  const orderBells = await db.notification.findMany({
-    where: { entityType: 'Order' },
-    select: { id: true, entityId: true },
+  const bells = await db.notification.findMany({
+    where: { entityType: { not: null } },
+    select: { id: true, entityType: true, entityId: true },
   });
-  if (orderBells.length > 0) {
-    const liveRefs = new Set(
-      (await db.order.findMany({ select: { ref: true } })).map((row) => row.ref),
-    );
-    const orphanBells = orderBells
-      .filter((row) => row.entityId === null || !liveRefs.has(row.entityId))
+  if (bells.length > 0) {
+    /**
+     * **وكلُّ كيانٍ لا كيانَ الطلب وحده.** قِيس بالنقر: إشعارُ
+     * «بدأ مزاد مركبةٍ حفظتها» يصل بلا رابط — لأن المزاد الذي يشير
+     * إليه حُذف في إعادة زرع. والتنظيف كان يعرف `Order` وحدها، فنجا
+     * كلُّ ما عداها.
+     *
+     * والقائمة من المخطّط لا من الذاكرة، وواحدٌ منسيٌّ يُبقي التسرّب.
+     */
+    const live = new Map<string, Set<string>>([
+      ['Order', new Set((await db.order.findMany({ select: { ref: true } })).map((r) => r.ref))],
+      ['Auction', new Set((await db.auction.findMany({ select: { id: true } })).map((r) => r.id))],
+      ['Listing', new Set((await db.listing.findMany({ select: { id: true } })).map((r) => r.id))],
+      ['Offer', new Set((await db.offer.findMany({ select: { id: true } })).map((r) => r.id))],
+      ['Dispute', new Set((await db.dispute.findMany({ select: { id: true } })).map((r) => r.id))],
+      [
+        'ServiceRequest',
+        new Set((await db.serviceRequest.findMany({ select: { ref: true } })).map((r) => r.ref)),
+      ],
+    ]);
+
+    const orphans = bells
+      .filter((row) => {
+        const known = live.get(row.entityType ?? '');
+        /** نوعٌ لا نعرفه لا يُحذف — الجهل ليس إذنًا بالحذف */
+        if (known === undefined) return false;
+        return row.entityId === null || !known.has(row.entityId);
+      })
       .map((row) => row.id);
-    if (orphanBells.length > 0) {
-      await db.notification.deleteMany({ where: { id: { in: orphanBells } } });
-      console.log(`  نُظّف ${String(orphanBells.length)} إشعار طلبٍ يتيم ${when}`);
+
+    if (orphans.length > 0) {
+      await db.notification.deleteMany({ where: { id: { in: orphans } } });
+      console.log(`  نُظّف ${String(orphans.length)} إشعارًا يتيمًا ${when}`);
     }
   }
 

@@ -34,7 +34,13 @@ import { renderTemplate } from './notification-text';
 export type NotificationPriority = 'critical' | 'high' | 'normal';
 
 /** الكيانات التي يُعلَّق عليها إشعار — ولكلٍّ وجهةٌ أو لا شيء. */
-export type NotificationEntity = 'Auction' | 'Offer' | 'Order' | 'Listing' | 'Dispute';
+export type NotificationEntity =
+  | 'Auction'
+  | 'Offer'
+  | 'Order'
+  | 'Listing'
+  | 'Dispute'
+  | 'ServiceRequest';
 
 export type NotifyInput = {
   userId: string;
@@ -176,9 +182,20 @@ async function destinations(
   const listingIds = ids('Listing');
   const auctionIds = ids('Auction');
   const offerIds = ids('Offer');
+  /**
+   * ═══ والنزاع كان معلَنًا بلا وجهة ═══
+   *
+   * `'Dispute'` في النوع منذ كُتب، وثلاثةُ إشعاراتٍ تكتبه — **ولا سطر
+   * يحلّه**. فيصل «فُتح نزاعٌ على طلبك» بأولويةٍ حرجة ولا يُفتح بنقرة،
+   * والنزاع أحوجُ ما يكون إلى بابٍ سريع.
+   *
+   * ووجهتُه صفحةُ طلبه: النزاع يُعرض فيها متصدّرًا، ولا شاشةَ له وحده.
+   */
+  const disputeIds = ids('Dispute');
+  const serviceRefs = ids('ServiceRequest');
   const orderRefs = ids('Order');
 
-  const [listings, auctions, offers, orders] = await Promise.all([
+  const [listings, auctions, offers, orders, disputes, serviceRequests] = await Promise.all([
     listingIds.length === 0
       ? []
       : db.listing.findMany({
@@ -215,6 +232,25 @@ async function destinations(
           },
           select: { ref: true },
         }),
+    /** والملكية شرطٌ هنا كما هي في الطلب — ورابطٌ إلى نزاع غيره يفتح ٤٠٤ */
+    disputeIds.length === 0
+      ? []
+      : db.dispute.findMany({
+          where: {
+            id: { in: disputeIds },
+            order: { OR: [{ buyerId: viewerId }, { sellerId: viewerId }] },
+          },
+          select: { id: true, order: { select: { ref: true } } },
+        }),
+    serviceRefs.length === 0
+      ? []
+      : db.serviceRequest.findMany({
+          where: {
+            ref: { in: serviceRefs },
+            OR: [{ userId: viewerId }, { sellerId: viewerId }],
+          },
+          select: { ref: true },
+        }),
   ]);
 
   const out = new Map<string, string>();
@@ -231,6 +267,18 @@ async function destinations(
   }
   for (const order of orders) {
     out.set(`Order:${order.ref}`, `/${locale}/account/orders/${encodeURIComponent(order.ref)}`);
+  }
+  for (const dispute of disputes) {
+    out.set(
+      `Dispute:${dispute.id}`,
+      `/${locale}/account/orders/${encodeURIComponent(dispute.order.ref)}`,
+    );
+  }
+  for (const request of serviceRequests) {
+    out.set(
+      `ServiceRequest:${request.ref}`,
+      `/${locale}/account/reports/${encodeURIComponent(request.ref)}`,
+    );
   }
 
   return out;

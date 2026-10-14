@@ -25,10 +25,23 @@ const made: string[] = [];
 
 afterEach(async () => {
   if (made.length > 0) {
+    /** **والإشعار أثرٌ على كيانٍ مشترك** — يُتبَع في التنظيف نفسه. */
+    await db.notification.deleteMany({
+      where: { entityType: 'ServiceRequest', entityId: { in: made } },
+    });
     await db.serviceRequest.deleteMany({ where: { ref: { in: made } } });
     made.length = 0;
   }
 });
+
+async function bells(ref: string): Promise<{ key: string; userId: string }[]> {
+  const rows = await db.notification.findMany({
+    where: { entityType: 'ServiceRequest', entityId: ref },
+    orderBy: { createdAt: 'asc' },
+    select: { templateKey: true, userId: true },
+  });
+  return rows.map((row) => ({ key: row.templateKey, userId: row.userId }));
+}
 
 afterAll(async () => {
   await db.$disconnect();
@@ -293,5 +306,103 @@ describe('طابور المدينة', () => {
 
   it('وبلا صنفٍ لا طابور', async () => {
     expect(await cityPool(null, 'الرياض')).toEqual([]);
+  });
+});
+
+/**
+ * ═══ ومن ينتظر يُخبَر ═══
+ *
+ * الدورة كلُّها مواعيدُ ينتظرها إنسان: البائع يأذن قبل انقضاء مهلته،
+ * والطالبُ يسدّد بعد الإذن أو يعرف لماذا رُفض. **وبلا جرسٍ تنقضي
+ * المهلة على من لم يعلم بها.**
+ *
+ * **والاختبار يفحص المستلم لا العدد**: «كُتب إشعار» صادقةٌ لو وصل
+ * الطرف الخطأ، وهو الخطأ الذي يقع.
+ */
+describe('جرس الرحلة', () => {
+  it('الطلب يُخبر صاحبَ المركبة وحده', async () => {
+    const car = await listedCar();
+    const buyer = await someoneElse(car.sellerId);
+    const service = await db.service.findFirstOrThrow({
+      where: { active: true, providerType: { not: null } },
+      select: { key: true },
+    });
+
+    const result = await requestService({
+      serviceKey: service.key,
+      requesterId: buyer,
+      vehicleId: car.vehicleId,
+      scheduledAt: null,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    made.push(result.ref);
+
+    expect(await bells(result.ref)).toEqual([
+      { key: 'service.consent_needed', userId: car.sellerId },
+    ]);
+  });
+
+  it('والقرار يصل طالبَه — قبولًا ورفضًا', async () => {
+    const car = await listedCar();
+    const buyer = await someoneElse(car.sellerId);
+    const service = await db.service.findFirstOrThrow({
+      where: { active: true, providerType: { not: null } },
+      select: { key: true },
+    });
+
+    const result = await requestService({
+      serviceKey: service.key,
+      requesterId: buyer,
+      vehicleId: car.vehicleId,
+      scheduledAt: null,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    made.push(result.ref);
+
+    await decideServiceRequest({
+      ref: result.ref,
+      sellerId: car.sellerId,
+      accept: true,
+      reason: null,
+    });
+
+    const after = await bells(result.ref);
+    expect(after.filter((row) => row.key === 'service.consent_granted')).toEqual([
+      { key: 'service.consent_granted', userId: buyer },
+    ]);
+    /** **ولا يُخطَر من قرّر** — رأى نتيجته على شاشته. */
+    expect(after.some((row) => row.userId === car.sellerId && row.key !== 'service.consent_needed'))
+      .toBe(false);
+  });
+
+  /** **والسقوط صامتًا أسوأ من الرفض بسببه** — فمن ينتظر يبقى ينتظر. */
+  it('وانقضاء المهلة يُخبر صاحبه أن طلبه سقط', async () => {
+    const car = await listedCar();
+    const buyer = await someoneElse(car.sellerId);
+    const service = await db.service.findFirstOrThrow({
+      where: { active: true, providerType: { not: null } },
+      select: { key: true },
+    });
+
+    const result = await requestService({
+      serviceKey: service.key,
+      requesterId: buyer,
+      vehicleId: car.vehicleId,
+      scheduledAt: null,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    made.push(result.ref);
+
+    await db.serviceRequest.update({
+      where: { ref: result.ref },
+      data: { decisionDueAt: new Date(Date.now() - 1000) },
+    });
+    await lapseServiceConsents();
+
+    expect((await bells(result.ref)).filter((row) => row.key === 'service.consent_declined'))
+      .toEqual([{ key: 'service.consent_declined', userId: buyer }]);
   });
 });

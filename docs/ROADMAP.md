@@ -104,8 +104,11 @@ Measurement and build order: `docs/BACKLOG.md` § I.
 - [x] **City dispatch** — the city comes from the **listing**, and the pool is
       every provider of the service's `providerType` covering that city with a
       usable payment account. `Service.providerId` stays the preferred one.
-- [ ] **Notifications for each step** — the seller is not yet told a request
-      awaits them, nor the requester of the decision.
+- [x] **Notifications for each step** — consent needed, granted, declined and
+      lapsed, each to the party who did **not** act, each linking to the request
+      and gated on being one of its two parties. Fixed `Dispute` in passing: it
+      had been declared in `NotificationEntity` with **no destination resolver**,
+      so three critical dispute notifications arrived with no link.
 - [ ] **A provider surface.** `src/app` holds `[locale]` and `admin` and nothing
       else, so "the seller's contact is revealed to the inspector" has nowhere
       to appear.

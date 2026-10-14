@@ -87,10 +87,35 @@ requester read that they were waiting for a report that would never come. Both
 are fixed, with the labels in `src/lib/labels/services.ts` read by the list and
 the detail page alike.
 
+## Notifications
+
+| Moment | Key | Who receives it |
+| --- | --- | --- |
+| A request lands on your car | `service.consent_needed` | the **seller** |
+| The owner agreed | `service.consent_granted` | the **requester** |
+| The owner declined, or the window lapsed | `service.consent_declined` | the **requester** |
+
+Whoever made the decision is not told of it — they saw the result on their own
+screen. Every step here has a deadline running against someone, and without a
+bell the window lapses on a person who never knew it had started.
+
+Each line links to `/account/reports/[ref]`. `destinations()` resolves
+`ServiceRequest:{ref}` **and requires the reader to be one of the two parties**,
+so a leaked id does not open someone else's request.
+
+**`Dispute` was declared and had no resolver.** It has been in
+`NotificationEntity` since the type was written and three places write it, but
+nothing turned it into a link — so «فُتح نزاعٌ على طلبك» arrived at critical
+priority and could not be opened by clicking. It now resolves to the order's
+page, where the dispute is shown at the top.
+
+**The reason travels as a key, not a sentence.** The domain does not know the
+display language, and a sentence it builds would be rendered inside a template
+that phrases things differently (gate 17). `consent.lapsed` is the stored reason
+and both the screen and the template phrase it.
+
 ## Still missing
 
-- **Notifications** for each step — the seller is not yet told a request is
-  waiting, and the requester is not told of the decision.
-- **The provider side**: `ASSIGNED` / `IN_PROGRESS` / `DONE` still have no
-  writer, there is no provider surface, and the held money is never captured or
-  split. `docs/BACKLOG.md` § I carries the rest in build order.
+**The provider side**: `ASSIGNED` / `IN_PROGRESS` / `DONE` still have no writer,
+there is no provider surface, and the held money is never captured or split.
+`docs/BACKLOG.md` § I carries the rest in build order.

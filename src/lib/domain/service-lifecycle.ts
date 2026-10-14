@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ServiceRequestStatus } from '@/generated/prisma/enums';
 import { deadline } from './deadlines';
-import { MIN_DECLINE_REASON } from './service-rules';
+import { LAPSED_REASON, MIN_DECLINE_REASON } from './service-rules';
 
 /**
  * ═══ رحلةُ طلب الخدمة — ثلاثةُ أطراف لا طرفان ═══
@@ -261,6 +261,25 @@ export async function requestService(
     },
   });
 
+  /**
+   * **ومن ينتظر منه فعلٌ يُخبَر.** مهلةُ الإذن تجري منذ هذه اللحظة،
+   * ومن لا يعلم بها يدعها تنقضي — فيسقط طلبٌ ما كان ليُرفض.
+   *
+   * وخارج ما يكتب الحال: طلبٌ أُنشئ لا يُبطَل لأن جرسًا لم يرنّ.
+   */
+  if (needsConsent && subject.kind === 'LISTED') {
+    try {
+      await notifyConsentNeeded(
+        ref,
+        subject.sellerId,
+        await deadline('serviceConsentHours'),
+      );
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'service-lifecycle.request.notify', extra: { ref } });
+    }
+  }
+
   return {
     ok: true,
     ref,
@@ -288,7 +307,7 @@ export async function decideServiceRequest(
 ): Promise<DecisionResult> {
   const request = await db.serviceRequest.findUnique({
     where: { ref: input.ref },
-    select: { id: true, status: true, sellerId: true, decisionDueAt: true },
+    select: { id: true, status: true, sellerId: true, userId: true, amount: true, decisionDueAt: true },
   });
 
   if (request === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
@@ -312,6 +331,21 @@ export async function decideServiceRequest(
     },
   });
 
+  /**
+   * **والقرار يصل صاحبه.** القبول يفتح عليه السداد، والرفض ينهي
+   * انتظاره — **ومعه سببُه**: «رُفض» وحدها تُعيده إلى الحيرة، أيعيد
+   * الطلب أم يبحث عن سيارةٍ أخرى؟
+   */
+  try {
+    await notifyConsentDecision(input.ref, request.userId, input.accept, {
+      amount: request.amount.toString(),
+      reason,
+    });
+  } catch (error) {
+    const { reportError } = await import('@/lib/observability/report');
+    reportError(error, { where: 'service-lifecycle.decide.notify', extra: { ref: input.ref } });
+  }
+
   return { ok: true, status: input.accept ? 'AWAITING_PAYMENT' : 'DECLINED' };
 }
 
@@ -325,14 +359,33 @@ export async function decideServiceRequest(
 export async function lapseServiceConsents(now: Date = new Date()): Promise<number> {
   const stale = await db.serviceRequest.findMany({
     where: { status: 'AWAITING_SELLER', decisionDueAt: { lte: now } },
-    select: { id: true },
+    select: { id: true, ref: true, userId: true },
   });
   if (stale.length === 0) return 0;
 
   const { count } = await db.serviceRequest.updateMany({
     where: { id: { in: stale.map((row) => row.id) } },
-    data: { status: 'DECLINED', decidedAt: now, declineReason: 'consent.lapsed' },
+    data: { status: 'DECLINED', decidedAt: now, declineReason: LAPSED_REASON },
   });
+
+  /**
+   * **ومن سقط طلبُه يُخبَر.** انتظر إذنًا لم يأتِ، وبلا خبرٍ يبقى
+   * ينتظر فحصًا لن يقع — والسقوط صامتًا أسوأ من الرفض بسببه.
+   */
+  for (const row of stale) {
+    try {
+      /**
+       * **ومفتاحٌ لا جملة** (البوابة ١٧): النطاق لا يعرف اللغة، وجملةٌ
+       * يبنيها تُقرأ في قالبٍ يصوغ غيرها. و`consent.lapsed` هو السبب
+       * المخزَّن نفسه، تصوغه الشاشة والقالب.
+       */
+      await notifyConsentDecision(row.ref, row.userId, false, { reason: LAPSED_REASON });
+    } catch (error) {
+      const { reportError } = await import('@/lib/observability/report');
+      reportError(error, { where: 'service-lifecycle.lapse.notify', extra: { ref: row.ref } });
+    }
+  }
+
   return count;
 }
 
@@ -597,4 +650,57 @@ export async function consentsAwaiting(sellerId: string, now: Date = new Date())
       OR: [{ decisionDueAt: null }, { decisionDueAt: { gt: now } }],
     },
   });
+}
+
+/**
+ * ═══ ومن ينتظر يُخبَر ═══
+ *
+ * الدورة كلُّها مواعيدُ ينتظرها إنسان: البائع يأذن قبل انقضاء مهلته،
+ * والطالبُ يسدّد بعد الإذن أو يعرف لماذا رُفض. **وبلا جرسٍ يُفتح
+ * الحسابُ بالصدفة** — وهو ما يجعل المهلة تنقضي على من لم يعلم بها.
+ *
+ * والوجهة مرجعُ الطلب: `destinations()` تربط `ServiceRequest:{ref}` إلى
+ * صفحته، وتشترط أن يكون القارئ أحد طرفيه.
+ */
+async function bell(
+  userId: string,
+  templateKey: string,
+  ref: string,
+  payload: Record<string, string>,
+  priority: 'critical' | 'high' | 'normal',
+): Promise<void> {
+  const { notify } = await import('./notifications');
+  await notify({
+    userId,
+    templateKey,
+    priority,
+    payload: { ref, ...payload },
+    entityType: 'ServiceRequest',
+    entityId: ref,
+  });
+}
+
+/** يُخطِر صاحب المركبة أن فحصًا يُطلب عليها — وله مهلة. */
+export async function notifyConsentNeeded(
+  ref: string,
+  sellerId: string,
+  hours: number,
+): Promise<void> {
+  await bell(sellerId, 'service.consent_needed', ref, { hours: String(hours) }, 'critical');
+}
+
+/** ويُخطِر الطالبَ بالقرار — ومعه سببُه إن كان رفضًا. */
+export async function notifyConsentDecision(
+  ref: string,
+  requesterId: string,
+  accepted: boolean,
+  detail: { amount?: string; reason?: string },
+): Promise<void> {
+  await bell(
+    requesterId,
+    accepted ? 'service.consent_granted' : 'service.consent_declined',
+    ref,
+    accepted ? { amount: detail.amount ?? '' } : { reason: detail.reason ?? '' },
+    accepted ? 'critical' : 'high',
+  );
 }

@@ -774,5 +774,61 @@
       "service"
     ],
     "active": true
+  },
+  {
+    "key": "service.consent_needed",
+    "subjectAr": "طلبُ فحصٍ على مركبتك",
+    "subjectEn": "An inspection request on your car",
+    "bodyAr": "أحد المهتمّين يريد فحص مركبتك على حسابه. أذِن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئًا.",
+    "bodyEn": "Someone wants your car inspected at their own cost. Accept or decline before the window closes — it costs you nothing.",
+    "smsAr": "طلب فحص على مركبتك {ref}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "hours"
+    ],
+    "active": true
+  },
+  {
+    "key": "service.consent_granted",
+    "subjectAr": "أُذن بفحص السيارة",
+    "subjectEn": "The inspection was approved",
+    "bodyAr": "وافق صاحب المركبة. ادفع ليذهب الطلب إلى فاحصي مدينتها ويُحدَّد الموعد.",
+    "bodyEn": "The owner agreed. Pay so the request reaches the inspectors in the car's city and a time is set.",
+    "smsAr": "أُذن بفحص {ref} — ادفع لتبدأ",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
+    "key": "service.consent_declined",
+    "subjectAr": "لم يُؤذَن بالفحص",
+    "subjectEn": "The inspection was not approved",
+    "bodyAr": "لم يُؤذَن بفحص هذه السيارة، ولم يُؤخذ منك شيء. السبب في صفحة الطلب.",
+    "bodyEn": "The inspection was not approved and nothing was charged. The reason is on the request page.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true
   }
 ]
