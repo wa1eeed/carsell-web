@@ -46,12 +46,31 @@ export function RequestService({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [vehicleId, setVehicleId] = useState(
-    vehicles.some((vehicle) => vehicle.id === initialVehicleId)
-      ? (initialVehicleId ?? '')
-      : (vehicles[0]?.id ?? ''),
-  );
-  const [city, setCity] = useState(cities[0] ?? '');
+  /**
+   * ═══ الاختيارُ يُشتقّ من القائمة لا يُنسخ منها مرّة ═══
+   *
+   * `useState(vehicles[0]?.id)` يُقرأ عند التركيب وحده، وصفحتا خدمتين
+   * من المسار نفسه (`/services/[key]`) لا تُعيدان تركيب المكوّن — فمن
+   * فتح الخدمة من مركبةٍ ثم فتحها من أخرى **يطلب الفحص للأولى**،
+   * والشاشة تُظهر اسم الأولى ولا شيء يقول إنه ليس ما قصد.
+   *
+   * فيُحفظ الاختيار مختومًا بالقائمة، ويسقط إلى افتراضيّها حين تتبدّل.
+   */
+  const vehicleKey = `${vehicles.map((vehicle) => vehicle.id).join('|')}#${initialVehicleId ?? ''}`;
+  const [pickedVehicle, setPickedVehicle] = useState<{ key: string; id: string } | null>(null);
+  const vehicleId =
+    pickedVehicle !== null && pickedVehicle.key === vehicleKey
+      ? pickedVehicle.id
+      : vehicles.some((vehicle) => vehicle.id === initialVehicleId)
+        ? (initialVehicleId ?? '')
+        : (vehicles[0]?.id ?? '');
+  const setVehicleId = (id: string): void => setPickedVehicle({ key: vehicleKey, id });
+
+  const cityKey = cities.join('|');
+  const [pickedCity, setPickedCity] = useState<{ key: string; city: string } | null>(null);
+  const city =
+    pickedCity !== null && pickedCity.key === cityKey ? pickedCity.city : (cities[0] ?? '');
+  const setCity = (value: string): void => setPickedCity({ key: cityKey, city: value });
   const [when, setWhen] = useState('');
   const [toast, setToast] = useState<string | null>(null);
 

@@ -125,7 +125,7 @@ rather than found by chance.
 | `Badge` | no | `tone` · `size` · `children` · `className` | 88 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 10 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 11 |
 | `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 83 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 7 |
@@ -136,7 +136,7 @@ rather than found by chance.
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 36 |
-| `FaqAccordion` | yes | `rows` · `columns` · `className` | 3 |
+| `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 9 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |

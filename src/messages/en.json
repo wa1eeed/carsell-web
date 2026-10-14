@@ -397,6 +397,7 @@
     "points": "{count, plural, one{{n} point} other{{n} points}}",
     "services": "{count, plural, one{{n} service} other{{n} services}}",
     "articles": "{count, plural, one{{n} article} other{{n} articles}}",
+    "results": "{count, plural, one{one result} other{{n} results}}",
     "seconds": "{count, plural, one{{n} second} other{{n} seconds}}",
     "views": "{count, plural, one{{n} view} other{{n} views}}",
     "offers": "{count, plural, one{{n} offer} other{{n} offers}}",
@@ -678,7 +679,7 @@
   },
   "help": {
     "title": "Help centre",
-    "intro": "Written answers to what is actually asked. If yours is not here, contact us at the bottom.",
+    "intro": "Answers about selling, buying, auctions, escrow and ownership transfer.",
     "browseByTopic": "Browse by topic",
     "mostAsked": "Most asked",
     "notFound": "Did not find your answer?",
@@ -688,7 +689,14 @@
     "emptyTopic": "No questions in this topic yet.",
     "disputesTitle": "Disputes",
     "disputesBody": "Open a dispute from the order page before you confirm receipt. The amount is frozen in escrow until it is resolved, and the team contacts both parties.",
-    "disputesCta": "My orders"
+    "disputesCta": "My orders",
+    "heroTitle": "How can we help?",
+    "resultsFor": "Results for “{q}”",
+    "clearSearch": "Clear search",
+    "emptySearch": "Nothing matched “{q}”",
+    "emptySearchBody": "Try a shorter word or a synonym, browse the topics, or contact support.",
+    "searchPlaceholder": "Search for your question…",
+    "searchSubmit": "Search"
   },
   "legal": {
     "version": "Version",

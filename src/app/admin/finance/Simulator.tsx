@@ -20,7 +20,11 @@ export function Simulator({
   scenarios: readonly CommissionScenario[];
   gmv: string;
 }) {
-  const [chosen, setChosen] = useState(scenarios[0]?.pct ?? 0);
+  /** مُشتقٌّ من السيناريوهات: نسبةٌ لم تعد فيها تعرض أرقام غيرها. */
+  const offered = scenarios.map((entry) => entry.pct).join('|');
+  const [picked, setPicked] = useState<{ offered: string; pct: number } | null>(null);
+  const chosen = picked !== null && picked.offered === offered ? picked.pct : (scenarios[0]?.pct ?? 0);
+  const setChosen = (pct: number): void => setPicked({ offered, pct });
   const scenario = scenarios.find((entry) => entry.pct === chosen) ?? scenarios[0];
 
   return (

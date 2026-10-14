@@ -203,7 +203,7 @@ compare. It is not published — dev routes are blocked in task 28.
 | `PaintMap` | Three states, not two — **"not measured" is not "original"**. Hiding that difference makes an unmeasured panel look verified, which is worse than silence. |
 | `HistoryList` | Every line carries its source. Empty state rather than grey placeholder rows. |
 | `BuyColumn` | Swaps wholesale by selling method rather than hiding buttons. Never renders a reserve or minimum-accept **amount**. |
-| `FaqAccordion` | Native `<details>`, one open at a time, answers present in served HTML for `FAQPage`. |
+| `FaqAccordion` | Native `<details>`, one open at a time, answers present in served HTML for `FAQPage`. The open row is **derived from the list, not copied once**: `useState(rows[0]?.id)` survived client navigation between help topics, so after the first topic click **nothing was open** — the held id belonged to the previous list. The choice now carries the list's identity and falls back when it changes. `openId` (from `?a=`) renders a shared answer open **on the server**, and `baseHref` — a string, never a function, which cannot cross the server boundary — builds the copy-link each row offers. |
 | `SimilarGrid` | Deliberately lighter than `CarCard` — the reader is comparing, not searching, so seller and badges would compete with the page. Returns nothing when the list is empty. |
 
 ### One namespace for enum labels

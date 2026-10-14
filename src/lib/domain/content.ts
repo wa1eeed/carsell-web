@@ -59,11 +59,25 @@ export type HelpCategory = { key: string; count: number };
  * **الفئات تُشتقّ من الأسئلة الموجودة** لا من قائمة ثابتة: فئة أُفرغت
  * تختفي، وفئة جديدة تظهر بمجرّد أن يُصنَّف فيها سؤال. قائمةٌ مكتوبة
  * في الكود تعني فئة فارغة تنتظر محرّرًا لا يعلم بوجودها.
+ *
+ * ═══ والعدّاد يُحسب بمرشّح القائمة التي يفتحها ═══
+ *
+ * كان يعدّ كل سؤالٍ فعّال، و`helpFaqs` تعرض ما وُضع على سطح
+ * `help_center` وحده — فقِيس: **أربعةٌ من تسعة تكذب**، و«المزادات ٥
+ * مقالات» تفتح ثلاثًا. والزائر لا يظنّ العدّاد خاطئًا، بل يظنّ أنه
+ * أخطأ القراءة أو أن شيئًا ضاع.
+ *
+ * فالشرط واحد في الموضعين، ويحرسه `tests/help-centre.test.ts`.
  */
+export const HELP_SURFACE = 'help_center';
+
 export async function helpCategories(): Promise<HelpCategory[]> {
   const rows = await db.faqItem.groupBy({
     by: ['category'],
-    where: { active: true },
+    where: {
+      active: true,
+      placements: { some: { surface: HELP_SURFACE, active: true } },
+    },
     _count: { _all: true },
     orderBy: { _count: { category: 'desc' } },
   });
@@ -106,7 +120,7 @@ export async function helpFaqs(
               { answerEn: { contains: term, mode: 'insensitive' } },
             ],
           }),
-      placements: { some: { surface: 'help_center', active: true } },
+      placements: { some: { surface: HELP_SURFACE, active: true } },
     },
     orderBy: [{ sort: 'asc' }],
     take,

@@ -35,6 +35,7 @@ export type Unit =
   | 'points'
   | 'services'
   | 'articles'
+  | 'results'
   | 'seconds'
   | 'views'
   | 'offers'

@@ -5,12 +5,14 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { SectionHead } from '@/components/ui/HomeSections';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
 import { helpCategories, helpFaqs } from '@/lib/domain/content';
+import { HelpJsonLd } from './JsonLd';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,13 +48,21 @@ export default async function HelpPage({
   const search = await searchParams;
   const topic = typeof search.topic === 'string' ? search.topic : undefined;
   const query = typeof search.q === 'string' && search.q.trim() !== '' ? search.q.trim() : undefined;
+  /**
+   * السؤال المطلوب فتحُه — يصل من رابطٍ شاركه الدعم أو نتيجةُ بحث.
+   * **ويُقرأ في الخادم** لا من `location.hash`: الرابط يجب أن يفتح
+   * جوابَه لمن لا JS عنده، ولمحرّك البحث الذي يقرأ المصدر.
+   */
+  const answer = typeof search.a === 'string' && search.a !== '' ? search.a : undefined;
 
-  const [categories, faqs, t, te] = await Promise.all([
+  const [categories, faqs, t, te, nav, ui] = await Promise.all([
     helpCategories(),
     // البحث يوسّع الحدّ: من يبحث يريد كل ما يطابق لا أوّل ثمانية
     helpFaqs(topic, query === undefined && topic === undefined ? 8 : 30, query),
     getTranslations('help'),
     getTranslations('enums'),
+    getTranslations('site.nav'),
+    getTranslations('ui'),
   ]);
 
   const isArabic = locale === 'ar';
@@ -62,13 +72,61 @@ export default async function HelpPage({
     return translated;
   };
 
+  const rows = faqs.map((faq) => ({
+    id: faq.id,
+    question: isArabic ? faq.questionAr : faq.questionEn,
+    answer: isArabic ? faq.answerAr : faq.answerEn,
+  }));
+
+  /**
+   * ═══ العنوان يقول ما تحته ═══
+   *
+   * كان «الأكثر سؤالًا» فوق نتائج بحث — فمن بحث عن «عربون» يقرأ أن
+   * ما يراه هو الأكثر سؤالًا لا ما طلبه، ولا يعرف أبحثُه وقع أم لا.
+   */
+  const heading = query !== undefined
+    ? t('resultsFor', { q: query })
+    : topic !== undefined && known
+      ? label(topic)
+      : t('mostAsked');
+
+  /** رابطُ هذه القائمة بعينها — تنسخه أزرار «انسخ رابط الجواب». */
+  const listParams = new URLSearchParams();
+  if (topic !== undefined) listParams.set('topic', topic);
+  if (query !== undefined) listParams.set('q', query);
+  const listed = listParams.toString();
+  const baseHref = `/${locale}/help${listed === '' ? '' : `?${listed}`}`;
+
   return (
     <>
       <SiteHeader active="services" />
+      <HelpJsonLd
+        faq={rows}
+        locale={locale}
+        {...(topic !== undefined && known ? { topic, topicLabel: label(topic) } : {})}
+        homeLabel={nav('home')}
+        helpLabel={t('title')}
+      />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
+          {/*
+            **والمسار يقول أين أنت.** من يصل من بحثٍ خارجيّ إلى موضوعٍ
+            بعينه لا يعرف أن فوقه مركزًا ولا أن فوقه موقعًا، فيخرج
+            بالرجوع لا بالصعود.
+          */}
+          <Breadcrumb
+            label={ui('breadcrumb')}
+            className="mb-5"
+            items={[
+              { label: nav('home'), href: `/${locale}` },
+              ...(topic !== undefined && known
+                ? [{ label: t('title'), href: `/${locale}/help` }, { label: label(topic) }]
+                : [{ label: t('title') }]),
+            ]}
+          />
+
           <header className="mb-9">
-            <h1 className="mb-2.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
+            <h1 className="mb-2.5 text-4xl font-bold tracking-tight">{t('heroTitle')}</h1>
             <p className="mb-6 max-w-2xl text-sm leading-loose opacity-68">{t('intro')}</p>
 
             {/*
@@ -105,7 +163,7 @@ export default async function HelpPage({
                   type="search"
                   name="q"
                   defaultValue={query ?? ''}
-                  placeholder="ابحث عن سؤالك…"
+                  placeholder={t('searchPlaceholder')}
                   className="w-full rounded-full border border-line bg-surface py-3 pe-5 ps-11 text-sm"
                 />
               </label>
@@ -113,7 +171,7 @@ export default async function HelpPage({
                 type="submit"
                 className="rounded-full border border-ink px-6 py-3 text-sm font-bold hover:bg-ink hover:text-bg"
               >
-                ابحث
+                {t('searchSubmit')}
               </button>
             </form>
           </header>
@@ -145,17 +203,54 @@ export default async function HelpPage({
 
           <div className="flex flex-col gap-14 lg:flex-row">
             <section className="min-w-0 flex-[1.5]">
-              <SectionHead title={topic === undefined ? t('mostAsked') : label(topic)} />
-              {faqs.length === 0 ? (
-                <EmptyState title={t('emptyTopic')} description={t('intro')} />
-              ) : (
-                <FaqAccordion
-                  rows={faqs.map((faq) => ({
-                    id: faq.id,
-                    question: isArabic ? faq.questionAr : faq.questionEn,
-                    answer: isArabic ? faq.answerAr : faq.answerEn,
-                  }))}
+              {/*
+                **والعدد يُقرأ قبل القائمة.** من بحث يريد أن يعرف أوقع
+                بحثُه أم لا قبل أن يقرأ، و«امسح البحث» بابُ الرجوع —
+                وبلا بابٍ يبقى على نتيجةٍ ضيّقة لا يعرف كيف يخرج منها.
+              */}
+              <SectionHead
+                title={heading}
+                {...(query === undefined
+                  ? {}
+                  : {
+                      action: t('clearSearch'),
+                      href: topic === undefined ? `/${locale}/help` : `/${locale}/help?topic=${topic}`,
+                    })}
+              />
+              {query === undefined || rows.length === 0 ? null : (
+                <p className="mb-3 text-2xs opacity-50">
+                  <Quantity unit="results" count={rows.length} />
+                </p>
+              )}
+
+              {rows.length === 0 ? (
+                /*
+                  **وحالةُ البحث غير حالةِ الموضوع.** من بحث عن كلمةٍ
+                  لا تُقال له «لا أسئلة في هذا الموضوع» — لم يختر
+                  موضوعًا. ولكلٍّ بابُ خروجه: المواضيع أو الدعم.
+                */
+                <EmptyState
+                  title={query === undefined ? t('emptyTopic') : t('emptySearch', { q: query })}
+                  description={query === undefined ? t('intro') : t('emptySearchBody')}
+                  action={
+                    <div className="flex flex-wrap items-center justify-center gap-2.5">
+                      <Link
+                        href={`/${locale}/help`}
+                        className="rounded-md border border-line px-5 py-2.5 text-xs font-bold hover:border-ink"
+                      >
+                        {t('allTopics')}
+                      </Link>
+                      <Link
+                        href={`/${locale}/help/contact`}
+                        className="rounded-md bg-accent px-5 py-2.5 text-xs font-bold text-bg"
+                      >
+                        {t('contact')}
+                      </Link>
+                    </div>
+                  }
                 />
+              ) : (
+                <FaqAccordion rows={rows} openId={answer} baseHref={baseHref} />
               )}
               {/* موضوع في الرابط لا نعرفه: لا نصمت ولا نُخطئ — نقول ونعرض الكل */}
               {topic !== undefined && !known ? (

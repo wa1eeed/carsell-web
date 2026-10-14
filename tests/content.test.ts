@@ -3,7 +3,6 @@ import { db } from '@/lib/db';
 import {
   SERVICE_CATEGORIES,
   getLegalDocument,
-  helpCategories,
   helpFaqs,
   listLegalDocuments,
   listServices,
@@ -47,31 +46,15 @@ describe('Wi — دليل الخدمات', () => {
 
 describe('Wn — المساعدة', () => {
   /**
-   * «٨ مقالة» تحت موضوع يجب أن تصير تسعًا حين يضيف المحرّر التاسعة،
-   * وإلا صار العدّ كذبًا مطبوعًا.
+   * ═══ العدّادات والمواضيع انتقلت إلى `tests/help-centre.test.ts` ═══
+   *
+   * **وكانتا تُثبّتان سلوكًا خاطئًا.** قاستا العدّاد مقابل «كل سؤالٍ
+   * فعّال في الموضوع»، والشاشة تعرض ما وُضع على سطح `help_center`
+   * وحده — فمرّتا على فارقٍ يراه الزائر: «المزادات ٥ مقالات» تفتح
+   * ثلاثًا. فلمّا صُحّح المصدر سقطتا، والصواب أنهما كانتا الخطأ.
+   *
+   * والقاعدة الآن في ملفٍّ واحد: كل عدّادٍ يساوي **طول ما يفتحه**.
    */
-  it('عدّاد كل موضوع يطابق ما فيه فعلًا', async () => {
-    const categories = await helpCategories();
-    expect(categories.length).toBeGreaterThan(0);
-
-    for (const category of categories) {
-      const real = await db.faqItem.count({
-        where: { active: true, category: category.key },
-      });
-      expect(real, category.key).toBe(category.count);
-      expect(category.count).toBeGreaterThan(0);
-    }
-  });
-
-  it('المواضيع مشتقّة من الأسئلة — لا موضوع فارغ ينتظر من يحذفه', async () => {
-    const categories = await helpCategories();
-    const used = await db.faqItem.findMany({
-      where: { active: true },
-      distinct: ['category'],
-      select: { category: true },
-    });
-    expect(new Set(categories.map((c) => c.key))).toEqual(new Set(used.map((u) => u.category)));
-  });
 
   it('الترشيح بموضوع يضيّق ولا يُفرغ', async () => {
     const all = await helpFaqs(undefined, 100);

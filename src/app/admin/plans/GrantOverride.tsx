@@ -26,7 +26,14 @@ export function GrantOverride({
   const [error, setError] = useState<string | null>(null);
 
   const [userId, setUserId] = useState('');
-  const [key, setKey] = useState(entitlements[0]?.key ?? '');
+  /** مُشتقٌّ من القائمة: مفتاحٌ لم يعد فيها يُرسِل قيمةً لا يقبلها الخادم. */
+  const catalogue = entitlements.map((entry) => entry.key).join('|');
+  const [pickedKey, setPickedKey] = useState<{ catalogue: string; key: string } | null>(null);
+  const key =
+    pickedKey !== null && pickedKey.catalogue === catalogue
+      ? pickedKey.key
+      : (entitlements[0]?.key ?? '');
+  const setKey = (value: string): void => setPickedKey({ catalogue, key: value });
   const [value, setValue] = useState('');
   const [reason, setReason] = useState('');
   const [until, setUntil] = useState('');

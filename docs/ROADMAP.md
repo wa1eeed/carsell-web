@@ -53,9 +53,37 @@ removed until they are built — a link that opens a 404 is worse than no link.
 Guarded by `tests/footer-links.test.ts`, which resolves every href against the
 route tree.
 
+**Closed 2026-10-14 — the help centre (Wn).** Walked by clicking, and five
+things were wrong with a page that reads fine:
+
+- **Four of nine topic counters lied.** `helpCategories` counted every active
+  FAQ while the list showed only those placed on the `help_center` surface, so
+  «المزادات ٥ مقالات» opened three. One filter now serves both, and
+  `tests/help-centre.test.ts` asserts the *relation* (each counter equals the
+  length of what it opens) rather than a number an editor would break.
+- **After the first topic click, no answer was open.** `FaqAccordion` seeded its
+  open row with `useState(rows[0]?.id)`; client navigation between `?topic=`
+  URLs does not remount it, so the held id matched nothing in the new list. The
+  design opens the first. **Gate 47** now refuses state seeded from a list prop —
+  measured at four occurrences, all fixed, one of which (`RequestService`) would
+  have ordered an inspection **for the previously viewed car**.
+- **The heading lied after a search.** It still read «الأكثر سؤالًا» over search
+  results, with no count and no way back. It now names the query, counts the
+  results through `Quantity`, and offers «امسح البحث».
+- **A fruitless search said «لا أسئلة في هذا الموضوع»** — the reader chose no
+  topic. A search has its own empty state now, with two ways out.
+- **No structured data** on the one page that is entirely questions, while the
+  car page emits `FAQPage` from eight. Added, with `BreadcrumbList` and a
+  visible breadcrumb.
+
+Also: answers are now linkable (`?a=…#q-…`, rendered open by the server so the
+link works without JS and the JSON-LD stays true), the hero carries the design's
+«كيف نساعدك؟», the two hard-coded Arabic strings in the search box are
+translated, and the intro no longer promises that contact is «أسفل الصفحة» when
+it is in the sidebar.
+
 **Still unwalked:**
 
-- [ ] The help / support pages.
 - [ ] The remaining landing pages beyond the one walked.
 - [ ] A re-measure of the mobile layout after the type-scale and header changes
       — `docs/BACKLOG.md` records that this measurement rots and must be redone
