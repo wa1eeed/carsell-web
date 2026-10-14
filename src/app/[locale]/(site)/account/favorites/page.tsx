@@ -1,10 +1,9 @@
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, favoriteListings } from '@/lib/domain/account';
 import { Badge } from '@/components/ui/Badge';
@@ -41,9 +40,7 @@ export default async function FavoritesPage({
         description: 'احفظ ما يعجبك أثناء التصفّح ليظهر هنا بسعره وحاله.',
       }}
       action={
-        <Link href={`/${locale}/cars`}>
-          <Button size="sm">تصفّح السيارات</Button>
-        </Link>
+        <LinkButton href={`/${locale}/cars`} size="sm">تصفّح السيارات</LinkButton>
       }
     >
       {favorites.map((item) => (

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { ActionButton } from './ActionLink';
 import { ArabicNumber } from './ArabicNumber';
 import { Badge } from './Badge';
 import { EmptyState } from './EmptyState';
@@ -84,14 +85,10 @@ export function FindingsTable({
           </span>
         </h2>
         <span className="h-px flex-1 bg-line" />
-        <button
-          type="button"
-          onClick={() => setShowAll((current) => !current)}
-          className="text-xs font-bold text-accent-700 hover:underline"
-        >
+        <ActionButton onClick={() => setShowAll((current) => !current)}>
           {showAll ? t('showFindingsOnly') : t('showPassed')}{' '}
           {showAll ? null : <ArabicNumber value={passed} />}
-        </button>
+        </ActionButton>
       </header>
 
       {rows.length === 0 ? (

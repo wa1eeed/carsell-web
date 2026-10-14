@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **147** components in **3** directories.
+Counted: **150** components in **3** directories.
 
 ## Referenced nowhere else
 
@@ -120,6 +120,8 @@ rather than found by chance.
 
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
+| `ActionButton` | no | `onClick` · `children` · `className` | 1 |
+| `ActionLink` | no | `href` · `children` · `className` | 4 |
 | `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 100 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 88 |
@@ -127,6 +129,7 @@ rather than found by chance.
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 11 |
 | `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 83 |
+| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 12 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 7 |
 | `CarRow` | no | `data` · `className` | 3 |

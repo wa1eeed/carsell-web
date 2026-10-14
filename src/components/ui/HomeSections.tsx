@@ -6,6 +6,7 @@ import { SponsoredTile } from '@/components/site/SponsoredCard';
 import type { ServedAd } from '@/lib/domain/ad-rules';
 import { Money } from './Money';
 import { Quantity } from './Quantity';
+import { ActionLink } from './ActionLink';
 import { cn } from '@/lib/cn';
 
 /**
@@ -35,9 +36,7 @@ export function SectionHead({
       {action === undefined ? null : href === undefined ? (
         <span className="text-xs font-bold text-accent-700">{action}</span>
       ) : (
-        <Link href={href} className="text-xs font-bold text-accent-700 hover:underline">
-          {action}
-        </Link>
+        <ActionLink href={href}>{action}</ActionLink>
       )}
     </header>
   );

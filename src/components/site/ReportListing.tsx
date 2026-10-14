@@ -86,7 +86,8 @@ export function ReportListing({
           }
           setOpen(true);
         }}
-        className="text-3xs opacity-40 underline underline-offset-2 hover:opacity-70"
+        /* مساحةُ اللمس أوسع من النصّ — سبعةَ عشرَ بكسلًا دون حدّ WCAG */
+        className="-my-2 py-2 text-3xs opacity-40 underline underline-offset-2 hover:opacity-70"
       >
         أبلغ عن هذا الإعلان
       </button>

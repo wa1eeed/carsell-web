@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 
 import { Badge } from '@/components/ui/Badge';
 import { FilterChip } from '@/components/ui/FilterChip';
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { Quantity } from '@/components/ui/Quantity';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { routing } from '@/i18n/routing';
@@ -166,9 +166,7 @@ export default async function MyVehiclesPage({
                 }
       }
       action={
-        <Link href={`/${locale}/sell`}>
-          <Button size="sm">أضف سيارة</Button>
-        </Link>
+        <LinkButton href={`/${locale}/sell`} size="sm">أضف سيارة</LinkButton>
       }
     >
       {shown.map((vehicle) => {

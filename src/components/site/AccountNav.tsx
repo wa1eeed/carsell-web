@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { Link } from '@/i18n/navigation';
 import { currentUserFromCookies } from '@/lib/domain/account';
 
@@ -30,16 +30,17 @@ export async function AccountNav({
     return (
       <span className={stacked ? 'flex flex-col gap-2.5' : 'flex items-center gap-2.5'}>
         {/* الزرّ عنصر تفاعل والرابط تنقّل — لا يُخلطان */}
-        <Link href="/sell" className={stacked ? 'contents' : 'hidden sm:block'}>
-          <Button variant="outline" size="sm" className={stacked ? 'w-full' : ''}>
-            بِع سيارتك
-          </Button>
-        </Link>
-        <Link href="/auth" className={stacked ? 'contents' : ''}>
-          <Button size="sm" className={stacked ? 'w-full' : ''}>
-            تسجيل الدخول
-          </Button>
-        </Link>
+        <LinkButton
+          href="/sell"
+          variant="outline"
+          size="sm"
+          className={stacked ? 'w-full' : 'hidden sm:inline-flex'}
+        >
+          بِع سيارتك
+        </LinkButton>
+        <LinkButton href="/auth" size="sm" className={stacked ? 'w-full' : ''}>
+          تسجيل الدخول
+        </LinkButton>
       </span>
     );
   }
@@ -53,11 +54,9 @@ export async function AccountNav({
 
   return (
     <span className="flex items-center gap-2.5">
-      <Link href="/sell">
-        <Button variant="outline" size="sm">
-          بِع سيارتك
-        </Button>
-      </Link>
+      <LinkButton href="/sell" variant="outline" size="sm">
+        بِع سيارتك
+      </LinkButton>
 
       {/*
         ═══ والاسم يُطوى على الهاتف لا يُحذف صاحبُه ═══

@@ -8,8 +8,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { routing } from '@/i18n/routing';
 import { canonicalPath, faqForListing, servicesForListing, findListingForMetadata, findViewableListing, fromSlug, hasLiveOrder, similarListings, toPublicDetail, type PublicListingDetail } from '@/lib/domain/listing-detail';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Button } from '@/components/ui/Button';
-import Link from 'next/link';
+import { LinkButton } from '@/components/ui/Button';
 import {
   REPORT_VALIDITY_DAYS,
   findReportByListingRef,
@@ -182,9 +181,9 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
           title={t('noReport')}
           description={t('noReportBody')}
           action={
-            <Link href={resolved.canonical.path}>
-              <Button variant="outline">{t('backToListing')}</Button>
-            </Link>
+            <LinkButton href={resolved.canonical.path} variant="outline">
+              {t('backToListing')}
+            </LinkButton>
           }
         />
       </>,

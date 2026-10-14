@@ -246,10 +246,24 @@ export function SiteFooter() {
             <p className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
               {col.title}
             </p>
-            <ul className="flex flex-col gap-2.5 text-xs opacity-70">
+            {/*
+              ═══ ومساحةُ اللمس ليست مساحةَ النصّ ═══
+
+              قِيس على ٣٧٥px: روابط التذييل **عشرون بكسلًا ارتفاعًا**،
+              ودون الحدّ الأدنى في WCAG 2.2 (٢٤). وهي الطريق الوحيد إلى
+              الشروط والخصوصية من أي صفحة.
+
+              والحشوُ الرأسيّ يوسّع مساحةَ النقر في عنصرٍ سطريّ **بلا أن
+              يزيح سطرًا**، والهامش السالب يردّ ما يأخذه الحشو من
+              الفراغ بين الروابط — فالشكل كما صُمّم واللمس أوسع.
+            */}
+            <ul className="-my-1.5 flex flex-col gap-2.5 text-xs opacity-70">
               {col.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="hover:opacity-100 hover:underline">
+                  <Link
+                    href={link.href}
+                    className="inline-block py-1.5 hover:opacity-100 hover:underline"
+                  >
                     {link.label}
                   </Link>
                 </li>

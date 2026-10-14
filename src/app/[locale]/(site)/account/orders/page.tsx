@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
@@ -133,9 +132,7 @@ export default async function OrdersPage({
                 }
       }
       action={
-        <Link href={`/${locale}/cars`}>
-          <Button size="sm">تصفّح السيارات</Button>
-        </Link>
+        <LinkButton href={`/${locale}/cars`} size="sm">تصفّح السيارات</LinkButton>
       }
     >
       {shown.map((order) => (

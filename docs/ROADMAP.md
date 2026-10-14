@@ -85,9 +85,26 @@ it is in the sidebar.
 **Still unwalked:**
 
 - [ ] The remaining landing pages beyond the one walked.
-- [ ] A re-measure of the mobile layout after the type-scale and header changes
-      — `docs/BACKLOG.md` records that this measurement rots and must be redone
-      after anything touching fonts, the header or the grids.
+**Closed 2026-10-14 — the mobile re-measure.** Twelve public pages at 375 px:
+**no horizontal overflow anywhere**, so the type-scale and header work held. What
+the sweep did find was a different class the old measurement never looked at.
+
+- **Tap targets below the WCAG 2.2 AA minimum (24 px).** Seventeen on the home
+  page alone: every footer link (20 px) and every «عرض الكل» rail entry (20 px),
+  plus the legal sidebar's fifteen, the breadcrumbs, the report-listing link and
+  the auth mode switch. Padding widens the hit area of an inline element without
+  moving a line, and a negative margin returns what the padding took — so the
+  design is untouched and the target is twice the size. `ActionLink`/`ActionButton`
+  now own that rail-entry style, which had been copied into seven files.
+- **Fifteen anchors wrapping buttons.** `<Link><Button>` is interactive content
+  inside interactive content: invalid HTML, **two tab stops for one action**, and
+  a screen reader announcing a link that contains a button. `LinkButton` wears
+  `buttonShape` as a single `<a>`. **Gate 48** refuses the nesting in either
+  direction, and the twelve pages serve no `<a><button>` any more.
+
+The sweep itself: 375 px, `scrollWidth > innerWidth` for overflow and
+`getBoundingClientRect().height < 24` for targets, per page. Redo it after
+anything touching fonts, the header or the grids.
 
 ## 2 · Settle the order stages — *needs the owner*
 

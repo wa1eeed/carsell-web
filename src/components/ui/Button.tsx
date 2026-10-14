@@ -1,6 +1,7 @@
 'use client';
 
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import Link from 'next/link';
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 import { ArabicNumber } from './ArabicNumber';
 import { cn } from '@/lib/cn';
 
@@ -33,6 +34,32 @@ const SIZE: Record<ButtonSize, string> = {
 };
 
 /**
+ * ═══ شكلُ الزرّ — ويُلبَس لرابطٍ أيضًا ═══
+ *
+ * **ورابطٌ يلفّ زرًّا ليس زرًّا.** `<a><button>` محتوًى تفاعليّ داخل
+ * تفاعليّ: HTML لا يجيزه، وقارئ الشاشة يعلن عنصرين حيث يرى المستخدم
+ * واحدًا، ومساحةُ اللمس تُقاس على المحيط لا على الزرّ. وقِيس: **أربعة
+ * عشر موضعًا** في الشجرة كُتبت هكذا.
+ *
+ * فالشكل يُصدَّر، ويُلبَس للرابط في موضعه: عنصرٌ واحد، دلالةٌ صحيحة.
+ */
+export function buttonShape(
+  variant: ButtonVariant = 'primary',
+  size: ButtonSize = 'md',
+  isIconOnly = false,
+): string {
+  return cn(
+    // نصف القطر ‎9px‎ كالترميز (`--radius-btn`) — و`rounded-md` أحدَ عشر
+    'inline-flex items-center justify-center gap-2 rounded-btn font-bold whitespace-nowrap',
+    'transition-colors disabled:pointer-events-none disabled:opacity-40',
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+    isIconOnly ? 'size-11 p-0' : SIZE[size],
+    size === 'md' && !isIconOnly && 'min-h-11',
+    VARIANT[variant],
+  );
+}
+
+/**
  * الزرّ. `count` يعرض عدّادًا في دائرة — كما في تبويبات الأدمن.
  * الحد الأدنى للمس ٤٤×٤٤ في `md` (HANDOFF §١٦).
  */
@@ -56,16 +83,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={cn(
-        // نصف القطر ‎9px‎ كالترميز (`--radius-btn`) — و`rounded-md` أحدَ عشر
-        'inline-flex items-center justify-center gap-2 rounded-btn font-bold whitespace-nowrap',
-        'transition-colors disabled:pointer-events-none disabled:opacity-40',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
-        isIconOnly ? 'size-11 p-0' : SIZE[size],
-        size === 'md' && !isIconOnly && 'min-h-11',
-        VARIANT[variant],
-        className,
-      )}
+      className={cn(buttonShape(variant, size, isIconOnly), className)}
       {...rest}
     >
       {icon}
@@ -83,5 +101,36 @@ export function Button({
         </span>
       )}
     </button>
+  );
+}
+
+/**
+ * رابطٌ بشكل الزرّ — **عنصرٌ واحد لا اثنان**.
+ *
+ * يحلّ محلّ `<Link><Button>…</Button></Link>`: الوجهة انتقالٌ لا فعل،
+ * فالعنصر رابطٌ يُفتح في تبويب ويُنسخ عنوانه ويُعلَن رابطًا — وشكلُه
+ * من `buttonShape` فلا ينفصل عن الأزرار حين يتغيّر النظام.
+ */
+export function LinkButton({
+  href,
+  variant = 'primary',
+  size = 'md',
+  icon,
+  children,
+  className,
+  ...rest
+}: {
+  href: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  icon?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+} & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>) {
+  return (
+    <Link href={href} className={cn(buttonShape(variant, size), className)} {...rest}>
+      {icon}
+      {children}
+    </Link>
   );
 }

@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button, LinkButton } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 
 /**
@@ -81,9 +80,9 @@ export function RequestService({
           لا مركبة في حسابك بعد — والخدمة تُطلب لمركبةٍ بعينها، فموعدُها
           وموقعُها يتبعانها.
         </p>
-        <Link href={addVehicleHref}>
-          <Button className="w-full">أضِف مركبتك</Button>
-        </Link>
+        <LinkButton href={addVehicleHref} className="w-full">
+          أضِف مركبتك
+        </LinkButton>
       </>
     );
   }

@@ -71,7 +71,7 @@ export default async function ContactPage({
         <div className="mx-auto w-full max-w-2xl px-10 py-10">
           <Link
             href={`/${locale}/help`}
-            className="mb-6 inline-block text-2xs opacity-55 hover:opacity-100"
+            className="mb-5 inline-block py-1.5 text-2xs opacity-55 hover:opacity-100"
           >
             ← {t('title')}
           </Link>

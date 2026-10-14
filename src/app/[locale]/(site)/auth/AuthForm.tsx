@@ -377,7 +377,8 @@ export function AuthForm({
               <button
                 type="button"
                 onClick={() => setMode(mode === 'code' ? 'password' : 'code')}
-                className="font-semibold underline"
+                /* مساحةُ اللمس: مبدّلٌ قائمٌ بنفسه لا رابطٌ داخل جملة */
+                className="-my-2 px-2 py-2 font-semibold underline"
               >
                 {mode === 'code' ? t('usePassword') : t('useCode')}
               </button>

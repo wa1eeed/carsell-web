@@ -196,7 +196,7 @@ export function CarPage({
         {crumbs.map((crumb, i) => (
           <span key={crumb.href} className="flex items-center gap-1.5">
             {i > 0 ? <span aria-hidden>›</span> : null}
-            <Link href={crumb.href} className="bidi-isolate hover:underline">
+            <Link href={crumb.href} className="bidi-isolate -my-1.5 py-1.5 hover:underline">
               {crumb.label}
             </Link>
           </span>

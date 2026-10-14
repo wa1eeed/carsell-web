@@ -160,7 +160,8 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                         ) : (
                           <Link
                             href={`/${locale}/legal/${other.key}`}
-                            className="flex items-center gap-2 opacity-70 hover:opacity-100 hover:underline"
+                            /* مساحةُ اللمس: عشرون بكسلًا دون حدّ WCAG 2.2 */
+                            className="-my-1.5 flex items-center gap-2 py-1.5 opacity-70 hover:opacity-100 hover:underline"
                           >
                             <span aria-hidden className="h-3.5 w-0.5 shrink-0" />
                             {isArabic ? other.titleAr : other.titleEn}
@@ -179,7 +180,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                     <li key={section.n}>
                       <a
                         href={`#s-${String(section.n)}`}
-                        className="flex gap-2 opacity-70 hover:opacity-100"
+                        className="-my-1.5 flex gap-2 py-1.5 opacity-70 hover:opacity-100"
                       >
                         <ArabicNumber value={section.n} grouped={false} className="opacity-50" />
                         <span>{isArabic ? section.titleAr : section.titleEn}</span>

@@ -116,7 +116,8 @@ export function FaqAccordion({
               <button
                 type="button"
                 onClick={() => share(row.id)}
-                className="mt-3 inline-flex items-center gap-1.5 text-3xs opacity-45 transition-opacity hover:opacity-90"
+                /* مساحةُ اللمس أوسع من النصّ — سبعةَ عشرَ بكسلًا دون حدّ WCAG */
+                className="mt-1.5 inline-flex items-center gap-1.5 py-2 text-3xs opacity-45 transition-opacity hover:opacity-90"
               >
                 <svg
                   viewBox="0 0 24 24"

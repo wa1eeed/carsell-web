@@ -1,10 +1,9 @@
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { savedSearches } from '@/lib/domain/saved-search';
@@ -56,9 +55,7 @@ export default async function SearchesPage({
           'حدّد ما تبحث عنه ثم اضغط «احفظ البحث» في صفحة النتائج — ونخبرك بكل سيارة جديدة تطابقه.',
       }}
       action={
-        <Link href={`/${locale}/cars`}>
-          <Button size="sm">ابدأ بحثًا</Button>
-        </Link>
+        <LinkButton href={`/${locale}/cars`} size="sm">ابدأ بحثًا</LinkButton>
       }
     >
       {described.map((row) => (

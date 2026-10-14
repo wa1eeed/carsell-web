@@ -84,7 +84,7 @@ export async function SearchHeading({
                 {crumb.label}
               </span>
             ) : (
-              <Link href={crumb.href} className="bidi-isolate hover:underline">
+              <Link href={crumb.href} className="bidi-isolate -my-1.5 py-1.5 hover:underline">
                 {crumb.label}
               </Link>
             )}

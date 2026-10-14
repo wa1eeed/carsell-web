@@ -1,10 +1,9 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { FilterChip } from '@/components/ui/FilterChip';
 import { Quantity } from '@/components/ui/Quantity';
 import { Badge } from '@/components/ui/Badge';
@@ -138,9 +137,7 @@ export default async function ListingsPage({
                 }
       }
       action={
-        <Link href={`/${locale}/sell`}>
-          <Button size="sm">بِع سيارتك</Button>
-        </Link>
+        <LinkButton href={`/${locale}/sell`} size="sm">بِع سيارتك</LinkButton>
       }
     >
       {shown.map((listing) => (

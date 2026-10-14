@@ -83,9 +83,15 @@ export function Breadcrumb({
                   {item.label}
                 </span>
               ) : (
+                /*
+                  **ومساحةُ اللمس أوسع من النصّ**: سبعةَ عشرَ بكسلًا
+                  ارتفاعًا على الهاتف — دون حدّ WCAG 2.2 (٢٤). والحشو
+                  يوسّع النقر بلا أن يزيح السطر، والهامش السالب يردّ
+                  أثره فيبقى المسار سطرًا واحدًا كما صُمّم.
+                */
                 <Link
                   href={item.href}
-                  className="bidi-isolate min-w-0 break-words hover:underline hover:opacity-100"
+                  className="bidi-isolate -my-1.5 min-w-0 break-words py-1.5 hover:underline hover:opacity-100"
                 >
                   {item.label}
                 </Link>

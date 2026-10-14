@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ActionLink } from '@/components/ui/ActionLink';
 import { Percent } from '@/components/ui/Quantity';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -9,7 +10,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { displayDigits, formatNumber, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { SignOut } from '@/components/ui/SignOut';
-import { Button } from '@/components/ui/Button';
+import { Button, LinkButton } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -306,9 +307,7 @@ export function AccountScreen({
             title={t('noListings')}
             description={t('noListingsBody')}
             action={
-              <Link href={`/${locale}/sell`}>
-                <Button>{t('sellNow')}</Button>
-              </Link>
+              <LinkButton href={`/${locale}/sell`}>{t('sellNow')}</LinkButton>
             }
           />
         ) : (
@@ -333,9 +332,7 @@ export function AccountScreen({
                   {te(`listingStatus.${listing.status}`)}
                 </Badge>
                 <Money amount={Number(listing.price)} size="md" showCurrency={false} />
-                <Link href={listing.path} className="text-xs font-bold text-accent-700 hover:underline">
-                  {t('view')}
-                </Link>
+                <ActionLink href={listing.path}>{t('view')}</ActionLink>
               </li>
             ))}
           </ul>
@@ -377,9 +374,7 @@ export function AccountScreen({
                     <ArabicNumber value={Number(offer.askPrice)} />
                   </span>
                 </span>
-                <Link href={offer.path} className="text-xs font-bold text-accent-700 hover:underline">
-                  {t('view')}
-                </Link>
+                <ActionLink href={offer.path}>{t('view')}</ActionLink>
               </li>
             ))}
           </ul>
@@ -454,9 +449,7 @@ export function AccountScreen({
                   )}
                 </span>
                 <Money amount={Number(order.amount)} size="md" showCurrency={false} />
-                <Link href={`/${locale}/account/orders/${order.ref}`} className="text-xs font-bold text-accent-700 hover:underline">
-                  {t('view')}
-                </Link>
+                <ActionLink href={`/${locale}/account/orders/${order.ref}`}>{t('view')}</ActionLink>
               </li>
             ))}
           </ul>
@@ -493,9 +486,7 @@ export function AccountScreen({
                 {report.path === null ? (
                   <span className="text-xs opacity-45">{t('listingWithdrawn')}</span>
                 ) : (
-                  <Link href={report.path} className="text-xs font-bold text-accent-700 hover:underline">
-                    {t('view')}
-                  </Link>
+                  <ActionLink href={report.path}>{t('view')}</ActionLink>
                 )}
               </li>
             ))}

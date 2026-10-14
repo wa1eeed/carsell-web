@@ -1,10 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button, LinkButton } from '@/components/ui/Button';
 import {
   BodyDiagram,
   FindingsTable,
@@ -96,16 +95,14 @@ export function InspectionScreen({
           {report.pdfUrl === null ? (
             <Button onClick={() => window.print()}>{t('downloadPdf')}</Button>
           ) : (
-            <a href={report.pdfUrl} download>
-              <Button className="w-full">{t('downloadPdf')}</Button>
-            </a>
+            <LinkButton href={report.pdfUrl} download className="w-full">
+              {t('downloadPdf')}
+            </LinkButton>
           )}
           {report.listing === null ? null : (
-            <Link href={report.listing.path}>
-              <Button variant="outline" className="w-full">
-                {t('backToListing')}
-              </Button>
-            </Link>
+            <LinkButton href={report.listing.path} variant="outline" className="w-full">
+              {t('backToListing')}
+            </LinkButton>
           )}
         </div>
       </header>

@@ -135,7 +135,8 @@ export default async function ServiceDetailPage({
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <p className="mb-5 flex flex-wrap items-center gap-2 text-2xs opacity-55">
-            <Link href={`/${locale}/services`} className="hover:underline">
+            {/* مساحةُ اللمس أوسع من النصّ — دون حدّ WCAG 2.2 بلا حشو */}
+            <Link href={`/${locale}/services`} className="-my-1.5 py-1.5 hover:underline">
               {t('title')}
             </Link>
             <span aria-hidden className="opacity-40">›</span>

@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 
 import { LiveBar, SiteHeader } from '@/components/site/SiteHeader';
 import { popularSearches, type PopularSearch } from '@/lib/domain/popular-searches';
+import { ActionLink } from '@/components/ui/ActionLink';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { SponsoredBanner } from '@/components/site/SponsoredCard';
 import { adsFor } from '@/lib/domain/ads';
@@ -389,12 +390,7 @@ export default async function HomePage({
                     <Quantity unit="months" count={home.finance.months} />
                   </span>
                   <span className="flex-1" />
-                  <Link
-                    href={`/${locale}/cars?financing=true`}
-                    className="text-xs font-bold text-accent-700 hover:underline"
-                  >
-                    {t('showAll')}
-                  </Link>
+                  <ActionLink href={`/${locale}/cars?financing=true`}>{t('showAll')}</ActionLink>
                 </div>
               </div>
 

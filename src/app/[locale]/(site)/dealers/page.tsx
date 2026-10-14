@@ -9,7 +9,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { FilterChip } from '@/components/ui/FilterChip';
-import { Button } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import { displayDigits } from '@/lib/arabic';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { routing } from '@/i18n/routing';
@@ -219,9 +219,7 @@ export default async function DealersPage({
               سجّل معرضك بسجلّك التجاريّ، وارفع مخزونك دفعةً واحدة، وأدِر عروضك من لوحةٍ
               مخصّصة — بعمولة صفر.
             </p>
-            <Link href={`/${locale}/help/contact`}>
-              <Button>سجّل معرضك</Button>
-            </Link>
+            <LinkButton href={`/${locale}/help/contact`}>سجّل معرضك</LinkButton>
           </section>
         </div>
       </main>
