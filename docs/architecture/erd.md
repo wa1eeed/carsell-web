@@ -1208,6 +1208,7 @@ Relations: `reporter` → `User`
 | `payoutRef` | `String?` |  |
 | `accountNote` | `String?` |  |
 | `accountSyncAt` | `DateTime?` |  |
+| `accountSecret` | `String?` |  |
 
 Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `services` → `Service` · `requests` → `ServiceRequest` · `users` → `ProviderUser`
 

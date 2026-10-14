@@ -144,8 +144,60 @@ Integrations with no adapter stay honestly "untested" rather than being called
 
 Walked from the panel: `moyasar_platform` → `LIVE_OK`, `lean` → `NO_SECRET`.
 
+## Creating an account — four things only the call revealed
+
+One merchant was created in the sandbox on 2026-10-14, with the owner's own
+email as the admin address (their explicit authorisation — the call sends an
+invitation). It took three refusals to get a 201, and each refusal taught
+something the documentation did not.
+
+**1 · `fees` is required, and the overview page does not list it.** Omitting it
+returns `400 {"fees":["This field is missing."]}`. The field is documented on a
+separate page.
+
+**2 · The rate is a fraction, not a percentage.** `1.70` returns `400 — "must be
+less than or equal to 1"`, while the fee documentation's own example writes
+`1.70` and calls it a percentage. The value is `0.0170`.
+
+This is the most dangerous item in the whole integration: had the ceiling been
+looser, `1.70` would have been accepted and charged a partner **a hundred times**
+the intended fee, with nothing in the type system or a stubbed test to catch it.
+`FeeMatrix` now says fraction in its name and its comment, and the fee matrix is
+a **required explicit input** rather than a default written in code — defaults
+set commercial terms for a real partner that nobody decided.
+
+**3 · The response carries the account's secret keys, once.** `api_keys` holds a
+publishable and a secret key per environment. The secret is the **only** way to
+read that account's balance, and it is returned exactly once — never fetched
+again. It is captured at creation and stored encrypted in
+`ServiceProvider.accountSecret`; it is never shown on a screen or written to a
+log. The environment is chosen by `APP_ENV`, not `NODE_ENV`, because the second
+reads `production` on staging too.
+
+**4 · The response says which documents the account needs.** For an
+establishment: commercial registration, owner ID, bank IBAN certificate. Without
+surfacing these, an account sits at "missing documents" with no way to know
+which.
+
+### Verified end to end
+
+| Call | Result |
+| --- | --- |
+| `POST /merchants` | **201** — `status: pending`, both identifiers, keys, required documents |
+| `GET /merchants/:id` | **200** — reads back `PENDING`, the payout id, the three documents |
+| `GET /merchants` | **200** — one account, inside the paged envelope |
+| `GET /balance` with the **account's** key | **200** — `0.00` across the board |
+| `GET /balance` with the **platform** key | **403**, as before |
+
+### The fee matrix is a commercial decision
+
+The sandbox account was opened with the provider's own documented example rates
+(mada 1.70 %, card 2.70 %). **Those are not our terms** — what we charge a
+provider per transaction is the owner's call, and the field is deliberately
+required so nobody can set it by forgetting.
+
 ## Still unproven
 
-Creating a merchant, submitting one for review, and sending splits with a
-payment. Those write, so they wait for a deliberate sandbox run rather than a
-read-only probe.
+Submitting an account for review, uploading documents, and sending splits with a
+payment. Submission needs the documents in place first, which the sandbox
+account does not have.

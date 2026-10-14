@@ -111,7 +111,13 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       `docs/api/provider-payments.md`. **Reads verified against the sandbox**,
       which corrected two assumptions: the balance needs the *account's* own key
       (the platform key is refused), and the merchant list is paged, not a bare
-      array. Writes — create, submit, split — still unproven.
+      array. **Creating an account is now proven too** and corrected four more:
+      `fees` is required and undocumented on the overview page; its rate is a
+      **fraction, not a percentage** (`1.70` would have charged a partner a
+      hundred times over); the response carries the account's secret keys
+      **once**, and they are the only way to read its balance; and it lists the
+      documents the account still needs. Submitting for review and sending
+      splits remain unproven.
 - [x] **«افحص الاتصال» actually calls now.** It used to ask whether a secret was
       stored and answer «untested», so whoever pressed it believed their key
       worked when nothing had tried it.
@@ -198,6 +204,14 @@ work is not a one-line deletion:
       specifically.
 
 Sequenced after the current work, as the owner asked.
+
+### Needed from the owner
+
+| What | Why it blocks |
+| --- | --- |
+| **The fee matrix we charge providers** | `fees` is required when opening a payment account and sets what the provider is charged per transaction. The sandbox account was opened with Moyasar's own example rates, which are **not our terms**. |
+| **The inspection form fields** | The provider panel's `complete` step opens a form whose fields come from the owner, so none are invented and then replaced. |
+| **The order stages** — six or seven | Stage 2 of the owner's own ordering; see above. |
 
 ## Also open, outside the four stages
 

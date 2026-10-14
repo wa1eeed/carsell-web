@@ -264,3 +264,98 @@ describe('حقول الأسرار', () => {
     }
   });
 });
+
+/**
+ * ═══ ما صحّحه نداءٌ حقيقيّ ═══
+ *
+ * ثلاثةٌ لا يكشفها نوعٌ ولا خادمٌ وهميّ — كشفها `POST /merchants` على
+ * البيئة التجريبية، ولكلٍّ اختبارٌ يمنع عودتها.
+ */
+describe('فتحُ حساب — ما قِيس بالنداء', () => {
+  const DRAFT = {
+    kind: 'ESTABLISHMENT' as const,
+    slug: 'carz_test',
+    publicName: 'مركز اختبار',
+    email: 'a@example.com',
+    adminEmail: 'a@example.com',
+    website: 'https://example.com',
+    ownersCount: 1,
+    signatory: 'OWNER' as const,
+    signatoryCount: null,
+    licenceRequired: false,
+    fees: {
+      madaRate: '0.0170',
+      madaFixed: '1.00',
+      madaCap: '200.00',
+      madaRefundFixed: '1.00',
+      cardRate: '0.0270',
+      cardFixed: '1.00',
+      cardRefundFixed: '1.00',
+    },
+  };
+
+  /**
+   * **و`fees` إلزاميّة** — وإغفالُها يردّ ٤٠٠ `fees: This field is
+   * missing`. ولم يذكرها جدولُ «المعلومات المطلوبة»، فما يرفضه المزوّد
+   * يُعرَف بالنداء لا بالقراءة.
+   */
+  it('ترسل مصفوفة الرسوم', async () => {
+    const { calls } = stubFetch({ '/merchants': { status: 201, body: { id: 'm-1' } } });
+    await createMoyasarPlatformAdapter('k').openAccount(DRAFT);
+
+    const body = JSON.parse(String(calls[0]?.init?.body ?? '{}')) as Record<string, unknown>;
+    expect(body.fees).toBeDefined();
+    const fees = body.fees as Record<string, unknown>;
+    expect(fees.mada_charge_rate).toBe('0.0170');
+    expect(fees.cc_charge_rate).toBe('0.0270');
+  });
+
+  /**
+   * **ومفاتيحُ الحساب تُلتقط من ردّ الإنشاء.** تُعاد مرّةً واحدة، وبها
+   * وحدها يُقرأ رصيدُه — ومن لم يحفظها لا يقرأ رصيدًا أبدًا.
+   */
+  it('وتلتقط المفتاح السرّيّ للبيئة الجارية', async () => {
+    stubFetch({
+      '/merchants': {
+        status: 201,
+        body: {
+          id: 'm-1',
+          entity_id: 'e-1',
+          status: 'pending',
+          api_keys: {
+            test: { secret_key: 'sk_test_x', publishable_key: 'pk_test_x' },
+            live: { secret_key: 'sk_live_x', publishable_key: 'pk_live_x' },
+          },
+        },
+      },
+    });
+    const result = await createMoyasarPlatformAdapter('k').openAccount(DRAFT);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    /** خارج الإنتاج تُؤخذ مفاتيح التجريب — وخلطُهما يقرأ بيئةً أخرى */
+    expect(result.value.secretKey).toBe('sk_test_x');
+  });
+
+  /** **وما يطلبه من مستندات يُعاد** — وبلا عرضه لا يُعرف أيُّها ينقص. */
+  it('وتقرأ المستندات المطلوبة', async () => {
+    stubFetch({
+      '/merchants': {
+        status: 201,
+        body: {
+          id: 'm-1',
+          required_documents: [
+            { type: 'commercial_registration', requires_upload: true, required_count: 1 },
+            { type: 'owner_id', requires_upload: false, required_count: 2 },
+          ],
+        },
+      },
+    });
+    const result = await createMoyasarPlatformAdapter('k').openAccount(DRAFT);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.requiredDocuments).toEqual([
+      { type: 'commercial_registration', requiresUpload: true, count: 1 },
+      { type: 'owner_id', requiresUpload: false, count: 2 },
+    ]);
+  });
+});

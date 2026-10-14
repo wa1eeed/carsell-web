@@ -39,6 +39,12 @@ export const MOYASAR_PLATFORM_KEY = 'moyasar_platform';
 /** قاعدةُ المنصّة — وهي غيرُ قاعدة بوّابة الدفع العادية. */
 const BASE_URL = 'https://apimig.moyasar.com/v1';
 
+/**
+ * أي بيئةٍ نعمل عليها — **و`APP_ENV` لا `NODE_ENV`**: الثاني يساوي
+ * `production` في staging أيضًا، فالحراسة به تُخطئ في الاتّجاهين.
+ */
+const IS_LIVE = process.env.APP_ENV === 'production';
+
 /** أحوالُ الحساب كما يسمّيها المزوّد ← كما نسمّيها. */
 const STATE: Record<string, ProviderAccountStatus> = {
   pending: 'PENDING',
@@ -80,8 +86,16 @@ function str(value: unknown): string | null {
  */
 function toState(body: Json): AccountState {
   const signature = (body.signature ?? {}) as Json;
+  const documents = Array.isArray(body.required_documents) ? body.required_documents : [];
   return {
     accountRef: String(body.id ?? ''),
+    requiredDocuments: documents
+      .filter((row): row is Json => row !== null && typeof row === 'object')
+      .map((row) => ({
+        type: String(row.type ?? ''),
+        requiresUpload: row.requires_upload === true,
+        count: Number(row.required_count ?? 1),
+      })),
     payoutRef: str(body.entity_id),
     status: STATE[String(body.status ?? '')] ?? 'PENDING',
     /** أسبابُ النقص كما ردّها — تُعرض بلا ترجمةٍ تخمينية */
@@ -90,7 +104,27 @@ function toState(body: Json): AccountState {
       : null,
     signatureUrl: str(signature.url),
     documentsComplete: body.documents_complete === true,
+    /**
+     * **ويُؤخذ من البيئة التي نعمل عليها.** `api_keys.test.secret_key`
+     * في التجريب و`live` في الإنتاج — وخلطُهما يقرأ رصيد بيئةٍ أخرى
+     * أو يفشل صامتًا.
+     */
+    secretKey: entitySecret(body),
   };
+}
+
+/**
+ * المفتاح السرّيّ للحساب من ردّ الإنشاء — **للبيئة الجارية وحدها**.
+ *
+ * ولا يُسجَّل ولا يُطبع: التقاطُه هنا هو الموضع الوحيد الذي يمرّ به،
+ * ومن بعده مُعمّى في القاعدة.
+ */
+function entitySecret(body: Json): string | null {
+  const keys = body.api_keys;
+  if (keys === null || typeof keys !== 'object' || Array.isArray(keys)) return null;
+  const env = (keys as Json)[IS_LIVE ? 'live' : 'test'];
+  if (env === null || typeof env !== 'object' || Array.isArray(env)) return null;
+  return str((env as Json).secret_key);
 }
 
 function failureOf(status: number, body: Json | null): PlatformResult<never> {
@@ -162,6 +196,23 @@ export function createMoyasarPlatformAdapter(platformKey: string): ProviderPlatf
             : { signatory_count: draft.signatoryCount }),
           activity_license_required: draft.licenceRequired,
           time_zone: 'Asia/Riyadh',
+          /**
+           * **و`fees` إلزاميّة** — قِيس: إغفالُها يردّ ٤٠٠
+           * `{"fees":["This field is missing."]}`. ولم يذكرها جدولُ
+           * «المعلومات المطلوبة» في صفحة النظرة العامّة، وتذكرها
+           * صفحةٌ أخرى — **فما يرفضه المزوّد يُعرَف بالنداء لا
+           * بالقراءة**.
+           */
+          fees: {
+            tax_inclusive: draft.fees.taxInclusive === true,
+            mada_charge_rate: draft.fees.madaRate,
+            mada_charge_fixed: draft.fees.madaFixed,
+            ...(draft.fees.madaCap === undefined ? {} : { mada_charge_cap: draft.fees.madaCap }),
+            mada_refund_fixed: draft.fees.madaRefundFixed,
+            cc_charge_rate: draft.fees.cardRate,
+            cc_charge_fixed: draft.fees.cardFixed,
+            cc_refund_fixed: draft.fees.cardRefundFixed,
+          },
         },
       });
       return result.ok ? { ok: true, value: toState(result.value) } : result;
