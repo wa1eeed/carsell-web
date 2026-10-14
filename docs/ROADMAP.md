@@ -119,9 +119,11 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       owner after the current tasks**, so the step completes without a form
       today rather than inventing fields that would be replaced.
 - [ ] **Contact disclosure with an audit trail**, as A18 logs every ID reveal.
-- [ ] **The provider detail page** — balance, received requests, dues, payout
-      state, split, capture, release, account-opening status. The owner's words:
-      «كل شيء كل شي».
+- [x] **The provider detail page** — counters that open their lists, the
+      requests received, who signs in on their behalf, the payment account with
+      what its state means, and the value of completed work. The gateway
+      **balance** waits for the adapter: it is read from the provider, never
+      computed here. Split, capture and release come with the money work below.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [ ] **Report ownership.** `findReportByListingRef` shows any report on the
       vehicle to everyone; a buyer-paid report must stay private until shared or

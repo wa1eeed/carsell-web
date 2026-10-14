@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -192,7 +193,19 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
               <tr key={row.id} className="border-b border-line last:border-0">
                 <td className="p-3">
                   <span className="flex flex-col gap-0.5">
-                    <span className="bidi-isolate font-bold">{row.nameAr}</span>
+                    {/*
+                      ═══ والاسمُ بابٌ لا نصّ ═══
+
+                      الجدول يعرض «ثلاثة متأخّرة» ولا يفتح واحدًا منها،
+                      فمن يقرأ العدد يبحث يدويًّا عن ثلاثة صفوفٍ في مئة.
+                      **والعدّاد يربط إلى شاشة أو لا يُعرض.**
+                    */}
+                    <Link
+                      href={`/admin/providers/${row.id}`}
+                      className="bidi-isolate font-bold underline underline-offset-4 hover:opacity-70"
+                    >
+                      {row.nameAr}
+                    </Link>
                     {row.servicesLinked === 0 ? (
                       // مزوّدٌ بلا خدمةٍ مرتبطة لا يصله إسنادٌ أبدًا
                       <span className="text-3xs opacity-45">بلا خدمة مرتبطة</span>

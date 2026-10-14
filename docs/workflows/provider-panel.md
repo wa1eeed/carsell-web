@@ -89,6 +89,38 @@ It stays inside the CSP matcher. Being outside locale routing is not a reason to
 be outside the content policy — that mistake was already made once with `/admin`
 and `/api`.
 
+## The provider's page in the admin panel
+
+The owner's words: «صفحة تفاصيل المزوّد… إضافة رصيد، والطلبات التي استلمها،
+ومستحقّاته، وكل شيء يخصّه… كل شيء كل شي».
+
+Before it there was a table showing «three overdue» that opened none of them,
+so whoever read the number went looking for three rows among a hundred by hand.
+The name is now a link, and the page carries:
+
+- **Counters** for offered · accepted · in progress · completed · failed ·
+  overdue, each computed from the same list the page renders. A count derived by
+  a second query with a second condition answers one question with two numbers —
+  which is how gate 40 was born.
+- **The requests received**, each one a link to its admin page.
+- **Who signs in on the provider's behalf**, with whether they have changed
+  their password and when they were last seen. Without this list nobody knows
+  who can read our customers' requests, or who still has access after leaving.
+- **The payment account**: its state, both identifiers, and what the state means
+  for the operator — not just its name.
+- **The value of what they completed.**
+
+**Two numbers deliberately not shown as one.** What the provider has *earned* is
+computed from **completed requests in our ledger** — we know it and can prove
+it. Their **balance at the gateway** is not ours to compute: the money goes to
+them directly, so a figure we calculate is a figure we are guessing. That
+difference is the difference between a mirror and an original, and the page says
+«قيمة ما أنجزه» rather than «رصيده».
+
+And the amount is the **request's value, not the provider's share**: our cut is
+deducted in the split at the gateway, and computing it here with a second rule
+would produce two answers to one question.
+
 ## Not yet
 
 - The **inspection form** behind `complete`. Its fields come from the owner
