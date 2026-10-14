@@ -3,6 +3,7 @@ import { closeEndedAuctions,
 import { expireOffers, remindExpiringOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
+import { lapseServiceConsents } from '@/lib/domain/service-lifecycle';
 import { remindClosingAuctions, remindPaymentDue } from '@/lib/domain/reminders';
 import { settleableOrders } from '@/lib/domain/transfer-windows';
 import { settleOnTransferConfirmed } from '@/lib/domain/payments';
@@ -52,6 +53,13 @@ const JOBS: readonly Job[] = [
   { name: 'openScheduledAuctions', run: (now) => openScheduledAuctions(now) },
   { name: 'closeEndedAuctions', run: (now) => closeEndedAuctions(now) },
   { name: 'expireSellerDecisions', run: (now) => expireSellerDecisions(now) },
+  /**
+   * **وانقضاءُ إذن الفحص رفضٌ لا قبول.** فحصٌ يمضي بلا إذنٍ يُرسل
+   * فاحصًا إلى بابِ من لم يوافق ويكشف بياناته لمن لم يأذن له —
+   * والصمت لا يُقرأ موافقةً حين يكون له ثمنٌ على صاحبه. ولا مال
+   * أُخذ، فلا شيء يُردّ.
+   */
+  { name: 'lapseServiceConsents', run: (now) => lapseServiceConsents(now) },
   /**
    * ═══ والتذكير بعد الإغلاق لا قبله ═══
    *

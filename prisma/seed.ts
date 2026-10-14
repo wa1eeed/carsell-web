@@ -703,6 +703,21 @@ async function main(): Promise<void> {
         commissionPct: new D('15.00'),
         cities: [...CITIES].slice(0, 4),
         active: true,
+        /**
+         * ═══ وحسابُ دفعٍ مفعَّل — وإلّا فالبيئة لا تفحص ═══
+         *
+         * طابورُ المدينة يستبعد من لا حساب له: يُسنَد إليه طلبٌ فيؤدّيه
+         * ثمّ لا سبيل إلى دفع مستحقّه. **وبلا هذا السطر الطابورُ صفرٌ
+         * دائمًا**، فكل طلبِ فحصٍ يُردّ بـ«لا تغطية» — واختبارٌ يقيس
+         * الرحلة يمرّ على فرع الرفض ويبدو أخضر.
+         *
+         * والمعرّفان شكلُ ما يردّه المزوّد لا قيمةٌ حقيقية — والربط
+         * الحيّ يستبدلهما بما يُنشئه.
+         */
+        accountStatus: 'ACTIVE',
+        accountRef: `seed-merchant-${type.toLowerCase()}`,
+        payoutRef: `seed-entity-${type.toLowerCase()}`,
+        accountSyncAt: NOW,
       },
     });
     providers.set(type, p.id);
@@ -728,6 +743,12 @@ async function main(): Promise<void> {
         slaHours: s.slaHours,
         placements: s.placements,
         sort: s.sort,
+        /**
+         * **والصنف يُكتب كما يُقرأ.** كان يُستعمل للبحث عن المزوّد ثمّ
+         * يُرمى، فتبقى `providerType` فارغةً — وطابورُ المدينة يُشتقّ
+         * منها، فيصير صفرًا دائمًا ويُردّ كلُّ طلبِ فحصٍ بـ«لا تغطية».
+         */
+        providerType: s.providerType,
         providerId:
           s.providerType === null ? null : (providers.get(s.providerType) ?? null),
       },

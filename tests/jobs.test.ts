@@ -22,6 +22,7 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
       'openScheduledAuctions',
       'closeEndedAuctions',
       'expireSellerDecisions',
+      'lapseServiceConsents',
       /**
        * ═══ والتذكير بعد الإغلاق لا قبله ═══
        *

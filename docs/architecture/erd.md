@@ -24,6 +24,7 @@ erDiagram
   User ||--o{ Order : "ordersAsBuyer"
   User ||--o{ Order : "ordersAsSeller"
   User ||--o{ ServiceRequest : "serviceRequests"
+  User ||--o{ ServiceRequest : "serviceRequestsAsSeller"
   User ||--o{ Subscription : "subscriptions"
   User ||--o{ Favorite : "favorites"
   User ||--o{ SavedSearch : "savedSearches"
@@ -143,12 +144,14 @@ erDiagram
   Invoice }o--|| User : "user"
   Service }o--|| ServiceFeeMode : "adminFeeMode"
   Service }o--|| ServiceCategory : "category"
+  Service |o--|| ProviderType : "providerType"
   Service |o--|| ServiceProvider : "provider"
   Service ||--o{ ServiceRequest : "requests"
   ServiceRequest }o--|| ServiceRequestStatus : "status"
   ServiceRequest }o--|| Service : "service"
   ServiceRequest |o--|| ServiceProvider : "provider"
   ServiceRequest }o--|| User : "user"
+  ServiceRequest |o--|| User : "seller"
   ServiceRequest |o--|| Listing : "listing"
   ServiceRequest |o--|| Vehicle : "vehicle"
   ServiceRequest |o--|| InspectionReport : "inspectionReport"
@@ -284,7 +287,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -748,7 +751,7 @@ Relations: `type` → `InvoiceType` · `order` → `Order` · `user` → `User`
 | `active` | `Boolean` |  |
 | `sort` | `Int` |  |
 
-Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategory` · `provider` → `ServiceProvider` · `requests` → `ServiceRequest`
+Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategory` · `providerType` → `ProviderType` · `provider` → `ServiceProvider` · `requests` → `ServiceRequest`
 
 ### `ServiceRequest`
 
@@ -768,8 +771,13 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `city` | `String?` |  |
 | `resultUrl` | `String?` |  |
 | `createdAt` | `DateTime` |  |
+| `sellerId` | `String?` |  |
+| `decisionDueAt` | `DateTime?` |  |
+| `decidedAt` | `DateTime?` |  |
+| `declineReason` | `String?` |  |
+| `paymentId` | `String?` |  |
 
-Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport`
+Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport`
 
 ### `InspectionReport`
 
@@ -1624,7 +1632,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `DisputeStatus` — `OPEN`, `INVESTIGATING`, `RESOLVED_BUYER`, `RESOLVED_SELLER`, `CLOSED`
 - `InvoiceType` — `SALE`, `COMMISSION`, `SERVICE`, `SUBSCRIPTION`
 - `ServiceCategory` — `PRE_PURCHASE`, `POST_PURCHASE`, `SELLER`
-- `ServiceRequestStatus` — `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`
+- `ServiceRequestStatus` — `AWAITING_SELLER`, `AWAITING_PAYMENT`, `DECLINED`, `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`
 - `CommissionSide` — `BUYER`, `SELLER`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`

@@ -130,6 +130,8 @@ model User {
   ordersAsBuyer   Order[]          @relation("OrderBuyer")
   ordersAsSeller  Order[]          @relation("OrderSeller")
   serviceRequests ServiceRequest[]
+  /// طلباتُ خدمةٍ على مركباته طلبها غيرُه — وهو يأذن بها
+  serviceRequestsAsSeller ServiceRequest[] @relation("ServiceRequestSeller")
   subscriptions   Subscription[]
   favorites       Favorite[]
   savedSearches   SavedSearch[]
@@ -1041,6 +1043,12 @@ model Service {
   includesEn  String[]
 
   category    ServiceCategory
+  /// ═══ صنفُ من يؤدّيها — وبه يُعرف طابورُ المدينة ═══
+  ///
+  /// قرار المالك: «طلب الفحص يذهب للفاحصين في نفس المدينة التي فيها
+  /// السيارة». و`providerId` مزوّدٌ **واحد** مفضَّل، فلا يصلح طابورًا.
+  /// والصنف هو ما يُجمع به: فاحصو المدينة كلُّهم لا واحدٌ منهم.
+  providerType ProviderType?
   providerId  String?
   isAutomated Boolean         @default(false)
   slaHours    Int?
@@ -1082,9 +1090,24 @@ model ServiceRequest {
   resultUrl  String? // PDF في R2
   createdAt  DateTime             @default(now())
 
+  /// ═══ الطرف الثاني — ولم يكن للطلب طرفان ═══
+  ///
+  /// `userId` هو **من طلب ودفع** أيًّا كان بائعًا أو مشتريًا (قرار
+  /// المالك)، و`sellerId` صاحبُ المركبة حين يختلف عنه. و`null` تعني
+  /// طلبًا على مركبةِ صاحبه — فلا إذنَ يلزم ولا بيانات تُكشف.
+  sellerId   String?
+  /// مهلةُ قرار البائع — تنقضي فيُرفض الطلب ولا يُؤخذ مال
+  decisionDueAt DateTime?
+  decidedAt     DateTime?
+  /// سببُ الرفض كما كتبه — و«رُفض» بلا سببٍ تُعيد الطالب إلى الحيرة
+  declineReason String?
+  /// الدفعة حين تُطلب — وتبقى `null` ما دام الطلب ينتظر إذنًا
+  paymentId  String?
+
   service           Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   provider          ServiceProvider?  @relation(fields: [providerId], references: [id], onDelete: SetNull)
   user              User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  seller            User?             @relation("ServiceRequestSeller", fields: [sellerId], references: [id], onDelete: SetNull)
   listing           Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
   vehicle           Vehicle?          @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   inspectionReport  InspectionReport?
@@ -1094,7 +1117,21 @@ model ServiceRequest {
   @@index([scheduledAt])
 }
 
+/// ═══ حالُ طلب الخدمة — ورحلةٌ ثلاثية الأطراف ═══
+///
+/// قرار المالك (٢٠٢٦-١٠-١٤): طلبُ المشتري لفحص سيارةٍ ليست له **يمرّ
+/// بالبائع**، والسداد يُطلب **بعد قبوله**. فثلاثُ حالاتٍ سبقت `NEW`:
+/// انتظارُ البائع، ثمّ انتظارُ السداد، والرفض.
+///
+/// و`NEW` تعني اليوم: دُفع المال ودخل الطلب طابور المزوّدين — وهو
+/// معناها الذي كانت تحمله حين كان الدفع يسبق الإنشاء.
 enum ServiceRequestStatus {
+  /// طلبُ مشترٍ على مركبة غيره — ينتظر إذن صاحبها
+  AWAITING_SELLER
+  /// أُذن له (أو لا إذنَ يلزم) — ينتظر سداد طالبه
+  AWAITING_PAYMENT
+  /// رفض البائع أو انقضت مهلتُه — ولا مال أُخذ
+  DECLINED
   NEW
   ASSIGNED
   IN_PROGRESS
