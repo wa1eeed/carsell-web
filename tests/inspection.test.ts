@@ -47,14 +47,14 @@ describe('٢١٠ نقطة من قاعدة البيانات', () => {
   });
 
   it('السليم والملاحظ يجمعان إلى المجموع', async () => {
-    const report = toPublicReport((await findReportByListingRef(await anyInspected()))!, 'ar');
+    const report = toPublicReport((await findReportByListingRef(await anyInspected(), null))!, 'ar');
     expect(report.passedPoints + report.findings.length).toBe(report.totalPoints);
     expect(report.findings.length).toBeGreaterThan(0);
     for (const finding of report.findings) expect(finding.state).not.toBe('OK');
   });
 
   it('كل صورة تحمل اسم بندها — صورة بلا سياق لا تُثبت شيئًا', async () => {
-    const report = toPublicReport((await findReportByListingRef(await anyInspected()))!, 'ar');
+    const report = toPublicReport((await findReportByListingRef(await anyInspected(), null))!, 'ar');
     for (const photo of report.photos) {
       expect(photo.label.trim()).not.toBe('');
       expect(report.findings.some((f) => f.label === photo.label)).toBe(true);
@@ -97,7 +97,7 @@ describe('المفكّك يصمد أمام ما لا يفهمه', () => {
 describe('ما لا يخرج', () => {
   /** الرقم الكامل يُمكّن من انتحال المركبة في استعلامات الطرف الثالث. */
   it('رقم الهيكل مقنَّع دائمًا', async () => {
-    const report = toPublicReport((await findReportByListingRef(await anyInspected()))!, 'ar');
+    const report = toPublicReport((await findReportByListingRef(await anyInspected(), null))!, 'ar');
     const vin = await db.vehicle.findFirstOrThrow({
       where: { inspectionReports: { some: { ref: report.ref } } },
       select: { vin: true },
@@ -130,7 +130,7 @@ describe('الدرجة والصلاحية', () => {
   });
 
   it('الصلاحية محسوبة من تاريخ الفحص لا مخزَّنة — فلا تاريخان يتناقضان', async () => {
-    const report = toPublicReport((await findReportByListingRef(await anyInspected()))!, 'ar');
+    const report = toPublicReport((await findReportByListingRef(await anyInspected(), null))!, 'ar');
     const gap =
       (new Date(report.validUntil).getTime() - new Date(report.inspectedAt).getTime()) /
       (24 * 3600 * 1000);

@@ -152,8 +152,14 @@ export async function issueSaleAgreement(
           vehicle: {
             select: {
               vin: true,
-              // أحدث فحص — وهو ما يُشار إليه في العقد
+              /**
+               * أحدث فحصٍ **منشور** — وهو ما يُشار إليه في العقد.
+               *
+               * وعقدٌ بين البائع والمشتري لا يذكر مرجعَ تقريرٍ خاصٍّ
+               * بثالث: وجودُه نفسه معلومةٌ تخصّ من دفع.
+               */
               inspectionReports: {
+                where: { publishedAt: { not: null } },
                 select: { ref: true },
                 orderBy: { inspectedAt: 'desc' },
                 take: 1,

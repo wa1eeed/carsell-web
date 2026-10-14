@@ -6,6 +6,7 @@ import type { ServedAd } from '@/lib/domain/ad-rules';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { LinkButton } from '@/components/ui/Button';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge, InspectedBadge } from '@/components/ui/Badge';
 import { BuyColumn } from '@/components/ui/BuyColumn';
@@ -65,6 +66,7 @@ export function CarPage({
   locale,
   heading,
   landingHref = null,
+  privateReportPath = null,
   viewer,
   auction,
   standing,
@@ -90,6 +92,8 @@ export function CarPage({
   heading: { home: string; cars: string };
   /** صفحةُ «الماركة في المدينة» حين تبلغ عتبتها — وإلّا فلا عقدة. */
   landingHref?: string | null | undefined;
+  /** تقريرُ هذا الزائر الخاصّ على المركبة — إن كان قد دفع ثمنه. */
+  privateReportPath?: string | null | undefined;
   viewer: {
     signedIn: boolean;
     isOwn: boolean;
@@ -575,7 +579,27 @@ export function CarPage({
           {tab === 'inspection' ? (
             <section id="inspection" className="flex flex-col gap-6">
               {inspection === null ? (
-                <EmptyState title={t('notInspected')} description={t('notInspectedBody')} />
+                /*
+                  ═══ ومن دفع ثمن تقريرٍ لا يُقال له «غير مفحوصة» ═══
+
+                  الكائن العام يحمل المنشور وحده (قرار المالك ٤)، فمن
+                  اشترى تقريرًا خاصًّا يقرأ على الصفحة نفيَ ما دفع ثمنه.
+                  **والنصّ المعروض وعدٌ لا وصف** — فيُقال له إنّ له
+                  تقريرًا، ويُفتح من مكانه.
+                */
+                typeof privateReportPath === 'string' ? (
+                  <EmptyState
+                    title={t('privateReport')}
+                    description={t('privateReportBody')}
+                    action={
+                      <LinkButton href={privateReportPath} size="sm">
+                        {t('openPrivateReport')}
+                      </LinkButton>
+                    }
+                  />
+                ) : (
+                  <EmptyState title={t('notInspected')} description={t('notInspectedBody')} />
+                )
               ) : (
                 <>
                   <div className="flex flex-wrap items-center gap-8">

@@ -223,14 +223,21 @@ export function buildWhere(
     };
   }
 
-  // الفحص: الوسم من وجود تقرير، والدرجة من قيمته
+  /**
+   * الفحص: الوسم من وجود تقرير، والدرجة من قيمته — **والمنشور وحده**.
+   *
+   * فتقريرُ مشترٍ دفع ثمنه لا يُدخل إعلانَ غيره في مرشّح «مفحوصة»
+   * ولا يرفعه في ترشيح الدرجة: ما لا يُعرض لا يُرشَّح به.
+   */
   if (filters.inspected === true) {
-    vehicle.inspectionReports = { some: {} };
+    vehicle.inspectionReports = { some: { publishedAt: { not: null } } };
   } else if (filters.inspected === false) {
-    vehicle.inspectionReports = { none: {} };
+    vehicle.inspectionReports = { none: { publishedAt: { not: null } } };
   }
   if (filters.scoreMin !== null) {
-    vehicle.inspectionReports = { some: { score: { gte: filters.scoreMin } } };
+    vehicle.inspectionReports = {
+      some: { publishedAt: { not: null }, score: { gte: filters.scoreMin } },
+    };
   }
 
   if (Object.keys(vehicle).length > 0) and.push({ vehicle });
@@ -497,7 +504,12 @@ export async function searchListings(
       include: {
         vehicle: {
           include: {
-            inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
+            /** **المنشور وحده** — تقريرٌ خاصٌّ لا يَسِم إعلانًا بـ«مفحوصة». */
+            inspectionReports: {
+              where: { publishedAt: { not: null } },
+              orderBy: { inspectedAt: 'desc' },
+              take: 1,
+            },
             /**
              * **الرابط يُبنى قانونيًّا من أوّله.** وبلا `brand.slug` يقع
              * `canonicalPath` على الاسم العربي فيُنتج `/نيسان/`، ثم تحوّله

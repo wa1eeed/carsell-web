@@ -85,7 +85,12 @@ export async function getDealerPage(
         // الفحص على المركبة لا على الإعلان — وأحدثه هو المعروض
         vehicle: {
           include: {
-            inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
+            /** **المنشور وحده** (قرار المالك ٤) — صفحةُ المعرض عامّة. */
+            inspectionReports: {
+              where: { publishedAt: { not: null } },
+              orderBy: { inspectedAt: 'desc' },
+              take: 1,
+            },
             // بلا `brand.slug` يُبنى الرابط بالاسم العربي فيُحوَّل ٣٠١
             brand: { select: { slug: true } },
           model: { select: { nameEn: true } },

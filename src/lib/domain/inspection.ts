@@ -189,12 +189,47 @@ const REPORT_INCLUDE = {
   serviceRequest: { select: { provider: { select: { nameAr: true, nameEn: true } } } },
 } as const;
 
-export async function findReportByListingRef(listingRef: string) {
+/**
+ * ═══ تقريرُ الإعلان — **والدافع يملكه** (قرار المالك ٤) ═══
+ *
+ * > «تقرير البائع عامٌّ على الإعلان، وتقرير المشتري خاصٌّ به حتى
+ * > يشاركه أو يشتريه البائع.»
+ *
+ * وكانت الدالّة تُعيد **أيَّ** تقريرٍ على المركبة لكل زائر: فمشترٍ
+ * دفع أربعمئة وخمسين ريالًا ليعرف حال سيارةٍ قبل شرائها **ينشر ما
+ * اشتراه** للبائع ولمن ينافسه عليها. ولا خصوصيةَ لمن دفع، ولا سببَ
+ * لأحدٍ أن يدفع بعدها.
+ *
+ * فالشرط اثنان: المنشور يراه الجميع، وغيرُ المنشور يراه **دافعُه
+ * وحده**. والأقربُ أوّلًا: من له تقريرُه يرى تقريرَه لا تقرير غيره.
+ */
+export async function findReportByListingRef(listingRef: string, viewerId: string | null) {
+  const onListing = { listings: { some: { ref: listingRef, status: 'PUBLISHED' as const } } };
+
+  if (viewerId !== null) {
+    const own = await db.inspectionReport.findFirst({
+      where: { vehicle: onListing, serviceRequest: { userId: viewerId } },
+      orderBy: { inspectedAt: 'desc' },
+      include: REPORT_INCLUDE,
+    });
+    if (own !== null) return own;
+  }
+
   return db.inspectionReport.findFirst({
-    where: { vehicle: { listings: { some: { ref: listingRef, status: 'PUBLISHED' } } } },
+    where: { vehicle: onListing, publishedAt: { not: null } },
     orderBy: { inspectedAt: 'desc' },
     include: REPORT_INCLUDE,
   });
+}
+
+/**
+ * أيُنشَر التقرير لحظةَ صدوره؟ — **نعم إن طلبه مالكُ المركبة**.
+ *
+ * والقاعدة هنا لا في كاتبٍ بعينه: الزرع يكتب تقارير اليوم، وبانيها
+ * سيكتبها غدًا — ونسختان من الشرط تتباعدان أوّل تعديل.
+ */
+export function publishOnIssue(requesterId: string, vehicleOwnerId: string): boolean {
+  return requesterId === vehicleOwnerId;
 }
 
 type ReportRow = NonNullable<Awaited<ReturnType<typeof findReportByListingRef>>>;

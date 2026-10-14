@@ -1801,6 +1801,11 @@ async function main(): Promise<void> {
         serviceRequestId: request.id,
         vehicleId: l.vehicleId,
         /**
+         * **منشورٌ لأن طالبه مالكُ المركبة** (قرار المالك ٤). والشرط
+         * واحدٌ مع ما يقرؤه المنتج — لا رايةٌ تُكتب هنا بيد.
+         */
+        publishedAt: days(-between(5, 20)),
+        /**
          * **ودرجاتٌ متباعدة** — فالشاشة تُرى في حالاتها: ممتازٌ
          * أخضر، ومقبولٌ أصفر، ودونه. ودرجةٌ واحدة لا تُظهر إلّا حالًا.
          */
@@ -1824,6 +1829,81 @@ async function main(): Promise<void> {
           rightFrontDoor: 'original',
           leftFrontDoor: 'original',
           rightRearDoor: 'original',
+          leftRearDoor: 'original',
+        },
+      },
+    });
+  }
+
+  /**
+   * ═══ وتقريرٌ دفع ثمنَه مشترٍ — خاصٌّ به ═══
+   *
+   * قرار المالك ٤: «تقرير البائع عامٌّ على الإعلان، وتقرير المشتري
+   * خاصٌّ به حتى يشاركه أو يشتريه البائع». والثلاثة أعلاه كلُّها
+   * طلبها بائعُها — **فالحالُ الخاصّ لم يُزرع قطّ**، وقد بقي الشرط
+   * غائبًا من الاستعلام حتى قِيس: أيُّ زائر يرى تقريرَ من دفع.
+   *
+   * **وما لا يُزرع لا يُرى.**
+   */
+  const buyerInspected = listings.find(
+    (row) => !inspectables.some((other) => other.id === row.id),
+  );
+  const reportBuyer = sellers.find((row) => row.id !== buyerInspected?.sellerId);
+  if (buyerInspected !== undefined && reportBuyer !== undefined) {
+    const request = await prisma.serviceRequest.create({
+      data: {
+        ref: 'SRV-2026-3100',
+        serviceId: inspectionServiceId,
+        userId: reportBuyer.id,
+        sellerId: buyerInspected.sellerId,
+        listingId: buyerInspected.id,
+        vehicleId: buyerInspected.vehicleId,
+        providerId: providers.get('INSPECTION') ?? null,
+        status: 'DONE',
+        amount: new D('450.00'),
+        dueAt: days(-4),
+        createdAt: days(-12),
+      },
+    });
+
+    await prisma.inspectionReport.create({
+      data: {
+        ref: 'INS-2026-41900',
+        serviceRequestId: request.id,
+        vehicleId: buyerInspected.vehicleId,
+        score: 78,
+        inspectorName: 'م. تركي الشمري',
+        inspectedAt: days(-4),
+        /** **خاصٌّ**: طالبُه ليس مالكَ المركبة. */
+        publishedAt: null,
+        sections: Object.entries(POINTS).map(([key, section]) => ({
+          key,
+          name: section.name,
+          score: Math.max(35, (SECTION_SCORES[key] ?? 90) - 12),
+          note: SECTION_NOTES[key] ?? null,
+          points: section.points.map((label, n) => {
+            const finding = FINDINGS[label];
+            return {
+              id: `${key}-${n + 1}`,
+              label,
+              state: finding?.state ?? 'OK',
+              note: finding?.note ?? null,
+              photos: finding?.photos ?? [],
+            };
+          }),
+        })),
+        paintMap: {
+          summary: 'هيكل سليم. صبغ على الباب الخلفي الأيمن بسماكة ١٦٠ ميكرون.',
+          frontBumper: 'original',
+          hood: 'original',
+          roof: 'original',
+          trunk: 'original',
+          rearBumper: 'original',
+          frontRightFender: 'original',
+          frontLeftFender: 'original',
+          rightFrontDoor: 'original',
+          leftFrontDoor: 'original',
+          rightRearDoor: 'repainted',
           leftRearDoor: 'original',
         },
       },

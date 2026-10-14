@@ -330,8 +330,26 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
         _count: { select: { offers: true, orders: { where: { status: 'ACTIVE' } } } },
       },
     }),
+    /**
+     * ═══ «تقاريري» = ما دفعتُ ثمنه (قرار المالك ٤) ═══
+     *
+     * كان الشرط `vehicle.ownerId` — أي **صاحبُ المركبة** لا دافعُ
+     * التقرير، والاثنان مختلفان في الحال الشائعة: مشترٍ يفحص سيارةَ
+     * غيره قبل شرائها. فكان الأثر معكوسًا في الطرفين:
+     *
+     *   · من دفع لا يجد تقريره في المنتج كلّه،
+     *   · والبائع يجد في «تقاريري» تقريرًا دفع ثمنَه سواه.
+     *
+     * فالقائمة: ما طلبتُه أنا، ومعه ما نُشر على مركبةٍ أملكها — إذ
+     * المنشور صار جزءًا من إعلانها.
+     */
     db.inspectionReport.findMany({
-      where: { vehicle: { ownerId: user.id } },
+      where: {
+        OR: [
+          { serviceRequest: { userId: user.id } },
+          { vehicle: { ownerId: user.id }, publishedAt: { not: null } },
+        ],
+      },
       orderBy: { inspectedAt: 'desc' },
       take: 10,
       select: {

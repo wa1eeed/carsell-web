@@ -1199,6 +1199,20 @@ model InspectionReport {
   inspectedAt      DateTime
   pdfUrl           String?
 
+  /// ═══ متى صار التقرير عامًّا على الإعلان — قرار المالك ٤ ═══
+  ///
+  /// «تقرير البائع عامٌّ على الإعلان، وتقرير المشتري خاصٌّ به حتى
+  /// يشاركه أو يشتريه البائع. والنشر يُضاف لاحقًا، **والمنشور لا
+  /// يُسترجَع**.»
+  ///
+  /// فالحقل تاريخٌ لا رايةٌ منطقية: «منشور» حالٌ لها لحظة، ومن يقرأ
+  /// الصفّ بعد سنةٍ يسأل متى صار كذلك. و`null` تعني خاصًّا بدافعه.
+  ///
+  /// وبلا هذا الشرط كان **تقريرُ مشترٍ دفع ثمنه يُعرض لكل زائر** —
+  /// وللبائع ولمنافسيه على الشراء. فلا خصوصيةَ لمن دفع، ولا سببَ
+  /// لأحدٍ أن يدفع.
+  publishedAt      DateTime?
+
   serviceRequest ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Restrict)
   vehicle        Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
 

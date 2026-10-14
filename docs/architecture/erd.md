@@ -830,6 +830,7 @@ Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `pr
 | `inspectorName` | `String` |  |
 | `inspectedAt` | `DateTime` |  |
 | `pdfUrl` | `String?` |  |
+| `publishedAt` | `DateTime?` |  |
 
 Relations: `serviceRequest` → `ServiceRequest` · `vehicle` → `Vehicle`
 

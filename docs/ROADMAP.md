@@ -231,9 +231,19 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       **balance** waits for the adapter: it is read from the provider, never
       computed here. Split, capture and release come with the money work below.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
-- [ ] **Report ownership.** `findReportByListingRef` shows any report on the
-      vehicle to everyone; a buyer-paid report must stay private until shared or
-      bought.
+- [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
+      the seller's report is public on the listing, a buyer's is private to
+      whoever paid. It had been **any report to any visitor** — a buyer who paid
+      450 SAR published what they bought to the seller and to everyone bidding
+      against them. And the leak was wider than the screen: the row rode into the
+      **RSC payload** of a public page through the detail include, drawn by
+      nothing and readable by anyone who looked at the source. Eight public reads
+      carried it; **gate 49** now refuses an `inspectionReports` query without
+      the publication condition. The seed writes a buyer-paid report too — the
+      private case had never been rendered, which is why nothing caught it.
+      `docs/workflows/service-request.md`.
+- [ ] **Sharing or selling a private report to the seller** — the decision says
+      publishing comes later, and that a published report is never retracted.
 
 ## 4 · The dealer panel — *deferred by the owner, fully specified*
 

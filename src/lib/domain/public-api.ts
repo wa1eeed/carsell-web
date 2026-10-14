@@ -49,7 +49,13 @@ const PUBLIC_SELECT = {
       transmission: true, fuel: true, bodyType: true,
       brand: { select: { slug: true } },
           model: { select: { nameEn: true } },
-      inspectionReports: { select: { score: true }, orderBy: { inspectedAt: 'desc' as const }, take: 1 },
+      /** **المنشور وحده** — والواجهة العامّة أوسعُ ما يخرج (قرار المالك ٤). */
+      inspectionReports: {
+        where: { publishedAt: { not: null } },
+        select: { score: true },
+        orderBy: { inspectedAt: 'desc' as const },
+        take: 1,
+      },
     },
   },
   seller: {

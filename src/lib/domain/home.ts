@@ -111,7 +111,12 @@ const CARD_INCLUDE = {
       transmission: true,
       brand: { select: { slug: true } },
           model: { select: { nameEn: true } },
-      inspectionReports: { select: { id: true }, take: 1 },
+      /** **المنشور وحده** — وسمُ «مفحوصة» في الرئيسية عامٌّ كالصفحة. */
+      inspectionReports: {
+        where: { publishedAt: { not: null } },
+        select: { id: true },
+        take: 1,
+      },
     },
   },
   seller: { select: { name: true, idVerified: true, dealer: { select: { nameAr: true, verified: true } } } },

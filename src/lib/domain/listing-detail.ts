@@ -287,7 +287,22 @@ const DETAIL_INCLUDE = {
       brand: { select: { slug: true, nameEn: true } },
           model: { select: { nameEn: true } },
           trim: { select: { nameEn: true } },
-      inspectionReports: { orderBy: { inspectedAt: 'desc' }, take: 1 },
+      /**
+       * ═══ المنشور وحده يدخل الكائن العام ═══
+       *
+       * الكائن يُصيَّر في صفحةٍ عامّة **ويُسلسَل في حمولة RSC**، فما
+       * يدخله يصل كل زائرٍ ولو لم يُرسَم على الشاشة. وقِيس: تقريرٌ
+       * خاصٌّ دفع ثمنه مشترٍ كان في مصدر الصفحة كاملًا — درجتُه
+       * وفاحصُه وملاحظاتُه — ولا شيء على الشاشة يُظهره.
+       *
+       * فالشرط في الاستعلام لا في الشاشة: ما لا يُجلَب لا يُسلسَل.
+       * (وهو مسلك `reservePrice` نفسه — قرار ٢٩.)
+       */
+      inspectionReports: {
+        where: { publishedAt: { not: null } },
+        orderBy: { inspectedAt: 'desc' },
+        take: 1,
+      },
       history: { orderBy: { occurredAt: 'desc' } },
     },
   },

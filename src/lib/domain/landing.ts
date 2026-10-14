@@ -164,7 +164,14 @@ export async function landingContent(
   const [bounds, inspectedCount, brandId, modelId] = await Promise.all([
     db.listing.aggregate({ where, _min: { askPrice: true }, _max: { askPrice: true } }),
     db.listing.count({
-      where: { ...where, vehicle: { ...where.vehicle, inspectionReports: { some: {} } } },
+      /** **المنشور وحده** — وعدّادٌ يعدّ تقارير خاصّة يَعِد بما لا يُفتح. */
+      where: {
+        ...where,
+        vehicle: {
+          ...where.vehicle,
+          inspectionReports: { some: { publishedAt: { not: null } } },
+        },
+      },
     }),
     db.brand.findFirst({ where: { slug: brandSlug }, select: { id: true } }),
     picked.model === null

@@ -128,8 +128,8 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 13 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 83 |
-| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 12 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 84 |
+| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 13 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
 | `CarRow` | no | `data` · `className` | 3 |

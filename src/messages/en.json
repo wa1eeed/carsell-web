@@ -176,7 +176,10 @@
     "reservedTitle": "Reserved by an open order",
     "reservedBody": "Another buyer has an order in progress. If it does not complete, it returns to the market — add it to your favourites to be told.",
     "soldTitle": "Sold",
-    "soldBody": "This sale completed and ownership transferred. The page stays for the record — similar vehicles are listed below."
+    "soldBody": "This sale completed and ownership transferred. The page stays for the record — similar vehicles are listed below.",
+    "privateReport": "You have a private inspection report on this car",
+    "privateReportBody": "You paid for it, so it is yours alone — the seller cannot see it until you share it.",
+    "openPrivateReport": "Open your report"
   },
   "site": {
     "liveAuctions": "live auctions",

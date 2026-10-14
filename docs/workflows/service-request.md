@@ -119,3 +119,60 @@ and both the screen and the template phrase it.
 **The provider side**: `ASSIGNED` / `IN_PROGRESS` / `DONE` still have no writer,
 there is no provider surface, and the held money is never captured or split.
 `docs/BACKLOG.md` § I carries the rest in build order.
+
+## Who owns the report
+
+The owner's decision, 2026-10-14:
+
+> «تقرير البائع عامٌّ على الإعلان، وتقرير المشتري خاصٌّ به حتى يشاركه أو
+> يشتريه البائع. والنشر يُضاف لاحقًا، والمنشور لا يُسترجَع.»
+
+`InspectionReport.publishedAt` is a **timestamp, not a flag**: "published" is a
+state with a moment, and whoever reads the row a year later asks when it became
+so. `null` means private to whoever paid.
+
+**What it was before.** `findReportByListingRef` returned *any* report on the
+vehicle to *any* visitor. A buyer who paid 450 SAR to learn the condition of a
+car before buying it was **publishing what they bought** — to the seller, and to
+everyone bidding against them. No privacy for the one who paid, and no reason
+for anyone to pay after the first.
+
+**And the leak was wider than the screen.** Even with the page query fixed, the
+report rode into the page through `DETAIL_INCLUDE` — score, inspector, findings,
+paint map — and was **serialised into the RSC payload** of a public page. Nothing
+drew it, and it was in the source for anyone who looked. *What is fetched is
+serialised.* The condition belongs in the query, not in the screen — the same
+rule that keeps `reservePrice` out of a public object by construction.
+
+Eight public reads carried it: the car page, search results and the inspected
+filter, the home rails, the dealer page, the public API, the landing page's
+inspected counter, and the order's documents. **Gate 49** refuses an
+`inspectionReports` query without the publication condition, with three declared
+exceptions (the garage's ownership count, the admin monitor, and
+`inspection.ts`, which owns the rule).
+
+**Who sees what**
+
+| Viewer | Published report | Private report |
+| --- | --- | --- |
+| Anyone | yes | no |
+| The vehicle's owner | yes | **no** — owning the car is not owning the report |
+| Whoever paid for it | yes | yes |
+
+And when a visitor has their own report on a car, they see **theirs** rather than
+the published one: it is what they paid for, and it is newer.
+
+**The car page tells the payer.** The public object carries published reports
+only, so without a word the buyer who paid would read «هذه المركبة غير مفحوصة»
+on the very car they had inspected. The inspection tab shows them a line and a
+link to their report instead.
+
+**What is not seeded is not seen.** All three seeded reports were requested by
+the seller, so the private case had never been rendered — which is why the
+condition was missing from eight queries with nothing to catch it. The seed now
+writes one buyer-paid report as well.
+
+**Not yet:** sharing and selling a private report to the seller. The decision
+says publishing comes later and that a published report is never retracted —
+which is why `publishedAt` is write-once in spirit: nothing in the product sets
+it back to `null`.

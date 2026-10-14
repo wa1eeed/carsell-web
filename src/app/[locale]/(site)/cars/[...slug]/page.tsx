@@ -134,7 +134,7 @@ function shell(children: React.ReactNode) {
 /** Wd — تقرير الفحص، تحت رابط الإعلان. */
 async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
   const [row, t, nav, diagram] = await Promise.all([
-    findReportByListingRef(resolved.row.ref),
+    findReportByListingRef(resolved.row.ref, (await currentUserFromCookies())?.id ?? null),
     getTranslations('ui'),
     getTranslations('site.nav'),
     loadBodyDiagram(),
@@ -224,7 +224,7 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
 
   if (resolved.wantsReport) return inspectionView(resolved);
 
-  const [detail, faq, similar, t, landing] = await Promise.all([
+  const [detail, faq, similar, t, landing, ownReport] = await Promise.all([
     toPublicDetail(resolved.row, resolved.locale),
     faqForListing(resolved.row.type),
     similarListings(resolved.row, 4, resolved.locale),
@@ -235,6 +235,12 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
      * وتردّ ٤٠٤. وتُسأل قبل أن تُعلَن: دونها نُعلن ما لا نملك.
      */
     landingDepth(resolved.row.city, resolved.row.vehicle.brandId, resolved.row.vehicle.modelId),
+    /**
+     * **وتقريرُ هذا الزائر الخاصّ** — إن كان قد دفع ثمنه. والكائن
+     * العام يحمل المنشور وحده، فبلا هذا السطر يقرأ من اشترى تقريرًا
+     * «هذه المركبة غير مفحوصة» على الصفحة نفسها.
+     */
+    findReportByListingRef(resolved.row.ref, (await currentUserFromCookies())?.id ?? null),
   ]);
 
   const isArabic = resolved.locale === 'ar';
@@ -345,6 +351,15 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
              * المدينة بينما تُعلن البيانات المنظَّمة ماركةً وطرازًا —
              * فالزائر لا يجد الطريق الذي نَعِد به محرّك البحث.
              */
+            /**
+             * **ولا يُعرض إلّا الخاصّ**: المنشور يظهر في الكائن العام
+             * نفسه، فسطرٌ ثانٍ له تكرار.
+             */
+            privateReportPath={
+              ownReport !== null && ownReport.publishedAt === null
+                ? `${resolved.canonical.path}/inspection`
+                : null
+            }
             landingHref={
               landing.brand
                 ? `/${resolved.locale}/browse/${resolved.canonical.city}/${resolved.canonical.brand}`
