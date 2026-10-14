@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { displayDigits } from '@/lib/arabic';
 import type { Metadata } from 'next';
 
-import { LiveBar, SiteFooter, SiteHeader } from '@/components/site/SiteHeader';
+import { LiveBar, SiteHeader } from '@/components/site/SiteHeader';
 import { popularSearches, type PopularSearch } from '@/lib/domain/popular-searches';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { SponsoredBanner } from '@/components/site/SponsoredCard';
@@ -525,12 +525,6 @@ export default async function HomePage({
         )}
       </main>
 
-      <SiteFooter
-        columns={[1, 2, 3].map((i) => ({
-          title: t(`footer.${i}.title`),
-          links: t.raw(`footer.${i}.links`) as string[],
-        }))}
-      />
     </>
   );
 }

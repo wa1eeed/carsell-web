@@ -41,6 +41,18 @@ account home and its sections, earnings, the inspection report (Wd), the sell
 wizard (Wh), auctions, search, identity (A18) and most admin screens. Findings
 and fixes are in `docs/BACKLOG.md` § A and § C.
 
+**Closed 2026-10-14 — the footer.** Measured while walking the remaining
+screens: its eleven links were **dead text** (`<li>{link}</li>`, no `href`), and
+it rendered on the **home page only — one of thirty-three**. So «الشروط
+والأحكام» and «سياسة الخصوصية» could not be reached from any other page, which
+they must be. The cause of the second was the first: the footer took its columns
+as a prop, so every page that wanted it had to copy five lines — and only one
+did. It now reads its own columns and lives in the `(site)` layout. Three labels
+pointing at pages that do not exist («التمويل» · «دليل البائع» · «الباقات») were
+removed until they are built — a link that opens a 404 is worse than no link.
+Guarded by `tests/footer-links.test.ts`, which resolves every href against the
+route tree.
+
 **Still unwalked:**
 
 - [ ] The help / support pages.

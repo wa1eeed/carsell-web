@@ -206,12 +206,30 @@ export function SiteHeader({
 }
 
 /** تذييل الموقع — أعمدة روابط والفصل بخطّ. */
-export function SiteFooter({
-  columns,
-}: {
-  columns: readonly { title: string; links: readonly string[] }[];
-}) {
+/**
+ * ═══ تذييل الموقع — **وروابطُه كانت نصوصًا ميّتة** ═══
+ *
+ * أحد عشر سطرًا تُصيَّر `<li>{link}</li>` بلا `href`: «الشروط والأحكام»
+ * و«سياسة الخصوصية» تُعرضان ولا تُفتحان، وهما ممّا يجب أن يبلغه الزائر
+ * من أي صفحة. فالوجهة صارت بجانب التسمية في ملفّ الترجمة — ونصٌّ في
+ * ملفٍّ ورابطٌ في آخر يتباعدان أوّل تعديل.
+ *
+ * **ولا يُعرض سطرٌ إلى صفحةٍ لا توجد**: «التمويل» و«دليل البائع»
+ * و«الباقات» كانت أسماءً بلا مسارات، فحُذفت حتى تُبنى — ورابطٌ يفتح
+ * ٤٠٤ أسوأ من غيابه.
+ */
+export function SiteFooter() {
   const t = useTranslations('site');
+
+  /**
+   * **ويقرأ أعمدتَه بنفسه.** كان يأخذها خاصّيةً، فكانت كل صفحةٍ تريده
+   * تنسخ السطر — ولذلك لم تنسخه إلّا واحدة. والتذييل لا يختلف بالصفحة،
+   * فلا معنى لأن تُمرّره كلُّ صفحةٍ من جديد.
+   */
+  const columns = [1, 2, 3].map((i) => ({
+    title: t(`footer.${String(i)}.title`),
+    links: t.raw(`footer.${String(i)}.links`) as { label: string; href: string }[],
+  }));
 
   return (
     <footer className="border-t border-line bg-surface px-10 py-10">
@@ -230,7 +248,11 @@ export function SiteFooter({
             </p>
             <ul className="flex flex-col gap-2.5 text-xs opacity-70">
               {col.links.map((link) => (
-                <li key={link}>{link}</li>
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:opacity-100 hover:underline">
+                    {link.label}
+                  </Link>
+                </li>
               ))}
             </ul>
           </div>

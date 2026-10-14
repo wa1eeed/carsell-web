@@ -105,8 +105,8 @@ rather than found by chance.
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
 | `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
-| `SiteFooter` | no | `columns` | 1 |
-| `SiteHeader` | no | `active` · `actions` | 26 |
+| `SiteFooter` | no | `const` · `links` | 1 |
+| `SiteHeader` | no | `active` · `actions` | 27 |
 | `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 2 |
 | `SponsoredCard` | yes | `ad` · `label` · `ratio` | 6 |
 | `SponsoredLine` | yes | `ad` · `label` | 1 |

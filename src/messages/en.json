@@ -289,27 +289,60 @@
       "1": {
         "title": "Buying",
         "links": [
-          "Browse cars",
-          "Auctions",
-          "Dealers",
-          "Finance"
+          {
+            "label": "Browse cars",
+            "href": "/cars"
+          },
+          {
+            "label": "Auctions",
+            "href": "/auctions"
+          },
+          {
+            "label": "Showrooms",
+            "href": "/dealers"
+          }
         ]
       },
       "2": {
         "title": "Selling",
         "links": [
-          "Sell your car",
-          "Seller guide",
-          "Plans"
+          {
+            "label": "Sell your car",
+            "href": "/sell"
+          },
+          {
+            "label": "My cars",
+            "href": "/account/vehicles"
+          },
+          {
+            "label": "My earnings",
+            "href": "/account/earnings"
+          }
         ]
       },
       "3": {
         "title": "Platform",
         "links": [
-          "Services",
-          "Help centre",
-          "Terms",
-          "Privacy"
+          {
+            "label": "Services",
+            "href": "/services"
+          },
+          {
+            "label": "Help centre",
+            "href": "/help"
+          },
+          {
+            "label": "Contact us",
+            "href": "/help/contact"
+          },
+          {
+            "label": "Terms",
+            "href": "/legal/terms"
+          },
+          {
+            "label": "Privacy",
+            "href": "/legal/privacy"
+          }
         ]
       }
     },
