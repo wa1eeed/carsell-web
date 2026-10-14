@@ -5,7 +5,12 @@ import { effectiveEnvironment } from '@/lib/domain/integration-env';
 import { createMoyasarAdapter } from './adapters/moyasar';
 import { SANDBOX_KEY, createSandboxAdapter } from './adapters/sandbox';
 
-import { pendingGateway, readCapabilities, type PaymentGatewayPort } from './gateway';
+import {
+  pendingGateway,
+  readCapabilities,
+  type GatewayCapabilities,
+  type PaymentGatewayPort,
+} from './gateway';
 
 const MOYASAR_KEY = 'moyasar';
 
@@ -42,16 +47,19 @@ type Secrets = { secretKey?: string; webhookSecret?: string };
  * والبنّاء يعيد `null` حين ينقص سرٌّ — فالبوابة مُنفَّذةٌ وتنتظر مفتاحًا،
  * وهي حالٌ غيرُ «لا وصلة لها».
  */
-const ADAPTERS: Record<string, (secrets: Secrets) => PaymentGatewayPort | null> = {
-  [MOYASAR_KEY]: (secrets) =>
+const ADAPTERS: Record<
+  string,
+  (secrets: Secrets, capabilities: GatewayCapabilities) => PaymentGatewayPort | null
+> = {
+  [MOYASAR_KEY]: (secrets, capabilities) =>
     secrets.secretKey === undefined || secrets.webhookSecret === undefined
       ? null
-      : createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret),
+      : createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret, capabilities),
   /**
    * والتجريبية بلا أسرار تُفكّ — فبنّاؤها لا يقرأ `secrets`. وهي ترمي
    * في الإنتاج من داخلها، فلا يحرسها هذا الموضع وحده.
    */
-  [SANDBOX_KEY]: () => createSandboxAdapter(readCapabilities(null)),
+  [SANDBOX_KEY]: (_secrets, capabilities) => createSandboxAdapter(capabilities),
 };
 
 /** البوّابات التي للمنتج وصلةٌ إليها — مشتقّةٌ من السجلّ نفسه. */
@@ -113,7 +121,8 @@ export async function resolveGateway(purpose: PaymentPurpose): Promise<Resolved 
   // بوابةٌ لا وصلة لها **لا تُشتقّ من قدراتها**: القدرات تصف ما تستطيع،
   // لا كيف تُنادى. وتاب والمصرفية بلا وصلةٍ بعد.
   const gateway =
-    ADAPTERS[route.gatewayKey]?.(secrets) ?? pendingGateway(route.gatewayKey, environment);
+    ADAPTERS[route.gatewayKey]?.(secrets, capabilities) ??
+    pendingGateway(route.gatewayKey, environment);
 
   return {
     // القدرات من الصفّ لا من المُهايئ: المشغّل يعدّلها بلا نشر
@@ -134,14 +143,21 @@ export async function resolveForPayment(
   });
   const secrets = readSecrets(credential?.secretsEncrypted ?? null);
 
+  /**
+   * **والقدرات من صفّها هي أيضًا.** لقطةُ المعاملة تحمل البوّابة
+   * والبيئة لا شروطَها، فتُقرأ من الصفّ — ومُهايئٌ يُبنى بشروطٍ
+   * مكتوبةٍ في الشيفرة يُنتج مهلةَ حجزٍ تخالف ما تعرضه الشاشة.
+   */
+  const row = await db.paymentGateway.findUnique({ where: { key: gatewayKey } });
+  const capabilities = readCapabilities(row?.capabilities ?? null);
+
   // معاملةٌ أُنشئت على التجريبية تُفرَج من التجريبية — من حيث أُنشئت
   if (gatewayKey === SANDBOX_KEY) {
-    const gateway = await db.paymentGateway.findUnique({ where: { key: SANDBOX_KEY } });
-    return createSandboxAdapter(readCapabilities(gateway?.capabilities ?? null));
+    return createSandboxAdapter(capabilities);
   }
 
   if (gatewayKey === MOYASAR_KEY && secrets.secretKey !== undefined && secrets.webhookSecret !== undefined) {
-    return createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret);
+    return createMoyasarAdapter(secrets.secretKey, secrets.webhookSecret, capabilities);
   }
   return pendingGateway(gatewayKey, environment);
 }

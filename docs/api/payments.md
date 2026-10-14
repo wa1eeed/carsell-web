@@ -86,6 +86,22 @@ Each gateway declares:
 
 Each purpose declares its `requiredCapabilities`.
 
+**The fees are data; the flags are code.** `feePct` and `feeFixed` are a
+commercial term — what the gateway charges us — and are edited from
+`/admin/payments` (`PUT /api/v1/admin/payments/gateways/{key}`, audited). The
+three booleans and the two durations are not editable: a flag describes what the
+gateway *can do*, and granting one by hand makes the product promise a
+capability no adapter has; a `maxHoldDays` written wider than the gateway's own
+window produces a hold that dies before the date the screen shows.
+
+`resolve.ts` had read capabilities from the row since it was written, with a
+comment saying the operator edits them without a deploy — and **no screen edited
+them**. They came from the seed, and the adapter carried a second copy
+(`feePct: 2.75`, `maxHoldDays: 7`) that `expiryFrom` read, so an operator
+lowering the hold window would have seen one number on screen and got another in
+the hold. The constant is gone: `createMoyasarAdapter` now takes capabilities as
+a **required argument**, and gate 46 refuses any non-zero fee literal in `src/`.
+
 **A gateway missing a required capability does not appear in the list at all** —
 it is not shown and then rejected. Offering a choice and refusing it teaches the
 operator that the list is unreliable.

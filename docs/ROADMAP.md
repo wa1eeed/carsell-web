@@ -140,6 +140,22 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       a fixed info card over a section whose buttons come from
       `stepsFor(type, status)`. Ownership transfer will be a row in that
       definition, not a second screen. `docs/workflows/provider-panel.md`.
+- [x] **The fee matrix is set from the admin panel, for both gateways** (owner's
+      instruction, 2026-10-14: «الرسوم تُضبط من لوحة الأدمن ولا نضعها داخل
+      الكود»). The providers' matrix lives in `PlatformSetting` and is edited on
+      `/admin/payments`; the platform gateway's `feePct`/`feeFixed` are edited
+      inline on each gateway card. The constant `MOYASAR_CAPABILITIES` is gone —
+      it was a **second source** that `expiryFrom` read while the screen read the
+      row. The percentage→fraction conversion lives in one function with the
+      field showing what will be sent, and **gate 46** refuses any non-zero fee
+      literal under `src/`.
+- [x] **And the button that uses it.** `openAccount` was proven against the
+      sandbox and **had no caller**: `accountStatus` had no writer outside the
+      seed, so a provider added from the panel could never be dispatched a
+      request. The provider's page now carries the registration file, opening,
+      state sync and submit-for-review. Walked on screen against the sandbox:
+      `201`, both identifiers, the three required documents, and
+      `mada 0.01700 · card 0.02700` from the percentages typed into the panel.
 - [ ] **The inspection form** behind `complete` — **its fields come from the
       owner after the current tasks**, so the step completes without a form
       today rather than inventing fields that would be replaced.
@@ -209,8 +225,8 @@ Sequenced after the current work, as the owner asked.
 
 | What | Why it blocks |
 | --- | --- |
-| **The fee matrix we charge providers** | `fees` is required when opening a payment account and sets what the provider is charged per transaction. The sandbox account was opened with Moyasar's own example rates, which are **not our terms**. |
-| **The inspection form fields** | The provider panel's `complete` step opens a form whose fields come from the owner, so none are invented and then replaced. |
+| ~~The fee matrix~~ | **Answered 2026-10-14: it is configured from the admin panel, never in code** — for both gateways. **Built the same day** (§ 3), and gate 46 keeps fees out of the code. |
+| **The inspection form fields** | Still with the owner, after the current tasks. A reference was given (`halacarly.com`, inspection tab) and the standard set: match the best car sites, work on web and phone. The form is therefore built so the **point list is data** it reads — swapping the list does not rebuild the form. |
 | **The order stages** — six or seven | Stage 2 of the owner's own ordering; see above. |
 
 ## Also open, outside the four stages

@@ -519,6 +519,16 @@ charges it read one rule, snapshotted onto the request. It had been configured
 and never charged — the editor, the toggle and the amount all existed with zero
 readers in the purchase path.
 
+**The fee matrix is set from the panel — and so the account can be opened.**
+The owner's rule (2026-10-14): fees are configured in the admin panel, never in
+code. Both gateways now read theirs from the database, the constant in the
+Moyasar adapter is gone, and gate 46 refuses a non-zero fee literal under
+`src/`. The matrix is the required input to `openAccount`, which had been built,
+tested and proven against the sandbox **with no caller anywhere** — so a
+provider added from the panel stayed at `accountStatus: NONE` and could never be
+dispatched a request. The provider's page now opens the account, syncs its state
+and submits it for review. `docs/api/provider-payments.md`.
+
 #### What remains, in build order
 
 1. **Two gateway configurations in `/admin/integrations`**, with the Moyasar

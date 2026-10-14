@@ -33,20 +33,17 @@ import { verifyHmac } from '../signature';
 const BASE_URL = 'https://api.moyasar.com/v1';
 
 /**
- * قدرات Moyasar كما في A20.
+ * ═══ ولا قدراتٍ مكتوبةً هنا ═══
  *
- * و`maxHoldDays: 7` دون عتبة الضمان (٢١) — فالتحذير الأوكر ينطق حين
- * يُوجَّه إليها الضمان، وهذا مقصود لا عيب.
+ * كانت ثابتًا في هذا الملف: `feePct: 2.75` و`maxHoldDays: 7`. وقرار
+ * المالك «الرسوم تُضبط من لوحة الأدمن ولا نضعها داخل الكود»، و`resolve.ts`
+ * يقرؤها من الصفّ منذ بُني — فكان في المنتج **مصدران**: الصفُّ تقرؤه
+ * الشاشة والتوجيه، والثابتُ يقرؤه `expiryFrom` داخل المُهايئ. ومشغّلٌ
+ * يُنقِص المدّة يرى شاشةً تقول ثلاثةً وحجزًا يمتدّ سبعًا.
+ *
+ * فالقدرات **وسيطٌ إلزاميّ**: من يبني المُهايئ يقول بأيّ شروطٍ يبنيه،
+ * ولا افتراضَ يُسكت السؤال.
  */
-export const MOYASAR_CAPABILITIES: GatewayCapabilities = {
-  supportsHold: true,
-  supportsPartialSettle: true,
-  supportsRefund: true,
-  maxHoldDays: 7,
-  settlementDelayHours: 0,
-  feePct: 2.75,
-  feeFixed: 1,
-};
 
 /**
  * المبلغ عند Moyasar **بالهللات** لا بالريالات.
@@ -79,6 +76,7 @@ export type Fetcher = (url: string, init: RequestInit) => Promise<Response>;
 export function createMoyasarAdapter(
   secretKey: string,
   webhookSecret: string,
+  capabilities: GatewayCapabilities,
   fetcher: Fetcher = fetch,
 ): PaymentGatewayPort {
   const auth = `Basic ${Buffer.from(`${secretKey}:`).toString('base64')}`;
@@ -114,7 +112,7 @@ export function createMoyasarAdapter(
 
   return {
     key: 'moyasar',
-    capabilities: MOYASAR_CAPABILITIES,
+    capabilities,
 
     /** hold → authorize: `manual: true` يحجز بلا تحصيل. */
     async hold(input: HoldInput): Promise<HoldResult> {
@@ -148,8 +146,8 @@ export function createMoyasarAdapter(
 
       // `authorized` وحدها تعني حجزًا مؤكَّدًا — وغيرها ينتظر
       return result.payment.status === 'authorized'
-        ? { state: 'CONFIRMED', holdRef: id, expiresAt: expiryFrom(new Date()) }
-        : { state: 'PENDING', holdRef: id, expiresAt: expiryFrom(new Date()) };
+        ? { state: 'CONFIRMED', holdRef: id, expiresAt: expiryFrom(new Date(), capabilities.maxHoldDays) }
+        : { state: 'PENDING', holdRef: id, expiresAt: expiryFrom(new Date(), capabilities.maxHoldDays) };
     },
 
     /** settle → capture: بمبلغ أقلّ حين تكون التسوية جزئية. */
@@ -249,6 +247,6 @@ export function createMoyasarAdapter(
   };
 }
 
-function expiryFrom(now: Date): Date {
-  return new Date(now.getTime() + MOYASAR_CAPABILITIES.maxHoldDays * 86_400_000);
+function expiryFrom(now: Date, maxHoldDays: number): Date {
+  return new Date(now.getTime() + maxHoldDays * 86_400_000);
 }

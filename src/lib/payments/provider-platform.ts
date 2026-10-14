@@ -237,3 +237,55 @@ export function checkShares(total: string, shares: readonly Share[]): PlatformRe
 export function halalas(amount: string | number): number {
   return Math.round(Number(amount) * 100);
 }
+
+/**
+ * مصفوفةُ الرسوم كما يضبطها المشغّل — **مئويّةً**.
+ *
+ * فهو يتّفق على «١٬٧٠٪» ويكتبها كذلك، والكسرُ تمثيلُ البوّابة لا
+ * تمثيلُ العقد. والقيَم نصوصٌ لا أعدادًا: تأتي من `Decimal` ولا تمرّ
+ * بعائمٍ قبل التحويل.
+ */
+export type FeePlanPercent = {
+  madaPct: string;
+  madaFixed: string;
+  madaCap: string | null;
+  madaRefundFixed: string;
+  cardPct: string;
+  cardFixed: string;
+  cardRefundFixed: string;
+  taxInclusive: boolean;
+};
+
+/**
+ * ═══ المئويّة إلى كسر — **موضعٌ واحد في المنتج كلّه** ═══
+ *
+ * قِيس على البيئة التجريبية: `1.70` تردّ ٤٠٠ — «must be less than or
+ * equal to 1» — ووثيقةُ المزوّد تكتب مثالها `1.70` وتسمّيه «نسبة».
+ * فالمخزَّن مئويّةٌ يقرؤها المشغّل، والمُرسَل كسرٌ تقبله البوّابة،
+ * **والتحويل هنا وحده**. ونسختان منه تتباعدان أوّل تعديل، وثمنُ
+ * التباعد رسمٌ مئةَ ضعفٍ على شريك.
+ *
+ * و`toFixed(5)` لا أقلّ: العمود `Decimal(6,3)` يحمل ثلاثَ خاناتٍ من
+ * المئويّة، وهي خمسٌ من الكسر — فالتقريبُ إلى أربعٍ يُسقط خانةً
+ * اتّفق عليها أحد.
+ */
+export function feeMatrixFromPercent(plan: FeePlanPercent): FeeMatrix {
+  return {
+    taxInclusive: plan.taxInclusive,
+    madaRate: fraction(plan.madaPct),
+    madaFixed: amount(plan.madaFixed),
+    ...(plan.madaCap === null ? {} : { madaCap: amount(plan.madaCap) }),
+    madaRefundFixed: amount(plan.madaRefundFixed),
+    cardRate: fraction(plan.cardPct),
+    cardFixed: amount(plan.cardFixed),
+    cardRefundFixed: amount(plan.cardRefundFixed),
+  };
+}
+
+function fraction(percent: string): string {
+  return (Number(percent) / 100).toFixed(5);
+}
+
+function amount(value: string): string {
+  return Number(value).toFixed(2);
+}

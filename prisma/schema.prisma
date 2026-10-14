@@ -1435,6 +1435,31 @@ model PlatformSetting {
 
   vatPct      Decimal @default(15) @db.Decimal(5, 2)
 
+  /// ═══ مصفوفةُ رسوم بوّابة المزوّدين — قرار المالك ٢٠٢٦-١٠-١٤ ═══
+  ///
+  /// «الرسوم تُضبط من لوحة الأدمن ولا نضعها داخل الكود». وهي شروطٌ
+  /// تجاريّة مع مزوّدٍ حقيقيّ، فثابتٌ في الشيفرة يفرضها بلا أن
+  /// يقرّرها أحد ولا تُكتشف إلّا حين يسأل عن خصمٍ لم يتّفق عليه.
+  ///
+  /// **وتُخزَّن مئويّةً وتُرسَل كسرًا.** البوّابة تحدّ القيمة بواحد
+  /// (`1.70` تردّ ٤٠٠)، والمشغّل يتّفق على «١٬٧٠٪» لا على «٠٬٠١٧». فإن
+  /// خُزّنت كسرًا قرأها المشغّل نسبةً فأدخل مئةَ ضعف — والتحويل في
+  /// `feeMatrixFromPercent` وحدها.
+  ///
+  /// **و`null` ليست صفرًا**: ما لم يقرّره أحد لا يُرسَل. وفتحُ حسابٍ
+  /// قبل ضبط المصفوفة يُرفض ويُشار إلى الشاشة — لا يُرسَل صفرٌ يعني
+  /// «لا نأخذ من هذا الشريك شيئًا».
+  providerFeeMadaPct         Decimal? @db.Decimal(6, 3)
+  providerFeeMadaFixed       Decimal? @db.Decimal(10, 2)
+  /// سقفُ رسم مدى — اختياريّ، فبعض العقود بلا سقف
+  providerFeeMadaCap         Decimal? @db.Decimal(10, 2)
+  providerFeeMadaRefundFixed Decimal? @db.Decimal(10, 2)
+  providerFeeCardPct         Decimal? @db.Decimal(6, 3)
+  providerFeeCardFixed       Decimal? @db.Decimal(10, 2)
+  providerFeeCardRefundFixed Decimal? @db.Decimal(10, 2)
+  /// أالقيَم شاملةٌ للضريبة؟ — والافتراض لا
+  providerFeeTaxInclusive    Boolean  @default(false)
+
   /// ═══ افتراضيّات المزاد (A32) ═══
   ///
   /// **تُنسَخ لقطةً في كل مزاد وقت إنشائه** — فمزايدٌ بدأ على قاعدة
@@ -1730,6 +1755,35 @@ model ServiceProvider {
   /// ولا يُعرض في شاشة ولا يُكتب في سجلّ — يُفكّ عند النداء وحده.
   accountSecret String?
 
+  /// ═══ ملفُّ التسجيل كما أُعلن للبوّابة ═══
+  ///
+  /// سبعةُ حقولٍ تطلبها الجهة المنظِّمة عند فتح الحساب، **وتُخزَّن لا
+  /// تُكتب مرّتين**: المشغّل يراها بعد الفتح فيعرف ما أُعلن، وإعادةُ
+  /// التقديم لا تعني إعادة الكتابة من الذاكرة.
+  accountKind      ProviderAccountKind?
+  /// اسمٌ آليّ لدى البوّابة — حروفٌ وأرقامٌ وشرطةٌ سفلية
+  accountSlug      String?
+  accountWebsite   String?
+  /// بريدُ من يُمنَح إدارةَ الحساب لدى البوّابة — **تصله دعوة**، وهو
+  /// غير بريد المنشأة: الأوّل شخصٌ يدخل اللوحة، والثاني جهةُ تواصل.
+  accountAdminEmail String?
+  /// عددُ المُلّاك كما في السجلّ التجاريّ — يحدّد عدد الهويات المطلوبة
+  accountOwners    Int?
+  accountSignatory AccountSignatory?
+  accountSignatoryCount Int?
+  accountLicence   Boolean @default(false)
+  /// أاكتملت مستنداتُ الحساب **كما تقولها البوّابة** آخر مزامنة؟
+  ///
+  /// وهي شرطُ التقديم للمراجعة، فتُحفَظ لا تُفترض: زرُّ تقديمٍ يُعرض
+  /// بلا هذا الشرط يردّ رفضًا بعد النقر — ويُقرأ الرفضُ عطلًا.
+  accountDocsComplete Boolean @default(false)
+  /// **لقطةُ الرسوم التي أُرسلت فعلًا** — لا مصفوفةُ اليوم.
+  ///
+  /// فالمصفوفة في `PlatformSetting` تتغيّر، وشريكٌ فُتح حسابه بشروطٍ
+  /// سابقة يبقى عليها عند البوّابة. وعرضُ مصفوفة اليوم على صفحته
+  /// يقول له شروطًا لم يتّفق عليها.
+  accountFees      Json?
+
   services Service[]
   requests ServiceRequest[]
   users    ProviderUser[]
@@ -1741,6 +1795,22 @@ model ServiceProvider {
 enum ServiceFeeMode {
   FIXED
   PERCENT
+}
+
+/// صفةُ المنشأة لدى البوّابة — وهي تحدّد ما يُطلب من مستندات.
+enum ProviderAccountKind {
+  FREELANCER
+  ESTABLISHMENT
+  COMPANY
+  GOVERNMENT
+  CHARITY
+}
+
+/// من يملك التوقيع على الحساب.
+enum AccountSignatory {
+  OWNER
+  COMMERCIAL_CONTRACT
+  POWER_OF_ATTORNEY
 }
 
 /// حال حساب دفع المزوّد.

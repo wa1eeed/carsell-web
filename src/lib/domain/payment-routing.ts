@@ -619,6 +619,82 @@ export async function setProcessingFee(
 }
 
 /**
+ * ═══ رسومُ البوّابة — ما تأخذه منّا، ويُضبط من اللوحة ═══
+ *
+ * `resolve.ts` يقول منذ بُني «القدرات من الصفّ لا من المُهايئ: المشغّل
+ * يعدّلها بلا نشر» — **ولم تكن هناك شاشة تعدّلها**. فالقيَم تأتي من
+ * البذرة، وتعديلُ عقدٍ مع بوّابة كان يحتاج نشرًا. والنصُّ المعروض
+ * وعدٌ لا وصف.
+ *
+ * **والرسومُ وحدها تُعدَّل.** الرايات تصف ما **تستطيعه** البوّابة
+ * (حجزٌ · إفراجٌ جزئيّ · استرجاع) وهي حقائق في الشيفرة، ومنحُها بيدٍ
+ * يجعل المنتج يَعِد بقدرةٍ لا وصلةَ لها. و`maxHoldDays` كذلك: رقمٌ
+ * يُكتب أوسع من نافذة البوّابة يُنتج حجزًا يموت قبل الموعد المعروض.
+ */
+export type GatewayFeeResult =
+  | { ok: true; row: GatewayRow }
+  | { ok: false; reason: 'INVALID' | 'NOT_FOUND' };
+
+export async function setGatewayFees(
+  admin: AdminUser,
+  key: string,
+  input: { feePct: number; feeFixed: number },
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<GatewayFeeResult> {
+  const sane =
+    Number.isFinite(input.feePct) &&
+    Number.isFinite(input.feeFixed) &&
+    input.feePct >= 0 &&
+    input.feePct <= 100 &&
+    input.feeFixed >= 0 &&
+    input.feeFixed <= 100_000;
+  if (!sane) return { ok: false, reason: 'INVALID' };
+
+  const gateway = await db.paymentGateway.findUnique({ where: { key } });
+  if (gateway === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  /** الرايات والمُدد تُنقل كما هي — ولا يكتبها هذا المسار. */
+  const before = readCapabilities(gateway.capabilities);
+  const after: GatewayCapabilities = {
+    ...before,
+    feePct: input.feePct,
+    feeFixed: input.feeFixed,
+  };
+
+  await db.paymentGateway.update({
+    where: { key },
+    data: { capabilities: { ...after } },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorType: 'admin',
+      entity: 'PaymentGateway',
+      entityId: key,
+      action: 'payments.gateway_fees_changed',
+      before: { feePct: before.feePct, feeFixed: before.feeFixed },
+      after: { feePct: after.feePct, feeFixed: after.feeFixed },
+      ip,
+      createdAt: now,
+    },
+  });
+
+  return {
+    ok: true,
+    row: {
+      key: gateway.key,
+      nameAr: gateway.nameAr,
+      nameEn: gateway.nameEn,
+      status: gateway.status,
+      capabilities: after,
+      implemented: gatewayImplemented(gateway.key),
+    },
+  };
+}
+
+/**
  * ═══ تاريخ تبديل المسارات ═══
  *
  * **والجدولُ يُكتب الآن ولا يُقرأ** — وهو الصنف نفسه بوجهه الآخر.

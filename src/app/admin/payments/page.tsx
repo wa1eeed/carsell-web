@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
-import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
@@ -17,7 +15,10 @@ import { listRuns } from '@/lib/domain/reconciliation';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { PAYMENT_PURPOSE_LABEL } from '@/lib/labels/admin';
 import type { PaymentPurpose } from '@/generated/prisma/enums';
+import { getProviderFeePlan } from '@/lib/domain/provider-fees';
+import { GatewayFeesForm } from './GatewayFeesForm';
 import { ProcessingFeeCard } from './ProcessingFeeCard';
+import { ProviderFeesCard } from './ProviderFeesCard';
 import { ReconciliationTable } from './ReconciliationTable';
 import { RoutesTable } from './RoutesTable';
 
@@ -35,14 +36,16 @@ export default async function PaymentsRoutingPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [routes, awaiting, gateways, processingFee, runs, changes] = await Promise.all([
-    listRoutes(),
-    pendingSwitches(),
-    listGateways(),
-    getProcessingFee(),
-    listRuns(),
-    routeChanges(),
-  ]);
+  const [routes, awaiting, gateways, processingFee, providerFees, runs, changes] =
+    await Promise.all([
+      listRoutes(),
+      pendingSwitches(),
+      listGateways(),
+      getProcessingFee(),
+      getProviderFeePlan(),
+      listRuns(),
+      routeChanges(),
+    ]);
   const linked = gateways.filter((gateway) => gateway.status !== 'INACTIVE');
   /**
    * **ومربوطةٌ ليست مُهيَّأة.** `status: ACTIVE` صفٌّ في القاعدة، والمُهايئ
@@ -135,14 +138,18 @@ export default async function PaymentsRoutingPage() {
                   <Quantity unit="hours" count={gateway.capabilities.settlementDelayHours} />
                 )}
               </Line>
+              {/*
+                **والرسومُ تُعدَّل من هنا** — قرار المالك: «الرسوم تُضبط
+                من لوحة الأدمن ولا نضعها داخل الكود». وكانت تأتي من
+                البذرة وثابتٍ في المُهايئ، فتعديلُ عقدٍ يحتاج نشرًا.
+              */}
               <Line label="الرسوم">
-                <span className="flex items-baseline gap-1">
-                  <span className="font-num">
-                    <ArabicNumber value={gateway.capabilities.feePct} decimals={2} grouped={false} />٪
-                  </span>
-                  <span aria-hidden className="opacity-40">+</span>
-                  <Money amount={String(gateway.capabilities.feeFixed)} />
-                </span>
+                <GatewayFeesForm
+                  gatewayKey={gateway.key}
+                  feePct={gateway.capabilities.feePct}
+                  feeFixed={gateway.capabilities.feeFixed}
+                  canManage={canWrite(admin.role, 'finance.view')}
+                />
               </Line>
             </div>
           </section>
@@ -151,6 +158,19 @@ export default async function PaymentsRoutingPage() {
 
       <ProcessingFeeCard
         initial={processingFee}
+        canManage={canWrite(admin.role, 'finance.view')}
+      />
+
+      {/*
+        ═══ ورسومُ بوّابة المزوّدين ثالثةٌ لا تُشتقّ من الاثنتين ═══
+
+        بطاقاتُ البوّابات تقول **ما تأخذه البوّابة منّا**، ورسومُ
+        المعالجة **ما نأخذه نحن من طرفَي البيع**، وهذه **ما يُخصم من
+        شريكٍ مزوّدِ خدمة** لدى بوّابةٍ أخرى. وثلاثتُها أرقامٌ مختلفة،
+        واشتقاقُ إحداها من الأخرى يجعل تغيير عقدٍ يغيّر شروط شريك.
+      */}
+      <ProviderFeesCard
+        initial={providerFees}
         canManage={canWrite(admin.role, 'finance.view')}
       />
 

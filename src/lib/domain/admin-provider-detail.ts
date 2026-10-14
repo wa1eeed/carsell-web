@@ -1,5 +1,22 @@
 import { db } from '@/lib/db';
 import type { ProviderAccountStatus, ProviderType, ServiceRequestStatus } from '@/generated/prisma/enums';
+import type { AccountFile } from './provider-account';
+
+/**
+ * لقطةُ الرسوم المحفوظة — **قراءةٌ متحفّظة لا ثقة**.
+ *
+ * العمود `Json`، فما فيه قد يكون أي شكل: قُرئ مفتاحًا ونصًّا، وما
+ * ليس نصًّا ولا منطقيًّا يُطرح. وقراءتُه مُنطبِقًا على النوع تُسقط
+ * الشاشة على صفٍّ كُتب بإصدارٍ سابق.
+ */
+function readFees(value: unknown): Record<string, string | boolean> | null {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const out: Record<string, string | boolean> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof entry === 'string' || typeof entry === 'boolean') out[key] = entry;
+  }
+  return Object.keys(out).length === 0 ? null : out;
+}
 
 /**
  * ═══ ملفُّ المزوّد كاملًا — طلباتُه وحسابُه ومستحقّاته ═══
@@ -58,6 +75,20 @@ export type ProviderDetail = {
     payoutRef: string | null;
     note: string | null;
     syncedAt: string | null;
+    /** ملفُّ التسجيل كما أُعلن — يُجمَع قبل الفتح ويُقرأ بعده */
+    file: AccountFile;
+    /**
+     * **لقطةُ الرسوم المُرسلة** — لا مصفوفةُ اليوم.
+     *
+     * فالمصفوفة تتغيّر، وشريكٌ فُتح حسابه بشروطٍ سابقة يبقى عليها عند
+     * البوّابة. وعرضُ مصفوفة اليوم على صفحته يقول له شروطًا لم يتّفق
+     * عليها.
+     */
+    fees: Record<string, string | boolean> | null;
+    /** أنملك مفتاحه؟ — وبه **وحده** يُقرأ رصيدُه لدى البوّابة */
+    hasSecret: boolean;
+    /** أاكتملت مستنداتُه كما تقولها البوّابة؟ — شرطُ التقديم للمراجعة */
+    docsComplete: boolean;
   };
 
   /**
@@ -108,6 +139,17 @@ export async function providerDetail(
       payoutRef: true,
       accountNote: true,
       accountSyncAt: true,
+      accountSecret: true,
+      accountKind: true,
+      accountSlug: true,
+      accountWebsite: true,
+      accountAdminEmail: true,
+      accountOwners: true,
+      accountSignatory: true,
+      accountSignatoryCount: true,
+      accountLicence: true,
+      accountDocsComplete: true,
+      accountFees: true,
       users: {
         orderBy: { createdAt: 'asc' },
         select: {
@@ -190,6 +232,20 @@ export async function providerDetail(
       payoutRef: row.payoutRef,
       note: row.accountNote,
       syncedAt: row.accountSyncAt?.toISOString() ?? null,
+      file: {
+        kind: row.accountKind,
+        slug: row.accountSlug ?? '',
+        website: row.accountWebsite ?? '',
+        adminEmail: row.accountAdminEmail ?? '',
+        owners: row.accountOwners,
+        signatory: row.accountSignatory,
+        signatoryCount: row.accountSignatoryCount,
+        licence: row.accountLicence,
+      },
+      fees: readFees(row.accountFees),
+      /** **ولا يخرج المفتاح** — تخرج معرفةُ وجوده وحدها. */
+      hasSecret: row.accountSecret !== null && row.accountSecret !== '',
+      docsComplete: row.accountDocsComplete,
     },
     counts: {
       offered: by('NEW'),

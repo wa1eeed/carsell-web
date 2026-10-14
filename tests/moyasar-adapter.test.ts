@@ -1,13 +1,31 @@
 import { createHmac } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  MOYASAR_CAPABILITIES,
   createMoyasarAdapter,
   fromHalalas,
   toHalalas,
   type Fetcher,
 } from '@/lib/payments/adapters/moyasar';
-import { eligibility } from '@/lib/payments/gateway';
+import { eligibility, type GatewayCapabilities } from '@/lib/payments/gateway';
+
+/**
+ * ═══ القدرات تُقرأ من البذرة لا من الشيفرة ═══
+ *
+ * كانت ثابتًا مُصدَّرًا في المُهايئ، وقرار المالك أن الرسوم تُضبط من
+ * اللوحة — فصار الصفُّ هو المصدر. والاختبار يقرأ **ما يُزرع فعلًا**:
+ * ثابتٌ يكتبه الاختبار بيده يُثبّت رقمًا قد لا يكون في القاعدة.
+ */
+function seeded(key: string): GatewayCapabilities {
+  const rows = JSON.parse(
+    readFileSync(new URL('../prisma/seed-data/payment-gateways.json', import.meta.url), 'utf8'),
+  ) as { key: string; capabilities: GatewayCapabilities }[];
+  const row = rows.find((candidate) => candidate.key === key);
+  if (row === undefined) throw new Error(`no seeded gateway ${key}`);
+  return row.capabilities;
+}
+
+const CAPS = seeded('moyasar');
 
 /**
  * الاختبار على **بوابة وهميّة تطبّق العقد** — لا اتصال بالمزوّد.
@@ -64,7 +82,7 @@ describe('hold → authorize', () => {
     const { fetcher, calls } = stub([
       { status: 200, body: { id: 'pay_1', status: 'authorized', amount: 14285000 } },
     ]);
-    const gateway = createMoyasarAdapter('sk_test', 'whsec', fetcher);
+    const gateway = createMoyasarAdapter('sk_test', 'whsec', CAPS, fetcher);
 
     const result = await gateway.hold(HOLD);
     expect(result.state).toBe('CONFIRMED');
@@ -83,21 +101,21 @@ describe('hold → authorize', () => {
         body: { id: 'pay_2', status: 'initiated', source: { transaction_url: 'https://acs/3ds' } },
       },
     ]);
-    const result = await createMoyasarAdapter('sk', 'wh', fetcher).hold(HOLD);
+    const result = await createMoyasarAdapter('sk', 'wh', CAPS, fetcher).hold(HOLD);
     expect(result.state).toBe('REQUIRES_ACTION');
     if (result.state === 'REQUIRES_ACTION') expect(result.actionUrl).toBe('https://acs/3ds');
   });
 
   it('حالةٌ غير `authorized` تبقى PENDING لا CONFIRMED', async () => {
     const { fetcher } = stub([{ status: 200, body: { id: 'pay_3', status: 'initiated' } }]);
-    const result = await createMoyasarAdapter('sk', 'wh', fetcher).hold(HOLD);
+    const result = await createMoyasarAdapter('sk', 'wh', CAPS, fetcher).hold(HOLD);
     // النطاق ينتظر الحالة لا الاستدعاء
     expect(result.state).toBe('PENDING');
   });
 
   it('رفض البوابة يفشل صراحةً برمزه', async () => {
     const { fetcher } = stub([{ status: 400, body: { message: 'invalid card' } }]);
-    const result = await createMoyasarAdapter('sk', 'wh', fetcher).hold(HOLD);
+    const result = await createMoyasarAdapter('sk', 'wh', CAPS, fetcher).hold(HOLD);
     expect(result.state).toBe('FAILED');
     if (result.state === 'FAILED') {
       expect(result.code).toBe('HTTP_400');
@@ -107,7 +125,7 @@ describe('hold → authorize', () => {
 
   it('═══ سقوط الشبكة PENDING لا FAILED ═══', async () => {
     const fetcher: Fetcher = () => Promise.reject(new Error('ECONNRESET'));
-    const result = await createMoyasarAdapter('sk', 'wh', fetcher).hold(HOLD);
+    const result = await createMoyasarAdapter('sk', 'wh', CAPS, fetcher).hold(HOLD);
 
     /**
      * الطلب قد يكون وصل ونُفِّذ. وإعلانُه فشلًا يجعل النطاق يعيد
@@ -120,7 +138,7 @@ describe('hold → authorize', () => {
 describe('settle → capture · cancel → void · partialReturn → refund', () => {
   it('التسوية الكاملة والجزئية', async () => {
     const full = stub([{ status: 200, body: { id: 'p', status: 'captured', captured: 14285000 } }]);
-    const done = await createMoyasarAdapter('sk', 'wh', full.fetcher).settle('pay_1');
+    const done = await createMoyasarAdapter('sk', 'wh', CAPS, full.fetcher).settle('pay_1');
     expect(done.state).toBe('CONFIRMED');
     if (done.state === 'CONFIRMED') expect(done.settledAmount).toBe('142850.00');
     // الكاملة بلا مبلغ — والبوابة تأخذ المحجوز كلّه
@@ -128,21 +146,21 @@ describe('settle → capture · cancel → void · partialReturn → refund', ()
     expect(full.calls[0]?.url).toContain('/capture');
 
     const partial = stub([{ status: 200, body: { id: 'p', status: 'captured', captured: 5000000 } }]);
-    const some = await createMoyasarAdapter('sk', 'wh', partial.fetcher).settle('pay_1', '50000.00');
+    const some = await createMoyasarAdapter('sk', 'wh', CAPS, partial.fetcher).settle('pay_1', '50000.00');
     expect((partial.calls[0]?.body as Record<string, unknown>).amount).toBe(5000000);
     if (some.state === 'CONFIRMED') expect(some.settledAmount).toBe('50000.00');
   });
 
   it('الإلغاء يُبطل الحجز — ولا استرجاع لأن المال لم يتحرّك', async () => {
     const { fetcher, calls } = stub([{ status: 200, body: { id: 'p', status: 'voided' } }]);
-    const result = await createMoyasarAdapter('sk', 'wh', fetcher).cancel('pay_1');
+    const result = await createMoyasarAdapter('sk', 'wh', CAPS, fetcher).cancel('pay_1');
     expect(result.state).toBe('CONFIRMED');
     expect(calls[0]?.url).toContain('/void');
   });
 
   it('الردّ الجزئي بعد التسوية', async () => {
     const { fetcher, calls } = stub([{ status: 200, body: { id: 'p', status: 'refunded' } }]);
-    const result = await createMoyasarAdapter('sk', 'wh', fetcher).partialReturn('pay_1', '1000.00');
+    const result = await createMoyasarAdapter('sk', 'wh', CAPS, fetcher).partialReturn('pay_1', '1000.00');
     expect(result.state).toBe('CONFIRMED');
     if (result.state === 'CONFIRMED') expect(result.returnedAmount).toBe('1000.00');
     expect(calls[0]?.url).toContain('/refund');
@@ -153,17 +171,17 @@ describe('settle → capture · cancel → void · partialReturn → refund', ()
 describe('status — حالة المال كما تقولها البوابة', () => {
   it('تقرأ المحجوز والمسوّى والملغى', async () => {
     const held = stub([{ status: 200, body: { status: 'authorized' } }]);
-    const a = await createMoyasarAdapter('sk', 'wh', held.fetcher).status('p');
+    const a = await createMoyasarAdapter('sk', 'wh', CAPS, held.fetcher).status('p');
     expect(a.held).toBe(true);
     expect(a.settled).toBe(false);
 
     const settled = stub([{ status: 200, body: { status: 'captured', captured: 100000 } }]);
-    const b = await createMoyasarAdapter('sk', 'wh', settled.fetcher).status('p');
+    const b = await createMoyasarAdapter('sk', 'wh', CAPS, settled.fetcher).status('p');
     expect(b.settled).toBe(true);
     expect(b.settledAmount).toBe('1000.00');
 
     const voided = stub([{ status: 200, body: { status: 'voided' } }]);
-    expect((await createMoyasarAdapter('sk', 'wh', voided.fetcher).status('p')).cancelled).toBe(true);
+    expect((await createMoyasarAdapter('sk', 'wh', CAPS, voided.fetcher).status('p')).cancelled).toBe(true);
   });
 });
 
@@ -172,7 +190,7 @@ describe('التوقيع والقدرات', () => {
     const secret = 'whsec_moyasar_test_value';
     const body = '{"type":"payment_paid","id":"evt_1"}';
     const signature = createHmac('sha256', secret).update(body, 'utf8').digest('hex');
-    const gateway = createMoyasarAdapter('sk', secret, () => Promise.reject(new Error('unused')));
+    const gateway = createMoyasarAdapter('sk', secret, CAPS, () => Promise.reject(new Error('unused')));
 
     expect(gateway.verifySignature(body, signature)).toBe(true);
     expect(gateway.verifySignature('{"type":"payment_paid","id":"evt_2"}', signature)).toBe(false);
@@ -180,8 +198,8 @@ describe('التوقيع والقدرات', () => {
   });
 
   it('قدراتها دون عتبة الضمان — والتحذير ينطق', () => {
-    expect(MOYASAR_CAPABILITIES.maxHoldDays).toBe(7);
-    const check = eligibility('VEHICLE_ESCROW', MOYASAR_CAPABILITIES);
+    expect(CAPS.maxHoldDays).toBe(7);
+    const check = eligibility('VEHICLE_ESCROW', CAPS);
     expect(check.eligible).toBe(true);
     if (check.eligible) {
       expect(check.shortfall).toEqual({ maxHoldDays: 7, neededDays: 21 });
@@ -189,7 +207,7 @@ describe('التوقيع والقدرات', () => {
   });
 
   it('وتصلح لشحن المحفظة بلا تحذير — لا حجز مطلوبًا', () => {
-    const check = eligibility('WALLET_TOPUP', MOYASAR_CAPABILITIES);
+    const check = eligibility('WALLET_TOPUP', CAPS);
     expect(check.eligible).toBe(true);
     if (check.eligible) expect(check.shortfall).toBeNull();
   });

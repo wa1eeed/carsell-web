@@ -196,8 +196,82 @@ The sandbox account was opened with the provider's own documented example rates
 provider per transaction is the owner's call, and the field is deliberately
 required so nobody can set it by forgetting.
 
+## The matrix is set from the admin panel
+
+> «مصفوفة الرسوم سواء للمزوّدين أو لبوابة الدفع يجب أن تكون قابلة للضبط من لوحة
+> التحكّم … فالرسوم تُضبط من لوحة الأدمن ولا نضعها داخل الكود»
+> — the owner, 2026-10-14.
+
+`/admin/payments` carries three fee cards, deliberately not derived from one
+another: what the gateway charges **us**, what we charge the **two sides of a
+sale**, and this one — what the providers' gateway charges a **partner**.
+
+Stored in `PlatformSetting` as seven nullable decimals plus a tax-inclusive
+flag. `PUT /api/v1/admin/payments/provider-fees`, permission `finance.view`,
+audited as `payments.provider_fees_changed`, and the response says how many
+accounts are already open: the fees ride to the gateway when an account is
+created and stay there, so what is open keeps its terms.
+
+**Null is not zero.** An unset matrix blocks account opening and says so;
+sending zeros would mean "we take nothing from this partner" — a commercial
+decision that must not happen by forgetting.
+
+### Percent in, fraction out — in one function
+
+The operator agrees on "1.70 %" and types that. The gateway caps the value at 1
+and rejects `1.70`. `feeMatrixFromPercent` is the only place that converts, and
+the field shows the fraction it will send directly under the percentage box, so
+the two numbers sit side by side before saving rather than after the first
+charge. `toFixed(5)`, because the column holds three decimals of a percentage —
+which is five of a fraction.
+
+Storing the fraction instead would be worse: the operator would read `0.017` as
+a percentage and type a hundred times over.
+
+## Opening an account — from a screen
+
+`openAccount` was built, tested and proven against the sandbox, and **nothing in
+the product called it**: no button, no route. `accountStatus` had no writer
+outside the seed, and `cityPool` requires `ACTIVE` or `SEMI_ACTIVE` — so a
+provider added from the admin panel would never be sent a request, ever.
+
+The provider's page now carries the whole account lifecycle:
+
+| Step | What it is |
+|---|---|
+| The registration file | `PUT …/providers/{id}/account` — the seven fields the regulator asks for, saved and reviewed before anything is sent |
+| Open the account | `POST …/providers/{id}/account` — irreversible, and the screen says so |
+| Read its state | `POST …/providers/{id}/account/sync` — the partner uploads documents in the gateway's own dashboard, not ours |
+| Submit for review | `POST …/providers/{id}/account/submit` — shown only when the gateway says the documents are complete |
+
+**The file and the opening are two acts, not one.** The file is collected from
+the partner over time and corrected; opening creates an account with a regulated
+body under commercial terms and sends an invitation to an email. Merging them
+would let a corrected website open an account.
+
+**A file is not edited once its account is open.** What the gateway holds does
+not change because we changed a row, and a screen saying otherwise is a lie.
+
+Everything the response returns **once** is captured in the same write: both
+identifiers, the account's secret key (encrypted — it is the only way to read
+that partner's balance), the required documents, and a **snapshot of the fees
+actually sent**. The snapshot is shown on the page instead of today's matrix:
+the matrix changes, the partner's terms do not.
+
+Permissions split the decision from the act: finance sets the matrix
+(`finance.view`), operations opens accounts under it (`services.manage`).
+
+### Walked on screen, 2026-10-14
+
+A provider was created from `/admin/providers`, its file filled, and the account
+opened against the sandbox with the owner's authorised test email. The gateway
+returned `201`: `accountRef a7d28ad2…`, `payoutRef 760f8ef6…`, status pending,
+and three required documents, which the page renders in Arabic. The fee line
+reads `mada 0.01700 · card 0.02700` — the fractions, from the percentages typed
+into the panel. Sync returned `200`.
+
 ## Still unproven
 
-Submitting an account for review, uploading documents, and sending splits with a
-payment. Submission needs the documents in place first, which the sandbox
-account does not have.
+Submitting an account for review and sending splits with a payment. Submission
+needs the documents in place first, which the sandbox account does not have —
+the button exists and is shown only when the gateway reports them complete.

@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-85 models · 54 enums
+85 models · 56 enums
 
 ## Relationships
 
@@ -184,6 +184,8 @@ erDiagram
   Report }o--|| User : "reporter"
   ServiceProvider }o--|| ProviderType : "type"
   ServiceProvider }o--|| ProviderAccountStatus : "accountStatus"
+  ServiceProvider |o--|| ProviderAccountKind : "accountKind"
+  ServiceProvider |o--|| AccountSignatory : "accountSignatory"
   ServiceProvider ||--o{ Service : "services"
   ServiceProvider ||--o{ ServiceRequest : "requests"
   ServiceProvider ||--o{ ProviderUser : "users"
@@ -980,6 +982,14 @@ Relations: `status` → `ReconciliationStatus`
 | `processingFeePct` | `Decimal` |  |
 | `processingFeeFixed` | `Decimal` |  |
 | `vatPct` | `Decimal` |  |
+| `providerFeeMadaPct` | `Decimal?` |  |
+| `providerFeeMadaFixed` | `Decimal?` |  |
+| `providerFeeMadaCap` | `Decimal?` |  |
+| `providerFeeMadaRefundFixed` | `Decimal?` |  |
+| `providerFeeCardPct` | `Decimal?` |  |
+| `providerFeeCardFixed` | `Decimal?` |  |
+| `providerFeeCardRefundFixed` | `Decimal?` |  |
+| `providerFeeTaxInclusive` | `Boolean` |  |
 | `auctionMaxExtensions` | `Int` |  |
 | `auctionDefaultDeposit` | `Decimal` |  |
 | `auctionMinIncrement` | `Decimal` |  |
@@ -1209,8 +1219,16 @@ Relations: `reporter` → `User`
 | `accountNote` | `String?` |  |
 | `accountSyncAt` | `DateTime?` |  |
 | `accountSecret` | `String?` |  |
+| `accountSlug` | `String?` |  |
+| `accountWebsite` | `String?` |  |
+| `accountAdminEmail` | `String?` |  |
+| `accountOwners` | `Int?` |  |
+| `accountSignatoryCount` | `Int?` |  |
+| `accountLicence` | `Boolean` |  |
+| `accountDocsComplete` | `Boolean` |  |
+| `accountFees` | `Json?` |  |
 
-Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `services` → `Service` · `requests` → `ServiceRequest` · `users` → `ProviderUser`
+Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `accountKind` → `ProviderAccountKind` · `accountSignatory` → `AccountSignatory` · `services` → `Service` · `requests` → `ServiceRequest` · `users` → `ProviderUser`
 
 ### `EntitlementOverride`
 
@@ -1673,6 +1691,8 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
 - `ServiceFeeMode` — `FIXED`, `PERCENT`
+- `ProviderAccountKind` — `FREELANCER`, `ESTABLISHMENT`, `COMPANY`, `GOVERNMENT`, `CHARITY`
+- `AccountSignatory` — `OWNER`, `COMMERCIAL_CONTRACT`, `POWER_OF_ATTORNEY`
 - `ProviderAccountStatus` — `NONE`, `PENDING`, `MISSING_DOCS`, `UNDER_REVIEW`, `SEMI_ACTIVE`, `ACTIVE`, `HOLD`, `REJECTED`, `DISABLED`
 - `ProviderType` — `INSPECTION`, `SHIPPING`, `INSURANCE`, `DETAILING`, `PHOTOGRAPHY`, `FINANCE`, `OTHER`
 - `IntegrationEnv` — `TEST`, `LIVE`

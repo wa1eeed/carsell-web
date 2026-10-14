@@ -18,6 +18,9 @@ import { AR_DATE_LOCALE, displayDigits } from '@/lib/arabic';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { providerDetail } from '@/lib/domain/admin-provider-detail';
+import { providerPlatformReady } from '@/lib/domain/provider-account';
+import { getProviderFeePlan } from '@/lib/domain/provider-fees';
+import { AccountActions } from './AccountActions';
 
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import {
@@ -56,7 +59,11 @@ export default async function AdminProviderPage({
   if (!can(admin.role, 'services.manage')) redirect('/admin');
 
   const { id } = await params;
-  const provider = await providerDetail(id);
+  const [provider, feePlan, platformReady] = await Promise.all([
+    providerDetail(id),
+    getProviderFeePlan(),
+    providerPlatformReady(),
+  ]);
   if (provider === null) notFound();
 
   const open = provider.requests.filter((request) =>
@@ -244,6 +251,28 @@ export default async function AdminProviderPage({
                 label="معرّف التحويل"
                 ltr
                 value={provider.account.payoutRef ?? '—'}
+              />
+              {/*
+                **ولقطةُ الشروط لا مصفوفةُ اليوم**: المصفوفة تتغيّر،
+                وشريكٌ فُتح حسابه بشروطٍ سابقة يبقى عليها عند البوّابة.
+              */}
+              {provider.account.fees === null ? null : (
+                <Field
+                  label="الرسوم المُرسَلة"
+                  ltr
+                  value={`mada ${String(provider.account.fees.madaRate ?? '—')} · card ${String(
+                    provider.account.fees.cardRate ?? '—',
+                  )}`}
+                />
+              )}
+              <AccountActions
+                providerId={provider.id}
+                open={provider.account.accountRef !== null}
+                file={provider.account.file}
+                docsComplete={provider.account.docsComplete}
+                feesConfigured={feePlan.configured}
+                platformConfigured={platformReady}
+                canManage={can(admin.role, 'services.manage') === true}
               />
             </DetailCard>
 

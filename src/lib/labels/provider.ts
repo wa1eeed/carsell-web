@@ -59,3 +59,50 @@ export const PROVIDER_ACCOUNT_NOTE: Record<string, string> = {
   REJECTED: 'رُفض الحساب. راجع السبب، وقد يلزم إعادة التقديم.',
   DISABLED: 'أُغلق الحساب — ولا يصله مال.',
 };
+
+/** صفةُ المنشأة — وهي تحدّد ما تطلبه الجهة المنظِّمة من مستندات. */
+export const ACCOUNT_KIND_LABEL: Record<string, string> = {
+  FREELANCER: 'عمل حرّ',
+  ESTABLISHMENT: 'مؤسّسة',
+  COMPANY: 'شركة',
+  GOVERNMENT: 'جهة حكومية',
+  CHARITY: 'جهة خيرية',
+};
+
+export const ACCOUNT_SIGNATORY_LABEL: Record<string, string> = {
+  OWNER: 'المالك',
+  COMMERCIAL_CONTRACT: 'عقدٌ تجاريّ',
+  POWER_OF_ATTORNEY: 'وكالة',
+};
+
+/** المستندات كما يسمّيها المزوّد — تُترجم ولا تُخترع. */
+export const ACCOUNT_DOCUMENT_LABEL: Record<string, string> = {
+  commercial_registration: 'السجل التجاري',
+  owner_id: 'هوية المالك',
+  bank_iban_certificate: 'شهادة الآيبان',
+  freelance_certificate: 'وثيقة العمل الحرّ',
+  power_of_attorney: 'الوكالة',
+  commercial_contract: 'العقد التجاري',
+  activity_license: 'ترخيص النشاط',
+};
+
+/**
+ * ولمَ يُردّ فتحُ الحساب — **ولكلٍّ إجراءٌ مختلف**.
+ *
+ * فـ«اضبط المصفوفة» و«لا مفتاح للبوّابة» حالتان يفعل فيهما المشغّل
+ * شيئين مختلفين، وطيُّهما في «تعذّر الفتح» يجعله يبحث.
+ */
+export const ACCOUNT_OPEN_FAILURE: Record<string, string> = {
+  FILE_INCOMPLETE: 'أكمل ملفَّ التسجيل أوّلًا — الصفة والاسم الآليّ وعدد المُلّاك والتوقيع وبريد المدير.',
+  NO_EMAIL: 'المزوّد بلا بريد — أضفه من قائمة المزوّدين.',
+  NO_FEES: 'اضبط مصفوفة رسوم بوّابة المزوّدين من إعدادات الدفع قبل فتح أي حساب.',
+  NOT_CONFIGURED: 'بوّابة المزوّدين بلا مفتاح — اضبطه من التكاملات.',
+  ALREADY_OPEN: 'له حسابٌ مفتوح.',
+  NO_ACCOUNT: 'لا حساب له بعد.',
+  UPSTREAM: 'ردَّ المزوّد برفض — والسبب أدناه.',
+  SLUG: 'الاسم الآليّ حروفٌ لاتينية صغيرة وأرقامٌ وشرطةٌ سفلية، من ثلاثة أحرف إلى أربعين.',
+  ADMIN_EMAIL: 'بريد المدير غير صحيح.',
+  OWNERS: 'عدد المُلّاك واحدٌ على الأقل.',
+  SIGNATORY_COUNT: 'عدد الموقّعين مطلوبٌ حين لا يكون التوقيع للمالك.',
+  WEBSITE: 'الموقع يبدأ بـhttp أو https — أو يُترك فارغًا.',
+};

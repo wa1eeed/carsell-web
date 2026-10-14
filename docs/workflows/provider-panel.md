@@ -106,8 +106,11 @@ The name is now a link, and the page carries:
 - **Who signs in on the provider's behalf**, with whether they have changed
   their password and when they were last seen. Without this list nobody knows
   who can read our customers' requests, or who still has access after leaving.
-- **The payment account**: its state, both identifiers, and what the state means
-  for the operator — not just its name.
+- **The payment account**: its state, both identifiers, what the state means for
+  the operator — and the registration file, the button that opens the account,
+  and the fees that were actually sent with it. Before this the card could only
+  *display* an account; nothing in the product could create one, so a provider
+  added from the panel stayed at `NONE` and never entered the dispatch pool.
 - **The value of what they completed.**
 
 **Two numbers deliberately not shown as one.** What the provider has *earned* is
@@ -128,5 +131,7 @@ would produce two answers to one question.
   than inventing fields that would be replaced.
 - **Money**: the hold is never captured and the split is never sent. That is the
   Moyasar Platform adapter's job — `docs/api/provider-payments.md` — and the
-  remaining rows in `docs/BACKLOG.md` § I.
+  remaining rows in `docs/BACKLOG.md` § I. The **account** itself is no longer
+  missing: the provider's admin page opens it, reads its state and submits it
+  for review, under a fee matrix set from `/admin/payments`.
 - **Notifications** to the provider when a request lands in their queue.
