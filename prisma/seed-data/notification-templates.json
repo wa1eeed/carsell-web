@@ -830,5 +830,43 @@
       "ref"
     ],
     "active": true
+  },
+  {
+    "key": "service.assigned",
+    "subjectAr": "استلم مركزٌ طلبك",
+    "subjectEn": "A centre took your request",
+    "bodyAr": "استلم مركزٌ معتمد طلبك وسيتواصل معك على موعده. تفاصيله في صفحة الطلب.",
+    "bodyEn": "An approved centre took your request and will be in touch about the appointment. Details on the request page.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": false,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "service"
+    ],
+    "active": true
+  },
+  {
+    "key": "service.failed",
+    "subjectAr": "تعذّر إتمام طلبك",
+    "subjectEn": "Your request could not be completed",
+    "bodyAr": "تعذّر إتمام طلب الخدمة، والسبب في صفحة الطلب. وما دُفع يُردّ — يراجعه فريقنا.",
+    "bodyEn": "Your service request could not be completed; the reason is on the request page. Anything paid is refunded — our team is reviewing it.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": false,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "service"
+    ],
+    "active": true
   }
 ]

@@ -51,6 +51,20 @@ work. **Only the form at `complete` differs by type**, which is exactly the
 "variable section" the owner described. Ownership transfer will be one more row
 in `STEPS_BY_TYPE`.
 
+**And each step tells whoever paid.** `applyStep` used to write the status and
+say nothing: the person who paid for an inspection did not learn that a centre
+had taken it, nor that it was done, nor that it had failed — so they came back
+to the screen to ask, or did not come back. Three moments are sent, not four:
+`accept` (a centre took it), `complete` (high), `fail` (critical — money was
+paid and the service did not happen). `start` is deliberately silent: it changes
+nothing the requester can do, and a notification that leads to no action and no
+new expectation is noise.
+
+`service.completed` had been **declared silent** under gate 45 with the reason
+"nothing in the product finishes a service request" — true when it was written,
+and false the moment the provider panel shipped. The declaration is gone and the
+gate now holds it to a writer.
+
 **`fail` exists from every working state.** Without it a request stays "in
 progress" forever, or the provider closes it falsely to be rid of it.
 
@@ -134,4 +148,10 @@ would produce two answers to one question.
   remaining rows in `docs/BACKLOG.md` § I. The **account** itself is no longer
   missing: the provider's admin page opens it, reads its state and submits it
   for review, under a fee matrix set from `/admin/payments`.
-- **Notifications** to the provider when a request lands in their queue.
+- **Notifications to the provider** when a request lands in their queue.
+  `Notification` is keyed to a marketplace `User`, and a provider is a third
+  identity — so nothing can reach them out of band, and the channels that would
+  carry it (email, SMS) are behind flags for everyone. The panel's empty state
+  **used to promise one anyway**; it now says what is true: the queue is the
+  place, check it. A centre waiting for a message that never comes loses a paid
+  request while its clock runs.

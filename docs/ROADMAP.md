@@ -224,6 +224,19 @@ Measurement and build order: `docs/BACKLOG.md` § I.
 - [ ] **The inspection form** behind `complete` — **its fields come from the
       owner after the current tasks**, so the step completes without a form
       today rather than inventing fields that would be replaced.
+- [x] **Each provider step tells whoever paid.** `applyStep` wrote the status and
+      said nothing — the person who paid learned neither that a centre took the
+      work, nor that it finished, nor that it failed. Three notifications
+      (`service.assigned` · `service.completed` · `service.failed`), and `start`
+      is deliberately silent because it changes nothing the requester can do.
+      `service.completed` had been declared silent under gate 45 because "nothing
+      finishes a service request" — true when written, false once the provider
+      panel shipped.
+- [ ] **Out-of-band alerts to the provider.** `Notification` is keyed to a
+      marketplace user and a provider is a third identity, so nothing reaches a
+      centre that is not looking at its panel — and the channels that would carry
+      it are behind flags for everyone. The panel used to promise one anyway;
+      the text now says what is true.
 - [ ] **Contact disclosure with an audit trail**, as A18 logs every ID reveal.
 - [x] **The provider detail page** — counters that open their lists, the
       requests received, who signs in on their behalf, the payment account with

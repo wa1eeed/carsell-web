@@ -2535,8 +2535,6 @@ function checkTemplatesWritten() {
       'لا رفضَ يدويّ في التصميم — والرفض التلقائيّ `offer.auto_rejected` والخسارة لقبول غيره `offer.lost`، ولكلٍّ مفتاحُه.',
     'listing.expiring': 'لا انتهاءَ للإعلان في المخطّط — لا حقل ولا وظيفة. قرارُ منتجٍ لا وصلُ سطر.',
     'auth.new_device': 'يحتاج بصمةَ جهازٍ لا توجد في النموذج.',
-    'service.completed':
-      'لا شيء في المنتج يُنهي طلب خدمة: `ServiceRequestStatus` بلا كاتبٍ واحد — انظر docs/BACKLOG.md § I.',
   };
 
   const SEED = 'prisma/seed-data/notification-templates.json';

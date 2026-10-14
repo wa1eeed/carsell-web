@@ -302,5 +302,26 @@ export async function applyStep(
 
   if (count === 0) return { ok: false, reason: 'STEP_NOT_ALLOWED' };
 
+  /**
+   * ═══ ومن دفع يُخطَر بما وقع ═══
+   *
+   * كانت الدالّة تكتب الحال وتسكت، فمن دفع ثمنَ فحصٍ لا يعلم أن
+   * مركزًا استلمه ولا أنه أُنجز ولا أنه تعذّر — **والطرف الثاني
+   * يُبنى مع الأوّل**.
+   *
+   * وبعد الكتابة لا معها: الإخطار أثرٌ لا شرط، وفشلُ البثّ لا يُعيد
+   * الطلب إلى حاله.
+   */
+  if (step.to === 'ASSIGNED' || step.to === 'DONE' || step.to === 'FAILED') {
+    const row = await db.serviceRequest.findUnique({
+      where: { ref: input.ref },
+      select: { userId: true, service: { select: { nameAr: true } } },
+    });
+    if (row !== null) {
+      const { notifyServiceStep } = await import('./service-lifecycle');
+      await notifyServiceStep(input.ref, row.userId, step.to, row.service.nameAr);
+    }
+  }
+
   return { ok: true, status: step.to };
 }

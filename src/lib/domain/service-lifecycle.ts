@@ -680,6 +680,37 @@ async function bell(
   });
 }
 
+/**
+ * ═══ وما يقع في الطابور يُخطَر به طالبُه ═══
+ *
+ * `applyStep` كانت تكتب الحال وتسكت: من دفع ثمنَ فحصٍ لا يعلم أن
+ * مركزًا استلمه، ولا أنه أُنجز، ولا أنه تعذّر — **فيعود إلى الشاشة
+ * يسأل**، أو لا يعود.
+ *
+ * وثلاثُ لحظات لا أربع: «بدأ العمل» لا يغيّر شيئًا ممّا يستطيعه
+ * الطالب، والإخطار الذي لا يُفضي إلى فعلٍ ولا توقّعٍ جديد ضجيج.
+ */
+export async function notifyServiceStep(
+  ref: string,
+  requesterId: string,
+  status: 'ASSIGNED' | 'DONE' | 'FAILED',
+  serviceName: string,
+): Promise<void> {
+  const KEY = {
+    ASSIGNED: 'service.assigned',
+    DONE: 'service.completed',
+    FAILED: 'service.failed',
+  } as const;
+  const PRIORITY = {
+    ASSIGNED: 'normal',
+    DONE: 'high',
+    /** **والفشل حرج**: مالٌ دُفع وخدمةٌ لم تقع. */
+    FAILED: 'critical',
+  } as const;
+
+  await bell(requesterId, KEY[status], ref, { service: serviceName }, PRIORITY[status]);
+}
+
 /** يُخطِر صاحب المركبة أن فحصًا يُطلب عليها — وله مهلة. */
 export async function notifyConsentNeeded(
   ref: string,
