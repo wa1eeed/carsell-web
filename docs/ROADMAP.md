@@ -143,13 +143,30 @@ Each links to where it is specified.
 | KYC / KYB registration for individuals and businesses | `docs/BACKLOG.md` § KYC/KYB | built; refinements listed there |
 | Lean Technologies registry lookup on the dealer CR step | `docs/BACKLOG.md` § Dealer registration | built behind a flag; credentials entered in `/admin/integrations` |
 | Nafath | deferred by the owner — a contract with the provider is pending | not started |
-| Plates as a sellable item | `docs/BACKLOG.md` § F | **decided: after launch** |
+| Plates as a sellable item | `docs/BACKLOG.md` § F — and the garage's one open row in § B | **decided: after launch** |
+| `cn` does not merge Tailwind classes, while its comment says the last one wins | `docs/BACKLOG.md` § E | risk recorded, awaiting a decision: `tailwind-merge` (a dependency) or an audit of each component |
+| My cars (the garage) | `docs/BACKLOG.md` § B | **usable end to end**; its only open row is the plate, which follows § F |
 | English UI strings | `docs/BACKLOG.md` § D | deferred by the owner |
 | `home_story` ad slot has no design | `docs/DESIGN-DECISIONS.md` | question pending |
 | Notification templates still silent | `docs/BACKLOG.md` § G | 7 remain, all declared with a reason, guarded by gate 45 |
 | Production build barrier | `CLAUDE.md` | diagnosed: `NODE_ENV=development` during `next build`; run `npm run build:check` before any release |
 
 ---
+
+## The audit that produced this file
+
+Asked on 2026-10-14 whether anything had been forgotten, the answer was not a
+reassurance but a measurement: every request in the conversation was grepped
+against the repository, and every open `- [ ]` in `docs/BACKLOG.md` was checked
+for a path leading to it from this index.
+
+It found two that nothing pointed at — § B's open row and § E — now listed
+above. Everything else was already recorded: the fourteen dealer-panel items,
+the registration and Lean details, the Moyasar decisions, the KYB documents
+question and the `User`-versus-`Dealer` question.
+
+**Repeat that check when this file changes:** an open item in any document that
+no row here reaches is an item on its way to being forgotten.
 
 ## How this file stays true
 
