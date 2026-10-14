@@ -16,6 +16,8 @@ import { CarCard } from '@/components/ui/CarCard';
 import { toCardData } from '@/components/ui/toCardData';
 import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
 import { FilterChip } from '@/components/ui/FilterChip';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { LandingJsonLd } from '../../JsonLd';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,9 +67,11 @@ export default async function CityBrandLanding({
   const query = await searchParams;
   const resolvedSort = (typeof query.sort === 'string' ? query.sort : 'newest') as Sort;
 
-  const [content, t] = await Promise.all([
+  const [content, t, nav, ui] = await Promise.all([
     landingContent(city, brand, null),
     getTranslations('landing'),
+    getTranslations('site.nav'),
+    getTranslations('ui'),
   ]);
   /**
    * ═══ نفدت التركيبة ⇒ تُحوَّل إن بقي فيها شيء ═══
@@ -133,8 +137,39 @@ export default async function CityBrandLanding({
   return (
     <>
       <SiteHeader />
+      <LandingJsonLd
+        locale={locale}
+        city={content.citySlug}
+        cityLabel={content.city}
+        brand={content.brandSlug}
+        brandLabel={content.brand}
+        carsLabel={nav('cars')}
+        items={results.items.map((item) => ({
+          name: item.title,
+          path: item.href,
+          price: String(item.price),
+        }))}
+      />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
+          {/*
+            **ومن وصل من محرّك بحثٍ لا يعرف أين هو.** صفحةُ الهبوط
+            أعمقُ ما يصله الزائر، وبلا مسارٍ يخرج بالرجوع لا بالصعود.
+          */}
+          <Breadcrumb
+            label={ui('breadcrumb')}
+            className="mb-5"
+            items={[
+              { label: nav('home'), href: `/${locale}` },
+              { label: nav('cars'), href: `/${locale}/cars` },
+              {
+                label: content.city,
+                href: `/${locale}/cars?city=${encodeURIComponent(content.city)}`,
+              },
+              { label: content.brand },
+            ]}
+          />
+
           <h1 className="mb-2 text-4xl font-bold tracking-tight">
             {t('title', { brand: content.brand, city: content.city })}
           </h1>

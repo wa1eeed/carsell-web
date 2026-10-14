@@ -64,6 +64,7 @@ export function CarPage({
   canonical,
   locale,
   heading,
+  landingHref = null,
   viewer,
   auction,
   standing,
@@ -87,6 +88,8 @@ export function CarPage({
   canonical: Canonical;
   locale: string;
   heading: { home: string; cars: string };
+  /** صفحةُ «الماركة في المدينة» حين تبلغ عتبتها — وإلّا فلا عقدة. */
+  landingHref?: string | null | undefined;
   viewer: {
     signedIn: boolean;
     isOwn: boolean;
@@ -141,6 +144,10 @@ export function CarPage({
     { label: heading.home, href: `/${locale}` },
     { label: heading.cars, href: `/${locale}/cars` },
     { label: cityLabel(detail.city, locale), href: `/${locale}/cars?city=${encodeURIComponent(detail.city)}` },
+    /** الماركة عقدةٌ **حين لها صفحة** — ورابطٌ إلى ٤٠٤ أسوأ من غيابه. */
+    ...(typeof landingHref === 'string'
+      ? [{ label: vehicle.brandLabel, href: landingHref }]
+      : []),
   ];
 
   const specs = [

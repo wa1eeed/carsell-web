@@ -84,7 +84,27 @@ it is in the sidebar.
 
 **Still unwalked:**
 
-- [ ] The remaining landing pages beyond the one walked.
+**Closed 2026-10-14 — the landing pages.** `docs/frontend/seo.md`.
+
+- **The model-level page showed no cars.** Its sibling, the brand page, had
+  already been fixed for exactly this — heading, stat line, button, and whoever
+  arrived from a search saw nothing. The model page is the *more specific* of
+  the two, which is what a searcher types. It now has the grid, the sort chips
+  and the breadcrumb.
+- **It could not be opened in any development environment.** Measured: the
+  biggest city × brand × model combination in seeded data was **two**, below the
+  threshold of three — which is why the missing grid survived. The seed now pins
+  the first three listings to one city and one trim. **What is not seeded is not
+  seen.**
+- **The car page's structured breadcrumb declared three 404s.**
+  `/cars/{city}/{brand}` and `/cars/{city}/{brand}/{model}` are not routes; the
+  landing page is. We were declaring pages we do not own — to a machine, so
+  nothing surfaced it. `carTrail` is now a pure, tested function: the city node
+  points at the filtered search, the brand and model nodes at the landing pages
+  **when they clear the threshold**, and are dropped when they do not.
+- **Neither landing level had structured data**, while the car page emits three
+  blocks. Both now emit `BreadcrumbList` and an `ItemList` built from the cards
+  actually rendered.
 **Closed 2026-10-14 — the mobile re-measure.** Twelve public pages at 375 px:
 **no horizontal overflow anywhere**, so the type-scale and header work held. What
 the sweep did find was a different class the old measurement never looked at.

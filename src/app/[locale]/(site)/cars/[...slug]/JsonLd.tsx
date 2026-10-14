@@ -1,4 +1,5 @@
 import type { Canonical, PublicListingDetail } from '@/lib/domain/listing-detail';
+import { carTrail } from '@/lib/seo/car-trail';
 import { APP_URL } from '@/lib/env';
 
 /**
@@ -27,11 +28,18 @@ export function JsonLd({
   faq,
   canonical,
   locale,
+  landing,
 }: {
   detail: PublicListingDetail;
   faq: readonly { id: string; question: string; answer: string }[];
   canonical: Canonical;
   locale: string;
+  /**
+   * أللمدينة×الماركة (ثم الطراز) صفحةُ هبوطٍ قائمة؟ — تُقرأ في الخادم
+   * ولا تُفترض. **ومسارٌ يُعلَن ولا وجود له يُفسد الفُتات كلّه** عند
+   * محرّك البحث، ولا يشكو منه مستخدمٌ فيُكتشف.
+   */
+  landing: { brand: boolean; model: boolean };
 }) {
   const site = APP_URL;
   const url = `${site}${canonical.path}`;
@@ -93,16 +101,33 @@ export function JsonLd({
           })),
         };
 
+  /**
+   * ═══ ولا تُعلَن عقدةٌ بلا صفحة ═══
+   *
+   * كان الفُتات يشير إلى `/cars/{المدينة}/{الماركة}` و
+   * `/cars/{…}/{…}/{الطراز}` — **وثلاثتُها تردّ ٤٠٤**، فالمسار الحقيقيّ
+   * للمدينة×الماركة هو صفحة الهبوط `/browse/…`، ولا صفحة لمدينةٍ وحدها.
+   *
+   * فالمدينة تُحمَل على البحث بمرشّحها (صفحةٌ قائمة دائمًا)، والماركة
+   * والطراز على صفحتَي الهبوط **حين تبلغان عتبتهما**، وتُطرح العقدة
+   * إن لم تبلغ: فُتاتٌ أقصر أصدق من فُتاتٍ يقود إلى عدم.
+   */
+  const trail = carTrail({
+    site,
+    locale,
+    url,
+    city: detail.city,
+    brandName: detail.vehicle.brandName,
+    modelName: detail.vehicle.modelName,
+    ref: detail.ref,
+    canonical,
+    landing,
+  });
+
   const breadcrumb = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      { name: 'CARZ', item: `${site}/${locale}` },
-      { name: detail.city, item: `${site}/${locale}/cars/${canonical.city}` },
-      { name: detail.vehicle.brandName, item: `${site}/${locale}/cars/${canonical.city}/${canonical.brand}` },
-      { name: detail.vehicle.modelName, item: `${site}/${locale}/cars/${canonical.city}/${canonical.brand}/${canonical.model}` },
-      { name: detail.ref, item: url },
-    ].map((entry, i) => ({
+    itemListElement: trail.map((entry, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: entry.name,

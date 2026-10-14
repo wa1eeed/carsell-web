@@ -23,6 +23,7 @@ import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { InspectionScreen } from './InspectionScreen';
+import { landingDepth } from '@/lib/domain/landing';
 import { JsonLd } from './JsonLd';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { adsFor } from '@/lib/domain/ads';
@@ -223,11 +224,17 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
 
   if (resolved.wantsReport) return inspectionView(resolved);
 
-  const [detail, faq, similar, t] = await Promise.all([
+  const [detail, faq, similar, t, landing] = await Promise.all([
     toPublicDetail(resolved.row, resolved.locale),
     faqForListing(resolved.row.type),
     similarListings(resolved.row, 4, resolved.locale),
     getTranslations('ui'),
+    /**
+     * **وصفحةُ الهبوط هي عقدةُ «الماركة في المدينة»** — لا
+     * `/cars/{مدينة}/{ماركة}` التي كانت تُعلَن في البيانات المنظَّمة
+     * وتردّ ٤٠٤. وتُسأل قبل أن تُعلَن: دونها نُعلن ما لا نملك.
+     */
+    landingDepth(resolved.row.city, resolved.row.vehicle.brandId, resolved.row.vehicle.modelId),
   ]);
 
   const isArabic = resolved.locale === 'ar';
@@ -333,6 +340,16 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
               home: t('home'),
               cars: t('cars'),
             }}
+            /**
+             * **والفُتات المرئيّ يقول ما يقوله المعلَن.** كان يقف عند
+             * المدينة بينما تُعلن البيانات المنظَّمة ماركةً وطرازًا —
+             * فالزائر لا يجد الطريق الذي نَعِد به محرّك البحث.
+             */
+            landingHref={
+              landing.brand
+                ? `/${resolved.locale}/browse/${resolved.canonical.city}/${resolved.canonical.brand}`
+                : null
+            }
             viewer={{
               signedIn: viewer !== null,
               isOwn: viewer !== null && viewer.id === resolved.row.sellerId,
@@ -382,6 +399,7 @@ export default async function CarDetailPage({ params }: { params: Promise<Params
         faq={faqRows}
         canonical={resolved.canonical}
         locale={resolved.locale}
+        landing={landing}
       />
     </>
   );

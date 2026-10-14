@@ -127,11 +127,11 @@ rather than found by chance.
 | `Badge` | no | `tone` · `size` · `children` · `className` | 88 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 11 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 13 |
 | `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 83 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 12 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
-| `CarCard` | no | `data` · `sponsored` · `className` | 7 |
+| `CarCard` | no | `data` · `sponsored` · `className` | 8 |
 | `CarRow` | no | `data` · `className` | 3 |
 | `Chip` | yes | `active` · `count` · `onRemove` · `onClick` · `disabled` · `children` · `className` | 12 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
@@ -140,7 +140,7 @@ rather than found by chance.
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 36 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
-| `FilterChip` | no | `href` · `active` · `count` · `children` | 9 |
+| `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
 | `HistoryList` | no | `entries` · `className` | 1 |

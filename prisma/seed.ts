@@ -962,13 +962,26 @@ async function main(): Promise<void> {
 
   const featureKeys = features.map((f) => f.key);
 
+  /**
+   * ═══ وثلاثةٌ من مدينةٍ وطرازٍ واحد — عمدًا ═══
+   *
+   * صفحةُ الهبوط «طراز في مدينة» تُولَّد عند ثلاثة إعلانات، والاختيار
+   * العشوائيّ للمدينة والطراز لا يبلغها إلّا مصادفةً: قِيس على الزرع
+   * فكان **أكبرُ تركيبةٍ اثنين**. فالصفحة موجودةٌ في المنتج ولا تُفتح
+   * في أي بيئة تطوير — **وما لا يُزرع لا يُرى**، وقد بقي فيها عيبٌ
+   * أُصلح في أختها (الشبكة الغائبة) حتى قِيست بالبحث عن الصفحة نفسها.
+   *
+   * فتُثبَّت الثلاثة الأولى على مدينةٍ وطرازٍ واحد.
+   */
+  const PLANTED = 3;
+
   for (let i = 0; i < plan.length; i += 1) {
     const type = plan[i] as 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
-    const t = pick(buildableTrims);
+    const t = i < PLANTED ? (buildableTrims[0] as (typeof buildableTrims)[number]) : pick(buildableTrims);
     const year = between(Math.max(t.row.yearFrom, 2018), 2026);
     const age = 2026 - year;
     const mileageKm = age === 0 ? between(500, 8000) : between(8000, 45000) * age;
-    const city = pick(CITIES);
+    const city = i < PLANTED ? (CITIES[0] as string) : pick(CITIES);
 
     // بائع تاجر في ثلث الإعلانات — البطاقات في Wa وWb تعرض شارة المعرض
     const asDealer = i % 3 === 0;

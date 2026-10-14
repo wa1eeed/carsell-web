@@ -13,7 +13,7 @@ import { fromSlug, toSlug } from './listing-detail';
  * تُباع، والرابط الذي يموت بعد أسبوع أسوأ من رابطٍ لم يُنشأ.
  */
 
-const MIN_LISTINGS = 3;
+export const MIN_LISTINGS = 3;
 
 export type LandingKey = {
   citySlug: string;
@@ -269,4 +269,38 @@ export async function landingSiblings(
         entry.modelSlug !== null,
     )
     .slice(0, limit);
+}
+
+/**
+ * ═══ أثمّة صفحةُ هبوطٍ لهذه المركبة؟ ═══
+ *
+ * **ومسارُ الفُتات في البيانات المنظَّمة كان يُعلن ٤٠٤.** صفحةُ المركبة
+ * تُصدِر `BreadcrumbList` إلى `/cars/{المدينة}/{الماركة}` و
+ * `/cars/{المدينة}/{الماركة}/{الطراز}` — **وثلاثتُها غير موجودة**:
+ * المسار الحقيقيّ للمدينة×الماركة هو `/browse/…`. فنُعلن لمحرّك البحث
+ * صفحاتٍ لا نملكها، وهو الصنف الذي أُصلح مرارًا في الشاشات — ههنا
+ * معلَنًا لآلةٍ لا لإنسان، فلا يشكو منه أحد.
+ *
+ * فيُسأل قبل الإعلان: أللتركيبة إعلاناتٌ تبلغ العتبة؟ وعدَّان رخيصان
+ * (`take` عند العتبة فلا يُقرأ الجدول كلّه)، لا `landingCombinations`
+ * التي تقرأ كل منشور.
+ */
+export async function landingDepth(
+  city: string,
+  brandId: string,
+  modelId: string | null,
+): Promise<{ brand: boolean; model: boolean }> {
+  const enough = async (where: { brandId: string; modelId?: string }): Promise<boolean> =>
+    (
+      await db.listing.findMany({
+        where: { status: 'PUBLISHED', city, vehicle: where },
+        select: { id: true },
+        take: MIN_LISTINGS,
+      })
+    ).length >= MIN_LISTINGS;
+
+  const brand = await enough({ brandId });
+  /** ولا يُسأل عن الطراز إن لم تبلغ ماركتُه — الأخصّ لا يفوق الأعمّ. */
+  const model = brand && modelId !== null ? await enough({ brandId, modelId }) : false;
+  return { brand, model };
 }

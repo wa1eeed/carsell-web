@@ -10,6 +10,14 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
 import { landingContent, landingFallback } from '@/lib/domain/landing';
+import { EMPTY_FILTERS, SORTS, type Sort, searchListings } from '@/lib/domain/listings';
+import { currentUserFromCookies } from '@/lib/domain/account';
+import { CarCard } from '@/components/ui/CarCard';
+import { toCardData } from '@/components/ui/toCardData';
+import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
+import { FilterChip } from '@/components/ui/FilterChip';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { LandingJsonLd } from '../../../JsonLd';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,14 +52,26 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
  * وهي **بوّابةٌ إلى البحث لا بديلٌ عنه**: الأرقام أعلاه والرابط يذهب
  * إلى نتائج البحث نفسها بمرشّحاتها.
  */
-export default async function CityBrandModelLanding({ params }: { params: Params }) {
+export default async function CityBrandModelLanding({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { locale, city, brand, model } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [content, t] = await Promise.all([
+  const query = await searchParams;
+  const resolvedSort = (typeof query.sort === 'string' ? query.sort : 'newest') as Sort;
+
+  const [content, t, te, nav, ui] = await Promise.all([
     landingContent(city, brand, model),
     getTranslations('landing'),
+    getTranslations({ locale, namespace: 'enums' }),
+    getTranslations('site.nav'),
+    getTranslations('ui'),
   ]);
   /**
    * ═══ نفدت التركيبة ⇒ تُحوَّل إن بقي فيها شيء ═══
@@ -86,11 +106,59 @@ export default async function CityBrandModelLanding({ params }: { params: Params
     if (target !== here) permanentRedirect(target);
   }
 
+  const sort = SORTS.includes(resolvedSort) ? resolvedSort : 'newest';
+  const base = `/${locale}/browse/${content.citySlug}/${content.brandSlug}/${content.modelSlug ?? ''}`;
+
+  const viewer = await currentUserFromCookies();
+  const results = await searchListings(
+    {
+      ...EMPTY_FILTERS,
+      city: content.city,
+      brandId: content.brandId,
+      ...(content.modelId === null ? {} : { modelId: content.modelId }),
+      sort,
+      limit: 12,
+    },
+    locale,
+    viewer?.id ?? null,
+  );
+
   return (
     <>
       <SiteHeader />
+      <LandingJsonLd
+        locale={locale}
+        city={content.citySlug}
+        cityLabel={content.city}
+        brand={content.brandSlug}
+        brandLabel={content.brand}
+        {...(content.modelSlug === null || content.model === null
+          ? {}
+          : { model: content.modelSlug, modelLabel: content.model })}
+        carsLabel={nav('cars')}
+        items={results.items.map((item) => ({
+          name: item.title,
+          path: item.href,
+          price: String(item.price),
+        }))}
+      />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
+          <Breadcrumb
+            label={ui('breadcrumb')}
+            className="mb-5"
+            items={[
+              { label: nav('home'), href: `/${locale}` },
+              { label: nav('cars'), href: `/${locale}/cars` },
+              {
+                label: content.city,
+                href: `/${locale}/cars?city=${encodeURIComponent(content.city)}`,
+              },
+              { label: content.brand, href: `/${locale}/browse/${content.citySlug}/${content.brandSlug}` },
+              { label: content.model ?? content.brand },
+            ]}
+          />
+
           <h1 className="mb-2 text-4xl font-bold tracking-tight">
             {t('titleModel', { model: content.model ?? content.brand, city: content.city })}
           </h1>
@@ -117,6 +185,50 @@ export default async function CityBrandModelLanding({ params }: { params: Params
               </>
             )}
           </p>
+
+          {/*
+            ═══ شريط الترتيب ═══
+
+            **والترتيب يُطلب لا يُفرَض**، والعنوان يحمله فيُشارَك ويعمل
+            بلا JS — كصفحة الماركة سواءً بسواء.
+          */}
+          <nav className="mb-6 flex flex-wrap items-center gap-2.5">
+            <FilterChip href={base} active={sort === 'newest'}>
+              الأحدث
+            </FilterChip>
+            <FilterChip href={`${base}?sort=price_asc`} active={sort === 'price_asc'}>
+              الأقلّ سعرًا
+            </FilterChip>
+            <FilterChip href={`${base}?sort=price_desc`} active={sort === 'price_desc'}>
+              الأعلى سعرًا
+            </FilterChip>
+          </nav>
+
+          {/*
+            ═══ والشبكة هي الصفحة — وكانت هنا وحدها غائبة ═══
+
+            صفحةُ الماركة أُصلحت: كانت عنوانًا وسطرَ إحصاء وزرًّا، فمن
+            يصل من محرّك بحثٍ لا يرى سيارةً واحدة. **وبقيت أختُها
+            الطراز على العيب نفسه** — وهي الأخصّ، أي ما يكتبه الباحث
+            حرفيًّا («كامري في الرياض»).
+          */}
+          {results.items.length === 0 ? null : (
+            <ul className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {results.items.map((item) => (
+                <li key={item.ref}>
+                  {/* **والبطاقة بلا رابط ليست بطاقة** — الصنف وقع ثلاثًا قبلها. */}
+                  <Link href={item.href}>
+                    <CarCard
+                      data={toCardData(item, {
+                        transmission: te(`transmission.${item.transmission}`),
+                        anonymousSeller: ANONYMOUS_SELLER,
+                      })}
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <Link
             href={`/${locale}/cars?${content.searchQuery}`}
