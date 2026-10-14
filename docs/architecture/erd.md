@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-83 models · 54 enums
+85 models · 54 enums
 
 ## Relationships
 
@@ -40,6 +40,9 @@ erDiagram
   AdminUser }o--|| AdminRole : "role"
   AdminUser ||--o{ AdminSession : "sessions"
   AdminUser ||--o{ FinanceInput : "financeInputs"
+  ProviderUser }o--|| ServiceProvider : "provider"
+  ProviderUser ||--o{ ProviderSession : "sessions"
+  ProviderSession }o--|| ProviderUser : "user"
   AdminSession }o--|| AdminUser : "adminUser"
   Dealer }o--|| DealerStatus : "status"
   Dealer ||--o{ User : "members"
@@ -183,6 +186,7 @@ erDiagram
   ServiceProvider }o--|| ProviderAccountStatus : "accountStatus"
   ServiceProvider ||--o{ Service : "services"
   ServiceProvider ||--o{ ServiceRequest : "requests"
+  ServiceProvider ||--o{ ProviderUser : "users"
   EntitlementOverride |o--|| User : "user"
   Integration }o--|| IntegrationCategory : "category"
   Integration }o--|| IntegrationStatus : "status"
@@ -307,6 +311,37 @@ Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus
 | `mustChangePassword` | `Boolean` |  |
 
 Relations: `role` → `AdminRole` · `sessions` → `AdminSession` · `financeInputs` → `FinanceInput`
+
+### `ProviderUser`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `providerId` | `String` |  |
+| `email` | `String` | unique |
+| `name` | `String` |  |
+| `passwordHash` | `String` |  |
+| `active` | `Boolean` |  |
+| `lastSeenAt` | `DateTime?` |  |
+| `mustChangePassword` | `Boolean` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `provider` → `ServiceProvider` · `sessions` → `ProviderSession`
+
+### `ProviderSession`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `providerUserId` | `String` |  |
+| `tokenHash` | `String` | unique |
+| `ip` | `String?` |  |
+| `userAgent` | `String?` |  |
+| `expiresAt` | `DateTime` |  |
+| `revokedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `user` → `ProviderUser`
 
 ### `AdminSession`
 
@@ -1174,7 +1209,7 @@ Relations: `reporter` → `User`
 | `accountNote` | `String?` |  |
 | `accountSyncAt` | `DateTime?` |  |
 
-Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `services` → `Service` · `requests` → `ServiceRequest`
+Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `services` → `Service` · `requests` → `ServiceRequest` · `users` → `ProviderUser`
 
 ### `EntitlementOverride`
 

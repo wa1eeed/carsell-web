@@ -109,9 +109,15 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       and gated on being one of its two parties. Fixed `Dispute` in passing: it
       had been declared in `NotificationEntity` with **no destination resolver**,
       so three critical dispute notifications arrived with no link.
-- [ ] **A provider surface.** `src/app` holds `[locale]` and `admin` and nothing
-      else, so "the seller's contact is revealed to the inspector" has nowhere
-      to appear.
+- [x] **A provider surface — one panel for every provider type** (owner's
+      decision, 2026-10-14). `/provider`: its own identity
+      (`ProviderUser` / `ProviderSession`), a queue, and a request page that is
+      a fixed info card over a section whose buttons come from
+      `stepsFor(type, status)`. Ownership transfer will be a row in that
+      definition, not a second screen. `docs/workflows/provider-panel.md`.
+- [ ] **The inspection form** behind `complete` — **its fields come from the
+      owner after the current tasks**, so the step completes without a form
+      today rather than inventing fields that would be replaced.
 - [ ] **Contact disclosure with an audit trail**, as A18 logs every ID reveal.
 - [ ] **The provider detail page** — balance, received requests, dues, payout
       state, split, capture, release, account-opening status. The owner's words:

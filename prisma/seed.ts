@@ -721,6 +721,31 @@ async function main(): Promise<void> {
       },
     });
     providers.set(type, p.id);
+
+    /**
+     * ═══ ولكلّ مزوّدٍ حسابُ دخول ═══
+     *
+     * قرار المالك: لوحةُ مزوّدين موحَّدة يُسنَد فيها الطلب ويُعالَج
+     * ويُؤكَّد. **وبلا حسابٍ لا يدخلها أحد**، فتبقى اللوحة شاشةً لا
+     * يراها إنسان — والبيئة لا تُنهي طلبًا.
+     *
+     * والبريد مشتقٌّ من الصنف فلا يُكتب بيد، والكلمة تُغيَّر عند أوّل
+     * دخول (`mustChangePassword`).
+     */
+    await prisma.providerUser.create({
+      data: {
+        providerId: p.id,
+        email: `${type.toLowerCase()}@provider.example`,
+        name: `مشغّل ${nameAr}`,
+        /**
+         * **ولا كلمةَ ثابتة هنا.** الحارس أعلى الملف يرفض الزرع خارج
+         * التطوير بلا `ADMIN_PASSWORD` صريحة، وكلمةٌ أكتبها هنا تتجاوزه
+         * — فيُنشَر مزوّدٌ كلمتُه في المستودع على عنوانٍ عامّ. وهو
+         * الخطأ الذي أُغلق مرّةً في حساب الأدمن.
+         */
+        passwordHash: seedPasswordHash,
+      },
+    });
   }
 
   const serviceRows = load<ServiceRow[]>('services.json');

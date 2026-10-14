@@ -187,6 +187,52 @@ model AdminUser {
 }
 
 /// جلسات الأدمن — تُبطَل بتغيير الكلمة أو الدور، ولا تُشارك جلسة المستخدم.
+/**
+ * ═══ مستخدمُ مزوّدٍ — ولوحةٌ موحَّدة لا لوحةً لكلٍّ ═══
+ *
+ * قرار المالك (٢٠٢٦-١٠-١٤): لوحةُ مزوّدين **واحدة** مهما كان صنف
+ * الخدمة — الفاحص اليوم، ومزوّدُ نقل الملكية لاحقًا بالطريقة نفسها.
+ *
+ * **ولم يكن للمزوّد وجود كشخص**: `ServiceProvider` منشأةٌ ببيانات
+ * تواصل، ولا أحد يدخل بها. فالفاحص لا يرى طلبًا أُسنِد إليه، ولا سبيل
+ * إلى أن يؤكّد معالجته — وهو ما يجعل كل طلبٍ يقف عند `NEW` أبدًا.
+ *
+ * والدخول بالبريد وكلمة المرور كالأدمن لا بالجوّال كالعميل: المزوّد
+ * منشأةٌ لها موظّفون يتبدّلون، وحسابٌ لكلٍّ لا رقمٌ واحد يتناقلونه.
+ */
+model ProviderUser {
+  id           String    @id @default(cuid())
+  providerId   String
+  email        String    @unique
+  name         String
+  passwordHash String
+  active       Boolean   @default(true)
+  lastSeenAt   DateTime?
+  /// يُجبَر على التغيير بعد أوّل دخول — فالكلمة التي أنشأها الأدمن مرّت بعينه
+  mustChangePassword Boolean @default(true)
+  createdAt    DateTime  @default(now())
+
+  provider ServiceProvider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  sessions ProviderSession[]
+
+  @@index([providerId, active])
+}
+
+model ProviderSession {
+  id             String    @id @default(cuid())
+  providerUserId String
+  tokenHash      String    @unique
+  ip             String?
+  userAgent      String?
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  user ProviderUser @relation(fields: [providerUserId], references: [id], onDelete: Cascade)
+
+  @@index([providerUserId, expiresAt])
+}
+
 model AdminSession {
   id          String    @id @default(cuid())
   adminUserId String
@@ -1678,6 +1724,7 @@ model ServiceProvider {
 
   services Service[]
   requests ServiceRequest[]
+  users    ProviderUser[]
 
   @@index([type, active])
 }

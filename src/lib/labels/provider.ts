@@ -1,0 +1,30 @@
+/**
+ * ═══ تسمياتُ لوحة المزوّدين ═══
+ *
+ * والنطاق يعيد مفاتيح — `stepsFor` تُرجع `accept` و`start` و`complete`
+ * و`fail`، والصياغة هنا (البوابة ١٧). فإضافةُ صنفٍ جديد لاحقًا تضيف
+ * مفتاحًا وتسميةً، لا شاشةً.
+ */
+export const PROVIDER_STEP_LABEL: Record<string, string> = {
+  accept: 'اقبل الطلب',
+  start: 'ابدأ التنفيذ',
+  complete: 'أكمِل',
+  fail: 'تعذّر التنفيذ',
+};
+
+/** ما يقوله كل فعلٍ قبل أن يُضغط — فالمزوّد يعرف أثره لا اسمه. */
+export const PROVIDER_STEP_NOTE: Record<string, string> = {
+  accept: 'يصير الطلب لك وحدك، ويختفي من طابور بقيّة المزوّدين.',
+  start: 'يعلم صاحب الطلب أن العمل بدأ.',
+  complete: 'يُنهي الطلب ويُسلّم نتيجته.',
+  fail: 'يُنهيه متعذّرًا بسببٍ مكتوب، ويراجعه فريق المنصّة.',
+};
+
+export const PROVIDER_REQUEST_STATUS: Record<string, string> = {
+  NEW: 'معروض',
+  ASSIGNED: 'مقبول — لم يبدأ',
+  IN_PROGRESS: 'قيد التنفيذ',
+  DONE: 'مكتمل',
+  FAILED: 'متعذّر',
+  REFUNDED: 'رُدّ مبلغه',
+};
