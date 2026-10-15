@@ -266,3 +266,154 @@ export async function recordRefund(
     now,
   );
 }
+
+/**
+ * ═══ ولحظتا الخدمة ═══
+ *
+ * والقاعدة الضريبية `SERVICE` تحسم من المورِّد: `supplierIsPlatform:
+ * true` و`invoiceIssuer: PLATFORM` — فالعميل يشتري **منّا**، والمزوّد
+ * مقاولٌ من الباطن. فكامل القيمة إيرادُنا، وسعرُه **تكلفةُ البيع**.
+ *
+ * وبغير هذا يظهر رسمُ خمسين ريالًا على فحصٍ بأربعمئة وخمسين **ربحًا
+ * قدره خمسُ مئة** — ولا يكشفه ميزانٌ لأن الدفتر متوازن في الحالين.
+ *
+ * **ولم يكن للخدمة قيدٌ أصلًا**: يدفع العميل خمسَ مئةٍ وتُحجز لدى
+ * البوّابة، ولا سطر في الدفتر — فلا إيرادٌ يُعترف به، ولا دَينٌ
+ * للمزوّد يُسجَّل، ولا ضريبةٌ تُرصد. وقِيس: `ledgerEntry` بلا حسابٍ
+ * واحد يخصّ الخدمات.
+ */
+export type ServiceMoney = {
+  /** مرجعُ الطلب — يُكتب في `note` إذ لا عمود له في الدفتر */
+  ref: string;
+  paymentId?: string | null;
+  requesterId: string;
+  /** ما يدفعه الطالب كاملًا، شاملًا الضريبة */
+  total: Prisma.Decimal | number | string;
+  /** رسمُنا فوق سعر المزوّد — لقطةُ الطلب */
+  platformFee: Prisma.Decimal | number | string;
+  /** ضريبةُ التوريد كلِّه — لقطةُ الطلب */
+  vat: Prisma.Decimal | number | string;
+};
+
+/**
+ * ═══ ١· دُفع ثمنُ الخدمة ولم تُؤدَّ بعد ═══
+ *
+ * ```
+ *   مدين   ESCROW_AT_PROVIDER   ٥١٧٬٥٠
+ *   دائن   BUYER_ADVANCE        ٥١٧٬٥٠
+ * ```
+ *
+ * **ولا إيراد بعد** — كالمركبة سواءً بسواء: قُبض ولم يُستحقّ، والخدمة
+ * لم تقع. ومن يعترف بالإيراد عند القبض يُظهر أرباحًا على عملٍ قد يفشل.
+ */
+export async function recordServicePaid(
+  writer: Writer,
+  input: Pick<ServiceMoney, 'ref' | 'paymentId' | 'requesterId' | 'total'>,
+  now: Date = new Date(),
+): Promise<PostResult> {
+  return postEntries(
+    writer,
+    {
+      event: 'service.paid',
+      paymentId: input.paymentId ?? null,
+      /** **والمرجع في كل قيد** — لا عمود للطلب في الدفتر، والقيد يُقرأ وحده. */
+      postings: [
+        {
+          account: 'ESCROW_AT_PROVIDER',
+          direction: 'DEBIT',
+          amount: input.total,
+          note: input.ref,
+        },
+        {
+          account: 'BUYER_ADVANCE',
+          direction: 'CREDIT',
+          amount: input.total,
+          userId: input.requesterId,
+          note: input.ref,
+        },
+      ],
+    },
+    now,
+  );
+}
+
+/**
+ * ═══ ٢· أُدّيت الخدمة — فاستُحقّ الإيراد وصار للمزوّد دَين ═══
+ *
+ * على فحصٍ سعرُه ٤٥٠ ورسمُنا ٥٠ وضريبةُ الخمسمئة ٧٥:
+ *
+ * ```
+ *   مدين   BUYER_ADVANCE        ٥٧٥
+ *   دائن   PLATFORM_REVENUE     ٥٠٠
+ *   دائن   VAT_PAYABLE           ٧٥
+ *
+ *   مدين   PROVIDER_COST        ٤٥٠
+ *   دائن   PROVIDER_PAYABLE     ٤٥٠
+ * ```
+ *
+ * **وحصّةُ المزوّد تُشتقّ طرحًا** — الإجماليّ ناقص الضريبة ناقص رسمنا —
+ * فلا يصل رقمٌ لا يتوازن. والربح الحقيقيّ هو الرسم: ٥٠٠ إيرادًا مقابل
+ * ٤٥٠ تكلفةً.
+ *
+ * **ولحظةُ الاستحقاق إنجازُ المزوّد** (`DONE`) لا قبضُ المال: هي
+ * اللحظة التي وقع فيها التوريد.
+ */
+export async function recordServiceEarned(
+  writer: Writer,
+  input: ServiceMoney,
+  now: Date = new Date(),
+): Promise<PostResult> {
+  const total = d(input.total);
+  const vat = d(input.vat);
+  const platformFee = d(input.platformFee);
+  const revenue = total.minus(vat);
+  const providerNet = revenue.minus(platformFee);
+
+  if (providerNet.isNegative()) return { ok: false, reason: 'NEGATIVE_AMOUNT' };
+
+  const earned = await postEntries(
+    writer,
+    {
+      event: 'service.earned',
+      paymentId: input.paymentId ?? null,
+      postings: [
+        {
+          account: 'BUYER_ADVANCE',
+          direction: 'DEBIT',
+          amount: total,
+          userId: input.requesterId,
+          note: input.ref,
+        },
+        { account: 'PLATFORM_REVENUE', direction: 'CREDIT', amount: revenue, note: input.ref },
+        { account: 'VAT_PAYABLE', direction: 'CREDIT', amount: vat, note: input.ref },
+      ],
+    },
+    now,
+  );
+  if (!earned.ok) return earned;
+
+  /**
+   * **ومعاملةٌ ثانية لا سطران في الأولى.** تكلفةُ المزوّد حدثٌ آخر:
+   * دَينٌ علينا لجهةٍ أخرى، يُسدَّد في موعدٍ آخر. وخلطُهما يجعل
+   * تسويةَ المزوّد تبدو ردًّا للعميل.
+   */
+  if (providerNet.isZero()) return earned;
+
+  return postEntries(
+    writer,
+    {
+      event: 'service.provider_due',
+      paymentId: input.paymentId ?? null,
+      postings: [
+        { account: 'PROVIDER_COST', direction: 'DEBIT', amount: providerNet, note: input.ref },
+        {
+          account: 'PROVIDER_PAYABLE',
+          direction: 'CREDIT',
+          amount: providerNet,
+          note: input.ref,
+        },
+      ],
+    },
+    now,
+  );
+}

@@ -252,6 +252,22 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       what its state means, and the value of completed work. The gateway
       **balance** waits for the adapter: it is read from the provider, never
       computed here. Split, capture and release come with the money work below.
+- [x] **A paid service reaches the ledger.** It wrote **nothing at all**: the
+      customer paid, the money was held, and no line recorded it — no revenue
+      waiting, no debt to the provider, no VAT accrued. Measured: `ledgerEntry`
+      had no account that concerned services. Two moments now — `service.paid`
+      (collected, not earned) and `service.earned` + `service.provider_due` (the
+      work was delivered) — and the VAT is snapshotted on the request beside the
+      fee, because deriving it later follows the rate current when it is *read*.
+      `docs/LEDGER.md` § 5.5. One question recorded for the owner: principal or
+      agent (`docs/OPEN-QUESTIONS.md`) — built on the tax rule's answer.
+- [ ] **No invoice is issued for anything.** `Invoice` rows are written by the
+      seed alone — not for services, not for commission. `documents.ts` computes
+      which documents are *due* and why they are blocked, and nothing creates
+      one. ZATCA numbering and the PDF come with it.
+- [ ] **A failed service refunds nothing.** `REFUNDED` is in
+      `ServiceRequestStatus` with no writer, so a request that fails leaves the
+      money held and the customer with a critical notification and no refund.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

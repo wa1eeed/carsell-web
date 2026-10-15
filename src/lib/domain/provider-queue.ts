@@ -315,9 +315,42 @@ export async function applyStep(
   if (step.to === 'ASSIGNED' || step.to === 'DONE' || step.to === 'FAILED') {
     const row = await db.serviceRequest.findUnique({
       where: { ref: input.ref },
-      select: { userId: true, service: { select: { nameAr: true } } },
+      select: {
+        userId: true,
+        amount: true,
+        adminFee: true,
+        vatAmount: true,
+        paymentId: true,
+        service: { select: { nameAr: true } },
+      },
     });
     if (row !== null) {
+      /**
+       * ═══ والإنجاز لحظةُ الاستحقاق ═══
+       *
+       * التوريد وقع، فالإيراد يُعترف به الآن لا يوم قُبض المال.
+       * والقيد **قبل الإخطار**: ما يمسّ الدفتر يسبق ما يمسّ الجرس،
+       * فإخفاقُ بثٍّ لا يترك مالًا بلا قيد.
+       *
+       * **وطلبٌ لم يُدفع لا يُقيَّد**: الزرع يُنشئ طلباتٍ مُنجَزة بلا
+       * دفعة، وقيدٌ لها يُنشئ إيرادًا لم يُقبض مقابلُه.
+       */
+      if (step.to === 'DONE' && row.paymentId !== null) {
+        const { recordServiceEarned } = await import('./ledger-events');
+        await recordServiceEarned(
+          db,
+          {
+            ref: input.ref,
+            paymentId: row.paymentId,
+            requesterId: row.userId,
+            total: row.amount,
+            platformFee: row.adminFee,
+            vat: row.vatAmount,
+          },
+          now,
+        );
+      }
+
       const { notifyServiceStep } = await import('./service-lifecycle');
       await notifyServiceStep(input.ref, row.userId, step.to, row.service.nameAr);
     }

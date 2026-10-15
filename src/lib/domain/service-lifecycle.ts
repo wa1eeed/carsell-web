@@ -254,6 +254,8 @@ export async function requestService(
       ...(decisionDueAt === null ? {} : { decisionDueAt }),
       amount: money.total,
       adminFee: money.platformFee,
+      /** **والضريبة لقطةٌ كالرسم** — فاشتقاقُها لاحقًا يتبع نسبةَ القراءة لا نسبةَ الطلب. */
+      vatAmount: money.vat,
       dueAt,
       ...(input.scheduledAt === null ? {} : { scheduledAt: new Date(input.scheduledAt) }),
       ...(subject.city === null ? {} : { city: subject.city }),
@@ -552,6 +554,27 @@ export async function payServiceRequest(
     where: { id: request.id },
     data: { status: 'NEW', paymentId: payment.id },
   });
+
+  /**
+   * ═══ والمال يدخل الدفتر ═══
+   *
+   * **ولم يكن يدخله**: يدفع العميل خمسَ مئةٍ وتُحجز لدى البوّابة، ولا
+   * سطر في الدفتر — فلا دَينٌ علينا يُسجَّل ولا إيرادٌ يُنتظر. وقِيس:
+   * لا حسابَ واحدًا يخصّ الخدمات في `ledgerEntry` كلّه.
+   *
+   * والقيد **بعد** تثبيت الحجز لا معه: ما لم يُحجز لا يُقيَّد.
+   */
+  const { recordServicePaid } = await import('./ledger-events');
+  await recordServicePaid(
+    db,
+    {
+      ref: request.ref,
+      paymentId: payment.id,
+      requesterId: request.userId,
+      total: request.amount,
+    },
+    now,
+  );
 
   return { ok: true, paymentId: payment.id, total: request.amount.toString() };
 }

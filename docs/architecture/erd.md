@@ -803,6 +803,7 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `providerId` | `String?` |  |
 | `amount` | `Decimal` |  |
 | `adminFee` | `Decimal` |  |
+| `vatAmount` | `Decimal` |  |
 | `dueAt` | `DateTime?` |  |
 | `scheduledAt` | `DateTime?` |  |
 | `city` | `String?` |  |
@@ -1712,5 +1713,5 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `TaxableBase` — `FULL_VALUE`, `MARGIN`, `FEE_ONLY`, `OUT_OF_SCOPE`
 - `InvoiceIssuer` — `PLATFORM`, `SELLER`, `PLATFORM_ON_BEHALF`, `NONE`
 - `InvoiceStatus` — `ISSUED`, `REPORTED`, `REPORT_FAILED`, `CANCELLED`
-- `LedgerAccount` — `ESCROW_AT_PROVIDER`, `BUYER_ADVANCE`, `SELLER_PAYABLE`, `PLATFORM_REVENUE`, `VAT_PAYABLE`, `GATEWAY_FEES_CLEARING`, `GOVT_FEES_CLEARING`, `PLATFORM_CASH`, `WALLET_PAYABLE`, `GOODWILL_EXPENSE`
+- `LedgerAccount` — `ESCROW_AT_PROVIDER`, `BUYER_ADVANCE`, `SELLER_PAYABLE`, `PLATFORM_REVENUE`, `VAT_PAYABLE`, `GATEWAY_FEES_CLEARING`, `GOVT_FEES_CLEARING`, `PLATFORM_CASH`, `PROVIDER_PAYABLE`, `PROVIDER_COST`, `WALLET_PAYABLE`, `GOODWILL_EXPENSE`
 - `LedgerDirection` — `DEBIT`, `CREDIT`

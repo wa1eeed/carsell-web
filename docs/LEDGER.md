@@ -90,6 +90,8 @@ billions and losing money.
 | `GATEWAY_FEES_CLEARING` | Clearing | Passes from the seller to the provider. |
 | `GOVT_FEES_CLEARING` | Clearing | The transfer fee, paid on the customer's behalf. |
 | `PLATFORM_CASH` | Asset | What has actually reached us. |
+| `PROVIDER_PAYABLE` | Liability | What we owe a service provider for work delivered. Not the vehicle seller — a different party, paid on a different schedule. |
+| `PROVIDER_COST` | Expense | The provider's own price: **our cost of sale**, because on services we are the supplier. |
 
 ---
 
@@ -192,6 +194,61 @@ commission comes back from us, its VAT reduces our debt to ZATCA, and the rest
 comes from the seller's right.
 
 ---
+
+### 5.5 The two service moments
+
+A paid service wrote **nothing at all** to the ledger until 2026-10-16. The
+customer paid, the money was held at the gateway, and no line recorded it: no
+revenue waiting to be earned, no debt to the provider, no VAT accrued. Measured:
+`ledgerEntry` held no account that concerned services.
+
+**And we are the supplier, not the broker.** The `SERVICE` tax rule says
+`supplierIsPlatform: true` and `invoiceIssuer: PLATFORM` — the customer buys
+from us, and the provider is our subcontractor. So the whole value is revenue
+and the provider's price is a cost. Booking only our fee as revenue would show a
+50 SAR fee on a 450 SAR inspection as **a 500 SAR profit**, and no trial balance
+would catch it: the books balance either way.
+
+The split at the gateway does not change this. It is a **payment instruction** —
+our agent pays our subcontractor directly — not a change of who supplies whom,
+and the customer still receives one invoice, from us.
+
+#### 5.5.1 `service.paid` — collected, not earned
+
+```
+  DEBIT   ESCROW_AT_PROVIDER   575.00
+  CREDIT  BUYER_ADVANCE        575.00
+```
+
+Exactly like a vehicle: held, not earned. The work has not happened and may
+fail.
+
+#### 5.5.2 `service.earned` + `service.provider_due` — the work was delivered
+
+On an inspection priced 450, our fee 50, VAT 75 on the 500:
+
+```
+  DEBIT   BUYER_ADVANCE        575
+  CREDIT  PLATFORM_REVENUE     500
+  CREDIT  VAT_PAYABLE           75
+
+  DEBIT   PROVIDER_COST        450
+  CREDIT  PROVIDER_PAYABLE     450
+```
+
+**Two transactions, not one.** Earning our revenue is one event; owing the
+provider is another, settled on another schedule. Merging them would make paying
+a provider look like refunding a customer.
+
+**The provider's share is derived by subtraction** — total minus VAT minus our
+fee — so a figure that does not balance can never be passed in. And all three
+inputs are snapshots on the request (`amount`, `adminFee`, `vatAmount`): VAT used
+to be derivable from the total at the rate current when it was *read*, which
+would post an entry that does not match what was *paid* the day the rate changes.
+
+**The moment of earning is the provider's completion**, not the collection of
+the money. And a request with no payment posts nothing: the seed finishes
+requests that were never paid, and an entry for those would invent revenue.
 
 ## 6. The seller's financial file
 
