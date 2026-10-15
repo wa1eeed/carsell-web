@@ -236,9 +236,15 @@ domain, audited, walked end to end).
   staffs the queue as if it were a residue. The lead now reads the integration
   row, so it corrects itself when the keys arrive. `/admin/providers` said «الطلب
   يُسنَد آليًّا للمزوّد المفعّل في مدينة العميل بأقلّ حِمل قائم» — none of that
-  happens: `service-purchase` writes the provider linked to the service in the
-  catalogue, with no city match and no load balancing, which is also why requests
-  arrive unassigned.
+  happened at the time.
+
+  **Corrected twice, 2026-10-15.** The text was first rewritten to say the
+  provider comes from the catalogue with no city match — and that became false
+  the day `cityPool` shipped: a paid request is now offered to **every provider
+  of its type in the vehicle's city**, and whoever accepts first takes it alone.
+  The screen says that now. Load balancing is still not a thing, and the text
+  says so. *A rule on a screen follows the code, never the other way round, and
+  is re-measured whenever the path changes.*
 
 ### KYC / KYB — identity for people and for businesses
 
@@ -439,9 +445,15 @@ Found while measuring `service.completed`, and it is larger than a
 notification:
 
 - `ServiceRequestStatus` is `NEW | ASSIGNED | IN_PROGRESS | DONE | FAILED |
-  REFUNDED`. **`service-purchase.ts` writes `NEW` and nothing anywhere writes
-  anything else** — one `serviceRequest.create` in the whole tree and zero
-  updates.
+  REFUNDED`. **One `serviceRequest.create` in the whole tree and zero updates** —
+  the status had no writer past `NEW`. *(Closed: the provider panel writes every
+  step, and `service-purchase.ts` — the single-step path this line refers to —
+  was **deleted** on 2026-10-15. It was dead code that still enforced
+  `VEHICLE_NOT_YOURS`, a rule the owner replaced when they decided a buyer may
+  request an inspection on someone else's car. Dead code that writes money is
+  worse than dead code: it waits for someone to wire it back, and it would have
+  bypassed the seller's consent step. **Gate 50** now refuses an exported domain
+  writer that nothing in `src/` reaches.)*
 - The admin screens (`/admin/service-requests` and its detail page) are
   **read-only**: no assign, no start, no complete, no fail. The queue health,
   the SLA, the overdue calculation and the provider list all exist and are

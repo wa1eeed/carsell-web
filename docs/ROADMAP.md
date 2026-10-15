@@ -232,6 +232,15 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       `service.completed` had been declared silent under gate 45 because "nothing
       finishes a service request" — true when written, false once the provider
       panel shipped.
+- [x] **Every domain writer has a door — measured to zero.** The class had hit
+      thirteen times, and the automatic measurement in `docs/NOTES.md` listed
+      fifteen functions nothing could reach. The last one left needed deleting,
+      not wiring: `purchaseService` was a complete purchase path (gateway, VAT,
+      platform fee, a reference reserved in a transaction) with no caller, **and
+      it enforced a rule the owner had replaced** — that only a vehicle's owner
+      may request its inspection. Wired back, it would have bypassed the seller's
+      consent step the whole journey is built on. **Gate 50** holds the count at
+      zero.
 - [ ] **Out-of-band alerts to the provider.** `Notification` is keyed to a
       marketplace user and a provider is a third identity, so nothing reaches a
       centre that is not looking at its panel — and the channels that would carry
