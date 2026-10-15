@@ -287,6 +287,27 @@ deploy with no error that explains why.
 
 ---
 
+## 3e. Reference data reaches a running database only through a migration
+
+`prisma/seed-data/*.json` is applied by `createMany` **in the seed**, which runs
+once on an empty database. The admin screens edit those rows; they do not create
+them. So a row added to a seed file reaches a fresh environment and **never
+reaches one that is already running**.
+
+It surfaced with notification templates: `service.assigned` and `service.failed`
+were added to the JSON, and on a live database the bell would have rendered the
+**raw key** — «service.assigned» — instead of its Arabic text, because
+`notificationCentre` falls back to the key when no template row matches (gate
+37 keeps that fallback honest rather than blank).
+
+**So: a new row in a seed file needs an `INSERT … ON CONFLICT DO NOTHING`
+migration beside it.** The conflict clause makes it a no-op on an environment
+that was seeded from the same file, so both paths end in the same state. See
+`20261015090000_service_step_templates`.
+
+This applies to every catalogue the product reads at runtime — templates,
+payment gateways, services, tax rules, ad slots, legal documents, FAQs.
+
 ## 4. Deployment steps
 
 1. **Postgres**: create a `carsell_staging` database. Coolify can host it, or
