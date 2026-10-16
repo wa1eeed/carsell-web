@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
-import { displayDigits } from '@/lib/arabic';
+import {} from '@/lib/arabic';
 import { Modal } from '@/components/ui/Sheet';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
@@ -272,10 +273,16 @@ export function BidPanel({
                 key={factor}
                 type="button"
                 onClick={() => setAmount(String(value))}
-                className="rounded-full border border-line px-3.5 py-2 font-num text-3xs font-bold hover:border-ink"
-                dir="ltr"
+                className="rounded-full border border-line px-3.5 py-2 text-3xs font-bold hover:border-ink"
               >
-                {displayDigits(String(value))}
+                {/*
+                  **والرقم يُجمَّع كجيرانه.** كان `displayDigits` يبدّل
+                  الخانات ولا يفصل الآلاف، فتقرأ النافذة «أقلّ مزايدة
+                  مقبولة ٦٩٬٦٢٥» ثمّ ثلاثة أزرارٍ تحتها «69625» —
+                  صيغتان لرقمٍ واحد في نافذةٍ واحدة، وفي اللحظة التي
+                  يُقرأ فيها الرقم بأسرع نظرة.
+                */}
+                <ArabicNumber value={value} />
               </button>
             );
           })}

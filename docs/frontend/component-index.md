@@ -122,7 +122,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 4 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 100 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `className` | 101 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 88 |
 | `InspectedBadge` | no | `className` | 3 |

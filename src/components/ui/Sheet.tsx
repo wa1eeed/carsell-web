@@ -75,8 +75,23 @@ export function Modal({ open, onClose, title, children, footer, className }: She
           role="dialog"
           aria-modal
           aria-label={title}
+          /**
+           * ═══ والحوارُ لا يتجاوز الشاشة ═══
+           *
+           * كان بلا `max-h` وجسدُه بلا تمرير، فحوارٌ ارتفاعُه ٦٧٨ على
+           * شاشةٍ ٥٢٢ يتوسّط فيخرج طرفاه معًا — **ويصير زرُّه الأساسيّ
+           * خارج المرئيّ ولا شيء يُمرّره**. وقِيس: نافذةُ المزايدة حين
+           * يظهر اختيارُ البطاقة (أي عند **أوّل مزايدةٍ لكل مزايد**)
+           * زرُّها «أرسل المزايدة» عند ٥٣٨ والشاشة تنتهي عند ٥٢٢.
+           *
+           * و`Sheet` بجواره يفعلها صحيحةً منذ بُني (`flex-1
+           * overflow-y-auto`) — فالدرج يمرّر والحوار لا.
+           *
+           * والرأس والذيل يبقيان مثبّتين، فالإجراء مرئيٌّ دائمًا
+           * والمحتوى وحده يمرّ.
+           */
           className={cn(
-            'flex w-[480px] max-w-full flex-col overflow-hidden rounded-2xl bg-bg shadow-2xl',
+            'flex max-h-full w-[480px] max-w-full flex-col overflow-hidden rounded-2xl bg-bg shadow-2xl',
             className,
           )}
         >
@@ -89,7 +104,7 @@ export function Modal({ open, onClose, title, children, footer, className }: She
               </svg>
             </button>
           </header>
-          <div className="px-5.5 py-4.5">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5.5 py-4.5">{children}</div>
           {footer === undefined ? null : (
             <footer className="flex justify-end gap-2 border-t border-line px-5.5 py-4">
               {footer}

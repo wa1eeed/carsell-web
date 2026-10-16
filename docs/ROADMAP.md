@@ -419,6 +419,25 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       your number, it does not propose one. For a Camry, with no `PriceStat` row
       at all, nothing appears either way. Either the hero promises less or the
       wizard proposes a figure; that is a product decision.
+- [x] **A centred modal could not be scrolled, so its own button was out of
+      reach.** `Modal` had no `max-height` and its body no scroll, while `Sheet`
+      beside it had both from the day it was built. Measured on a 377×522 phone:
+      the bid dialog is **678px tall**, centres to top −78 / bottom 600, and
+      «أرسل المزايدة» sits at 538 — below a screen that ends at 522, with nothing
+      to scroll. And it grows to that height exactly when the deposit card picker
+      appears, which is **every bidder's first bid**. The panel is now
+      `max-h-full` and the body `min-h-0 flex-1 overflow-y-auto`, so the header
+      and footer stay pinned and the content scrolls. Every centred dialog in the
+      product was affected.
+- [x] **Quick-bid chips showed ungrouped numbers.** «أقلّ مزايدة مقبولة ٦٩٬٦٢٥»
+      above three chips reading «69625 70125 71125» — two formats for one kind of
+      number in one dialog, at the moment it is read fastest. `displayDigits`
+      converts digits but does not group; `<ArabicNumber>` does both.
+- [x] **The auction journey walked by clicking.** Opened a live auction, bid
+      70,125, the server asked for the deposit (402), the dialog revealed the card
+      picker, the sandbox hold went through and the bid was created (201). The
+      page updated in place: «٧ مزايدين · ١٠ مزايدات · بلغ السعر الاحتياطي ·
+      مزايدتك هي الأعلى».
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to
