@@ -102,7 +102,12 @@ export function AdminMobileNav({
           {title}
         </p>
 
-        <Link href="/admin" className="shrink-0">
+        {/*
+          **ومساحةُ اللمس ليست مساحةَ الصورة.** الشعارُ رابطٌ ارتفاعُه
+          ٢٠ على الهاتف، وحدّ WCAG 2.2 أربعٌ وعشرون. والحشوُ الرأسيّ
+          مع هامشٍ سالب يُوسّع النقر بلا أن يتحرّك الشريط.
+        */}
+        <Link href="/admin" className="-my-1 shrink-0 py-1">
           <Logo variant="white" className="h-5" />
         </Link>
       </header>

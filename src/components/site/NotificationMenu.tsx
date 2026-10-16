@@ -194,10 +194,22 @@ export function NotificationMenu({
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
           <p className="text-sm font-bold">{t('title')}</p>
           {unread === 0 ? null : (
+            /*
+              ═══ ومساحةُ اللمس ليست مساحةَ النصّ ═══
+
+              قِيس على ٣٧٥px: «تعليم الكل كمقروء» ٩٠×**١٦**، و«كل
+              الإشعارات» ٦٨×**١١** — وحدّ WCAG 2.2 أربعٌ وعشرون.
+              وهما إجراءا الجرس الوحيدان، **وفي ترويسة كل صفحة**.
+
+              والعلاج حشوٌ رأسيّ وهامشٌ سالب يقابله: تتّسع مساحةُ
+              النقر **بلا أن يتحرّك سطر** — فلا يتغيّر التصميم ولا
+              تُرفع أحجام الخطوط. (القاعدة مسجَّلة، وهذه ثانيةُ
+              مرّةٍ تُطبَّق.)
+            */
             <button
               type="button"
               onClick={() => void markAll()}
-              className="text-3xs font-semibold text-accent-700 underline-offset-2 hover:underline"
+              className="-my-2 py-2 text-3xs font-semibold text-accent-700 underline-offset-2 hover:underline"
             >
               {t('markAll')}
             </button>
@@ -223,7 +235,7 @@ export function NotificationMenu({
           <Link
             href="/account/notifications"
             onClick={() => setOpen(false)}
-            className="text-3xs font-semibold underline-offset-2 hover:underline"
+            className="-my-1.5 inline-block py-2.5 text-3xs font-semibold underline-offset-2 hover:underline"
           >
             {t('viewAll')}
           </Link>
