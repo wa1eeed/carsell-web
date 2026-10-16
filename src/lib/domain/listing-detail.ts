@@ -278,6 +278,18 @@ export type PublicListingDetail = {
     p90: number;
     sampleSize: number;
     daysToSellMedian: number | null;
+    /**
+     * ═══ والشريحةُ تُقال من الصفّ الذي طابَق ═══
+     *
+     * البحث يتدرّج من الأخصّ إلى الأعمّ، فقد يُطابق صفٌّ مدينتُه `*`.
+     * وكانت الشاشة تبني الوصف من **المركبة** لا من المُطابِق، فتقول
+     * «يوكن ٢٠٢٢ · جدة · مبنيّ على ١٧ صفقة» — **ولا جدةَ في ذلك
+     * الرقم**. ومن يقرأ ذلك يخفض سعره على إحصاءٍ لمدينةٍ أخرى.
+     *
+     * فتُعاد سعةُ المطابقة، والشاشة تصف ما بين يديها لا ما سألت عنه.
+     */
+    scopedToCity: boolean;
+    scopedToTrim: boolean;
   } | null;
 };
 
@@ -758,6 +770,8 @@ export async function priceStatFor(vehicle: {
       p90: Number(row.p90),
       sampleSize: row.sampleSize,
       daysToSellMedian: row.daysToSellMedian,
+      scopedToCity: candidate.city !== '*',
+      scopedToTrim: candidate.trimId !== '*',
     };
   }
   return null;

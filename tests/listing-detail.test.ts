@@ -332,3 +332,37 @@ describe('═══ صفحة السيارة في المزاد ═══', () => 
     expect(view.auction?.live).toBe(open);
   });
 });
+
+/**
+ * ═══ والشريحةُ تُقال من الصفّ الذي طابَق ═══
+ *
+ * `priceStatFor` يتدرّج من الأخصّ إلى الأعمّ، فقد يُطابق صفٌّ مدينتُه
+ * `*`. وكانت الشاشة تبني الوصف من **المركبة** لا من المُطابِق، فتقول
+ * «يوكن ٢٠٢٢ · جدة · مبنيّ على ١٧ صفقة» — **ولا جدةَ في ذلك الرقم**،
+ * ومن يقرؤه يخفض سعره على إحصاء مدينةٍ أخرى.
+ */
+describe('إحصاء السوق يقول سعة مطابقته', () => {
+  it('صفٌّ عامّ لا يُوصَف بمدينة ولا بفئة', async () => {
+    const { priceStatFor } = await import('@/lib/domain/listing-detail');
+
+    const row = await db.priceStat.findFirst({
+      where: { city: '*', trimId: '*' },
+      select: { modelId: true, year: true },
+    });
+    expect(row, 'الزرع يكتب صفوفًا عامّة').not.toBeNull();
+    if (row === null) return;
+
+    const stat = await priceStatFor({
+      modelId: row.modelId,
+      trimId: null,
+      year: row.year,
+      city: 'جدة',
+      mileageKm: 60_000,
+    });
+
+    expect(stat).not.toBeNull();
+    /** سُئل عن جدة وطابَق العامّ — فلا يُقال إنه عن جدة. */
+    expect(stat?.scopedToCity).toBe(false);
+    expect(stat?.scopedToTrim).toBe(false);
+  });
+});

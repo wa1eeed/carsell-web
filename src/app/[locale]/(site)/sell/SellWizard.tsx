@@ -372,11 +372,17 @@ export function SellWizard({
     };
   }, [step, vehicle.modelId, vehicle.trimId, vehicle.year, vehicle.mileageKm, vehicle.city]);
 
-  /** وصفُ الشريحة التي بُني عليها الرقم — «كامري ٢٠٢٢ في الرياض». */
+  /**
+   * وصفُ الشريحة التي بُني عليها الرقم — «كامري ٢٠٢٢ في الرياض».
+   *
+   * **والمدينة تُذكر إن كانت في الرقم**: الإحصاء يتدرّج إلى الأعمّ
+   * حين لا يجد الأخصّ، فوصفُ صفٍّ مدينتُه `*` بمدينة البائع يَعِد
+   * بدقّةٍ ليست فيه.
+   */
   const segmentLabel = [
     models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
     vehicle.year === '' ? '' : displayDigits(vehicle.year),
-    vehicle.city === '' ? '' : `${t('inCity')} ${vehicle.city}`,
+    vehicle.city === '' || priceStat?.scopedToCity !== true ? '' : `${t('inCity')} ${vehicle.city}`,
   ]
     .filter((part) => part !== '')
     .join(' ');

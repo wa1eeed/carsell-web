@@ -560,10 +560,21 @@ export function CarPage({
                   قطّ**. فيقرأ الزائر «مبنيّ على ٢٧ صفقة» ولا يعرف
                   صفقةَ ماذا، ويخفض سعره عليها.
                 */}
+                {/*
+                  **والمدينة تُذكر إن كانت في الرقم.** الإحصاء يتدرّج
+                  إلى الأعمّ حين لا يجد الأخصّ، فصفٌّ مدينتُه `*` كان
+                  يُوصَف «جدة» — ولا جدةَ فيه.
+                */}
                 <RangeBar
                   price={Number(detail.askPrice)}
                   stats={detail.priceStat}
-                  segment={`${vehicle.modelLabel} ${String(vehicle.year)} · ${cityLabel(detail.city, locale)}`}
+                  segment={[
+                    vehicle.modelLabel,
+                    String(vehicle.year),
+                    detail.priceStat.scopedToCity ? `· ${cityLabel(detail.city, locale)}` : '',
+                  ]
+                    .filter((part) => part !== '')
+                    .join(' ')}
                 />
               </section>
             )}

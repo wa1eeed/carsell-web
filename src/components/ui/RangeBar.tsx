@@ -16,6 +16,13 @@ export type RangeStats = {
   sampleSize: number;
   /** وسيطُ أيّام البيع — و`null` حين لا صفقاتٍ مكتملةٍ تكفي. */
   daysToSellMedian?: number | null;
+  /**
+   * **سعةُ المطابقة** — تقرؤها الشاشة لتصف الشريحة بما فيها لا بما
+   * سألت عنه. والإحصاء يتدرّج إلى الأعمّ، فصفٌّ مدينتُه `*` لا
+   * يُوصَف بمدينةٍ بعينها.
+   */
+  scopedToCity?: boolean;
+  scopedToTrim?: boolean;
 };
 
 /**

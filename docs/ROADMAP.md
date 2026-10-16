@@ -394,6 +394,31 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       completed sale legitimately blocks an invoice, **the first real purchase
       broke it**. It now asserts its own order left the list. (The failure was the
       test's, not the code's.)
+- [x] **The market band claimed a city that was not in the number.** `priceStatFor`
+      widens its search — trim+city, then city, then trim, then the general row —
+      and every seeded row is `city: '*'`, `trimId: '*'`. The screens built the
+      caption from the **vehicle** instead of the matched row, so a Yukon in
+      Jeddah read «مبنيّ على ١٧ صفقة · يوكن ٢٠٢٢ · جدة» with no Jeddah anywhere in
+      those 17. A buyer lowers an offer on that. The statistic now carries
+      `scopedToCity` / `scopedToTrim` and the caption says only what the number
+      covers. *(Same shape as the badge computed from the exact figure instead of
+      the displayed one.)*
+- [ ] **`PriceStat` has no writer outside the seed, by design — and nothing says
+      so.** The seed's own comment is explicit: the real market median comes from
+      a **data provider**, not from our own asking prices, because deriving it
+      from our listings is circular — one listing per model-year makes the median
+      equal that listing. So the table is a fixture awaiting an integration that
+      does not exist: 49 rows, 31 of 73 models, all computed on one day, every
+      one `city: '*'`. Two consequences the owner should weigh: 42 models show no
+      market band at all, and the figures never move as the market does. The
+      vendor choice is theirs; what is ours is that nothing anywhere records the
+      dependency — now it does.
+- [ ] **The sell page promises a suggested price the wizard does not give.** The
+      hero reads «ونقترح عليك سعرًا مبنيًا على صفقات حقيقية لمثل سيارتك», and the
+      wizard shows `PriceGuidance` only **after** a price is typed — it positions
+      your number, it does not propose one. For a Camry, with no `PriceStat` row
+      at all, nothing appears either way. Either the hero promises less or the
+      wizard proposes a figure; that is a product decision.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to
