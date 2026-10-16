@@ -653,7 +653,8 @@ export async function expireSellerDecisions(now: Date = new Date()): Promise<num
  * دفترنا يقول إننا قبضنا ما لم نقبض.
  */
 export async function forfeitDeposit(
-  input: { auctionId: string; userId: string },
+  /** و`orderId` يُمرَّر حين يكون للمصادرة طلبٌ — فيتتبّعها الدفتر به. */
+  input: { auctionId: string; userId: string; orderId?: string | null },
   now: Date = new Date(),
 ): Promise<{ ok: boolean }> {
   const rows = await db.deposit.findMany({
@@ -662,13 +663,25 @@ export async function forfeitDeposit(
   });
   if (rows.length === 0) return { ok: false };
 
+  /** **ومرجع المزاد مرجعُ إعلانه** — فالقيد يُقرأ بما يعرفه المراجع. */
+  const auction = await db.auction.findUnique({
+    where: { id: input.auctionId },
+    select: { listing: { select: { ref: true } } },
+  });
+  const subject = {
+    orderId: input.orderId ?? null,
+    userId: input.userId,
+    ref: auction?.listing.ref ?? null,
+  };
+
   let forfeited = 0;
   for (const row of rows) {
     /**
      * العربون الدفتريّ القديم (بلا دفعة) يُوسَم ولا يُحصَّل — لا مال
      * خلفه أصلًا، واختلاقُ تحصيلٍ له يكتب في الدفتر ما لم يقع.
      */
-    const captured = row.paymentId === null ? true : await captureForfeitedDeposit(row.paymentId, now);
+    const captured =
+      row.paymentId === null ? true : await captureForfeitedDeposit(row.paymentId, now, subject);
     if (!captured) continue;
 
     await db.deposit.update({
@@ -720,7 +733,10 @@ export async function forfeitOnWithdrawal(
   });
   if (auction === null) return { forfeited: false };
 
-  const result = await forfeitDeposit({ auctionId: auction.id, userId: order.buyerId }, now);
+  const result = await forfeitDeposit(
+    { auctionId: auction.id, userId: order.buyerId, orderId: input.orderId },
+    now,
+  );
   if (!result.ok) return { forfeited: false };
 
   /**

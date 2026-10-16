@@ -73,7 +73,21 @@ afterEach(async () => {
     select: { paymentId: true },
   });
   const payments = rows.map((r) => r.paymentId).filter((id): id is string => id !== null);
-  await db.ledgerEntry.deleteMany({ where: { note: 'deposit.forfeited' } });
+  /**
+   * **والقيد يُحذف بمعاملته لا بملاحظته.** صارت المصادرة تكتب مرجع
+   * الإعلان بدل الثابت `deposit.forfeited`، فحذفٌ بالثابت يترك
+   * معاملةً كاملة — وقد تسرّبت خمسةُ آلافٍ إلى دفتر التطوير فعلًا.
+   */
+  const forfeits = await db.ledgerEntry.findMany({
+    where: { event: 'deposit.forfeited', paymentId: { in: payments } },
+    select: { txnId: true },
+    distinct: ['txnId'],
+  });
+  if (forfeits.length > 0) {
+    await db.ledgerEntry.deleteMany({
+      where: { txnId: { in: forfeits.map((row) => row.txnId) } },
+    });
+  }
 
   /**
    * **والأثر الجديد يُتبَع في الاستعادة.** صار الطقم يُنشئ طلبًا
@@ -169,7 +183,7 @@ describe('مصير العربون', () => {
       method: 'mada', returnUrl: 'http://localhost/return',
     });
 
-    const before = await db.ledgerEntry.count({ where: { note: 'deposit.forfeited' } });
+    const before = await db.ledgerEntry.count({ where: { event: 'deposit.forfeited' } });
     const result = await forfeitDeposit({ auctionId, userId: bidderId });
     expect(result.ok).toBe(true);
 
@@ -181,15 +195,36 @@ describe('مصير العربون', () => {
     expect(deposit.payment?.status).toBe('SETTLED');
     expect(Number(deposit.payment?.settledAmount)).toBe(5_000);
 
-    // قيدان متوازنان: نقدٌ مدين، وإيرادٌ دائن
-    const after = await db.ledgerEntry.findMany({ where: { note: 'deposit.forfeited' } });
-    expect(after.length - before).toBe(2);
+    /**
+     * قيدان متوازنان: نقدٌ مدين، وإيرادٌ دائن.
+     *
+     * **والحكم على القيد المعنيّ لا على العدّاد العامّ.** الجدول يحمل
+     * مصادراتٍ أخرى (مزروعةً وسابقة)، و`find` على الكلّ يلتقط أوّلها —
+     * فيسقط الاختبار على ما لا يقيسه.
+     */
+    const mine = deposit.paymentId;
+    const after = await db.ledgerEntry.findMany({
+      where: { event: 'deposit.forfeited', paymentId: mine },
+    });
+    expect(
+      (await db.ledgerEntry.count({ where: { event: 'deposit.forfeited' } })) - before,
+    ).toBe(2);
+    expect(after).toHaveLength(2);
     const cash = after.find((row) => row.account === 'PLATFORM_CASH');
     const revenue = after.find((row) => row.account === 'PLATFORM_REVENUE');
     expect(Number(cash?.amount)).toBe(5_000);
     expect(Number(revenue?.amount)).toBe(5_000);
     expect(cash?.direction).toBe('DEBIT');
     expect(revenue?.direction).toBe('CREDIT');
+
+    /**
+     * **ومن صُودر عربونُه مكتوبٌ في القيد.** كان يُكتب الثابت
+     * `deposit.forfeited` بلا صاحبٍ ولا مزاد، فخمسةُ آلافٍ تدخل
+     * الإيراد ولا يقول الدفتر عربونَ من هي.
+     */
+    expect(cash?.note).toBe(ref);
+    expect(cash?.userId).toBe(bidderId);
+    expect(revenue?.note).toBe(ref);
   });
 });
 

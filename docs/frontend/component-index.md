@@ -25,7 +25,7 @@ rather than found by chance.
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
 | `ActivityRow` | no | `event` · `at` | 1 |
-| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 5 |
+| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 6 |
 | `AdminMobileNav` | yes | `groups` · `activeHref` · `title` | 1 |
 | `AuctionCard` | no | `row` | 1 |
 | `AutoRefresh` | yes | `seconds` | 1 |

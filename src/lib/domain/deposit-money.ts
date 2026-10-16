@@ -146,6 +146,19 @@ export async function cancelDepositHold(paymentId: string, now: Date = new Date(
 export async function captureForfeitedDeposit(
   paymentId: string,
   now: Date = new Date(),
+  /**
+   * ═══ ومن صُودر عربونُه يُكتب ═══
+   *
+   * كان القيد يُكتب بـ`note: 'deposit.forfeited'` — **ثابتٌ لا
+   * مرجع** — وبلا `orderId` ولا `userId`. فخمسةُ آلافٍ تدخل الإيراد
+   * ولا شيء في الدفتر يقول **عربونُ من** ولا على أيّ مزاد، وهو أوّل
+   * ما يُسأل عنه حين يعترض صاحبُه.
+   *
+   * وأثرُه ثانٍ: الاستعادة المشتركة في الاختبارات تجمع المعاملات
+   * بـ`orderId`، فمعاملةٌ بلا واحدٍ تُفلت منها — وتسرّبت خمسةُ آلافٍ
+   * إلى دفتر التطوير فضخّمت «إيراد المنصّة» ستّة أضعاف.
+   */
+  subject?: { orderId?: string | null; userId?: string | null; ref?: string | null },
 ): Promise<boolean> {
   const payment = await db.payment.findUnique({
     where: { id: paymentId },
@@ -180,11 +193,28 @@ export async function captureForfeitedDeposit(
      * القيد: نقدٌ يدخل، وإيرادٌ يُعترَف به. **والاعتراف عند الاستحقاق**
      * — وقد استُحقّ: المزايد أخلّ، والعربون صار لنا بشرطٍ معلَن.
      */
+    const note = subject?.ref ?? 'deposit.forfeited';
+    const owner = subject?.userId ?? null;
+
     await postEntries(tx, {
       event: 'deposit.forfeited',
+      orderId: subject?.orderId ?? null,
+      paymentId: payment.id,
       postings: [
-        { account: 'PLATFORM_CASH', direction: 'DEBIT', amount: payment.amount, note: 'deposit.forfeited' },
-        { account: 'PLATFORM_REVENUE', direction: 'CREDIT', amount: payment.amount, note: 'deposit.forfeited' },
+        {
+          account: 'PLATFORM_CASH',
+          direction: 'DEBIT',
+          amount: payment.amount,
+          note,
+          ...(owner === null ? {} : { userId: owner }),
+        },
+        {
+          account: 'PLATFORM_REVENUE',
+          direction: 'CREDIT',
+          amount: payment.amount,
+          note,
+          ...(owner === null ? {} : { userId: owner }),
+        },
       ],
     });
   });

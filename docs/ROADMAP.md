@@ -318,11 +318,28 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       above a breakdown of «٤٨٢٫٦٣» — gateway fees are 1.70% + 1 SAR, so halalas
       are the rule, not the exception. `Money` defaults to no decimals; every
       figure a person reconciles now passes `decimals={2}`.
-- [ ] **A vehicle order never writes `PLATFORM_CASH` either.** `service.captured`
-      is the only entry that touches it. Orders settle through
-      `settleOnTransferConfirmed` and the money reaches us the same way, with no
-      line saying so — so the book shows what is owed and held but never what
-      arrived. Measured, not fixed: it belongs with the vehicle cost ledger.
+- [x] **A forfeited deposit says whose it was.** The entry was written with the
+      constant `note: 'deposit.forfeited'` and no `orderId` and no `userId`: five
+      thousand riyals entered revenue and the book did not say **whose deposit**
+      or on which auction — the first question asked when the bidder objects. It
+      now carries the auction's listing ref, the bidder, the payment and the
+      order. *(And the anonymity had a second effect: the shared test restore
+      collects ledger transactions by `orderId`, so a transaction without one
+      escaped it — 5,000 leaked into the development ledger and inflated platform
+      revenue six-fold. Found by reading the screen after a verify run.)*
+- [ ] **A vehicle order never writes `PLATFORM_CASH`.** `service.captured` and
+      `deposit.forfeited` are the only entries that touch it. Orders settle
+      through `settleOnTransferConfirmed` — the gateway really is captured — and
+      no cash line is posted; our own commission and VAT never leave
+      `ESCROW_AT_PROVIDER` at all, so the card that reads «التزامٌ تجاه الأطراف،
+      لا مالٌ لنا» today carries our money too. **A money rule, so asked not
+      decided**: `docs/OPEN-QUESTIONS.md`, "متى يصير مالُ بيع المركبة نقدًا".
+- [x] **Every ledger line opens on what it concerns.** The «الطلب» column came
+      from `orderId` alone, so every service entry read «—»: an auditor looking
+      at 517.50 could not tell which service it was. The column is «المرجع» now,
+      resolved from the order or — for services — from the note **matched against
+      a real `ServiceRequest.ref`**, so a payout's `payout … · bankRef` note is
+      never displayed as a reference. Both link to their screen.
 - [ ] **A ledger line cannot be traced to its service.** The «الطلب» column shows
       «—» for every service entry: the order link comes from `orderId`, and a
       service's reference lives in `note`. A finance operator reading a 517.50

@@ -328,6 +328,40 @@ async function sweep(when: string): Promise<void> {
   }
 
   /**
+   * ═══ وقيدُ المصادرة يتسرّب — ويُضخّم الإيراد ═══
+   *
+   * معاملةُ `deposit.forfeited` **بلا `orderId`**، فتُفلت من كل تنظيفٍ
+   * يجمع به. وقِيس: خمسةُ آلافٍ في كل تشغيل، و«إيراد المنصّة» في دفتر
+   * التطوير صار ستّة أضعافه — ولا اختبارَ يسأل «كم في الدفتر».
+   *
+   * **واليتيم بدفعته**: قيدٌ لا دفعةَ له قائمة هو قيدٌ حُذف أصلُه.
+   * ومصادرةٌ حقيقية دفعتُها باقية، فلا تُمَسّ.
+   */
+  const forfeits = await db.ledgerEntry.findMany({
+    where: { event: 'deposit.forfeited' },
+    select: { txnId: true, paymentId: true },
+  });
+  if (forfeits.length > 0) {
+    const paymentIds = [...new Set(forfeits.map((row) => row.paymentId).filter((id) => id !== null))];
+    const alive = new Set(
+      (await db.payment.findMany({ where: { id: { in: paymentIds } }, select: { id: true } })).map(
+        (row) => row.id,
+      ),
+    );
+    const orphanTxns = [
+      ...new Set(
+        forfeits
+          .filter((row) => row.paymentId === null || !alive.has(row.paymentId))
+          .map((row) => row.txnId),
+      ),
+    ];
+    if (orphanTxns.length > 0) {
+      const removed = await db.ledgerEntry.deleteMany({ where: { txnId: { in: orphanTxns } } });
+      console.log(`  نُظّف ${String(removed.count)} قيد مصادرةٍ يتيم ${when}`);
+    }
+  }
+
+  /**
    * ═══ ودفترُ البوّابة التجريبية يتسرّب — ويُفسد المطابقة ═══
    *
    * كلُّ حجزٍ ودفعٍ في اختبارٍ يكتب صفًّا في `SandboxTransaction`، ولا

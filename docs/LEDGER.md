@@ -347,7 +347,7 @@ ledger exists to solve.
 | **Payouts are recorded, not executed** | `approvePayout` posts the entry; the bank transfer itself is performed by finance and reconciled by `bankRef`. A provider split API would replace the manual step, not the entry. |
 | **Refunds are not wired** | `recordRefund` is written and tested but no dispute resolution calls it yet. |
 | **Discounts and coupons** | No model at all. |
-| **`PLATFORM_CASH`** | Written by `service.captured` only. Vehicle orders settle through `settleOnTransferConfirmed` and still post no cash entry — their money reaches us the same way and the book does not say so. |
+| **`PLATFORM_CASH`** | Written by `service.captured` and `deposit.forfeited`. Vehicle orders settle through `settleOnTransferConfirmed` and still post no cash entry — their money reaches us the same way and the book does not say so, and our own commission never leaves `ESCROW_AT_PROVIDER` at all. Recorded for the owner in `docs/OPEN-QUESTIONS.md`: whether that account should split into held and settled. |
 
 These are wiring, not design. The accounts and the invariant are settled.
 

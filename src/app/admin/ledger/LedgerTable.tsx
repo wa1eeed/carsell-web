@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminLink } from '@/components/admin/AdminLink';
 import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/ui/DataTable';
 import { Money } from '@/components/ui/Money';
@@ -51,14 +52,21 @@ export function LedgerTable({ entries }: { entries: readonly LedgerRow[] }) {
       cell: (row) => <Money amount={Number(row.amount)} showCurrency={false} decimals={2} />,
     },
     {
-      id: 'order',
-      header: 'الطلب',
-      /* المرجع يُنسخ ويُقارن — لاتينيّ معزول */
+      id: 'subject',
+      header: 'المرجع',
+      /**
+       * **والقيد يُفتح على ما يخصّه.** كان العمود «الطلب» يُشتقّ من
+       * `orderId` وحده، فكلُّ قيد خدمةٍ يُعرض «—» — ومن يراجع ٥١٧٫٥٠
+       * لا يعرف أيّ خدمةٍ هي ولا يملك ما يبحث به. والمرجع لاتينيّ
+       * معزول: يُنسخ ويُقارن خانةً بخانة.
+       */
       cell: (row) =>
-        row.orderRef === null ? (
+        row.subjectRef === null || row.subjectHref === null ? (
           <span className="opacity-35">—</span>
         ) : (
-          <span dir="ltr" className="font-num text-2xs">{row.orderRef}</span>
+          <AdminLink href={row.subjectHref} ltr>
+            <span className="font-num text-2xs">{row.subjectRef}</span>
+          </AdminLink>
         ),
     },
       ]}

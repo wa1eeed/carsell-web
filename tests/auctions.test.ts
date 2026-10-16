@@ -43,6 +43,29 @@ async function deleteDepositPayments(where: { auctionId: string | { in: string[]
   const rows = await db.deposit.findMany({ where, select: { paymentId: true } });
   const ids = rows.map((row) => row.paymentId).filter((id): id is string => id !== null);
   if (ids.length === 0) return;
+
+  /**
+   * ═══ **والمصادرة أثرٌ جديد يُتبَع هنا** ═══
+   *
+   * صارت `forfeitDeposit` تكتب قيدًا — ومعاملتُه **بلا `orderId`**،
+   * فتُفلت من كل تنظيفٍ يجمع بـ`orderId`. وتسرّبت خمسةُ آلافٍ في كل
+   * تشغيل: «إيراد المنصّة» في دفتر التطوير صار ستّة أضعافه، ولا
+   * اختبارَ يسأل «كم في الدفتر».
+   *
+   * وموضعُه هنا لأن هذه الدالّة تعرف دفعات العربون — فيُتبَع الأثر
+   * **مرّةً واحدة** لكل من ينادونها.
+   */
+  const forfeits = await db.ledgerEntry.findMany({
+    where: { event: 'deposit.forfeited', paymentId: { in: ids } },
+    select: { txnId: true },
+    distinct: ['txnId'],
+  });
+  if (forfeits.length > 0) {
+    await db.ledgerEntry.deleteMany({
+      where: { txnId: { in: forfeits.map((row) => row.txnId) } },
+    });
+  }
+
   await db.deposit.updateMany({ where, data: { paymentId: null } });
   await db.payment.deleteMany({ where: { id: { in: ids } } });
 }

@@ -94,6 +94,19 @@ export type LedgerRow = {
   direction: 'DEBIT' | 'CREDIT';
   amount: string;
   orderRef: string | null;
+  /**
+   * ═══ وما يخصّ الخدمة مرجعُه في `note` ═══
+   *
+   * عمود «الطلب» يُشتقّ من `orderId`، و`LedgerEntry` الخاصّ بالخدمة
+   * لا يحمله — مرجعُه في `note`. فكان كلُّ قيد خدمةٍ يُعرض بـ«—»:
+   * مَن يقرأ ٥١٧٫٥٠ في الدفتر **لا يعرف أيّ خدمةٍ هي**، وهو أوّل ما
+   * يُسأل عنه في أيّ مراجعة.
+   *
+   * ولا يُخمَّن بالشكل: النصّ يُقابَل بـ`ServiceRequest.ref` فعلًا —
+   * فملاحظةُ التحويل (`payout … · bankRef`) لا تُعرض مرجعًا.
+   */
+  subjectRef: string | null;
+  subjectHref: string | null;
   createdAt: string;
 };
 
@@ -123,13 +136,36 @@ export async function recentEntries(limit = 60): Promise<LedgerRow[]> {
     select: { id: true, ref: true },
   });
 
-  return rows.map((row) => ({
-    txnId: row.txnId,
-    event: row.event,
-    account: row.account,
-    direction: row.direction,
-    amount: row.amount.toFixed(2),
-    orderRef: orders.find((order) => order.id === row.orderId)?.ref ?? null,
-    createdAt: row.createdAt.toISOString(),
-  }));
+  /** والملاحظة تُقابَل بمرجعٍ قائم — فما لم يكن مرجعًا لا يُعرض مرجعًا. */
+  const notes = [...new Set(rows.map((row) => row.note).filter((note) => note !== null))];
+  const services =
+    notes.length === 0
+      ? []
+      : await db.serviceRequest.findMany({
+          where: { ref: { in: notes } },
+          select: { ref: true },
+        });
+  const serviceRefs = new Set(services.map((row) => row.ref));
+
+  return rows.map((row) => {
+    const orderRef = orders.find((order) => order.id === row.orderId)?.ref ?? null;
+    const serviceRef = row.note !== null && serviceRefs.has(row.note) ? row.note : null;
+
+    return {
+      txnId: row.txnId,
+      event: row.event,
+      account: row.account,
+      direction: row.direction,
+      amount: row.amount.toFixed(2),
+      orderRef,
+      subjectRef: orderRef ?? serviceRef,
+      subjectHref:
+        orderRef !== null
+          ? `/admin/orders/${encodeURIComponent(orderRef)}`
+          : serviceRef !== null
+            ? `/admin/service-requests/${encodeURIComponent(serviceRef)}`
+            : null,
+      createdAt: row.createdAt.toISOString(),
+    };
+  });
 }
