@@ -1,6 +1,7 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { createListing, type PublishInput } from '@/lib/domain/publish';
+import { sellingAllowance } from '@/lib/domain/entitlements';
 
 afterAll(async () => {
   await db.uploadedAsset.deleteMany({ where: { r2Key: { startsWith: 'probe/' } } });
@@ -454,5 +455,88 @@ describe('حدّ القبول عند النشر', () => {
         negotiation: { minAcceptPrice: input.askPrice + 1 },
       }),
     ).toEqual({ ok: false, reason: 'MIN_ACCEPT_INVALID' });
+  });
+});
+
+
+/**
+ * ═══ خصائصُ الباقة تُقرأ — وكانت لا تُقرأ ═══
+ *
+ * عشرُ خصائص وشاشةُ أدمن تضبطها، **ولا سطرَ في المنتج يسأل عن
+ * واحدة**. فمشغّلٌ يمنع المزاد عن مستخدمٍ بتجاوزٍ يراه محفوظًا —
+ * والمستخدم ينشر مزادًا بعده بدقيقة.
+ *
+ * والتجاوزُ يُزرع ويُحذف هنا: صفٌّ يبقى يمنع بائعًا مزروعًا في كل
+ * تشغيلٍ تالٍ، ويسقط جيرانه لا هذا الملفّ.
+ */
+describe('خصائصُ الباقة تحكم النشر', () => {
+  const overrides: string[] = [];
+
+  afterEach(async () => {
+    if (overrides.length > 0) {
+      await db.entitlementOverride.deleteMany({ where: { id: { in: overrides } } });
+      overrides.length = 0;
+    }
+  });
+
+  async function deny(userId: string, key: string, value: string): Promise<void> {
+    const row = await db.entitlementOverride.create({
+      data: { userId, entitlementKey: key, value, reason: 'اختبار', createdBy: 'test' },
+    });
+    overrides.push(row.id);
+  }
+
+  it('تجاوزٌ يمنع المزاد يردّ النشر — والافتراضيّ يسمح', async () => {
+    const input = await base();
+
+    /** **والافتراضيّ أوّلًا** — وإلّا لم نعرف أالمنعُ من التجاوز أم من سواه. */
+    const allowed = await sellingAllowance(input.sellerId);
+    expect(allowed.types.AUCTION).toBe(true);
+
+    await deny(input.sellerId, 'can_auction', 'false');
+
+    const after = await sellingAllowance(input.sellerId);
+    expect(after.types.AUCTION).toBe(false);
+    expect(after.types.DIRECT).toBe(true);
+
+    const result = await createListing({
+      ...input,
+      type: 'AUCTION',
+      auction: {
+        durationDays: 7, startsAt: null, reservePrice: null, bidIncrement: null,
+        buyNowPrice: null, depositAmount: null,
+        viewingCity: 'الرياض', viewingAddress: 'حي الملقا',
+      },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('SALE_METHOD_NOT_ALLOWED');
+  });
+
+  it('وحدُّ الإعلانات يُفرض — ويُحسب من المعروض لا من المسودّات', async () => {
+    const input = await base();
+
+    /** حدٌّ صفرٌ: أوّلُ نشرٍ يبلغه، فلا يعتمد الاختبار على ما زُرع. */
+    await deny(input.sellerId, 'max_active_listings', '0');
+
+    expect((await sellingAllowance(input.sellerId)).maxActiveListings).toBe(0);
+
+    const result = await createListing(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('LISTING_LIMIT_REACHED');
+
+    /** **والمسودّة تخرج قبل الحدّ** — حفظُ ما كتبه المرء ليس عرضًا. */
+    const draft = await createListing({ ...input, draft: true });
+    expect(draft.ok).toBe(true);
+    if (draft.ok) {
+      created.push(draft.ref);
+      expect(draft.status).toBe('DRAFT');
+    }
+  });
+
+  it('وبلا تجاوزٍ يمرّ النشر — فالوصل لا يغيّر سلوك اليوم', async () => {
+    const input = await base();
+    const result = await createListing(input);
+    expect(result.ok).toBe(true);
+    if (result.ok) created.push(result.ref);
   });
 });

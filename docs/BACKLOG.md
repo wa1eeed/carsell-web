@@ -19,7 +19,8 @@ Updated: 2026-10-13.
 | 5 | Browse opens on the list; list row fits a phone | `f407bf4` |
 | 6 | Services banner carries the car; services page car picker verified | `fa53eba` |
 | 7 | English locale showed Arabic **data** again (home cards, cities, popular searches) and an Arabic **percent sign** in 5 places | `d55c88e` |
-| 8 | Car catalogue: brand/model/trim **delete** and model **edit** were built, guarded and audited — with no button anywhere | _this commit_ |
+| 8 | Car catalogue: brand/model/trim **delete** and model **edit** were built, guarded and audited — with no button anywhere | `7318bd2` |
+| 9 | Plan entitlements were read by nothing — an operator could grant or deny and the product ignored it | _this commit_ |
 
 ---
 

@@ -13,6 +13,7 @@ import type {
 } from '@/generated/prisma/enums';
 import { findDuplicate } from './listing-images';
 import { auctionSettings } from './admin-auction-settings';
+import { SEAT_TAKING_STATUSES, sellingAllowance } from './entitlements';
 
 /**
  * ═══ نشر الإعلان — والحارس معه لا بعده ═══
@@ -154,7 +155,9 @@ export type PublishFailure =
   | 'AUCTION_INCREMENT_TOO_SMALL'
   | 'AUCTION_BUY_NOW_INVALID'
   | 'AUCTION_DEPOSIT_INVALID'
-  | 'MIN_ACCEPT_INVALID';
+  | 'MIN_ACCEPT_INVALID'
+  | 'SALE_METHOD_NOT_ALLOWED'
+  | 'LISTING_LIMIT_REACHED';
 
 export type PublishResult =
   | {
@@ -355,6 +358,31 @@ export async function createListing(
   if (!profileCompletion(seller).canSell) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
 
   if (seller.taxStatus == null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
+
+  /**
+   * ═══ وخصائصُ الباقة لم يكن يقرؤها أحد ═══
+   *
+   * عشرُ خصائص وشاشةُ أدمن تضبطها — **ولا سطر في المنتج
+   * يسأل عن واحدة**، فمن مُنع من المزاد بتجاوزٍ يراه المشغّل
+   * محفوظًا — وينشر مزادًا بعده بدقيقة.
+   *
+   * **والسؤال عن المفتاح لا عن الدور** (القاعدة الذهبية، §١٤):
+   * لا «أتاجر هو؟» ولا «ما باقتُه؟».
+   *
+   * **والمسودّة خرجت قبلهما**: حدُّ المعروض لا يمنع أحدًا من أن
+   * يحفظ ما كتب.
+   */
+  const allowance = await sellingAllowance(input.sellerId, now);
+  if (!allowance.types[input.type]) return { ok: false, reason: 'SALE_METHOD_NOT_ALLOWED' };
+
+  if (allowance.maxActiveListings >= 0) {
+    const active = await db.listing.count({
+      where: { sellerId: input.sellerId, status: { in: [...SEAT_TAKING_STATUSES] } },
+    });
+    if (active >= allowance.maxActiveListings) {
+      return { ok: false, reason: 'LISTING_LIMIT_REACHED' };
+    }
+  }
 
   if (input.images.length === 0) return { ok: false, reason: 'NO_IMAGES' };
   if (!Number.isFinite(input.askPrice) || input.askPrice <= 0) {

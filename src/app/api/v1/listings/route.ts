@@ -127,6 +127,20 @@ const PUBLISH_ERROR: Record<
     en: 'Your minimum cannot exceed the asking price — every offer would be auto-rejected.',
     status: 422,
   },
+  /**
+   * **والمنعُ يُقال بسببه لا بـ«غير مسموح»**: من يُمنع ولا يعرف لِمَ
+   * يظنّه عطلًا فيعيد المحاولة، ومن يعرف يراجع باقته.
+   */
+  SALE_METHOD_NOT_ALLOWED: {
+    ar: 'طريقة البيع هذه ليست ضمن باقتك — راجع خياراتك أو تواصل معنا.',
+    en: 'This sale method is not included in your plan — review your options or contact us.',
+    status: 403,
+  },
+  LISTING_LIMIT_REACHED: {
+    ar: 'بلغتَ حدّ الإعلانات المعروضة في باقتك — اسحب إعلانًا أو أوقفه لتنشر غيره.',
+    en: 'You have reached your plan’s limit of live listings — withdraw or pause one to publish another.',
+    status: 409,
+  },
 };
 
 const PublishBody = z.object({

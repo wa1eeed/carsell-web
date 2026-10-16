@@ -1,3 +1,4 @@
+import type { ListingType } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 
 /**
@@ -67,3 +68,62 @@ export async function resolveEntitlements(
 
   return result;
 }
+
+/**
+ * ═══ ومن يقرأ هذه الخصائص؟ ═══
+ *
+ * قِيس ٢٠٢٦-١٠-١٧: **لا أحد**. عشرُ خصائص معرَّفة، وطبقاتُ باقةٍ
+ * وتجاوزٍ تُحلّ ترتيبًا صحيحًا، وشاشةُ أدمن تضبطها — ولا سطرَ في
+ * المنتج يسأل عن واحدةٍ منها. فمشغّلٌ يمنح باقةً بحدّ خمسة إعلانات
+ * **يُقال له إنه فعل** ولا يقع شيء.
+ *
+ * والمواصفة (HANDOFF §١٤) تَعِد: «تُبنى من اليوم الأول وهي فارغة …
+ * التوسّع لاحقًا يصير **إدخال بيانات لا كتابة كود**». وهذا الوعد لم
+ * يكن صحيحًا: إدخالُ البيانات كان يحتاج كودًا لم يُكتب.
+ *
+ * **والافتراضيّات تُبقي اليوم كما هو**: الثلاثة `true` والحدّ `-1`،
+ * فلا يتغيّر سلوكٌ بهذا الوصل — يصير الوعدُ صحيحًا وحده.
+ */
+export const LISTING_TYPE_ENTITLEMENT: Record<ListingType, string> = {
+  DIRECT: 'can_direct_sale',
+  NEGOTIATION: 'can_negotiate',
+  AUCTION: 'can_auction',
+};
+
+export type SellingAllowance = {
+  /** طرقُ البيع المسموحة — والمفتاح يُسأل عنه لا الدور ولا اسم الباقة. */
+  types: Record<ListingType, boolean>;
+  /** `-1` بلا حدّ، وهو الافتراضيّ. */
+  maxActiveListings: number;
+};
+
+function bool(value: EntitlementValue | undefined): boolean {
+  /** **والغائب مسموح** — خاصّيةٌ لم تُعرَّف لا تمنع أحدًا. */
+  return value === undefined ? true : value === true;
+}
+
+export async function sellingAllowance(
+  userId: string,
+  now: Date = new Date(),
+): Promise<SellingAllowance> {
+  const entitlements = await resolveEntitlements(userId, now);
+  const limit = entitlements['max_active_listings'];
+
+  return {
+    types: {
+      DIRECT: bool(entitlements[LISTING_TYPE_ENTITLEMENT.DIRECT]),
+      NEGOTIATION: bool(entitlements[LISTING_TYPE_ENTITLEMENT.NEGOTIATION]),
+      AUCTION: bool(entitlements[LISTING_TYPE_ENTITLEMENT.AUCTION]),
+    },
+    maxActiveListings: typeof limit === 'number' ? limit : -1,
+  };
+}
+
+/**
+ * الحالاتُ التي تشغل مقعدًا من الحدّ.
+ *
+ * // DESIGN-Q: `PAUSED` محسوبة — إعلانٌ يوقفه صاحبُه يعود بضغطة، فلو
+ * لم يُحسب لصار الحدُّ بلا معنًى (يوقف خمسةً وينشر خمسة). والمسودّة
+ * والمباعة والمنتهية والموقوفة إداريًّا لا تُحسب.
+ */
+export const SEAT_TAKING_STATUSES = ['PENDING_REVIEW', 'PUBLISHED', 'RESERVED', 'PAUSED'] as const;

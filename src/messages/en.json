@@ -930,6 +930,7 @@
       "NEGOTIATION": "Buyers make offers and you reply or counter. You set a hidden minimum.",
       "AUCTION": "Open bidding for a period you choose, with an opening price and a hidden reserve."
     },
+    "methodNotInPlan": "Not included in your plan — contact us to enable it.",
     "needPhotos": "Add at least one photo.",
     "needPrice": "Enter an asking price.",
     "vinOptional": "Have the VIN? We will fill what we can.",

@@ -11,6 +11,7 @@ import { listBrandOptions } from '@/lib/domain/catalog-options';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
+import { sellingAllowance } from '@/lib/domain/entitlements';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { auctionSettings } from '@/lib/domain/admin-auction-settings';
 import { SellWizard } from './SellWizard';
@@ -153,6 +154,12 @@ export default async function SellPage({
                 (await db.platformSetting.findUnique({ where: { id: 'default' } }))?.transferFee ?? 0,
               ),
             }}
+            /*
+              **وطرقُ البيع من خصائص الباقة** — والخادم يفرضها
+              أيضًا في `createListing`: حارسٌ في العميل ليس حارسًا. وهذا
+              لئلّا يكتشف البائع المنع **بعد سبع خطوات ورفعِ صور**.
+            */
+            allowedMethods={(await sellingAllowance(user.id)).types}
             taxProfile={taxProfileOf(user)}
             brands={brands}
             cities={cities}

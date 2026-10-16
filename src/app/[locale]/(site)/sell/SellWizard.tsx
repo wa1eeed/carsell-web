@@ -134,6 +134,7 @@ export function SellWizard({
   vinLookupEnabled,
   auctionLimits,
   rules,
+  allowedMethods,
 }: {
   taxProfile: TaxProfile;
   brands: readonly Option[];
@@ -153,6 +154,13 @@ export function SellWizard({
    * بمهلةٍ غير التي تقع.
    */
   rules: { offerTtlHours: number; paymentWindowHours: number; transferFee: number };
+  /**
+   * طرقُ البيع المسموحة من خصائص الباقة (HANDOFF §١٤).
+   *
+   * **وتُعرض معطَّلةً لا مخفيّة**: خيارٌ يختفي بلا كلمة يجعل البائع
+   * يبحث عمّا رآه من قبل، وسطرٌ يقول «ليست ضمن باقتك» يُنهي السؤال.
+   */
+  allowedMethods: Record<(typeof METHODS)[number], boolean>;
 }) {
   const router = useRouter();
   const t = useTranslations('sell');
@@ -166,7 +174,16 @@ export function SellWizard({
   const [options, setOptions] = useState<SpecOptions>(ALL_OPTIONS);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [price, setPrice] = useState('');
-  const [method, setMethod] = useState<(typeof METHODS)[number]>('DIRECT');
+  /**
+   * **والمبدئيّ أوّلُ مسموح لا `DIRECT` دائمًا** — ولو مُنع المباشر
+   * لفتح المعالج على خيارٍ معطَّل، فيضغط البائع «التالي» فلا يقع شيء.
+   * ويُشتقّ لا يُبذَر (البوابة ٤٧): القائمة نفسها هي الهوية.
+   */
+  const [pickedMethod, setPickedMethod] = useState<(typeof METHODS)[number] | null>(null);
+  const firstAllowed = METHODS.find((key) => allowedMethods[key]) ?? 'DIRECT';
+  const method =
+    pickedMethod !== null && allowedMethods[pickedMethod] ? pickedMethod : firstAllowed;
+  const setMethod = (key: (typeof METHODS)[number]): void => setPickedMethod(key);
 
   /**
    * ═══ إعدادات طريقة البيع — ولم يكن للمعالج واحدةٌ منها ═══
@@ -1020,15 +1037,17 @@ export function SellWizard({
               <button
                 key={key}
                 type="button"
+                disabled={!allowedMethods[key]}
                 onClick={() => setMethod(key)}
                 className={cn(
                   'rounded-xl p-5 text-start',
                   method === key ? 'bg-accent text-bg' : 'border border-line hover:bg-ink/5',
+                  allowedMethods[key] ? null : 'cursor-not-allowed opacity-65 hover:bg-transparent',
                 )}
               >
                 <span className="mb-1.5 block text-base font-bold">{t(`method.${key}`)}</span>
                 <span className={cn('block text-2xs leading-loose', method === key ? 'opacity-80' : 'opacity-70')}>
-                  {t(`methodBody.${key}`)}
+                  {allowedMethods[key] ? t(`methodBody.${key}`) : t('methodNotInPlan')}
                 </span>
               </button>
             ))}
