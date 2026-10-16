@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import './env-load';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 
@@ -16,14 +16,6 @@ import { PrismaClient } from '../src/generated/prisma/client';
  *
  *   npm run trial:reset
  */
-
-for (const line of readFileSync(new URL('../.env', import.meta.url), 'utf8').split('\n')) {
-  const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
-  const key = match?.[1];
-  if (key !== undefined && process.env[key] === undefined) {
-    process.env[key] = (match?.[2] ?? '').replace(/^["']|["']$/g, '');
-  }
-}
 
 const connectionString = process.env.DATABASE_URL;
 if (connectionString === undefined || connectionString === '') {

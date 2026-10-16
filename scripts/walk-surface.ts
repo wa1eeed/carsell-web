@@ -16,9 +16,25 @@
  * بالنقر. وهذه تكشف الصنف الأوسع — **وجهةٌ لا تُفتح** — وهو الذي
  * تكرّر أكثر.
  *
+ * ═══ وما تقيسه يتبع من دخل ═══
+ *
+ * **الأداةُ التي تُنذر كاذبًا تُعلّم قارئها تجاهُلَها.** كانت تملأ
+ * المقاطع بأوّل صفٍّ في القاعدة أيًّا كان صاحبُه، فتطلب طلبَ غيرِ من
+ * دخل وتُسجّل ٤٠٤ — **وهو الردّ الصحيح**: ألّا يعرف أحدٌ أنّ مرجعًا
+ * قائمٌ لسواه. فأنذرت على سلامةٍ مرّتين في كل تشغيل.
+ *
+ * فصارت تدخل أوّلًا، ثمّ تملأ المقاطع بصفوف من دخل. **وتختار أغنى
+ * الحسابات**: حسابٌ بلا طلبٍ ولا تقرير يُخطّي صفحاتِهما، فيمشي المشي
+ * ويقول «سليم» عمّا لم يفتحه — وفرقُ ذلك ٤٦٧ وجهةً مقيسة بدل ٣١٢.
+ *
  *   npx tsx scripts/walk-surface.ts            ← على المنفذ ٣٠٠٢
  *   npx tsx scripts/walk-surface.ts 3000       ← منفذٌ آخر
+ *
+ * **ويحمّل `.env` بنفسه**: كان يعمل حين تصادف البيئةُ أن تكون محمَّلة
+ * في الصَّدفة ويسقط حين لا — وأداةٌ تعمل بالصدفة يُقرأ سقوطُها على
+ * أنه عطلٌ فيما تقيسه.
  */
+import './env-load';
 import { readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { db } from '../src/lib/db';
@@ -54,12 +70,14 @@ function routes(): string[] {
 }
 
 /** قيمٌ حقيقية للمقاطع المتغيّرة — من القاعدة لا من الخيال. */
-async function params(): Promise<Record<string, string>> {
+async function params(viewerId: string | null): Promise<Record<string, string>> {
+  /** مقاطعُ الحساب تُملأ بصفوف من دخل — وإلّا قِيس ٤٠٤ على ملكيّةٍ سليمة. */
+  const mine = viewerId === null ? {} : { userId: viewerId };
   const [listing, order, serviceRequest, provider, user, service, brand, dispute, payout, dealer, trim, offer, report, legal, auction] =
     await Promise.all([
       db.listing.findFirst({ where: { status: 'PUBLISHED' }, select: { ref: true } }),
-      db.order.findFirst({ select: { ref: true } }),
-      db.serviceRequest.findFirst({ select: { ref: true } }),
+      db.order.findFirst({ where: { buyerId: viewerId ?? undefined }, select: { ref: true } }),
+      db.serviceRequest.findFirst({ where: mine, select: { ref: true } }),
       db.serviceProvider.findFirst({ select: { id: true } }),
       db.user.findFirst({ where: { role: 'USER' }, select: { id: true } }),
       db.service.findFirst({
@@ -188,12 +206,36 @@ async function main(): Promise<void> {
 
   /* ─ مستخدم: بالرمز، فلا كلمةَ لأحدٍ في الزرع ─ */
   /** **ومهلةُ الرمز تمنع رقمًا لا كلَّ الأرقام** — فتُجرَّب عدّةٌ منها. */
-  const candidates = await db.user.findMany({
-    where: { role: 'USER' },
-    select: { phone: true },
-    orderBy: { createdAt: 'desc' },
-    take: 6,
-  });
+  /**
+   * **وأغنى الحسابات أوسعُها قياسًا.** حسابٌ بلا طلبٍ ولا تقرير يُخطّي
+   * صفحاتِهما، فيمشي المشي ويقول «سليم» عمّا لم يفتحه. فيُقدَّم من
+   * يملك الاثنين، ثمّ من يملك أحدهما، ثمّ الأحدث.
+   */
+  const ranked = [
+    { ordersAsBuyer: { some: {} }, serviceRequests: { some: {} } },
+    { ordersAsBuyer: { some: {} } },
+    {},
+  ];
+  const candidates: { id: string; phone: string }[] = [];
+  for (const where of ranked) {
+    const rows = await db.user.findMany({
+      where: { role: 'USER', ...where },
+      select: { id: true, phone: true },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+    });
+    for (const row of rows) {
+      if (!candidates.some((seen) => seen.id === row.id)) candidates.push(row);
+    }
+  }
+  /**
+   * **ومن دخل يُذكَر.** كان المشي يملأ المقاطع بأوّل صفٍّ في القاعدة
+   * أيًّا كان صاحبُه، فيطلب طلبَ غيره ويُسجّل ٤٠٤ — **وهو الردّ
+   * الصحيح**: ألّا يعرف أحدٌ أنّ مرجعًا قائمٌ لسواه. فأنذرت الأداة
+   * على سلامةٍ مرّتين في كل تشغيل، وإنذارٌ كاذبٌ يُعلّم قارئه
+   * تجاهُلَ القائمة كلِّها.
+   */
+  let signedInUserId: string | null = null;
   for (const candidate of candidates) {
     const asked = await fetch(`${BASE}/api/v1/auth/otp/request`, {
       method: 'POST',
@@ -215,6 +257,7 @@ async function main(): Promise<void> {
     const session = /carsell_session=([^;]+)/.exec(verified.headers.get('set-cookie') ?? '');
     if (session !== null) {
       cookies.carsell_session = session[1] ?? '';
+      signedInUserId = candidate.id;
       break;
     }
   }
@@ -226,7 +269,7 @@ async function main(): Promise<void> {
     `الجلسات: أدمن=${cookies.carsell_admin === undefined ? 'لا' : 'نعم'} · مستخدم=${cookies.carsell_session === undefined ? 'لا' : 'نعم'}\n`,
   );
 
-  const p = await params();
+  const p = await params(signedInUserId);
   const visited = new Map<string, Visit>();
 
   /**
