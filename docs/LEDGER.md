@@ -250,6 +250,11 @@ would post an entry that does not match what was *paid* the day the rate changes
 the money. And a request with no payment posts nothing: the seed finishes
 requests that were never paid, and an entry for those would invent revenue.
 
+**And the invoice goes out with the entry.** `issueServiceInvoice` runs beside
+`service.earned`, writing a `TaxInvoice` with its own sequence, rule snapshot and
+QR — the same issuer the order path uses. Until then the ledger accrued
+`VAT_PAYABLE` with no document behind it.
+
 #### 5.5.3 `service.refunded` — the work could not be done
 
 ```

@@ -199,6 +199,11 @@ export async function awaitingRuleExists(
 
 export type IssueInput = {
   orderId?: string;
+  /**
+   * طلبُ الخدمة حين تكون الفاتورة له — و`@unique` في القاعدة يجعل
+   * الإصدار الثاني يسقط بقيدٍ لا بفحصٍ يسبقه.
+   */
+  serviceRequestId?: string;
   sellerType: SellerType;
   buyerType: BuyerType;
   supplyType: SupplyType;
@@ -299,6 +304,7 @@ export async function issueInvoice(
         number,
         uuid,
         orderId: input.orderId ?? null,
+        serviceRequestId: input.serviceRequestId ?? null,
         // ═══ لقطة القاعدة — لا مرجعها وحده ═══
         ruleId: rule.id,
         ruleSellerType: rule.sellerType,

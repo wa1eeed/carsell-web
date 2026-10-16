@@ -580,6 +580,84 @@ export async function payServiceRequest(
 }
 
 /**
+ * ═══ وفاتورةُ الخدمة تُصدَر بدفعتها ═══
+ *
+ * **وتسويةُ المركبة تقول ذلك منذ كُتبت**: تدرج الخدمات في المحجوب
+ * بسبب `INVOICED_WITH_ITS_OWN_PAYMENT` — «مُفوتَرةٌ بدفعتها» —
+ * **ولا شيء كان يُفوترها**. فيُقبض المال وتُرصد ضريبتُه في الدفتر بلا
+ * وثيقةٍ تخرج لمن دفع.
+ *
+ * ═══ ولحظتُها الإنجاز لا القبض ═══
+ *
+ * // DESIGN-Q: نقطةُ الاستحقاق الضريبيّ — القبض أم التوريد؟
+ * اخترتُ **الإنجاز**: الخدمة قصيرة (ساعاتٌ أو أيّام)، والفشلُ قبلها
+ * يعني ألّا فاتورة صدرت أصلًا فلا إشعار دائن يُلغيها. **والخطأ هنا
+ * غير متماثل**: النقص ثغرةٌ تُسدّ، والزيادة وثيقةٌ خرجت ولا تُسحب
+ * إلّا بإشعار دائن على ورقةٍ ما كان لها أن توجد.
+ *
+ * ولا تُصدَر مرّتين: `serviceRequestId` فريدٌ في القاعدة، فالإصدار
+ * الثاني يسقط بقيدٍ لا بفحصٍ يسبقه.
+ */
+export async function issueServiceInvoice(
+  ref: string,
+  now: Date = new Date(),
+): Promise<{ ok: true; number: string } | { ok: false; reason: string }> {
+  const request = await db.serviceRequest.findUnique({
+    where: { ref },
+    select: {
+      id: true,
+      status: true,
+      amount: true,
+      paymentId: true,
+      service: { select: { nameAr: true } },
+      user: { select: { name: true, taxStatus: true, vatNumber: true, dealerId: true } },
+    },
+  });
+  if (request === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
+  if (request.status !== 'DONE') return { ok: false, reason: 'NOT_DONE' };
+  /** **ولا فاتورة على ما لم يُدفع** — الزرع يُنجز طلباتٍ بلا دفعة. */
+  if (request.paymentId === null) return { ok: false, reason: 'NOT_PAID' };
+
+  const existing = await db.taxInvoice.findUnique({
+    where: { serviceRequestId: request.id },
+    select: { number: true },
+  });
+  if (existing !== null) return { ok: true, number: existing.number };
+
+  const { issueInvoice } = await import('./tax');
+  const { buyerTypeFor } = await import('./tax-profile');
+  const { BRAND_AR } = await import('@/lib/brand');
+
+  const issued = await issueInvoice(
+    {
+      serviceRequestId: request.id,
+      /**
+       * **والمورِّد نحن**: قاعدة `SERVICE` بلا `sellerType` فتطابق أيًّا
+       * كان، والصفة المكتوبة تصف الواقع — شركةٌ تبيع خدمةً اشترتها من
+       * مقاولها.
+       */
+      sellerType: 'COMPANY',
+      /**
+       * **وصفةُ المشتري تُشتقّ بالدالّة نفسها** التي تقرؤها فاتورة
+       * المركبة — فلا قاعدتان لسؤالٍ واحد. وافتراضُ «مُسجَّل» يُنتج
+       * فاتورةً تحمل رقمًا ضريبيًّا لا وجود له.
+       */
+      buyerType: buyerTypeFor(request.user),
+      supplyType: 'SERVICE',
+      amount: request.amount.toString(),
+      supplierName: BRAND_AR,
+      customerName: request.user.name ?? '',
+      customerVatNo: request.user.vatNumber,
+      description: request.service.nameAr,
+      suppliedAt: now,
+    },
+    now,
+  );
+
+  return issued.ok ? { ok: true, number: issued.number } : { ok: false, reason: issued.reason };
+}
+
+/**
  * ═══ تعذّرت الخدمة فيُردّ المال ═══
  *
  * **وقد كان الإشعار يَعِد بالردّ ولا ردّ**: «وما دُفع يُردّ» تُرسَل

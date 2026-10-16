@@ -261,10 +261,27 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       fee, because deriving it later follows the rate current when it is *read*.
       `docs/LEDGER.md` § 5.5. One question recorded for the owner: principal or
       agent (`docs/OPEN-QUESTIONS.md`) — built on the tax rule's answer.
-- [ ] **No invoice is issued for anything.** `Invoice` rows are written by the
-      seed alone — not for services, not for commission. `documents.ts` computes
-      which documents are *due* and why they are blocked, and nothing creates
-      one. ZATCA numbering and the PDF come with it.
+- [x] **A completed service issues its own tax invoice.**
+
+      *(The line that stood here yesterday — "no invoice is issued for anything"
+      — was **wrong**, and measured the wrong model. `Invoice` is a legacy table
+      the seed alone writes; the real one is `TaxInvoice`, and `issueInvoice` in
+      `tax.ts` has issued order invoices with ZATCA numbering, a rule snapshot
+      and a QR since it was built.)*
+
+      What was true: **services were never invoiced**. Order settlement lists
+      them as blocked with the reason `INVOICED_WITH_ITS_OWN_PAYMENT` —
+      "invoiced with their own payment" — and nothing issued that invoice. So
+      money was collected and VAT accrued in the ledger with no document going
+      to whoever paid.
+
+      Issued at **completion**, not at payment: the service is short, and a
+      failure before completion then means no invoice was ever issued and no
+      credit note is needed — *the error is asymmetric: a gap can be filled, a
+      document that went out cannot be unsent.* Recorded for the owner, since
+      the KSA tax point is the earliest of supply, invoice or payment.
+      `serviceRequestId` is unique, so a second issue fails on a database
+      constraint rather than on a check that precedes it.
 - [x] **A failed service refunds the money.** The critical notification promised
       «وما دُفع يُردّ» and nothing refunded: `REFUNDED` sat in the enum with no
       writer while the money stayed held. The hold is now cancelled at the

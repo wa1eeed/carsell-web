@@ -1529,6 +1529,7 @@ Relations: `sellerType` → `SellerType` · `buyerType` → `BuyerType` · `supp
 | `number` | `String` | unique |
 | `uuid` | `String` | unique |
 | `orderId` | `String?` |  |
+| `serviceRequestId` | `String?` | unique |
 | `ruleId` | `String` |  |
 | `ruleRatePct` | `Decimal?` |  |
 | `supplierName` | `String` |  |
