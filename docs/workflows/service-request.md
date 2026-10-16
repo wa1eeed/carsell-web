@@ -176,3 +176,26 @@ writes one buyer-paid report as well.
 says publishing comes later and that a published report is never retracted —
 which is why `publishedAt` is write-once in spirit: nothing in the product sets
 it back to `null`.
+
+## The journey, end to end
+
+`tests/service-journey.test.ts` walks the whole thing in one run — request,
+consent, payment, accept, start, complete — and asserts what each step leaves
+behind. Every step had its own test already; what nothing measured was **where
+they meet**, and each was built on a different day:
+
+| Step | What it must leave |
+|---|---|
+| request | `AWAITING_SELLER`, and the owner of the car is asked |
+| consent | the requester is told, with the amount |
+| payment | `NEW` (the queue), a held payment, `service.paid` in the ledger — collected, **not** revenue |
+| accept | the request is that provider's alone, and whoever paid is told |
+| complete | `service.earned` + `service.provider_due`, a `SERVICE` tax invoice, and a notification |
+
+The test routes `SERVICE_PURCHASE` to the sandbox gateway itself and restores
+the row afterwards: a journey that needs a working gateway should arrange one
+rather than depend on how the database was last left.
+
+**A payment test is not a journey test.** The three parties, the three ledger
+transactions, the invoice and the four notifications are each simple; what is
+not simple is that they all happen, to the right people, in the right order.
