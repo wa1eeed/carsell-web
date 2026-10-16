@@ -358,8 +358,23 @@ export async function applyStep(
          * وإخفاقُها لا يُسقط الخطوة: الخدمة أُنجزت فعلًا، والسببُ
          * يظهر في طابور الضريبة (قاعدةٌ تنتظر إقرارًا مثلًا).
          */
-        const { issueServiceInvoice } = await import('./service-lifecycle');
+        const { issueServiceInvoice, captureServicePayment } = await import('./service-lifecycle');
         await issueServiceInvoice(input.ref, now);
+
+        /**
+         * **والحجزُ يُحصَّل متى وقع التوريد.** قِيس على الشاشة: طلبٌ
+         * `DONE` بفاتورةٍ وإيرادٍ مُعترَفٍ به ودفعةٌ **`HELD`** — حجزٌ
+         * ينقضي بعد أيّام فيعود المال إلى بطاقة من دفع، وقد أدّينا
+         * الخدمة وأصدرنا له وثيقةً بها.
+         *
+         * **ولا يُحصَّل قبل الإنجاز**: الحجز كافٍ حتى يقع التوريد،
+         * وقبضٌ على عملٍ لم يقع يُردّ.
+         *
+         * وإخفاقُه لا يُسقط الخطوة ولا الفاتورة: الحال تبقى `HELD`
+         * فيلتقطها `captureDoneServices` في المُجدوِل، والدفترُ لا يقول
+         * «وصل» إلا حين يصل.
+         */
+        await captureServicePayment(input.ref, now);
       }
 
       /**

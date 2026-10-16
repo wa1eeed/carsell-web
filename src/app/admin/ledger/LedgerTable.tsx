@@ -42,7 +42,13 @@ export function LedgerTable({ entries }: { entries: readonly LedgerRow[] }) {
       id: 'amount',
       header: 'المبلغ',
       numeric: true,
-      cell: (row) => <Money amount={Number(row.amount)} showCurrency={false} />,
+      /**
+       * **والقيدُ يُعرض بهللاته.** التقريب يجعل مدينًا ٥١٧٫٥٠ يُكتب
+       * ٥١٨ ودائنَيه ٤٥٠ و٦٧٫٥٠ يُكتبان ٤٥٠ و٦٨ — فيتوازن الصفّان
+       * **بحظّ التقريب** لا بالقيد. ودفترٌ يُقرأ بالعين لا تُصدَّق
+       * موازنتُه إن كانت أرقامه ليست أرقامه.
+       */
+      cell: (row) => <Money amount={Number(row.amount)} showCurrency={false} decimals={2} />,
     },
     {
       id: 'order',

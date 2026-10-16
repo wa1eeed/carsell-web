@@ -269,7 +269,13 @@ function Card({
     >
       <p className="text-2xs opacity-55">{label}</p>
       <p className="mt-1.5">
-        <Money amount={Number(amount)} size="lg" />
+        {/*
+          **والرصيد يُعرض بهللاته.** كانت البطاقة تقول «جاهز للصرف
+          ٤٨٣» والتفصيل تحتها «صافي ما استُحقّ ٤٨٢٫٦٣» — رقمان لمالٍ
+          واحد في شاشةٍ واحدة، والتحويل يصل بالثاني. ورسومُ البوّابة
+          ١٫٧٠٪ + ريال، فالهللات قاعدةٌ لا شاذّ.
+        */}
+        <Money amount={Number(amount)} size="lg" decimals={2} />
       </p>
       <p className="mt-1 text-3xs opacity-45">{note}</p>
     </section>

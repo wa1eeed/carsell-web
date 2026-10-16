@@ -658,6 +658,115 @@ export async function issueServiceInvoice(
 }
 
 /**
+ * ═══ وما تعثّر تحصيلُه يُقرأ ليُعاد ═══
+ *
+ * التحصيل يقع لحظة الإنجاز، وهذه تلتقط ما تعثّر: بوّابةٌ لم تردّ، أو
+ * حاويةٌ سقطت بين كتابة الحال والنداء. ولولاها بقي الحجز ينقضي بعد
+ * أيّام وخدمتُه مؤدّاةٌ وفاتورتُها صادرة — **ولا شيء يقول إن النداء لم
+ * يقع**.
+ *
+ * **وهي تقرأ ولا تكتب.** دالّةٌ تمرّ على كل محجوزٍ وتُحصّله هي الشكل
+ * الذي يقبض مئة مبلغ بخطأ سطر — فالقائمة هنا، والتحصيل استدعاءٌ مفرد
+ * لكلّ مرجع.
+ *
+ * و`paymentId` بلا علاقةٍ في المخطّط، فالقراءة خطوتان: المُنجَزُ أوّلًا
+ * ثمّ دفعاتُه المحجوزة.
+ */
+export async function capturableServices(): Promise<string[]> {
+  const done = await db.serviceRequest.findMany({
+    where: { status: 'DONE', paymentId: { not: null } },
+    select: { ref: true, paymentId: true },
+  });
+  if (done.length === 0) return [];
+
+  const held = await db.payment.findMany({
+    where: {
+      id: { in: done.map((row) => row.paymentId as string) },
+      status: 'HELD',
+      holdRef: { not: null },
+    },
+    select: { id: true },
+  });
+  const heldIds = new Set(held.map((row) => row.id));
+
+  return done.filter((row) => heldIds.has(row.paymentId as string)).map((row) => row.ref);
+}
+
+/**
+ * ═══ ويُحصَّل المحجوز متى أُنجزت الخدمة ═══
+ *
+ * **والحجزُ ليس قبضًا.** قِيس على شاشة الطلب: خدمةٌ اكتملت، وفاتورةٌ
+ * صدرت برقمها، وإيرادٌ اعتُرف به في الدفتر — **والدفعة `HELD`**.
+ * والحجز ينقضي بعد أيّام (سبعةٍ لدى ميسر) فيعود المال إلى بطاقة
+ * العميل، وقد أدّينا الخدمة وأصدرنا له وثيقةً بها.
+ *
+ * ولا يُحصَّل إلّا بعد الإنجاز: التحصيل قبل التوريد يأخذ مالًا على
+ * عملٍ لم يقع، والحجزُ وحده كافٍ حتى يقع.
+ */
+export async function captureServicePayment(
+  ref: string,
+  now: Date = new Date(),
+): Promise<{ ok: true; captured: string } | { ok: false; reason: string }> {
+  const request = await db.serviceRequest.findUnique({
+    where: { ref },
+    select: { id: true, ref: true, status: true, paymentId: true },
+  });
+  if (request === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
+  if (request.status !== 'DONE') return { ok: false, reason: 'NOT_DONE' };
+  if (request.paymentId === null) return { ok: false, reason: 'NOT_PAID' };
+
+  const payment = await db.payment.findUnique({
+    where: { id: request.paymentId },
+    select: { id: true, status: true, amount: true, holdRef: true, gatewayKey: true, environment: true },
+  });
+  if (payment === null) return { ok: false, reason: 'PAYMENT_NOT_FOUND' };
+  /** **ولا يُحصَّل مرّتين** — والحال تقول إنه حُصِّل. */
+  if (payment.status !== 'HELD') return { ok: false, reason: 'NOT_HELD' };
+  if (payment.holdRef === null) return { ok: false, reason: 'NO_HOLD' };
+
+  /** **المال أوّلًا** — فدفترٌ يقول «وصل» ومالٌ لم يصل أسوأ من تأخّرٍ يُعاد. */
+  const { resolveForPayment } = await import('@/lib/payments/resolve');
+  const gateway = await resolveForPayment(payment.gatewayKey, payment.environment);
+  const result = await gateway.settle(payment.holdRef);
+  if (result.state === 'FAILED') return { ok: false, reason: 'GATEWAY_FAILED' };
+  /**
+   * **و`PENDING` ليست فشلًا ولا نجاحًا**: التحصيل قُبل ولم يُؤكَّد بعد
+   * (بوّابةٌ تُسوّي بعد ساعات). فلا يُكتب قيدُ وصولٍ لم يقع، والحال
+   * تبقى `HELD` ليلتقطها `captureDoneServices` في التشغيل التالي.
+   */
+  if (result.state !== 'CONFIRMED') return { ok: false, reason: 'SETTLE_PENDING' };
+
+  const { recordServiceCaptured } = await import('./ledger-events');
+
+  await db.$transaction(async (tx) => {
+    await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: 'SETTLED',
+        settledAt: now,
+        settledAmount: result.settledAmount,
+        /**
+         * **و`settleRef` يُكتب أو تُطابق المطابقةُ بمرجعٍ لا يعرفه
+         * المزوّد.** `reconcileYesterday` تقرأ `settleRef ?? holdRef`،
+         * وتقريرُ تسوية البوّابة يحمل مرجع التحصيل لا مرجع الحجز —
+         * فطرفٌ ناقصٌ هنا يُنتج فرقًا يوميًّا لا سبب له. (وقع مرّةً
+         * في تسوية الطلبات، والبوابة ٥٢ تمنع الثالثة.)
+         */
+        settleRef: result.settleRef,
+      },
+    });
+
+    await recordServiceCaptured(
+      tx,
+      { ref: request.ref, paymentId: payment.id, amount: result.settledAmount },
+      now,
+    );
+  });
+
+  return { ok: true, captured: result.settledAmount };
+}
+
+/**
  * ═══ تعذّرت الخدمة فيُردّ المال ═══
  *
  * **وقد كان الإشعار يَعِد بالردّ ولا ردّ**: «وما دُفع يُردّ» تُرسَل

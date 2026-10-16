@@ -327,6 +327,49 @@ async function sweep(when: string): Promise<void> {
     }
   }
 
+  /**
+   * ═══ ودفترُ البوّابة التجريبية يتسرّب — ويُفسد المطابقة ═══
+   *
+   * كلُّ حجزٍ ودفعٍ في اختبارٍ يكتب صفًّا في `SandboxTransaction`، ولا
+   * شيء يحذفه: **ألفان وخمسُمئة صفّ في يومين**، منها مئةٌ وخمسٌ
+   * وتسعون تسوية.
+   *
+   * وليست ركامًا فقط: `settlementFor(date)` — الأصلُ الذي تُقارَن به
+   * مرآتُنا في `reconcileYesterday` — **تقرأ صفوف `SETTLE` و`RETURN`
+   * ليومها**. فتسويةٌ تركها اختبارٌ تصير في تقرير البوّابة مبلغًا بلا
+   * قيدٍ يقابله: فرقٌ يوميّ مصنوعٌ في معمَلنا، ومن يقرؤه يبحث عن
+   * عطلٍ في المال.
+   *
+   * **واليتيم بشكله**: صفٌّ لا دفعةَ تشير إليه — بحجزها أو بتسويتها —
+   * ولا أبٌ له قائم. فما تركه اختبارٌ حُذفت دفعتُه يُمسح، وما يحمله
+   * مشيٌ يدويّ قائم يبقى.
+   */
+  const sandbox = await db.sandboxTransaction.findMany({
+    select: { id: true, ref: true, parentRef: true },
+  });
+  if (sandbox.length > 0) {
+    const refs = sandbox.map((row) => row.ref);
+    const owners = await db.payment.findMany({
+      where: { OR: [{ holdRef: { in: refs } }, { settleRef: { in: refs } }] },
+      select: { holdRef: true, settleRef: true },
+    });
+    const known = new Set<string>();
+    for (const row of owners) {
+      if (row.holdRef !== null) known.add(row.holdRef);
+      if (row.settleRef !== null) known.add(row.settleRef);
+    }
+
+    const orphanSandbox = sandbox
+      .filter((row) => !known.has(row.ref))
+      .filter((row) => row.parentRef === null || !known.has(row.parentRef))
+      .map((row) => row.id);
+
+    if (orphanSandbox.length > 0) {
+      await db.sandboxTransaction.deleteMany({ where: { id: { in: orphanSandbox } } });
+      console.log(`  نُظّف ${String(orphanSandbox.length)} معاملة بوّابة تجريبية يتيمة ${when}`);
+    }
+  }
+
   if (ids.length > 0) {
     await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
     await db.adminSession.deleteMany({ where: { adminUserId: { in: ids } } });

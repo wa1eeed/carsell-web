@@ -164,7 +164,9 @@ describe('رحلةُ فحصٍ يطلبه مشترٍ', () => {
       select: { account: true, direction: true, amount: true, event: true },
     });
     const events = new Set(booked.map((row) => row.event));
-    expect(events).toEqual(new Set(['service.paid', 'service.earned', 'service.provider_due']));
+    expect(events).toEqual(
+      new Set(['service.paid', 'service.earned', 'service.provider_due', 'service.captured']),
+    );
 
     const revenue = booked.find((row) => row.account === 'PLATFORM_REVENUE');
     const providerDue = booked.find((row) => row.account === 'PROVIDER_PAYABLE');
@@ -175,7 +177,29 @@ describe('رحلةُ فحصٍ يطلبه مشترٍ', () => {
       afterPay.amount.minus(afterPay.vatAmount).minus(afterPay.adminFee).toString(),
     );
 
-    // ٦ ─ والفاتورة خرجت لمن دفع
+    /**
+     * ٦ ─ **والمحجوز حُصِّل.** خدمةٌ أُنجزت وفاتورتُها صدرت ودفعتُها
+     * `HELD` تعني حجزًا ينقضي بعد أيّام فيعود المال إلى بطاقة من دفع —
+     * وقد أدّينا الخدمة وأصدرنا له وثيقةً بها.
+     */
+    const settled = await db.payment.findUniqueOrThrow({
+      where: { id: afterPay.paymentId as string },
+      select: { status: true, settledAt: true, settledAmount: true, settleRef: true },
+    });
+    expect(settled.status).toBe('SETTLED');
+    expect(settled.settledAt).not.toBeNull();
+    expect(settled.settledAmount?.toString()).toBe(afterPay.amount.toString());
+    /**
+     * **ومرجعُ التحصيل يُحفظ** — `reconcileYesterday` تُطابق على
+     * `settleRef ?? holdRef`، وتقريرُ البوّابة يحمل الأوّل. (البوابة ٥٢.)
+     */
+    expect(settled.settleRef).not.toBeNull();
+
+    const cash = booked.find((row) => row.account === 'PLATFORM_CASH');
+    expect(cash?.direction).toBe('DEBIT');
+    expect(cash?.amount.toString()).toBe(afterPay.amount.toString());
+
+    // ٧ ─ والفاتورة خرجت لمن دفع
     const request = await db.serviceRequest.findUniqueOrThrow({
       where: { ref: asked.ref },
       select: { id: true },
@@ -187,7 +211,7 @@ describe('رحلةُ فحصٍ يطلبه مشترٍ', () => {
     expect(invoice?.ruleSupplyType).toBe('SERVICE');
     expect(invoice?.total.toString()).toBe(afterPay.amount.toString());
 
-    // ٧ ─ وكلُّ طرفٍ أُخطر بما يعنيه
+    // ٨ ─ وكلُّ طرفٍ أُخطر بما يعنيه
     const bells = await db.notification.findMany({
       where: { entityType: 'ServiceRequest', entityId: asked.ref },
       select: { templateKey: true, userId: true },

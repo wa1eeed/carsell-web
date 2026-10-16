@@ -119,7 +119,12 @@ function Figure({
     >
       <p className="text-2xs opacity-55">{label}</p>
       <p className="mt-1.5">
-        <Money amount={Number(amount)} size="lg" />
+        {/*
+          **والبطاقة تُوافق الرصيد تحتها.** كانت تقول «لدى مزوّد الدفع
+          ٣٦٢٬٤٤٣» وجدولُ الأرصدة في الشاشة نفسها «٣٦٢٬٤٤٢٫٥٠» — رقمان
+          لمالٍ واحد، ومن يطابق بالبوّابة يبحث عن نصف ريال.
+        */}
+        <Money amount={Number(amount)} size="lg" decimals={2} />
       </p>
       <p className="mt-1 text-3xs leading-loose opacity-45">{note}</p>
     </section>

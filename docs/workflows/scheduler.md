@@ -1,6 +1,6 @@
 # The scheduler
 
-Twelve jobs, one entry point, one HTTP route. Until it was built, **every
+Thirteen jobs, one entry point, one HTTP route. Until it was built, **every
 time-based rule in the product was dead code**: offers did not lapse, unpaid
 orders held a car forever, auctions never opened and never closed. The functions
 were written and tested; nothing called them. A deadline that is never enforced
@@ -40,7 +40,8 @@ invisible in the code itself.
 | 9 | `overdueTransfers` | Flags, does not move money. |
 | 10 | `overdueDisputes` | Flags an SLA breach. |
 | 11 | `releaseConfirmedOrders` | **A safety net, not a second path.** Release happens the moment transfer is confirmed; this catches what stalled — a gateway that did not answer, a container that died between the confirmation and the call. Without it a seller's money stays held with nothing saying the call never happened. |
-| 12 | `reconcileYesterday` | **Last.** It reads and writes no money, so its failure delays nothing. |
+| 12 | `captureDoneServices` | **A second safety net — for services.** Capture happens the moment the provider completes; this catches what stalled. Without it an authorised hold lapses after seven days and the customer's card is released, while the service was delivered and a tax invoice issued in the platform's name. Reads the list with `capturableServices`, captures one reference at a time. |
+| 13 | `reconcileYesterday` | **Last.** It reads and writes no money, so its failure delays nothing. |
 
 ## Reminders
 

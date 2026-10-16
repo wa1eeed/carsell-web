@@ -2856,6 +2856,129 @@ function checkDomainWritersReachable() {
 
 checkDomainWritersReachable();
 
+/**
+ * ═══ البوابة ٥١ — **كلُّ حسابٍ في الدفتر له تسمية** ═══
+ *
+ * `LEDGER_ACCOUNT_LABEL` يُقرأ في ثلاث شاشات، والمفقودُ منه يُعرض
+ * **مفتاحًا خامًا**: «PROVIDER_PAYABLE» في جدولٍ ماليّ يقرؤه محاسب.
+ *
+ * ووقع مرّتين: أوّلَ قيدِ محفظة (`WALLET_PAYABLE`) — والتعليق يشهد به
+ * في الملفّ — ثمّ عند حسابَي الخدمات. **والثالثة تُغلق آليًّا**:
+ * التعداد في المخطّط هو المصدر، والتسميات تُقابَل به.
+ */
+function checkLedgerAccountLabels() {
+  const schema = readFileSync(join(ROOT, 'prisma', 'schema.prisma'), 'utf8');
+  const block = /enum LedgerAccount \{([\s\S]*?)\n\}/.exec(schema);
+  if (block === null) return;
+
+  const values = [...(block[1] ?? '').matchAll(/^\s*([A-Z][A-Z0-9_]*)\s*$/gm)].map(
+    (match) => match[1],
+  );
+
+  const LABELS = 'src/lib/labels/admin.ts';
+  const labels = readFileSync(join(ROOT, LABELS), 'utf8');
+  const map = /LEDGER_ACCOUNT_LABEL: Record<string, string> = \{([\s\S]*?)\n\};/.exec(labels);
+  if (map === null) {
+    problems.push(`${LABELS}  لم يُعثر على LEDGER_ACCOUNT_LABEL — البوابة ٥١ عمياء`);
+    return;
+  }
+
+  const named = new Set(
+    [...(map[1] ?? '').matchAll(/^\s*([A-Z][A-Z0-9_]*)\s*:/gm)].map((match) => match[1]),
+  );
+
+  for (const value of values) {
+    if (named.has(value)) continue;
+    problems.push(
+      `${LABELS}  «${String(value)}» حسابٌ في الدفتر بلا تسمية — يُعرض مفتاحًا خامًا في ثلاث شاشات`,
+    );
+  }
+}
+
+checkLedgerAccountLabels();
+
+/**
+ * ═══ البوابة ٥٢ — **لا تسويةَ بلا مرجعها** ═══
+ *
+ * `reconcileYesterday` تُطابق دفترَنا بتقرير البوّابة على
+ * `settleRef ?? holdRef` — والبوّابة تبلّغ تسوياتها **بمرجع التحصيل**.
+ * فدفعةٌ تصير `SETTLED` بلا `settleRef` تُطابَق بمرجع الحجز، فلا
+ * تُطابِق شيئًا: فرقٌ يوميّ لا سبب له، ورسالتُه لا تذكر مرجعًا ناقصًا.
+ *
+ * ووقع مرّتين: أُصلح في تسوية الطلبات والتسوية اليدوية — والتعليق في
+ * `payments.ts` يشهد به — **وبقي مسارُ الويبهوك**، وهو الذي تمرّ منه
+ * البوّابة الحقيقية. وكاد يقع ثالثةً في تحصيل الخدمات.
+ *
+ * تُفحص صورتان: كتابةٌ مباشرة على `payment`، ونداءُ `applyState`
+ * بهدفٍ مكتوب.
+ */
+function checkSettleRefWritten() {
+  const SETTLED = /^(?:'SETTLED'|'PARTIALLY_SETTLED')$/;
+
+  for (const file of walk(join(ROOT, 'src'))) {
+    if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue;
+    /**
+     * **والتعليقُ يُحذف قبل الفحص.** قِيس فسكتت البوابة: حذفتُ السطر
+     * وبقي تعليقٌ بجواره يذكر `settleRef`، فظنّته كتابةً. وتعليقاتُ
+     * هذا المستودع تُسمّي الحقول في كل سطر — فبوابةٌ تقرؤها تُخدَع
+     * بأرجح الاحتمالات لا بأندرها.
+     */
+    const text = stripComments(readFileSync(file, 'utf8'));
+    const rel = relative(ROOT, file);
+
+    /* ١ ─ كتابةٌ مباشرة: `data: { … status: 'SETTLED' … }` */
+    for (const match of text.matchAll(/data:\s*\{/g)) {
+      const body = braced(text, (match.index ?? 0) + match[0].length - 1);
+      if (body === null) continue;
+      if (!/status:\s*'(?:SETTLED|PARTIALLY_SETTLED)'/.test(body)) continue;
+      if (/\bsettleRef\b/.test(body)) continue;
+      problems.push(
+        `${rel}  دفعةٌ تصير SETTLED بلا settleRef — والمطابقة تُطابق بمرجع الحجز فتفشل كل يوم`,
+      );
+    }
+
+    /* ٢ ─ `applyState(id, 'SETTLED', …)` — والمراجع معاملُه السادس */
+    for (const match of text.matchAll(/\bapplyState\(/g)) {
+      const call = parened(text, (match.index ?? 0) + match[0].length - 1);
+      if (call === null) continue;
+      const target = (call.split(',')[1] ?? '').trim();
+      if (!SETTLED.test(target)) continue;
+      if (/\bsettleRef\b/.test(call)) continue;
+      problems.push(
+        `${rel}  applyState(…, ${target}, …) بلا settleRef — والمطابقة تقرأ settleRef ?? holdRef`,
+      );
+    }
+  }
+}
+
+/** نصُّ ما بين قوسين معقوفين متوازنين، بدءًا من `{` عند `at`. */
+function braced(text, at) {
+  let depth = 0;
+  for (let i = at; i < text.length; i += 1) {
+    if (text[i] === '{') depth += 1;
+    else if (text[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(at + 1, i);
+    }
+  }
+  return null;
+}
+
+/** ومثلُها للأقواس الهلالية. */
+function parened(text, at) {
+  let depth = 0;
+  for (let i = at; i < text.length; i += 1) {
+    if (text[i] === '(') depth += 1;
+    else if (text[i] === ')') {
+      depth -= 1;
+      if (depth === 0) return text.slice(at + 1, i);
+    }
+  }
+  return null;
+}
+
+checkSettleRefWritten();
+
 // ————— النتيجة —————
 if (problems.length > 0) {
   console.error('\n✗ بوابة الجودة — القسم ١٤:\n');
@@ -2865,5 +2988,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا تسلسل رقميّ بمحايدٍ في نصّ عربيّ · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار · الضمان يُنشأ مع قيده · والسنة لا تُجمَّع · وكل سلّمٍ جانبيّ يتراكب على الهاتف · وكل مفتاح إشعارٍ له قالبٌ يُعرض · ولغة الشاشة لغة السوق · ولا عددَ بين قوسين فرارًا من الجمع · والحالةُ وانقضاءُ الوقت معًا · ولا مرحلةَ طلبٍ تُعرض وحدها · وكلُّ مساحةٍ مبيعة لها موضع · وكلُّ قالبِ إشعارٍ له كاتبٌ أو صمتٌ معلَن · ولا رسمٌ مكتوبٌ في الشيفرة · ولا حالةٌ تُبذَر من قائمة · ولا عنصرَ تفاعليّ داخل تفاعليّ · ولا تقريرَ فحصٍ بلا شرط النشر · ولا دالّةَ نطاقٍ تكتب بلا باب.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا تسلسل رقميّ بمحايدٍ في نصّ عربيّ · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار · الضمان يُنشأ مع قيده · والسنة لا تُجمَّع · وكل سلّمٍ جانبيّ يتراكب على الهاتف · وكل مفتاح إشعارٍ له قالبٌ يُعرض · ولغة الشاشة لغة السوق · ولا عددَ بين قوسين فرارًا من الجمع · والحالةُ وانقضاءُ الوقت معًا · ولا مرحلةَ طلبٍ تُعرض وحدها · وكلُّ مساحةٍ مبيعة لها موضع · وكلُّ قالبِ إشعارٍ له كاتبٌ أو صمتٌ معلَن · ولا رسمٌ مكتوبٌ في الشيفرة · ولا حالةٌ تُبذَر من قائمة · ولا عنصرَ تفاعليّ داخل تفاعليّ · ولا تقريرَ فحصٍ بلا شرط النشر · ولا دالّةَ نطاقٍ تكتب بلا باب · وكلُّ حسابٍ في الدفتر له تسمية · ولا تسويةَ بلا مرجعها.',
 );

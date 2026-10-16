@@ -145,3 +145,36 @@ describe('المطابقة اليومية — الوظيفةُ التي لم ت�
     await db.reconciliationRun.delete({ where: { id: planted.id } });
   });
 });
+
+/**
+ * ═══ ولا تسويةَ بلا مرجعها ═══
+ *
+ * المطابقة تقرأ `settleRef ?? holdRef` وتقارنه بتقرير البوّابة —
+ * **وتقريرُها يحمل مرجع التحصيل**. فدفعةٌ صارت `SETTLED` ولم يُحفظ
+ * مرجعُها تُطابَق بمرجع الحجز، فلا تُطابِق شيئًا: فرقٌ يوميّ ورسالةٌ
+ * لا تذكر مرجعًا ناقصًا.
+ *
+ * وأُصلح مرّةً في تسوية الطلبات والتسوية اليدوية، **وبقي مسارُ
+ * الويبهوك** — وهو مسار البوّابة الحقيقية. والبوابة ٥٢ تمنع الشكل،
+ * وهذا يفحص الحال.
+ */
+describe('المطابقة اليومية — ومرجعُ التحصيل يُحفظ', () => {
+  it('لا دفعةَ مسوّاة في القاعدة بلا settleRef', async () => {
+    const blind = await db.payment.findMany({
+      where: { status: { in: ['SETTLED', 'PARTIALLY_SETTLED'] }, settleRef: null },
+      select: { id: true, purpose: true, status: true },
+    });
+    expect(blind, JSON.stringify(blind)).toEqual([]);
+  });
+
+  it('وجدولُ الويبهوك يُفضي إلى SETTLED — فمسارُه يحمل المراجع', async () => {
+    /**
+     * **والفحص على المصدر لا على الذاكرة**: `payment_captured` يُفضي
+     * إلى `SETTLED`، فلو مرّ نداؤه بلا مراجع عاد العيبُ من بابه.
+     */
+    const { readFile } = await import('node:fs/promises');
+    const route = await readFile('src/app/api/v1/webhooks/payments/route.ts', 'utf8');
+    expect(route).toMatch(/payment_captured:\s*'SETTLED'/);
+    expect(route).toMatch(/settleRef:\s*holdRef/);
+  });
+});

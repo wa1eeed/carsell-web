@@ -291,6 +291,42 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       the work stopped (decision 17 — the state of the money is not the state of
       the work), so the money's state lives on the `Payment`. `REFUNDED`
       deliberately keeps no writer. Automatic, with the question recorded.
+- [x] **A completed service captures its hold.** The admin screen showed it:
+      `SRV-2026-3106` was `DONE`, carried invoice `INV-2026-000001`, had its
+      revenue and VAT in the ledger — and its payment read **«محجوز لدى
+      البوّابة»**. Nothing captured. Moyasar voids an uncaptured hold after seven
+      days, so the card would be released after we delivered the work and issued
+      a document for it. `captureServicePayment` now runs from `applyStep` on
+      `DONE`, right after the invoice, and posts `service.captured`
+      (`PLATFORM_CASH` ← `ESCROW_AT_PROVIDER`) — a treasury movement, not a
+      second recognition of revenue. A gateway that fails or answers `PENDING`
+      leaves the payment `HELD` and writes **no** entry; `captureDoneServices`,
+      the thirteenth scheduler job, retries it. `docs/LEDGER.md` § 5.5.3.
+- [x] **`settleRef` is written on every path that settles.** Found while
+      building the capture: the fix recorded in `payments.ts` covered order
+      settlement and the manual one and **left the webhook** — the path a real
+      gateway actually uses. `payment_captured` reached `SETTLED` with no
+      reference, so `reconcileYesterday` matched on the hold ref and the daily
+      report showed a difference with no cause. Gate 52 now refuses both shapes,
+      and a test asserts no settled payment in the database lacks one.
+- [x] **Money is shown exactly where it is reconciled.** Four screens contradicted
+      themselves: the service-request detail read «المبلغ ٥١٨» above «المدفوع
+      ٥١٧٫٥٠»; the ledger's cards read «لدى مزوّد الدفع ٣٦٢٬٤٤٣» above its own
+      balance «٣٦٢٬٤٤٢٫٥٠»; the ledger's entry table rounded a 517.50 debit to
+      518 against credits of 450 and 68, so the double entry **balanced by luck
+      of rounding**; and the seller's earnings page promised «جاهز للصرف ٤٨٣»
+      above a breakdown of «٤٨٢٫٦٣» — gateway fees are 1.70% + 1 SAR, so halalas
+      are the rule, not the exception. `Money` defaults to no decimals; every
+      figure a person reconciles now passes `decimals={2}`.
+- [ ] **A vehicle order never writes `PLATFORM_CASH` either.** `service.captured`
+      is the only entry that touches it. Orders settle through
+      `settleOnTransferConfirmed` and the money reaches us the same way, with no
+      line saying so — so the book shows what is owed and held but never what
+      arrived. Measured, not fixed: it belongs with the vehicle cost ledger.
+- [ ] **A ledger line cannot be traced to its service.** The «الطلب» column shows
+      «—» for every service entry: the order link comes from `orderId`, and a
+      service's reference lives in `note`. A finance operator reading a 517.50
+      line cannot tell which service it is.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

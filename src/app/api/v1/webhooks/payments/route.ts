@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { clientIp, rateLimit } from '@/lib/api/rate-limit';
+import type { PaymentRefs } from '@/lib/domain/payments';
 import { applyState } from '@/lib/domain/payments';
 import { resolveForPayment } from '@/lib/payments/resolve';
 import type { PaymentStatus } from '@/generated/prisma/enums';
@@ -93,7 +94,33 @@ export async function POST(request: NextRequest) {
 
   const target = MAPPING[event.type];
   if (target !== undefined) {
-    await applyState(payment.id, target, 'gateway', new Date(), { webhookId: event.id });
+    /**
+     * ═══ والتحصيل يُحفظ بمرجعه ═══
+     *
+     * `payment_captured` و`payment_paid` يُفضيان إلى `SETTLED`، وكان
+     * النداء يمرّ **بلا مراجع** — فتُكتب الحال ويبقى `settleRef` فارغًا.
+     * والمطابقة اليومية تقرأ `settleRef ?? holdRef`، فتُطابق بمرجع
+     * الحجز وتقرير البوّابة يحمل مرجع التحصيل: فرقٌ يوميّ لا سبب له.
+     *
+     * وقد أُصلح هذا في تسوية الطلبات والتسوية اليدوية، **وبقي مسار
+     * الويبهوك** — وهو المسار الذي تمرّ منه البوّابة الحقيقية. والبوّابة
+     * تُخاطبنا بمرجع الحجز (به وجدنا الدفعة)، فهو مرجع التحصيل عندها.
+     *
+     * **وما تقوله البوّابة لا ما نتذكّره**: المبلغ المُحصَّل من
+     * `status` لا من حمولة الويبهوك — فحمولةٌ منقوصةٌ تُنتج رقمًا
+     * ناقصًا في الدفتر.
+     */
+    let refs: PaymentRefs | undefined;
+    if (target === 'SETTLED' || target === 'PARTIALLY_SETTLED') {
+      const live = await gateway.status(holdRef).catch(() => null);
+      refs = {
+        settleRef: holdRef,
+        ...(live?.settledAmount === null || live?.settledAmount === undefined
+          ? {}
+          : { settledAmount: live.settledAmount }),
+      };
+    }
+    await applyState(payment.id, target, 'gateway', new Date(), { webhookId: event.id }, refs);
   }
   await db.webhookEvent.update({ where: { id: event.id }, data: { processedAt: new Date() } });
 

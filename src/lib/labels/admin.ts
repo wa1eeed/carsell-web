@@ -325,4 +325,6 @@ export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
   // **وحسابٌ بلا تسمية يُعرض مفتاحًا خامًا** — وهو ما وقع أوّل قيد محفظة
   WALLET_PAYABLE: 'أرصدة محافظ العملاء',
   GOODWILL_EXPENSE: 'تعويضات ومنح',
+  PROVIDER_PAYABLE: 'حقوق مزوّدي الخدمات',
+  PROVIDER_COST: 'تكلفة خدمات المزوّدين',
 };

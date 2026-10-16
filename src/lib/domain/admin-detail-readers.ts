@@ -386,6 +386,21 @@ export type AdminServiceRequestDetail = {
   customer: { id: string; name: string };
   listingRef: string | null;
   inspectionScore: number | null;
+  /**
+   * ═══ حالُ المال — ولم تكن الشاشة تعرضه ═══
+   *
+   * طلبٌ دُفع ثمنُه وصدرت فاتورتُه، والمشغّل يرى «المبلغ ٥١٨» ولا يرى
+   * **أدُفع أم لا**، ولا رقمَ الفاتورة التي خرجت باسم المنصّة. فمن
+   * يسأل «أين مالي؟» يُجاب من القاعدة لا من الشاشة.
+   */
+  payment: {
+    status: string;
+    amount: string;
+    /** ما رُدّ منه — و`null` حين لم يُردّ شيء */
+    returned: string | null;
+  } | null;
+  /** الفاتورة الضريبية التي خرجت لهذا الطلب — رقمُها ما يُقتبَس */
+  invoiceNumber: string | null;
 };
 
 export async function adminServiceRequestDetail(
@@ -407,6 +422,23 @@ export async function adminServiceRequestDetail(
 
   const OPEN = ['NEW', 'ASSIGNED', 'IN_PROGRESS'];
 
+  /**
+   * **والدفعة تُقرأ بمعرّفها لا بعلاقة**: `ServiceRequest.paymentId`
+   * حقلٌ حرّ بلا `@relation` — فالقراءة صريحة، ولا يُفترض وجودُها.
+   */
+  const payment =
+    request.paymentId === null
+      ? null
+      : await db.payment.findUnique({
+          where: { id: request.paymentId },
+          select: { status: true, amount: true, returnedAmount: true },
+        });
+
+  const invoice = await db.taxInvoice.findUnique({
+    where: { serviceRequestId: request.id },
+    select: { number: true },
+  });
+
   return {
     ref: request.ref,
     status: request.status,
@@ -425,6 +457,16 @@ export async function adminServiceRequestDetail(
     customer: { id: request.user.id, name: request.user.name ?? request.user.phone },
     listingRef: request.listing?.ref ?? null,
     inspectionScore: request.inspectionReport?.score ?? null,
+    payment:
+      payment === null
+        ? null
+        : {
+            status: payment.status,
+            amount: payment.amount.toFixed(2),
+            returned: payment.returnedAmount?.toFixed(2) ?? null,
+          },
+    /** **والفاتورة تُقرأ بالطلب** — `serviceRequestId` فريدٌ فلا تعدّد. */
+    invoiceNumber: invoice?.number ?? null,
   };
 }
 

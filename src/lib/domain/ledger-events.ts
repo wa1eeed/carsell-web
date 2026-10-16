@@ -462,3 +462,43 @@ export async function recordServiceRefund(
     now,
   );
 }
+
+/**
+ * ═══ ٤· حُصِّل المحجوز فوصل المال ═══
+ *
+ * ```
+ *   مدين   PLATFORM_CASH        ٥١٧٬٥٠
+ *   دائن   ESCROW_AT_PROVIDER   ٥١٧٬٥٠
+ * ```
+ *
+ * **والحجزُ ليس قبضًا.** قِيس على الشاشة: خدمةٌ أُنجزت وصدرت فاتورتُها
+ * واعتُرف بإيرادها، ودفعتُها **ما زالت `HELD`** — مالٌ لدى البوّابة
+ * ينقضي حجزُه بعد أيّام فيعود إلى بطاقة العميل، وقد أدّينا الخدمة
+ * وأصدرنا وثيقةً بها.
+ *
+ * فهذا القيد ينقل ما لدى البوّابة إلى ما وصلنا فعلًا — ولا يمسّ
+ * إيرادًا ولا ضريبة: تلك استُحقّت عند الإنجاز، وهذه حركةُ خزينة.
+ */
+export async function recordServiceCaptured(
+  writer: Writer,
+  input: { ref: string; paymentId?: string | null; amount: Prisma.Decimal | number | string },
+  now: Date = new Date(),
+): Promise<PostResult> {
+  return postEntries(
+    writer,
+    {
+      event: 'service.captured',
+      paymentId: input.paymentId ?? null,
+      postings: [
+        { account: 'PLATFORM_CASH', direction: 'DEBIT', amount: input.amount, note: input.ref },
+        {
+          account: 'ESCROW_AT_PROVIDER',
+          direction: 'CREDIT',
+          amount: input.amount,
+          note: input.ref,
+        },
+      ],
+    },
+    now,
+  );
+}

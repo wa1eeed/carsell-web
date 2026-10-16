@@ -190,12 +190,20 @@ they meet**, and each was built on a different day:
 | consent | the requester is told, with the amount |
 | payment | `NEW` (the queue), a held payment, `service.paid` in the ledger — collected, **not** revenue |
 | accept | the request is that provider's alone, and whoever paid is told |
-| complete | `service.earned` + `service.provider_due`, a `SERVICE` tax invoice, and a notification |
+| complete | `service.earned` + `service.provider_due`, a `SERVICE` tax invoice, `service.captured` with the payment `SETTLED`, and a notification |
 
 The test routes `SERVICE_PURCHASE` to the sandbox gateway itself and restores
 the row afterwards: a journey that needs a working gateway should arrange one
 rather than depend on how the database was last left.
 
-**A payment test is not a journey test.** The three parties, the three ledger
+**A payment test is not a journey test.** The three parties, the four ledger
 transactions, the invoice and the four notifications are each simple; what is
 not simple is that they all happen, to the right people, in the right order.
+
+**And the last of them was missing until the screen showed it.** Completion
+recognised revenue, accrued VAT and issued a numbered tax invoice while the
+payment was still `HELD` — an authorisation Moyasar voids after seven days.
+`captureServicePayment` runs after the invoice, posts `service.captured`, and
+stores `settleRef` for reconciliation. A gateway that answers `PENDING` or fails
+leaves the payment `HELD` and writes nothing; `captureDoneServices` in the
+scheduler retries it.

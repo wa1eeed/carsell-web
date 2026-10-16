@@ -3,7 +3,11 @@ import { closeEndedAuctions,
 import { expireOffers, remindExpiringOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
-import { lapseServiceConsents } from '@/lib/domain/service-lifecycle';
+import {
+  capturableServices,
+  captureServicePayment,
+  lapseServiceConsents,
+} from '@/lib/domain/service-lifecycle';
 import { remindClosingAuctions, remindPaymentDue } from '@/lib/domain/reminders';
 import { settleableOrders } from '@/lib/domain/transfer-windows';
 import { settleOnTransferConfirmed } from '@/lib/domain/payments';
@@ -84,6 +88,12 @@ const JOBS: readonly Job[] = [
    */
   { name: 'releaseConfirmedOrders', run: (now) => releaseConfirmedOrders(now) },
   /**
+   * **وشبكةُ أمانٍ ثانية — للخدمات.** التحصيل يقع لحظة الإنجاز، وهذه
+   * تلتقط ما تعثّر: حجزٌ ينقضي بعد أيّام فيعود المال إلى بطاقة من دفع،
+   * وخدمتُه مؤدّاةٌ وفاتورتُها صادرة باسم المنصّة.
+   */
+  { name: 'captureDoneServices', run: (now) => captureDoneServices(now) },
+  /**
    * **وآخرًا: المطابقة.** تقرأ ولا تكتب مالًا، فموضعُها بعد كل ما
    * يُحرّك مالًا — ومطابقةُ أمسِ لا تتأثّر بما يقع اليوم، لكنّ
    * ترتيبَها آخرًا يجعل فشلَها (بوابةٌ لا تردّ) لا يؤخّر شيئًا.
@@ -120,6 +130,24 @@ async function releaseConfirmedOrders(now: Date): Promise<number> {
     if (result?.ok === true) released += 1;
   }
   return released;
+}
+
+/**
+ * يُحصّل كل خدمةٍ أُنجزت ومالُها محجوز.
+ *
+ * **واحدةً واحدةً** — والقائمة في `capturableServices` وهي لا تكتب.
+ * وفشلُ واحدةٍ لا يوقف الباقي: بوّابةٌ ترفض حجزًا بعينه لا تحبس مال
+ * تسعٍ غيره.
+ */
+async function captureDoneServices(now: Date): Promise<number> {
+  const refs = await capturableServices();
+  let captured = 0;
+
+  for (const ref of refs) {
+    const result = await captureServicePayment(ref, now).catch(() => null);
+    if (result?.ok === true) captured += 1;
+  }
+  return captured;
 }
 
 /**

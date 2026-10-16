@@ -13,6 +13,11 @@ import { can } from '@/lib/domain/permissions';
 import { adminServiceRequestDetail } from '@/lib/domain/admin-detail-readers';
 import { serviceRequestTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import {
+  SERVICE_CATEGORY,
+  SERVICE_PAYMENT_STATUS,
+  SERVICE_REQUEST_STATUS,
+} from '@/lib/labels/services';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +29,17 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   timeZone: 'Asia/Riyadh',
 });
 
+/**
+ * ═══ والمال يُعرض كما هو ═══
+ *
+ * `Money` تُقرّب افتراضًا، فكان الرأس يقول «المبلغ ٥١٨» وبطاقةُ المال
+ * «المدفوع ٥١٧٫٥٠» — **رقمان لمالٍ واحد في شاشةٍ واحدة**. ومن يطابق
+ * بالبوّابة يقرأ ٥١٧٬٥٠ فيبحث عن نصف ريالٍ لا وجود له.
+ *
+ * وشاشةُ أرباح البائع كانت مثلها: «جاهز للصرف ٤٨٣» فوق «صافي ما
+ * استُحقّ ٤٨٢٫٦٣» — ورسومُ البوّابة ١٫٧٠٪ + ريال، فالهللات هي القاعدة
+ * لا الشاذّ.
+ */
 const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
   DONE: 'accent',
   IN_PROGRESS: 'warn',
@@ -76,7 +92,10 @@ export default async function AdminServiceRequestDetailPage({
         title={`${request.service.nameAr} — ${request.customer.name}`}
         badges={
           <>
-            <Badge tone={STATUS_TONE[request.status] ?? 'neutral'}>{request.status}</Badge>
+            {/* **والحالُ يُقرأ لا يُهجّى** — «DONE» مفتاحٌ لا جملة. */}
+            <Badge tone={STATUS_TONE[request.status] ?? 'neutral'}>
+              {SERVICE_REQUEST_STATUS[request.status] ?? request.status}
+            </Badge>
             {request.overdue ? <Badge tone="danger">تجاوز الالتزام</Badge> : null}
           </>
         }
@@ -84,8 +103,8 @@ export default async function AdminServiceRequestDetailPage({
 
       <DetailStats
         items={[
-          { label: 'المبلغ', value: <Money amount={Number(request.amount)} /> },
-          { label: 'الحالة', value: request.status },
+          { label: 'المبلغ', value: <Money amount={Number(request.amount)} decimals={2} /> },
+          { label: 'الحالة', value: SERVICE_REQUEST_STATUS[request.status] ?? request.status },
           { label: 'المهلة', value: request.dueAt === null ? 'لا مهلة' : riyadh.format(new Date(request.dueAt)), ...(request.overdue ? { tone: 'danger' as const } : {}) },
           { label: 'طُلبت', value: riyadh.format(new Date(request.createdAt)) },
         ]}
@@ -107,13 +126,64 @@ export default async function AdminServiceRequestDetailPage({
           <>
             <DetailCard title="الخدمة">
               <Field label="الاسم" value={request.service.nameAr} />
-              <Field label="الفئة" value={request.service.category} ltr />
-              <Field label="السعر" value={<Money amount={Number(request.amount)} />} strong />
+              <Field
+                label="الفئة"
+                value={SERVICE_CATEGORY[request.service.category] ?? request.service.category}
+              />
+              <Field label="السعر" value={<Money amount={Number(request.amount)} decimals={2} />} strong />
               {/*
                 رسمنا الإداريّ سطرٌ ثانٍ مستقلّ — ودمجُه في السعر يُسقط
                 وصف الصرف عن المبلغ كلّه فتُستحقّ الضريبة على كامله.
               */}
-              <Field label="رسمنا الإداريّ" value={<Money amount={Number(request.adminFee)} />} />
+              <Field label="رسمنا الإداريّ" value={<Money amount={Number(request.adminFee)} decimals={2} />} />
+            </DetailCard>
+
+            {/*
+              ═══ حالُ المال — ولم يكن على الشاشة ═══
+
+              طلبٌ دُفع ثمنُه وصدرت فاتورتُه، والمشغّل يرى «المبلغ ٥١٨»
+              ولا يرى **أدُفع أم لا** ولا رقمَ الفاتورة التي خرجت باسم
+              المنصّة. فمن سُئل «أين مالي؟» يُجاب من القاعدة لا من
+              الشاشة.
+
+              **و«محجوز» غيرُ «حُصِّل»**: الأوّل يُردّ بإلغاء والثاني
+              وصلنا — والفرق يُسأل عنه أوّلَ نزاع.
+            */}
+            <DetailCard title="المال">
+              {request.payment === null ? (
+                <p className="text-2xs leading-loose opacity-55">
+                  لم يُدفع بعد — ولا فاتورة قبل الدفع.
+                </p>
+              ) : (
+                <>
+                  <Field
+                    label="حال الدفعة"
+                    value={
+                      SERVICE_PAYMENT_STATUS[request.payment.status] ?? request.payment.status
+                    }
+                    strong
+                  />
+                  <Field
+                    label="المدفوع"
+                    value={<Money amount={Number(request.payment.amount)} decimals={2} />}
+                  />
+                  {request.payment.returned === null ? null : (
+                    <Field
+                      label="المردود"
+                      value={<Money amount={Number(request.payment.returned)} decimals={2} />}
+                    />
+                  )}
+                </>
+              )}
+              {/*
+                **والفاتورة رقمُها ما يُقتبَس** — ومن يسأل عنها يسأل
+                برقمها لا بمرجع الطلب.
+              */}
+              <Field
+                label="الفاتورة الضريبية"
+                ltr
+                value={request.invoiceNumber ?? '—'}
+              />
             </DetailCard>
 
             {request.inspectionScore === null && request.resultUrl === null ? null : (

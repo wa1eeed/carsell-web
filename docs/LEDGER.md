@@ -255,7 +255,38 @@ requests that were never paid, and an entry for those would invent revenue.
 QR — the same issuer the order path uses. Until then the ledger accrued
 `VAT_PAYABLE` with no document behind it.
 
-#### 5.5.3 `service.refunded` — the work could not be done
+#### 5.5.3 `service.captured` — the hold became money
+
+```
+  DEBIT   PLATFORM_CASH        517.50
+  CREDIT  ESCROW_AT_PROVIDER   517.50
+```
+
+**A hold is not a receipt.** Until this entry, a completed service shows revenue
+recognised, VAT accrued and a tax invoice issued — while the money is still only
+authorised at the gateway. Moyasar voids an uncaptured hold after seven days, so
+the customer's card would be released after we delivered the work and issued
+them a document for it.
+
+**This entry touches no revenue and no VAT.** Those were earned at completion
+(5.5.2); this is a treasury movement — what the gateway holds becoming what we
+actually have. Posting revenue here would recognise the same service twice.
+
+**Capture follows delivery, never precedes it.** Taking money for work that has
+not happened is what the hold exists to avoid, and a capture before completion
+would have to be refunded.
+
+`captureServicePayment` runs from `applyStep` on `DONE`, right after the invoice.
+If the gateway is unreachable or answers `PENDING`, the payment stays `HELD`,
+**no entry is written**, and the `captureDoneServices` job retries it on the next
+scheduler pass — a ledger that says "received" before the money arrives is worse
+than one that is late.
+
+**And `settleRef` is stored with it.** `reconcileYesterday` matches on
+`settleRef ?? holdRef` and the gateway reports settlements by the capture's
+reference, so omitting it produces a daily difference with no cause — see gate 52.
+
+#### 5.5.4 `service.refunded` — the work could not be done
 
 ```
   DEBIT   BUYER_ADVANCE        575
@@ -316,7 +347,7 @@ ledger exists to solve.
 | **Payouts are recorded, not executed** | `approvePayout` posts the entry; the bank transfer itself is performed by finance and reconciled by `bankRef`. A provider split API would replace the manual step, not the entry. |
 | **Refunds are not wired** | `recordRefund` is written and tested but no dispute resolution calls it yet. |
 | **Discounts and coupons** | No model at all. |
-| **`PLATFORM_CASH`** | Declared, unused until the provider reports what actually reached us. |
+| **`PLATFORM_CASH`** | Written by `service.captured` only. Vehicle orders settle through `settleOnTransferConfirmed` and still post no cash entry — their money reaches us the same way and the book does not say so. |
 
 These are wiring, not design. The accounts and the invariant are settled.
 
