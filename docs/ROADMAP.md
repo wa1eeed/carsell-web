@@ -631,6 +631,8 @@ Each links to where it is specified.
 | My cars (the garage) | `docs/BACKLOG.md` § B | **usable end to end**; its only open row is the plate, which follows § F |
 | English UI strings | `docs/BACKLOG.md` § D | deferred by the owner — **655 lines / 68 files**, re-measured 2026-10-17. The data fix shipped (twice) and the percent sign is fixed; **error messages still read `messageAr` in 19 of 20 places** although `messageEn` is already in hand — listed there, open. `/en` is in the sitemap, so what stays Arabic is advertised. |
 | `home_story` ad slot has no design | `docs/DESIGN-DECISIONS.md` | question pending |
+| Full car catalogue (A12 CSV import) | `docs/BUILD-WEB-ADMIN.md` §A12 | **32 of 42 brands have no models.** The sell wizard now offers only the 10 completable ones, with a “tell us” link; importing the catalogue restores the rest with no code change. |
+| Six plan entitlements still have no reader | `docs/NOTES.md` | `featured_slots` · `bulk_upload` · `team_seats` · `priority_support` have no feature behind them; `deposit_required` and `commission_pct` are governed elsewhere today. Listed, not forgotten. |
 | Notification templates still silent | `docs/BACKLOG.md` § G | 7 remain, all declared with a reason, guarded by gate 45 |
 | Production build barrier | `CLAUDE.md` | **Clear.** Measured 2026-10-16 after `rm -rf .next-check`: compiled in 19.9s, 101 static pages, exit 0, working tree restored. The cause was `NODE_ENV=development` during `next build`; still run `npm run build:check` before any release, because `verify` does not build. |
 
