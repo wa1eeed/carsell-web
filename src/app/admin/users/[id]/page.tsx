@@ -19,8 +19,13 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { adminUserDetail } from '@/lib/domain/admin-entity-detail';
 import { userTimeline } from '@/lib/domain/admin-entity-timelines';
 import { orderStateLabel } from '@/lib/labels/orders';
-import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
+import {
+  IDENTITY_STATUS_LABEL,
+  LEDGER_ACCOUNT_LABEL,
+  USER_STATUS_LABEL,
+} from '@/lib/labels/admin';
 import { MarginPanel } from './MarginPanel';
+import { StatusPanel } from './StatusPanel';
 import { WalletPanel } from './WalletPanel';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
@@ -112,9 +117,14 @@ export default async function AdminUserDetailPage({
         title={`${user.name} · ${user.phone}`}
         badges={
           <>
-            <Badge tone={user.status === 'ACTIVE' ? 'accent' : 'danger'}>{user.status}</Badge>
+            {/* **والحالُ يُقرأ لا يُهجّى** — «SUSPENDED» مفتاحٌ لا جملة. */}
+            <Badge tone={user.status === 'ACTIVE' ? 'accent' : 'danger'}>
+              {USER_STATUS_LABEL[user.status] ?? user.status}
+            </Badge>
             <Badge tone={IDENTITY_TONE[user.identityStatus] ?? 'neutral'}>
-              {user.idVerified ? 'هوية موثَّقة' : user.identityStatus}
+              {user.idVerified
+                ? 'هوية موثَّقة'
+                : (IDENTITY_STATUS_LABEL[user.identityStatus] ?? user.identityStatus)}
             </Badge>
             {user.dealerName === null ? null : <Badge tone="neutral">{user.dealerName}</Badge>}
           </>
@@ -334,6 +344,21 @@ export default async function AdminUserDetailPage({
       <DetailColumns
         main={
           <>
+            {/*
+              ═══ وحالُ الحساب في تبويب الوصول — وهو موضعُه ═══
+
+              «الوصول» يجمع ما يفتح الحساب وما يغلقه: التجاوزات
+              والجلسات والحال. وكان يعرض الحال نصًّا ولا يغيّره أحد،
+              فالشريحتان «موقوفون» و«محظورون» في القائمة صفرٌ أبدًا.
+            */}
+            <DetailCard title="الوصول" note="ما يفتح الحساب وما يغلقه">
+              <StatusPanel
+                userId={user.id}
+                status={user.status}
+                canSuspend={canWrite(admin.role, 'users.suspend')}
+              />
+            </DetailCard>
+
             {user.overrides.length === 0 ? (
               <DetailCard title="تجاوزات الخصائص">
                 {/* **وغيابُه يُقال** — بطاقةٌ تُحذف تجعل القارئ يظنّ أنه لم يبحث */}
@@ -401,7 +426,10 @@ export default async function AdminUserDetailPage({
               */}
               <IdentityPanel userId={user.id} allowed={canWrite(admin.role, 'users.viewIdentity')} />
               <div className="h-3" />
-              <Field label="حالة الهوية" value={user.identityStatus} ltr />
+              <Field
+                label="حالة الهوية"
+                value={IDENTITY_STATUS_LABEL[user.identityStatus] ?? user.identityStatus}
+              />
               {user.identitySubmittedAt === null ? null : (
                 <Field
                   label="قُدّمت"

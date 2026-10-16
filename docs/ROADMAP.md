@@ -491,6 +491,23 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       fingerprint raises a false duplicate alarm on another seller months later.
       The confirmation says what goes and what stays: **the vehicle remains in
       «سياراتي»**, so the seller does not think they are erasing their car.
+- [x] **A fraudulent account could not be stopped.** Sign-in refuses `SUSPENDED`
+      and `BANNED` from day one, `users.suspend` is defined and granted, and
+      `/admin/users` shows «موقوفون» and «محظورون» segments — and **nothing in the
+      product wrote `User.status`**. Both counters read zero forever and both
+      queues were empty forever. Thirteenth instance of a schema value with no
+      writer, and the most consequential. Built with the reason required, an
+      `AuditLog` row, a critical notification to the account's owner (templates
+      shipped by migration), and a ban refused while an order is live or escrow is
+      held — suspension is the investigation tool. `docs/workflows/account-status.md`.
+- [x] **And the block bit only the next sign-in.** `currentUser` — the entry point
+      of every writing route — read the row without looking at its status, and a
+      session token lives thirty days: an account blocked today kept buying,
+      selling and bidding **for a month**. It now refuses any non-`ACTIVE` user,
+      while pages still render so the person can read why.
+- [x] **The customer page printed raw enum keys.** `SUSPENDED` and `PENDING` as
+      badges above someone's name, while the identity queue on the next screen
+      calls the same values «ينتظر» and «موثّق». One label map now, read by both.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

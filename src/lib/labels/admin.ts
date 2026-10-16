@@ -328,3 +328,27 @@ export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
   PROVIDER_PAYABLE: 'حقوق مزوّدي الخدمات',
   PROVIDER_COST: 'تكلفة خدمات المزوّدين',
 };
+
+/**
+ * ═══ حالُ الحساب وحالُ هويّته — يُقرآن لا يُهجّيان ═══
+ *
+ * صفحةُ العميل كانت تطبع `SUSPENDED` و`PENDING` شارتين خامّتين فوق
+ * اسمه — وهما مفتاحان لا جملتان. والمشغّل يقرأ العربية، والشاشة
+ * نفسها تسمّيهما بالعربية في قائمة الهوية («ينتظر» · «موثّق»).
+ *
+ * **والمصدر واحد**: هذه الخريطة تقرؤها الصفحتان معًا، فلا تتباعد
+ * تسميةٌ عن أختها.
+ */
+export const USER_STATUS_LABEL: Record<string, string> = {
+  ACTIVE: 'نشط',
+  SUSPENDED: 'موقوف',
+  BANNED: 'محظور',
+};
+
+export const IDENTITY_STATUS_LABEL: Record<string, string> = {
+  NONE: 'لم تُقدَّم',
+  PENDING: 'ينتظر المراجعة',
+  CLARIFICATION: 'مُعلَّق للتوضيح',
+  VERIFIED: 'موثّق',
+  REJECTED: 'مرفوض',
+};

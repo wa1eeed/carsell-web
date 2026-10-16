@@ -1,5 +1,23 @@
 [
   {
+    "key": "account.blocked",
+    "subjectAr": "أُوقف حسابك",
+    "subjectEn": "Your account is blocked",
+    "bodyAr": "أُوقف حسابك مؤقّتًا. السبب مسجَّل لدينا، وللاعتراض تواصل معنا.",
+    "bodyEn": "Your account has been blocked. The reason is on record; contact us to appeal.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "reason"
+    ],
+    "active": true
+  },
+  {
     "key": "account.iban_required",
     "subjectAr": "أضِف الآيبان قبل البيع",
     "subjectEn": "Add your IBAN before selling",
@@ -49,6 +67,22 @@
     "variables": [
       "name"
     ],
+    "active": true
+  },
+  {
+    "key": "account.restored",
+    "subjectAr": "عاد حسابك",
+    "subjectEn": "Your account is active again",
+    "bodyAr": "رُفع الإيقاف عن حسابك، وتستطيع الدخول والمتابعة كالمعتاد.",
+    "bodyEn": "The block on your account has been lifted; you can sign in and continue.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [],
     "active": true
   },
   {
@@ -665,25 +699,6 @@
     "active": true
   },
   {
-    "key": "order.received",
-    "subjectAr": "طلبٌ جديد على مركبتك",
-    "subjectEn": "A new order on your car",
-    "bodyAr": "طلب أحدهم شراء مركبتك، وحُجز إعلانها حتى ينتهي الطلب. افتحه لتتابع مراحله.",
-    "bodyEn": "Someone ordered your car. The listing is reserved until the order ends. Open it to follow the stages.",
-    "smsAr": "طلب جديد {ref} على مركبتك",
-    "smsEn": null,
-    "priority": "critical",
-    "channelEmail": false,
-    "channelSms": true,
-    "channelPush": true,
-    "channelInApp": true,
-    "variables": [
-      "ref",
-      "amount"
-    ],
-    "active": true
-  },
-  {
     "key": "order.payment_due",
     "subjectAr": "موعد الدفع يقترب",
     "subjectEn": "Payment is due soon",
@@ -738,6 +753,25 @@
     "active": true
   },
   {
+    "key": "order.received",
+    "subjectAr": "طلبٌ جديد على مركبتك",
+    "subjectEn": "A new order on your car",
+    "bodyAr": "طلب أحدهم شراء مركبتك، وحُجز إعلانها حتى ينتهي الطلب. افتحه لتتابع مراحله.",
+    "bodyEn": "Someone ordered your car. The listing is reserved until the order ends. Open it to follow the stages.",
+    "smsAr": "طلب جديد {ref} على مركبتك",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true
+  },
+  {
     "key": "order.stage_changed",
     "subjectAr": "تقدّم طلبك مرحلة",
     "subjectEn": "Your order moved a stage",
@@ -753,6 +787,25 @@
     "variables": [
       "ref",
       "stage"
+    ],
+    "active": true
+  },
+  {
+    "key": "service.assigned",
+    "subjectAr": "استلم مركزٌ طلبك",
+    "subjectEn": "A centre took your request",
+    "bodyAr": "استلم مركزٌ معتمد طلبك وسيتواصل معك على موعده. تفاصيله في صفحة الطلب.",
+    "bodyEn": "An approved centre took your request and will be in touch about the appointment. Details on the request page.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": false,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "service"
     ],
     "active": true
   },
@@ -776,21 +829,20 @@
     "active": true
   },
   {
-    "key": "service.consent_needed",
-    "subjectAr": "طلبُ فحصٍ على مركبتك",
-    "subjectEn": "An inspection request on your car",
-    "bodyAr": "أحد المهتمّين يريد فحص مركبتك على حسابه. أذِن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئًا.",
-    "bodyEn": "Someone wants your car inspected at their own cost. Accept or decline before the window closes — it costs you nothing.",
-    "smsAr": "طلب فحص على مركبتك {ref}",
+    "key": "service.consent_declined",
+    "subjectAr": "لم يُؤذَن بالفحص",
+    "subjectEn": "The inspection was not approved",
+    "bodyAr": "لم يُؤذَن بفحص هذه السيارة، ولم يُؤخذ منك شيء. السبب في صفحة الطلب.",
+    "bodyEn": "The inspection was not approved and nothing was charged. The reason is on the request page.",
+    "smsAr": null,
     "smsEn": null,
-    "priority": "critical",
+    "priority": "high",
     "channelEmail": false,
-    "channelSms": true,
+    "channelSms": false,
     "channelPush": true,
     "channelInApp": true,
     "variables": [
-      "ref",
-      "hours"
+      "ref"
     ],
     "active": true
   },
@@ -814,39 +866,21 @@
     "active": true
   },
   {
-    "key": "service.consent_declined",
-    "subjectAr": "لم يُؤذَن بالفحص",
-    "subjectEn": "The inspection was not approved",
-    "bodyAr": "لم يُؤذَن بفحص هذه السيارة، ولم يُؤخذ منك شيء. السبب في صفحة الطلب.",
-    "bodyEn": "The inspection was not approved and nothing was charged. The reason is on the request page.",
-    "smsAr": null,
+    "key": "service.consent_needed",
+    "subjectAr": "طلبُ فحصٍ على مركبتك",
+    "subjectEn": "An inspection request on your car",
+    "bodyAr": "أحد المهتمّين يريد فحص مركبتك على حسابه. أذِن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئًا.",
+    "bodyEn": "Someone wants your car inspected at their own cost. Accept or decline before the window closes — it costs you nothing.",
+    "smsAr": "طلب فحص على مركبتك {ref}",
     "smsEn": null,
-    "priority": "high",
+    "priority": "critical",
     "channelEmail": false,
-    "channelSms": false,
+    "channelSms": true,
     "channelPush": true,
     "channelInApp": true,
     "variables": [
-      "ref"
-    ],
-    "active": true
-  },
-  {
-    "key": "service.assigned",
-    "subjectAr": "استلم مركزٌ طلبك",
-    "subjectEn": "A centre took your request",
-    "bodyAr": "استلم مركزٌ معتمد طلبك وسيتواصل معك على موعده. تفاصيله في صفحة الطلب.",
-    "bodyEn": "An approved centre took your request and will be in touch about the appointment. Details on the request page.",
-    "smsAr": null,
-    "smsEn": null,
-    "priority": "normal",
-    "channelEmail": true,
-    "channelSms": false,
-    "channelPush": false,
-    "channelInApp": true,
-    "variables": [
       "ref",
-      "service"
+      "hours"
     ],
     "active": true
   },

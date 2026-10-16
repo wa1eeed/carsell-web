@@ -40,7 +40,9 @@ export type NotificationEntity =
   | 'Order'
   | 'Listing'
   | 'Dispute'
-  | 'ServiceRequest';
+  | 'ServiceRequest'
+  /** إيقافُ الحساب ورفعُه — والكيانُ هو صاحبُه نفسه. */
+  | 'User';
 
 export type NotifyInput = {
   userId: string;
