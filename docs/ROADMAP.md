@@ -541,7 +541,7 @@ Each links to where it is specified.
 | English UI strings | `docs/BACKLOG.md` § D | deferred by the owner |
 | `home_story` ad slot has no design | `docs/DESIGN-DECISIONS.md` | question pending |
 | Notification templates still silent | `docs/BACKLOG.md` § G | 7 remain, all declared with a reason, guarded by gate 45 |
-| Production build barrier | `CLAUDE.md` | diagnosed: `NODE_ENV=development` during `next build`; run `npm run build:check` before any release |
+| Production build barrier | `CLAUDE.md` | **Clear.** Measured 2026-10-16 after `rm -rf .next-check`: compiled in 19.9s, 101 static pages, exit 0, working tree restored. The cause was `NODE_ENV=development` during `next build`; still run `npm run build:check` before any release, because `verify` does not build. |
 
 ---
 
