@@ -122,7 +122,7 @@ export async function orderTabCounts(now: Date = new Date()): Promise<OrderTabCo
     /* المتعثّرة تُحسب من المرحلة ووقت دخولها — لا من عمودٍ لا يكتبه أحد */
     db.order.findMany({
       where: { status: { in: ['ACTIVE', 'DISPUTED', 'STALLED'] } },
-      select: { stage: true, stageEnteredAt: true },
+      select: { stage: true, status: true, stageEnteredAt: true },
     }),
   ]);
 
@@ -137,7 +137,19 @@ export async function orderTabCounts(now: Date = new Date()): Promise<OrderTabCo
     byStage,
     completed: ofStatus('COMPLETED'),
     cancelled: ofStatus('CANCELLED'),
-    stalled: open.filter((row) => isStalled(row.stage, row.stageEnteredAt, now)).length,
+    /**
+     * ═══ والعدّاد يُحسب بمرشّح القائمة التي يفتحها ═══
+     *
+     * الصفُّ يُوسَم «حرجًا» بـ`isLiveOrder(status) && isStalled(…)`،
+     * والعدّاد كان يعدّ `DISPUTED` و`STALLED` معها — فقال التبويب
+     * «٩» وفتح على ثمانية. وطلبٌ متنازَعٌ عليه له تبويبُه، فعدُّه
+     * هنا يُكرّره ويُرسل المشغّل إلى صفٍّ لا يجده.
+     *
+     * **والشرطُ واحدٌ في الموضعين** — لا نسختان تتباعدان.
+     */
+    stalled: open.filter(
+      (row) => isLiveOrder(row.status) && isStalled(row.stage, row.stageEnteredAt, now),
+    ).length,
     disputed,
   };
 }

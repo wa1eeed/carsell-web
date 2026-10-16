@@ -642,13 +642,16 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
         </span>
 
         {/*
-          **والمحجوز يُقال.** رصيدٌ يُعرض كاملًا وبعضُه عربونُ مزادٍ لم
-          يُحسم يجعل صاحبه يخطّط لما لا يملك التصرّف فيه.
+          **والمحجوز يُقال — وموضعُه معه.** كان السطر «منها ٥٬٠٠٠
+          محجوزة» تحت «رصيد المحفظة ٠ ريال»: رقمان متناقضان في سطر
+          واحد. والعربون يُحجز **على بطاقة المزايد** لدى البوّابة،
+          و`holdDeposit` تطلب بطاقةً دائمًا ولا تخصم من محفظةٍ أصلًا —
+          فلا هو «منها»، ولا هو عندنا.
         */}
-        {Number(data.walletHeld) === 0 ? null : (
+        {Number(data.depositsOnCard) === 0 ? null : (
           <span className="mt-2 flex flex-wrap items-center gap-1 rounded-md bg-bg/12 px-2 py-1 text-3xs">
-            منها
-            <Money amount={Number(data.walletHeld)} showCurrency={false} size="sm" />
+            وعلى بطاقتك
+            <Money amount={Number(data.depositsOnCard)} showCurrency={false} size="sm" />
             محجوزة كعربون مزاد
           </span>
         )}

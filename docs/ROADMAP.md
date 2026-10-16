@@ -451,6 +451,34 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       26,500 → seller's inbox shows it → seller counters 27,250 → **buyer can
       accept the counter** (the defect recorded earlier is gone) → `ORD-2026-1014`
       is created at 27,600 with the transfer fee, source «عرض».
+- [x] **The sell wizard walked to publish.** Nissan X-Trail S 2022, 88,000 km,
+      Riyadh — a photo attached, the plate blurred client-side and the duplicate
+      check ran («تمّ الفحص الآلي · لوحات مطموسة ١ · ولا صور مكرّرة»), price 72,500,
+      direct sale. `POST /api/v1/listings/images` 200, `POST /api/v1/listings` 201,
+      and the account page greeted it: «نُشر إعلانك — صار ظاهرًا في نتائج البحث»
+      with `ADS2026A0061`. The `?listed=` parameter that once went unread is read.
+- [x] **The wallet card held money it does not hold.** «رصيد المحفظة **٠** ريال»
+      with «منها **٥٬٠٠٠** محجوزة كعربون مزاد» beneath it — five thousand out of
+      zero. And the money is not ours to hold: `holdDeposit` requires a card and
+      goes through the gateway on every path, so the deposit sits on the bidder's
+      card. The field's own comment still said «وهو اليوم دفتريّ… لا تمرّ ببوابة»,
+      written before the hold was wired — so whoever read it believed it. Renamed
+      `depositsOnCard`, and the line now reads «وعلى بطاقتك ٥٬٠٠٠ محجوزة كعربون
+      مزاد».
+- [x] **The «متعثّرة» tab counted nine and opened eight.** The row is marked
+      critical with `isLiveOrder(status) && isStalled(…)` and the counter counted
+      `DISPUTED` and `STALLED` as well — so a disputed order was counted here and
+      shown in its own tab, and the operator opened the queue looking for a row
+      that was not there. One predicate in both places now. *(It passed until
+      today only because no seeded order had crossed the threshold; the first
+      purchase walked by hand exposed it.)*
+- [x] **Two invariants were judging their neighbours' data.** `seed-reachable-
+      states` asserted every order at `PAYMENT` or beyond has an escrow — but an
+      order is **created in** `PAYMENT`, before any money moves, so every new
+      purchase breaks it. The condition is on the money now (`payments: some`),
+      not on the stage. Third instance of this shape today.
+- [x] **The production build is clear.** `npm run build:check` after
+      `rm -rf .next-check`: compiled in 19.9s, 101 static pages, exit 0.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

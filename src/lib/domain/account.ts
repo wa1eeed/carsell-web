@@ -242,12 +242,18 @@ export type AccountData = {
   /** رصيد محفظته — والمجموع من القيود لا من عمود */
   walletBalance: string;
   /**
-   * **ما هو محجوز من الرصيد** — عرابين مزاداتٍ لم تُحسم.
-   * والتصميم يقولها سطرًا تحت الرصيد: «منها ٥٬٠٠٠ محجوزة كعربون
-   * مزاد». ورصيدٌ يُعرض كاملًا وبعضُه محجوز يجعل صاحبه يخطّط لما
-   * لا يملك.
+   * ═══ عربونُ مزادٍ محجوز — **على البطاقة لا من الرصيد** ═══
+   *
+   * كان اسمُه `walletHeld` ويُعرض «منها ٥٬٠٠٠ محجوزة» تحت «رصيد
+   * المحفظة **٠** ريال» — **رقمان متناقضان في سطر واحد**، ووصفٌ
+   * يضع المال في غير موضعه.
+   *
+   * و`holdDeposit` تطلب بطاقةً وتمرّ بالبوّابة دائمًا (لا فرعَ
+   * يخصم من المحفظة أصلًا): فالمال محجوزٌ عند بطاقة المزايد، لا
+   * مقتطعٌ من رصيدٍ لدينا. والتعليقُ هنا كان يقول «دفتريّ اليوم»
+   * من قبل أن يمرّ الحجز بالبوّابة — فصدّقه من قرأه.
    */
-  walletHeld: string;
+  depositsOnCard: string;
   /**
    * ═══ مزاداتي — وكانت غائبةً كلّيًّا ═══
    *
@@ -462,16 +468,12 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       .map((row) => toAccountAuction(row, 'bidder', user.id, locale)),
   ];
 
-  /**
-   * المحجوز من الرصيد — عرابين مزاداتٍ لم تُحسم.
-   * **وهو اليوم دفتريّ**: `holdDeposit` لا تمرّ ببوابة (المهمّة ٦٦)،
-   * فالرقم يقول ما سيُحجز لا ما حُجز. ويُعرض لأن المزايد ملتزمٌ به.
-   */
+  /** عرابينُ مزاداتٍ لم تُحسم — محجوزةٌ على بطاقة المزايد لدى البوّابة. */
   const heldDeposits = await db.deposit.aggregate({
     where: { userId: user.id, status: 'HELD' },
     _sum: { amount: true },
   });
-  const walletHeld = (heldDeposits._sum.amount ?? 0).toString();
+  const depositsOnCard = (heldDeposits._sum.amount ?? 0).toString();
 
   return {
     user: {
@@ -494,7 +496,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       memberSince: user.createdAt.toISOString(),
     },
     walletBalance,
-    walletHeld,
+    depositsOnCard,
     auctions,
     completion: profileCompletion(user),
     stats: [
