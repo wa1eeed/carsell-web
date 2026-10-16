@@ -15,7 +15,9 @@ const created: { listings: string[]; users: string[]; vehicles: string[]; orders
   listings: [], users: [], vehicles: [], orders: [],
 };
 
-async function makeListing(status: 'PUBLISHED' | 'PAUSED' | 'SUSPENDED' | 'SOLD'): Promise<{
+async function makeListing(
+  status: 'PUBLISHED' | 'PAUSED' | 'SUSPENDED' | 'SOLD' | 'DRAFT' | 'PENDING_REVIEW',
+): Promise<{
   ref: string;
   sellerId: string;
   otherId: string;
@@ -164,5 +166,76 @@ describe('إيقاف البائع لإعلانه', () => {
     expect(await updateOwnListing({ ref, sellerId, askPrice: 70_000 })).toEqual({
       ok: false, reason: 'NOT_EDITABLE',
     });
+  });
+});
+
+/**
+ * ═══ وحذفُ ما لم يره أحد ═══
+ *
+ * البائع كان يملك الإيقاف والتعديل **ولا يملك الحذف**: فمسودّةٌ بدأها
+ * ثمّ عدل عنها تبقى في «إعلاناتي» وفي عدّاد «تنتظرك» إلى الأبد. و«قيد
+ * المراجعة» كان بلا زرٍّ واحد — لا تعديلَ ولا إيقافَ ولا سحب.
+ */
+describe('حذفُ الإعلان', () => {
+  it('تُحذف المسودّة — وتبقى المركبة لصاحبها', async () => {
+    const { deleteListing } = await import('@/lib/domain/listing-state');
+    const { ref, sellerId, listingId } = await makeListing('DRAFT');
+
+    const vehicleId = (
+      await db.listing.findUniqueOrThrow({ where: { id: listingId }, select: { vehicleId: true } })
+    ).vehicleId;
+
+    expect(await deleteListing({ ref, sellerId })).toEqual({ ok: true });
+    expect(await db.listing.findUnique({ where: { id: listingId } })).toBeNull();
+
+    /** **والمركبة كيانٌ آخر** — والحوار يَعِد بأنها تبقى. */
+    expect(await db.vehicle.findUnique({ where: { id: vehicleId }, select: { id: true } })).not.toBeNull();
+  });
+
+  it('ويُسحب ما ينتظر المراجعة', async () => {
+    const { deleteListing } = await import('@/lib/domain/listing-state');
+    const { ref, sellerId, listingId } = await makeListing('PENDING_REVIEW');
+    expect(await deleteListing({ ref, sellerId })).toEqual({ ok: true });
+    expect(await db.listing.findUnique({ where: { id: listingId } })).toBeNull();
+  });
+
+  /** ما رآه الزوّار يُوقَف ولا يُمحى — ولمن تفاوض عليه سجلٌّ. */
+  it('والمنشور يُوقَف لا يُحذف', async () => {
+    const { deleteListing } = await import('@/lib/domain/listing-state');
+    const { ref, sellerId, listingId } = await makeListing('PUBLISHED');
+    expect(await deleteListing({ ref, sellerId })).toEqual({
+      ok: false,
+      reason: 'PUBLISHED_PAUSE_INSTEAD',
+    });
+    expect(await db.listing.findUnique({ where: { id: listingId } })).not.toBeNull();
+  });
+
+  it('ولا يحذفه غيرُ صاحبه', async () => {
+    const { deleteListing } = await import('@/lib/domain/listing-state');
+    const { ref, otherId, listingId } = await makeListing('DRAFT');
+    expect(await deleteListing({ ref, sellerId: otherId })).toEqual({
+      ok: false,
+      reason: 'NOT_OWNER',
+    });
+    expect(await db.listing.findUnique({ where: { id: listingId } })).not.toBeNull();
+  });
+
+  /**
+   * **والسجلّ لا يُمحى.** عرضٌ على مسودّةٍ لا يقع في المنتج، لكنّ
+   * الحارس يُفحص على ما يمنعه المخطّط أيضًا — فالقيد الأجنبيّ يرمي
+   * استثناءً غامضًا، والفحص يُعيد سببًا تقرؤه الشاشة.
+   */
+  it('وعرضٌ على الإعلان يمنع حذفه', async () => {
+    const { deleteListing } = await import('@/lib/domain/listing-state');
+    const { ref, sellerId, otherId, listingId } = await makeListing('DRAFT');
+
+    const offer = await db.offer.create({
+      data: { listingId, buyerId: otherId, amount: 70_000, expiresAt: new Date(Date.now() + 86_400_000) },
+      select: { id: true },
+    });
+
+    expect(await deleteListing({ ref, sellerId })).toEqual({ ok: false, reason: 'HAS_HISTORY' });
+
+    await db.offer.delete({ where: { id: offer.id } });
   });
 });

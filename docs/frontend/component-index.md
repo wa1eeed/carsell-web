@@ -168,8 +168,8 @@ rather than found by chance.
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 4 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 26 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 38 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 27 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 39 |
 | `SignOut` | yes | `path` · `next` · `label` · `className` | 3 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |

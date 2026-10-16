@@ -479,6 +479,18 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       not on the stage. Third instance of this shape today.
 - [x] **The production build is clear.** `npm run build:check` after
       `rm -rf .next-check`: compiled in 19.9s, 101 static pages, exit 0.
+- [x] **A seller could not delete anything.** They could pause and edit; there was
+      no delete at all. So a draft started and abandoned sits in «إعلاناتي» and in
+      the «تنتظرك» counter forever, telling its owner every time that something is
+      waiting for them that they do not want. And a listing **under review had no
+      control whatsoever** — no edit, no pause, no withdrawal: it could only be
+      waited out. `DELETE /api/v1/listings/{ref}` now removes a `DRAFT` or
+      `PENDING_REVIEW` listing that carries **no** offer, order, auction or service
+      request; anything published is paused instead, because whoever saw it or
+      negotiated on it keeps a record. Its images cascade with it — an orphan
+      fingerprint raises a false duplicate alarm on another seller months later.
+      The confirmation says what goes and what stays: **the vehicle remains in
+      «سياراتي»**, so the seller does not think they are erasing their car.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

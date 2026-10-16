@@ -250,3 +250,75 @@ export async function sendListingToReview(
 
   return true;
 }
+
+/**
+ * ═══ حذفُ إعلانٍ لم يره أحد ═══
+ *
+ * البائع يستطيع **الإيقاف** و**التعديل** — ولا يستطيع الحذف. فمن
+ * بدأ إعلانًا ثمّ عدل عنه تبقى مسودّتُه في «إعلاناتي» إلى الأبد، ولا
+ * زرَّ يُزيلها. وصفحةُ «تنتظرك» تعرضها بعدّادها فتقول له كلّ مرّة
+ * إنّ عليه عملًا لا يريده.
+ *
+ * ═══ وما يُحذف غير ما يُوقَف ═══
+ *
+ * | الحال | ما يقع |
+ * |---|---|
+ * | مسودّة · قيد المراجعة | **يُحذف** — لم يره زائر، ولا عرضَ عليه |
+ * | منشور · موقوف | **يُوقَف** ولا يُحذف — رآه الناس وقد يكون عليه عرض |
+ * | محجوز · مباع · موقوف إداريًّا | لا هذا ولا ذاك — له أثرٌ ماليّ |
+ *
+ * **والسجلّ لا يُمحى**: عرضٌ أو طلبٌ أو مزادٌ على الإعلان يمنع الحذف
+ * (`onDelete: Restrict` في المخطّط يحرسه أيضًا) — فمن تفاوض عليه
+ * يبقى تفاوضُه مقروءًا بعد أن يُوقف البائع إعلانه.
+ *
+ * **والصورة تُحذف معه**: `ListingImage` تتالى بالحذف، وبصمتُها
+ * (`phash`) تُقرأ في كشف التكرار — فصورةٌ يتيمة لإعلانٍ هُجر تُطلق
+ * إنذارًا كاذبًا على بائعٍ آخر بعد شهور.
+ *
+ * **ولا تمرّ بالبوابة ٢١**: هي لا تكتب `status` بل تمحو الصفّ.
+ */
+export type DeleteListingFailure =
+  | 'NOT_FOUND'
+  | 'NOT_OWNER'
+  | 'PUBLISHED_PAUSE_INSTEAD'
+  | 'HAS_HISTORY';
+
+const DELETABLE = ['DRAFT', 'PENDING_REVIEW'] as const;
+
+export async function deleteListing(
+  input: { ref: string; sellerId: string },
+): Promise<{ ok: true } | { ok: false; reason: DeleteListingFailure }> {
+  const { db: database } = await import('@/lib/db');
+
+  const listing = await database.listing.findUnique({
+    where: { ref: input.ref },
+    select: {
+      id: true,
+      sellerId: true,
+      status: true,
+      _count: { select: { offers: true, orders: true, serviceRequests: true } },
+      auction: { select: { id: true } },
+    },
+  });
+
+  if (listing === null) return { ok: false, reason: 'NOT_FOUND' };
+  if (listing.sellerId !== input.sellerId) return { ok: false, reason: 'NOT_OWNER' };
+  if (!(DELETABLE as readonly string[]).includes(listing.status)) {
+    return { ok: false, reason: 'PUBLISHED_PAUSE_INSTEAD' };
+  }
+  /**
+   * **والأثر يُفحص ولو منعه المخطّط.** القيد الأجنبيّ يرمي استثناءً
+   * غامضًا، والفحص هنا يُعيد سببًا تقرؤه الشاشة.
+   */
+  if (
+    listing._count.offers > 0 ||
+    listing._count.orders > 0 ||
+    listing._count.serviceRequests > 0 ||
+    listing.auction !== null
+  ) {
+    return { ok: false, reason: 'HAS_HISTORY' };
+  }
+
+  await database.listing.delete({ where: { id: listing.id } });
+  return { ok: true };
+}

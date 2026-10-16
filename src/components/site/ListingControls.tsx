@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits, toLatinDigits } from '@/lib/arabic';
 
@@ -23,6 +24,18 @@ const PRICE_MIN = 1000;
 
 /** الحالات التي يملك البائع تغييرها — والمصدر في النطاق، وهذه مرآته. */
 const EDITABLE = new Set(['DRAFT', 'PUBLISHED', 'PAUSED']);
+
+/**
+ * ═══ وما لم يره أحدٌ يُحذف ═══
+ *
+ * البائع كان يملك الإيقاف والتعديل ولا يملك الحذف — فمسودّةٌ بدأها
+ * ثمّ عدل عنها تبقى في «إعلاناتي» وفي عدّاد «تنتظرك» إلى الأبد،
+ * تقول له كلّ مرّة إنّ عليه عملًا لا يريده.
+ *
+ * وما نُشر يُوقَف ولا يُمحى: من رآه أو تفاوض عليه يبقى سجلُّه.
+ * والقائمةُ هنا مرآةُ `DELETABLE` في النطاق — والخادم يفحصها ثانيةً.
+ */
+const DELETABLE = new Set(['DRAFT', 'PENDING_REVIEW']);
 
 export function ListingControls({
   listingRef,
@@ -45,6 +58,7 @@ export function ListingControls({
   const [busy, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const [draft, setDraft] = useState({
     price: String(price),
     negotiable,
@@ -59,7 +73,81 @@ export function ListingControls({
     );
   }
 
+  const remove = (): void => {
+    start(async () => {
+      const response = await fetch(`/api/v1/listings/${listingRef}`, { method: 'DELETE' }).catch(
+        () => null,
+      );
+      const payload = (await response?.json().catch(() => null)) as
+        | { error?: { messageAr?: string } }
+        | null;
+
+      if (response === null || !response.ok) {
+        setConfirming(false);
+        setToast(payload?.error?.messageAr ?? 'تعذّر الحذف.');
+        return;
+      }
+
+      setConfirming(false);
+      setToast('حُذف الإعلان.');
+      router.refresh();
+    });
+  };
+
+  /**
+   * ═══ وحوارُ التأكيد — لأن الحذف لا رجعة فيه ═══
+   *
+   * ويقول **ما يُحذف وما يبقى**: الإعلان يذهب والمركبة تبقى في
+   * «سياراتي»، فلا يظنّ البائع أنه يمحو سيارته من المنصّة.
+   */
+  const confirmDialog = (
+    <Modal
+      open={confirming}
+      onClose={() => setConfirming(false)}
+      title="حذف الإعلان"
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
+            تراجع
+          </Button>
+          <Button variant="danger" size="sm" onClick={remove} disabled={busy}>
+            {busy ? 'يُحذف…' : 'نعم، احذفه'}
+          </Button>
+        </>
+      }
+    >
+      <p className="text-xs leading-loose">
+        يُحذف الإعلان وصوره نهائيًّا ولا يُسترجَع. و<b>المركبة تبقى في «سياراتي»</b>، فتستطيع
+        عرضها من جديد متى شئت.
+      </p>
+    </Modal>
+  );
+
   if (!EDITABLE.has(status)) {
+    /**
+     * ═══ و«قيد المراجعة» كان بلا زرٍّ واحد ═══
+     *
+     * لا تعديلَ ولا إيقاف ولا حذف — صفٌّ يقول «قيد المراجعة» وحسب.
+     * فمن أرسل إعلانًا ثمّ عدل عنه ينتظر مراجعتَه ليُوقفه بعدها.
+     * والتعديل يبقى مغلقًا — المراجع ينظر فيه الآن — **والسحب يُفتح**.
+     */
+    if (DELETABLE.has(status)) {
+      return (
+        <>
+          <p className="mt-2 text-3xs leading-loose opacity-70">
+            قيد المراجعة — لا يُعدَّل حتى تنتهي، ولك سحبُه.
+          </p>
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirming(true)}>
+              اسحبه واحذفه
+            </Button>
+          </div>
+          {confirmDialog}
+          {toast === null ? null : <Toast title={toast} />}
+        </>
+      );
+    }
+
     return status === 'SUSPENDED' ? (
       <p className="mt-2 text-3xs leading-loose opacity-70">
         أوقفته الإدارة — راجعها لرفعه.
@@ -122,6 +210,13 @@ export function ListingControls({
         <Button size="sm" variant="outline" disabled={busy} onClick={() => setOpen(!open)}>
           {open ? 'إغلاق' : 'عدّل الإعلان'}
         </Button>
+
+        {/* **والمسودّة تُحذف** — وما نُشر يُوقَف، فسجلُّه لمن تفاوض عليه. */}
+        {!DELETABLE.has(status) ? null : (
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirming(true)}>
+            احذف المسودّة
+          </Button>
+        )}
       </div>
 
       {!open ? null : (
@@ -204,6 +299,8 @@ export function ListingControls({
         </div>
       )}
 
+      {/* **والحوار يُصيَّر في الفرعين** — وُضع في فرع المراجعة وحده أوّلًا، فزرّ المسودّة يُضغط ولا يُفتح شيء. */}
+      {confirmDialog}
       {toast === null ? null : <Toast title={toast} />}
     </>
   );

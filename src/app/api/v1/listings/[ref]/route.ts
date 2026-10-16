@@ -113,3 +113,55 @@ export async function PATCH(
 
   return ok(result);
 }
+
+/**
+ * ═══ `DELETE /api/v1/listings/{ref}` — ومسودّةٌ لا تُحذف ═══
+ *
+ * البائع يملك الإيقاف والتعديل، **ولا يملك الحذف**. فمسودّةٌ بدأها
+ * ثمّ عدل عنها تبقى في «إعلاناتي» وفي عدّاد «تنتظرك» إلى الأبد،
+ * تقول له كلّ مرّة إنّ عليه عملًا لا يريده.
+ *
+ * **ولا يُحذف إلّا ما لم يره أحد**: مسودّةٌ أو ما ينتظر المراجعة،
+ * وبلا عرضٍ ولا طلبٍ ولا مزادٍ ولا طلبِ خدمة. وما نُشر يُوقَف —
+ * فمن رآه أو تفاوض عليه يبقى سجلُّه مقروءًا.
+ */
+const DELETE_MESSAGES: Record<string, { ar: string; en: string }> = {
+  PUBLISHED_PAUSE_INSTEAD: {
+    ar: 'الإعلان منشور — أوقفه مؤقّتًا بدل حذفه، فسجلُّه يبقى لمن تفاوض عليه.',
+    en: 'This listing is live — pause it instead; its history stays for anyone who negotiated on it.',
+  },
+  HAS_HISTORY: {
+    ar: 'على الإعلان عرضٌ أو طلب — أوقفه مؤقّتًا، ولا يُمحى ما جرى عليه.',
+    en: 'This listing has an offer or an order — pause it; what happened on it is not erased.',
+  },
+};
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ ref: string }> },
+): Promise<NextResponse> {
+  const user = await currentUser(request);
+  if (user === null) return fail(ERRORS.UNAUTHORIZED, 401);
+
+  const { ref } = await params;
+  const { deleteListing } = await import('@/lib/domain/listing-state');
+  const result = await deleteListing({ ref, sellerId: user.id });
+
+  if (!result.ok) {
+    /** وغيرُ المالك يرى ٤٠٤ — كما في التعديل. */
+    if (result.reason === 'NOT_FOUND' || result.reason === 'NOT_OWNER') {
+      return fail(ERRORS.NOT_FOUND, 404);
+    }
+    const text = DELETE_MESSAGES[result.reason];
+    return fail(
+      {
+        code: result.reason,
+        messageAr: text?.ar ?? 'تعذّر الحذف.',
+        messageEn: text?.en ?? 'Could not delete.',
+      },
+      409,
+    );
+  }
+
+  return ok({ deleted: ref });
+}
