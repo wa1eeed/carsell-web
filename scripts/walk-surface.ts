@@ -72,10 +72,8 @@ async function params(): Promise<Record<string, string>> {
       db.dealer.findFirst({ select: { id: true, slug: true } }),
       db.trim.findFirst({ select: { id: true } }),
       db.offer.findFirst({ select: { id: true } }),
-      db.inspectionReport.findFirst({
-        where: { publishedAt: { not: null } },
-        select: { serviceRequest: { select: { ref: true } } },
-      }),
+      /** **وبلاغُ الإساءة غيرُ تقرير الفحص** — و`/admin/reports` للأوّل. */
+      db.report.findFirst({ select: { ref: true } }),
       /** **ومفتاحُ الدليل غير مفتاح الخدمة** — فصفحةٌ قانونية مفتاحُها هي. */
       db.legalDocument.findFirst({ select: { key: true } }),
       db.auction.findFirst({ select: { id: true, listing: { select: { ref: true } } } }),
@@ -96,7 +94,7 @@ async function params(): Promise<Record<string, string>> {
     dealerId: dealer?.id ?? 'unknown',
     trimId: trim?.id ?? 'unknown',
     offerId: offer?.id ?? 'unknown',
-    reportRef: report?.serviceRequest?.ref ?? 'SRV-2026-3000',
+    reportRef: report?.ref ?? 'RPT-2026-100',
     auctionRef: auction?.listing.ref ?? 'ADS2026A0001',
     slug: brand?.slug ?? 'toyota',
     disputeId: dispute?.id ?? 'unknown',
@@ -139,7 +137,7 @@ function fill(route: string, p: Record<string, string>): string | null {
         dealers: grand === 'admin' ? p.dealerId : p.dealerSlug,
         trims: p.trimId,
         offers: p.offerId,
-        reports: p.reportRef,
+        reports: parent === 'account' || grand === 'account' ? p.serviceRef : p.reportRef,
         providers: p.id,
         disputes: p.disputeId,
         payouts: p.payoutId,
@@ -162,8 +160,13 @@ function links(html: string): string[] {
         .filter((href) => !href.startsWith('//'))
         .map((href) => href.split('#')[0] ?? '')
         .filter((href) => href !== '')
-        /** الملفّات الثابتة ليست وجهات. */
-        .filter((href) => !/\.(png|jpg|jpeg|svg|webp|ico|css|js|xml|txt|json)$/i.test(href)),
+        /**
+         * الملفّات الثابتة ليست وجهات — **ولا ما يحقنه خادم التطوير**.
+         * `webpack.js?v=…` يحمل استعلامًا فيفلت من فحص الامتداد،
+         * فيُعدّ «وجهةً ساقطة» وهو أثرُ الأداة لا عطلُ المنتج.
+         */
+        .filter((href) => !href.startsWith('/_next/'))
+        .filter((href) => !/\.(png|jpg|jpeg|svg|webp|ico|css|js|xml|txt|json)(\?|$)/i.test(href)),
     ),
   ];
 }

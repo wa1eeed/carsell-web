@@ -246,7 +246,18 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       centre that is not looking at its panel — and the channels that would carry
       it are behind flags for everyone. The panel used to promise one anyway;
       the text now says what is true.
-- [ ] **Contact disclosure with an audit trail**, as A18 logs every ID reveal.
+- [x] **Contact disclosure with an audit trail**, as A18 logs every ID reveal.
+      The provider panel printed **both phone numbers in full on page load** — the
+      customer's and the vehicle keeper's — with no line recording who looked. A
+      provider is a third identity: an outside inspection centre on its own
+      login, seeing two people's numbers before it has dealt with either. The
+      numbers no longer enter the page object at all (only the last four digits),
+      a click reveals one, and the reveal writes an `AuditLog` row — actor, which
+      party, when, IP. **No reason is asked**: the identity reveal demands one
+      because it is an exception; a phone number is the provider's working tool,
+      and demanding a sentence each time is hostile to someone doing their job.
+      The click is the intent and the log is the accounting. **And the number is
+      never copied into the log** — a log that carries it is the leak.
 - [x] **The provider detail page** — counters that open their lists, the
       requests received, who signs in on their behalf, the payment account with
       what its state means, and the value of completed work. The gateway
@@ -340,10 +351,8 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       resolved from the order or — for services — from the note **matched against
       a real `ServiceRequest.ref`**, so a payout's `payout … · bankRef` note is
       never displayed as a reference. Both link to their screen.
-- [ ] **A ledger line cannot be traced to its service.** The «الطلب» column shows
-      «—» for every service entry: the order link comes from `orderId`, and a
-      service's reference lives in `note`. A finance operator reading a 517.50
-      line cannot tell which service it is.
+- [x] **A ledger line could not be traced to its service.** *(Closed the same day
+      it was logged — see «Every ledger line opens on what it concerns» below.)*
 - [x] **The whole surface walked, not sampled.** `npm run walk:surface` signs in
       as an admin and as a user, requests **every** `page.tsx` with real ids from
       the database, then requests **every internal link** on every page that

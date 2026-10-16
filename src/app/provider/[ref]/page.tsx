@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { RevealPhone } from './RevealPhone';
 import { notFound, redirect } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
@@ -96,9 +97,11 @@ export default async function ProviderRequestPage({
               value={
                 <span className="flex flex-wrap items-baseline gap-2.5">
                   <span className="bidi-isolate">{view.requester.name ?? '—'}</span>
-                  <span dir="ltr" className="font-num text-2xs opacity-75">
-                    {view.requester.phone}
-                  </span>
+                  <RevealPhone
+                    requestRef={view.ref}
+                    party="requester"
+                    tail={view.requester.phoneTail}
+                  />
                 </span>
               }
             />
@@ -108,9 +111,11 @@ export default async function ProviderRequestPage({
                 value={
                   <span className="flex flex-wrap items-baseline gap-2.5">
                     <span className="bidi-isolate">{view.keeper.name ?? '—'}</span>
-                    <span dir="ltr" className="font-num text-2xs opacity-75">
-                      {view.keeper.phone}
-                    </span>
+                    <RevealPhone
+                      requestRef={view.ref}
+                      party="keeper"
+                      tail={view.keeper.phoneTail}
+                    />
                   </span>
                 }
               />

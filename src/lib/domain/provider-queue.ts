@@ -165,10 +165,21 @@ export type ProviderRequestView = {
   scheduledAt: string | null;
   dueAt: string | null;
   overdue: boolean;
-  /** من طلب الخدمة ودفع ثمنها */
-  requester: { name: string | null; phone: string };
+  /**
+   * ═══ والرقمُ يُكشف بطلبٍ ويُسجَّل ═══
+   *
+   * كانت اللوحة تعرض رقمَي العميل وصاحب المركبة **كاملين عند فتحها**،
+   * ولا سطر يقول من نظر فيهما. والمزوّدُ هويةٌ ثالثة — مركزُ فحصٍ
+   * خارجيّ بحسابه — فيرى رقمَي شخصين لم يتعاملا معه بعد، ولا أثرَ
+   * يُراجَع إن أُسيء استعمالهما.
+   *
+   * ومعيار A18 مبنيٌّ لكشف الهوية في الأدمن: سببٌ يُكتب وسجلٌّ
+   * يُكتب. والرقمُ هنا أخفّ — المزوّد يحتاجه ليُنجز عملَه — فيُكشف
+   * بنقرةٍ بلا سبب، **والنقرةُ نفسها هي القصد، والسجلّ هو الحساب**.
+   */
+  requester: { name: string | null; phoneTail: string };
   /** عند من المركبة — و`null` حين يكون هو الطالب نفسه */
-  keeper: { name: string | null; phone: string } | null;
+  keeper: { name: string | null; phoneTail: string } | null;
   steps: Step[];
   /** أهو مُسنَدٌ إلى هذا المزوّد بعد، أم معروضٌ على صنفه */
   mine: boolean;
@@ -232,9 +243,12 @@ export async function providerRequestView(
     scheduledAt: row.scheduledAt?.toISOString() ?? null,
     dueAt: row.dueAt?.toISOString() ?? null,
     overdue: row.dueAt !== null && row.dueAt.getTime() <= now.getTime(),
-    requester: { name: row.user.name, phone: row.user.phone },
+    /** **ولا يدخل الرقمُ الكائن أصلًا** — وما لا يُجلَب لا يتسرّب في حمولة RSC. */
+    requester: { name: row.user.name, phoneTail: row.user.phone.slice(-4) },
     keeper:
-      row.seller === null ? null : { name: row.seller.name, phone: row.seller.phone },
+      row.seller === null
+        ? null
+        : { name: row.seller.name, phoneTail: row.seller.phone.slice(-4) },
     steps: stepsFor(row.service.providerType, row.status),
     mine,
   };
@@ -393,4 +407,59 @@ export async function applyStep(
   }
 
   return { ok: true, status: step.to };
+}
+
+/**
+ * ═══ كشفُ رقمٍ للمزوّد — بنقرةٍ وسجلّ ═══
+ *
+ * **ولا يُكشف إلّا لمن الطلبُ طلبُه**: الفحص نفسه الذي يحرس عرض
+ * الطلب (`providerRequestView`) يحرس رقمَه — وإلّا صار المسارُ بابًا
+ * خلفيًّا يقرأ أرقام كل العملاء بمرجعٍ مخمَّن.
+ *
+ * **ويُسجَّل قبل أن يُعاد الرقم**: سجلٌّ يُكتب بعد الإرجاع يسقط مع
+ * أوّل انقطاع، فيصل الرقمُ ولا أثرَ له.
+ */
+export type RevealFailure = 'REQUEST_NOT_FOUND' | 'NOT_YOURS' | 'UNKNOWN_PARTY';
+
+export type RevealResult =
+  | { ok: true; phone: string }
+  | { ok: false; reason: RevealFailure };
+
+export async function revealRequestPhone(
+  input: {
+    ref: string;
+    party: 'requester' | 'keeper';
+    providerId: string;
+    providerUserId: string;
+    ip: string | null;
+  },
+  now: Date = new Date(),
+): Promise<RevealResult> {
+  const view = await providerRequestView(input.ref, input.providerId, now);
+  if (view === null) return { ok: false, reason: 'NOT_YOURS' };
+
+  const row = await db.serviceRequest.findUnique({
+    where: { ref: input.ref },
+    select: { id: true, user: { select: { phone: true } }, seller: { select: { phone: true } } },
+  });
+  if (row === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
+
+  const phone = input.party === 'requester' ? row.user.phone : (row.seller?.phone ?? null);
+  if (phone === null) return { ok: false, reason: 'UNKNOWN_PARTY' };
+
+  await db.auditLog.create({
+    data: {
+      actorId: input.providerUserId,
+      actorType: 'provider',
+      entity: 'ServiceRequest',
+      entityId: input.ref,
+      action: `contact.revealed.${input.party}`,
+      /** **والرقم لا يُنسخ إلى السجلّ** — وإلّا صار السجلّ هو التسريب. */
+      after: { party: input.party },
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true, phone };
 }
