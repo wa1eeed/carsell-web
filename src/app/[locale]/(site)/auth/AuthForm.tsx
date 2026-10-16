@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { cityLabel } from '@/lib/labels/cities';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -305,7 +306,7 @@ export function AuthForm({
                 <option value="">{t('cityPick')}</option>
                 {cities.map((name) => (
                   <option key={name} value={name}>
-                    {name}
+                    {cityLabel(name, locale)}
                   </option>
                 ))}
               </select>

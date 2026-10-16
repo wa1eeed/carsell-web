@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { cityLabel } from '@/lib/labels/cities';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 
@@ -843,7 +844,7 @@ export function SellWizard({
                 <option value="" />
                 {cities.map((city) => (
                   <option key={city} value={city}>
-                    {city}
+                    {cityLabel(city, locale)}
                   </option>
                 ))}
               </select>
@@ -1193,7 +1194,7 @@ export function SellWizard({
                     <option value="">{t('auction.viewingNone')}</option>
                     {cities.map((city) => (
                       <option key={city} value={city}>
-                        {city}
+                        {cityLabel(city, locale)}
                       </option>
                     ))}
                   </select>

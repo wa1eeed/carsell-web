@@ -107,14 +107,13 @@ export default async function SellPage({
                  * نسبةٍ يضبطها الأدمن تجعل الصدر يَعِد بما يناقضه
                  * الطلب، بلا تغييرِ سطرٍ وبلا ما يُنبّه أحدًا.
                  */
-                { key: 'commission', value: sellerCommissionPct, suffix: '٪' },
-                { key: 'days', value: medianDays, suffix: null },
-                { key: 'minutes', value: 5, suffix: null },
+                { key: 'commission', value: sellerCommissionPct, percent: true },
+                { key: 'days', value: medianDays, percent: false },
+                { key: 'minutes', value: 5, percent: false },
               ].map((stat) => (
                 <div key={stat.key}>
                   <dd className="flex items-baseline text-3xl leading-none font-bold">
-                    <ArabicNumber value={stat.value} />
-                    {stat.suffix === null ? null : <span>{stat.suffix}</span>}
+                    <ArabicNumber value={stat.value} percent={stat.percent} />
                   </dd>
                   <dt className="mt-1.5 text-2xs opacity-70">{t(`stat.${stat.key}`)}</dt>
                 </div>

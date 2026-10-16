@@ -18,6 +18,7 @@ Updated: 2026-10-13.
 | 4 | English locale showed Arabic **data** (brand, model, trim, city, colour) | `b7cd619` |
 | 5 | Browse opens on the list; list row fits a phone | `f407bf4` |
 | 6 | Services banner carries the car; services page car picker verified | `fa53eba` |
+| 7 | English locale showed Arabic **data** again (home cards, cities, popular searches) and an Arabic **percent sign** in 5 places | _this commit_ |
 
 ---
 
@@ -611,9 +612,27 @@ revokes its row.
 
 ### D · English UI strings — deferred by the owner
 
-**624 lines across 68 files** of Arabic written into the public site's
-components. The owner chose to ship the data fix and defer the translation. The
-English site stays partly Arabic until this is done — known, not missed.
+**655 lines across 68 files** of Arabic written into the public site's
+components (re-measured 2026-10-17 with comments stripped; admin and `dev/ui`
+excluded, both Arabic by decision). The owner chose to ship the data fix and
+defer the translation. The English site stays partly Arabic until this is done
+— known, not missed.
+
+**What this deferral does *not* cover.** It covers text we do not have in
+English. It does not cover throwing away English we already hold:
+
+- **The percent sign** — `formatPercent` has returned `%` since it was built,
+  and five places wrote `٪` by hand. Fixed 2026-10-17; gate 55 keeps it fixed.
+- **Error messages** — every `ApiError` carries `messageAr` *and* `messageEn`,
+  typed and required. **Nineteen of twenty call sites read `messageAr`
+  unconditionally**, so an English visitor meets an Arabic sentence at the one
+  moment something went wrong with their money. `BuyActions.tsx:96` already
+  does it right; the rest copy an older line. Not yet fixed — it needs the
+  fallback strings too, which *are* inside this deferral. **Open.**
+
+`/en` is not a forgotten corner: the product ships a locale switcher and
+`sitemap.ts` submits every `/en` URL to search engines. Whatever stays Arabic
+there is an advertised promise, not a draft.
 
 ### E · Known risk, awaiting a decision
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
+import { cityLabel } from '@/lib/labels/cities';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -396,7 +397,8 @@ export function SearchScreen({
               count={facetLabel(result.facets.city[city])}
               onClick={() => toggle('city', city)}
             >
-              {city}
+              {/* **والمدينةُ تُعرض بلغة الصفحة** — والقيمة تبقى عربية. */}
+              {cityLabel(city, locale)}
             </Chip>
           ))}
         </div>

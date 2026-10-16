@@ -73,14 +73,13 @@ export default async function DealerJoinPage({
 
             <dl className="flex flex-wrap gap-9">
               {[
-                { key: 'dealerStat1', value: commissionPct, suffix: '٪' },
-                { key: 'dealerStat2', value: buyers, suffix: null },
-                { key: 'dealerStat3', value: 3, suffix: null },
+                { key: 'dealerStat1', value: commissionPct, percent: true },
+                { key: 'dealerStat2', value: buyers, percent: false },
+                { key: 'dealerStat3', value: 3, percent: false },
               ].map((stat) => (
                 <div key={stat.key}>
                   <dd className="flex items-baseline text-3xl leading-none font-bold">
-                    <ArabicNumber value={stat.value} />
-                    {stat.suffix === null ? null : <span>{stat.suffix}</span>}
+                    <ArabicNumber value={stat.value} percent={stat.percent} />
                   </dd>
                   <dt className="mt-1.5 text-2xs opacity-70">{t(stat.key)}</dt>
                 </div>

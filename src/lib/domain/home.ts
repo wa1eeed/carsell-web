@@ -1,4 +1,6 @@
 import { db } from '@/lib/db';
+import { cityLabel } from '@/lib/labels/cities';
+import { vehicleTitle } from './vehicle-title';
 import { verifiedSellerWhere } from './seller';
 import { monthlyPayment } from './listing-detail';
 import { canonicalPath } from './listing-detail';
@@ -95,7 +97,12 @@ export type HomeData = {
     cars: HomeCard[];
   };
   auctions: HomeAuction[];
-  recent: { city: string; cars: HomeCard[] };
+  /**
+   * **والمدينة حقلان لا واحد**: `city` خامةٌ كما تُخزّن — يبني بها
+   * الرابط `?city=` وتُرشّح بها القاعدة، و`cityLabel` للعرض. وترجمةُ
+   * الواحد مكانهما تُسقط الاستعلام صامتًا: رابطٌ بـ`Madinah` لا يردّ شيئًا.
+   */
+  recent: { city: string; cityLabel: string; cars: HomeCard[] };
   services: HomeService[];
   faq: { id: string; questionAr: string; questionEn: string; answerAr: string; answerEn: string }[];
 };
@@ -109,8 +116,10 @@ const CARD_INCLUDE = {
       year: true,
       mileageKm: true,
       transmission: true,
-      brand: { select: { slug: true } },
+      /** **و`nameEn` للماركة كما للطراز** — وبلا هذا الحقل تسقط `vehicleTitle` إلى اللقطة العربية صامتةً. */
+      brand: { select: { slug: true, nameEn: true } },
           model: { select: { nameEn: true } },
+          trim: { select: { nameEn: true } },
       /** **المنشور وحده** — وسمُ «مفحوصة» في الرئيسية عامٌّ كالصفحة. */
       inspectionReports: {
         where: { publishedAt: { not: null } },
@@ -136,7 +145,9 @@ type CardRow = {
     year: number;
     mileageKm: number;
     transmission: string;
-    brand: { slug: string } | null;
+    brand: { slug: string; nameEn: string | null } | null;
+    model?: { nameEn: string | null } | null;
+    trim?: { nameEn: string | null } | null;
     inspectionReports: { id: string }[];
   };
   seller: {
@@ -162,14 +173,20 @@ function toCard(
 
   return {
     ref: row.ref,
-    // بلا سنة — السنة رقم يُصاغ لا نصّ يُلصق (فحص ٩)
-    title: [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
-      .filter((part) => part !== null && part !== '')
-      .join(' '),
+    /**
+     * بلا سنة — السنة رقم يُصاغ لا نصّ يُلصق (فحص ٩).
+     *
+     * **وبلغة الصفحة**: كانت البطاقة تلصق اللقطة العربية مباشرةً،
+     * فتقرأ صفحةُ `/en` «جي إم سي يوكن» تحت عنوانٍ إنجليزيّ. و
+     * `vehicleTitle` مبنيّةٌ لهذا، **ولم تبلغ الرئيسية** — وهي
+     * ترجع إلى اللقطة بصمتٍ حين لا يُطلب `nameEn` في الاستعلام،
+     * فالنقصُ لا يصرخ.
+     */
+    title: vehicleTitle(row.vehicle, locale),
     year: row.vehicle.year,
     mileageKm: row.vehicle.mileageKm,
     transmission: row.vehicle.transmission,
-    city: row.city,
+    city: cityLabel(row.city, locale),
     price: String(row.askPrice),
     monthly: eligible
       ? monthlyPayment(price, finance.downPaymentPct, finance.months, finance.profitRatePct)
@@ -271,7 +288,7 @@ export async function getHomeData(
     db.auction.findFirst({
       where: { status: 'LIVE', endsAt: { gt: now }, listing: published },
       orderBy: { endsAt: 'asc' },
-      select: { endsAt: true, listing: { select: { ref: true, city: true, vehicle: { select: { brandName: true, modelName: true, brand: { select: { slug: true } },
+      select: { endsAt: true, listing: { select: { ref: true, city: true, vehicle: { select: { brandName: true, modelName: true, brand: { select: { slug: true, nameEn: true } },
           model: { select: { nameEn: true } } } } } } },
     }),
     db.listing.count({ where: published }),
@@ -373,7 +390,7 @@ export async function getHomeData(
         closingRow === null
           ? null
           : {
-              title: `${closingRow.listing.vehicle.brandName} ${closingRow.listing.vehicle.modelName}`,
+              title: vehicleTitle(closingRow.listing.vehicle, locale),
               endsAt: closingRow.endsAt.toISOString(),
               href: canonicalPath(locale, closingRow.listing).path,
             },
@@ -408,7 +425,7 @@ export async function getHomeData(
         bidCount: auction?._count.bids ?? 0,
       };
     }),
-    recent: { city, cars: recentRows.map(card) },
+    recent: { city, cityLabel: cityLabel(city, locale), cars: recentRows.map(card) },
     services: services.map((service) => ({ ...service, price: service.price.toString() })),
     faq: faqRows.map((placement) => ({
       id: placement.faqId,

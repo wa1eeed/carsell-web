@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { cityLabel } from '@/lib/labels/cities';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from './Button';
@@ -88,9 +89,21 @@ export function HeroSearch({
           className={input}
         >
           <option value="">{t('anyCity')}</option>
+          {/*
+            ═══ والمدينةُ تُعرض بلغة الصفحة ═══
+
+            كانت القائمة تطبع «الرياض» و«جدة» في صفحةٍ إنجليزية
+            كاملة — ومن لا يقرأ العربية لا يستطيع اختيار مدينته في
+            أوّل حقلٍ يلمسه. و`cityLabel` مبنيّةٌ منذ بُنيت المدن:
+            تشتقّ «Riyadh» من المقطع اللاتينيّ نفسه، **ولم تبلغ
+            هذه القائمة**.
+
+            **والقيمة تبقى عربية**: هي ما يُرسَل إلى البحث وما في
+            القاعدة — المعروض يُترجَم والمُرسَل لا.
+          */}
           {cities.map((name) => (
             <option key={name} value={name}>
-              {name}
+              {cityLabel(name, numerals)}
             </option>
           ))}
         </select>

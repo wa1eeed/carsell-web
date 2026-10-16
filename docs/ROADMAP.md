@@ -629,7 +629,7 @@ Each links to where it is specified.
 | Plates as a sellable item | `docs/BACKLOG.md` § F — and the garage's one open row in § B | **decided: after launch** |
 | `cn` does not merge Tailwind classes, while its comment says the last one wins | `docs/BACKLOG.md` § E | risk recorded, awaiting a decision: `tailwind-merge` (a dependency) or an audit of each component |
 | My cars (the garage) | `docs/BACKLOG.md` § B | **usable end to end**; its only open row is the plate, which follows § F |
-| English UI strings | `docs/BACKLOG.md` § D | deferred by the owner |
+| English UI strings | `docs/BACKLOG.md` § D | deferred by the owner — **655 lines / 68 files**, re-measured 2026-10-17. The data fix shipped (twice) and the percent sign is fixed; **error messages still read `messageAr` in 19 of 20 places** although `messageEn` is already in hand — listed there, open. `/en` is in the sitemap, so what stays Arabic is advertised. |
 | `home_story` ad slot has no design | `docs/DESIGN-DECISIONS.md` | question pending |
 | Notification templates still silent | `docs/BACKLOG.md` § G | 7 remain, all declared with a reason, guarded by gate 45 |
 | Production build barrier | `CLAUDE.md` | **Clear.** Measured 2026-10-16 after `rm -rf .next-check`: compiled in 19.9s, 101 static pages, exit 0, working tree restored. The cause was `NODE_ENV=development` during `next build`; still run `npm run build:check` before any release, because `verify` does not build. |

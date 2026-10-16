@@ -17,6 +17,16 @@ import { db } from '@/lib/db';
 
 export type PopularSearch = {
   label: string;
+  /**
+   * ═══ واسمُ الطراز له إنجليزيّةٌ في الكتالوج ═══
+   *
+   * الشريحة تُبنى من `modelName` — وهي لقطةٌ عربية على المركبة —
+   * فتُطبع «باترول» و«مازدا ٣» في صفحةٍ إنجليزية كاملة. و`Model`
+   * يحمل `nameEn` منذ بُني.
+   *
+   * و`undefined` لما لا اسم ثانيَ له (السعر والوقود يصوغهما المنادي).
+   */
+  labelEn?: string;
   /** استعلامٌ جاهز — والوجهة تُبنى في الشاشة لتحمل اللغة. */
   query: string;
   /** المزادات وجهتُها غير الفهرس. */
@@ -67,9 +77,21 @@ export async function popularSearches(limit = 5): Promise<PopularSearch[]> {
 
   const chips: PopularSearch[] = [];
 
+  /** والإنجليزيّة من الكتالوج — استعلامٌ واحدٌ للطرازين لا لكلٍّ. */
+  const catalogue = await db.model.findMany({
+    where: { id: { in: models.map((row) => row.modelId) } },
+    select: { id: true, nameEn: true },
+  });
+  const englishOf = new Map(catalogue.map((row) => [row.id, row.nameEn]));
+
   for (const model of models) {
     if (model._count._all === 0) continue;
-    chips.push({ label: model.modelName, query: `modelId=${model.modelId}` });
+    const nameEn = englishOf.get(model.modelId);
+    chips.push({
+      label: model.modelName,
+      ...(nameEn === undefined || nameEn === '' ? {} : { labelEn: nameEn }),
+      query: `modelId=${model.modelId}`,
+    });
   }
 
   /** أصغر شريحةٍ فيها مخزونٌ معتبَر — ونطاقٌ بسيارةٍ واحدة ليس شائعًا. */

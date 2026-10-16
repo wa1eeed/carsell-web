@@ -52,7 +52,7 @@ export function PriceGuidance({
             {delta > 0 ? t('aboveMarket') : t('belowMarket')}
             {/* النسبة بمقطعٍ واحد — وتقسيمها يجعل الاتّجاه يفرّقها */}
             <span className="font-num" dir="ltr">
-              <ArabicNumber value={Math.abs(delta)} grouped={false} />٪
+              <ArabicNumber value={Math.abs(delta)} grouped={false} percent />
             </span>
           </>
         )}

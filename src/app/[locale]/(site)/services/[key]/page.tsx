@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { cityLabel } from '@/lib/labels/cities';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
@@ -8,7 +9,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
-import { displayDigits } from '@/lib/arabic';
+import { displayDigits, formatPercent } from '@/lib/arabic';
 import { routing } from '@/i18n/routing';
 import { serviceByKey } from '@/lib/domain/content';
 import { DEFAULT_VAT_PCT } from '@/lib/domain/tax';
@@ -184,23 +185,26 @@ export default async function ServiceDetailPage({
                 فراغًا.
               */}
               <section className="mb-7 rounded-xl border border-line bg-surface p-5">
-                <h2 className="mb-2.5 text-sm font-bold">المزوّد</h2>
+                <h2 className="mb-2.5 text-sm font-bold">{t('provider')}</h2>
                 <p className="flex flex-wrap items-center gap-2.5 text-2xs">
                   <span className="bidi-isolate font-bold">
-                    {service.providerName ?? 'تُؤدى من كارز'}
+                    {service.providerName ?? t('byCarz')}
                   </span>
                   {service.providerSlaHours === null ? null : (
                     <>
                       <span aria-hidden className="opacity-40">·</span>
                       <span className="opacity-70">
-                        التزام التنفيذ <Quantity unit="hours" count={service.providerSlaHours} />
+                        {t('slaCommit')}{' '}
+                        <Quantity unit="hours" count={service.providerSlaHours} />
                       </span>
                     </>
                   )}
                 </p>
                 {service.providerCities.length === 0 ? null : (
                   <p className="mt-2.5 text-3xs leading-loose opacity-70">
-                    يغطّي: {service.providerCities.join(' · ')}
+                    {/* **والمدينةُ بلغة الصفحة** — «الرياض» في صفحةٍ إنجليزية لا يقرؤها من جاء إليها. */}
+                    {t('covers')}:{' '}
+                    {service.providerCities.map((name) => cityLabel(name, locale)).join(' · ')}
                   </p>
                 )}
               </section>
@@ -218,28 +222,28 @@ export default async function ServiceDetailPage({
                 {Number(service.price) === 0 ? null : (
                   <p className="mb-3.5 flex items-baseline gap-1.5">
                     <Money amount={price} showCurrency={false} size="xl" />
-                    <span className="text-2xs opacity-70">ر.س + ضريبة</span>
+                    <span className="text-2xs opacity-70">{t('riyalPlusVat')}</span>
                   </p>
                 )}
 
-                <h2 className="mb-3.5 text-sm font-bold">التكلفة</h2>
+                <h2 className="mb-3.5 text-sm font-bold">{t('cost')}</h2>
 
                 {Number(service.price) === 0 ? (
                   <p className="text-xl font-bold text-accent-700">{t('free')}</p>
                 ) : (
                   <>
-                    <Row label="الخدمة" value={price} />
+                    <Row label={t('serviceLine')} value={price} />
                     {/*
                       النسبة من الإعداد لا مكتوبة — فلا تتباعد عنه.
                       **والرقم بالعربية-الهندية**: رقمٌ لاتينيّ قبل كلمة
                       عربية يُقرأ مقلوبًا، والبوابة ١٥ تمنعه.
                     */}
                     <Row
-                      label={`ضريبة القيمة المضافة ${displayDigits(String(vatPct))}٪`}
+                      label={`${t('vat')} ${formatPercent(vatPct, isArabic ? 'ar' : 'en')}`}
                       value={vat}
                     />
                     <div className="mt-2 flex items-center justify-between gap-4 border-t border-line pt-3 text-base font-bold">
-                      <span>الإجمالي</span>
+                      <span>{t('total')}</span>
                       {/* **والهللات تُعرض**: ٥١٨ بدل ٥١٧٫٥٠ خطأُ مبلغ لا عرض */}
                       <Money amount={price + vat} showCurrency={false} decimals={2} />
                     </div>
@@ -274,8 +278,8 @@ export default async function ServiceDetailPage({
 
               {service.slaHours === null ? null : (
                 <p className="rounded-lg border border-line bg-surface p-4 text-3xs leading-loose opacity-75">
-                  المهلة المعلنة <Quantity unit="hours" count={service.slaHours} /> من لحظة
-                  التأكيد.
+                  {t('windowFrom')} <Quantity unit="hours" count={service.slaHours} />{' '}
+                  {t('windowAfter')}
                 </p>
               )}
             </aside>

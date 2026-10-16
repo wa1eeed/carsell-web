@@ -1,5 +1,4 @@
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
-import { displayDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 /**
@@ -45,7 +44,7 @@ export function ShareBars({
                 <ArabicNumber value={share.value} decimals={decimals} />
                 <span className="opacity-65">
                   {' · '}
-                  {displayDigits(pct.toFixed(1))}٪
+                  <ArabicNumber value={pct.toFixed(1)} decimals={1} grouped={false} percent />
                 </span>
               </span>
             </div>

@@ -167,5 +167,16 @@ export function formatPercent(
 ): string {
   const sign = options.signed !== true ? '' : value > 0 ? '+' : value < 0 ? '\u2212' : '';
   const digits = formatNumber(Math.abs(value), locale, { grouped: false });
-  return locale === 'ar' ? `${sign}${digits}٪` : `${sign}${digits}%`;
+  return `${sign}${digits}${percentSign(locale)}`;
+}
+
+/**
+ * ═══ والعلامة تُكتب مرّة ═══
+ *
+ * كانت «٪» مكتوبةً بيد في **خمسة مواضع** من الشجرة
+ * المزدوجة اللغة — فصفحةٌ إنجليزية تقول «15٪» بعلامةٍ عربية
+ * لا يعرفها من جاء إليها. والعلامة لغةٌ كالرقم لا زينةٌ عليه.
+ */
+export function percentSign(locale: NumeralLocale): string {
+  return locale === 'ar' ? '٪' : '%';
 }

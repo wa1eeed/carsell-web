@@ -82,6 +82,7 @@ function Icon({ children }: { children: React.ReactNode }) {
 function popularLabel(
   chip: PopularSearch,
   dict: { t: (key: string) => string; tu: (key: string) => string; te: (key: string) => string },
+  locale: string,
 ): string {
   if (chip.path !== undefined) return dict.t('nav.auctions');
 
@@ -94,8 +95,11 @@ function popularLabel(
   const fuel = /^fuel:(\w+)$/.exec(chip.label);
   if (fuel !== null) return dict.te(`fuel.${String(fuel[1])}`);
 
-  /** اسم الطراز كما هو — وهو ما يبحث به الناس. */
-  return chip.label;
+  /**
+   * اسم الطراز كما هو — وهو ما يبحث به الناس. **وبلغة الصفحة**:
+   * «باترول» في صفحةٍ إنجليزية لا يقرؤها من جاء إليها.
+   */
+  return locale === 'en' ? (chip.labelEn ?? chip.label) : chip.label;
 }
 
 export default async function HomePage({
@@ -177,7 +181,7 @@ export default async function HomePage({
         {...(home.live.closing === null
           ? {}
           : { closingTitle: home.live.closing.title, closingAt: home.live.closing.endsAt })}
-        city={home.recent.city}
+        city={home.recent.cityLabel}
       />
       {/* الأزرار انتقلت إلى `AccountNav` داخل الترويسة — فتصل كل شاشة */}
       <SiteHeader active="home" />
@@ -254,7 +258,7 @@ export default async function HomePage({
                     */
                     className="rounded-full border border-line bg-surface px-3 py-1.5 font-bold text-ink hover:border-ink"
                   >
-                    {popularLabel(chip, { t, tu, te })}
+                    {popularLabel(chip, { t, tu, te }, locale)}
                   </Link>
                 ))}
               </p>
@@ -384,7 +388,7 @@ export default async function HomePage({
                     <span>{t('withinBand')}</span>
                   </p>
                   <span className="rounded-sm bg-accent-100 px-2.5 py-1 text-3xs font-bold text-accent-800">
-                    {t('downPayment')} <ArabicNumber value={home.finance.downPaymentPct} />٪
+                    {t('downPayment')} <ArabicNumber value={home.finance.downPaymentPct} percent />
                   </span>
                   <span className="rounded-sm bg-accent-100 px-2.5 py-1 text-3xs font-bold text-accent-800">
                     <Quantity unit="months" count={home.finance.months} />
@@ -449,7 +453,7 @@ export default async function HomePage({
           <section className="border-t border-line">
             <div className="page-frame">
               <SectionHead
-                title={t('recentIn', { city: home.recent.city })}
+                title={t('recentIn', { city: home.recent.cityLabel })}
                 action={t('showAll')}
                 href={`/${locale}/cars?city=${encodeURIComponent(home.recent.city)}`}
               />

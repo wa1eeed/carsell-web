@@ -678,7 +678,18 @@
     "all": "All",
     "free": "Free",
     "instant": "Instant",
-    "includes": "What's included"
+    "includes": "What's included",
+    "provider": "Provider",
+    "byCarz": "Carried out by CARZ",
+    "slaCommit": "Delivery commitment",
+    "covers": "Covers",
+    "riyalPlusVat": "SAR + VAT",
+    "cost": "Cost",
+    "serviceLine": "Service",
+    "vat": "VAT",
+    "total": "Total",
+    "windowFrom": "Stated window",
+    "windowAfter": "from the moment it is confirmed."
   },
   "help": {
     "title": "Help centre",

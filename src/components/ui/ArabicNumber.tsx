@@ -1,5 +1,5 @@
 import { useLocale } from 'next-intl';
-import { formatNumber, type NumeralLocale } from '@/lib/arabic';
+import { formatNumber, type NumeralLocale, percentSign } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 /**
@@ -14,11 +14,20 @@ export function ArabicNumber({
   value,
   decimals = 0,
   grouped = true,
+  percent = false,
   className,
 }: {
   value: number | string;
   decimals?: number;
   grouped?: boolean;
+  /**
+   * علامةُ النسبة **داخل المقطع لا بجواره**.
+   *
+   * كانت تُكتب «٪» بعد المكوّن في خمسة مواضع: فهي **عربية على
+   * صفحةٍ إنجليزية**، وهي خارج عزل `dir="ltr"` — ففي مقطعٍ يرث
+   * RTL تنزلق إلى الطرف الآخر فيُرسم «٪15». وموضعها مع رقمها.
+   */
+  percent?: boolean;
   className?: string;
 }) {
   const locale = useLocale() as NumeralLocale;
@@ -37,6 +46,7 @@ export function ArabicNumber({
   return (
     <span dir="ltr" className={cn('font-num bidi-isolate', className)}>
       {formatNumber(value, locale, { decimals, grouped })}
+      {!percent ? null : percentSign(locale)}
     </span>
   );
 }
