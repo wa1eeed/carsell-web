@@ -374,6 +374,26 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       them — but a deployment that goes live without the owner's number earns
       nothing on a vehicle sale and the dashboard says so in one figure. Needs the
       owner's rate, not a code change.
+- [x] **The buyer journey walked by clicking, end to end.** Browse → car → buy →
+      tax dialog → order → pay → confirm receipt → escrow released. Every step
+      worked: `/api/v1/orders` answered 428 and opened the tax dialog, saving it
+      retried the purchase automatically, the payment card took a sandbox card,
+      and confirming receipt released 83,350 to the seller. `ORD-2026-1013` is
+      the resulting order and is kept as demo data.
+- [x] **«تعذّر إصدار الفاتورة» read as a failure on a sale that succeeded.** The
+      vehicle tax rules for individual sellers are deliberately inactive —
+      «AWAITING RULING», pending the deemed-supplier classification — so **every**
+      completed sale writes `invoice.blocked`. The buyer's timeline showed the
+      bare phrase with no reason and no remedy, right under a transfer that had
+      gone through. The reason travels with the event now and the line reads
+      «الفاتورة مؤجَّلة — قاعدة الضريبة لهذه الصفقة تنتظر الإقرار». *An expected
+      state is not an error; turning one into an error tells the reader they did
+      something wrong when they did not.*
+- [x] **A test judged the whole table instead of its own row.** `blocked-invoices`
+      asserted `blockedInvoices()` was completely empty — and since every
+      completed sale legitimately blocks an invoice, **the first real purchase
+      broke it**. It now asserts its own order left the list. (The failure was the
+      test's, not the code's.)
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

@@ -1039,7 +1039,8 @@
         "created": "Order created"
       },
       "invoice": {
-        "blocked": "Invoice could not be issued"
+        "blocked": "Invoice could not be issued",
+        "deferred": "Invoice deferred"
       }
     },
     "escrowState": {

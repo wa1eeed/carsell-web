@@ -174,9 +174,35 @@ export function OrderScreen({
                       أمام المستخدم. الاحتياط هنا لا يخفي النقص: المرحلة
                       تحته تبقى ظاهرة، والاختبار يمنع النوع غير المترجَم.
                     */}
+                    {/*
+                      **والمتوقَّع لا يُعنوَن خطأً.** حجبُ الفاتورة
+                      لقاعدةٍ تنتظر إقرارًا — أو لصفقةٍ خارج النطاق
+                      أصلًا — قرارُنا نحن لا عطلٌ في صفقة المشتري،
+                      و«تعذّر» تجعله يظنّ أنّ شيئًا انكسر عنده.
+                    */}
                     <p className="text-xs font-bold">
-                      {t.has(`event.${event.type}`) ? t(`event.${event.type}`) : t('event.other')}
+                      {event.type === 'invoice.blocked' &&
+                      event.reason !== null &&
+                      t.has(`docBlockedReason.${event.reason}`)
+                        ? t('event.invoice.deferred')
+                        : t.has(`event.${event.type}`)
+                          ? t(`event.${event.type}`)
+                          : t('event.other')}
                     </p>
+                    {/*
+                      ═══ والسببُ تحت العنوان ═══
+
+                      «تعذّر إصدار الفاتورة» عاريةً بعد صفقةٍ **نجحت**
+                      تقرأ كعطل: المال وصل البائع والملكية انتقلت، ثمّ
+                      سطرٌ يقول إنّ شيئًا تعذّر ولا يقول ماذا ولا ما
+                      العمل. والسببُ في الحمولة منذ كُتبت، وبطاقةُ
+                      الوثائق تشرحه بالجملة نفسها — فيُقال هنا أيضًا.
+                    */}
+                    {event.reason === null || !t.has(`docBlockedReason.${event.reason}`) ? null : (
+                      <p className="mt-1 text-3xs leading-loose opacity-65">
+                        {t(`docBlockedReason.${event.reason}`)}
+                      </p>
+                    )}
                     {/*
                       **ومتى وقعت؟** كان المسار أربعة أسطر متطابقة تقول
                       «انتقال مرحلة» بلا وقت — و`createdAt` يُعاد لكل

@@ -76,9 +76,23 @@ describe('الفواتير المحجوبة تُقرأ في شاشة الضري�
     expect(row?.lines.some((line) => line.reason === 'UNKNOWN')).toBe(true);
   });
 
-  it('ولا شيء يُعاد حين لا حجب', async () => {
+  /**
+   * **والحكم على الصفّ المعنيّ لا على القائمة كلّها.**
+   *
+   * كان يفحص `blockedInvoices()` فارغةً تمامًا — وقاعدةُ المركبة
+   * تنتظر إقرارًا رسميًّا، فـ**كلُّ بيعةٍ تكتمل في المنتج تكتب حجبًا
+   * صحيحًا**. فأوّل صفقةٍ حقيقية تُسقط الاختبار، وهو يقيس بياناتِ
+   * جيرانه لا ما صنعه هو. (وقد أسقطتها أوّلُ رحلةِ شراءٍ مُشيت
+   * بالنقر: `ORD-2026-1013`.)
+   */
+  it('وما حُذف حجبُه يخرج من القائمة', async () => {
+    const order = await db.order.findFirst({ select: { ref: true } });
+    if (order === null) return;
+
     if (made.length > 0) await db.orderEvent.deleteMany({ where: { id: { in: made } } });
     made.length = 0;
-    expect(await blockedInvoices()).toEqual([]);
+
+    const rows = await blockedInvoices();
+    expect(rows.find((entry) => entry.orderRef === order.ref)).toBeUndefined();
   });
 });

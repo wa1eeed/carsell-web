@@ -3,6 +3,7 @@ import { markListingSold, reserveListing } from './listing-state';
 import { nextOrderRef } from './refs';
 import type { OrderDocument, SettlementFigures } from './documents';
 import type { OrderStage } from '@/generated/prisma/enums';
+import type { Prisma } from '@/generated/prisma/client';
 import { transferDeadlineFor } from './transfer-windows';
 
 /**
@@ -267,7 +268,25 @@ export type PublicOrder = {
    * و`isSeller` تعني أن الطرف الآخر بائع، أي أن الرائي مشترٍ.
    */
   counterparty: { name: string; isSeller: boolean; verified: boolean };
-  events: { type: string; fromStage: string | null; toStage: string | null; createdAt: string }[];
+  events: {
+    type: string;
+    fromStage: string | null;
+    toStage: string | null;
+    createdAt: string;
+    /**
+     * ═══ وسببُ الحجب يُقال لمن ينتظر الوثيقة ═══
+     *
+     * خطُّ الزمن كان يعرض «تعذّر إصدار الفاتورة» عاريةً بعد صفقةٍ
+     * **نجحت**: المال وصل البائع والملكية انتقلت، ثمّ سطرٌ أحمر يقول
+     * إنّ شيئًا تعذّر. والسبب في الحمولة منذ كُتبت (`RULE_AWAITING_APPROVAL`)،
+     * وبطاقةُ الوثائق تشرحه بجملةٍ كاملة — وخطُّ الزمن وحده يصمت.
+     *
+     * **والمتوقَّع لا يُعرض خطأً**: قاعدةُ المركبة تنتظر إقرارًا
+     * رسميًّا بقرارنا نحن، فلا فاتورة تُستحقّ اليوم — ومن يقرأ
+     * «تعذّر» يظنّه عطلًا في صفقته.
+     */
+    reason: string | null;
+  }[];
 };
 
 const ORDER_INCLUDE = {
@@ -371,8 +390,30 @@ export async function getOrder(
       fromStage: event.fromStage,
       toStage: event.toStage,
       createdAt: event.createdAt.toISOString(),
+      reason: blockedReason(event.type, event.payload),
     })),
   };
+}
+
+/**
+ * سببُ حجب الفاتورة من حمولة الحدث.
+ *
+ * **والسببُ المعنيّ ليس أوّلَ ما في القائمة**: صفقةٌ تحجب فاتورتين —
+ * رسمُ النقل (`OUT_OF_SCOPE_NO_INVOICE`، صرفٌ نيابةً عن العميل فلا
+ * فاتورة منّا أصلًا) وقيمةُ المركبة (`RULE_AWAITING_APPROVAL`). والأوّل
+ * ليس خبرًا، والثاني هو ما ينتظره القارئ.
+ */
+function blockedReason(type: string, payload: Prisma.JsonValue | null): string | null {
+  if (type !== 'invoice.blocked' || payload === null || typeof payload !== 'object') return null;
+  const blocked = (payload as { blocked?: unknown }).blocked;
+  if (!Array.isArray(blocked)) return null;
+
+  const reasons = blocked
+    .map((row) => (typeof row === 'object' && row !== null ? (row as { reason?: unknown }).reason : null))
+    .filter((reason): reason is string => typeof reason === 'string' && reason !== '');
+  if (reasons.length === 0) return null;
+
+  return reasons.find((reason) => reason !== 'OUT_OF_SCOPE_NO_INVOICE') ?? reasons[0] ?? null;
 }
 
 export type DirectBuyFailure =
