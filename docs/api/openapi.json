@@ -5505,6 +5505,54 @@
         }
       }
     },
+    "/api/v1/me/notification-channels": {
+      "patch": {
+        "summary": "PATCH /api/v1/me/notification-channels",
+        "tags": [
+          "me"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "channelKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "channelKey",
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/me/profile": {
       "patch": {
         "summary": "PATCH /api/v1/me/profile",

@@ -520,6 +520,19 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       auction, held deposit, payout in flight or a wallet balance, each said
       **before** the button is pressed. `docs/workflows/account-closure.md`,
       decision 11 in `docs/DESIGN-DECISIONS.md`.
+- [x] **Six notification switches nobody could reach.** `PushChannel`,
+      `NotificationPreference`, `setPreference` and `isChannelEnabled` were all
+      written for A10 — and **no screen set a preference, and nothing led from a
+      sent template to the topic its owner could mute**: the template carried
+      transport flags (email/SMS/push/in-app) and no link to a topic. Not one
+      preference row had ever been written. `NotificationTemplate.pushChannelKey`
+      is that link; `notify` consults it; the panel sits above the notification
+      list, with the critical channels shown **locked, not hidden**.
+- [x] **And the gate that should have caught it was reading comments.** A comment
+      in `/admin/push` mentions `setPreference` by name, so the "domain writer
+      with no door" check counted it as a caller. It strips comments now — the
+      second gate in this repository fooled by prose, and the measurement after
+      the fix found exactly this one.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

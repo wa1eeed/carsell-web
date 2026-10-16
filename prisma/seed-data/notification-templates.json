@@ -15,7 +15,8 @@
     "variables": [
       "reason"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "account.iban_required",
@@ -31,7 +32,8 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "account.id_rejected",
@@ -49,7 +51,8 @@
     "variables": [
       "reason"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "account.id_verified",
@@ -67,7 +70,8 @@
     "variables": [
       "name"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "account.restored",
@@ -83,7 +87,8 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "auction.closing",
@@ -102,7 +107,8 @@
       "ref",
       "minutes"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auction.extended",
@@ -121,7 +127,8 @@
       "ref",
       "minutes"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auction.lost",
@@ -139,7 +146,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auction.outbid",
@@ -158,7 +166,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auction.reserve_not_met",
@@ -176,7 +185,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auction.starting",
@@ -194,7 +204,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auction.won",
@@ -214,7 +225,8 @@
       "amount",
       "hours"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "auth.new_device",
@@ -233,7 +245,8 @@
       "device",
       "city"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "auth.otp",
@@ -252,7 +265,8 @@
       "code",
       "minutes"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "deposit.forfeited",
@@ -271,7 +285,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "deposit.held",
@@ -290,7 +305,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "deposit.released",
@@ -309,7 +325,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "auction_mine"
   },
   {
     "key": "dispute.opened",
@@ -328,7 +345,8 @@
       "ref",
       "reason"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "dispute.resolved",
@@ -347,7 +365,8 @@
       "ref",
       "resolution"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "escrow.held",
@@ -366,7 +385,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "escrow.released",
@@ -385,7 +405,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "listing.expiring",
@@ -404,7 +425,8 @@
       "ref",
       "days"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "listing.published",
@@ -422,7 +444,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "listing.rejected",
@@ -441,7 +464,8 @@
       "ref",
       "reason"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "listing.relisted",
@@ -457,7 +481,8 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "listing.sold",
@@ -476,7 +501,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "listing.under_review",
@@ -494,7 +520,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": null
   },
   {
     "key": "offer.accepted",
@@ -513,7 +540,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.auto_rejected",
@@ -531,7 +559,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.countered",
@@ -550,7 +579,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.expired",
@@ -568,7 +598,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.expiring",
@@ -587,7 +618,8 @@
       "ref",
       "hours"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.lost",
@@ -603,7 +635,8 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.received",
@@ -623,7 +656,8 @@
       "amount",
       "buyer"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.rejected",
@@ -641,7 +675,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "offer.withdrawn",
@@ -659,7 +694,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "offers_mine"
   },
   {
     "key": "order.cancelled",
@@ -678,7 +714,8 @@
       "ref",
       "reason"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "order.created",
@@ -696,7 +733,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "order.payment_due",
@@ -716,7 +754,8 @@
       "hours",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "order.payment_overdue",
@@ -734,7 +773,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "order.payment_timeout",
@@ -750,7 +790,8 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "order.received",
@@ -769,7 +810,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "order.stage_changed",
@@ -788,7 +830,8 @@
       "ref",
       "stage"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "service.assigned",
@@ -807,7 +850,8 @@
       "ref",
       "service"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "service.completed",
@@ -826,7 +870,8 @@
       "ref",
       "service"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "service.consent_declined",
@@ -844,7 +889,8 @@
     "variables": [
       "ref"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "service.consent_granted",
@@ -863,7 +909,8 @@
       "ref",
       "amount"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "service.consent_needed",
@@ -882,7 +929,8 @@
       "ref",
       "hours"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   },
   {
     "key": "service.failed",
@@ -901,6 +949,7 @@
       "ref",
       "service"
     ],
-    "active": true
+    "active": true,
+    "pushChannelKey": "orders_payment"
   }
 ]

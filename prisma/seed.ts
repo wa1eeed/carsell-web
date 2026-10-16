@@ -352,6 +352,8 @@ type TemplateRow = {
   channelInApp: boolean;
   variables: string[];
   active: boolean;
+  /** موضوعُ الإشعار — وبه يُوصَل بمفتاح المستخدم. و`null` يصل دائمًا. */
+  pushChannelKey: string | null;
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1983,6 +1985,15 @@ async function main(): Promise<void> {
   }
 
   // ————— القوالب والمساحات الإعلانية —————
+  /**
+   * **والقناة قبل القالب.** صار القالب يحمل `pushChannelKey` بمفتاحٍ
+   * أجنبيّ، فزرعُه قبل قنواته يسقط على قيدٍ مرجعيّ — والترتيب هنا
+   * يحترم المفاتيح كما يحترمه المسح.
+   */
+  await prisma.pushChannel.createMany({
+    data: load<PushChannelRow[]>('push-channels.json'),
+  });
+
   await prisma.notificationTemplate.createMany({
     data: load<TemplateRow[]>('notification-templates.json'),
   });
@@ -2024,10 +2035,6 @@ async function main(): Promise<void> {
       updatedBy: routingAdmin,
       updatedAt: NOW,
     })),
-  });
-
-  await prisma.pushChannel.createMany({
-    data: load<PushChannelRow[]>('push-channels.json'),
   });
 
   // ————— مفضّلات وبحوث محفوظة — بلاها لا تُقاس شريحة ولا تُختبر —————

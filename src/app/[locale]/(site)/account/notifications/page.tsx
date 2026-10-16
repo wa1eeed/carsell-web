@@ -12,6 +12,8 @@ import { TimeAgo } from '@/components/ui/TimeAgo';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { listNotifications, unreadCount } from '@/lib/domain/notifications';
+import { userChannels } from '@/lib/domain/push-channels';
+import { ChannelPreferences } from './ChannelPreferences';
 import { cn } from '@/lib/cn';
 
 export const dynamic = 'force-dynamic';
@@ -56,10 +58,18 @@ export default async function NotificationsPage({
   const search = await searchParams;
   const unreadOnly = search.tab === 'unread';
 
-  const [items, unread, t] = await Promise.all([
+  const [items, unread, t, channels] = await Promise.all([
     listNotifications(user.id, { locale, limit: 100, unreadOnly }),
     unreadCount(user.id),
     getTranslations('notificationCenter'),
+    /**
+     * ═══ ومفاتيحُه معها — لا في شاشةٍ ثالثة ═══
+     *
+     * من فتح مركز الإشعارات جاء يقرأ ما وصله أو يوقف ما لا يعنيه،
+     * وهما سؤالٌ واحد. وشاشةُ «إعدادات» منفصلة تجعل المفتاح يُبحث
+     * عنه، وأكثرُ الناس لا يبحثون — فيُطفئون الجرس كلَّه.
+     */
+    userChannels(user.id),
   ]);
 
   const now = new Date().toISOString();
@@ -104,6 +114,8 @@ export default async function NotificationsPage({
               </FilterChip>
             ))}
           </nav>
+
+          <ChannelPreferences channels={channels} />
 
           {items.length === 0 ? (
             <EmptyState

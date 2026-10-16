@@ -210,3 +210,51 @@ service request**: one `serviceRequest.create` in the whole tree and zero
 updates, read-only admin screens, inspection reports written only by the seed,
 and the buyer's money held on their card with no ledger entry at all. That is
 `docs/BACKLOG.md` § I, and it needs two owner decisions before it is built.
+
+## What reaches whom — the switches
+
+`PushChannel` seeds six **topics** (my auctions · orders and payment · offers on
+my cars · price drops in favourites · new results for a saved search ·
+marketing), `NotificationPreference` stores a user's choice, and `setPreference`
+/ `isChannelEnabled` enforce it — all written for A10.
+
+**None of it was reachable.** No screen set a preference, and nothing led from a
+sent template to the topic its owner could mute: `NotificationTemplate` carries
+*transport* flags (email · SMS · push · in-app) and had no link to a topic. So
+not one preference row was ever written and not one switch was ever read.
+
+*(The "domain writer with no door" gate did not catch `setPreference` either: a
+comment in `/admin/push` mentions it by name, and the gate matched the comment.
+It strips comments now — the second gate fooled by prose in this repository.)*
+
+### The link
+
+`NotificationTemplate.pushChannelKey` — nullable, with `ON DELETE SET NULL`.
+
+| Template prefix | Topic | Mutable |
+|---|---|---|
+| `auction.*`, `deposit.*` | `auction_mine` | no |
+| `order.*`, `escrow.*`, `service.*` | `orders_payment` | no |
+| `offer.*` | `offers_mine` | yes |
+| `listing.*`, `dispute.*`, `account.*`, `auth.*` | — | always sent |
+
+**`null` means always delivered.** A dispute and an account block are not
+switchable, and anything not yet classified is not suppressed — silence by
+accident is worse than one notification too many.
+
+### Critical channels cannot be muted
+
+A10's acceptance criterion. `setPreference` refuses to disable a channel whose
+`userControllable` is false, and `isChannelEnabled` returns `true` for those
+**without reading the preference at all** — so a one-line mistake cannot silence
+a payment deadline for everyone. The screen shows them locked rather than hiding
+them: hiding them makes the reader think what they see is everything that reaches
+them.
+
+### Where
+
+`/ar/account/notifications`, above the list — the same screen where notifications
+are read, because "what reached me" and "what should reach me" are one question.
+Route: `PATCH /api/v1/me/notification-channels`, one switch per call so a refusal
+names itself. Tests: `tests/notification-channels.test.ts`.
+

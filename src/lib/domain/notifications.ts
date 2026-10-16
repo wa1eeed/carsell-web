@@ -84,7 +84,42 @@ function data(input: NotifyInput): Prisma.NotificationUncheckedCreateInput {
  * و`tx` يُمرَّر حين يكون الإشعار جزءًا من معاملة الحدث الذي سبّبه —
  * فإمّا وقع الحدث وإشعارُه معًا أو لم يقع أيٌّ منهما.
  */
+/**
+ * ═══ والمفتاح يُقرأ — ولم يكن له طريق ═══
+ *
+ * `PushChannel` و`NotificationPreference` و`setPreference` و
+ * `isChannelEnabled` مبنيّةٌ كلُّها منذ A10، **ولا طريق من قالبٍ
+ * مُرسَل إلى القناة التي يُطفئها صاحبه** — فلم يُكتب صفُّ تفضيلٍ
+ * واحد، ولا قُرئ مفتاحٌ قطّ.
+ *
+ * و`pushChannelKey` على القالب هو الطريق. **و`null` تصل دائمًا**:
+ * النزاع وحالُ الحساب لا يُطفآن، وما لم يُصنَّف لا يُمنع — فالصمت
+ * أسلم من كتمٍ لم يُقصد.
+ *
+ * **والحرِج لا يُطفأ أصلًا**: `isChannelEnabled` تُعيد `true` لقناةٍ
+ * غير قابلةٍ للتحكّم بلا أن تقرأ التفضيل — فلا بابَ لخطأ سطرٍ يُسكِت
+ * إشعار دفعٍ للجميع (معيار A10).
+ *
+ * **ولا تُقرأ داخل معاملة**: `tx` تعني أنّ النداء جزءٌ من كتابةٍ
+ * أكبر، وقراءةٌ إضافية فيها تُطيل قفلها. فالتفضيل يُقرأ خارجها وحدها.
+ */
+async function muted(input: NotifyInput, tx?: Writer): Promise<boolean> {
+  if (tx !== undefined) return false;
+
+  const template = await db.notificationTemplate.findUnique({
+    where: { key: input.templateKey },
+    select: { pushChannelKey: true },
+  });
+  const channel = template?.pushChannelKey ?? null;
+  if (channel === null) return false;
+
+  const { isChannelEnabled } = await import('./push-channels');
+  return !(await isChannelEnabled(input.userId, channel));
+}
+
 export async function notify(input: NotifyInput, tx?: Writer): Promise<void> {
+  if (await muted(input, tx)) return;
+
   const row = await (tx ?? db).notification.create({
     data: data(input),
     select: { id: true },

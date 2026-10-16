@@ -1667,6 +1667,19 @@ model NotificationTemplate {
   channelSms    Boolean  @default(false)
   channelPush   Boolean  @default(false)
   channelInApp  Boolean  @default(true)
+
+  /// ═══ موضوعُ الإشعار — وبه يُوصَل بمفتاح المستخدم ═══
+  ///
+  /// `channel*` أعلاه **وسائل** (بريد · رسالة · دفع · داخل التطبيق)،
+  /// و`PushChannel` **موضوع** (مزاداتي · عروضي · انخفاض سعر). وكان
+  /// بينهما فراغ: `NotificationPreference` و`setPreference` و
+  /// `isChannelEnabled` مبنيّةٌ كلُّها، **ولا طريق من قالبٍ مُرسَل إلى
+  /// القناة التي يُطفئها صاحبه** — فالمفاتيح لا تُقرأ أبدًا.
+  ///
+  /// و`null` تعني **يصل دائمًا**: النزاع وحالُ الحساب لا يُطفآن، وما
+  /// لم يُصنَّف لا يُمنع — فالصمت أسلم من كتمٍ لم يُقصد.
+  pushChannelKey String?
+  pushChannel    PushChannel? @relation(fields: [pushChannelKey], references: [key], onDelete: SetNull)
   priority      String   @default("normal") // critical | high | normal
   subjectAr     String?
   subjectEn     String?
@@ -2135,6 +2148,7 @@ model CampaignSend {
 /// قناة إشعار يراها المستخدم في إعداداته — A10.
 model PushChannel {
   key    String  @id // auction_mine | orders_payment | offers_mine …
+  templates NotificationTemplate[]
   nameAr String
   /// ═══ معيار A10 ═══ الحرِجة لا يقدر المستخدم إيقافها.
   userControllable Boolean @default(true)

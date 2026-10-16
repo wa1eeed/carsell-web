@@ -182,5 +182,5 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 2 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 61 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 62 |
 | `Year` | no | `value` · `className` | 5 |

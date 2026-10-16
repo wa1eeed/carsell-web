@@ -179,6 +179,7 @@ erDiagram
   FaqPlacement }o--|| FaqItem : "faq"
   BodyTypeDisplay }o--|| BodyType : "key"
   Notification }o--|| User : "user"
+  NotificationTemplate |o--|| PushChannel : "pushChannel"
   AdSlot ||--o{ AdCampaign : "campaigns"
   AdCampaign }o--|| AdSlot : "slot"
   Report }o--|| User : "reporter"
@@ -205,6 +206,7 @@ erDiagram
   Campaign ||--o{ CampaignSend : "sends"
   CampaignSend }o--|| Campaign : "campaign"
   CampaignSend }o--|| User : "user"
+  PushChannel ||--o{ NotificationTemplate : "templates"
   PushChannel ||--o{ NotificationPreference : "preferences"
   NotificationPreference }o--|| User : "user"
   NotificationPreference }o--|| PushChannel : "channel"
@@ -1138,6 +1140,7 @@ Relations: `user` → `User`
 | `channelSms` | `Boolean` |  |
 | `channelPush` | `Boolean` |  |
 | `channelInApp` | `Boolean` |  |
+| `pushChannelKey` | `String?` |  |
 | `priority` | `String` |  |
 | `subjectAr` | `String?` |  |
 | `subjectEn` | `String?` |  |
@@ -1147,6 +1150,8 @@ Relations: `user` → `User`
 | `smsEn` | `String?` |  |
 | `variables` | `String[]` |  |
 | `active` | `Boolean` |  |
+
+Relations: `pushChannel` → `PushChannel`
 
 ### `AdSlot`
 
@@ -1381,7 +1386,7 @@ Relations: `campaign` → `Campaign` · `user` → `User`
 | `defaultOn` | `Boolean` |  |
 | `sort` | `Int` |  |
 
-Relations: `preferences` → `NotificationPreference`
+Relations: `templates` → `NotificationTemplate` · `preferences` → `NotificationPreference`
 
 ### `NotificationPreference`
 

@@ -229,3 +229,36 @@ export async function pushTemplateFit(): Promise<PushTemplateFit[]> {
       return over !== 0 ? over : b.bodyChars - a.bodyChars;
     });
 }
+
+/**
+ * ═══ قنواتُ مستخدمٍ بعينه — وحالُ مفتاحه عليها ═══
+ *
+ * تقرؤها شاشةُ «ما يصلك». و`listChannels` فوقها للأدمن: تعدّ من
+ * أطفأ كلَّ قناة ولا تعرف صاحبَ الحساب.
+ *
+ * **والحرِجة تُعرض مقفلةً لا تُحذف** (معيار A10): إخفاؤها يجعل
+ * القارئ يظنّ أنّ ما يراه كلُّ ما يصله.
+ */
+export type UserChannel = {
+  key: string;
+  nameAr: string;
+  userControllable: boolean;
+  enabled: boolean;
+};
+
+export async function userChannels(userId: string): Promise<UserChannel[]> {
+  const [channels, preferences] = await Promise.all([
+    db.pushChannel.findMany({ orderBy: [{ sort: 'asc' }, { key: 'asc' }] }),
+    db.notificationPreference.findMany({ where: { userId } }),
+  ]);
+
+  const chosen = new Map(preferences.map((row) => [row.channelKey, row.enabled]));
+
+  return channels.map((channel) => ({
+    key: channel.key,
+    nameAr: channel.nameAr,
+    userControllable: channel.userControllable,
+    /** **والحرِجة مفتوحةٌ دائمًا** — كما تقرؤها `isChannelEnabled`. */
+    enabled: !channel.userControllable || (chosen.get(channel.key) ?? channel.defaultOn),
+  }));
+}

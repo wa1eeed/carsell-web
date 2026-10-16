@@ -2816,18 +2816,28 @@ function checkDomainWritersReachable() {
   const DOMAIN = join(ROOT, 'src', 'lib', 'domain');
   const WRITES = /\bdb\.\w+\.(create|createMany|update|updateMany|upsert|delete|deleteMany)\b/;
 
-  /** كلُّ ملفّات `src` ونصُّها — تُقرأ مرّةً لا لكل دالّة. */
+  /**
+   * كلُّ ملفّات `src` ونصُّها — تُقرأ مرّةً لا لكل دالّة.
+   *
+   * **والتعليق يُحذف.** تعليقٌ في شاشةٍ أخرى يذكر اسم الدالّة كان
+   * يُحسب بابًا: `/admin/push` تكتب «والحراسة الحقيقية في
+   * `setPreference`» — فظنّت البوابةُ أنّ لها منادياً، و**لا شاشةَ
+   * في المنتج كلّه تضبط تفضيلات الإشعار**. وهي ثاني مرّةٍ تُخدَع
+   * بوابةٌ بتعليق (البوابة ٥٢ قبلها)، وتعليقاتُ هذا المستودع تُسمّي
+   * الدوالّ في كل سطر.
+   */
   const sources = [];
   for (const path of walk(join(ROOT, 'src'))) {
     if (!/\.(ts|tsx)$/.test(path)) continue;
     if (path.includes('generated')) continue;
-    sources.push([path, readFileSync(path, 'utf8')]);
+    sources.push([path, stripComments(readFileSync(path, 'utf8'))]);
   }
 
   for (const path of walk(DOMAIN)) {
     if (!/\.ts$/.test(path)) continue;
     const rel = relative(ROOT, path);
-    const text = readFileSync(path, 'utf8');
+    /** وملفُّها كذلك — فتعليقٌ فيها لا يُحسب نداءً من داخلها. */
+    const text = stripComments(readFileSync(path, 'utf8'));
 
     for (const match of text.matchAll(/^export (?:async )?function (\w+)/gm)) {
       const name = match[1] ?? '';
