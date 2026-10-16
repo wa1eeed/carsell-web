@@ -104,8 +104,16 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
               {row.providerId === null ? (
                 <span className="bidi-isolate">{row.providerName}</span>
               ) : (
+                /*
+                  ═══ والرابط يفتح المزوّد لا قائمةَ كلِّ المزوّدين ═══
+
+                  كان يُرسل `?q=<الاسم>` و**صفحةُ المزوّدين لا تقرأ
+                  `q` أصلًا** — ولا صندوق بحثٍ فيها — فمن نقر اسمَ
+                  مزوّدٍ بعينه وصل إلى الستّة كلِّهم بلا ترشيح، ثمّ
+                  بحث عنه بعينه. و`providerId` بين يدي الشرط نفسه.
+                */
                 <Link
-                  href={`/admin/providers?q=${encodeURIComponent(row.providerName)}`}
+                  href={`/admin/providers/${encodeURIComponent(row.providerId)}`}
                   className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
                 >
                   {row.providerName}

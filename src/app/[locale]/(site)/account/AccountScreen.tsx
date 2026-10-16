@@ -41,12 +41,29 @@ function MissingFields({ data, locale }: { data: AccountData; locale: string }) 
   const { missing, canBuy, canSell, percent } = data.completion;
   if (missing.length === 0) return null;
 
+  /**
+   * ═══ والبطاقة تقول حالَها هي ═══
+   *
+   * كان العنوان «أكمل ملفك **قبل أول معاملة**» والنصّ «هذه الحقول
+   * **مطلوبة قبل الشراء أو البيع**» يُعرضان لمن يستطيع الشراء والبيع
+   * معًا — وما بقي له المدينةُ والوضعُ الضريبيّ واسمُ المصرف، **ولا
+   * واحدٌ منها يمنع شيئًا**: `canBuy` بريدٌ وهوية، و`canSell` تزيد
+   * الآيبان.
+   *
+   * فالشاشة كانت تقول لصاحب إعلانٍ منشورٍ ومزادٍ قائم إنه لم يُعامل
+   * بعد. **والشرط المعروض يُفرَض أو يُحذف** — وهذا لا يُفرَض، فيُقال
+   * على حقيقته.
+   */
+  const blocked = !canBuy || !canSell;
+
   return (
     <section className="mb-8 rounded-xl border border-warn-200 bg-warn-100 p-6 text-warn-900">
-      <h2 className="mb-1.5 text-base font-bold">{t('completeTitle')}</h2>
+      <h2 className="mb-1.5 text-base font-bold">
+        {blocked ? t('completeTitle') : t('completeTitleOptional')}
+      </h2>
       <p className="mb-4 text-xs leading-loose opacity-85">
         {/* ما يمنعه النقص يُقال صراحةً — «أكمل ملفك» وحدها لا تدفع أحدًا */}
-        {!canBuy ? t('blocksBuying') : !canSell ? t('blocksSelling') : t('completeBody')}
+        {!canBuy ? t('blocksBuying') : !canSell ? t('blocksSelling') : t('completeBodyOptional')}
       </p>
 
       {/*

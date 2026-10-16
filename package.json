@@ -28,6 +28,7 @@
     "trial:on": "tsx scripts/trial-mode.ts on",
     "trial:off": "tsx scripts/trial-mode.ts off",
     "trial:reset": "tsx scripts/trial-reset.ts",
+    "walk:surface": "tsx scripts/walk-surface.ts",
     "db:seed:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/seed.ts",
     "admin:sync": "tsx prisma/admin-sync.ts",
     "admin:sync:deployed": "cd /opt/seed && ./node_modules/.bin/tsx prisma/admin-sync.ts",

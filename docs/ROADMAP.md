@@ -344,6 +344,36 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       «—» for every service entry: the order link comes from `orderId`, and a
       service's reference lives in `note`. A finance operator reading a 517.50
       line cannot tell which service it is.
+- [x] **The whole surface walked, not sampled.** `npm run walk:surface` signs in
+      as an admin and as a user, requests **every** `page.tsx` with real ids from
+      the database, then requests **every internal link** on every page that
+      answered 200. First measurement: 90 defined routes, 614 URLs, **602 at
+      200**, and **not one link leading to a broken page**. The rest are
+      destinations that belong to someone else (another buyer's order is a 404 by
+      right) and permission redirects to sign-in. `docs/NOTES.md`.
+- [x] **Two links in the header carried no locale.** `/sell` and `/auth` are
+      rendered by `LinkButton` — a plain `next/link`, unlike `Link` from
+      `@/i18n/navigation` — so the middleware answered 307 on **every click, in
+      the header of 79 pages out of 80**. A link redirected on every click is not
+      a correct link that is slow; it tells a search engine our addresses are not
+      final. Gate 53 refuses a literal absolute href on anything but `<Link>`
+      inside the localized tree.
+- [x] **The profile card told a complete profile it was incomplete.** With email,
+      identity and IBAN present, `canBuy` and `canSell` are both true and what is
+      left is city, tax status and bank name — **none of which blocks anything**.
+      The card still read «أكمل ملفك قبل أول معاملة» and «هذه الحقول مطلوبة قبل
+      الشراء أو البيع» to a seller with a published listing and a live auction.
+      The blocked wording is kept for the blocked states; the rest now says what
+      is true.
+- [x] **A provider's name opened the list of all providers.** The service-request
+      card linked to `/admin/providers?q=<name>` and that page **reads no `q` and
+      has no search box**, so the operator landed on all six and searched by eye —
+      while `providerId` was in hand in the same condition. It opens the provider.
+- [ ] **Commission is seeded at zero, so take rate reads 0.0%.** Both
+      `CommissionRule` rows are `pct: 0` — deliberate, and `/admin/plans` can set
+      them — but a deployment that goes live without the owner's number earns
+      nothing on a vehicle sale and the dashboard says so in one figure. Needs the
+      owner's rate, not a code change.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to

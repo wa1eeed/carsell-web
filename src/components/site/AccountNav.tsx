@@ -1,3 +1,4 @@
+import { getLocale } from 'next-intl/server';
 import { LinkButton } from '@/components/ui/Button';
 import { Link } from '@/i18n/navigation';
 import { currentUserFromCookies } from '@/lib/domain/account';
@@ -24,21 +25,32 @@ export async function AccountNav({
    */
   stacked = false,
 }: { stacked?: boolean } = {}) {
-  const user = await currentUserFromCookies();
+  /**
+   * ═══ واللغة تُكتب في الرابط لا تُترك للوسيط ═══
+   *
+   * `LinkButton` رابطٌ عاديّ (`next/link`) لا يعرف اللغة — خلافًا
+   * لـ`Link` من `@/i18n/navigation`. فكان «بِع سيارتك» و«تسجيل
+   * الدخول» يصدران `/sell` و`/auth`، فيردّ الوسيط ٣٠٧ إلى
+   * `/ar/…` **عند كل نقرة، في ترويسةِ تسعٍ وسبعين صفحة من ثمانين**.
+   *
+   * ورابطٌ يُحوَّل عند كل نقرة ليس رابطًا صحيحًا فيه بطء: هو إشارةٌ
+   * لمحرّك البحث أنّ عناويننا ليست نهائية.
+   */
+  const [user, locale] = await Promise.all([currentUserFromCookies(), getLocale()]);
 
   if (user === null) {
     return (
       <span className={stacked ? 'flex flex-col gap-2.5' : 'flex items-center gap-2.5'}>
         {/* الزرّ عنصر تفاعل والرابط تنقّل — لا يُخلطان */}
         <LinkButton
-          href="/sell"
+          href={`/${locale}/sell`}
           variant="outline"
           size="sm"
           className={stacked ? 'w-full' : 'hidden sm:inline-flex'}
         >
           بِع سيارتك
         </LinkButton>
-        <LinkButton href="/auth" size="sm" className={stacked ? 'w-full' : ''}>
+        <LinkButton href={`/${locale}/auth`} size="sm" className={stacked ? 'w-full' : ''}>
           تسجيل الدخول
         </LinkButton>
       </span>
@@ -54,7 +66,7 @@ export async function AccountNav({
 
   return (
     <span className="flex items-center gap-2.5">
-      <LinkButton href="/sell" variant="outline" size="sm">
+      <LinkButton href={`/${locale}/sell`} variant="outline" size="sm">
         بِع سيارتك
       </LinkButton>
 

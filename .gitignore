@@ -31,3 +31,4 @@ src/generated/
 
 # نواتج `sed -i.bak` — التُزم بها سهوًا مرّة، فتُستبعَد
 *.bak
+.surface-walk.json
