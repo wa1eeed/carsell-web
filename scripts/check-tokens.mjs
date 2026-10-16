@@ -581,7 +581,8 @@ function pathToDb(entry, seen = new Set()) {
 
   let source;
   try {
-    source = readFileSync(entry, 'utf8');
+    /** والتعليق يُحذف — `from '@/lib/db'` في تعليقٍ ليس استيرادًا. */
+    source = stripComments(readFileSync(entry, 'utf8'));
   } catch {
     return null;
   }
@@ -1003,13 +1004,21 @@ function checkApprovalQuorum() {
 
   const domainFiles = walk(domain).filter((file) => file.endsWith('.ts'));
   const routeFiles = walk(api).filter((file) => file.endsWith('route.ts'));
-  const routeSource = routeFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
+  /**
+   * **والتعليق يُحذف قبل البحث.** هذا النصّ يُسأل «أيُنادى هذا
+   * الموافِق؟ أتُفحص هذه الصلاحية؟» — وتعليقٌ يذكر الاسم يُجيب «نعم»
+   * فتسكت البوابة على نصابٍ بلا باب. وهو الصنف الذي خدع البوابتين
+   * ٥٠ و٥٢، وتعليقاتُ هذا المستودع تُسمّي الدوالّ في كل سطر.
+   */
+  const routeSource = routeFiles
+    .map((file) => stripComments(readFileSync(file, 'utf8')))
+    .join('\n');
 
   /* ① كل نوع موافقة يُنشأ لا بدّ له من موافِقٍ يُنادى من مسار */
   const approvers = [];
   const creators = new Map();
   for (const file of domainFiles) {
-    const source = readFileSync(file, 'utf8');
+    const source = stripComments(readFileSync(file, 'utf8'));
     for (const match of source.matchAll(/^export async function (approve\w+)/gm)) {
       approvers.push({ name: match[1], file });
     }
@@ -1021,7 +1030,7 @@ function checkApprovalQuorum() {
 
   for (const [kind, file] of creators) {
     const rel = relative(ROOT, file);
-    const source = readFileSync(file, 'utf8');
+    const source = stripComments(readFileSync(file, 'utf8'));
     /* نصاب العضوين وحده معنيّ — طلبٌ بعضوٍ واحد ليس نصابًا */
     if (!/requiredApprovals:\s*[2-9]/.test(source) && !/REQUIRED_APPROVALS/.test(source)) continue;
 
