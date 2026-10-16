@@ -1218,7 +1218,7 @@
     "ownListing": "This is your listing — manage it from your account.",
     "askingPrice": "Asking price",
     "yourOffer": "Your offer in SAR",
-    "offerNote": "The seller may accept, decline, or counter. Acceptance opens a payment window.",
+    "offerNote": "The seller may accept or counter; with no reply your offer lapses when its window closes. Acceptance opens a payment window.",
     "sendOffer": "Send offer",
     "viewingSoon": "Viewing requests are coming soon — contact the seller from the order page after purchase."
   },

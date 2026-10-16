@@ -438,6 +438,19 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       picker, the sandbox hold went through and the bid was created (201). The
       page updated in place: «٧ مزايدين · ١٠ مزايدات · بلغ السعر الاحتياطي ·
       مزايدتك هي الأعلى».
+- [x] **The offer dialog promised a reject the seller cannot do.** «يقدر البائع
+      يقبل **أو يرفض** أو يعرض مبلغ مقابل» — and the seller's inbox offers exactly
+      two buttons, «اقبل» and «قابِل». Measured in the domain: `createOffer`,
+      `counterOffer`, `withdrawOffer` (the buyer's), `acceptOffer`,
+      `expireOffers` — **no seller-initiated decline exists**, and
+      `OfferStatus.REJECTED` is written only automatically (below the hidden
+      floor, or losing to an accepted offer). The text now says what the product
+      does; whether to add the button is the owner's call, recorded in
+      `docs/OPEN-QUESTIONS.md` with the argument for adding it.
+- [x] **The negotiation journey walked by clicking, both sides.** Buyer offers
+      26,500 → seller's inbox shows it → seller counters 27,250 → **buyer can
+      accept the counter** (the defect recorded earlier is gone) → `ORD-2026-1014`
+      is created at 27,600 with the transfer fee, source «عرض».
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to
