@@ -82,7 +82,7 @@ export default async function ServiceRequestPage({
 
           <h1 className="font-num mb-1.5 text-3xl font-bold tracking-tight">{view.ref}</h1>
           <p className="mb-6 flex flex-wrap items-center gap-2.5 text-sm">
-            <span className="opacity-60">{view.serviceName}</span>
+            <span className="opacity-70">{view.serviceName}</span>
             <span aria-hidden className="opacity-40">
               ·
             </span>
@@ -103,7 +103,7 @@ export default async function ServiceRequestPage({
             >
               {label}
             </Badge>
-            {view.city === null ? null : <span className="text-2xs opacity-55">{view.city}</span>}
+            {view.city === null ? null : <span className="text-2xs opacity-70">{view.city}</span>}
           </p>
 
           {/*
@@ -152,7 +152,7 @@ export default async function ServiceRequestPage({
             <Row
               label="السداد"
               value={
-                <span className="text-2xs opacity-70">
+                <span className="text-2xs opacity-75">
                   {view.paid
                     ? 'حُجز المبلغ'
                     : view.status === 'AWAITING_SELLER'
@@ -187,7 +187,7 @@ export default async function ServiceRequestPage({
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line px-5 py-3.5 last:border-b-0">
-      <dt className="shrink-0 text-2xs opacity-55">{label}</dt>
+      <dt className="shrink-0 text-2xs opacity-70">{label}</dt>
       <dd className="text-sm font-semibold">{value}</dd>
     </div>
   );

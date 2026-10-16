@@ -193,7 +193,7 @@ export function SponsoredBanner({
 
   return (
     <div ref={box} className="flex flex-col gap-2">
-      <span className="text-3xs font-bold opacity-45">{label}</span>
+      <span className="text-3xs font-bold opacity-65">{label}</span>
 
       <a
         href={ad.clickPath}

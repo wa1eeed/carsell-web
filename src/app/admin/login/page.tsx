@@ -41,7 +41,7 @@ export default async function AdminLoginPage({
             <span className="flex justify-center">
               <Logo priority className="h-10" />
             </span>
-            <p className="mt-2 text-3xs font-semibold tracking-[0.12em] opacity-55">
+            <p className="mt-2 text-3xs font-semibold tracking-[0.12em] opacity-70">
               ADMIN CONSOLE
             </p>
           </header>

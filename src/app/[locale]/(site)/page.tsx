@@ -204,7 +204,7 @@ export default async function HomePage({
                       <dd className="text-3xl leading-none font-bold">
                         <ArabicNumber value={stat.value} />
                       </dd>
-                      <dt className="mt-1.5 text-2xs opacity-60">{t(`heroStat.${stat.key}`)}</dt>
+                      <dt className="mt-1.5 text-2xs opacity-70">{t(`heroStat.${stat.key}`)}</dt>
                     </div>
                   ))}
                 </dl>
@@ -238,7 +238,7 @@ export default async function HomePage({
             */}
             {popular.length === 0 ? null : (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-3xs">
-                <span className="opacity-50">{t('popular')}</span>
+                <span className="opacity-70">{t('popular')}</span>
                 {popular.map((chip) => (
                   <Link
                     key={`${chip.label}-${chip.query}`}
@@ -358,7 +358,7 @@ export default async function HomePage({
                 <div className="mb-6 flex flex-wrap items-end gap-5">
                   <div className="min-w-64 flex-1">
                     <h2 className="mb-2 text-2xl font-bold">{t('financeTitle')}</h2>
-                    <p className="text-sm opacity-65">
+                    <p className="text-sm opacity-75">
                       {t('financeBody', {
                         // الرقم يُصاغ قبل دخوله السلسلة — `#` في ICU لاتيني
                         n: tu('financeProviders', {
@@ -373,7 +373,7 @@ export default async function HomePage({
                 <PaymentBands bands={home.finance.bands} selected={home.finance.selected} />
 
                 <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4.5">
-                  <p className="flex items-center gap-2 text-sm opacity-70">
+                  <p className="flex items-center gap-2 text-sm opacity-75">
                     <Quantity
                       unit="cars"
                       count={
@@ -480,7 +480,7 @@ export default async function HomePage({
           <div className="page-frame">
             <div className="mb-7">
               <h2 className="mb-2 text-2xl font-bold">{t('whyTitle')}</h2>
-              <p className="text-sm opacity-70">{t('whyBody')}</p>
+              <p className="text-sm opacity-75">{t('whyBody')}</p>
             </div>
             <ValueProps
               items={[1, 2, 3, 4].map((i) => ({

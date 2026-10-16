@@ -103,7 +103,7 @@ export function TaxStatusDialog({
       */}
       {choice !== 'VAT_REGISTERED' ? null : (
         <div className="mt-3.5 flex flex-col gap-1.5">
-          <label className="text-2xs font-bold opacity-60" htmlFor="vatNumber">
+          <label className="text-2xs font-bold opacity-70" htmlFor="vatNumber">
             {t('vatLabel')}
           </label>
           <input
@@ -126,7 +126,7 @@ export function TaxStatusDialog({
         <p className="mt-3 text-2xs text-warn-900">{t(`error.${error}`)}</p>
       )}
 
-      <p className="mt-4 text-3xs leading-loose opacity-50">{t('once')}</p>
+      <p className="mt-4 text-3xs leading-loose opacity-70">{t('once')}</p>
 
       <Button className="mt-4 w-full" disabled={!ready || saving} onClick={save}>
         {saving ? t('saving') : t('save')}

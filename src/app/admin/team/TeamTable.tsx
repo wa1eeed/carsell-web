@@ -67,7 +67,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                 {row.id === meId ? <Badge tone="neutral">أنت</Badge> : null}
               </span>
               {/* البريد يُقارن خانةً بخانة — لاتينيّ معزول */}
-              <span dir="ltr" className="truncate text-2xs opacity-60">
+              <span dir="ltr" className="truncate text-2xs opacity-70">
                 {row.email}
               </span>
             </div>
@@ -76,7 +76,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
               <span className="font-num text-2xs font-bold">{row.role}</span>
 
               <div className="flex flex-col items-start gap-0.5">
-                <span className="text-2xs opacity-70">
+                <span className="text-2xs opacity-75">
                   {row.lastSeenAt === null
                     ? 'لم يدخل بعد'
                     : riyadh.format(new Date(row.lastSeenAt))}
@@ -85,7 +85,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                   عدد الجلسات يكشف حسابًا مشتركًا: أربع جلسات حيّة
                   لعضوٍ واحد ليست أربعة أجهزة غالبًا.
                 */}
-                <span className="text-3xs opacity-45">
+                <span className="text-3xs opacity-65">
                   <Quantity unit="sessions" count={row.activeSessions} /> حيّة
                 </span>
               </div>

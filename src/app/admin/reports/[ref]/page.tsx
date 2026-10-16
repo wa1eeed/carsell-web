@@ -99,7 +99,7 @@ export default async function AdminReportDetailPage({
           <>
             <DetailCard title="نصّ البلاغ">
               {report.details === null || report.details === '' ? (
-                <p className="text-2xs opacity-50">
+                <p className="text-2xs opacity-70">
                   بلا تفصيل — والمبلِّغ اختار سببًا ولم يكتب شيئًا.
                 </p>
               ) : (
@@ -137,13 +137,13 @@ export default async function AdminReportDetailPage({
               {/* المرجع لا المعرّف — والمعرّف الخام لا يُتصرَّف به */}
               <Field label="المرجع" value={report.targetRef ?? report.targetId} ltr />
               {targetHref === null ? (
-                <p className="mt-3 text-3xs opacity-45">
+                <p className="mt-3 text-3xs opacity-65">
                   لا شاشة لهذا النوع بعد — والمعرّف أعلاه.
                 </p>
               ) : (
                 <Link
                   href={targetHref}
-                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                 >
                   افتح الهدف
                 </Link>
@@ -154,7 +154,7 @@ export default async function AdminReportDetailPage({
               <Field label="الاسم" value={report.reporter.name} />
               <Link
                 href={`/admin/users/${report.reporter.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح ملفّه
               </Link>
@@ -167,7 +167,7 @@ export default async function AdminReportDetailPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             تقديمُ البلاغ وما فعله الفريق به.
           </p>
           <Timeline events={events} />

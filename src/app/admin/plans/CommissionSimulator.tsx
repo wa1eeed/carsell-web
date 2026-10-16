@@ -110,16 +110,16 @@ export function CommissionSimulator({
 
         {result === null ? null : (
           <span className="flex items-baseline gap-2.5">
-            <span className="text-2xs opacity-55">العمولة المحسوبة</span>
+            <span className="text-2xs opacity-70">العمولة المحسوبة</span>
             <span className="font-num text-xl font-bold">{displayDigits(result)}</span>
-            <span className="text-2xs opacity-55">ريال</span>
+            <span className="text-2xs opacity-70">ريال</span>
           </span>
         )}
 
         {error === null ? null : <span className="text-2xs text-danger">{error}</span>}
       </div>
 
-      <p className="mt-4 text-3xs opacity-55">
+      <p className="mt-4 text-3xs opacity-70">
         الحساب هنا تجريبيّ ولا يغيّر شيئًا — وتطبيقه على باقة يحتاج موافقة شخصين.
       </p>
     </section>
@@ -139,7 +139,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-60">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       {/* رقمٌ يُقارن خانةً بخانة — لاتينيّ معزول */}
       <input
         dir="ltr"
@@ -148,7 +148,7 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         className="rounded-md border border-line bg-surface px-3 py-2 text-start font-num text-2xs"
       />
-      {note === undefined ? null : <span className="text-3xs opacity-40">{note}</span>}
+      {note === undefined ? null : <span className="text-3xs opacity-65">{note}</span>}
     </label>
   );
 }

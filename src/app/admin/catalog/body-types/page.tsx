@@ -32,7 +32,7 @@ export default async function BodyTypesPage() {
       />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">القواعد</h2>
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">القواعد</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>المفاتيح ثابتة من تعداد المخطط — لا يُنشأ نوع ولا يُحذف من هنا.</li>
           <li>الاسمان العربي والإنجليزي إلزاميان.</li>

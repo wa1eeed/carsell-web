@@ -37,7 +37,7 @@ export function ExtendTransfer({
 
   if (extendedAt !== null) {
     return (
-      <p className="mt-2.5 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-70">
+      <p className="mt-2.5 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-75">
         <b>مُدّد مرّة</b> — ولا يُمدَّد ثانية.
         {reason === null || reason === '' ? null : <> السبب: {reason}</>}
       </p>
@@ -79,7 +79,7 @@ export function ExtendTransfer({
   return (
     <>
       <div className="mt-2.5 rounded-md border border-line p-3.5">
-        <p className="mb-2.5 text-3xs leading-loose opacity-70">
+        <p className="mb-2.5 text-3xs leading-loose opacity-75">
           يُضاف <Quantity unit="days" count={days} /> إلى السقف، مرّة واحدة. والسبب
           إلزاميّ لأن التمديد يؤخّر مال المشتري — فمن يؤخّره يُسمّي لماذا.
         </p>

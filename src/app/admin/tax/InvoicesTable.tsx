@@ -161,15 +161,15 @@ export function InvoicesTable({
         onClose={() => setTarget(null)}
         title="إلغاء فاتورة بإشعارٍ دائن"
       >
-        <p className="mb-3.5 text-2xs leading-loose opacity-70">
+        <p className="mb-3.5 text-2xs leading-loose opacity-75">
           لا تُحذف الفاتورة: يصدر إشعارٌ دائن يعاكسها، ويبقى الأصل مقروءًا معه.
-          <span dir="ltr" className="ms-1.5 font-num opacity-60">
+          <span dir="ltr" className="ms-1.5 font-num opacity-70">
             {target?.number}
           </span>
         </p>
 
         <label className="mb-3.5 flex flex-col gap-1.5">
-          <span className="text-3xs font-bold opacity-60">السبب — إلزاميّ</span>
+          <span className="text-3xs font-bold opacity-70">السبب — إلزاميّ</span>
           <textarea
             rows={3}
             value={reason}
@@ -182,7 +182,7 @@ export function InvoicesTable({
             سؤالٌ بلا جواب — والحدّ خمسة أحرف لا لأنه كافٍ بل لأن ما
             دونه ليس سببًا.
           */}
-          <span className="text-3xs opacity-45">يُقرأ في مراجعةٍ ضريبية بعد سنة.</span>
+          <span className="text-3xs opacity-65">يُقرأ في مراجعةٍ ضريبية بعد سنة.</span>
         </label>
 
         <div className="flex gap-2.5">

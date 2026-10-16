@@ -95,7 +95,7 @@ export default async function AdminIdentityPage({
 
         ويوم تصل المفاتيح يتغيّر السطر وحده — فلا جملةٌ تُنسى في ملفّ.
       */}
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         {nafathLive
           ? 'الطلبات اليدوية فقط. التوثيق عبر النفاذ الوطني يتم تلقائيًا، والهدف أقل من ساعة.'
           : 'كل طلب هنا يمرّ بمراجعة إنسان — النفاذ الوطني لم يُربط بعد، فلا توثيق تلقائيّ. والهدف أقل من ساعة.'}

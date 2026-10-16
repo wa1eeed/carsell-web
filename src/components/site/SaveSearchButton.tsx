@@ -88,7 +88,7 @@ export function SaveSearchButton({
         onClick={save}
         disabled={pending || done}
         aria-pressed={done}
-        className="flex shrink-0 items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-3xs font-semibold transition-colors hover:bg-surface disabled:opacity-70"
+        className="flex shrink-0 items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-3xs font-semibold transition-colors hover:bg-surface disabled:opacity-75"
       >
         <BellIcon filled={done} />
         {done ? t('saved') : t('save')}

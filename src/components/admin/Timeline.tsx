@@ -57,7 +57,7 @@ function Detail({ value }: { value: string }) {
 export function Timeline({ events }: { events: readonly TimelineEvent[] }) {
   if (events.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-line p-6 text-2xs opacity-55">
+      <p className="rounded-lg border border-dashed border-line p-6 text-2xs opacity-70">
         لا أحداث مسجَّلة على هذا الإعلان بعد.
       </p>
     );
@@ -95,7 +95,7 @@ export function Timeline({ events }: { events: readonly TimelineEvent[] }) {
               )}
             </span>
 
-            <span className="flex flex-wrap items-center gap-2 text-3xs opacity-45">
+            <span className="flex flex-wrap items-center gap-2 text-3xs opacity-65">
               <span>{dt.format(new Date(event.at))}</span>
               {event.actor === null ? null : (
                 <>

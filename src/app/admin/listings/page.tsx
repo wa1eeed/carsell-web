@@ -43,7 +43,7 @@ export default async function AdminListingsPage({
   return (
     <AdminShell title="مراجعة الإعلانات"
       subtitle="قائمة المراجعة · والقرار بدليله" activeHref="/admin/listings" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         الترشيح تلقائي ولا تُراجع كل الإعلانات. تدخل القائمة الإعلانات التي ترشحها
         القواعد: صورة مكررة، أو سعر غير منطقي، أو حساب جديد، أو بلاغ.
       </p>

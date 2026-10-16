@@ -38,7 +38,7 @@ export function ChannelDefault({
     return (
       <span className="flex items-center gap-2 opacity-70">
         {defaultOn ? 'مفتوحة' : 'مغلقة'}
-        {locked ? <span className="text-3xs opacity-60">— الموافقة تُطلب</span> : null}
+        {locked ? <span className="text-3xs opacity-70">— الموافقة تُطلب</span> : null}
       </span>
     );
   }

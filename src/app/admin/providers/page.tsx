@@ -69,7 +69,7 @@ export default async function AdminProvidersPage({
   return (
     <AdminShell title="مزوّدو الخدمات والتمويل"
       subtitle="المزوّدون والتزامهم" activeHref="/admin/providers" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <Quantity unit="providers" count={rows.length} /> ·{' '}
         <Quantity unit="linkedServices" count={stats.servicesLinked} />
       </p>
@@ -105,7 +105,7 @@ export default async function AdminProvidersPage({
       */}
       <h2 className="mt-10 mb-3.5 text-sm font-bold">طلبات تجاوزت الالتزام</h2>
       {breached.length === 0 ? (
-        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
+        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
           لا طلب متأخّرًا الآن. والتأخّر يُقاس من مهلة الطلب نفسها لا من راية.
         </p>
       ) : (
@@ -120,7 +120,7 @@ export default async function AdminProvidersPage({
                 <span dir="ltr" className="font-num truncate text-2xs font-bold">
                   {row.ref}
                 </span>
-                <span className="bidi-isolate truncate text-3xs opacity-55">
+                <span className="bidi-isolate truncate text-3xs opacity-70">
                   {row.serviceName} — {row.providerName}
                 </span>
               </div>
@@ -133,7 +133,7 @@ export default async function AdminProvidersPage({
       )}
 
       <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-2">
-        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           {/*
             ═══ والقاعدة المعروضة هي التي تقع ═══
 
@@ -153,7 +153,7 @@ export default async function AdminProvidersPage({
           </p>
         </div>
 
-        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">التجاوز والإسقاط</p>
           <p>
             تجاوز الالتزام <Quantity unit="breaches" count={stats.breachesBeforeSuspension} /> في شهر

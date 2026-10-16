@@ -202,7 +202,7 @@ export default async function ServiceRequestsPage({
         ولا تقول كيف يُرفع — ونقرةٌ ثانيةٌ عليها ليست بابًا يُهتدى إليه.
       */}
       {scope === null ? null : (
-        <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-60">
+        <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
           <span>معروضٌ: {SCOPE_LABEL[scope]}</span>
           <Link href="/admin/service-requests" className="font-semibold underline opacity-100">
             أزِل المرشّح

@@ -73,7 +73,7 @@ export function RangeSlider({
       <div className="flex items-center justify-between text-xs font-bold">
         <ArabicNumber value={draft[0]} grouped={grouped} />
         {label === undefined ? null : (
-          <span className="text-2xs font-medium opacity-50">{label}</span>
+          <span className="text-2xs font-medium opacity-70">{label}</span>
         )}
         <ArabicNumber value={draft[1]} grouped={grouped} />
       </div>

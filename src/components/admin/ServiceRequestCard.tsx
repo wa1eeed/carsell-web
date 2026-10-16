@@ -60,7 +60,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
 
         <span className="truncate text-2xs font-semibold opacity-85">{row.serviceName}</span>
 
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           <Link
             href={`/admin/users/${encodeURIComponent(row.customerId)}`}
             className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
@@ -95,7 +95,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
           **والمزوّد يُسمّى أو يُقال إنه لم يُسنَد** — والفراغ يُقرأ
           «لا مزوّد لهذه الخدمة» لا «لم يُسنَد بعد».
         */}
-        <span className="text-3xs opacity-45">
+        <span className="text-3xs opacity-65">
           {row.providerName === null ? (
             <span className="font-bold text-warn-900">بلا مزوّد — ينتظر الإسناد</span>
           ) : (
@@ -129,7 +129,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
 
         {/* موعدُ العميل — متى يأتي، لا متى ينفد صبرُنا على المزوّد */}
         {row.scheduledAt === null ? null : (
-          <span className="font-num text-3xs opacity-55">
+          <span className="font-num text-3xs opacity-70">
             <span className="opacity-70">موعد العميل </span>
             {when.format(new Date(row.scheduledAt))}
           </span>
@@ -159,7 +159,7 @@ function Sla({ row }: { row: ServiceRequestRow }) {
 
   const left = Math.abs(row.overdueHours);
   return (
-    <span className={left <= 6 ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-45'}>
+    <span className={left <= 6 ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-65'}>
       <span className="opacity-80">بقي للمزوّد </span>
       <Duration hours={left} />
     </span>

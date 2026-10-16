@@ -55,7 +55,7 @@ export default async function AdminPlansPage() {
   return (
     <AdminShell title="الباقات والعمولة"
       subtitle="حزمة قيَم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <Quantity unit="plans" count={stats.plans} /> ·{' '}
         {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${displayDigits(String(stats.paidPlans))})`}{' '}
         · العمولة{' '}
@@ -120,7 +120,7 @@ export default async function AdminPlansPage() {
                     <span dir="ltr" className="font-num text-start">
                       {row.key}
                     </span>
-                    <span className="text-3xs opacity-45">
+                    <span className="text-3xs opacity-65">
                       {ENTITLEMENT_LABEL[row.key] ?? row.key}
                     </span>
                   </span>
@@ -175,7 +175,7 @@ export default async function AdminPlansPage() {
       {/* **والبابُ تحت الوعد مباشرةً** — لا في شاشةٍ ثانية. */}
       {writable ? <GrantOverride entitlements={entitlements} /> : null}
       {overrides.length === 0 ? (
-        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
+        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
           لا تجاوزات. وكل تجاوزٍ يُمنح يظهر هنا بسببه ومدّته.
         </p>
       ) : (
@@ -187,16 +187,16 @@ export default async function AdminPlansPage() {
             >
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="bidi-isolate truncate text-2xs font-bold">{row.subject}</span>
-                <span className="text-3xs opacity-55">{row.reason}</span>
+                <span className="text-3xs opacity-70">{row.reason}</span>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-3xs">
-                <span className="font-num opacity-70">
+                <span className="font-num opacity-75">
                   {ENTITLEMENT_LABEL[row.entitlementKey] ?? row.entitlementKey} = {row.value}
                 </span>
                 {row.expiresAt === null ? (
                   <Badge tone="warn">بلا انتهاء</Badge>
                 ) : (
-                  <span className="opacity-55">
+                  <span className="opacity-70">
                     ينتهي {new Date(row.expiresAt).toLocaleDateString(AR_DATE_LOCALE)}
                   </span>
                 )}
@@ -206,7 +206,7 @@ export default async function AdminPlansPage() {
         </div>
       )}
 
-      <div className="mt-10 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+      <div className="mt-10 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <p className="mb-2 font-bold">قاعدتان لا تُخترقان</p>
         <p>
           الكود يسأل عن <b>الخاصّية</b> لا عن الباقة. والعمولة تُثبَّت لقطةً في الطلب وقت

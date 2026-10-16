@@ -68,7 +68,7 @@ export function MarginPanel({
     return (
       <div className="flex flex-col gap-2.5">
         <Badge tone="accent">هامش الربح ممنوح</Badge>
-        <p className="font-num text-3xs opacity-60" dir="ltr">
+        <p className="font-num text-3xs opacity-70" dir="ltr">
           {reference ?? '—'}
         </p>
         <Button size="sm" variant="outline" disabled={pending} onClick={() => send(false)}>
@@ -85,7 +85,7 @@ export function MarginPanel({
    */
   if (!registered) {
     return (
-      <p className="text-3xs leading-loose opacity-55">
+      <p className="text-3xs leading-loose opacity-70">
         الهامش يتبع التسجيل الضريبيّ — ولا رقم ضريبيّ لهذا الحساب.
       </p>
     );
@@ -94,7 +94,7 @@ export function MarginPanel({
   return (
     <div className="flex flex-col gap-2.5">
       <label className="flex flex-col gap-1.5">
-        <span className="text-3xs font-bold opacity-60">مرجع مستند الهيئة</span>
+        <span className="text-3xs font-bold opacity-70">مرجع مستند الهيئة</span>
         {/* مرجعٌ لاتينيّ يُنسخ من مستند ويُقارن خانةً بخانة */}
         <input
           dir="ltr"
@@ -110,7 +110,7 @@ export function MarginPanel({
       >
         {pending ? 'يُحفظ…' : 'امنح هامش الربح'}
       </Button>
-      <p className="text-3xs leading-loose opacity-50">
+      <p className="text-3xs leading-loose opacity-70">
         يُحتسب على الفرق بين الشراء والبيع لا على كامل السعر — ولا يُطبَّق تلقائيًّا أبدًا.
       </p>
       {toast === null ? null : <Toast title={toast} />}

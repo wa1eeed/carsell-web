@@ -120,7 +120,7 @@ export async function QueryUnderstanding({
               key={`${chip.field}-${String(chip.value)}`}
               href={hrefWithout(chip)}
               aria-label={t('chip.remove', { what: label(chip) })}
-              className="flex items-center gap-1.5 rounded-md bg-bg px-2.5 py-1.5 text-3xs font-semibold transition-opacity hover:opacity-65"
+              className="flex items-center gap-1.5 rounded-md bg-bg px-2.5 py-1.5 text-3xs font-semibold transition-opacity hover:opacity-75"
             >
               <span className="bidi-isolate">{label(chip)}</span>
               <CloseIcon />

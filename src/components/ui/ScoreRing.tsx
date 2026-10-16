@@ -67,7 +67,7 @@ export function ScoreRing({
       <span className="relative flex flex-col items-center leading-none">
         <ArabicNumber value={clamped} className={cn('font-bold', s.value)} />
         {size === 'sm' ? null : (
-          <span className={cn('mt-1 opacity-50', s.label)}>{t('outOf100')}</span>
+          <span className={cn('mt-1 opacity-70', s.label)}>{t('outOf100')}</span>
         )}
       </span>
     </span>

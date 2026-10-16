@@ -67,7 +67,7 @@ export default async function ActivityPage({
     <AdminShell title="مجرى النشاط" activeHref="/admin/activity" admin={admin}>
       <AutoRefresh seconds={30} />
 
-      <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-60">
+      <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
         كلُّ ما وقع في السوق مرتَّبًا بالأحدث — الإعلانات والعروض والطلبات والمدفوعات
         والمزايدات والنزاعات والحسابات الجديدة وأثر الفريق، في مجرى واحد.
       </p>

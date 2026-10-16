@@ -36,7 +36,7 @@ export function ListSearch({
       )}
 
       <label className="relative flex min-w-56 flex-1 items-center">
-        <span className="pointer-events-none absolute start-3 opacity-40">
+        <span className="pointer-events-none absolute start-3 opacity-65">
           {/* الأيقونة مضمَّنة — ولا وحدة أيقونات في المستودع */}
           <svg
             viewBox="0 0 24 24"
@@ -82,7 +82,7 @@ export function ListSearch({
                   ),
                 ).toString()}`
           }
-          className="text-3xs font-bold underline underline-offset-2 opacity-60 hover:opacity-100"
+          className="text-3xs font-bold underline underline-offset-2 opacity-70 hover:opacity-100"
         >
           امسح البحث
         </a>

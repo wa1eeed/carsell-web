@@ -47,9 +47,9 @@ export function HeroSearch({
   };
 
   const field = 'flex-1 min-w-40 px-4.5 py-3';
-  const label = 'mb-1.5 block text-3xs font-medium opacity-50';
+  const label = 'mb-1.5 block text-3xs font-medium opacity-70';
   const input =
-    'w-full bg-transparent text-sm font-semibold outline-none placeholder:opacity-45';
+    'w-full bg-transparent text-sm font-semibold outline-none placeholder:opacity-65';
 
   return (
     <form

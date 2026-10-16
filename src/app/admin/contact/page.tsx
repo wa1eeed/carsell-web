@@ -32,7 +32,7 @@ export default async function AdminContactPage() {
       activeHref="/admin/contact"
       admin={admin}
     >
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         هذه القنوات تظهر في{' '}
         <Link
           href="/ar/help/contact"

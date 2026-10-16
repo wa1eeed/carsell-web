@@ -95,7 +95,7 @@ export default async function SellPage({
               **وجلبُ الرقم التسلسلي خلف راية**، فلا يُوعَد به وهو
               مُطفأ: وعدٌ لا يجد صاحبُه حقلَه أسوأ من سطرٍ أقصر.
             */}
-            <p className="mb-7 max-w-2xl text-sm leading-loose opacity-70">
+            <p className="mb-7 max-w-2xl text-sm leading-loose opacity-75">
               {vinLookup ? t('leadVin') : t('lead')}
             </p>
 
@@ -116,7 +116,7 @@ export default async function SellPage({
                     <ArabicNumber value={stat.value} />
                     {stat.suffix === null ? null : <span>{stat.suffix}</span>}
                   </dd>
-                  <dt className="mt-1.5 text-2xs opacity-60">{t(`stat.${stat.key}`)}</dt>
+                  <dt className="mt-1.5 text-2xs opacity-70">{t(`stat.${stat.key}`)}</dt>
                 </div>
               ))}
             </dl>

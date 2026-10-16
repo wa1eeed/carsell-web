@@ -66,7 +66,7 @@ export function BodyTypesTable({
         rows={bodyTypes}
         rowKey={(row) => row.key}
         columns={[
-          { id: 'key', header: 'المفتاح', cell: (row) => <span className="font-num text-2xs opacity-60">{row.key}</span> },
+          { id: 'key', header: 'المفتاح', cell: (row) => <span className="font-num text-2xs opacity-70">{row.key}</span> },
           {
             id: 'nameAr',
             header: 'الاسم العربي',

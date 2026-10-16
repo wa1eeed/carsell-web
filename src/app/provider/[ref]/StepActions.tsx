@@ -56,7 +56,7 @@ export function StepActions({
 
   if (steps.length === 0) {
     return (
-      <p className="rounded-xl border border-line p-5 text-2xs leading-loose opacity-60">
+      <p className="rounded-xl border border-line p-5 text-2xs leading-loose opacity-70">
         لا إجراء مطلوبٌ منك على هذا الطلب الآن.
       </p>
     );
@@ -86,7 +86,7 @@ export function StepActions({
             >
               {PROVIDER_STEP_LABEL[step.key] ?? step.key}
             </Button>
-            <span className="min-w-0 flex-1 text-3xs leading-loose opacity-55">
+            <span className="min-w-0 flex-1 text-3xs leading-loose opacity-70">
               {PROVIDER_STEP_NOTE[step.key] ?? ''}
             </span>
           </div>
@@ -115,7 +115,7 @@ export function StepActions({
       >
         {/* **و«تعذّر» بلا سببٍ لا يُصلحها أحد** — يقرؤها فريق المنصّة */}
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">ما الذي منع التنفيذ؟</span>
+          <span className="text-2xs font-bold opacity-70">ما الذي منع التنفيذ؟</span>
           <textarea
             rows={3}
             value={reason}

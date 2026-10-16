@@ -90,7 +90,7 @@ export default async function DealersPage({
             تشترط `crNumber` وحده — ولا تمسّ آيبانًا. فكُتب المفحوص
             وحده، والسؤال في DESIGN-DECISIONS.
           */}
-          <p className="mb-7 max-w-2xl text-sm leading-loose opacity-60">
+          <p className="mb-7 max-w-2xl text-sm leading-loose opacity-70">
             {/*
               **وما يوافق العددَ يدخل داخل صيغة الجمع.** أوّل صياغةٍ
               وضعت الصفة والجارّ خارج `<Quantity>` فخرج «٣ معارض
@@ -173,7 +173,7 @@ export default async function DealersPage({
                         {!dealer.verified ? null : <Badge tone="accent">{t('verified')}</Badge>}
                       </span>
                     </span>
-                    <span className="flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
+                    <span className="flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
                       {/* المدينة وحدها تُضيّع من يبحث قربه — فالعنوان معها */}
                       <span className="bidi-isolate">
                         {dealer.address === null ? dealer.city : `${dealer.city} · ${dealer.address}`}
@@ -215,7 +215,7 @@ export default async function DealersPage({
           */}
           <section className="mt-10 rounded-xl border border-line bg-surface p-6">
             <h2 className="mb-2 text-base font-bold">عندك معرض؟</h2>
-            <p className="mb-4 max-w-2xl text-2xs leading-loose opacity-70">
+            <p className="mb-4 max-w-2xl text-2xs leading-loose opacity-75">
               سجّل معرضك بسجلّك التجاريّ، وارفع مخزونك دفعةً واحدة، وأدِر عروضك من لوحةٍ
               مخصّصة — بعمولة صفر.
             </p>

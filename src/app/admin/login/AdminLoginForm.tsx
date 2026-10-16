@@ -50,7 +50,7 @@ export function AdminLoginForm() {
     <div className="flex flex-col gap-4">
       <form onSubmit={submit} className="flex flex-col gap-3.5">
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-semibold opacity-55">البريد الإلكتروني</span>
+          <span className="text-2xs font-semibold opacity-70">البريد الإلكتروني</span>
           {/* `dir="ltr"` — بريدٌ يُقارن خانةً بخانة، وسياق RTL يقلب أجزاءه */}
           <input
             type="email"
@@ -64,7 +64,7 @@ export function AdminLoginForm() {
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-semibold opacity-55">كلمة المرور</span>
+          <span className="text-2xs font-semibold opacity-70">كلمة المرور</span>
           <input
             type="password"
             required

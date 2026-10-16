@@ -58,7 +58,7 @@ export function DisputeCard({
     <div className="group relative flex flex-col gap-3 rounded-xl border border-line bg-surface p-3.5 transition duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none sm:flex-row sm:items-start sm:gap-4">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-ink/8">
         {row.thumbnail === null ? (
-          <span className="flex size-full items-center justify-center text-3xs opacity-45">
+          <span className="flex size-full items-center justify-center text-3xs opacity-65">
             لا صور
           </span>
         ) : (
@@ -92,7 +92,7 @@ export function DisputeCard({
           )}
         </div>
 
-        <span className="truncate text-2xs opacity-70">
+        <span className="truncate text-2xs opacity-75">
           <span className="bidi-isolate">
             {row.vehicleBrand} {row.vehicleModel}
           </span>
@@ -111,7 +111,7 @@ export function DisputeCard({
           **والسهم يقول الاتّجاه**: الشاكي أوّلًا. ومن لا توثيق له
           يُعلَّم، فهو أوّل ما يُسأل عنه في النزاع.
         */}
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           <span className="opacity-70">{row.openedByBuyer ? 'فتحه المشتري' : 'فتحه البائع'}</span>
           <span aria-hidden className="opacity-40">
             ·
@@ -136,7 +136,7 @@ export function DisputeCard({
         <Money amount={Number(row.orderTotal)} size="sm" showCurrency={false} className="font-bold" />
 
         {row.resolution === null ? null : (
-          <span className="text-3xs opacity-60">
+          <span className="text-3xs opacity-70">
             {RESOLUTION_LABEL[row.resolution] ?? row.resolution}
             {row.resolutionAmount === null ? null : (
               <>
@@ -151,7 +151,7 @@ export function DisputeCard({
 
         <Sla row={row} settled={settled} />
 
-        <span className="text-3xs opacity-45">
+        <span className="text-3xs opacity-65">
           <Quantity unit="messages" count={row.messageCount} />
         </span>
 
@@ -172,7 +172,7 @@ export function DisputeCard({
 function Sla({ row, settled }: { row: DisputeRow; settled: boolean }) {
   if (settled) {
     return (
-      <span className="text-3xs opacity-45">
+      <span className="text-3xs opacity-65">
         <span className="opacity-70">استغرق </span>
         <Duration hours={row.hoursOpen} />
       </span>
@@ -191,7 +191,7 @@ function Sla({ row, settled }: { row: DisputeRow; settled: boolean }) {
   /** قُربُ الانقضاء يُلوَّن — ويومٌ واحد هو حدُّ ما يُفسح للمراجعة. */
   const near = row.hoursToSla <= 24;
   return (
-    <span className={near ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-45'}>
+    <span className={near ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-65'}>
       <span className="opacity-80">بقي </span>
       <Duration hours={row.hoursToSla} />
     </span>

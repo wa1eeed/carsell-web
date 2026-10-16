@@ -89,7 +89,7 @@ const EMPTY: Vehicle = {
 function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line pb-2.5 last:border-0">
-      <dt className="shrink-0 opacity-55">{label}</dt>
+      <dt className="shrink-0 opacity-70">{label}</dt>
       <dd className="bidi-isolate truncate font-bold">{value}</dd>
     </div>
   );
@@ -609,7 +609,7 @@ export function SellWizard({
     }
   };
 
-  const label = 'mb-1.5 block text-2xs font-semibold opacity-60';
+  const label = 'mb-1.5 block text-2xs font-semibold opacity-70';
   const field =
     'w-full rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm outline-none';
 
@@ -636,7 +636,7 @@ export function SellWizard({
             */}
           {!vinLookupEnabled ? null : (
             <div className="mb-7 rounded-xl border border-line bg-surface p-5">
-              <p className="mb-3 text-xs opacity-70">{t('vinOptional')}</p>
+              <p className="mb-3 text-xs opacity-75">{t('vinOptional')}</p>
 
               <div className="flex flex-wrap gap-2.5">
                 <input
@@ -676,7 +676,7 @@ export function SellWizard({
 
               {/* الفشل: سطر رمادي واحد. لا خطأ ولا تحويل — الجلب ليس المسار */}
               {!vinFailed ? null : (
-                <p className="mt-3 text-2xs opacity-45">{t('vinFailedQuiet')}</p>
+                <p className="mt-3 text-2xs opacity-65">{t('vinFailedQuiet')}</p>
               )}
 
               {/* الاستثناء: قاعدة عمل توقف، لا فشل جلب */}
@@ -796,7 +796,7 @@ export function SellWizard({
             */}
             {inheritedTrim === null ? null : (
               <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3">
-                <p className="mb-2 text-3xs font-bold opacity-55">من الفئة — تُسجَّل كما هي</p>
+                <p className="mb-2 text-3xs font-bold opacity-70">من الفئة — تُسجَّل كما هي</p>
                 <p className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs">
                   <span>{te(`bodyType.${inheritedTrim.bodyType}`)}</span>
                   <span aria-hidden className="opacity-30">·</span>
@@ -923,7 +923,7 @@ export function SellWizard({
                 }
                 className="font-num w-full bg-transparent text-lg font-bold outline-none"
               />
-              <span className="text-2xs opacity-50">{t('currency')}</span>
+              <span className="text-2xs opacity-70">{t('currency')}</span>
             </div>
 
             {/*
@@ -948,7 +948,7 @@ export function SellWizard({
               تابعة لنشاطٍ تجاريّ بين مركباته الشخصية.
             */}
             {tax.status !== 'INDIVIDUAL' ? null : (
-              <label className="mb-2 flex max-w-md cursor-pointer items-start gap-2.5 text-2xs leading-relaxed opacity-70">
+              <label className="mb-2 flex max-w-md cursor-pointer items-start gap-2.5 text-2xs leading-relaxed opacity-75">
                 <input
                   type="checkbox"
                   className="mt-0.5"
@@ -971,7 +971,7 @@ export function SellWizard({
               </Button>
             </div>
             {photosReady ? null : (
-              <p className="mt-3 text-2xs opacity-55">
+              <p className="mt-3 text-2xs opacity-70">
                 {images.length === 0 ? t('needPhotos') : t('needPrice')}
               </p>
             )}
@@ -989,7 +989,7 @@ export function SellWizard({
                   <ArabicNumber value={Number(vehicle.year)} grouped={false} />
                 )}
               </p>
-              <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
+              <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
                 {vehicle.mileageKm === '' ? null : (
                   <Quantity unit="km" count={Number(vehicle.mileageKm)} />
                 )}
@@ -1002,7 +1002,7 @@ export function SellWizard({
               )}
 
               <div className="flex items-center justify-between border-t border-line pt-3.5 text-xs">
-                <span className="opacity-60">{t('listingFee')}</span>
+                <span className="opacity-70">{t('listingFee')}</span>
                 <span className="font-bold text-accent-700">{t('free')}</span>
               </div>
             </section>
@@ -1026,7 +1026,7 @@ export function SellWizard({
                 )}
               >
                 <span className="mb-1.5 block text-base font-bold">{t(`method.${key}`)}</span>
-                <span className={cn('block text-2xs leading-loose', method === key ? 'opacity-80' : 'opacity-60')}>
+                <span className={cn('block text-2xs leading-loose', method === key ? 'opacity-80' : 'opacity-70')}>
                   {t(`methodBody.${key}`)}
                 </span>
               </button>
@@ -1081,7 +1081,7 @@ export function SellWizard({
 
                 {startNow ? null : (
                   <label className="flex flex-col gap-1.5">
-                    <span className="text-3xs font-bold opacity-60">
+                    <span className="text-3xs font-bold opacity-70">
                       {t('auction.startAt')}
                     </span>
                     {/* الموعد يُقارن خانةً بخانة — لاتينيّ معزول */}
@@ -1098,14 +1098,14 @@ export function SellWizard({
             */
             className="w-full rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
                     />
-                    <span className="text-3xs leading-loose opacity-45">
+                    <span className="text-3xs leading-loose opacity-65">
                       {t('auction.startAtHint')}
                     </span>
                   </label>
                 )}
 
                 <fieldset>
-                  <legend className="mb-2.5 text-3xs font-bold opacity-60">
+                  <legend className="mb-2.5 text-3xs font-bold opacity-70">
                     {t('auction.duration')}
                   </legend>
                   <Choice
@@ -1184,7 +1184,7 @@ export function SellWizard({
               */}
               <SettingsBlock title={t('auction.viewing')}>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-3xs font-bold opacity-60">{t('auction.viewingCity')}</span>
+                  <span className="text-3xs font-bold opacity-70">{t('auction.viewingCity')}</span>
                   <select
                     value={viewingCity}
                     onChange={(event) => setViewingCity(event.target.value)}
@@ -1201,7 +1201,7 @@ export function SellWizard({
 
                 {viewingCity === '' ? null : (
                   <label className="flex flex-col gap-1.5">
-                    <span className="text-3xs font-bold opacity-60">
+                    <span className="text-3xs font-bold opacity-70">
                       {t('auction.viewingArea')}
                     </span>
                     <input
@@ -1210,7 +1210,7 @@ export function SellWizard({
                       placeholder={t('auction.viewingAreaPlaceholder')}
                       className="rounded-md border border-line bg-bg px-3 py-2 text-sm"
                     />
-                    <span className="text-3xs leading-loose opacity-45">
+                    <span className="text-3xs leading-loose opacity-65">
                       {t('auction.viewingHint')}
                     </span>
                   </label>
@@ -1402,7 +1402,7 @@ export function SellWizard({
           */}
           {!tax.needsAnswer ? null : (
             <div className="mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-line p-4">
-              <p className="min-w-0 flex-1 text-2xs leading-loose opacity-70">{tx('prompt')}</p>
+              <p className="min-w-0 flex-1 text-2xs leading-loose opacity-75">{tx('prompt')}</p>
               <Button size="sm" variant="outline" onClick={() => setAskingTax(true)}>
                 {tx('title')}
               </Button>

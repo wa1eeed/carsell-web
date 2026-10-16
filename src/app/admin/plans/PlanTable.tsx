@@ -85,7 +85,7 @@ export function PlanTable({
                         تعديل
                       </Button>
                     ) : (
-                      <span className="text-3xs opacity-40">قراءة</span>
+                      <span className="text-3xs opacity-65">قراءة</span>
                     )}
                   </td>
                 </tr>
@@ -160,13 +160,13 @@ function PlanEditor({
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-6">
       <div className="w-full max-w-lg rounded-lg border border-line bg-bg p-6">
         <h3 className="mb-1 text-md font-bold">{plan.nameAr}</h3>
-        <p className="mb-5 text-3xs opacity-55">
+        <p className="mb-5 text-3xs opacity-70">
           <Quantity unit="subscribers" count={plan.subscriberCount} /> — والتعديل لا يمسّ اشتراكًا
           قائمًا حتى تجديده.
         </p>
 
         <label className="mb-4 flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">السعر بالريال</span>
+          <span className="text-2xs font-bold opacity-70">السعر بالريال</span>
           {/* رقمٌ يُقارن خانةً بخانة — لاتينيّ معزول */}
           <input
             dir="ltr"
@@ -187,13 +187,13 @@ function PlanEditor({
           <span className="text-2xs font-semibold">تظهر للعملاء</span>
         </label>
 
-        <p className="mb-3 text-2xs font-bold opacity-60">الخصائص</p>
+        <p className="mb-3 text-2xs font-bold opacity-70">الخصائص</p>
         <div className="flex flex-col divide-y divide-line border-y border-line">
           {entitlements.map((row) => (
             <div key={row.key} className="flex items-center justify-between gap-4 py-2.5">
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="truncate text-2xs">{ENTITLEMENT_LABEL[row.key] ?? row.key}</span>
-                <span dir="ltr" className="font-num truncate text-3xs opacity-40">
+                <span dir="ltr" className="font-num truncate text-3xs opacity-65">
                   {row.key} · {TYPE_LABEL[row.type] ?? row.type}
                 </span>
               </span>
@@ -222,7 +222,7 @@ function PlanEditor({
           ))}
         </div>
 
-        <p className="mt-3 text-3xs opacity-45">
+        <p className="mt-3 text-3xs opacity-65">
           العدد ‎-1‎ يعني بلا حدّ. والنسبة بين صفر ومئة.
         </p>
 

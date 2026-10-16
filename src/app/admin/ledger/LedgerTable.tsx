@@ -62,7 +62,7 @@ export function LedgerTable({ entries }: { entries: readonly LedgerRow[] }) {
        */
       cell: (row) =>
         row.subjectRef === null || row.subjectHref === null ? (
-          <span className="opacity-35">—</span>
+          <span className="opacity-65">—</span>
         ) : (
           <AdminLink href={row.subjectHref} ltr>
             <span className="font-num text-2xs">{row.subjectRef}</span>

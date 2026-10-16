@@ -54,7 +54,7 @@ export async function GrowthTab() {
 
   return (
     <>
-      <p className="mb-4 text-2xs opacity-55">
+      <p className="mb-4 text-2xs opacity-70">
         آخر <Quantity unit="days" count={RANGE_DAYS} /> · المقارنة بالمدى المساوي الذي يسبقه
       </p>
 
@@ -99,7 +99,7 @@ export async function GrowthTab() {
 
       <div className="mt-9 mb-3.5 flex items-baseline gap-3">
         <h2 className="text-md font-bold">حجم الطلبات اليومي</h2>
-        <span className="text-2xs opacity-45">
+        <span className="text-2xs opacity-65">
           <Quantity unit="days" count={RANGE_DAYS} />
         </span>
         <span className="h-px flex-1 bg-line" aria-hidden />
@@ -112,18 +112,18 @@ export async function GrowthTab() {
       <section className="mt-9 rounded-lg border border-line bg-surface p-5.5">
         <div className="mb-4 flex flex-wrap items-baseline gap-3">
           <h2 className="text-sm font-bold">الإعلانات حسب المدينة</h2>
-          <span className="text-3xs opacity-45">
+          <span className="text-3xs opacity-65">
             <Counted message="ofListings" count={cityTotal} /> نُشرت في المدى
           </span>
         </div>
 
         {cities.length === 0 ? (
-          <p className="text-2xs opacity-45">لا إعلانات نُشرت في هذا المدى.</p>
+          <p className="text-2xs opacity-65">لا إعلانات نُشرت في هذا المدى.</p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {cities.map((city) => (
               <div key={city.city} className="flex items-center gap-3">
-                <span className="w-24 shrink-0 truncate text-2xs opacity-70">
+                <span className="w-24 shrink-0 truncate text-2xs opacity-75">
                   {city.city === REST_OF_CITIES ? REST_OF_CITIES_LABEL : city.city}
                 </span>
                 {/*
@@ -146,7 +146,7 @@ export async function GrowthTab() {
         )}
       </section>
 
-      <p className="mt-4 text-3xs leading-relaxed opacity-45">
+      <p className="mt-4 text-3xs leading-relaxed opacity-65">
         بطاقتا «المستخدم النشط» و«مصدر التسجيل» في التصميم لا مصدر لهما في المخطّط بعد —
         الأولى تحتاج سجلّ نشاط والثانية عمودًا في المستخدم. وعرضهما بأرقام مقدَّرة كان
         سيجعلهما تُصدَّقان.
@@ -161,7 +161,7 @@ function Card({ card }: { card: MetricCard }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
       <div className="mb-1 flex items-baseline gap-2">
-        <h2 className="flex-1 text-3xs font-bold tracking-[0.14em] opacity-45">
+        <h2 className="flex-1 text-3xs font-bold tracking-[0.14em] opacity-65">
           {DASHBOARD_CARD_LABEL[card.key] ?? card.key}
         </h2>
         {/*
@@ -184,7 +184,7 @@ function Card({ card }: { card: MetricCard }) {
 
       <div className="flex flex-col gap-1.5 border-t border-line pt-3">
         {card.segments.length === 0 ? (
-          <p className="text-2xs opacity-45">لا تفصيل في هذا المدى.</p>
+          <p className="text-2xs opacity-65">لا تفصيل في هذا المدى.</p>
         ) : (
           card.segments.map((segment) => (
             <p key={segment.key} className="flex items-baseline justify-between gap-3 text-2xs">
@@ -245,7 +245,7 @@ function Funnel({ steps }: { steps: readonly { key: string; count: number }[] })
 
         return (
           <li key={step.key} className="flex items-center gap-4">
-            <span className="w-32 shrink-0 text-2xs opacity-70">{FUNNEL_LABEL[step.key] ?? step.key}</span>
+            <span className="w-32 shrink-0 text-2xs opacity-75">{FUNNEL_LABEL[step.key] ?? step.key}</span>
 
             <span className="h-7 flex-1 overflow-hidden rounded-md bg-ink/6">
               <span
@@ -256,7 +256,7 @@ function Funnel({ steps }: { steps: readonly { key: string; count: number }[] })
               </span>
             </span>
 
-            <span className="w-24 shrink-0 text-start text-3xs opacity-45">
+            <span className="w-24 shrink-0 text-start text-3xs opacity-65">
               {before === null || before === 0 ? (
                 ''
               ) : (
@@ -274,10 +274,10 @@ function Funnel({ steps }: { steps: readonly { key: string; count: number }[] })
         والصمت يُقرأ «لم نفكر فيه» — وكلاهما غير صحيح.
       */}
       <li className="mt-3 rounded-lg border border-line bg-surface p-4">
-        <p className="mb-2 text-3xs font-bold opacity-55">ما لا يُقاس اليوم</p>
+        <p className="mb-2 text-3xs font-bold opacity-70">ما لا يُقاس اليوم</p>
         <ul className="flex flex-col gap-1.5">
           {NOT_MEASURED.map((line) => (
-            <li key={line} className="text-3xs leading-relaxed opacity-55">
+            <li key={line} className="text-3xs leading-relaxed opacity-70">
               {line}
             </li>
           ))}

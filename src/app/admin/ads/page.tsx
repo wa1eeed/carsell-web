@@ -78,7 +78,7 @@ export default async function AdminAdsPage({
   return (
     <AdminShell title="مساحات الإعلانات والحملات"
       subtitle="المساحات وتسعيرها وحملاتها" activeHref="/admin/ads" admin={admin}>
-      <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
         المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يُخفي المساحة ولا يُلغي حملاتها</b>
         — فمعلنٌ دفع لأسبوع لا يفقد مالَه بتعطيلٍ إداريّ.
       </p>
@@ -89,7 +89,7 @@ export default async function AdminAdsPage({
         «إشغال» و«إيراد» فوق ذلك يجعل الشاشة تصف سوقًا لم يُفتح.
       */}
       {stats.served ? null : (
-        <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-70">
+        <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-75">
           <b>لا يُعرض إعلانٌ في المنتج بعد.</b> المساحات مضبوطةٌ ومسعَّرة هنا، ولا شاشة
           في التطبيق تطلبها — فالأرقام أدناه إعدادٌ لا أداء. والحملات تُسجَّل ولا تظهر
           لأحد حتى يُبنى مسار العرض.
@@ -129,7 +129,7 @@ export default async function AdminAdsPage({
       {writable ? (
         <AdSlotTable rows={slots} />
       ) : (
-        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
+        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
           صلاحيتك قراءةٌ فقط — التفعيل والتعطيل لمن يملك الكتابة في المالية.
         </p>
       )}
@@ -146,7 +146,7 @@ export default async function AdminAdsPage({
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/ads" param="phase" />
 
       {campaigns.length === 0 ? (
-        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
+        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
           لا حملات بعد. و«حملة جديدة» أعلاه تُنشئ واحدة — وتظهر في نتائج البحث بعد
           السادسة متى حلّ تاريخ بدئها.
         </p>
@@ -176,7 +176,7 @@ export default async function AdminAdsPage({
                   </td>
                   <td className="font-num p-3">{displayDigits(String(row.impressions))}</td>
                   <td className="font-num p-3">{displayDigits(String(row.clicks))}</td>
-                  <td className="font-num p-3 opacity-70">
+                  <td className="font-num p-3 opacity-75">
                     {displayDigits(row.ctrPct.toFixed(1))}٪
                   </td>
                   <td className="p-3">
@@ -204,7 +204,7 @@ export default async function AdminAdsPage({
 
       {/* قواعد التصميم — مكتوبةً حيث يقرؤها من يبيع مساحة، لا في وثيقة. */}
       <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-2">
-        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">قواعد تحمي التطبيق من الإعلانات</p>
           <p>
             <Quantity unit="banners" count={MAX_BANNERS_PER_SCREEN} /> لكل شاشة كحدّ أقصى ·
@@ -218,7 +218,7 @@ export default async function AdminAdsPage({
           </p>
         </div>
 
-        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">الأداء والبطارية</p>
           <p>
             طلب واحد يجلب كل مساحات الشاشة · يُخزَّن{' '}

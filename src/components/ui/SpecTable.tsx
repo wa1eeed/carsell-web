@@ -41,7 +41,7 @@ export function SpecTable({
               startColumn && 'sm:border-e sm:border-e-line-2',
             )}
           >
-            <dt className="text-sm opacity-60">{entry.label}</dt>
+            <dt className="text-sm opacity-70">{entry.label}</dt>
             <dd className="text-sm font-bold">{entry.value}</dd>
           </div>
         );

@@ -227,7 +227,7 @@ export function MobileNav({
             label={otherLabel}
             className="flex w-full items-center justify-between rounded-md px-4 py-3 text-2xs font-bold opacity-75 hover:bg-ink/5 hover:opacity-100"
           />
-          <p className="px-4 pt-1 text-3xs opacity-45" lang={locale}>
+          <p className="px-4 pt-1 text-3xs opacity-65" lang={locale}>
             {locale === 'ar' ? 'لغة العرض' : 'Display language'}
           </p>
         </div>

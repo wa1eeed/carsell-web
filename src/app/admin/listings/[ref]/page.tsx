@@ -158,7 +158,7 @@ export default async function AdminListingDetailPage({
       {tab !== 'history' ? null : (
         <section className="rounded-xl border border-line p-5">
           <h2 className="mb-1.5 text-sm font-bold">تاريخ الإعلان</h2>
-          <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-55">
+          <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
             كلُّ حدثٍ وقع عليه — من إنشائه إلى آخر خطوة، مرتَّبًا من الأقدم.
             <b> وما لا سجلَّ له لا يُعرض</b>: لا سطرَ لتغيّر سعرٍ ما دام لا يُسجَّل،
             وسطرٌ مخترَعٌ في تحقيقٍ أسوأ من سطرٍ غائب.
@@ -170,20 +170,20 @@ export default async function AdminListingDetailPage({
       {tab !== 'images' ? null : (
         <section className="rounded-xl border border-line p-5">
           <h2 className="mb-1.5 text-sm font-bold">الصور</h2>
-          <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-55">
+          <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
             <b>ونصفُ المراجعة بصريّ</b> — فالصورة هنا لا مفتاحُها: لوحةٌ ظاهرة أو
             صورةٌ ضبابية تُردّ قبل قراءة سطر. وكانت تُعرض مفاتيحَ نصّية.
           </p>
 
           {listing.images.length === 0 ? (
-            <p className="text-2xs opacity-50">لا صور — وإعلانٌ بلا صورة لا يُنشر أصلًا.</p>
+            <p className="text-2xs opacity-70">لا صور — وإعلانٌ بلا صورة لا يُنشر أصلًا.</p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {listing.images.map((image) => (
                 <figure key={image.id} className="overflow-hidden rounded-xl border border-line">
                   <div className="aspect-4/3 bg-ink/8">
                     {image.url === null ? (
-                      <span className="flex size-full items-center justify-center text-3xs opacity-45">
+                      <span className="flex size-full items-center justify-center text-3xs opacity-65">
                         لا عنوان عامّ مضبوط
                       </span>
                     ) : (
@@ -249,11 +249,11 @@ export default async function AdminListingDetailPage({
                     <Link
                       href={`/admin/orders/${encodeURIComponent(order.ref)}`}
                       dir="ltr"
-                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-70"
+                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-75"
                     >
                       {order.ref}
                     </Link>
-                    <span className="flex items-center gap-3 text-3xs opacity-60">
+                    <span className="flex items-center gap-3 text-3xs opacity-70">
                       {/*
                         **قراءةٌ واحدة لا قراءتان.** كانت المرحلة
                         بالعربية و`status` خامًّا بالإنجليزية بجوارها:
@@ -329,7 +329,7 @@ export default async function AdminListingDetailPage({
               />
               <Link
                 href={`/admin/users/${listing.seller.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح ملفّه
               </Link>
@@ -373,7 +373,7 @@ export default async function AdminListingDetailPage({
                   value={<ArabicNumber value={listing.auction.bidCount} />}
                 />
                 {/* الاحتياطي لا يُعرض — ممنوعٌ في أي استجابة، والشاشة ليست استثناء */}
-                <p className="mt-3 text-3xs opacity-45">
+                <p className="mt-3 text-3xs opacity-65">
                   السعر الاحتياطيّ لا يُعرض هنا — ولا في أي شاشة.
                 </p>
               </DetailCard>

@@ -73,7 +73,7 @@ export default async function AdminAccountPage() {
             في اللوحة، ويمرّ بمتغيّرات النشر — فمن سرق جلسةً لا يرفع
             نفسه بنقرة.
           */}
-          <p className="mt-4 text-3xs leading-loose opacity-55">
+          <p className="mt-4 text-3xs leading-loose opacity-70">
             الاسم والدور والبريد تُضبط من متغيّرات النشر، لا من هنا — فمن سرق جلسةً لا
             يرفع دوره بنقرة.
           </p>
@@ -90,7 +90,7 @@ export default async function AdminAccountPage() {
               >
                 {permission}
                 {canWrite(admin.role, permission) ? null : (
-                  <span className="opacity-45"> · قراءة</span>
+                  <span className="opacity-65"> · قراءة</span>
                 )}
               </span>
             ))}
@@ -113,7 +113,7 @@ export default async function AdminAccountPage() {
 function Row({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
-      <span className="text-2xs opacity-60">{label}</span>
+      <span className="text-2xs opacity-70">{label}</span>
       <span
         dir={ltr === true ? 'ltr' : undefined}
         className={`truncate text-2xs font-semibold ${ltr === true ? 'font-num' : 'bidi-isolate'}`}

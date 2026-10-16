@@ -236,14 +236,14 @@ export function SiteFooter() {
       <div className="mx-auto flex w-full max-w-page flex-wrap gap-10">
         <div className="min-w-56 flex-1">
           <Logo className="h-9" />
-          <p className="mt-2.5 max-w-72 text-xs leading-loose opacity-60">
+          <p className="mt-2.5 max-w-72 text-xs leading-loose opacity-70">
             {t('tagline')}
           </p>
         </div>
 
         {columns.map((col) => (
           <div key={col.title} className="min-w-40">
-            <p className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+            <p className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
               {col.title}
             </p>
             {/*
@@ -257,7 +257,7 @@ export function SiteFooter() {
               يزيح سطرًا**، والهامش السالب يردّ ما يأخذه الحشو من
               الفراغ بين الروابط — فالشكل كما صُمّم واللمس أوسع.
             */}
-            <ul className="-my-1.5 flex flex-col gap-2.5 text-xs opacity-70">
+            <ul className="-my-1.5 flex flex-col gap-2.5 text-xs opacity-75">
               {col.links.map((link) => (
                 <li key={link.href}>
                   <Link

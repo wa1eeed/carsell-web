@@ -60,7 +60,7 @@ export function AuctionPulse({
       <div className="grid gap-px bg-line sm:grid-cols-2">
         {/* ═══ الوقت ═══ */}
         <div className="flex flex-col gap-2 bg-surface p-5">
-          <span className="text-3xs opacity-55">
+          <span className="text-3xs opacity-70">
             {live ? 'يُغلق بعد' : 'انتهى المزاد'}
           </span>
 
@@ -72,7 +72,7 @@ export function AuctionPulse({
               className="text-3xl font-bold"
             />
           ) : (
-            <span className="text-3xl font-bold opacity-45">—</span>
+            <span className="text-3xl font-bold opacity-65">—</span>
           )}
 
           {/*
@@ -89,7 +89,7 @@ export function AuctionPulse({
             />
           </span>
 
-          <span className="text-3xs leading-loose opacity-50">
+          <span className="text-3xs leading-loose opacity-70">
             يمتدّ{' '}
             <Quantity unit="minutes" count={Math.round(auction.terms.extendBySeconds / 60)} />{' '}
             مع أيّ مزايدة أخيرة
@@ -98,13 +98,13 @@ export function AuctionPulse({
 
         {/* ═══ السعر ═══ */}
         <div className="flex flex-col gap-2 bg-surface p-5">
-          <span className="text-3xs opacity-55">
+          <span className="text-3xs opacity-70">
             {auction.highestBid === null ? 'سعر الافتتاح' : 'أعلى مزايدة'}
           </span>
 
           <Money amount={Number(price)} size="lg" />
 
-          <span className="flex flex-wrap items-center gap-2.5 text-3xs opacity-55">
+          <span className="flex flex-wrap items-center gap-2.5 text-3xs opacity-70">
             <span>
               <Quantity unit="bidders" count={auction.bidderCount} />
             </span>

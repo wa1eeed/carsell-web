@@ -87,7 +87,7 @@ export default async function CampaignsPage({
 
   return (
     <AdminShell title="الحملات التسويقية" activeHref="/admin/campaigns" admin={admin}>
-      <p className="mb-4 text-2xs opacity-55">
+      <p className="mb-4 text-2xs opacity-70">
         بريد ورسائل وإشعارات دفع · <strong>منفصلة تمامًا عن المعاملاتية</strong>
       </p>
 
@@ -95,7 +95,7 @@ export default async function CampaignsPage({
 
       <section className="mb-5 overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[720px] text-2xs">
-          <thead className="border-b border-line text-3xs opacity-45">
+          <thead className="border-b border-line text-3xs opacity-65">
             <tr>
               <th className="p-3.5 text-start font-bold">الحملة</th>
               <th className="p-3.5 text-start font-bold">القناة</th>
@@ -111,7 +111,7 @@ export default async function CampaignsPage({
           <tbody className="divide-y divide-line">
             {campaigns.length === 0 ? (
               <tr>
-                <td colSpan={9} className="p-6 text-center opacity-45">
+                <td colSpan={9} className="p-6 text-center opacity-65">
                   لا حملات بعد — الإرسال يُفعَّل مع التطبيق.
                 </td>
               </tr>
@@ -161,7 +161,7 @@ export default async function CampaignsPage({
       </section>
 
       <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">الشرائح</h2>
+        <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">الشرائح</h2>
         {/*
           **والطرف الثاني يُبنى مع الأوّل.** `saveSegment` مبنيّةٌ
           بتحقّقها وأثرها ولا زرّ يبلغها، والشاشة تعرض الشرائح ولا
@@ -171,14 +171,14 @@ export default async function CampaignsPage({
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {segments.length === 0 ? (
-          <p className="text-2xs opacity-45">
+          <p className="text-2xs opacity-65">
             لا شرائح معرَّفة بعد — وأوّل شريحةٍ تُعرَّف من «عرِّف شريحة».
           </p>
         ) : (
           segments.map((segment) => (
             <section key={segment.id} className="rounded-lg border border-line bg-surface p-5">
               <h3 className="text-xs font-bold">{segment.nameAr}</h3>
-              <p className="font-num mb-3 text-3xs opacity-45" dir="ltr">
+              <p className="font-num mb-3 text-3xs opacity-65" dir="ltr">
                 {segment.key}
               </p>
 
@@ -193,7 +193,7 @@ export default async function CampaignsPage({
       </div>
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
           ضوابط تحمي المستخدم والسمعة
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
@@ -231,7 +231,7 @@ export default async function CampaignsPage({
 function Percent({ value }: { value: number | null }) {
   // لم يُرسَل بعد ⇒ «—» لا «٠٪»؛ والصفر يُقرأ فشلًا وهو ليس كذلك
   return value === null ? (
-    <span className="opacity-40">—</span>
+    <span className="opacity-65">—</span>
   ) : (
     <span className="font-num">
       <ArabicNumber value={value} grouped={false} />٪

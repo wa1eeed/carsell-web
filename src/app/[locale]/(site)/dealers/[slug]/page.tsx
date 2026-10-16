@@ -110,7 +110,7 @@ export default async function DealerPage({
                   {!dealer.verified ? null : <Badge tone="accent">{t('verified')}</Badge>}
                 </h1>
 
-                <p className="flex flex-wrap items-center gap-2.5 text-2xs opacity-60">
+                <p className="flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
                   <span>{dealer.city}</span>
                   <span aria-hidden className="opacity-40">·</span>
                   <span className="flex items-center gap-1.5">
@@ -142,13 +142,13 @@ export default async function DealerPage({
                   <dd className="text-2xl font-bold">
                     <ArabicNumber value={dealer.listingCount} />
                   </dd>
-                  <dt className="text-2xs opacity-55">{t('listed')}</dt>
+                  <dt className="text-2xs opacity-70">{t('listed')}</dt>
                 </div>
                 <div>
                   <dd className="text-2xl font-bold">
                     <ArabicNumber value={dealer.soldCount} />
                   </dd>
-                  <dt className="text-2xs opacity-55">{t('sold')}</dt>
+                  <dt className="text-2xs opacity-70">{t('sold')}</dt>
                 </div>
               </dl>
             </div>
@@ -172,7 +172,7 @@ export default async function DealerPage({
                 >
                   <PhoneIcon />
                   {t('contact')}
-                  <span dir="ltr" className="font-num opacity-70">
+                  <span dir="ltr" className="font-num opacity-75">
                     {dealer.phone}
                   </span>
                 </a>
@@ -286,7 +286,7 @@ export default async function DealerPage({
                 <dl className="flex flex-col divide-y divide-line border-t border-line">
                   {dealer.hours.map((row) => (
                     <div key={row.day} className="flex items-baseline justify-between gap-4 py-2.5 text-2xs">
-                      <dt className="opacity-60">{row.day}</dt>
+                      <dt className="opacity-70">{row.day}</dt>
                       {/* الوقت يُقرأ خانةً بخانة — لاتينيّ معزول بأرقام عربية */}
                       <dd dir="ltr" className="font-num">
                         {displayDigits(row.open)} – {displayDigits(row.close)}

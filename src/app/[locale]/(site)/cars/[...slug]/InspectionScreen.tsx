@@ -54,14 +54,14 @@ export function InspectionScreen({
           <div className="mb-2 flex flex-wrap items-center gap-2.5">
             <h1 className="flex flex-wrap items-baseline gap-2 text-3xl font-bold">
               {t('inspectionTitle')}
-              <span className="text-lg font-medium opacity-60">
+              <span className="text-lg font-medium opacity-70">
                 <Quantity unit="points" count={report.totalPoints} />
               </span>
             </h1>
             <Badge tone={expired ? 'warn' : 'accent'}>{t(`grade.${report.grade}`)}</Badge>
           </div>
 
-          <p className="mb-4 flex flex-wrap items-center gap-2 text-sm opacity-65">
+          <p className="mb-4 flex flex-wrap items-center gap-2 text-sm opacity-75">
             <span className="bidi-isolate">{report.vehicle.title}</span>
             <ArabicNumber value={report.vehicle.year} grouped={false} />
             <span aria-hidden className="opacity-35">·</span>
@@ -80,12 +80,12 @@ export function InspectionScreen({
           <dl className="flex flex-wrap gap-8">
             {meta.map((entry) => (
               <div key={entry.key}>
-                <dt className="mb-1 text-3xs opacity-50">{entry.label}</dt>
+                <dt className="mb-1 text-3xs opacity-70">{entry.label}</dt>
                 <dd className="bidi-isolate text-xs font-bold">{entry.value}</dd>
               </div>
             ))}
             <div>
-              <dt className="mb-1 text-3xs opacity-50">{t('reportNumber')}</dt>
+              <dt className="mb-1 text-3xs opacity-70">{t('reportNumber')}</dt>
               <dd className="font-num bidi-ltr text-xs font-bold">{report.ref}</dd>
             </div>
           </dl>

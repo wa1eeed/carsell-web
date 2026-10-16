@@ -48,7 +48,7 @@ export function PermissionMatrix() {
     <div className="overflow-x-auto rounded-xl border border-line">
       <div className="min-w-3xl">
         <div
-          className={`grid ${CELL} border-b border-line bg-surface py-3 text-3xs font-bold opacity-55`}
+          className={`grid ${CELL} border-b border-line bg-surface py-3 text-3xs font-bold opacity-70`}
         >
           <div>الوحدة</div>
           {ADMIN_ROLES.map((role) => (
@@ -60,7 +60,7 @@ export function PermissionMatrix() {
 
         {modules.map((module) => (
           <div key={module.title}>
-            <div className="border-b border-line-2 bg-ink/5 px-5 py-2 text-3xs font-bold tracking-wider opacity-45">
+            <div className="border-b border-line-2 bg-ink/5 px-5 py-2 text-3xs font-bold tracking-wider opacity-65">
               {module.title}
             </div>
             {module.permissions.map((permission) => (
@@ -71,7 +71,7 @@ export function PermissionMatrix() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-2xs font-bold">{PERMISSION_LABEL[permission]}</span>
                   {/* والمفتاح تحتها لمن يصحّح الشيفرة — لا لمن يراجع */}
-                  <span className="font-num text-3xs opacity-35">{permission}</span>
+                  <span className="font-num text-3xs opacity-65">{permission}</span>
                 </div>
                 {ADMIN_ROLES.map((role: AdminRole) => (
                   <Pill key={role} read={can(role, permission)} write={canWrite(role, permission)} />

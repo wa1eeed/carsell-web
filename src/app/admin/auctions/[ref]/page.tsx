@@ -106,7 +106,7 @@ export default async function AdminAuctionDetailPage({
               note={`المعروض أعلى ${displayDigits(String(auction.bids.length))}`}
             >
               {auction.bids.length === 0 ? (
-                <p className="text-2xs opacity-50">لا مزايدات بعد.</p>
+                <p className="text-2xs opacity-70">لا مزايدات بعد.</p>
               ) : (
                 auction.bids.map((bid, index) => (
                   <div
@@ -122,7 +122,7 @@ export default async function AdminAuctionDetailPage({
                     </span>
                     <span className="flex shrink-0 items-center gap-4">
                       <Money amount={Number(bid.amount)} showCurrency={false} />
-                      <span className="font-num text-3xs opacity-45">
+                      <span className="font-num text-3xs opacity-65">
                         {riyadh.format(new Date(bid.at))}
                       </span>
                     </span>
@@ -136,7 +136,7 @@ export default async function AdminAuctionDetailPage({
               note={<Quantity unit="deposits" count={auction.deposits.length} />}
             >
               {auction.deposits.length === 0 ? (
-                <p className="text-2xs opacity-50">لا عرابين محجوزة.</p>
+                <p className="text-2xs opacity-70">لا عرابين محجوزة.</p>
               ) : (
                 auction.deposits.map((deposit) => (
                   <Field
@@ -172,7 +172,7 @@ export default async function AdminAuctionDetailPage({
                 **الاحتياطي لا يُعرض.** وهو ممنوعٌ في كل استجابة، ولا
                 يُستثنى منه شاشةٌ لأن قارئها أدمن.
               */}
-              <p className="mt-3 text-3xs opacity-45">
+              <p className="mt-3 text-3xs opacity-65">
                 السعر الاحتياطيّ لا يُعرض هنا — ولا في أي شاشة.
               </p>
             </DetailCard>
@@ -204,7 +204,7 @@ export default async function AdminAuctionDetailPage({
               <Field label="الاسم" value={auction.seller.name} />
               <Link
                 href={`/admin/users/${auction.seller.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح ملفّه
               </Link>
@@ -218,7 +218,7 @@ export default async function AdminAuctionDetailPage({
               />
               <Link
                 href={`/admin/listings/${encodeURIComponent(auction.listingRef)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح الإعلان
               </Link>
@@ -231,7 +231,7 @@ export default async function AdminAuctionDetailPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             فتحُ المزاد ومزايداتُه وعرابينُه وإغلاقُه — ولا هويّة مزايدٍ هنا ولا في غيرها.
           </p>
           <Timeline events={events} />

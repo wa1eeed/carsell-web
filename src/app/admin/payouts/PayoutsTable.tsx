@@ -150,11 +150,11 @@ export function PayoutsTable({
                 <div className="flex min-w-0 flex-col gap-1">
                   <Link
                     href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
-                    className="bidi-isolate truncate text-sm underline underline-offset-4 hover:opacity-70"
+                    className="bidi-isolate truncate text-sm underline underline-offset-4 hover:opacity-75"
                   >
                     {row.sellerName ?? '—'}
                   </Link>
-                  <span className="text-3xs opacity-45">
+                  <span className="text-3xs opacity-65">
                     {row.ibanLast4 === null ? (
                       'لا آيبان'
                     ) : (
@@ -172,13 +172,13 @@ export function PayoutsTable({
                   <Money amount={Number(row.amount)} decimals={2} />
                   {isRequester ? (
                     <div className="flex items-center gap-3">
-                      <span className="text-3xs opacity-45">أنت الطالب — يعتمده غيرك</span>
+                      <span className="text-3xs opacity-65">أنت الطالب — يعتمده غيرك</span>
                       <Button size="sm" variant="outline" disabled={pending} onClick={() => cancel(row)}>
                         ألغِ
                       </Button>
                     </div>
                   ) : !canSend ? (
-                    <span className="text-3xs opacity-45">لا تملك صلاحية التحويل</span>
+                    <span className="text-3xs opacity-65">لا تملك صلاحية التحويل</span>
                   ) : (
                     <Button size="sm" disabled={pending} onClick={() => setApproving(row)}>
                       سجّل الحوالة
@@ -201,7 +201,7 @@ export function PayoutsTable({
               <div className="flex min-w-0 flex-col gap-1">
                 <Link
                   href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
-                  className="bidi-isolate truncate text-sm underline underline-offset-4 hover:opacity-70"
+                  className="bidi-isolate truncate text-sm underline underline-offset-4 hover:opacity-75"
                 >
                   {row.name === '' ? '—' : row.name}
                 </Link>
@@ -210,7 +210,7 @@ export function PayoutsTable({
                   يسبق لحظة الحاجة، ومن اكتشف المانع بعد الضغط يظنّ أنه
                   أخطأ وهو لم يخطئ.
                 */}
-                <span className="text-3xs opacity-45">
+                <span className="text-3xs opacity-65">
                   {row.ibanLast4 === null ? (
                     'لم يُدخل آيبانه — لا تحويل قبله'
                   ) : (
@@ -228,7 +228,7 @@ export function PayoutsTable({
                 {row.pendingPayoutId !== null ? (
                   <Badge tone="warn">طلبٌ قائم</Badge>
                 ) : !canSend ? (
-                  <span className="text-3xs opacity-45">لا تملك صلاحية التحويل</span>
+                  <span className="text-3xs opacity-65">لا تملك صلاحية التحويل</span>
                 ) : row.ibanLast4 === null ? (
                   <Button size="sm" variant="outline" disabled>
                     بانتظار آيبانه
@@ -260,7 +260,7 @@ export function PayoutsTable({
             >
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="bidi-isolate truncate text-sm">{row.sellerName ?? '—'}</span>
-                <span dir="ltr" className="font-num text-3xs opacity-45">
+                <span dir="ltr" className="font-num text-3xs opacity-65">
                   {row.bankRef ?? '—'}
                 </span>
               </div>
@@ -290,7 +290,7 @@ export function PayoutsTable({
               <Line label="آيبان ينتهي بـ" value={requesting.ibanLast4 ?? '—'} mono />
             </dl>
             <label className="mb-4 flex flex-col gap-2">
-              <span className="text-2xs opacity-60">المبلغ المحوَّل</span>
+              <span className="text-2xs opacity-70">المبلغ المحوَّل</span>
               <input
                 dir="ltr"
                 inputMode="decimal"
@@ -299,7 +299,7 @@ export function PayoutsTable({
                 className="font-num w-full min-w-0 rounded-md border border-line bg-bg px-3.5 py-2 text-sm font-bold"
               />
             </label>
-            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-70">
+            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
               هذه الضغطة <b>لا تُحرّك المبلغ</b> — تفتح طلبًا يعتمده عضوٌ ثانٍ بعد تنفيذ
               الحوالة من البنك. ولا يعتمده الطالب.
             </p>
@@ -319,7 +319,7 @@ export function PayoutsTable({
               <Line label="آيبان ينتهي بـ" value={approving.ibanLast4 ?? '—'} mono />
             </dl>
             <label className="mb-4 flex flex-col gap-2">
-              <span className="text-2xs opacity-60">مرجع الحوالة البنكية</span>
+              <span className="text-2xs opacity-70">مرجع الحوالة البنكية</span>
               {/*
                 `dir="ltr"` — مرجعٌ يُنسخ من كشف البنك ويُقارن خانةً بخانة.
               */}
@@ -330,7 +330,7 @@ export function PayoutsTable({
                 className="font-num w-full min-w-0 rounded-md border border-line bg-bg px-3.5 py-2 text-sm font-bold"
               />
             </label>
-            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-70">
+            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
               بهذا التسجيل <b>يُصفَّر حقّ البائع</b> في دفتر الحسابات — فلا تُسجّلها قبل أن
               تخرج الحوالة فعلًا من البنك.
             </p>
@@ -374,7 +374,7 @@ function Section({
 function Line({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className={mono === true ? 'font-num' : 'bidi-isolate truncate'} {...(mono === true ? { dir: 'ltr' } : {})}>
         {mono === true ? displayDigits(value) : value}
       </dd>

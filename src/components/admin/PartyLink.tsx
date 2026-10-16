@@ -55,7 +55,7 @@ export function PartyLink({
         className="pointer-events-none absolute top-full z-30 mt-1.5 hidden w-60 flex-col gap-1.5 rounded-lg border border-line bg-bg p-3 text-start shadow-2xl group-hover:flex group-focus-within:flex start-0"
       >
         <span className="flex items-center justify-between gap-2">
-          <span className="text-3xs opacity-45">{role}</span>
+          <span className="text-3xs opacity-65">{role}</span>
           {party.idVerified ? (
             <span className="rounded-sm bg-accent/12 px-1.5 py-px text-3xs font-bold text-accent-700">
               موثَّق
@@ -70,11 +70,11 @@ export function PartyLink({
         <span className="bidi-isolate truncate text-2xs font-bold">{party.name}</span>
 
         {/* الهاتف يُقارن خانةً بخانة — لاتينيّ معزول */}
-        <span dir="ltr" className="font-num text-start text-3xs opacity-60">
+        <span dir="ltr" className="font-num text-start text-3xs opacity-70">
           {party.phone}
         </span>
 
-        <span className="flex items-center gap-1.5 text-3xs opacity-55">
+        <span className="flex items-center gap-1.5 text-3xs opacity-70">
           <span>طلبات سابقة</span>
           <ArabicNumber value={party.previousOrders} />
         </span>

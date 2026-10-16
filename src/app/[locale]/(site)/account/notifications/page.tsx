@@ -79,7 +79,7 @@ export default async function NotificationsPage({
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="mb-1.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
-              <p className="text-sm opacity-60">{t('emptyBody')}</p>
+              <p className="text-sm opacity-70">{t('emptyBody')}</p>
             </div>
             {unread === 0 ? null : <MarkAllRead label={t('markAll')} />}
           </div>
@@ -143,7 +143,7 @@ export default async function NotificationsPage({
                         ) : null}
                       </span>
                       {item.body === '' ? null : (
-                        <span className="mt-1 block text-2xs leading-relaxed opacity-60">
+                        <span className="mt-1 block text-2xs leading-relaxed opacity-70">
                           {item.body}
                         </span>
                       )}
@@ -151,7 +151,7 @@ export default async function NotificationsPage({
                     <TimeAgo
                       at={item.createdAt}
                       now={now}
-                      className="shrink-0 text-3xs opacity-40"
+                      className="shrink-0 text-3xs opacity-65"
                     />
                   </>
                 );

@@ -116,7 +116,7 @@ export function Gallery({
             </button>
           ))}
           {rest <= 0 ? null : (
-            <span className="flex h-16 flex-1 items-center justify-center rounded-md border border-line text-sm font-bold opacity-55">
+            <span className="flex h-16 flex-1 items-center justify-center rounded-md border border-line text-sm font-bold opacity-70">
               <ArabicNumber value={rest} />
             </span>
           )}

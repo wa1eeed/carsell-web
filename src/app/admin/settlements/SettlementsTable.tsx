@@ -102,7 +102,7 @@ export function SettlementsTable({
             return (
               <Row key={row.orderRef} row={row}>
                 <div className="flex flex-col items-start gap-2 sm:items-end">
-                  <span className="text-3xs opacity-55">
+                  <span className="text-3xs opacity-70">
                     طلبه {approval.requestedByName} · النصاب{' '}
                     <span dir="ltr" className="font-num">
                       {displayDigits(String(approval.approvals))}/
@@ -114,11 +114,11 @@ export function SettlementsTable({
                     يُقرأ عطلًا، ومن طلب الإفراج يظنّ أنه نُسي.
                   */}
                   {isRequester ? (
-                    <span className="text-3xs opacity-45">أنت الطالب — يعتمده غيرك</span>
+                    <span className="text-3xs opacity-65">أنت الطالب — يعتمده غيرك</span>
                   ) : alreadyApproved ? (
-                    <span className="text-3xs opacity-45">اعتمدتَه — ينتظر عضوًا آخر</span>
+                    <span className="text-3xs opacity-65">اعتمدتَه — ينتظر عضوًا آخر</span>
                   ) : !canRelease ? (
-                    <span className="text-3xs opacity-45">لا تملك صلاحية الإفراج</span>
+                    <span className="text-3xs opacity-65">لا تملك صلاحية الإفراج</span>
                   ) : (
                     <Button
                       size="sm"
@@ -144,7 +144,7 @@ export function SettlementsTable({
                   اطلب الإفراج
                 </Button>
               ) : (
-                <span className="text-3xs opacity-45">لا تملك صلاحية الإفراج</span>
+                <span className="text-3xs opacity-65">لا تملك صلاحية الإفراج</span>
               )}
             </Row>
           ))}
@@ -182,10 +182,10 @@ export function SettlementsTable({
               <Line label="البائع" value={confirming.seller} />
             </dl>
             <div className="mb-4 flex items-baseline justify-between">
-              <span className="text-2xs opacity-60">يصل البائع</span>
+              <span className="text-2xs opacity-70">يصل البائع</span>
               <Money amount={Number(confirming.netToSeller)} size="lg" decimals={2} />
             </div>
-            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-70">
+            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
               هذه الضغطة <b>لا تُحرّك المبلغ</b> — تفتح طلبًا يعتمده عضوٌ ثانٍ، وعنده
               يُنادى المزوّد. ولا يعتمده الطالب.
             </p>
@@ -238,19 +238,19 @@ function Row({ row, children }: { row: SettlementRow; children: React.ReactNode 
         <Link
           href={`/admin/orders/${encodeURIComponent(row.orderRef)}`}
           dir="ltr"
-          className="font-num text-start text-2xs underline underline-offset-4 opacity-60 hover:opacity-100"
+          className="font-num text-start text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
         >
           {row.orderRef}
         </Link>
         <span className="bidi-isolate truncate text-sm">{row.seller}</span>
-        <span className="bidi-isolate truncate text-3xs opacity-45">
+        <span className="bidi-isolate truncate text-3xs opacity-65">
           المشتري {row.buyer}
         </span>
       </div>
       <div className="flex items-center gap-6">
         <div className="flex flex-col items-start gap-0.5 sm:items-end">
           <Money amount={Number(row.netToSeller)} decimals={2} />
-          <span className="text-3xs opacity-45">
+          <span className="text-3xs opacity-65">
             محجوز <Money amount={Number(row.heldAmount)} decimals={2} showCurrency={false} />
           </span>
         </div>
@@ -263,7 +263,7 @@ function Row({ row, children }: { row: SettlementRow; children: React.ReactNode 
 function Line({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className={mono === true ? 'font-num' : 'bidi-isolate truncate'}>{value}</dd>
     </div>
   );

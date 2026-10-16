@@ -35,7 +35,7 @@ export function ListFooter({
 
   return (
     <>
-      <p className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-55">
+      <p className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-70">
         <span className="font-num">
           <ArabicNumber value={shown} />
         </span>
@@ -94,7 +94,7 @@ function Note({
         className={
           tone === 'warn'
             ? 'mb-2 text-3xs font-bold tracking-[0.14em] text-warn-900 opacity-80'
-            : 'mb-2 text-3xs font-bold tracking-[0.14em] opacity-45'
+            : 'mb-2 text-3xs font-bold tracking-[0.14em] opacity-65'
         }
       >
         {title}

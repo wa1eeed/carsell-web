@@ -83,7 +83,7 @@ export function AccountList({
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
               <h1 className="mb-1.5 text-3xl font-bold tracking-tight">{title}</h1>
-              <p className="text-sm opacity-60">{subtitle}</p>
+              <p className="text-sm opacity-70">{subtitle}</p>
             </div>
             {/*
               **وفعلُ الصفحة في ترويستها لا في فراغها وحده.** كان
@@ -139,20 +139,20 @@ export function AccountRow({
         <p className="flex flex-wrap items-baseline gap-2 text-sm font-bold">
           {title}
           {year === undefined ? null : (
-            <span className="font-num text-2xs opacity-45">
+            <span className="font-num text-2xs opacity-65">
               <ArabicNumber value={year} grouped={false} />
             </span>
           )}
           {badge}
         </p>
-        <p className="mt-1.5 flex flex-wrap items-center gap-2 text-2xs opacity-55">{meta}</p>
+        <p className="mt-1.5 flex flex-wrap items-center gap-2 text-2xs opacity-70">{meta}</p>
       </div>
       {value === undefined ? null : <div className="shrink-0 text-end">{value}</div>}
     </div>
   );
 
   return href === null ? (
-    <div className="opacity-60">{body}</div>
+    <div className="opacity-70">{body}</div>
   ) : (
     <Link href={href} className="block transition-opacity hover:opacity-80">
       {body}

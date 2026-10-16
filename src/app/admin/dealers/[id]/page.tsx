@@ -105,7 +105,7 @@ export default async function AdminDealerDetailPage({
             >
               {dealer.members.length === 0 ? (
                 // معرضٌ بلا أعضاء لا ينشر شيئًا — وهو حالٌ تُقال لا تُخفى
-                <p className="text-2xs opacity-50">
+                <p className="text-2xs opacity-70">
                   لا أعضاء — ومعرضٌ بلا عضوٍ لا ينشر إعلانًا.
                 </p>
               ) : (
@@ -116,11 +116,11 @@ export default async function AdminDealerDetailPage({
                   >
                     <Link
                       href={`/admin/users/${member.id}`}
-                      className="bidi-isolate truncate text-2xs font-semibold underline underline-offset-4 hover:opacity-70"
+                      className="bidi-isolate truncate text-2xs font-semibold underline underline-offset-4 hover:opacity-75"
                     >
                       {member.name}
                     </Link>
-                    <span className="flex shrink-0 items-center gap-4 text-3xs opacity-60">
+                    <span className="flex shrink-0 items-center gap-4 text-3xs opacity-70">
                       <span dir="ltr" className="font-num">
                         {member.phone}
                       </span>
@@ -136,7 +136,7 @@ export default async function AdminDealerDetailPage({
               note={`المعروض آخر عشرة من ${displayDigits(String(dealer.counts.listings))}`}
             >
               {dealer.listings.length === 0 ? (
-                <p className="text-2xs opacity-50">لا إعلانات.</p>
+                <p className="text-2xs opacity-70">لا إعلانات.</p>
               ) : (
                 dealer.listings.map((listing) => (
                   <div
@@ -146,11 +146,11 @@ export default async function AdminDealerDetailPage({
                     <Link
                       href={`/admin/listings/${encodeURIComponent(listing.ref)}`}
                       dir="ltr"
-                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-70"
+                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-75"
                     >
                       {listing.ref}
                     </Link>
-                    <span className="flex shrink-0 items-center gap-4 text-3xs opacity-60">
+                    <span className="flex shrink-0 items-center gap-4 text-3xs opacity-70">
                       <Money amount={Number(listing.askPrice)} showCurrency={false} />
                       <span>{listing.status}</span>
                     </span>
@@ -209,7 +209,7 @@ export default async function AdminDealerDetailPage({
             <DetailCard title="الصفحة العامة">
               <Link
                 href={`/ar/dealers/${dealer.slug}`}
-                className="text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح ما يراه الزائر
               </Link>
@@ -222,7 +222,7 @@ export default async function AdminDealerDetailPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             تسجيلُ المعرض وتوثيقُه وما نشره مخزونُه، وأثر الفريق عليه.
           </p>
           <Timeline events={events} />

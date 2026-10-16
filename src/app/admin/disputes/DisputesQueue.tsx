@@ -125,7 +125,7 @@ export function DisputesQueue({
                   شكليًّا يضغطه واحدٌ مرّتين.
                 */
                 <span className="flex flex-col items-start gap-1.5 sm:items-end">
-                  <span className="text-3xs opacity-55">
+                  <span className="text-3xs opacity-70">
                     {RESOLUTION_LABEL[row.approval.resolution] ?? row.approval.resolution}
                     <span aria-hidden className="mx-1 opacity-40">
                       ·
@@ -176,12 +176,12 @@ export function DisputesQueue({
             </p>
 
             <p className="flex items-baseline gap-2 text-2xs">
-              <span className="opacity-55">إجمالي الطلب</span>
+              <span className="opacity-70">إجمالي الطلب</span>
               <Money amount={target.orderTotal} />
             </p>
 
             <div className="flex flex-col gap-2">
-              <span className="text-2xs font-bold opacity-55">القرار</span>
+              <span className="text-2xs font-bold opacity-70">القرار</span>
               {RESOLUTIONS.map((key) => (
                 <label
                   key={key}
@@ -200,7 +200,7 @@ export function DisputesQueue({
 
             {resolution !== 'PARTIAL_SETTLEMENT' ? null : (
               <label className="flex flex-col gap-1.5">
-                <span className="text-2xs font-bold opacity-60">
+                <span className="text-2xs font-bold opacity-70">
                   مبلغ التسوية — دون الإجمالي
                 </span>
                 <input

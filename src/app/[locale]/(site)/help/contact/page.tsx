@@ -71,7 +71,7 @@ export default async function ContactPage({
         <div className="mx-auto w-full max-w-2xl px-10 py-10">
           <Link
             href={`/${locale}/help`}
-            className="mb-5 inline-block py-1.5 text-2xs opacity-55 hover:opacity-100"
+            className="mb-5 inline-block py-1.5 text-2xs opacity-70 hover:opacity-100"
           >
             ← {t('title')}
           </Link>
@@ -79,7 +79,7 @@ export default async function ContactPage({
           <h1 className="mb-1.5 text-3xl font-bold tracking-tight">
             {locale === 'ar' ? 'تواصل معنا' : 'Contact us'}
           </h1>
-          <p className="mb-8 text-sm leading-loose opacity-60">
+          <p className="mb-8 text-sm leading-loose opacity-70">
             {locale === 'ar'
               ? 'فريق الدعم يردّ في أوقات العمل. وللبلاغ على إعلانٍ بعينه استعمل «أبلغ عن الإعلان» في صفحته — يصلنا معه مرجعه.'
               : 'Support replies during working hours. To report a specific listing, use “Report listing” on its page so its reference reaches us with it.'}
@@ -87,7 +87,7 @@ export default async function ContactPage({
 
           {channels.length === 0 ? (
             /* بلا قناة مضبوطة: سطرٌ صريح لا صفحةٌ فارغة توهم بالعطل */
-            <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-60">
+            <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
               {locale === 'ar'
                 ? 'قنوات التواصل غير مضبوطة بعد.'
                 : 'Support channels are not configured yet.'}
@@ -102,7 +102,7 @@ export default async function ContactPage({
                 >
                   <span className="text-sm font-bold">{channel.label}</span>
                   {/* الرقم والبريد يُنسخان ويُقارنان — لاتينيّ معزول */}
-                  <span dir="ltr" className="font-num text-2xs opacity-70">
+                  <span dir="ltr" className="font-num text-2xs opacity-75">
                     {channel.value}
                   </span>
                 </a>

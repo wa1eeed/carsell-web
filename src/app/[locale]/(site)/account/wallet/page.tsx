@@ -88,9 +88,9 @@ export default async function WalletPage({
 
           <div className="mb-8 grid gap-4 md:grid-cols-3">
             <section className="rounded-xl border-2 border-ink p-5">
-              <p className="mb-1.5 text-2xs opacity-55">الرصيد المتاح</p>
+              <p className="mb-1.5 text-2xs opacity-70">الرصيد المتاح</p>
               <Money amount={available} size="xl" />
-              <p className="mt-3 text-3xs leading-loose opacity-55">
+              <p className="mt-3 text-3xs leading-loose opacity-70">
                 {/*
                   **ولا يُعرض زرّ شحنٍ لا يعمل.** شحن المحفظة غرضُ دفعٍ
                   موجَّه (`WALLET_TOPUP`) ولا شاشة تناديه بعد — وزرٌّ
@@ -101,14 +101,14 @@ export default async function WalletPage({
             </section>
 
             <section className="rounded-xl border border-line bg-surface p-5">
-              <p className="mb-1.5 text-2xs opacity-55">محجوز كعربون</p>
+              <p className="mb-1.5 text-2xs opacity-70">محجوز كعربون</p>
               <Money amount={heldTotal} size="lg" />
               {holds.length === 0 ? (
-                <p className="mt-3 text-3xs opacity-55">لا عرابين محجوزة.</p>
+                <p className="mt-3 text-3xs opacity-70">لا عرابين محجوزة.</p>
               ) : (
                 <ul className="mt-3 flex flex-col gap-1.5">
                   {holds.map((row) => (
-                    <li key={row.auction.listing.ref} className="text-3xs leading-loose opacity-70">
+                    <li key={row.auction.listing.ref} className="text-3xs leading-loose opacity-75">
                       مزاد {row.auction.listing.vehicle.brandName}{' '}
                       {row.auction.listing.vehicle.modelName} — يُرَدّ عند الإغلاق إن لم تفز.
                     </li>
@@ -118,14 +118,14 @@ export default async function WalletPage({
             </section>
 
             <section className="rounded-xl border border-line bg-surface p-5">
-              <p className="mb-1.5 text-2xs opacity-55">الإجمالي في المحفظة</p>
+              <p className="mb-1.5 text-2xs opacity-70">الإجمالي في المحفظة</p>
               <Money amount={available + heldTotal} size="lg" />
               {/*
                 **ولا وحدة عربية بجوار رقم.** العربية ستّ حالات جمع،
                 والمكتوبة بيدٍ تخطئ في أكثرها — فتُصاغ الجملة فلا يحكمها
                 المعدود: «المتاح (٨٬٥٠٠)» لا «٨٬٥٠٠ متاح».
               */}
-              <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs opacity-55">
+              <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs opacity-70">
                 <span className="flex items-center gap-1">
                   المتاح (<ArabicNumber value={available} />)
                 </span>
@@ -138,19 +138,19 @@ export default async function WalletPage({
           </div>
 
           <h2 className="mb-1.5 text-base font-bold">دفتر الحركات</h2>
-          <p className="mb-4 text-3xs leading-loose opacity-55">
+          <p className="mb-4 text-3xs leading-loose opacity-70">
             مضافٌ فقط، لا يُعدَّل. والرصيد محسوبٌ من الحركات لا مخزَّنًا رقمًا — والتصحيح
             يقع بقيدٍ عكسيّ لا بتعديل حركة، فيُقرأ الدفتر سجلًّا لا يُنقَض.
           </p>
 
           {view.lines.length === 0 ? (
-            <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-60">
+            <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-70">
               لا حركة على محفظتك بعد.
             </p>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-line">
               <table className="w-full min-w-[32rem] text-start text-2xs">
-                <thead className="border-b border-line bg-surface text-3xs opacity-50">
+                <thead className="border-b border-line bg-surface text-3xs opacity-70">
                   <tr>
                     <th className="p-3 text-start font-bold">الحركة</th>
                     <th className="p-3 text-start font-bold">مرتبطة بـ</th>
@@ -165,14 +165,14 @@ export default async function WalletPage({
                       <td className="p-3">{line.note ?? line.kind}</td>
                       <td className="p-3">
                         {line.orderRef === null ? (
-                          <span className="opacity-35">—</span>
+                          <span className="opacity-65">—</span>
                         ) : (
-                          <span dir="ltr" className="font-num text-3xs opacity-70">
+                          <span dir="ltr" className="font-num text-3xs opacity-75">
                             {line.orderRef}
                           </span>
                         )}
                       </td>
-                      <td className="bidi-isolate p-3 font-num text-3xs opacity-60">
+                      <td className="bidi-isolate p-3 font-num text-3xs opacity-70">
                         {new Date(line.at).toLocaleDateString(AR_DATE_LOCALE)}
                       </td>
                       <td className="p-3 text-end">
@@ -180,7 +180,7 @@ export default async function WalletPage({
                         <Money amount={Number(line.amount)} showCurrency={false} size="sm" />
                       </td>
                       <td className="p-3 text-end">
-                        <span className="font-num text-3xs opacity-70">
+                        <span className="font-num text-3xs opacity-75">
                           <ArabicNumber value={Number(line.runningBalance)} />
                         </span>
                       </td>
@@ -191,7 +191,7 @@ export default async function WalletPage({
             </div>
           )}
 
-          <p className="mt-5 flex flex-wrap items-center gap-2 text-3xs opacity-55">
+          <p className="mt-5 flex flex-wrap items-center gap-2 text-3xs opacity-70">
             <Badge tone="neutral">لا يُعدَّل</Badge>
             كل حركةٍ هنا قيدٌ في دفتر الحسابات، وتصحيحُها قيدٌ جديد يعاكسها.
           </p>

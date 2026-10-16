@@ -40,7 +40,7 @@ export default async function ProviderQueuePage() {
 
       <main className="mx-auto w-full max-w-4xl p-6">
         <h1 className="mb-1.5 text-2xl font-bold tracking-tight">طلباتك</h1>
-        <p className="mb-7 text-sm opacity-60">
+        <p className="mb-7 text-sm opacity-70">
           المعروضُ على تخصّصك في مدنك، وما قبلتَه. والأقرب موعدًا أوّلًا.
         </p>
 
@@ -67,7 +67,7 @@ export default async function ProviderQueuePage() {
               >
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-bold">{row.serviceName}</span>
-                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-3xs opacity-55">
+                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-3xs opacity-70">
                     <span dir="ltr" className="font-num">
                       {row.ref}
                     </span>

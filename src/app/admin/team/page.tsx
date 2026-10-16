@@ -34,7 +34,7 @@ export default async function AdminTeamPage() {
         المتغيّر ولا صيغته، وشرطٌ يُفرَض ولا بابَ لاستيفائه قفلٌ بلا
         مفتاح.
       */}
-      <div className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <div className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <p>
           من في الفريق وبأي دور. <b>ولا يُنشأ عضو ولا يُرفع دور من هنا</b> — ذلك يمرّ
           بمتغيّرات النشر، فمن سرق جلسةً لا يصنع لنفسه حسابًا ثانيًا.
@@ -94,7 +94,7 @@ export default async function AdminTeamPage() {
         تُغني عن العدّ — وهي أنفع: أيُّها الشاغر لا كم.
       */}
       {stats.emptyRoles.length === 0 ? null : (
-        <p className="mt-3 flex flex-wrap items-center gap-2 text-3xs opacity-55">
+        <p className="mt-3 flex flex-wrap items-center gap-2 text-3xs opacity-70">
           <span>أدوار بلا عضو — صفوفُها في المصفوفة أدناه نظريّة:</span>
           {stats.emptyRoles.map((role) => (
             <span key={role} className="font-num rounded-md bg-ink/8 px-2 py-0.5" dir="ltr">
@@ -114,12 +114,12 @@ export default async function AdminTeamPage() {
         تعرض `escrow.release`**، أي ملفَ الشيفرة في نافذةٍ أجمل.
       */}
       <h2 className="mt-10 mb-1.5 text-sm font-bold">مصفوفة الصلاحيات</h2>
-      <p className="mb-3.5 text-3xs opacity-50">
+      <p className="mb-3.5 text-3xs opacity-70">
         قراءةٌ لا تبديل — المصفوفة في الشيفرة تُراجَع في مراجعتها، لا صفوفًا في قاعدة.
       </p>
       <PermissionMatrix />
 
-      <p className="mt-4 flex flex-wrap items-center gap-5 text-3xs opacity-55">
+      <p className="mt-4 flex flex-wrap items-center gap-5 text-3xs opacity-70">
         {[
           { label: 'قراءة وكتابة', track: 'bg-accent', knob: 'end-0.5' },
           { label: 'قراءة فقط', track: 'bg-accent-200', knob: 'start-2.5' },
@@ -151,15 +151,15 @@ export default async function AdminTeamPage() {
       <div className="mt-8 flex flex-wrap items-start gap-4">
         <div className="min-w-2xs flex-1 rounded-xl border border-line bg-surface px-5 py-5">
           <h3 className="mb-2 text-xs font-bold">البنود تُخفى لا تُعطَّل</h3>
-          <p className="text-2xs leading-loose opacity-70">
+          <p className="text-2xs leading-loose opacity-75">
             عرض بندٍ لا يملكه الدور يكشف بنية اللوحة لمن لا يستطيع استعمالها. والفحص في
             الخادم لا في الواجهة — الإخفاء تجربة، والمنع حماية.
           </p>
         </div>
         {/* والثانية مقيَّدة العرض كما في التصميم — والأولى تأخذ ما بقي */}
         <div className="min-w-2xs max-w-md flex-1 rounded-xl border border-line px-5 py-5">
-          <h3 className="mb-3 text-3xs font-bold tracking-wider opacity-45">لا استثناء فيها</h3>
-          <p className="text-2xs leading-loose opacity-70">
+          <h3 className="mb-3 text-3xs font-bold tracking-wider opacity-65">لا استثناء فيها</h3>
+          <p className="text-2xs leading-loose opacity-75">
             لا تسجيل ذاتيّ ولا استرجاع كلمة بالبريد · 5 محاولات فاشلة ⇒ قفل 15 دقيقة ·
             تبديل الكلمة أو الدور يُبطل جلسات العضو فورًا · وكل تعيينٍ يُكتب في سجل التدقيق.
           </p>

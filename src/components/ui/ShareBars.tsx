@@ -43,7 +43,7 @@ export function ShareBars({
               <span className="truncate text-2xs opacity-72">{share.label}</span>
               <span className="font-num shrink-0 text-2xs font-bold">
                 <ArabicNumber value={share.value} decimals={decimals} />
-                <span className="opacity-45">
+                <span className="opacity-65">
                   {' · '}
                   {displayDigits(pct.toFixed(1))}٪
                 </span>
@@ -67,7 +67,7 @@ export function ShareBars({
         );
       })}
 
-      <p className="mt-3 border-t border-line pt-3 text-3xs opacity-50">{baseNote}</p>
+      <p className="mt-3 border-t border-line pt-3 text-3xs opacity-70">{baseNote}</p>
     </div>
   );
 }

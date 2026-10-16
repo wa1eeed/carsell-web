@@ -145,7 +145,7 @@ export default async function HelpPage({
             <form method="get" action={`/${locale}/help`} className="flex flex-wrap gap-2.5">
               {topic === undefined ? null : <input type="hidden" name="topic" value={topic} />}
               <label className="relative flex min-w-56 flex-1 items-center">
-                <span className="pointer-events-none absolute start-3.5 opacity-40">
+                <span className="pointer-events-none absolute start-3.5 opacity-65">
                   <svg
                     viewBox="0 0 24 24"
                     className="size-4"
@@ -193,7 +193,7 @@ export default async function HelpPage({
                   }
                 >
                   <span className="mb-1 block text-sm font-bold">{label(category.key)}</span>
-                  <span className="block text-2xs opacity-50">
+                  <span className="block text-2xs opacity-70">
                     <Quantity unit="articles" count={category.count} />
                   </span>
                 </Link>
@@ -218,7 +218,7 @@ export default async function HelpPage({
                     })}
               />
               {query === undefined || rows.length === 0 ? null : (
-                <p className="mb-3 text-2xs opacity-50">
+                <p className="mb-3 text-2xs opacity-70">
                   <Quantity unit="results" count={rows.length} />
                 </p>
               )}
@@ -254,14 +254,14 @@ export default async function HelpPage({
               )}
               {/* موضوع في الرابط لا نعرفه: لا نصمت ولا نُخطئ — نقول ونعرض الكل */}
               {topic !== undefined && !known ? (
-                <p className="mt-4 text-xs opacity-55">{t('emptyTopic')}</p>
+                <p className="mt-4 text-xs opacity-70">{t('emptyTopic')}</p>
               ) : null}
             </section>
 
             <aside className="w-full shrink-0 lg:w-80">
               <div className="rounded-xl border border-line bg-surface p-6">
                 <h2 className="mb-2 text-base font-bold">{t('notFound')}</h2>
-                <p className="mb-4 text-xs leading-loose opacity-65">{t('notFoundBody')}</p>
+                <p className="mb-4 text-xs leading-loose opacity-75">{t('notFoundBody')}</p>
                 <Link
                   href={`/${locale}/help/contact`}
                   className="inline-flex rounded-md bg-accent px-5 py-2.5 text-xs font-bold text-bg"
@@ -286,7 +286,7 @@ export default async function HelpPage({
               */}
               <div className="mt-4 rounded-xl border border-line bg-surface p-6">
                 <h2 className="mb-2 text-base font-bold">{t('disputesTitle')}</h2>
-                <p className="mb-4 text-xs leading-loose opacity-65">{t('disputesBody')}</p>
+                <p className="mb-4 text-xs leading-loose opacity-75">{t('disputesBody')}</p>
                 <Link
                   href={`/${locale}/account/orders`}
                   className="inline-flex rounded-md border border-line px-5 py-2.5 text-xs font-bold hover:border-ink"

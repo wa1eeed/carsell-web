@@ -153,7 +153,7 @@ export function RulesTable({
                   </span>
                 </p>
                 {item.edit.note === null || item.edit.note === '' ? null : (
-                  <p className="mt-1.5 leading-loose opacity-70">الملاحظة: {item.edit.note}</p>
+                  <p className="mt-1.5 leading-loose opacity-75">الملاحظة: {item.edit.note}</p>
                 )}
                 {!canManage ? null : (
                   <Button
@@ -179,7 +179,7 @@ export function RulesTable({
             id: 'seller',
             header: 'البائع',
             cell: (rule) => (
-              <span className={rule.sellerType === null ? 'opacity-50' : undefined}>
+              <span className={rule.sellerType === null ? 'opacity-70' : undefined}>
                 {rule.sellerType === null
                   ? ANY_TYPE
                   : (SELLER_TYPE_LABEL[rule.sellerType] ?? rule.sellerType)}
@@ -190,7 +190,7 @@ export function RulesTable({
             id: 'buyer',
             header: 'المشتري',
             cell: (rule) => (
-              <span className={rule.buyerType === null ? 'opacity-50' : undefined}>
+              <span className={rule.buyerType === null ? 'opacity-70' : undefined}>
                 {rule.buyerType === null
                   ? ANY_TYPE
                   : (BUYER_TYPE_LABEL[rule.buyerType] ?? rule.buyerType)}
@@ -218,7 +218,7 @@ export function RulesTable({
             /* الشرطة لا الصفر: خارج النطاق ليس «صفر بالمئة» */
             cell: (rule) =>
               rule.ratePct === null ? (
-                <span className="opacity-35">—</span>
+                <span className="opacity-65">—</span>
               ) : (
                 <span className="font-num">
                   <ArabicNumber value={Number(rule.ratePct)} decimals={2} grouped={false} />٪
@@ -246,7 +246,7 @@ export function RulesTable({
             /* عددٌ يقول أثر التعديل — واللقطة فيها لا تتحرّك بعده */
             cell: (rule) =>
               rule.issuedCount === 0 ? (
-                <span className="opacity-35">—</span>
+                <span className="opacity-65">—</span>
               ) : (
                 <ArabicNumber value={rule.issuedCount} />
               ),
@@ -311,7 +311,7 @@ export function RulesTable({
             />
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-60">النسبة ٪ — اتركها فارغة لخارج النطاق</span>
+              <span className="text-2xs font-bold opacity-70">النسبة ٪ — اتركها فارغة لخارج النطاق</span>
               <input
                 dir="ltr"
                 inputMode="decimal"
@@ -337,14 +337,14 @@ export function RulesTable({
               />
               <span>
                 مفعَّلة
-                <span className="block text-2xs opacity-55">
+                <span className="block text-2xs opacity-70">
                   المعطَّلة تُعرض ولا تُطبَّق — وهي حال «ننتظر التصنيف» لا «قرّرنا الامتناع».
                 </span>
               </span>
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-60">ملاحظة</span>
+              <span className="text-2xs font-bold opacity-70">ملاحظة</span>
               <textarea
                 rows={3}
                 value={draft.note}
@@ -374,7 +374,7 @@ function Select({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}

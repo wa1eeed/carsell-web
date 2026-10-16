@@ -59,7 +59,7 @@ export function FinanceInputs({
       <div className="mb-1 flex flex-wrap items-baseline gap-3">
         <h2 className="text-sm font-bold">مدخلات {monthLabel}</h2>
       </div>
-      <p className="mb-4 text-3xs opacity-50">
+      <p className="mb-4 text-3xs opacity-70">
         ما لا تعرفه المنصّة عن نفسها. وCAC والمدرج يُحسبان من هذه — لا يُدخَلان.
       </p>
 
@@ -90,7 +90,7 @@ export function FinanceInputs({
                 />
               )}
 
-              <span className="min-w-40 text-3xs opacity-45">
+              <span className="min-w-40 text-3xs opacity-65">
                 {row.updatedAt === null ? (
                   // لم يُدخَل قطّ — لا «أُدخل صفرًا»
                   'لم يُدخَل بعد'

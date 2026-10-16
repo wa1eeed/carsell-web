@@ -22,7 +22,7 @@ function Logo({ brand }: { brand: BrandRow }) {
     return <img src={brand.logoUrl} alt="" className="size-8 rounded-sm object-contain" />;
   }
   return (
-    <span className="flex size-8 items-center justify-center rounded-sm border border-dashed border-line text-md font-bold opacity-45">
+    <span className="flex size-8 items-center justify-center rounded-sm border border-dashed border-line text-md font-bold opacity-65">
       {brand.nameAr.charAt(0)}
     </span>
   );
@@ -218,7 +218,7 @@ export function BrandsTable({
         {draft === null ? null : (
           <div className="flex flex-col gap-3.5">
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-55">
+              <span className="text-2xs font-semibold opacity-70">
                 الاسم العربي — إلزامي
               </span>
               <input
@@ -229,7 +229,7 @@ export function BrandsTable({
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-55">
+              <span className="text-2xs font-semibold opacity-70">
                 الاسم الإنجليزي — إلزامي
               </span>
               <input
@@ -241,7 +241,7 @@ export function BrandsTable({
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-55">
+              <span className="text-2xs font-semibold opacity-70">
                 المعرّف في الرابط
               </span>
               <input
@@ -255,7 +255,7 @@ export function BrandsTable({
 
             {canUploadLogo ? (
               <label className="flex flex-col gap-1.5">
-                <span className="text-2xs font-semibold opacity-55">
+                <span className="text-2xs font-semibold opacity-70">
                   الشعار — PNG أو SVG بخلفية شفافة
                 </span>
                 <input

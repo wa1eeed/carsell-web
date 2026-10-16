@@ -25,7 +25,7 @@ export default async function AdminAuctionSettingsPage() {
   return (
     <AdminShell title="إعدادات المزادات"
       subtitle="قواعد المزاد — ولا تمسّ جاريًا" activeHref="/admin/auction-settings" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         القواعد النافذة على كل مزاد جديد. والتوقيت من{' '}
         <Link href="/admin/deadlines" className="font-bold underline underline-offset-2">
           المهل الزمنية

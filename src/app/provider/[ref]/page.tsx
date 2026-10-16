@@ -48,7 +48,7 @@ export default async function ProviderRequestPage({
       <ProviderBar name={user.name} />
 
       <main className="mx-auto w-full max-w-3xl p-6">
-        <Link href="/provider" className="mb-6 inline-block text-2xs opacity-55 hover:opacity-100">
+        <Link href="/provider" className="mb-6 inline-block text-2xs opacity-70 hover:opacity-100">
           → كل الطلبات
         </Link>
 
@@ -57,7 +57,7 @@ export default async function ProviderRequestPage({
           <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold">{view.serviceName}</span>
-              <span dir="ltr" className="font-num mt-1 block text-2xs opacity-55">
+              <span dir="ltr" className="font-num mt-1 block text-2xs opacity-70">
                 {view.ref}
               </span>
             </span>
@@ -96,7 +96,7 @@ export default async function ProviderRequestPage({
               value={
                 <span className="flex flex-wrap items-baseline gap-2.5">
                   <span className="bidi-isolate">{view.requester.name ?? '—'}</span>
-                  <span dir="ltr" className="font-num text-2xs opacity-70">
+                  <span dir="ltr" className="font-num text-2xs opacity-75">
                     {view.requester.phone}
                   </span>
                 </span>
@@ -108,7 +108,7 @@ export default async function ProviderRequestPage({
                 value={
                   <span className="flex flex-wrap items-baseline gap-2.5">
                     <span className="bidi-isolate">{view.keeper.name ?? '—'}</span>
-                    <span dir="ltr" className="font-num text-2xs opacity-70">
+                    <span dir="ltr" className="font-num text-2xs opacity-75">
                       {view.keeper.phone}
                     </span>
                   </span>
@@ -128,7 +128,7 @@ export default async function ProviderRequestPage({
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line px-5 py-3.5 last:border-b-0">
-      <dt className="shrink-0 text-2xs opacity-55">{label}</dt>
+      <dt className="shrink-0 text-2xs opacity-70">{label}</dt>
       <dd className="text-sm font-semibold">{value}</dd>
     </div>
   );

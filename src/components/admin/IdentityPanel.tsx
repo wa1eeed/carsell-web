@@ -50,7 +50,7 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
     }
   };
 
-  if (!allowed) return <span className="text-3xs opacity-40">بلا صلاحية</span>;
+  if (!allowed) return <span className="text-3xs opacity-65">بلا صلاحية</span>;
 
   return (
     <>
@@ -69,10 +69,10 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
       >
         {identity === null ? (
           <>
-            <p className="mb-4 text-sm leading-loose opacity-70">
+            <p className="mb-4 text-sm leading-loose opacity-75">
               هذا الاطلاع يُسجَّل باسمك وبالسبب الذي تكتبه، ويظهر للعميل في سجلّه.
             </p>
-            <label className="mb-2 block text-2xs font-semibold opacity-60">سبب الاطلاع</label>
+            <label className="mb-2 block text-2xs font-semibold opacity-70">سبب الاطلاع</label>
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
@@ -83,7 +83,7 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
               اكشف وسجّل
             </Button>
             {reason.trim().length < 10 ? (
-              <p className="mt-2.5 text-2xs opacity-50">اكتب سببًا واضحًا — عشرة أحرف على الأقل.</p>
+              <p className="mt-2.5 text-2xs opacity-70">اكتب سببًا واضحًا — عشرة أحرف على الأقل.</p>
             ) : null}
           </>
         ) : (
@@ -98,12 +98,12 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
                 ] as const
               ).map(([label, value]) => (
                 <div key={label} className="flex items-baseline justify-between gap-4">
-                  <dt className="text-2xs opacity-55">{label}</dt>
+                  <dt className="text-2xs opacity-70">{label}</dt>
                   <dd className="bidi-isolate text-sm font-bold">{value}</dd>
                 </div>
               ))}
               <div className="flex items-baseline justify-between gap-4">
-                <dt className="text-2xs opacity-55">التوثيق</dt>
+                <dt className="text-2xs opacity-70">التوثيق</dt>
                 <dd>
                   <Badge tone={identity.idVerified ? 'accent' : 'neutral'}>
                     {identity.idVerified ? 'موثّق' : 'غير موثّق'}
@@ -112,19 +112,19 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
               </div>
             </dl>
 
-            <h3 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+            <h3 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
               سجلّ الاطلاع
             </h3>
             <ul className="flex flex-col gap-2.5 text-2xs">
               {log.map((entry, i) => (
                 <li key={i} className="flex items-baseline justify-between gap-4 border-b border-line-2 pb-2">
-                  <span className="font-num opacity-55">{entry.actorId.slice(-6)}</span>
+                  <span className="font-num opacity-70">{entry.actorId.slice(-6)}</span>
                   <span className="bidi-isolate flex-1 opacity-70">{entry.reason ?? '—'}</span>
                 </li>
               ))}
-              {log.length === 0 ? <li className="opacity-50">لا اطلاع سابق.</li> : null}
+              {log.length === 0 ? <li className="opacity-70">لا اطلاع سابق.</li> : null}
             </ul>
-            <p className="mt-4 flex items-center gap-1.5 text-3xs opacity-45">
+            <p className="mt-4 flex items-center gap-1.5 text-3xs opacity-65">
               <Quantity unit="accesses" count={log.length} />
               <span>مسجَّل</span>
             </p>

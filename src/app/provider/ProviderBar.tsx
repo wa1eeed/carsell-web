@@ -12,7 +12,7 @@ export function ProviderBar({ name }: { name: string }) {
   return (
     <header className="flex flex-wrap items-center gap-4 border-b border-line bg-surface px-6 py-4">
       <Logo />
-      <span className="text-2xs tracking-[0.18em] opacity-45">لوحة المزوّدين</span>
+      <span className="text-2xs tracking-[0.18em] opacity-65">لوحة المزوّدين</span>
       <span className="flex-1" />
       <span className="bidi-isolate text-sm font-bold">{name}</span>
       <SignOut path="/api/v1/provider/auth/logout" next="/provider/login" label="خروج" />

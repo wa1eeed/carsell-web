@@ -102,7 +102,7 @@ export function AuctionSettingsForm({
             onChange={(v) => setForm({ ...form, maxExtensions: v })}
           />
 
-          <p className="mt-4 mb-2 text-2xs font-bold opacity-60">المدد المتاحة للبائع</p>
+          <p className="mt-4 mb-2 text-2xs font-bold opacity-70">المدد المتاحة للبائع</p>
           <div className="flex flex-wrap gap-2">
             {DURATIONS.map((days) => {
               const on = form.durationsDays.includes(days);
@@ -187,7 +187,7 @@ export function AuctionSettingsForm({
         **السطر الذي يمنع سوء الفهم**: من يعدّل عربونًا يظنّ أنه يمسّ
         مزادًا جاريًا، فيتردّد أو يفعلها ويخشى أثرها.
       */}
-      <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+      <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <b>التعديل لا يمسّ مزادًا جاريًا.</b> القواعد تُنسَخ لقطةً في كل مزاد وقت إنشائه
         — فمزايدٌ بدأ على قاعدة لا تتغيّر عليه في منتصف المزاد. والتغيير يسري على
         الجديد وحده، ويُسجَّل في سجل التدقيق باسم من فعله.
@@ -219,7 +219,7 @@ function Field({
 }) {
   return (
     <label className="mb-3.5 flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {/* رقمٌ يُقارن خانةً بخانة — لاتينيّ معزول */}
       <input
         dir="ltr"
@@ -227,9 +227,9 @@ function Field({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-start font-num text-sm disabled:opacity-40"
+        className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-start font-num text-sm disabled:opacity-65"
       />
-      {note === undefined ? null : <span className="text-3xs opacity-45">{note}</span>}
+      {note === undefined ? null : <span className="text-3xs opacity-65">{note}</span>}
     </label>
   );
 }
@@ -237,11 +237,11 @@ function Field({
 function Readonly({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <div className="mb-3.5 flex flex-col gap-1">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
-      <span className="rounded-md border border-line border-dashed px-3.5 py-2.5 text-sm opacity-70">
+      <span className="text-2xs font-bold opacity-70">{label}</span>
+      <span className="rounded-md border border-line border-dashed px-3.5 py-2.5 text-sm opacity-75">
         {value}
       </span>
-      <span className="text-3xs opacity-45">{note}</span>
+      <span className="text-3xs opacity-65">{note}</span>
     </div>
   );
 }
@@ -270,7 +270,7 @@ function Toggle({
       />
       <span className="flex flex-col gap-0.5">
         <span className="text-2xs font-semibold">{label}</span>
-        <span className="text-3xs opacity-50">{note}</span>
+        <span className="text-3xs opacity-70">{note}</span>
       </span>
     </label>
   );

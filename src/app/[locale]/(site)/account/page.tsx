@@ -99,7 +99,7 @@ export default async function AccountPage({
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">
             {t('greeting', { name: data.user.name ?? t('anonymous') })}
           </h1>
-          <p className="mb-4 text-sm opacity-60">{t('subtitle')}</p>
+          <p className="mb-4 text-sm opacity-70">{t('subtitle')}</p>
 
           {/* خلاصةٌ تُنهي بفعل — والجملة العامّة لا تقول ما ينتظره */}
           <AccountBrief data={data} locale={locale} />
@@ -123,7 +123,7 @@ export default async function AccountPage({
               {listed === 'review' ? null : (
                 <p className="mt-2.5">
                   {/* المرجع يُنسخ ويُقارن — لاتينيّ معزول */}
-                  <span dir="ltr" className="font-num text-2xs opacity-70">
+                  <span dir="ltr" className="font-num text-2xs opacity-75">
                     {listed}
                   </span>
                 </p>

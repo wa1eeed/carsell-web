@@ -62,7 +62,7 @@ export function BodyTypeStrip({
           )}
           <span className="flex items-center justify-between gap-2 px-1.5 pt-2 pb-0.5">
             <span className="bidi-isolate text-xs font-bold">{item.name}</span>
-            <span className="text-2xs opacity-45">
+            <span className="text-2xs opacity-65">
               <ArabicNumber value={item.count} />
             </span>
           </span>

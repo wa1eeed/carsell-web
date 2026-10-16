@@ -72,7 +72,7 @@ export function ListingCard({ row }: { row: ListingRow }) {
       */}
       <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-ink/8">
         {row.thumbnail === null ? (
-          <span className="flex size-full items-center justify-center text-3xs opacity-45">
+          <span className="flex size-full items-center justify-center text-3xs opacity-65">
             لا صور
           </span>
         ) : (
@@ -95,13 +95,13 @@ export function ListingCard({ row }: { row: ListingRow }) {
         <div className="flex flex-wrap items-center gap-2">
           <span className="truncate text-xs font-bold">{row.title}</span>
           {/* **والسنة بلا فاصلة** — «2,026» ليست سنة، والفاصلة تجعلها مبلغًا */}
-          <Year value={row.year} className="text-2xs opacity-55" />
+          <Year value={row.year} className="text-2xs opacity-70" />
           <Badge tone={status.tone}>{status.label}</Badge>
           {row.inspected ? <Badge tone="accent">مفحوصة</Badge> : null}
         </div>
 
         {/* سطرُ المركبة — المدينة والممشى ونوع العرض */}
-        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-60">
+        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-70">
           <span>{row.city}</span>
           <span aria-hidden className="opacity-40">·</span>
           {/* **والوحدة بـ`Quantity`** — ستُّ صيغ جمعٍ لا يحكمها قالب */}
@@ -121,21 +121,21 @@ export function ListingCard({ row }: { row: ListingRow }) {
           <Badge tone={kind.tone}>{kind.label}</Badge>
           {row.planName === null ? null : <Badge tone="neutral">{row.planName}</Badge>}
           {row.publishedAt === null ? (
-            <span className="opacity-45">لم يُنشر بعد</span>
+            <span className="opacity-65">لم يُنشر بعد</span>
           ) : (
-            <span className="opacity-45">نُشر {riyadh.format(new Date(row.publishedAt))}</span>
+            <span className="opacity-65">نُشر {riyadh.format(new Date(row.publishedAt))}</span>
           )}
         </p>
       </div>
 
       <div className="flex shrink-0 flex-col items-end justify-between gap-2">
         <Money amount={Number(row.askPrice)} />
-        <p className="flex items-center gap-2.5 text-3xs opacity-50">
+        <p className="flex items-center gap-2.5 text-3xs opacity-70">
           <Quantity unit="offers" count={row.offerCount} />
           <span aria-hidden className="opacity-40">·</span>
           <Quantity unit="views" count={row.viewCount} />
         </p>
-        <span className="font-num text-3xs opacity-40" dir="ltr">
+        <span className="font-num text-3xs opacity-65" dir="ltr">
           {row.ref}
         </span>
       </div>

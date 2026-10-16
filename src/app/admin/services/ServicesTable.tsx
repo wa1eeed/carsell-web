@@ -195,7 +195,7 @@ export function ServicesTable({
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-2.5">
-        <p className="flex-1 text-2xs opacity-55">
+        <p className="flex-1 text-2xs opacity-70">
           <Quantity unit="services" count={counts.all - counts.hidden} /> منشورة · تظهر في دليل
           الخدمات وصفحة المركبة
         </p>
@@ -216,7 +216,7 @@ export function ServicesTable({
       </div>
 
       {!ordering ? null : (
-        <p className="mb-3 text-2xs opacity-55">
+        <p className="mb-3 text-2xs opacity-70">
           الترتيب يحكم ظهورها في دليل الخدمات — والمرشِّح معطَّل ما دمتَ ترتّب.
         </p>
       )}
@@ -253,7 +253,7 @@ export function ServicesTable({
             cell: (service) => (
               <span className="flex flex-col gap-0.5">
                 <span className="bidi-isolate font-bold">{service.nameAr}</span>
-                <span className="font-num text-3xs opacity-45">{service.key}</span>
+                <span className="font-num text-3xs opacity-65">{service.key}</span>
               </span>
             ),
           },
@@ -272,7 +272,7 @@ export function ServicesTable({
             /* «مجانًا» لا «٠» — الصفر رقمٌ يُقرأ سعرًا مفقودًا */
             cell: (service) =>
               Number(service.price) === 0 ? (
-                <span className="opacity-60">مجانًا</span>
+                <span className="opacity-70">مجانًا</span>
               ) : (
                 <Money amount={service.price} />
               ),
@@ -284,7 +284,7 @@ export function ServicesTable({
             /* المعطَّل شرطةٌ لا صفر — الصفر رقمٌ سارٍ والشرطة غيابُ قرار */
             cell: (service) =>
               !service.adminFeeEnabled || Number(service.adminFee) === 0 ? (
-                <span className="opacity-35">—</span>
+                <span className="opacity-65">—</span>
               ) : (
                 <Money amount={service.adminFee} />
               ),
@@ -298,7 +298,7 @@ export function ServicesTable({
               ) : service.isAutomated ? (
                 <Badge tone="neutral">تكامل آلي</Badge>
               ) : (
-                <span className="text-2xs opacity-45">بلا مزوّد</span>
+                <span className="text-2xs opacity-65">بلا مزوّد</span>
               ),
           },
           {
@@ -311,7 +311,7 @@ export function ServicesTable({
                 <ArabicNumber value={service.totalRequests} />
                 {/* الأثر قبل الضغط: كم طلبًا يبقى بالسعر القديم */}
                 {service.openRequests > 0 ? (
-                  <span className="text-3xs opacity-50">
+                  <span className="text-3xs opacity-70">
                     <Quantity unit="openRequests" count={service.openRequests} />
                   </span>
                 ) : null}
@@ -334,17 +334,17 @@ export function ServicesTable({
             */
             cell: (service) => {
               const [first, ...rest] = service.placements;
-              if (first === undefined) return <span className="text-2xs opacity-45">لا تظهر</span>;
+              if (first === undefined) return <span className="text-2xs opacity-65">لا تظهر</span>;
               return (
                 <span
-                  className="flex items-center gap-1.5 text-2xs opacity-70"
+                  className="flex items-center gap-1.5 text-2xs opacity-75"
                   title={service.placements
                     .map((placement) => PLACEMENT_LABEL[placement] ?? placement)
                     .join(' · ')}
                 >
                   <span className="truncate">{PLACEMENT_LABEL[first] ?? first}</span>
                   {rest.length === 0 ? null : (
-                    <span className="shrink-0 opacity-55">
+                    <span className="shrink-0 opacity-70">
                       +<ArabicNumber value={rest.length} grouped={false} />
                     </span>
                   )}
@@ -444,7 +444,7 @@ export function ServicesTable({
                   hint="حروف لاتينية صغيرة وأرقام وشرطة سفلية — يدخل في المسارات ولا يتغيّر بعدها."
                 />
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-2xs font-bold opacity-55">المجموعة</span>
+                  <span className="text-2xs font-bold opacity-70">المجموعة</span>
                   <select
                     value={draft.category}
                     onChange={(event) => setDraft({ ...draft, category: event.target.value })}
@@ -515,7 +515,7 @@ export function ServicesTable({
                 />
                 رسم إداريّ على هذه الخدمة
               </label>
-              <p className="text-3xs leading-loose opacity-55">
+              <p className="text-3xs leading-loose opacity-70">
                 يُضاف سطرًا مستقلًّا فوق السعر — لا يُدمج فيه. وهو إيرادٌ لنا فتسري
                 عليه الضريبة، بخلاف ما يُمرَّر لجهةٍ أخرى كما هو.
               </p>
@@ -570,7 +570,7 @@ export function ServicesTable({
             />
 
             <div className="flex flex-col gap-2">
-              <span className="text-2xs font-bold opacity-55">مواضع الظهور</span>
+              <span className="text-2xs font-bold opacity-70">مواضع الظهور</span>
               <div className="flex flex-wrap gap-1.5">
                 {PLACEMENTS.map((placement) => {
                   const on = draft.placements.includes(placement);
@@ -624,7 +624,7 @@ function Field({
 
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-55">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {multiline ? (
         <textarea
           dir={ltr ? 'ltr' : undefined}
@@ -646,7 +646,7 @@ function Field({
           className={`${className} ${numeric ? 'font-num text-end' : ''}`}
         />
       )}
-      {hint === undefined ? null : <span className="text-3xs opacity-50">{hint}</span>}
+      {hint === undefined ? null : <span className="text-3xs opacity-70">{hint}</span>}
     </label>
   );
 }

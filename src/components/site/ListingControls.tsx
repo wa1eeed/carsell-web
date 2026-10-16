@@ -53,7 +53,7 @@ export function ListingControls({
 
   if (hasActiveOrder) {
     return (
-      <p className="mt-2 text-3xs leading-loose opacity-55">
+      <p className="mt-2 text-3xs leading-loose opacity-70">
         عليه طلبٌ قائم — لا يُعدَّل حتى ينتهي، والمشتري يدفع السعر الذي رآه.
       </p>
     );
@@ -61,7 +61,7 @@ export function ListingControls({
 
   if (!EDITABLE.has(status)) {
     return status === 'SUSPENDED' ? (
-      <p className="mt-2 text-3xs leading-loose opacity-55">
+      <p className="mt-2 text-3xs leading-loose opacity-70">
         أوقفته الإدارة — راجعها لرفعه.
       </p>
     ) : null;
@@ -127,7 +127,7 @@ export function ListingControls({
       {!open ? null : (
         <div className="mt-2.5 rounded-lg border border-line bg-surface p-4">
           <label className="mb-3 flex flex-col gap-1.5">
-            <span className="text-3xs font-bold opacity-60">السعر المطلوب بالريال</span>
+            <span className="text-3xs font-bold opacity-70">السعر المطلوب بالريال</span>
             {/* رقمٌ يُقارن خانةً بخانة — لاتينيّ معزول */}
             <input
               dir="ltr"
@@ -150,7 +150,7 @@ export function ListingControls({
             ويدفع السؤال إلى محادثةٍ خارج المنصّة.
           */}
           <label className="mb-3 flex flex-col gap-1.5">
-            <span className="text-3xs font-bold opacity-60">وصف السيارة</span>
+            <span className="text-3xs font-bold opacity-70">وصف السيارة</span>
             <textarea
               rows={4}
               value={draft.description}
@@ -158,7 +158,7 @@ export function ListingControls({
               placeholder="مالك واحد · صيانة الوكالة · سبب البيع…"
               className="rounded-md border border-line bg-bg px-3 py-2 text-2xs leading-loose"
             />
-            <span className="text-3xs opacity-45">
+            <span className="text-3xs opacity-65">
               اذكر ما لا تقوله المواصفات — والصدق هنا يوفّر أسئلةً ونزاعًا لاحقًا.
             </span>
           </label>

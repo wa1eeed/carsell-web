@@ -12,7 +12,7 @@ export function SectionHead({ title, note }: { title: string; note: ReactNode })
   return (
     <div className="mt-6.5 mb-3.5 flex items-baseline gap-3">
       <h2 className="text-md font-bold">{title}</h2>
-      <span className="text-2xs opacity-45">{note}</span>
+      <span className="text-2xs opacity-65">{note}</span>
       <span className="h-px flex-1 bg-line" aria-hidden />
     </div>
   );

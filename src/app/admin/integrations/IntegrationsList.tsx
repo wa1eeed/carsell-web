@@ -111,7 +111,7 @@ export function IntegrationsList({
       <div className="flex flex-col gap-5">
         {groups.map((group) => (
           <section key={group.label}>
-            <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+            <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
               {group.label}
             </h2>
 
@@ -120,12 +120,12 @@ export function IntegrationsList({
                 <article key={row.key} className="flex flex-wrap items-start gap-3 p-4">
                   <div className="min-w-48 flex-1">
                     <p className="text-xs font-bold">{row.nameAr}</p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-50">
+                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-70">
                       <span className="bidi-isolate">{row.provider}</span>
                       <span aria-hidden className="opacity-40">·</span>
                       <span className="font-num" dir="ltr">{row.key}</span>
                     </p>
-                    <p className="mt-1.5 text-3xs leading-relaxed opacity-55">
+                    <p className="mt-1.5 text-3xs leading-relaxed opacity-70">
                       عند التعطّل: {row.failureBehavior}
                     </p>
                     {/*
@@ -141,7 +141,7 @@ export function IntegrationsList({
                     */}
                     {row.webhookUrl === null ? null : (
                       <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5 text-3xs">
-                        <span className="opacity-50">يُنادينا على</span>
+                        <span className="opacity-70">يُنادينا على</span>
                         <code
                           className="font-num select-all rounded bg-ink/8 px-1.5 py-0.5 opacity-80"
                           dir="ltr"
@@ -169,12 +169,12 @@ export function IntegrationsList({
                           {ENV_LABEL[credential.env]}
                         </span>
                         {!credential.configured ? (
-                          <span className="opacity-40">بلا مفاتيح</span>
+                          <span className="opacity-65">بلا مفاتيح</span>
                         ) : (
                           <span className="flex flex-col gap-0.5">
                             {Object.entries(credential.hints).map(([name, hint]) => (
                               <span key={name} className="flex items-baseline gap-2">
-                                <span className="opacity-50">{name}</span>
+                                <span className="opacity-70">{name}</span>
                                 {/* التلميح مخزَّن نصًّا — ولا فكّ تشفير في مسار العرض */}
                                 <span className="font-num truncate opacity-75" dir="ltr">
                                   {String(hint)}
@@ -208,9 +208,9 @@ export function IntegrationsList({
                       «نجح» بعده كذب.
                     */}
                     {row.lastCheckAt === null ? (
-                      <span className="text-3xs opacity-35">لم يُفحص بعد</span>
+                      <span className="text-3xs opacity-65">لم يُفحص بعد</span>
                     ) : (
-                      <span className="text-3xs opacity-45">
+                      <span className="text-3xs opacity-65">
                         فُحص {riyadh.format(new Date(row.lastCheckAt))}
                       </span>
                     )}
@@ -244,7 +244,7 @@ export function IntegrationsList({
                       {row.storedEnv === 'LIVE' ? 'أعِدها إلى الاختبار' : 'انقلها إلى الإنتاج'}
                     </Button>
                   ) : row.pendingEnvSwitch.requestedBy === adminId ? (
-                    <span className="text-3xs opacity-55">
+                    <span className="text-3xs opacity-70">
                       طلبتَ نقلها إلى {row.pendingEnvSwitch.to === 'LIVE' ? 'الإنتاج' : 'الاختبار'} —
                       ينتظر عضوًا آخر
                     </span>
@@ -325,7 +325,7 @@ export function IntegrationsList({
                     </Button>
                   ) : row.pendingRotation.requestedBy === adminId ? (
                     /* الطالب يرى أنه ينتظر غيره — ولا يُعرض له زرّ يضغطه فيُرفض */
-                    <span className="text-3xs opacity-55">طلبتَه — ينتظر عضوًا آخر</span>
+                    <span className="text-3xs opacity-70">طلبتَه — ينتظر عضوًا آخر</span>
                   ) : (
                     /*
                       ═══ والمعتمِد يرى ما يعتمده ═══
@@ -336,7 +336,7 @@ export function IntegrationsList({
                       أن يَفحص الثاني لا أن يضغط.
                     */
                     <div className="flex flex-col items-start gap-1.5 sm:items-end">
-                      <span className="flex flex-wrap items-center gap-2 text-3xs opacity-60">
+                      <span className="flex flex-wrap items-center gap-2 text-3xs opacity-70">
                         <Badge tone={row.pendingRotation.env === 'LIVE' ? 'warn' : 'neutral'}>
                           {ENV_LABEL[row.pendingRotation.env]}
                         </Badge>
@@ -390,7 +390,7 @@ export function IntegrationsList({
       >
         {draft === null ? null : (
           <div className="flex flex-col gap-4">
-            <p className="text-2xs leading-relaxed opacity-60">
+            <p className="text-2xs leading-relaxed opacity-70">
               المفتاح الجديد يُشفَّر ويبقى في الطلب حتى يعتمده عضو ثانٍ. ولن يُستبدل القديم
               قبل ذلك — <strong>فالطلب وحده ليس تدويرًا</strong>.
             </p>
@@ -406,7 +406,7 @@ export function IntegrationsList({
               وتبديل البيئة يُحذِّر قبل الضغط لا بعده.
             */}
             <div className="flex flex-col gap-2">
-              <span className="text-3xs font-bold opacity-55">بيئة المفتاح</span>
+              <span className="text-3xs font-bold opacity-70">بيئة المفتاح</span>
               <div className="flex gap-2">
                 {(['TEST', 'LIVE'] as const).map((env) => (
                   <button

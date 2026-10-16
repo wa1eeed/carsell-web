@@ -61,7 +61,7 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
 function Row({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'accent' }) {
   return (
     <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
-      <span className="opacity-60">{label}</span>
+      <span className="opacity-70">{label}</span>
       <span className={cn('font-bold', tone === 'accent' && 'text-accent-700')}>{value}</span>
     </div>
   );
@@ -121,7 +121,7 @@ export function BuyColumn({
         {auction === null ? (
           <div className="flex border-b border-line">
             <div className="flex-1 border-e border-line p-5">
-              <p className="mb-1.5 flex flex-wrap items-center gap-2 text-2xs opacity-50">
+              <p className="mb-1.5 flex flex-wrap items-center gap-2 text-2xs opacity-70">
                 {t('cashPrice')}
                 {/*
                   ═══ شكل السعر يتبع وضع البائع ═══
@@ -135,7 +135,7 @@ export function BuyColumn({
                 </span>
               </p>
               <Money amount={data.askPrice} size="xl" />
-              <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-3xs opacity-55">
+              <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-3xs opacity-70">
                 {data.cost.vatIncludedInPrice === null ? (
                   tx('priceFinal')
                 ) : (
@@ -150,10 +150,10 @@ export function BuyColumn({
             </div>
             {data.monthly === null ? null : (
               <div className="w-36 p-5">
-                <p className="mb-1.5 text-2xs opacity-50">{t('financing')}</p>
+                <p className="mb-1.5 text-2xs opacity-70">{t('financing')}</p>
                 <p className="flex items-baseline gap-1">
                   <ArabicNumber value={data.monthly} className="text-2xl font-bold" />
-                  <span className="text-3xs opacity-50">{t('perMonth')}</span>
+                  <span className="text-3xs opacity-70">{t('perMonth')}</span>
                 </p>
               </div>
             )}
@@ -166,18 +166,18 @@ export function BuyColumn({
               * ما يمكن أن يقرأه بائع عن سيارته أو مشترٍ عن سوقها.
               */}
             <div className="mb-3 flex items-center gap-2.5">
-              <p className="flex-1 text-2xs opacity-50">
+              <p className="flex-1 text-2xs opacity-70">
                 {t(auction.highestBid === null ? 'openingPrice' : 'highestBid')}
               </p>
               {auction.live ? (
                 <Countdown endsAt={auction.endsAt} format="full" tone="warn" className="text-2xs" />
               ) : (
                 /* عدّادٌ على صفر يقول «الآن» وهو «انتهى» — فيُقال انتهى */
-                <span className="text-2xs font-bold opacity-55">انتهى المزاد</span>
+                <span className="text-2xs font-bold opacity-70">انتهى المزاد</span>
               )}
             </div>
             <Money amount={auction.highestBid ?? auction.startPrice} size="xl" />
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs opacity-60">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs opacity-70">
               <Quantity unit="bidders" count={auction.bidderCount} />
               <span className="flex items-center gap-1">
                 {t('minimumBid')} <ArabicNumber value={auction.minimumBid} />
@@ -203,12 +203,12 @@ export function BuyColumn({
               {auction.live ? (
                 <>
                   <div className="mb-2.5">{bidActions}</div>
-                  <p className="mb-4 flex items-center justify-center gap-1.5 text-2xs opacity-55">
+                  <p className="mb-4 flex items-center justify-center gap-1.5 text-2xs opacity-70">
                     {t('depositRequired')} <ArabicNumber value={auction.depositAmount} />
                   </p>
                 </>
               ) : (
-                <p className="mb-4 rounded-md border border-line bg-surface p-3.5 text-2xs leading-loose opacity-70">
+                <p className="mb-4 rounded-md border border-line bg-surface p-3.5 text-2xs leading-loose opacity-75">
                   أُغلق هذا المزاد — وتفاصيل نتيجته في صفحته.
                 </p>
               )}
@@ -254,7 +254,7 @@ export function BuyColumn({
           <ArabicNumber value={data.cost.total} />
         </div>
         {/* الضريبة مضمَّنة دائمًا (قرار ١٧) — تُقال ولا تُضاف سطرًا */}
-        <p className="mt-2 text-3xs opacity-45">{t('vatIncluded')}</p>
+        <p className="mt-2 text-3xs opacity-65">{t('vatIncluded')}</p>
       </Card>
 
       <Card>
@@ -269,7 +269,7 @@ export function BuyColumn({
                 </svg>
               )}
             </p>
-            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-3xs opacity-55">
+            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-3xs opacity-70">
               {data.seller.badge === null ? null : <span>{t(`sellerBadge.${data.seller.badge}`)}</span>}
               {data.seller.ratingAvg === null ? null : (
                 <>

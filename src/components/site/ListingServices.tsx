@@ -57,7 +57,7 @@ export function ListingServices({
                   <Money amount={Number(service.price)} size="sm" showCurrency={false} />
                 )}
               </span>
-              <span className="text-3xs leading-relaxed opacity-60">{service.description}</span>
+              <span className="text-3xs leading-relaxed opacity-70">{service.description}</span>
             </Link>
           </li>
         ))}

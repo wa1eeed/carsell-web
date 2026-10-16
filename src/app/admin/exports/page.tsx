@@ -46,7 +46,7 @@ export default async function AdminExportsPage() {
   return (
     <AdminShell title="التقارير والتصدير"
       subtitle="تقارير جاهزة تُنزَّل — ولا تمسّ البيانات" activeHref="/admin/exports" admin={admin}>
-      <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
         <Quantity unit="reportsReady" count={stats.reports} /> جاهزة — كلٌّ منها{' '}
         <b>استعلامٌ مسمّى على القراءة</b>، لا لقطةُ شاشة.
       </p>
@@ -56,7 +56,7 @@ export default async function AdminExportsPage() {
         تُولّده يجعل من يعتمد عليه ينتظر ملفًّا لن يصل.
       */}
       {REPORT_SCHEDULING_RUNS ? null : (
-        <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-70">
+        <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-75">
           <b>التوليد المجدوَل لم يبدأ بعد.</b> عمود «الجدولة» يقول ما هو مقصود، والتنزيل
           اليوم عند الطلب من هنا — ولا يصل ملفٌّ إلى أحد من تلقاء نفسه.
         </p>
@@ -106,9 +106,9 @@ export default async function AdminExportsPage() {
                   </span>
                 </td>
                 <td className="p-3 opacity-70">{REPORT_CONTENT[report.key]}</td>
-                <td className="font-num p-3 opacity-70">CSV</td>
+                <td className="font-num p-3 opacity-75">CSV</td>
                 <td className="p-3 opacity-70">{REPORT_SCHEDULE_LABEL[report.schedule]}</td>
-                <td className="font-num p-3 opacity-70">{report.permission}</td>
+                <td className="font-num p-3 opacity-75">{report.permission}</td>
                 <td className="p-3 text-end">
                   {/*
                     رابطٌ لا زرّ: التنزيل تصفّحٌ إلى ملف، وزرٌّ بـ`fetch`
@@ -129,7 +129,7 @@ export default async function AdminExportsPage() {
       </div>
 
       {hidden === 0 ? null : (
-        <p className="mt-3 text-3xs opacity-50">
+        <p className="mt-3 text-3xs opacity-70">
           و<Quantity unit="reportsReady" count={hidden} /> لا يفتحها دورك — فلا تُعرض.
         </p>
       )}
@@ -140,7 +140,7 @@ export default async function AdminExportsPage() {
       */}
       <h2 className="mt-10 mb-3.5 text-sm font-bold">سجلّ التصديرات</h2>
       {log.length === 0 ? (
-        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-55">
+        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
           لا تصدير مسجَّلًا. والتقارير المجمَّعة لا تُقيَّد — التقييد لما يحمل بيانات
           شخصية وحده.
         </p>
@@ -151,7 +151,7 @@ export default async function AdminExportsPage() {
               <span className="truncate text-2xs font-bold">
                 {REPORT_NAME[row.reportKey as keyof typeof REPORT_NAME] ?? row.reportKey}
               </span>
-              <span className="flex shrink-0 items-center gap-5 text-3xs opacity-60">
+              <span className="flex shrink-0 items-center gap-5 text-3xs opacity-70">
                 <span><Quantity unit="rows" count={row.rows} /></span>
                 <span>{riyadh.format(new Date(row.at))}</span>
               </span>
@@ -161,7 +161,7 @@ export default async function AdminExportsPage() {
       )}
 
       <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-2">
-        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">أي تصدير يحمل بيانات شخصية يُسجَّل</p>
           <p>
             اسم من صدّر ووقته وعدد الصفوف — في سجل التدقيق. <b>والملف يُنزَّل مباشرةً
@@ -169,7 +169,7 @@ export default async function AdminExportsPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+        <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">لا تُبنى التقارير من الشاشات</p>
           <p>
             كل تقرير <b>استعلامٌ مسمّى على القراءة</b> بأعمدةٍ ثابتة، وحدُّه{' '}

@@ -169,7 +169,7 @@ export function RoutesTable({
                   </span>
                 </p>
                 {/* السبب يُعرض للموافق: من يعتمد بلا سببٍ يعتمد ورقة */}
-                <p className="mt-1.5 leading-loose opacity-70">السبب: {item.reason}</p>
+                <p className="mt-1.5 leading-loose opacity-75">السبب: {item.reason}</p>
                 {!canManage ? null : (
                   <Button
                     size="sm"
@@ -188,7 +188,7 @@ export function RoutesTable({
 
       <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[760px] text-2xs">
-          <thead className="border-b border-line text-3xs opacity-45">
+          <thead className="border-b border-line text-3xs opacity-65">
             <tr>
               <th className="p-3.5 text-start font-bold">الغرض</th>
               <th className="p-3.5 text-start font-bold">البوابة الفعّالة</th>
@@ -204,7 +204,7 @@ export function RoutesTable({
                 <td className="p-3.5">
                   <span className="font-bold">{PAYMENT_PURPOSE_LABEL[route.purpose]}</span>
                   {!route.enabled ? (
-                    <span className="block text-3xs opacity-45">معطّل — لا معاملات جديدة</span>
+                    <span className="block text-3xs opacity-65">معطّل — لا معاملات جديدة</span>
                   ) : null}
                   {route.shortfall === null ? null : (
                     /* قِصَر المدّة تحذيرٌ يشرح الأثر ولا يمنع */
@@ -221,7 +221,7 @@ export function RoutesTable({
                   <span className="flex flex-col items-end gap-0.5">
                     <Money amount={route.heldNow} />
                     {route.inFlight === 0 ? null : (
-                      <span className="text-3xs opacity-45">
+                      <span className="text-3xs opacity-65">
                         <Quantity unit="inFlight" count={route.inFlight} />
                       </span>
                     )}
@@ -284,19 +284,19 @@ export function RoutesTable({
         {target === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="flex items-baseline gap-2 text-2xs">
-              <span className="opacity-55">الحالية</span>
+              <span className="opacity-70">الحالية</span>
               <span className="font-bold">{target.gatewayNameAr ?? ROUTE_DISABLED_LABEL}</span>
             </p>
 
             {choices === null ? (
-              <p className="text-2xs opacity-45">…</p>
+              <p className="text-2xs opacity-65">…</p>
             ) : choices.length === 0 ? (
-              <p className="text-2xs opacity-55">
+              <p className="text-2xs opacity-70">
                 لا بوابة أخرى تملك القدرات التي يحتاجها هذا الغرض.
               </p>
             ) : (
               <div className="flex flex-col gap-2">
-                <span className="text-2xs font-bold opacity-55">البوابة الجديدة</span>
+                <span className="text-2xs font-bold opacity-70">البوابة الجديدة</span>
                 {choices.map((choice) => (
                   <label
                     key={choice.key}
@@ -311,7 +311,7 @@ export function RoutesTable({
                     />
                     <span className="flex-1">
                       <span className="block text-xs font-bold">{choice.nameAr}</span>
-                      <span className="mt-0.5 block text-3xs opacity-55">
+                      <span className="mt-0.5 block text-3xs opacity-70">
                         أقصى حجز{' '}
                         <Quantity unit="days" count={choice.capabilities.maxHoldDays} /> ·{' '}
                         <span className="font-num">
@@ -326,14 +326,14 @@ export function RoutesTable({
                     </span>
                   </label>
                 ))}
-                <p className="text-3xs opacity-45">
+                <p className="text-3xs opacity-65">
                   البوابة التي تنقصها قدرة مطلوبة لا تظهر هنا أصلًا.
                 </p>
               </div>
             )}
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-55">سبب التبديل</span>
+              <span className="text-2xs font-bold opacity-70">سبب التبديل</span>
               <textarea
                 rows={2}
                 value={reason}
@@ -341,13 +341,13 @@ export function RoutesTable({
                 placeholder="ارتفاع الرسوم · تعطّل متكرّر · انتهاء العقد"
                 className="w-full rounded-sm border border-line bg-bg px-3 py-2 text-sm outline-none focus:border-ink/40"
               />
-              <span className="text-3xs opacity-50">
+              <span className="text-3xs opacity-70">
                 إلزاميّ — بعد سنة لن يتذكّر أحد لماذا، والقرار بلا سببه يُعاد نقضه.
               </span>
             </label>
 
             {selected === undefined ? null : (
-              <div className="rounded-sm border border-line p-3 text-3xs leading-relaxed opacity-70">
+              <div className="rounded-sm border border-line p-3 text-3xs leading-relaxed opacity-75">
                 المعاملات الجارية تبقى على {target.gatewayNameAr ?? ROUTE_DISABLED_LABEL}، والحجز القائم يُفرَج عنه من
                 حيث أُنشئ. والتبديل يسري على الجديد وحده من لحظة تنفيذه.
               </div>

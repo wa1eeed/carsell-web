@@ -39,7 +39,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Case({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-line-2 p-4">
-      <p className="text-3xs font-bold tracking-[0.14em] opacity-45">{label}</p>
+      <p className="text-3xs font-bold tracking-[0.14em] opacity-65">{label}</p>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </div>
   );
@@ -126,7 +126,7 @@ export default async function DevUiPage({
       <div className="mx-auto flex w-full max-w-page flex-col gap-8 px-10 py-10">
         <header>
           <h1 className="text-5xl font-extrabold tracking-tight">{t('title')}</h1>
-          <p className="mt-2.5 max-w-xl text-base opacity-65">{t('subtitle')}</p>
+          <p className="mt-2.5 max-w-xl text-base opacity-75">{t('subtitle')}</p>
         </header>
 
         {/* ═══ السلالم ═══ */}
@@ -136,8 +136,8 @@ export default async function DevUiPage({
               <div className="flex w-full flex-col gap-2">
                 {TEXT_SCALE.map(([cls, px]) => (
                   <div key={cls} className="flex items-baseline gap-3">
-                    <span className="w-20 text-3xs opacity-45">{cls}</span>
-                    <ArabicNumber value={px} className="w-8 text-3xs opacity-45" />
+                    <span className="w-20 text-3xs opacity-65">{cls}</span>
+                    <ArabicNumber value={px} className="w-8 text-3xs opacity-65" />
                     <span className={cls}>الأرقام 123 والحروف</span>
                   </div>
                 ))}
@@ -147,8 +147,8 @@ export default async function DevUiPage({
               <div className="flex w-full flex-col gap-1.5">
                 {SPACE_SCALE.map(([cls, px]) => (
                   <div key={cls} className="flex items-center gap-3">
-                    <span className="w-20 text-3xs opacity-45">{cls}</span>
-                    <ArabicNumber value={px} className="w-8 text-3xs opacity-45" />
+                    <span className="w-20 text-3xs opacity-65">{cls}</span>
+                    <ArabicNumber value={px} className="w-8 text-3xs opacity-65" />
                     <span
                       className="h-2.5 rounded-full bg-accent"
                       style={{ width: `${Number(px) * 3}px` }}
@@ -212,7 +212,7 @@ export default async function DevUiPage({
               <Percent signed value={18} className="text-2xl font-bold text-accent-700" />
               <Percent signed value={-40} className="text-2xl font-bold text-warn-700" />
               <Percent signed value={180} className="text-2xl font-bold text-accent-700" />
-              <Percent signed value={0} className="text-2xl font-bold opacity-55" />
+              <Percent signed value={0} className="text-2xl font-bold opacity-70" />
             </Case>
 
             <Case label="ScoreRing — sm · md · lg · عتبات اللون">
@@ -297,7 +297,7 @@ export default async function DevUiPage({
             </Case>
 
             <Case label="RangeBar — عيّنة < 8 ⇒ لا شيء يُعرض">
-              <div className="w-full text-2xs opacity-45">
+              <div className="w-full text-2xs opacity-65">
                 <RangeBar
                   price={145_000}
                   stats={{ p10: 1, p25: 2, p50: 3, p75: 4, p90: 5, sampleSize: 3 }}
@@ -342,7 +342,7 @@ export default async function DevUiPage({
             <div className="grid w-full gap-4 md:grid-cols-4">
               {ADMIN_NAV.map((group) => (
                 <div key={group.title} className="rounded-lg bg-ink p-3.5 text-bg">
-                  <p className="px-1 pb-2 text-3xs font-bold tracking-[0.16em] opacity-38">
+                  <p className="px-1 pb-2 text-3xs font-bold tracking-[0.16em] opacity-65">
                     {group.title}
                   </p>
                   {group.items.map((item) => (

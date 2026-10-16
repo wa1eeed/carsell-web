@@ -79,7 +79,7 @@ export function UserCard({ row }: { row: UserRow }) {
           )}
         </div>
 
-        <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-70">
           {/* رقم العميل يُنسخ ويُقارن خانة بخانة — لاتيني معزول */}
           <span dir="ltr" className="font-num text-start">
             {row.ref ?? 'بلا رقم عميل'}
@@ -111,7 +111,7 @@ export function UserCard({ row }: { row: UserRow }) {
         <Figure label="إعلانات" value={row.listingCount} />
         <Figure label="شراء" value={row.orderCount} />
         <Figure label="بيع" value={row.soldCount} />
-        <span className="font-num min-w-16 text-3xs opacity-35">
+        <span className="font-num min-w-16 text-3xs opacity-65">
           {date.format(new Date(row.joinedAt))}
         </span>
       </div>
@@ -123,7 +123,7 @@ function Figure({ label, value }: { label: string; value: number }) {
   return (
     <span className="flex min-w-10 flex-col items-center gap-0.5">
       <ArabicNumber value={value} className="text-sm font-bold" />
-      <span className="text-3xs opacity-45">{label}</span>
+      <span className="text-3xs opacity-65">{label}</span>
     </span>
   );
 }

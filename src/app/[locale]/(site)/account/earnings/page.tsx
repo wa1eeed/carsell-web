@@ -87,7 +87,7 @@ export default async function EarningsPage({
           />
 
           <h1 className="mb-1.5 text-3xl font-bold tracking-tight">مستحقّاتي</h1>
-          <p className="mb-8 text-sm leading-loose opacity-60">
+          <p className="mb-8 text-sm leading-loose opacity-70">
             بيانُ حقوقك من كل صفقة. والمبلغ محفوظ لدى مزوّد الدفع حتى تنتقل
             الملكية ويؤكّد المشتري الاستلام، ثم يُحوَّل إلى آيبانك.
           </p>
@@ -123,7 +123,7 @@ export default async function EarningsPage({
               فلم تساوِ إجماليه، فظنّ العدّاد مكسورًا.
             */}
             {book.awaitingPayment.count === 0 ? null : (
-              <p className="mt-3.5 flex flex-wrap items-center gap-1.5 border-t border-line pt-3 text-3xs leading-loose opacity-60">
+              <p className="mt-3.5 flex flex-wrap items-center gap-1.5 border-t border-line pt-3 text-3xs leading-loose opacity-70">
                 ولا يشمل
                 <span className="font-bold">
                   <Quantity unit="deals" count={book.awaitingPayment.count} />
@@ -157,7 +157,7 @@ export default async function EarningsPage({
                   >
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-2xs">{dateFormat.format(new Date(payout.sentAt))}</span>
-                      <span className="text-3xs opacity-45">
+                      <span className="text-3xs opacity-65">
                         {payout.ibanLast4 === null ? (
                           'إلى آيبانك'
                         ) : (
@@ -204,7 +204,7 @@ export default async function EarningsPage({
                       <Link
                         href={`/${locale}/account/orders/${line.orderRef}`}
                         dir="ltr"
-                        className="font-num text-2xs underline opacity-45 hover:opacity-80"
+                        className="font-num text-2xs underline opacity-65 hover:opacity-80"
                       >
                         {line.orderRef}
                       </Link>
@@ -234,7 +234,7 @@ export default async function EarningsPage({
                   </dl>
 
                   {line.releasesAt === null || line.blockedBy === null ? null : (
-                    <p className="mt-2.5 text-3xs opacity-50">
+                    <p className="mt-2.5 text-3xs opacity-70">
                       يُفرَج عنه بعد {line.releasesAt}
                     </p>
                   )}
@@ -267,7 +267,7 @@ function Card({
           : 'rounded-lg border border-line bg-surface p-4'
       }
     >
-      <p className="text-2xs opacity-55">{label}</p>
+      <p className="text-2xs opacity-70">{label}</p>
       <p className="mt-1.5">
         {/*
           **والرصيد يُعرض بهللاته.** كانت البطاقة تقول «جاهز للصرف
@@ -277,7 +277,7 @@ function Card({
         */}
         <Money amount={Number(amount)} size="lg" decimals={2} />
       </p>
-      <p className="mt-1 text-3xs opacity-45">{note}</p>
+      <p className="mt-1 text-3xs opacity-65">{note}</p>
     </section>
   );
 }
@@ -296,7 +296,7 @@ function Row({
 }) {
   return (
     <div className={`flex items-center justify-between gap-4 ${strong === true ? 'font-bold' : ''}`}>
-      <dt className={strong === true ? '' : 'opacity-60'}>{label}</dt>
+      <dt className={strong === true ? '' : 'opacity-70'}>{label}</dt>
       <dd className="font-num">
         {/*
           **ولا إشارةَ سالبٍ على صفر.** `-٠٫٠٠` تقول للبائع إنّ شيئًا

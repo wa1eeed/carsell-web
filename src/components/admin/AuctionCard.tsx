@@ -56,7 +56,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
     <div className="group relative flex flex-col gap-3 rounded-xl border border-line bg-surface p-3.5 transition duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none sm:flex-row sm:items-start sm:gap-4">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-ink/8">
         {row.thumbnail === null ? (
-          <span className="flex size-full items-center justify-center text-3xs opacity-45">
+          <span className="flex size-full items-center justify-center text-3xs opacity-65">
             لا صور
           </span>
         ) : (
@@ -98,7 +98,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
           )}
         </div>
 
-        <span className="truncate text-2xs opacity-70">
+        <span className="truncate text-2xs opacity-75">
           <span className="bidi-isolate">
             {row.brand} {row.model}
           </span>
@@ -112,7 +112,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
           <span className="bidi-isolate">{row.city}</span>
         </span>
 
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           <Link
             href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
             className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
@@ -136,7 +136,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
 
       <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
         {row.topBid === null ? (
-          <span className="text-2xs opacity-45">لا مزايدات</span>
+          <span className="text-2xs opacity-65">لا مزايدات</span>
         ) : (
           <Money
             amount={Number(row.topBid)}
@@ -177,7 +177,7 @@ function Timing({
   if (row.status === 'SCHEDULED') {
     const starts = new Date(row.startsAt);
     return (
-      <span className="font-num text-3xs opacity-55">
+      <span className="font-num text-3xs opacity-70">
         <span className="opacity-70">يبدأ </span>
         {day.format(starts)}
       </span>
@@ -185,7 +185,7 @@ function Timing({
   }
 
   return (
-    <span className="font-num text-3xs opacity-45">
+    <span className="font-num text-3xs opacity-65">
       <span className="opacity-70">انتهى </span>
       {day.format(new Date(row.endsAt))}
     </span>

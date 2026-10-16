@@ -69,7 +69,7 @@ export function SummaryCards({ cards }: { cards: readonly SummaryCard[] }) {
           </span>
           <span>
             <span className="mb-1 block text-lg font-bold">{card.title}</span>
-            <span className="block text-xs opacity-60">{card.body}</span>
+            <span className="block text-xs opacity-70">{card.body}</span>
           </span>
           <span className="mt-auto flex items-center gap-2 text-xs font-bold text-accent-700">
             {card.count === null ? (
@@ -127,7 +127,7 @@ export function BrandGrid({
           <span className="block text-xs font-bold">
             {locale === 'ar' ? brand.nameAr : brand.nameEn}
           </span>
-          <span className="mt-1 block text-3xs opacity-45">
+          <span className="mt-1 block text-3xs opacity-65">
             <ArabicNumber value={brand.count} />
           </span>
         </Link>
@@ -140,7 +140,7 @@ export function BrandGrid({
           <span className="text-xl font-bold text-accent-700">
             <ArabicNumber value={remaining} />
           </span>
-          <span className="mt-1 text-2xs opacity-55">{t('moreBrands')}</span>
+          <span className="mt-1 text-2xs opacity-70">{t('moreBrands')}</span>
         </Link>
       )}
     </div>
@@ -160,7 +160,7 @@ export function StepList({ steps }: { steps: readonly { title: string; body: str
             <span className="h-px flex-1 bg-line" />
           </span>
           <span className="text-base font-bold">{step.title}</span>
-          <span className="text-xs leading-loose opacity-65">{step.body}</span>
+          <span className="text-xs leading-loose opacity-75">{step.body}</span>
         </li>
       ))}
     </ol>
@@ -205,7 +205,7 @@ export function ServiceBanners({
           <h3 className="mb-1.5 text-sm font-bold">
             {locale === 'ar' ? service.nameAr : service.nameEn}
           </h3>
-          <p className="mb-3.5 text-2xs leading-relaxed opacity-60">
+          <p className="mb-3.5 text-2xs leading-relaxed opacity-70">
             {locale === 'ar' ? service.descAr : service.descEn}
           </p>
           <Money amount={Number(service.price)} size="md" className="text-accent-700" />

@@ -83,7 +83,7 @@ export function PasswordForm({ minLength }: { minLength: number }) {
         />
 
         {/* **يُقال قبل الضغط لا بعده.** */}
-        <p className="mt-4 rounded-lg border border-line bg-surface p-3.5 text-3xs leading-loose opacity-70">
+        <p className="mt-4 rounded-lg border border-line bg-surface p-3.5 text-3xs leading-loose opacity-75">
           <b>التغيير يُنهي جلساتك كلّها — بما فيها هذه.</b> وستعود إلى شاشة الدخول
           بالكلمة الجديدة.
         </p>
@@ -113,7 +113,7 @@ function Field({
 }) {
   return (
     <label className="mb-4 flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {/*
         **الحقل يقبل كل صيغة لصق**: من يستعمل مدير كلمات يلصق، ومنعُ
         اللصق يدفعه إلى كلمةٍ يحفظها — أضعف بالضرورة.
@@ -129,7 +129,7 @@ function Field({
       {error !== undefined ? (
         <span className="text-3xs text-danger">{error}</span>
       ) : note === undefined ? null : (
-        <span className="text-3xs opacity-45">{note}</span>
+        <span className="text-3xs opacity-65">{note}</span>
       )}
     </label>
   );

@@ -162,7 +162,7 @@ export default async function CityBrandModelLanding({
           <h1 className="mb-2 text-4xl font-bold tracking-tight">
             {t('titleModel', { model: content.model ?? content.brand, city: content.city })}
           </h1>
-          <p className="mb-7 flex flex-wrap items-center gap-2.5 text-sm opacity-65">
+          <p className="mb-7 flex flex-wrap items-center gap-2.5 text-sm opacity-75">
             <Quantity unit="cars" count={content.count} />
             {content.inspectedCount === 0 ? null : (
               <>

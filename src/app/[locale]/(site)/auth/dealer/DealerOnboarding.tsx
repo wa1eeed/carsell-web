@@ -211,7 +211,7 @@ export function DealerOnboarding({
                 <span className={cn('rail-fill block h-full rounded-full', at < reached ? 'bg-accent' : 'bg-ink')} />
               )}
             </span>
-            <span className={cn('truncate text-3xs', at <= reached ? 'font-bold' : 'opacity-45')}>
+            <span className={cn('truncate text-3xs', at <= reached ? 'font-bold' : 'opacity-65')}>
               {t(`step${key.charAt(0).toUpperCase()}${key.slice(1)}` as 'stepAccount')}
             </span>
           </li>
@@ -263,11 +263,11 @@ export function DealerOnboarding({
           <p className="text-sm font-bold">{t('stepVerify')}</p>
           <OtpInput value={code} onChange={setCode} onComplete={(v) => void verify(v)} disabled={busy} />
           {devCode === null ? null : (
-            <p dir="ltr" className="font-num text-2xs opacity-55">
+            <p dir="ltr" className="font-num text-2xs opacity-70">
               {devCode}
             </p>
           )}
-          <button type="button" className="text-2xs underline opacity-60" onClick={() => setStep('account')}>
+          <button type="button" className="text-2xs underline opacity-70" onClick={() => setStep('account')}>
             {t('back')}
           </button>
         </section>
@@ -305,7 +305,7 @@ export function DealerOnboarding({
           )}
 
           {registryNote === null ? null : (
-            <p className="text-2xs leading-loose opacity-55">{registryNote}</p>
+            <p className="text-2xs leading-loose opacity-70">{registryNote}</p>
           )}
 
           {!fetched ? null : (
@@ -338,7 +338,7 @@ export function DealerOnboarding({
                 {managers.map((m) => (
                   <li key={`${m.name}-${m.role ?? ''}`}>
                     {m.name}
-                    {m.role === null ? null : <span className="opacity-55"> — {m.role}</span>}
+                    {m.role === null ? null : <span className="opacity-70"> — {m.role}</span>}
                   </li>
                 ))}
               </ul>
@@ -386,7 +386,7 @@ export function DealerOnboarding({
           */}
           <button
             type="button"
-            className="text-2xs underline opacity-60"
+            className="text-2xs underline opacity-70"
             onClick={() => router.push(`/${locale}/account`)}
           >
             {t('skipForNow')}
@@ -408,9 +408,9 @@ function Labelled({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-semibold opacity-60">{label}</span>
+      <span className="text-2xs font-semibold opacity-70">{label}</span>
       {children}
-      {hint === undefined ? null : <span className="text-3xs opacity-45">{hint}</span>}
+      {hint === undefined ? null : <span className="text-3xs opacity-65">{hint}</span>}
     </label>
   );
 }

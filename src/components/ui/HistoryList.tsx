@@ -39,12 +39,12 @@ export function HistoryList({
           <div className="min-w-0">
             <p className="flex flex-wrap items-baseline gap-1.5 text-sm font-bold">
               <span className="bidi-isolate">{entry.title}</span>
-              <span className="text-2xs font-medium opacity-50">
+              <span className="text-2xs font-medium opacity-70">
                 · {te(`source.${entry.source}`)}
               </span>
             </p>
             {entry.detail === null ? null : (
-              <p className="mt-0.5 text-2xs opacity-55">{entry.detail}</p>
+              <p className="mt-0.5 text-2xs opacity-70">{entry.detail}</p>
             )}
           </div>
         </li>

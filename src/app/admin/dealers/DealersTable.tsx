@@ -91,15 +91,15 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
               <span className="flex items-center gap-2.5">
                 <Link
                   href={`/admin/dealers/${row.id}`}
-                  className="bidi-isolate truncate text-sm font-bold underline underline-offset-4 hover:opacity-70"
+                  className="bidi-isolate truncate text-sm font-bold underline underline-offset-4 hover:opacity-75"
                 >
                   {row.name}
                 </Link>
                 {row.verified ? <Badge tone="accent">موثّق</Badge> : null}
               </span>
-              <span className="text-2xs opacity-60">{row.city}</span>
+              <span className="text-2xs opacity-70">{row.city}</span>
               {/* الأرقام النظامية تُقارن خانةً بخانة — لاتينيّة معزولة */}
-              <span dir="ltr" className="font-num text-3xs opacity-45">
+              <span dir="ltr" className="font-num text-3xs opacity-65">
                 {row.crNumber ?? '—'}
                 {row.vatNumber === null ? '' : ` · ${row.vatNumber}`}
               </span>
@@ -110,7 +110,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
                 <span className="text-2xs">
                   المخزون <Quantity unit="inventory" count={row.inventory} />
                 </span>
-                <span className="text-3xs opacity-45">
+                <span className="text-3xs opacity-65">
                   {row.ratingAvg === null
                     ? 'بلا تقييم'
                     : `التقييم ${displayDigits(row.ratingAvg)} · مقيّمون (${displayDigits(String(row.ratingCount))})`}
@@ -154,10 +154,10 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
               **الفحوص بشرية بمستنداتٍ خارج المنصّة** — فلا تُدّعى آلية.
               والقائمة تذكّر بما يجب النظر فيه قبل منح شارةٍ يقرؤها مشترٍ.
             */}
-            <p className="mb-2 text-2xs font-bold opacity-60">تحقّق من هذه قبل الشارة:</p>
+            <p className="mb-2 text-2xs font-bold opacity-70">تحقّق من هذه قبل الشارة:</p>
             <ul className="mb-4 flex flex-col gap-1.5">
               {CHECKS.map((check) => (
-                <li key={check} className="flex items-center gap-2 text-2xs opacity-70">
+                <li key={check} className="flex items-center gap-2 text-2xs opacity-75">
                   <span aria-hidden className="size-1 rounded-full bg-ink/40" />
                   {check}
                 </li>
@@ -165,7 +165,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
             </ul>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-60">ملاحظة — تلزم عند الإيقاف</span>
+              <span className="text-2xs font-bold opacity-70">ملاحظة — تلزم عند الإيقاف</span>
               <textarea
                 rows={3}
                 value={note}
@@ -201,7 +201,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
               )}
             </div>
 
-            <p className="mt-4 text-3xs leading-loose opacity-50">
+            <p className="mt-4 text-3xs leading-loose opacity-70">
               الشارة تظهر لمشتريه في صفحة المعرض وفي كل بطاقة إعلان. ولا يُدار مخزونه من
               هنا — العدد يُقرأ ولا يُلمس.
             </p>
@@ -217,7 +217,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
 function Line({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className={mono === true ? 'font-num' : 'bidi-isolate truncate'} dir={mono === true ? 'ltr' : undefined}>
         {value}
       </dd>

@@ -173,7 +173,7 @@ export default async function CityBrandLanding({
           <h1 className="mb-2 text-4xl font-bold tracking-tight">
             {t('title', { brand: content.brand, city: content.city })}
           </h1>
-          <p className="mb-7 flex flex-wrap items-center gap-2.5 text-sm opacity-65">
+          <p className="mb-7 flex flex-wrap items-center gap-2.5 text-sm opacity-75">
             <Quantity unit="cars" count={content.count} />
             {content.inspectedCount === 0 ? null : (
               <>
@@ -273,7 +273,7 @@ export default async function CityBrandLanding({
                       className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-2xs hover:border-ink"
                     >
                       <span className="bidi-isolate">{entry.model}</span>
-                      <ArabicNumber value={entry.count} className="opacity-50" />
+                      <ArabicNumber value={entry.count} className="opacity-70" />
                     </Link>
                   </li>
                 ))}

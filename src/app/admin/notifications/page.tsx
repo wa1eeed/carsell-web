@@ -52,7 +52,7 @@ export default async function NotificationsPage() {
         />
       </div>
 
-      <p className="mb-4 text-2xs opacity-55">
+      <p className="mb-4 text-2xs opacity-70">
         <Quantity unit="transactionalNotifications" count={templates.length} /> · عربي وإنجليزي
       </p>
 
@@ -62,7 +62,7 @@ export default async function NotificationsPage() {
       />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">قواعد الإرسال</h2>
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">قواعد الإرسال</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
             <strong>القنوات الحرِجة لا يمكن للمستخدم إيقافها</strong> — رمز التحقق والدفع
@@ -99,9 +99,9 @@ function Stat({
 }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
-      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">{title}</h2>
+      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">{title}</h2>
       <p className="mt-2 mb-1.5 text-xl font-bold">{value}</p>
-      <p className="text-3xs leading-relaxed opacity-50">{note}</p>
+      <p className="text-3xs leading-relaxed opacity-70">{note}</p>
     </section>
   );
 }

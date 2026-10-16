@@ -59,7 +59,7 @@ export default async function OrderPage({
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <h1 className="font-num mb-1.5 text-3xl font-bold tracking-tight">{order.ref}</h1>
-          <p className="mb-8 text-sm opacity-60">{t('subtitle')}</p>
+          <p className="mb-8 text-sm opacity-70">{t('subtitle')}</p>
 
           <OrderScreen
             order={order}

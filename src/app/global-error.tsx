@@ -29,11 +29,11 @@ export default function GlobalError({
       <body className="flex min-h-screen items-center justify-center bg-bg p-10 text-ink">
         <main className="max-w-md text-center">
           <h1 className="mb-2.5 text-2xl font-bold">تعذّر عرض الصفحة</h1>
-          <p className="mb-6 text-sm leading-loose opacity-65">
+          <p className="mb-6 text-sm leading-loose opacity-75">
             حدث خلل غير متوقّع وسُجّل عندنا. حاول مجددًا، وإن تكرّر فأبلغ الدعم بالرمز أدناه.
           </p>
           {error.digest === undefined ? null : (
-            <p dir="ltr" className="bidi-isolate font-num mb-6 text-2xs opacity-50">
+            <p dir="ltr" className="bidi-isolate font-num mb-6 text-2xs opacity-70">
               {error.digest}
             </p>
           )}

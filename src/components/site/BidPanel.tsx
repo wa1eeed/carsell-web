@@ -181,7 +181,7 @@ export function BidPanel({
 
   if (isOwn) {
     return (
-      <p className="rounded-md border border-line px-4 py-3 text-2xs opacity-60">
+      <p className="rounded-md border border-line px-4 py-3 text-2xs opacity-70">
         مزادك — لا تزايد على مركبتك.
       </p>
     );
@@ -197,7 +197,7 @@ export function BidPanel({
         زايد الآن
       </Button>
 
-      <p className="mb-4 flex flex-wrap items-center justify-center gap-1.5 text-2xs opacity-55">
+      <p className="mb-4 flex flex-wrap items-center justify-center gap-1.5 text-2xs opacity-70">
         يلزم عربون <Money amount={Number(depositAmount)} />
       </p>
 
@@ -225,7 +225,7 @@ export function BidPanel({
       )}
 
       <Modal open={confirm} onClose={() => setConfirm(false)} title="الشراء الفوري">
-        <p className="mb-4 text-2xs leading-loose opacity-70">
+        <p className="mb-4 text-2xs leading-loose opacity-75">
           تشتري المركبة الآن بـ{' '}
           <b>
             <Money amount={Number(buyNowPrice ?? 0)} />
@@ -238,11 +238,11 @@ export function BidPanel({
       </Modal>
 
       <Modal open={open} onClose={() => setOpen(false)} title="مزايدة">
-        <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-65">
+        <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-75">
           أقلّ مزايدة مقبولة <Money amount={Number(minimumNext)} />
         </p>
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">مبلغك</span>
+          <span className="text-2xs font-bold opacity-70">مبلغك</span>
           {/* الرقم يُدخل ويُقارن — لاتينيّ، والتطبيع عند الإرسال */}
           <input
             dir="ltr"
@@ -320,7 +320,7 @@ export function BidPanel({
                 </button>
               ))}
             </div>
-            <p className="text-3xs leading-loose opacity-60">
+            <p className="text-3xs leading-loose opacity-70">
               يُحجز <Money amount={Number(depositAmount)} /> ولا يُخصم. ويُفرَج عنه فور
               انتهاء المزاد إن لم يرسُ عليك.
             </p>
@@ -338,7 +338,7 @@ export function BidPanel({
           (وشروط المزاد أسفل الصفحة تقولها، لكنّ من يزايد يزايد من
           هنا — والتذكير يسبق لحظة الحاجة.)
         */}
-        <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-50">
+        <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-70">
           يُحجز عربون <Money amount={Number(depositAmount)} /> على بطاقتك مرّةً واحدة ولا
           يُخصم، ويُفرَج عنه إن لم يرسُ عليك — ويُخصم من المطلوب إن رسا.
         </p>

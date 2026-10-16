@@ -155,7 +155,7 @@ export function MonitorList({
         <div className="flex flex-col divide-y divide-line border-y border-line">{children}</div>
       )}
       {note === undefined ? null : (
-        <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-65">
+        <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           {note}
         </p>
       )}
@@ -180,9 +180,9 @@ export function MonitorRow({
       <div className="flex min-w-0 flex-col gap-1">
         <span className="bidi-isolate truncate text-sm font-bold">{title}</span>
         {subtitle === undefined ? null : (
-          <span className="truncate text-2xs opacity-60">{subtitle}</span>
+          <span className="truncate text-2xs opacity-70">{subtitle}</span>
         )}
-        {meta === undefined ? null : <span className="text-3xs opacity-45">{meta}</span>}
+        {meta === undefined ? null : <span className="text-3xs opacity-65">{meta}</span>}
       </div>
       {children === undefined ? null : (
         <div className="flex flex-wrap items-center gap-5">{children}</div>

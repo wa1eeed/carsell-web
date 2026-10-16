@@ -65,7 +65,7 @@ export default async function AuthPage({
             جاء لأجله — و`order` تقلبها دون أن تقلب ترتيب القراءة.
           */}
           <aside className="order-2 flex flex-col justify-center gap-7 bg-ink px-4 py-9 text-bg sm:p-12 lg:order-1 lg:w-[420px]">
-            <p className="text-2xs font-bold tracking-[0.16em] opacity-45">{t('eyebrow')}</p>
+            <p className="text-2xs font-bold tracking-[0.16em] opacity-65">{t('eyebrow')}</p>
             <h2 className="text-3xl leading-tight font-bold">{t('promiseTitle')}</h2>
             <ul className="flex flex-col gap-3.5">
               {promises.map((promise) => (

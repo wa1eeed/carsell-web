@@ -31,7 +31,7 @@ export function SpecStrip({
     <dl className="mb-7 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
       {items.map((item) => (
         <div key={item.label} className="flex flex-col gap-1.5 bg-surface p-4">
-          <dt className="text-3xs opacity-50">{item.label}</dt>
+          <dt className="text-3xs opacity-70">{item.label}</dt>
           <dd className="bidi-isolate text-2xs font-bold">{item.value}</dd>
         </div>
       ))}
@@ -58,14 +58,14 @@ export function BidLogStats({ auction }: { auction: PublicAuction }) {
       </Stat>
       <Stat label="متوسّط الفرق بين مزايدتين">
         {auction.averageStep === null ? (
-          <span className="text-2xs opacity-45">—</span>
+          <span className="text-2xs opacity-65">—</span>
         ) : (
           <Money amount={Number(auction.averageStep)} showCurrency={false} size="sm" />
         )}
       </Stat>
       <Stat label="آخر مزايدة">
         {minutesSince === null ? (
-          <span className="text-2xs opacity-45">لا مزايدات</span>
+          <span className="text-2xs opacity-65">لا مزايدات</span>
         ) : minutesSince === 0 ? (
           /*
             **وأقلُّ من دقيقة تُقال بجملتها.** `Quantity` تصوغ الصفر
@@ -96,7 +96,7 @@ export function BidLogStats({ auction }: { auction: PublicAuction }) {
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <dt className="text-3xs opacity-50">{label}</dt>
+      <dt className="text-3xs opacity-70">{label}</dt>
       <dd>{children}</dd>
     </div>
   );
@@ -176,7 +176,7 @@ export function AuctionTerms({ terms }: { terms: PublicAuction['terms'] }) {
         {rows.map((row) => (
           <div key={row.title} className="flex flex-col gap-1.5 bg-surface p-4.5">
             <dt className="text-2xs font-bold">{row.title}</dt>
-            <dd className="text-2xs leading-loose opacity-70">{row.body}</dd>
+            <dd className="text-2xs leading-loose opacity-75">{row.body}</dd>
           </div>
         ))}
       </dl>
@@ -189,14 +189,14 @@ export function BidStatus({ top, isAuto }: { top: boolean; isAuto: boolean }) {
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {top ? <Badge tone="accent">الأعلى</Badge> : <Badge tone="neutral">تم تجاوزها</Badge>}
-      {isAuto ? <span className="text-3xs opacity-50">تلقائية</span> : null}
+      {isAuto ? <span className="text-3xs opacity-70">تلقائية</span> : null}
     </span>
   );
 }
 
 /** الفرق عن سابقتها — بإشارة زائد صريحة، وهي زيادةٌ دائمًا. */
 export function BidStep({ step }: { step: string | null }) {
-  if (step === null) return <span className="opacity-35">—</span>;
+  if (step === null) return <span className="opacity-65">—</span>;
   return (
     <span className="font-num text-3xs text-accent-700" dir="ltr">
       +{displayDigits(step)}
@@ -240,7 +240,7 @@ export function ClosingSoonRail({
               {/* **وبطاقةٌ بلا صورة لا تُنقَر** — والرماديّ كان لكلّ مزاد */}
               <span className="relative block aspect-16/9 overflow-hidden rounded-lg bg-ink/8">
                 {item.thumbnail === null ? (
-                  <span className="flex size-full items-center justify-center text-3xs opacity-45">
+                  <span className="flex size-full items-center justify-center text-3xs opacity-65">
                     لا صور
                   </span>
                 ) : (
@@ -305,7 +305,7 @@ export function SellerCard({
       </span>
       <span className="flex min-w-40 flex-1 flex-col gap-1">
         <span className="bidi-isolate text-2xs font-bold">{name}</span>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           {isDealer ? <Quantity unit="cars" count={listingCount} /> : <span>بائع فرد</span>}
           {/*
             **والتقييم يُعرض متى وُجد.** «٠ من ٥» لمن لم يُقيَّم بعد
@@ -396,7 +396,7 @@ export function BidLogTable({
               </span>
             </span>
             <span className="flex flex-wrap items-center gap-2 text-3xs">
-              <span className="bidi-isolate opacity-60">{time.format(new Date(bid.at))}</span>
+              <span className="bidi-isolate opacity-70">{time.format(new Date(bid.at))}</span>
               <BidStep step={bid.step} />
               {bid.isAuto ? <Badge tone="neutral" size="sm">تلقائية</Badge> : null}
               {bid.top ? (
@@ -412,7 +412,7 @@ export function BidLogTable({
       <div className="no-scrollbar hidden overflow-x-auto rounded-xl border border-line sm:block">
       <table className="w-full min-w-xl border-collapse text-2xs">
         <thead>
-          <tr className="border-b border-line bg-surface text-3xs opacity-55">
+          <tr className="border-b border-line bg-surface text-3xs opacity-70">
             <th className="p-3 text-start font-bold">المزايد</th>
             <th className="p-3 text-start font-bold">التاريخ والوقت</th>
             <th className="p-3 text-start font-bold">الفرق</th>
@@ -440,7 +440,7 @@ export function BidLogTable({
                 {bid.isAuto ? (
                   <Badge tone="neutral" size="sm">تلقائية</Badge>
                 ) : (
-                  <span className="opacity-35">—</span>
+                  <span className="opacity-65">—</span>
                 )}
               </td>
               <td className="p-3">
@@ -476,7 +476,7 @@ export function BidLogHead({ bids }: { bids: PublicAuction['bids'] }) {
   if (bids.length === 0) return null;
 
   return (
-    <span className="flex flex-wrap items-center gap-2 text-3xs opacity-45">
+    <span className="flex flex-wrap items-center gap-2 text-3xs opacity-65">
       <Quantity unit="bids" count={bids.length} />
       <span aria-hidden className="opacity-50">·</span>
       <Quantity unit="bidders" count={bidders} />

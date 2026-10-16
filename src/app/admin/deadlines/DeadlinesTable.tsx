@@ -83,7 +83,7 @@ export function DeadlinesTable({
                 )}
               </div>
 
-              <p className="mb-3 text-2xs leading-loose opacity-55">{label?.effect ?? ''}</p>
+              <p className="mb-3 text-2xs leading-loose opacity-70">{label?.effect ?? ''}</p>
 
               <div className="flex flex-wrap items-center gap-2.5">
                 {!canManage ? (
@@ -102,7 +102,7 @@ export function DeadlinesTable({
                       }
                       className="font-num w-28 rounded-md border border-line bg-bg px-3.5 py-2 text-sm font-bold"
                     />
-                    <span className="text-2xs opacity-60">{label?.unit ?? ''}</span>
+                    <span className="text-2xs opacity-70">{label?.unit ?? ''}</span>
                     <Button size="sm" disabled={pending || !dirty} onClick={() => save(row)}>
                       حفظ
                     </Button>
@@ -114,7 +114,7 @@ export function DeadlinesTable({
                   بـ«بين … و…»: الواو بعد رقمٍ تقرؤها البوابة ١٨ وحدةً،
                   وهي محقّة في الصنف — العربية ستّ حالات جمع.
                 */}
-                <span className="text-3xs opacity-40">
+                <span className="text-3xs opacity-65">
                   الحدّ{' '}
                   <span dir="ltr" className="font-num">
                     <ArabicNumber value={row.min} grouped={false} />–

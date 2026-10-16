@@ -31,11 +31,11 @@ export function Simulator({
     <section className="mt-4 rounded-lg border border-line bg-surface p-5.5">
       <div className="mb-4 flex flex-wrap items-baseline gap-3">
         <h2 className="text-sm font-bold">محاكي العمولة</h2>
-        <span className="rounded-sm border border-line px-2 py-0.5 text-3xs opacity-60">
+        <span className="rounded-sm border border-line px-2 py-0.5 text-3xs opacity-70">
           تغيير بلا نشر
         </span>
         <span className="flex-1" />
-        <span className="text-3xs opacity-45">
+        <span className="text-3xs opacity-65">
           على مبيعات اليوم <Money amount={gmv} />
         </span>
       </div>
@@ -65,7 +65,7 @@ export function Simulator({
         </div>
       )}
 
-      <p className="mt-4 border-t border-line pt-3 text-3xs leading-relaxed opacity-50">
+      <p className="mt-4 border-t border-line pt-3 text-3xs leading-relaxed opacity-70">
         هذه أرقام مشتقّة من حركة آخر ثلاثين يومًا — لا وعدٌ بما سيقع. وتفعيل العمولة
         فعليًّا يكون من «الباقات والعمولة»، ويُجرَّب على باقة واحدة أولًا.
       </p>
@@ -76,7 +76,7 @@ export function Simulator({
 function Figure({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="text-3xs font-bold tracking-[0.14em] opacity-45">{label}</p>
+      <p className="text-3xs font-bold tracking-[0.14em] opacity-65">{label}</p>
       <p className="mt-1.5 text-lg font-bold">{value}</p>
     </div>
   );

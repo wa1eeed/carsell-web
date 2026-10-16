@@ -97,12 +97,12 @@ export default async function SettlementsPage({
     <AdminShell title="المدفوعات والضمان"
       subtitle="الضمان والإفراج والتسويات" activeHref="/admin/settlements" admin={admin}>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <p className="max-w-lg text-sm leading-loose opacity-60">
+        <p className="max-w-lg text-sm leading-loose opacity-70">
           ما هو محجوز لدى مزوّد الدفع باسم صفقاتنا. ويحتاج تحويل المبلغ موافقة شخصين: أحدهما
           يطلب والآخر يعتمد، وعند الاعتماد يُنادى المزوّد.
         </p>
         <div className="flex flex-col items-start gap-0.5">
-          <span className="text-3xs opacity-50">المحجوز الآن</span>
+          <span className="text-3xs opacity-70">المحجوز الآن</span>
           <Money amount={Number(queue.totalHeld)} size="lg" decimals={2} />
         </div>
       </div>

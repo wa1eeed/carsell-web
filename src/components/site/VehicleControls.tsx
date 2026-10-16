@@ -111,7 +111,7 @@ export function VehicleControls({
   };
 
   const field = 'w-full rounded-md border border-line bg-bg px-3 py-2 text-2xs';
-  const label = 'mb-1 block text-3xs font-bold opacity-55';
+  const label = 'mb-1 block text-3xs font-bold opacity-70';
 
   return (
     <>
@@ -137,7 +137,7 @@ export function VehicleControls({
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className="relative z-10 text-3xs underline underline-offset-2 opacity-60"
+              className="relative z-10 text-3xs underline underline-offset-2 opacity-70"
             >
               تراجع
             </button>
@@ -146,7 +146,7 @@ export function VehicleControls({
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className="relative z-10 rounded-full border border-line px-3.5 py-1.5 text-3xs font-bold opacity-60 hover:border-danger hover:text-danger hover:opacity-100"
+            className="relative z-10 rounded-full border border-line px-3.5 py-1.5 text-3xs font-bold opacity-70 hover:border-danger hover:text-danger hover:opacity-100"
           >
             حذف
           </button>
@@ -181,7 +181,7 @@ export function VehicleControls({
               **والماركة والطراز لا يُعدَّلان** — ويُقال لماذا، وإلّا
               بحث عنهما صاحبُها في كل زاوية.
             */}
-            <span className="text-3xs opacity-50">
+            <span className="text-3xs opacity-70">
               الماركة والطراز والفئة تُسجَّل مرّةً عند الإضافة — ومن أخطأ فيها يحذف ويضيف.
             </span>
           </span>

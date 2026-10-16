@@ -117,12 +117,12 @@ export function OfferActions({
       </span>
 
       <Modal open={countering} onClose={() => setCountering(false)} title="عرض مقابل">
-        <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-65">
+        <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-75">
           عرضه <Money amount={Number(amount)} /> · وسعرك المعروض{' '}
           <Money amount={Number(askPrice)} />
         </p>
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">مبلغك المقابل</span>
+          <span className="text-2xs font-bold opacity-70">مبلغك المقابل</span>
           {/* الرقم يُدخل ويُقارن — لاتينيّ، والتطبيع عند الإرسال */}
           <input
             dir="ltr"
@@ -137,7 +137,7 @@ export function OfferActions({
           يظلّ قابلًا للقبول. وكتبتُ أوّلًا «يُلغي عرضه» — وعدٌ يخالف
           النظام، وهو الصنف نفسه الذي أصلحتُه في غيره.
         */}
-        <p className="mt-3 text-3xs leading-loose opacity-50">
+        <p className="mt-3 text-3xs leading-loose opacity-70">
           يصل إليه بمهلةٍ جديدة، ويبقى عرضه قائمًا حتى يُقبل أحدهما.
         </p>
         <Button

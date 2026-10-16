@@ -106,7 +106,7 @@ export function WalletPanel({
   return (
     <>
       <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line pb-3.5">
-        <span className="text-2xs opacity-60">الرصيد الحالي</span>
+        <span className="text-2xs opacity-70">الرصيد الحالي</span>
         <Money amount={Number(balance)} size="lg" />
       </div>
 
@@ -121,10 +121,10 @@ export function WalletPanel({
             {pending.direction === 'CREDIT' ? 'إضافة' : 'خصم'}
             <Money amount={Number(pending.amount)} showCurrency={false} />
           </p>
-          <p className="mb-3 text-3xs leading-loose opacity-70">{pending.reason}</p>
+          <p className="mb-3 text-3xs leading-loose opacity-75">{pending.reason}</p>
 
           {pending.requestedBy === meId ? (
-            <p className="text-3xs opacity-60">
+            <p className="text-3xs opacity-70">
               أنت طلبتَه — ولا يوافق طالبُه على نفسه. يلزم شخصٌ ثانٍ.
             </p>
           ) : canAdjust ? (
@@ -132,7 +132,7 @@ export function WalletPanel({
               {busy ? 'جارٍ…' : 'أوافق وأنفّذ'}
             </Button>
           ) : (
-            <p className="text-3xs opacity-60">لا تملك صلاحية الموافقة على تعديل الأرصدة.</p>
+            <p className="text-3xs opacity-70">لا تملك صلاحية الموافقة على تعديل الأرصدة.</p>
           )}
         </div>
       )}
@@ -162,7 +162,7 @@ export function WalletPanel({
           </div>
 
           <label className="mb-3 flex flex-col gap-1.5">
-            <span className="text-3xs font-bold opacity-60">المبلغ بالريال</span>
+            <span className="text-3xs font-bold opacity-70">المبلغ بالريال</span>
             {/* رقمٌ يُقارن خانةً بخانة — لاتينيّ معزول */}
             <input
               dir="ltr"
@@ -174,7 +174,7 @@ export function WalletPanel({
           </label>
 
           <label className="mb-3 flex flex-col gap-1.5">
-            <span className="text-3xs font-bold opacity-60">السبب — إلزاميّ</span>
+            <span className="text-3xs font-bold opacity-70">السبب — إلزاميّ</span>
             <textarea
               rows={2}
               value={form.reason}
@@ -182,7 +182,7 @@ export function WalletPanel({
               placeholder="تعويض عن تأخّر الشحن في الطلب ORD-…"
               className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
             />
-            <span className="text-3xs opacity-45">
+            <span className="text-3xs opacity-65">
               <Quantity unit="characters" count={REASON_MIN} /> فأكثر — ويُقرأ بعد سنة.
             </span>
           </label>
@@ -191,26 +191,26 @@ export function WalletPanel({
             {busy ? 'جارٍ…' : 'أرسل الطلب'}
           </Button>
 
-          <p className="mt-2.5 text-3xs leading-loose opacity-55">
+          <p className="mt-2.5 text-3xs leading-loose opacity-70">
             <b>لا يقع التعديل بهذه الضغطة.</b> يُرسَل طلبٌ ويوافق عليه شخصٌ ثانٍ، ثم
             يُقيَّد في دفتر الحسابات.
           </p>
         </div>
       ) : null}
 
-      <p className="mb-2.5 text-2xs font-bold opacity-60">
+      <p className="mb-2.5 text-2xs font-bold opacity-70">
         كشف المحفظة — <Quantity unit="walletLines" count={lines.length} />
       </p>
 
       {lines.length === 0 ? (
-        <p className="text-2xs opacity-50">لا حركة على المحفظة.</p>
+        <p className="text-2xs opacity-70">لا حركة على المحفظة.</p>
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
           {lines.map((line) => (
             <div key={line.id} className="flex items-baseline justify-between gap-3 py-2.5">
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="truncate text-2xs">{line.note ?? line.kind}</span>
-                <span className="font-num text-3xs opacity-45">
+                <span className="font-num text-3xs opacity-65">
                   {new Date(line.at).toLocaleDateString(AR_DATE_LOCALE)}
                   {line.orderRef === null ? '' : ` · ${line.orderRef}`}
                 </span>
@@ -218,7 +218,7 @@ export function WalletPanel({
               <span className="flex shrink-0 flex-col items-end gap-0.5">
                 {/* السالب يحتفظ بإشارته يسارًا — و`Money` تتكفّل */}
                 <Money amount={Number(line.amount)} showCurrency={false} />
-                <span className="font-num text-3xs opacity-45">
+                <span className="font-num text-3xs opacity-65">
                   الرصيد {displayDigits(line.runningBalance)}
                 </span>
               </span>

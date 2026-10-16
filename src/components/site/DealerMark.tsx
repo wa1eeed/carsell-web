@@ -28,7 +28,7 @@ export function DealerMark({ name, logoUrl }: { name: string; logoUrl: string | 
   return (
     <span
       aria-hidden
-      className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-line bg-bg text-base font-bold opacity-45"
+      className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-line bg-bg text-base font-bold opacity-65"
     >
       {name.trim().charAt(0)}
     </span>

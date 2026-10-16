@@ -56,7 +56,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
 
   return (
     <>
-      <p className="mb-4 text-2xs opacity-55">
+      <p className="mb-4 text-2xs opacity-70">
         حركة آخر <Quantity unit="days" count={RANGE_DAYS} /> · كل رقم محسوب من صفوفه وقت فتح الصفحة
       </p>
 
@@ -75,7 +75,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
             خارج النطاق فلا ضريبة فيه أصلًا. فصار السطر يقول **ضريبتنا**
             وحدها، مجموعةً من `Order.vatAmount` لا محسوبةً من الإجمالي.
           */}
-          <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-50">
+          <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-70">
             والضريبة على عمولتنا ورسومنا <Money amount={summary.gmv.vat} /> — العمولة والرسوم
             الإدارية بنسبة{' '}
             {/* النسبة تُقرأ يسارًا-يمينًا: بلا `dir` يظهر ١٥/١١٥ مقلوبًا ١١٥/١٥ */}
@@ -94,7 +94,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           amount={summary.revenue.total}
         >
           {summary.revenue.byStream.length === 0 ? (
-            <p className="text-2xs opacity-45">لا إيراد في هذا المدى.</p>
+            <p className="text-2xs opacity-65">لا إيراد في هذا المدى.</p>
           ) : (
             summary.revenue.byStream.map((line) => (
               <Line
@@ -110,7 +110,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           <Line label="محتجز جارٍ" amount={summary.escrow.held} />
           <Line label="عرابين محجوزة" amount={summary.escrow.deposits} />
           <Line label="مجمّد بنزاع" amount={summary.escrow.frozen} />
-          <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-50">
+          <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-70">
             المجمَّد بنزاع مطروحٌ من المحتجز الجاري لا مجموعٌ إليه — وإلّا عُدّ مرّتين.
           </p>
         </Card>
@@ -163,7 +163,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
         />
       </div>
 
-      <p className="mt-6 mb-3 flex items-baseline gap-2 text-2xs opacity-55">
+      <p className="mt-6 mb-3 flex items-baseline gap-2 text-2xs opacity-70">
         <span className="font-bold">مؤشّرات تُحسب من غيرها</span>
         <span aria-hidden className="opacity-40">·</span>
         <span>شهر {monthName(month)} كاملًا — لا آخر ثلاثين يومًا</span>
@@ -205,7 +205,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           title="ما يدرّه العميل مقابل تكلفته"
           value={
             figures.ltvOverCac === null ? (
-              <span className="text-base opacity-60">لا تكلفة تسويق</span>
+              <span className="text-base opacity-70">لا تكلفة تسويق</span>
             ) : (
               <span className="font-num">
                 <ArabicNumber value={figures.ltvOverCac} decimals={1} grouped={false} />×
@@ -219,7 +219,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           title="كم شهرًا حتى يغطّي العميل تكلفته"
           value={
             figures.paybackMonths === null ? (
-              <span className="text-base opacity-60">لا ربح شهريّ بعد</span>
+              <span className="text-base opacity-70">لا ربح شهريّ بعد</span>
             ) : (
               <ArabicNumber value={figures.paybackMonths} decimals={1} grouped={false} />
             )
@@ -230,7 +230,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           title="النقد يكفي"
           value={
             figures.runwayMonths === null ? (
-              <span className="text-base opacity-60">لا عجز</span>
+              <span className="text-base opacity-70">لا عجز</span>
             ) : (
               <Quantity unit="months" count={figures.runwayMonths} />
             )
@@ -292,7 +292,7 @@ function Card({
 }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
-      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">{title}</h2>
+      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">{title}</h2>
       <p className="mt-2 text-2xl font-bold">
         {amount === undefined ? (
           <ArabicNumber value={count ?? 0} />
@@ -300,7 +300,7 @@ function Card({
           <Money amount={amount} />
         )}
       </p>
-      <p className="mb-3 text-3xs opacity-45">{subtitle}</p>
+      <p className="mb-3 text-3xs opacity-65">{subtitle}</p>
       <div className="flex flex-col gap-1.5 border-t border-line pt-3">{children}</div>
     </section>
   );
@@ -326,9 +326,9 @@ function Indicator({
 }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
-      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">{title}</h2>
+      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">{title}</h2>
       <p className="mt-2 mb-1.5 text-xl font-bold">{value}</p>
-      <p className="text-3xs leading-relaxed opacity-50">{note}</p>
+      <p className="text-3xs leading-relaxed opacity-70">{note}</p>
     </section>
   );
 }

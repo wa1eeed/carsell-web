@@ -72,7 +72,7 @@ function MetaLine({ parts }: { parts: readonly MetaPart[] }) {
   const shown = parts.filter((part) => typeof part !== 'string' || part.trim() !== '');
 
   return (
-    <p className="flex flex-wrap items-center gap-1.5 text-xs opacity-55">
+    <p className="flex flex-wrap items-center gap-1.5 text-xs opacity-70">
       {shown.map((part, i) => (
         <span key={i} className="flex items-center gap-1.5">
           {i > 0 ? (
@@ -102,7 +102,7 @@ function Seller({
   publishedAt?: string;
 }) {
   return (
-    <span className="flex items-center gap-2 text-2xs opacity-60">
+    <span className="flex items-center gap-2 text-2xs opacity-70">
       <span className="size-5 shrink-0 rounded-full bg-ink/12" />
       <span className="bidi-isolate min-w-0 truncate">{name}</span>
       {verified ? (
@@ -127,7 +127,7 @@ function Price({ data }: { data: ListingCardData }) {
   if (data.type === 'AUCTION' && data.highestBid !== undefined) {
     return (
       <div>
-        <p className="mb-0.5 text-3xs opacity-50">{t('highestBid')}</p>
+        <p className="mb-0.5 text-3xs opacity-70">{t('highestBid')}</p>
         <Money amount={data.highestBid} size="lg" showCurrency={false} className="text-accent-700" />
       </div>
     );
@@ -137,7 +137,7 @@ function Price({ data }: { data: ListingCardData }) {
     <div>
       <Money amount={data.price} size="lg" showCurrency={false} className="text-accent-700" />
       {data.monthly === undefined ? null : (
-        <p className="mt-0.5 flex items-center gap-1 text-3xs opacity-50">
+        <p className="mt-0.5 flex items-center gap-1 text-3xs opacity-70">
           <span>{t('orMonthly')}</span>
           <ArabicNumber value={data.monthly} />
         </p>
@@ -196,7 +196,7 @@ export function CarCard({
         <div className="mt-auto flex items-end justify-between gap-3 border-b border-line-2 pb-3">
           <Price data={data} />
           {data.type === 'AUCTION' ? (
-            <Quantity unit="bidders" count={data.bidderCount ?? 0} className="text-3xs opacity-50" />
+            <Quantity unit="bidders" count={data.bidderCount ?? 0} className="text-3xs opacity-70" />
           ) : (
             <Badge tone={TYPE_TONE[data.type]}>{te(`listingType.${data.type}`)}</Badge>
           )}

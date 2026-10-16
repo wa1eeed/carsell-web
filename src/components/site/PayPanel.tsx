@@ -92,7 +92,7 @@ export function PayPanel({
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="mb-1.5 text-sm font-bold">ادفع لتأكيد الطلب</h2>
-      <p className="mb-4 flex flex-wrap items-baseline gap-2 text-2xs leading-loose opacity-65">
+      <p className="mb-4 flex flex-wrap items-baseline gap-2 text-2xs leading-loose opacity-75">
         <span>يُحجز</span>
         <Money amount={total} />
         <span>في حساب الضمان — ولا يصل البائع قبل أن تنتقل الملكية باسمك.</span>

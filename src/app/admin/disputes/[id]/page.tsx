@@ -123,7 +123,7 @@ export default async function AdminDisputeDetailPage({
             note={<Quantity unit="messages" count={dispute.messages.length} />}
           >
             {dispute.messages.length === 0 ? (
-              <p className="text-2xs opacity-50">لا رسائل — فُتح النزاع بلا شرح.</p>
+              <p className="text-2xs opacity-70">لا رسائل — فُتح النزاع بلا شرح.</p>
             ) : (
               dispute.messages.map((message) => (
                 <div key={message.index} className="border-b border-line py-3 last:border-0">
@@ -135,7 +135,7 @@ export default async function AdminDisputeDetailPage({
                           ? dispute.order.sellerName
                           : 'الإدارة'}
                     </span>
-                    <span className="font-num shrink-0 text-3xs opacity-45">
+                    <span className="font-num shrink-0 text-3xs opacity-65">
                       {message.at === '' ? '—' : riyadh.format(new Date(message.at))}
                     </span>
                   </div>
@@ -166,12 +166,12 @@ export default async function AdminDisputeDetailPage({
 
             {dispute.resolvedAt === null ? (
               <DetailCard title="القرار">
-                <p className="text-2xs leading-loose opacity-60">
+                <p className="text-2xs leading-loose opacity-70">
                   لم يُحسم بعد. <b>ويحتاج القرار موافقة شخصين</b> في شاشة النزاعات — لا من هنا.
                 </p>
                 <Link
                   href="/admin/disputes"
-                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                 >
                   اذهب إلى النزاعات
                 </Link>
@@ -218,7 +218,7 @@ export default async function AdminDisputeDetailPage({
               />
               <Link
                 href={`/admin/orders/${encodeURIComponent(dispute.order.ref)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح الطلب
               </Link>
@@ -231,7 +231,7 @@ export default async function AdminDisputeDetailPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             الطلبُ الذي نشأ عنه، وفتحُ النزاع، ورسائلُه، وقرارُه، وأثر الفريق.
           </p>
           <Timeline events={events} />

@@ -54,7 +54,7 @@ export default async function AdminFaqPage({
 
   return (
     <AdminShell title="الأسئلة الشائعة" activeHref="/admin/faq" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         بنكٌ واحد، ومواضعُ كل سؤال تتبع طريقة البيع. وصفحة السيارة تعرض ستّة كحدّ أقصى —
         وزيادتها تدفن الجواب الذي يبحث عنه المشتري.
       </p>

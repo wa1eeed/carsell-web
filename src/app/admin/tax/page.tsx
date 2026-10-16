@@ -73,7 +73,7 @@ export default async function TaxEnginePage({
   return (
     <AdminShell title="محرّك الضريبة"
       subtitle="القواعد والفواتير والإشعارات" activeHref="/admin/tax" admin={admin}>
-      <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
+      <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
         <Quantity unit="taxRules" count={summary.total} />
         <span aria-hidden className="opacity-40">·</span>
         <Quantity unit="activeRules" count={summary.active} />
@@ -100,13 +100,13 @@ export default async function TaxEnginePage({
             التصنيف المكتوب: تصدر هذه الصفقات عقدًا وكشف تسوية بلا فاتورة مركبة،
             وفاتورتنا على العمولة وحدها.
           </p>
-          <p className="mt-2.5 text-3xs opacity-70">
+          <p className="mt-2.5 text-3xs opacity-75">
             الأسئلة الاثنتا عشرة للمستشار في <span dir="ltr" className="font-num">docs/tax-model.md</span>.
           </p>
         </section>
       )}
 
-      <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+      <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
         جدول القواعد — المطابقة بالأدقّ نطاقًا
       </h2>
       <RulesTable
@@ -116,13 +116,13 @@ export default async function TaxEnginePage({
         canManage={canWrite(admin.role, 'finance.view')}
       />
 
-      <p className="mt-3 text-2xs leading-loose opacity-60">
+      <p className="mt-3 text-2xs leading-loose opacity-70">
         <strong>غياب قاعدة مطابقة يوقف الإصدار ويسجّل السبب</strong> — لا يفترض النظام
         معالجةً افتراضيّة أبدًا. و<strong>خارج النطاق تعني لا فاتورة منّا</strong> لا
         فاتورةً بضريبة صفر: الصفر يقول «وردنا وضريبتها لا شيء»، والحقيقة أنّا لم نورّد.
       </p>
 
-      <h2 className="mt-7 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+      <h2 className="mt-7 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
         صفقة واحدة — ثلاثة مستندات، ولكلٍّ موِرده
       </h2>
       <div className="grid gap-4 md:grid-cols-3">
@@ -146,7 +146,7 @@ export default async function TaxEnginePage({
         />
       </div>
 
-      <h2 className="mt-7 mb-2.5 flex flex-wrap items-center gap-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+      <h2 className="mt-7 mb-2.5 flex flex-wrap items-center gap-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
         الفواتير الصادرة
       </h2>
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/tax" param="type" />
@@ -215,11 +215,11 @@ export default async function TaxEnginePage({
         <InvoicesTable invoices={invoices} canCancel={canWrite(admin.role, 'finance.view')} />
       )}
 
-      <p className="mt-3 text-2xs leading-loose opacity-55">
+      <p className="mt-3 text-2xs leading-loose opacity-70">
         <strong>لا تُحذف فاتورة أبدًا</strong> — الإلغاء إشعار دائن يشير إلى الأصل،
         وكلاهما يبقى ويُقرأ معًا. وفجوةٌ في التسلسل لا تُشرح لمدقّق.
       </p>
-      <p className="mt-1.5 text-2xs leading-loose opacity-55">
+      <p className="mt-1.5 text-2xs leading-loose opacity-70">
         تصدير زاتكا XML والتوقيع والإبلاغ <strong>غير مبنيَّة بعد</strong> — تنتظر بيانات
         التسجيل لدى الهيئة.
       </p>
@@ -255,8 +255,8 @@ function DocCard({
         </span>
         <span className="text-xs font-bold">{title}</span>
       </p>
-      <p className="text-2xs leading-loose opacity-70">{body}</p>
-      <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-55">{foot}</p>
+      <p className="text-2xs leading-loose opacity-75">{body}</p>
+      <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-70">{foot}</p>
     </section>
   );
 }
@@ -264,7 +264,7 @@ function DocCard({
 function Count({ label, value }: { label: string; value: number }) {
   return (
     <span className="flex items-baseline gap-1.5 rounded-md border border-line px-3 py-1.5 text-2xs">
-      <span className="opacity-60">{label}</span>
+      <span className="opacity-70">{label}</span>
       <ArabicNumber value={value} className="font-bold" />
     </span>
   );

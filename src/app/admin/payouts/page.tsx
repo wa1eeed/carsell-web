@@ -42,13 +42,13 @@ export default async function PayoutsPage() {
       admin={admin}
     >
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <p className="max-w-lg text-sm leading-loose opacity-60">
+        <p className="max-w-lg text-sm leading-loose opacity-70">
           هذه مستحقّات استُحقّت بعد إتمام البيع ولم تصل البائع بعد. والحوالة تُنفَّذ من البنك
           إلى آيبانه، وتُسجَّل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما يطلب
           والآخر يعتمد.
         </p>
         <div className="flex flex-col items-start gap-0.5">
-          <span className="text-3xs opacity-50">مستحقّ ولم يُحوَّل</span>
+          <span className="text-3xs opacity-70">مستحقّ ولم يُحوَّل</span>
           <Money amount={totalOwed} size="lg" decimals={2} />
         </div>
       </div>

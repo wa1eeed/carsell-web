@@ -110,11 +110,11 @@ export function IdentityQueue({
           ينتظر إنسانًا — والتصميم يقولها في العنوان.
         */}
         <div className="rounded-lg border border-line bg-surface p-5">
-          <p className="mb-2 text-2xs opacity-55">نسبة النفاذ الوطني</p>
+          <p className="mb-2 text-2xs opacity-70">نسبة النفاذ الوطني</p>
           <span className="font-num text-3xl font-bold">
             {displayDigits(String(stats.nafathSharePct))}٪
           </span>
-          <p className="mt-1.5 text-3xs opacity-50">كلما ارتفعت قلّت الطلبات المعلّقة</p>
+          <p className="mt-1.5 text-3xs opacity-70">كلما ارتفعت قلّت الطلبات المعلّقة</p>
         </div>
       </StatGrid>
 
@@ -145,7 +145,7 @@ export function IdentityQueue({
                   </Link>
                 </span>
                 {/* الجوال يُقارن خانةً بخانة — لاتينيّ معزول */}
-                <span dir="ltr" className="font-num text-2xs opacity-60">
+                <span dir="ltr" className="font-num text-2xs opacity-70">
                   {row.phone}
                 </span>
 
@@ -163,7 +163,7 @@ export function IdentityQueue({
                   <span className="flex flex-wrap items-center gap-2 text-3xs">
                     <Badge tone="neutral">منشأة</Badge>
                     <span className="opacity-70">{row.business.name}</span>
-                    <span dir="ltr" className="font-num opacity-50">
+                    <span dir="ltr" className="font-num opacity-70">
                       {displayDigits(row.business.crNumber)}
                     </span>
                     {row.business.crExpiresAt === null ||
@@ -171,7 +171,7 @@ export function IdentityQueue({
                       <Badge tone="danger">سجل منتهٍ</Badge>
                     )}
                     {row.business.vatNumber === null ? (
-                      <span className="opacity-45">غير مسجَّل في الضريبة</span>
+                      <span className="opacity-65">غير مسجَّل في الضريبة</span>
                     ) : null}
                   </span>
                 )}
@@ -182,16 +182,16 @@ export function IdentityQueue({
                   <Badge tone={row.status === 'CLARIFICATION' ? 'warn' : 'neutral'}>
                     {STATUS_LABEL[row.status] ?? row.status}
                   </Badge>
-                  <span className="text-3xs opacity-50">
+                  <span className="text-3xs opacity-70">
                     {row.method === null ? '—' : (METHOD_LABEL[row.method] ?? row.method)}
                   </span>
                 </div>
 
                 <div className="flex flex-col items-start gap-0.5">
-                  <span className="text-2xs opacity-70">
+                  <span className="text-2xs opacity-75">
                     <Quantity unit="listings" count={row.listingCount} />
                   </span>
-                  <span className="text-3xs opacity-45">منذ <Duration hours={row.waitingMinutes / 60} /></span>
+                  <span className="text-3xs opacity-65">منذ <Duration hours={row.waitingMinutes / 60} /></span>
                 </div>
 
                 <Button
@@ -210,7 +210,7 @@ export function IdentityQueue({
         </div>
       )}
 
-      <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-65">
+      <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <b>ما يفتحه التوثيق:</b> نشر إعلان · تقديم عرض · المزايدة · استلام مبالغ. والتصفّح
         والمفضّلة متاحان بلا توثيق.
       </p>
@@ -235,13 +235,13 @@ export function IdentityQueue({
               **رقم الهوية لا يُعرض هنا.** كشفُه فعلٌ مستقلّ بسببٍ
               مكتوب من شاشة العملاء — فلا يمرّ الاطّلاع عرَضًا مع كل قرار.
             */}
-            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-65">
+            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-75">
               رقم الهوية لا يُعرض في هذه الشاشة. كشفُه من شاشة العملاء بسببٍ مكتوب،
               وكل عملية اطلاع مسجلة.
             </p>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-60">
+              <span className="text-2xs font-bold opacity-70">
                 ما الذي ينقص أو يمنع؟ — يقرؤه صاحبه
               </span>
               <textarea
@@ -286,7 +286,7 @@ export function IdentityQueue({
 function Line({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className={mono === true ? 'font-num' : 'bidi-isolate truncate'} dir={mono === true ? 'ltr' : undefined}>
         {value}
       </dd>

@@ -13,9 +13,14 @@ export default function NotFound() {
       <body>
         <main className="flex min-h-screen items-center justify-center bg-bg p-10 text-ink">
       <div className="max-w-md text-center">
-        <p className="font-num mb-2 text-5xl font-bold opacity-20">404</p>
+        {/*
+          **والرقم زخرفةٌ لا خبر.** العنوان تحته يقول ما حدث بالعربية،
+          و«404» علامةٌ بصرية — فتُخفى عن قارئ الشاشة بدل أن تُقرأ
+          رقمًا عاريًا، ويبقى خفوتُها مقصودًا.
+        */}
+        <p aria-hidden className="font-num mb-2 text-5xl font-bold opacity-25">404</p>
         <h1 className="mb-2.5 text-2xl font-bold">لا توجد هذه الصفحة</h1>
-        <p className="mb-6 text-sm leading-loose opacity-65">
+        <p className="mb-6 text-sm leading-loose opacity-75">
           قد يكون الرابط قديمًا، أو الإعلان بيع وسُحب من العرض.
         </p>
         <Link

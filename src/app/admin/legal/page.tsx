@@ -47,7 +47,7 @@ export default async function AdminLegalPage() {
       activeHref="/admin/legal"
       admin={admin}
     >
-      <p className="mb-5 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
         النسخ السارية وتواريخ سريانها. <b>نسخٌ موقّتة لا تحريرٌ حيّ</b> — ومن قبِل
         الشروط قبِل نسخةً بعينها.
       </p>
@@ -86,15 +86,15 @@ export default async function AdminLegalPage() {
           مُسّ.
         */}
         <div className="flex flex-col justify-center gap-1 rounded-lg border border-line bg-surface p-5">
-          <span className="text-3xs opacity-50">آخر تحديث</span>
+          <span className="text-3xs opacity-70">آخر تحديث</span>
           {summary.latest === null ? (
-            <span className="text-2xs opacity-55">لا مستندات</span>
+            <span className="text-2xs opacity-70">لا مستندات</span>
           ) : (
             <>
               <span className="text-md font-bold">
                 {riyadh.format(new Date(summary.latest.updatedAt))}
               </span>
-              <span className="bidi-isolate text-3xs opacity-55">{summary.latest.titleAr}</span>
+              <span className="bidi-isolate text-3xs opacity-70">{summary.latest.titleAr}</span>
             </>
           )}
         </div>
@@ -113,7 +113,7 @@ export default async function AdminLegalPage() {
           >
             <div className="flex flex-col items-start gap-0.5">
               <span className="font-num text-2xs font-bold">{displayDigits(doc.version)}</span>
-              <span className="text-3xs opacity-45">
+              <span className="text-3xs opacity-65">
                 يسري من {riyadh.format(new Date(doc.effectiveAt))}
               </span>
             </div>
@@ -124,7 +124,7 @@ export default async function AdminLegalPage() {
               الثاني وحده. والتصميم يضعهما عمودين.
             */}
             <div className="flex flex-col items-start gap-0.5">
-              <span className="text-3xs opacity-50">آخر تحديث</span>
+              <span className="text-3xs opacity-70">آخر تحديث</span>
               <span className="text-3xs font-bold">
                 {riyadh.format(new Date(doc.updatedAt))}
               </span>

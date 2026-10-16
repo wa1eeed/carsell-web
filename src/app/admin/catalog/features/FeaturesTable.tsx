@@ -97,7 +97,7 @@ export function FeaturesTable({
   const columns: readonly Column<FeatureRow>[] = [
     { id: 'nameAr', header: 'الاسم العربي', cell: (f) => <span className="font-semibold">{f.nameAr}</span> },
     { id: 'nameEn', header: 'الاسم الإنجليزي', cell: (f) => <span className="bidi-ltr font-body-en">{f.nameEn}</span> },
-    { id: 'key', header: 'المفتاح', cell: (f) => <span className="bidi-ltr font-num text-xs opacity-60">{f.key}</span> },
+    { id: 'key', header: 'المفتاح', cell: (f) => <span className="bidi-ltr font-num text-xs opacity-70">{f.key}</span> },
     { id: 'trims', header: 'الفئات', numeric: true, sortable: true, cell: (f) => <ArabicNumber value={f.trimCount} /> },
     { id: 'listings', header: 'الإعلانات', numeric: true, cell: (f) => <ArabicNumber value={f.listingCount} /> },
     {
@@ -130,7 +130,7 @@ export function FeaturesTable({
 
   const field =
     'w-full rounded-md border border-line bg-surface px-3.5 py-2.5 text-base outline-none focus:border-accent';
-  const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-55';
+  const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-70';
 
   const orphan = draft !== null && !draft.isNew
     ? (features.find((f) => f.key === draft.key)?.trimCount ?? 0) === 0
@@ -282,7 +282,7 @@ export function FeaturesTable({
             </p>
 
             <fieldset className="flex flex-col gap-2.5">
-              <legend className="mb-1.5 text-2xs font-semibold opacity-55">
+              <legend className="mb-1.5 text-2xs font-semibold opacity-70">
                 أين تظهر هذه الميزة
               </legend>
               {PLACEMENTS.map(([value, text]) => (

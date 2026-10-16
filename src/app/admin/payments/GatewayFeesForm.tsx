@@ -92,7 +92,7 @@ export function GatewayFeesForm({
           <button
             type="button"
             onClick={show}
-            className="text-3xs underline opacity-55 hover:opacity-90"
+            className="text-3xs underline opacity-70 hover:opacity-90"
           >
             تعديل
           </button>
@@ -100,7 +100,7 @@ export function GatewayFeesForm({
       ) : (
         <span className="flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1">
-            <span className="text-3xs opacity-55">٪</span>
+            <span className="text-3xs opacity-70">٪</span>
             <input
               dir="ltr"
               inputMode="decimal"
@@ -110,7 +110,7 @@ export function GatewayFeesForm({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-3xs opacity-55">ريال</span>
+            <span className="text-3xs opacity-70">ريال</span>
             <input
               dir="ltr"
               inputMode="decimal"
@@ -125,7 +125,7 @@ export function GatewayFeesForm({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="pb-1.5 text-3xs underline opacity-55 hover:opacity-90"
+            className="pb-1.5 text-3xs underline opacity-70 hover:opacity-90"
           >
             إلغاء
           </button>

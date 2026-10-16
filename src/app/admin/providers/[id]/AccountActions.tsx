@@ -186,7 +186,7 @@ export function AccountActions({
                 </Button>
               </div>
               {complete && feesConfigured && platformConfigured ? (
-                <p className="mt-2.5 text-3xs leading-loose opacity-50">
+                <p className="mt-2.5 text-3xs leading-loose opacity-70">
                   الفتح يُرسل دعوةً إلى بريد المدير، ولا رجعةَ فيه.
                 </p>
               ) : (
@@ -315,15 +315,15 @@ export function AccountActions({
           )}
         </div>
         {docsComplete ? null : (
-          <p className="text-3xs leading-loose opacity-50">
+          <p className="text-3xs leading-loose opacity-70">
             المستندات ترفعها المنشأة في لوحة البوّابة بالدعوة التي وصلت بريدَ مديرها — ثم يُحدَّث
             الحال من هنا.
           </p>
         )}
         {documents === null || documents.length === 0 ? null : (
           <div>
-            <p className="mb-1.5 text-3xs font-bold opacity-60">ما يطلبه المزوّد</p>
-            <ul className="flex flex-col gap-1 text-3xs leading-loose opacity-70">
+            <p className="mb-1.5 text-3xs font-bold opacity-70">ما يطلبه المزوّد</p>
+            <ul className="flex flex-col gap-1 text-3xs leading-loose opacity-75">
               {documents.map((document) => (
                 <li key={document.type}>
                   {ACCOUNT_DOCUMENT_LABEL[document.type] ?? document.type}
@@ -342,7 +342,7 @@ export function AccountActions({
 function Row({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd {...(ltr === true ? { dir: 'ltr' as const } : {})} className="font-bold">
         {value}
       </dd>
@@ -363,7 +363,7 @@ function Text({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-55">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       {/* `dir="ltr"` لكل حقلٍ يُنسخ من مصدرٍ لاتينيّ ويُقارن خانةً بخانة */}
       <input
         {...(ltr === true ? { dir: 'ltr' as const } : {})}
@@ -388,7 +388,7 @@ function Select<T extends string>({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-55">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}

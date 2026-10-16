@@ -35,7 +35,7 @@ export function AgreementSheet({
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href={backHref} className="text-2xs opacity-55 hover:opacity-100">
+        <Link href={backHref} className="text-2xs opacity-70 hover:opacity-100">
           ← عودة إلى الطلب
         </Link>
         <Button size="sm" onClick={() => window.print()}>
@@ -46,12 +46,12 @@ export function AgreementSheet({
       <article className="rounded-xl border border-line bg-surface p-8 print:rounded-none print:border-0 print:p-0">
         <header className="mb-7 border-b border-line pb-5">
           <h1 className="mb-1.5 text-2xl font-bold">عقد بيع مركبة</h1>
-          <p className="text-2xs leading-relaxed opacity-60">
+          <p className="text-2xs leading-relaxed opacity-70">
             عقدٌ بين البائع والمشتري، صادرٌ عن كارز CARZ وثيقةً لما اتُّفق عليه.
             <b className="opacity-90"> والمنصّة ليست طرفًا فيه</b> — دورها حفظ المبلغ
             حتى نقل الملكية.
           </p>
-          <p className="font-num mt-3 text-3xs opacity-55" dir="ltr">
+          <p className="font-num mt-3 text-3xs opacity-70" dir="ltr">
             {agreement.orderRef}
           </p>
         </header>
@@ -109,7 +109,7 @@ export function AgreementSheet({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-6">
-      <h2 className="mb-2.5 text-3xs font-bold tracking-wider opacity-45">{title}</h2>
+      <h2 className="mb-2.5 text-3xs font-bold tracking-wider opacity-65">{title}</h2>
       <dl className="flex flex-col gap-2">{children}</dl>
     </section>
   );
@@ -126,7 +126,7 @@ function Pair({
 }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line/60 pb-2">
-      <dt className="text-2xs opacity-55">{label}</dt>
+      <dt className="text-2xs opacity-70">{label}</dt>
       {/* ما يُنسخ ويُقارن خانةً بخانة — لاتينيّ معزول */}
       <dd className={ltr ? 'font-num bidi-isolate text-2xs font-bold' : 'text-2xs font-bold'} dir={ltr ? 'ltr' : undefined}>
         {value}
@@ -138,7 +138,7 @@ function Pair({
 function Signature({ label }: { label: string }) {
   return (
     <div>
-      <span className="block text-3xs opacity-55">{label}</span>
+      <span className="block text-3xs opacity-70">{label}</span>
       <span className="mt-8 block border-b border-ink/40" />
     </div>
   );

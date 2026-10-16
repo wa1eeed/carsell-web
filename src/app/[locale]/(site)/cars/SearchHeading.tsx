@@ -75,7 +75,7 @@ export async function SearchHeading({
 
   return (
     <header className="mb-7">
-      <nav aria-label={t('crumbCars')} className="mb-3 flex flex-wrap items-center gap-1.5 text-2xs opacity-50">
+      <nav aria-label={t('crumbCars')} className="mb-3 flex flex-wrap items-center gap-1.5 text-2xs opacity-70">
         {crumbs.map((crumb, i) => (
           <span key={crumb.href} className="flex items-center gap-1.5">
             {i > 0 ? <span aria-hidden>›</span> : null}
@@ -94,7 +94,7 @@ export async function SearchHeading({
 
       <h1 className="mb-2 text-4xl font-extrabold tracking-tight">{title}</h1>
 
-      <p className="max-w-3xl text-sm leading-loose opacity-65">
+      <p className="max-w-3xl text-sm leading-loose opacity-75">
         {result.total === 0 || range === null
           ? t('introEmpty')
           : t('introRange', {

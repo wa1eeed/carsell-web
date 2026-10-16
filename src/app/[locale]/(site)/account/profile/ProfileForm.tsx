@@ -173,7 +173,7 @@ export function ProfileForm({
         error={errors.idVerification}
       >
         {initial.idVerified ? (
-          <p className="text-2xs opacity-60">موثّقة — لا تُعدَّل من هنا.</p>
+          <p className="text-2xs opacity-70">موثّقة — لا تُعدَّل من هنا.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {/*
@@ -199,7 +199,7 @@ export function ProfileForm({
             />
 
             <label className="flex flex-col gap-1">
-              <span className="text-3xs opacity-55">
+              <span className="text-3xs opacity-70">
                 {isBusiness ? 'رقم هوية المفوَّض' : 'رقم الهوية'}
               </span>
               <input
@@ -234,7 +234,7 @@ export function ProfileForm({
                 */}
                 <div className="flex flex-wrap gap-2">
                   <label className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="text-3xs opacity-55">رقم السجل التجاري</span>
+                    <span className="text-3xs opacity-70">رقم السجل التجاري</span>
                     <input
                       dir="ltr"
                       inputMode="numeric"
@@ -245,7 +245,7 @@ export function ProfileForm({
                     />
                   </label>
                   <label className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="text-3xs opacity-55">انتهاء السجل</span>
+                    <span className="text-3xs opacity-70">انتهاء السجل</span>
                     <input
                       dir="ltr"
                       type="date"
@@ -255,10 +255,10 @@ export function ProfileForm({
                     />
                   </label>
                 </div>
-                <p className="-mt-1 text-3xs opacity-45">والسجل المنتهي لا يُوثَّق به.</p>
+                <p className="-mt-1 text-3xs opacity-65">والسجل المنتهي لا يُوثَّق به.</p>
 
                 <label className="flex flex-col gap-1">
-                  <span className="text-3xs opacity-55">
+                  <span className="text-3xs opacity-70">
                     الرقم الضريبي — اتركه فارغًا إن لم تكن مسجَّلًا
                   </span>
                   <input
@@ -457,7 +457,7 @@ export function ProfileForm({
         error={errors.iban}
       >
         {initial.hasIban ? (
-          <p className="text-2xs opacity-60">محفوظ ومشفّر — أدخِل آيبانًا جديدًا ليحلّ محلّه.</p>
+          <p className="text-2xs opacity-70">محفوظ ومشفّر — أدخِل آيبانًا جديدًا ليحلّ محلّه.</p>
         ) : null}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {/* يُلصق من تطبيق المصرف بمسافاته — والتطبيع عند الحفظ */}
@@ -505,7 +505,7 @@ function Row({
         <h2 className="text-sm font-bold">{title}</h2>
         <Badge tone={done ? 'accent' : 'warn'}>{done ? 'مكتمل' : 'ناقص'}</Badge>
       </div>
-      <p className="mb-3 text-2xs leading-loose opacity-55">{note}</p>
+      <p className="mb-3 text-2xs leading-loose opacity-70">{note}</p>
       {children}
       {error === undefined ? null : (
         <p role="alert" className="mt-2 rounded-md bg-danger/10 px-3 py-2 text-2xs text-danger">

@@ -137,7 +137,7 @@ export default async function AdminOfferDetailPage({
                 className="flex items-center justify-between gap-4 border-b border-line py-3 last:border-0"
               >
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="font-num text-3xs opacity-40">
+                  <span className="font-num text-3xs opacity-65">
                     {displayDigits(String(index + 1))}
                   </span>
                   {/*
@@ -149,8 +149,8 @@ export default async function AdminOfferDetailPage({
                 </span>
                 <span className="flex shrink-0 items-center gap-4">
                   <Money amount={Number(step.amount)} showCurrency={false} />
-                  <span className="text-3xs opacity-55">{step.status}</span>
-                  <span className="font-num text-3xs opacity-45">
+                  <span className="text-3xs opacity-70">{step.status}</span>
+                  <span className="font-num text-3xs opacity-65">
                     {riyadh.format(new Date(step.at))}
                   </span>
                 </span>
@@ -179,7 +179,7 @@ export default async function AdminOfferDetailPage({
                 **والحدّ الأدنى للقبول لا يُعرض** — كالاحتياطي: سرٌّ
                 للبائع، وكشفُه في شاشةٍ يجعل المفاوضة بلا معنى.
               */}
-              <p className="mt-3 text-3xs opacity-45">
+              <p className="mt-3 text-3xs opacity-65">
                 الحدّ الأدنى للقبول لا يُعرض هنا — ولا في أي استجابة.
               </p>
             </DetailCard>
@@ -195,7 +195,7 @@ export default async function AdminOfferDetailPage({
               />
               <Link
                 href={`/admin/users/${offer.buyer.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح ملفّ المشتري
               </Link>
@@ -210,7 +210,7 @@ export default async function AdminOfferDetailPage({
               <Field label="المركبة" value={offer.listing.title} />
               <Link
                 href={`/admin/listings/${encodeURIComponent(offer.listing.ref)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح الإعلان
               </Link>
@@ -223,7 +223,7 @@ export default async function AdminOfferDetailPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             سلسلةُ التفاوض كاملةً بين هذا المشتري وهذا الإعلان، وما انتهت إليه.
           </p>
           <Timeline events={events} />

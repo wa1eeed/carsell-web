@@ -209,7 +209,7 @@ export function NewCampaign({ slots }: { slots: readonly Slot[] }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {children}
     </label>
   );

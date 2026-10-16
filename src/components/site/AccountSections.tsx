@@ -57,14 +57,14 @@ export function AccountSections({
                     className={
                       section.urgent === true
                         ? 'rounded-md bg-accent px-1.5 py-0.5 font-num text-3xs font-bold text-bg'
-                        : 'rounded-md bg-bg px-1.5 py-0.5 font-num text-3xs font-bold opacity-60'
+                        : 'rounded-md bg-bg px-1.5 py-0.5 font-num text-3xs font-bold opacity-70'
                     }
                   >
                     {displayDigits(String(section.count))}
                   </span>
                 )}
               </div>
-              <p className="mt-0.5 truncate text-3xs opacity-50">{section.hint}</p>
+              <p className="mt-0.5 truncate text-3xs opacity-70">{section.hint}</p>
             </div>
             <ArrowIcon />
           </Link>

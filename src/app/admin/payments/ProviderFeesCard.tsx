@@ -86,7 +86,7 @@ export function ProviderFeesCard({
     <>
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
         <div className="mb-1 flex flex-wrap items-baseline gap-2">
-          <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">
+          <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">
             رسوم بوّابة المزوّدين — ما يُخصم من الشريك
           </h2>
           {initial.configured ? null : (
@@ -95,7 +95,7 @@ export function ProviderFeesCard({
             </span>
           )}
         </div>
-        <p className="mb-4 text-2xs leading-loose opacity-60">
+        <p className="mb-4 text-2xs leading-loose opacity-70">
           تُرسَل إلى البوّابة <strong>لحظةَ فتح حساب الشريك</strong> وتبقى عندها، فما فُتح يبقى
           بشروطه. ولا يُفتح حسابٌ قبل ضبطها — فأصفارٌ تعني «لا نأخذ من هذا الشريك شيئًا»، وهو
           قرارٌ تجاريّ لا يقع بالنسيان.
@@ -148,7 +148,7 @@ export function ProviderFeesCard({
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <p className="text-2xs font-bold opacity-60">{title}</p>
+      <p className="text-2xs font-bold opacity-70">{title}</p>
       {children}
     </div>
   );
@@ -176,7 +176,7 @@ function Rate({
     <div className="flex flex-col gap-1.5">
       <Field label={label} value={value} disabled={disabled} onChange={onChange} />
       {/* ما يُرسَل فعلًا — بأرقامٍ لاتينية لأنه قيمةُ بروتوكول لا رقمٌ يُقرأ */}
-      <span dir="ltr" className="font-num text-3xs opacity-50">
+      <span dir="ltr" className="font-num text-3xs opacity-70">
         → {(percent / 100).toFixed(5)}
       </span>
     </div>
@@ -186,7 +186,7 @@ function Rate({
 function Sample({ pct, fixed, amount }: { pct: string; fixed: string; amount: number }) {
   if (pct.trim() === '' && fixed.trim() === '') return null;
   return (
-    <p className="flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-55">
+    <p className="flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-70">
       <span>على خدمةٍ بـ</span>
       <Money amount={500} />
       <span aria-hidden className="opacity-40">←</span>
@@ -209,7 +209,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-55">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       {/* `dir="ltr"` — رقمٌ يُقارن خانةً بخانة، والتطبيع عند الحفظ */}
       <input
         dir="ltr"

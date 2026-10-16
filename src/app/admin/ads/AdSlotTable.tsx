@@ -76,7 +76,7 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                   <span className="flex flex-col gap-0.5">
                     <span className="font-bold">{row.nameAr}</span>
                     {/* المفتاح يُقارن خانةً بخانة — لاتينيّ معزول */}
-                    <span dir="ltr" className="font-num text-3xs opacity-45">
+                    <span dir="ltr" className="font-num text-3xs opacity-65">
                       {row.key}
                     </span>
                   </span>
@@ -85,7 +85,7 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                   **المقاس كما يُقرأ**: «١٦:٦» نسبةٌ و«بطاقة سيارة» شكل،
                   و`width×height` وحدهما يعرضان نسبةً على أنها بكسلات.
                 */}
-                <td className="font-num p-3 opacity-70">
+                <td className="font-num p-3 opacity-75">
                   {row.sizeLabel === ''
                     ? `${displayDigits(String(row.width))}×${displayDigits(String(row.height))}`
                     : row.sizeLabel}
@@ -101,7 +101,7 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                   />
                 </td>
                 <td className="p-3 opacity-70">
-                  {row.placement === '' ? <span className="opacity-40">—</span> : row.placement}
+                  {row.placement === '' ? <span className="opacity-65">—</span> : row.placement}
                 </td>
                 <td className="p-3">
                   <span className="flex flex-col gap-0.5">

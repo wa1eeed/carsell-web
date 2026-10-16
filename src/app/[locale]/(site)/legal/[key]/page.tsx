@@ -92,7 +92,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
             {summary === null ? null : (
               <p className="mb-4 max-w-2xl text-sm leading-loose opacity-68">{summary}</p>
             )}
-            <p className="flex flex-wrap items-center gap-4 text-2xs opacity-55">
+            <p className="flex flex-wrap items-center gap-4 text-2xs opacity-70">
               <span className="flex items-center gap-1.5">
                 {t('version')}
                 {/*
@@ -138,7 +138,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                   لهذا — وكان المبنيّ يضعها آخرًا ويحذف منها المستند
                   المفتوح، فلا يعرف القارئ أين هو من الثمانية.
                 */}
-                <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+                <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
                   {t('documents')}
                 </h2>
                 <ul className="mb-7 flex flex-col gap-2 text-xs">
@@ -172,7 +172,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                   })}
                 </ul>
 
-                <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+                <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
                   {t('contents')}
                 </h2>
                 <ol className="flex flex-col gap-2 text-xs">
@@ -182,7 +182,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                         href={`#s-${String(section.n)}`}
                         className="-my-1.5 flex gap-2 py-1.5 opacity-70 hover:opacity-100"
                       >
-                        <ArabicNumber value={section.n} grouped={false} className="opacity-50" />
+                        <ArabicNumber value={section.n} grouped={false} className="opacity-70" />
                         <span>{isArabic ? section.titleAr : section.titleEn}</span>
                       </a>
                     </li>
@@ -195,7 +195,7 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
               {doc.sections.map((section) => (
                 <section key={section.n} id={`s-${section.n}`} className="mb-8 scroll-mt-6">
                   <h2 className="mb-2.5 flex items-baseline gap-2.5 text-lg font-bold">
-                    <ArabicNumber value={section.n} grouped={false} className="opacity-45" />
+                    <ArabicNumber value={section.n} grouped={false} className="opacity-65" />
                     <span>{isArabic ? section.titleAr : section.titleEn}</span>
                   </h2>
                   <p className="max-w-3xl text-sm leading-loose opacity-75">

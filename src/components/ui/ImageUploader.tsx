@@ -81,7 +81,7 @@ export function ImageUploader({
     <div className={className}>
       <div className="mb-3 flex items-baseline gap-2.5">
         <h3 className="text-sm font-bold">{t('photos')}</h3>
-        <span className="text-2xs opacity-50">
+        <span className="text-2xs opacity-70">
           <ArabicNumber value={images.length} /> {t('of')} <ArabicNumber value={max} />
         </span>
       </div>
@@ -124,7 +124,7 @@ export function ImageUploader({
             type="button"
             onClick={() => input.current?.click()}
             disabled={busy > 0}
-            className="flex aspect-4/3 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line text-2xs opacity-60 hover:border-ink/35 hover:opacity-100"
+            className="flex aspect-4/3 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line text-2xs opacity-70 hover:border-ink/35 hover:opacity-100"
           >
             {busy > 0 ? (
               <Quantity unit="photos" count={busy} />

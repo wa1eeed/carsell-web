@@ -97,7 +97,7 @@ export function CommissionRules({
   return (
     <section className="mt-10">
       <h2 className="mb-1.5 text-sm font-bold">العمولة</h2>
-      <p className="mb-5 max-w-xl text-2xs leading-loose opacity-60">
+      <p className="mb-5 max-w-xl text-2xs leading-loose opacity-70">
         لكل طرف قاعدته. والتعديل يسري على ما يُنشأ بعده — والطلبات القائمة تبقى
         على نسبتها المخزَّنة، فلا تتغيّر فاتورةٌ صدرت.
       </p>
@@ -119,7 +119,7 @@ export function CommissionRules({
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-bold">{label.title}</span>
-                  <span className="text-3xs opacity-55">{label.effect}</span>
+                  <span className="text-3xs opacity-70">{label.effect}</span>
                 </div>
                 <Badge tone={draft.enabled ? 'accent' : 'neutral'}>
                   {draft.enabled ? 'مفعَّلة' : 'معطَّلة'}
@@ -169,7 +169,7 @@ export function CommissionRules({
                 الأثر بالريال على مثالٍ ثابت — فمن يكتب «٢٫٥» يرى
                 ٢٬٥٠٠ قبل أن يحفظ، لا بعد أن يشتكي بائع.
               */}
-              <p className="mt-4 border-t border-line pt-3 text-2xs leading-loose opacity-70">
+              <p className="mt-4 border-t border-line pt-3 text-2xs leading-loose opacity-75">
                 على سيارةٍ بـ<span className="font-num"> 100,000 </span>ريال:{' '}
                 <b className="font-num">
                   {effect.toLocaleString('ar-SA', { maximumFractionDigits: 2 })}
@@ -178,7 +178,7 @@ export function CommissionRules({
               </p>
 
               {row.revisions > 0 ? (
-                <p className="mt-2 text-3xs opacity-40">
+                <p className="mt-2 text-3xs opacity-65">
                   سبقتها <span className="font-num">{row.revisions}</span> نسخة محفوظة
                 </p>
               ) : null}
@@ -218,7 +218,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-55">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       {/* `dir="ltr"` — رقمٌ يُقارَن خانةً بخانة، وسياق RTL يقلب إشارته */}
       <input
         dir="ltr"
@@ -227,7 +227,7 @@ function Field({
         placeholder={placeholder}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-md border border-line bg-surface px-3 py-2 text-start font-num text-2xs disabled:opacity-40"
+        className="rounded-md border border-line bg-surface px-3 py-2 text-start font-num text-2xs disabled:opacity-65"
       />
     </label>
   );

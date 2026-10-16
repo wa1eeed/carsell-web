@@ -76,7 +76,7 @@ export function ServiceRequestPanel({
       <>
         <div className="flex flex-col gap-3 rounded-xl border-2 border-ink p-5">
           <p className="text-sm font-bold">يُطلب فحصُ مركبتك</p>
-          <p className="text-2xs leading-loose opacity-70">
+          <p className="text-2xs leading-loose opacity-75">
             طلب أحد المهتمّين فحصَ هذه المركبة على حسابه. وبقبولك يصل الفاحص بياناتِ
             التواصل والمدينة ليحدّد الموعد معك — ولا يُكشف شيء قبل ذلك. ولا تدفع أنت
             شيئًا.
@@ -113,7 +113,7 @@ export function ServiceRequestPanel({
         >
           {/* **ورفضٌ بلا سببٍ يُعيد الطالب إلى الحيرة** — فالسبب شرط */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-2xs font-bold opacity-60">لماذا؟ — يقرؤه طالبُ الفحص</span>
+            <span className="text-2xs font-bold opacity-70">لماذا؟ — يقرؤه طالبُ الفحص</span>
             <textarea
               rows={3}
               value={reason}
@@ -134,7 +134,7 @@ export function ServiceRequestPanel({
       <>
         <div className="flex flex-col gap-3 rounded-xl border-2 border-ink p-5">
           <p className="text-sm font-bold">أُذن بالفحص — يبقى السداد</p>
-          <p className="text-2xs leading-loose opacity-70">
+          <p className="text-2xs leading-loose opacity-75">
             يُحجز المبلغ على بطاقتك ولا يصل المزوّد إلّا بعد أداء الخدمة. وبعد السداد
             يذهب الطلب إلى فاحصي مدينة السيارة.
           </p>

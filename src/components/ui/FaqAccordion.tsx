@@ -104,7 +104,7 @@ export function FaqAccordion({
             </svg>
           </summary>
           <div className="pb-4.5">
-            <p className="max-w-2xl text-sm leading-loose opacity-70">{row.answer}</p>
+            <p className="max-w-2xl text-sm leading-loose opacity-75">{row.answer}</p>
             {/*
               ═══ ورابطٌ لكل جواب ═══
 
@@ -117,7 +117,7 @@ export function FaqAccordion({
                 type="button"
                 onClick={() => share(row.id)}
                 /* مساحةُ اللمس أوسع من النصّ — سبعةَ عشرَ بكسلًا دون حدّ WCAG */
-                className="mt-1.5 inline-flex items-center gap-1.5 py-2 text-3xs opacity-45 transition-opacity hover:opacity-90"
+                className="mt-1.5 inline-flex items-center gap-1.5 py-2 text-3xs opacity-65 transition-opacity hover:opacity-90"
               >
                 <svg
                   viewBox="0 0 24 24"

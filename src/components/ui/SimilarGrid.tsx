@@ -54,7 +54,7 @@ export function SimilarGrid({
                 <span className="bidi-isolate">{item.title}</span>
                 <ArabicNumber value={item.year} grouped={false} />
               </span>
-              <span className="flex flex-wrap items-center gap-1.5 text-3xs opacity-50">
+              <span className="flex flex-wrap items-center gap-1.5 text-3xs opacity-70">
                 <Quantity unit="km" count={item.mileageKm} />
                 {item.inspected ? (
                   <>

@@ -46,7 +46,7 @@ export function ProviderLoginForm() {
       }}
     >
       <label className="flex flex-col gap-1.5">
-        <span className="text-2xs font-bold opacity-60">البريد الإلكتروني</span>
+        <span className="text-2xs font-bold opacity-70">البريد الإلكتروني</span>
         <input
           name="email"
           type="email"
@@ -58,7 +58,7 @@ export function ProviderLoginForm() {
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-2xs font-bold opacity-60">كلمة المرور</span>
+        <span className="text-2xs font-bold opacity-70">كلمة المرور</span>
         <input
           name="password"
           type="password"

@@ -31,7 +31,7 @@ function Value({ kpi }: { kpi: Kpi }) {
    * **و«لا نعرف» غير «صفر».** نسبة تكرار بلا مشترين أصلًا ليست صفرًا
    * — والصفر يُقرأ إنذارًا فيُتخذ عليه قرار.
    */
-  if (kpi.unknown) return <span className="text-xl font-bold opacity-35">—</span>;
+  if (kpi.unknown) return <span className="text-xl font-bold opacity-65">—</span>;
 
   if (meta.format === 'money') {
     return <Money amount={Math.round(kpi.value)} size="lg" showCurrency={false} />;
@@ -40,7 +40,7 @@ function Value({ kpi }: { kpi: Kpi }) {
     return (
       <span className="font-num text-3xl font-bold">
         {displayDigits((kpi.value * 100).toFixed(1))}
-        <span className="text-base opacity-45">٪</span>
+        <span className="text-base opacity-65">٪</span>
       </span>
     );
   }
@@ -48,7 +48,7 @@ function Value({ kpi }: { kpi: Kpi }) {
     return (
       <span className="flex items-baseline gap-1.5">
         <ArabicNumber value={Math.round(kpi.value)} className="text-3xl font-bold" />
-        <span className="text-2xs opacity-45">يوم</span>
+        <span className="text-2xs opacity-65">يوم</span>
       </span>
     );
   }
@@ -74,7 +74,7 @@ function Delta({ kpi }: { kpi: Kpi }) {
 
   const change = (kpi.value - kpi.previous) / Math.abs(kpi.previous);
   if (Math.abs(change) < 0.005) {
-    return <span className="text-3xs opacity-40">بلا تغير</span>;
+    return <span className="text-3xs opacity-65">بلا تغير</span>;
   }
 
   const up = change > 0;
@@ -97,9 +97,9 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
     <div className="group relative flex flex-col gap-2 rounded-xl border border-line bg-surface p-4.5">
       <div className="flex items-start justify-between gap-2">
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate text-2xs opacity-55">{meta.name}</span>
+          <span className="truncate text-2xs opacity-70">{meta.name}</span>
           {meta.abbr === null ? null : (
-            <span className="font-body-en text-3xs font-bold tracking-wide opacity-35">
+            <span className="font-body-en text-3xs font-bold tracking-wide opacity-65">
               {meta.abbr}
             </span>
           )}
@@ -114,7 +114,7 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
           tabIndex={0}
           role="button"
           aria-label={`كيف يُحسب ${meta.name}`}
-          className="flex size-5 shrink-0 cursor-help items-center justify-center rounded-full border border-line text-3xs font-bold opacity-45 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+          className="flex size-5 shrink-0 cursor-help items-center justify-center rounded-full border border-line text-3xs font-bold opacity-65 transition-opacity hover:opacity-100 focus-visible:opacity-100"
         >
           ؟
         </span>
@@ -137,7 +137,7 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
 function Line({ title, body }: { title: string; body: string }) {
   return (
     <span className="flex flex-col gap-0.5">
-      <span className="text-3xs font-bold opacity-45">{title}</span>
+      <span className="text-3xs font-bold opacity-65">{title}</span>
       <span className="text-3xs leading-relaxed">{body}</span>
     </span>
   );

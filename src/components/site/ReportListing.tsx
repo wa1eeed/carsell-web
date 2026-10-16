@@ -87,7 +87,7 @@ export function ReportListing({
           setOpen(true);
         }}
         /* مساحةُ اللمس أوسع من النصّ — سبعةَ عشرَ بكسلًا دون حدّ WCAG */
-        className="-my-2 py-2 text-3xs opacity-40 underline underline-offset-2 hover:opacity-70"
+        className="-my-2 py-2 text-3xs opacity-65 underline underline-offset-2 hover:opacity-75"
       >
         أبلغ عن هذا الإعلان
       </button>
@@ -97,7 +97,7 @@ export function ReportListing({
           ما يقع بعد البلاغ يُقال: **البلاغ يُدخل المراجعة ولا يحذف**
           (قرار ٣٣). ومن يظنّه يحذف فورًا يبلّغ ليؤذي منافسًا.
         */}
-        <p className="mb-4 text-2xs leading-loose opacity-65">
+        <p className="mb-4 text-2xs leading-loose opacity-75">
           البلاغ يُحيل الإعلان إلى مراجعة بشرية، ولا يحذفه فورًا. ولا يعرف صاحب
           الإعلان من أبلغ.
         </p>
@@ -122,7 +122,7 @@ export function ReportListing({
         </fieldset>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">تفاصيل — اختيارية</span>
+          <span className="text-2xs font-bold opacity-70">تفاصيل — اختيارية</span>
           <textarea
             rows={3}
             value={details}

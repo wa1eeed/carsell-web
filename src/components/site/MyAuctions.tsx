@@ -35,7 +35,7 @@ export function MyAuctions({ rows }: { rows: readonly AccountAuction[] }) {
                   <span className="bidi-isolate">{row.title}</span>
                   <ArabicNumber value={row.year} grouped={false} />
                 </span>
-                <span className="flex flex-wrap items-center gap-2 text-3xs opacity-55">
+                <span className="flex flex-wrap items-center gap-2 text-3xs opacity-70">
                   {row.role === 'seller' ? 'تعرضه' : 'تزايد فيه'}
                   <span aria-hidden className="opacity-40">·</span>
                   <Quantity unit="bidders" count={row.bidderCount} />
@@ -63,7 +63,7 @@ export function MyAuctions({ rows }: { rows: readonly AccountAuction[] }) {
                   <Countdown endsAt={row.endsAt} format="full" tone="warn" className="text-3xs" />
                 ) : (
                   /* عدّادٌ على صفر يقول «الآن» وهو «انتهى» */
-                  <span className="text-3xs opacity-50">انتهى</span>
+                  <span className="text-3xs opacity-70">انتهى</span>
                 )}
               </span>
 

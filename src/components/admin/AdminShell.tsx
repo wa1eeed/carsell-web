@@ -90,7 +90,7 @@ export async function AdminShell({
       <nav className="hidden w-[238px] shrink-0 flex-col bg-ink py-5 text-bg lg:flex">
         <div className="mb-1.5 border-b border-bg/14 px-5 pb-4.5">
           <Logo variant="white" priority className="h-7" />
-          <p className="mt-1.5 text-3xs font-semibold tracking-[0.12em] opacity-50">
+          <p className="mt-1.5 text-3xs font-semibold tracking-[0.12em] opacity-70">
             ADMIN CONSOLE
           </p>
         </div>
@@ -98,7 +98,7 @@ export async function AdminShell({
         <div className="flex-1 overflow-y-auto px-2.5">
           {groups.map((group) => (
             <div key={group.title}>
-              <p className="px-3.5 pt-4 pb-1.5 text-3xs font-bold tracking-[0.16em] opacity-38">
+              <p className="px-3.5 pt-4 pb-1.5 text-3xs font-bold tracking-[0.16em] opacity-65">
                 {group.title}
               </p>
               {group.items.map((item) => {
@@ -128,7 +128,7 @@ export async function AdminShell({
                       </span>
                     )}
                     {disabled ? (
-                      <span className="text-3xs opacity-70">قريبًا</span>
+                      <span className="text-3xs opacity-75">قريبًا</span>
                     ) : null}
                   </a>
                 );
@@ -168,7 +168,7 @@ export async function AdminShell({
             */}
             <h1 className="sr-only text-lg font-bold lg:not-sr-only">{title}</h1>
             {subtitle === undefined ? null : (
-              <span className="mt-0.5 truncate text-2xs opacity-50">{subtitle}</span>
+              <span className="mt-0.5 truncate text-2xs opacity-70">{subtitle}</span>
             )}
           </span>
           <span className="flex-1" />
@@ -182,7 +182,7 @@ export async function AdminShell({
             className="flex flex-col items-end gap-0.5 border-s border-line ps-4 hover:opacity-70"
           >
             <span className="text-sm font-bold">{admin.name}</span>
-            <span className="text-3xs opacity-55">{admin.role}</span>
+            <span className="text-3xs opacity-70">{admin.role}</span>
           </Link>
 
           {/*

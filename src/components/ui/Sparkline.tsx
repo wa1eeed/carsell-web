@@ -33,7 +33,7 @@ export function Sparkline({
   if (points.length < 2) {
     return (
       <div
-        className={cn('rounded-xl border border-line bg-surface p-6 text-2xs opacity-50', className)}
+        className={cn('rounded-xl border border-line bg-surface p-6 text-2xs opacity-70', className)}
       >
         لا بيانات كافية للرسم — نقطتان فأكثر.
       </div>
@@ -85,7 +85,7 @@ export function Sparkline({
         />
       </svg>
 
-      <div className="font-num mt-2 flex justify-between text-3xs font-semibold opacity-40">
+      <div className="font-num mt-2 flex justify-between text-3xs font-semibold opacity-65">
         {axis.map((i) => (
           <span key={i}>{points[i]?.label}</span>
         ))}

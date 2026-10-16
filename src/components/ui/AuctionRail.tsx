@@ -60,11 +60,11 @@ export function AuctionRail({
               <span className="bidi-isolate">{auction.title}</span>
               <ArabicNumber value={auction.year} grouped={false} />
             </span>
-            <span className="bidi-isolate text-3xs opacity-50">{auction.city}</span>
+            <span className="bidi-isolate text-3xs opacity-70">{auction.city}</span>
 
             <span className="mt-auto flex items-end justify-between gap-3 pt-2">
               <span>
-                <span className="mb-0.5 block text-3xs opacity-50">
+                <span className="mb-0.5 block text-3xs opacity-70">
                   {t(auction.highestBid === null ? 'openingPrice' : 'highestBid')}
                 </span>
                 <Money
@@ -74,7 +74,7 @@ export function AuctionRail({
                   className="text-accent-700"
                 />
               </span>
-              <Quantity unit="bidders" count={auction.bidCount} className="text-3xs opacity-50" />
+              <Quantity unit="bidders" count={auction.bidCount} className="text-3xs opacity-70" />
             </span>
           </span>
         </Link>

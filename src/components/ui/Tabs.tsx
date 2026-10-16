@@ -60,7 +60,7 @@ export function Tabs({
             onClick={() => onChange(item.id)}
             className={cn(
               'inline-flex items-center gap-2 rounded-t-sm px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap',
-              isActive ? 'bg-ink text-bg' : 'text-ink opacity-60 hover:opacity-100',
+              isActive ? 'bg-ink text-bg' : 'text-ink opacity-70 hover:opacity-100',
             )}
           >
             {item.label}

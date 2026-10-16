@@ -95,7 +95,7 @@ export function DataTable<Row>({
               <th
                 key={col.id}
                 className={cn(
-                  'px-5 py-3 text-2xs font-bold tracking-[0.06em] opacity-45 whitespace-nowrap',
+                  'px-5 py-3 text-2xs font-bold tracking-[0.06em] opacity-65 whitespace-nowrap',
                   col.numeric ? 'text-end' : 'text-start',
                 )}
               >

@@ -50,7 +50,7 @@ export function Money({
       {negative ? <span className="font-num bidi-isolate">−</span> : null}
       <ArabicNumber value={amount} decimals={decimals} className="font-bold" />
       {showCurrency ? (
-        <span className="bidi-isolate text-[0.72em] font-medium opacity-60">
+        <span className="bidi-isolate text-[0.72em] font-medium opacity-70">
           {t('currency')}
         </span>
       ) : null}

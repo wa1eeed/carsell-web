@@ -235,7 +235,7 @@ export function SearchScreen({
         )}
       >
         <span className="mb-1 block text-sm font-bold">{te(`condition.${value}`)}</span>
-        <span className={cn('block text-3xs', on ? 'opacity-75' : 'opacity-55')}>
+        <span className={cn('block text-3xs', on ? 'opacity-75' : 'opacity-70')}>
           {t(value === 'NEW' ? 'conditionNewHint' : 'conditionUsedHint')}
         </span>
       </button>
@@ -244,7 +244,7 @@ export function SearchScreen({
 
   const section = (title: string, hint: string | null, body: ReactNode) => (
     <section>
-      <h3 className="mb-3 flex items-baseline gap-2 text-2xs font-bold tracking-[0.12em] opacity-45">
+      <h3 className="mb-3 flex items-baseline gap-2 text-2xs font-bold tracking-[0.12em] opacity-65">
         {title}
         {hint === null ? null : <span className="font-medium tracking-normal">— {hint}</span>}
       </h3>
@@ -286,13 +286,13 @@ export function SearchScreen({
                 }
               />
               {result.total < RANGE_MIN_SAMPLE ? null : (
-                <p className="mt-1.5 text-3xs opacity-45">{t('priceSpread')}</p>
+                <p className="mt-1.5 text-3xs opacity-65">{t('priceSpread')}</p>
               )}
             </>,
           )}
 
       <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
+        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-65">
           {t('brandAndModel')}
         </h3>
         <div className="flex flex-wrap gap-2">
@@ -367,7 +367,7 @@ export function SearchScreen({
           )}
 
       <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
+        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-65">
           {t('offerType')}
         </h3>
         <div className="flex flex-wrap gap-2">
@@ -385,7 +385,7 @@ export function SearchScreen({
       </section>
 
       <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
+        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-65">
           {t('city')}
         </h3>
         <div className="flex flex-wrap gap-2">
@@ -412,7 +412,7 @@ export function SearchScreen({
         className="flex items-center gap-3 rounded-lg border border-line px-4 py-3 text-start hover:bg-ink/5"
       >
         <span className="flex-1 text-sm font-semibold">{t('features')}</span>
-        <span className="max-w-[130px] truncate text-2xs opacity-50">
+        <span className="max-w-[130px] truncate text-2xs opacity-70">
           {filters.features.length === 0 ? (
             t('none')
           ) : (
@@ -425,7 +425,7 @@ export function SearchScreen({
       </button>
 
       <section>
-        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-45">
+        <h3 className="mb-3 text-2xs font-bold tracking-[0.12em] opacity-65">
           {t('inspectionAndSeller')}
         </h3>
         <div className="flex flex-wrap gap-2">

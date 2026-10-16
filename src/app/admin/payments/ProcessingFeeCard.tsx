@@ -79,10 +79,10 @@ export function ProcessingFeeCard({
   return (
     <>
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-45">
+        <h2 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
           رسوم معالجة الدفع — ما نأخذه نحن
         </h2>
-        <p className="mb-4 text-2xs leading-loose opacity-60">
+        <p className="mb-4 text-2xs leading-loose opacity-70">
           غير رسوم البوابات أعلاه: تلك ما تأخذه البوابة منّا، وهذه سياسة تحميلها على
           الطرفين. وهي <strong>توريدٌ منّا</strong> فتسري عليها الضريبة — بخلاف رسوم نقل
           الملكية الحكومية التي تُمرَّر كما هي.
@@ -101,7 +101,7 @@ export function ProcessingFeeCard({
         {!enabled ? null : (
           <div className="flex flex-col gap-4 border-t border-line pt-4">
             <div>
-              <p className="mb-2 text-2xs font-bold opacity-60">من يتحمّلها</p>
+              <p className="mb-2 text-2xs font-bold opacity-70">من يتحمّلها</p>
               {/*
                 خيارٌ واحد لا خياران: خصمُها من البائع **و**إضافتها على
                 المشتري يأخذها مرّتين، وكلٌّ منهما يبدو صحيحًا وحده.
@@ -139,7 +139,7 @@ export function ProcessingFeeCard({
               تأتي من `Money` لا مكتوبةً: العربية ستّ حالات جمع، والوحدة
               اليدوية تخطئ في أكثرها.
             */}
-            <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-60">
+            <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-70">
               <span>على بيعةٍ قدرها</span>
               <Money amount={100_000} />
               <span aria-hidden className="opacity-40">←</span>
@@ -148,7 +148,7 @@ export function ProcessingFeeCard({
             </p>
 
             {!canManage ? null : (
-              <p className="text-3xs leading-loose opacity-50">
+              <p className="text-3xs leading-loose opacity-70">
                 الطلبات القائمة تبقى بسياستها — الرسم لقطةٌ وقت إنشاء الطلب.
               </p>
             )}
@@ -180,7 +180,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {/* `dir="ltr"` — رقمٌ يُقارن خانةً بخانة، والتطبيع عند الحفظ */}
       <input
         dir="ltr"

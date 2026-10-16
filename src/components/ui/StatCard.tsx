@@ -43,7 +43,7 @@ export function StatCard({
   return (
     <div className={cn('flex flex-col gap-3.5 rounded-lg p-4.5', TONE[tone], className)}>
       <div className="flex items-center gap-2">
-        <span className={cn('text-2xs font-semibold', onInk ? 'opacity-55' : 'opacity-50')}>
+        <span className={cn('text-2xs font-semibold', onInk ? 'opacity-70' : 'opacity-70')}>
           {label}
         </span>
         <span className="flex-1" />
@@ -68,7 +68,7 @@ export function StatCard({
       <div className="flex items-baseline gap-1.5">
         <ArabicNumber value={value} className="text-4xl leading-none font-bold" />
         {suffix === undefined ? null : (
-          <span className="text-2xs opacity-55">{suffix}</span>
+          <span className="text-2xs opacity-70">{suffix}</span>
         )}
       </div>
 
@@ -81,7 +81,7 @@ export function StatCard({
         >
           {breakdown.map((row) => (
             <li key={row.label} className="flex items-center justify-between gap-3">
-              <span className="opacity-60">{row.label}</span>
+              <span className="opacity-70">{row.label}</span>
               <ArabicNumber value={row.value} className="font-semibold" />
             </li>
           ))}
@@ -108,7 +108,7 @@ export function SpecRow({
         className,
       )}
     >
-      <span className="opacity-55">{label}</span>
+      <span className="opacity-70">{label}</span>
       <span className="bidi-isolate text-end font-semibold">{children}</span>
     </div>
   );

@@ -33,7 +33,7 @@ export function DetailHeader({
     <div className="mb-7">
       <Link
         href={backHref}
-        className="mb-4 inline-flex items-center gap-1.5 text-2xs opacity-55 hover:opacity-100"
+        className="mb-4 inline-flex items-center gap-1.5 text-2xs opacity-70 hover:opacity-100"
       >
         <span aria-hidden>→</span>
         {backLabel}
@@ -44,7 +44,7 @@ export function DetailHeader({
           <span dir="ltr" className="font-num text-start text-xl font-bold">
             {reference}
           </span>
-          <span className="bidi-isolate text-2xs opacity-60">{title}</span>
+          <span className="bidi-isolate text-2xs opacity-70">{title}</span>
         </div>
 
         {badges === undefined ? null : (
@@ -85,7 +85,7 @@ export function DetailCard({
     <section className={cn('rounded-xl border border-line bg-surface p-5', className)}>
       <div className="mb-3.5 flex items-baseline gap-2.5">
         <h2 className="text-sm font-bold">{title}</h2>
-        {note === undefined ? null : <span className="text-3xs opacity-45">{note}</span>}
+        {note === undefined ? null : <span className="text-3xs opacity-65">{note}</span>}
       </div>
       {children}
     </section>
@@ -110,7 +110,7 @@ export function Field({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-0">
-      <span className="shrink-0 text-2xs opacity-60">{label}</span>
+      <span className="shrink-0 text-2xs opacity-70">{label}</span>
       <span
         dir={ltr === true ? 'ltr' : undefined}
         className={cn(
@@ -162,9 +162,9 @@ export function TimelineRow({
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-2xs font-semibold">{title}</span>
-        {note === undefined ? null : <span className="text-3xs opacity-55">{note}</span>}
+        {note === undefined ? null : <span className="text-3xs opacity-70">{note}</span>}
       </div>
-      <span className="font-num shrink-0 text-3xs opacity-45">{at}</span>
+      <span className="font-num shrink-0 text-3xs opacity-65">{at}</span>
     </div>
   );
 }
@@ -189,7 +189,7 @@ export function DetailStats({
     <dl className="mb-6 flex flex-wrap items-stretch gap-x-9 gap-y-4 border-y border-line py-4">
       {items.map((item) => (
         <div key={item.label} className="flex min-w-24 flex-col gap-1">
-          <dt className="text-3xs opacity-45">{item.label}</dt>
+          <dt className="text-3xs opacity-65">{item.label}</dt>
           <dd
             className={cn(
               'text-sm font-bold',

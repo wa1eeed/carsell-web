@@ -121,9 +121,9 @@ export function ReportsQueue({
         <Card title="قيد التحقيق" value={stats.reviewing} note="أُحيلت إلى مراجعة الإعلان" />
         <Card title="حُسمت" value={stats.resolved} note="بإجراء أو بصرف نظر" />
         <div className="rounded-lg border border-line p-5">
-          <p className="mb-2 text-2xs opacity-55">أكثر الأسباب</p>
+          <p className="mb-2 text-2xs opacity-70">أكثر الأسباب</p>
           {stats.byReason.length === 0 ? (
-            <p className="text-2xs opacity-45">لا بلاغات مفتوحة</p>
+            <p className="text-2xs opacity-65">لا بلاغات مفتوحة</p>
           ) : (
             <ul className="flex flex-col gap-1.5">
               {stats.byReason.slice(0, 3).map((row) => (
@@ -160,12 +160,12 @@ export function ReportsQueue({
                 <Link
                   href={`/admin/reports/${encodeURIComponent(row.ref)}`}
                   dir="ltr"
-                  className="font-num text-start text-3xs underline underline-offset-4 opacity-60 hover:opacity-100"
+                  className="font-num text-start text-3xs underline underline-offset-4 opacity-70 hover:opacity-100"
                 >
                   {row.ref}
                 </Link>
                 <span className="text-sm font-bold">{REASON_LABEL[row.reason] ?? row.reason}</span>
-                <span className="bidi-isolate truncate text-2xs opacity-60">
+                <span className="bidi-isolate truncate text-2xs opacity-70">
                   {row.targetTitle ?? row.targetId}
                 </span>
               </div>
@@ -178,14 +178,14 @@ export function ReportsQueue({
                   {/*
                     **العدد هو ما يُقرَّر عليه لا البلاغ المفرد** — قرار ٥.
                   */}
-                  <span className="text-3xs opacity-50">
+                  <span className="text-3xs opacity-70">
                     على الهدف <Quantity unit="reportsReady" count={row.siblingCount} />
                   </span>
                 </div>
 
                 <div className="flex flex-col items-start gap-0.5">
-                  <span className="bidi-isolate text-2xs opacity-70">{row.reporterName}</span>
-                  <span className="text-3xs opacity-45">منذ {waitedText(row.waitingMinutes)}</span>
+                  <span className="bidi-isolate text-2xs opacity-75">{row.reporterName}</span>
+                  <span className="text-3xs opacity-65">منذ {waitedText(row.waitingMinutes)}</span>
                 </div>
 
                 <Button
@@ -204,7 +204,7 @@ export function ReportsQueue({
         </div>
       )}
 
-      <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-65">
+      <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <b>البلاغ لا يحذف إعلانًا.</b> يُحيله إلى مراجعة بشرية — والحذف بمجرّد بلاغ يجعله
         سلاحًا بيد منافس. وصاحب الإعلان لا يعرف من أبلغ.
       </p>
@@ -229,7 +229,7 @@ export function ReportsQueue({
             )}
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-60">ما الذي قرّرتَه ولماذا؟</span>
+              <span className="text-2xs font-bold opacity-70">ما الذي قرّرتَه ولماذا؟</span>
               <textarea
                 rows={3}
                 value={note}
@@ -275,7 +275,7 @@ export function ReportsQueue({
 function Line({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className="bidi-isolate truncate">{value}</dd>
     </div>
   );

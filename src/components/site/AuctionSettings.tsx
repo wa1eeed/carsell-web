@@ -56,10 +56,10 @@ export function Readout({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-60">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       <span className="bidi-isolate font-num text-sm font-bold">{value}</span>
       {hint === undefined ? null : (
-        <span className="text-3xs leading-loose opacity-45">{hint}</span>
+        <span className="text-3xs leading-loose opacity-65">{hint}</span>
       )}
     </div>
   );
@@ -68,7 +68,7 @@ export function Readout({
 /** شرحٌ يمتدّ على عرض الكتلة — فالقاعدة تُقرأ قبل الحقل لا بعده. */
 export function Note({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-65 sm:col-span-2">
+    <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75 sm:col-span-2">
       {children}
     </p>
   );
@@ -145,7 +145,7 @@ export function Toggle({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-2xs font-bold">{label}</span>
-        <span className="mt-1 block text-3xs leading-loose opacity-55">{hint}</span>
+        <span className="mt-1 block text-3xs leading-loose opacity-70">{hint}</span>
       </span>
     </button>
   );
@@ -168,7 +168,7 @@ export function PriceField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-3xs font-bold opacity-60">{label}</span>
+      <span className="text-3xs font-bold opacity-70">{label}</span>
       <input
         dir="ltr"
         inputMode="numeric"
@@ -176,7 +176,7 @@ export function PriceField({
         onChange={(event) => onChange(event.target.value)}
         className="rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
       />
-      <span className="text-3xs leading-loose opacity-45">{hint}</span>
+      <span className="text-3xs leading-loose opacity-65">{hint}</span>
     </label>
   );
 }

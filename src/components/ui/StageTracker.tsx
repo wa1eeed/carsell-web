@@ -103,7 +103,7 @@ export function StageTracker({
             <span
               className={cn(
                 'text-2xs',
-                state === 'next' ? 'opacity-45' : 'font-semibold',
+                state === 'next' ? 'opacity-65' : 'font-semibold',
                 state === 'stopped' && 'opacity-65',
                 vertical && '-mt-6 pb-2',
               )}

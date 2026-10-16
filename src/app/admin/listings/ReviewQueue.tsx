@@ -166,10 +166,10 @@ export function ReviewQueue({
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="flex items-center gap-2.5">
                   <span className="bidi-isolate truncate text-sm font-bold">{row.title}</span>
-                  <Year value={row.year} className="text-2xs opacity-55" />
+                  <Year value={row.year} className="text-2xs opacity-70" />
                 </span>
-                <span className="font-num text-3xs opacity-50">{row.ref}</span>
-                <span className="bidi-isolate text-2xs opacity-60">{row.sellerName}</span>
+                <span className="font-num text-3xs opacity-70">{row.ref}</span>
+                <span className="bidi-isolate text-2xs opacity-70">{row.sellerName}</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-5">
@@ -177,12 +177,12 @@ export function ReviewQueue({
                   <Badge tone={row.reason === 'USER_REPORT' ? 'warn' : 'neutral'}>
                     {REASON_LABEL[row.reason] ?? row.reason}
                   </Badge>
-                  <span className="text-3xs opacity-50">{evidenceText(row.evidence)}</span>
+                  <span className="text-3xs opacity-70">{evidenceText(row.evidence)}</span>
                 </div>
 
                 <div className="flex flex-col items-start gap-0.5">
                   <Money amount={Number(row.askPrice)} />
-                  <span className="text-3xs opacity-45">منذ <Duration hours={row.waitingMinutes / 60} /></span>
+                  <span className="text-3xs opacity-65">منذ <Duration hours={row.waitingMinutes / 60} /></span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export function ReviewQueue({
         </div>
       )}
 
-      <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-65">
+      <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         هذه القائمة <b>للإعلانات المرشحة تلقائيًا فقط</b> — ولو مرّ به كل إعلان لتوقّف السوق. راجِع
         قواعد الترشيح إذا تجاوزت القائمة خمسين إعلانًا.
       </p>
@@ -219,13 +219,13 @@ export function ReviewQueue({
       >
         {open === null ? null : (
           <>
-            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-70">
+            <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
               يعود الإعلان مسودّةً عند صاحبه، <b>ويقرأ ملاحظتك</b>. وإعادةٌ بلا سبب تجعله
               ينشره كما هو فيعود إلى القائمة.
             </p>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-60">ما الذي يُصلحه؟</span>
+              <span className="text-2xs font-bold opacity-70">ما الذي يُصلحه؟</span>
               <textarea
                 rows={4}
                 value={note}
@@ -235,7 +235,7 @@ export function ReviewQueue({
               />
             </label>
 
-            <p className="mt-2 text-3xs opacity-45">
+            <p className="mt-2 text-3xs opacity-65">
               {note.trim().length >= MIN_REVIEW_NOTE ? (
                 'يكفي.'
               ) : (
@@ -262,7 +262,7 @@ export function ReviewQueue({
             */}
             {canSuspend ? (
               <>
-                <p className="mt-5 border-t border-line pt-4 text-3xs leading-loose opacity-55">
+                <p className="mt-5 border-t border-line pt-4 text-3xs leading-loose opacity-70">
                   وإن كان الإعلان احتيالًا لا خطأً:
                 </p>
                 <Button

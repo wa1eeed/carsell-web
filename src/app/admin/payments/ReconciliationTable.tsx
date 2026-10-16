@@ -71,7 +71,7 @@ export function ReconciliationTable({ runs }: { runs: readonly ReconciliationRow
             /* الشرطة لا الصفر: «لم تُقرأ» ليست «صفرًا» */
             cell: (run) =>
               run.gatewayTotal === null ? (
-                <span className="opacity-35">—</span>
+                <span className="opacity-65">—</span>
               ) : (
                 <Money amount={run.gatewayTotal} />
               ),
@@ -82,7 +82,7 @@ export function ReconciliationTable({ runs }: { runs: readonly ReconciliationRow
             numeric: true,
             cell: (run) =>
               Number(run.diff) === 0 ? (
-                <span className="opacity-35">—</span>
+                <span className="opacity-65">—</span>
               ) : (
                 <ArabicNumber value={Number(run.diff)} decimals={2} className="font-bold" />
               ),
@@ -124,7 +124,7 @@ export function ReconciliationTable({ runs }: { runs: readonly ReconciliationRow
       >
         {open === null ? null : (
           <>
-            <p className="mb-3.5 text-2xs leading-loose opacity-60">
+            <p className="mb-3.5 text-2xs leading-loose opacity-70">
               {open.gatewayKey} ·{' '}
               <span dir="ltr" className="bidi-isolate font-num">
                 {open.date}
@@ -140,11 +140,11 @@ export function ReconciliationTable({ runs }: { runs: readonly ReconciliationRow
                     </span>
                     <Badge tone="warn">{KIND_LABEL[row.kind]}</Badge>
                   </p>
-                  <p className="flex flex-wrap items-center gap-3 text-2xs opacity-70">
+                  <p className="flex flex-wrap items-center gap-3 text-2xs opacity-75">
                     <span className="flex items-center gap-1.5">
                       دفترنا
                       {row.ours === null ? (
-                        <span className="opacity-40">—</span>
+                        <span className="opacity-65">—</span>
                       ) : (
                         <ArabicNumber value={Number(row.ours)} decimals={2} />
                       )}
@@ -152,7 +152,7 @@ export function ReconciliationTable({ runs }: { runs: readonly ReconciliationRow
                     <span className="flex items-center gap-1.5">
                       البوابة
                       {row.theirs === null ? (
-                        <span className="opacity-40">—</span>
+                        <span className="opacity-65">—</span>
                       ) : (
                         <ArabicNumber value={Number(row.theirs)} decimals={2} />
                       )}

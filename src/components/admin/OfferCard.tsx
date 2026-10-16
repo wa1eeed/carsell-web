@@ -47,7 +47,7 @@ export function OfferCard({ row }: { row: OfferRow }) {
     <div className="group relative flex flex-col gap-3 rounded-xl border border-line bg-surface p-3.5 transition duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none sm:flex-row sm:items-start sm:gap-4">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-ink/8">
         {row.thumbnail === null ? (
-          <span className="flex size-full items-center justify-center text-3xs opacity-45">
+          <span className="flex size-full items-center justify-center text-3xs opacity-65">
             لا صور
           </span>
         ) : (
@@ -81,7 +81,7 @@ export function OfferCard({ row }: { row: OfferRow }) {
           )}
         </div>
 
-        <span className="truncate text-2xs opacity-70">
+        <span className="truncate text-2xs opacity-75">
           <span className="bidi-isolate">
             {row.vehicleBrand} {row.vehicleModel}
           </span>
@@ -96,7 +96,7 @@ export function OfferCard({ row }: { row: OfferRow }) {
         </span>
 
         {/* المشتري يعرض والبائع ينظر — والسهم يقول الاتّجاه */}
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           <Party id={row.buyerId} name={row.buyerName} />
           <span aria-hidden className="opacity-40">
             ←
@@ -112,7 +112,7 @@ export function OfferCard({ row }: { row: OfferRow }) {
           ═══ الفجوة ═══
           المطلوب وحده لا يقول شيئًا، والطرح في رأس القارئ على كل صفّ.
         */}
-        <span className="text-3xs opacity-45">
+        <span className="text-3xs opacity-65">
           <span>المطلوب </span>
           <Money amount={ask} size="sm" showCurrency={false} />
           {gapPct === null ? null : (
@@ -140,7 +140,7 @@ export function OfferCard({ row }: { row: OfferRow }) {
 function Deadline({ row, closed }: { row: OfferRow; closed: boolean }) {
   if (closed) {
     return (
-      <span className="text-3xs opacity-40">
+      <span className="text-3xs opacity-65">
         <span>منذ </span>
         <Duration hours={row.waitingMinutes / 60} />
       </span>
@@ -148,12 +148,12 @@ function Deadline({ row, closed }: { row: OfferRow; closed: boolean }) {
   }
 
   if (row.lapsed) {
-    return <span className="text-3xs opacity-50">انقضت مهلته — يُسقَط قريبًا</span>;
+    return <span className="text-3xs opacity-70">انقضت مهلته — يُسقَط قريبًا</span>;
   }
 
   const near = row.hoursToExpiry <= 6;
   return (
-    <span className={near ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-45'}>
+    <span className={near ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-65'}>
       <span className="opacity-80">بقي </span>
       <Duration hours={row.hoursToExpiry} />
     </span>

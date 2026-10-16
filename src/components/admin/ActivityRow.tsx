@@ -32,13 +32,13 @@ export function ActivityRow({ event, at }: { event: ActivityEvent; at: string })
         <span className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
           <span className="text-2xs font-bold">{activityLabel(event.key)}</span>
           {event.subject === null ? null : (
-            <span dir="ltr" className="font-num text-3xs opacity-55">
+            <span dir="ltr" className="font-num text-3xs opacity-70">
               {event.subject}
             </span>
           )}
         </span>
 
-        <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-45">
+        <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-3xs opacity-65">
           <span className="rounded-sm bg-ink/6 px-1.5 py-px">
             {ACTIVITY_KIND_LABEL[event.kind]}
           </span>
@@ -58,7 +58,7 @@ export function ActivityRow({ event, at }: { event: ActivityEvent; at: string })
         <Money amount={Number(event.amount)} size="sm" showCurrency={false} className="shrink-0" />
       )}
 
-      <span className="shrink-0 text-3xs opacity-40">{at}</span>
+      <span className="shrink-0 text-3xs opacity-65">{at}</span>
     </span>
   );
 

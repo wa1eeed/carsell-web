@@ -86,7 +86,7 @@ export default async function TrimEditorPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">سجلّ التعديل</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             ما يُعدَّل هنا يُورَّث إلى كل مركبةٍ تُنشأ من هذه الفئة — فمن غيّره ومتى
             سؤالٌ يُسأل حين تُشتكى سيارةٌ لا تطابق وصفَها.
           </p>

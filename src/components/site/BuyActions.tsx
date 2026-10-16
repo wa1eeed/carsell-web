@@ -139,7 +139,7 @@ export function BuyActions({
 
   if (isOwn) {
     return (
-      <p className="mb-4 rounded-md border border-line px-4 py-3 text-2xs opacity-60">
+      <p className="mb-4 rounded-md border border-line px-4 py-3 text-2xs opacity-70">
         {tb('ownListing')}
       </p>
     );
@@ -197,12 +197,12 @@ export function BuyActions({
       </div>
 
       <Modal open={offerOpen} onClose={() => setOfferOpen(false)} title={t('makeOffer')}>
-        <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-65">
+        <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-75">
           {tb('askingPrice')}
           <Money amount={price} />
         </p>
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">{tb('yourOffer')}</span>
+          <span className="text-2xs font-bold opacity-70">{tb('yourOffer')}</span>
           {/* الرقم يُدخل ويُقارن — لاتينيّ، والتطبيع عند الإرسال */}
           <input
             dir="ltr"
@@ -212,7 +212,7 @@ export function BuyActions({
             className="font-num rounded-lg border border-line bg-surface px-3.5 py-2.5 text-lg font-bold"
           />
         </label>
-        <p className="mt-3 text-3xs leading-loose opacity-50">{tb('offerNote')}</p>
+        <p className="mt-3 text-3xs leading-loose opacity-70">{tb('offerNote')}</p>
         <Button
           className="mt-4 w-full"
           disabled={pending || offerAmount === ''}

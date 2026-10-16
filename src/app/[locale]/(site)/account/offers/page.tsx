@@ -77,7 +77,7 @@ export default async function OffersInboxPage({
           <span className="bidi-isolate">{offer.listing.title}</span>
           <ArabicNumber value={offer.listing.year} grouped={false} />
         </Link>
-        <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
+        <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
           <span className="font-num">{offer.listing.ref}</span>
           <span aria-hidden className="opacity-40">·</span>
           <span className="bidi-isolate">{offer.listing.city}</span>
@@ -94,8 +94,8 @@ export default async function OffersInboxPage({
       </span>
 
       <span className="flex flex-col items-end gap-1.5">
-        <span className="text-3xs opacity-45">{t('asking')}</span>
-        <ArabicNumber value={Number(offer.listing.askPrice)} className="text-2xs opacity-55" />
+        <span className="text-3xs opacity-65">{t('asking')}</span>
+        <ArabicNumber value={Number(offer.listing.askPrice)} className="text-2xs opacity-70" />
       </span>
 
       {/* العرض المنتهي يقول ذلك ولو بقيت حالته المخزَّنة نشطة */}
@@ -136,7 +136,7 @@ export default async function OffersInboxPage({
           />
 
           <h1 className="mb-1.5 text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="mb-7 text-sm opacity-60">{t('intro')}</p>
+          <p className="mb-7 text-sm opacity-70">{t('intro')}</p>
 
           {/*
             **والشريحة من `FilterChip` لا مكتوبةً بيد.** كانت نسخةً

@@ -202,15 +202,15 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                     */}
                     <Link
                       href={`/admin/providers/${row.id}`}
-                      className="bidi-isolate font-bold underline underline-offset-4 hover:opacity-70"
+                      className="bidi-isolate font-bold underline underline-offset-4 hover:opacity-75"
                     >
                       {row.nameAr}
                     </Link>
                     {row.servicesLinked === 0 ? (
                       // مزوّدٌ بلا خدمةٍ مرتبطة لا يصله إسنادٌ أبدًا
-                      <span className="text-3xs opacity-45">بلا خدمة مرتبطة</span>
+                      <span className="text-3xs opacity-65">بلا خدمة مرتبطة</span>
                     ) : (
-                      <span className="text-3xs opacity-45">
+                      <span className="text-3xs opacity-65">
                         <Quantity unit="linkedServices" count={row.servicesLinked} />
                       </span>
                     )}
@@ -252,7 +252,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                       </Button>
                     </span>
                   ) : (
-                    <span className="text-3xs opacity-40">قراءة</span>
+                    <span className="text-3xs opacity-65">قراءة</span>
                   )}
                 </td>
               </tr>
@@ -373,7 +373,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
               أثرُه على الطلبات الجارية، وزرُّه في الصفّ يقول كم طلبًا
               سيُكمله المزوّد — ودمجُهما يجعل حفظَ هاتفٍ يُعطّل شركةً سهوًا.
             */}
-            <p className="text-3xs opacity-45">
+            <p className="text-3xs opacity-65">
               التفعيل والتعطيل من زرّ الصفّ — فله أثرٌ على الإسناد الجاري.
             </p>
           </div>
@@ -396,7 +396,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-semibold opacity-55">{label}</span>
+      <span className="text-2xs font-semibold opacity-70">{label}</span>
       {children}
       {error === undefined ? null : (
         <span className="text-3xs text-danger">{FIELD_ERROR[error] ?? error}</span>

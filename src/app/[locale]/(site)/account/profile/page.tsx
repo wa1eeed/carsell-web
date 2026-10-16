@@ -60,7 +60,7 @@ export default async function ProfilePage({
           />
 
           <h1 className="mb-1.5 text-3xl font-bold tracking-tight">إكمال الملف</h1>
-          <p className="mb-8 text-sm leading-loose opacity-60">
+          <p className="mb-8 text-sm leading-loose opacity-70">
             {completion.missing.length === 0
               ? 'ملفك مكتمل — تستطيع الشراء والبيع.'
               : /*

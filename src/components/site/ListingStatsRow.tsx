@@ -35,9 +35,9 @@ export function ListingStatsRow({ stats }: { stats: ListingStats }) {
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map((card) => (
         <div key={card.label} className="rounded-xl border border-line p-4">
-          <p className="mb-1.5 text-2xs opacity-55">{card.label}</p>
+          <p className="mb-1.5 text-2xs opacity-70">{card.label}</p>
           {card.value === null ? (
-            <p className="text-2xs opacity-45">{card.note}</p>
+            <p className="text-2xs opacity-65">{card.note}</p>
           ) : (
             <ArabicNumber value={card.value} className="text-2xl font-bold" />
           )}

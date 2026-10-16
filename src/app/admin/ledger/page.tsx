@@ -74,7 +74,7 @@ export default async function LedgerPage() {
             </div>
           ))}
         </dl>
-        <p className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3 text-3xs opacity-45">
+        <p className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3 text-3xs opacity-65">
           <span>قيود مسجَّلة</span>
           <ArabicNumber value={book.entryCount} />
           {book.unbalanced.length === 0 ? <Badge tone="accent">كلها متوازنة</Badge> : null}
@@ -117,7 +117,7 @@ function Figure({
           : 'rounded-lg border border-line bg-surface p-4'
       }
     >
-      <p className="text-2xs opacity-55">{label}</p>
+      <p className="text-2xs opacity-70">{label}</p>
       <p className="mt-1.5">
         {/*
           **والبطاقة تُوافق الرصيد تحتها.** كانت تقول «لدى مزوّد الدفع
@@ -126,7 +126,7 @@ function Figure({
         */}
         <Money amount={Number(amount)} size="lg" decimals={2} />
       </p>
-      <p className="mt-1 text-3xs leading-loose opacity-45">{note}</p>
+      <p className="mt-1 text-3xs leading-loose opacity-65">{note}</p>
     </section>
   );
 }

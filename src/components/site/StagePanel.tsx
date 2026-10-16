@@ -85,7 +85,7 @@ export function StagePanel({
       <>
         <section className="rounded-lg border-2 border-ink p-5">
           <h2 className="mb-1.5 text-sm font-bold">أكّد استلام المركبة</h2>
-          <p className="mb-4 text-2xs leading-loose opacity-65">
+          <p className="mb-4 text-2xs leading-loose opacity-75">
             لا تؤكّد قبل أن تنتقل الملكية باسمك فعلًا في المرور، وتستلم المركبة.
             وبتأكيدك يُفرَج عن المبلغ للبائع مباشرةً — فافحص قبل الضغط.
           </p>
@@ -141,7 +141,7 @@ export function StagePanel({
 
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
-      <p className="text-2xs leading-loose opacity-65">{waiting}</p>
+      <p className="text-2xs leading-loose opacity-75">{waiting}</p>
     </section>
   );
 }

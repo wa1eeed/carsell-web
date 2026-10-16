@@ -46,7 +46,7 @@ export default async function BrandsPage() {
       />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
           قواعد الكتالوج
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">

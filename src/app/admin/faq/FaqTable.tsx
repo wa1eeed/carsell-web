@@ -209,7 +209,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
           >
             <div className="flex min-w-0 flex-col gap-1">
               <span className="truncate text-sm font-bold">{row.questionAr}</span>
-              <span className="flex flex-wrap items-center gap-2 text-3xs opacity-55">
+              <span className="flex flex-wrap items-center gap-2 text-3xs opacity-70">
                 <span>{CATEGORY_LABEL[row.category] ?? row.category}</span>
                 <span aria-hidden className="opacity-40">·</span>
                 <span>
@@ -234,7 +234,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               */}
               {row.missingEn ? <Badge tone="warn">بلا إنجليزية</Badge> : null}
 
-              <span className="font-num text-3xs opacity-45">
+              <span className="font-num text-3xs opacity-65">
                 {displayDigits(String(row.sort))}
               </span>
 
@@ -268,7 +268,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
 
           {editing !== row.id ? null : (
             <div className="flex flex-col gap-3 bg-surface p-4">
-              <p className="text-3xs leading-loose opacity-55">
+              <p className="text-3xs leading-loose opacity-70">
                 اختر أين يظهر هذا السؤال. <b>وما لا تختاره يُحذف</b> — فالمحفوظ هو
                 الحال النهائية لا إضافةٌ على ما قبلها. والسؤال بلا موضعٍ لا يظهر لأحد.
               </p>
@@ -302,7 +302,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               */}
               {draft.some((entry) => entry.surface === 'listing_page') ? (
                 <label className="flex flex-wrap items-center gap-2.5 text-3xs">
-                  <span className="opacity-55">في صفحة السيارة — لأيّ طريقة بيع؟</span>
+                  <span className="opacity-70">في صفحة السيارة — لأيّ طريقة بيع؟</span>
                   <select
                     value={draft.find((e) => e.surface === 'listing_page')?.listingType ?? ''}
                     onChange={(event) =>
@@ -433,7 +433,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               الموقع فورًا، والمواضع تُستبدل كاملةً — واستمارةٌ لا ترسلهما
               كانت تُقرأ «أخفِه وامسح مواضعه»، فتصحيحُ حرفٍ يسحب سؤالًا.
             */}
-            <p className="text-3xs opacity-45">
+            <p className="text-3xs opacity-65">
               الإظهار والمواضع من أزرار الصفّ — ولكلٍّ أثرُه على ما يراه الزائر.
             </p>
           </div>
@@ -456,7 +456,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-semibold opacity-55">{label}</span>
+      <span className="text-2xs font-semibold opacity-70">{label}</span>
       {children}
       {error === undefined ? null : (
         <span className="text-3xs text-danger">{FIELD_ERROR[error] ?? error}</span>

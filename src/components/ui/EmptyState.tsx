@@ -34,7 +34,7 @@ export function EmptyState({
     >
       <p className="text-lg font-bold">{title}</p>
       {description === undefined ? null : (
-        <p className="max-w-sm text-sm opacity-60">{description}</p>
+        <p className="max-w-sm text-sm opacity-70">{description}</p>
       )}
       {action === undefined ? null : <div className="mt-1">{action}</div>}
     </div>

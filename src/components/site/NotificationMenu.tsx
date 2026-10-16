@@ -207,7 +207,7 @@ export function NotificationMenu({
         {items.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <p className="text-2xs font-bold">{t('empty')}</p>
-            <p className="mt-1 text-3xs opacity-55">{t('emptyBody')}</p>
+            <p className="mt-1 text-3xs opacity-70">{t('emptyBody')}</p>
           </div>
         ) : (
           <ul className="max-h-96 divide-y divide-line-2 overflow-y-auto">
@@ -274,9 +274,9 @@ function Row({
             ) : null}
           </span>
           {item.body === '' ? null : (
-            <span className="mt-0.5 block text-3xs leading-relaxed opacity-60">{item.body}</span>
+            <span className="mt-0.5 block text-3xs leading-relaxed opacity-70">{item.body}</span>
           )}
-          <TimeAgo at={item.createdAt} now={now} className="mt-1 block text-3xs opacity-40" />
+          <TimeAgo at={item.createdAt} now={now} className="mt-1 block text-3xs opacity-65" />
         </span>
       </span>
     </>

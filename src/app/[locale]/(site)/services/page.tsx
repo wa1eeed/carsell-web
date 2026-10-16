@@ -107,7 +107,7 @@ export default async function ServicesPage({
             return (
               <section key={category} className="border-t border-line py-9 first:border-0 first:pt-0">
                 <SectionHead title={te(`serviceCategory.${category}`)} />
-                <p className="-mt-3 mb-5 text-xs opacity-45">
+                <p className="-mt-3 mb-5 text-xs opacity-65">
                   <Quantity unit="services" count={rows.length} />
                 </p>
 
@@ -140,7 +140,7 @@ export default async function ServicesPage({
                         <h3 className="mb-1.5 text-base font-bold">
                           {isArabic ? service.nameAr : service.nameEn}
                         </h3>
-                        <p className="mb-3.5 text-xs leading-relaxed opacity-60">
+                        <p className="mb-3.5 text-xs leading-relaxed opacity-70">
                           {isArabic ? service.descAr : service.descEn}
                         </p>
 
@@ -152,7 +152,7 @@ export default async function ServicesPage({
                             <Money amount={Number(service.price)} size="md" />
                           )}
                           {service.slaHours === null ? null : (
-                            <span className="text-3xs opacity-50">
+                            <span className="text-3xs opacity-70">
                               <Quantity unit="hours" count={service.slaHours} />
                             </span>
                           )}

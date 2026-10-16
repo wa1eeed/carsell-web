@@ -154,7 +154,7 @@ export function TemplatesTable({
             cell: (template) => (
               <span className="flex flex-col gap-0.5">
                 <span className="bidi-isolate font-bold">{template.subjectAr ?? '—'}</span>
-                <span className="font-num text-3xs opacity-45" dir="ltr">
+                <span className="font-num text-3xs opacity-65" dir="ltr">
                   {template.key}
                 </span>
               </span>
@@ -223,7 +223,7 @@ export function TemplatesTable({
       >
         {draft === null || sms === null ? null : (
           <div className="flex flex-col gap-4">
-            <p className="font-num text-2xs opacity-50" dir="ltr">
+            <p className="font-num text-2xs opacity-70" dir="ltr">
               {draft.key}
             </p>
 
@@ -255,7 +255,7 @@ export function TemplatesTable({
             />
 
             <div className="flex flex-col gap-2">
-              <span className="text-2xs font-bold opacity-55">المتغيّرات المصرَّح بها</span>
+              <span className="text-2xs font-bold opacity-70">المتغيّرات المصرَّح بها</span>
               <div className="flex flex-wrap gap-1.5">
                 {draft.variables.map((name) => (
                   <Chip
@@ -287,7 +287,7 @@ export function TemplatesTable({
                 </p>
               ) : null}
               {unused.length > 0 ? (
-                <p className="text-3xs opacity-45">
+                <p className="text-3xs opacity-65">
                   مصرَّح به ولا يُستعمل: {unused.join('، ')} — ليس خطأً، لكنّه غالبًا بقيّة نصّ قديم.
                 </p>
               ) : null}
@@ -304,7 +304,7 @@ export function TemplatesTable({
             />
 
             {/* الطول والتكلفة **أثناء الكتابة** — لا بعد الإرسال (ترميز A8) */}
-            <p className="flex flex-wrap items-center gap-2.5 text-3xs opacity-55">
+            <p className="flex flex-wrap items-center gap-2.5 text-3xs opacity-70">
               <span>
                 <Quantity unit="characters" count={sms.characters} />
               </span>
@@ -350,7 +350,7 @@ function Field({
 
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-55">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {multiline ? (
         <textarea
           dir={ltr ? 'ltr' : undefined}

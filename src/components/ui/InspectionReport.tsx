@@ -42,7 +42,7 @@ export function SectionScores({ sections }: { sections: readonly InspectionSecti
             <ArabicNumber value={section.score} grouped={false} />
           </span>
           {section.note === null ? null : (
-            <span className="w-full text-xs opacity-60 sm:w-80">{section.note}</span>
+            <span className="w-full text-xs opacity-70 sm:w-80">{section.note}</span>
           )}
         </li>
       ))}
@@ -79,7 +79,7 @@ export function FindingsTable({
       <header className="mb-5 flex flex-wrap items-baseline gap-3.5">
         <h2 className="flex items-baseline gap-2 text-2xl font-bold">
           {t('pointsWithNotes')}
-          <span className="text-base font-medium opacity-55">
+          <span className="text-base font-medium opacity-70">
             <ArabicNumber value={findings.length} /> {t('outOf')}{' '}
             <ArabicNumber value={points.length} />
           </span>
@@ -96,7 +96,7 @@ export function FindingsTable({
       ) : (
         <table className="w-full text-start">
           <thead>
-            <tr className="border-b border-line text-3xs font-bold tracking-[0.1em] opacity-50">
+            <tr className="border-b border-line text-3xs font-bold tracking-[0.1em] opacity-70">
               <th className="pb-3 text-start">{t('point')}</th>
               {/*
                 **ورأس العمود كان يطبع `ui.state` حرفيًّا.** المفتاح
@@ -113,7 +113,7 @@ export function FindingsTable({
               <tr key={point.id} className="border-b border-line-2">
                 <td className="w-56 py-3 text-sm font-medium">
                   <span className="bidi-isolate">{point.label}</span>
-                  <span className="mt-0.5 block text-3xs opacity-45">{point.section}</span>
+                  <span className="mt-0.5 block text-3xs opacity-65">{point.section}</span>
                 </td>
                 <td className="w-28 py-3">
                   {point.state === 'OK' ? (
@@ -122,7 +122,7 @@ export function FindingsTable({
                     <Badge tone={STATE_TONE[point.state]}>{t(`state.${point.state}`)}</Badge>
                   )}
                 </td>
-                <td className="py-3 text-xs opacity-65">{point.note ?? ''}</td>
+                <td className="py-3 text-xs opacity-75">{point.note ?? ''}</td>
               </tr>
             ))}
           </tbody>
@@ -154,7 +154,7 @@ export function PhotoGrid({
       <header className="mb-5 flex items-baseline gap-3.5">
         <h2 className="flex items-baseline gap-2 text-2xl font-bold">
           {t('findingPhotos')}
-          <span className="text-base font-medium opacity-55">
+          <span className="text-base font-medium opacity-70">
             <Quantity unit="photos" count={photos.length} />
           </span>
         </h2>
@@ -166,7 +166,7 @@ export function PhotoGrid({
           <figure key={photo.key} className="overflow-hidden rounded-xl border border-line">
             {/* نسبة محجوزة قبل التحميل — لا انزياح */}
             <span className="washed block aspect-4/3" />
-            <figcaption className="bidi-isolate border-t border-line px-3.5 py-2.5 text-2xs opacity-65">
+            <figcaption className="bidi-isolate border-t border-line px-3.5 py-2.5 text-2xs opacity-75">
               {photo.label}
             </figcaption>
           </figure>

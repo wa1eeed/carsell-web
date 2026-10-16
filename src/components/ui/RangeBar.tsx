@@ -79,7 +79,7 @@ export function RangeBar({
           style={{ insetInlineStart: `${markerPct}%` }}
         >
           <span className="flex flex-col items-center gap-1 whitespace-nowrap">
-            <span className="text-3xs opacity-55">
+            <span className="text-3xs opacity-70">
               {below ? t('belowRange') : above ? t('aboveRange') : t('thisListing')}
             </span>
             <Money amount={price} size="sm" showCurrency={false} />
@@ -101,7 +101,7 @@ export function RangeBar({
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-3xs opacity-55">
+      <div className="flex items-center justify-between text-3xs opacity-70">
         <Money amount={stats.p10} size="sm" showCurrency={false} />
         <span>{t('fairMarket')}</span>
         <Money amount={stats.p90} size="sm" showCurrency={false} />
@@ -140,7 +140,7 @@ export function RangeBar({
         )}
       </dl>
 
-      <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-55">
+      <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-70">
         <Counted message="basedOnDeals" count={stats.sampleSize} className="font-semibold" />
         {segment === undefined ? null : <span className="bidi-isolate">{segment}</span>}
       </p>
@@ -151,7 +151,7 @@ export function RangeBar({
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="opacity-55">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className="font-bold">{children}</dd>
     </div>
   );

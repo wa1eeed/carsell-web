@@ -107,13 +107,13 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
         }
       >
         <div className="flex flex-col gap-4">
-          <p className="rounded-md border border-line p-3 text-3xs leading-loose opacity-70">
+          <p className="rounded-md border border-line p-3 text-3xs leading-loose opacity-75">
             <b>الشريحة حيّة</b> — تُعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل الرسالة
             لمن خرج من شرطها بين اللحظتين.
           </p>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-2xs font-bold opacity-60">المفتاح</span>
+            <span className="text-2xs font-bold opacity-70">المفتاح</span>
             {/* مفتاحٌ لاتينيّ يُكتب في التقارير — معزول يسارًا */}
             <input
               dir="ltr"
@@ -125,7 +125,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-2xs font-bold opacity-60">الاسم</span>
+            <span className="text-2xs font-bold opacity-70">الاسم</span>
             <input
               value={nameAr}
               placeholder="مشترون لديهم مفضلة"
@@ -135,7 +135,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
           </label>
 
           <div className="flex flex-col gap-2">
-            <span className="text-2xs font-bold opacity-60">الشروط</span>
+            <span className="text-2xs font-bold opacity-70">الشروط</span>
             {fields.map((field) => {
               const state = states[field.key] ?? 'off';
               return (
@@ -159,7 +159,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
 
                   {state === 'off' || field.kind !== 'number' ? null : (
                     <label className="flex items-center gap-2.5 ps-3.5">
-                      <span className="text-3xs opacity-55">خلال كم يومًا</span>
+                      <span className="text-3xs opacity-70">خلال كم يومًا</span>
                       <input
                         dir="ltr"
                         inputMode="numeric"

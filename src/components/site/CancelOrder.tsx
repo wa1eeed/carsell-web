@@ -62,7 +62,7 @@ export function CancelOrder({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-3xs opacity-55 underline-offset-4 hover:underline hover:opacity-100"
+        className="text-3xs opacity-70 underline-offset-4 hover:underline hover:opacity-100"
       >
         ألغِ الطلب
       </button>
@@ -75,7 +75,7 @@ export function CancelOrder({
         </p>
 
         <label className="mb-4 flex flex-col gap-1.5">
-          <span className="text-3xs font-bold opacity-60">سبب الإلغاء</span>
+          <span className="text-3xs font-bold opacity-70">سبب الإلغاء</span>
           <textarea
             rows={3}
             value={reason}
@@ -83,7 +83,7 @@ export function CancelOrder({
             placeholder="غيّرت رأيي · تأخّر البائع · وجدتُ مركبةً أنسب…"
             className="rounded-md border border-line bg-bg px-3 py-2 text-2xs leading-loose"
           />
-          <span className="text-3xs opacity-45">
+          <span className="text-3xs opacity-65">
             يُقرأ في أي نزاعٍ لاحق — واكتب ما يكفي ليفهمه غيرك.
           </span>
         </label>

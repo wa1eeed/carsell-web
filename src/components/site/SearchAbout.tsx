@@ -42,7 +42,7 @@ export function SearchAbout({
     <section className="mt-10 border-t border-line pt-7">
       <h2 className="mb-2.5 text-base font-bold">عن أسعار {scope}</h2>
 
-      <p className="max-w-3xl text-sm leading-loose opacity-70">
+      <p className="max-w-3xl text-sm leading-loose opacity-75">
         {/*
           **والعدد بـ`Quantity`**: «٥٢ سيارة» و«سيارتان» و«سيارة»
           ستُّ صيغٍ لا يحكمها قالب. ولا صفةَ بعده ولا جارَّ قبله —
@@ -60,7 +60,7 @@ export function SearchAbout({
 
       {siblings.length === 0 ? null : (
         <>
-          <h3 className="mt-6 mb-2.5 text-2xs font-bold tracking-wider opacity-45">
+          <h3 className="mt-6 mb-2.5 text-2xs font-bold tracking-wider opacity-65">
             بحوث ذات صلة
           </h3>
           <div className="flex flex-wrap gap-2">

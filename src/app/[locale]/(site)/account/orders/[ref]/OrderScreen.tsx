@@ -112,7 +112,7 @@ export function OrderScreen({
         <p className="mb-5 flex flex-wrap items-center gap-2.5">
           <OrderStatusBadge status={order.status} stage={order.stage} />
           {order.cancelReason === null || order.cancelReason === '' ? null : (
-            <span className="text-2xs opacity-65">{order.cancelReason}</span>
+            <span className="text-2xs opacity-75">{order.cancelReason}</span>
           )}
         </p>
       )}
@@ -130,7 +130,7 @@ export function OrderScreen({
               <span className="bidi-isolate">{order.listing.title}</span>
               <ArabicNumber value={order.listing.year} grouped={false} />
             </Link>
-            <p className="mt-2 flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
+            <p className="mt-2 flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
               <span className="font-num">{order.listing.ref}</span>
               <span aria-hidden className="opacity-40">·</span>
               <span>{te(`orderSource.${order.source}`)}</span>
@@ -150,7 +150,7 @@ export function OrderScreen({
             */}
             {order.counterparty.name === '' ? null : (
               <p className="mt-3.5 flex flex-wrap items-baseline gap-2.5 border-t border-line pt-3.5 text-2xs">
-                <span className="opacity-55">
+                <span className="opacity-70">
                   {order.counterparty.isSeller ? t('sellerParty') : t('buyerParty')}
                 </span>
                 <span className="bidi-isolate font-bold">{order.counterparty.name}</span>
@@ -199,7 +199,7 @@ export function OrderScreen({
                       الوثائق تشرحه بالجملة نفسها — فيُقال هنا أيضًا.
                     */}
                     {event.reason === null || !t.has(`docBlockedReason.${event.reason}`) ? null : (
-                      <p className="mt-1 text-3xs leading-loose opacity-65">
+                      <p className="mt-1 text-3xs leading-loose opacity-75">
                         {t(`docBlockedReason.${event.reason}`)}
                       </p>
                     )}
@@ -210,7 +210,7 @@ export function OrderScreen({
                       البائع؟» لا «هل وافق؟»، والتصميم يضع التاريخ
                       تحت كل خطوة.
                     */}
-                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-50">
+                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-70">
                       {event.toStage === null ? null : (
                         <span>{te(`orderStage.${event.toStage}`)}</span>
                       )}
@@ -296,7 +296,7 @@ export function OrderScreen({
           {order.escrow === null ? null : (
             <section className="mb-3.5 rounded-xl border-2 border-ink p-5">
               <h2 className="mb-1.5 text-sm font-bold">{t('escrow')}</h2>
-              <p className="mb-3.5 text-2xs leading-loose opacity-65">
+              <p className="mb-3.5 text-2xs leading-loose opacity-75">
                 {t(`escrowState.${order.escrow.status}`)}
               </p>
               <Money amount={Number(order.escrow.amount)} size="xl" />
@@ -327,7 +327,7 @@ export function OrderScreen({
               .filter(([key, value]) => key !== 'adminFee' || Number(value) > 0)
               .map(([key, value]) => (
               <div key={key} className="flex items-center justify-between gap-4 py-1.5 text-sm">
-                <span className="opacity-60">{t(key)}</span>
+                <span className="opacity-70">{t(key)}</span>
                 <ArabicNumber value={Number(value)} className="font-bold" />
               </div>
             ))}
@@ -351,7 +351,7 @@ export function OrderScreen({
               <span>{Number(order.amounts.depositApplied ?? 0) === 0 ? t('total') : 'المطلوب الآن'}</span>
               <ArabicNumber value={Number(order.amounts.total)} />
             </div>
-            <p className="mt-2 text-3xs opacity-45">{t('vatIncluded')}</p>
+            <p className="mt-2 text-3xs opacity-65">{t('vatIncluded')}</p>
           </section>
 
           {/*
@@ -378,7 +378,7 @@ export function OrderScreen({
               {deductions.length === 0 ? null : (
                 <div className="mt-3.5 border-t border-line pt-3">
                   <div className="flex items-center justify-between gap-4 py-1 text-2xs">
-                    <span className="opacity-60">{t('settlementRow.vehicleValue')}</span>
+                    <span className="opacity-70">{t('settlementRow.vehicleValue')}</span>
                     <ArabicNumber
                       value={Number(order.settlement.vehicleValue)}
                       className="font-bold"
@@ -386,13 +386,13 @@ export function OrderScreen({
                   </div>
                   {deductions.map(([key, value]) => (
                     <div key={key} className="flex items-center justify-between gap-4 py-1 text-2xs">
-                      <span className="opacity-60">{t(`settlementRow.${key}`)}</span>
+                      <span className="opacity-70">{t(`settlementRow.${key}`)}</span>
                       <ArabicNumber value={-Number(value)} className="font-bold" />
                     </div>
                   ))}
                 </div>
               )}
-              <p className="mt-3 text-3xs leading-loose opacity-50">
+              <p className="mt-3 text-3xs leading-loose opacity-70">
                 {order.settlement.preview ? t('settlementPreview') : t('settlementNotInvoice')}
               </p>
             </section>
@@ -406,7 +406,7 @@ export function OrderScreen({
           */}
           <section className="mb-3.5 rounded-xl border border-line p-5">
             <h2 className="mb-1 text-xs font-bold">{t('documents')}</h2>
-            <p className="mb-3 text-3xs opacity-50">{t('documentsNote')}</p>
+            <p className="mb-3 text-3xs opacity-70">{t('documentsNote')}</p>
             <ul className="flex flex-col gap-2.5">
               {order.documents.map((doc, i) => (
                 <li key={i} className="flex items-start gap-2.5">
@@ -420,11 +420,11 @@ export function OrderScreen({
                           : 'bg-line'
                     }`}
                   />
-                  <div className={`min-w-0 ${doc.state === 'READY' ? '' : 'opacity-45'}`}>
+                  <div className={`min-w-0 ${doc.state === 'READY' ? '' : 'opacity-65'}`}>
                     <p className="text-2xs font-bold">
                       {t(`docKind.${doc.kind}`)}
                       {doc.supplyType === undefined ? null : (
-                        <span className="font-normal opacity-60">
+                        <span className="font-normal opacity-70">
                           {' '}
                           {t(`docSupply.${doc.supplyType}`)}
                         </span>
@@ -457,7 +457,7 @@ export function OrderScreen({
                       </p>
                     )}
                     {doc.kind !== 'INVOICE' || doc.reference === null ? null : (
-                      <p className="mt-0.5 flex items-center gap-1.5 text-3xs opacity-60">
+                      <p className="mt-0.5 flex items-center gap-1.5 text-3xs opacity-70">
                         {t('docNumber')}
                         {/* الرقم يُنسخ ويُقارن خانةً بخانة — لاتينيّ ومعزول */}
                         <span dir="ltr" className="bidi-isolate font-num">
@@ -508,7 +508,7 @@ export function OrderScreen({
               تقول إنه فيها الآن وينتظر — والوسمُ أعلاه قال إنه انتهى.
             */}
             {isClosedOrder(order.status) ? null : (
-            <p className="flex items-center gap-1.5 text-2xs opacity-55">
+            <p className="flex items-center gap-1.5 text-2xs opacity-70">
               {t('inStageFor')}
               {/*
                 **وأقلُّ من ساعةٍ تُقال بجملتها.** `Quantity` تصوغ الصفر

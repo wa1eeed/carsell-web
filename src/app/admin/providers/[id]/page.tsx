@@ -153,7 +153,7 @@ export default async function AdminProviderPage({
                         <AdminLink href={`/admin/service-requests/${encodeURIComponent(request.ref)}`}>
                           {request.ref}
                         </AdminLink>
-                        <span className="mt-1 flex flex-wrap items-center gap-2 text-3xs opacity-55">
+                        <span className="mt-1 flex flex-wrap items-center gap-2 text-3xs opacity-70">
                           <span>{request.serviceName}</span>
                           {request.city === null ? null : (
                             <>
@@ -197,7 +197,7 @@ export default async function AdminProviderPage({
                     <div key={person.id} className="flex flex-wrap items-center gap-3 py-3">
                       <span className="min-w-0 flex-1">
                         <span className="block text-2xs font-bold">{person.name}</span>
-                        <span dir="ltr" className="bidi-ltr mt-0.5 block text-3xs opacity-55">
+                        <span dir="ltr" className="bidi-ltr mt-0.5 block text-3xs opacity-70">
                           {person.email}
                         </span>
                       </span>
@@ -205,7 +205,7 @@ export default async function AdminProviderPage({
                         <Badge tone="warn">لم يغيّر كلمته بعد</Badge>
                       ) : null}
                       {person.active ? null : <Badge tone="danger">موقوف</Badge>}
-                      <span className="text-3xs opacity-45">
+                      <span className="text-3xs opacity-65">
                         {person.lastSeenAt === null
                           ? 'لم يدخل بعد'
                           : riyadh.format(new Date(person.lastSeenAt))}
@@ -234,7 +234,7 @@ export default async function AdminProviderPage({
                   : riyadh.format(new Date(provider.account.syncedAt))
               }
             >
-              <p className="mb-3.5 text-3xs leading-loose opacity-65">
+              <p className="mb-3.5 text-3xs leading-loose opacity-75">
                 {PROVIDER_ACCOUNT_NOTE[provider.account.status] ?? ''}
               </p>
               {provider.account.note === null ? null : (
@@ -291,7 +291,7 @@ export default async function AdminProviderPage({
                 فقرأها القياس «مجموع قيمة ٤ قائمة أنجزها» — جملةٌ لا
                 معنى لها. والعربية ستّ صيغ، فلكل معدودٍ وحدتُه.
               */}
-              <p className="mt-2 text-3xs leading-loose opacity-55">
+              <p className="mt-2 text-3xs leading-loose opacity-70">
                 مجموع قيمة <Quantity unit="completedRequests" count={provider.earnedFrom} /> أنجزها.
                 وحصّتنا تُقتطع في التوزيع لدى البوّابة، فلا تُحسب هنا مرّتين.
               </p>
@@ -327,7 +327,7 @@ export default async function AdminProviderPage({
               <Field label="البريد" ltr value={provider.contactEmail ?? '—'} />
             </DetailCard>
 
-            <p className="mt-5 text-3xs leading-loose opacity-50">
+            <p className="mt-5 text-3xs leading-loose opacity-70">
               التحرير والإيقاف من{' '}
               <Link href="/admin/providers" className="font-bold underline underline-offset-2">
                 قائمة المزوّدين

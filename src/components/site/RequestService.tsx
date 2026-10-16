@@ -76,7 +76,7 @@ export function RequestService({
   if (vehicles.length === 0) {
     return (
       <>
-        <p className="mb-3 text-2xs leading-loose opacity-65">
+        <p className="mb-3 text-2xs leading-loose opacity-75">
           لا مركبة في حسابك بعد — والخدمة تُطلب لمركبةٍ بعينها، فموعدُها
           وموقعُها يتبعانها.
         </p>
@@ -129,7 +129,7 @@ export function RequestService({
     <>
       <div className="mb-3.5 flex flex-col gap-3">
         <label className="flex flex-col gap-1.5">
-          <span className="text-3xs font-bold opacity-60">المركبة</span>
+          <span className="text-3xs font-bold opacity-70">المركبة</span>
           <select
             value={vehicleId}
             onChange={(event) => setVehicleId(event.target.value)}
@@ -149,10 +149,10 @@ export function RequestService({
           كانا حقلين متجاورين بلا رابط، والتصميم يجمعهما تحت عنوانٍ
           واحد: هما جوابُ سؤالٍ واحد — **أين يلقاك الفاحص ومتى**.
         */}
-        <p className="mt-1 text-3xs font-bold tracking-wider opacity-45">الموقع والموعد</p>
+        <p className="mt-1 text-3xs font-bold tracking-wider opacity-65">الموقع والموعد</p>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-3xs font-bold opacity-60">الموقع</span>
+          <span className="text-3xs font-bold opacity-70">الموقع</span>
           <select
             value={city}
             onChange={(event) => setCity(event.target.value)}
@@ -167,7 +167,7 @@ export function RequestService({
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-3xs font-bold opacity-60">الموعد (اختياري)</span>
+          <span className="text-3xs font-bold opacity-70">الموعد (اختياري)</span>
           {/* الموعد يُقارن خانةً بخانة — لاتينيّ معزول */}
           <input
             dir="ltr"
@@ -182,7 +182,7 @@ export function RequestService({
             */
             className="w-full rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
           />
-          <span className="text-3xs leading-loose opacity-45">
+          <span className="text-3xs leading-loose opacity-65">
             اتركه فارغًا ليحدّده المزوّد في أقرب موعدٍ ضمن مهلته.
           </span>
         </label>

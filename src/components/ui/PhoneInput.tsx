@@ -47,7 +47,7 @@ export function PhoneInput({
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-2 block text-2xs font-semibold opacity-60">
+      <label htmlFor={id} className="mb-2 block text-2xs font-semibold opacity-70">
         {label}
       </label>
       <div
@@ -58,7 +58,7 @@ export function PhoneInput({
           disabled && 'opacity-55',
         )}
       >
-        <span className="font-num text-sm font-semibold opacity-55">{COUNTRY_CODE}</span>
+        <span className="font-num text-sm font-semibold opacity-70">{COUNTRY_CODE}</span>
         <span className="h-4 w-px bg-line" aria-hidden />
         <input
           id={id}
@@ -70,7 +70,7 @@ export function PhoneInput({
           onChange={(event) => onChange(normalise(event.target.value))}
           placeholder="5X XXX XXXX"
           aria-invalid={invalid}
-          className="font-num w-full bg-transparent text-sm font-semibold tracking-wide outline-none placeholder:opacity-35"
+          className="font-num w-full bg-transparent text-sm font-semibold tracking-wide outline-none placeholder:opacity-65"
         />
       </div>
     </div>

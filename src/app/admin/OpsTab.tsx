@@ -62,14 +62,14 @@ export async function OpsTab() {
 
           return (
             <section key={metric.stage} className="rounded-lg border border-line bg-surface p-5">
-              <h2 className="mb-3 text-xs font-bold opacity-70">
+              <h2 className="mb-3 text-xs font-bold opacity-75">
                 {STAGE_LABEL[metric.stage] ?? metric.stage}
               </h2>
 
               <p className="mb-1 text-3xl font-bold">
                 <ArabicNumber value={metric.count} />
               </p>
-              <p className="mb-3.5 text-3xs opacity-45">طلبًا في المرحلة</p>
+              <p className="mb-3.5 text-3xs opacity-65">طلبًا في المرحلة</p>
 
               {/* المتوسّط مقابل الهدف — الشريط يتجاوز حدّه فيُقرأ التجاوز */}
               <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-ink/10">
@@ -85,7 +85,7 @@ export async function OpsTab() {
                 />
               </div>
 
-              <p className="flex flex-wrap items-center gap-1.5 text-3xs opacity-60">
+              <p className="flex flex-wrap items-center gap-1.5 text-3xs opacity-70">
                 <span>متوسّط</span>
                 <ArabicNumber value={metric.averageHours} />
                 <span>ساعة · الهدف</span>
@@ -152,7 +152,7 @@ export async function OpsTab() {
       />
       {measured === times.length ? null : (
         // **صفٌّ بلا عيّنة صفرٌ لا «سريع»** — ويُقال بدل أن يُقرأ إنجازًا
-        <p className="mt-2.5 text-3xs opacity-50">
+        <p className="mt-2.5 text-3xs opacity-70">
           <Quantity unit="stages" count={times.length - measured} /> بلا عيّنة في آخر تسعين يومًا
           — تُعرض صفرًا لأنها لم تُقَس، لا لأنها فورية.
         </p>
@@ -196,7 +196,7 @@ export async function OpsTab() {
               value={displayDigits(String(auctions.withdrawnAfterWin))}
             />
           </div>
-          <p className="mt-3 border-t border-line pt-3 text-3xs opacity-50">
+          <p className="mt-3 border-t border-line pt-3 text-3xs opacity-70">
             منذ الإطلاق: <Quantity unit="endedAuctions" count={auctions.total} />
           </p>
         </div>

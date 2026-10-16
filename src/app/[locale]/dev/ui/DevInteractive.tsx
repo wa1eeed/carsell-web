@@ -57,7 +57,7 @@ const TABS = [
 function Case({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-line-2 p-4">
-      <p className="text-3xs font-bold tracking-[0.14em] opacity-45">{label}</p>
+      <p className="text-3xs font-bold tracking-[0.14em] opacity-65">{label}</p>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </div>
   );
@@ -127,7 +127,7 @@ export function DevInteractive() {
             <Button size="sm" variant="outline" onClick={() => setLoading(!loading)}>
               {loading ? 'أوقف التحميل' : 'اعرض التحميل'}
             </Button>
-            <span className="flex items-center gap-1.5 text-2xs opacity-55">
+            <span className="flex items-center gap-1.5 text-2xs opacity-70">
               المحدَّد: <ArabicNumber value={selected.size} />
             </span>
           </div>
@@ -199,7 +199,7 @@ export function DevInteractive() {
             </>
           }
         >
-          <p className="text-base opacity-70">
+          <p className="text-base opacity-75">
             سيُحذف هذا الإعلان نهائيًا. لا يمكن التراجع بعد التأكيد.
           </p>
         </Modal>

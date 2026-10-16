@@ -57,7 +57,7 @@ export default async function DisputesPage({
   return (
     <AdminShell title="النزاعات"
       subtitle="النزاعات ومهلها" activeHref="/admin/disputes" admin={admin}>
-      <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
+      <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
         <Counted message="openDisputes" count={open.length} />
         <span aria-hidden className="opacity-40">·</span>
         <Counted message="overdueDisputes" count={overdue.length} />

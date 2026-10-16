@@ -64,7 +64,7 @@ export function SettlementHistoryTables({
               main={row.seller}
               sub={`المشتري ${row.buyer}`}
               amount={row.amount}
-              trailing={<span className="text-3xs opacity-45">{date.format(new Date(row.at))}</span>}
+              trailing={<span className="text-3xs opacity-65">{date.format(new Date(row.at))}</span>}
             />
           ))}
         </Section>
@@ -80,7 +80,7 @@ export function SettlementHistoryTables({
               /** **والسبب يُعرض** — مبلغٌ رُدّ بلا سببٍ لا يُراجَع. */
               sub={row.reason ?? 'بلا سبب مسجَّل'}
               amount={row.amount}
-              trailing={<span className="text-3xs opacity-45">{date.format(new Date(row.at))}</span>}
+              trailing={<span className="text-3xs opacity-65">{date.format(new Date(row.at))}</span>}
             />
           ))}
         </Section>
@@ -124,7 +124,7 @@ function Section({
       <h2 className="mb-3 flex flex-wrap items-baseline gap-3 text-sm font-bold">
         {title}
         {note === undefined ? null : (
-          <span className="text-3xs font-medium opacity-55">{note}</span>
+          <span className="text-3xs font-medium opacity-70">{note}</span>
         )}
       </h2>
       <div className="flex flex-col divide-y divide-line border-y border-line">{children}</div>
@@ -149,11 +149,11 @@ function Row({
     <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-col gap-1">
         {/* المرجع يُنسخ ويُقارن خانةً بخانة — لاتينيّ معزول */}
-        <span dir="ltr" className="font-num text-start text-2xs opacity-55">
+        <span dir="ltr" className="font-num text-start text-2xs opacity-70">
           {ref_}
         </span>
         <span className="bidi-isolate truncate text-sm">{main}</span>
-        <span className="bidi-isolate truncate text-3xs opacity-45">{sub}</span>
+        <span className="bidi-isolate truncate text-3xs opacity-65">{sub}</span>
       </div>
       <div className="flex items-center gap-6">
         <Money amount={Number(amount)} decimals={2} />

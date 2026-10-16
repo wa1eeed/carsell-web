@@ -93,7 +93,7 @@ export function TrimEditor({
 
   const field =
     'w-full rounded-md border border-line bg-surface px-3.5 py-2.5 text-base outline-none focus:border-accent';
-  const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-55';
+  const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-70';
 
   return (
     <div className="flex flex-col gap-4">
@@ -102,7 +102,7 @@ export function TrimEditor({
           <h2 className="text-xl font-bold">
             {path.model} {trim.nameEn} — محرّر الفئة
           </h2>
-          <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs opacity-55">
+          <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs opacity-70">
             <span className="bidi-isolate">
               {path.brand} ← {path.model} ← {trim.nameEn}
             </span>
@@ -119,7 +119,7 @@ export function TrimEditor({
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <section className="rounded-lg border border-line bg-surface p-5.5">
-          <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">الهوية</h3>
+          <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-65">الهوية</h3>
           <div className="flex flex-col gap-3.5">
             <label className={label}>
               اسم الفئة (عربي)
@@ -167,10 +167,10 @@ export function TrimEditor({
         </section>
 
         <section className="rounded-lg border border-line bg-surface p-5.5 lg:col-span-2">
-          <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-45">
+          <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
             قيَم موروثة
           </h3>
-          <p className="mb-3.5 text-xs opacity-55">تُملأ تلقائيًا ولا يعبّئها البائع</p>
+          <p className="mb-3.5 text-xs opacity-70">تُملأ تلقائيًا ولا يعبّئها البائع</p>
 
           <div className="grid grid-cols-2 gap-3.5 md:grid-cols-3">
             {(
@@ -235,7 +235,7 @@ export function TrimEditor({
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <section className="rounded-lg border border-line bg-surface p-5.5 lg:col-span-2">
-          <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+          <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-65">
             المميّزات الافتراضية للفئة
           </h3>
           {(Object.keys(GROUP) as (keyof typeof GROUP)[]).map((group) => {
@@ -243,7 +243,7 @@ export function TrimEditor({
             if (inGroup.length === 0) return null;
             return (
               <div key={group} className="mb-3.5 last:mb-0">
-                <p className="mb-2 text-2xs opacity-45">{GROUP[group]}</p>
+                <p className="mb-2 text-2xs opacity-65">{GROUP[group]}</p>
                 <div className="flex flex-wrap gap-x-5 gap-y-2">
                   {inGroup.map((f) => (
                     <label key={f.key} className="flex items-center gap-2 text-sm">
@@ -269,10 +269,10 @@ export function TrimEditor({
         </section>
 
         <section className="rounded-lg border border-line bg-surface p-5.5">
-          <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-45">
+          <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
             قيَم تدخلهاا البائع
           </h3>
-          <p className="mb-3 text-xs opacity-55">لا تُحرَّر هنا</p>
+          <p className="mb-3 text-xs opacity-70">لا تُحرَّر هنا</p>
           <ul className="flex flex-col gap-2 text-sm opacity-72">
             {SELLER_FIELDS.map((f) => (
               <li key={f}>· {f}</li>
@@ -283,10 +283,10 @@ export function TrimEditor({
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-2">
         <section className="rounded-lg border border-line bg-surface p-5.5">
-          <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+          <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-65">
             معاينة — ما يراه البائع
           </h3>
-          <p className="mb-2.5 text-xs opacity-45">الخطوة 2 — بيانات المركبة</p>
+          <p className="mb-2.5 text-xs opacity-65">الخطوة 2 — بيانات المركبة</p>
           <SpecRow label="نوع الهيكل">{BODY[draft.bodyType]}</SpecRow>
           <SpecRow label="ناقل الحركة">{TRANS[draft.transmission]}</SpecRow>
           <SpecRow label="الوقود">{FUEL[draft.fuel]}</SpecRow>
@@ -295,7 +295,7 @@ export function TrimEditor({
             <ArabicNumber value={draft.seats} />
           </SpecRow>
           <SpecRow label="الممشى">
-            <span className="opacity-45">يكتبه البائع</span>
+            <span className="opacity-65">يكتبه البائع</span>
           </SpecRow>
         </section>
 

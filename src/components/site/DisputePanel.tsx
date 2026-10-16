@@ -67,7 +67,7 @@ export function DisputePanel({
 
   return (
     <>
-      <p className="mt-3 text-center text-3xs opacity-45">
+      <p className="mt-3 text-center text-3xs opacity-65">
         وصلتك المركبة مخالفةً للوصف؟{' '}
         <button
           type="button"
@@ -89,7 +89,7 @@ export function DisputePanel({
         </p>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-2xs font-bold opacity-60">
+          <span className="text-2xs font-bold opacity-70">
             ما الذي خالف الوصف؟ اكتب ما رأيته بالتفصيل
           </span>
           <textarea
@@ -105,7 +105,7 @@ export function DisputePanel({
           العدّ يقول كم بقي لا كم كُتب: «١٢ حرفًا» لا تخبر متى يُقبل.
           والرقم يُكتب لاتينيًّا معزولًا فلا تحكمه حالات الجمع الستّ.
         */}
-        <p className="mt-2 text-3xs opacity-45">
+        <p className="mt-2 text-3xs opacity-65">
           {reason.trim().length >= MIN_REASON ? (
             'يكفي.'
           ) : (

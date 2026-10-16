@@ -46,7 +46,7 @@ export default async function AdminSettingsPage() {
       activeHref="/admin/settings"
       admin={admin}
     >
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         هنا ما يحكم سلوك المنصّة: الأسعار والمهل والقواعد والقوالب. <b>وما تغيّره
         هنا يسري على ما بعده لا على ما مضى</b> — طلبٌ قائم يحتفظ بالمهلة والسعر
         اللذين قُرئا يوم أُنشئ.
@@ -55,7 +55,7 @@ export default async function AdminSettingsPage() {
       <div className="flex flex-col gap-9">
         {sections.map((section) => (
           <section key={section.title}>
-            <h2 className="mb-3.5 text-3xs font-bold tracking-wider opacity-45">
+            <h2 className="mb-3.5 text-3xs font-bold tracking-wider opacity-65">
               {section.title}
             </h2>
 
@@ -72,7 +72,7 @@ export default async function AdminSettingsPage() {
                     والضرائب» لا تقول أين تُغيَّر نسبة الضريبة، والسطر
                     تحتها يقولها.
                   */}
-                  <span className="text-2xs leading-relaxed opacity-55">
+                  <span className="text-2xs leading-relaxed opacity-70">
                     {item.description ?? '—'}
                   </span>
                 </Link>

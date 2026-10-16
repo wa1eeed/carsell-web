@@ -31,7 +31,7 @@ export default async function ModelsPage({
   if (brand === null) {
     return (
       <AdminShell title="الطرازات والفئات" activeHref="/admin/catalog/brands" admin={admin}>
-        <p className="text-sm opacity-60">لا ماركات بعد — ابدأ من شاشة البراندات.</p>
+        <p className="text-sm opacity-70">لا ماركات بعد — ابدأ من شاشة البراندات.</p>
       </AdminShell>
     );
   }

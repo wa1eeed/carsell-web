@@ -58,7 +58,7 @@ export function Breadcrumb({
         المحتوى، فالصفّ الثاني يُبقيه مقروءًا. و`min-w-0` تسمح
         للكلمة الطويلة أن تُكسر بدل أن تدفع الصفّ.
       */}
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-50">
+      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
         {items.map((item, index) => {
           const last = index === items.length - 1;
 

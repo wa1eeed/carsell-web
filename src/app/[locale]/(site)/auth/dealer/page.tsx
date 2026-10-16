@@ -69,7 +69,7 @@ export default async function DealerJoinPage({
             <h1 className="mb-4 max-w-2xl text-display leading-tight font-extrabold tracking-tight">
               {t('dealerTitle')}
             </h1>
-            <p className="mb-8 max-w-xl text-sm leading-loose opacity-70">{t('dealerLead')}</p>
+            <p className="mb-8 max-w-xl text-sm leading-loose opacity-75">{t('dealerLead')}</p>
 
             <dl className="flex flex-wrap gap-9">
               {[
@@ -82,7 +82,7 @@ export default async function DealerJoinPage({
                     <ArabicNumber value={stat.value} />
                     {stat.suffix === null ? null : <span>{stat.suffix}</span>}
                   </dd>
-                  <dt className="mt-1.5 text-2xs opacity-60">{t(stat.key)}</dt>
+                  <dt className="mt-1.5 text-2xs opacity-70">{t(stat.key)}</dt>
                 </div>
               ))}
             </dl>

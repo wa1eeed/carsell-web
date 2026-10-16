@@ -47,7 +47,7 @@ export default async function AdminAuditPage({
 
   return (
     <AdminShell title="سجل التدقيق" activeHref="/admin/audit" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         كل إجراء بمن فعله ومتى وماذا تغيّر. <b>لا يُعدَّل ولا يُحذف</b> — ولا زرّ في هذه
         الشاشة.
       </p>
@@ -88,7 +88,7 @@ export default async function AdminAuditPage({
               <span className="bidi-isolate text-2xs font-semibold">
                 {row.actorName ?? 'النظام'}
               </span>
-              <span className="font-num text-3xs opacity-45">{row.actorRole}</span>
+              <span className="font-num text-3xs opacity-65">{row.actorRole}</span>
             </div>
 
             {/* النظام فاعلٌ أيضًا — ووسمُه يميّز ما وقع بلا إنسان */}
@@ -97,7 +97,7 @@ export default async function AdminAuditPage({
             </Badge>
 
             {/* العنوان يُقارن خانةً بخانة — لاتينيّ معزول */}
-            <span dir="ltr" className="font-num text-3xs opacity-45">
+            <span dir="ltr" className="font-num text-3xs opacity-65">
               {row.ip ?? '—'}
             </span>
           </MonitorRow>

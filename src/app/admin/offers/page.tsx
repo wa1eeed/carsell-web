@@ -40,7 +40,7 @@ export default async function AdminOffersPage({
 
   return (
     <AdminShell title="العروض والمفاوضات" activeHref="/admin/offers" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         ما يجري بين المشترين والبائعين. تُقرأ ولا تُغيَّر — والمفاوضة بين طرفيها.
       </p>
 
@@ -89,7 +89,7 @@ export default async function AdminOffersPage({
         </div>
       )}
 
-      <p className="mt-4 text-3xs leading-relaxed opacity-45">
+      <p className="mt-4 text-3xs leading-relaxed opacity-65">
         لا زرّ في هذه الشاشة عمدًا: المفاوضة بين طرفين، ومن يملك زرًّا فيها يملك
         ترجيح أحدهما.
       </p>

@@ -333,7 +333,7 @@ export default async function AdminOrderDetailPage({
                 value={<Money amount={Number(order.money.netToSeller)} />}
                 strong
               />
-              <p className="mt-3 text-3xs leading-loose opacity-50">
+              <p className="mt-3 text-3xs leading-loose opacity-70">
                 صافي البائع من القاعدة نفسها التي يقرؤها كشف التسوية وصفحة أرباحه — ولا
                 يُحسب هنا مرّةً ثانية.
               </p>
@@ -349,7 +349,7 @@ export default async function AdminOrderDetailPage({
                 }
               >
                 {order.ledger.length === 0 ? (
-                  <p className="text-2xs opacity-50">
+                  <p className="text-2xs opacity-70">
                     لا قيد على هذا الطلب — والقيد يُكتب عند حجز المبلغ لا عند إنشاء الطلب.
                   </p>
                 ) : (
@@ -366,7 +366,7 @@ export default async function AdminOrderDetailPage({
                       <tbody>
                         {order.ledger.map((entry) => (
                           <tr key={entry.id} className="border-b border-line last:border-0">
-                            <td dir="ltr" className="font-num p-2 text-start opacity-70">
+                            <td dir="ltr" className="font-num p-2 text-start opacity-75">
                               {entry.event}
                             </td>
                             <td className="p-2 opacity-70">
@@ -394,7 +394,7 @@ export default async function AdminOrderDetailPage({
               note={<>آخر <Quantity unit="events" count={order.timeline.length} /></>}
             >
               {order.timeline.length === 0 ? (
-                <p className="text-2xs opacity-50">لا أحداث مسجّلة.</p>
+                <p className="text-2xs opacity-70">لا أحداث مسجّلة.</p>
               ) : (
                 <div className="flex flex-col">
                   {order.timeline.map((event) => (
@@ -435,7 +435,7 @@ export default async function AdminOrderDetailPage({
       {tab !== 'timeline' ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             أحداثُ الطلب والدفعات والضمان والفواتير والنزاعات وأثر الفريق في تسلسلٍ
             واحد — والأقدم أوّلًا، فالقصّة تُقرأ من بدايتها.
           </p>
@@ -464,7 +464,7 @@ export default async function AdminOrderDetailPage({
               <Field label="حالة الإعلان" value={order.listing.status} ltr />
               <Link
                 href={`/admin/all-listings?q=${encodeURIComponent(order.listing.ref)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 افتح الإعلان
               </Link>
@@ -517,7 +517,7 @@ export default async function AdminOrderDetailPage({
               <Field label="الإجماليّ" value={<Money amount={Number(order.money.totalAmount)} />} strong />
               <Link
                 href={`/admin/orders/${encodeURIComponent(order.ref)}?tab=money`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
                 تفصيل المال والدفتر
               </Link>
@@ -533,7 +533,7 @@ export default async function AdminOrderDetailPage({
             {order.escrow === null ? (
               <DetailCard title="الضمان">
                 {/* **وغيابُه يُقال** — بطاقةٌ تُحذف تجعل القارئ يظنّ أنه لم يبحث جيّدًا */}
-                <p className="text-2xs opacity-55">لا ضمان على هذا الطلب.</p>
+                <p className="text-2xs opacity-70">لا ضمان على هذا الطلب.</p>
               </DetailCard>
             ) : (
               <DetailCard title="الضمان">
@@ -560,7 +560,7 @@ export default async function AdminOrderDetailPage({
 
             {order.payments.length === 0 ? (
               <DetailCard title="الدفعات">
-                <p className="text-2xs opacity-55">لا دفعة مسجّلة بعد.</p>
+                <p className="text-2xs opacity-70">لا دفعة مسجّلة بعد.</p>
               </DetailCard>
             ) : (
               <DetailCard title="الدفعات">
@@ -601,7 +601,7 @@ export default async function AdminOrderDetailPage({
             <>
             {order.documents.length === 0 ? (
               <DetailCard title="المستندات">
-                <p className="text-2xs opacity-55">لا مستند صادر بعد.</p>
+                <p className="text-2xs opacity-70">لا مستند صادر بعد.</p>
               </DetailCard>
             ) : (
               <DetailCard title="المستندات">
@@ -618,7 +618,7 @@ export default async function AdminOrderDetailPage({
 
             {order.dispute === null ? (
               <DetailCard title="النزاع">
-                <p className="text-2xs opacity-55">لا نزاع على هذا الطلب.</p>
+                <p className="text-2xs opacity-70">لا نزاع على هذا الطلب.</p>
               </DetailCard>
             ) : (
               <DetailCard
@@ -717,7 +717,7 @@ function PartyBlock({
 }) {
   return (
     <div>
-      <p className="mb-2 flex items-center gap-2.5 text-3xs font-bold tracking-[0.12em] opacity-45">
+      <p className="mb-2 flex items-center gap-2.5 text-3xs font-bold tracking-[0.12em] opacity-65">
         {label}
         {party.idVerified ? <Badge tone="accent">موثَّق</Badge> : <Badge tone="warn">بلا توثيق</Badge>}
       </p>

@@ -134,7 +134,7 @@ export default async function ServiceDetailPage({
       <SiteHeader active="services" />
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
-          <p className="mb-5 flex flex-wrap items-center gap-2 text-2xs opacity-55">
+          <p className="mb-5 flex flex-wrap items-center gap-2 text-2xs opacity-70">
             {/* مساحةُ اللمس أوسع من النصّ — دون حدّ WCAG 2.2 بلا حشو */}
             <Link href={`/${locale}/services`} className="-my-1.5 py-1.5 hover:underline">
               {t('title')}
@@ -149,7 +149,7 @@ export default async function ServiceDetailPage({
                 {isArabic ? service.nameAr : service.nameEn}
                 {!service.isAutomated ? null : <Badge tone="accent">{t('instant')}</Badge>}
               </h1>
-              <p className="mb-7 max-w-2xl text-sm leading-loose opacity-70">
+              <p className="mb-7 max-w-2xl text-sm leading-loose opacity-75">
                 {isArabic ? service.descAr : service.descEn}
               </p>
 
@@ -192,14 +192,14 @@ export default async function ServiceDetailPage({
                   {service.providerSlaHours === null ? null : (
                     <>
                       <span aria-hidden className="opacity-40">·</span>
-                      <span className="opacity-60">
+                      <span className="opacity-70">
                         التزام التنفيذ <Quantity unit="hours" count={service.providerSlaHours} />
                       </span>
                     </>
                   )}
                 </p>
                 {service.providerCities.length === 0 ? null : (
-                  <p className="mt-2.5 text-3xs leading-loose opacity-55">
+                  <p className="mt-2.5 text-3xs leading-loose opacity-70">
                     يغطّي: {service.providerCities.join(' · ')}
                   </p>
                 )}
@@ -218,7 +218,7 @@ export default async function ServiceDetailPage({
                 {Number(service.price) === 0 ? null : (
                   <p className="mb-3.5 flex items-baseline gap-1.5">
                     <Money amount={price} showCurrency={false} size="xl" />
-                    <span className="text-2xs opacity-55">ر.س + ضريبة</span>
+                    <span className="text-2xs opacity-70">ر.س + ضريبة</span>
                   </p>
                 )}
 
@@ -273,7 +273,7 @@ export default async function ServiceDetailPage({
               </section>
 
               {service.slaHours === null ? null : (
-                <p className="rounded-lg border border-line bg-surface p-4 text-3xs leading-loose opacity-65">
+                <p className="rounded-lg border border-line bg-surface p-4 text-3xs leading-loose opacity-75">
                   المهلة المعلنة <Quantity unit="hours" count={service.slaHours} /> من لحظة
                   التأكيد.
                 </p>
@@ -289,7 +289,7 @@ export default async function ServiceDetailPage({
 function Row({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
-      <span className="opacity-60">{label}</span>
+      <span className="opacity-70">{label}</span>
       {/* الهللات تُعرض — فضريبةٌ بـ٦٧٫٥٠ لا تُكتب ٦٨ */}
       <Money amount={value} showCurrency={false} size="sm" decimals={2} />
     </div>

@@ -64,7 +64,7 @@ export default async function IntegrationsPage() {
       />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">حوكمة المفاتيح</h2>
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">حوكمة المفاتيح</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
             <strong>السرّ لا يُعرض كاملًا أبدًا</strong> — ولا حتى لمن كتبه. ما تراه تلميحٌ
@@ -81,7 +81,7 @@ export default async function IntegrationsPage() {
       </section>
 
       <section className="mt-4 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">سلوك التعطّل</h2>
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">سلوك التعطّل</h2>
         <p className="text-sm leading-loose opacity-72">
           لكل تكامل مسار بديل مُعلن، مكتوب في صفّه أعلاه ومخزَّن معه لا في هذه الفقرة —
           <strong> لا شاشة خطأ بلا مخرج</strong>. وسطرٌ في وثيقة لا يُنفَّذ؛ الحقل يُقرأ.
@@ -94,7 +94,7 @@ export default async function IntegrationsPage() {
 function Stat({ title, value }: { title: string; value: number }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
-      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-45">{title}</h2>
+      <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">{title}</h2>
       <p className="mt-2 text-2xl font-bold">
         <ArabicNumber value={value} />
       </p>

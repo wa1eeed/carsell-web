@@ -255,7 +255,7 @@ export default async function AuctionsPage({
           )}
 
           {/* كل مقطع معزول — الفاصل بالتخطيط لا بالنصّ (فحص ٦) */}
-          <p className="mt-8 flex flex-wrap items-center gap-2 text-2xs opacity-45">
+          <p className="mt-8 flex flex-wrap items-center gap-2 text-2xs opacity-65">
             {(
               [
                 ['countLive', countOf('live')],

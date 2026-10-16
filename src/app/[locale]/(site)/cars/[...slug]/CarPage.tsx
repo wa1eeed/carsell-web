@@ -172,7 +172,7 @@ export function CarPage({
       value: (
         <span className="flex items-center gap-2">
           {te(`paintState.${vehicle.paint.status}`)}
-          <span className="text-3xs font-medium opacity-50">
+          <span className="text-3xs font-medium opacity-70">
             {t(vehicle.paint.source === 'INSPECTION' ? 'verifiedByInspection' : 'sellerDeclared')}
           </span>
         </span>
@@ -203,7 +203,7 @@ export function CarPage({
 
   return (
     <>
-      <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-2xs opacity-50">
+      <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-2xs opacity-70">
         {crumbs.map((crumb, i) => (
           <span key={crumb.href} className="flex items-center gap-1.5">
             {i > 0 ? <span aria-hidden>›</span> : null}
@@ -228,7 +228,7 @@ export function CarPage({
           المتصفّح يعرضه أصلًا**. وهو في التصميم على سطح المكتب، حيث
           يتّسع له ذيل المسار.
         */}
-        <span dir="ltr" className="hidden font-num text-3xs opacity-70 sm:inline">
+        <span dir="ltr" className="hidden font-num text-3xs opacity-75 sm:inline">
           {APP_URL.replace(/^https?:\/\//, '')}
           {canonical.display}
         </span>
@@ -267,7 +267,7 @@ export function CarPage({
                 <span className="bidi-isolate">{vehicle.title}</span>
                 <ArabicNumber value={vehicle.year} grouped={false} />
               </h1>
-              <p className="flex flex-wrap items-center gap-2 text-sm opacity-65">
+              <p className="flex flex-wrap items-center gap-2 text-sm opacity-75">
                 {[
                   <Quantity key="km" unit="km" count={vehicle.mileageKm} />,
                   <span key="tr" className="bidi-isolate">{te(`transmission.${vehicle.transmission}`)}</span>,
@@ -406,7 +406,7 @@ export function CarPage({
                 <h2 className="mb-1.5 text-sm font-bold">
                   {closed === 'SOLD' ? t('soldTitle') : t('reservedTitle')}
                 </h2>
-                <p className="text-2xs leading-loose opacity-65">
+                <p className="text-2xs leading-loose opacity-75">
                   {closed === 'SOLD' ? t('soldBody') : t('reservedBody')}
                 </p>
               </section>
@@ -662,7 +662,7 @@ export function CarPage({
                 if (rows.length === 0) return null;
                 return (
                   <section key={group}>
-                    <h3 className="mb-3.5 text-2xs font-bold tracking-[0.14em] opacity-45">
+                    <h3 className="mb-3.5 text-2xs font-bold tracking-[0.14em] opacity-65">
                       {te(`featureGroup.${group}`)}
                     </h3>
                     <ul className="flex flex-col gap-2.5 text-sm font-medium">
@@ -708,7 +708,7 @@ export function CarPage({
           <h2 className="text-2xl font-bold">{t('faqTitle')}</h2>
           <span className="h-px flex-1 bg-line" />
         </header>
-        <p className="mb-4.5 text-xs opacity-50">{t('faqByType')}</p>
+        <p className="mb-4.5 text-xs opacity-70">{t('faqByType')}</p>
         <FaqAccordion rows={faq} columns={2} />
       </section>
 
@@ -729,13 +729,13 @@ export function CarPage({
             <h2 className="text-2xl font-bold">سجلّ المزايدات</h2>
             <BidLogHead bids={(shown ?? auction).bids} />
           </span>
-          <p className="mb-5 text-3xs leading-loose opacity-55">
+          <p className="mb-5 text-3xs leading-loose opacity-70">
             سجلٌّ غير قابل للتعديل — كل مزايدة موثّقة برقم المزايد وتوقيتٍ دقيق.
             وهويات المزايدين مخفية، وأرقامهم ثابتة داخل المزاد تتيح متابعة سلوكه.
           </p>
 
           {(shown ?? auction).bids.length === 0 ? (
-            <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-60">
+            <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-70">
               لا مزايدات بعد — وأوّل مزايدة تبدأ من سعر الافتتاح.
             </p>
           ) : (

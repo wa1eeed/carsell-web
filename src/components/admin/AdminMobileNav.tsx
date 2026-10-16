@@ -167,14 +167,14 @@ export function AdminMobileNav({
           <nav className="flex flex-col gap-1 px-3 py-4">
             {groups.map((group) => (
               <div key={group.title}>
-                <p className="px-3 pb-1.5 pt-4 text-3xs font-bold tracking-wider opacity-40">
+                <p className="px-3 pb-1.5 pt-4 text-3xs font-bold tracking-wider opacity-65">
                   {group.title}
                 </p>
                 {group.items.map((item) =>
                   item.href === null ? (
                     <span
                       key={item.label}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-2xs opacity-35"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-2xs opacity-65"
                     >
                       {item.label}
                       <span className="text-3xs">قريبًا</span>

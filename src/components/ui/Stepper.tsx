@@ -42,7 +42,7 @@ export function Stepper({
                 'flex items-center gap-2.5 rounded-full py-1.5 ps-1.5 pe-4',
                 here && 'bg-ink text-bg',
                 done && 'text-accent-800 hover:bg-accent-100',
-                !here && !done && 'opacity-45',
+                !here && !done && 'opacity-65',
               )}
             >
               <span

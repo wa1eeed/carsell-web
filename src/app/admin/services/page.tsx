@@ -27,7 +27,7 @@ export default async function AdminServicesPage() {
       <ServicesTable services={services} canEdit={canWrite(admin.role, 'services.manage')} />
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">قواعد التسعير</h2>
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">قواعد التسعير</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
             السعر <strong>لقطة في الطلب</strong>: عميلٌ طلب فحصًا بـ350 ثم رُفع السعر

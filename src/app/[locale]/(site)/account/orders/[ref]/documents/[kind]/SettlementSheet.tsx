@@ -40,7 +40,7 @@ export function SettlementSheet({
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href={backHref} className="text-2xs opacity-55 hover:opacity-100">
+        <Link href={backHref} className="text-2xs opacity-70 hover:opacity-100">
           ← عودة إلى الطلب
         </Link>
         <Button size="sm" onClick={() => window.print()}>
@@ -51,11 +51,11 @@ export function SettlementSheet({
       <article className="rounded-xl border border-line bg-surface p-8 print:rounded-none print:border-0 print:p-0">
         <header className="mb-7 border-b border-line pb-5">
           <h1 className="mb-1.5 text-2xl font-bold">كشف التسوية</h1>
-          <p className="text-2xs leading-relaxed opacity-60">
+          <p className="text-2xs leading-relaxed opacity-70">
             تفصيلُ ما وصل البائع ولماذا — قيمةُ المركبة، وما خُصم بندًا بندًا،
             والصافي.
           </p>
-          <p className="font-num mt-3 text-3xs opacity-55" dir="ltr">
+          <p className="font-num mt-3 text-3xs opacity-70" dir="ltr">
             {statement.orderRef}
           </p>
         </header>
@@ -77,7 +77,7 @@ export function SettlementSheet({
             {deductions.length === 0 ? (
               /* **ولا خصمَ يُقال صراحةً** — والفراغ يُقرأ سهوًا */
               <tr>
-                <td className="py-2.5 opacity-60" colSpan={2}>
+                <td className="py-2.5 opacity-70" colSpan={2}>
                   لا خصومات على هذا الطلب.
                 </td>
               </tr>
@@ -103,7 +103,7 @@ export function SettlementSheet({
         </table>
 
         {Number(statement.returnedAmount) <= 0 ? null : (
-          <p className="mt-5 rounded-lg border border-line p-4 text-3xs leading-loose opacity-70">
+          <p className="mt-5 rounded-lg border border-line p-4 text-3xs leading-loose opacity-75">
             رُدّ إلى المشتري{' '}
             <Money amount={Number(statement.returnedAmount)} size="sm" /> من المبلغ المحجوز.
           </p>
@@ -116,7 +116,7 @@ export function SettlementSheet({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line/60 pb-2">
-      <dt className="text-2xs opacity-55">{label}</dt>
+      <dt className="text-2xs opacity-70">{label}</dt>
       <dd className="bidi-isolate text-2xs font-bold">{value}</dd>
     </div>
   );

@@ -89,7 +89,7 @@ function MissingFields({ data, locale }: { data: AccountData; locale: string }) 
         </span>
       </div>
 
-      <p className="mb-4 text-2xs leading-loose opacity-70">{t('completeStrength')}</p>
+      <p className="mb-4 text-2xs leading-loose opacity-75">{t('completeStrength')}</p>
 
       <ul className="flex flex-wrap gap-2.5">
         {missing.map((field) => (
@@ -245,7 +245,7 @@ export function AccountScreen({
             <span className="block text-sm font-bold">
               <Quantity unit="serviceConsents" count={data.consentsAwaiting} />
             </span>
-            <span className="mt-1 block text-2xs leading-loose opacity-65">
+            <span className="mt-1 block text-2xs leading-loose opacity-75">
               أذِن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئًا.
             </span>
           </span>
@@ -303,11 +303,11 @@ export function AccountScreen({
         >
           <span>
             <span className="block text-sm font-bold">مستحقّاتي</span>
-            <span className="mt-1 block text-2xs opacity-55">
+            <span className="mt-1 block text-2xs opacity-70">
               ما لك من كل صفقة، وممّ خُصم، ومتى يصلك
             </span>
           </span>
-          <span aria-hidden className="text-lg opacity-40">←</span>
+          <span aria-hidden className="text-lg opacity-65">←</span>
         </Link>
       )}
 
@@ -337,7 +337,7 @@ export function AccountScreen({
                 <span className="washed size-16 shrink-0 rounded-lg" />
                 <span className="min-w-40 flex-1">
                   <Title title={listing.title} year={listing.year} />
-                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
+                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
                     <span className="font-num">{listing.ref}</span>
                     <span aria-hidden className="opacity-40">·</span>
                     <Quantity unit="views" count={listing.viewCount} />
@@ -374,7 +374,7 @@ export function AccountScreen({
               >
                 <span className="min-w-40 flex-1">
                   <Title title={offer.title} year={offer.year} />
-                  <span className="mt-1 block text-2xs opacity-55">
+                  <span className="mt-1 block text-2xs opacity-70">
                     {t('expiresOn')} <span className="bidi-isolate">{date.format(new Date(offer.expiresAt))}</span>
                   </span>
                 </span>
@@ -386,7 +386,7 @@ export function AccountScreen({
                     يُقرَّر عليه: «١٤١٬٠٠٠» تعني شيئًا حين يكون المعلن
                     «١٤٥٬٠٠٠» وشيئًا آخر حين يكون «٢٠٠٬٠٠٠».
                   */}
-                  <span className="flex items-center gap-1 text-3xs opacity-50">
+                  <span className="flex items-center gap-1 text-3xs opacity-70">
                     سعرك المعلن
                     <ArabicNumber value={Number(offer.askPrice)} />
                   </span>
@@ -428,7 +428,7 @@ export function AccountScreen({
               >
                 <span className="min-w-40 flex-1">
                   <Title title={order.title} year={order.year} />
-                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
+                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
                     <span className="font-num">{order.ref}</span>
                     <span aria-hidden className="opacity-40">·</span>
                     <span className="bidi-isolate">{date.format(new Date(order.createdAt))}</span>
@@ -457,7 +457,7 @@ export function AccountScreen({
                     «بقي اثنتان» — ولا بقيّةَ طريقٍ في طلبٍ أُلغي.
                   */}
                   {isClosedOrder(order.status) ? null : (
-                    <span className="flex items-center gap-1 text-3xs opacity-50">
+                    <span className="flex items-center gap-1 text-3xs opacity-70">
                       الخطوة
                       <span dir="ltr" className="font-num">
                         {displayDigits(String(order.step))}/{displayDigits(String(order.stepCount))}
@@ -493,7 +493,7 @@ export function AccountScreen({
                 <ScoreRing score={report.score} size="sm" />
                 <span className="min-w-40 flex-1">
                   <Title title={report.title} year={0} />
-                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-55">
+                  <span className="mt-1 flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
                     <span className="font-num bidi-ltr">{report.ref}</span>
                     <span aria-hidden className="opacity-40">·</span>
                     <span className="bidi-isolate">{date.format(new Date(report.inspectedAt))}</span>
@@ -501,7 +501,7 @@ export function AccountScreen({
                 </span>
                 {/* التقرير يبقى وإن سُحب الإعلان — ورابطه يذهب معه */}
                 {report.path === null ? (
-                  <span className="text-xs opacity-45">{t('listingWithdrawn')}</span>
+                  <span className="text-xs opacity-65">{t('listingWithdrawn')}</span>
                 ) : (
                   <ActionLink href={report.path}>{t('view')}</ActionLink>
                 )}
@@ -525,7 +525,7 @@ export function AccountScreen({
         <h2 className="mb-3 text-sm font-bold">{tx('settingsTitle')}</h2>
         <div className="flex flex-wrap items-center gap-3">
           {tax.status === null ? (
-            <p className="min-w-0 flex-1 text-2xs leading-loose opacity-60">{tx('currentUnset')}</p>
+            <p className="min-w-0 flex-1 text-2xs leading-loose opacity-70">{tx('currentUnset')}</p>
           ) : (
             <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs">
               <Badge tone={tax.status === 'VAT_REGISTERED' ? 'accent' : 'neutral'}>
@@ -534,7 +534,7 @@ export function AccountScreen({
                   : tx('currentIndividual')}
               </Badge>
               {tax.vatNumber === null ? null : (
-                <span dir="ltr" className="bidi-isolate font-num opacity-70">
+                <span dir="ltr" className="bidi-isolate font-num opacity-75">
                   {tax.vatNumber}
                 </span>
               )}
@@ -557,7 +557,7 @@ export function AccountScreen({
         والترويسة بلا قائمةٍ منسدلة أصلًا.
       */}
       <section className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
-        <p className="min-w-0 flex-1 text-2xs leading-loose opacity-55">
+        <p className="min-w-0 flex-1 text-2xs leading-loose opacity-70">
           تخرج من هذا الجهاز وحده. وبياناتك وطلباتك تبقى كما هي.
         </p>
         <SignOut path="/api/v1/auth/logout" next={`/${locale}`} />
@@ -616,7 +616,7 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
           <span className="bidi-isolate truncate text-base font-bold">
             {user.name ?? t('noName')}
           </span>
-          <span className="flex flex-wrap items-center gap-2 text-3xs opacity-60">
+          <span className="flex flex-wrap items-center gap-2 text-3xs opacity-70">
             {user.ref === null ? null : (
               <span dir="ltr" className="rounded-full bg-ink/8 px-2 py-0.5 font-num">
                 {user.ref}
@@ -636,7 +636,7 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
         قبل قراءته.
       */}
       <div className="mx-5 mb-5 rounded-lg bg-ink p-4 text-bg">
-        <span className="block text-3xs opacity-70">{t('walletBalance')}</span>
+        <span className="block text-3xs opacity-75">{t('walletBalance')}</span>
         <span className="mt-1 block">
           <Money amount={Number(data.walletBalance)} size="lg" />
         </span>
@@ -754,12 +754,12 @@ function Row({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-4 bg-surface px-5 py-3">
-      <dt className="shrink-0 text-2xs opacity-55">{label}</dt>
+      <dt className="shrink-0 text-2xs opacity-70">{label}</dt>
       <dd
         dir={ltr === true && value !== null ? 'ltr' : undefined}
         className={
           value === null
-            ? 'text-2xs opacity-45'
+            ? 'text-2xs opacity-65'
             : `truncate text-2xs font-semibold ${good === true ? 'text-accent-700 ' : ''}${ltr === true ? 'font-num' : 'bidi-isolate'}`
         }
       >

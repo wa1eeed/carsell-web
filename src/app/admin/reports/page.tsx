@@ -40,7 +40,7 @@ export default async function AdminReportsPage({
   return (
     <AdminShell title="البلاغات"
       subtitle="البلاغات وما أُحيل منها" activeHref="/admin/reports" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         ما أبلغ عنه المستخدمون — إعلانًا أو حسابًا. والبلاغ يُحيل إلى مراجعة بشرية ولا
         يحذف شيئًا بنفسه.
       </p>

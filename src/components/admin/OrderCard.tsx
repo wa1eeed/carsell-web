@@ -72,7 +72,7 @@ export function OrderCard({ row }: { row: OrderRow }) {
     <div className="group relative flex gap-4 rounded-xl border border-line bg-surface p-3.5 transition duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-ink/8">
         {row.thumbnail === null ? (
-          <span className="flex size-full items-center justify-center text-3xs opacity-45">
+          <span className="flex size-full items-center justify-center text-3xs opacity-65">
             لا صور
           </span>
         ) : (
@@ -103,7 +103,7 @@ export function OrderCard({ row }: { row: OrderRow }) {
           )}
         </div>
 
-        <span className="truncate text-2xs opacity-70">
+        <span className="truncate text-2xs opacity-75">
           <span className="bidi-isolate">{row.vehicle}</span>
           <span aria-hidden className="mx-1.5 opacity-40">
             ·
@@ -121,7 +121,7 @@ export function OrderCard({ row }: { row: OrderRow }) {
           **وهو أوّل ما يُسأل في نزاع**: أموثَّقٌ من يدّعي؟ وكان يُعرف
           بفتح الطلب ثم فتح كلّ طرفٍ على حدة.
         */}
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           {/*
             **والطرفان يُفتحان من هنا.** وكرتُ الطلب رابطٌ بكامله، فلا
             يُعشَّش رابطٌ في رابط: هذان `span` يحملان الوجهة ويوقفان
@@ -147,7 +147,7 @@ export function OrderCard({ row }: { row: OrderRow }) {
         <Dwell
           hours={row.dwellHours}
           targetHours={row.targetHours}
-          className="text-3xs opacity-50"
+          className="text-3xs opacity-70"
         />
 
         {row.critical ? (
@@ -156,7 +156,7 @@ export function OrderCard({ row }: { row: OrderRow }) {
           <Badge tone="warn">متأخّر</Badge>
         ) : null}
 
-        <span className="font-num text-3xs opacity-35">{date.format(new Date(row.createdAt))}</span>
+        <span className="font-num text-3xs opacity-65">{date.format(new Date(row.createdAt))}</span>
       </div>
     </div>
   );

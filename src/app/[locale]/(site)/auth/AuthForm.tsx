@@ -193,7 +193,7 @@ export function AuthForm({
     return (
       <div className="w-full max-w-sm">
         <h1 className="mb-1.5 text-2xl font-bold">{t('title')}</h1>
-        <p className="mb-7 text-xs leading-loose opacity-60">{t('subtitle')}</p>
+        <p className="mb-7 text-xs leading-loose opacity-70">{t('subtitle')}</p>
 
         {/*
           ═══ النمط يُبدَّل هنا لا بشاشةٍ ثانية ═══
@@ -255,7 +255,7 @@ export function AuthForm({
 
           {mode !== 'register' ? null : (
             <label className="mb-4 flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-60">
+              <span className="text-2xs font-semibold opacity-70">
                 {accountType === 'BUSINESS' ? t('showroomName') : t('fullName')}
               </span>
               <input
@@ -283,7 +283,7 @@ export function AuthForm({
           */}
           {mode !== 'register' ? null : accountType === 'BUSINESS' ? (
             <label className="mb-4 flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-60">{t('email')}</span>
+              <span className="text-2xs font-semibold opacity-70">{t('email')}</span>
               <input
                 dir="ltr"
                 inputMode="email"
@@ -295,7 +295,7 @@ export function AuthForm({
             </label>
           ) : (
             <label className="mb-4 flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-60">{t('city')}</span>
+              <span className="text-2xs font-semibold opacity-70">{t('city')}</span>
               <select
                 value={city}
                 onChange={(event) => setCity(event.target.value)}
@@ -314,7 +314,7 @@ export function AuthForm({
 
           {mode === 'code' ? null : (
             <label className="mb-4 flex flex-col gap-1.5">
-              <span className="text-2xs font-semibold opacity-60">{t('password')}</span>
+              <span className="text-2xs font-semibold opacity-70">{t('password')}</span>
               <input
                 type="password"
                 value={password}
@@ -324,12 +324,12 @@ export function AuthForm({
                 className="rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
               />
               {mode !== 'register' ? null : (
-                <span className="text-3xs opacity-50">{t('passwordHint')}</span>
+                <span className="text-3xs opacity-70">{t('passwordHint')}</span>
               )}
             </label>
           )}
 
-          <label className="mb-5 flex items-start gap-2.5 text-2xs leading-relaxed opacity-70">
+          <label className="mb-5 flex items-start gap-2.5 text-2xs leading-relaxed opacity-75">
             <input
               type="checkbox"
               checked={agreed}
@@ -373,7 +373,7 @@ export function AuthForm({
             وحسابٌ قديم لا كلمة له يجد طريقه ولو ضغط «بكلمة المرور».
           */}
           {mode === 'register' ? null : (
-            <p className="mt-3.5 text-center text-3xs opacity-60">
+            <p className="mt-3.5 text-center text-3xs opacity-70">
               <button
                 type="button"
                 onClick={() => setMode(mode === 'code' ? 'password' : 'code')}
@@ -386,7 +386,7 @@ export function AuthForm({
           )}
         </form>
 
-        <p className="mt-5 text-center text-3xs leading-loose opacity-50">{t('browseFree')}</p>
+        <p className="mt-5 text-center text-3xs leading-loose opacity-70">{t('browseFree')}</p>
       </div>
     );
   }
@@ -394,7 +394,7 @@ export function AuthForm({
   return (
     <div className="w-full max-w-sm">
       <h1 className="mb-1.5 text-2xl font-bold">{t('codeTitle')}</h1>
-      <p className="mb-7 flex flex-wrap items-center gap-1.5 text-xs opacity-60">
+      <p className="mb-7 flex flex-wrap items-center gap-1.5 text-xs opacity-70">
         {t('sentTo')}
         <span dir="ltr" className="font-num font-bold opacity-100">
           +966 {phone}
@@ -422,7 +422,7 @@ export function AuthForm({
             setCode(devCode);
             void verify(devCode);
           }}
-          className="mb-4 flex w-full items-center justify-between rounded-md border border-dashed border-line px-3.5 py-2.5 text-2xs opacity-70 hover:opacity-100"
+          className="mb-4 flex w-full items-center justify-between rounded-md border border-dashed border-line px-3.5 py-2.5 text-2xs opacity-75 hover:opacity-100"
         >
           <span>وضع التطوير — لا تصل رسالة</span>
           {/* الرمز يُقارن خانةً بخانة — لاتينيّ معزول */}
@@ -457,7 +457,7 @@ export function AuthForm({
       </Button>
 
       {cooldown > 0 ? (
-        <p className="text-center text-2xs opacity-50">
+        <p className="text-center text-2xs opacity-70">
           {/*
             **والجارّ داخل الصيغة.** «إعادة الإرسال بعد» + `<Quantity>`
             تُخرج «بعد ثانيتان» عند الثانيتين — مثنًّى مرفوعٌ بعد حرف

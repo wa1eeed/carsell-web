@@ -26,7 +26,7 @@ export function CampaignActions({
   const [pending, start] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
 
-  if (phase === 'ended') return <span className="text-3xs opacity-35">—</span>;
+  if (phase === 'ended') return <span className="text-3xs opacity-65">—</span>;
 
   const paused = phase === 'paused';
 

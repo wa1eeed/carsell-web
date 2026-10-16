@@ -162,7 +162,7 @@ export default async function AdminUserDetailPage({
               note={`المعروض آخر عشرة من ${displayDigits(String(user.counts.listings))}`}
             >
               {user.listings.length === 0 ? (
-                <p className="text-2xs opacity-50">لا إعلانات.</p>
+                <p className="text-2xs opacity-70">لا إعلانات.</p>
               ) : (
                 user.listings.map((listing) => (
                   <div
@@ -172,11 +172,11 @@ export default async function AdminUserDetailPage({
                     <Link
                       href={`/admin/listings/${encodeURIComponent(listing.ref)}`}
                       dir="ltr"
-                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-70"
+                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-75"
                     >
                       {listing.ref}
                     </Link>
-                    <span className="flex items-center gap-3 text-3xs opacity-60">
+                    <span className="flex items-center gap-3 text-3xs opacity-70">
                       <Money amount={Number(listing.askPrice)} showCurrency={false} />
                       <span>{listing.status}</span>
                       {/* مسودّةٌ لم تُنشر بلا تاريخ — والفراغ أصدق من صفر */}
@@ -189,7 +189,7 @@ export default async function AdminUserDetailPage({
 
             <DetailCard title="الطلبات" note="من الجانبين — والجانب مكتوب">
               {user.orders.length === 0 ? (
-                <p className="text-2xs opacity-50">لا طلبات.</p>
+                <p className="text-2xs opacity-70">لا طلبات.</p>
               ) : (
                 user.orders.map((order) => (
                   <div
@@ -200,7 +200,7 @@ export default async function AdminUserDetailPage({
                       <Link
                         href={`/admin/orders/${encodeURIComponent(order.ref)}`}
                         dir="ltr"
-                        className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-70"
+                        className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-75"
                       >
                         {order.ref}
                       </Link>
@@ -210,7 +210,7 @@ export default async function AdminUserDetailPage({
                       */}
                       <Badge tone="neutral">{order.side === 'buyer' ? 'مشتريًا' : 'بائعًا'}</Badge>
                     </span>
-                    <span className="flex items-center gap-3 text-3xs opacity-60">
+                    <span className="flex items-center gap-3 text-3xs opacity-70">
                       {/*
                         **قراءةٌ واحدة لا قراءتان.** كانت المرحلة
                         بالعربية و`status` خامًّا بالإنجليزية بجوارها:
@@ -242,7 +242,7 @@ export default async function AdminUserDetailPage({
       {tab !== 'activity' ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             ما فعله هذا الحساب في السوق مرتَّبًا: إنشاؤه، وإعلاناته، وعروضه،
             وما اشتراه وما باعه، وبلاغاتُه، وأثر الفريق عليه.
           </p>
@@ -274,7 +274,7 @@ export default async function AdminUserDetailPage({
               note={<>آخر <Quantity unit="ledgerLines" count={user.ledger.length} /></>}
             >
               {user.ledger.length === 0 ? (
-                <p className="text-2xs opacity-50">
+                <p className="text-2xs opacity-70">
                   لا قيود — ولم تمرّ عليه صفقةٌ مدفوعة بعد.
                 </p>
               ) : (
@@ -292,7 +292,7 @@ export default async function AdminUserDetailPage({
                     <tbody>
                       {user.ledger.map((row) => (
                         <tr key={row.id} className="border-b border-line last:border-0">
-                          <td dir="ltr" className="font-num p-2 text-start opacity-70">
+                          <td dir="ltr" className="font-num p-2 text-start opacity-75">
                             {row.event}
                           </td>
                           <td className="p-2 opacity-70">
@@ -306,7 +306,7 @@ export default async function AdminUserDetailPage({
                           <td className="p-2">
                             <ArabicNumber value={Number(row.amount)} decimals={2} />
                           </td>
-                          <td dir="ltr" className="font-num p-2 text-start opacity-60">
+                          <td dir="ltr" className="font-num p-2 text-start opacity-70">
                             {row.orderRef ?? '—'}
                           </td>
                         </tr>
@@ -337,7 +337,7 @@ export default async function AdminUserDetailPage({
             {user.overrides.length === 0 ? (
               <DetailCard title="تجاوزات الخصائص">
                 {/* **وغيابُه يُقال** — بطاقةٌ تُحذف تجعل القارئ يظنّ أنه لم يبحث */}
-                <p className="text-2xs opacity-55">لا تجاوزات على هذا الحساب.</p>
+                <p className="text-2xs opacity-70">لا تجاوزات على هذا الحساب.</p>
               </DetailCard>
             ) : (
               <DetailCard title="تجاوزات الخصائص" note="بسببها">
@@ -444,12 +444,12 @@ export default async function AdminUserDetailPage({
               {can(admin.role, 'users.viewIdentity') ? (
                 <Link
                   href="/admin/identity"
-                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                 >
                   طابور توثيق الهوية
                 </Link>
               ) : null}
-              <p className="mt-2 text-3xs opacity-45">
+              <p className="mt-2 text-3xs opacity-65">
                 رقم الهوية لا يُعرض هنا — قراءته تمرّ بمسارها المقيَّد وتُسجَّل.
               </p>
             </DetailCard>

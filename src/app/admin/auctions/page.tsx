@@ -40,7 +40,7 @@ export default async function AdminAuctionsPage({
 
   return (
     <AdminShell title="المزادات" activeHref="/admin/auctions" admin={admin}>
-      <p className="mb-7 max-w-xl text-sm leading-loose opacity-60">
+      <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         الجارية والقادمة وما لم يبلغ احتياطيه. والاحتياطي نفسه لا يُعرض — يُعرض بلوغُه.
       </p>
 
@@ -101,7 +101,7 @@ export default async function AdminAuctionsPage({
         </div>
       )}
 
-      <p className="mt-4 text-3xs leading-relaxed opacity-45">
+      <p className="mt-4 text-3xs leading-relaxed opacity-65">
         الاحتياطي سرّ البائع — تعرض الشاشة بلوغَه لا قيمته، فلا يمرّ في لقطة شاشة.
       </p>
 

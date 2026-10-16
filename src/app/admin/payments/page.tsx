@@ -58,7 +58,7 @@ export default async function PaymentsRoutingPage() {
 
   return (
     <AdminShell title="إعدادات الدفع والتوجيه" activeHref="/admin/payments" admin={admin}>
-      <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-55">
+      <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
         <Quantity unit="paymentPurposes" count={routes.length} />
         <span aria-hidden className="opacity-40">·</span>
         {/*
@@ -88,14 +88,14 @@ export default async function PaymentsRoutingPage() {
             {blockedPurposes.map((route) => (
               <li key={route.purpose}>
                 <span className="font-bold">{PAYMENT_PURPOSE_LABEL[route.purpose]}</span>
-                <span className="opacity-55"> — {route.gatewayNameAr ?? route.gatewayKey}</span>
+                <span className="opacity-70"> — {route.gatewayNameAr ?? route.gatewayKey}</span>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+      <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
         أغراض الدفع — لكلٍّ بوابته
       </h2>
       <RoutesTable
@@ -105,7 +105,7 @@ export default async function PaymentsRoutingPage() {
         canManage={canWrite(admin.role, 'finance.view')}
       />
 
-      <h2 className="mt-6 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+      <h2 className="mt-6 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
         البوابات المربوطة
       </h2>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -180,11 +180,11 @@ export default async function PaymentsRoutingPage() {
         ودفترُنا مرآة، والمرآة التي لا تُقارَن بالأصل ليست مرآة. وموضعها
         هنا لأن المُقارَن به تسويةُ البوابة.
       */}
-      <h2 className="mt-6 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+      <h2 className="mt-6 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
         المطابقة اليومية مع تسوية البوابات
       </h2>
       {runs.length === 0 ? (
-        <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-60">
+        <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
           لم تُشغَّل المطابقة بعد. وهي تقرأ تسوية كل بوابة وتقارنها بدفترنا، وتكتب
           <strong> جدول المعاملات المختلفة</strong> لا المجاميع — فالفرق حدثٌ يُعالَج لا
           رقمٌ يُتأمَّل.
@@ -194,7 +194,7 @@ export default async function PaymentsRoutingPage() {
       )}
 
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-45">
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
           ما يحدث عند التبديل
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
@@ -222,12 +222,12 @@ export default async function PaymentsRoutingPage() {
       */}
       <section className="mt-10">
         <h2 className="mb-1 text-sm font-bold">تاريخ التبديل</h2>
-        <p className="mb-3.5 text-3xs opacity-55">
+        <p className="mb-3.5 text-3xs opacity-70">
           كلُّ تبديلٍ بسببه ومن اعتمده — والقرار بلا سببه يُعاد نقضه.
         </p>
 
         {changes.length === 0 ? (
-          <p className="rounded-lg border border-line border-dashed p-5 text-2xs opacity-55">
+          <p className="rounded-lg border border-line border-dashed p-5 text-2xs opacity-70">
             لم يُبدَّل مسارٌ بعد. وأوّل تبديل يُسجَّل هنا بسببه ومن اعتمده.
           </p>
         ) : (
@@ -239,15 +239,15 @@ export default async function PaymentsRoutingPage() {
               >
                 <p className="mb-1 flex flex-wrap items-center gap-2 text-2xs font-bold">
                   <span>{PAYMENT_PURPOSE_LABEL[change.purpose as PaymentPurpose] ?? change.purpose}</span>
-                  <span className="font-normal opacity-55">
+                  <span className="font-normal opacity-70">
                     {change.fromGatewayKey ?? '—'} ← {change.toGatewayKey}
                   </span>
                   <Badge size="sm" tone="neutral">
                     <Quantity unit="approvals" count={change.approvals} />
                   </Badge>
                 </p>
-                <p className="text-3xs leading-relaxed opacity-70">{change.reason}</p>
-                <p className="font-num mt-1 text-3xs opacity-40">
+                <p className="text-3xs leading-relaxed opacity-75">{change.reason}</p>
+                <p className="font-num mt-1 text-3xs opacity-65">
                   {changeDate.format(new Date(change.at))}
                 </p>
               </li>
@@ -272,7 +272,7 @@ function Capability({ on, label }: { on: boolean; label: string }) {
   return on ? (
     <Badge tone="neutral">{label}</Badge>
   ) : (
-    <span className="rounded-sm border border-line px-2 py-0.5 text-3xs opacity-35 line-through">
+    <span className="rounded-sm border border-line px-2 py-0.5 text-3xs opacity-65 line-through">
       {label}
     </span>
   );
@@ -281,7 +281,7 @@ function Capability({ on, label }: { on: boolean; label: string }) {
 function Line({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <p className="flex items-baseline justify-between gap-3">
-      <span className="opacity-60">{label}</span>
+      <span className="opacity-70">{label}</span>
       {children}
     </p>
   );

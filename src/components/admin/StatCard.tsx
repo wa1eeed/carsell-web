@@ -41,13 +41,13 @@ export function StatCard({
 }) {
   return (
     <div className={cn('rounded-md border border-line bg-surface px-4.5 py-4', className)}>
-      <p className="mb-1.5 text-2xs opacity-50">{title}</p>
+      <p className="mb-1.5 text-2xs opacity-70">{title}</p>
       {typeof value === 'number' ? (
         <ArabicNumber value={value} className="text-3xl font-bold" />
       ) : (
         <span className="font-num text-3xl font-bold">{value}</span>
       )}
-      <p className="mt-1.5 text-3xs opacity-50">{note}</p>
+      <p className="mt-1.5 text-3xs opacity-70">{note}</p>
     </div>
   );
 }

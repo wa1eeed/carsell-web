@@ -151,7 +151,7 @@ export default async function AdminServiceRequestDetailPage({
             */}
             <DetailCard title="المال">
               {request.payment === null ? (
-                <p className="text-2xs leading-loose opacity-55">
+                <p className="text-2xs leading-loose opacity-70">
                   لم يُدفع بعد — ولا فاتورة قبل الدفع.
                 </p>
               ) : (
@@ -196,7 +196,7 @@ export default async function AdminServiceRequestDetailPage({
                   />
                 )}
                 {request.resultUrl === null ? (
-                  <p className="text-2xs opacity-50">لم يُرفع تقرير بعد.</p>
+                  <p className="text-2xs opacity-70">لم يُرفع تقرير بعد.</p>
                 ) : (
                   <Field label="التقرير" value={request.resultUrl} ltr />
                 )}
@@ -225,7 +225,7 @@ export default async function AdminServiceRequestDetailPage({
 
             <DetailCard title="المزوّد">
               {request.provider === null ? (
-                <p className="text-2xs opacity-50">
+                <p className="text-2xs opacity-70">
                   لم يُسنَد بعد — والإسناد آليّ لمزوّدٍ مفعّل في مدينة العميل بأقلّ حِمل.
                 </p>
               ) : (
@@ -234,7 +234,7 @@ export default async function AdminServiceRequestDetailPage({
                   <Field label="الالتزام" value={sla(request.provider.slaHours)} />
                   <Link
                     href="/admin/providers"
-                    className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                    className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                   >
                     افتح المزوّدين
                   </Link>
@@ -257,14 +257,14 @@ export default async function AdminServiceRequestDetailPage({
               <div className="mt-3 flex flex-wrap gap-4">
                 <Link
                   href={`/admin/users/${request.customer.id}`}
-                  className="text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                 >
                   افتح ملفّه
                 </Link>
                 {request.listingRef === null ? null : (
                   <Link
                     href={`/admin/listings/${encodeURIComponent(request.listingRef)}`}
-                    className="text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                    className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                   >
                     افتح الإعلان
                   </Link>
@@ -279,7 +279,7 @@ export default async function AdminServiceRequestDetailPage({
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
-          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-55">
+          <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
             طلبُ الخدمة وإسنادُها وموعدُها ونتيجتُها، وأثر الفريق.
           </p>
           <Timeline events={events} />

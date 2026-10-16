@@ -109,7 +109,7 @@ export default async function ReportsPage({
             طلبُه، فيقرأ أنه ينتظر تقريرًا لن يأتي.
           */
           value={
-            <span className="text-2xs opacity-55">
+            <span className="text-2xs opacity-70">
               {SERVICE_REQUEST_NEXT[request.status] ?? ''}
             </span>
           }

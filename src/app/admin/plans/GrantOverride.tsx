@@ -71,7 +71,7 @@ export function GrantOverride({
   };
 
   const field = 'w-full rounded-md border border-line bg-bg px-3 py-2 text-2xs';
-  const label = 'mb-1 block text-3xs font-bold opacity-55';
+  const label = 'mb-1 block text-3xs font-bold opacity-70';
 
   if (!open) {
     return (

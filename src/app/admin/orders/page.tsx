@@ -208,7 +208,7 @@ export default async function AdminOrdersPage({
         انتهى، ولا تُفتح شريحةٌ على فراغ.
       */}
       {closedTab === null ? null : (
-        <p className="mb-3 rounded-lg border border-line bg-surface px-4 py-3 text-3xs leading-relaxed opacity-65">
+        <p className="mb-3 rounded-lg border border-line bg-surface px-4 py-3 text-3xs leading-relaxed opacity-75">
           هذه طلبات منتهية — معروضة للمراجعة لا للمتابعة. وللأرشيف الكامل
           والتصدير:{' '}
           <Link href="/admin/exports" className="font-bold underline underline-offset-2">

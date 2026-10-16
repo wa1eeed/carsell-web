@@ -27,7 +27,7 @@ export function PushPreview({
 }) {
   if (template === null) {
     return (
-      <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-55">
+      <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
         لا قالب دفع مفعَّل بعد.
       </p>
     );
@@ -41,14 +41,14 @@ export function PushPreview({
         وما يُخفى هو ما يُخفيه الجهاز.
       */}
       <article className="rounded-xl border border-line bg-bg p-4 shadow-[0_1px_0_0_var(--color-line)]">
-        <div className="mb-2 flex items-center gap-2 text-3xs opacity-50">
+        <div className="mb-2 flex items-center gap-2 text-3xs opacity-70">
           <span aria-hidden className="size-4 rounded-md bg-ink/15" />
           <span className="font-body-en">CARZ</span>
           <span className="flex-1" />
           <span>الآن</span>
         </div>
         <p className="mb-1 truncate text-sm font-bold">{template.titleAr}</p>
-        <p className="line-clamp-2 text-2xs leading-loose opacity-70">{template.bodyAr}</p>
+        <p className="line-clamp-2 text-2xs leading-loose opacity-75">{template.bodyAr}</p>
       </article>
 
       <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 text-3xs">
@@ -64,7 +64,7 @@ export function PushPreview({
           limit={bodyLimit}
           over={template.bodyOver}
         />
-        <span dir="ltr" className="font-num opacity-40">
+        <span dir="ltr" className="font-num opacity-65">
           {template.key}
         </span>
       </dl>
@@ -89,10 +89,10 @@ function Measure({
 }) {
   return (
     <span className="flex items-center gap-1.5">
-      <dt className="opacity-50">{label}</dt>
+      <dt className="opacity-70">{label}</dt>
       <dd className="font-num font-bold" dir="ltr">
         <ArabicNumber value={count} grouped={false} />
-        <span className="opacity-40">/</span>
+        <span className="opacity-65">/</span>
         <ArabicNumber value={limit} grouped={false} />
       </dd>
       {over ? <Badge tone="warn">سيُختصر</Badge> : null}

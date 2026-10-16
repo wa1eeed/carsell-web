@@ -35,7 +35,7 @@ export function Dwell({
 }) {
   return (
     <span className={className}>
-      <span className="opacity-55">مدة المرحلة </span>
+      <span className="opacity-70">مدة المرحلة </span>
       <Duration hours={hours} />
       {/**
        * **ولا هدفَ لمرحلةٍ بلا هدف.** الأخيرة صفرٌ، و«الهدف لا ساعات»
@@ -46,7 +46,7 @@ export function Dwell({
           <span aria-hidden className="mx-1.5 opacity-30">
             ·
           </span>
-          <span className="opacity-55">المستهدف </span>
+          <span className="opacity-70">المستهدف </span>
           <Duration hours={targetHours} />
         </>
       )}

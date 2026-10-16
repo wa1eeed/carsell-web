@@ -80,7 +80,7 @@ export function SellerDecisionPanel({
     return (
       <section className="rounded-xl border border-line bg-surface p-5">
         <h2 className="mb-1.5 text-sm font-bold">انقضى وقت القرار</h2>
-        <p className="text-2xs leading-loose opacity-65">
+        <p className="text-2xs leading-loose opacity-75">
           لم يبلغ المزاد سعرك الاحتياطيّ، ومضت مهلة قبول أعلى مزايدة — فرُدّ
           العربون إلى المزايد. وتستطيع إعادة عرض المركبة بمزادٍ جديد أو بسعرٍ
           مباشر.
@@ -100,15 +100,15 @@ export function SellerDecisionPanel({
 
         <div className="mb-4 flex flex-col gap-2.5 rounded-lg border border-warn-200 bg-bg p-3.5 text-ink">
           <span className="flex items-baseline justify-between gap-3">
-            <span className="text-2xs opacity-60">أعلى مزايدة</span>
+            <span className="text-2xs opacity-70">أعلى مزايدة</span>
             <Money amount={Number(decision.highestBid)} size="md" />
           </span>
           <span className="flex items-baseline justify-between gap-3">
-            <span className="text-2xs opacity-60">عربون المزايد</span>
+            <span className="text-2xs opacity-70">عربون المزايد</span>
             <Money amount={Number(decision.depositAmount)} showCurrency={false} />
           </span>
           <span className="flex items-baseline justify-between gap-3 border-t border-line pt-2.5">
-            <span className="text-2xs opacity-60">يبقى للقرار</span>
+            <span className="text-2xs opacity-70">يبقى للقرار</span>
             <Countdown endsAt={decision.dueAt} format="full" tone="warn" className="text-2xs" />
           </span>
         </div>

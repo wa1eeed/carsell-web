@@ -76,7 +76,7 @@ export function TargetBars({
         );
       })}
 
-      <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-line pt-3 text-3xs opacity-55">
+      <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-line pt-3 text-3xs opacity-70">
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-accent" aria-hidden />
           ضمن الهدف

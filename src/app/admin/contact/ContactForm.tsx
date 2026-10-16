@@ -113,10 +113,10 @@ export function ContactForm({
         */}
         <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="mb-1 text-sm font-bold">كما سيراها الزائر</h2>
-          <p className="mb-4 text-3xs opacity-45">معاينة مباشرة قبل الحفظ</p>
+          <p className="mb-4 text-3xs opacity-65">معاينة مباشرة قبل الحفظ</p>
 
           {live.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-line p-4 text-2xs leading-loose opacity-55">
+            <p className="rounded-lg border border-dashed border-line p-4 text-2xs leading-loose opacity-70">
               قنوات التواصل غير مضبوطة بعد.
               <br />
               <b className="opacity-80">وهذا ما يراه الزائر الآن.</b>
@@ -130,7 +130,7 @@ export function ContactForm({
                 >
                   <span className="text-2xs font-bold">{row.label}</span>
                   {/* الرقم والبريد يُنسخان ويُقارنان خانةً بخانة */}
-                  <span dir="ltr" className="font-num text-3xs opacity-70">
+                  <span dir="ltr" className="font-num text-3xs opacity-75">
                     {row.value}
                   </span>
                 </div>
@@ -140,7 +140,7 @@ export function ContactForm({
         </section>
       </div>
 
-      <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-70">
+      <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <b>لا استمارة في صفحة التواصل.</b> صندوق رسائل بلا من يقرؤه أسوأ من رقم
         ظاهر — يَعِد بردّ لا يأتي. والبلاغ على إعلان بعينه له زرّه في صفحة
         الإعلان، ويصلنا معه مرجعه.
@@ -174,7 +174,7 @@ function Field({
 }) {
   return (
     <label className="mb-3.5 flex flex-col gap-1.5">
-      <span className="text-2xs font-bold opacity-60">{label}</span>
+      <span className="text-2xs font-bold opacity-70">{label}</span>
       {/* يُنسخ من مصدر لاتيني ويُقارن خانةً بخانة — معزول يسارًا */}
       <input
         dir="ltr"
@@ -182,9 +182,9 @@ function Field({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-start font-num text-sm disabled:opacity-40"
+        className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-start font-num text-sm disabled:opacity-65"
       />
-      <span className="text-3xs opacity-45">{note}</span>
+      <span className="text-3xs opacity-65">{note}</span>
     </label>
   );
 }

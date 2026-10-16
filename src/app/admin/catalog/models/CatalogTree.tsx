@@ -121,7 +121,7 @@ export function CatalogTree({
 
   const field =
     'w-full rounded-md border border-line bg-surface px-3.5 py-2.5 text-base outline-none focus:border-accent';
-  const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-55';
+  const label = 'flex flex-col gap-1.5 text-2xs font-semibold opacity-70';
 
   return (
     /*
@@ -161,9 +161,9 @@ export function CatalogTree({
               <span className="flex-1 truncate">{m.nameAr}</span>
               <ArabicNumber
                 value={m.trimCount}
-                className={cn('text-3xs', m.id === modelId ? 'opacity-70' : 'opacity-45')}
+                className={cn('text-3xs', m.id === modelId ? 'opacity-100' : 'opacity-65')}
               />
-              {m.visible ? null : <span className="text-3xs opacity-55">مخفي</span>}
+              {m.visible ? null : <span className="text-3xs opacity-70">مخفي</span>}
             </button>
           ))}
         </div>
@@ -182,7 +182,7 @@ export function CatalogTree({
 
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         {model === null ? (
-          <p className="text-sm opacity-60">لا طرازات لهذه الماركة بعد.</p>
+          <p className="text-sm opacity-70">لا طرازات لهذه الماركة بعد.</p>
         ) : (
           <>
             <header className="flex items-end gap-4 rounded-lg border border-line bg-surface p-4.5">
@@ -191,7 +191,7 @@ export function CatalogTree({
                   {model.nameAr} — <span className="font-body-en">{model.nameEn}</span>
                 </h2>
                 {/* كل مقطع معزول — الفاصل بين رقم وكلمة عربية ينزلق */}
-                <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs opacity-55">
+                <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs opacity-70">
                   <Quantity unit="trims" count={model.trimCount} />
                   <span aria-hidden className="opacity-40">·</span>
                   <Quantity unit="listings" count={model.listingCount} />
@@ -219,7 +219,7 @@ export function CatalogTree({
             />
 
             <section className="rounded-lg border border-line bg-surface p-5.5">
-              <h3 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-45">
+              <h3 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
                 أثر ذلك في التطبيق
               </h3>
               <p className="text-sm leading-loose opacity-72">

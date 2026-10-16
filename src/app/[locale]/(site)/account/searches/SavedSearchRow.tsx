@@ -88,7 +88,7 @@ export function SavedSearchRow({
               التفصيل، وبحثٌ سمّاه صاحبه يعرض تفصيله كاملًا.
             */}
             {detail.length === 0 ? null : (
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-55">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
                 {detail.map((part, at) => (
                   <span key={part} className="bidi-isolate">
                     {at === 0 ? '' : '· '}
@@ -118,7 +118,7 @@ export function SavedSearchRow({
             <button
               type="button"
               onClick={remove}
-              className="text-3xs opacity-50 underline underline-offset-4 hover:opacity-80"
+              className="text-3xs opacity-70 underline underline-offset-4 hover:opacity-80"
             >
               احذف
             </button>
