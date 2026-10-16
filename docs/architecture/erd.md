@@ -288,6 +288,7 @@ erDiagram
 | `marginSchemeBy` | `String?` |  |
 | `marginSchemeAt` | `DateTime?` |  |
 | `iban` | `String?` |  |
+| `closedAt` | `DateTime?` |  |
 | `marketingConsent` | `Boolean` |  |
 | `marketingConsentAt` | `DateTime?` |  |
 | `dealerId` | `String?` |  |
@@ -1662,7 +1663,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 
 - `IdentityStatus` — `NONE /// لم يُقدّم شيئًا`, `PENDING /// قُدّم وينتظر مراجعة`, `CLARIFICATION /// طُلب توضيح — يبقى في الطابور`, `VERIFIED`, `REJECTED`
 - `UserRole` — `USER`, `DEALER`, `ADMIN`, `SUPER_ADMIN`
-- `UserStatus` — `ACTIVE`, `SUSPENDED`, `BANNED`
+- `UserStatus` — `ACTIVE`, `SUSPENDED`, `BANNED`, `CLOSED`
 - `AdminRole` — `SUPER_ADMIN`, `OPS`, `FINANCE`, `SUPPORT`, `CONTENT`, `READONLY`
 - `DealerStatus` — `PENDING`, `ACTIVE`, `SUSPENDED`
 - `BodyType` — `SEDAN`, `SUV`, `PICKUP`, `HATCHBACK`, `COUPE`, `VAN`

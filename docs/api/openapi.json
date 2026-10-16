@@ -5435,6 +5435,52 @@
         }
       }
     },
+    "/api/v1/me/close": {
+      "post": {
+        "summary": "POST /api/v1/me/close",
+        "tags": [
+          "me"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "get": {
+        "summary": "GET /api/v1/me/close",
+        "tags": [
+          "me"
+        ],
+        "security": [
+          {
+            "user": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/me/entitlements": {
       "get": {
         "summary": "GET /api/v1/me/entitlements",

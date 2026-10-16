@@ -13,6 +13,7 @@ const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { profileCompletion } from '@/lib/domain/profile';
 import { ProfileForm } from './ProfileForm';
+import { CloseAccount } from './CloseAccount';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +90,14 @@ export default async function ProfilePage({
             missing={completion.missing}
             cities={CITY_NAMES}
           />
+
+          {/*
+            ═══ وبابُ الخروج في آخر الصفحة ═══
+
+            موضعُه بعد كل ما يُملأ لا قبله: من فتح «إكمال الملف» جاء
+            ليُكمل، وزرٌّ أحمر في صدرها يقترح عليه المغادرة.
+          */}
+          <CloseAccount />
         </div>
       </main>
     </>

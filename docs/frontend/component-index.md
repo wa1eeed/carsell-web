@@ -128,7 +128,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 13 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 85 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 86 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 13 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -168,8 +168,8 @@ rather than found by chance.
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 4 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 28 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 40 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 29 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 41 |
 | `SignOut` | yes | `path` · `next` · `label` · `className` | 3 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
@@ -182,5 +182,5 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 2 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 60 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 61 |
 | `Year` | no | `value` · `className` | 5 |

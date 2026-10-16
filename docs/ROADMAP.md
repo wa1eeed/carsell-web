@@ -508,6 +508,18 @@ Measurement and build order: `docs/BACKLOG.md` § I.
 - [x] **The customer page printed raw enum keys.** `SUSPENDED` and `PENDING` as
       badges above someone's name, while the identity queue on the next screen
       calls the same values «ينتظر» and «موثّق». One label map now, read by both.
+- [x] **An account could never be closed.** No screen, no route, no domain
+      function — whoever registered stayed registered. **Owner's decision
+      (16 Oct): anonymise, keep the invoices and contracts.** What makes that
+      possible was measured before building: `TaxInvoice` and
+      `VehicleSaleAgreement` both snapshot the parties' names at issue, so
+      erasing the person does not hollow out the documents. Personal fields are
+      cleared, the phone becomes a reserved non-E.164 value (the column is unique
+      and not nullable), `CLOSED` is its own status beside `BANNED` — theirs
+      versus ours — and nothing closes over a live order, held escrow, live
+      auction, held deposit, payout in flight or a wallet balance, each said
+      **before** the button is pressed. `docs/workflows/account-closure.md`,
+      decision 11 in `docs/DESIGN-DECISIONS.md`.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to
