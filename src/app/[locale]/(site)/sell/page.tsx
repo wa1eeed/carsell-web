@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { db } from '@/lib/db';
-import { listBrandOptions } from '@/lib/domain/catalog-options';
+import { listSellableBrandOptions } from '@/lib/domain/catalog-options';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
@@ -50,7 +50,7 @@ export default async function SellPage({
   if (user === null) redirect(`/${locale}/auth`);
 
   const [brands, cities, stats, auction, t] = await Promise.all([
-    listBrandOptions(),
+    listSellableBrandOptions(),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
       .then((rows) => rows.map((row) => row.city).sort()),

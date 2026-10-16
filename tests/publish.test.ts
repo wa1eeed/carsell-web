@@ -23,7 +23,16 @@ async function base(): Promise<PublishInput> {
     where: { trims: { some: { visible: true } } },
     include: { brand: true, trims: { where: { visible: true }, take: 1 } },
   });
-  const seller = await db.user.findFirstOrThrow({ where: { dealerId: null } });
+  /**
+   * **والبائع يُثبَّت بترتيب.** `findFirst` بلا `orderBy` يردّ صفًّا
+   * يتبدّل مع حال القاعدة — فيختار الطقمُ بائعًا في تشغيلٍ وآخر في
+   * التالي، وكشفُ التكرار يقيس «إعلان بائعٍ آخر»: فتصير صورةُ الطقم
+   * نفسُها تكرارًا لنفسها، ويسقط الاختبار على ما لا يقيسه.
+   */
+  const seller = await db.user.findFirstOrThrow({
+    where: { dealerId: null },
+    orderBy: { createdAt: 'asc' },
+  });
   /**
    * البائع يُهيَّأ كما يصل إلى النشر فعلًا: ملفٌ مكتمل ووضعٌ ضريبيّ
    * محدَّد. والشاشة تشترطهما، والحارس صار يشترطهما — فالمهيّأ ناقصًا
@@ -510,6 +519,7 @@ describe('خصائصُ الباقة تحكم النشر', () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe('SALE_METHOD_NOT_ALLOWED');
+    await cleanup();
   });
 
   it('وحدُّ الإعلانات يُفرض — ويُحسب من المعروض لا من المسودّات', async () => {
@@ -531,6 +541,7 @@ describe('خصائصُ الباقة تحكم النشر', () => {
       created.push(draft.ref);
       expect(draft.status).toBe('DRAFT');
     }
+    await cleanup();
   });
 
   it('وبلا تجاوزٍ يمرّ النشر — فالوصل لا يغيّر سلوك اليوم', async () => {
@@ -538,5 +549,6 @@ describe('خصائصُ الباقة تحكم النشر', () => {
     const result = await createListing(input);
     expect(result.ok).toBe(true);
     if (result.ok) created.push(result.ref);
+    await cleanup();
   });
 });

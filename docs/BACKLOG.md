@@ -20,7 +20,8 @@ Updated: 2026-10-13.
 | 6 | Services banner carries the car; services page car picker verified | `fa53eba` |
 | 7 | English locale showed Arabic **data** again (home cards, cities, popular searches) and an Arabic **percent sign** in 5 places | `d55c88e` |
 | 8 | Car catalogue: brand/model/trim **delete** and model **edit** were built, guarded and audited — with no button anywhere | `7318bd2` |
-| 9 | Plan entitlements were read by nothing — an operator could grant or deny and the product ignored it | _this commit_ |
+| 9 | Plan entitlements were read by nothing — an operator could grant or deny and the product ignored it | `ce8e6cf` |
+| 10 | Sell wizard offered 32 brands with no models — an empty, disabled dropdown and no explanation | _this commit_ |
 
 ---
 

@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
+import { listSellableBrandOptions } from '@/lib/domain/catalog-options';
 import {
   createBrand,
   createModel,
@@ -476,5 +477,43 @@ describe('عدّادُ الحذف يطابق حارسَه', () => {
     expect(result.ok).toBe(false);
     /** والطراز أوّلًا — وهو ترتيبُ الشاشة نفسه. */
     if (!result.ok) expect(result.reason).toBe('HAS_MODELS');
+  });
+});
+
+
+/**
+ * ═══ ماركةٌ لا تُكمَل لا تُعرض على البائع ═══
+ *
+ * الفئةُ إلزاميةٌ عند النشر، و**٣٢ ماركةً من ٤٢ بلا طرازٍ واحد** في
+ * البذرة. فكان المعالج يعرضها كلَّها: يختار البائع ماركةً فتُفتح
+ * قائمةُ الطرازات **فارغةً ومعطَّلة بلا كلمة** — ثلاثةُ أرباع القائمة
+ * طريقٌ مسدود.
+ *
+ * **والفحص على العلاقة لا على عدد**: المحرّر يضيف ويحذف، فرقمٌ مكتوب
+ * هنا يتقادم. وكلُّ ماركةٍ معروضة يجب أن تُفضي إلى فئة.
+ */
+describe('قائمةُ ماركات البائع تُفضي إلى فئة', () => {
+  it('كلُّ معروضةٍ لها طرازٌ ظاهر له فئةٌ ظاهرة', async () => {
+    const offered = await listSellableBrandOptions();
+    expect(offered.length).toBeGreaterThan(0);
+
+    for (const brand of offered) {
+      const reachable = await db.trim.count({
+        where: { visible: true, model: { visible: true, brandId: brand.id } },
+      });
+      expect(reachable, `${brand.nameAr} معروضةٌ بلا فئة`).toBeGreaterThan(0);
+    }
+  });
+
+  it('وماركةٌ بلا طراز لا تُعرض — وتبقى في قائمة البحث', async () => {
+    const created = await createBrand(admin, input({ slug: `${PREFIX}empty` }), null);
+    if (!created.ok) throw new Error('لم تُنشأ');
+
+    const offered = await listSellableBrandOptions();
+    expect(offered.some((b) => b.id === created.brand.id)).toBe(false);
+
+    /** **والباحث يراها**: قائمةٌ فارغة نتيجةٌ مفهومة لا طريقٌ مسدود. */
+    const all = await listBrands();
+    expect(all.some((b) => b.id === created.brand.id)).toBe(true);
   });
 });

@@ -21,6 +21,33 @@ export async function listBrandOptions(): Promise<CatalogOption[]> {
   return rows.map((row) => ({ id: row.id, nameAr: row.nameAr, nameEn: row.nameEn }));
 }
 
+/**
+ * ═══ ماركاتُ البائع غيرُ ماركات الباحث ═══
+ *
+ * **٣٢ ماركةً من ٤٢ بلا طرازٍ واحد** (البذرة تزرع عشرًا بأشجارٍ كاملة
+ * والباقي بالأسماء، والكتالوج الكامل يُستورد لاحقًا بـA12). ومعالج
+ * البيع كان يعرضها كلَّها: يختار البائع «ميتسوبيشي» فتُفتح قائمةُ
+ * الطرازات **فارغةً ومعطَّلة بلا كلمة** — وهو ثلاثةُ أرباع القائمة.
+ *
+ * والفئةُ إلزاميةٌ عند النشر، فماركةٌ بلا فئةٍ ظاهرة **لا يمكن أن
+ * تُنشَر أصلًا**: عرضُها وعدٌ يُخلَف قبل أن يبدأ. فيُعرض ما يُكمَل،
+ * ويُفتح باب «لا تجد ماركتك؟» لما لا يُكمَل.
+ *
+ * **ولا تُستعمل في البحث**: الباحث يصفّي بما في السوق، وقائمةٌ فارغة
+ * نتيجةٌ مفهومة لا طريقٌ مسدود.
+ */
+export async function listSellableBrandOptions(): Promise<CatalogOption[]> {
+  const rows = await db.brand.findMany({
+    where: {
+      visible: true,
+      models: { some: { visible: true, trims: { some: { visible: true } } } },
+    },
+    orderBy: [{ sort: 'asc' }],
+    select: { id: true, nameAr: true, nameEn: true },
+  });
+  return rows.map((row) => ({ id: row.id, nameAr: row.nameAr, nameEn: row.nameEn }));
+}
+
 export async function listModelOptions(brandId: string | null): Promise<CatalogOption[]> {
   if (brandId === null) return [];
   const rows = await db.model.findMany({

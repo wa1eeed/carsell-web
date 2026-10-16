@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { cityLabel } from '@/lib/labels/cities';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -726,6 +727,19 @@ export function SellWizard({
                   </option>
                 ))}
               </select>
+              {/*
+                ═══ وبابٌ لما ليس في القائمة ═══
+
+                القائمة صارت تعرض ما يُكمَل وحده — **وشرطٌ يُفرَض بلا
+                بابٍ لاستيفائه قفلٌ بلا مفتاح**: من لا يجد ماركته يغلق الصفحة
+                ولا نعرف أنّه جاء. فسطرٌ واحد يفتح الطريق ويُسمِعُنا الطلب.
+              */}
+              <Link
+                href={`/${locale}/help/contact`}
+                className="mt-1.5 inline-block py-1 text-3xs opacity-70 underline underline-offset-4 hover:opacity-100"
+              >
+                {t('brandMissing')}
+              </Link>
             </label>
 
             <label>

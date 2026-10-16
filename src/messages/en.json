@@ -882,6 +882,7 @@
     "vehicleData": "Vehicle details",
     "vinListed": "This vehicle is already listed. A second listing is not created for the same VIN.",
     "brand": "Make",
+    "brandMissing": "Can’t find your brand? Tell us and we’ll add it",
     "model": "Model",
     "trim": "Trim",
     "year": "Year",

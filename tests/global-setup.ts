@@ -156,7 +156,27 @@ async function sweep(when: string): Promise<void> {
    * صُنعت للاختبار وحده ولا تُشير إليها غيرها.
    */
   const listings = await db.listing.findMany({ select: { id: true, ref: true, vehicleId: true } });
-  const stale = listings.filter((row) => TEST_LISTING_REF.test(row.ref));
+  /**
+   * ═══ وما يمرّ بمولِّد المراجع لا يُعرَف بشكل مرجعه ═══
+   *
+   * القاعدة أعلاه تُمسك ما يصنعه اختبارٌ بيده (`AUC…` + طابع زمني).
+   * **وطقمُ النشر يمرّ بـ`createListing` نفسها**، فمرجعُه متسلسل
+   * (`ADS2026A0062`) **لا يفرّقه شكلٌ عن المزروع** — فتسرّبت منه
+   * ثلاثون في تشغيلاتٍ متتابعة، وأحدُها لبائعٍ آخر: فصار كشفُ
+   * التكرار يرى صورةَ الطقم تكرارًا، وسقط اختباران على ما لا
+   * يقيسانه.
+   *
+   * فالشكلُ هنا **الصورة لا المرجع**: كل إعلانٍ يحمل صورةً مفتاحُها
+   * `probe/` صنعه اختبار. والقاعدة تتبع المصدر لا الاسم.
+   */
+  const probeImages = await db.listingImage.findMany({
+    where: { r2Key: { startsWith: 'probe/' } },
+    select: { listingId: true },
+  });
+  const fromProbe = new Set(probeImages.map((row) => row.listingId));
+  const stale = listings.filter(
+    (row) => TEST_LISTING_REF.test(row.ref) || fromProbe.has(row.id),
+  );
   if (stale.length > 0) {
     const listingIds = stale.map((row) => row.id);
     const auctions = await db.auction.findMany({
