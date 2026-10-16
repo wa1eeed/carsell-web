@@ -417,3 +417,48 @@ export async function recordServiceEarned(
     now,
   );
 }
+
+/**
+ * ═══ ٣· تعذّرت الخدمة فرُدّ المال ═══
+ *
+ * ```
+ *   مدين   BUYER_ADVANCE        ٥٧٥
+ *   دائن   ESCROW_AT_PROVIDER   ٥٧٥
+ * ```
+ *
+ * **ولا إيراد يُعكَس**: الفشل لا يقع إلّا قبل الإنجاز (`IN_PROGRESS →
+ * FAILED`)، فلم يُعترف بشيء ولم يُستحقّ للمزوّد شيء. والردّ من
+ * `BUYER_ADVANCE` مباشرةً كردّ الطلب الملغى قبل استحقاقه.
+ *
+ * ولو صار الفشل ممكنًا بعد الإنجاز لزم عكسُ الإيراد ودَين المزوّد معًا
+ * — وهو قيدٌ آخر يُكتب يومها، لا فرعٌ يُخمَّن اليوم.
+ */
+export async function recordServiceRefund(
+  writer: Writer,
+  input: { ref: string; paymentId?: string | null; requesterId: string; amount: Prisma.Decimal | number | string },
+  now: Date = new Date(),
+): Promise<PostResult> {
+  return postEntries(
+    writer,
+    {
+      event: 'service.refunded',
+      paymentId: input.paymentId ?? null,
+      postings: [
+        {
+          account: 'BUYER_ADVANCE',
+          direction: 'DEBIT',
+          amount: input.amount,
+          userId: input.requesterId,
+          note: input.ref,
+        },
+        {
+          account: 'ESCROW_AT_PROVIDER',
+          direction: 'CREDIT',
+          amount: input.amount,
+          note: input.ref,
+        },
+      ],
+    },
+    now,
+  );
+}

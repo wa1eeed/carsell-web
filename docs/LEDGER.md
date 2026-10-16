@@ -250,6 +250,36 @@ would post an entry that does not match what was *paid* the day the rate changes
 the money. And a request with no payment posts nothing: the seed finishes
 requests that were never paid, and an entry for those would invent revenue.
 
+#### 5.5.3 `service.refunded` — the work could not be done
+
+```
+  DEBIT   BUYER_ADVANCE        575
+  CREDIT  ESCROW_AT_PROVIDER   575
+```
+
+**No revenue is reversed**, because failure can only happen before completion
+(`IN_PROGRESS → FAILED`): nothing was earned and nothing became owed to the
+provider. If failure after completion ever becomes possible, that is a different
+entry — written then, not guessed now.
+
+**The refund is automatic, with no human gate.** The critical notification
+already told the customer «وما دُفع يُردّ»; holding their money while we review
+*the provider's* conduct confuses two matters — one between us and the customer,
+the other between us and our subcontractor. If the provider claims the customer
+failed to appear, that is a claim to settle with them, not a reason to hold a
+third party's money. *(Recorded for the owner in `docs/OPEN-QUESTIONS.md`.)*
+
+**And the request stays `FAILED`, not `REFUNDED`.** Both live in one enum, so
+writing the second erases why the work stopped — a screen that says "refunded"
+and cannot say why. It is decision 17's lesson again: **the state of the money
+is not the state of the work.** The money's state lives on the `Payment`
+(`CANCELLED` with `returnedAmount`), which is why `REFUNDED` has no writer and
+should not get one.
+
+**The money moves before the books.** If the gateway refuses the cancellation,
+nothing is written and a second attempt finds the same state; the reverse would
+leave a ledger saying "refunded" over money still held.
+
 ## 6. The seller's financial file
 
 `sellerBook()` in `src/lib/domain/seller-book.ts`, shown at

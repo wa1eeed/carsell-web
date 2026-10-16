@@ -580,6 +580,83 @@ export async function payServiceRequest(
 }
 
 /**
+ * ═══ تعذّرت الخدمة فيُردّ المال ═══
+ *
+ * **وقد كان الإشعار يَعِد بالردّ ولا ردّ**: «وما دُفع يُردّ» تُرسَل
+ * حرجةً عند الفشل، و`REFUNDED` في التعداد بلا كاتب — فيبقى مالُ من
+ * تعذّرت خدمتُه محجوزًا ومعه وعدٌ مكتوب.
+ *
+ * ═══ ويُردّ بلا بوّابة بشريّة ═══
+ *
+ * // DESIGN-Q: أيُردّ آليًّا عند إعلان المزوّد الفشل، أم بعد مراجعة؟
+ * الردّ آليّ: من دفع ثمن فحصٍ لم يقع لا يُحتجز مالُه ريثما يُراجَع
+ * **سلوكُ المزوّد** — وهما أمران مختلفان، أحدهما بين العميل وبيننا
+ * والآخر بيننا وبين مقاولنا. وإن ادّعى المزوّد أن العميل هو من تخلّف
+ * فتلك مطالبةٌ تُعالج معه، لا سببٌ لحبس مالٍ عن ثالث.
+ *
+ * ═══ والحالُ يبقى `FAILED` ═══
+ *
+ * `REFUNDED` في التعداد نفسه، فكتابتُه **تمحو سببَ التوقّف**: شاشةٌ
+ * تقول «مُسترَدّ» ولا تقول لماذا. وهو درس قرار ١٧ عينه — حالُ المال
+ * ليس حالَ العمل. فحالُ المال على `Payment`، والعملُ يبقى فاشلًا.
+ */
+export async function refundFailedService(
+  ref: string,
+  now: Date = new Date(),
+): Promise<{ ok: true; refunded: string } | { ok: false; reason: string }> {
+  const request = await db.serviceRequest.findUnique({
+    where: { ref },
+    select: { id: true, ref: true, status: true, userId: true, paymentId: true },
+  });
+  if (request === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
+  if (request.status !== 'FAILED') return { ok: false, reason: 'NOT_FAILED' };
+  /** طلبٌ لم يُدفع لا يُردّ — ولا خطأ في ذلك. */
+  if (request.paymentId === null) return { ok: false, reason: 'NOT_PAID' };
+
+  const payment = await db.payment.findUnique({
+    where: { id: request.paymentId },
+    select: { id: true, status: true, amount: true, holdRef: true, gatewayKey: true, environment: true },
+  });
+  if (payment === null) return { ok: false, reason: 'PAYMENT_NOT_FOUND' };
+  /** **وردٌّ ثانٍ لا يقع**: الحال تقول إنه رُدّ، والقيد لا يُكتب مرّتين. */
+  if (payment.status !== 'HELD') return { ok: false, reason: 'NOT_HELD' };
+
+  /**
+   * **المال أوّلًا** — كإلغاء الطلب سواءً بسواء: لو فشل الردّ لدى
+   * البوّابة بقيت الحال كما هي ومحاولةٌ ثانية تجدها، والعكس يُنتج
+   * دفترًا يقول «رُدّ» ومالًا محجوزًا.
+   */
+  if (payment.holdRef !== null) {
+    const { resolveForPayment } = await import('@/lib/payments/resolve');
+    const gateway = await resolveForPayment(payment.gatewayKey, payment.environment);
+    const result = await gateway.cancel(payment.holdRef);
+    if (result.state !== 'CONFIRMED') return { ok: false, reason: 'GATEWAY_FAILED' };
+  }
+
+  const { recordServiceRefund } = await import('./ledger-events');
+
+  await db.$transaction(async (tx) => {
+    await tx.payment.update({
+      where: { id: payment.id },
+      data: { status: 'CANCELLED', cancelledAt: now, returnedAmount: payment.amount },
+    });
+
+    await recordServiceRefund(
+      tx,
+      {
+        ref: request.ref,
+        paymentId: payment.id,
+        requesterId: request.userId,
+        amount: payment.amount,
+      },
+      now,
+    );
+  });
+
+  return { ok: true, refunded: payment.amount.toString() };
+}
+
+/**
  * ═══ ما يراه طرفا الطلب — ولكلٍّ بقدره ═══
  *
  * شاشةٌ واحدة بوجهين: الطالبُ يرى حالَه ومبلغَه وزرَّ سداده، والبائعُ

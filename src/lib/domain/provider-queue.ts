@@ -351,6 +351,16 @@ export async function applyStep(
         );
       }
 
+      /**
+       * **والفشل يردّ المال قبل أن يُخطَر به.** الإشعار يقول «وما دُفع
+       * يُردّ» — فلو سبق الردَّ لوصل وعدٌ قبل وقوعه. وفشلُ الردّ لا
+       * يمنع الإخطار: العميل يعرف أن خدمته تعذّرت، والمال يُلاحَق.
+       */
+      if (step.to === 'FAILED' && row.paymentId !== null) {
+        const { refundFailedService } = await import('./service-lifecycle');
+        await refundFailedService(input.ref, now);
+      }
+
       const { notifyServiceStep } = await import('./service-lifecycle');
       await notifyServiceStep(input.ref, row.userId, step.to, row.service.nameAr);
     }

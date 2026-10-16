@@ -17,6 +17,8 @@ import { applyStep } from '@/lib/domain/provider-queue';
  */
 
 const refs: string[] = [];
+/** ودفعاتُ الاختبار تُحذف معها — وإلّا تراكمت في جدولٍ تقرؤه الشاشات. */
+const payments: string[] = [];
 
 async function wipe(): Promise<void> {
   if (refs.length === 0) return;
@@ -29,6 +31,10 @@ async function wipe(): Promise<void> {
   if (txns.length > 0) await db.ledgerEntry.deleteMany({ where: { txnId: { in: txns } } });
   await db.serviceRequest.deleteMany({ where: { ref: { in: refs } } });
   refs.length = 0;
+  if (payments.length > 0) {
+    await db.payment.deleteMany({ where: { id: { in: payments } } });
+    payments.length = 0;
+  }
 }
 
 afterEach(wipe);
@@ -195,5 +201,140 @@ describe('إنجازُ المزوّد يكتب القيد', () => {
     expect(await entries(ref)).toHaveLength(0);
 
     await db.notification.deleteMany({ where: { entityType: 'ServiceRequest', entityId: ref } });
+  });
+});
+
+/**
+ * ═══ والفشل يردّ المال ═══
+ *
+ * الإشعار الحرج يقول «وما دُفع يُردّ» — وكان `REFUNDED` في التعداد بلا
+ * كاتب، فيبقى مالُ من تعذّرت خدمتُه محجوزًا ومعه وعدٌ مكتوب.
+ */
+describe('ردُّ الخدمة المتعذّرة', () => {
+  it('يُلغى الحجز ويُقيَّد الردّ — والحالُ يبقى «فشل» لا «مُسترَدّ»', async () => {
+    const provider = await db.serviceProvider.findFirstOrThrow({
+      where: { type: 'INSPECTION', active: true, accountStatus: { in: ['ACTIVE', 'SEMI_ACTIVE'] } },
+      select: { id: true, cities: true },
+    });
+    const service = await db.service.findFirstOrThrow({
+      where: { providerType: 'INSPECTION', active: true },
+      select: { id: true },
+    });
+    const city = provider.cities[0] ?? 'الرياض';
+    const listing = await db.listing.findFirstOrThrow({
+      where: { status: 'PUBLISHED', city },
+      select: { id: true, vehicleId: true, sellerId: true },
+    });
+    const buyer = await db.user.findFirstOrThrow({
+      where: { id: { not: listing.sellerId }, role: 'USER' },
+      select: { id: true },
+    });
+
+    /** دفعةٌ محجوزة بلا مرجع حجزٍ لدى بوّابة — فلا نداءَ شبكة في الاختبار. */
+    const payment = await db.payment.create({
+      data: {
+        purpose: 'SERVICE_PURCHASE',
+        gatewayKey: 'sandbox',
+        environment: 'TEST',
+        amount: 575,
+        method: 'card',
+        status: 'HELD',
+      },
+      select: { id: true },
+    });
+    payments.push(payment.id);
+
+    const ref = `SRV-LDG-${String(Date.now()).slice(-9)}`;
+    refs.push(ref);
+    await db.serviceRequest.create({
+      data: {
+        ref,
+        serviceId: service.id,
+        userId: buyer.id,
+        sellerId: listing.sellerId,
+        listingId: listing.id,
+        vehicleId: listing.vehicleId,
+        status: 'IN_PROGRESS',
+        providerId: provider.id,
+        paymentId: payment.id,
+        amount: 575,
+        adminFee: 50,
+        vatAmount: 75,
+        city,
+      },
+    });
+
+    const result = await applyStep({
+      ref,
+      providerId: provider.id,
+      step: 'fail',
+      reason: 'تعذّر الوصول إلى المركبة بعد محاولتين متّفقٍ عليهما',
+    });
+    expect(result.ok).toBe(true);
+
+    const rows = await entries(ref);
+    expect(rows.map((row) => row.event)).toEqual(['service.refunded', 'service.refunded']);
+    expect(rows.find((row) => row.account === 'BUYER_ADVANCE')?.direction).toBe('DEBIT');
+    expect(rows.find((row) => row.account === 'ESCROW_AT_PROVIDER')?.direction).toBe('CREDIT');
+
+    const after = await db.payment.findUniqueOrThrow({
+      where: { id: payment.id },
+      select: { status: true, returnedAmount: true },
+    });
+    expect(after.status).toBe('CANCELLED');
+    expect(after.returnedAmount?.toString()).toBe('575');
+
+    /**
+     * **والحالُ «فشل» لا «مُسترَدّ»**: الثاني في التعداد نفسه فيمحو
+     * سببَ التوقّف — وحالُ المال على الدفعة لا على العمل (درس قرار ١٧).
+     */
+    const request = await db.serviceRequest.findUniqueOrThrow({
+      where: { ref },
+      select: { status: true },
+    });
+    expect(request.status).toBe('FAILED');
+
+    await db.notification.deleteMany({ where: { entityType: 'ServiceRequest', entityId: ref } });
+  });
+
+  it('ولا يُردّ مرّتين', async () => {
+    const { refundFailedService } = await import('@/lib/domain/service-lifecycle');
+    const service = await db.service.findFirstOrThrow({
+      where: { providerType: 'INSPECTION' },
+      select: { id: true },
+    });
+    const buyer = await db.user.findFirstOrThrow({ where: { role: 'USER' }, select: { id: true } });
+
+    const payment = await db.payment.create({
+      data: {
+        purpose: 'SERVICE_PURCHASE',
+        gatewayKey: 'sandbox',
+        environment: 'TEST',
+        amount: 100,
+        method: 'card',
+        status: 'HELD',
+      },
+      select: { id: true },
+    });
+    payments.push(payment.id);
+
+    const ref = `SRV-LDG-${String(Date.now()).slice(-9)}`;
+    refs.push(ref);
+    await db.serviceRequest.create({
+      data: {
+        ref,
+        serviceId: service.id,
+        userId: buyer.id,
+        status: 'FAILED',
+        paymentId: payment.id,
+        amount: 100,
+      },
+    });
+
+    expect((await refundFailedService(ref)).ok).toBe(true);
+    const second = await refundFailedService(ref);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.reason).toBe('NOT_HELD');
+    expect(await entries(ref)).toHaveLength(2);
   });
 });

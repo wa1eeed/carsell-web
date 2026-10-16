@@ -265,9 +265,15 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       seed alone — not for services, not for commission. `documents.ts` computes
       which documents are *due* and why they are blocked, and nothing creates
       one. ZATCA numbering and the PDF come with it.
-- [ ] **A failed service refunds nothing.** `REFUNDED` is in
-      `ServiceRequestStatus` with no writer, so a request that fails leaves the
-      money held and the customer with a critical notification and no refund.
+- [x] **A failed service refunds the money.** The critical notification promised
+      «وما دُفع يُردّ» and nothing refunded: `REFUNDED` sat in the enum with no
+      writer while the money stayed held. The hold is now cancelled at the
+      gateway and `service.refunded` is posted — money first, books second, so a
+      refused cancellation leaves a state a retry can find. **The request stays
+      `FAILED`**: `REFUNDED` is in the same enum and writing it would erase why
+      the work stopped (decision 17 — the state of the money is not the state of
+      the work), so the money's state lives on the `Payment`. `REFUNDED`
+      deliberately keeps no writer. Automatic, with the question recorded.
 - [ ] **The report builder.** `InspectionReport` is written only by the seed.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to
