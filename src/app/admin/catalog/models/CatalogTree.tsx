@@ -33,6 +33,23 @@ type TrimDraft = {
   doors: number;
 };
 
+/**
+ * **والمانعُ بياناتٌ لا جملة.**
+ *
+ * كتبتُها أوّل مرّة `` `له ${n} فئة` `` فأخرجت «له 2 فئة» — **والاثنان
+ * في العربية «فئتان»**، والجمع ستُّ صيغ لا واحدة. فالعدد يحكم
+ * معدوده داخل `Quantity`، والجارّ وحده خارجه (البوابة ١٨).
+ */
+type Blocker = { lead: string; unit: 'trims' | 'inventory'; count: number };
+
+type ModelDraft = {
+  id?: string;
+  nameAr: string;
+  nameEn: string;
+  yearFrom: number;
+  yearTo: number | null;
+};
+
 const EMPTY_TRIM: TrimDraft = {
   nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(),
   bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
@@ -56,7 +73,15 @@ export function CatalogTree({
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<TrimDraft | null>(null);
-  const [modelDraft, setModelDraft] = useState<{ nameAr: string; nameEn: string; yearFrom: number } | null>(null);
+  const [modelDraft, setModelDraft] = useState<ModelDraft | null>(null);
+  /**
+   * ═══ والحذفُ يُسأل عنه مرّة ═══
+   *
+   * ما يُحذف هنا لا يُسترجع، والزرّ بجوار «تعديل» — فاليدُ تزلّ.
+   */
+  const [removing, setRemoving] = useState<
+    { kind: 'models' | 'trims'; id: string; name: string; blockedBy: Blocker | null } | null
+  >(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -106,13 +131,31 @@ export function CatalogTree({
       header: '',
       cell: (t) =>
         canEdit ? (
-          <span className="flex justify-end">
+          <span className="flex justify-end gap-1">
             <Button
               size="sm"
               variant="ghost"
               onClick={() => router.push(`/admin/catalog/trims/${t.id}`)}
             >
               تعديل
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-danger"
+              onClick={() =>
+                setRemoving({
+                  kind: 'trims',
+                  id: t.id,
+                  name: t.nameEn,
+                  blockedBy:
+                    t.vehicleCount > 0
+                      ? { lead: 'عليها', unit: 'inventory', count: t.vehicleCount }
+                      : null,
+                })
+              }
+            >
+              حذف
             </Button>
           </span>
         ) : null,
@@ -173,7 +216,9 @@ export function CatalogTree({
             variant="outline"
             size="sm"
             className="mt-auto w-full"
-            onClick={() => setModelDraft({ nameAr: '', nameEn: '', yearFrom: new Date().getFullYear() })}
+            onClick={() =>
+              setModelDraft({ nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(), yearTo: null })
+            }
           >
             أضف طرازًا
           </Button>
@@ -204,11 +249,71 @@ export function CatalogTree({
               </div>
               <span className="flex-1" />
               {model.visible ? null : <Badge tone="warn">مخفي</Badge>}
-              {canEdit ? (
-                <Button onClick={() => setDraft({ ...EMPTY_TRIM, yearFrom: model.yearFrom })}>
-                  أضف فئة
-                </Button>
-              ) : null}
+              {!canEdit ? null : (
+                <>
+                  {/*
+                    ═══ والطراز كان يُنشأ ولا يُعدّل ═══
+
+                    `PATCH /models/{id}` و`DELETE` مبنيّتان ومختبَرتان منذ
+                    بُنيت الشاشة، **ولا زرّ يبلغهما**: طرازٌ كُتب اسمُه خطأً
+                    يبقى خطأً إلى الأبد، وما أُضيف سهوًا يسكن القائمة ويظهر
+                    للبائع في معالج البيع.
+                  */}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setModelDraft({
+                        id: model.id,
+                        nameAr: model.nameAr,
+                        nameEn: model.nameEn,
+                        yearFrom: model.yearFrom,
+                        yearTo: model.yearTo,
+                      })
+                    }
+                  >
+                    تعديل الطراز
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() =>
+                      void send(`models/${model.id}`, 'PATCH', { visible: !model.visible }).then(
+                        (done) =>
+                          done
+                            ? setToast({
+                                tone: 'success',
+                                text: model.visible ? 'أُخفي الطراز.' : 'ظهر الطراز.',
+                              })
+                            : null,
+                      )
+                    }
+                  >
+                    {model.visible ? 'أخفِه' : 'أظهِره'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="text-danger"
+                    onClick={() =>
+                      setRemoving({
+                        kind: 'models',
+                        id: model.id,
+                        name: model.nameAr,
+                        blockedBy:
+                          model.trimCount > 0
+                            ? { lead: 'له', unit: 'trims', count: model.trimCount }
+                            : model.vehicleCount > 0
+                              ? { lead: 'عليه', unit: 'inventory', count: model.vehicleCount }
+                              : null,
+                      })
+                    }
+                  >
+                    احذفه
+                  </Button>
+                  <Button onClick={() => setDraft({ ...EMPTY_TRIM, yearFrom: model.yearFrom })}>
+                    أضف فئة
+                  </Button>
+                </>
+              )}
             </header>
 
             <DataTable
@@ -330,7 +435,7 @@ export function CatalogTree({
       <Modal
         open={modelDraft !== null}
         onClose={() => setModelDraft(null)}
-        title="طراز جديد"
+        title={modelDraft?.id === undefined ? 'طراز جديد' : 'تعديل الطراز'}
         footer={
           <>
             <Button variant="ghost" onClick={() => setModelDraft(null)}>إلغاء</Button>
@@ -338,10 +443,17 @@ export function CatalogTree({
               disabled={busy}
               onClick={async () => {
                 if (modelDraft === null) return;
-                const done = await send('models', 'POST', { ...modelDraft, brandId });
+                const { id, ...body } = modelDraft;
+                const done =
+                  id === undefined
+                    ? await send('models', 'POST', { ...body, brandId })
+                    : await send(`models/${id}`, 'PATCH', body);
                 if (done) {
                   setModelDraft(null);
-                  setToast({ tone: 'success', text: 'أُضيف الطراز.' });
+                  setToast({
+                    tone: 'success',
+                    text: id === undefined ? 'أُضيف الطراز.' : 'حُفظ الطراز.',
+                  });
                 }
               }}
             >
@@ -378,7 +490,72 @@ export function CatalogTree({
                 className={cn(field, 'font-num', errors.yearFrom !== undefined && 'border-danger')}
               />
             </label>
+            <label className={label}>
+              {/* **والفراغُ معنًى لا نقص**: طرازٌ يُنتَج إلى اليوم. */}
+              إلى سنة — يُترك فارغًا إن كان يُنتج
+              <input
+                type="number"
+                value={modelDraft.yearTo ?? ''}
+                onChange={(e) =>
+                  setModelDraft({
+                    ...modelDraft,
+                    yearTo: e.target.value === '' ? null : Number(e.target.value),
+                  })
+                }
+                className={cn(field, 'font-num', errors.yearTo !== undefined && 'border-danger')}
+              />
+            </label>
           </div>
+        )}
+      </Modal>
+
+      {/*
+        ═══ حوارُ الحذف — ويقول المانع قبل الضغط ═══
+
+        الخادم يرفض حذف ما له فئاتٌ أو مركبات، **والشاشة تقول ذلك
+        بالعدد قبل النقرة** لا بعدها — والعددُ هو `vehicleCount` الذي يحرس
+        به النطاق، لا `listingCount` الذي يعدّ المعروض وحده.
+      */}
+      <Modal
+        open={removing !== null}
+        onClose={() => setRemoving(null)}
+        title={removing?.kind === 'models' ? 'حذف الطراز' : 'حذف الفئة'}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setRemoving(null)} disabled={busy}>
+              تراجع
+            </Button>
+            <Button
+              variant="danger"
+              disabled={busy || removing?.blockedBy !== null}
+              onClick={async () => {
+                if (removing === null) return;
+                const done = await send(`${removing.kind}/${removing.id}`, 'DELETE');
+                if (done) {
+                  const wasModel = removing.kind === 'models';
+                  setRemoving(null);
+                  setToast({ tone: 'success', text: wasModel ? 'حُذف الطراز.' : 'حُذفت الفئة.' });
+                  if (wasModel) go({ model: undefined });
+                }
+              }}
+            >
+              {busy ? 'يُحذف…' : 'نعم، احذفه'}
+            </Button>
+          </>
+        }
+      >
+        {removing === null ? null : removing.blockedBy !== null ? (
+          <p className="text-xs leading-loose">
+            <b className="bidi-isolate">{removing.name}</b> {removing.blockedBy.lead}{' '}
+            <Quantity unit={removing.blockedBy.unit} count={removing.blockedBy.count} /> — ولا
+            يُحذف ما يُستعمل. <b>أخفِه بدل حذفه</b>: يختفي من معالج البيع ومن الفلاتر، وتبقى
+            البيانات القائمة عليه كما هي.
+          </p>
+        ) : (
+          <p className="text-xs leading-loose">
+            يُحذف <b className="bidi-isolate">{removing.name}</b> نهائيًّا ولا يُسترجَع.
+            {removing.kind === 'models' ? ' ولا فئة عليه ولا مركبة.' : ' ولا مركبة عليها.'}
+          </p>
         )}
       </Modal>
 

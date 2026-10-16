@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable, type Column } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
+import { Quantity } from '@/components/ui/Quantity';
 import type { BrandRow } from '@/lib/domain/catalog';
 import { cn } from '@/lib/cn';
 
@@ -28,6 +29,9 @@ function Logo({ brand }: { brand: BrandRow }) {
   );
 }
 
+/** **والمانعُ بياناتٌ لا جملة** — والعدد يحكم معدوده داخل `Quantity` (البوابة ١٨). */
+type Blocker = { lead: string; unit: 'models' | 'inventory'; count: number };
+
 export function BrandsTable({
   brands,
   canEdit,
@@ -44,6 +48,15 @@ export function BrandsTable({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  /**
+   * ═══ والماركة كانت تُنشأ وتُعدّل ولا تُحذف ═══
+   *
+   * `DELETE /brands/{id}` مبنيّة ومحروسة وتكتب `AuditLog` — **ولا زرّ
+   * يبلغها**، فماركةٌ أُضيفت سهوًا تسكن القائمة وتظهر للبائع.
+   */
+  const [removing, setRemoving] = useState<
+    { id: string; name: string; blockedBy: Blocker | null } | null
+  >(null);
 
   async function send(
     path: string,
@@ -158,6 +171,25 @@ export function BrandsTable({
               onClick={() => void send(`/${b.id}`, 'PATCH', { visible: !b.visible })}
             >
               {b.visible ? 'إخفاء' : 'إظهار'}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-danger"
+              onClick={() =>
+                setRemoving({
+                  id: b.id,
+                  name: b.nameAr,
+                  blockedBy:
+                    b.modelCount > 0
+                      ? { lead: 'لها', unit: 'models', count: b.modelCount }
+                      : b.vehicleCount > 0
+                        ? { lead: 'عليها', unit: 'inventory', count: b.vehicleCount }
+                        : null,
+                })
+              }
+            >
+              حذف
             </Button>
           </span>
         ) : null,
@@ -278,6 +310,53 @@ export function BrandsTable({
               </label>
             ) : null}
           </div>
+        )}
+      </Modal>
+
+      {/*
+        ═══ حوارُ الحذف — والمانع يُقال بعدده قبل الضغط ═══
+
+        **و`vehicleCount` لا `listingCount`**: الثاني يعدّ المعروض وحده،
+        فماركةٌ عليها مركباتٌ في المرآب تقول «٠» ويرفض الخادم حذفها.
+      */}
+      <Modal
+        open={removing !== null}
+        onClose={() => setRemoving(null)}
+        title="حذف الماركة"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setRemoving(null)} disabled={busy}>
+              تراجع
+            </Button>
+            <Button
+              variant="danger"
+              disabled={busy || removing?.blockedBy !== null}
+              onClick={async () => {
+                if (removing === null) return;
+                const done = await send(`/${removing.id}`, 'DELETE');
+                if (done) {
+                  setRemoving(null);
+                  setToast({ tone: 'success', text: 'حُذفت الماركة.' });
+                }
+              }}
+            >
+              {busy ? 'تُحذف…' : 'نعم، احذفها'}
+            </Button>
+          </>
+        }
+      >
+        {removing === null ? null : removing.blockedBy !== null ? (
+          <p className="text-xs leading-loose">
+            <b className="bidi-isolate">{removing.name}</b> {removing.blockedBy.lead}{' '}
+            <Quantity unit={removing.blockedBy.unit} count={removing.blockedBy.count} /> — ولا
+            يُحذف ما يُستعمل. <b>أخفِها بدل حذفها</b>: تختفي من معالج البيع ومن الفلاتر، وتبقى
+            البيانات القائمة عليها كما هي.
+          </p>
+        ) : (
+          <p className="text-xs leading-loose">
+            تُحذف <b className="bidi-isolate">{removing.name}</b> نهائيًّا ولا تُسترجَع — ولا طراز
+            لها ولا مركبة.
+          </p>
         )}
       </Modal>
 

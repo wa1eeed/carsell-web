@@ -9,6 +9,9 @@ import {
   deleteFeature,
   deleteModel,
   deleteTrim,
+  listBrands,
+  listModels,
+  listTrims,
   setBrandVisibility,
   slugify,
   featureCounts,
@@ -378,5 +381,100 @@ describe('المميّزات', () => {
     const before = (await featureCounts()).orphans;
     await createFeature(admin, base, null);
     expect((await featureCounts()).orphans).toBe(before + 1);
+  });
+});
+
+
+/**
+ * ═══ العددُ المعروض هو العددُ المفروض ═══
+ *
+ * شاشةُ الفهرس تعطّل زرّ الحذف وتقول سببَه **قبل النقرة**،
+ * والخادم يرفض بـ`_count.vehicles`. فإن عرضتْ عددًا آخر كذبت
+ * في الاتّجاهين: زرٌّ معطّل بلا سبب، أو زرٌّ يقود إلى ٤٠٩.
+ *
+ * **و`listingCount` هو العددُ الآخر**: يعدّ ما له إعلانٌ غير مسودّة
+ * وحده، فمركبةٌ في المرآب تجعله صفرًا والحذفَ ممنوعًا — وهذا ما يقيسه.
+ */
+describe('عدّادُ الحذف يطابق حارسَه', () => {
+  async function withGarageVehicle(
+    options: { withTrim: boolean } = { withTrim: true },
+  ): Promise<{ brandId: string; modelId: string; trimId: string | null }> {
+    const brand = await createBrand(admin, input(), null);
+    if (!brand.ok) throw new Error('لم تُنشأ');
+    const model = await createModel(
+      admin,
+      { brandId: brand.brand.id, nameAr: 'ط', nameEn: 'M', yearFrom: 2020 },
+      null,
+    );
+    if (!model.ok) throw new Error('لم يُنشأ');
+    let trimId: string | null = null;
+    if (options.withTrim) {
+      const trim = await createTrim(
+        admin,
+        {
+          modelId: model.model.id, nameAr: 'LE', nameEn: 'LE', yearFrom: 2020,
+          bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
+          drivetrain: 'FWD', seats: 5, doors: 4,
+        },
+        null,
+      );
+      if (!trim.ok) throw new Error('لم تُنشأ');
+      trimId = trim.trim.id;
+    }
+
+    /** مركبةٌ في المرآب **بلا إعلان** — وهي موضعُ الفرق. */
+    const owner = await db.user.findFirstOrThrow();
+    await db.vehicle.create({
+      data: {
+        ownerId: owner.id, brandId: brand.brand.id, modelId: model.model.id,
+        trimId, brandName: 'ماركة', modelName: 'طراز', trimName: 'LE',
+        year: 2022, bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
+        drivetrain: 'FWD', seats: 5, mileageKm: 1000, colorExterior: 'أبيض',
+        spec: 'SAUDI', condition: 'USED', city: 'الرياض', entryMode: 'MANUAL',
+      },
+    });
+
+    return { brandId: brand.brand.id, modelId: model.model.id, trimId };
+  }
+
+  it('الطراز: مركبةٌ بلا إعلان تمنع الحذف وتُعدّ في `vehicleCount` وحده', async () => {
+    const { brandId, modelId } = await withGarageVehicle({ withTrim: false });
+
+    const row = (await listModels(brandId)).find((m) => m.id === modelId);
+    expect(row).toBeDefined();
+    expect(row?.listingCount).toBe(0);
+    expect(row?.vehicleCount).toBe(1);
+
+    /** والخادم يرفض — فالمعروض هو المفروض. */
+    const result = await deleteModel(admin, modelId, null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('HAS_VEHICLES');
+  });
+
+  it('الفئة: كذلك', async () => {
+    const { modelId, trimId } = await withGarageVehicle();
+    if (trimId === null) throw new Error('لم تُنشأ الفئة');
+
+    const row = (await listTrims(modelId)).find((t) => t.id === trimId);
+    expect(row?.listingCount).toBe(0);
+    expect(row?.vehicleCount).toBe(1);
+
+    const result = await deleteTrim(admin, trimId, null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('HAS_VEHICLES');
+  });
+
+  it('الماركة: كذلك — والطراز يسبق المركبة في السبب', async () => {
+    const { brandId } = await withGarageVehicle();
+
+    const row = (await listBrands()).find((b) => b.id === brandId);
+    expect(row?.listingCount).toBe(0);
+    expect(row?.vehicleCount).toBe(1);
+    expect(row?.modelCount).toBe(1);
+
+    const result = await deleteBrand(admin, brandId, null);
+    expect(result.ok).toBe(false);
+    /** والطراز أوّلًا — وهو ترتيبُ الشاشة نفسه. */
+    if (!result.ok) expect(result.reason).toBe('HAS_MODELS');
   });
 });

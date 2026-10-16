@@ -34,6 +34,8 @@ export type BrandRow = {
   sort: number;
   modelCount: number;
   listingCount: number;
+  /** عددُ المركبات كلّها — حارسُ `deleteBrand`، و`listingCount` دونه. */
+  vehicleCount: number;
 };
 
 export type CatalogCounts = {
@@ -117,7 +119,7 @@ async function audit(
 export async function listBrands(): Promise<BrandRow[]> {
   const brands = await db.brand.findMany({
     orderBy: [{ sort: 'asc' }, { nameAr: 'asc' }],
-    include: { _count: { select: { models: true } } },
+    include: { _count: { select: { models: true, vehicles: true } } },
   });
 
   const perBrand = await db.vehicle.groupBy({
@@ -137,6 +139,7 @@ export async function listBrands(): Promise<BrandRow[]> {
     sort: brand.sort,
     modelCount: brand._count.models,
     listingCount: listingByBrand.get(brand.id) ?? 0,
+    vehicleCount: brand._count.vehicles,
   }));
 }
 
@@ -277,6 +280,14 @@ export type ModelRow = {
   visible: boolean;
   trimCount: number;
   listingCount: number;
+  /**
+   * **عددُ المركبات كلّها — وهو ما يحرس به `deleteModel`.**
+   *
+   * و`listingCount` غيرُه: يعدّ مركباتٍ لها إعلانٌ غير مسودّة وحدها.
+   * فطرازٌ عليه ثلاث مركبات في المرآب بلا إعلان يقول «٠» ويرفض الخادم
+   * حذفه — **شرطٌ معروض غير المفروض**، وهو وعدٌ مُخلَف.
+   */
+  vehicleCount: number;
 };
 
 export type TrimRow = {
@@ -296,6 +307,8 @@ export type TrimRow = {
   horsepower: number | null;
   visible: boolean;
   listingCount: number;
+  /** عددُ المركبات كلّها — حارسُ `deleteTrim`، و`listingCount` دونه. */
+  vehicleCount: number;
 };
 
 export type ModelInput = {
@@ -362,7 +375,7 @@ export async function listModels(brandId: string): Promise<ModelRow[]> {
   const models = await db.model.findMany({
     where: { brandId },
     orderBy: { nameAr: 'asc' },
-    include: { _count: { select: { trims: true } } },
+    include: { _count: { select: { trims: true, vehicles: true } } },
   });
 
   const perModel = await db.vehicle.groupBy({
@@ -382,6 +395,7 @@ export async function listModels(brandId: string): Promise<ModelRow[]> {
     visible: m.visible,
     trimCount: m._count.trims,
     listingCount: byModel.get(m.id) ?? 0,
+    vehicleCount: m._count.vehicles,
   }));
 }
 
@@ -389,6 +403,7 @@ export async function listTrims(modelId: string): Promise<TrimRow[]> {
   const trims = await db.trim.findMany({
     where: { modelId },
     orderBy: { nameEn: 'asc' },
+    include: { _count: { select: { vehicles: true } } },
   });
 
   const perTrim = await db.vehicle.groupBy({
@@ -417,6 +432,7 @@ export async function listTrims(modelId: string): Promise<TrimRow[]> {
     horsepower: t.horsepower,
     visible: t.visible,
     listingCount: byTrim.get(t.id) ?? 0,
+    vehicleCount: t._count.vehicles,
   }));
 }
 
