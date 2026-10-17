@@ -1,8 +1,10 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import {
+  addDraftPhoto,
   draftView,
   ensureDraft,
+  removeDraftPhoto,
   saveDraftHeader,
   saveDraftPanel,
   saveDraftResult,
@@ -229,5 +231,75 @@ describe('والمسودّةُ تُعرض ببنود القالب لا بالأ�
     expect(view?.panels[0]?.microns).toBe(180);
     expect(view?.odometerKm).toBe(84_000);
     expect(view?.summaryAr).toBe('هيكلٌ سليم');
+  });
+});
+
+/**
+ * ═══ صورةُ البند — دليلٌ لا زينة ═══
+ *
+ * «ملاحظة» تقول إنّ شيئًا وُجد، والصورةُ تقول ما هو. وهذه تقيس أنّ
+ * الصورة تُنسَب إلى بندٍ من **قالب هذه المسودّة** لا إلى أيّ معرّف،
+ * وأنّ حذفها يعود بالعرض إلى ما كان.
+ */
+describe('صورُ البنود', () => {
+  it('تُرفَق ببندها وتظهر في العرض ثمّ تُحذف', async () => {
+    const ref = await paidRequest(inspector.id);
+    await ensureDraft({ ref, providerId: inspector.id, providerUserId: null });
+    const view = await draftView(ref, inspector.id);
+    const item = view?.categories[0]?.items[0];
+    if (item === undefined) throw new Error('لا بنود');
+    expect(item.photos).toHaveLength(0);
+
+    /** صورةٌ صغيرةٌ صالحة — والمعالجة تُديرها وتُصغّرها وتُطمس لوحتها. */
+    const { default: sharp } = await import('sharp');
+    const body = await sharp({
+      create: { width: 64, height: 48, channels: 3, background: '#888' },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const added = await addDraftPhoto({
+      ref,
+      providerId: inspector.id,
+      itemId: item.id,
+      body,
+    });
+    expect(added.ok).toBe(true);
+    if (!added.ok) return;
+
+    const withShot = await draftView(ref, inspector.id);
+    expect(withShot?.categories[0]?.items[0]?.photos).toHaveLength(1);
+
+    const removed = await removeDraftPhoto({
+      ref,
+      providerId: inspector.id,
+      photoId: added.id,
+    });
+    expect(removed.ok).toBe(true);
+
+    const after = await draftView(ref, inspector.id);
+    expect(after?.categories[0]?.items[0]?.photos).toHaveLength(0);
+  });
+
+  /** **ومعرّفٌ من خارج القالب لا يُعلَّق عليه شيء.** */
+  it('وبندٌ غريب يُرفض', async () => {
+    const ref = await paidRequest(inspector.id);
+    await ensureDraft({ ref, providerId: inspector.id, providerUserId: null });
+
+    const { default: sharp } = await import('sharp');
+    const body = await sharp({
+      create: { width: 32, height: 32, channels: 3, background: '#555' },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const result = await addDraftPhoto({
+      ref,
+      providerId: inspector.id,
+      itemId: 'itm_not_in_template',
+      body,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('INVALID');
   });
 });

@@ -102,7 +102,8 @@ export type DraftItem = {
   state: InspectionResultState | null;
   value: string | null;
   note: string | null;
-  photoCount: number;
+  /** صورُ البند بروابطها — **لا عددُها**: الفاحصُ يحتاج أن يراها ليحذف الخطأ منها. */
+  photos: { id: string; url: string | null }[];
 };
 
 export type DraftCategory = {
@@ -154,7 +155,7 @@ export async function draftView(
           panels: {
             select: { panel: true, condition: true, paintThicknessMicrons: true, note: true },
           },
-          photos: { select: { itemId: true } },
+          photos: { select: { id: true, itemId: true, r2Key: true }, orderBy: { sort: 'asc' } },
         },
       },
     },
@@ -187,10 +188,13 @@ export async function draftView(
   });
 
   const byItem = new Map(draft.results.map((row) => [row.itemId, row]));
-  const photos = new Map<string, number>();
+  const { publicUrl } = await import('@/lib/r2');
+  const photos = new Map<string, { id: string; url: string | null }[]>();
   for (const photo of draft.photos) {
     if (photo.itemId === null) continue;
-    photos.set(photo.itemId, (photos.get(photo.itemId) ?? 0) + 1);
+    const list = photos.get(photo.itemId) ?? [];
+    list.push({ id: photo.id, url: publicUrl(photo.r2Key) });
+    photos.set(photo.itemId, list);
   }
 
   let total = 0;
@@ -208,7 +212,7 @@ export async function draftView(
         state: saved?.state ?? null,
         value: saved?.value ?? null,
         note: saved?.note ?? null,
-        photoCount: photos.get(item.id) ?? 0,
+        photos: photos.get(item.id) ?? [],
       };
     });
     const done = items.filter((item) => item.state !== null).length;
@@ -359,5 +363,92 @@ export async function saveDraftHeader(input: {
     where: { id: gate.draftId },
     data: { odometerKm: input.odometerKm, summaryAr: input.summaryAr?.trim() || null },
   });
+  return { ok: true };
+}
+
+
+export type PhotoResult =
+  | { ok: true; id: string; url: string | null }
+  | { ok: false; reason: 'NOT_INSPECTOR' | 'NOT_YOURS' | 'NOT_EDITABLE' | 'STORAGE' | 'INVALID' };
+
+/**
+ * ═══ صورةُ بندٍ — دليلٌ لا زينة ═══
+ *
+ * «ملاحظة» تقول إنّ شيئًا وُجد، والصورةُ تقول **ما هو**. ومن يقرأ
+ * التقرير بعد شهرٍ لا يسأل الفاحصَ، فما لم يُصوَّر لا يُراجَع.
+ *
+ * **وتمرّ بما تمرّ به صورةُ الإعلان**: تُدار بـEXIF وتُصغَّر وتُطمَس
+ * لوحتُها — فلوحةُ سيارةٍ في تقريرٍ يُشارَك تُعرّف صاحبَها.
+ */
+export async function addDraftPhoto(input: {
+  ref: string;
+  providerId: string;
+  itemId: string | null;
+  body: Buffer;
+}): Promise<PhotoResult> {
+  const gate = await ensureDraft({
+    ref: input.ref,
+    providerId: input.providerId,
+    providerUserId: null,
+  });
+  if (!gate.ok) {
+    return { ok: false, reason: gate.reason === 'NO_TEMPLATE' ? 'NOT_YOURS' : gate.reason };
+  }
+
+  /** **والبندُ من قالب هذه المسودّة** — ومعرّفٌ غريب لا يُعلَّق عليه صورة. */
+  if (input.itemId !== null) {
+    const item = await db.inspectionItem.findFirst({
+      where: { id: input.itemId, category: { templateId: gate.templateId } },
+      select: { id: true },
+    });
+    if (item === null) return { ok: false, reason: 'INVALID' };
+  }
+
+  const { processListingImage } = await import('./listing-images');
+  const processed = await processListingImage(input.body);
+  if (!processed.ok) {
+    return { ok: false, reason: processed.reason === 'STORAGE' ? 'STORAGE' : 'INVALID' };
+  }
+
+  const last = await db.inspectionDraftPhoto.findFirst({
+    where: { draftId: gate.draftId },
+    orderBy: { sort: 'desc' },
+    select: { sort: true },
+  });
+
+  const photo = await db.inspectionDraftPhoto.create({
+    data: {
+      draftId: gate.draftId,
+      itemId: input.itemId,
+      r2Key: processed.image.key,
+      sort: (last?.sort ?? -1) + 1,
+    },
+    select: { id: true },
+  });
+
+  const { publicUrl } = await import('@/lib/r2');
+  return { ok: true, id: photo.id, url: publicUrl(processed.image.key) };
+}
+
+/** يحذف صورةً — **وما دامت المسودّةُ تُحرَّر**: المُرسَلةُ دليلٌ لا مسوّدة. */
+export async function removeDraftPhoto(input: {
+  ref: string;
+  providerId: string;
+  photoId: string;
+}): Promise<{ ok: boolean; reason?: string }> {
+  const gate = await ensureDraft({
+    ref: input.ref,
+    providerId: input.providerId,
+    providerUserId: null,
+  });
+  if (!gate.ok) return { ok: false, reason: gate.reason };
+
+  const photo = await db.inspectionDraftPhoto.findFirst({
+    where: { id: input.photoId, draftId: gate.draftId },
+    select: { id: true },
+  });
+  if (photo === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  await db.inspectionDraftPhoto.delete({ where: { id: photo.id } });
   return { ok: true };
 }

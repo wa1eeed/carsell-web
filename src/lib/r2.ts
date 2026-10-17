@@ -31,12 +31,14 @@ export const ALLOWED_IMAGE_TYPES = [
   'image/svg+xml',
 ] as const;
 
-export type UploadKind = 'brand-logo' | 'dealer-logo' | 'listing-image';
+export type UploadKind = 'brand-logo' | 'dealer-logo' | 'listing-image' | 'inspection-photo';
 
 const KIND_PATH: Record<UploadKind, string> = {
   'brand-logo': 'catalog/brands',
   'dealer-logo': 'dealers',
   'listing-image': 'listings',
+  /** صورُ بنود الفحص — ترفعها لوحةُ المزوّد لا المستخدم. */
+  'inspection-photo': 'inspections',
 };
 
 type R2Config = {

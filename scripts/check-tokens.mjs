@@ -700,6 +700,17 @@ const GATEWAY_VOCAB = /\b(authorize|authorization|capture|voidPayment|preauth)\b
  */
 const HTTP_AUTH_HEADER = /(headers\.get\(\s*['"`]authorization|['"`]authorization['"`]\s*:)/i;
 
+/**
+ * **و`capture` سمةُ HTML أيضًا** — `<input type="file" capture="environment">`
+ * تفتح الكاميرا مباشرةً، وهي ما يحتاجه فاحصٌ واقفٌ عند السيارة.
+ *
+ * وهي أختُ استثناء `authorization` فوقها: **ثانيةُ مرّةٍ تُنذر فيها
+ * هذه البوابة على مفردةٍ تحمل معنًى آخر خارج الدفع**. والإنذارُ
+ * الكاذب يُعلّم قارئَه تجاهُلَ القائمة كلِّها، فيُضيَّق النمط ولا
+ * تُحذف الميزة.
+ */
+const HTML_CAPTURE_ATTR = /\bcapture\s*=\s*[{'"`]/;
+
 /** المُهايئات وحدها تترجم — وهي الاستثناء المُعلن. */
 const ADAPTER_PATH = /src[\\/]lib[\\/]payments[\\/]adapters[\\/]/;
 
@@ -728,6 +739,7 @@ function checkGatewayVocabulary() {
           );
         }
         if (HTTP_AUTH_HEADER.test(code)) return;
+        if (HTML_CAPTURE_ATTR.test(code)) return;
         const match = code.match(GATEWAY_VOCAB);
         if (match) {
           problems.push(

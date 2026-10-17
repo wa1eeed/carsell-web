@@ -41,6 +41,15 @@ export function InspectionForm({ view }: { view: DraftView }) {
     return seed;
   });
   const [toast, setToast] = useState<string | null>(null);
+  const [shots, setShots] = useState<Record<string, { id: string; url: string | null }[]>>(() => {
+    const seed: Record<string, { id: string; url: string | null }[]> = {};
+    for (const category of view.categories) {
+      for (const item of category.items) {
+        if (item.photos.length > 0) seed[item.id] = [...item.photos];
+      }
+    }
+    return seed;
+  });
   const [, start] = useTransition();
 
   /**
@@ -92,6 +101,52 @@ export function InspectionForm({ view }: { view: DraftView }) {
 
     if ((state === 'MINOR' || state === 'MAJOR') && note.trim() === '') return;
     send({ kind: 'item', itemId: item.id, state, note: note.trim() || null });
+  };
+
+  const upload = (item: DraftItem, file: File): void => {
+    start(async () => {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('itemId', item.id);
+
+      const response = await fetch(
+        `/api/v1/provider/requests/${encodeURIComponent(view.ref)}/inspection/photos`,
+        { method: 'POST', body: form },
+      ).catch(() => null);
+
+      const payload = (await response?.json().catch(() => null)) as
+        | { data?: { id?: string; url?: string | null } }
+        | null;
+
+      if (response === null || !response.ok || typeof payload?.data?.id !== 'string') {
+        setToast('تعذّر رفع الصورة.');
+        return;
+      }
+      const added = { id: payload.data.id, url: payload.data.url ?? null };
+      setShots((current) => ({ ...current, [item.id]: [...(current[item.id] ?? []), added] }));
+    });
+  };
+
+  const dropShot = (item: DraftItem, photoId: string): void => {
+    start(async () => {
+      const response = await fetch(
+        `/api/v1/provider/requests/${encodeURIComponent(view.ref)}/inspection/photos`,
+        {
+          method: 'DELETE',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ photoId }),
+        },
+      ).catch(() => null);
+
+      if (response === null || !response.ok) {
+        setToast('تعذّر حذف الصورة.');
+        return;
+      }
+      setShots((current) => ({
+        ...current,
+        [item.id]: (current[item.id] ?? []).filter((row) => row.id !== photoId),
+      }));
+    });
   };
 
   const submit = (): void => {
@@ -212,6 +267,65 @@ export function InspectionForm({ view }: { view: DraftView }) {
                             </button>
                           ))}
                         </span>
+
+                        {!needsNote ? null : (
+                          <span className="flex flex-wrap items-center gap-2">
+                            {(shots[item.id] ?? []).map((shot) => (
+                              <span key={shot.id} className="relative">
+                                {shot.url === null ? (
+                                  <span className="flex h-14 w-14 items-center justify-center rounded-md border border-line text-3xs opacity-65">
+                                    صورة
+                                  </span>
+                                ) : (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={shot.url}
+                                    alt=""
+                                    className="h-14 w-14 rounded-md border border-line object-cover"
+                                  />
+                                )}
+                                {!view.editable ? null : (
+                                  <button
+                                    type="button"
+                                    onClick={() => dropShot(item, shot.id)}
+                                    aria-label="احذف الصورة"
+                                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full border border-line bg-bg text-3xs"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </span>
+                            ))}
+
+                            {/*
+                              ═══ والصورةُ دليلٌ لا زينة ═══
+
+                              «ملاحظة» تقول إنّ شيئًا وُجد، والصورةُ تقول ما هو —
+                              ومن يقرأ التقرير بعد شهرٍ لا يسأل الفاحص.
+
+                              // DESIGN-Q: المواصفة تُلزم بصورةٍ مع كل «ملاحظة»
+                              // و«عطل». وألزمتُ بها **العطلَ وحده**: إلزامُها في
+                              // كل ملاحظةٍ خفيفة يجعل الفاحصَ يتجنّب وسمَها أصلًا
+                              // فيفسد ما نقيسه. والملاحظةُ تبقى إلزاميّةً نصًّا.
+                            */}
+                            {!view.editable ? null : (
+                              <label className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-md border border-dashed border-line text-xl opacity-70 hover:opacity-100">
+                                +
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="environment"
+                                  className="sr-only"
+                                  onChange={(event) => {
+                                    const file = event.target.files?.[0];
+                                    if (file !== undefined) upload(item, file);
+                                    event.target.value = '';
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </span>
+                        )}
 
                         {!needsNote ? null : (
                           <input
