@@ -3,6 +3,7 @@ import { RevealPhone } from './RevealPhone';
 import { notFound, redirect } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
+import { LinkButton } from '@/components/ui/Button';
 import { currentProviderUser } from '@/lib/auth/provider-session';
 import { providerRequestView } from '@/lib/domain/provider-queue';
 import { PROVIDER_REQUEST_STATUS } from '@/lib/labels/provider';
@@ -122,6 +123,22 @@ export default async function ProviderRequestPage({
             )}
           </dl>
         </section>
+
+        {/*
+          ═══ وبابُ النموذج — و`form: 'INSPECTION'` كان علامةً بلا شاشة ═══
+
+          مكتوبٌ في `STEPS_BY_TYPE` منذ بُنيت، ولا شيء يرسمه: فالفاحص
+          يضغط «أنهِ» ولا يُسأل عن شيء. والرابطُ يظهر حيث تقول
+          الخطواتُ إنّ الإنهاء بنموذج — لا بشرطٍ مكتوبٍ هنا ثانيةً.
+        */}
+        {!view.steps.some((step) => step.form === 'INSPECTION') ? null : (
+          <LinkButton
+            href={`/provider/${encodeURIComponent(view.ref)}/inspection`}
+            className="mb-4 w-full"
+          >
+            افتح نموذج الفحص
+          </LinkButton>
+        )}
 
         {/* ═══ المتغيّر: أزرار المعالجة بحسب الصنف والحال ═══ */}
         <StepActions ref_={view.ref} steps={view.steps} />
