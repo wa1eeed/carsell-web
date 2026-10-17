@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
+import { RequestViewing } from './RequestViewing';
 import { Modal } from '@/components/ui/Sheet';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
@@ -159,13 +160,17 @@ export function BuyActions({
         <p className="mt-1 opacity-80">
           على هذه المركبة طلبٌ قائم. إن لم يكتمل عادت متاحة — وتستطيع طلب معاينة الآن.
         </p>
-        <Button
-          variant="outline"
+        {/*
+          **والزرُّ صار يعمل.** كان يقول «قريبًا» ويُحيل إلى صفحة
+          الطلب بعد الشراء — ومن يريد أن يرى قبل أن يشتري لا يُجيبه
+          ذلك. والمعاينةُ لقاءٌ بين طرفي الصفقة لا خدمةَ مزوّد.
+        */}
+        <RequestViewing
+          listingRef={listingRef}
+          locale={locale}
+          label={t('requestViewing')}
           className="mt-3 w-full"
-          onClick={() => (requireSession() ? undefined : setToast(tb('viewingSoon')))}
-        >
-          {t('requestViewing')}
-        </Button>
+        />
         {toast === null ? null : <Toast title={toast} />}
       </div>
     );
@@ -187,13 +192,13 @@ export function BuyActions({
             {t('makeOffer')}
           </Button>
         )}
-        <Button
+        <RequestViewing
+          listingRef={listingRef}
+          locale={locale}
+          label={t('requestViewing')}
           variant="ghost"
           className="flex-1 border border-line"
-          onClick={() => (requireSession() ? undefined : setToast(tb('viewingSoon')))}
-        >
-          {t('requestViewing')}
-        </Button>
+        />
       </div>
 
       <Modal open={offerOpen} onClose={() => setOfferOpen(false)} title={t('makeOffer')}>

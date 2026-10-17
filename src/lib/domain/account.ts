@@ -3,6 +3,7 @@ import { ibanMasked } from './iban';
 import { db } from '@/lib/db';
 import { STAGES as ORDER_STAGES } from './orders';
 import { consentsAwaiting } from './service-lifecycle';
+import { viewingsAwaiting } from './viewings';
 import type { OrderStage } from '@/generated/prisma/enums';
 import type { Prisma } from '@/generated/prisma/client';
 import { walletBalance as walletBalanceOf } from './wallet';
@@ -281,6 +282,8 @@ export type AccountData = {
    * الطرف الثاني.
    */
   consentsAwaiting: number;
+  /** مواعيدُ معاينةٍ على إعلاناته تنتظر ردّه — **وعدّادٌ بلا بابٍ لا يُعرض** */
+  viewingsAwaiting: number;
   /** أرقامُ صفحة «إعلاناتي» — فوق الجدول كما في التصميم */
   listingStats: ListingStats;
 };
@@ -578,6 +581,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     },
     /** طلباتُ فحصٍ على مركباته تنتظر إذنَه — والعدّاد يربط إلى شاشة */
     consentsAwaiting: await consentsAwaiting(user.id),
+    viewingsAwaiting: await viewingsAwaiting(user.id),
     serviceRequests: serviceRequests.map((row) => ({
       ref: row.ref,
       serviceName: locale === 'ar' ? row.service.nameAr : row.service.nameEn,

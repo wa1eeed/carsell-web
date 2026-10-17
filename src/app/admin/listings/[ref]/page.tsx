@@ -22,8 +22,16 @@ import { REVIEW_REASON_LABEL } from '@/lib/labels/review';
 import { orderStateLabel } from '@/lib/labels/orders';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
+import { VIEWING_PERIOD, VIEWING_STATUS } from '@/lib/labels/viewings';
 
 export const dynamic = 'force-dynamic';
+
+/** **واليومُ بلا ساعة** — `onDate` تاريخٌ لا لحظة، فالمنطقة UTC */
+const viewingDate = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'UTC',
+});
 
 const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
@@ -235,6 +243,34 @@ export default async function AdminListingDetailPage({
                     label={`${offer.status} · ${riyadh.format(new Date(offer.at))}`}
                     value={<Money amount={Number(offer.amount)} />}
                   />
+                ))}
+              </DetailCard>
+            )}
+
+            {/*
+              **ومواعيدُ المعاينة يُسأل عنها المشغّل**: بائعٌ يشكو أنّ
+              أحدًا لا يطلب مركبته، أو مشترٍ يقول إنّ البائع لا يردّ —
+              والجوابُ صفٌّ هنا لا استعلامٌ في القاعدة.
+            */}
+            {listing.viewings.length === 0 ? null : (
+              <DetailCard title="مواعيد المعاينة">
+                {listing.viewings.map((viewing) => (
+                  <div
+                    key={viewing.ref}
+                    className="flex flex-wrap items-center justify-between gap-4 border-b border-line py-2.5 last:border-0"
+                  >
+                    <span className="flex flex-wrap items-center gap-3 text-2xs">
+                      <span className="font-num bidi-isolate opacity-70">{viewing.ref}</span>
+                      <span className="bidi-isolate font-bold">{viewing.buyerName ?? '—'}</span>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-3 text-3xs opacity-70">
+                      <span>{VIEWING_STATUS[viewing.status] ?? viewing.status}</span>
+                      <span className="bidi-isolate">
+                        {viewingDate.format(new Date(viewing.onDate))}
+                      </span>
+                      <span>{VIEWING_PERIOD[viewing.period] ?? viewing.period}</span>
+                    </span>
+                  </div>
                 ))}
               </DetailCard>
             )}

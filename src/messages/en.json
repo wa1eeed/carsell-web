@@ -444,7 +444,8 @@
     "weeks": "{count, plural, one{{n} week} other{{n} weeks}}",
     "truncatedTemplates": "{count, plural, one{{n} template truncated} other{{n} templates truncated}}",
     "serviceConsents": "{count, plural, one{An inspection request awaits your consent} other{{n} inspection requests await your consent}}",
-    "completedRequests": "{count, plural, one{one request} other{{n} requests}}"
+    "completedRequests": "{count, plural, one{one request} other{{n} requests}}",
+    "viewingsAwaiting": "{count, plural, one{One viewing awaits your reply} other{{n} viewings await your reply}}"
   },
   "search": {
     "title": "Browse cars",
@@ -1232,8 +1233,7 @@
     "askingPrice": "Asking price",
     "yourOffer": "Your offer in SAR",
     "offerNote": "The seller may accept or counter; with no reply your offer lapses when its window closes. Acceptance opens a payment window.",
-    "sendOffer": "Send offer",
-    "viewingSoon": "Viewing requests are coming soon — contact the seller from the order page after purchase."
+    "sendOffer": "Send offer"
   },
   "since": {
     "today": "Today",

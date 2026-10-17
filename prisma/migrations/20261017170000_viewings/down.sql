@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS "Viewing";
+DROP TYPE IF EXISTS "ViewingStatus";
+DROP TYPE IF EXISTS "ViewingPeriod";
+DROP TYPE IF EXISTS "ViewingParty";

@@ -89,6 +89,44 @@ describe('المخطّط', () => {
     expect(onRejection).toContain('rejectionReason');
     expect(onRejection).not.toContain('approvedAmount');
   });
+
+  /**
+   * **و«موافقة مشروطة» كانت بلا حقلٍ واحد**: الشرطُ كان `equals` فلم
+   * تُصِبها قيمةٌ قطّ — قرارٌ كلُّ معناه شرطُه **ولا موضعَ يُكتب
+   * فيه**، ولا مبلغَ ولا قسط.
+   */
+  it('والمشروطةُ تحمل شرطَها وأرقامَها', () => {
+    const keys = visibleFieldsOf('FINANCE', { decision: 'CONDITIONAL' }).map((f) => f.key);
+    expect(keys).toContain('conditions');
+    expect(keys).toContain('monthlyInstalment');
+    expect(keys).toContain('downPayment');
+    expect(keys).not.toContain('rejectionReason');
+    /** والموافقةُ الصريحة بلا شرطٍ يُكتب */
+    expect(visibleFieldsOf('FINANCE', { decision: 'APPROVED' }).map((f) => f.key)).not.toContain(
+      'conditions',
+    );
+  });
+
+  /**
+   * **وما يسأل عنه المشتري في هذا السوق القسطُ والدفعة الأولى** — لا
+   * مبلغُ التمويل وحده. وقرارٌ بلا قسطٍ شهريّ لا يُقارَن بجهةٍ أخرى.
+   */
+  it('وقرارُ التمويل يحمل ما يُقرَّر به', () => {
+    const keys = visibleFieldsOf('FINANCE', { decision: 'APPROVED' }).map((f) => f.key);
+    for (const needed of ['contractType', 'downPayment', 'monthlyInstalment', 'profitRatePct']) {
+      expect(keys).toContain(needed);
+    }
+  });
+
+  /** **والتحمّلُ يُسأل عنه في الشامل وحده** — ولا معنى له في ضدّ الغير */
+  it('والتحمّلُ مع الشامل لا مع ضدّ الغير', () => {
+    expect(visibleFieldsOf('INSURANCE', { coverage: 'COMPREHENSIVE' }).map((f) => f.key)).toContain(
+      'deductible',
+    );
+    expect(
+      visibleFieldsOf('INSURANCE', { coverage: 'THIRD_PARTY' }).map((f) => f.key),
+    ).not.toContain('deductible');
+  });
 });
 
 describe('الصياغة', () => {
@@ -144,8 +182,10 @@ describe('التحقّق', () => {
     const good = checkCompletion(
       'TRANSFER',
       {
+        transferChannel: 'ABSHER',
         transferNo: 'TRF-99100',
         plateNo: 'ABC 1234',
+        plateStatus: 'KEPT',
         transferredAt: '2026-10-10',
         newOwnerName: 'فهد العتيبي',
         transferFees: '1,250.50',
@@ -160,8 +200,10 @@ describe('التحقّق', () => {
     const bad = checkCompletion(
       'TRANSFER',
       {
+        transferChannel: 'ABSHER',
         transferNo: 'TRF-99100',
         plateNo: 'ABC 1234',
+        plateStatus: 'KEPT',
         transferredAt: '2026-10-10',
         newOwnerName: 'فهد العتيبي',
         transferFees: '-20',

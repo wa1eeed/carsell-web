@@ -51,12 +51,16 @@ export type CompletionField = {
   /** خياراتُ `SELECT` — مفاتيحُ أيضًا */
   options?: readonly string[];
   /**
-   * شرطُ الظهور: يُطلب هذا الحقل حين يحمل حقلٌ آخر قيمةً بعينها.
+   * شرطُ الظهور: يُطلب هذا الحقل حين يحمل حقلٌ آخر إحدى قيمٍ بعينها.
    *
    * فمبلغُ التمويل المعتمد لا معنى له على رفض، وطلبُه على كل قرارٍ
    * يُجبر المزوّد على كتابة صفرٍ كاذب.
+   *
+   * **وقيمةٌ واحدة لا تكفي**: كان الشرط `equals` فحُرمت «موافقة
+   * مشروطة» من كل حقل — قرارٌ بلا مبلغٍ ولا قسطٍ **ولا موضعَ يُكتب
+   * فيه الشرط نفسه**، وهو كلُّ معناها.
    */
-  onlyWhen?: { key: string; equals: string };
+  onlyWhen?: { key: string; oneOf: readonly string[] };
   /** حدُّ الطول للنصوص — والتخزين `Text` فالحدّ للصياغة لا للعمود */
   maxLength?: number;
   /**
@@ -103,18 +107,35 @@ export const COMPLETION_FIELDS: Readonly<Record<ProviderType, readonly Completio
   /** الفحص — نموذجُه الخاصّ، فلا حقول هنا */
   INSPECTION: [],
 
-  /** نقلُ المركبة — وما يُثبت أنها وصلت ومن استلمها */
+  /**
+   * ═══ نقلُ المركبة — والسطحة لا شركةَ شحنٍ عالمية ═══
+   *
+   * نقلُ السيارات بين المدن هنا سطحةٌ أو ناقلةٌ لا أسطولُ بوالص،
+   * **فاسمُ السائق ولوحةُ الناقلة هما ما يُطمئن** صاحبَ سيارةٍ تمضي
+   * ألف كيلومتر بلا أن يراها. والمطلوبُ قليلٌ عمدًا: من يملؤه واقفٌ
+   * بجوار شاحنةٍ على هاتفه، وكلُّ حقلٍ زائد يُغري بالكذب فيه.
+   */
   SHIPPING: [
     { key: 'carrier', type: 'TEXT', required: true, maxLength: 120 },
     { key: 'trackingNo', type: 'LATIN', required: true, maxLength: 60 },
     { key: 'pickedUpAt', type: 'DATE', required: true, when: 'PAST' },
     { key: 'deliveredAt', type: 'DATE', required: true, when: 'PAST', notBefore: 'pickedUpAt' },
     { key: 'receivedBy', type: 'TEXT', required: true, maxLength: 120 },
+    { key: 'driverName', type: 'TEXT', required: false, maxLength: 120 },
+    { key: 'truckPlate', type: 'LATIN', required: false, maxLength: 20 },
+    /** **والعدّادُ عند التسليم دليلٌ** — سيارةٌ نُقلت لا تُقاد */
     { key: 'odometerKm', type: 'NUMBER', required: false },
     NOTES,
   ],
 
-  /** التأمين — ورقمُ الوثيقة ومدّتُها هما ما يُطالِب به العميل غدًا */
+  /**
+   * ═══ التأمين — والتحمّلُ شرطُ الشامل لا زينتُه ═══
+   *
+   * السوق صنفان: **ضدّ الغير** (إلزاميّ) و**شامل**. ورقمُ الوثيقة هو
+   * ما يُطالَب به عند أوّل حادث، ومدّتُها ما يُذكّر بالتجديد.
+   * **والتحمّل يُسأل عنه في كل شاملٍ** — من لا يعرفه يُفاجأ به يوم
+   * الحادث، فيُطلب حيث يكون له معنى وحده.
+   */
   INSURANCE: [
     { key: 'insurer', type: 'TEXT', required: true, maxLength: 120 },
     { key: 'policyNo', type: 'LATIN', required: true, maxLength: 60 },
@@ -127,15 +148,42 @@ export const COMPLETION_FIELDS: Readonly<Record<ProviderType, readonly Completio
     { key: 'startsAt', type: 'DATE', required: true },
     { key: 'endsAt', type: 'DATE', required: true, when: 'FUTURE', notBefore: 'startsAt' },
     { key: 'premium', type: 'MONEY', required: true },
+    {
+      key: 'deductible',
+      type: 'MONEY',
+      required: true,
+      onlyWhen: { key: 'coverage', oneOf: ['COMPREHENSIVE'] },
+    },
     NOTES,
   ],
 
-  /** نقلُ الملكية — واللوحةُ ورقمُ المعاملة هما الدليل */
+  /**
+   * ═══ نقلُ الملكية — وقناةُ النقل تُقال ═══
+   *
+   * النقلُ يقع عبر **أبشر** أو **تم** أو في إدارة المرور، ولكلٍّ
+   * مرجعُها وطريقةُ تتبّعها — فمشغّلٌ يُسأل «أين معاملتي؟» يحتاج
+   * القناة قبل الرقم.
+   *
+   * **واللوحةُ تبقى مع المركبة ما لم تُغيَّر**، والمشتري يسأل عنها
+   * أوّل شيء: أهي لوحتي أم لوحةُ من قبلي؟ فيُقال صراحةً.
+   */
   TRANSFER: [
+    {
+      key: 'transferChannel',
+      type: 'SELECT',
+      required: true,
+      options: ['ABSHER', 'TAM', 'TRAFFIC_DEPT'],
+    },
     { key: 'transferNo', type: 'LATIN', required: true, maxLength: 60 },
-    { key: 'plateNo', type: 'LATIN', required: true, maxLength: 20 },
     { key: 'transferredAt', type: 'DATE', required: true, when: 'PAST' },
     { key: 'newOwnerName', type: 'TEXT', required: true, maxLength: 160 },
+    {
+      key: 'plateStatus',
+      type: 'SELECT',
+      required: true,
+      options: ['KEPT', 'CHANGED'],
+    },
+    { key: 'plateNo', type: 'LATIN', required: true, maxLength: 20 },
     { key: 'transferFees', type: 'MONEY', required: false },
     NOTES,
   ],
@@ -155,8 +203,22 @@ export const COMPLETION_FIELDS: Readonly<Record<ProviderType, readonly Completio
   ],
 
   /**
-   * التمويل — **والقرارُ أوّلُ ما يُسأل عنه**، وما بعده تابعٌ له:
-   * مبلغٌ ومدّةٌ على موافقةٍ وحدها، وسببٌ على رفضٍ وحده.
+   * ═══ التمويل — ومبلغٌ ومدّةٌ ليسا قرارَ تمويلٍ في هذا السوق ═══
+   *
+   * ما يسأل عنه المشتري **الدفعة الأولى والقسط الشهري**، لا مبلغَ
+   * التمويل وحده — وبهما يقرّر، وعليهما يقارن بين جهتين.
+   *
+   * **والعقدُ مرابحةٌ أو إجارةٌ منتهية بالتمليك**، وفرقُهما ليس
+   * تفصيلًا: في الإجارة لا تُنقل الملكية إلّا بعد آخر قسط، فمن ظنّها
+   * مرابحةً يُفاجأ بأنّ السيارة ليست باسمه.
+   *
+   * **ونسبةُ الربح لا «فائدة»** — والتسميةُ هنا ليست ذوقًا.
+   *
+   * **والدفعةُ الأخيرة تُقال متى وُجدت**: عقدٌ ينتهي بدفعةٍ كبيرة لا
+   * يُقرأ من قسطه الشهريّ وحده.
+   *
+   * **و«مشروطة» كانت بلا حقلٍ واحد** — قرارٌ كلُّ معناه شرطُه، ولا
+   * موضعَ يُكتب فيه.
    */
   FINANCE: [
     { key: 'lender', type: 'TEXT', required: true, maxLength: 120 },
@@ -168,23 +230,61 @@ export const COMPLETION_FIELDS: Readonly<Record<ProviderType, readonly Completio
       options: ['APPROVED', 'CONDITIONAL', 'REJECTED'],
     },
     {
+      key: 'contractType',
+      type: 'SELECT',
+      required: true,
+      options: ['MURABAHA', 'IJARA'],
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
+    },
+    {
       key: 'approvedAmount',
       type: 'MONEY',
       required: true,
-      onlyWhen: { key: 'decision', equals: 'APPROVED' },
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
+    },
+    {
+      key: 'downPayment',
+      type: 'MONEY',
+      required: true,
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
+    },
+    {
+      key: 'monthlyInstalment',
+      type: 'MONEY',
+      required: true,
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
     },
     {
       key: 'tenorMonths',
       type: 'NUMBER',
       required: true,
-      onlyWhen: { key: 'decision', equals: 'APPROVED' },
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
+    },
+    {
+      key: 'profitRatePct',
+      type: 'NUMBER',
+      required: true,
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
+    },
+    {
+      key: 'finalPayment',
+      type: 'MONEY',
+      required: false,
+      onlyWhen: { key: 'decision', oneOf: ['APPROVED', 'CONDITIONAL'] },
+    },
+    {
+      key: 'conditions',
+      type: 'TEXTAREA',
+      required: true,
+      maxLength: 1000,
+      onlyWhen: { key: 'decision', oneOf: ['CONDITIONAL'] },
     },
     {
       key: 'rejectionReason',
       type: 'TEXTAREA',
       required: true,
       maxLength: 1000,
-      onlyWhen: { key: 'decision', equals: 'REJECTED' },
+      onlyWhen: { key: 'decision', oneOf: ['REJECTED'] },
     },
     NOTES,
   ],
@@ -214,7 +314,9 @@ export function visibleFields(
   values: Readonly<Record<string, string>>,
 ): CompletionField[] {
   return fields.filter(
-    (field) => field.onlyWhen === undefined || values[field.onlyWhen.key] === field.onlyWhen.equals,
+    (field) =>
+      field.onlyWhen === undefined ||
+      field.onlyWhen.oneOf.includes(values[field.onlyWhen.key] ?? ''),
   );
 }
 

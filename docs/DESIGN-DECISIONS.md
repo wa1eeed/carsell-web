@@ -1632,3 +1632,59 @@ PaymentRouteChange(purpose, fromGateway, toGateway,
 **٣ · الإشعارات مؤجَّلة.** ولها سببٌ مكتوب: **لا قناةَ إشعارٍ للمزوّدين
 أصلًا** — `Notification.userId` مربوطٌ بحساب السوق، والمزوّد هويةٌ
 ثالثة. فبناؤها شرطٌ مسبق لا تفصيلٌ في الفحص، وتُبنى وحدها حين يُقرَّر.
+
+---
+
+## 2026-10-17 — «افعل ما تراه احترافي و يناسب السوق السعودي»
+
+The owner was asked two questions (completion fields per provider type, and
+what a viewing is) and delegated both. What was decided, and why.
+
+### 1 · A viewing is an appointment, not a service
+
+No third party performs it, so there is nothing for a provider to be paid
+for. Its own entity; the `Service` row retired.
+
+### 2 · A day and a period, not a timestamp
+
+«صباحًا · بعد الظهر · بعد العصر · بعد المغرب». Appointments in this market
+are set against prayers, not against the clock, and both sides adjust by
+phone regardless — so minute precision is a claim we cannot keep. Hour
+ranges are shown beneath each period for anyone who wants them.
+
+### 3 · The booking horizon is 21 days
+
+Beyond that the car is likely sold, and the seller receives a request for
+something that is no longer theirs.
+
+### 4 · A finance decision is the down payment and the monthly instalment
+
+Not an amount and a term. That is what a buyer decides on and compares
+between lenders. The contract type (**مرابحة** vs **إجارة منتهية بالتمليك**)
+is required with it, because the difference is not cosmetic: under Ijara the
+title does not move until the final instalment, and someone who assumed
+Murabaha discovers the car is not in their name. And the rate is **نسبة
+الربح**, never «فائدة».
+
+### 5 · A conditional approval must carry its condition
+
+«موافقة مشروطة» previously collected nothing — the field predicate matched a
+single value. The condition is the whole of what that decision means.
+
+### 6 · Ownership transfer records its channel and whether the plate moved
+
+أبشر / تم / إدارة المرور each have their own reference and their own way of
+being chased, and an operator asked «أين معاملتي؟» needs the channel before
+the number. The plate normally stays with the car, and the buyer asks about
+it first — so it is stated rather than inferred.
+
+### 7 · Comprehensive insurance records its deductible
+
+Every شامل policy has one, and whoever does not know it is surprised on the
+day of the accident. Asked only where it has meaning, never on ضد الغير.
+
+### What was deliberately **not** built
+
+A seller counter-proposal on a viewing. A decline carries a reason and the
+buyer may request again — complete, if not the smoothest shape. Recorded in
+`docs/ROADMAP.md` § 9 rather than half-built.

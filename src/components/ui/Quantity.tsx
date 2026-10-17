@@ -7,6 +7,7 @@ import { cn } from '@/lib/cn';
 export type Unit =
   | 'completedRequests'
   | 'serviceConsents'
+  | 'viewingsAwaiting'
   | 'weeks'
   | 'truncatedTemplates'
   | 'orders'

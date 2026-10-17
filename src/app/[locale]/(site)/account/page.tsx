@@ -199,6 +199,22 @@ export default async function AccountPage({
               },
               { key: 'favorites', label: 'المفضّلة', hint: 'ما حفظتَه للرجوع إليه', count: favorites },
               { key: 'reports', label: 'تقارير الفحص', hint: 'فحوص مركباتك', count: data.reports.length },
+              /**
+               * **والمعاينةُ لقاءٌ بين طرفي الصفقة** لا خدمةَ مزوّد
+               * (قرار المالك ٢٠٢٦-١٠-١٧). وما ينتظر ردًّا يُعلَّم
+               * عاجلًا: من لا يردّ يفوته الموعد، ويظنّ المشتري أنه
+               * مُتجاهَل.
+               */
+              {
+                key: 'viewings',
+                label: 'مواعيد المعاينة',
+                hint:
+                  data.viewingsAwaiting > 0
+                    ? 'طلباتٌ على إعلاناتك تنتظر ردّك'
+                    : 'مواعيدُ معاينةٍ لك وعليك',
+                count: data.viewingsAwaiting,
+                urgent: data.viewingsAwaiting > 0,
+              },
               { key: 'earnings', label: 'مستحقّاتي', hint: 'ما لك من كل صفقة' },
               { key: 'wallet', label: 'المحفظة', hint: 'رصيدك وكشفه' },
               { key: 'profile', label: 'بياناتي', hint: 'البريد والهوية والآيبان' },

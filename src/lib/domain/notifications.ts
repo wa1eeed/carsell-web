@@ -41,6 +41,8 @@ export type NotificationEntity =
   | 'Listing'
   | 'Dispute'
   | 'ServiceRequest'
+  /** موعدُ معاينة — ووجهتُه شاشةُ المواعيد، فلا صفحةَ لموعدٍ وحده */
+  | 'Viewing'
   /** إيقافُ الحساب ورفعُه — والكيانُ هو صاحبُه نفسه. */
   | 'User';
 
@@ -231,8 +233,13 @@ async function destinations(
   const disputeIds = ids('Dispute');
   const serviceRefs = ids('ServiceRequest');
   const orderRefs = ids('Order');
+  /**
+   * **وموعدُ المعاينة لطرفيه** — ورابطٌ إلى موعدِ غيرهما يفتح شاشةً
+   * فارغة. والشرطُ في الاستعلام لا في الشاشة.
+   */
+  const viewingRefs = ids('Viewing');
 
-  const [listings, auctions, offers, orders, disputes, serviceRequests] = await Promise.all([
+  const [listings, auctions, offers, orders, disputes, serviceRequests, viewings] = await Promise.all([
     listingIds.length === 0
       ? []
       : db.listing.findMany({
@@ -288,9 +295,21 @@ async function destinations(
           },
           select: { ref: true },
         }),
+    viewingRefs.length === 0
+      ? []
+      : db.viewing.findMany({
+          where: {
+            ref: { in: viewingRefs },
+            OR: [{ buyerId: viewerId }, { sellerId: viewerId }],
+          },
+          select: { ref: true },
+        }),
   ]);
 
   const out = new Map<string, string>();
+  for (const viewing of viewings) {
+    out.set(`Viewing:${viewing.ref}`, `/${locale}/account/viewings`);
+  }
   for (const listing of listings) {
     /*  مُرمَّز — والعربيّ في href يُشارَك مشوَّهًا ولا يُنقر */
     out.set(`Listing:${listing.id}`, canonicalPath(locale, listing).path);

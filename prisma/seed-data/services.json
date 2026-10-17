@@ -65,34 +65,6 @@
     ]
   },
   {
-    "key": "viewing",
-    "nameAr": "طلب معاينة",
-    "nameEn": "Viewing request",
-    "descAr": "موعد معاينة للمركبة في موقع البائع أو نقطة محايدة، بترتيب من المنصة.",
-    "descEn": "A viewing appointment at the seller's location or a neutral point, arranged by the platform.",
-    "price": "0.00",
-    "category": "PRE_PURCHASE",
-    "isAutomated": false,
-    "slaHours": 24,
-    "placements": [
-      "listing_banner"
-    ],
-    "sort": 3,
-    "providerType": null,
-    "includesAr": [
-      "ترتيب الموعد مع البائع",
-      "موقع البائع أو نقطة محايدة",
-      "تأكيد الحضور للطرفين",
-      "الإلغاء مجانًا قبل الموعد"
-    ],
-    "includesEn": [
-      "The appointment arranged with the seller",
-      "The seller's location or a neutral point",
-      "Attendance confirmed to both sides",
-      "Free cancellation before the time"
-    ]
-  },
-  {
     "key": "shipping",
     "nameAr": "شحن ونقل",
     "nameEn": "Shipping and transport",

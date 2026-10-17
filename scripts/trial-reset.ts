@@ -81,6 +81,12 @@ async function removeOrder(orderId: string): Promise<void> {
   await db.order.delete({ where: { id: orderId } }).catch(() => undefined);
 }
 
+/** المزروعُ من مواعيد المعاينة — وما جاوزه أثرُ مشي */
+const SEEDED_VIEWING_REFS = Array.from(
+  { length: 6 },
+  (_unused, n) => `VIW-2026-${String(9100 + n)}`,
+);
+
 async function main(): Promise<void> {
   /**
    * الطلبات التي مرّت بالبوابة التجريبية وحدها — **تُعرَف بدفعتها لا
@@ -163,9 +169,19 @@ async function main(): Promise<void> {
 
   const ledger = await db.sandboxTransaction.deleteMany({});
 
+  /**
+   * **ومواعيدُ المعاينة تُبنى بالمولِّد الحقيقيّ** فلا بادئةَ تميّزها
+   * عن المزروع. والمزروعُ `VIW-2026-910x` ستّةٌ بالضبط، وما جاوزه
+   * أثرُ مشيٍ — فيُزال معه.
+   */
+  const viewings = await db.viewing.deleteMany({
+    where: { ref: { notIn: SEEDED_VIEWING_REFS } },
+  });
+
   console.log(
     `\n✓ نُظّف التجريب: ${String(restored)} طلبًا، و${String(payments.length)} دفعة، ` +
       `و${String(trialListings.length)} إعلانًا، و${String(bids.count)} مزايدة، ` +
+      `و${String(viewings.count)} موعد معاينة، ` +
       `و${String(orphans.count)} رفعًا يتيمًا، ` +
       `و${String(ledger.count)} قيدًا في دفتر البوابة.\n`,
   );

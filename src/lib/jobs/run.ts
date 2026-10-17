@@ -1,5 +1,6 @@
 import { closeEndedAuctions,
   openScheduledAuctions, expireSellerDecisions } from '@/lib/domain/auctions';
+import { closePastViewings } from '@/lib/domain/viewings';
 import { expireOffers, remindExpiringOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
@@ -64,6 +65,12 @@ const JOBS: readonly Job[] = [
    * أُخذ، فلا شيء يُردّ.
    */
   { name: 'lapseServiceConsents', run: (now) => lapseServiceConsents(now) },
+  /**
+   * **وموعدُ معاينةٍ مضى لا يبقى «ينتظر ردًّا»**: يقول للمشتري إنّ
+   * بائعًا قد يردّ وقد فات اليوم. والمؤكَّدُ يصير `COMPLETED`
+   * والمنتظِرُ `EXPIRED` — والفرقُ بينهما يقيس البائع.
+   */
+  { name: 'closePastViewings', run: (now) => closePastViewings(now) },
   /**
    * ═══ والتذكير بعد الإغلاق لا قبله ═══
    *

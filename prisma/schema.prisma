@@ -138,6 +138,9 @@ model User {
   serviceRequests ServiceRequest[]
   /// طلباتُ خدمةٍ على مركباته طلبها غيرُه — وهو يأذن بها
   serviceRequestsAsSeller ServiceRequest[] @relation("ServiceRequestSeller")
+  /// مواعيدُ معاينةٍ طلبها، ومواعيدُ طُلبت على إعلاناته
+  viewingsAsBuyer  Viewing[] @relation("ViewingBuyer")
+  viewingsAsSeller Viewing[] @relation("ViewingSeller")
   subscriptions   Subscription[]
   favorites       Favorite[]
   savedSearches   SavedSearch[]
@@ -608,6 +611,7 @@ model Listing {
   auction  Auction?
   orders   Order[]
   serviceRequests ServiceRequest[]
+  viewings Viewing[]
 
   @@index([status, type, city])
   @@index([status, publishedAt])
@@ -1195,6 +1199,87 @@ model ServiceRequest {
 /// **والقيمةُ في عمودها بنوعها**: المال `Decimal` (ممنوع `Float`
 /// وممنوع نصٌّ يُقارَن)، والتاريخ `DateTime`، وما عداهما نصّ. وعمودٌ
 /// واحد يحمل الثلاثة يجعل «١٢٠٠» و«1200.00» مبلغين مختلفين.
+/// ═══ المعاينة — موعدٌ بين طرفي الصفقة، لا خدمةُ مزوّد ═══
+///
+/// قرار المالك (٢٠٢٦-١٠-١٧): «افعل ما تراه احترافيًّا ويناسب السوق
+/// السعودي». وكانت «معاينة» صفًّا في `Service` بسعر صفرٍ **بلا صنف
+/// مزوّد** — فـ`cityPool` تُعيد فراغًا و`requestService` تردّ
+/// `CITY_NOT_COVERED` دائمًا، وزرُّها في صفحة المركبة يقول «قريبًا».
+///
+/// **ولا مزوّدَ في المعاينة أصلًا**: لقاءٌ بين مشترٍ وبائع، لا طرفَ
+/// ثالثًا يؤدّيه ولا مالَ فيه. فكيانٌ خاصٌّ به، والصفُّ في `Service`
+/// أُطفئ.
+model Viewing {
+  id        String        @id @default(cuid())
+  /// `VIW-2026-0001` — يُقتبَس في مكالمة
+  ref       String        @unique
+  listingId String
+  buyerId   String
+  /// صاحبُ الإعلان وقتَ الطلب — **لقطةٌ**: الإعلان قد يُباع فيتغيّر
+  /// صاحبُه، والموعدُ يبقى بين من اتّفقا.
+  sellerId  String
+  status    ViewingStatus @default(REQUESTED)
+
+  /// ═══ واليومُ وفترتُه، لا ساعةٌ بالدقيقة ═══
+  ///
+  /// **المواعيد هنا تُضبط على الصلوات لا على الساعة**: «بعد العصر»
+  /// و«بعد المغرب» هما ما يقوله الناس ويتّفقون عليه. ودقّةٌ بالدقيقة
+  /// ادّعاءٌ: الطرفان يعدّلانها بمكالمةٍ على كل حال، ومن يُطلَب منه
+  /// اختيار ٤:٣٧ يختار رقمًا لا يعنيه.
+  onDate    DateTime      @db.Date
+  period    ViewingPeriod
+
+  /// ما كتبه المشتري مع طلبه — «أصل من الدمام، أفضّل نهاية الأسبوع»
+  buyerNote     String?
+  /// ═══ ونقطةُ اللقاء لا تُكشف قبل القبول ═══
+  ///
+  /// يكتبها البائع حين يقبل، والشاشة تَعِد بذلك منذ بُنيت: «لا يُكشف
+  /// العنوان إلّا بعد تأكيد الموعد». **والوعدُ يُفرَض لا يُكتب**:
+  /// الحقل `null` حتى القبول، فما لا يدخل الكائن لا يتسرّب منه.
+  meetingPoint  String?
+  /// و«رُفض» بلا سببٍ تُعيد الطالب إلى الحيرة
+  declineReason String?
+  /// من ألغى — ولكلٍّ وجهُه في الشاشة
+  cancelledBy   ViewingParty?
+  respondedAt   DateTime?
+  createdAt     DateTime      @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyer   User    @relation("ViewingBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller  User    @relation("ViewingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId, status])
+  @@index([buyerId, status])
+  /// للوظيفة الدورية: ما انقضى وقتُه ولم يُغلَق
+  @@index([status, onDate])
+  @@index([listingId, status])
+}
+
+enum ViewingStatus {
+  REQUESTED
+  CONFIRMED
+  DECLINED
+  /// ألغاه أحدُ الطرفين قبل موعده
+  CANCELLED
+  /// مضى موعدُه وقد كان مؤكَّدًا
+  COMPLETED
+  /// مضى موعدُه ولم يُجَب — فلا يبقى «ينتظر ردًّا» إلى الأبد
+  EXPIRED
+}
+
+/// فتراتُ اليوم كما تُقال هنا — والساعاتُ في `viewings.ts`
+enum ViewingPeriod {
+  MORNING
+  NOON
+  AFTERNOON
+  EVENING
+}
+
+enum ViewingParty {
+  BUYER
+  SELLER
+}
+
 model ServiceCompletionField {
   id          String    @id @default(cuid())
   requestId   String

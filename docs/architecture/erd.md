@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-93 models · 59 enums
+94 models · 62 enums
 
 ## Relationships
 
@@ -25,6 +25,8 @@ erDiagram
   User ||--o{ Order : "ordersAsSeller"
   User ||--o{ ServiceRequest : "serviceRequests"
   User ||--o{ ServiceRequest : "serviceRequestsAsSeller"
+  User ||--o{ Viewing : "viewingsAsBuyer"
+  User ||--o{ Viewing : "viewingsAsSeller"
   User ||--o{ Subscription : "subscriptions"
   User ||--o{ Favorite : "favorites"
   User ||--o{ SavedSearch : "savedSearches"
@@ -97,6 +99,7 @@ erDiagram
   Listing |o--|| Auction : "auction"
   Listing ||--o{ Order : "orders"
   Listing ||--o{ ServiceRequest : "serviceRequests"
+  Listing ||--o{ Viewing : "viewings"
   ListingImage }o--|| Listing : "listing"
   ListingFeature }o--|| Listing : "listing"
   ListingFeature }o--|| Feature : "feature"
@@ -160,6 +163,12 @@ erDiagram
   ServiceRequest |o--|| InspectionReport : "inspectionReport"
   ServiceRequest |o--|| InspectionDraft : "inspectionDraft"
   ServiceRequest ||--o{ ServiceCompletionField : "completion"
+  Viewing }o--|| ViewingStatus : "status"
+  Viewing }o--|| ViewingPeriod : "period"
+  Viewing |o--|| ViewingParty : "cancelledBy"
+  Viewing }o--|| Listing : "listing"
+  Viewing }o--|| User : "buyer"
+  Viewing }o--|| User : "seller"
   ServiceCompletionField }o--|| ServiceRequest : "request"
   InspectionTemplate ||--o{ InspectionCategory : "categories"
   InspectionTemplate ||--o{ InspectionDraft : "drafts"
@@ -317,7 +326,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -559,7 +568,7 @@ Relations: `source` → `VehicleHistorySource` · `vehicle` → `Vehicle`
 | `createdAt` | `DateTime?` |  |
 | `reviewedBy` | `String?` |  |
 
-Relations: `type` → `ListingType` · `status` → `ListingStatus` · `reviewReason` → `ReviewReason` · `vehicle` → `Vehicle` · `seller` → `User` · `images` → `ListingImage` · `features` → `ListingFeature` · `offers` → `Offer` · `auction` → `Auction` · `orders` → `Order` · `serviceRequests` → `ServiceRequest`
+Relations: `type` → `ListingType` · `status` → `ListingStatus` · `reviewReason` → `ReviewReason` · `vehicle` → `Vehicle` · `seller` → `User` · `images` → `ListingImage` · `features` → `ListingFeature` · `offers` → `Offer` · `auction` → `Auction` · `orders` → `Order` · `serviceRequests` → `ServiceRequest` · `viewings` → `Viewing`
 
 ### `ListingImage`
 
@@ -838,6 +847,24 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `paymentId` | `String?` |  |
 
 Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport` · `inspectionDraft` → `InspectionDraft` · `completion` → `ServiceCompletionField`
+
+### `Viewing`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `ref` | `String` | unique |
+| `listingId` | `String` |  |
+| `buyerId` | `String` |  |
+| `sellerId` | `String` |  |
+| `onDate` | `DateTime` |  |
+| `buyerNote` | `String?` |  |
+| `meetingPoint` | `String?` |  |
+| `declineReason` | `String?` |  |
+| `respondedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `status` → `ViewingStatus` · `period` → `ViewingPeriod` · `cancelledBy` → `ViewingParty` · `listing` → `Listing` · `buyer` → `User` · `seller` → `User`
 
 ### `ServiceCompletionField`
 
@@ -1836,6 +1863,9 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `DisputeStatus` — `OPEN`, `INVESTIGATING`, `RESOLVED_BUYER`, `RESOLVED_SELLER`, `CLOSED`
 - `InvoiceType` — `SALE`, `COMMISSION`, `SERVICE`, `SUBSCRIPTION`
 - `ServiceCategory` — `PRE_PURCHASE`, `POST_PURCHASE`, `SELLER`
+- `ViewingStatus` — `REQUESTED`, `CONFIRMED`, `DECLINED`, `CANCELLED`, `COMPLETED`, `EXPIRED`
+- `ViewingPeriod` — `MORNING`, `NOON`, `AFTERNOON`, `EVENING`
+- `ViewingParty` — `BUYER`, `SELLER`
 - `ServiceRequestStatus` — `AWAITING_SELLER`, `AWAITING_PAYMENT`, `DECLINED`, `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`
 - `InspectionInputType` — `STATUS`, `NUMBER`, `TEXT`, `SELECT`
 - `InspectionDraftStatus` — `DRAFT`, `SUBMITTED`, `RETURNED`, `APPROVED`

@@ -7229,6 +7229,94 @@
         }
       }
     },
+    "/api/v1/viewings": {
+      "post": {
+        "summary": "POST /api/v1/viewings",
+        "tags": [
+          "viewings"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "listingRef": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "onDate": {
+                    "type": "string"
+                  },
+                  "period": {
+                    "type": "string",
+                    "enum": [
+                      "MORNING",
+                      "NOON",
+                      "AFTERNOON",
+                      "EVENING"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "listingRef",
+                  "onDate",
+                  "period",
+                  "note"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/viewings/{ref}": {
+      "post": {
+        "summary": "POST /api/v1/viewings/{ref}",
+        "tags": [
+          "viewings"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/vin/lookup": {
       "post": {
         "summary": "POST /api/v1/vin/lookup",

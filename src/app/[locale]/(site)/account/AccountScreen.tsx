@@ -253,6 +253,27 @@ export function AccountScreen({
         </Link>
       )}
 
+      {/*
+        **وموعدُ المعاينة ينتظر ردًّا كما ينتظر الإذن** — ومن لا يردّ
+        يفوته الموعد ويظنّ المشتري أنه مُتجاهَل. ولا يُعرض صفرًا.
+      */}
+      {data.viewingsAwaiting === 0 ? null : (
+        <Link
+          href={`/${locale}/account/viewings`}
+          className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-ink p-5 transition-colors hover:bg-ink/4"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">
+              <Quantity unit="viewingsAwaiting" count={data.viewingsAwaiting} />
+            </span>
+            <span className="mt-1 block text-2xs leading-loose opacity-75">
+              اقبل أو اعتذر — ولا يُكشف مكانُك إلّا بعد أن تقبل.
+            </span>
+          </span>
+          <span aria-hidden className="opacity-40">←</span>
+        </Link>
+      )}
+
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {/*
           **وبطاقة المركبات تُفصَّل.** التصميم يكتب «٣ مركباتي · ٢

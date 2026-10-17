@@ -963,7 +963,12 @@ export type ListingService = {
 
 /** ما يُعرض في عمود الإعلان — وما عداه له موضعُه. */
 const LISTING_SURFACE = 'listing_banner';
-const SHOWN_ELSEWHERE: readonly string[] = ['viewing', 'inspection'];
+/**
+ * **و«معاينة» لم تعد خدمةً أصلًا**: صارت كيانًا (`Viewing`) لأنها لقاءٌ
+ * بين طرفي الصفقة لا عملٌ يؤدّيه مزوّد — وصفُّها أُطفئ. فاستثناؤها هنا
+ * حارسٌ لما لا وجود له، وتركُه يُوهم قارئَه أنّ الخدمة قائمة.
+ */
+const SHOWN_ELSEWHERE: readonly string[] = ['inspection'];
 
 export async function servicesForListing(locale: string): Promise<ListingService[]> {
   const rows = await db.service.findMany({

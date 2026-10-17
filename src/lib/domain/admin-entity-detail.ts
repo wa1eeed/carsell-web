@@ -73,6 +73,18 @@ export type AdminListingDetail = {
   images: ListingImageRow[];
   offers: { id: string; amount: string; status: string; at: string }[];
   orders: { ref: string; stage: string; status: string; at: string }[];
+  /**
+   * مواعيدُ المعاينة على هذا الإعلان — **والمشغّل يُسأل عنها**: بائعٌ
+   * يشكو أنّ أحدًا لا يطلب مركبته، أو مشترٍ يقول إنّ البائع لا يردّ.
+   * والجواب هنا لا في القاعدة.
+   */
+  viewings: {
+    ref: string;
+    status: string;
+    onDate: string;
+    period: string;
+    buyerName: string | null;
+  }[];
   auction: { status: string; startPrice: string; endsAt: string; bidCount: number } | null;
 };
 
@@ -98,6 +110,17 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
       images: { orderBy: { sort: 'asc' } },
       offers: { orderBy: { createdAt: 'desc' }, take: 20 },
       orders: { orderBy: { createdAt: 'desc' }, take: 10 },
+      viewings: {
+        orderBy: { onDate: 'desc' },
+        take: 20,
+        select: {
+          ref: true,
+          status: true,
+          onDate: true,
+          period: true,
+          buyer: { select: { name: true } },
+        },
+      },
       auction: { include: { _count: { select: { bids: true } } } },
     },
   });
@@ -157,6 +180,13 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
       at: offer.createdAt.toISOString(),
     })),
 
+    viewings: listing.viewings.map((row) => ({
+      ref: row.ref,
+      status: row.status,
+      onDate: row.onDate.toISOString(),
+      period: row.period,
+      buyerName: row.buyer.name,
+    })),
     orders: listing.orders.map((order) => ({
       ref: order.ref,
       stage: order.stage,

@@ -667,10 +667,14 @@ never built:
       identically.
 - [ ] The inspection field list itself is **still owner-blocked** — recorded
       long before this: «وحقولُه يزوّدنا بها المالك».
-- [ ] **The field lists for the other seven types are mine, not the owner's.**
-      Proposed from what each job actually needs and recorded in
-      `docs/OPEN-QUESTIONS.md` for confirmation. Changing one is a line in
-      `completion-schema.ts`, not a screen.
+- [x] **The field lists for the other seven types.** Asked, and the owner
+      delegated: «افعل ما تراه احترافي و يناسب السوق السعودي». So they were
+      rebuilt for this market rather than kept generic — a finance decision is
+      **الدفعة الأولى والقسط الشهري ونوع العقد (مرابحة/إجارة)**, not an amount
+      and a term; a transfer carries its channel (أبشر/تم/المرور) and whether
+      the plate moved; comprehensive insurance carries its deductible. And
+      «موافقة مشروطة» had collected **nothing at all** — the condition itself
+      had nowhere to be written, which is the whole of what it means.
 
 **The shape, so it stays one panel and not seven:** the difference between
 types is *data*, not screens — a field schema per type, rendered by one form
@@ -744,6 +748,35 @@ smart reports.
       to need flexible settings.
 - [ ] **The vehicle cost ledger** is the first accounting task: the margin-VAT
       engine exists and its input (purchase price + add-on costs) does not.
+
+---
+
+## 9 · Viewings — an appointment, not a service — *closed 2026-10-17*
+
+Asked which it was; the owner delegated: «افعل ما تراه احترافي و يناسب
+السوق السعودي».
+
+- [x] **It was advertised and unbuyable.** `viewing` was a `Service` row with
+      `providerType: null`, so every request was refused `CITY_NOT_COVERED`,
+      and the button on the car page — **the most visited screen in the
+      product** — said «قريبًا».
+- [x] **Built as its own entity**, because no third party performs a viewing:
+      no provider, no money, no commission. The `Service` row is retired.
+- [x] **A day and a period, not a timestamp** — «بعد العصر», «بعد المغرب».
+      Appointments here are set against prayers, and minute precision is a
+      claim we cannot keep.
+- [x] Both halves: request, accept with a meeting point, decline with a
+      reason, cancel from either side, and a scheduler that separates
+      «انقضى بلا ردّ» from «تمّت» — the difference measures a seller.
+- [x] The privacy promise already printed on the car page is now enforced
+      where the data is fetched.
+- [ ] **A counter-proposal from the seller** («الأفضل بكرة بعد العصر») is not
+      built. A decline carries a reason and the buyer can request again, which
+      is complete but not the smoothest shape. Deliberate omission, recorded.
+- [ ] **A reminder before the slot.** The scheduler closes past viewings; it
+      does not remind either side the day before.
+
+`docs/workflows/viewings.md`.
 
 ---
 

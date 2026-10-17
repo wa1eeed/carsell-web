@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { db } from '@/lib/db';
 import {
   COOLDOWN_HOURS,
@@ -290,10 +291,26 @@ describe('═══ معيار A10 ═══ الحرِجة لا تُطفأ', ()
     await db.user.delete({ where: { id: subject.id } });
   });
 
-  it('القنوات الستّ مزروعة، واثنتان منها حرجتان', async () => {
+  /**
+   * **والحكمُ على العلاقة لا على رقمٍ مكتوب.** كان `toBe(6)`، فأوّلُ
+   * قناةٍ تُضاف (`viewings_mine`) تُسقطه وهي إضافةٌ صحيحة — ويُقرأ
+   * السقوطُ عطلًا. والمقصودُ أنّ **ما في الملفّ يصل القاعدة**، وأنّ
+   * الحرِجَ منها لا يُطفأ.
+   */
+  it('كلُّ قناةٍ في البيانات مزروعة، والحرِجُ منها لا يُطفأ', async () => {
+    const seeded = JSON.parse(
+      readFileSync('prisma/seed-data/push-channels.json', 'utf8'),
+    ) as { key: string; userControllable: boolean }[];
+
     const channels = await listChannels();
-    expect(channels.length).toBe(6);
-    expect(channels.filter((row) => !row.userControllable).length).toBe(2);
+    expect(channels.map((row) => row.key).sort()).toEqual(seeded.map((row) => row.key).sort());
+
+    const locked = channels.filter((row) => !row.userControllable).map((row) => row.key).sort();
+    expect(locked).toEqual(
+      seeded.filter((row) => !row.userControllable).map((row) => row.key).sort(),
+    );
+    /** **ومعيار A10**: لا بدّ من قناةٍ حرجةٍ واحدة على الأقلّ لا تُطفأ */
+    expect(locked.length).toBeGreaterThan(0);
   });
 });
 

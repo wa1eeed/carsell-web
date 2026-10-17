@@ -15,6 +15,8 @@ export const COMPLETION_FIELD: Record<string, string> = {
   pickedUpAt: 'تاريخ الاستلام',
   deliveredAt: 'تاريخ التسليم',
   receivedBy: 'استلمها',
+  driverName: 'اسم السائق',
+  truckPlate: 'لوحة الناقلة',
   odometerKm: 'قراءة العدّاد عند التسليم',
 
   /** التأمين */
@@ -24,10 +26,13 @@ export const COMPLETION_FIELD: Record<string, string> = {
   startsAt: 'بداية السريان',
   endsAt: 'نهاية السريان',
   premium: 'قسط التأمين',
+  deductible: 'مبلغ التحمّل',
 
   /** نقلُ الملكية */
+  transferChannel: 'قناة النقل',
   transferNo: 'رقم معاملة النقل',
-  plateNo: 'رقم اللوحة',
+  plateNo: 'رقم اللوحة بعد النقل',
+  plateStatus: 'اللوحة',
   transferredAt: 'تاريخ النقل',
   newOwnerName: 'المالك الجديد',
   transferFees: 'رسوم النقل',
@@ -44,8 +49,15 @@ export const COMPLETION_FIELD: Record<string, string> = {
   lender: 'جهة التمويل',
   applicationNo: 'رقم الطلب لدى الجهة',
   decision: 'القرار',
-  approvedAmount: 'المبلغ المعتمد',
-  tenorMonths: 'مدّة السداد بالأشهر',
+  contractType: 'نوع العقد',
+  approvedAmount: 'مبلغ التمويل المعتمد',
+  downPayment: 'الدفعة الأولى',
+  monthlyInstalment: 'القسط الشهري',
+  tenorMonths: 'مدّة السداد',
+  /** **ونسبةُ ربحٍ لا فائدة** — والتسميةُ هنا ليست ذوقًا */
+  profitRatePct: 'نسبة الربح السنوية',
+  finalPayment: 'الدفعة الأخيرة',
+  conditions: 'شروط الموافقة',
   rejectionReason: 'سبب الرفض',
 
   /** غيرُ المصنَّف */
@@ -59,6 +71,19 @@ export const COMPLETION_OPTION: Record<string, string> = {
   APPROVED: 'موافقة',
   CONDITIONAL: 'موافقة مشروطة',
   REJECTED: 'رفض',
+  /** قنواتُ نقل الملكية — ولكلٍّ مرجعُها وطريقةُ تتبّعها */
+  ABSHER: 'أبشر',
+  TAM: 'منصّة تم',
+  TRAFFIC_DEPT: 'إدارة المرور',
+  /** **واللوحةُ تبقى مع المركبة ما لم تُغيَّر** — والمشتري يسأل أوّلًا */
+  KEPT: 'بقيت كما هي',
+  CHANGED: 'صدرت لوحة جديدة',
+  /**
+   * **والفرقُ بينهما ليس تفصيلًا**: في الإجارة لا تُنقل الملكية إلّا
+   * بعد آخر قسط، فمن ظنّها مرابحةً يُفاجأ بأنّ السيارة ليست باسمه.
+   */
+  MURABAHA: 'مرابحة',
+  IJARA: 'إجارة منتهية بالتمليك',
 };
 
 /**
@@ -72,6 +97,8 @@ export const COMPLETION_UNIT: Record<string, string> = {
   hours: 'ساعة',
   tenorMonths: 'شهرًا',
   shotCount: 'صورة',
+  /** **ونسبةٌ بلا «سنويًّا» تُقرأ على المدّة كلِّها** فتبدو نصفَ ما هي */
+  profitRatePct: 'بالمئة سنويًّا',
 };
 
 /**

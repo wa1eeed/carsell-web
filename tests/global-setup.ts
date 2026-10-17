@@ -30,6 +30,17 @@ const TEST_EMAIL = /^[a-z]{1,8}\d{6,}@carsell\.one$/;
 const TEST_LISTING_REF = /^[A-Z]{3}\d{9,}$/;
 const TEST_ORDER_REF = /^ORD-(TST|RPT)-/;
 const TEST_SERVICE_REF = /^SRV-[A-Z]-/;
+/**
+ * ═══ ومواعيدُ المعاينة تُبنى بالمولِّد الحقيقيّ ═══
+ *
+ * فلا بادئةَ تميّزها (`VIW-2026-NNNN` كالمزروع تمامًا) — **والبذرةُ
+ * تزرع ستّة بالضبط**، وما جاوزها أثرُ تشغيلٍ أو مشيٍ يدويّ. والحذفُ
+ * هنا خطر: المشيُ بالنقر يُنشئ صفوفًا حقيقية أُريد بقاءها.
+ *
+ * فيُقاس ولا يُحذف — **والتسرّب الصامت يُقاس لا يُلاحَظ** — ويُنظَّف
+ * بـ`npm run trial:reset` حين يُراد.
+ */
+const SEEDED_VIEWINGS = 6;
 
 /**
  * ═══ وحملات الإعلان تتسرّب مثلها ═══
@@ -429,6 +440,23 @@ async function sweep(when: string): Promise<void> {
     await db.adminSession.deleteMany({ where: { adminUserId: { in: ids } } });
     await db.adminUser.deleteMany({ where: { id: { in: ids } } });
     console.log(`  نُظّف ${String(ids.length)} حساب اختبار ${when}`);
+  }
+
+  /**
+   * **والتسرّب الصامت يُقاس لا يُلاحَظ.** مئةٌ وعشرة إعلاناتِ اختبار
+   * تراكمت مرّةً في قاعدة التطوير فضخّمت كل عدّاد سوق، ولم يكشفها
+   * أحدٌ لأنّ لا اختبار يسأل «كم صفًّا في القاعدة».
+   *
+   * ومواعيدُ المعاينة تُبنى بالمولِّد الحقيقيّ فلا شكلَ يميّزها —
+   * **فتُعدّ ولا تُحذف**: المشيُ بالنقر يُنشئ صفوفًا حقيقية أُريد
+   * بقاءها، و`npm run trial:reset` يُزيلها حين يُراد.
+   */
+  const viewings = await db.viewing.count();
+  if (viewings > SEEDED_VIEWINGS) {
+    console.log(
+      `  مواعيدُ معاينةٍ فوق المزروع: ${String(viewings - SEEDED_VIEWINGS)} ${when}` +
+        ' — إن لم تكن من مشيٍ يدويّ فهي تسرّب (npm run trial:reset)',
+    );
   }
 
   await db.$disconnect();

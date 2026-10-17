@@ -2019,6 +2019,75 @@ async function main(): Promise<void> {
     });
   }
 
+  // ————— مواعيد المعاينة —————
+  /**
+   * ═══ وكلُّ حالٍ تُزرع ═══
+   *
+   * **ما لا يُزرع لا يُرى**: حالٌ لا تفتحها شاشةٌ قطّ تسكن فيها عيوبٌ
+   * شهورًا — وقعت في الطلب الملغى فكشفت تسعة مواضع. فالستُّ كلُّها
+   * هنا: ينتظر، ومؤكَّد، ومعتذَرٌ عنه، وملغًى بكلا الطرفين، ومنقضٍ،
+   * وتامّ.
+   *
+   * **والمشتري من له طلبُ شراءٍ وطلبُ خدمة** — فحسابٌ واحد يجمع
+   * الثلاثة، ومشيُ السطح يدخل بحسابٍ واحد.
+   */
+  const viewingBuyer = (await docBuyer)?.buyerId ?? buyers[0]?.id ?? null;
+  const viewable = listings.filter((row) => row.sellerId !== viewingBuyer).slice(0, 6);
+
+  if (viewingBuyer !== null && viewable.length >= 6) {
+    const PLAN = [
+      { status: 'REQUESTED', days: 2, period: 'AFTERNOON', meeting: null, reason: null, by: null },
+      {
+        status: 'CONFIRMED',
+        days: 3,
+        period: 'EVENING',
+        meeting: 'محطة بترومين، تقاطع طريق الملك عبدالعزيز مع الأمير سلطان، حيّ الملقا.',
+        reason: null,
+        by: null,
+      },
+      {
+        status: 'DECLINED',
+        days: 1,
+        period: 'MORNING',
+        meeting: null,
+        reason: 'السيارة عند وكالة الصيانة هذا الأسبوع. أقترح بعد العصر يوم السبت.',
+        by: null,
+      },
+      { status: 'CANCELLED', days: 1, period: 'NOON', meeting: null, reason: null, by: 'BUYER' },
+      { status: 'EXPIRED', days: -4, period: 'EVENING', meeting: null, reason: null, by: null },
+      {
+        status: 'COMPLETED',
+        days: -7,
+        period: 'AFTERNOON',
+        meeting: 'مواقف نادي الحي، شارع الأمير ماجد.',
+        reason: null,
+        by: null,
+      },
+    ] as const;
+
+    for (const [n, plan] of PLAN.entries()) {
+      const l = viewable[n] as ListingRef;
+      const day = new Date(NOW.getTime() + plan.days * 86_400_000);
+      await prisma.viewing.create({
+        data: {
+          ref: `VIW-2026-${String(9100 + n)}`,
+          listingId: l.id,
+          buyerId: viewingBuyer,
+          sellerId: l.sellerId,
+          status: plan.status,
+          onDate: new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())),
+          period: plan.period,
+          buyerNote: n === 0 ? 'أصل من الدمام نهاية الأسبوع — أفضّل بعد العصر.' : null,
+          meetingPoint: plan.meeting,
+          declineReason: plan.reason,
+          cancelledBy: plan.by,
+          respondedAt: plan.status === 'REQUESTED' ? null : hours(-6),
+          createdAt: hours(plan.days * 24 - 48),
+        },
+      });
+    }
+  }
+
   // ————— مواضع الأسئلة الشائعة —————
   for (const f of load<FaqRow[]>('faqs.json')) {
     await prisma.faqItem.create({

@@ -951,5 +951,81 @@
     ],
     "active": true,
     "pushChannelKey": "orders_payment"
+  },
+  {
+    "key": "viewing.requested",
+    "subjectAr": "طلبُ معاينة على إعلانك",
+    "subjectEn": "A viewing request on your listing",
+    "bodyAr": "طلب مشترٍ موعدًا لمعاينة مركبتك. افتح «مواعيد المعاينة» لتقبل أو تعتذر — وإن لم تردّ قبل الموعد سقط الطلب.",
+    "bodyEn": "A buyer asked to view your car. Open “Viewings” to accept or decline — an unanswered request lapses at its slot.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true,
+    "pushChannelKey": "viewings_mine"
+  },
+  {
+    "key": "viewing.confirmed",
+    "subjectAr": "تأكّد موعد المعاينة",
+    "subjectEn": "Your viewing is confirmed",
+    "bodyAr": "قبل البائع موعدك وكتب نقطة اللقاء. افتح «مواعيد المعاينة» لتراها.",
+    "bodyEn": "The seller accepted your slot and set a meeting point. Open “Viewings” to see it.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true,
+    "pushChannelKey": "viewings_mine"
+  },
+  {
+    "key": "viewing.declined",
+    "subjectAr": "لم يُقبل موعد المعاينة",
+    "subjectEn": "Your viewing was declined",
+    "bodyAr": "اعتذر البائع عن هذا الموعد وكتب سببه. تستطيع اقتراح موعدٍ آخر من صفحة المركبة.",
+    "bodyEn": "The seller declined this slot and gave a reason. You can propose another from the car page.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "normal",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true,
+    "pushChannelKey": "viewings_mine"
+  },
+  {
+    "key": "viewing.cancelled",
+    "subjectAr": "أُلغي موعد المعاينة",
+    "subjectEn": "A viewing was cancelled",
+    "bodyAr": "أُلغي موعد المعاينة المتّفق عليه. افتح «مواعيد المعاينة» للتفاصيل.",
+    "bodyEn": "An agreed viewing was cancelled. Open “Viewings” for details.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true,
+    "pushChannelKey": "viewings_mine"
   }
 ]
