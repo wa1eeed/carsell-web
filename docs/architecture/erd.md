@@ -896,6 +896,11 @@ Relations: `inputType` → `InspectionInputType` · `category` → `InspectionCa
 | `summaryAr` | `String?` |  |
 | `returnNote` | `String?` |  |
 | `submittedAt` | `DateTime?` |  |
+| `frozenSections` | `Json?` |  |
+| `frozenPaintMap` | `Json?` |  |
+| `frozenScore` | `Int?` |  |
+| `frozenGrade` | `String?` |  |
+| `frozenFlagged` | `Boolean` |  |
 | `reviewedAt` | `DateTime?` |  |
 | `reviewedBy` | `String?` |  |
 | `createdAt` | `DateTime` |  |

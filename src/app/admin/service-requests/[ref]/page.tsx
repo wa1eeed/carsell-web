@@ -5,6 +5,7 @@ import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/c
 import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
+import { ReviewInspection } from './ReviewInspection';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -185,6 +186,24 @@ export default async function AdminServiceRequestDetailPage({
                 value={request.invoiceNumber ?? '—'}
               />
             </DetailCard>
+
+            {/*
+              ═══ ومراجعةُ الفحص حيث يُقرأ الطلب ═══
+
+              لا طابورَ ثانيًا ولا شاشةَ ثالثة: المراجعُ يفتح الطلبَ
+              ليرى مالَه ومهلتَه ومزوّدَه، فمراجعةُ تقريره معها.
+            */}
+            {request.pendingInspection === null ? null : (
+              <DetailCard title="تقريرُ فحصٍ ينتظر المراجعة">
+                <ReviewInspection
+                  draftId={request.pendingInspection.draftId}
+                  score={request.pendingInspection.score}
+                  grade={request.pendingInspection.grade}
+                  flagged={request.pendingInspection.flagged}
+                  willPublish={request.pendingInspection.willPublish}
+                />
+              </DetailCard>
+            )}
 
             {request.inspectionScore === null && request.resultUrl === null ? null : (
               <DetailCard title="النتيجة">

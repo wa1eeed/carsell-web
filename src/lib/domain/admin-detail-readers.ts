@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { publishOnIssue } from './inspection';
 
 /**
  * ═══ قرّاء التفاصيل الباقون ═══
@@ -387,6 +388,19 @@ export type AdminServiceRequestDetail = {
   listingRef: string | null;
   inspectionScore: number | null;
   /**
+   * مسودّةُ فحصٍ تنتظر المراجعة — و`null` حين لا شيء ينتظر.
+   *
+   * **والنشرُ يُقال قبل الضغط**: قرار المالك ٤ يجعل تقرير صاحب
+   * المركبة عامًّا وتقريرَ غيره خاصًّا — فيعرف المراجعُ ما سيقع.
+   */
+  pendingInspection: {
+    draftId: string;
+    score: number;
+    grade: string;
+    flagged: boolean;
+    willPublish: boolean;
+  } | null;
+  /**
    * ═══ حالُ المال — ولم تكن الشاشة تعرضه ═══
    *
    * طلبٌ دُفع ثمنُه وصدرت فاتورتُه، والمشغّل يرى «المبلغ ٥١٨» ولا يرى
@@ -415,6 +429,16 @@ export async function adminServiceRequestDetail(
       user: { select: { id: true, name: true, phone: true } },
       listing: { select: { ref: true } },
       inspectionReport: { select: { score: true, ref: true } },
+      vehicle: { select: { ownerId: true } },
+      inspectionDraft: {
+        select: {
+          id: true,
+          status: true,
+          frozenScore: true,
+          frozenGrade: true,
+          frozenFlagged: true,
+        },
+      },
     },
   });
 
@@ -457,6 +481,18 @@ export async function adminServiceRequestDetail(
     customer: { id: request.user.id, name: request.user.name ?? request.user.phone },
     listingRef: request.listing?.ref ?? null,
     inspectionScore: request.inspectionReport?.score ?? null,
+    pendingInspection:
+      request.inspectionDraft === null ||
+      request.inspectionDraft.status !== 'SUBMITTED' ||
+      request.inspectionDraft.frozenScore === null
+        ? null
+        : {
+            draftId: request.inspectionDraft.id,
+            score: request.inspectionDraft.frozenScore,
+            grade: request.inspectionDraft.frozenGrade ?? '',
+            flagged: request.inspectionDraft.frozenFlagged,
+            willPublish: publishOnIssue(request.userId, request.vehicle?.ownerId ?? ''),
+          },
     payment:
       payment === null
         ? null

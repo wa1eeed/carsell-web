@@ -1312,6 +1312,17 @@ model InspectionDraft {
   /// ملاحظةُ الأدمن حين يُعيدها — ويقرؤها الفاحص
   returnNote       String?
   submittedAt      DateTime?
+  /// ═══ اللقطةُ تُجمَّد عند الإرسال — قرار المالك ═══
+  ///
+  /// تُبنى من صفوف المسودّة لحظةَ الإرسال وتبقى كما هي: فمن يعدّل
+  /// القالب بين الإرسال والاعتماد لا يُغيّر ما رآه الفاحصُ ووقّع عليه.
+  /// ومنها يُنشأ `InspectionReport` عند الاعتماد — لا من الصفوف ثانيةً.
+  frozenSections   Json?
+  frozenPaintMap   Json?
+  frozenScore      Int?
+  frozenGrade      String?
+  /// سقط بندٌ حرج — يُوسَم التقريرُ ويُسقَف تقديرُه
+  frozenFlagged    Boolean   @default(false)
   reviewedAt       DateTime?
   reviewedBy       String?
   createdAt        DateTime              @default(now())

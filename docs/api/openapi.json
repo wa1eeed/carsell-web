@@ -1850,6 +1850,41 @@
         }
       }
     },
+    "/api/v1/admin/inspections/{id}/review": {
+      "post": {
+        "summary": "POST /api/v1/admin/inspections/{id}/review",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "serviceRequests.handle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/integrations/{key}/approve": {
       "post": {
         "summary": "POST /api/v1/admin/integrations/{key}/approve",
@@ -6383,6 +6418,35 @@
     "/api/v1/provider/requests/{ref}/inspection": {
       "post": {
         "summary": "POST /api/v1/provider/requests/{ref}/inspection",
+        "tags": [
+          "provider"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/provider/requests/{ref}/inspection/submit": {
+      "post": {
+        "summary": "POST /api/v1/provider/requests/{ref}/inspection/submit",
         "tags": [
           "provider"
         ],

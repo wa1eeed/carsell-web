@@ -3,7 +3,9 @@
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
+import { displayDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 import type { DraftItem, DraftView } from '@/lib/domain/inspection-draft';
 
@@ -89,6 +91,35 @@ export function InspectionForm({ view }: { view: DraftView }) {
 
     if ((state === 'MINOR' || state === 'MAJOR') && note.trim() === '') return;
     send({ kind: 'item', itemId: item.id, state, note: note.trim() || null });
+  };
+
+  const submit = (): void => {
+    start(async () => {
+      const response = await fetch(
+        `/api/v1/provider/requests/${encodeURIComponent(view.ref)}/inspection/submit`,
+        { method: 'POST' },
+      ).catch(() => null);
+
+      const payload = (await response?.json().catch(() => null)) as
+        | { data?: { score?: number }; error?: { fields?: Record<string, string> } }
+        | null;
+
+      if (response === null || !response.ok) {
+        /**
+         * **والجملةُ تُصاغ فلا يحكم العددُ المعدود.** «بقي ٧ بندًا»
+         * خطأٌ في خمسٍ من ستّ صيغ، و`Quantity` مكوّنٌ لا يبلغ نصًّا —
+         * فالعددُ بين قوسين بعد اسمه، والخاناتُ على `displayDigits`.
+         */
+        const missing = payload?.error?.fields?.missing;
+        setToast(
+          missing === undefined
+            ? 'تعذّر الإرسال.'
+            : `بنودٌ بلا جواب (${displayDigits(missing)})`,
+        );
+        return;
+      }
+      window.location.reload();
+    });
   };
 
   const setNote = (item: DraftItem, note: string): void => {
@@ -202,6 +233,37 @@ export function InspectionForm({ view }: { view: DraftView }) {
           );
         })}
       </div>
+
+      {/*
+        ═══ والإرسالُ بعد الاكتمال لا قبله ═══
+
+        المواصفة تشترط أنّ كلّ بندٍ أُجيب — وسببُه أنّ بندًا بلا جواب
+        يُقرأ على أنه سليم، فتخرج درجةٌ مبنيّةٌ على ما لم يُفحَص.
+        **والزرُّ يقول كم بقي** لا «غير مكتمل»: رقمٌ يُتصرَّف فيه.
+      */}
+      {!view.editable ? null : (
+        <div className="mt-6 rounded-lg border border-line bg-surface p-4">
+          <Button
+            className="w-full"
+            disabled={answered < view.total}
+            onClick={submit}
+          >
+            {answered < view.total ? (
+              <span className="flex flex-col items-center gap-0.5 leading-tight">
+                <span>أكمِل البنود لتُرسل</span>
+                <span className="font-num text-3xs opacity-75">
+                  بقي <ArabicNumber value={view.total - answered} />
+                </span>
+              </span>
+            ) : (
+              'أرسل التقرير للمراجعة'
+            )}
+          </Button>
+          <p className="mt-2.5 text-3xs leading-loose opacity-70">
+            بعد الإرسال <b>لا تُعدَّل</b> حتى تُعاد إليك بملاحظة.
+          </p>
+        </div>
+      )}
 
       {toast === null ? null : <Toast title={toast} />}
     </>
