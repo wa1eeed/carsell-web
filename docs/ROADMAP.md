@@ -28,6 +28,7 @@ below against it, not instead of it.
 | 3 | The services vertical and the two gateways | 1 of 8 steps done |
 | 4 | The dealer panel | deferred by the owner, fully specified |
 | 5 | Drop the two-approval requirement in the admin panel | owner's decision, sequenced after the above |
+| 6 | **A provider's 360° profile — same context as a customer and a dealer** | requested 2026-10-17, see below |
 
 ---
 
@@ -556,6 +557,47 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       `docs/workflows/service-request.md`.
 - [ ] **Sharing or selling a private report to the seller** — the decision says
       publishing comes later, and that a published report is never retracted.
+
+## 6 · A provider's 360° profile — *requested 2026-10-17*
+
+> «أليس من المفترض ان يكون لهم صفحة خاصه مثل ما للعملاء و التجار صفحه ..
+> بحيث يمكننا مشاهدة تفاصيلهم و الطلبات التي تمت لصالحهم و المنفذة منها و
+> غير المنفذة و كذلك رصيد حسابهم لدينا .. يعني كأفضل تجربة اعتقد ان وجود
+> صفحه لهم بنفس سياق العملاء و التجار يجعلنا نديرهم بشكل افضل و ناخذ نظرة
+> شمولية حولهم ٣٦٠ درجة بشكل افضل كذلك يكون لهم كشف حساب و امكانية اضافة
+> ديبت او كريدت لحسابهم»
+
+A provider is a third party we owe money to and take commission from, so it
+needs what a customer and a dealer already have: **one page that answers every
+question about them**, a statement of account, and a manual entry when one is
+needed.
+
+What the owner asked for, item by item:
+
+- [x] Their details — in the same shape as the customer and dealer profiles.
+- [x] **Every request carried out for them**, split into done and not done.
+- [x] **Their balance with us.**
+- [x] **A statement of account** (كشف حساب).
+- [x] **Posting a debit or a credit** to that account by hand — second approver
+      required, as for a customer's wallet.
+- [ ] **How the money actually reaches them** — nothing debits `PROVIDER_PAYABLE`
+      yet, so the balance is everything ever earned, not what is still owed. The
+      manual entry covers it until the answer arrives; see `docs/OPEN-QUESTIONS.md`.
+
+And the standing instruction that came with it:
+
+> «ابغى المنصة تكون ١٠٠٪ متكامله ولا ينقصها البديهيات»
+
+— the basics are not to be waited for. Where a party exists, the page that
+manages it exists too, with the same depth as its siblings.
+
+**Blocking question already open against this:** today the ledger says a
+provider's money is *not* held by us (`recordServiceCaptured` moves it to
+`ESCROW_AT_PROVIDER`; the screen reads «رصيدُه ليس عندنا — المال يذهب إليه من
+البوّابة مباشرةً»). A balance and a statement mean we do keep an account for
+them. See `docs/OPEN-QUESTIONS.md`.
+
+---
 
 ## 4 · The dealer panel — *deferred by the owner, fully specified*
 

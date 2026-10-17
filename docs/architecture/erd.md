@@ -1659,6 +1659,7 @@ Relations: `order` → `Order`
 | `orderId` | `String?` |  |
 | `paymentId` | `String?` |  |
 | `userId` | `String?` |  |
+| `providerId` | `String?` |  |
 | `note` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
@@ -1707,7 +1708,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`
 - `IntegrationStatus` — `ACTIVE`, `INACTIVE`, `DEGRADED`
-- `ApprovalKind` — `ESCROW_RELEASE`, `SELLER_PAYOUT`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
+- `ApprovalKind` — `ESCROW_RELEASE`, `SELLER_PAYOUT`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PROVIDER_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
 - `ApprovalStatus` — `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`, `EXECUTED`
 - `CampaignStatus` — `DRAFT`, `SCHEDULED`, `RUNNING`, `SENT`, `CANCELLED`
 - `PaymentPurpose` — `VEHICLE_ESCROW`, `AUCTION_DEPOSIT`, `WALLET_TOPUP`, `SERVICE_PURCHASE`, `TRANSFER_FEE`, `SUBSCRIPTION`

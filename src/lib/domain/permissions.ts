@@ -29,6 +29,7 @@ export type Permission =
   | 'integrations.rotateKeys'
   | 'audit.view'
   | 'wallet.adjust'
+  | 'providers.adjust'
   /// تحويل مستحقّات بائعٍ إلى آيبانه — مالٌ يخرج ولا يُستردّ
   | 'payouts.send'
   | 'team.manage';
@@ -46,6 +47,11 @@ export const DUAL_APPROVAL: ReadonlySet<Permission> = new Set([
   // مالُ عميلٍ لا يمسّه واحد — والمنحة كالإفراج
   'wallet.adjust',
   /**
+   * **وحسابُ المزوّد مالُ طرفٍ ثالث**: دَينٌ علينا لجهةٍ خارجية، وقيدٌ
+   * بيدٍ واحدة فيه يُنقص ما لها أو يزيده بلا شاهد. وهو كالمحفظة لا دونها.
+   */
+  'providers.adjust',
+  /**
    * **والتحويل أخطر من المنحة**: المنحة رصيدٌ داخليّ يُعدَّل بقيدٍ
    * مضادّ، والحوالة تخرج إلى بنكٍ خارج النظام فلا تُستردّ بقيد.
    */
@@ -62,6 +68,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'serviceRequests.handle': true, 'notifications.manage': true,
     'integrations.view': true, 'integrations.rotateKeys': true,
     'audit.view': true, 'team.manage': true, 'wallet.adjust': true,
+    'providers.adjust': true,
     'payouts.send': true,
   },
   OPS: {
@@ -75,7 +82,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'dashboard.view': true, 'finance.view': true, 'orders.view': true,
     'escrow.release': true, 'services.manage': true, 'audit.view': 'read',
     // المالية تطلب وتوافق — والنصاب اثنان من هذين الدورين
-    'wallet.adjust': true, 'payouts.send': true,
+    'wallet.adjust': true, 'payouts.send': true, 'providers.adjust': true,
   },
   SUPPORT: {
     'dashboard.view': true, 'orders.view': true, 'users.view': true,
@@ -124,6 +131,7 @@ export const PERMISSION_LIST: readonly Permission[] = [
   'reports.handle', 'catalog.manage', 'catalog.uploadLogo', 'services.manage',
   'serviceRequests.handle', 'notifications.manage', 'integrations.view',
   'integrations.rotateKeys', 'team.manage', 'audit.view', 'wallet.adjust',
+  'providers.adjust',
   'payouts.send',
 ];
 

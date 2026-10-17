@@ -2003,6 +2003,8 @@ enum ApprovalKind {
   TAX_RULE_CHANGE
   /// إضافة رصيدٍ لعميل أو خصمُه — مالُ عميلٍ لا يمسّه واحد
   WALLET_ADJUSTMENT
+  /// قيدٌ يدويّ على حساب مزوّد — دَينٌ علينا لطرفٍ ثالث، وكالمحفظة لا دونها
+  PROVIDER_ADJUSTMENT
 
   /// ═══ وثلاثٌ معرَّفةٌ بلا مسار — **عمدًا، لا سهوًا** ═══
   ///
@@ -2711,11 +2713,16 @@ model LedgerEntry {
   paymentId String?
   /// صاحب الحقّ حين يكون للقيد صاحب — البائع أو المشتري
   userId    String?
+  /// صاحبُه حين يكون مزوّدًا — **وهو غيرُ `userId`**: ذاك موصوفٌ
+  /// بالبائع أو المشتري، ووسمُ المزوّد به يجعل جمعَ «ما على العميل»
+  /// يعدّ دَينَ المزوّد معه. وبه وحده يُبنى كشفُ حسابه ورصيدُه.
+  providerId String?
   note      String?
   createdAt DateTime        @default(now())
 
   @@index([txnId])
   @@index([account, createdAt])
   @@index([userId, createdAt])
+  @@index([providerId, createdAt])
   @@index([orderId])
 }

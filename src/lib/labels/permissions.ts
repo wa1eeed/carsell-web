@@ -28,7 +28,7 @@ export const PERMISSION_MODULES: readonly {
   },
   {
     title: 'المال والضمان',
-    permissions: ['finance.view', 'escrow.release', 'payouts.send', 'wallet.adjust'],
+    permissions: ['finance.view', 'escrow.release', 'payouts.send', 'wallet.adjust', 'providers.adjust'],
   },
   {
     title: 'العملاء والهوية',
@@ -62,6 +62,7 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   'escrow.release': 'الإفراج عن الضمان',
   'payouts.send': 'تحويل مستحقّات البائع',
   'wallet.adjust': 'تسوية رصيد محفظة',
+  'providers.adjust': 'تسوية حساب مزوّد',
 
   'users.view': 'العملاء',
   'users.viewIdentity': 'توثيق الهوية — عرض المستند',

@@ -352,3 +352,14 @@ export const IDENTITY_STATUS_LABEL: Record<string, string> = {
   VERIFIED: 'موثّق',
   REJECTED: 'مرفوض',
 };
+
+
+/**
+ * أحداثُ حساب المزوّد بالعربية — **والنطاق يعيد مفاتيح لا جُملًا**،
+ * فالصياغة هنا كما تقول القاعدة.
+ */
+export const PROVIDER_EVENT_LABEL: Readonly<Record<string, string>> = {
+  'service.provider_due': 'استُحقّ عن خدمة',
+  'provider.admin_credit': 'قيدٌ يدويّ — زيادة',
+  'provider.admin_debit': 'قيدٌ يدويّ — خصم',
+};

@@ -335,6 +335,7 @@ export async function applyStep(
         adminFee: true,
         vatAmount: true,
         paymentId: true,
+        providerId: true,
         service: { select: { nameAr: true } },
       },
     });
@@ -360,6 +361,7 @@ export async function applyStep(
             total: row.amount,
             platformFee: row.adminFee,
             vat: row.vatAmount,
+            providerId: row.providerId,
           },
           now,
         );

@@ -293,6 +293,11 @@ export type ServiceMoney = {
   platformFee: Prisma.Decimal | number | string;
   /** ضريبةُ التوريد كلِّه — لقطةُ الطلب */
   vat: Prisma.Decimal | number | string;
+  /**
+   * **ودَينُ المزوّد يحمل اسمه.** كان يُقيَّد بلا صاحب، فنعرف كم علينا
+   * للمزوّدين مجموعين ولا نعرف لمن — ولا كشفَ حسابٍ يُبنى من مجموع.
+   */
+  providerId?: string | null;
 };
 
 /**
@@ -411,6 +416,8 @@ export async function recordServiceEarned(
           direction: 'CREDIT',
           amount: providerNet,
           note: input.ref,
+          /** **والاسمُ على الطرف الذي يخصّه**: `PROVIDER_COST` حسابُنا نحن. */
+          providerId: input.providerId ?? null,
         },
       ],
     },

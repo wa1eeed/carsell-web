@@ -38,6 +38,8 @@ export type Posting = {
   /** موجبٌ دائمًا — والاتّجاه يقوله `direction` لا الإشارة */
   amount: Prisma.Decimal | number | string;
   userId?: string | null;
+  /** صاحبُه حين يكون مزوّدًا — وبه يُبنى كشفُ حسابه. */
+  providerId?: string | null;
   note?: string | null;
 };
 
@@ -96,6 +98,7 @@ export async function postEntries(
       orderId: input.orderId ?? null,
       paymentId: input.paymentId ?? null,
       userId: posting.userId ?? null,
+      providerId: posting.providerId ?? null,
       note: posting.note ?? null,
       createdAt: now,
     })),
