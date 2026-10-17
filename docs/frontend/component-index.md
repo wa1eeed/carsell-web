@@ -33,7 +33,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 10 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 10 |
 | `DetailStats` | no | `items` | 12 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 110 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 117 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -76,7 +76,7 @@ rather than found by chance.
 | `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
 | `SpecStrip` | no | `items` | 1 |
 | `Choice` | yes | `options` · `active` · `onSelect` | 2 |
-| `Note` | yes | `children` | 88 |
+| `Note` | yes | `children` | 95 |
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
 | `SettingsBlock` | yes | `title` · `children` | 2 |
@@ -159,7 +159,7 @@ rather than found by chance.
 | `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 76 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
-| `PaintMap` | no | `panels` · `className` | 1 |
+| `PaintMap` | no | `panels` · `className` | 3 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 2 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |

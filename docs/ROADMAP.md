@@ -30,7 +30,7 @@ below against it, not instead of it.
 | 5 | Drop the two-approval requirement in the admin panel | owner's decision, sequenced after the above |
 | 6 | **A provider's 360° profile — same context as a customer and a dealer** | requested 2026-10-17, see below |
 | 7 | **The provider panel: one panel, per-type completion fields** | requested 2026-10-17, see below |
-| 8 | **Vehicle inspection: the inspector enters it, the admin publishes it** | full spec pasted 2026-10-17, plan awaiting approval |
+| 8 | **Vehicle inspection: the inspector enters it, the admin publishes it** | spec 2026-10-17, **plan approved**, building |
 
 ---
 
@@ -568,7 +568,22 @@ entered from the **service provider dashboard** by a provider of type Inspector
 as an "Inspection Report" tab beside "Car Information".
 
 **Its step 0 says: explore, present a plan, and wait for approval before
-writing code.** That is being followed — this row is the record, not the work.
+writing code.** That was followed; the plan was approved on 2026-10-17 with
+three answers, recorded in `docs/DESIGN-DECISIONS.md` §13:
+
+- **Freeze the report as a snapshot** on submit (rows to edit, snapshot to keep).
+- **Use the existing `ServiceRequest`** — no second queue.
+- **Notifications deferred** — providers have no notification channel at all yet.
+
+### Order of work
+
+1. [ ] Template tables + seed from the existing 210 points
+2. [ ] Inspector-only access control + draft creation
+3. [ ] The entry form in the provider panel
+4. [ ] Scoring service with its tests
+5. [ ] Admin review: return / approve / publish
+6. [ ] Template management in the admin panel
+7. [ ] Public summary block and "what we found"
 
 ### What already exists (measured 2026-10-17, before planning)
 

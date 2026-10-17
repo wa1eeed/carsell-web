@@ -1094,8 +1094,12 @@ model Service {
   /// يقابله لا بوصفٍ عامّ.
   ///
   /// ومصفوفةُ نصوصٍ لا جدولٌ: بنودٌ تُعرض بترتيبها ولا يُستعلم عنها.
-  includesAr  String[]
-  includesEn  String[]
+  /// **والافتراضيّ في المخطّط لا في القاعدة وحدها.** كان العمودان
+  /// يحملان `DEFAULT '{}'` في القاعدة ولا يُعلنه المخطّط، و`createService`
+  /// لا تمرّرهما — فأوّلُ ترحيلٍ يُوائم القاعدة بالمخطّط يُسقط إنشاء أيّ
+  /// خدمة. وانحرافٌ يعمل بالصدفة ينتظر من يُصلح غيره ليظهر.
+  includesAr  String[] @default([])
+  includesEn  String[] @default([])
 
   category    ServiceCategory
   /// ═══ صنفُ من يؤدّيها — وبه يُعرف طابورُ المدينة ═══
@@ -1177,6 +1181,7 @@ model ServiceRequest {
   @@index([status, dueAt])
   // شاشةُ المزوّد تُرتَّب بالموعد لا بالمهلة
   @@index([scheduledAt])
+  inspectionDraft InspectionDraft?
 }
 
 /// ═══ حالُ طلب الخدمة — ورحلةٌ ثلاثية الأطراف ═══
@@ -1200,6 +1205,178 @@ enum ServiceRequestStatus {
   DONE
   FAILED
   REFUNDED
+}
+
+/// ═══ قالبُ الفحص — بياناتٌ لا شيفرة ═══
+///
+/// الـ٢١٠ نقطة كانت **ملفَّ بذرة** (`inspection-points.json`): إضافةُ
+/// بندٍ تحتاج نشرًا، وتعديلُ صياغةٍ كذلك. وقرار المالك (٢٠٢٦-١٠-١٧)
+/// أن تُحرَّر من اللوحة.
+///
+/// **والنسخةُ تُحفظ في التقرير لا تُقرأ منه.** تقريرٌ صدر بقالبٍ
+/// إصدارُه ٣ يبقى مقروءًا كما صدر ولو صار القالب ٧ — واللقطةُ في
+/// `InspectionReport.sections` هي ما يُعرض، وهذه الجداول لإدخاله.
+model InspectionTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  /// يرتفع مع كل تغييرٍ منشور — ويُكتب في التقرير لقطةً
+  version   Int      @default(1)
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  categories InspectionCategory[]
+  drafts     InspectionDraft[]
+
+  @@index([isActive])
+}
+
+model InspectionCategory {
+  id         String @id @default(cuid())
+  templateId String
+  /// ثابتٌ لا يُعدَّل — به تُطابَق اللقطةُ القديمة بالقالب الجديد
+  key        String
+  nameAr     String
+  nameEn     String
+  /// أيقونةُ الملخّص في صفحة المركبة — مفتاحٌ لا مسار
+  icon       String?
+  /// وزنُ القسم في الدرجة الكلّية
+  weight     Int    @default(1)
+  sort       Int    @default(0)
+
+  template InspectionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  items    InspectionItem[]
+
+  @@unique([templateId, key])
+  @@index([templateId, sort])
+}
+
+enum InspectionInputType {
+  /// سليم · ملاحظة · عطل · لا ينطبق — وهي الغالبة
+  STATUS
+  NUMBER
+  TEXT
+  SELECT
+}
+
+model InspectionItem {
+  id         String              @id @default(cuid())
+  categoryId String
+  key        String
+  nameAr     String
+  nameEn     String
+  inputType  InspectionInputType @default(STATUS)
+  /// خياراتُ `SELECT` — وتُترك فارغةً لغيره
+  options    Json?
+  /// وحدةُ `NUMBER` — مم · ٪ · فولت
+  unit       String?
+  /// **بندٌ حرج**: عطلُه يسقف التقدير ويَسِم التقرير
+  isCritical Boolean             @default(false)
+  sort       Int                 @default(0)
+
+  category InspectionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  results  InspectionDraftResult[]
+
+  @@unique([categoryId, key])
+  @@index([categoryId, sort])
+}
+
+/// حالُ المسودّة — ومنها يُعرف من يملك التعديل الآن.
+enum InspectionDraftStatus {
+  /// الفاحصُ يحرّر
+  DRAFT
+  /// أُرسلت — فلا يعدّلها الفاحص
+  SUBMITTED
+  /// أعادها الأدمن بملاحظة — فتعود للفاحص
+  RETURNED
+  /// اعتُمدت وصدر التقرير — ولا تُعدَّل بعدها
+  APPROVED
+}
+
+/// ═══ المسودّة تُحرَّر، والتقريرُ يُجمَّد ═══
+///
+/// قرار المالك (٢٠٢٦-١٠-١٧): صفوفٌ تُحرَّر أثناء العمل، **ولقطةٌ
+/// تُحفظ عند الإرسال** في `InspectionReport.sections` — وهي ما يقرؤه
+/// العرضُ العامّ منذ بُني. فمن يعدّل القالب بعد سنةٍ لا يُغيّر تقريرًا
+/// صدر، وهو مسلكُ `TaxInvoice` و`VehicleSaleAgreement`.
+model InspectionDraft {
+  id               String                @id @default(cuid())
+  serviceRequestId String                @unique
+  templateId       String
+  vehicleId        String
+  providerId       String
+  /// من ملأها من موظّفي المزوّد — والمزوّد منشأة
+  providerUserId   String?
+  status           InspectionDraftStatus @default(DRAFT)
+  odometerKm       Int?
+  summaryAr        String?
+  /// ملاحظةُ الأدمن حين يُعيدها — ويقرؤها الفاحص
+  returnNote       String?
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  template       InspectionTemplate    @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  serviceRequest ServiceRequest        @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  results        InspectionDraftResult[]
+  panels         InspectionDraftPanel[]
+  photos         InspectionDraftPhoto[]
+
+  @@index([providerId, status])
+  @@index([status, submittedAt])
+}
+
+enum InspectionResultState {
+  PASS
+  MINOR
+  MAJOR
+  NOT_APPLICABLE
+}
+
+model InspectionDraftResult {
+  id      String                @id @default(cuid())
+  draftId String
+  itemId  String
+  state   InspectionResultState
+  /// قيمةُ `NUMBER` أو `TEXT` أو `SELECT` — نصًّا، والوحدةُ في البند
+  value   String?
+  note    String?
+
+  draft InspectionDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  item  InspectionItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([draftId, itemId])
+  @@index([draftId])
+}
+
+model InspectionDraftPanel {
+  id                   String  @id @default(cuid())
+  draftId              String
+  /// مفتاحُ القطعة كما تعرفه `PaintMap` — `hood` · `roof` · …
+  panel                String
+  /// `original` · `repainted` · `replaced` — نصًّا كما يقرؤها العرض
+  condition            String
+  paintThicknessMicrons Int?
+  note                 String?
+
+  draft InspectionDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@unique([draftId, panel])
+}
+
+model InspectionDraftPhoto {
+  id      String  @id @default(cuid())
+  draftId String
+  /// البندُ الذي تخصّه — و`null` لصورةٍ عامّة
+  itemId  String?
+  r2Key   String
+  caption String?
+  sort    Int     @default(0)
+
+  draft InspectionDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@index([draftId, sort])
 }
 
 model InspectionReport {

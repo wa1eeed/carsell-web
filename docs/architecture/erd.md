@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-85 models · 56 enums
+92 models · 59 enums
 
 ## Relationships
 
@@ -158,6 +158,25 @@ erDiagram
   ServiceRequest |o--|| Listing : "listing"
   ServiceRequest |o--|| Vehicle : "vehicle"
   ServiceRequest |o--|| InspectionReport : "inspectionReport"
+  ServiceRequest |o--|| InspectionDraft : "inspectionDraft"
+  InspectionTemplate ||--o{ InspectionCategory : "categories"
+  InspectionTemplate ||--o{ InspectionDraft : "drafts"
+  InspectionCategory }o--|| InspectionTemplate : "template"
+  InspectionCategory ||--o{ InspectionItem : "items"
+  InspectionItem }o--|| InspectionInputType : "inputType"
+  InspectionItem }o--|| InspectionCategory : "category"
+  InspectionItem ||--o{ InspectionDraftResult : "results"
+  InspectionDraft }o--|| InspectionDraftStatus : "status"
+  InspectionDraft }o--|| InspectionTemplate : "template"
+  InspectionDraft }o--|| ServiceRequest : "serviceRequest"
+  InspectionDraft ||--o{ InspectionDraftResult : "results"
+  InspectionDraft ||--o{ InspectionDraftPanel : "panels"
+  InspectionDraft ||--o{ InspectionDraftPhoto : "photos"
+  InspectionDraftResult }o--|| InspectionResultState : "state"
+  InspectionDraftResult }o--|| InspectionDraft : "draft"
+  InspectionDraftResult }o--|| InspectionItem : "item"
+  InspectionDraftPanel }o--|| InspectionDraft : "draft"
+  InspectionDraftPhoto }o--|| InspectionDraft : "draft"
   InspectionReport }o--|| ServiceRequest : "serviceRequest"
   InspectionReport }o--|| Vehicle : "vehicle"
   Plan ||--o{ PlanEntitlement : "entitlements"
@@ -818,7 +837,109 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `declineReason` | `String?` |  |
 | `paymentId` | `String?` |  |
 
-Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport`
+Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport` · `inspectionDraft` → `InspectionDraft`
+
+### `InspectionTemplate`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `name` | `String` |  |
+| `version` | `Int` |  |
+| `isActive` | `Boolean` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `categories` → `InspectionCategory` · `drafts` → `InspectionDraft`
+
+### `InspectionCategory`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `templateId` | `String` |  |
+| `key` | `String` |  |
+| `nameAr` | `String` |  |
+| `nameEn` | `String` |  |
+| `icon` | `String?` |  |
+| `weight` | `Int` |  |
+| `sort` | `Int` |  |
+
+Relations: `template` → `InspectionTemplate` · `items` → `InspectionItem`
+
+### `InspectionItem`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `categoryId` | `String` |  |
+| `key` | `String` |  |
+| `nameAr` | `String` |  |
+| `nameEn` | `String` |  |
+| `options` | `Json?` |  |
+| `unit` | `String?` |  |
+| `isCritical` | `Boolean` |  |
+| `sort` | `Int` |  |
+
+Relations: `inputType` → `InspectionInputType` · `category` → `InspectionCategory` · `results` → `InspectionDraftResult`
+
+### `InspectionDraft`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `serviceRequestId` | `String` | unique |
+| `templateId` | `String` |  |
+| `vehicleId` | `String` |  |
+| `providerId` | `String` |  |
+| `providerUserId` | `String?` |  |
+| `odometerKm` | `Int?` |  |
+| `summaryAr` | `String?` |  |
+| `returnNote` | `String?` |  |
+| `submittedAt` | `DateTime?` |  |
+| `reviewedAt` | `DateTime?` |  |
+| `reviewedBy` | `String?` |  |
+| `createdAt` | `DateTime` |  |
+| `updatedAt` | `DateTime` |  |
+
+Relations: `status` → `InspectionDraftStatus` · `template` → `InspectionTemplate` · `serviceRequest` → `ServiceRequest` · `results` → `InspectionDraftResult` · `panels` → `InspectionDraftPanel` · `photos` → `InspectionDraftPhoto`
+
+### `InspectionDraftResult`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `draftId` | `String` |  |
+| `itemId` | `String` |  |
+| `value` | `String?` |  |
+| `note` | `String?` |  |
+
+Relations: `state` → `InspectionResultState` · `draft` → `InspectionDraft` · `item` → `InspectionItem`
+
+### `InspectionDraftPanel`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `draftId` | `String` |  |
+| `panel` | `String` |  |
+| `condition` | `String` |  |
+| `paintThicknessMicrons` | `Int?` |  |
+| `note` | `String?` |  |
+
+Relations: `draft` → `InspectionDraft`
+
+### `InspectionDraftPhoto`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `draftId` | `String` |  |
+| `itemId` | `String?` |  |
+| `r2Key` | `String` |  |
+| `caption` | `String?` |  |
+| `sort` | `Int` |  |
+
+Relations: `draft` → `InspectionDraft`
 
 ### `InspectionReport`
 
@@ -1697,6 +1818,9 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `InvoiceType` — `SALE`, `COMMISSION`, `SERVICE`, `SUBSCRIPTION`
 - `ServiceCategory` — `PRE_PURCHASE`, `POST_PURCHASE`, `SELLER`
 - `ServiceRequestStatus` — `AWAITING_SELLER`, `AWAITING_PAYMENT`, `DECLINED`, `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`
+- `InspectionInputType` — `STATUS`, `NUMBER`, `TEXT`, `SELECT`
+- `InspectionDraftStatus` — `DRAFT`, `SUBMITTED`, `RETURNED`, `APPROVED`
+- `InspectionResultState` — `PASS`, `MINOR`, `MAJOR`, `NOT_APPLICABLE`
 - `CommissionSide` — `BUYER`, `SELLER`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
