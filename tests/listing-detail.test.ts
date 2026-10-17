@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
+import { computeOrderAmounts } from '@/lib/domain/order-amounts';
 import {
   canonicalPath,
   faqForListing,
@@ -215,6 +216,54 @@ describe('التكلفة والصبغ', () => {
     expect(Number(cost.total)).toBe(
       Number(cost.price) + Number(cost.commission) + Number(cost.transferFee),
     );
+  });
+
+  /**
+   * ═══ وما تقتبسه الصفحة هو ما يدفعه المشتري ═══
+   *
+   * **وثلاثُ فجواتٍ أخفاها صفر.** كانت الصفحة تحسب العمولة بنسخةٍ
+   * ثالثة من القاعدة، من `askPrice` **دائمًا** (والشاشة تعرض المزايدة
+   * الحيّة في المزاد)، ومن `findFirst` بلا طرفٍ ولا `enabled` — فتأخذ
+   * أحدثَ قاعدةٍ أيًّا كان صاحبُها وتضيفها إلى ما يدفعه المشتري.
+   *
+   * **فيُقتبَس له عمولةُ البائع**: ثمنٌ أعلى ممّا سيُطالَب به. ولم
+   * يظهر ما دامت النسبةُ صفرًا — صفرٌ من أيّ أساسٍ صفر — **ويظهر أوّلَ
+   * نسبةٍ يضبطها المشغّل من اللوحة**.
+   *
+   * والحكمُ على العلاقة: ما تقوله الصفحة = ما يحسبه الطلب.
+   */
+  it('والعمولةُ المقتبَسة هي التي سيحسبها الطلب', async () => {
+    const row = await findPublishedListing(await anyRef());
+    const { cost } = await toPublicDetail(row!);
+
+    const amounts = await computeOrderAmounts(db, Number(cost.price));
+    /** ما يُضاف إلى المشتري هو عمولتُه هو — لا عمولةُ البائع */
+    expect(Number(cost.commission)).toBeCloseTo(Number(amounts.buyerCommission), 2);
+    expect(Number(cost.total)).toBeCloseTo(
+      Number(cost.price) +
+        Number(amounts.buyerCommission) +
+        Number(cost.transferFee) +
+        Number(cost.transferAdminFee),
+      2,
+    );
+  });
+
+  /**
+   * **وأساسُ العمولة هو الرقم المعروض**: في المزاد المزايدةُ الحيّة لا
+   * السعرُ المطلوب — وإلّا قال السطرُ نسبةً غيرَ المضبوطة، والإجماليُّ
+   * جمع مزايدةً إلى عمولةٍ على رقمٍ لا يراه أحد.
+   */
+  it('وأساسُها الرقمُ المعروض حتى في المزاد', async () => {
+    const auctioned = await db.listing.findFirst({
+      where: { status: 'PUBLISHED', auction: { isNot: null } },
+      select: { ref: true },
+    });
+    if (auctioned === null) return;
+
+    const row = await findPublishedListing(auctioned.ref);
+    const { cost } = await toPublicDetail(row!);
+    const amounts = await computeOrderAmounts(db, Number(cost.price));
+    expect(Number(cost.commission)).toBeCloseTo(Number(amounts.buyerCommission), 2);
   });
 
   /** الفحص يتجاوز إقرار البائع، والمصدر يُعرض مع الحالة (قرار ١٦). */

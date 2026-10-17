@@ -342,12 +342,23 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
      */
     const buyerShare =
       order.processingFeeBearer === 'BUYER' ? Number(order.processingFee) : 0;
+    /**
+     * **و`commissionAmount` مجموعُ الطرفين، لا ما يدفعه المشتري.**
+     * كان هذا السطر يجمعه كلَّه — وهي بعينها القسمةُ التي أُصلحت في
+     * `computeOrderAmounts`: «عمولةٌ معلنة ٢٬٥٠٠ تأخذ ٥٬٠٠٠». وبقي
+     * الاختبار يثبّتها **لأنّ الصفر يُساوي المجموعَ بالجزء**، فمرّ
+     * أخضرَ أعمى حتى ضُبطت نسبةٌ حقيقية.
+     */
     expect(Number(order.totalAmount)).toBe(
       Number(order.agreedPrice) +
-        Number(order.commissionAmount) +
+        Number(order.buyerCommission) +
         Number(order.transferFee) +
         Number(order.transferAdminFee) +
         buyerShare,
+    );
+    /** ومجموعُ الطرفين إيرادُنا — لا ما يُطالَب به المشتري */
+    expect(Number(order.commissionAmount)).toBe(
+      Number(order.buyerCommission) + Number(order.sellerCommission),
     );
 
     /**

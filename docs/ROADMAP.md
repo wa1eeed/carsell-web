@@ -381,11 +381,24 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       card linked to `/admin/providers?q=<name>` and that page **reads no `q` and
       has no search box**, so the operator landed on all six and searched by eye —
       while `providerId` was in hand in the same condition. It opens the provider.
-- [ ] **Commission is seeded at zero, so take rate reads 0.0%.** Both
-      `CommissionRule` rows are `pct: 0` — deliberate, and `/admin/plans` can set
-      them — but a deployment that goes live without the owner's number earns
-      nothing on a vehicle sale and the dashboard says so in one figure. Needs the
-      owner's rate, not a code change.
+- [x] **Commission.** Confirmed by the owner 2026-10-17: «نسبة العمولة يتم
+      ضبطها من اعدادات الادمن حيث يمكن تغييرها متى اردنا ذلك و ليست مزروعه
+      داخل الكود». Walked it by clicking: setting a rate in `/admin/plans`
+      writes a **new dated rule** and leaves the old one, so orders already
+      placed keep the rate they were quoted.
+
+      **And setting a real rate exposed three money bugs that zero had hidden**
+      — zero of any base, from any side, under any rule, is zero:
+      the car page carried a **third copy** of the commission formula; it
+      computed on `askPrice` while displaying the **live bid** (so an auction
+      quoted 2.8% when 2.5% was set); and it picked the rule with `findFirst`
+      with no `side` and no `enabled` filter, **quoting the buyer the seller's
+      commission** — a total higher than they would ever be charged. A test in
+      `tests/offers.test.ts` was pinning the same double-charge relation and
+      passing green because `0 == 0`.
+      Development now seeds a working 2.5% (production still seeds zero —
+      nobody should invoice a number the owner has not set): **what is not
+      seeded is not seen.**
 - [x] **The buyer journey walked by clicking, end to end.** Browse → car → buy →
       tax dialog → order → pay → confirm receipt → escrow released. Every step
       worked: `/api/v1/orders` answered 428 and opened the tax dialog, saving it
@@ -665,8 +678,14 @@ never built:
       (reference data reaches a live database by migration, not by seed), and
       the seed gives the type a provider — a type with no provider refuses
       identically.
-- [ ] The inspection field list itself is **still owner-blocked** — recorded
-      long before this: «وحقولُه يزوّدنا بها المالك».
+- [x] **The inspection field list is not blocked and never was, after the spec
+      the owner pasted.** The template holds **210 points in six categories**,
+      and every one is added, removed, renamed or flagged critical from
+      `/admin/inspection-template` — each change bumps the version, and issued
+      reports keep their own snapshot. What actually needs the owner is
+      **category weights** (all `1` today, so a ruined chassis and worn tyres
+      both score 83) — asked in `docs/OPEN-QUESTIONS.md`, and answerable with
+      six clicks rather than a code change.
 - [x] **The field lists for the other seven types.** Asked, and the owner
       delegated: «افعل ما تراه احترافي و يناسب السوق السعودي». So they were
       rebuilt for this market rather than kept generic — a finance decision is

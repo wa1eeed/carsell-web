@@ -57,6 +57,30 @@ type Rule = {
  * تُصدَّر كي يستعملها محاكي A29: محاكاةٌ تُعيد حسابها بنفسها تُنتج
  * قاعدةً ثانية، فيقول المحاكي رقمًا ويكتب الطلبُ غيره.
  */
+/**
+ * ═══ أحدثُ قاعدةٍ سارية لطرفٍ بعينه ═══
+ *
+ * **والتصفية بـ`enabled` تقع هنا لا في الاستعلام.** والقواعد تُضاف
+ * ولا تُعدَّل — لأن الطلب يخزّن نسبته وقت إنشائه — فتعطيلُ عمولةٍ
+ * يكتب صفًّا جديدًا بـ`enabled: false`. ولو صفّى الاستعلام لسقط على
+ * **القاعدة الأقدم المفعَّلة**، فيُعطَّل الرسم فيعود من تلقاء نفسه
+ * بنسبةٍ قديمة، ولا شيء يقول إن التعطيل لم يقع.
+ *
+ * **وتُصدَّر لأنّ صفحة المركبة تُسعّر بها أيضًا**: كانت تقرأ
+ * `findFirst` بلا طرفٍ ولا `enabled`، فتأخذ أحدثَ قاعدةٍ أيًّا كان
+ * طرفُها وتضيفها إلى ما يدفعه المشتري — **فيُقتبَس له عمولةُ البائع**.
+ * وصفرٌ أخفى ذلك كلَّه.
+ *
+ * والقائمةُ مرتَّبةٌ تنازليًّا بـ`activeFrom` — وهو شرطُ الدالّة.
+ */
+export function activeRule(
+  rules: readonly (Rule & { side: string; enabled: boolean })[],
+  side: 'BUYER' | 'SELLER',
+): Rule | null {
+  const rule = rules.find((row) => row.side === side);
+  return rule === undefined || !rule.enabled ? null : rule;
+}
+
 export function commissionFrom(rule: Rule | null, price: number): number {
   if (rule === null) return 0;
   const raw = (price * Number(rule.pct)) / 100 + Number(rule.fixedFee);
@@ -94,13 +118,8 @@ export async function computeOrderAmounts(
    * **القاعدة الأقدم المفعَّلة**، فيُعطَّل الرسم فيعود من تلقاء نفسه
    * بنسبةٍ قديمة، ولا شيء يقول إن التعطيل لم يقع.
    */
-  const latest = (side: 'BUYER' | 'SELLER'): Rule | null => {
-    const rule = rules.find((row) => row.side === side);
-    return rule === undefined || !rule.enabled ? null : rule;
-  };
-
-  const sellerRule = latest('SELLER');
-  const buyerRule = latest('BUYER');
+  const sellerRule = activeRule(rules, 'SELLER');
+  const buyerRule = activeRule(rules, 'BUYER');
 
   const sellerCommission = commissionFrom(sellerRule, price);
   const buyerCommission = commissionFrom(buyerRule, price);

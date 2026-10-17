@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { activeRule, commissionFrom } from './order-amounts';
 import { cityLabel } from '@/lib/labels/cities';
 import { brandLabel, modelLabel, vehicleTitle } from './vehicle-title';
 import { buyNowAvailable } from './auctions';
@@ -515,11 +516,16 @@ export async function toPublicDetail(
   const report = row.vehicle.inspectionReports[0] ?? null;
   const price = Number(row.askPrice);
 
-  const [settings, platform, commissionRule, priceStat, dealerListings, highest] =
+  const [settings, platform, commissionRules, priceStat, dealerListings, highest] =
     await Promise.all([
       db.financeSetting.findUnique({ where: { id: 'default' } }),
       db.platformSetting.findUnique({ where: { id: 'default' } }),
-      db.commissionRule.findFirst({
+      /**
+       * **والقواعدُ كلُّها لا أحدثُها** — ثمّ يُنتقى طرفُ المشتري منها
+       * بالدالّة التي ينتقي بها الطلبُ نفسُه. و`findFirst` بلا طرفٍ
+       * كانت تأخذ أحدثَ صفٍّ أيًّا كان صاحبُه.
+       */
+      db.commissionRule.findMany({
         where: { scope: 'global', activeFrom: { lte: new Date() } },
         orderBy: { activeFrom: 'desc' },
       }),
@@ -550,16 +556,6 @@ export async function toPublicDetail(
       adminFee: platform?.transferAdminFee ?? 0,
     }),
   );
-  const commission =
-    commissionRule === null
-      ? 0
-      : Math.min(
-          Math.max(
-            (price * Number(commissionRule.pct)) / 100 + Number(commissionRule.fixedFee),
-            Number(commissionRule.minFee ?? 0),
-          ),
-          Number(commissionRule.maxFee ?? Number.MAX_SAFE_INTEGER),
-        );
 
   /**
    * حالة الصبغ: تقرير الفحص **يتجاوز** إقرار البائع (قرار ١٦)،
@@ -588,6 +584,30 @@ export async function toPublicDetail(
     row.auction === null
       ? price
       : Number(highestBid ?? row.auction.startPrice);
+
+  /**
+   * ═══ والعمولةُ على الأساس المعروض لا على سواه ═══
+   *
+   * كانت تُحسب من `askPrice` **دائمًا** بينما الشاشة تعرض المزايدة
+   * الحيّة — فصفحةُ مزادٍ تقول «السعر ٦٩٬١٢٥» و«العمولة ١٬٩٣٧٫٥»،
+   * وهي ٢٫٨٪ لا ٢٫٥٪ المضبوطة، **والإجماليُّ يجمع مزايدةً إلى عمولةٍ
+   * على رقمٍ لا يراه المشتري**.
+   *
+   * **ولم يظهر ما دامت النسبةُ صفرًا**: صفرٌ من أيّ أساسٍ صفر. فأوّلُ
+   * نسبةٍ يضبطها المشغّل تُظهره في كل صفحة مزاد — وهو ما وقع حين
+   * ضُبطت ٢٫٥٪ للقياس.
+   *
+   * **وعمولةُ المشتري وحدها** — وهي ما يُضاف إلى ما يدفعه. وعمولةُ
+   * البائع تُخصم من مستحقّه في كشف التسوية، فإضافتُها هنا تُقتبس
+   * للمشتري ثمنًا لن يُطالَب به، **أعلى ممّا سيدفع**. وكانت الشاشة
+   * تقرأ `findFirst` بلا طرفٍ ولا `enabled`، فتأخذ أحدثَ قاعدةٍ أيًّا
+   * كان صاحبُها.
+   *
+   * **والقاعدة تُكتب مرّة**: `commissionFrom` و`activeRule` هما
+   * نفسُهما اللتان يحسب بهما الطلبُ عند إنشائه — ونسخةٌ ثالثة هنا
+   * كانت تتباعد عنهما أوّل تعديل.
+   */
+  const commission = commissionFrom(activeRule(commissionRules, 'BUYER'), costBase);
 
   return {
     ref: row.ref,
