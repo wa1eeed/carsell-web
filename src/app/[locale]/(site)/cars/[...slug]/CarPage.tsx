@@ -569,6 +569,15 @@ export function CarPage({
                 <RangeBar
                   price={Number(detail.askPrice)}
                   stats={detail.priceStat}
+                  /*
+                    **وشريحةُ الممشى لا تُعرض اليوم** — وقد جُرّبت:
+                    الشريحةُ وسطٌ لا حدٌّ أعلى، فـ«حتى ٠ ألف كم» تصف
+                    صفرًا وتعني «دون الخمسة آلاف». ومع صفٍّ واحدٍ لكل
+                    مفتاح (كلُّ المزروع في الشريحة صفر) تُضيف ضجيجًا
+                    لا خبرًا. وتُعرض يوم يصل مزوّدُ البيانات بشرائحَ
+                    حقيقية — و`mileageBucket` يعود في `priceStat`
+                    جاهزًا لها.
+                  */
                   segment={[
                     vehicle.modelLabel,
                     String(vehicle.year),

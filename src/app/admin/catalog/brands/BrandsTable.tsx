@@ -203,10 +203,17 @@ export function BrandsTable({
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <span className="flex-1" />
-        {/* استيراد CSV في ترميز A12 وخارج نطاق المهمة ٧ */}
-        <Button variant="outline" disabled title="قريبًا — خارج نطاق هذه المهمة">
-          استيراد CSV
-        </Button>
+        {/*
+          ═══ وزرٌّ لا يُفعَّل أبدًا يُحذف ═══
+
+          كان هنا «استيراد CSV» معطَّلًا بعذرٍ داخليّ: «خارج نطاق هذه
+          المهمة». ويقرؤه المشغّل في كل مرّة فيتعلّم **تجاهُلَ
+          المعطَّل** — فيمرّ على «بانتظار آيبانه» بالعادة نفسها وهي
+          تقول له ما يفعل.
+
+          والميزةُ مسجَّلةٌ في `docs/ROADMAP.md` (استيراد الكتالوج)،
+          وزرُّها يعود يوم تُبنى. **والغيابُ أصدق من وعدٍ لا يقع.**
+        */}
         {canEdit ? (
           <Button onClick={() => setDraft({ ...EMPTY })}>أضف ماركة</Button>
         ) : null}

@@ -327,8 +327,6 @@ Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus
 | `lastSeenAt` | `DateTime?` |  |
 | `status` | `String` |  |
 | `passwordHash` | `String` |  |
-| `totpSecret` | `String?` |  |
-| `totpEnrolledAt` | `DateTime?` |  |
 | `failedAttempts` | `Int` |  |
 | `lockedUntil` | `DateTime?` |  |
 | `passwordChangedAt` | `DateTime` |  |

@@ -290,6 +290,19 @@ export type PublicListingDetail = {
      */
     scopedToCity: boolean;
     scopedToTrim: boolean;
+    /**
+     * شريحةُ الممشى التي طابقت — بآلاف الكيلومترات.
+     *
+     * **وكانت تُحسب ثمّ تُرمى.** السطرُ كان `void bucket` وبجواره
+     * تعليقٌ يقول «مطابقة تقريبية على شريحة الممشى» — **ولا مطابقةَ
+     * تقع**: `findFirst` يردّ أيّ شريحة. فسيارةٌ ممشاها مئتا ألفٍ
+     * تُقاس بإحصاء العشرة آلاف، ويقرأ صاحبُها أنّ سعره أعلى من
+     * السوق بكثير فيخفضه.
+     *
+     * ولم يظهر أثرُه لأنّ كلّ صفٍّ مزروعٍ في الشريحة صفر — ويظهر يوم
+     * يصل مزوّدُ البيانات. **والتعليقُ يَعِد كما يَعِد النصّ.**
+     */
+    mileageBucket: number;
   } | null;
 };
 
@@ -781,7 +794,13 @@ export async function priceStatFor(vehicle: {
   ];
 
   for (const candidate of candidates) {
-    const row = await db.priceStat.findFirst({
+    /**
+     * **والأقربُ يُختار بالقياس لا بالصدفة.** `findFirst` يردّ أيّ
+     * شريحةٍ من شرائح المفتاح، فتُقاس سيارةٌ بإحصاء شريحةٍ أخرى.
+     * والصفوفُ لكل مفتاحٍ قليلة، فاختيارُ الأقرب في الذاكرة أصدقُ من
+     * ترتيبٍ لا تملكه القاعدة على فارقٍ مطلق.
+     */
+    const rows = await db.priceStat.findMany({
       where: {
         modelId: vehicle.modelId,
         year: vehicle.year,
@@ -790,9 +809,16 @@ export async function priceStatFor(vehicle: {
       },
       orderBy: { computedAt: 'desc' },
     });
-    if (row === null || row.sampleSize < PRICE_STAT_MIN_SAMPLE) continue;
-    // مطابقة تقريبية على شريحة الممشى — الأقرب لا الأدقّ
-    void bucket;
+
+    const eligible = rows.filter((candidateRow) => candidateRow.sampleSize >= PRICE_STAT_MIN_SAMPLE);
+    if (eligible.length === 0) continue;
+
+    const row = eligible.reduce((nearest, candidateRow) =>
+      Math.abs(candidateRow.mileageBucket - bucket) < Math.abs(nearest.mileageBucket - bucket)
+        ? candidateRow
+        : nearest,
+    );
+
     return {
       p10: Number(row.p10),
       p25: Number(row.p25),
@@ -803,6 +829,7 @@ export async function priceStatFor(vehicle: {
       daysToSellMedian: row.daysToSellMedian,
       scopedToCity: candidate.city !== '*',
       scopedToTrim: candidate.trimId !== '*',
+      mileageBucket: row.mileageBucket,
     };
   }
   return null;

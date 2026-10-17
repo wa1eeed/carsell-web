@@ -412,3 +412,54 @@ describe('أقسامُ الفحص تحمل مفتاحَها وحالَها', () 
     }
   });
 });
+
+/**
+ * ═══ إحصاءُ السوق يصف شريحةَ هذه السيارة ═══
+ *
+ * الشريحةُ كانت تُحسب ثمّ **تُرمى** (`void bucket`) وبجوارها تعليقٌ
+ * يقول «مطابقة تقريبية على شريحة الممشى» — ولا مطابقةَ تقع، فيردّ
+ * `findFirst` أيَّ شريحة. فسيارةٌ ممشاها مئتا ألفٍ تُقاس بإحصاء
+ * العشرة آلاف، ويقرأ صاحبُها أنّ سعره أعلى من السوق فيخفضه.
+ */
+describe('إحصاءُ السعر يختار أقربَ شريحةِ ممشى', () => {
+  const made: string[] = [];
+
+  afterAll(async () => {
+    if (made.length > 0) await db.priceStat.deleteMany({ where: { id: { in: made } } });
+  });
+
+  it('سيارةٌ عالية الممشى تُقاس بشريحتها لا بأيّ شريحة', async () => {
+    const model = await db.model.findFirstOrThrow({ select: { id: true } });
+    const year = 1990; // سنةٌ لا يزرعها شيء — فلا يختلط المزروع بالمصنوع
+
+    const low = await db.priceStat.create({
+      data: {
+        modelId: model.id, year, trimId: '*', city: '*',
+        mileageBucket: 10, p10: 10_000, p25: 20_000, p50: 30_000,
+        p75: 40_000, p90: 50_000, sampleSize: 99, daysToSellMedian: 20, computedAt: new Date(),
+      },
+    });
+    const high = await db.priceStat.create({
+      data: {
+        modelId: model.id, year, trimId: '*', city: '*',
+        mileageBucket: 200, p10: 1_000, p25: 2_000, p50: 3_000,
+        p75: 4_000, p90: 5_000, sampleSize: 99, daysToSellMedian: 20, computedAt: new Date(),
+      },
+    });
+    made.push(low.id, high.id);
+
+    const { priceStatFor } = await import('@/lib/domain/listing-detail');
+
+    const cheap = await priceStatFor({
+      modelId: model.id, trimId: null, year, city: 'الرياض', mileageKm: 200_000,
+    });
+    expect(cheap?.mileageBucket).toBe(200);
+    expect(cheap?.p50).toBe(3_000);
+
+    const dear = await priceStatFor({
+      modelId: model.id, trimId: null, year, city: 'الرياض', mileageKm: 9_000,
+    });
+    expect(dear?.mileageBucket).toBe(10);
+    expect(dear?.p50).toBe(30_000);
+  });
+});

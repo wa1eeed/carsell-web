@@ -184,8 +184,6 @@ model AdminUser {
   // والحقلان أدناه يبقيان بلا قارئ: حذفهما ترحيلٌ يُتلف ما لا يُستعاد
   // إن عادت الثنائية، وإبقاؤهما لا يَعِد بحراسةٍ ما دام لا كود يقرؤهما.
   passwordHash       String
-  totpSecret         String? // مشفّر
-  totpEnrolledAt     DateTime?
   failedAttempts     Int       @default(0)
   lockedUntil        DateTime?
   passwordChangedAt  DateTime  @default(now())

@@ -52,7 +52,6 @@ describe('admin.provision — الإنشاء', () => {
     const admin = await db.adminUser.findUniqueOrThrow({ where: { email: EMAIL } });
     expect(admin.role).toBe('SUPER_ADMIN');
     // لا سرّ مصادقة يُولَّد — أُلغيت الثنائية بقرار المصمّم
-    expect(admin.totpEnrolledAt).toBeNull();
     // من ضبطها في البيئة اختارها — فلا يُطالَب بتغييرها عند أوّل دخول
     expect(admin.mustChangePassword).toBe(false);
     expect(await verifyPassword(STRONG, admin.passwordHash)).toBe(true);
