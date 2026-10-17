@@ -770,11 +770,16 @@ Asked which it was; the owner delegated: «افعل ما تراه احترافي
       «انقضى بلا ردّ» from «تمّت» — the difference measures a seller.
 - [x] The privacy promise already printed on the car page is now enforced
       where the data is fetched.
-- [ ] **A counter-proposal from the seller** («الأفضل بكرة بعد العصر») is not
-      built. A decline carries a reason and the buyer can request again, which
-      is complete but not the smoothest shape. Deliberate omission, recorded.
-- [ ] **A reminder before the slot.** The scheduler closes past viewings; it
-      does not remind either side the day before.
+- [x] **A counter-proposal from the seller.** Built the same day — a decline
+      alone *ends the conversation*, and a seller who cannot do Saturday but
+      can do Sunday had to refuse and hope the buyer asked again. It carries
+      the meeting point so it is a whole proposal, the turn moves to the buyer,
+      and what they first asked for is kept so the screen can show the
+      difference.
+- [x] **A reminder before the slot** — both parties, once,
+      `viewingReminderHours` (24h, tunable in `/admin/deadlines`) before a
+      confirmed slot. The notification row is its own "already sent" record;
+      no column was added.
 
 `docs/workflows/viewings.md`.
 

@@ -449,6 +449,16 @@ async function main(): Promise<void> {
   const broken = all.filter((row) => row.status >= 400 || row.status === 0);
   const redirects = all.filter((row) => row.status >= 300 && row.status < 400);
 
+  /**
+   * ═══ **والخادمُ البارد يُنقص العدد لا يُسقط شيئًا** ═══
+   *
+   * الوجهاتُ المعرَّفة تُزار كلُّها دائمًا، **والزحفُ على الروابط
+   * انتهازيّ**: خادم التطوير يُصيّر على مراحل، فصفحةٌ تُقرأ أثناء
+   * ترجمتها تُعطي روابط أقلّ. فقُرئ تشغيلٌ بعد `db:generate` ‹١٥٦
+   * مُقاسة› وقُرئ تاليه ‹٤٧٠›، **والفرقُ الخادمُ لا المنتج**.
+   *
+   * فشغّله مرّتين واقرأ الثانية، أو أحمِ الخادمَ قبل القياس.
+   */
   console.log(`وجهات معرَّفة: ${String(defined.length)} · مُقاسة: ${String(all.length)}`);
   console.log(`٢٠٠: ${String(all.filter((r) => r.status === 200).length)}`);
   console.log(`تحويل: ${String(redirects.length)} · ساقطة: ${String(broken.length)}\n`);

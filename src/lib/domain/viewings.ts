@@ -7,6 +7,7 @@ import {
   MIN_DECLINE_REASON,
   MIN_MEETING_POINT,
   slotEnd,
+  slotStart,
 } from './viewing-rules';
 
 /**
@@ -40,6 +41,8 @@ export type ViewingFailure =
   | 'NOT_PENDING'
   | 'REASON_REQUIRED'
   | 'MEETING_POINT_REQUIRED'
+  /** اقتراحُ البائع ينتظر المشتري — فلا يقبله البائعُ نفسُه */
+  | 'NOT_COUNTERED'
   | 'ALREADY_CLOSED';
 
 export type ViewingResult<T> = { ok: true; value: T } | { ok: false; reason: ViewingFailure };
@@ -89,7 +92,7 @@ export async function requestViewing(
     where: {
       listingId: listing.id,
       buyerId: input.buyerId,
-      status: { in: ['REQUESTED', 'CONFIRMED'] },
+      status: { in: ['REQUESTED', 'COUNTERED', 'CONFIRMED'] },
     },
   });
   if (open > 0) return { ok: false, reason: 'ALREADY_OPEN' };
@@ -203,6 +206,127 @@ export async function respondToViewing(
 }
 
 /**
+ * ═══ اقتراحٌ مضادّ من البائع ═══
+ *
+ * **والاعتذارُ وحده كان يُنهي الحوار**: بائعٌ لا يستطيع السبت ويستطيع
+ * الأحد يُضطرّ إلى الرفض، ثمّ ينتظر أن يعيد المشتري الطلب — وأكثرُهم
+ * لا يعيد. فاتّفاقٌ ممكنٌ يسقط لأن لا بابَ له.
+ *
+ * **ونقطةُ اللقاء تُكتب مع الاقتراح**: البائعُ يقترح موعدًا كاملًا لا
+ * نصفَه، فقبولُ المشتري يُنهي الحوار بلا جولةٍ ثالثة. وتبقى مخفيّةً
+ * حتى القبول كما في الحالة الأولى.
+ */
+export async function counterViewing(
+  input: {
+    ref: string;
+    sellerId: string;
+    onDate: string;
+    period: ViewingPeriod;
+    meetingPoint: string;
+  },
+  now: Date = new Date(),
+): Promise<ViewingResult<{ status: ViewingStatus }>> {
+  const row = await db.viewing.findUnique({
+    where: { ref: input.ref },
+    select: {
+      id: true,
+      sellerId: true,
+      buyerId: true,
+      status: true,
+      onDate: true,
+      period: true,
+      originalDate: true,
+      originalPeriod: true,
+    },
+  });
+  if (row === null) return { ok: false, reason: 'VIEWING_NOT_FOUND' };
+  if (row.sellerId !== input.sellerId) return { ok: false, reason: 'NOT_YOURS' };
+  if (row.status !== 'REQUESTED') return { ok: false, reason: 'NOT_PENDING' };
+
+  const meetingPoint = input.meetingPoint.trim();
+  if (meetingPoint.length < MIN_MEETING_POINT) {
+    return { ok: false, reason: 'MEETING_POINT_REQUIRED' };
+  }
+
+  const day = new Date(input.onDate);
+  if (Number.isNaN(day.getTime())) return { ok: false, reason: 'DATE_IN_PAST' };
+  const onDate = atMidnightUtc(day);
+  /** **والاقتراحُ يخضع لما يخضع له الطلب** — ولا يُقترح ما مضى */
+  if (slotEnd(onDate, input.period).getTime() <= now.getTime()) {
+    return { ok: false, reason: 'DATE_IN_PAST' };
+  }
+  const horizon = atMidnightUtc(new Date(now.getTime() + MAX_DAYS_AHEAD * 86_400_000));
+  if (onDate.getTime() > horizon.getTime()) return { ok: false, reason: 'DATE_TOO_FAR' };
+
+  const { count } = await db.viewing.updateMany({
+    where: { id: row.id, status: 'REQUESTED' },
+    data: {
+      status: 'COUNTERED',
+      onDate,
+      period: input.period,
+      meetingPoint,
+      respondedAt: now,
+      /**
+       * **وما طُلب أوّلًا يُحفظ مرّةً**: اقتراحٌ ثانٍ لا يقع (الحال
+       * `COUNTERED` لا تقبل اقتراحًا)، لكنّ الشرط يحمي من كتابة
+       * الاقتراح فوق الطلب لو فُتح الباب لاحقًا.
+       */
+      originalDate: row.originalDate ?? row.onDate,
+      originalPeriod: row.originalPeriod ?? row.period,
+    },
+  });
+  if (count === 0) return { ok: false, reason: 'NOT_PENDING' };
+
+  const { notify } = await import('./notifications');
+  await notify({
+    userId: row.buyerId,
+    templateKey: 'viewing.countered',
+    entityType: 'Viewing',
+    entityId: input.ref,
+    payload: { ref: input.ref },
+  });
+
+  return { ok: true, value: { status: 'COUNTERED' } };
+}
+
+/**
+ * ═══ وقبولُ المشتري للاقتراح ═══
+ *
+ * **والطرفُ الثاني يُبنى مع الأوّل**: اقتراحٌ يُرسَل ولا يُقبل هو نصفُ
+ * باب. ورفضُه إلغاءٌ (`cancelViewing`) — فلا حاجة إلى حالٍ ثالثة
+ * لشيءٍ واحد.
+ */
+export async function acceptCounter(
+  input: { ref: string; buyerId: string },
+  now: Date = new Date(),
+): Promise<ViewingResult<{ status: ViewingStatus }>> {
+  const row = await db.viewing.findUnique({
+    where: { ref: input.ref },
+    select: { id: true, buyerId: true, sellerId: true, status: true },
+  });
+  if (row === null) return { ok: false, reason: 'VIEWING_NOT_FOUND' };
+  if (row.buyerId !== input.buyerId) return { ok: false, reason: 'NOT_YOURS' };
+  if (row.status !== 'COUNTERED') return { ok: false, reason: 'NOT_COUNTERED' };
+
+  const { count } = await db.viewing.updateMany({
+    where: { id: row.id, status: 'COUNTERED' },
+    data: { status: 'CONFIRMED', respondedAt: now },
+  });
+  if (count === 0) return { ok: false, reason: 'NOT_COUNTERED' };
+
+  const { notify } = await import('./notifications');
+  await notify({
+    userId: row.sellerId,
+    templateKey: 'viewing.confirmed',
+    entityType: 'Viewing',
+    entityId: input.ref,
+    payload: { ref: input.ref },
+  });
+
+  return { ok: true, value: { status: 'CONFIRMED' } };
+}
+
+/**
  * ═══ الإلغاء — ولكلا الطرفين ═══
  *
  * ظروفُ الناس تتغيّر، **وبلا بابٍ للإلغاء يُترك الموعد قائمًا** فيذهب
@@ -221,12 +345,12 @@ export async function cancelViewing(
   const by: ViewingParty | null =
     row.buyerId === input.userId ? 'BUYER' : row.sellerId === input.userId ? 'SELLER' : null;
   if (by === null) return { ok: false, reason: 'NOT_YOURS' };
-  if (row.status !== 'REQUESTED' && row.status !== 'CONFIRMED') {
+  if (row.status !== 'REQUESTED' && row.status !== 'COUNTERED' && row.status !== 'CONFIRMED') {
     return { ok: false, reason: 'ALREADY_CLOSED' };
   }
 
   const { count } = await db.viewing.updateMany({
-    where: { id: row.id, status: { in: ['REQUESTED', 'CONFIRMED'] } },
+    where: { id: row.id, status: { in: ['REQUESTED', 'COUNTERED', 'CONFIRMED'] } },
     data: { status: 'CANCELLED', cancelledBy: by, respondedAt: now },
   });
   if (count === 0) return { ok: false, reason: 'ALREADY_CLOSED' };
@@ -254,7 +378,7 @@ export async function cancelViewing(
  */
 export async function closePastViewings(now: Date = new Date()): Promise<number> {
   const rows = await db.viewing.findMany({
-    where: { status: { in: ['REQUESTED', 'CONFIRMED'] } },
+    where: { status: { in: ['REQUESTED', 'COUNTERED', 'CONFIRMED'] } },
     select: { id: true, status: true, onDate: true, period: true },
   });
 
@@ -300,6 +424,12 @@ export type ViewingRow = {
   counterpartName: string | null;
   counterpartPhoneTail: string | null;
   buyerNote: string | null;
+  /**
+   * ما طلبه المشتري قبل اقتراح البائع — **فيقرأ الفرقَ لا الموعدَ
+   * الجديد وحده**، وإلّا رأى يومًا لم يطلبه ولا يعرف أنه بُدِّل.
+   */
+  originalDate: string | null;
+  originalPeriod: ViewingPeriod | null;
   meetingPoint: string | null;
   declineReason: string | null;
   cancelledBy: ViewingParty | null;
@@ -307,9 +437,15 @@ export type ViewingRow = {
   past: boolean;
 };
 
-/** ما يُنتظر منّي الآن — وبه تُرتَّب الشاشة ويُحسب العدّاد */
+/**
+ * ما يُنتظر منّي الآن — وبه تُرتَّب الشاشة ويُحسب العدّاد.
+ *
+ * **والدورُ ينتقل بالاقتراح المضادّ**: `REQUESTED` على البائع،
+ * و`COUNTERED` على المشتري — وعدّادٌ لا يفرّق بينهما يقول لأحدهما إنّ
+ * عليه فعلًا وليس عليه.
+ */
 export function awaitsMe(row: { status: ViewingStatus }, side: ViewingParty): boolean {
-  return side === 'SELLER' && row.status === 'REQUESTED';
+  return side === 'SELLER' ? row.status === 'REQUESTED' : row.status === 'COUNTERED';
 }
 
 const LIST_SELECT = {
@@ -318,6 +454,8 @@ const LIST_SELECT = {
   onDate: true,
   period: true,
   buyerNote: true,
+  originalDate: true,
+  originalPeriod: true,
   meetingPoint: true,
   declineReason: true,
   cancelledBy: true,
@@ -353,10 +491,21 @@ type ListRow = Prisma.ViewingGetPayload<{ select: typeof LIST_SELECT }>;
 function toRow(row: ListRow, side: ViewingParty, locale: string, now: Date): ViewingRow {
   const other = side === 'BUYER' ? row.seller : row.buyer;
   /**
-   * **والرقمُ لا يُكشف قبل التأكيد** — ولا نقطةُ اللقاء. فطلبٌ مرفوضٌ
-   * أو منتظِرٌ لا يُسرّب رقمَ من لم يقبل بعد.
+   * **والرقمُ لا يُكشف قبل التأكيد** — فطلبٌ مرفوضٌ أو منتظِرٌ لا
+   * يُسرّب رقمَ من لم يقبل بعد.
    */
   const open = row.status === 'CONFIRMED' || row.status === 'COMPLETED';
+  /**
+   * ═══ ونقطةُ اللقاء يراها كاتبُها دائمًا ═══
+   *
+   * **وهي بيانُه هو**: البائع يكتبها عند القبول أو مع اقتراحه، فحجبُها
+   * عنه حجبُ ما كتبه بيده. قِيس على الشاشة: اقترح موعدًا وكتب الموضع
+   * ثمّ لم يرَه — فلا يعرف ماذا وعد به إن سُئل.
+   *
+   * والمشتري يراها بعد التأكيد وحده، وهو الوعدُ المطبوع على صفحة
+   * المركبة.
+   */
+  const seesMeetingPoint = side === 'SELLER' || open;
   return {
     ref: row.ref,
     status: row.status,
@@ -371,7 +520,9 @@ function toRow(row: ListRow, side: ViewingParty, locale: string, now: Date): Vie
     counterpartName: other.name,
     counterpartPhoneTail: open ? other.phone.slice(-4) : null,
     buyerNote: row.buyerNote,
-    meetingPoint: open ? row.meetingPoint : null,
+    originalDate: row.originalDate?.toISOString() ?? null,
+    originalPeriod: row.originalPeriod,
+    meetingPoint: seesMeetingPoint ? row.meetingPoint : null,
     declineReason: row.declineReason,
     cancelledBy: row.cancelledBy,
     past: slotEnd(row.onDate, row.period).getTime() <= now.getTime(),
@@ -414,9 +565,77 @@ export async function viewingsFor(
  * ولم يمضِ وقتُها.
  */
 export async function viewingsAwaiting(userId: string, now: Date = new Date()): Promise<number> {
+  /**
+   * **والدورُ ينتقل بالاقتراح المضادّ**: ما ينتظره بصفته بائعًا
+   * (`REQUESTED`) وما ينتظره بصفته مشتريًا (`COUNTERED`) — وعدّادٌ
+   * يقرأ أحدهما يُسكت نصفَ ما عليه.
+   */
   const rows = await db.viewing.findMany({
-    where: { sellerId: userId, status: 'REQUESTED' },
+    where: {
+      OR: [
+        { sellerId: userId, status: 'REQUESTED' },
+        { buyerId: userId, status: 'COUNTERED' },
+      ],
+    },
     select: { onDate: true, period: true },
   });
   return rows.filter((row) => slotEnd(row.onDate, row.period).getTime() > now.getTime()).length;
+}
+
+/**
+ * ═══ التذكير قبل الموعد ═══
+ *
+ * **والتذكير يسبق لحظة الحاجة** (قاعدة في CLAUDE.md). موعدٌ اتُّفق
+ * عليه قبل أسبوعين يُنسى، فيذهب أحدُهما ولا يجد الآخر — وليس بينهما
+ * عقدٌ ولا مال، فلا شيء يُلزمهما غير أنهما تذكّرا.
+ *
+ * **والطرفان يُذكَّران**: من ينسى قد يكون أيَّهما.
+ *
+ * ولا عمودَ «ذُكِّر»: الإشعارُ نفسُه هو السجلّ — وهو شكلُ
+ * `remindPaymentDue` نفسه.
+ */
+export async function remindUpcomingViewings(now: Date = new Date()): Promise<number> {
+  const { deadline } = await import('./deadlines');
+  const hours = await deadline('viewingReminderHours');
+  const horizon = new Date(now.getTime() + hours * 3_600_000);
+
+  const rows = await db.viewing.findMany({
+    where: { status: 'CONFIRMED' },
+    select: { ref: true, buyerId: true, sellerId: true, onDate: true, period: true },
+  });
+
+  /** **وما بدأ ليس تذكيرًا** — والمقارنة على بداية الفترة لا نهايتها */
+  const due = rows.filter((row) => {
+    const start = slotStart(row.onDate, row.period).getTime();
+    return start > now.getTime() && start <= horizon.getTime();
+  });
+  if (due.length === 0) return 0;
+
+  const already = await db.notification.findMany({
+    where: {
+      templateKey: 'viewing.reminder',
+      entityType: 'Viewing',
+      entityId: { in: due.map((row) => row.ref) },
+    },
+    select: { entityId: true },
+  });
+  const sent = new Set(already.map((row) => row.entityId));
+
+  const fresh = due.filter((row) => !sent.has(row.ref));
+  if (fresh.length === 0) return 0;
+
+  const { notify } = await import('./notifications');
+  for (const row of fresh) {
+    for (const userId of [row.buyerId, row.sellerId]) {
+      await notify({
+        userId,
+        templateKey: 'viewing.reminder',
+        entityType: 'Viewing',
+        entityId: row.ref,
+        payload: { ref: row.ref },
+      });
+    }
+  }
+  /** ويُعيد عدد المواعيد المُذكَّر بها — لا عدد الإشعارات */
+  return fresh.length;
 }

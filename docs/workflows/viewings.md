@@ -50,14 +50,47 @@ has no daylight saving, so the offset is a constant +3.
             requestViewing
                   │
               REQUESTED ──── respondToViewing(accept)  ──→ CONFIRMED
-                  │     └─── respondToViewing(decline) ──→ DECLINED
+                  │     ├─── respondToViewing(decline) ──→ DECLINED
+                  │     └─── counterViewing ──→ COUNTERED ──┐
+                  │                                 │       │
+                  │                    acceptCounter (buyer)┘
+                  │                                 └──────────→ CONFIRMED
                   │
-      cancelViewing (either side) ─────────────────────→ CANCELLED
+  cancelViewing (either side, any open state) ───────────────→ CANCELLED
                   │
    closePastViewings (scheduler, slot has passed)
-                  ├── was REQUESTED ────────────────────→ EXPIRED
-                  └── was CONFIRMED ────────────────────→ COMPLETED
+          ├── was REQUESTED or COUNTERED ────────────────────→ EXPIRED
+          └── was CONFIRMED ─────────────────────────────────→ COMPLETED
+
+   remindUpcomingViewings (scheduler) — both parties, once,
+   `viewingReminderHours` before a CONFIRMED slot starts.
 ```
+
+### The counter — why it is not optional
+
+A decline alone **ends the conversation**. A seller who cannot do Saturday
+but can do Sunday had to refuse, and then wait for the buyer to ask again —
+and most do not. A possible agreement died because there was no door.
+
+The counter carries the meeting point, so it is a whole proposal rather than
+half of one: the buyer's acceptance ends the exchange instead of starting a
+third round. The turn moves with it — `REQUESTED` is the seller's, `COUNTERED`
+is the buyer's — and `viewingsAwaiting` counts both, because a counter that
+reads as "nothing to do" is a counter nobody answers.
+
+What the buyer first asked for is kept in `originalDate` / `originalPeriod`,
+so the screen can say «طلبتَ الاثنين بعد العصر، ويقترح البائع الخميس بعد
+العصر». Without it the buyer sees a day they never chose and has no way to
+know it was changed.
+
+A rejected counter is a cancel. There is no third status for one thing.
+
+### Who sees the meeting point
+
+The seller **wrote** it, so they always see it — withholding someone's own
+words from them is not privacy. The buyer sees it once the viewing is
+`CONFIRMED` or `COMPLETED`, which is the promise printed on the car page.
+Phone numbers are gated for both sides until confirmation.
 
 Every status has a writer. `EXPIRED` and `COMPLETED` are kept apart on
 purpose: **the difference is what measures a seller** — one who never
@@ -107,7 +140,7 @@ edited.
 
 ## Seeding
 
-All six statuses are seeded (`VIW-2026-9100`–`9105`), on the same account
+All seven statuses are seeded (`VIW-2026-9100`–`9106`), on the same account
 that holds an order with documents and a service request — so a single
 sign-in exercises every account surface. **What is not seeded is not seen**:
 a status no screen ever opens is where defects live for months.
@@ -116,4 +149,4 @@ Viewings are created through the real ref generator, so nothing
 distinguishes a test row from a seeded one by shape. `tests/global-setup.ts`
 therefore **counts** them rather than deleting them (a manual click-through
 creates real rows worth keeping), and `npm run trial:reset` removes
-everything past the seeded six.
+everything past the seeded seven.

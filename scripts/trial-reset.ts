@@ -83,7 +83,7 @@ async function removeOrder(orderId: string): Promise<void> {
 
 /** المزروعُ من مواعيد المعاينة — وما جاوزه أثرُ مشي */
 const SEEDED_VIEWING_REFS = Array.from(
-  { length: 6 },
+  { length: 7 },
   (_unused, n) => `VIW-2026-${String(9100 + n)}`,
 );
 

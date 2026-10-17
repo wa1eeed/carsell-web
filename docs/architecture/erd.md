@@ -165,6 +165,7 @@ erDiagram
   ServiceRequest ||--o{ ServiceCompletionField : "completion"
   Viewing }o--|| ViewingStatus : "status"
   Viewing }o--|| ViewingPeriod : "period"
+  Viewing |o--|| ViewingPeriod : "originalPeriod"
   Viewing |o--|| ViewingParty : "cancelledBy"
   Viewing }o--|| Listing : "listing"
   Viewing }o--|| User : "buyer"
@@ -858,13 +859,14 @@ Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `pr
 | `buyerId` | `String` |  |
 | `sellerId` | `String` |  |
 | `onDate` | `DateTime` |  |
+| `originalDate` | `DateTime?` |  |
 | `buyerNote` | `String?` |  |
 | `meetingPoint` | `String?` |  |
 | `declineReason` | `String?` |  |
 | `respondedAt` | `DateTime?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `status` → `ViewingStatus` · `period` → `ViewingPeriod` · `cancelledBy` → `ViewingParty` · `listing` → `Listing` · `buyer` → `User` · `seller` → `User`
+Relations: `status` → `ViewingStatus` · `period` → `ViewingPeriod` · `originalPeriod` → `ViewingPeriod` · `cancelledBy` → `ViewingParty` · `listing` → `Listing` · `buyer` → `User` · `seller` → `User`
 
 ### `ServiceCompletionField`
 
@@ -1863,7 +1865,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `DisputeStatus` — `OPEN`, `INVESTIGATING`, `RESOLVED_BUYER`, `RESOLVED_SELLER`, `CLOSED`
 - `InvoiceType` — `SALE`, `COMMISSION`, `SERVICE`, `SUBSCRIPTION`
 - `ServiceCategory` — `PRE_PURCHASE`, `POST_PURCHASE`, `SELLER`
-- `ViewingStatus` — `REQUESTED`, `CONFIRMED`, `DECLINED`, `CANCELLED`, `COMPLETED`, `EXPIRED`
+- `ViewingStatus` — `REQUESTED`, `COUNTERED`, `CONFIRMED`, `DECLINED`, `CANCELLED`, `COMPLETED`, `EXPIRED`
 - `ViewingPeriod` — `MORNING`, `NOON`, `AFTERNOON`, `EVENING`
 - `ViewingParty` — `BUYER`, `SELLER`
 - `ServiceRequestStatus` — `AWAITING_SELLER`, `AWAITING_PAYMENT`, `DECLINED`, `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`

@@ -2,8 +2,13 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUserFromCookies } from '@/lib/domain/account';
-import { cancelViewing, respondToViewing } from '@/lib/domain/viewings';
-import { VIEWING_MESSAGES } from '../route';
+import {
+  acceptCounter,
+  cancelViewing,
+  counterViewing,
+  respondToViewing,
+} from '@/lib/domain/viewings';
+import { VIEWING_MESSAGES } from '@/lib/api/viewing-messages';
 
 export const runtime = 'nodejs';
 
@@ -16,6 +21,19 @@ const Body = z.discriminatedUnion('action', [
     action: z.literal('decline'),
     reason: z.string().min(1).max(500),
   }),
+  /**
+   * **واقتراحٌ مضادّ بدل اعتذارٍ يُنهي الحوار**: بائعٌ لا يستطيع
+   * السبت ويستطيع الأحد كان يُضطرّ إلى الرفض. ويحمل نقطة اللقاء
+   * فيكون اقتراحًا كاملًا لا نصفَه.
+   */
+  z.object({
+    action: z.literal('counter'),
+    onDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    period: z.enum(['MORNING', 'NOON', 'AFTERNOON', 'EVENING']),
+    meetingPoint: z.string().min(1).max(300),
+  }),
+  /** وقبولُ المشتري للاقتراح — ورفضُه إلغاء */
+  z.object({ action: z.literal('accept-counter') }),
   /** **والإلغاء لكلا الطرفين** — ظروفُ الناس تتغيّر */
   z.object({ action: z.literal('cancel') }),
 ]);
@@ -43,6 +61,16 @@ export async function POST(
   const result =
     parsed.data.action === 'cancel'
       ? await cancelViewing({ ref: decoded, userId: user.id })
+      : parsed.data.action === 'counter'
+        ? await counterViewing({
+            ref: decoded,
+            sellerId: user.id,
+            onDate: parsed.data.onDate,
+            period: parsed.data.period,
+            meetingPoint: parsed.data.meetingPoint,
+          })
+      : parsed.data.action === 'accept-counter'
+        ? await acceptCounter({ ref: decoded, buyerId: user.id })
       : await respondToViewing({
           ref: decoded,
           sellerId: user.id,

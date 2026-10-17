@@ -25,6 +25,7 @@ export const VIEWING_PERIOD_HINT: Record<string, string> = {
 
 export const VIEWING_STATUS: Record<string, string> = {
   REQUESTED: 'ينتظر ردّ البائع',
+  COUNTERED: 'اقترح البائع موعدًا آخر',
   CONFIRMED: 'موعدٌ مؤكَّد',
   DECLINED: 'اعتذر البائع',
   CANCELLED: 'أُلغي',
@@ -36,6 +37,7 @@ export const VIEWING_STATUS: Record<string, string> = {
 /** وما يُنتظر — ولكلِّ حالٍ ما يفعله صاحبُها الآن */
 export const VIEWING_NEXT_BUYER: Record<string, string> = {
   REQUESTED: 'بانتظار ردّه',
+  COUNTERED: 'اقبل اقتراحه أو ألغِ',
   CONFIRMED: 'احضر في موعدك',
   DECLINED: 'اقترح موعدًا آخر',
   CANCELLED: 'انتهى',
@@ -45,6 +47,7 @@ export const VIEWING_NEXT_BUYER: Record<string, string> = {
 
 export const VIEWING_NEXT_SELLER: Record<string, string> = {
   REQUESTED: 'ردُّك مطلوب',
+  COUNTERED: 'بانتظار قبوله',
   CONFIRMED: 'موعدٌ عليك',
   DECLINED: 'اعتذرتَ عنه',
   CANCELLED: 'انتهى',

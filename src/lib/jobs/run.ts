@@ -1,6 +1,6 @@
 import { closeEndedAuctions,
   openScheduledAuctions, expireSellerDecisions } from '@/lib/domain/auctions';
-import { closePastViewings } from '@/lib/domain/viewings';
+import { closePastViewings, remindUpcomingViewings } from '@/lib/domain/viewings';
 import { expireOffers, remindExpiringOffers, timeoutUnpaidOrders } from '@/lib/domain/offers';
 import { overdueTransfers } from '@/lib/domain/transfer-windows';
 import { overdueDisputes } from '@/lib/domain/disputes';
@@ -85,6 +85,12 @@ const JOBS: readonly Job[] = [
   { name: 'remindPaymentDue', run: (now) => remindPaymentDue(now) },
   { name: 'remindClosingAuctions', run: (now) => remindClosingAuctions(now) },
   { name: 'remindExpiringOffers', run: (now) => remindExpiringOffers(now) },
+  /**
+   * **والتذكير يسبق لحظة الحاجة.** موعدٌ اتُّفق عليه قبل أسبوعين
+   * يُنسى، فيذهب أحدُهما ولا يجد الآخر — وليس بينهما عقدٌ ولا مال،
+   * فلا شيء يُلزمهما غير أنهما تذكّرا. والطرفان يُذكَّران.
+   */
+  { name: 'remindUpcomingViewings', run: (now) => remindUpcomingViewings(now) },
   { name: 'overdueTransfers', run: async (now) => (await overdueTransfers(now)).length },
   { name: 'overdueDisputes', run: async (now) => (await overdueDisputes(now)).length },
   /**

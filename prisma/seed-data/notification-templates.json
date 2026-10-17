@@ -1027,5 +1027,43 @@
     ],
     "active": true,
     "pushChannelKey": "viewings_mine"
+  },
+  {
+    "key": "viewing.countered",
+    "subjectAr": "اقترح البائع موعدًا آخر",
+    "subjectEn": "The seller proposed another time",
+    "bodyAr": "لم يناسبه الموعد الذي طلبتَه واقترح غيره، وكتب نقطة اللقاء. افتح «مواعيد المعاينة» لتقبل أو تلغي.",
+    "bodyEn": "Your slot did not suit the seller; they proposed another and set a meeting point. Open “Viewings” to accept or cancel.",
+    "priority": "high",
+    "smsAr": null,
+    "smsEn": null,
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true,
+    "pushChannelKey": "viewings_mine"
+  },
+  {
+    "key": "viewing.reminder",
+    "subjectAr": "تذكير بموعد المعاينة",
+    "subjectEn": "Your viewing is coming up",
+    "bodyAr": "موعد المعاينة المتّفق عليه يقترب. افتح «مواعيد المعاينة» لمكان اللقاء ورقم الطرف الآخر.",
+    "bodyEn": "Your agreed viewing is coming up. Open “Viewings” for the meeting point and the other party’s number.",
+    "priority": "high",
+    "smsAr": null,
+    "smsEn": null,
+    "channelEmail": true,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref"
+    ],
+    "active": true,
+    "pushChannelKey": "viewings_mine"
   }
 ]

@@ -310,6 +310,11 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
     unit: 'ساعة',
     effect: 'حين يطلب مشترٍ فحص مركبةٍ معروضة. بعدها يسقط الطلب ولا يُؤخذ مال.',
   },
+  viewingReminderHours: {
+    name: 'التذكير قبل موعد المعاينة',
+    unit: 'ساعة',
+    effect: 'يصل الطرفين تنبيهٌ واحد قبل الموعد المؤكَّد بهذه المدّة.',
+  },
 };
 
 /** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */

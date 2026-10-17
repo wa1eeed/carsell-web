@@ -2,8 +2,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { ViewingStatus } from '@/generated/prisma/enums';
 import {
+  acceptCounter,
+  awaitsMe,
   cancelViewing,
   closePastViewings,
+  counterViewing,
+  remindUpcomingViewings,
   requestViewing,
   respondToViewing,
   viewingsAwaiting,
@@ -292,6 +296,194 @@ describe('الردّ', () => {
         NOW,
       ),
     ).toEqual({ ok: false, reason: 'NOT_PENDING' });
+  });
+});
+
+describe('الاقتراح المضادّ', () => {
+  /**
+   * **والاعتذارُ وحده كان يُنهي الحوار**: بائعٌ لا يستطيع السبت
+   * ويستطيع الأحد يُضطرّ إلى الرفض، ثمّ ينتظر أن يعيد المشتري الطلب —
+   * وأكثرُهم لا يعيد. فاتّفاقٌ ممكنٌ يسقط لأن لا بابَ له.
+   */
+  it('ينقل الموعد ويحفظ ما طُلب أوّلًا', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'MORNING' });
+
+    expect(
+      await counterViewing(
+        {
+          ref: seat.ref,
+          sellerId: seat.sellerId,
+          onDate: '2026-10-21',
+          period: 'EVENING',
+          meetingPoint: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+        },
+        NOW,
+      ),
+    ).toEqual({ ok: true, value: { status: 'COUNTERED' } });
+
+    const view = await viewingsFor(seat.buyerId, 'ar', NOW);
+    const row = view.asBuyer.find((entry) => entry.ref === seat.ref);
+    expect(row?.status).toBe('COUNTERED');
+    expect(row?.period).toBe('EVENING');
+    /** **والفرقُ يُقرأ لا الموعدُ الجديد وحده** */
+    expect(row?.originalPeriod).toBe('MORNING');
+    expect(row?.originalDate?.slice(0, 10)).toBe('2026-10-19');
+    /** **ونقطةُ اللقاء مخفيّةٌ عن المشتري حتى يقبل** — كما في الحالة الأولى */
+    expect(row?.meetingPoint).toBeNull();
+
+    /**
+     * **ويراها البائعُ دائمًا — وهي بيانُه هو.** قِيس على الشاشة:
+     * اقترح موعدًا وكتب الموضع ثمّ لم يرَه، فلا يعرف ماذا وعد به إن
+     * سُئل.
+     */
+    const sellerView = await viewingsFor(seat.sellerId, 'ar', NOW);
+    const mine = sellerView.asSeller.find((entry) => entry.ref === seat.ref);
+    expect(mine?.meetingPoint).toContain('العثيم');
+    /** والرقمُ يبقى محجوبًا عن الطرفين حتى التأكيد */
+    expect(mine?.counterpartPhoneTail).toBeNull();
+  });
+
+  /** **والدورُ ينتقل**: الاقتراحُ على المشتري لا البائع */
+  it('والدورُ يصير للمشتري', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'MORNING' });
+    const sellerBefore = await viewingsAwaiting(seat.sellerId, NOW);
+
+    await counterViewing(
+      {
+        ref: seat.ref,
+        sellerId: seat.sellerId,
+        onDate: '2026-10-21',
+        period: 'EVENING',
+        meetingPoint: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+      },
+      NOW,
+    );
+
+    expect(await viewingsAwaiting(seat.sellerId, NOW)).toBe(sellerBefore - 1);
+    expect(await viewingsAwaiting(seat.buyerId, NOW)).toBeGreaterThanOrEqual(1);
+    expect(awaitsMe({ status: 'COUNTERED' }, 'BUYER')).toBe(true);
+    expect(awaitsMe({ status: 'COUNTERED' }, 'SELLER')).toBe(false);
+  });
+
+  it('وقبولُ المشتري يؤكّده ويكشف نقطة اللقاء', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'MORNING' });
+    await counterViewing(
+      {
+        ref: seat.ref,
+        sellerId: seat.sellerId,
+        onDate: '2026-10-21',
+        period: 'EVENING',
+        meetingPoint: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+      },
+      NOW,
+    );
+
+    expect(await acceptCounter({ ref: seat.ref, buyerId: seat.buyerId }, NOW)).toEqual({
+      ok: true,
+      value: { status: 'CONFIRMED' },
+    });
+
+    const view = await viewingsFor(seat.buyerId, 'ar', NOW);
+    const row = view.asBuyer.find((entry) => entry.ref === seat.ref);
+    expect(row?.meetingPoint).toContain('العثيم');
+    expect(row?.counterpartPhoneTail).toHaveLength(4);
+  });
+
+  /** **وحارسٌ في الشاشة ليس حارسًا**: البائع لا يقبل اقتراحَ نفسه */
+  it('ولا يقبل البائعُ اقتراحَ نفسه', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'MORNING' });
+    await counterViewing(
+      {
+        ref: seat.ref,
+        sellerId: seat.sellerId,
+        onDate: '2026-10-21',
+        period: 'EVENING',
+        meetingPoint: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+      },
+      NOW,
+    );
+    expect(await acceptCounter({ ref: seat.ref, buyerId: seat.sellerId }, NOW)).toEqual({
+      ok: false,
+      reason: 'NOT_YOURS',
+    });
+  });
+
+  /** **والاقتراحُ يخضع لما يخضع له الطلب** — ولا يُقترح ما مضى */
+  it('ولا يُقترح موعدٌ مضى', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'MORNING' });
+    expect(
+      await counterViewing(
+        {
+          ref: seat.ref,
+          sellerId: seat.sellerId,
+          onDate: '2026-10-17',
+          period: 'MORNING',
+          meetingPoint: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+        },
+        NOW,
+      ),
+    ).toEqual({ ok: false, reason: 'DATE_IN_PAST' });
+  });
+
+  /** **واقتراحٌ بلا نقطة لقاءٍ نصفُ اقتراح** — فتُطلب معه */
+  it('ولا اقتراحَ بلا نقطة لقاء', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'MORNING' });
+    expect(
+      await counterViewing(
+        { ref: seat.ref, sellerId: seat.sellerId, onDate: '2026-10-21', period: 'EVENING', meetingPoint: 'جدة' },
+        NOW,
+      ),
+    ).toEqual({ ok: false, reason: 'MEETING_POINT_REQUIRED' });
+  });
+});
+
+describe('التذكير', () => {
+  /**
+   * **والتذكير يسبق لحظة الحاجة.** موعدٌ اتُّفق عليه قبل أسبوعين
+   * يُنسى، فيذهب أحدُهما ولا يجد الآخر — وليس بينهما عقدٌ ولا مال.
+   */
+  it('يصل الطرفين مرّةً واحدة قبل الموعد', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'EVENING' });
+    await respondToViewing(
+      { ref: seat.ref, sellerId: seat.sellerId, accept: true, meetingPoint: 'محطة بترومين، الملقا.', reason: null },
+      NOW,
+    );
+
+    /** قبل الموعد بأكثر من المهلة — فلا تذكير */
+    expect(await remindUpcomingViewings(new Date('2026-10-17T06:00:00.000Z'))).toBe(0);
+
+    /** وداخل المهلة — فيصل الطرفين */
+    const sent = await remindUpcomingViewings(new Date('2026-10-18T18:00:00.000Z'));
+    expect(sent).toBeGreaterThanOrEqual(1);
+
+    const notes = await db.notification.findMany({
+      where: { templateKey: 'viewing.reminder', entityType: 'Viewing', entityId: seat.ref },
+      select: { userId: true },
+    });
+    expect(new Set(notes.map((row) => row.userId))).toEqual(
+      new Set([seat.buyerId, seat.sellerId]),
+    );
+
+    /** **ولا يُذكَّر مرّتين** — والإشعارُ نفسُه هو السجلّ، بلا عمود */
+    await remindUpcomingViewings(new Date('2026-10-18T20:00:00.000Z'));
+    expect(
+      await db.notification.count({
+        where: { templateKey: 'viewing.reminder', entityType: 'Viewing', entityId: seat.ref },
+      }),
+    ).toBe(2);
+
+    await db.notification.deleteMany({ where: { entityType: 'Viewing', entityId: seat.ref } });
+  });
+
+  /** **وما لم يُؤكَّد لا يُذكَّر به** — فلا موعدَ أصلًا */
+  it('ولا يُذكَّر بما ينتظر ردًّا', async () => {
+    const seat = await ask({ onDate: '2026-10-19', period: 'EVENING' });
+    await remindUpcomingViewings(new Date('2026-10-18T18:00:00.000Z'));
+    expect(
+      await db.notification.count({
+        where: { templateKey: 'viewing.reminder', entityType: 'Viewing', entityId: seat.ref },
+      }),
+    ).toBe(0);
   });
 });
 

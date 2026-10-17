@@ -40,7 +40,7 @@ const TEST_SERVICE_REF = /^SRV-[A-Z]-/;
  * فيُقاس ولا يُحذف — **والتسرّب الصامت يُقاس لا يُلاحَظ** — ويُنظَّف
  * بـ`npm run trial:reset` حين يُراد.
  */
-const SEEDED_VIEWINGS = 6;
+const SEEDED_VIEWINGS = 7;
 
 /**
  * ═══ وحملات الإعلان تتسرّب مثلها ═══

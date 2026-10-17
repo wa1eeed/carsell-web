@@ -59,7 +59,13 @@ export default async function ViewingsPage({
   if (user === null) redirect(`/${locale}/auth`);
 
   const { asBuyer, asSeller } = await viewingsFor(user.id, locale);
-  const awaiting = asSeller.filter((row) => row.status === 'REQUESTED' && !row.past).length;
+  /**
+   * **والدورُ ينتقل بالاقتراح المضادّ**: ما ينتظر ردّه بصفته بائعًا
+   * (`REQUESTED`) وما ينتظر قبوله بصفته مشتريًا (`COUNTERED`).
+   */
+  const awaiting =
+    asSeller.filter((row) => row.status === 'REQUESTED' && !row.past).length +
+    asBuyer.filter((row) => row.status === 'COUNTERED' && !row.past).length;
 
   return (
     <AccountList
@@ -113,7 +119,10 @@ function Card({ row, side }: { row: ViewingRow; side: 'BUYER' | 'SELLER' }) {
    * تلتقطه الوظيفةُ الدورية بعد — فيُعرض «انقضى» لا «ينتظر ردّه»، ولا
    * تُعرض أزرارُه.
    */
-  const effective = row.past && row.status === 'REQUESTED' ? 'EXPIRED' : row.status;
+  const effective =
+    row.past && (row.status === 'REQUESTED' || row.status === 'COUNTERED')
+      ? 'EXPIRED'
+      : row.status;
 
   return (
     <article className="rounded-lg border border-line bg-surface p-4">
@@ -123,6 +132,10 @@ function Card({ row, side }: { row: ViewingRow; side: 'BUYER' | 'SELLER' }) {
             <span className="bidi-isolate">{row.listingTitle}</span>
           </p>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-2xs opacity-70">
+            {/* **والموعدُ المعروض هو الاقتراح القائم** — ومصدرُه يُقال */}
+            {row.originalDate === null ? null : (
+              <span className="font-bold opacity-100">اقتراح البائع:</span>
+            )}
             <span className="bidi-isolate">{riyadh.format(new Date(row.onDate))}</span>
             <span aria-hidden className="opacity-40">·</span>
             <span>{VIEWING_PERIOD[row.period] ?? row.period}</span>
@@ -134,7 +147,7 @@ function Card({ row, side }: { row: ViewingRow; side: 'BUYER' | 'SELLER' }) {
           tone={
             effective === 'CONFIRMED'
               ? 'accent'
-              : effective === 'REQUESTED'
+              : effective === 'REQUESTED' || effective === 'COUNTERED'
                 ? 'warn'
                 : effective === 'DECLINED' || effective === 'CANCELLED'
                   ? 'danger'
@@ -159,6 +172,22 @@ function Card({ row, side }: { row: ViewingRow; side: 'BUYER' | 'SELLER' }) {
         */}
         {row.meetingPoint === null ? null : <Line label="نقطة اللقاء" value={row.meetingPoint} />}
         {row.buyerNote === null ? null : <Line label="ملاحظة الطالب" value={row.buyerNote} />}
+        {/*
+          **والفرقُ يُقرأ لا الموعدُ الجديد وحده**: بلا هذا السطر يرى
+          المشتري يومًا لم يطلبه ولا يعرف أنه بُدِّل.
+        */}
+        {row.originalDate === null || row.originalPeriod === null ? null : (
+          <Line
+            label={side === 'BUYER' ? 'كنتَ طلبتَ' : 'كان قد طلب'}
+            value={
+              <span className="opacity-70">
+                <span className="bidi-isolate">{riyadh.format(new Date(row.originalDate))}</span>
+                {' · '}
+                {VIEWING_PERIOD[row.originalPeriod] ?? row.originalPeriod}
+              </span>
+            }
+          />
+        )}
         {row.declineReason === null ? null : <Line label="سبب الاعتذار" value={row.declineReason} />}
         {row.cancelledBy === null ? null : (
           <Line label="الإلغاء" value={VIEWING_CANCELLED_BY[row.cancelledBy] ?? '—'} />

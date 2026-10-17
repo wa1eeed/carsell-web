@@ -40,6 +40,11 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
       'remindPaymentDue',
       'remindClosingAuctions',
       'remindExpiringOffers',
+      /**
+       * **والتذكير يسبق لحظة الحاجة** — موعدٌ اتُّفق عليه قبل أسبوعين
+       * يُنسى، فيذهب أحدُهما ولا يجد الآخر.
+       */
+      'remindUpcomingViewings',
       'overdueTransfers',
       'overdueDisputes',
       'releaseConfirmedOrders',

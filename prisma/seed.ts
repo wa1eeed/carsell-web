@@ -2032,11 +2032,23 @@ async function main(): Promise<void> {
    * الثلاثة، ومشيُ السطح يدخل بحسابٍ واحد.
    */
   const viewingBuyer = (await docBuyer)?.buyerId ?? buyers[0]?.id ?? null;
-  const viewable = listings.filter((row) => row.sellerId !== viewingBuyer).slice(0, 6);
+  const viewable = listings.filter((row) => row.sellerId !== viewingBuyer).slice(0, 7);
 
-  if (viewingBuyer !== null && viewable.length >= 6) {
+  if (viewingBuyer !== null && viewable.length >= 7) {
     const PLAN = [
       { status: 'REQUESTED', days: 2, period: 'AFTERNOON', meeting: null, reason: null, by: null },
+      /**
+       * **واقترح البائع موعدًا آخر** — والدورُ على المشتري. ونقطةُ
+       * اللقاء مكتوبةٌ ومخفيّةٌ حتى يقبل، فالاقتراحُ كاملٌ لا نصفُه.
+       */
+      {
+        status: 'COUNTERED',
+        days: 4,
+        period: 'NOON',
+        meeting: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+        reason: null,
+        by: null,
+      },
       {
         status: 'CONFIRMED',
         days: 3,
@@ -2078,6 +2090,12 @@ async function main(): Promise<void> {
           onDate: new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())),
           period: plan.period,
           buyerNote: n === 0 ? 'أصل من الدمام نهاية الأسبوع — أفضّل بعد العصر.' : null,
+          /** وما طلبه المشتري قبل الاقتراح — فيُقرأ الفرق لا الموعدُ وحده */
+          originalDate:
+            plan.status === 'COUNTERED'
+              ? new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() - 2))
+              : null,
+          originalPeriod: plan.status === 'COUNTERED' ? 'EVENING' : null,
           meetingPoint: plan.meeting,
           declineReason: plan.reason,
           cancelledBy: plan.by,
