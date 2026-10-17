@@ -1744,3 +1744,45 @@ light note makes an inspector **avoid flagging notes at all** and mark
 «سليم» to move on — which corrupts the data we rate providers by and
 misleads the buyer. A fault is rare and serious, and a photo there is
 evidence. The written note stays mandatory in both cases.
+
+---
+
+## 2026-10-17 — the buyer bears the commission, and the promise follows the rule
+
+> «يتحملها المشتري» · «الوعد المكتوب يتغير حسب حالة العموله ان قمنا
+> بتفعيلها يزال الوعد … من الرئيسيه ومن الاسئله الشائعه»
+
+### The commission is charged to the buyer, not the seller
+
+This is what the platform already promised in **four** places — «صفر عمولة
+على كل عملية بيع» on the home page, «بلا عمولة» on the sell card, «صفر
+عمولة على البيع» on the auth screen, and an FAQ answering «لا. العمولة صفر
+بالمئة». A seller-side commission contradicts all four.
+
+It also dissolves the VAT question that was open for a day. Charging the
+**buyer** makes "VAT-inclusive" the only lawful reading: a consumer-facing
+price in Saudi must include VAT. There is nothing left to choose, and
+nothing to toggle.
+
+`CommissionSide.BUYER` already existed and worked — measured end to end: a
+100,000 sale moves from 100,350 to 102,850 for the buyer, and the seller
+nets the full 100,000. Development seeds it on the buyer side; production
+still seeds zero until the owner sets a rate.
+
+### The promise is removed when the commission is enabled
+
+Not rephrased — **removed**. «صفر عمولة» is either true and said, or not
+and dropped; a line reading «our commission is 2.5%» in a promo slot is
+counter-advertising. The live rate belongs on the dealer page and the sell
+flow, where it is read at the moment of deciding — and the dealer page has
+always shown it live.
+
+One source, `sellingIsFree()`, read by four surfaces. The FAQ needed a
+stable `key` to be filtered by: matching on question text is brittle,
+because the operator edits that text from `/admin/faq` and the condition
+would come undone in silence.
+
+**The FAQ answer is not rewritten automatically.** Its text is content the
+operator owns; composing tax copy on their behalf is not the code's job. The
+false promise is withdrawn, and they write the answer when they set their
+rate.

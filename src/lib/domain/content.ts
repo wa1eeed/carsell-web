@@ -106,9 +106,18 @@ export async function helpFaqs(
   q?: string,
 ): Promise<HelpFaq[]> {
   const term = (q ?? '').trim();
+  const { hiddenFaqKeys } = await import('./selling-promise');
+  const hidden = await hiddenFaqKeys();
   const rows = await db.faqItem.findMany({
     where: {
       active: true,
+      /**
+       * **ولا يُعرض وعدٌ أُزيل** (قرار المالك ٢٠٢٦-١٠-١٧): سؤالُ
+       * «هل أدفع عمولة على البيع؟» يجيب «صفر» نصًّا، فتفعيلُ العمولة
+       * يجعله كذبًا. والشرطُ في الاستعلام لا في الشاشة — فما لا
+       * يُجلَب لا يُعرض في أيّ سطح.
+       */
+      ...(hidden.length === 0 ? {} : { key: { notIn: hidden } }),
       ...(category === undefined ? {} : { category }),
       ...(term === ''
         ? {}

@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS "FaqItem_key_key";
+ALTER TABLE "FaqItem" DROP COLUMN IF EXISTS "key";

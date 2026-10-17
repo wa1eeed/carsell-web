@@ -258,12 +258,23 @@ describe('عربون الفائز يُحصَّل ليصل البائع', () => {
 
     const order = await db.order.findUniqueOrThrow({
       where: { ref: created.orderRef },
-      select: { id: true, agreedPrice: true, totalAmount: true, depositApplied: true, listingId: true },
+      select: {
+        id: true, agreedPrice: true, totalAmount: true, depositApplied: true,
+        buyerCommission: true, listingId: true,
+      },
     });
 
-    /** **المطلوب هو الإجمالي ناقص العربون** — والمطرقة تبقى للتدقيق. */
+    /**
+     * **المطلوب هو الإجمالي ناقص العربون** — والمطرقة تبقى للتدقيق.
+     *
+     * **وعمولةُ المشتري جزءٌ من الإجمالي**: كانت الصيغةُ تُسقطها لأنها
+     * كانت صفرًا دائمًا، فسقط الاختبار أوّلَ ما فُعِّلت من اللوحة
+     * (قرار المالك: «يتحمّلها المشتري»). والصفرُ ليس قيمةً محايدة.
+     */
     expect(Number(order.depositApplied)).toBe(5_000);
-    expect(Number(order.totalAmount)).toBe(Number(order.agreedPrice) + 350 - 5_000);
+    expect(Number(order.totalAmount)).toBe(
+      Number(order.agreedPrice) + Number(order.buyerCommission) + 350 - 5_000,
+    );
 
     const { captureAppliedDeposit } = await import('@/lib/domain/deposit-money');
     const captured = await captureAppliedDeposit({

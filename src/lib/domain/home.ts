@@ -105,6 +105,13 @@ export type HomeData = {
   recent: { city: string; cityLabel: string; cars: HomeCard[] };
   services: HomeService[];
   faq: { id: string; questionAr: string; questionEn: string; answerAr: string; answerEn: string }[];
+  /**
+   * أالبيعُ بلا عمولةٍ الآن؟ — **وبه يظهر الوعدُ أو يُرفع** (قرار
+   * المالك ٢٠٢٦-١٠-١٧). وكان نصًّا ثابتًا في ثلاث شاشات لا يقرأ
+   * `CommissionRule`، بينما صفحةُ المعارض تقرؤها وتعرض النسبة الحيّة —
+   * فتفعيلُها يجعل صفحتين من صفحاتك تتناقضان.
+   */
+  sellingIsFree: boolean;
 };
 
 const CARD_INCLUDE = {
@@ -255,6 +262,10 @@ export async function getHomeData(
   const band = PAYMENT_BANDS.find((b) => b.key === bandKey) ?? PAYMENT_BANDS[3];
   const bounds = finance === null ? null : priceBoundsForPayment(band, finance);
 
+  /** ما رُفع من الوعود — ويُقرأ قبل الاستعلام فيدخل شرطَه */
+  const { hiddenFaqKeys } = await import('./selling-promise');
+  const hiddenFaq = await hiddenFaqKeys(now);
+
   const [
     liveAuctions,
     closingRow,
@@ -362,8 +373,17 @@ export async function getHomeData(
       take: 4,
       select: { key: true, nameAr: true, nameEn: true, descAr: true, descEn: true, price: true },
     }),
+    /**
+     * **ولا يُعرض وعدٌ أُزيل** (قرار المالك ٢٠٢٦-١٠-١٧): «هل أدفع
+     * عمولة على البيع؟» يجيب «صفر» نصًّا، فتفعيلُ العمولة يجعله كذبًا.
+     * والشرطُ حيث يُجلَب لا حيث يُعرض.
+     */
     db.faqPlacement.findMany({
-      where: { surface: 'help_center', active: true, faq: { active: true } },
+      where: {
+        surface: 'help_center',
+        active: true,
+        faq: { active: true, ...(hiddenFaq.length === 0 ? {} : { key: { notIn: hiddenFaq } }) },
+      },
       orderBy: { sort: 'asc' },
       take: 6,
       include: { faq: true },
@@ -434,5 +454,7 @@ export async function getHomeData(
       answerAr: placement.faq.answerAr,
       answerEn: placement.faq.answerEn,
     })),
+    /** **والوعدُ يتبع القاعدة** — فارغُ الأسئلة وفارغُ النصوص معًا */
+    sellingIsFree: hiddenFaq.length === 0,
   };
 }

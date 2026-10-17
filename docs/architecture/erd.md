@@ -1218,6 +1218,7 @@ Relations: `user` → `User`
 | Field | Type | Key |
 |---|---|---|
 | `id` | `String` | PK |
+| `key` | `String?` | unique |
 | `questionAr` | `String` |  |
 | `questionEn` | `String` |  |
 | `answerAr` | `String` |  |

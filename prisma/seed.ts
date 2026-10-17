@@ -340,6 +340,8 @@ type FaqPlacementRow = {
 };
 
 type FaqRow = {
+  /** هويّةٌ ثابتة لمن يحتاجها — والترشيحُ بالنصّ هشّ */
+  key?: string;
   questionAr: string;
   questionEn: string;
   answerAr: string;
@@ -546,7 +548,18 @@ async function main(): Promise<void> {
    * وعمولة المشتري **معطَّلة** في الحالين، فالسلوك الافتراضيّ أن يدفع
    * السعر ورسم النقل وحدهما.
    */
-  const seedSellerPct = APP_ENV === 'development' ? '2.50' : '0.00';
+  /**
+   * ═══ **وعلى المشتري لا على البائع** ═══
+   *
+   * قرار المالك (٢٠٢٦-١٠-١٧): «يتحمّلها المشتري». وهو موافقٌ لوعد
+   * المنصّة المكتوب في أربعة مواضع — «صفر عمولة على كل عملية بيع» —
+   * **فعمولةُ بائعٍ مفعَّلة تُكذّبه**، والوعدُ يُرفع عندها (ترحيل
+   * `faq_key` وشرطُ `sellingIsFree`).
+   *
+   * وكانت البذرةُ تُفعّلها على البائع، فيُرفع الوعدُ في كل بيئة تطوير
+   * **وهو صادقٌ أصلًا** — والمشتري لا يدفع شيئًا فلا تُجرَّب عمولتُه.
+   */
+  const seedBuyerPct = APP_ENV === 'development' ? '2.50' : '0.00';
 
   await prisma.commissionRule.createMany({
     data: [
@@ -554,15 +567,15 @@ async function main(): Promise<void> {
         scope: 'global',
         side: 'SELLER',
         enabled: true,
-        pct: new D(seedSellerPct),
+        pct: new D('0.00'),
         fixedFee: new D('0.00'),
         activeFrom: days(-180),
       },
       {
         scope: 'global',
         side: 'BUYER',
-        enabled: false,
-        pct: new D('0.00'),
+        enabled: APP_ENV === 'development',
+        pct: new D(seedBuyerPct),
         fixedFee: new D('0.00'),
         activeFrom: days(-180),
       },
@@ -711,6 +724,41 @@ async function main(): Promise<void> {
     }
   }
   await prisma.trimFeature.createMany({ data: trimLinks });
+
+  /**
+   * ═══ قواعدُ الضريبة قبل ما يحسب بها ═══
+   *
+   * كانت تُزرع بعد الطلبات بتسعِمئة سطر، **و`computeOrderAmounts` صارت
+   * تقرأ نسبتَها من قاعدتها** (قرار المالك: التعطيل والنسبة من
+   * اللوحة). فكلُّ طلبٍ مزروعٍ يُحسب قبل وجود قاعدة ⇒ `supplyVatPct`
+   * تردّ صفرًا ⇒ **ضريبةُ كلّ طلبٍ في البذرة صفر**، وشاشةُ الضرائب
+   * تقول «لا ضريبة مستحقّة» في كل بيئة.
+   *
+   * ولم يسقط شيءٌ من قبل: الترتيبُ لم يكن يعني شيئًا ما دامت النسبة
+   * تُقرأ من `PlatformSetting`. **فأوّلُ مصدرٍ واحد كشف ترتيبًا خاطئًا
+   * كان نائمًا.**
+   */
+  // ————— قواعد الضريبة (A21) — ثلاث منها تنتظر المذكرة —————
+  /** ومعرّفُ المحرِّر يُقرأ هنا — والكتلةُ سبقت تعريفَه في موضعها القديم */
+  const taxAdmin = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
+
+  await prisma.taxRule.createMany({
+    data: load<TaxRuleRow[]>('tax-rules.json').map((rule) => ({
+      sellerType: rule.sellerType as never,
+      buyerType: rule.buyerType as never,
+      supplyType: rule.supplyType as never,
+      taxableBase: rule.taxableBase as never,
+      ratePct: rule.ratePct === null ? null : new D(rule.ratePct),
+      supplierIsPlatform: rule.supplierIsPlatform,
+      invoiceIssuer: rule.invoiceIssuer as never,
+      active: rule.active,
+      note: rule.note,
+      activeFrom: days(-365),
+      updatedBy: taxAdmin,
+      updatedAt: NOW,
+    })),
+  });
+
 
   // ————— المزوّدون والخدمات التسعة —————
   const providerDefs = [
@@ -2165,6 +2213,7 @@ async function main(): Promise<void> {
   for (const f of load<FaqRow[]>('faqs.json')) {
     await prisma.faqItem.create({
       data: {
+        key: f.key ?? null,
         questionAr: f.questionAr,
         questionEn: f.questionEn,
         answerAr: f.answerAr,
@@ -2216,24 +2265,6 @@ async function main(): Promise<void> {
       // معطّل — كل الباقات مجانية
       { purpose: 'SUBSCRIPTION', gatewayKey: 'moyasar', environment: 'TEST', enabled: false, updatedBy: routingAdmin, updatedAt: NOW },
     ],
-  });
-
-  // ————— قواعد الضريبة (A21) — ثلاث منها تنتظر المذكرة —————
-  await prisma.taxRule.createMany({
-    data: load<TaxRuleRow[]>('tax-rules.json').map((rule) => ({
-      sellerType: rule.sellerType as never,
-      buyerType: rule.buyerType as never,
-      supplyType: rule.supplyType as never,
-      taxableBase: rule.taxableBase as never,
-      ratePct: rule.ratePct === null ? null : new D(rule.ratePct),
-      supplierIsPlatform: rule.supplierIsPlatform,
-      invoiceIssuer: rule.invoiceIssuer as never,
-      active: rule.active,
-      note: rule.note,
-      activeFrom: days(-365),
-      updatedBy: routingAdmin,
-      updatedAt: NOW,
-    })),
   });
 
   // ————— مفضّلات وبحوث محفوظة — بلاها لا تُقاس شريحة ولا تُختبر —————

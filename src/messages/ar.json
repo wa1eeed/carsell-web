@@ -224,7 +224,8 @@
       "auctionsBody": "مركبات بمزايدة مباشرة",
       "sellTitle": "بِع سيارتك",
       "sellBody": "مباشر أو تفاوض أو مزاد — بلا عمولة",
-      "sellAction": "ابدأ الآن"
+      "sellAction": "ابدأ الآن",
+      "sellBodyPaid": "مباشر أو تفاوض أو مزاد"
     },
     "browseByBrand": "تصفّح حسب الماركة",
     "allBrands": "كل الماركات",
@@ -354,7 +355,9 @@
     "under": "أقل من",
     "thousandRiyal": "ألف ريال",
     "menu": "القائمة",
-    "closeMenu": "أغلق القائمة"
+    "closeMenu": "أغلق القائمة",
+    "promoTitlePaid": "بِع بثقة — والمبلغ في حساب ضمان",
+    "promoBodyPaid": "على البيع المباشر والتفاوض والمزاد"
   },
   "dev": {
     "title": "مكتبة المكوّنات",

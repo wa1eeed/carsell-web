@@ -224,7 +224,8 @@
       "auctionsBody": "Vehicles with live bidding",
       "sellTitle": "Sell your car",
       "sellBody": "Direct, negotiation or auction — no commission",
-      "sellAction": "Start now"
+      "sellAction": "Start now",
+      "sellBodyPaid": "Direct, negotiated or auctioned"
     },
     "browseByBrand": "Browse by make",
     "allBrands": "All makes",
@@ -354,7 +355,9 @@
     "under": "Under",
     "thousandRiyal": "thousand SAR",
     "menu": "Menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "promoTitlePaid": "Sell with confidence — the money sits in escrow",
+    "promoBodyPaid": "Direct sale, negotiation and auction"
   },
   "dev": {
     "title": "Component library",

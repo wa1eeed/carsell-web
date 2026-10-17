@@ -42,7 +42,14 @@ export default async function AuthPage({
   setRequestLocale(locale);
 
   const t = await getTranslations('auth');
-  const promises = [1, 2, 3].map((i) => t(`promise.${i}`));
+  /**
+   * **والوعدُ الثالث «صفر عمولة على البيع» يُرفع حين تُفعَّل** — قرار
+   * المالك (٢٠٢٦-١٠-١٧). والاثنان الأوّلان حقائقُ لا وعودٌ مشروطة:
+   * الضمانُ قائمٌ والبياناتُ مجلوبة.
+   */
+  const { sellingIsFree } = await import('@/lib/domain/selling-promise');
+  const free = await sellingIsFree();
+  const promises = (free ? [1, 2, 3] : [1, 2]).map((i) => t(`promise.${i}`));
 
   return (
     /**

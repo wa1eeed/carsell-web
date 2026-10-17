@@ -220,8 +220,19 @@ export default async function HomePage({
                     <span className="mb-3 inline-flex rounded-sm bg-warn-400 px-3 py-1.5 text-3xs font-bold text-ink">
                       {t('promoTag')}
                     </span>
-                    <p className="mb-1.5 text-2xl font-bold">{t('promoTitle')}</p>
-                    <p className="text-xs opacity-75">{t('promoBody')}</p>
+                    {/*
+                      **والوعدُ يُرفع حين تُفعَّل العمولة** (قرار المالك
+                      ٢٠٢٦-١٠-١٧). و«صفر عمولة» إمّا صادقةٌ فتُقال وإمّا
+                      لا فتُرفع — **ونصٌّ يقول النسبة مكانَها دعايةٌ
+                      عكسيّة**، وموضعُها صفحةُ المعارض وشاشةُ البيع حيث
+                      تُقرأ عند القرار.
+                    */}
+                    <p className="mb-1.5 text-2xl font-bold">
+                      {home.sellingIsFree ? t('promoTitle') : t('promoTitlePaid')}
+                    </p>
+                    <p className="text-xs opacity-75">
+                      {home.sellingIsFree ? t('promoBody') : t('promoBodyPaid')}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -304,7 +315,7 @@ export default async function HomePage({
               {
                 key: 'sell',
                 title: t('summary.sellTitle'),
-                body: t('summary.sellBody'),
+                body: home.sellingIsFree ? t('summary.sellBody') : t('summary.sellBodyPaid'),
                 count: null,
                 unit: 'cars',
                 action: t('summary.sellAction'),

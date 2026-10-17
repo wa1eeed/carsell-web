@@ -865,12 +865,20 @@ export type FaqEntry = { id: string; questionAr: string; questionEn: string; ans
  * قارئ صفحةِ بيعٍ مباشر قائمةً فارغة.
  */
 export async function faqForListing(type: ListingType): Promise<FaqEntry[]> {
+  const { hiddenFaqKeys } = await import('./selling-promise');
+  const hidden = await hiddenFaqKeys();
   const placements = await db.faqPlacement.findMany({
     where: {
       surface: 'listing_page',
       active: true,
       OR: [{ listingType: type }, { listingType: null }],
-      faq: { active: true },
+      /**
+       * **ولا يُعرض وعدٌ أُزيل** (قرار المالك ٢٠٢٦-١٠-١٧): سؤالُ
+       * «هل أدفع عمولة على البيع؟» يجيب «صفر» نصًّا، فتفعيلُ العمولة
+       * يجعله كذبًا. والشرطُ في الاستعلام لا في الشاشة — فما لا
+       * يُجلَب لا يُعرض في أيّ سطح.
+       */
+      faq: { active: true, ...(hidden.length === 0 ? {} : { key: { notIn: hidden } }) },
     },
     orderBy: [{ sort: 'asc' }],
     include: { faq: true },
