@@ -160,7 +160,7 @@ rather than found by chance.
 | `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 76 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
-| `PaintMap` | no | `panels` · `className` | 4 |
+| `PaintMap` | no | `panels` · `className` | 5 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 2 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
@@ -183,5 +183,5 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 68 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 69 |
 | `Year` | no | `value` · `className` | 5 |

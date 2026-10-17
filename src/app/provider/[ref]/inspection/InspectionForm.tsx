@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
+import { BodyPanels } from './BodyPanels';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
@@ -233,6 +234,17 @@ export function InspectionForm({ view }: { view: DraftView }) {
           );
         })}
       </div>
+
+      {/*
+        ═══ وخريطةُ الهيكل — وكان مسارُها بلا زرّ ═══
+
+        `saveDraftPanel` مبنيّةٌ والمسارُ يقبلها، **ولا شيء في
+        الواجهة يبلغهما** — فخريطةُ الطلاء على صفحة المركبة تُرسم من
+        لقطةٍ لا يملؤها أحد.
+      */}
+      <section className="mt-6 rounded-lg border border-line p-4">
+        <BodyPanels ref_={view.ref} initial={view.panels} editable={view.editable} />
+      </section>
 
       {/*
         ═══ والإرسالُ بعد الاكتمال لا قبله ═══
