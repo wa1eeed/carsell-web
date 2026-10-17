@@ -811,6 +811,52 @@ Asked which it was; the owner delegated: «افعل ما تراه احترافي
 
 ---
 
+## 10 · Commission and its VAT, both from the panel — *owner's request 2026-10-17*
+
+> «انا ابغى النسبه نكون قادرين على تعطيلها او ضبطها … و نضبط احتساب
+> ضريبتها كتعطيل او تفعيل للضريبه و تحديد نسبة الضريبه»
+
+Three separate controls. What was true before, and what is true now:
+
+| Control | Before | Now |
+| --- | --- | --- |
+| Commission on/off, rate, fixed, min, max | **built and working** (walked by clicking) | unchanged |
+| VAT on the commission: on/off and rate | screen existed in `/admin/tax`, **did not reach the money** | wired |
+| VAT-inclusive vs added on top | not a setting, and the ledger disagreed with everything else | **still the owner's answer** |
+
+### The screen existed and did nothing to the money
+
+`/admin/tax` edits `TaxRule.ratePct` and `TaxRule.active` for the
+`COMMISSION` supply — with audit and dual approval. But
+`computeOrderAmounts` read `PlatformSetting.vatPct`, **a different field
+that screen never touches**. Measured: the rule was set to 0% and the order
+still charged 326.09 on a 100,000 sale.
+
+So the owner's requested capability was half-built in the worst way — a
+control that looks authoritative and is inert. `supplyVatPct()` in `tax.ts`
+is now the single source: the active platform-wide rule for the supply,
+falling back to `vatPct` only when the rule carries no rate. **A disabled
+rule yields zero, not the default** — falling back there would make the
+off switch do nothing, which is the whole point of having it.
+
+Measured after wiring, on a 100,000 sale:
+
+| Rule | VAT charged |
+| --- | --- |
+| active, 15% | 326.09 |
+| **disabled** | **0** |
+| active, 5% | 119.05 |
+
+### What is still the owner's
+
+Whether the rate he sets is **what the seller pays** (we keep ~87% of it)
+or **what we keep** (set it higher to cover the VAT). Recorded in
+`docs/OPEN-QUESTIONS.md` with the numbers; it is a one-line change either
+way and no code moves if the answer is "inclusive", which is what
+`tax-model.md` already says and what is implemented.
+
+---
+
 ## 5 · Drop the two-approval requirement in the admin panel — *owner's decision*
 
 > «موافقة العضوين يجب أن نعمل على إزالة هذا القيد من لوحة الأدمن، حيث الأدمن

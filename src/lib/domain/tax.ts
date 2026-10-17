@@ -113,6 +113,60 @@ export async function matchRule(
   return candidates.sort((a, b) => specificity(b) - specificity(a))[0] ?? null;
 }
 
+/**
+ * ═══ نسبةُ ضريبة توريداتنا — من قاعدتها لا من رقمٍ ثانٍ ═══
+ *
+ * طلبُ المالك (٢٠٢٦-١٠-١٧): «نضبط احتساب ضريبتها كتعطيلٍ أو تفعيلٍ
+ * للضريبة وتحديد نسبة الضريبة».
+ *
+ * **والشاشةُ موجودة ولا تصل المال.** `/admin/tax` تعدّل `ratePct`
+ * و`active` لقاعدة `COMMISSION`، **و`computeOrderAmounts` تقرأ
+ * `PlatformSetting.vatPct`** — رقمًا آخر لا تلمسه تلك الشاشة. وقِيس:
+ * ضُبطت القاعدة صفرًا فبقي الطلب يحسب ٣٢٦٫٠٩.
+ *
+ * **فمصدرٌ واحد**: القاعدةُ السارية لهذا الصنف، و`vatPct` احتياطٌ حين
+ * لا قاعدة. وتعطيلُ القاعدة (`active = false`) يُصفّر الضريبة فعلًا —
+ * وهو «التعطيل» الذي طلبه.
+ */
+export async function supplyVatPct(
+  supplyType: 'COMMISSION' | 'ADMIN_FEE' | 'SERVICE',
+  at: Date = new Date(),
+): Promise<number> {
+  /**
+   * **والقاعدةُ العامّة لا الأخصّ بطرفٍ.** توريدُنا نحن — عمولةٌ أو
+   * رسمٌ إداريّ — نسبتُه واحدةٌ أيًّا كان البائع، والقواعدُ الأخصّ
+   * تخصّ **من يُصدر الفاتورة ووعاءها** لا نسبةَ ضريبتنا. وجرُّ صنفَي
+   * الطرفين إلى `computeOrderAmounts` يغيّر توقيعَها وتوقيعَ كلّ
+   * منادٍ لأجل رقمٍ لا يختلف.
+   */
+  const [rule, platform] = await Promise.all([
+    db.taxRule.findFirst({
+      where: {
+        supplyType,
+        sellerType: null,
+        buyerType: null,
+        active: true,
+        activeFrom: { lte: at },
+        OR: [{ activeTo: null }, { activeTo: { gt: at } }],
+      },
+      orderBy: { activeFrom: 'desc' },
+      select: { ratePct: true },
+    }),
+    db.platformSetting.findUnique({ where: { id: 'default' }, select: { vatPct: true } }),
+  ]);
+
+  /**
+   * **ولا قاعدةَ سارية ⇒ لا ضريبة.** الاستعلامُ يُصفّي بـ`active`،
+   * فقاعدةٌ عطّلها المشغّل لا تُطابَق — **والصفرُ هنا هو التعطيل
+   * نفسُه**، لا سقوطٌ إلى الافتراضيّ. والسقوطُ إليه يجعل زرَّ
+   * التعطيل في الشاشة بلا أثر، وهو ما طلب المالك أن يعمل.
+   */
+  if (rule === null) return 0;
+  return rule.ratePct === null
+    ? Number(platform?.vatPct ?? DEFAULT_VAT_PCT)
+    : Number(rule.ratePct);
+}
+
 export type TaxAmounts = { subtotal: string; taxTotal: string; total: string };
 
 /**

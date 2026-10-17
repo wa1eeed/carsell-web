@@ -1,4 +1,6 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { Prisma } from '@/generated/prisma/client';
+import { computeOrderAmounts } from '@/lib/domain/order-amounts';
 import { db } from '@/lib/db';
 import {
   DEFAULT_VAT_PCT,
@@ -296,5 +298,57 @@ describe('═══ الغياب والتعطيل ليسا سواءً ═══'
         data: { activeFrom: new Date('2026-01-01T00:00:00Z'), active: true },
       });
     }
+  });
+});
+
+/**
+ * ═══ نسبةُ ضريبة توريداتنا تُضبط وتُعطَّل من الشاشة ═══
+ *
+ * طلبُ المالك (٢٠٢٦-١٠-١٧): «نضبط احتساب ضريبتها كتعطيلٍ أو تفعيلٍ
+ * للضريبة وتحديد نسبة الضريبة».
+ *
+ * **والشاشةُ كانت موجودةً ولا تصل المال**: `/admin/tax` تعدّل
+ * `ratePct` و`active` لقاعدة `COMMISSION`، و`computeOrderAmounts`
+ * تقرأ `PlatformSetting.vatPct` — رقمًا آخر لا تلمسه تلك الشاشة.
+ * وقِيس: ضُبطت القاعدة صفرًا فبقي الطلب يحسب ٣٢٦٫٠٩.
+ *
+ * **والاختبارُ يُعيد ما غيّره**: القاعدةُ مرجعيّةٌ مشتركة، وتركُها
+ * معطَّلةً يُسقط جيرانها في التشغيل التالي.
+ */
+describe('ضريبةُ العمولة تُضبط من قاعدتها', () => {
+  const WHERE = { supplyType: 'COMMISSION' as const, sellerType: null };
+  let before: { ratePct: Prisma.Decimal | null; active: boolean } | null = null;
+
+  beforeAll(async () => {
+    before = await db.taxRule.findFirst({ where: WHERE, select: { ratePct: true, active: true } });
+  });
+
+  afterAll(async () => {
+    if (before !== null) {
+      await db.taxRule.updateMany({
+        where: WHERE,
+        data: { ratePct: before.ratePct, active: before.active },
+      });
+    }
+  });
+
+  const vat = async (): Promise<string> =>
+    (await computeOrderAmounts(db, 100_000)).vatAmount.toString();
+
+  it('تعطيلُ القاعدة يُصفّر ضريبةَ الطلب', async () => {
+    await db.taxRule.updateMany({ where: WHERE, data: { active: true, ratePct: 15 } });
+    expect(await vat()).toBe('326.09');
+
+    /** **وهذا هو «التعطيل» الذي طلبه** — لا سقوطَ إلى افتراضيٍّ يُبطله */
+    await db.taxRule.updateMany({ where: WHERE, data: { active: false } });
+    expect(await vat()).toBe('0');
+  });
+
+  it('وتبديلُ النسبة يصل المال', async () => {
+    await db.taxRule.updateMany({ where: WHERE, data: { active: true, ratePct: 5 } });
+    expect(await vat()).toBe('119.05');
+
+    await db.taxRule.updateMany({ where: WHERE, data: { ratePct: 15 } });
+    expect(await vat()).toBe('326.09');
   });
 });

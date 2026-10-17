@@ -1,7 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import type { FeeBearer } from '@/generated/prisma/enums';
 import type { db } from '@/lib/db';
-import { DEFAULT_VAT_PCT } from './tax';
+import { supplyVatPct } from './tax';
 import { effectiveAdminFee, ourVat, processingFeeFor } from './fees';
 
 /**
@@ -185,9 +185,18 @@ export async function computeOrderAmounts(
    * المعالجة. ولا تدخلها قيمة المركبة (مورّدها البائع) ولا الرسم
    * الحكوميّ (لسنا مورّده).
    */
+  /**
+   * **والنسبةُ من قاعدتها لا من رقمٍ ثانٍ.** `/admin/tax` تعدّل
+   * `ratePct` و`active` لقاعدة `COMMISSION`، وكان هذا السطر يقرأ
+   * `PlatformSetting.vatPct` — رقمًا لا تلمسه تلك الشاشة. وقِيس:
+   * ضُبطت القاعدة صفرًا فبقي الطلب يحسب ٣٢٦٫٠٩، **فزرُّ التعطيل بلا
+   * أثر على المال**.
+   *
+   * وتعطيلُ القاعدة يُصفّر النسبة، وهو ما طلب المالك أن يعمل.
+   */
   const vatAmount = ourVat(
     { commissionAmount, transferAdminFee, processingFee },
-    Number(platform?.vatPct ?? DEFAULT_VAT_PCT),
+    await supplyVatPct('COMMISSION', now),
   );
 
   return {
