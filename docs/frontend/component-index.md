@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **150** components in **3** directories.
+Counted: **151** components in **3** directories.
 
 ## Referenced nowhere else
 
@@ -87,6 +87,7 @@ rather than found by chance.
 | `DealerMark` | no | `name` · `logoUrl` | 1 |
 | `DisputePanel` | yes | `orderRef` · `canOpen` · `hasOpen` | 1 |
 | `FavoriteButton` | yes | `listingRef` · `initial` · `signedIn` · `signInHref` · `className` | 1 |
+| `InspectionSummary` | yes | `score` · `sections` · `onOpen` · `className` | 1 |
 | `ListingControls` | yes | `listingRef` · `status` · `price` · `negotiable` · `description` · `hasActiveOrder` | 1 |
 | `ListingServices` | no | `services` · `ownVehicleId` | 1 |
 | `ListingStatsRow` | no | `stats` | 1 |
@@ -122,9 +123,9 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 4 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 104 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 105 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 94 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 95 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 13 |
@@ -166,7 +167,7 @@ rather than found by chance.
 | `Quantity` | no | `unit` · `count` · `className` | 102 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
-| `ScoreRing` | no | `score` · `size` · `className` | 4 |
+| `ScoreRing` | no | `score` · `size` · `className` | 5 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
 | `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 29 |
 | `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 41 |

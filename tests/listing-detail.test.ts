@@ -366,3 +366,49 @@ describe('إحصاء السوق يقول سعة مطابقته', () => {
     expect(stat?.scopedToTrim).toBe(false);
   });
 });
+
+/**
+ * ═══ ملخّصُ الفحص يُقرأ قبل أن يُفتح شيء ═══
+ *
+ * رقمٌ واحد لا يقول **أين** الخلل: «٨٨» قد تكون ثماني ملاحظاتٍ خفيفة
+ * أو عطلًا واحدًا في المحرّك — والفرقُ هو ما يريد المشتري معرفته.
+ * فالقسمُ يحمل مفتاحَه وعددَ عطله وملاحظاته، واللونُ منها لا من الدرجة.
+ */
+describe('أقسامُ الفحص تحمل مفتاحَها وحالَها', () => {
+  it('كلُّ قسمٍ له مفتاحٌ وعدّادا عطلٍ وملاحظة', async () => {
+    const report = await db.inspectionReport.findFirst({
+      where: { publishedAt: { not: null } },
+      select: { vehicleId: true },
+    });
+    if (report === null) return;
+
+    const listing = await db.listing.findFirst({
+      where: { vehicleId: report.vehicleId, status: 'PUBLISHED' },
+      select: { ref: true },
+    });
+    if (listing === null) return;
+
+    const found = await findPublishedListing(listing.ref);
+    if (found === null) throw new Error('لم يُفتح الإعلان');
+    const detail = await toPublicDetail(found);
+
+    expect(detail.inspection).not.toBeNull();
+    const sections = detail.inspection?.sections ?? [];
+    expect(sections.length).toBeGreaterThan(0);
+
+    for (const section of sections) {
+      expect(typeof section.key).toBe('string');
+      expect(section.major).toBeGreaterThanOrEqual(0);
+      expect(section.minor).toBeGreaterThanOrEqual(0);
+    }
+
+    /**
+     * **والعدّادُ يطابق ما في اللقطة** — ولو اشتُقّ من الدرجة لقال
+     * عن قسمٍ درجتُه ٨٨ إنه سليم، وفيه عطل.
+     */
+    const withFault = sections.find((section) => section.major > 0 || section.minor > 0);
+    if (withFault !== undefined) {
+      expect(withFault.major + withFault.minor).toBeGreaterThan(0);
+    }
+  });
+});

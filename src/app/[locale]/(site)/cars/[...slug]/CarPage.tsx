@@ -43,6 +43,7 @@ import { HistoryList } from '@/components/ui/HistoryList';
 import { PaintMap } from '@/components/ui/PaintMap';
 import { Quantity } from '@/components/ui/Quantity';
 import { RangeBar } from '@/components/ui/RangeBar';
+import { InspectionSummary } from '@/components/site/InspectionSummary';
 import { ScoreRing } from '@/components/ui/ScoreRing';
 import { SimilarGrid, type SimilarItem } from '@/components/ui/SimilarGrid';
 import { SpecTable } from '@/components/ui/SpecTable';
@@ -583,6 +584,22 @@ export function CarPage({
 
         {/* الابن الثالث: التفاصيل وما بعدها — تحت السعر على الهاتف */}
         <div className="flex min-w-0 flex-col gap-7 lg:col-start-1 lg:row-start-2">
+          {/*
+            ═══ والملخّصُ قبل التبويب لا داخله ═══
+
+            من يفتح صفحة سيارةٍ مفحوصة يريد أن يعرف **أين** الخلل قبل
+            أن يضغط شيئًا — ورقمٌ واحد لا يقوله. فأربعةُ أقسامٍ بحالها
+            هنا، والتفصيلُ خلف الزرّ.
+          */}
+          {inspection === null ? null : (
+            <InspectionSummary
+              score={inspection.score}
+              sections={inspection.sections}
+              onOpen={() => setTab('inspection')}
+              className="mb-6"
+            />
+          )}
+
           <Tabs items={tabs} active={tab} onChange={setTab} />
 
           {tab === 'specs' ? <SpecTable entries={specs} /> : null}

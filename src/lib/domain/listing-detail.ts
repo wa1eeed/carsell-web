@@ -184,7 +184,7 @@ export type PublicListingDetail = {
     score: number;
     inspectedAt: string;
     inspectorName: string;
-    sections: { name: string; score: number }[];
+    sections: { key: string; name: string; score: number; major: number; minor: number }[];
     findings: string[];
     paintMap: PaintPanel[];
     reportUrl: string | null;
@@ -436,12 +436,43 @@ function paintPanels(map: unknown): PaintPanel[] {
   }));
 }
 
-function sectionScores(sections: unknown): { name: string; score: number }[] {
+/**
+ * أقسامُ الفحص بحالها — **ومفتاحُها معها**.
+ *
+ * كان يعيد الاسمَ والدرجة وحدهما، فلا شيءَ يربط القسم بأيقونته ولا
+ * بحاله. وملخّصُ الصفحة يحتاج الثلاثة: اسمٌ يُقرأ، ومفتاحٌ يختار
+ * الأيقونة، وحالٌ تختار اللون.
+ *
+ * **والحالُ من النقاط لا من الدرجة.** درجةُ ٨٨ قد تكون ثماني
+ * ملاحظاتٍ خفيفة أو عطلًا واحدًا كبيرًا — والفرقُ هو ما يريد المشتري
+ * معرفته قبل أن يفتح شيئًا.
+ */
+function sectionScores(
+  sections: unknown,
+): { key: string; name: string; score: number; major: number; minor: number }[] {
   if (!Array.isArray(sections)) return [];
   return sections.flatMap((section) => {
     if (typeof section !== 'object' || section === null) return [];
-    const { name, score } = section as { name?: unknown; score?: unknown };
-    return typeof name === 'string' && typeof score === 'number' ? [{ name, score }] : [];
+    const { key, name, score, points } = section as {
+      key?: unknown;
+      name?: unknown;
+      score?: unknown;
+      points?: unknown;
+    };
+    if (typeof name !== 'string' || typeof score !== 'number') return [];
+
+    let major = 0;
+    let minor = 0;
+    if (Array.isArray(points)) {
+      for (const point of points) {
+        if (typeof point !== 'object' || point === null) continue;
+        const state = (point as { state?: unknown }).state;
+        if (state === 'FAIL') major += 1;
+        else if (state === 'NOTE' || state === 'PAINT') minor += 1;
+      }
+    }
+
+    return [{ key: typeof key === 'string' ? key : '', name, score, major, minor }];
   });
 }
 
