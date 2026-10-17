@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
+import type { CompletionFormKind } from '@/lib/domain/completion-schema';
 import { MIN_FAIL_REASON } from '@/lib/domain/provider-rules';
 import { PROVIDER_STEP_LABEL, PROVIDER_STEP_NOTE } from '@/lib/labels/provider';
 
@@ -23,7 +24,7 @@ export function StepActions({
   steps,
 }: {
   ref_: string;
-  steps: readonly { key: string; form: 'INSPECTION' | null }[];
+  steps: readonly { key: string; form: CompletionFormKind | null }[];
 }) {
   const [pending, start] = useTransition();
   const [toast, setToast] = useState<string | null>(null);

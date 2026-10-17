@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
-import type { ProviderType, ServiceRequestStatus } from '@/generated/prisma/enums';
+import { ProviderType, type ServiceRequestStatus } from '@/generated/prisma/enums';
 import { MIN_FAIL_REASON } from './provider-rules';
+import { completionFormFor, type CompletionFormKind } from './completion-schema';
 
 /**
  * ═══ طابورُ المزوّد — ولوحةٌ موحَّدة لا لوحةً لكلٍّ ═══
@@ -26,12 +27,14 @@ export type Step = {
   from: ServiceRequestStatus;
   to: ServiceRequestStatus;
   /**
-   * أيفتح هذا الفعل نموذجًا قبل أن يقع؟
+   * أيفتح هذا الفعل نموذجًا قبل أن يقع؟ — **ومن مصدرٍ واحد**.
    *
-   * الفاحص يُنهي بتعبئة نتائج الفحص، ومزوّدُ النقل يؤكّد بلا نموذج —
-   * وهو الفرقُ الذي قصده المالك بـ«قسمٌ متغيّر».
+   * كانت القيمةُ مكتوبةً بيدٍ لكل صنف: `INSPECTION` للفاحص و`null`
+   * للستّة الباقية، **فستّةُ أصناف تُنهي بلا حقلٍ واحد** — ناقلٌ يضغط
+   * «أنهِ» فلا نعلم رقم البوليصة. وتُشتقّ الآن من
+   * `completion-schema.ts`: مخطّطٌ لكل صنف ونموذجٌ واحد يرسمه.
    */
-  form: 'INSPECTION' | null;
+  form: CompletionFormKind | null;
 };
 
 /**
@@ -47,19 +50,23 @@ const COMMON: readonly Step[] = [
   { key: 'start', from: 'ASSIGNED', to: 'IN_PROGRESS', form: null },
 ];
 
-export const STEPS_BY_TYPE: Readonly<Record<string, readonly Step[]>> = {
-  INSPECTION: [
-    ...COMMON,
-    /** الفاحص يُنهي بنموذج النتائج — وحقولُه يزوّدنا بها المالك */
-    { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: 'INSPECTION' },
-  ],
-  SHIPPING: [...COMMON, { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: null }],
-  INSURANCE: [...COMMON, { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: null }],
-  DETAILING: [...COMMON, { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: null }],
-  PHOTOGRAPHY: [...COMMON, { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: null }],
-  FINANCE: [...COMMON, { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: null }],
-  OTHER: [...COMMON, { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: null }],
-};
+/**
+ * **والجدولُ يُبنى لا يُكتب.** كان سبعةَ أسطرٍ متوأمة تختلف في كلمة،
+ * فصنفٌ جديد يُضاف إلى التعداد ولا يُضاف هنا يخرج **بلا خطواتٍ
+ * أصلًا** — طابورٌ يستلم طلبًا ولا زرَّ فيه.
+ *
+ * **ومن التعداد نفسه لا من نسخةٍ له**: قائمةٌ مكتوبةٌ بيد بأسماء
+ * الأصناف هي العطبُ نفسه مؤجَّلًا خطوةً.
+ */
+export const STEPS_BY_TYPE: Readonly<Record<string, readonly Step[]>> = Object.fromEntries(
+  Object.values(ProviderType).map((type) => [
+    type,
+    [
+      ...COMMON,
+      { key: 'complete', from: 'IN_PROGRESS', to: 'DONE', form: completionFormFor(type) },
+    ] as readonly Step[],
+  ]),
+);
 
 /**
  * **والتعذّر خطوةٌ من كل حالٍ عاملة** — لا نهايةَ واحدة.
@@ -68,6 +75,28 @@ export const STEPS_BY_TYPE: Readonly<Record<string, readonly Step[]>> = {
  * يبقى الطلب «قيد التنفيذ» أبدًا، أو يُنهيه المزوّد كذبًا ليتخلّص منه.
  */
 export const FAIL_STEP: Step = { key: 'fail', from: 'IN_PROGRESS', to: 'FAILED', form: null };
+
+/**
+ * ═══ والمنتهي فات موعدُه ليس متأخّرًا ═══
+ *
+ * **لا أحد ينتظره.** كان الحسابُ `dueAt <= now` وحدَه، فطلبٌ أُنجز أمس
+ * يحمل شارة «تجاوز المهلة» إلى الأبد — قِيس على الشاشة بعد إنهاء طلبِ
+ * نقل ملكية: «مكتمل» و«تجاوز المهلة» في سطرٍ واحد، **وسمان
+ * متناقضان**. وهو نمطُ «لا مرحلةَ طلبٍ تُعرض وحدها» نفسُه: الحالُ
+ * يُقرأ مع الزمن لا بعده.
+ *
+ * و`adminServiceRequestDetail` تفعلها منذ كُتبت — فكان مدخلان لقاعدةٍ
+ * واحدة، أحدُهما يقولها والآخر يسكت.
+ */
+const OPEN_STATUSES: readonly ServiceRequestStatus[] = ['NEW', 'ASSIGNED', 'IN_PROGRESS'];
+
+function isOverdue(
+  status: ServiceRequestStatus,
+  dueAt: Date | null,
+  now: Date,
+): boolean {
+  return dueAt !== null && dueAt.getTime() <= now.getTime() && OPEN_STATUSES.includes(status);
+}
 
 export function stepsFor(type: ProviderType | null, status: ServiceRequestStatus): Step[] {
   const all = type === null ? [] : (STEPS_BY_TYPE[type] ?? []);
@@ -141,7 +170,7 @@ export async function providerQueue(
     createdAt: row.createdAt.toISOString(),
     scheduledAt: row.scheduledAt?.toISOString() ?? null,
     dueAt: row.dueAt?.toISOString() ?? null,
-    overdue: row.dueAt !== null && row.dueAt.getTime() <= now.getTime(),
+    overdue: isOverdue(row.status, row.dueAt, now),
   }));
 }
 
@@ -181,6 +210,8 @@ export type ProviderRequestView = {
   /** عند من المركبة — و`null` حين يكون هو الطالب نفسه */
   keeper: { name: string | null; phoneTail: string } | null;
   steps: Step[];
+  /** صنفُ الخدمة — ومنه عنوانُ نموذج الإنجاز ووجهتُه */
+  type: ProviderType | null;
   /** أهو مُسنَدٌ إلى هذا المزوّد بعد، أم معروضٌ على صنفه */
   mine: boolean;
 };
@@ -242,7 +273,7 @@ export async function providerRequestView(
     createdAt: row.createdAt.toISOString(),
     scheduledAt: row.scheduledAt?.toISOString() ?? null,
     dueAt: row.dueAt?.toISOString() ?? null,
-    overdue: row.dueAt !== null && row.dueAt.getTime() <= now.getTime(),
+    overdue: isOverdue(row.status, row.dueAt, now),
     /** **ولا يدخل الرقمُ الكائن أصلًا** — وما لا يُجلَب لا يتسرّب في حمولة RSC. */
     requester: { name: row.user.name, phoneTail: row.user.phone.slice(-4) },
     keeper:
@@ -250,6 +281,7 @@ export async function providerRequestView(
         ? null
         : { name: row.seller.name, phoneTail: row.seller.phone.slice(-4) },
     steps: stepsFor(row.service.providerType, row.status),
+    type: row.service.providerType,
     mine,
   };
 }
@@ -259,7 +291,13 @@ export type StepFailure =
   | 'NOT_YOURS'
   /** خطوةٌ لا تقبلها الحال — والزرّ لا يُعرض أصلًا، والحارس هنا */
   | 'STEP_NOT_ALLOWED'
-  | 'REASON_REQUIRED';
+  | 'REASON_REQUIRED'
+  /**
+   * **نموذجُ الإنجاز ناقص.** `form` كان علامةً لا شرطًا: الفاحص يُنهي
+   * بلا تقرير فيُعترف بالإيراد وتخرج الفاتورة ويُقبض المال على فحصٍ
+   * لا وجود له. والاسمُ يقول ما ينقص لا «تعذّرت الخطوة».
+   */
+  | 'FORM_INCOMPLETE';
 
 export type StepResult =
   | { ok: true; status: ServiceRequestStatus }
@@ -293,6 +331,32 @@ export async function applyStep(
   const reason = input.reason?.trim() ?? '';
   if (step.key === 'fail' && reason.length < MIN_FAIL_REASON) {
     return { ok: false, reason: 'REASON_REQUIRED' };
+  }
+
+  /**
+   * ═══ ونموذجُ الإنجاز شرطٌ لا علامة ═══
+   *
+   * `form: 'INSPECTION'` مكتوبٌ في الجدول منذ بُني **ولم يُفرَض قطّ**:
+   * زرُّ «أنهِ» معروضٌ بجوار رابط النموذج، فيُضغط بلا أن يُفتح — ثمّ
+   * `recordServiceEarned` و`issueServiceInvoice` و`captureServicePayment`
+   * تمرّ كلُّها، **فيُقبض ثمنُ فحصٍ لا تقريرَ له**. والعميل يقرأ
+   * «اكتمل».
+   *
+   * **وحارسٌ في الشاشة ليس حارسًا**: الشاشة تعرض الرابط، والنداء
+   * المباشر يتجاوزه. فالشرط هنا، على مدخل الحال الوحيد.
+   */
+  if (step.form !== null) {
+    const row = await db.serviceRequest.findUnique({
+      where: { ref: input.ref },
+      select: { id: true, service: { select: { providerType: true } } },
+    });
+    const type = row?.service.providerType ?? null;
+    if (row === null || type === null) return { ok: false, reason: 'REQUEST_NOT_FOUND' };
+
+    const { completionComplete } = await import('./service-completion');
+    if (!(await completionComplete(row.id, type, now))) {
+      return { ok: false, reason: 'FORM_INCOMPLETE' };
+    }
   }
 
   /**

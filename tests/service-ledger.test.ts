@@ -3,6 +3,7 @@ import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { recordServiceEarned, recordServicePaid } from '@/lib/domain/ledger-events';
 import { applyStep } from '@/lib/domain/provider-queue';
+import { makeCompletable } from './helpers/completable';
 
 /**
  * ═══ الخدمة تصل الدفتر ═══
@@ -206,6 +207,7 @@ describe('إنجازُ المزوّد يكتب القيد', () => {
       },
     });
 
+    await makeCompletable(ref);
     const result = await applyStep({
       ref,
       providerId: provider.id,
@@ -415,6 +417,13 @@ describe('فاتورةُ الخدمة', () => {
         city,
       },
     });
+    /**
+     * **والإنجاز صار يشترط إثباتَه** (`FORM_INCOMPLETE`) — و`form` كان
+     * مكتوبًا في الجدول ولا يُفرَض، فهذه الاختبارات تقيس ما بعد
+     * الإنجاز وتمرّ من بابٍ لم يكن مغلقًا. والشرطُ يُستوفى في الطقم
+     * مرّةً لا في كلّ `it`.
+     */
+    await makeCompletable(ref);
     return { ref, providerId: provider.id };
   }
 
@@ -560,6 +569,13 @@ describe('تحصيلُ خدمةٍ أُنجزت', () => {
         city,
       },
     });
+    /**
+     * **والإنجاز صار يشترط إثباتَه** (`FORM_INCOMPLETE`) — و`form` كان
+     * مكتوبًا في الجدول ولا يُفرَض، فهذه الاختبارات تقيس ما بعد
+     * الإنجاز وتمرّ من بابٍ لم يكن مغلقًا. والشرطُ يُستوفى في الطقم
+     * مرّةً لا في كلّ `it`.
+     */
+    await makeCompletable(ref);
     return { ref, providerId: provider.id, paymentId: payment.id };
   }
 

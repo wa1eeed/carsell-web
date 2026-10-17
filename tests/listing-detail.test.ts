@@ -219,8 +219,18 @@ describe('التكلفة والصبغ', () => {
 
   /** الفحص يتجاوز إقرار البائع، والمصدر يُعرض مع الحالة (قرار ١٦). */
   it('مصدر حالة الصبغ يتبع وجود الفحص', async () => {
+    /**
+     * **والطقم يشترط ما يفترضه.** كان الشرط «أيُّ تقرير» ثمّ يفحص أنّ
+     * المصدر `INSPECTION` — **وتقريرُ المشتري خاصٌّ به** (قرار المالك
+     * ٤)، فـ`toPublicDetail` تتجاهله بحقّ ويبقى المصدر `SELLER`.
+     * ووقع حين اكتملت البذرة فظهر الصفُّ الخاصّ أوّلًا، فبدا السقوط
+     * تقطّعًا وهو شرطٌ ناقص.
+     */
     const withReport = await db.listing.findFirst({
-      where: { status: 'PUBLISHED', vehicle: { inspectionReports: { some: {} } } },
+      where: {
+        status: 'PUBLISHED',
+        vehicle: { inspectionReports: { some: { publishedAt: { not: null } } } },
+      },
       select: { ref: true },
     });
     if (withReport !== null) {

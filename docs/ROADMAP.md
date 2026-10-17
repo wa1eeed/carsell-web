@@ -650,16 +650,27 @@ never built:
       they are told to change at every sign-in, and no way to suspend or reset
       one. All three are built; the temp password is generated, shown once, and
       never written to the audit log.
-- [ ] **A completion form per provider type.** `form: 'INSPECTION'` is declared
-      in `STEPS_BY_TYPE` and **nothing renders it**; the other six types finish
-      with no fields at all — a shipping provider marks "done" and we never
-      learn the tracking number, an insurer leaves no policy number.
-- [ ] **A `TRANSFER` provider type** (نقل الملكية) with the fields that
-      completing a transfer needs. The enum has no such value today, and
-      `provider-queue.ts` carries the note «ونقلُ الملكية سيُضاف هنا سطرًا لا
-      شاشة».
+- [x] **A completion form per provider type.** Built 2026-10-17 — one form, a
+      field schema per type (`completion-schema.ts`), validated by a pure
+      function the screen and the server both call. And the hole was wider than
+      the note: `form` was **declared and never enforced**, so an inspector
+      could close an inspection with no report at all — recognising revenue,
+      issuing a tax invoice and capturing the money for work that did not
+      exist. `applyStep` now refuses `FORM_INCOMPLETE`. `docs/workflows/provider-panel.md`.
+- [x] **A `TRANSFER` provider type** (نقل الملكية). And measuring it found
+      worse: `ownership_transfer` **already existed as a 350-riyal service on
+      the home page** with `providerType: null`, so `cityPool` returned nothing
+      and every request was refused `CITY_NOT_COVERED`. A service advertised
+      and never buyable. Migration `20261017160100` points it at `TRANSFER`
+      (reference data reaches a live database by migration, not by seed), and
+      the seed gives the type a provider — a type with no provider refuses
+      identically.
 - [ ] The inspection field list itself is **still owner-blocked** — recorded
       long before this: «وحقولُه يزوّدنا بها المالك».
+- [ ] **The field lists for the other seven types are mine, not the owner's.**
+      Proposed from what each job actually needs and recorded in
+      `docs/OPEN-QUESTIONS.md` for confirmation. Changing one is a line in
+      `completion-schema.ts`, not a screen.
 
 **The shape, so it stays one panel and not seven:** the difference between
 types is *data*, not screens — a field schema per type, rendered by one form

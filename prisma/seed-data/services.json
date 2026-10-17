@@ -136,7 +136,7 @@
       "guide"
     ],
     "sort": 5,
-    "providerType": null,
+    "providerType": "TRANSFER",
     "includesAr": [
       "إنهاء الإجراءات في المرور نيابةً عن الطرفين",
       "التحقّق من استيفاء الشروط قبل الموعد",

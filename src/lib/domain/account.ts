@@ -133,6 +133,8 @@ export type AccountServiceRequest = {
   scheduledAt: string | null;
   city: string | null;
   amount: string;
+  /** صنفُ المزوّد — ومنه معنى «اكتمل» لهذا الطلب بعينه */
+  providerType: string | null;
 };
 
 export type FavoriteListing = {
@@ -377,17 +379,33 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
      * **القائم لا المنتهي.** `DONE` له تقريرٌ يظهر أعلاه، و`REFUNDED`
      * انتهى بردّ المال — فالمعروض هنا ما ينتظره صاحبه فعلًا.
      */
+    /**
+     * ═══ والمُنجَزُ يبقى مرئيًّا ═══
+     *
+     * كان المُرشَّح `NEW · ASSIGNED · IN_PROGRESS` وحدها، والقسم الثاني
+     * في الشاشة `InspectionReport` — **فطلبٌ غيرُ فحصٍ يختفي من
+     * الحساب كلِّه لحظةَ إنجازه**: من دفع ٩٠٠ ريالًا لنقل مركبته أو
+     * أمّن سيارته لا يجد رقم بوليصته ولا وثيقته في أيّ شاشة، ولا
+     * رابطَ يصل صفحةَ الطلب التي تحملها.
+     *
+     * وكلُّ حالٍ تُعرض الآن إلّا المرفوضة قبل السداد — فلا مال فيها
+     * ولا أثر، وقد أُخطِر صاحبُها.
+     */
     db.serviceRequest.findMany({
-      where: { userId: user.id, status: { in: ['NEW', 'ASSIGNED', 'IN_PROGRESS'] } },
+      where: {
+        userId: user.id,
+        status: { in: ['NEW', 'ASSIGNED', 'IN_PROGRESS', 'DONE', 'FAILED', 'REFUNDED'] },
+      },
+      /** والقائمُ أوّلًا: موعدٌ ينتظره يسبق إثباتًا انتهى */
       orderBy: [{ scheduledAt: 'asc' }, { createdAt: 'desc' }],
-      take: 10,
+      take: 20,
       select: {
         ref: true,
         status: true,
         scheduledAt: true,
         city: true,
         amount: true,
-        service: { select: { nameAr: true, nameEn: true } },
+        service: { select: { nameAr: true, nameEn: true, providerType: true } },
         vehicle: { select: vehicleSelect },
       },
     }),
@@ -568,6 +586,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       scheduledAt: row.scheduledAt?.toISOString() ?? null,
       city: row.city,
       amount: row.amount.toString(),
+      providerType: row.service.providerType,
     })),
     reports: reports.map((report) => {
       const listing = report.vehicle.listings[0] ?? null;

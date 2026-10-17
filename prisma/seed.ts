@@ -689,6 +689,16 @@ async function main(): Promise<void> {
     ['مركز فحص المستقبل', 'Mustaqbal Inspection Centre', 'INSPECTION', 48],
     ['ناقل للشحن', 'Naqil Transport', 'SHIPPING', 96],
     ['تأمين الراجحي', 'Al Rajhi Takaful', 'INSURANCE', 1],
+    /**
+     * ═══ ومزوّدُ نقل الملكية — وكانت خدمتُه تُعرض ولا تُطلب ═══
+     *
+     * قِيس: `ownership_transfer` معروضةٌ في **الصفحة الرئيسية**
+     * بـ٣٥٠ ريالًا و`providerType = NULL`، فـ`cityPool(null)` تُعيد
+     * فراغًا و`requestService` تردّ `CITY_NOT_COVERED` **دائمًا**.
+     * فصار لها صنفٌ (ترحيل `20261017160100`) — **ولا يكفي**: صنفٌ
+     * بلا مزوّدٍ في أيّ مدينة يردّ الردَّ نفسه.
+     */
+    ['وكيل نقل الملكية', 'Tamleek Transfer Agent', 'TRANSFER', 72],
     ['ديتيل برو', 'Detail Pro', 'DETAILING', 48],
     ['عدسة للتصوير', 'Adasa Studio', 'PHOTOGRAPHY', 48],
   ] as const;
@@ -1854,7 +1864,14 @@ async function main(): Promise<void> {
   if (buyerInspected !== undefined && reportBuyer !== undefined) {
     const request = await prisma.serviceRequest.create({
       data: {
-        ref: 'SRV-2026-3100',
+        /**
+         * **ولكلِّ عائلةِ مراجعَ كتلتُها المئوية.** كان هذا `3100`
+         * وطابورُ المزوّد يبدأ من `3100 + n` — **فاصطدما عند `n = 0`
+         * و`npm run db:seed` يسقط منذ `bac2d43`**: بيئةٌ جديدة لا
+         * تُزرع أصلًا، ولا شيء في `verify` يمرّ بالبذرة فيقول.
+         * والبوابة ٥٧ تمنع تقاطع الكتل.
+         */
+        ref: 'SRV-2026-3200',
         serviceId: inspectionServiceId,
         userId: reportBuyer.id,
         sellerId: buyerInspected.sellerId,
@@ -1926,14 +1943,20 @@ async function main(): Promise<void> {
   const QUEUE: readonly {
     service: string;
     status: 'NEW' | 'ASSIGNED' | 'IN_PROGRESS' | 'FAILED' | 'REFUNDED';
-    provider: 'INSPECTION' | 'SHIPPING' | 'DETAILING' | null;
+    provider: 'INSPECTION' | 'SHIPPING' | 'DETAILING' | 'TRANSFER' | null;
     /** ساعاتٌ من الآن — سالبٌ يعني أن المهلة فاتت. */
     dueInHours: number;
     scheduledInHours: number | null;
   }[] = [
     { service: 'inspection', status: 'NEW', provider: null, dueInHours: 20, scheduledInHours: 28 },
     { service: 'shipping', status: 'ASSIGNED', provider: 'SHIPPING', dueInHours: 44, scheduledInHours: 50 },
-    { service: 'ownership_transfer', status: 'IN_PROGRESS', provider: null, dueInHours: -9, scheduledInHours: -2 },
+    /**
+     * **ومُسنَدٌ إلى مزوّده** — كان `provider: null` وحالُه
+     * `IN_PROGRESS`: طلبٌ «قيد التنفيذ» لا مزوّدَ له، فلا يراه أحدٌ في
+     * طابوره ولا يُنهيه أحد. وهو متأخّرٌ بتسع ساعات في لوحة المهل إلى
+     * الأبد.
+     */
+    { service: 'ownership_transfer', status: 'IN_PROGRESS', provider: 'TRANSFER', dueInHours: -9, scheduledInHours: -2 },
     /**
      * **وفحصٌ مُسنَدٌ وآخرُ جارٍ** — وكانا ناقصين، فشاشةُ نموذج الفحص
      * لا تُفتح على بياناتٍ مزروعة أصلًا: كلُّ فحصٍ في الزرع منتهٍ.
@@ -1946,19 +1969,45 @@ async function main(): Promise<void> {
     { service: 'detailing', status: 'REFUNDED', provider: 'DETAILING', dueInHours: -96, scheduledInHours: -100 },
   ];
 
+  /**
+   * **وصاحبُ الصفقة المكتملة هو من يُعطى طلبَ الخدمة.** فحسابٌ واحد
+   * يجمع طلبَ شراءٍ بوثائقه وطلبَ خدمةٍ بتقريره — ومشيُ السطح يدخل
+   * بحسابٍ واحد، فإن تفرّقا بقيت إحدى الشاشتين بلا قياسٍ قطّ:
+   * `/account/orders/[ref]/documents/[kind]` أو `/account/reports/[ref]`.
+   */
+  const docBuyer = prisma.order.findFirst({
+    where: { agreement: { isNot: null } },
+    select: { buyerId: true },
+  });
+
   for (const [n, plan] of QUEUE.entries()) {
     const serviceId = services.get(plan.service);
     const l = listings[n + 2] as ListingRef | undefined;
     if (serviceId === undefined || l === undefined) continue;
     const price = servicePrices.get(plan.service) ?? new D('450.00');
 
+    /**
+     * ═══ وطلبٌ يطلبه مشترٍ له طلبُ شراء — وكان الصنفان منفصلين ═══
+     *
+     * كلُّ طلبِ خدمةٍ هنا `userId: l.sellerId`، وكلُّ طلبِ شراءٍ
+     * لمشترٍ — **فلا حسابَ في البيئة يجمع الاثنين**. ومشيُ السطح
+     * يدخل بحسابٍ واحد، فإن اختار مشتريًا بقيت `/account/reports/[ref]`
+     * **بلا قياسٍ قطّ**، وإن اختار بائعًا بقيت صفحات الطلبات.
+     *
+     * والشكلُ صحيحٌ في النطاق أصلًا: مشترٍ يفحص سيارة غيره —
+     * `userId` من طلب، و`sellerId` صاحبُ المركبة.
+     */
+    const asBuyer = n === 0 ? ((await docBuyer)?.buyerId ?? l.sellerId) : l.sellerId;
+
     await prisma.serviceRequest.create({
       data: {
         ref: `SRV-2026-${String(3100 + n)}`,
         serviceId,
-        userId: l.sellerId,
+        userId: asBuyer,
         listingId: l.id,
         vehicleId: l.vehicleId,
+        /** و`null` تعني طلبًا على مركبةِ صاحبه — فلا إذنَ يلزم */
+        sellerId: asBuyer === l.sellerId ? null : l.sellerId,
         providerId: plan.provider === null ? null : (providers.get(plan.provider) ?? null),
         status: plan.status,
         amount: price,

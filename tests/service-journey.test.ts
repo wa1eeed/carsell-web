@@ -6,6 +6,7 @@ import {
   requestService,
 } from '@/lib/domain/service-lifecycle';
 import { applyStep } from '@/lib/domain/provider-queue';
+import { makeCompletable } from './helpers/completable';
 
 /**
  * ═══ الرحلة كاملةً — طلبٌ فإذنٌ فدفعٌ فإنجاز ═══
@@ -152,13 +153,36 @@ describe('رحلةُ فحصٍ يطلبه مشترٍ', () => {
     /** **قبضٌ لا إيراد** — الخدمة لم تقع بعد. */
     expect(held.some((row) => row.account === 'PLATFORM_REVENUE')).toBe(false);
 
-    // ٤ ─ يقبل المزوّد ويبدأ ويُنجز
-    for (const step of ['accept', 'start', 'complete'] as const) {
+    // ٤ ─ يقبل المزوّد ويبدأ
+    for (const step of ['accept', 'start'] as const) {
       const result = await applyStep({ ref: asked.ref, providerId: provider.id, step, reason: null });
       expect(result.ok, `${step}: ${JSON.stringify(result)}`).toBe(true);
     }
 
-    // ٥ ─ الدفتر يعترف بالإيراد ويُنشئ دَين المزوّد
+    /**
+     * ═══ ولا يُنجَز بلا تقرير ═══
+     *
+     * و`form: 'INSPECTION'` كان مكتوبًا في الجدول **ولا يُفرَض**: يضغط
+     * الفاحص «أنهِ» بلا أن يفتح النموذج، فيمرّ ما تحته كلُّه —
+     * `recordServiceEarned` و`issueServiceInvoice` و`captureServicePayment`
+     * — **فيُقبض ثمنُ فحصٍ لا وجود له**، ويقرأ العميل «اكتمل».
+     *
+     * فالرحلةُ تُقاس بالبابين: مغلقٌ بلا إثبات، ومفتوحٌ به. ومشيُ
+     * النموذج بنودًا ولوحاتٍ وصورًا موضوعُ `tests/inspection-*.test.ts`.
+     */
+    expect(
+      await applyStep({ ref: asked.ref, providerId: provider.id, step: 'complete', reason: null }),
+    ).toEqual({ ok: false, reason: 'FORM_INCOMPLETE' });
+
+    await makeCompletable(asked.ref);
+
+    // ٥ ─ ويُنجز
+    expect(
+      (await applyStep({ ref: asked.ref, providerId: provider.id, step: 'complete', reason: null }))
+        .ok,
+    ).toBe(true);
+
+    // ٦ ─ الدفتر يعترف بالإيراد ويُنشئ دَين المزوّد
     const booked = await db.ledgerEntry.findMany({
       where: { note: asked.ref },
       select: { account: true, direction: true, amount: true, event: true },

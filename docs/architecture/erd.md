@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-92 models · 59 enums
+93 models · 59 enums
 
 ## Relationships
 
@@ -159,6 +159,8 @@ erDiagram
   ServiceRequest |o--|| Vehicle : "vehicle"
   ServiceRequest |o--|| InspectionReport : "inspectionReport"
   ServiceRequest |o--|| InspectionDraft : "inspectionDraft"
+  ServiceRequest ||--o{ ServiceCompletionField : "completion"
+  ServiceCompletionField }o--|| ServiceRequest : "request"
   InspectionTemplate ||--o{ InspectionCategory : "categories"
   InspectionTemplate ||--o{ InspectionDraft : "drafts"
   InspectionCategory }o--|| InspectionTemplate : "template"
@@ -835,7 +837,21 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `declineReason` | `String?` |  |
 | `paymentId` | `String?` |  |
 
-Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport` · `inspectionDraft` → `InspectionDraft`
+Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport` · `inspectionDraft` → `InspectionDraft` · `completion` → `ServiceCompletionField`
+
+### `ServiceCompletionField`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `requestId` | `String` |  |
+| `key` | `String` |  |
+| `valueText` | `String?` |  |
+| `valueNumber` | `Decimal?` |  |
+| `valueDate` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `request` → `ServiceRequest`
 
 ### `InspectionTemplate`
 
@@ -1831,7 +1847,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ProviderAccountKind` — `FREELANCER`, `ESTABLISHMENT`, `COMPANY`, `GOVERNMENT`, `CHARITY`
 - `AccountSignatory` — `OWNER`, `COMMERCIAL_CONTRACT`, `POWER_OF_ATTORNEY`
 - `ProviderAccountStatus` — `NONE`, `PENDING`, `MISSING_DOCS`, `UNDER_REVIEW`, `SEMI_ACTIVE`, `ACTIVE`, `HOLD`, `REJECTED`, `DISABLED`
-- `ProviderType` — `INSPECTION`, `SHIPPING`, `INSURANCE`, `DETAILING`, `PHOTOGRAPHY`, `FINANCE`, `OTHER`
+- `ProviderType` — `INSPECTION`, `SHIPPING`, `INSURANCE`, `TRANSFER`, `DETAILING`, `PHOTOGRAPHY`, `FINANCE`, `OTHER`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`
 - `IntegrationStatus` — `ACTIVE`, `INACTIVE`, `DEGRADED`

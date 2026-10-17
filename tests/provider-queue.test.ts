@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { applyStep, providerQueue, providerRequestView, stepsFor } from '@/lib/domain/provider-queue';
+import { ProviderType } from '@/generated/prisma/enums';
 
 /**
  * ═══ لوحة المزوّدين الموحَّدة ═══
@@ -77,13 +78,34 @@ describe('خطواتُ الصنف', () => {
     expect(stepsFor('INSPECTION', 'DONE')).toEqual([]);
   });
 
-  /** والفرقُ بين الأصناف في النموذج لا في الرحلة — وهو ما قصده المالك. */
+  /**
+   * والفرقُ بين الأصناف في النموذج لا في الرحلة — وهو ما قصده المالك.
+   *
+   * **وهذا الاختبار كان يثبّت العطب**: كتب `expect(shipping?.form)
+   * .toBeNull()` — أي أنّ الناقل يُنهي **بلا حقلٍ واحد**، وهو بعينه ما
+   * طلب المالك إصلاحه («وهكذا لباقي المزوّدين»). فلمّا صُحّح الكود
+   * سقط الاختبار، والسؤال أيُّهما كان خاطئًا: الاختبار.
+   */
   it('والفرق في النموذج لا في المسار', () => {
     const inspection = stepsFor('INSPECTION', 'IN_PROGRESS').find((s) => s.key === 'complete');
     const shipping = stepsFor('SHIPPING', 'IN_PROGRESS').find((s) => s.key === 'complete');
+    /** للفحص شاشتُه (بنودٌ وصورٌ ومخطّط)، ولما عداه مخطّطُ حقول */
     expect(inspection?.form).toBe('INSPECTION');
-    expect(shipping?.form).toBeNull();
+    expect(shipping?.form).toBe('FIELDS');
+    /** والرحلةُ واحدة: `IN_PROGRESS → DONE` للصنفين */
     expect(inspection?.to).toBe(shipping?.to);
+  });
+
+  /**
+   * **وصنفٌ جديد في التعداد يأخذ خطواته تلقائيًّا.** كان الجدول سبعةَ
+   * أسطرٍ متوأمة، فصنفٌ يُضاف ولا يُضاف هناك يخرج **بلا خطواتٍ
+   * أصلًا** — طابورٌ يستلم طلبًا ولا زرَّ فيه.
+   */
+  it('وكلُّ صنفٍ في التعداد له خطواته', () => {
+    for (const type of Object.values(ProviderType)) {
+      expect(stepsFor(type, 'NEW').map((s) => s.key)).toEqual(['accept']);
+      expect(stepsFor(type, 'IN_PROGRESS').map((s) => s.key)).toEqual(['complete', 'fail']);
+    }
   });
 });
 
@@ -120,6 +142,24 @@ describe('ما يصل المزوّد', () => {
   });
 });
 
+describe('المهلة', () => {
+  /**
+   * **والمنتهي فات موعدُه ليس متأخّرًا** — لا أحد ينتظره. قِيس على
+   * الشاشة بعد إنهاء طلبِ نقل ملكية: «مكتمل» و«تجاوز المهلة» في سطرٍ
+   * واحد، وسمان متناقضان.
+   */
+  it('وطلبٌ أُنجز لا يحمل شارة التأخّر', async () => {
+    const seat = await queued();
+    const late = new Date(Date.now() + 86_400_000 * 2);
+
+    await applyStep({ ...seat, step: 'accept', reason: null }, late);
+    expect((await providerRequestView(seat.ref, seat.providerId, late))?.overdue).toBe(true);
+
+    await db.serviceRequest.update({ where: { ref: seat.ref }, data: { status: 'DONE' } });
+    expect((await providerRequestView(seat.ref, seat.providerId, late))?.overdue).toBe(false);
+  });
+});
+
 describe('تطبيق الخطوة', () => {
   /**
    * **والحارس في الخادم.** الشاشة تعرض ما تقبله الحال، ونداءٌ مباشر
@@ -132,7 +172,15 @@ describe('تطبيق الخطوة', () => {
     ).toEqual({ ok: false, reason: 'STEP_NOT_ALLOWED' });
   });
 
-  it('والرحلة تمضي قبولًا فبدءًا فإنهاءً', async () => {
+  /**
+   * **وهذا الاختبار كان يثبّت العطب الأكبر**: كان يفحص أنّ طلبَ فحصٍ
+   * يُنتهى بـ`complete` **بلا تقريرٍ قطّ** ويردّ `DONE` — وتحته
+   * `recordServiceEarned` و`issueServiceInvoice` و`captureServicePayment`
+   * تمرّ كلُّها، **فيُقبض ثمنُ فحصٍ لا وجود له** والعميل يقرأ «اكتمل».
+   *
+   * و`form: 'INSPECTION'` كان مكتوبًا في الجدول منذ بُني ولا يُفرَض.
+   */
+  it('والرحلة تمضي قبولًا فبدءًا — ويقف الإنهاء على النموذج', async () => {
     const seat = await queued();
     expect(await applyStep({ ...seat, step: 'accept', reason: null })).toEqual({
       ok: true,
@@ -142,10 +190,15 @@ describe('تطبيق الخطوة', () => {
       ok: true,
       status: 'IN_PROGRESS',
     });
+    /** **ولا يُنهى فحصٌ بلا تقرير** — والاسمُ يقول ما ينقص */
     expect(await applyStep({ ...seat, step: 'complete', reason: null })).toEqual({
-      ok: true,
-      status: 'DONE',
+      ok: false,
+      reason: 'FORM_INCOMPLETE',
     });
+    /** والتعذّرُ باقٍ: مخرجٌ لمن لم يستطع، ولا يحتاج نموذجًا */
+    expect(
+      await applyStep({ ...seat, step: 'fail', reason: 'المركبة لم تكن في الموقع المتّفق عليه.' }),
+    ).toEqual({ ok: true, status: 'FAILED' });
   });
 
   /**

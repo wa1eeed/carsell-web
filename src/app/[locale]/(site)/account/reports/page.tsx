@@ -10,6 +10,7 @@ import { currentUserFromCookies, getAccountData } from '@/lib/domain/account';
 import { AccountList, AccountRow } from '../AccountList';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { SERVICE_REQUEST_NEXT, SERVICE_REQUEST_STATUS } from '@/lib/labels/services';
+import { SERVICE_DONE_BY_TYPE } from '@/lib/labels/completion';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,7 +111,14 @@ export default async function ReportsPage({
           */
           value={
             <span className="text-2xs opacity-70">
-              {SERVICE_REQUEST_NEXT[request.status] ?? ''}
+              {/*
+                **و«التقرير جاهز» كانت تُقال لكل صنف** — فناقلٌ أوصل
+                مركبةً ومصوّرٌ سلّم صورًا يقول لصاحبهما إنّ تقريرًا جاهز،
+                ولا تقريرَ في الدنيا.
+              */}
+              {request.status === 'DONE' && request.providerType !== null
+                ? (SERVICE_DONE_BY_TYPE[request.providerType] ?? SERVICE_REQUEST_NEXT.DONE)
+                : (SERVICE_REQUEST_NEXT[request.status] ?? '')}
             </span>
           }
         />

@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { applyStep } from '@/lib/domain/provider-queue';
+import { makeCompletable } from './helpers/completable';
 
 /**
  * ═══ ومن دفع يُخطَر بما وقع ═══
@@ -96,6 +97,8 @@ describe('إخطارُ الطالب بخطوات مزوّده', () => {
 
   it('والإنجاز يُخطِره — والقالب كان معلَنًا صامتًا بحجّةٍ بطلت', async () => {
     const made = await queued('IN_PROGRESS');
+    /** والإنجاز صار يشترط إثباتَه — والباب واحدٌ للطقم كلِّه */
+    await makeCompletable(made.ref);
     const result = await applyStep({
       ref: made.ref,
       providerId: made.providerId,

@@ -155,3 +155,91 @@ would produce two answers to one question.
   **used to promise one anyway**; it now says what is true: the queue is the
   place, check it. A centre waiting for a message that never comes loses a paid
   request while its clock runs.
+
+---
+
+## Completion forms — one form, a field schema per type
+
+Added 2026-10-17, on the owner's request:
+
+> «يجب ان تكون لوحة مستقله للمزود و كما تناقشنا موحده لجميع المزودين بطريقه
+> ذكيه و تشمل المزودين من نوع فاحصين حيث هناك حقول للتعامل مع الفحص **و اذا
+> كان المزود نقل ملكيه هناك حقول تناسبه لتنفيذ الطلب و هكذا لباقي المزودين**»
+
+### The hole this closed, and it was wider than it looked
+
+`Step.form` was declared in `STEPS_BY_TYPE` the day it was written — and
+**never enforced**. Two separate defects fell out of that:
+
+1. **Six types finished with no fields at all.** A shipping provider pressed
+   «أنهِ» and we never learned the waybill number; an insurer left no policy
+   number; a lender's decision was never recorded. The customer paid, read
+   «اكتمل», and that was the whole of it.
+
+2. **The inspector could close an inspection with no report.** `form:
+   'INSPECTION'` sat next to the «أنهِ» button as a *link*, and the button
+   worked whether or not the link was followed. Everything downstream then ran:
+   `recordServiceEarned`, `issueServiceInvoice`, `captureServicePayment` — so
+   **we recognised revenue, issued a tax invoice and captured the money for an
+   inspection that did not exist**. A guard the screen suggests is not a guard.
+
+Both are now one rule: `applyStep` refuses `FORM_INCOMPLETE` unless the proof
+is complete, checked on the single entry point to the status.
+
+### The shape
+
+Difference between types is **data, not screens**:
+
+| File | Holds |
+| --- | --- |
+| `src/lib/domain/completion-schema.ts` | the field schema per `ProviderType`; no `db`, so the browser reads it |
+| `src/lib/domain/completion-validate.ts` | `checkCompletion` — pure, time passed in; **the screen and the server call this same function** |
+| `src/lib/domain/service-completion.ts` | `completionFormView`, `saveCompletion`, `completionComplete`, `completionOf` |
+| `src/lib/labels/completion.ts` | the Arabic names (gate 17 keeps prose out of the domain) |
+| `src/app/provider/[ref]/complete/` | one form that renders any type's schema |
+| `src/components/ui/CompletionRecord.tsx` | one card read by the provider, the admin and the customer |
+
+Adding a field is a line in the schema. Adding a type is a line in the enum —
+`STEPS_BY_TYPE` is now **built** from `ProviderType` × the schema, so a new
+value cannot arrive with no steps at all.
+
+### Storage — a row per field, a column per kind
+
+`ServiceCompletionField(requestId, key, valueText?, valueNumber?, valueDate?)`,
+unique on `(requestId, key)`. A row per field so a new field is not a
+migration; a column per kind so money stays `Decimal` and dates stay dates —
+one text column would make `١٢٠٤٠٠` and `120400` two different readings of one
+odometer. Same shape as `InspectionResult`.
+
+A re-save **deletes then writes**: a lender who switches the decision from
+approval to rejection must not leave `approvedAmount` behind, or the record
+reads «رُفض» above «المبلغ المعتمد ٨٠٬٠٠٠».
+
+### What the fields check
+
+Beyond required/length: numbers accept any paste shape and normalise through
+`toLatinDigits` (Arabic-Indic digits, Arabic thousands and decimal marks);
+`when: 'PAST'` refuses a delivery date that has not happened yet — a proof of
+something not yet done is a lie, not a formatting slip; `notBefore` refuses a
+delivery before its pickup and a policy that expires before it starts;
+`onlyWhen` hides a field whose answer has no meaning, and **the server derives
+the visible set from the same function**, so the screen never hides what the
+server then demands.
+
+Every issue is returned at once. A form of seven fields that reports one error
+per round trip is seven round trips for one job.
+
+### The second half
+
+The provider writes it; the customer and the operator read it. Both screens
+carry `CompletionRecord`. Before this, `/account/reports` listed only
+`NEW · ASSIGNED · IN_PROGRESS` plus inspection reports — so **a completed
+shipping or insurance request vanished from the account entirely** the moment
+it was finished, and the page holding its policy number had no inbound link.
+
+### Wording follows the type
+
+`SERVICE_REQUEST_NEXT.DONE` read «التقرير جاهز» for every type, so a courier
+who delivered a car told its owner a *report* was ready. `SERVICE_DONE_BY_TYPE`
+now names what actually happened — «سُلّمت المركبة», «صدرت الوثيقة», «نُقلت
+الملكية» — and a test pins every enum value to a phrase.

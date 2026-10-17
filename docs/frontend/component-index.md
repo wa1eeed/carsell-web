@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **151** components in **3** directories.
+Counted: **153** components in **3** directories.
 
 ## Referenced nowhere else
 
@@ -33,7 +33,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 10 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 10 |
 | `DetailStats` | no | `items` | 12 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 117 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 120 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -76,7 +76,7 @@ rather than found by chance.
 | `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
 | `SpecStrip` | no | `items` | 1 |
 | `Choice` | yes | `options` · `active` · `onSelect` | 2 |
-| `Note` | yes | `children` | 95 |
+| `Note` | yes | `children` | 96 |
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
 | `SettingsBlock` | yes | `title` · `children` | 2 |
@@ -122,25 +122,27 @@ rather than found by chance.
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
-| `ActionLink` | no | `href` · `children` · `className` | 4 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 105 |
+| `ActionLink` | no | `href` · `children` · `className` | 5 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 106 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 95 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 13 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 93 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 14 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 94 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 14 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
 | `CarRow` | no | `data` · `className` | 3 |
 | `Chip` | yes | `active` · `count` · `onRemove` · `onClick` · `disabled` · `children` · `className` | 12 |
+| `CompletionRecord` | no | `title` · `rows` | 2 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 6 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 37 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
+| `Field` | no | `label` · `hint` · `error` · `required` · `unit` · `htmlFor` · `children` | 120 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
@@ -183,5 +185,5 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 69 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 70 |
 | `Year` | no | `value` · `className` | 5 |

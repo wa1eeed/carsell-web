@@ -38,6 +38,7 @@ import './env-load';
 import { readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { db } from '../src/lib/db';
+import { landingCombinations } from '../src/lib/domain/landing';
 
 const ROOT = process.cwd();
 const PORT = process.argv[2] ?? '3002';
@@ -70,24 +71,59 @@ function routes(): string[] {
 }
 
 /** قيمٌ حقيقية للمقاطع المتغيّرة — من القاعدة لا من الخيال. */
-async function params(viewerId: string | null): Promise<Record<string, string>> {
+async function params(
+  viewerId: string | null,
+  providerId: string | null,
+): Promise<Record<string, string>> {
   /** مقاطعُ الحساب تُملأ بصفوف من دخل — وإلّا قِيس ٤٠٤ على ملكيّةٍ سليمة. */
   const mine = viewerId === null ? {} : { userId: viewerId };
-  const [listing, order, serviceRequest, providerRequest, provider, user, service, brand, dispute, payout, dealer, trim, offer, report, legal, auction] =
+  const [listing, order, docOrder, serviceRequest, anyServiceRequest, landing, providerRequest, provider, user, service, brand, dispute, payout, dealer, trim, offer, report, legal, auction] =
     await Promise.all([
       db.listing.findFirst({ where: { status: 'PUBLISHED' }, select: { ref: true } }),
       db.order.findFirst({ where: { buyerId: viewerId ?? undefined }, select: { ref: true } }),
-      db.serviceRequest.findFirst({ where: mine, select: { ref: true } }),
       /**
-       * **ومرجعُ لوحة المزوّد يخصّ من دخل إليها.** كان يُملأ من
-       * استعلامٍ يخصّ المستخدم، فيُطلب في `/provider` طلبٌ لم يقبله
-       * المزوّد — ويردّ ٤٠٤ **وهو الصواب**، فتُسجَّل سلامةٌ ساقطةً.
+       * ═══ ووثيقةُ الطلب تلزمها **صفقةٌ بلغت وثيقتَها** ═══
+       *
+       * `documents/[kind]` تردّ ٤٠٤ على طلبٍ في مرحلة «طلب» — **وهو
+       * الصواب**: لا عقدَ قبل النقل. فمرجعُ طلبٍ عامّ يجعل الوجهة
+       * «ساقطة» في كل تشغيل، وإنذارٌ دائمٌ يُعلَّم تجاهُله.
        */
-      db.serviceRequest.findFirst({
-        where: { provider: { users: { some: { active: true } } }, providerId: { not: null } },
-        orderBy: { createdAt: 'desc' },
-        select: { ref: true, providerId: true },
+      db.order.findFirst({
+        where: { buyerId: viewerId ?? undefined, agreement: { isNot: null } },
+        select: { ref: true },
       }),
+      db.serviceRequest.findFirst({ where: mine, select: { ref: true } }),
+      /** **وللأدمن أيُّ طلب** — صلاحيّتُه ليست ملكيّة، فتقييدُه بمن دخل يُخفي شاشته. */
+      db.serviceRequest.findFirst({ orderBy: { createdAt: 'desc' }, select: { ref: true } }),
+      /**
+       * ═══ ومقاطعُ صفحة الهبوط من **تركيباتها** هي ═══
+       *
+       * `browse/[city]/[brand]` لا توجد لأيّ مدينةٍ وعلامة، بل لما
+       * بلغ الحدّ (`MIN_LISTINGS`). فمدينةٌ من إعلانٍ وعلامةٌ من
+       * جدولها تُنتجان مسارًا **سليمًا رمزيًّا و٤٠٤ فعلًا** — والقياسُ
+       * يقرؤه عطلًا. وكان المقطعان بلا معاملٍ أصلًا، فلم تُقَس الصفحتان
+       * قطّ.
+       */
+      landingCombinations(),
+      /**
+       * ═══ ومرجعُ لوحة المزوّد يخصّ **المزوّدَ الذي دخلت به** ═══
+       *
+       * كان يُملأ من «أيّ طلبٍ لمزوّدٍ له مستخدمون» والجلسةُ تُفتح
+       * بأوّل مستخدمٍ على حدة — **فالاقترانُ حظّ**. وأوّلُ تبديلٍ في
+       * البذرة (أُضيف مزوّدُ نقل ملكية، فتغيّر ترتيب الأسماء) جعل
+       * الجلسة لمزوّدٍ والطلبَ لآخر: ثلاثُ ٤٠٤ **وكلُّها الصواب**
+       * («ولا يراه مزوّدٌ لا شأن له به»)، تُقرأ عطلًا.
+       *
+       * **وقياسٌ يكذب أسوأ من غيابه**: عطلٌ حقيقيّ يختبئ بين سلاماتٍ
+       * تُسجَّل سقوطًا.
+       */
+      providerId === null
+        ? null
+        : db.serviceRequest.findFirst({
+            where: { providerId, status: { in: ['ASSIGNED', 'IN_PROGRESS'] } },
+            orderBy: { createdAt: 'desc' },
+            select: { ref: true, providerId: true },
+          }),
       db.serviceProvider.findFirst({ select: { id: true } }),
       db.user.findFirst({ where: { role: 'USER' }, select: { id: true } }),
       db.service.findFirst({
@@ -107,27 +143,52 @@ async function params(viewerId: string | null): Promise<Record<string, string>> 
       db.auction.findFirst({ select: { id: true, listing: { select: { ref: true } } } }),
     ]);
 
+  /**
+   * ═══ وما لا صفَّ له **يُتخطّى ولا يُختلق** ═══
+   *
+   * كانت المراجع المملوكة تسقط إلى مرجعٍ مكتوبٍ (`'SRV-2026-3000'`)
+   * حين لا يجد الاستعلامُ صفًّا — **وهو ٤٠٤ مضمون**: الصفُّ إمّا غيرُ
+   * موجود وإمّا ليس لمن دخل. فيُسجَّل عطلٌ لا وجود له، ويختبئ تحته
+   * عطلٌ حقيقيّ.
+   *
+   * و`fill` تُسقط الوجهةَ حين تكون القيمةُ `null`، والتقريرُ يقول كم
+   * تُخطّي ولماذا — **فلا صمتَ عن تغطيةٍ نقصت**.
+   */
+  const deepest = landing.find((entry) => entry.modelSlug !== null) ?? landing[0];
+
   return {
     locale: LOCALE,
-    ref: listing?.ref ?? 'ADS2026A0001',
-    listingRef: listing?.ref ?? 'ADS2026A0001',
-    orderRef: order?.ref ?? 'ORD-2026-1001',
-    serviceRef: serviceRequest?.ref ?? 'SRV-2026-3000',
-    providerRef: providerRequest?.ref ?? serviceRequest?.ref ?? 'SRV-2026-3000',
-    id: provider?.id ?? 'unknown',
-    userId: user?.id ?? 'unknown',
+    ref: listing?.ref ?? '',
+    listingRef: listing?.ref ?? '',
+    orderRef: order?.ref ?? '',
+    docOrderRef: docOrder?.ref ?? '',
+    serviceRef: serviceRequest?.ref ?? '',
+    anyServiceRef: anyServiceRequest?.ref ?? '',
+    /**
+     * **والتركيبةُ المختارة هي التي تحمل طرازًا** — فصفحةُ الطراز
+     * تُقاس. وأوّلُ تركيبةٍ قد تكون على مستوى العلامة وحدها، فيبقى
+     * المستوى الأدقّ — **وهو ما يكتبه الباحث** — بلا قياسٍ قطّ.
+     */
+    city: deepest?.citySlug ?? '',
+    brand: deepest?.brandSlug ?? '',
+    model: deepest?.modelSlug ?? '',
+    /** **ونوعُ الوثيقة من قائمتها** — وهي ثابتة في الشاشة لا في القاعدة */
+    kind: 'agreement',
+    providerRef: providerRequest?.ref ?? '',
+    id: provider?.id ?? '',
+    userId: user?.id ?? '',
     /** **وخدمةُ الدليل غير كلِّ خدمة**: ما ليس في `guide` لا صفحةَ له بالتصميم. */
-    key: service?.key ?? 'inspection',
-    legalKey: legal?.key ?? 'terms',
-    dealerSlug: dealer?.slug ?? 'al-safwa',
-    dealerId: dealer?.id ?? 'unknown',
-    trimId: trim?.id ?? 'unknown',
-    offerId: offer?.id ?? 'unknown',
-    reportRef: report?.ref ?? 'RPT-2026-100',
-    auctionRef: auction?.listing.ref ?? 'ADS2026A0001',
-    slug: brand?.slug ?? 'toyota',
-    disputeId: dispute?.id ?? 'unknown',
-    payoutId: payout?.id ?? 'unknown',
+    key: service?.key ?? '',
+    legalKey: legal?.key ?? '',
+    dealerSlug: dealer?.slug ?? '',
+    dealerId: dealer?.id ?? '',
+    trimId: trim?.id ?? '',
+    offerId: offer?.id ?? '',
+    reportRef: report?.ref ?? '',
+    auctionRef: auction?.listing.ref ?? '',
+    slug: brand?.slug ?? '',
+    disputeId: dispute?.id ?? '',
+    payoutId: payout?.id ?? '',
   };
 }
 
@@ -135,7 +196,9 @@ async function params(viewerId: string | null): Promise<Record<string, string>> 
  * يملأ المقاطع المتغيّرة. ويُسمّى المقطع بما يناسبه: `[ref]` تحت
  * `/admin/orders` مرجعُ طلب، وتحت `/admin/listings` مرجعُ إعلان.
  */
-function fill(route: string, p: Record<string, string>): string | null {
+type Filled = { url: string } | { skip: 'CATCH_ALL' | 'NO_ROW'; segment: string };
+
+function fill(route: string, p: Record<string, string>): Filled {
   const parts = route.split('/').filter((part) => part !== '');
   const out: string[] = [];
 
@@ -146,16 +209,19 @@ function fill(route: string, p: Record<string, string>): string | null {
       continue;
     }
     /** `[...slug]` و`[[...slug]]` تُترك — لا شكل واحد لها. */
-    if (part.includes('...')) return null;
+    if (part.includes('...')) return { skip: 'CATCH_ALL', segment: part };
 
     const name = part.replace(/[[\]]/g, '');
     const parent = out[out.length - 1] ?? '';
     const grand = out[out.length - 2] ?? '';
+    /** وما يليه يُميّز: مرجعُ طلبٍ تحته `documents` يلزمه عقدٌ فعليّ */
+    const next = parts[i + 1] ?? '';
     const value =
       {
         locale: LOCALE,
-        orders: p.orderRef,
-        'service-requests': p.serviceRef,
+        orders: next === 'documents' ? p.docOrderRef : p.orderRef,
+        /** **وشاشةُ الأدمن تفتح أيَّ طلب** لا طلبَ من دخل بحسابه */
+        'service-requests': p.anyServiceRef,
         listings: p.listingRef,
         cars: p.listingRef,
         auctions: p.auctionRef,
@@ -170,13 +236,24 @@ function fill(route: string, p: Record<string, string>): string | null {
         providers: p.id,
         disputes: p.disputeId,
         payouts: p.payoutId,
+        browse: p.city,
+        documents: p.kind,
       }[parent] ??
+      /** **و`[brand]` تحت مدينةٍ أبوها قيمةٌ لا اسمُ مقطع** — فاللقطُ بالاسم */
+      { brand: p.brand, model: p.model, city: p.city, kind: p.kind }[name] ??
       p[name] ??
       null;
-    if (value === null || value === undefined) return null;
+    /**
+     * **وقيمةٌ لا صفَّ لها تُتخطّى باسمها** — ولا تُختلق. والتقرير
+     * يفرّق بين «لا شكل لها» و«لا صفّ في القاعدة»: الأولى تصميمٌ،
+     * والثانية **تغطيةٌ نقصت** وقد تكون بذرةً ناقصة.
+     */
+    if (value === null || value === undefined || value === '') {
+      return { skip: 'NO_ROW', segment: `${parent}/${part}` };
+    }
     out.push(encodeURIComponent(value));
   }
-  return `/${out.join('/')}`;
+  return { url: `/${out.join('/')}` };
 }
 
 /** الروابط الداخلية في صفحة — بلا مرساةٍ ولا بروتوكول خارجيّ. */
@@ -279,10 +356,11 @@ async function main(): Promise<void> {
    * `/provider` كانت تُسجَّل «٣٠٧» — وهي بابُ الدخول لا عطلًا، لكنّ
    * اللوحة نفسَها تبقى بلا قياس. وكلمةُ البذرة هي نفسُها للأدمن.
    */
+  let signedInProviderId: string | null = null;
   const providerUser = await db.providerUser.findFirst({
     where: { active: true, provider: { active: true } },
     orderBy: { createdAt: 'asc' },
-    select: { email: true },
+    select: { email: true, providerId: true },
   });
   if (providerUser !== null) {
     const entered = await fetch(`${BASE}/api/v1/provider/auth/login`, {
@@ -294,7 +372,11 @@ async function main(): Promise<void> {
       }),
     });
     const session = /carsell_provider=([^;]+)/.exec(entered.headers.get('set-cookie') ?? '');
-    if (session !== null) cookies.carsell_provider = session[1] ?? '';
+    if (session !== null) {
+      cookies.carsell_provider = session[1] ?? '';
+      /** **وهويّةُ الجلسة تُمرَّر إلى المعاملات** — وإلّا فالاقتران حظّ */
+      signedInProviderId = providerUser.providerId;
+    }
   }
 
   const cookie = Object.entries(cookies)
@@ -306,7 +388,7 @@ async function main(): Promise<void> {
       + ` · مزوّد=${cookies.carsell_provider === undefined ? 'لا' : 'نعم'}\n`,
   );
 
-  const p = await params(signedInUserId);
+  const p = await params(signedInUserId, signedInProviderId);
   const visited = new Map<string, Visit>();
 
   /**
@@ -343,13 +425,14 @@ async function main(): Promise<void> {
   /* ١ ─ كلُّ وجهةٍ معرَّفة */
   const defined = routes();
   const skipped: string[] = [];
+  const unseeded: string[] = [];
   for (const route of defined) {
-    const url = fill(route, p);
-    if (url === null) {
-      skipped.push(route);
+    const filled = fill(route, p);
+    if ('skip' in filled) {
+      (filled.skip === 'CATCH_ALL' ? skipped : unseeded).push(`${route}  (${filled.segment})`);
       continue;
     }
-    await visit(url, null);
+    await visit(filled.url, null);
   }
 
   /* ٢ ─ وكلُّ رابطٍ في صفحةٍ فُتحت */
@@ -370,7 +453,18 @@ async function main(): Promise<void> {
   console.log(`٢٠٠: ${String(all.filter((r) => r.status === 200).length)}`);
   console.log(`تحويل: ${String(redirects.length)} · ساقطة: ${String(broken.length)}\n`);
 
-  if (skipped.length > 0) console.log(`تُخطّيت (مقاطع مفتوحة): ${skipped.join(' · ')}\n`);
+  if (skipped.length > 0) {
+    console.log(`تُخطّيت (مقاطع مفتوحة): ${skipped.join(' · ')}\n`);
+  }
+  /**
+   * **وتغطيةٌ نقصت تُقال.** وجهةٌ لا تُقاس لأنّ القاعدة لا تحمل صفًّا
+   * لمقطعها ليست سليمة — هي غيرُ مقيسة، وقد تكون بذرةً ناقصة.
+   */
+  if (unseeded.length > 0) {
+    console.log('═══ لم تُقَس — لا صفَّ لمقطعها ═══');
+    for (const row of unseeded) console.log(`  ${row}`);
+    console.log('');
+  }
 
   if (broken.length > 0) {
     console.log('═══ ساقطة ═══');

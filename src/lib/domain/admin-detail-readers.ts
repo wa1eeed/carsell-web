@@ -1,4 +1,7 @@
 import { db } from '@/lib/db';
+import type { Prisma } from '@/generated/prisma/client';
+import type { ProviderType } from '@/generated/prisma/enums';
+import { COMPLETION_FIELDS } from './completion-schema';
 import { publishOnIssue } from './inspection';
 
 /**
@@ -382,7 +385,7 @@ export type AdminServiceRequestDetail = {
   dueAt: string | null;
   overdue: boolean;
   resultUrl: string | null;
-  service: { nameAr: string; category: string };
+  service: { nameAr: string; category: string; providerType: ProviderType | null };
   provider: { id: string; nameAr: string; slaHours: number | null } | null;
   customer: { id: string; name: string };
   listingRef: string | null;
@@ -415,6 +418,8 @@ export type AdminServiceRequestDetail = {
   } | null;
   /** الفاتورة الضريبية التي خرجت لهذا الطلب — رقمُها ما يُقتبَس */
   invoiceNumber: string | null;
+  /** ما كتبه المزوّد إثباتًا — فارغٌ ما لم يُنجَز */
+  completion: { key: string; text: string | null; number: string | null; date: string | null }[];
 };
 
 export async function adminServiceRequestDetail(
@@ -424,7 +429,11 @@ export async function adminServiceRequestDetail(
   const request = await db.serviceRequest.findUnique({
     where: { ref },
     include: {
-      service: { select: { nameAr: true, category: true } },
+      service: { select: { nameAr: true, category: true, providerType: true } },
+      /** ما كتبه المزوّد إثباتًا — والمشغّلُ يُراجعه ويُحيل إليه في شكوى */
+      completion: {
+        select: { key: true, valueText: true, valueNumber: true, valueDate: true },
+      },
       provider: { select: { id: true, nameAr: true, slaHours: true } },
       user: { select: { id: true, name: true, phone: true } },
       listing: { select: { ref: true } },
@@ -503,7 +512,37 @@ export async function adminServiceRequestDetail(
           },
     /** **والفاتورة تُقرأ بالطلب** — `serviceRequestId` فريدٌ فلا تعدّد. */
     invoiceNumber: invoice?.number ?? null,
+    /**
+     * **وإثبات الإنجاز يُراجَع**: المشغّل يُسأل عن شحنةٍ لم تصل، ورقمُ
+     * البوليصة هو جوابُه — وكان لا يُكتب أصلًا.
+     */
+    completion: orderCompletionRows(
+      request.service.providerType,
+      request.completion,
+    ),
   };
+}
+
+/** بترتيب المخطّط لا بترتيب الإدراج — فشاشتان تقرآن الحقول بترتيبٍ واحد */
+function orderCompletionRows(
+  type: ProviderType | null,
+  rows: readonly {
+    key: string;
+    valueText: string | null;
+    valueNumber: Prisma.Decimal | null;
+    valueDate: Date | null;
+  }[],
+): { key: string; text: string | null; number: string | null; date: string | null }[] {
+  if (type === null) return [];
+  const order = COMPLETION_FIELDS[type].map((field) => field.key);
+  return rows
+    .map((row) => ({
+      key: row.key,
+      text: row.valueText,
+      number: row.valueNumber === null ? null : row.valueNumber.toString(),
+      date: row.valueDate === null ? null : row.valueDate.toISOString(),
+    }))
+    .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
 }
 
 // ═══════════════════════════════════════════════════════════

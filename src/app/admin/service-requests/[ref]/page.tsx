@@ -6,6 +6,8 @@ import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Timeline } from '@/components/admin/Timeline';
 import { ReviewInspection } from './ReviewInspection';
+import { CompletionRecord } from '@/components/ui/CompletionRecord';
+import { COMPLETION_FORM_TITLE } from '@/lib/labels/completion';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
@@ -138,6 +140,24 @@ export default async function AdminServiceRequestDetailPage({
               */}
               <Field label="رسمنا الإداريّ" value={<Money amount={Number(request.adminFee)} decimals={2} />} />
             </DetailCard>
+
+            {/*
+              ═══ وإثبات الإنجاز يُراجَع ═══
+
+              **وستّةُ أصناف كانت تُنهي بلا حقلٍ واحد**: ناقلٌ يضغط
+              «أنهِ» فلا نعلم رقم البوليصة — فمن سُئل «أين شحنتي؟» لا
+              يملك جوابًا. والحقولُ مخطّطٌ لكل صنف تكتبه لوحةُ المزوّد.
+            */}
+            {request.completion.length === 0 ? null : (
+              <CompletionRecord
+                title={
+                  request.service.providerType === null
+                    ? 'إثبات الإنجاز'
+                    : (COMPLETION_FORM_TITLE[request.service.providerType] ?? 'إثبات الإنجاز')
+                }
+                rows={request.completion}
+              />
+            )}
 
             {/*
               ═══ حالُ المال — ولم يكن على الشاشة ═══

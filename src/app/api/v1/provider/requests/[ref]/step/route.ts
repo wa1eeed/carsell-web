@@ -25,6 +25,15 @@ const MESSAGES: Record<StepFailure, { ar: string; en: string; status: number }> 
     en: 'Write why it could not be done, in a sentence a reviewer can act on.',
     status: 422,
   },
+  /**
+   * **ويُقال ما ينقص لا «تعذّرت».** الخطوةُ مرفوضةٌ لأنّ الإثبات لم
+   * يكتمل — والمزوّد لا يعرف ذلك من رسالةٍ عامّة، فيُعيد الضغط.
+   */
+  FORM_INCOMPLETE: {
+    ar: 'أكمل نموذج الإنجاز أوّلًا — لا يُقبل إنهاء الطلب بلا إثبات.',
+    en: 'Fill in the completion form first — a request cannot be closed without it.',
+    status: 422,
+  },
 };
 
 /**

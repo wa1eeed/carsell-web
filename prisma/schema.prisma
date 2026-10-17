@@ -1180,6 +1180,34 @@ model ServiceRequest {
   // شاشةُ المزوّد تُرتَّب بالموعد لا بالمهلة
   @@index([scheduledAt])
   inspectionDraft InspectionDraft?
+  completion      ServiceCompletionField[]
+}
+
+/// ═══ حقلُ إنجازٍ واحد — صفٌّ لكل حقل لا عمودٌ لكل صنف ═══
+///
+/// ستّةُ أصناف كانت تُنهي الطلب بلا حقلٍ واحد: ناقلٌ يضغط «أنهِ» فلا
+/// نعلم رقم البوليصة، ومؤمِّنٌ ينتهي ولا رقمَ وثيقة. والمخطّط لكل صنف
+/// في `src/lib/domain/completion-schema.ts`.
+///
+/// **وصفٌّ لكل حقل** لا عمودٌ لكل احتمال: إضافةُ صنفٍ أو حقلٍ سطرٌ في
+/// المخطّط لا ترحيلٌ في القاعدة — وهو شكلُ `InspectionResult` نفسه.
+///
+/// **والقيمةُ في عمودها بنوعها**: المال `Decimal` (ممنوع `Float`
+/// وممنوع نصٌّ يُقارَن)، والتاريخ `DateTime`، وما عداهما نصّ. وعمودٌ
+/// واحد يحمل الثلاثة يجعل «١٢٠٠» و«1200.00» مبلغين مختلفين.
+model ServiceCompletionField {
+  id          String    @id @default(cuid())
+  requestId   String
+  /// مفتاحُ الحقل كما في المخطّط — لاتينيّ، والصياغة في `labels/`
+  key         String
+  valueText   String?   @db.Text
+  valueNumber Decimal?  @db.Decimal(14, 2)
+  valueDate   DateTime?
+  createdAt   DateTime  @default(now())
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, key])
 }
 
 /// ═══ حالُ طلب الخدمة — ورحلةٌ ثلاثية الأطراف ═══
@@ -2069,6 +2097,11 @@ enum ProviderType {
   INSPECTION
   SHIPPING
   INSURANCE
+  /// نقلُ الملكية — طلبُ المالك (٢٠٢٦-١٠-١٧): «وإذا كان المزوّد نقل
+  /// ملكيّة هناك حقول تناسبه لتنفيذ الطلب». وحقولُه في
+  /// `completion-schema.ts`، وخدمتُه ومزوّدُه في البذرة — فقيمةُ تعدادٍ
+  /// بلا كاتبٍ حلقةٌ مفقودة.
+  TRANSFER
   DETAILING
   PHOTOGRAPHY
   FINANCE

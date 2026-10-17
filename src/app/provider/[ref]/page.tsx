@@ -7,6 +7,7 @@ import { LinkButton } from '@/components/ui/Button';
 import { currentProviderUser } from '@/lib/auth/provider-session';
 import { providerRequestView } from '@/lib/domain/provider-queue';
 import { PROVIDER_REQUEST_STATUS } from '@/lib/labels/provider';
+import { COMPLETION_FORM_TITLE } from '@/lib/labels/completion';
 import { ProviderBar } from '../ProviderBar';
 import { StepActions } from './StepActions';
 
@@ -33,6 +34,9 @@ export default async function ProviderRequestPage({
   const { ref } = await params;
   /** **والمرجع يصل مُرمَّزًا من Next** — فيُفكّ حيث يُقارَن. */
   const view = await providerRequestView(decodeURIComponent(ref), user.providerId);
+
+  /** الخطوةُ التي تُنهي بنموذج — واحدةٌ أو لا شيء */
+  const formStep = view?.steps.find((step) => step.form !== null);
   /** ومن لا شأن له به يرى ٤٠٤ لا ٤٠٣: وجودُ الطلب نفسه معلومة */
   if (view === null) notFound();
 
@@ -125,18 +129,23 @@ export default async function ProviderRequestPage({
         </section>
 
         {/*
-          ═══ وبابُ النموذج — و`form: 'INSPECTION'` كان علامةً بلا شاشة ═══
+          ═══ وبابُ النموذج — أيَّ نموذجٍ كان ═══
 
-          مكتوبٌ في `STEPS_BY_TYPE` منذ بُنيت، ولا شيء يرسمه: فالفاحص
-          يضغط «أنهِ» ولا يُسأل عن شيء. والرابطُ يظهر حيث تقول
-          الخطواتُ إنّ الإنهاء بنموذج — لا بشرطٍ مكتوبٍ هنا ثانيةً.
+          `form` كان علامةً بلا شاشة ولا شرط: الفاحص يضغط «أنهِ» ولا
+          يُسأل عن شيء، **وستّةُ أصناف تُنهي بلا حقلٍ واحد**. والرابطُ
+          يظهر حيث تقول الخطواتُ إنّ الإنهاء بنموذج — لا بشرطٍ مكتوبٍ
+          هنا ثانيةً — و`applyStep` ترفض الإنهاء قبل أن يكتمل.
         */}
-        {!view.steps.some((step) => step.form === 'INSPECTION') ? null : (
+        {formStep === undefined ? null : (
           <LinkButton
-            href={`/provider/${encodeURIComponent(view.ref)}/inspection`}
+            href={`/provider/${encodeURIComponent(view.ref)}/${
+              formStep.form === 'INSPECTION' ? 'inspection' : 'complete'
+            }`}
             className="mb-4 w-full"
           >
-            افتح نموذج الفحص
+            {formStep.form === 'INSPECTION'
+              ? 'افتح نموذج الفحص'
+              : `افتح ${COMPLETION_FORM_TITLE[view.type ?? ''] ?? 'نموذج الإنجاز'}`}
           </LinkButton>
         )}
 

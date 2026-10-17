@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import type { Prisma } from '@/generated/prisma/client';
-import type { ServiceRequestStatus } from '@/generated/prisma/enums';
+import type { ProviderType, ServiceRequestStatus } from '@/generated/prisma/enums';
+import { COMPLETION_FIELDS } from './completion-schema';
 import { deadline } from './deadlines';
 import { LAPSED_REASON, MIN_DECLINE_REASON } from './service-rules';
 
@@ -867,6 +868,12 @@ export type RequestView = {
   /** أينتظر هذا الرائي فعلًا شيئًا منه الآن؟ */
   awaitingYou: boolean;
   paid: boolean;
+  /** حالُ الدفعة — و«محجوز» غيرُ «حُصِّل»، والفرق يُسأل عنه أوّلَ نزاع */
+  paymentStatus: string | null;
+  /** صنفُ المزوّد — ومنه يُصاغ معنى «اكتمل» لهذا الطلب بعينه */
+  providerType: ProviderType | null;
+  /** ما كتبه المزوّد إثباتًا — فارغٌ ما لم يُنجَز */
+  completion: { key: string; text: string | null; number: string | null; date: string | null }[];
 };
 
 export async function serviceRequestView(
@@ -887,8 +894,19 @@ export async function serviceRequestView(
       scheduledAt: true,
       decisionDueAt: true,
       declineReason: true,
-      service: { select: { nameAr: true } },
+      paymentId: true,
+      service: { select: { nameAr: true, providerType: true } },
       vehicle: { select: { brandName: true, modelName: true, trimName: true, year: true } },
+      /**
+       * ═══ وإثبات الإنجاز يصل من دفع ═══
+       *
+       * **والطرف الثاني يُبنى مع الأوّل**: المزوّد يكتب رقم البوليصة
+       * ومن استلم المركبة، وهذه الشاشة كانت تقول «اكتمل» ولا شيء
+       * غيره — فمن دفع ٩٠٠ ريالًا لنقلِ مركبته لا يعرف من استلمها.
+       */
+      completion: {
+        select: { key: true, valueText: true, valueNumber: true, valueDate: true },
+      },
     },
   });
   if (row === null) return null;
@@ -901,6 +919,26 @@ export async function serviceRequestView(
   const vehicleTitle = [row.vehicle?.brandName, row.vehicle?.modelName, row.vehicle?.trimName]
     .filter((part) => part !== null && part !== undefined && part !== '')
     .join(' ');
+
+  /**
+   * ═══ و«حُجز المبلغ» غيرُ «وصلنا» ═══
+   *
+   * كانت الشاشة تقول «حُجز المبلغ» لكلّ حالٍ مدفوعة — **وعلى طلبٍ
+   * مُنجَز المالُ قد حُصِّل** (`captureServicePayment` عند الإنجاز)،
+   * فيقرأ من دفع أنّ مالَه ما زال معلّقًا عند البوّابة وقد خرج منها.
+   * والفرقُ يُسأل عنه أوّلَ نزاع، ولوحةُ الأدمن تُفرّق بينهما منذ
+   * بُنيت — فكان مصدران لحقيقةٍ واحدة.
+   *
+   * **والدفعة تُقرأ بمعرّفها لا بعلاقة**: `paymentId` حقلٌ حرّ بلا
+   * `@relation`.
+   */
+  const payment =
+    row.paymentId === null
+      ? null
+      : await db.payment.findUnique({
+          where: { id: row.paymentId },
+          select: { status: true },
+        });
 
   return {
     ref: row.ref,
@@ -919,7 +957,32 @@ export async function serviceRequestView(
       (role === 'SELLER' && row.status === 'AWAITING_SELLER') ||
       (role === 'REQUESTER' && row.status === 'AWAITING_PAYMENT'),
     paid: isPaidStatus(row.status),
+    /** حالُ الدفعة نفسها — و`null` حين لا دفعةَ بعد */
+    paymentStatus: payment?.status ?? null,
+    providerType: row.service.providerType,
+    /** بترتيب المخطّط لا بترتيب الكتابة — فشاشتان تقرآن الحقول بترتيبٍ واحد */
+    completion: orderCompletion(row.service.providerType, row.completion),
   };
+}
+
+/**
+ * **والترتيبُ من المخطّط**: صفوفُ القاعدة تأتي بترتيب الإدراج، فحقلُ
+ * «تاريخ الاستلام» يظهر بعد «استلمها» في شاشةٍ وقبله في أخرى.
+ */
+function orderCompletion(
+  type: ProviderType | null,
+  rows: readonly { key: string; valueText: string | null; valueNumber: Prisma.Decimal | null; valueDate: Date | null }[],
+): { key: string; text: string | null; number: string | null; date: string | null }[] {
+  if (type === null) return [];
+  const order = COMPLETION_FIELDS[type].map((field) => field.key);
+  return rows
+    .map((row) => ({
+      key: row.key,
+      text: row.valueText,
+      number: row.valueNumber === null ? null : row.valueNumber.toString(),
+      date: row.valueDate === null ? null : row.valueDate.toISOString(),
+    }))
+    .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
 }
 
 /**

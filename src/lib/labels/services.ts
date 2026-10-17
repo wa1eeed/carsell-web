@@ -59,3 +59,23 @@ export const SERVICE_PAYMENT_STATUS: Record<string, string> = {
   CANCELLED: 'أُلغي ورُدّ',
   FAILED: 'فشلت',
 };
+
+/**
+ * ═══ حالُ دفعةِ الخدمة كما يقرؤها من دفع ═══
+ *
+ * **و«محجوز» غيرُ «حُصِّل»**: الأوّل يُردّ بإلغاء والثاني وصلنا —
+ * والفرق يُسأل عنه أوّلَ نزاع. وكانت الشاشة تقول «حُجز المبلغ» لكلّ
+ * حالٍ مدفوعة، **وعلى طلبٍ مُنجَز المالُ قد حُصِّل**.
+ */
+export const PAYMENT_STATE: Record<string, string> = {
+  CREATED: 'لم يُؤكَّد بعد',
+  REQUIRES_ACTION: 'ينتظر تأكيدك',
+  PENDING: 'ينتظر تأكيد البوّابة',
+  HELD: 'حُجز المبلغ',
+  SETTLED: 'حُصِّل المبلغ',
+  PARTIALLY_SETTLED: 'حُصِّل جزءٌ منه',
+  CANCELLED: 'أُلغي الحجز',
+  RETURNED: 'رُدّ المبلغ',
+  PARTIALLY_RETURNED: 'رُدّ جزءٌ منه',
+  FAILED: 'تعذّر السداد',
+};

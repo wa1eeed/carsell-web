@@ -12,6 +12,9 @@ import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { serviceRequestView } from '@/lib/domain/service-lifecycle';
 import { SERVICE_REQUEST_STATUS } from '@/lib/labels/services';
+import { CompletionRecord } from '@/components/ui/CompletionRecord';
+import { COMPLETION_FORM_TITLE, SERVICE_DONE_BY_TYPE } from '@/lib/labels/completion';
+import { PAYMENT_STATE } from '@/lib/labels/services';
 import { ServiceRequestPanel } from './ServiceRequestPanel';
 
 export const dynamic = 'force-dynamic';
@@ -62,7 +65,17 @@ export default async function ServiceRequestPage({
     timeZone: 'Asia/Riyadh',
   });
 
-  const label = SERVICE_REQUEST_STATUS[view.status] ?? view.status;
+  /**
+   * ═══ و«اكتمل» تُقال بصنفها ═══
+   *
+   * الوسمُ كان «اكتمل» لكلّ صنف، وعمودُ ما بعده «التقرير جاهز» — فناقلٌ
+   * أوصل مركبةً ومصوّرٌ سلّم صورًا يقول لصاحبهما إنّ **تقريرًا** جاهز،
+   * ولا تقريرَ في الدنيا. والنصُّ المعروض وعدٌ لا وصف.
+   */
+  const label =
+    view.status === 'DONE' && view.providerType !== null
+      ? (SERVICE_DONE_BY_TYPE[view.providerType] ?? SERVICE_REQUEST_STATUS.DONE)
+      : (SERVICE_REQUEST_STATUS[view.status] ?? view.status);
 
   return (
     <>
@@ -137,6 +150,26 @@ export default async function ServiceRequestPage({
             </section>
           )}
 
+          {/*
+            ═══ وما كتبه المزوّد يصل من دفع ═══
+
+            **والطرف الثاني يُبنى مع الأوّل**: كانت الشاشة تقول «اكتمل»
+            ولا شيء غيره — فمن دفع ٩٠٠ ريالًا لنقل مركبته لا يعرف من
+            استلمها ولا متى، ومن أمّن سيارته لا يرى رقم وثيقته.
+          */}
+          {view.completion.length === 0 ? null : (
+            <div className="mb-7">
+              <CompletionRecord
+                title={
+                  view.providerType === null
+                    ? 'إثبات الإنجاز'
+                    : (COMPLETION_FORM_TITLE[view.providerType] ?? 'إثبات الإنجاز')
+                }
+                rows={view.completion}
+              />
+            </div>
+          )}
+
           <section className="rounded-xl border border-line">
             <Row label="قيمة الخدمة" value={<ArabicNumber value={Number(view.total)} decimals={2} />} />
             {Number(view.platformFee) === 0 ? null : (
@@ -153,8 +186,16 @@ export default async function ServiceRequestPage({
               label="السداد"
               value={
                 <span className="text-2xs opacity-75">
+                  {/*
+                    **ولا يُقال «حُجز» بلا دفعةٍ مسجَّلة.** `paid` تعني
+                    أنّ الطلب تجاوز بوّابة السداد، لا أنّ مالًا وصل —
+                    والزرع يُنشئ طلباتٍ مُنجَزة بلا دفعة. فحين لا صفَّ
+                    دفعةٍ يُقال ذلك، لا يُفترض حجزٌ لم يقع.
+                  */}
                   {view.paid
-                    ? 'حُجز المبلغ'
+                    ? view.paymentStatus === null
+                      ? 'لا دفعة مسجَّلة'
+                      : (PAYMENT_STATE[view.paymentStatus] ?? view.paymentStatus)
                     : view.status === 'AWAITING_SELLER'
                       ? 'يُطلب بعد إذن صاحب المركبة'
                       : view.status === 'AWAITING_PAYMENT'

@@ -6411,6 +6411,53 @@
         }
       }
     },
+    "/api/v1/provider/requests/{ref}/completion": {
+      "post": {
+        "summary": "POST /api/v1/provider/requests/{ref}/completion",
+        "tags": [
+          "provider"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "values": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "values"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/provider/requests/{ref}/contact": {
       "post": {
         "summary": "POST /api/v1/provider/requests/{ref}/contact",

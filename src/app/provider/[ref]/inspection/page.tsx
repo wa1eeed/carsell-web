@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { currentProviderUser } from '@/lib/auth/provider-session';
 import { draftView, ensureDraft } from '@/lib/domain/inspection-draft';
+import { completionFormFor } from '@/lib/domain/completion-schema';
+import { providerRequestView } from '@/lib/domain/provider-queue';
 import { ProviderBar } from '../../ProviderBar';
 import { InspectionForm } from './InspectionForm';
 
@@ -42,7 +44,18 @@ export default async function InspectionFormPage({
    * المرجع قائمٌ لغيره معلومةٌ لا تلزمه — والفرقُ بينهما في المسار
    * لا في الشاشة.
    */
-  if (!gate.ok && gate.reason !== 'NOT_EDITABLE') notFound();
+  if (!gate.ok && gate.reason !== 'NOT_EDITABLE') {
+    /**
+     * **ونموذجُ الصنف الآخر تحويلٌ لا بابٌ مسدود**: طلبُ شحنٍ أو نقلِ
+     * ملكيةٍ نموذجُه `/complete`، ومن وصل هنا بمرجعٍ قديمٍ أو إشارةٍ
+     * محفوظة يُدلّ على بابه لا يُترك أمام صفحةٍ ميّتة.
+     */
+    const view = await providerRequestView(decoded, user.providerId);
+    if (view !== null && view.mine && view.type !== null && completionFormFor(view.type) === 'FIELDS') {
+      redirect(`/provider/${encodeURIComponent(decoded)}/complete`);
+    }
+    notFound();
+  }
 
   const view = await draftView(decoded, user.providerId);
   if (view === null) notFound();
