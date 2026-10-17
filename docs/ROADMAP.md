@@ -30,6 +30,7 @@ below against it, not instead of it.
 | 5 | Drop the two-approval requirement in the admin panel | owner's decision, sequenced after the above |
 | 6 | **A provider's 360° profile — same context as a customer and a dealer** | requested 2026-10-17, see below |
 | 7 | **The provider panel: one panel, per-type completion fields** | requested 2026-10-17, see below |
+| 8 | **Vehicle inspection: the inspector enters it, the admin publishes it** | full spec pasted 2026-10-17, plan awaiting approval |
 
 ---
 
@@ -558,6 +559,49 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       `docs/workflows/service-request.md`.
 - [ ] **Sharing or selling a private report to the seller** — the decision says
       publishing comes later, and that a published report is never retracted.
+
+## 8 · Vehicle inspection — entry, review, publish — *spec received 2026-10-17*
+
+The owner pasted a full specification (Syarah/Carly-style): the inspection is
+entered from the **service provider dashboard** by a provider of type Inspector
+(فاحص), reviewed and published by the admin, and shown on the public car page
+as an "Inspection Report" tab beside "Car Information".
+
+**Its step 0 says: explore, present a plan, and wait for approval before
+writing code.** That is being followed — this row is the record, not the work.
+
+### What already exists (measured 2026-10-17, before planning)
+
+| Piece | State |
+|---|---|
+| `ProviderType.INSPECTION` (فاحص) | exists |
+| `InspectionReport` — ref, score, `sections` Json (210 points), `paintMap` Json, inspector, `pdfUrl`, `publishedAt` | exists |
+| Owner decision 4 on who sees a report, and that publishing is one-way | recorded and enforced (gate 44) |
+| Domain: grade, parse, VIN masking, validity, `toPublicReport`, `publishOnIssue` | exists |
+| Public display: car-page `inspection` tab, `InspectionScreen`, `PaintMap`, `ScoreRing` | exists |
+| 210 points across 6 categories | exists, as **seed JSON** |
+| Request → provider assignment, SLA, accept/start/complete steps | exists |
+| Buyer's «تقاريري» screen | exists |
+
+### What is missing — and the first one is the whole point
+
+1. **Nothing can produce a report.** `inspectionReport.create` appears **only
+   in `prisma/seed.ts`**. The two visible reports are seeded; no inspector can
+   file one. The display has been built on top of data the product cannot make.
+2. **No entry form.** `form: 'INSPECTION'` is declared in `STEPS_BY_TYPE` and
+   nothing renders it.
+3. **The checklist is a seed file, not editable data** — adding a point needs a
+   deploy.
+4. **No draft → submitted → returned → approved → published workflow**; only
+   `publishedAt`.
+5. **No admin review screen** for inspections.
+6. **No scoring service** — the seed averages section scores by hand.
+7. **No photo upload in the provider tree**, and no per-item photos.
+8. **No notification reaches a provider at all** (a known, recorded gap).
+9. **`pdfUrl` has no writer.**
+10. Optional in the spec: an "Inspected" badge and filter on listing cards.
+
+---
 
 ## 7 · The provider panel — one panel, fields per type — *requested 2026-10-17*
 
