@@ -577,13 +577,30 @@ three answers, recorded in `docs/DESIGN-DECISIONS.md` §13:
 
 ### Order of work
 
-1. [ ] Template tables + seed from the existing 210 points
-2. [ ] Inspector-only access control + draft creation
-3. [ ] The entry form in the provider panel
-4. [ ] Scoring service with its tests
-5. [ ] Admin review: return / approve / publish
-6. [ ] Template management in the admin panel
-7. [ ] Public summary block and "what we found"
+1. [x] Template tables + seed from the existing 210 points — `851f8ac`
+2. [x] Inspector-only access control + draft creation — `9df6937`
+3. [x] The entry form in the provider panel — `9df6937`
+4. [x] Scoring service with its tests — `a43fc39`
+5. [x] Admin review: return / approve / publish — `a43fc39`
+6. [x] Template management in the admin panel — `60cfa53`
+7. [x] Public summary block — `edf4308`
+8. [x] Interactive body map in the form — `6d3fd91`
+9. [x] Per-item photos — `6825e5b`
+
+**Also measured, already complete before this work:** the «مفحوصة» badge on
+listing cards and the `inspected` / `scoreMin` / `paintStatus` filters — type,
+URL parsing, `where` clause and chip were all wired. Verified by measurement,
+not by reading: the domain returns exactly 3 for `inspected=true` and the page
+renders exactly 3 cards.
+
+**Left, and deliberately so:**
+
+- [ ] **PDF of the report** — optional in the spec; «اطبع» works today.
+- [ ] **Notifications** — deferred by the owner, and providers have no
+      notification channel at all yet (`Notification.userId` is a market
+      account; a provider is a third identity).
+- [ ] **Photo required on «ملاحظة» too** — the spec asks for it, I implemented
+      it for «عطل» only and asked why in `docs/OPEN-QUESTIONS.md`.
 
 ### What already exists (measured 2026-10-17, before planning)
 
