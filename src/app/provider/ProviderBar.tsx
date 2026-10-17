@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { SignOut } from '@/components/ui/SignOut';
 
@@ -14,7 +15,17 @@ export function ProviderBar({ name }: { name: string }) {
       <Logo />
       <span className="text-2xs tracking-[0.18em] opacity-65">لوحة المزوّدين</span>
       <span className="flex-1" />
-      <span className="bidi-isolate text-sm font-bold">{name}</span>
+      {/*
+        **واسمُه بابٌ لا نصّ** — كان يُعرض ولا يُفتح، ولا طريق إلى
+        حسابه ولا إلى كلمته. وهي الصفحةُ التي يُقال له في كل دخولٍ
+        «غيّر كلمتك» ولا يجدها.
+      */}
+      <Link
+        href="/provider/account"
+        className="bidi-isolate text-sm font-bold underline-offset-4 hover:underline"
+      >
+        {name}
+      </Link>
       <SignOut path="/api/v1/provider/auth/logout" next="/provider/login" label="خروج" />
     </header>
   );

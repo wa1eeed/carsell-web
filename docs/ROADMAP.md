@@ -29,6 +29,7 @@ below against it, not instead of it.
 | 4 | The dealer panel | deferred by the owner, fully specified |
 | 5 | Drop the two-approval requirement in the admin panel | owner's decision, sequenced after the above |
 | 6 | **A provider's 360° profile — same context as a customer and a dealer** | requested 2026-10-17, see below |
+| 7 | **The provider panel: one panel, per-type completion fields** | requested 2026-10-17, see below |
 
 ---
 
@@ -557,6 +558,39 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       `docs/workflows/service-request.md`.
 - [ ] **Sharing or selling a private report to the seller** — the decision says
       publishing comes later, and that a published report is never retracted.
+
+## 7 · The provider panel — one panel, fields per type — *requested 2026-10-17*
+
+> «يجب ان تكون لوحة مستقله للمزود و كما تناقشنا موحده لجميع المزودين بطريقه
+> ذكيه و تشمل المزودين من نوع فاحصين حيث هناك حقول للتعامل مع الفحص و اذا كان
+> المزود نقل ملكيه هناك حقول تناسبه لتنفيذ الطلب و هكذا لباقي المزودين»
+
+The panel itself exists (`/provider`, one shell for every type, steps driven by
+`STEPS_BY_TYPE`). What the owner is asking for is the part that was marked and
+never built:
+
+- [x] **A door to a provider login.** It was three locks, not one: no way to
+      create the account, no way for the provider to change the temp password
+      they are told to change at every sign-in, and no way to suspend or reset
+      one. All three are built; the temp password is generated, shown once, and
+      never written to the audit log.
+- [ ] **A completion form per provider type.** `form: 'INSPECTION'` is declared
+      in `STEPS_BY_TYPE` and **nothing renders it**; the other six types finish
+      with no fields at all — a shipping provider marks "done" and we never
+      learn the tracking number, an insurer leaves no policy number.
+- [ ] **A `TRANSFER` provider type** (نقل الملكية) with the fields that
+      completing a transfer needs. The enum has no such value today, and
+      `provider-queue.ts` carries the note «ونقلُ الملكية سيُضاف هنا سطرًا لا
+      شاشة».
+- [ ] The inspection field list itself is **still owner-blocked** — recorded
+      long before this: «وحقولُه يزوّدنا بها المالك».
+
+**The shape, so it stays one panel and not seven:** the difference between
+types is *data*, not screens — a field schema per type, rendered by one form
+and validated in the domain. A second screen per type is how one panel becomes
+seven that drift.
+
+---
 
 ## 6 · A provider's 360° profile — *requested 2026-10-17*
 

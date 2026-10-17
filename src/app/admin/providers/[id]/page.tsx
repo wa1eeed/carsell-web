@@ -22,6 +22,7 @@ import { providerPlatformReady } from '@/lib/domain/provider-account';
 import { getProviderFeePlan } from '@/lib/domain/provider-fees';
 import { AccountActions } from './AccountActions';
 import { LedgerPanel } from './LedgerPanel';
+import { StaffActions } from './StaffActions';
 import { pendingProviderAdjustment, providerLedger } from '@/lib/domain/provider-ledger';
 
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
@@ -276,34 +277,11 @@ export default async function AdminProviderPage({
               دخولٌ بعد أن ترك العمل.
             */}
             <DetailCard title="من يدخل لوحته" className="mt-5">
-              {provider.staff.length === 0 ? (
-                <EmptyState
-                  title="لا حساب دخول"
-                  description="بلا حساب لا يرى المزوّد طلباته ولا يؤكّد إنجازها."
-                />
-              ) : (
-                <div className="flex flex-col divide-y divide-line">
-                  {provider.staff.map((person) => (
-                    <div key={person.id} className="flex flex-wrap items-center gap-3 py-3">
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-2xs font-bold">{person.name}</span>
-                        <span dir="ltr" className="bidi-ltr mt-0.5 block text-3xs opacity-70">
-                          {person.email}
-                        </span>
-                      </span>
-                      {person.mustChangePassword ? (
-                        <Badge tone="warn">لم يغيّر كلمته بعد</Badge>
-                      ) : null}
-                      {person.active ? null : <Badge tone="danger">موقوف</Badge>}
-                      <span className="text-3xs opacity-65">
-                        {person.lastSeenAt === null
-                          ? 'لم يدخل بعد'
-                          : riyadh.format(new Date(person.lastSeenAt))}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <StaffActions
+                providerId={provider.id}
+                staff={provider.staff}
+                canManage={canWrite(admin.role, 'services.manage')}
+              />
             </DetailCard>
           </>
         }
