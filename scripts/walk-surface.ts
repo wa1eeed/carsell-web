@@ -73,11 +73,21 @@ function routes(): string[] {
 async function params(viewerId: string | null): Promise<Record<string, string>> {
   /** مقاطعُ الحساب تُملأ بصفوف من دخل — وإلّا قِيس ٤٠٤ على ملكيّةٍ سليمة. */
   const mine = viewerId === null ? {} : { userId: viewerId };
-  const [listing, order, serviceRequest, provider, user, service, brand, dispute, payout, dealer, trim, offer, report, legal, auction] =
+  const [listing, order, serviceRequest, providerRequest, provider, user, service, brand, dispute, payout, dealer, trim, offer, report, legal, auction] =
     await Promise.all([
       db.listing.findFirst({ where: { status: 'PUBLISHED' }, select: { ref: true } }),
       db.order.findFirst({ where: { buyerId: viewerId ?? undefined }, select: { ref: true } }),
       db.serviceRequest.findFirst({ where: mine, select: { ref: true } }),
+      /**
+       * **ومرجعُ لوحة المزوّد يخصّ من دخل إليها.** كان يُملأ من
+       * استعلامٍ يخصّ المستخدم، فيُطلب في `/provider` طلبٌ لم يقبله
+       * المزوّد — ويردّ ٤٠٤ **وهو الصواب**، فتُسجَّل سلامةٌ ساقطةً.
+       */
+      db.serviceRequest.findFirst({
+        where: { provider: { users: { some: { active: true } } }, providerId: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        select: { ref: true, providerId: true },
+      }),
       db.serviceProvider.findFirst({ select: { id: true } }),
       db.user.findFirst({ where: { role: 'USER' }, select: { id: true } }),
       db.service.findFirst({
@@ -103,6 +113,7 @@ async function params(viewerId: string | null): Promise<Record<string, string>> 
     listingRef: listing?.ref ?? 'ADS2026A0001',
     orderRef: order?.ref ?? 'ORD-2026-1001',
     serviceRef: serviceRequest?.ref ?? 'SRV-2026-3000',
+    providerRef: providerRequest?.ref ?? serviceRequest?.ref ?? 'SRV-2026-3000',
     id: provider?.id ?? 'unknown',
     userId: user?.id ?? 'unknown',
     /** **وخدمةُ الدليل غير كلِّ خدمة**: ما ليس في `guide` لا صفحةَ له بالتصميم. */
@@ -148,7 +159,7 @@ function fill(route: string, p: Record<string, string>): string | null {
         listings: p.listingRef,
         cars: p.listingRef,
         auctions: p.auctionRef,
-        provider: p.serviceRef,
+        provider: p.providerRef,
         users: p.userId,
         services: p.key,
         legal: p.legalKey,
@@ -262,11 +273,37 @@ async function main(): Promise<void> {
     }
   }
 
+  /* ─ مزوّد: بكلمة البذرة، فلوحتُه لا تُقاس بلا جلسة ─ */
+  /**
+   * **والمشي بلا جلسةِ مزوّد يقيس تحويلًا لا شاشة.** أربعُ وجهاتٍ في
+   * `/provider` كانت تُسجَّل «٣٠٧» — وهي بابُ الدخول لا عطلًا، لكنّ
+   * اللوحة نفسَها تبقى بلا قياس. وكلمةُ البذرة هي نفسُها للأدمن.
+   */
+  const providerUser = await db.providerUser.findFirst({
+    where: { active: true, provider: { active: true } },
+    orderBy: { createdAt: 'asc' },
+    select: { email: true },
+  });
+  if (providerUser !== null) {
+    const entered = await fetch(`${BASE}/api/v1/provider/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: providerUser.email,
+        password: process.env.SEED_PASSWORD ?? 'CarSell!dev2026',
+      }),
+    });
+    const session = /carsell_provider=([^;]+)/.exec(entered.headers.get('set-cookie') ?? '');
+    if (session !== null) cookies.carsell_provider = session[1] ?? '';
+  }
+
   const cookie = Object.entries(cookies)
     .map(([name, value]) => `${name}=${value}`)
     .join('; ');
   console.log(
-    `الجلسات: أدمن=${cookies.carsell_admin === undefined ? 'لا' : 'نعم'} · مستخدم=${cookies.carsell_session === undefined ? 'لا' : 'نعم'}\n`,
+    `الجلسات: أدمن=${cookies.carsell_admin === undefined ? 'لا' : 'نعم'}`
+      + ` · مستخدم=${cookies.carsell_session === undefined ? 'لا' : 'نعم'}`
+      + ` · مزوّد=${cookies.carsell_provider === undefined ? 'لا' : 'نعم'}\n`,
   );
 
   const p = await params(signedInUserId);
