@@ -7,6 +7,7 @@ import { publicUrl } from '@/lib/r2';
 import { citySlug, modelSlug } from './slugs';
 import { effectiveAdminFee } from './fees';
 import { DEFAULT_VAT_PCT, vatIncluded } from './money';
+import { supplyVatPct } from './tax';
 import { sellerTypeFor, vehicleIsTaxable, isVatRegistered } from './tax-profile';
 import { sellerBadge, type SellerBadge } from './seller';
 import type { Prisma } from '@/generated/prisma/client';
@@ -249,6 +250,17 @@ export type PublicListingDetail = {
   cost: {
     price: string;
     commission: string;
+    /**
+     * ═══ وضريبةُ عمولتنا تُقال رقمًا ═══
+     *
+     * كانت الشاشة تكتفي بـ«الضريبة مضمَّنة» جملةً بلا رقم، **فلا يرى
+     * المشتري كم منها ضريبة** — وتبديلُ نسبتها من اللوحة لا يغيّر
+     * شيئًا في عينه. وملاحظةُ المالك (٢٠٢٦-١٠-١٧): «الضريبة غير
+     * واضحة».
+     *
+     * و`null` تعني أنّ لا عمولةَ أصلًا — وهي غير الصفر.
+     */
+    commissionVat: string | null;
     /** حكوميّ — يُمرَّر كما هو */
     transferFee: string;
     /** إداريّ — إيرادٌ لنا، وسطرٌ لا يُدمج بما فوقه */
@@ -608,6 +620,8 @@ export async function toPublicDetail(
    * كانت تتباعد عنهما أوّل تعديل.
    */
   const commission = commissionFrom(activeRule(commissionRules, 'BUYER'), costBase);
+  /** نسبةُ ضريبة العمولة من قاعدتها — تعطيلُها يُصفّرها (قرار المالك) */
+  const commissionVatPct = await supplyVatPct('COMMISSION');
 
   return {
     ref: row.ref,
@@ -778,6 +792,8 @@ export async function toPublicDetail(
     cost: {
       price: costBase.toString(),
       commission: commission.toString(),
+      /** **والنسبةُ من قاعدتها** — فتبديلُها من اللوحة يُغيّر ما يُعرض */
+      commissionVat: commission === 0 ? null : vatIncluded(commission, commissionVatPct).toString(),
       transferFee: transferFee.toString(),
       transferAdminFee: transferAdminFee.toString(),
       vatIncludedInPrice: priceCarriesVat

@@ -14,6 +14,8 @@ export type BuyColumnData = {
   cost: {
     price: number;
     commission: number;
+    /** **وضريبةُ العمولة تُقال رقمًا** — و«مضمَّنة» وحدها لا تقول كم */
+    commissionVat: number | null;
     transferFee: number;
     transferAdminFee: number;
     /** `null` تعني «لا ضريبة هنا أصلًا» — وهي غير الصفر. */
@@ -242,6 +244,21 @@ export function BuyColumn({
           value={<ArabicNumber value={data.cost.commission} />}
           tone={data.cost.commission === 0 ? 'accent' : undefined}
         />
+        {/*
+          **وضريبتُها سطرٌ تحتها لا جملةٌ في الذيل.** كانت الشاشة تقول
+          «الضريبة مضمَّنة» بلا رقم، **فلا يرى المشتري كم منها ضريبة** —
+          وتبديلُ نسبتها من اللوحة لا يغيّر شيئًا في عينه. وهي بندٌ في
+          فاتورته الضريبية، فإخفاؤها هنا يجعل الورقة تفاجئه.
+
+          وتُزاح قليلًا فتُقرأ **منها** لا بجوارها: الإجماليُّ يضمّها
+          أصلًا، وسطرٌ بمحاذاتها يُقرأ إضافةً فيُجمع مرّتين بالعين.
+        */}
+        {data.cost.commissionVat === null || data.cost.commissionVat === 0 ? null : (
+          <div className="flex items-baseline justify-between gap-4 ps-4 text-3xs opacity-70">
+            <span>{tx('commissionVatRow')}</span>
+            <ArabicNumber value={data.cost.commissionVat} />
+          </div>
+        )}
         <Row label={t('transferFee')} value={<ArabicNumber value={data.cost.transferFee} />} />
         {data.cost.transferAdminFee === 0 ? null : (
           <Row

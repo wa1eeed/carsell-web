@@ -1191,7 +1191,8 @@
     "vatShare": "of which VAT",
     "listingTaxable": "This vehicle belongs to a taxable business activity",
     "listingTaxableHint": "Changes the tax treatment of this listing only.",
-    "adminFeeRow": "Administrative fee"
+    "adminFeeRow": "Administrative fee",
+    "commissionVatRow": "of which VAT"
   },
   "dealer": {
     "verified": "Verified dealer",
