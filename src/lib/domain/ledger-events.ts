@@ -114,8 +114,13 @@ export async function recordOrderEarned(
    * أظهرته في ثلاثة مواضع دفعةً واحدة.
    *
    * والعمولةُ شاملةٌ للضريبة (`ourVat` ← `vatIncluded`، و`tax-model.md`:
-   * «our fees are VAT-inclusive»): يتحمّلها البائع **كاملةً مرّة**،
-   * وتُشقّ عندنا إلى إيرادٍ صافٍ وضريبةٍ مستحقّة للهيئة.
+   * «our fees are VAT-inclusive»، ومسارُ الخدمات كذلك منذ بُني):
+   * يتحمّلها البائع **كاملةً مرّة**، وتُشقّ عندنا إلى إيرادٍ صافٍ
+   * وضريبةٍ مستحقّة للهيئة.
+   *
+   * // DESIGN-Q: **والأثرُ التجاريّ قرارُ المالك**: نسبةٌ ٢٫٥٪ تُبقي
+   * // لنا ٢٫١٧٤٪ والباقي للهيئة. فإن أرادها صافيةً فالضبط ٢٫٨٧٥٪ —
+   * // ولا شيفرة تتغيّر. السؤال في `docs/OPEN-QUESTIONS.md`.
    */
   const netRevenue = commission.minus(vat);
   const netToSeller = total.minus(commission).minus(govtFee).minus(gatewayFee);
