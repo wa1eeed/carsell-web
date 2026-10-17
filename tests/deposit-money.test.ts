@@ -260,7 +260,7 @@ describe('عربون الفائز يُحصَّل ليصل البائع', () => {
       where: { ref: created.orderRef },
       select: {
         id: true, agreedPrice: true, totalAmount: true, depositApplied: true,
-        buyerCommission: true, listingId: true,
+        buyerCommission: true, buyerVat: true, listingId: true,
       },
     });
 
@@ -273,7 +273,12 @@ describe('عربون الفائز يُحصَّل ليصل البائع', () => {
      */
     expect(Number(order.depositApplied)).toBe(5_000);
     expect(Number(order.totalAmount)).toBe(
-      Number(order.agreedPrice) + Number(order.buyerCommission) + 350 - 5_000,
+      Number(order.agreedPrice) +
+        Number(order.buyerCommission) +
+        /** **وضريبتُه فوق عمولته** — قرار «فوقها» (٢٠٢٦-١٠-١٧) */
+        Number(order.buyerVat) +
+        350 -
+        5_000,
     );
 
     const { captureAppliedDeposit } = await import('@/lib/domain/deposit-money');

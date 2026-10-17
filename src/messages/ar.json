@@ -1192,7 +1192,7 @@
     "listingTaxable": "هذه السيارة تابعة لنشاط تجاري خاضع للضريبة",
     "listingTaxableHint": "يغير الحالة الضريبية لهذا الإعلان فقط.",
     "adminFeeRow": "رسوم إدارية",
-    "commissionVatRow": "منها ضريبة القيمة المضافة"
+    "commissionVatRow": "ضريبة القيمة المضافة"
   },
   "dealer": {
     "verified": "معرض موثّق",

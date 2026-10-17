@@ -414,3 +414,56 @@ Requires VAT registration **and** a written reference to the authority's
 document. An approval with nothing to point at cannot be defended to an auditor,
 and an optional field here is left blank on the first busy day. Revoking clears
 the reference, so no row says "not approved" while carrying an approval number.
+
+---
+
+## VAT is added on top of our fees, not contained within them
+
+Owner's decision, 2026-10-17: **«فوقها»**.
+
+Until then our fees were treated as VAT-inclusive — `ourVat` extracted
+`base × r/(100+r)`. The consequence the owner spotted: **changing the VAT
+rate did not change what the buyer pays**, it only changed how the same
+2,500 was split between us and ZATCA. So a rate rise came out of our
+margin, silently — the opposite of «يتحملها المشتري».
+
+Now `vatAdded` computes `base × r/100`, and the rate the operator sets in
+`/admin/plans` is **net to the platform**:
+
+| VAT rate | commission | VAT | buyer pays | we keep |
+| --- | --- | --- | --- | --- |
+| 15% | 2,500 | 375 | 103,225 | **2,500** |
+| 5% | 2,500 | 125 | 102,975 | **2,500** |
+
+Both models are lawful: the regulation requires the **displayed total** to
+be VAT-inclusive, and it still is — an invoice showing a fee line and a VAT
+line that sum to an inclusive total is the ordinary form. The choice was
+commercial, not legal. *(An earlier note here claimed inclusive was the
+only lawful reading. That was wider than the rule and is corrected.)*
+
+### Who bears which share
+
+`Order.buyerVat` and `Order.sellerVat` are **snapshots**, like the
+commissions beside them. The buyer bears VAT on supplies made to them —
+their commission, our administrative fee, the processing fee when they
+carry it — and the seller on theirs. `vatAmount` remains their sum, because
+the invoice and the ledger read it.
+
+They are stored rather than derived at read time: the rate changes from the
+panel, and an order created at 15% read back after a change would produce a
+settlement that does not match the one the seller signed.
+
+### What moved with it
+
+- `netToSeller` (`money.ts`) now subtracts the seller's VAT. Under the old
+  model it deliberately did not — the fee already contained it, so
+  subtracting both took it twice. Under this one the fee is net, so the VAT
+  is subtracted exactly once.
+- `recordOrderEarned` books `PLATFORM_REVENUE` at the full commission
+  (which is net by definition) and `VAT_PAYABLE` separately.
+- The car page quotes the VAT as its own line **inside** the total. It had
+  been a sentence in the footer with no number at all, so a buyer never saw
+  the amount and a rate change was invisible to them.
+- The administrative fee and the processing fee moved with the commission.
+  Two models on one invoice confuse whoever reads it; both are disabled by
+  default, so nothing being charged today changed.

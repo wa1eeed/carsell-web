@@ -100,30 +100,24 @@ export async function recordOrderEarned(
   const gatewayFee = d(input.gatewayFee ?? 0);
 
   /**
-   * ═══ ولا تُخصم ضريبةُ عمولتنا من البائع ═══
+   * ═══ والضريبةُ فوق الرسم — فتُخصم مع ما يخصّه ═══
    *
-   * القاعدةُ مكتوبةٌ مرّةً في `money.ts` (`netToSeller`) ومُعلَّلة:
-   * «**ولا رسم نقلٍ ولا ضريبة** … والثانيةُ على توريداتنا لا على توريد
-   * البائع». وكشفُ التسوية وصفحةُ أرباحه ولوحةُ الإفراج تقرؤها كلُّها.
+   * قرار المالك (٢٠٢٦-١٠-١٧): «فوقها». فالرسمُ صافٍ والضريبةُ فوقه،
+   * **ويتحمّلها من وُرِّد إليه**: المشتري دفعها ضمن إجماليّه،
+   * والبائعُ تُخصم من مستحقّه.
    *
-   * **والدفتر وحده كان يخالفها**: يخصم العمولة **وضريبتَها**. فعمولةُ
-   * ١٬١٠٣٫٣٨ تأخذ من البائع ١٬٢٤٧٫٣٠، **وكشفُه الموقَّع يقول
-   * ٤٣٬٠٣١٫٦٢ ونحن ندينه ٤٢٬٨٨٧٫٧٠** — وثيقةٌ تَعِد بما لا يقع.
+   * وصافي البائع يُشتقّ من الباقي فلا يصل رقمٌ لا يتوازن:
    *
-   * **ولم يظهر ما دامت العمولة صفرًا**، وأوّلُ نسبةٍ ضُبطت من اللوحة
-   * أظهرته في ثلاثة مواضع دفعةً واحدة.
+   * ```
+   *   ما دفعه المشتري  = ثمن + عمولته + ضريبتُه + رسمٌ حكوميّ
+   *   − عمولة الطرفين − ضريبتُهما − الحكوميّ − رسم البوابة
+   *   = صافي البائع
+   * ```
    *
-   * والعمولةُ شاملةٌ للضريبة (`ourVat` ← `vatIncluded`، و`tax-model.md`:
-   * «our fees are VAT-inclusive»، ومسارُ الخدمات كذلك منذ بُني):
-   * يتحمّلها البائع **كاملةً مرّة**، وتُشقّ عندنا إلى إيرادٍ صافٍ
-   * وضريبةٍ مستحقّة للهيئة.
-   *
-   * // DESIGN-Q: **والأثرُ التجاريّ قرارُ المالك**: نسبةٌ ٢٫٥٪ تُبقي
-   * // لنا ٢٫١٧٤٪ والباقي للهيئة. فإن أرادها صافيةً فالضبط ٢٫٨٧٥٪ —
-   * // ولا شيفرة تتغيّر. السؤال في `docs/OPEN-QUESTIONS.md`.
+   * **وإيرادُنا الرسمُ كاملًا** لأنه صافٍ بتعريفه، والضريبةُ حسابٌ
+   * مستقلّ مستحقٌّ للهيئة — لا شقٌّ من الإيراد كما كان في «شاملة».
    */
-  const netRevenue = commission.minus(vat);
-  const netToSeller = total.minus(commission).minus(govtFee).minus(gatewayFee);
+  const netToSeller = total.minus(commission).minus(vat).minus(govtFee).minus(gatewayFee);
 
   return postEntries(
     writer,
@@ -144,7 +138,7 @@ export async function recordOrderEarned(
           amount: netToSeller,
           userId: input.sellerId,
         },
-        { account: 'PLATFORM_REVENUE', direction: 'CREDIT', amount: netRevenue },
+        { account: 'PLATFORM_REVENUE', direction: 'CREDIT', amount: commission },
         ...(vat.equals(zero)
           ? []
           : [{ account: 'VAT_PAYABLE' as const, direction: 'CREDIT' as const, amount: vat }]),
@@ -254,8 +248,8 @@ export async function recordRefund(
 
   const commission = d(input.commission ?? 0);
   const vat = d(input.vat ?? 0);
-  /** **وما تحمّله البائع هو العمولة كاملةً** — لا هي وضريبتُها */
-  const fromSeller = amount.minus(commission);
+  /** **وما تحمّله البائع الرسمُ وضريبتُه** — وكلاهما مرّةً واحدة */
+  const fromSeller = amount.minus(commission).minus(vat);
 
   return postEntries(
     writer,
@@ -268,14 +262,13 @@ export async function recordRefund(
           منّا، وضريبتها تُخصم من دَيننا للهيئة، والباقي من حقّ البائع.
           ومجموعها هو المبلغ المردود بعينه — فيتوازن القيد.
         */
-        /** **والعكسُ بما قُيّد** — إيرادًا صافيًا، والضريبةُ سطرُها التالي */
-        ...(commission.minus(vat).equals(zero)
+        ...(commission.equals(zero)
           ? []
           : [
               {
                 account: 'PLATFORM_REVENUE' as const,
                 direction: 'DEBIT' as const,
-                amount: commission.minus(vat),
+                amount: commission,
               },
             ]),
         ...(vat.equals(zero)

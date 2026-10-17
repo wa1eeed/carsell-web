@@ -337,7 +337,7 @@ describe('ضريبةُ العمولة تُضبط من قاعدتها', () => {
 
   it('تعطيلُ القاعدة يُصفّر ضريبةَ الطلب', async () => {
     await db.taxRule.updateMany({ where: WHERE, data: { active: true, ratePct: 15 } });
-    expect(await vat()).toBe('326.09');
+    expect(await vat()).toBe('375');
 
     /** **وهذا هو «التعطيل» الذي طلبه** — لا سقوطَ إلى افتراضيٍّ يُبطله */
     await db.taxRule.updateMany({ where: WHERE, data: { active: false } });
@@ -346,9 +346,9 @@ describe('ضريبةُ العمولة تُضبط من قاعدتها', () => {
 
   it('وتبديلُ النسبة يصل المال', async () => {
     await db.taxRule.updateMany({ where: WHERE, data: { active: true, ratePct: 5 } });
-    expect(await vat()).toBe('119.05');
+    expect(await vat()).toBe('125');
 
     await db.taxRule.updateMany({ where: WHERE, data: { ratePct: 15 } });
-    expect(await vat()).toBe('326.09');
+    expect(await vat()).toBe('375');
   });
 });

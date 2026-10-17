@@ -85,6 +85,8 @@ describe('commission — الطرفان مستقلّان', () => {
       agreedPrice: a.agreedPrice,
       settlementAmount: null,
       sellerCommission: a.sellerCommission,
+      /** **وضريبتُه تُخصم معه** — فوق الرسم لا داخله (قرار «فوقها») */
+      sellerVat: a.sellerVat,
     });
     expect(net.toFixed(2)).toBe('100000.00');
   });
@@ -116,12 +118,21 @@ describe('commission — الطرفان مستقلّان', () => {
       agreedPrice: a.agreedPrice,
       settlementAmount: null,
       sellerCommission: a.sellerCommission,
+      /** **وضريبتُه تُخصم معه** — فوق الرسم لا داخله (قرار «فوقها») */
+      sellerVat: a.sellerVat,
     });
 
-    // رسم النقل يعبر إلى الجهة الحكومية فيُستبعد من نصيبنا
+    /**
+     * رسم النقل يعبر إلى الجهة الحكومية فيُستبعد من نصيبنا.
+     *
+     * **وما يبقى يضمّ الضريبةَ المحصَّلة** بعد قرار «فوقها»: الرسمُ
+     * صافٍ لنا والضريبةُ فوقه نقبضها للهيئة — فالمقبوضُ عمولتان
+     * وضريبتُهما، والإيرادُ العمولتان وحدهما.
+     */
     const kept = a.totalAmount.minus(net).minus(a.transferFee);
-    expect(kept.toFixed(2)).toBe(a.commissionAmount.toFixed(2));
-    expect(kept.toFixed(2)).toBe('5000.00');
+    expect(kept.toFixed(2)).toBe(a.commissionAmount.plus(a.vatAmount).toFixed(2));
+    expect(a.commissionAmount.toFixed(2)).toBe('5000.00');
+    expect(a.vatAmount.toFixed(2)).toBe('750.00');
   });
 
   it('النسبة والمبلغ الثابت يجتمعان، والحدّان يقيّدان', async () => {

@@ -670,6 +670,8 @@ Relations: `status` → `DepositStatus` · `auction` → `Auction` · `user` →
 | `commissionAmount` | `Decimal` |  |
 | `buyerCommission` | `Decimal` |  |
 | `sellerCommission` | `Decimal` |  |
+| `buyerVat` | `Decimal` |  |
+| `sellerVat` | `Decimal` |  |
 | `transferFee` | `Decimal` |  |
 | `transferAdminFee` | `Decimal` |  |
 | `processingFee` | `Decimal` |  |

@@ -1,8 +1,8 @@
 import { Prisma } from '@/generated/prisma/client';
 import type { FeeBearer } from '@/generated/prisma/enums';
 import type { db } from '@/lib/db';
-import { supplyVatPct } from './tax';
-import { effectiveAdminFee, ourVat, processingFeeFor } from './fees';
+import { supplyVatPct, vatAdded } from './tax';
+import { effectiveAdminFee, processingFeeFor } from './fees';
 
 /**
  * ═══ مبالغ الطلب — **قاعدةٌ واحدة لكل مصادر الطلب** ═══
@@ -31,8 +31,21 @@ export type OrderAmounts = {
   transferAdminFee: Prisma.Decimal;
   processingFee: Prisma.Decimal;
   processingFeeBearer: FeeBearer;
-  /** ضريبة توريداتنا وحدها */
+  /** ضريبة توريداتنا وحدها — ومجموعُ حصّتَي الطرفين */
   vatAmount: Prisma.Decimal;
+  /**
+   * ═══ ويتحمّلها من يُورَّد إليه ═══
+   *
+   * قرار المالك (٢٠٢٦-١٠-١٧): «فوقها» — فالضريبةُ تُضاف فوق الرسم،
+   * **والمشتري يتحمّل ضريبةَ ما وُرِّد إليه** (عمولتُه ورسمُنا
+   * الإداريّ ورسمُ المعالجة حين يتحمّله)، والبائعُ ضريبةَ عمولته.
+   *
+   * وخلطُهما في رقمٍ واحد كان يُنتج القسمة الخاطئة نفسَها التي
+   * أُصلحت في العمولة: يُضاف المجموع إلى المشتري **ويُخصم المجموع**
+   * من البائع.
+   */
+  buyerVat: Prisma.Decimal;
+  sellerVat: Prisma.Decimal;
   totalAmount: Prisma.Decimal;
 };
 
@@ -178,7 +191,40 @@ export async function computeOrderAmounts(
    * يقول أيّهما قُصد. فالآن ما يُضاف هنا هو `buyerCommission`، وما
    * يُخصم هناك `sellerCommission` — ومجموعهما إيرادنا.
    */
-  const total = price + buyerCommission + transferFee + Number(transferAdminFee) + buyerShare;
+  const vatPct = await supplyVatPct('COMMISSION', now);
+
+  /**
+   * ═══ وضريبةُ كلّ طرفٍ على ما وُرِّد إليه ═══
+   *
+   * المشتري: عمولتُه ورسمُنا الإداريّ (يُضاف إلى إجماليّه) ورسمُ
+   * المعالجة حين يتحمّله. والبائع: عمولتُه ورسمُ المعالجة حين
+   * يتحمّله هو.
+   *
+   * **والحكوميُّ خارجَهما**: صرفٌ نيابةً عن العميل، لسنا مورّده.
+   */
+  const buyerVat = vatAdded(
+    new Prisma.Decimal(buyerCommission).plus(transferAdminFee).plus(buyerShare),
+    vatPct,
+  );
+  const sellerVat = vatAdded(
+    new Prisma.Decimal(sellerCommission).plus(
+      processingFeeBearer === 'SELLER' ? Number(processingFee) : 0,
+    ),
+    vatPct,
+  );
+
+  /**
+   * **وما يدفعه المشتري يضمّ ضريبتَه هو** — ولا ضريبةَ البائع.
+   * وكانت الضريبةُ لا تدخل إجماليَّه أصلًا لأنها كانت مضمَّنةً في
+   * الرسم.
+   */
+  const total =
+    price +
+    buyerCommission +
+    Number(buyerVat) +
+    transferFee +
+    Number(transferAdminFee) +
+    buyerShare;
 
   /**
    * الضريبة على **توريداتنا وحدها** — العمولة والرسوم الإدارية ورسوم
@@ -194,10 +240,8 @@ export async function computeOrderAmounts(
    *
    * وتعطيلُ القاعدة يُصفّر النسبة، وهو ما طلب المالك أن يعمل.
    */
-  const vatAmount = ourVat(
-    { commissionAmount, transferAdminFee, processingFee },
-    await supplyVatPct('COMMISSION', now),
-  );
+  /** ومجموعُهما هو ضريبةُ توريداتنا — يُقرأ في الفاتورة والدفتر */
+  const vatAmount = buyerVat.plus(sellerVat);
 
   return {
     agreedPrice: new Prisma.Decimal(price),
@@ -210,6 +254,8 @@ export async function computeOrderAmounts(
     processingFee,
     processingFeeBearer,
     vatAmount,
+    buyerVat,
+    sellerVat,
     totalAmount: new Prisma.Decimal(total),
   };
 }

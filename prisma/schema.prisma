@@ -804,6 +804,18 @@ model Order {
   commissionAmount Decimal     @db.Decimal(12, 2)
   buyerCommission  Decimal     @default(0) @db.Decimal(12, 2)
   sellerCommission Decimal     @default(0) @db.Decimal(12, 2)
+  /// ═══ وضريبةُ كلّ طرفٍ على حدة — لقطةً كأختيها ═══
+  ///
+  /// قرار المالك (٢٠٢٦-١٠-١٧): «فوقها». فالضريبةُ تُضاف فوق الرسم
+  /// **ويتحمّلها من يُورَّد إليه**: المشتري على عمولته ورسمنا
+  /// الإداريّ، والبائعُ على عمولته.
+  ///
+  /// و`vatAmount` مجموعُهما — يبقى لأنّ الفاتورة والدفتر يقرآنه.
+  /// **ولا يُشتقّ أحدهما من الآخر وقت القراءة**: النسبةُ تتغيّر من
+  /// اللوحة، وطلبٌ أُنشئ على ١٥٪ يُقرأ بعد تغيُّرها فيُنتج صافيًا
+  /// لا يطابق ما وُقّع عليه.
+  buyerVat         Decimal     @default(0) @db.Decimal(12, 2)
+  sellerVat        Decimal     @default(0) @db.Decimal(12, 2)
 
   // قرار ١٧ — رسوم النقل لقطةً من PlatformSetting، والضريبة مضمَّنة ١٥/١١٥
   transferFee Decimal @default(0) @db.Decimal(12, 2)

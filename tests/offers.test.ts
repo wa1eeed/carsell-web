@@ -352,6 +352,8 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
     expect(Number(order.totalAmount)).toBe(
       Number(order.agreedPrice) +
         Number(order.buyerCommission) +
+        /** **وضريبتُه فوق رسمه** — قرار «فوقها» (٢٠٢٦-١٠-١٧) */
+        Number(order.buyerVat) +
         Number(order.transferFee) +
         Number(order.transferAdminFee) +
         buyerShare,
@@ -370,20 +372,24 @@ describe('offer.acceptCascade — القاعدة ٤', () => {
      *
      * والتأكيد الآن على **القاعدة** لا على رقمٍ بعينه، فيصمد حين تُفعَّل
      * العمولة أو يُفعَّل الرسم الإداريّ.
+     *
+     * **وفوق الوعاء لا داخله** — قرار المالك (٢٠٢٦-١٠-١٧): «فوقها».
+     * فالنسبةُ `× r/100` لا `× r/(100+r)`، والفرقُ على رسمٍ ١٠٠
+     * بـ١٥٪: **١٥ مضافةً و١٣٫٠٤ مضمَّنة**.
      */
     const ourBase =
       Number(order.commissionAmount) +
       Number(order.transferAdminFee) +
       Number(order.processingFee);
     expect(Number(order.vatAmount)).toBeCloseTo(
-      (ourBase * Number(platform.vatPct)) / (100 + Number(platform.vatPct)),
+      (ourBase * Number(platform.vatPct)) / 100,
       2,
     );
 
     // والرسم الحكوميّ خارج الوعاء — تأكيدٌ صريح لا استنتاج
     expect(Number(order.transferFee)).toBeGreaterThan(0);
     expect(Number(order.vatAmount)).toBeLessThan(
-      (Number(order.totalAmount) * Number(platform.vatPct)) / (100 + Number(platform.vatPct)),
+      (Number(order.totalAmount) * Number(platform.vatPct)) / 100,
     );
     await teardown();
   });

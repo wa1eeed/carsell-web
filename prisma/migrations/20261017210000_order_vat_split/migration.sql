@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "buyerVat" DECIMAL(12,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "sellerVat" DECIMAL(12,2) NOT NULL DEFAULT 0;
+

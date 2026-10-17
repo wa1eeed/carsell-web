@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
-import { ourVat } from '@/lib/domain/fees';
+
 import { netToSeller } from '@/lib/domain/money';
 
 /**
@@ -41,6 +41,9 @@ async function allOrders() {
       commissionAmount: true,
       buyerCommission: true,
       sellerCommission: true,
+      /** لقطةُ ضريبة كلّ طرف — قرار «فوقها» (٢٠٢٦-١٠-١٧) */
+      buyerVat: true,
+      sellerVat: true,
       transferFee: true,
       transferAdminFee: true,
       processingFee: true,
@@ -61,7 +64,7 @@ describe('═══ حساب الطلب ═══', () => {
     expect(wrong).toEqual([]);
   });
 
-  it('الإجمالي = السعر + عمولة المشتري + رسم النقل + الرسم الإداري + حصّة المشتري من المعالجة', async () => {
+  it('الإجمالي = السعر + عمولة المشتري + ضريبتُه + رسم النقل + الرسم الإداري + حصّته من المعالجة', async () => {
     /**
      * **وعمولة البائع ليست في إجمالي المشتري.** كان الحقل الواحد
      * يُضاف هنا ويُخصم هناك، فتُؤخذ العمولة مرّتين ولا يظهر.
@@ -74,6 +77,8 @@ describe('═══ حساب الطلب ═══', () => {
         const buyerShare = o.processingFeeBearer === 'BUYER' ? o.processingFee : D(0);
         const expected = o.agreedPrice
           .plus(o.buyerCommission)
+          /** **وضريبتُه فوق رسمه** — قرار «فوقها» (٢٠٢٦-١٠-١٧) */
+          .plus(o.buyerVat)
           .plus(o.transferFee)
           .plus(o.transferAdminFee)
           .plus(buyerShare)
@@ -85,15 +90,23 @@ describe('═══ حساب الطلب ═══', () => {
     expect(wrong).toEqual([]);
   });
 
+  /**
+   * **والمجموعُ حصّتا الطرفين** — ومنه يُفحص أنّ الوعاء توريداتُنا
+   * وحدها: لا قيمةُ المركبة (مورّدها البائع) ولا الرسمُ الحكوميّ
+   * (لسنا مورّده).
+   */
   it('الضريبة على توريداتنا وحدها — لا على المركبة ولا على الرسم الحكوميّ', async () => {
-    const platform = await db.platformSetting.findUnique({ where: { id: 'default' } });
-    const rate = Number(platform?.vatPct ?? 15);
-
     const wrong = (await allOrders())
-      .filter((o) => !same(o.vatAmount, ourVat(o, rate)))
-      .map((o) => `${o.ref}: ${o.vatAmount.toFixed(2)} ≠ ${ourVat(o, rate).toFixed(2)}`);
+      .filter((o) => !same(o.vatAmount, o.buyerVat.plus(o.sellerVat)))
+      .map((o) => `${o.ref}: ${o.vatAmount.toFixed(2)} ≠ ${o.buyerVat.plus(o.sellerVat).toFixed(2)}`);
 
     expect(wrong).toEqual([]);
+
+    /** **ولا تُحتسب على ما ليس توريدًا منّا** — فالوعاء العمولة ورسومُنا */
+    const overreach = (await allOrders())
+      .filter((o) => o.vatAmount.greaterThan(o.commissionAmount.plus(o.transferAdminFee).plus(o.processingFee)))
+      .map((o) => o.ref);
+    expect(overreach).toEqual([]);
   });
 
   it('صافي البائع لا يتجاوز ما اتُّفق عليه ولا ينزل تحت الصفر', async () => {

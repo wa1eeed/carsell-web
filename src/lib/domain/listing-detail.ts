@@ -7,7 +7,7 @@ import { publicUrl } from '@/lib/r2';
 import { citySlug, modelSlug } from './slugs';
 import { effectiveAdminFee } from './fees';
 import { DEFAULT_VAT_PCT, vatIncluded } from './money';
-import { supplyVatPct } from './tax';
+import { supplyVatPct, vatAdded } from './tax';
 import { sellerTypeFor, vehicleIsTaxable, isVatRegistered } from './tax-profile';
 import { sellerBadge, type SellerBadge } from './seller';
 import type { Prisma } from '@/generated/prisma/client';
@@ -622,6 +622,7 @@ export async function toPublicDetail(
   const commission = commissionFrom(activeRule(commissionRules, 'BUYER'), costBase);
   /** نسبةُ ضريبة العمولة من قاعدتها — تعطيلُها يُصفّرها (قرار المالك) */
   const commissionVatPct = await supplyVatPct('COMMISSION');
+  const commissionVat = vatAdded(commission, commissionVatPct);
 
   return {
     ref: row.ref,
@@ -793,13 +794,20 @@ export async function toPublicDetail(
       price: costBase.toString(),
       commission: commission.toString(),
       /** **والنسبةُ من قاعدتها** — فتبديلُها من اللوحة يُغيّر ما يُعرض */
-      commissionVat: commission === 0 ? null : vatIncluded(commission, commissionVatPct).toString(),
+      /** **فوق العمولة لا داخلها** — قرار المالك: «فوقها» */
+      commissionVat: commission === 0 ? null : commissionVat.toString(),
       transferFee: transferFee.toString(),
       transferAdminFee: transferAdminFee.toString(),
       vatIncludedInPrice: priceCarriesVat
         ? vatIncluded(costBase, Number(platform?.vatPct ?? DEFAULT_VAT_PCT)).toString()
         : null,
-      total: (costBase + commission + transferFee + transferAdminFee).toString(),
+      /**
+       * **والضريبةُ تدخل الإجماليّ** — فوق العمولة لا داخلها. وبقاؤها
+       * خارجه بعد قرار «فوقها» يُقتبس للمشتري أقلَّ ممّا سيدفع.
+       */
+      total: (
+        costBase + commission + Number(commissionVat) + transferFee + transferAdminFee
+      ).toString(),
       provisional: row.auction !== null,
     },
 

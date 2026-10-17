@@ -65,25 +65,24 @@ describe('الدفتر يتوازن أو لا يُكتب', () => {
 
 describe('صفقة كاملة — ١٬٠٠٠ ريال', () => {
   /**
-   * ═══ المثال المتّفق عليه — **والعمولة شاملةٌ للضريبة** ═══
+   * ═══ المثال المتّفق عليه — **والضريبةُ فوق العمولة** ═══
    *
-   * قيمة ١٬٠٠٠ · عمولة ١٠٪ = **١٠٠ شاملةً** · الضريبةُ الداخلة فيها
-   * ١٥/١١٥ = ١٣٫٠٤ · رسوم بوابة ٢٠ على البائع ⇒ **صافي البائع ٨٨٠**.
+   * قيمة ١٬٠٠٠ · عمولة ١٠٪ = **١٠٠ صافيةً لنا** · ضريبتُها ١٥٪ فوقها
+   * = ١٥ · رسوم بوابة ٢٠ على البائع ⇒ **صافي البائع ٨٦٥**.
    *
-   * **وكان ٨٦٥**: يُخصم من البائع ١٠٠ **و**١٥ معًا. والقاعدةُ مكتوبةٌ
-   * مرّةً في `money.ts` («ولا رسم نقلٍ ولا ضريبة — والثانيةُ على
-   * توريداتنا»)، ويقرؤها كشفُ التسوية وصفحةُ أرباحه — **والدفتر
-   * وحده كان يخالفها**، فيَعِد كشفُه بما لا يقع.
+   * وقرار المالك (٢٠٢٦-١٠-١٧): «فوقها». فالرسمُ صافٍ والضريبةُ فوقه
+   * **يتحمّلها من وُرِّد إليه** — ومزيّتُه أنّ ما يُضبط هو ما يُنال،
+   * وأنّ رفعَ النسبة يظهر للمشتري بدل أن يُخصم من الهامش صامتًا.
    */
   const money = {
     orderId: ORDER,
     buyerId: BUYER,
     sellerId: SELLER,
     total: 1000,
-    /** شاملةً للضريبة */
+    /** صافيةً لنا */
     commission: 100,
-    /** الداخلةُ فيها — ١٥/١١٥ */
-    vat: 13.04,
+    /** فوقها — ١٥٪ */
+    vat: 15,
     govtFee: 0,
     gatewayFee: 20,
   };
@@ -97,15 +96,15 @@ describe('صفقة كاملة — ١٬٠٠٠ ريال', () => {
     expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('0');
   });
 
-  it('والاستحقاق يوزّع، وصافي البائع ٨٨٠', async () => {
+  it('والاستحقاق يوزّع، وصافي البائع ٨٦٥', async () => {
     await recordOrderPaid(db, money);
     expect((await recordOrderEarned(db, money)).ok).toBe(true);
 
-    /** **ويتحمّل العمولة كاملةً مرّة** — لا هي وضريبتُها */
-    expect((await accountBalance('SELLER_PAYABLE', { userId: SELLER, orderId: ORDER })).toString()).toBe('880');
-    /** وتُشقّ عندنا: إيرادٌ صافٍ وضريبةٌ للهيئة — ومجموعُهما العمولة */
-    expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('86.96');
-    expect((await accountBalance('VAT_PAYABLE', { orderId: ORDER })).toString()).toBe('13.04');
+    /** **ويتحمّل الرسمَ وضريبتَه** — وكلاهما مرّةً واحدة */
+    expect((await accountBalance('SELLER_PAYABLE', { userId: SELLER, orderId: ORDER })).toString()).toBe('865');
+    /** وإيرادُنا الرسمُ كاملًا لأنه صافٍ، والضريبةُ حسابٌ للهيئة */
+    expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('100');
+    expect((await accountBalance('VAT_PAYABLE', { orderId: ORDER })).toString()).toBe('15');
     expect((await accountBalance('GATEWAY_FEES_CLEARING', { orderId: ORDER })).toString()).toBe('20');
     // سلفة المشتري صُفِّرت — قُبض واستُحقّ
     expect((await accountBalance('BUYER_ADVANCE', { userId: BUYER, orderId: ORDER })).toString()).toBe('0');
@@ -131,11 +130,11 @@ describe('صفقة كاملة — ١٬٠٠٠ ريال', () => {
     await recordOrderPaid(db, money);
     await recordOrderEarned(db, money);
     await recordOrderCaptured(db, { orderId: ORDER, amount: 1000 });
-    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 880 });
+    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 865 });
 
     expect((await accountBalance('SELLER_PAYABLE', { userId: SELLER, orderId: ORDER })).toString()).toBe('0');
-    /** **ولا يُدفع للبائع من مالٍ محجوز** — نصيبُنا ورسم البوابة: ١٠٠ + ٢٠ */
-    expect((await accountBalance('PLATFORM_CASH', { orderId: ORDER })).toString()).toBe('120');
+    /** **ولا يُدفع للبائع من مالٍ محجوز** — نصيبُنا وضريبتُه ورسم البوابة */
+    expect((await accountBalance('PLATFORM_CASH', { orderId: ORDER })).toString()).toBe('135');
     expect((await accountBalance('ESCROW_AT_PROVIDER', { orderId: ORDER })).toString()).toBe('0');
   });
 
@@ -143,7 +142,7 @@ describe('صفقة كاملة — ١٬٠٠٠ ريال', () => {
     await recordOrderPaid(db, money);
     await recordOrderEarned(db, money);
     await recordOrderCaptured(db, { orderId: ORDER, amount: 1000 });
-    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 880 });
+    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 865 });
 
     expect(await unbalancedTransactions()).toEqual([]);
   });
@@ -155,10 +154,10 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
     buyerId: BUYER,
     sellerId: SELLER,
     total: 1000,
-    /** شاملةً للضريبة */
+    /** صافيةً لنا */
     commission: 100,
-    /** الداخلةُ فيها — ١٥/١١٥ */
-    vat: 13.04,
+    /** فوقها — ١٥٪ */
+    vat: 15,
     govtFee: 0,
     gatewayFee: 0,
   };
@@ -192,7 +191,7 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
       amount: 1000,
       afterEarning: true,
       commission: 100,
-      vat: 13.04,
+      vat: 15,
     });
 
     expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('0');

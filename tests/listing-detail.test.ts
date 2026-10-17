@@ -210,11 +210,19 @@ describe('السيارات المشابهة', () => {
 });
 
 describe('التكلفة والصبغ', () => {
-  it('الإجمالي = السعر + العمولة + رسوم النقل', async () => {
+  /**
+   * **والضريبةُ بندٌ في الإجماليّ** بعد قرار «فوقها» (٢٠٢٦-١٠-١٧):
+   * الرسمُ صافٍ والضريبةُ فوقه، فبقاؤها خارج الإجماليّ يُقتبس
+   * للمشتري أقلَّ ممّا سيدفع.
+   */
+  it('الإجمالي = السعر + العمولة + ضريبتها + رسوم النقل', async () => {
     const row = await findPublishedListing(await anyRef());
     const { cost } = await toPublicDetail(row!);
     expect(Number(cost.total)).toBe(
-      Number(cost.price) + Number(cost.commission) + Number(cost.transferFee),
+      Number(cost.price) +
+        Number(cost.commission) +
+        Number(cost.commissionVat ?? 0) +
+        Number(cost.transferFee),
     );
   });
 
@@ -242,6 +250,7 @@ describe('التكلفة والصبغ', () => {
     expect(Number(cost.total)).toBeCloseTo(
       Number(cost.price) +
         Number(amounts.buyerCommission) +
+        Number(amounts.buyerVat) +
         Number(cost.transferFee) +
         Number(cost.transferAdminFee),
       2,

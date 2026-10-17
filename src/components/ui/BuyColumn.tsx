@@ -245,19 +245,19 @@ export function BuyColumn({
           tone={data.cost.commission === 0 ? 'accent' : undefined}
         />
         {/*
-          **وضريبتُها سطرٌ تحتها لا جملةٌ في الذيل.** كانت الشاشة تقول
-          «الضريبة مضمَّنة» بلا رقم، **فلا يرى المشتري كم منها ضريبة** —
-          وتبديلُ نسبتها من اللوحة لا يغيّر شيئًا في عينه. وهي بندٌ في
-          فاتورته الضريبية، فإخفاؤها هنا يجعل الورقة تفاجئه.
+          **وضريبتُها سطرٌ مستقلّ لا جملةٌ في الذيل.** كانت الشاشة تقول
+          «الأسعار شاملة الضريبة» بلا رقم، **فلا يرى المشتري كم منها
+          ضريبة** — وتبديلُ نسبتها من اللوحة لا يغيّر شيئًا في عينه.
+          وهي بندٌ في فاتورته الضريبية، فإخفاؤها هنا يجعل الورقة
+          تفاجئه.
 
-          وتُزاح قليلًا فتُقرأ **منها** لا بجوارها: الإجماليُّ يضمّها
-          أصلًا، وسطرٌ بمحاذاتها يُقرأ إضافةً فيُجمع مرّتين بالعين.
+          **وبمحاذاتها لا مُزاحةً تحتها**: بعد قرار «فوقها»
+          (٢٠٢٦-١٠-١٧) صارت الضريبةُ تُضاف إلى الإجماليّ لا تُستخرج
+          منه — فسطرٌ مُزاحٌ يقول «منها» يصف العكس، ومن يجمع بعينه
+          يُنقص ما دُفع.
         */}
         {data.cost.commissionVat === null || data.cost.commissionVat === 0 ? null : (
-          <div className="flex items-baseline justify-between gap-4 ps-4 text-3xs opacity-70">
-            <span>{tx('commissionVatRow')}</span>
-            <ArabicNumber value={data.cost.commissionVat} />
-          </div>
+          <Row label={tx('commissionVatRow')} value={<ArabicNumber value={data.cost.commissionVat} />} />
         )}
         <Row label={t('transferFee')} value={<ArabicNumber value={data.cost.transferFee} />} />
         {data.cost.transferAdminFee === 0 ? null : (

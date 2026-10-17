@@ -1438,6 +1438,9 @@ async function main(): Promise<void> {
         commissionAmount: amounts.commissionAmount,
         buyerCommission: amounts.buyerCommission,
         sellerCommission: amounts.sellerCommission,
+        /** **ولقطةُ ضريبة كلّ طرف** — فوق الرسم لا داخله (قرار «فوقها») */
+        buyerVat: amounts.buyerVat,
+        sellerVat: amounts.sellerVat,
         transferFee,
         vatAmount: vat,
         totalAmount: total,

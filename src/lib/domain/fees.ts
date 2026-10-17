@@ -1,5 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
-import { DEFAULT_VAT_PCT, vatIncluded } from './tax';
+import { DEFAULT_VAT_PCT, vatAdded, vatIncluded } from './tax';
 
 /**
  * ═══ الرسم المُمرَّر والرسم الإداريّ — ولا يُدمجان ═══
@@ -133,7 +133,16 @@ export function ourVat(
   },
   ratePct: number = DEFAULT_VAT_PCT,
 ): Prisma.Decimal {
-  return vatIncluded(ourTaxableBase(order), ratePct);
+  /**
+   * **فوق الرسم لا داخله** — قرار المالك (٢٠٢٦-١٠-١٧): «فوقها».
+   * فالنسبةُ المضبوطة صافيةٌ لنا، والضريبةُ تُضاف ويدفعها المشتري —
+   * وتبديلُ النسبة يظهر له فورًا بدل أن يُخصم من هامشنا صامتًا.
+   *
+   * **ويشمل رسمَنا الإداريّ ورسمَ المعالجة معه**: نموذجان في فاتورةٍ
+   * واحدة يُربكان قارئها ويُخطئ بهما من يحسب. وكلاهما معطَّلٌ
+   * افتراضيًّا، فالتوحيدُ بلا أثرٍ على ما يُدفع اليوم.
+   */
+  return vatAdded(ourTaxableBase(order), ratePct);
 }
 
 /**

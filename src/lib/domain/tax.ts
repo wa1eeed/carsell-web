@@ -45,6 +45,33 @@ export function vatIncluded(
   return amount.times(rate).dividedBy(rate.plus(100)).toDecimalPlaces(2);
 }
 
+/**
+ * ═══ الضريبةُ **فوق** الرسم لا داخله — قرار المالك ٢٠٢٦-١٠-١٧ ═══
+ *
+ * «فوقها، نفّذها». ومعناه أنّ النسبة التي يضبطها المشغّل **صافيةٌ
+ * لنا**، وتُضاف الضريبةُ فوقها ويدفعها المشتري.
+ *
+ * ومسوّغُه أنّ النموذج الآخر («شاملة») يجعل **المنصّة تتحمّل تغيُّر
+ * النسبة**: رفعُها من ١٥٪ إلى ٢٠٪ لا يمسّ ما يدفعه المشتري ويخصم من
+ * هامشنا صامتًا — وهو نقيضُ «يتحمّلها المشتري».
+ *
+ * والفرق على رسمٍ ١٠٠ بنسبة ١٥٪: **المضافةُ ١٥ والمضمَّنةُ ١٣٫٠٤**.
+ *
+ * **والنظامُ يُجيز النموذجين** ما دام الإجماليُّ المعروض شاملًا —
+ * وفاتورةٌ تعرض الرسم وضريبته سطرين هي الشكل المألوف. فالاختيارُ
+ * تجاريٌّ لا قانونيّ.
+ */
+export function vatAdded(
+  base: Prisma.Decimal | number | string,
+  ratePct: Prisma.Decimal | number | string = DEFAULT_VAT_PCT,
+): Prisma.Decimal {
+  const amount = new Prisma.Decimal(base);
+  const rate = new Prisma.Decimal(ratePct);
+  if (rate.isZero()) return new Prisma.Decimal(0);
+  /** **والتقريب حيث يُحسب** — وإلّا اختلّ القيد المزدوج بهللة */
+  return amount.times(rate).dividedBy(100).toDecimalPlaces(2);
+}
+
 /** الصافي قبل الضريبة — ومجموعه مع `vatIncluded` الإجماليُّ بلا فرق قرش. */
 export function netOfVat(
   total: Prisma.Decimal | number | string,

@@ -1,7 +1,7 @@
 import { BRAND_AR } from '@/lib/brand';
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
-import { issueInvoice, vatIncluded } from './tax';
+import { issueInvoice } from './tax';
 import { processingFeeOnSeller } from './fees';
 import { netToSeller as sellerNet } from './money';
 import { buyerTypeFor, marginApprovedFor, sellerTypeFor } from './tax-profile';
@@ -88,7 +88,13 @@ export async function settlementFigures(
 
   // **عمولة البائع وحدها** — وما يدفعه المشتري ليس خصمًا على البائع
   const commission = order.sellerCommission;
-  const commissionTax = vatIncluded(commission);
+  /**
+   * **ولقطةُ الطلب لا حسابٌ عند القراءة** (قرار المالك ٢٠٢٦-١٠-١٧:
+   * «فوقها»). كانت تُحسب `vatIncluded(commission)` عند كل فتحٍ
+   * للكشف — فنسبةٌ تتغيّر من اللوحة تُغيّر **كشفًا صدر**، ويقرأ
+   * البائع رقمًا غير الذي وُقّع عليه.
+   */
+  const commissionTax = order.sellerVat;
 
   /**
    * ═══ الخصم من **سياستنا** لا من تكلفة البوابة ═══
@@ -114,6 +120,8 @@ export async function settlementFigures(
     agreedPrice: order.agreedPrice,
     settlementAmount: order.settlementAmount,
     sellerCommission: commission,
+    /** **وضريبتُه تُخصم معه** — فوق الرسم لا داخله */
+    sellerVat: commissionTax,
     gatewayFee,
   });
 

@@ -1192,7 +1192,7 @@
     "listingTaxable": "This vehicle belongs to a taxable business activity",
     "listingTaxableHint": "Changes the tax treatment of this listing only.",
     "adminFeeRow": "Administrative fee",
-    "commissionVatRow": "of which VAT"
+    "commissionVatRow": "VAT"
   },
   "dealer": {
     "verified": "Verified dealer",
