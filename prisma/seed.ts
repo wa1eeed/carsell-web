@@ -90,6 +90,18 @@ async function ledgerEvents(): Promise<LedgerEvents> {
   return ledgerModule;
 }
 
+/** **وأرقامُ الطلب تُحسب بحاسبة المنتج** — ولو زُرعت بيدٍ ناقضت قاعدةَ العمولة. */
+type Amounts = Awaited<ReturnType<typeof loadAmounts>>;
+const loadAmounts = () => import('../src/lib/domain/order-amounts');
+
+let amountsModule: Amounts | null = null;
+async function computeOrderAmounts(
+  ...args: Parameters<Amounts['computeOrderAmounts']>
+): ReturnType<Amounts['computeOrderAmounts']> {
+  amountsModule ??= await loadAmounts();
+  return amountsModule.computeOrderAmounts(...args);
+}
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
   log: ['error'],
@@ -1324,15 +1336,23 @@ async function main(): Promise<void> {
       : (STAGES[i % STAGES.length] as (typeof STAGES)[number]);
     const buyer = buyers[i % buyers.length] as (typeof buyers)[number];
     const agreed = new D(String(Math.round(Number(l.askPrice) * 0.97)));
-    // رسمٌ حكوميّ يُمرَّر كما هو — صرفٌ نيابةً عن العميل، لا ضريبة لنا فيه
-    const transferFee = new D('350.00');
-    const total = agreed.plus(transferFee);
+
     /**
-     * الضريبة على **توريداتنا وحدها**: العمولة (٠٪ الآن) والرسم الإداريّ
-     * (معطَّل افتراضًا) — فصفرٌ هنا. وكانت ١٥/١١٥ من الإجمالي («قرار ١٧»
-     * وقد نُسخ)، فتحتسب ضريبةً على قيمة المركبة والرسم الحكوميّ معًا.
+     * ═══ وأرقامُ الطلب تُحسب بحاسبة المنتج لا بيد ═══
+     *
+     * كانت مكتوبةً هنا: عمولةٌ صفر وضريبةٌ صفر وإجماليٌّ = الثمن +
+     * الرسم. **فكانت تناقض قاعدة العمولة النافذة**: تُضبط ٢٫٥٪ من
+     * اللوحة ويبقى كلُّ طلبٍ مزروعٍ على صفر، **فبطاقةُ «إيراد
+     * المنصّة» صفرٌ في كل بيئة** ولا شاشةَ ماليّةٍ تُجرَّب على رقمٍ
+     * حقيقيّ.
+     *
+     * و`computeOrderAmounts` هي التي يحسب بها الشراءُ والعرضُ
+     * والمزاد — فالمزروعُ يُشبه ما يُنتجه المنتج، لا شكلَه وحده.
      */
-    const vat = new D('0.00');
+    const amounts = await computeOrderAmounts(prisma, Number(agreed));
+    const transferFee = amounts.transferFee;
+    const total = amounts.totalAmount;
+    const vat = amounts.vatAmount;
 
     /**
      * ═══ والطلبُ يُولد قبل أحداثه ═══
@@ -1366,8 +1386,10 @@ async function main(): Promise<void> {
           ? { cancelReason: 'انسحب المشتري قبل الدفع', cancelledBy: buyer.id }
           : {}),
         agreedPrice: agreed,
-        commissionPct: new D('0.00'),
-        commissionAmount: new D('0.00'),
+        commissionPct: amounts.commissionPct,
+        commissionAmount: amounts.commissionAmount,
+        buyerCommission: amounts.buyerCommission,
+        sellerCommission: amounts.sellerCommission,
         transferFee,
         vatAmount: vat,
         totalAmount: total,
@@ -1448,7 +1470,7 @@ async function main(): Promise<void> {
        * مدخلُه الوحيد الذي يفحص التوازن (البوابة ٢٠) — لا بكتابةٍ
        * مباشرة تُنتج معاملةً لا تتوازن.
        */
-      const { recordOrderEarned, recordOrderPaid } = await ledgerEvents();
+      const { recordOrderCaptured, recordOrderEarned, recordOrderPaid } = await ledgerEvents();
 
       await recordOrderPaid(
         prisma,
@@ -1482,10 +1504,27 @@ async function main(): Promise<void> {
             buyerId: buyer.id,
             sellerId: l.sellerId,
             total,
-            commission: new D('0.00'),
+            commission: amounts.commissionAmount,
             vat,
             govtFee: transferFee,
           },
+          days(-1),
+        );
+
+        /**
+         * ═══ والتحصيل يُزرع مع الاستحقاق ═══
+         *
+         * قرار المالك (٢٠٢٦-١٠-١٧): ما حُصِّل ولم يُحوَّل **مالٌ لنا**.
+         * و`applyState` تكتب القيدين معًا — فالبذرةُ تكتبهما معًا،
+         * وإلّا عرضت لوحةُ الدفتر حالًا لا يُنتجها المنتج: صفقةٌ
+         * مكتملة ومالُها «محجوز» أبدًا.
+         *
+         * **وما لا يُزرع لا يُرى**: بطاقةُ «ما وصلنا فعلًا» كانت صفرًا
+         * في كل بيئة.
+         */
+        await recordOrderCaptured(
+          prisma,
+          { orderId: order.id, paymentId: null, amount: total },
           days(-1),
         );
       }

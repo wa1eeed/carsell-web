@@ -3,11 +3,14 @@ import { db } from '../src/lib/db';
 import { Prisma } from '../src/generated/prisma/client';
 import { accountBalance, postEntries, unbalancedTransactions } from '../src/lib/domain/ledger';
 import {
+  recordOrderCaptured,
   recordOrderEarned,
   recordOrderPaid,
   recordRefund,
   recordSellerPayout,
 } from '../src/lib/domain/ledger-events';
+import { commissionFrom } from '../src/lib/domain/order-amounts';
+import { vatIncluded } from '../src/lib/domain/tax';
 
 const ORDER = 'test-ledger-order';
 const BUYER = 'test-ledger-buyer';
@@ -62,16 +65,25 @@ describe('الدفتر يتوازن أو لا يُكتب', () => {
 
 describe('صفقة كاملة — ١٬٠٠٠ ريال', () => {
   /**
-   * المثال المتّفق عليه: قيمة ١٬٠٠٠ · عمولة ١٠٪ = ١٠٠ · ضريبتها ١٥٪ =
-   * ١٥ · رسوم بوابة ٢٠ على البائع ⇒ **صافي البائع ٨٦٥**.
+   * ═══ المثال المتّفق عليه — **والعمولة شاملةٌ للضريبة** ═══
+   *
+   * قيمة ١٬٠٠٠ · عمولة ١٠٪ = **١٠٠ شاملةً** · الضريبةُ الداخلة فيها
+   * ١٥/١١٥ = ١٣٫٠٤ · رسوم بوابة ٢٠ على البائع ⇒ **صافي البائع ٨٨٠**.
+   *
+   * **وكان ٨٦٥**: يُخصم من البائع ١٠٠ **و**١٥ معًا. والقاعدةُ مكتوبةٌ
+   * مرّةً في `money.ts` («ولا رسم نقلٍ ولا ضريبة — والثانيةُ على
+   * توريداتنا»)، ويقرؤها كشفُ التسوية وصفحةُ أرباحه — **والدفتر
+   * وحده كان يخالفها**، فيَعِد كشفُه بما لا يقع.
    */
   const money = {
     orderId: ORDER,
     buyerId: BUYER,
     sellerId: SELLER,
     total: 1000,
+    /** شاملةً للضريبة */
     commission: 100,
-    vat: 15,
+    /** الداخلةُ فيها — ١٥/١١٥ */
+    vat: 13.04,
     govtFee: 0,
     gatewayFee: 20,
   };
@@ -85,32 +97,53 @@ describe('صفقة كاملة — ١٬٠٠٠ ريال', () => {
     expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('0');
   });
 
-  it('والاستحقاق يوزّع، وصافي البائع ٨٦٥', async () => {
+  it('والاستحقاق يوزّع، وصافي البائع ٨٨٠', async () => {
     await recordOrderPaid(db, money);
     expect((await recordOrderEarned(db, money)).ok).toBe(true);
 
-    expect((await accountBalance('SELLER_PAYABLE', { userId: SELLER, orderId: ORDER })).toString()).toBe('865');
-    expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('100');
-    expect((await accountBalance('VAT_PAYABLE', { orderId: ORDER })).toString()).toBe('15');
+    /** **ويتحمّل العمولة كاملةً مرّة** — لا هي وضريبتُها */
+    expect((await accountBalance('SELLER_PAYABLE', { userId: SELLER, orderId: ORDER })).toString()).toBe('880');
+    /** وتُشقّ عندنا: إيرادٌ صافٍ وضريبةٌ للهيئة — ومجموعُهما العمولة */
+    expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('86.96');
+    expect((await accountBalance('VAT_PAYABLE', { orderId: ORDER })).toString()).toBe('13.04');
     expect((await accountBalance('GATEWAY_FEES_CLEARING', { orderId: ORDER })).toString()).toBe('20');
     // سلفة المشتري صُفِّرت — قُبض واستُحقّ
     expect((await accountBalance('BUYER_ADVANCE', { userId: BUYER, orderId: ORDER })).toString()).toBe('0');
   });
 
-  it('والتحويل يصفّر حقّ البائع، والأمانة تفرغ بانتهاء الصفقة', async () => {
+  /**
+   * ═══ والتحصيل ينقل المال من الحجز إلى رصيدنا ═══
+   *
+   * قرار المالك (٢٠٢٦-١٠-١٧): ما حُصِّل ولم يُحوَّل **مالٌ لنا**.
+   * · `ESCROW_AT_PROVIDER` = المحجوز الذي لم يُحصَّل.
+   * · `PLATFORM_CASH` = رصيدنا لدى المزوّد — يُطابَق بكشفه.
+   */
+  it('والتحصيل يُفرغ الحجز إلى رصيدنا', async () => {
     await recordOrderPaid(db, money);
     await recordOrderEarned(db, money);
-    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 865 });
+    expect((await recordOrderCaptured(db, { orderId: ORDER, amount: 1000 })).ok).toBe(true);
+
+    expect((await accountBalance('ESCROW_AT_PROVIDER', { orderId: ORDER })).toString()).toBe('0');
+    expect((await accountBalance('PLATFORM_CASH', { orderId: ORDER })).toString()).toBe('1000');
+  });
+
+  it('والتحويل يصفّر حقّ البائع، ويبقى نصيبُنا في رصيدنا', async () => {
+    await recordOrderPaid(db, money);
+    await recordOrderEarned(db, money);
+    await recordOrderCaptured(db, { orderId: ORDER, amount: 1000 });
+    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 880 });
 
     expect((await accountBalance('SELLER_PAYABLE', { userId: SELLER, orderId: ORDER })).toString()).toBe('0');
-    // بقي لدى المزوّد نصيبنا ورسم البوابة: ١٠٠ + ١٥ + ٢٠
-    expect((await accountBalance('ESCROW_AT_PROVIDER', { orderId: ORDER })).toString()).toBe('135');
+    /** **ولا يُدفع للبائع من مالٍ محجوز** — نصيبُنا ورسم البوابة: ١٠٠ + ٢٠ */
+    expect((await accountBalance('PLATFORM_CASH', { orderId: ORDER })).toString()).toBe('120');
+    expect((await accountBalance('ESCROW_AT_PROVIDER', { orderId: ORDER })).toString()).toBe('0');
   });
 
   it('وكل معاملة متوازنة — بلا استثناء', async () => {
     await recordOrderPaid(db, money);
     await recordOrderEarned(db, money);
-    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 865 });
+    await recordOrderCaptured(db, { orderId: ORDER, amount: 1000 });
+    await recordSellerPayout(db, { orderId: ORDER, sellerId: SELLER, amount: 880 });
 
     expect(await unbalancedTransactions()).toEqual([]);
   });
@@ -122,8 +155,10 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
     buyerId: BUYER,
     sellerId: SELLER,
     total: 1000,
+    /** شاملةً للضريبة */
     commission: 100,
-    vat: 15,
+    /** الداخلةُ فيها — ١٥/١١٥ */
+    vat: 13.04,
     govtFee: 0,
     gatewayFee: 0,
   };
@@ -136,6 +171,7 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
     ).toBe(true);
 
     expect((await accountBalance('BUYER_ADVANCE', { userId: BUYER, orderId: ORDER })).toString()).toBe('0');
+    expect((await accountBalance('PLATFORM_CASH', { orderId: ORDER })).toString()).toBe('0');
     expect((await accountBalance('ESCROW_AT_PROVIDER', { orderId: ORDER })).toString()).toBe('0');
     expect(await unbalancedTransactions()).toEqual([]);
   });
@@ -147,6 +183,8 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
   it('بعد الاستحقاق: تعود العمولة وضريبتها، والباقي من حقّ البائع', async () => {
     await recordOrderPaid(db, money);
     await recordOrderEarned(db, money);
+    /** **والاستحقاق يصحبه التحصيل** — فالردُّ بعده يخرج ممّا حُصِّل */
+    await recordOrderCaptured(db, { orderId: ORDER, amount: 1000 });
     await recordRefund(db, {
       orderId: ORDER,
       buyerId: BUYER,
@@ -154,7 +192,7 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
       amount: 1000,
       afterEarning: true,
       commission: 100,
-      vat: 15,
+      vat: 13.04,
     });
 
     expect((await accountBalance('PLATFORM_REVENUE', { orderId: ORDER })).toString()).toBe('0');
@@ -170,6 +208,7 @@ describe('الردّ يُعكَس ولا يُمحى', () => {
       distinct: ['event'],
     });
     expect(events.map((row) => row.event).sort()).toEqual([
+      'order.captured',
       'order.earned',
       'order.paid',
       'refund.after_earning',
@@ -257,5 +296,56 @@ describe('دفتر المنصّة يقرأ الدفتر لا يُجمّع', () =
     // مئة ألف مرّت، والإيراد لم يتحرّك
     expect(after.revenue).toBe(before.revenue);
     expect(after.unbalanced).toEqual([]);
+  });
+});
+
+/**
+ * ═══ والمالُ يُقرَّب حيث يُحسب لا حيث يُخزَّن ═══
+ *
+ * ٤٤٬١٣٥ بنسبة ٢٫٥٪ = **١٬١٠٣٫٣٧٥**، وهو ليس مبلغًا بالهللات. وكان
+ * يُمرَّر خامًّا فيُشتقّ منه صافي البائع، **ثمّ يقرّب العمودُ كلَّ رقمٍ
+ * على حدة** — فيختلّ القيد بهللةٍ واحدة ولا يعود مزدوجًا.
+ *
+ * وهي القاعدة المسجَّلة: «فيتوازن الصفّان بحظّ التقريب» — وهنا لم
+ * يُسعفه الحظّ. **ولم تظهر ما دامت النسبةُ صفرًا.**
+ */
+describe('العمولةُ بالهللات', () => {
+  it('نسبةٌ تُنتج كسرَ هللة تُقرَّب قبل أن تُشتقّ منها حصص', () => {
+    const rule = {
+      pct: new Prisma.Decimal('2.50'),
+      fixedFee: new Prisma.Decimal('0'),
+      minFee: null,
+      maxFee: null,
+    };
+    /** ١٬١٠٣٫٣٧٥ قبل التقريب */
+    expect(commissionFrom(rule, 44_135)).toBe(1103.38);
+    /**
+     * **ولا كسرَ يبقى**: الرقم بخانتين بالضبط. والفحص على النصّ لا
+     * على `x * 100`: الضربُ في الثنائيّ يُعطي ١١٠٣٣٧٫٩٩٩٩ فيسقط
+     * الاختبار على عيبٍ في الفحص لا في المقيس.
+     */
+    const value = commissionFrom(rule, 44_135);
+    expect(String(value).split('.')[1]?.length ?? 0).toBeLessThanOrEqual(2);
+  });
+
+  it('وقيدُ استحقاقٍ بها متوازن', async () => {
+    const commission = commissionFrom(
+      { pct: new Prisma.Decimal('2.50'), fixedFee: new Prisma.Decimal('0'), minFee: null, maxFee: null },
+      44_135,
+    );
+    expect(
+      (
+        await recordOrderEarned(db, {
+          orderId: ORDER,
+          buyerId: BUYER,
+          sellerId: SELLER,
+          total: 44_485,
+          commission,
+          vat: vatIncluded(commission, 15),
+          govtFee: 350,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(await unbalancedTransactions()).toEqual([]);
   });
 });

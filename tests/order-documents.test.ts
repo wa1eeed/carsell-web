@@ -56,11 +56,15 @@ describe('═══ عقد البيع وكشف التسوية ═══', () => 
      * تُجمع إليه يُقرأ ادّعاءً — فالشاشة تعرض البنود، وهذا يفحص
      * أنها تُفضي إليه فعلًا.
      */
+    /**
+     * **وضريبةُ العمولة تُعرض ولا تُخصم.** القاعدة في `money.ts`:
+     * «ولا رسم نقلٍ ولا ضريبة — والثانيةُ على توريداتنا لا على توريد
+     * البائع»، والعمولةُ شاملةٌ لها. وجمعُها هنا كان يُنتج صافيًا
+     * يخالف ما في الكشف بمقدارها بالضبط — **وقد سقط حين ضُبطت نسبةٌ
+     * حقيقية من اللوحة**، لا قبلها.
+     */
     const deductions =
-      Number(sheet.commission) +
-      Number(sheet.commissionTax) +
-      Number(sheet.gatewayFee) +
-      Number(sheet.servicesTotal);
+      Number(sheet.commission) + Number(sheet.gatewayFee) + Number(sheet.servicesTotal);
 
     expect(Number(sheet.vehicleValue) - deductions).toBeCloseTo(Number(sheet.netToSeller), 2);
   });

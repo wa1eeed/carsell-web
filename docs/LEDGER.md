@@ -115,6 +115,43 @@ Posted inside the same transaction that creates the `Escrow` row — an escrow
 created without a ledger entry silently loses a deal from the book, and that
 only surfaces when an accountant looks for money that is not there.
 
+### 5.2a `order.captured` — the money left the hold and is ours
+
+```
+  DEBIT   PLATFORM_CASH        96,350
+  CREDIT  ESCROW_AT_PROVIDER   96,350
+```
+
+Written in the same transaction as `order.earned`, under the same
+once-only guard. Owner's decision, 2026-10-17: money captured but not yet
+transferred to the bank **is ours**.
+
+Before this the vehicle path **never wrote a treasury entry at all**. It
+settled at the gateway for real, recognised revenue and accrued VAT — and
+left the counterpart sitting in `ESCROW_AT_PROVIDER` forever. The card that
+reads «التزامٌ تجاه الأطراف، لا مالٌ لنا» was carrying our own commission
+and VAT, and «ما وصلنا فعلًا» equalled the service requests alone. Services
+had written it since `service.captured` was built, so the two paths
+disagreed on one thing only.
+
+**The whole amount, not our share.** `PLATFORM_CASH` means *our balance at
+the provider*, which is what Moyasar's statement shows — and that balance
+includes the seller's money until we pay it out. `SELLER_PAYABLE` remains
+the liability: it is where the debt sits, not where the money sits.
+
+Two consequences, both corrections in their own right:
+
+| Entry | Was | Now |
+| --- | --- | --- |
+| `payout.sent` | credit `ESCROW_AT_PROVIDER` | credit `PLATFORM_CASH` |
+| `refund.after_earning` | credit `ESCROW_AT_PROVIDER` | credit `PLATFORM_CASH` |
+
+You cannot pay a seller out of money that has not been captured, and you
+cannot refund captured money from an account that represents a finished
+hold — it would drive "held at the provider" negative.
+`refund.before_earning` still credits escrow, correctly: it releases a hold
+that was never captured.
+
 ### 5.2 `order.earned` — ownership transferred and the return window closed
 
 ```

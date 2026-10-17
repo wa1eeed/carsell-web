@@ -76,6 +76,16 @@ describe('الفاتورة تشهد بواقعة', () => {
           amount: 100, method: 'mada', status: 'CREATED',
         },
       });
+      /**
+       * **والطقم يشترط ما يفترضه.** كان يعتمد على أنّ عمولة الطلب صفرٌ
+       * بالصدفة — وهي كذلك ما دامت القاعدة النافذة صفرًا. فلمّا ضُبطت
+       * نسبةٌ حقيقية من اللوحة سقط على ما لا يقيسه. والصفرُ يُفرض هنا
+       * صراحةً، فالمقيس **أنّ وثيقةً بصفر لا تخرج** لا أنّ العمولة صفر.
+       */
+      await db.order.update({
+        where: { id: order.id },
+        data: { commissionPct: 0, commissionAmount: 0, sellerCommission: 0, buyerCommission: 0 },
+      });
       try {
         await applyState(payment.id, 'PENDING', 'test');
         expect(await db.taxInvoice.count({ where: { orderId: order.id } })).toBe(0);

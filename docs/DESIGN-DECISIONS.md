@@ -1688,3 +1688,59 @@ day of the accident. Asked only where it has meaning, never on ضد الغير.
 A seller counter-proposal on a viewing. A decline carries a reason and the
 buyer may request again — complete, if not the smoothest shape. Recorded in
 `docs/ROADMAP.md` § 9 rather than half-built.
+
+---
+
+## 2026-10-17 — three answers: «نعم لاقتراحاتك الثلاثة، طبّقها»
+
+### 1 · Inspection category weights
+
+| Category | Weight | Why |
+| --- | --- | --- |
+| الهيكل والصبغ | 3 | does not get repaired — it is why you walk away |
+| المحرك | 3 | a quarter of the car's price to fix |
+| ناقل الحركة | 2 | same order of cost |
+| الفرامل والتعليق | 2 | safety, but replaceable |
+| الكهرباء والمقصورة | 1 | parts are everywhere |
+| الإطارات والعجلات | 1 | three thousand riyals |
+
+The criterion is **cost of repair and effect on the decision**, not point
+count. All six were `1`, so a ruined chassis and worn tyres both scored
+**83**; they now score **75** and **92**.
+
+Applied by migration `20261017190000` with `WHERE weight = 1`, so an
+operator's own change is never overwritten, and the template version is
+bumped. Issued reports keep their frozen snapshot — a published score never
+moves under a buyer.
+
+### 2 · Vehicle-sale money becomes ours at capture
+
+> «المبلغُ الذي صار لنا ولم يُحوَّل إلى البنك بعد — مالٌ لنا.»
+
+The two ledger accounts now have one meaning each:
+
+- `ESCROW_AT_PROVIDER` — **held and not yet captured**. A pure obligation.
+- `PLATFORM_CASH` — **our balance at the provider**, before the bank
+  transfer. This is the figure reconciled against Moyasar's statement.
+
+So settlement writes `order.captured` (the full captured amount, including
+the seller's share, because that is what the provider's statement shows),
+in the same transaction and under the same once-only guard as revenue
+recognition. `SELLER_PAYABLE` stays a liability — it is where the **debt**
+sits, not where the **money** sits.
+
+Two existing entries had to move with it, and both were wrong under any
+reading: `payout.sent` credited `ESCROW_AT_PROVIDER`, i.e. paid a seller out
+of money that had not been captured; and `refund.after_earning` did the
+same, refunding captured money from an account representing a finished hold
+— which would have driven "held at the provider" negative.
+`refund.before_earning` still credits escrow, correctly: that one releases a
+hold that was never captured.
+
+### 3 · A photo is required on «عطل» only
+
+The spec required one on both «ملاحظة» and «عطل». Requiring it on every
+light note makes an inspector **avoid flagging notes at all** and mark
+«سليم» to move on — which corrupts the data we rate providers by and
+misleads the buyer. A fault is rare and serious, and a photo there is
+evidence. The written note stays mandatory in both cases.

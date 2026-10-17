@@ -341,7 +341,14 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       collects ledger transactions by `orderId`, so a transaction without one
       escaped it — 5,000 leaked into the development ledger and inflated platform
       revenue six-fold. Found by reading the screen after a verify run.)*
-- [ ] **A vehicle order never writes `PLATFORM_CASH`.** `service.captured` and
+- [x] **A vehicle order never writes `PLATFORM_CASH`.** Answered 2026-10-17:
+      money captured but not yet in the bank **is ours**. `order.captured` now
+      writes the treasury move beside revenue recognition, and two existing
+      entries moved with it — `payout.sent` was paying sellers out of
+      uncaptured money, and `refund.after_earning` was refunding captured money
+      from a finished hold. `docs/LEDGER.md` § 5.2a.
+
+      *(original note)* **A vehicle order never writes `PLATFORM_CASH`.** `service.captured` and
       `deposit.forfeited` are the only entries that touch it. Orders settle
       through `settleOnTransferConfirmed` — the gateway really is captured — and
       no cash line is posted; our own commission and VAT never leave

@@ -84,10 +84,26 @@ export function activeRule(
 export function commissionFrom(rule: Rule | null, price: number): number {
   if (rule === null) return 0;
   const raw = (price * Number(rule.pct)) / 100 + Number(rule.fixedFee);
-  return Math.min(
+  const bounded = Math.min(
     Math.max(raw, Number(rule.minFee ?? 0)),
     Number(rule.maxFee ?? Number.MAX_SAFE_INTEGER),
   );
+
+  /**
+   * ═══ والمالُ يُقرَّب حيث يُحسب لا حيث يُخزَّن ═══
+   *
+   * ٤٤٬١٣٥ بنسبة ٢٫٥٪ = **١٬١٠٣٫٣٧٥** — وهو ليس مبلغًا بالهللات.
+   * وكان يُمرَّر خامًّا: يُشتقّ منه صافي البائع فيصير ٤٢٬٨٨٧٫٧٠٥،
+   * ثمّ **يقرّب العمودُ كلَّ رقمٍ على حدة** — ١٬١٠٣٫٣٨ و٤٢٬٨٨٧٫٧١ —
+   * **فيختلّ القيد بهللةٍ واحدة** ولا يعود مزدوجًا.
+   *
+   * وهي القاعدة المسجَّلة في CLAUDE.md بعينها: «مدينٌ ٥١٧٫٥٠ يُكتب
+   * ٥١٨ ودائناه … فيتوازن الصفّان بحظّ التقريب» — وهنا لم يُسعفه
+   * الحظّ. **ولم تظهر ما دامت النسبةُ صفرًا.**
+   *
+   * و`vatIncluded` تُقرّب منذ كُتبت، فكان طرفٌ مقرَّبًا وطرفٌ لا.
+   */
+  return new Prisma.Decimal(bounded).toDecimalPlaces(2).toNumber();
 }
 
 /**

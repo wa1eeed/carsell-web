@@ -99,8 +99,26 @@ export async function recordOrderEarned(
   const govtFee = d(input.govtFee);
   const gatewayFee = d(input.gatewayFee ?? 0);
 
-  // صافي البائع هو الباقي — يُشتقّ ولا يُمرَّر، فلا يصل رقمٌ لا يتوازن
-  const netToSeller = total.minus(commission).minus(vat).minus(govtFee).minus(gatewayFee);
+  /**
+   * ═══ ولا تُخصم ضريبةُ عمولتنا من البائع ═══
+   *
+   * القاعدةُ مكتوبةٌ مرّةً في `money.ts` (`netToSeller`) ومُعلَّلة:
+   * «**ولا رسم نقلٍ ولا ضريبة** … والثانيةُ على توريداتنا لا على توريد
+   * البائع». وكشفُ التسوية وصفحةُ أرباحه ولوحةُ الإفراج تقرؤها كلُّها.
+   *
+   * **والدفتر وحده كان يخالفها**: يخصم العمولة **وضريبتَها**. فعمولةُ
+   * ١٬١٠٣٫٣٨ تأخذ من البائع ١٬٢٤٧٫٣٠، **وكشفُه الموقَّع يقول
+   * ٤٣٬٠٣١٫٦٢ ونحن ندينه ٤٢٬٨٨٧٫٧٠** — وثيقةٌ تَعِد بما لا يقع.
+   *
+   * **ولم يظهر ما دامت العمولة صفرًا**، وأوّلُ نسبةٍ ضُبطت من اللوحة
+   * أظهرته في ثلاثة مواضع دفعةً واحدة.
+   *
+   * والعمولةُ شاملةٌ للضريبة (`ourVat` ← `vatIncluded`، و`tax-model.md`:
+   * «our fees are VAT-inclusive»): يتحمّلها البائع **كاملةً مرّة**،
+   * وتُشقّ عندنا إلى إيرادٍ صافٍ وضريبةٍ مستحقّة للهيئة.
+   */
+  const netRevenue = commission.minus(vat);
+  const netToSeller = total.minus(commission).minus(govtFee).minus(gatewayFee);
 
   return postEntries(
     writer,
@@ -121,7 +139,7 @@ export async function recordOrderEarned(
           amount: netToSeller,
           userId: input.sellerId,
         },
-        { account: 'PLATFORM_REVENUE', direction: 'CREDIT', amount: commission },
+        { account: 'PLATFORM_REVENUE', direction: 'CREDIT', amount: netRevenue },
         ...(vat.equals(zero)
           ? []
           : [{ account: 'VAT_PAYABLE' as const, direction: 'CREDIT' as const, amount: vat }]),
@@ -178,7 +196,13 @@ export async function recordSellerPayout(
           userId: input.sellerId,
           ...(input.note === undefined ? {} : { note: input.note }),
         },
-        { account: 'ESCROW_AT_PROVIDER', direction: 'CREDIT', amount: input.amount },
+        /**
+         * **ولا يُدفع للبائع من مالٍ محجوز.** كان يُقيَّد دائنًا على
+         * `ESCROW_AT_PROVIDER` — أي أنّ الحوالة تخرج ممّا لم يُحصَّل
+         * بعد، وهو مستحيلٌ واقعًا: المحجوزُ لا يُحوَّل، يُحصَّل أوّلًا.
+         * فالخروجُ من رصيدنا لدى المزوّد (قرار المالك ٢٠٢٦-١٠-١٧).
+         */
+        { account: 'PLATFORM_CASH', direction: 'CREDIT', amount: input.amount },
       ],
     },
     now,
@@ -225,7 +249,8 @@ export async function recordRefund(
 
   const commission = d(input.commission ?? 0);
   const vat = d(input.vat ?? 0);
-  const fromSeller = amount.minus(commission).minus(vat);
+  /** **وما تحمّله البائع هو العمولة كاملةً** — لا هي وضريبتُها */
+  const fromSeller = amount.minus(commission);
 
   return postEntries(
     writer,
@@ -238,13 +263,14 @@ export async function recordRefund(
           منّا، وضريبتها تُخصم من دَيننا للهيئة، والباقي من حقّ البائع.
           ومجموعها هو المبلغ المردود بعينه — فيتوازن القيد.
         */
-        ...(commission.equals(zero)
+        /** **والعكسُ بما قُيّد** — إيرادًا صافيًا، والضريبةُ سطرُها التالي */
+        ...(commission.minus(vat).equals(zero)
           ? []
           : [
               {
                 account: 'PLATFORM_REVENUE' as const,
                 direction: 'DEBIT' as const,
-                amount: commission,
+                amount: commission.minus(vat),
               },
             ]),
         ...(vat.equals(zero)
@@ -260,7 +286,13 @@ export async function recordRefund(
                 ...(input.sellerId === undefined ? {} : { userId: input.sellerId }),
               },
             ]),
-        { account: 'ESCROW_AT_PROVIDER', direction: 'CREDIT', amount, userId: input.buyerId },
+        /**
+         * **وما حُصِّل يُردّ ممّا حُصِّل.** الاستحقاق يقع عند التسوية،
+         * والتسويةُ تنقل المال إلى رصيدنا — فردٌّ بعدها يخرج منه، لا
+         * من حسابٍ يمثّل حجزًا انتهى. و`refund.before_earning` يبقى
+         * على `ESCROW_AT_PROVIDER` بحقّ: ذاك فكُّ حجزٍ لم يُحصَّل.
+         */
+        { account: 'PLATFORM_CASH', direction: 'CREDIT', amount, userId: input.buyerId },
       ],
     },
     now,
@@ -464,6 +496,61 @@ export async function recordServiceRefund(
           amount: input.amount,
           note: input.ref,
         },
+      ],
+    },
+    now,
+  );
+}
+
+/**
+ * ═══ وحُصِّل مالُ المركبة — قرار المالك ٢٠٢٦-١٠-١٧ ═══
+ *
+ * ```
+ *   مدين   PLATFORM_CASH        ٩٦٬٣٥٠
+ *   دائن   ESCROW_AT_PROVIDER   ٩٦٬٣٥٠
+ * ```
+ *
+ * **ومسارُ المركبة كان لا يكتب قيدَ خزينة قطّ.** يُحصَّل لدى البوّابة
+ * فعلًا (`gateway.settle`)، ويُعترف بالإيراد، وتُرصد الضريبة —
+ * **ويبقى المقابل في «لدى مزوّد الدفع» إلى الأبد**. فالبطاقةُ التي
+ * تقول «التزامٌ تجاه الأطراف، لا مالٌ لنا» تحمل مالَنا نحن،
+ * و«ما وصلنا فعلًا» يساوي مجموعَ الخدمات وحدها. والخدماتُ تكتبه منذ
+ * بُني `service.captured` — فكان المساران مختلفين في شيءٍ واحد.
+ *
+ * ═══ وبالمبلغ كلِّه لا بحصّتنا ═══
+ *
+ * سؤالُ المالك كان: ما معنى «ما وصلنا فعلًا» في اللوحة؟ وجوابُه
+ * **رصيدُنا لدى ميسر قبل الحوالة البنكية** — وهو الرقم الذي يُطابَق
+ * بكشفهم شهريًّا. وكشفُ ميسر يحمل المبلغ كلَّه بعد التحصيل، بما فيه
+ * حصّةُ البائع التي ما زلنا ندينها له. فتبقى `SELLER_PAYABLE` التزامًا
+ * علينا — **وهي موضعُ الدَّين لا موضعُ المال** — ويخرج المال منها
+ * بـ`payout.sent` دائنًا على `PLATFORM_CASH`.
+ *
+ * فصار للحسابين معنًى واحدٌ لا لبس فيه:
+ * · `ESCROW_AT_PROVIDER` = **المحجوز الذي لم يُحصَّل**.
+ * · `PLATFORM_CASH` = **رصيدنا لدى المزوّد**.
+ *
+ * ولا يمسّ هذا القيدُ إيرادًا ولا ضريبة: تلك استُحقّت عند التسوية،
+ * وهذه حركةُ خزينة.
+ */
+export async function recordOrderCaptured(
+  writer: Writer,
+  input: {
+    orderId: string;
+    paymentId?: string | null;
+    amount: Prisma.Decimal | number | string;
+  },
+  now: Date = new Date(),
+): Promise<PostResult> {
+  return postEntries(
+    writer,
+    {
+      event: 'order.captured',
+      orderId: input.orderId,
+      paymentId: input.paymentId ?? null,
+      postings: [
+        { account: 'PLATFORM_CASH', direction: 'DEBIT', amount: input.amount },
+        { account: 'ESCROW_AT_PROVIDER', direction: 'CREDIT', amount: input.amount },
       ],
     },
     now,

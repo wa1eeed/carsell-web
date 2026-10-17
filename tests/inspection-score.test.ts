@@ -152,3 +152,66 @@ describe('والبندُ الحرج يسقف التقدير ويَسِم الت�
     expect(result.flagged).toBe(true);
   });
 });
+
+/**
+ * ═══ والأوزانُ المُقرّة — قرار المالك ٢٠٢٦-١٠-١٧ ═══
+ *
+ * كانت كلُّها ١، فكلُّ قسمٍ سدسُ الدرجة مهما كلّف إصلاحُه: **إطاراتٌ
+ * مهترئة وهيكلٌ معوجّ يقرآن ٨٣** — والأولى تُبدَّل بثلاثة آلاف،
+ * والثاني هو سببُ ألّا تشتريها.
+ *
+ * والمعيار المُقرّ: كلفةُ الإصلاح وأثرُه على القرار. وهذا يحرس
+ * **العلاقة** لا الرقم: ما لا يُصلَح يُنقص أكثرَ ممّا يُشترى من أيّ
+ * محلّ.
+ */
+describe('أوزانُ الأقسام المُقرّة', () => {
+  const APPROVED = [
+    { key: 'body', weight: 3 },
+    { key: 'engine', weight: 3 },
+    { key: 'transmission', weight: 2 },
+    { key: 'brakes', weight: 2 },
+    { key: 'electric', weight: 1 },
+    { key: 'tyres', weight: 1 },
+  ];
+
+  /** قسمٌ واحد ساقطٌ كلُّه، والباقي سليم */
+  function withFailed(failedKey: string): ScoredItem[] {
+    return APPROVED.map((category) => ({
+      itemId: `i-${category.key}`,
+      categoryKey: category.key,
+      state: category.key === failedKey ? ('MAJOR' as const) : ('PASS' as const),
+      isCritical: false,
+    }));
+  }
+
+  it('الهيكلُ أثقلُ من الإطارات — ولم يكونا كذلك', () => {
+    const body = scoreInspection(withFailed('body'), APPROVED);
+    const tyres = scoreInspection(withFailed('tyres'), APPROVED);
+
+    /** ٩ من ١٢ وزنًا ⇒ ٧٥ · و١١ من ١٢ ⇒ ٩٢ */
+    expect(body.score).toBe(75);
+    expect(tyres.score).toBe(92);
+    /** **والعلاقةُ هي المقصودة**: ما لا يُصلَح يُنقص أكثر */
+    expect(body.score).toBeLessThan(tyres.score);
+  });
+
+  it('والمحركُ كالهيكل، والفراملُ فوق الكهرباء', () => {
+    const engine = scoreInspection(withFailed('engine'), APPROVED);
+    const brakes = scoreInspection(withFailed('brakes'), APPROVED);
+    const electric = scoreInspection(withFailed('electric'), APPROVED);
+
+    expect(engine.score).toBe(75);
+    expect(brakes.score).toBeLessThan(electric.score);
+  });
+
+  /**
+   * **وبأوزانٍ متساوية يستوي الكلُّ** — وهو ما كان، وهو ما أُصلح.
+   * فهذا يُثبّت أنّ الفرق من الوزن لا من شيءٍ آخر.
+   */
+  it('وبأوزانٍ متساوية يستوي الهيكل والإطارات — وهو العطب', () => {
+    const flat = APPROVED.map((category) => ({ ...category, weight: 1 }));
+    expect(scoreInspection(withFailed('body'), flat).score).toBe(
+      scoreInspection(withFailed('tyres'), flat).score,
+    );
+  });
+});
