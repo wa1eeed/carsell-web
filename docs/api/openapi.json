@@ -1850,6 +1850,31 @@
         }
       }
     },
+    "/api/v1/admin/inspection-template": {
+      "post": {
+        "summary": "POST /api/v1/admin/inspection-template",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "services.manage",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/inspections/{id}/review": {
       "post": {
         "summary": "POST /api/v1/admin/inspections/{id}/review",

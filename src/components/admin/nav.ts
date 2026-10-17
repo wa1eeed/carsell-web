@@ -156,6 +156,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        */
       { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage', description: 'الخدمات المعروضة وأسعارها ومهلة تنفيذها.' },
       { label: 'مزوّدو الخدمات', href: '/admin/providers', permission: 'services.manage', description: 'من ينفّذ الخدمات، وتغطيتُه، وعمولتنا منه.' },
+      { label: 'قالب الفحص', href: '/admin/inspection-template', permission: 'services.manage', description: 'أقسامُ الفحص وبنودُه وأوزانُها — يحرّرها المشغّل بلا نشر.' },
       { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage', description: 'الماركات والموديلات والفئات التي تُبنى منها الإعلانات.' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage', description: 'أنواع الهياكل وصورها وترتيب عرضها.' },
       { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage', description: 'المميّزات التي يختارها البائع ويُرشّح بها المشتري.' },

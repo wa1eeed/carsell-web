@@ -1934,6 +1934,14 @@ async function main(): Promise<void> {
     { service: 'inspection', status: 'NEW', provider: null, dueInHours: 20, scheduledInHours: 28 },
     { service: 'shipping', status: 'ASSIGNED', provider: 'SHIPPING', dueInHours: 44, scheduledInHours: 50 },
     { service: 'ownership_transfer', status: 'IN_PROGRESS', provider: null, dueInHours: -9, scheduledInHours: -2 },
+    /**
+     * **وفحصٌ مُسنَدٌ وآخرُ جارٍ** — وكانا ناقصين، فشاشةُ نموذج الفحص
+     * لا تُفتح على بياناتٍ مزروعة أصلًا: كلُّ فحصٍ في الزرع منتهٍ.
+     * وهو نمطُ «ما لا يُزرع لا يُرى» المسجَّل: كلُّ قيمةِ تعدادٍ
+     * يكتبها المنتج تُزرع.
+     */
+    { service: 'inspection', status: 'ASSIGNED', provider: 'INSPECTION', dueInHours: 30, scheduledInHours: 36 },
+    { service: 'inspection', status: 'IN_PROGRESS', provider: 'INSPECTION', dueInHours: 18, scheduledInHours: 6 },
     { service: 'inspection', status: 'FAILED', provider: 'INSPECTION', dueInHours: -60, scheduledInHours: -72 },
     { service: 'detailing', status: 'REFUNDED', provider: 'DETAILING', dueInHours: -96, scheduledInHours: -100 },
   ];
