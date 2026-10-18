@@ -132,11 +132,11 @@ rather than found by chance.
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
 | `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 111 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 99 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 100 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 98 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 99 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -196,7 +196,7 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 74 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 75 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
 

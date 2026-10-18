@@ -1008,6 +1008,27 @@ and switch off any it does not. A mark the platform has not earned is the
 clearest possible case of «النصّ المعروض وعدٌ لا وصف», with a regulator on the
 other end of it.
 
+### And the door for that was missing — opened 2026-10-19
+
+The paragraph above said the number and verify URL are «both set from the
+panel». **They were not, and could not be**: `TrustMark` had no writer anywhere
+— no screen, no route, no domain function — so the footer shipped four
+regulatory marks with **not one registration number**, and the owner was told
+to confirm what he holds with no way to do it. A condition imposed with no door,
+and a comment promising a capability that did not exist.
+
+- [x] `/admin/trust-marks` — each mark with its logo as the visitor sees it,
+      its registration number, its official verification page, and a switch for
+      whether it appears at all. Every change writes an `AuditLog`.
+- [x] The verify URL is checked: `https` only, because a string that is not a
+      URL prints into an `href` and leads nowhere, and `http` on a secure page
+      makes the browser warn about the very link meant to prove trust.
+- [x] An empty number is a **withdrawal**, not a blank: whoever clears it meant
+      to. The panel badges a mark «موثقة» only once it has one, and «بلا رقم»
+      until then — the same distinction the footer draws.
+- [ ] **Still the owner's:** fill the four numbers, confirm each verification
+      link, and switch off any mark the platform does not actually hold.
+
 ## 14 · The licence plate, drawn — *owner's request 2026-10-18*
 
 > «دعنا نضيف تصميم لوحة السياره داخل صفحة تفاصيل السيارة ان اختار البائع عرض

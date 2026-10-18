@@ -182,6 +182,13 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        */
       { label: 'قنوات الدعم', href: '/admin/contact', permission: 'notifications.manage', description: 'الهاتف والواتساب والبريد الظاهرة في «تواصل معنا».' },
       { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية ونسخها المنشورة.' },
+      /**
+       * **وعلاماتُ الموثوقية محتوًى كالقانونيّة**: ما يراه الزائر في
+       * التذييل. وكانت صفوفُها بلا كاتبٍ إطلاقًا — تُعرض أربعُ جهاتٍ
+       * نظامية بلا رقمٍ واحد، والوثيقة تقول إنّ الرقم «يُضبط من
+       * اللوحة». (طلب المالك ٢٠٢٦-١٠-١٨، وبابُه ٢٠٢٦-١٠-١٩.)
+       */
+      { label: 'علامات الموثوقية', href: '/admin/trust-marks', permission: 'notifications.manage', description: 'شعارات الجهات في التذييل وأرقام تسجيلها.' },
     ],
   },
   {
