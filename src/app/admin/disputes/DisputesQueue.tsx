@@ -65,7 +65,7 @@ export function DisputesQueue({
         setToast(body?.error?.messageAr ?? 'تعذر تسجيل الاقتراح.');
         return;
       }
-      setToast('سجل الاقتراح — ينتظر موافقة عضو ثان، ولم ينفذ بعد.');
+      setToast('سجل الاقتراح — ينتظر موافقة عضو ثاني، ولم ينفذ بعد.');
       setTarget(null);
       setAmount('');
       router.refresh();

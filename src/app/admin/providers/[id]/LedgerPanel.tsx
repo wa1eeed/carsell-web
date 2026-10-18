@@ -68,7 +68,7 @@ export function LedgerPanel({
         return;
       }
       setForm({ direction: 'CREDIT', amount: '', reason: '' });
-      setToast('أرسل الطلب — ينتظر موافقة شخص ثان.');
+      setToast('أرسل الطلب — ينتظر موافقة شخص ثاني.');
       router.refresh();
     });
   };
@@ -119,11 +119,11 @@ export function LedgerPanel({
 
           {pending.requestedBy === meId ? (
             <p className="text-3xs opacity-70">
-              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثان.
+              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
             </p>
           ) : canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>
-              {busy ? 'جار…' : 'أوافق وأنفذ'}
+              {busy ? 'جاري…' : 'أوافق وأنفذ'}
             </Button>
           ) : (
             <p className="text-3xs opacity-70">لا تملك صلاحية الموافقة على قيود المزودين.</p>
@@ -184,11 +184,11 @@ export function LedgerPanel({
           </label>
 
           <Button size="sm" disabled={busy || !ready} onClick={submit}>
-            {busy ? 'جار…' : 'أرسل الطلب'}
+            {busy ? 'جاري…' : 'أرسل الطلب'}
           </Button>
 
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            <b>لا يقع القيد بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثان، ثم
+            <b>لا يقع القيد بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثاني، ثم
             يكتب في دفتر الحسابات.
           </p>
         </div>

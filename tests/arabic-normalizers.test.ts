@@ -48,16 +48,32 @@ describe('تطبيعُ العربية يحذف التشكيل', () => {
    * **والفئة بمهاربها لا بحروفها.** لو عادت مكتوبةً بالعلامات لمرّت
    * الاختباراتُ أعلاه (ما دامت الفئة سليمة) — وسقطت في أوّل مسح.
    * فهذا يفحص الشكل نفسه.
+   *
+   * **والبوابةُ أولى الناس به.** `DIACRITICS` في `check-tokens` كُتبت
+   * أوّلَ مرّةٍ بعلامات التشكيل نفسِها، فكانت **تُبطِل نفسَها**: أوّلُ
+   * مسحٍ يمرّ عليها يجعلها `[-]` فتسكت عن كلّ شيء — حارسٌ يُطفئه ما
+   * يحرس منه. وهي ثالثةُ مواضعَ وقعت في اليوم نفسه.
    */
-  it('وفئتا التشكيل مكتوبتان بالمهارب', () => {
-    for (const file of ['src/lib/labels/cities.ts', 'src/lib/search/lexicon.ts']) {
-      const source = readFileSync(join(process.cwd(), file), 'utf8');
-      expect(source).toContain('\\u064B-\\u0652');
-      /** ولا علامةَ تشكيلٍ حرفيّة داخل أي فئة نمطية في الملفّين. */
-      const classes = source.match(/\[[^\]\n]*\]/g) ?? [];
-      for (const cls of classes) {
-        expect(/[ً-ْٰ]/.test(cls)).toBe(false);
-      }
+  it('ولا صيغةَ نمطيةٍ تحمل علامةَ تشكيلٍ حرفية', () => {
+    const DIA = /[\u064B-\u0652\u0670]/;
+    /** الصيغ النمطية وحدها — والمصفوفاتُ العربية تحمل التشكيل بحقّ. */
+    const LITERAL = /(?<![\w)\]])\/(?![/*])((?:\\.|\[[^\]]*\]|[^/\\\n])+)\/[gimsuyd]*/g;
+
+    for (const file of [
+      'src/lib/labels/cities.ts',
+      'src/lib/search/lexicon.ts',
+      'scripts/check-tokens.mjs',
+      'tests/arabic-normalizers.test.ts',
+    ]) {
+      /** والتعليقُ يُفرَّغ: شرحٌ يذكر الصيغة القديمة ليس صيغةً. */
+      const source = readFileSync(join(process.cwd(), file), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, ' ')
+        .replace(/(^|[^:])(\/\/[^\n]*)/gm, '$1 ');
+
+      const offenders = [...source.matchAll(LITERAL)]
+        .map((match) => match[0])
+        .filter((literal) => DIA.test(literal));
+      expect({ file, offenders }).toEqual({ file, offenders: [] });
     }
   });
 });

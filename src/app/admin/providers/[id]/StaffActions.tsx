@@ -187,7 +187,7 @@ export function StaffActions({
           </label>
           <span className="flex gap-2">
             <Button size="sm" disabled={busy || !ready} onClick={create}>
-              {busy ? 'جار…' : 'افتح الحساب'}
+              {busy ? 'جاري…' : 'افتح الحساب'}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
               إلغاء

@@ -74,7 +74,7 @@ export function RulesTable({
       if (response === null || !response.ok) {
         setToast(
           response?.status === 403
-            ? 'طالب التعديل لا يوافق على طلبه — يلزم عضو ثان.'
+            ? 'طالب التعديل لا يوافق على طلبه — يلزم عضو ثاني.'
             : 'تعذر اعتماد التعديل.',
         );
         return;
@@ -299,7 +299,7 @@ export function RulesTable({
               قرّر. وأثر هذا الصفّ وثائقُ قانونية لا إعدادُ عرض.
             */}
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-              التعديل يحتاج موافقة عضو ثان قبل أن يسري. والفواتير الصادرة بهذه
+              التعديل يحتاج موافقة عضو ثاني قبل أن يسري. والفواتير الصادرة بهذه
               القاعدة لا تتغير — لقطتها منسوخة فيها كاملة.
             </p>
 

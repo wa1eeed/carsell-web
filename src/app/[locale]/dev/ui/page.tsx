@@ -244,7 +244,7 @@ export default async function DevUiPage({
               label="نقد الضمان"
               value={2_300_000}
               tone="ink"
-              breakdown={[{ label: 'محتجز جار', value: 1_720_000 }]}
+              breakdown={[{ label: 'محتجز جاري', value: 1_720_000 }]}
             />
           </div>
 

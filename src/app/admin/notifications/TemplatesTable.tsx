@@ -22,7 +22,7 @@ import type { TemplateRow } from '@/lib/domain/admin-notifications';
 
 const PRIORITY_LABEL: Record<string, string> = {
   critical: 'حرج',
-  high: 'عال',
+  high: 'عالي',
   normal: 'عادي',
 };
 

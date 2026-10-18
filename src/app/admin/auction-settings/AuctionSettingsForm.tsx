@@ -92,7 +92,7 @@ export function AuctionSettingsForm({
           />
           <Readonly
             label="نافذة التمديد"
-            value={`ثوان (${displayDigits(String(settings.extendWindowSeconds))})`}
+            value={`ثواني (${displayDigits(String(settings.extendWindowSeconds))})`}
             note="آخر ما قبل الإغلاق"
           />
           <Field
@@ -195,7 +195,7 @@ export function AuctionSettingsForm({
 
       {canEdit ? (
         <Button className="mt-5" disabled={pending} onClick={save}>
-          {pending ? 'جار…' : 'احفظ'}
+          {pending ? 'جاري…' : 'احفظ'}
         </Button>
       ) : null}
 

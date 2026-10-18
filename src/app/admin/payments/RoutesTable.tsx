@@ -135,7 +135,7 @@ export function RoutesTable({
         );
         return;
       }
-      setToast('سجل الطلب — ينتظر موافقة عضو ثان، ولم يتغير التوجيه بعد.');
+      setToast('سجل الطلب — ينتظر موافقة عضو ثاني، ولم يتغير التوجيه بعد.');
       setTarget(null);
       router.refresh();
     });

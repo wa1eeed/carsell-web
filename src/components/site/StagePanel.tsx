@@ -113,7 +113,7 @@ export function StagePanel({
           </p>
           <div className="flex gap-2.5">
             <Button className="flex-1" disabled={pending} onClick={() => move('DONE')}>
-              {pending ? 'جار…' : 'نعم، أكد'}
+              {pending ? 'جاري…' : 'نعم، أكد'}
             </Button>
             <Button variant="outline" className="flex-1" onClick={() => setConfirming(false)}>
               تراجع

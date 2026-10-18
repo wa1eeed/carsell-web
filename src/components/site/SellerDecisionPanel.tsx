@@ -123,7 +123,7 @@ export function SellerDecisionPanel({
             disabled={busy}
             onClick={() => send(false)}
           >
-            {busy ? 'جار…' : 'أرفض'}
+            {busy ? 'جاري…' : 'أرفض'}
           </Button>
         </div>
       </section>
@@ -136,7 +136,7 @@ export function SellerDecisionPanel({
         </p>
         <div className="flex gap-2.5">
           <Button className="flex-1" disabled={busy} onClick={() => send(true)}>
-            {busy ? 'جار…' : 'نعم، أقبل'}
+            {busy ? 'جاري…' : 'نعم، أقبل'}
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setConfirming(false)}>
             تراجع

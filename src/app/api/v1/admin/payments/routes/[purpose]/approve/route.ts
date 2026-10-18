@@ -40,7 +40,7 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'SELF_APPROVAL'
-            ? 'طالب التبديل لا يوافق على طلبه — يلزم عضو ثان.'
+            ? 'طالب التبديل لا يوافق على طلبه — يلزم عضو ثاني.'
             : result.reason === 'GATEWAY_NOT_FOUND'
               ? 'البوابة لم تعد صالحة لهذا الغرض — ألغي التطبيق.'
               : result.reason === 'EXPIRED'

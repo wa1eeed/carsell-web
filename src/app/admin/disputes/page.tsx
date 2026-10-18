@@ -70,7 +70,7 @@ export default async function DisputesPage({
       {disputes.length === 0 ? (
         <EmptyState
           title="لا نزاعات"
-          description="حين يفتح مشتر نزاعا على طلب يظهر هنا بمهلته، ويحسم بقرار يعتمده عضوان."
+          description="حين يفتح مشتري نزاعا على طلب يظهر هنا بمهلته، ويحسم بقرار يعتمده عضوان."
         />
       ) : (
         <DisputesQueue

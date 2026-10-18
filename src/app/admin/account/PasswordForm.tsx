@@ -89,7 +89,7 @@ export function PasswordForm({ minLength }: { minLength: number }) {
         </p>
 
         <Button className="mt-5" disabled={pending || !ready} onClick={submit}>
-          {pending ? 'جار…' : 'غير الكلمة'}
+          {pending ? 'جاري…' : 'غير الكلمة'}
         </Button>
       </div>
 

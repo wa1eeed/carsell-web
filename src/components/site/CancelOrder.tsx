@@ -94,7 +94,7 @@ export function CancelOrder({
             disabled={pending || reason.trim().length < 3}
             onClick={cancel}
           >
-            {pending ? 'جار…' : 'نعم، ألغ'}
+            {pending ? 'جاري…' : 'نعم، ألغ'}
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>
             تراجع

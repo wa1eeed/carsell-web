@@ -77,7 +77,7 @@ export function AdminLoginForm() {
         </label>
 
         <Button type="submit" disabled={busy} className="mt-1 w-full">
-          {busy ? 'جار التحقق…' : 'دخول'}
+          {busy ? 'جاري التحقق…' : 'دخول'}
         </Button>
       </form>
 

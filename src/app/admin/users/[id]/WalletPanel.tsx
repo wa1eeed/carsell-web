@@ -76,7 +76,7 @@ export function WalletPanel({
         return;
       }
 
-      setToast('أرسل الطلب — ينتظر موافقة شخص ثان.');
+      setToast('أرسل الطلب — ينتظر موافقة شخص ثاني.');
       setForm({ direction: 'CREDIT', amount: '', reason: '' });
       router.refresh();
     });
@@ -92,7 +92,7 @@ export function WalletPanel({
       if (response === null || !response.ok) {
         setToast(
           response?.status === 403
-            ? 'لا توافق على طلب أنت طلبته — يلزم شخص ثان.'
+            ? 'لا توافق على طلب أنت طلبته — يلزم شخص ثاني.'
             : 'تعذرت الموافقة.',
         );
         return;
@@ -125,11 +125,11 @@ export function WalletPanel({
 
           {pending.requestedBy === meId ? (
             <p className="text-3xs opacity-70">
-              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثان.
+              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
             </p>
           ) : canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>
-              {busy ? 'جار…' : 'أوافق وأنفذ'}
+              {busy ? 'جاري…' : 'أوافق وأنفذ'}
             </Button>
           ) : (
             <p className="text-3xs opacity-70">لا تملك صلاحية الموافقة على تعديل الأرصدة.</p>
@@ -188,11 +188,11 @@ export function WalletPanel({
           </label>
 
           <Button size="sm" disabled={busy || !ready} onClick={submit}>
-            {busy ? 'جار…' : 'أرسل الطلب'}
+            {busy ? 'جاري…' : 'أرسل الطلب'}
           </Button>
 
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            <b>لا يقع التعديل بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثان، ثم
+            <b>لا يقع التعديل بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثاني، ثم
             يقيد في دفتر الحسابات.
           </p>
         </div>

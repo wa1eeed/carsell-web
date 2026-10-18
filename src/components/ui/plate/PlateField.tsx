@@ -1,7 +1,11 @@
 'use client';
 
 import { LicensePlate } from './LicensePlate';
-import { SAUDI_PLATE_LETTERS, normalizePlateNumbers } from '@/lib/plate';
+import {
+  SAUDI_PLATE_LETTERS,
+  normalizeArabicLetters,
+  normalizePlateNumbers,
+} from '@/lib/plate';
 
 /**
  * ═══ إدخالُ اللوحة — قوائمُ لا حقلُ نصّ ═══
@@ -35,7 +39,19 @@ export function PlateField({
   label: string;
   hint?: string;
 }) {
-  const chosen = Array.from(letters);
+  /**
+   * ═══ والمخزَّنُ يُطبَّع قبل أن يُوزَّع على الخانات ═══
+   *
+   * **المخزنُ أقدمُ من الحقل.** لوحاتُ البذرة مكتوبةٌ بمسافات («س ع
+   * د»)، فتقسيمُها حرفًا حرفًا يضع المسافة في الخانة الثانية — فتُعرض
+   * فارغةً والثالثةُ مملوءة: **لوحةٌ ينقصها حرفُها الأوسط** أمام
+   * بائعٍ لم يلمس شيئًا، ولا رسالة. (وُجد وأنا أفتح استمارةَ بيعٍ
+   * لسيارةٍ من «سياراتي».)
+   *
+   * وهي القاعدةُ نفسُها: الحقل يقبل كلّ صيغةٍ ويطبّعها — والمخزَّنُ
+   * صيغةٌ كغيرها.
+   */
+  const chosen = Array.from(normalizeArabicLetters(letters));
 
   const setAt = (index: number, value: string): void => {
     const next = [...chosen];

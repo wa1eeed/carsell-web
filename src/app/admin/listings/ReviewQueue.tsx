@@ -253,7 +253,7 @@ export function ReviewQueue({
               disabled={pending || note.trim().length < MIN_REVIEW_NOTE}
               onClick={() => decide(open, 'RETURN')}
             >
-              {pending ? 'جار…' : 'أعده للبائع'}
+              {pending ? 'جاري…' : 'أعده للبائع'}
             </Button>
 
             {/*

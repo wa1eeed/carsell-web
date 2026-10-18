@@ -1073,10 +1073,24 @@ on it is not selling anything.
   fill it — a lock with no key. Cities now come from `CITY_NAMES`, the one list
   the account, auth and profile screens already read.
 
-- **«اعرضها للبيع» still duplicates the vehicle.** A garage car's sell button
-  goes to the empty wizard, and `createListing` always creates a new `Vehicle`
-  row — so listing a car you already registered writes a second copy of it.
-  Publishing from an existing vehicle needs domain work; recorded, not done.
+- **«اعرضها للبيع» duplicated the vehicle — closed 2026-10-18.** A garage car's
+  sell button went to the empty wizard, and `createListing` always created a new
+  `Vehicle` row, so listing a car you had already registered wrote a second copy
+  of it: the inspection on one, the listing on the other, and «سياراتي» counting
+  two. `PublishInput` now takes an optional `vehicleId`; the button carries it,
+  the wizard shows the car's identity read-only and lets the seller correct only
+  what changes (mileage, colour, city, plate), and the domain reads the identity
+  **from the row, not from the request body** — a direct call with another
+  brand's ids cannot repoint the car. The draft path goes through the same
+  resolver: it used to return before it, so «احفظ كمسودة» wrote the second copy
+  silently, with nothing on any screen to show for it.
+
+  Guarded by `tests/list-from-garage.test.ts` — five cases, each proved by
+  reverting the defect it covers. And the plate field now normalises what it is
+  given: seeded plates are stored as «س ع د» with spaces, so splitting them
+  character by character put a space in the middle slot and dropped the third
+  letter — a plate missing its middle letter in front of a seller who had
+  touched nothing.
 
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 

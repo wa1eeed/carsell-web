@@ -79,7 +79,7 @@ export default async function AdminOffersPage({
       {rows.length === 0 ? (
         <EmptyState
           title="لا عروض هنا"
-          description="حين يقدم مشتر عرضا يظهر هنا بحاله ومهلته."
+          description="حين يقدم مشتري عرضا يظهر هنا بحاله ومهلته."
         />
       ) : (
         <div className="flex flex-col gap-2.5">

@@ -1052,7 +1052,7 @@ async function main(): Promise<void> {
       prisma.user.create({
         data: {
           phone: `+9665${String(30000000 + i).padStart(8, '0')}`,
-          name: `مشتر ${i + 1}`,
+          name: `مشتري ${i + 1}`,
           // الثلث غير موثَّق — وحالتُه تتبع رايته، فيصير الطابور واقعيًّا
           identityStatus: i % 3 !== 0 ? 'VERIFIED' : i % 3 === 0 && i % 2 === 0 ? 'PENDING' : 'NONE',
           idVerified: i % 3 !== 0,

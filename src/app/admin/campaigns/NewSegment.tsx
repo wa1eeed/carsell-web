@@ -98,7 +98,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
               disabled={pending || chosen.length === 0 || key.trim() === '' || nameAr.trim() === ''}
               onClick={save}
             >
-              {pending ? 'جار…' : 'احفظ'}
+              {pending ? 'جاري…' : 'احفظ'}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
               إلغاء

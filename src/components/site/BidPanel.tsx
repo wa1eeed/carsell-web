@@ -350,7 +350,7 @@ export function BidPanel({
           disabled={pending || amount === '' || (needsCard && method === null)}
           onClick={submit}
         >
-          {pending ? 'جار…' : 'أرسل المزايدة'}
+          {pending ? 'جاري…' : 'أرسل المزايدة'}
         </Button>
       </Modal>
 

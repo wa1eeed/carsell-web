@@ -283,7 +283,7 @@ export function ListingControls({
                 )
               }
             >
-              {busy ? 'جار…' : 'احفظ'}
+              {busy ? 'جاري…' : 'احفظ'}
             </Button>
             <Button
               size="sm"

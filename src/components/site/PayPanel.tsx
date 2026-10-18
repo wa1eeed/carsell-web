@@ -118,7 +118,7 @@ export function PayPanel({
       </div>
 
       <Button className="w-full" onClick={pay} disabled={pending}>
-        {pending ? 'جار…' : 'ادفع الآن'}
+        {pending ? 'جاري…' : 'ادفع الآن'}
       </Button>
 
       {toast === null ? null : <Toast title={toast} />}

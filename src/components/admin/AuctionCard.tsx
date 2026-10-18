@@ -29,7 +29,7 @@ import type { AuctionRow } from '@/lib/domain/admin-monitors';
 
 const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   SCHEDULED: { label: 'قادم', tone: 'neutral' },
-  LIVE: { label: 'جار', tone: 'accent' },
+  LIVE: { label: 'جاري', tone: 'accent' },
   ENDED_MET: { label: 'رسا', tone: 'accent' },
   ENDED_UNMET: { label: 'دون الاحتياطي', tone: 'warn' },
   CANCELLED: { label: 'ملغى', tone: 'neutral' },

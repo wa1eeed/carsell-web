@@ -123,7 +123,7 @@ export function DisputePanel({
           disabled={pending || reason.trim().length < MIN_REASON}
           onClick={submit}
         >
-          {pending ? 'جار…' : 'افتح النزاع'}
+          {pending ? 'جاري…' : 'افتح النزاع'}
         </Button>
       </Modal>
 

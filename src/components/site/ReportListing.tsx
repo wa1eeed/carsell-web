@@ -132,7 +132,7 @@ export function ReportListing({
         </label>
 
         <Button className="mt-4 w-full" disabled={pending} onClick={submit}>
-          {pending ? 'جار…' : 'أرسل البلاغ'}
+          {pending ? 'جاري…' : 'أرسل البلاغ'}
         </Button>
       </Modal>
 

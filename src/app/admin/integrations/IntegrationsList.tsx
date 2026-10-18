@@ -77,7 +77,7 @@ export function IntegrationsList({
       if (!response.ok) {
         setToast(
           payload.error?.code === 'SELF_APPROVAL'
-            ? 'طالب التدوير لا يوافق على طلبه — يلزم عضو ثان.'
+            ? 'طالب التدوير لا يوافق على طلبه — يلزم عضو ثاني.'
             : 'تعذر التنفيذ.',
         );
         return;
@@ -101,7 +101,7 @@ export function IntegrationsList({
     post(
       `/api/v1/admin/integrations/${draft.key}/rotate`,
       { env: draft.env, secrets },
-      () => 'سجل الطلب — ينتظر موافقة عضو ثان ولم يتغير شيء بعد.',
+      () => 'سجل الطلب — ينتظر موافقة عضو ثاني ولم يتغير شيء بعد.',
     );
     setDraft(null);
   };
@@ -391,7 +391,7 @@ export function IntegrationsList({
         {draft === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="text-2xs leading-relaxed opacity-70">
-              المفتاح الجديد يشفر ويبقى في الطلب حتى يعتمده عضو ثان. ولن يستبدل القديم
+              المفتاح الجديد يشفر ويبقى في الطلب حتى يعتمده عضو ثاني. ولن يستبدل القديم
               قبل ذلك — <strong>فالطلب وحده ليس تدويرا</strong>.
             </p>
 

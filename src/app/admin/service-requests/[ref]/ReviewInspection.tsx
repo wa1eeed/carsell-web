@@ -96,7 +96,7 @@ export function ReviewInspection({
               disabled={busy || note.trim().length < MIN_NOTE}
               onClick={() => send({ action: 'return', note: note.trim() }, 'أعيدت إلى الفاحص.')}
             >
-              {busy ? 'جار…' : 'أعدها بهذه الملاحظة'}
+              {busy ? 'جاري…' : 'أعدها بهذه الملاحظة'}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setReturning(false)}>
               إلغاء
@@ -110,7 +110,7 @@ export function ReviewInspection({
             disabled={busy}
             onClick={() => send({ action: 'approve' }, 'اعتمد وصدر التقرير.')}
           >
-            {busy ? 'جار…' : 'اعتمد وأصدر'}
+            {busy ? 'جاري…' : 'اعتمد وأصدر'}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setReturning(true)}>
             أعدها بملاحظة

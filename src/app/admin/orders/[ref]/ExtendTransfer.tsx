@@ -92,7 +92,7 @@ export function ExtendTransfer({
         />
         <div className="flex gap-2">
           <Button size="sm" disabled={busy || text.trim().length < REASON_MIN} onClick={submit}>
-            {busy ? 'جار…' : 'مدد'}
+            {busy ? 'جاري…' : 'مدد'}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
             تراجع

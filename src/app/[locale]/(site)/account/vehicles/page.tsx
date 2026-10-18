@@ -234,8 +234,15 @@ export default async function MyVehiclesPage({
                   اطلب خدمة
                 </Link>
                 {vehicle.state === 'garage' ? (
+                  /*
+                    **والسيارةُ تُحمل معها.** كان الزرّ يقود إلى معالجٍ
+                    فارغ و`createListing` تُنشئ `Vehicle` دائمًا — فمن
+                    سجّل سيارته هنا ثمّ عرضها يخرج بصفّين لسيارةٍ
+                    واحدة: فحصُها على أحدهما وإعلانُها على الآخر،
+                    وهذه القائمةُ تعدّها اثنتين.
+                  */
                   <Link
-                    href={`/${locale}/sell`}
+                    href={`/${locale}/sell?vehicle=${encodeURIComponent(vehicle.id)}`}
                     className="relative z-10 rounded-full bg-ink px-3.5 py-1.5 text-3xs font-bold text-bg"
                   >
                     اعرضها للبيع

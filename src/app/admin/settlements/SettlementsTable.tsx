@@ -69,7 +69,7 @@ export function SettlementsTable({
       setConfirming(null);
       setToast(
         requestId === undefined
-          ? 'فتح طلب الإفراج. ينتظر اعتماد عضو ثان.'
+          ? 'فتح طلب الإفراج. ينتظر اعتماد عضو ثاني.'
           : 'اكتمل النصاب — أفرج عن المبلغ إلى البائع.',
       );
       router.refresh();
@@ -83,7 +83,7 @@ export function SettlementsTable({
     return (
       <EmptyState
         title="لا مبالغ محجوزة"
-        description="حين يدفع مشتر يظهر طلبه هنا حتى يفرج عنه للبائع."
+        description="حين يدفع مشتري يظهر طلبه هنا حتى يفرج عنه للبائع."
       />
     );
   }
@@ -92,7 +92,7 @@ export function SettlementsTable({
     <>
       {/* ═══ ينتظر الموافقة الثانية — أوّلًا لأنه ما يحتاج فعلًا الآن ═══ */}
       {awaitingApproval.length === 0 ? null : (
-        <Section title="ينتظر اعتماد عضو ثان" count={awaitingApproval.length} tone="warn">
+        <Section title="ينتظر اعتماد عضو ثاني" count={awaitingApproval.length} tone="warn">
           {awaitingApproval.map((row) => {
             const approval = row.approval;
             if (approval === null) return null;
@@ -186,11 +186,11 @@ export function SettlementsTable({
               <Money amount={Number(confirming.netToSeller)} size="lg" decimals={2} />
             </div>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثان، وعنده
+              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثاني، وعنده
               ينادى المزود. ولا يعتمده الطالب.
             </p>
             <Button className="w-full" disabled={pending} onClick={() => call(confirming)}>
-              {pending ? 'جار…' : 'افتح الطلب'}
+              {pending ? 'جاري…' : 'افتح الطلب'}
             </Button>
           </>
         )}

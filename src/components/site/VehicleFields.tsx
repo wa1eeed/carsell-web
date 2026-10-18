@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { Quantity } from '@/components/ui/Quantity';
@@ -155,6 +155,30 @@ export function useVehicleCatalog(initial: VehicleDraft = EMPTY_VEHICLE) {
     set({ trimId, transmission: trim.transmission, fuel: trim.fuel });
   };
 
+  /**
+   * ═══ والمملوءةُ مسبقًا تُحمَّل قوائمُها مرّة ═══
+   *
+   * حالةٌ تبدأ بماركةٍ وطرازٍ (سيارةٌ من «سياراتي») لا تمرّ بـ`onChange`
+   * فلا يُنادى `loadModels` — **فتُعرض قائمتا الطراز والفئة فارغتين
+   * والقيمةُ فيهما مختارة**، ولا تظهر بطاقةُ الموروث من الفئة. وهي
+   * الصورةُ التي تجعل البائع يظنّ أنّ بياناته ضاعت.
+   *
+   * **ومرّةً واحدة**: `useRef` لا `useState` — فلا يُعيد التحميلَ
+   * تصييرٌ ولا يفتح حلقة.
+   */
+  const preloaded = useRef(false);
+  useEffect(() => {
+    if (preloaded.current) return;
+    if (initial.brandId === '' && initial.modelId === '') return;
+    preloaded.current = true;
+    void (async () => {
+      if (initial.brandId !== '') await loadModels(initial.brandId);
+      if (initial.modelId !== '') await loadTrims(initial.modelId);
+    })();
+    // الحمولةُ الابتدائية ثابتةٌ بعد أوّل تصيير — ولا تُعاد القراءة
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /** ما يكفي لإنشاء مركبة — وهو ما يفحصه الخادم نفسه. */
   const ready =
     vehicle.brandId !== '' && vehicle.modelId !== '' && vehicle.trimId !== '' &&
@@ -200,15 +224,36 @@ export function VehicleFields({
   brands,
   cities,
   locale,
+  identity,
 }: {
   catalog: VehicleCatalog;
   brands: readonly CatalogOption[];
   cities: readonly string[];
   locale: string;
+  /**
+   * ═══ هويّةُ سيارةٍ قائمة — تُعرض ولا تُحرَّر ═══
+   *
+   * الماركةُ والطرازُ والفئةُ والسنة لقطةُ الكتالوج وقت التسجيل
+   * (قرار ٣٢)، **ومن غيّرها لم يصحّح سيارته بل وضع مكانها أخرى**.
+   * والخادم يتجاهل المُرسَل منها أصلًا ويقرأ الصفّ — فحقلٌ يُحرَّر
+   * ولا أثر له وعدٌ مُخلَف بشكل حقل.
+   */
+  identity?: { locked: true; title: string };
 }) {
   const t = useTranslations('sell');
-  const te = useTranslations('enums');
-  const { vehicle, set, models, trims, options, inheritedTrim } = catalog;
+  const { vehicle, set, models, trims } = catalog;
+
+  if (identity !== undefined) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3.5">
+          <p className="mb-1 text-3xs font-bold opacity-70">من سياراتك — تعرض كما هي</p>
+          <p className="text-sm font-bold">{identity.title}</p>
+        </div>
+        <MutableVehicleFields catalog={catalog} cities={cities} locale={locale} />
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -299,117 +344,148 @@ export function VehicleFields({
         />
       </label>
 
-      <label>
-        <span className={LABEL_CLASS}>{t('mileage')}</span>
-        <input
-          dir="ltr"
-          inputMode="numeric"
-          value={vehicle.mileageKm}
-          onChange={(event) =>
-            set({ mileageKm: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 7) })
-          }
-          className={cn(FIELD_CLASS, 'font-num')}
-        />
-      </label>
+      <MutableVehicleFields catalog={catalog} cities={cities} locale={locale} />
+    </div>
+  );
+}
 
-      {/*
-        ═══ الموروث من الفئة يُعرض ولا يُحرَّر ═══
+/**
+ * ═══ ما يتغيّر من المركبة — مشتركٌ بين الاستمارتين ═══
+ *
+ * سيارةٌ جديدة تُدخَل بهويّتها ثمّ بهذه، وسيارةٌ من «سياراتي» تُعرض
+ * هويّتُها ثمّ تُحرَّر هذه وحدها. **والقائمةُ واحدة**: نسختان لما
+ * يُعدَّل تتباعدان أوّلَ حقلٍ يُضاف إلى إحداهما — وقد وقع مثلُه في
+ * حمولة المركبة فأُغلق بالبوابة ٦٠.
+ *
+ * وهي الحقول نفسها التي يفتحها `PATCH /api/v1/vehicles/{id}`
+ * ويكتبها `mutableVehicleFields` في النطاق.
+ */
+function MutableVehicleFields({
+  catalog,
+  cities,
+  locale,
+}: {
+  catalog: VehicleCatalog;
+  cities: readonly string[];
+  locale: string;
+}) {
+  const t = useTranslations('sell');
+  const te = useTranslations('enums');
+  const { vehicle, set, options, inheritedTrim } = catalog;
 
-        الخادم يأخذ الهيكل والدفع والمقاعد **من الفئة** لقطةً
-        (قرار ٣٢) — فحقلٌ يملؤه البائع بها لا يغيّر شيئًا، وهو
-        وعدٌ مُخلَف بشكل حقل. وكان الهيكل غائبًا عن الاستمارة
-        أصلًا، فلا البائع يراه ولا يعرف ما سيُنشر.
-      */}
-      {inheritedTrim === null ? null : (
-        <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3">
-          <p className="mb-2 text-3xs font-bold opacity-70">من الفئة — تسجل كما هي</p>
-          <p className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs">
-            <span>{te(`bodyType.${inheritedTrim.bodyType}`)}</span>
-            <span aria-hidden className="opacity-30">·</span>
-            <span>{te(`drivetrain.${inheritedTrim.drivetrain}`)}</span>
-            <span aria-hidden className="opacity-30">·</span>
-            {/* الجملة لا يحكمها المعدود — والعدد بين قوسين (البوابة ١٨) */}
-            <span className="font-num">
-              <Quantity unit="seats" count={inheritedTrim.seats} />
-            </span>
-          </p>
-        </div>
-      )}
+  return (
+    <>
+        <label>
+          <span className={LABEL_CLASS}>{t('mileage')}</span>
+          <input
+            dir="ltr"
+            inputMode="numeric"
+            value={vehicle.mileageKm}
+            onChange={(event) =>
+              set({ mileageKm: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 7) })
+            }
+            className={cn(FIELD_CLASS, 'font-num')}
+          />
+        </label>
 
-      {/*
-        **الخيارات من الكتالوج لا من التعداد.** وكانت أربعة نواقل
-        وأربعة أنواع وقود لكل مركبة — فيُعرض «كهربائي» على
-        لاندكروزر، ويختاره بائعٌ فيُنشر إعلانٌ بمواصفةٍ لا وجود لها.
+        {/*
+          ═══ الموروث من الفئة يُعرض ولا يُحرَّر ═══
 
-        و«المواصفة الإقليمية» تبقى كاملةً: سعوديّ أو خليجيّ أو وارد
-        وكيل صفةُ استيرادٍ لا تُملى من الفئة.
-      */}
-      {(
-        [
-          ['transmission', options.transmissions],
-          ['fuel', options.fuels],
-          ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
-        ] as const
-      ).map(([key, values]) => (
-        <label key={key}>
-          <span className={LABEL_CLASS}>{t(key)}</span>
+          الخادم يأخذ الهيكل والدفع والمقاعد **من الفئة** لقطةً
+          (قرار ٣٢) — فحقلٌ يملؤه البائع بها لا يغيّر شيئًا، وهو
+          وعدٌ مُخلَف بشكل حقل. وكان الهيكل غائبًا عن الاستمارة
+          أصلًا، فلا البائع يراه ولا يعرف ما سيُنشر.
+        */}
+        {inheritedTrim === null ? null : (
+          <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3">
+            <p className="mb-2 text-3xs font-bold opacity-70">من الفئة — تسجل كما هي</p>
+            <p className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs">
+              <span>{te(`bodyType.${inheritedTrim.bodyType}`)}</span>
+              <span aria-hidden className="opacity-30">·</span>
+              <span>{te(`drivetrain.${inheritedTrim.drivetrain}`)}</span>
+              <span aria-hidden className="opacity-30">·</span>
+              {/* الجملة لا يحكمها المعدود — والعدد بين قوسين (البوابة ١٨) */}
+              <span className="font-num">
+                <Quantity unit="seats" count={inheritedTrim.seats} />
+              </span>
+            </p>
+          </div>
+        )}
+
+        {/*
+          **الخيارات من الكتالوج لا من التعداد.** وكانت أربعة نواقل
+          وأربعة أنواع وقود لكل مركبة — فيُعرض «كهربائي» على
+          لاندكروزر، ويختاره بائعٌ فيُنشر إعلانٌ بمواصفةٍ لا وجود لها.
+
+          و«المواصفة الإقليمية» تبقى كاملةً: سعوديّ أو خليجيّ أو وارد
+          وكيل صفةُ استيرادٍ لا تُملى من الفئة.
+        */}
+        {(
+          [
+            ['transmission', options.transmissions],
+            ['fuel', options.fuels],
+            ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
+          ] as const
+        ).map(([key, values]) => (
+          <label key={key}>
+            <span className={LABEL_CLASS}>{t(key)}</span>
+            <select
+              value={vehicle[key]}
+              onChange={(event) => set({ [key]: event.target.value })}
+              className={FIELD_CLASS}
+            >
+              {values.map((value) => (
+                <option key={value} value={value}>
+                  {te(`${key}.${value}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+
+        <label>
+          <span className={LABEL_CLASS}>{t('city')}</span>
           <select
-            value={vehicle[key]}
-            onChange={(event) => set({ [key]: event.target.value })}
+            value={vehicle.city}
+            onChange={(event) => set({ city: event.target.value })}
             className={FIELD_CLASS}
           >
-            {values.map((value) => (
-              <option key={value} value={value}>
-                {te(`${key}.${value}`)}
+            <option value="" />
+            {cities.map((city) => (
+              <option key={city} value={city}>
+                {cityLabel(city, locale)}
               </option>
             ))}
           </select>
         </label>
-      ))}
 
-      <label>
-        <span className={LABEL_CLASS}>{t('city')}</span>
-        <select
-          value={vehicle.city}
-          onChange={(event) => set({ city: event.target.value })}
-          className={FIELD_CLASS}
-        >
-          <option value="" />
-          {cities.map((city) => (
-            <option key={city} value={city}>
-              {cityLabel(city, locale)}
-            </option>
-          ))}
-        </select>
-      </label>
+        {/*
+          اللون والحالة **يُجمعان هنا لأن المخطّط يطلبهما**، وكان
+          المعالج يرسل بلا لون فيردّ الخادم ٤٢٢ — نشرٌ لا يمكن أن
+          ينجح من الشاشة أصلًا. والحالة مرشِّح في البحث، فغيابها
+          يُخفي المركبة عن نصف الباحثين.
+        */}
+        <label>
+          <span className={LABEL_CLASS}>{t('colorExterior')}</span>
+          <input
+            value={vehicle.colorExterior}
+            onChange={(event) => set({ colorExterior: event.target.value })}
+            className={FIELD_CLASS}
+          />
+        </label>
 
-      {/*
-        اللون والحالة **يُجمعان هنا لأن المخطّط يطلبهما**، وكان
-        المعالج يرسل بلا لون فيردّ الخادم ٤٢٢ — نشرٌ لا يمكن أن
-        ينجح من الشاشة أصلًا. والحالة مرشِّح في البحث، فغيابها
-        يُخفي المركبة عن نصف الباحثين.
-      */}
-      <label>
-        <span className={LABEL_CLASS}>{t('colorExterior')}</span>
-        <input
-          value={vehicle.colorExterior}
-          onChange={(event) => set({ colorExterior: event.target.value })}
-          className={FIELD_CLASS}
-        />
-      </label>
-
-      <label>
-        <span className={LABEL_CLASS}>{t('condition')}</span>
-        <select
-          value={vehicle.condition}
-          onChange={(event) => set({ condition: event.target.value })}
-          className={FIELD_CLASS}
-        >
-          <option value="USED">{te('condition.USED')}</option>
-          <option value="NEW">{te('condition.NEW')}</option>
-        </select>
-      </label>
-    </div>
+        <label>
+          <span className={LABEL_CLASS}>{t('condition')}</span>
+          <select
+            value={vehicle.condition}
+            onChange={(event) => set({ condition: event.target.value })}
+            className={FIELD_CLASS}
+          >
+            <option value="USED">{te('condition.USED')}</option>
+            <option value="NEW">{te('condition.NEW')}</option>
+          </select>
+        </label>
+    </>
   );
 }
 

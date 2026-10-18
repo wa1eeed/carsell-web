@@ -80,7 +80,7 @@ export function PayoutsTable({
         return;
       }
       setRequesting(null);
-      setToast('فتح طلب التحويل. ينتظر اعتماد عضو ثان بعد تنفيذ الحوالة.');
+      setToast('فتح طلب التحويل. ينتظر اعتماد عضو ثاني بعد تنفيذ الحوالة.');
       router.refresh();
     });
   };
@@ -139,7 +139,7 @@ export function PayoutsTable({
     <>
       {/* ═══ ينتظر الاعتماد أوّلًا — فهو ما يحتاج فعلًا الآن ═══ */}
       {waiting.length === 0 ? null : (
-        <Section title="ينتظر اعتماد عضو ثان" count={waiting.length} tone="warn">
+        <Section title="ينتظر اعتماد عضو ثاني" count={waiting.length} tone="warn">
           {waiting.map((row) => {
             const isRequester = row.requestedBy === adminId;
             return (
@@ -304,11 +304,11 @@ export function PayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثان بعد تنفيذ
+              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثاني بعد تنفيذ
               الحوالة من البنك. ولا يعتمده الطالب.
             </p>
             <Button className="w-full" disabled={pending} onClick={request}>
-              {pending ? 'جار…' : 'افتح الطلب'}
+              {pending ? 'جاري…' : 'افتح الطلب'}
             </Button>
           </>
         )}
@@ -339,7 +339,7 @@ export function PayoutsTable({
               تخرج الحوالة فعلا من البنك.
             </p>
             <Button className="w-full" disabled={pending} onClick={approve}>
-              {pending ? 'جار…' : 'سجل الحوالة'}
+              {pending ? 'جاري…' : 'سجل الحوالة'}
             </Button>
           </>
         )}

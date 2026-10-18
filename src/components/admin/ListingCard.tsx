@@ -28,7 +28,7 @@ const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'danger'
   SOLD: { label: 'مبيع', tone: 'neutral' },
   SUSPENDED: { label: 'موقوف', tone: 'danger' },
   DRAFT: { label: 'مسودة', tone: 'neutral' },
-  EXPIRED: { label: 'منته', tone: 'neutral' },
+  EXPIRED: { label: 'منتهي', tone: 'neutral' },
 };
 
 const TYPE: Record<string, string> = {

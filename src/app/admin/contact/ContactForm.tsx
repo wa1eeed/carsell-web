@@ -148,7 +148,7 @@ export function ContactForm({
 
       {canEdit ? (
         <Button className="mt-5" disabled={pending} onClick={save}>
-          {pending ? 'جار…' : 'احفظ'}
+          {pending ? 'جاري…' : 'احفظ'}
         </Button>
       ) : null}
 

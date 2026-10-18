@@ -107,7 +107,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
         </Card>
 
         <Card title="نقد الضمان" subtitle="محتجز الآن" amount={summary.escrow.total}>
-          <Line label="محتجز جار" amount={summary.escrow.held} />
+          <Line label="محتجز جاري" amount={summary.escrow.held} />
           <Line label="عرابين محجوزة" amount={summary.escrow.deposits} />
           <Line label="مجمد بنزاع" amount={summary.escrow.frozen} />
           <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-70">

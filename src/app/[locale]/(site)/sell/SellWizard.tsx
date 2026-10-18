@@ -34,6 +34,7 @@ import { PriceGuidance } from '@/components/site/PriceGuidance';
 import type { RangeStats } from '@/components/ui/RangeBar';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
+import type { SaleCandidate } from '@/lib/domain/garage';
 import { displayDigits, toLatinDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
@@ -90,6 +91,7 @@ export function SellWizard({
   cities,
   locale,
   vinLookupEnabled,
+  candidate,
   auctionLimits,
   rules,
   allowedMethods,
@@ -100,6 +102,14 @@ export function SellWizard({
   locale: string;
   /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
   vinLookupEnabled: boolean;
+  /**
+   * ═══ سيارةٌ من «سياراتي» ═══
+   *
+   * حين تُمرَّر، **لا تُنشأ مركبةٌ ثانية**: المعالج يُرسل معرّفها
+   * ويحدّث ما يتغيّر منها. وهويّتُها تُعرض ولا تُحرَّر — من غيّر
+   * ماركتَها لم يصحّح سيارته بل وضع مكانها سيارةً أخرى.
+   */
+  candidate: SaleCandidate | null;
   /**
    * حدود المشغّل — **لا تُكتب هنا**. المدد وأدنى فرقٍ بين مزايدتين
    * والعربون في لوحة المزادات، ونسخُها يجعل المعالج يعرض مدّةً يرفضها
@@ -129,7 +139,27 @@ export function SellWizard({
    * الكتالوجُ المتتالي ومعه حقولُ المركبة — **مشتركةٌ مع شاشة «أضف
    * سيارة» في الحساب**، فاستمارتان لا تتباعدان.
    */
-  const catalog = useVehicleCatalog(EMPTY_VEHICLE);
+  const catalog = useVehicleCatalog(
+    candidate === null
+      ? EMPTY_VEHICLE
+      : {
+          ...EMPTY_VEHICLE,
+          brandId: candidate.brandId,
+          modelId: candidate.modelId,
+          trimId: candidate.trimId ?? '',
+          year: String(candidate.year),
+          mileageKm: String(candidate.mileageKm),
+          colorExterior: candidate.colorExterior,
+          city: candidate.city,
+          transmission: candidate.transmission,
+          fuel: candidate.fuel,
+          spec: candidate.spec,
+          condition: candidate.condition,
+          vin: candidate.vin ?? '',
+          plateLetters: candidate.plateLetters ?? '',
+          plateNumbers: candidate.plateNumbers ?? '',
+        },
+  );
   const { vehicle, set, models } = catalog;
   /**
    * **وإظهارُ اللوحة خاصّيةُ الإعلان لا المركبة** — فهي خارج
@@ -259,6 +289,7 @@ export function SellWizard({
           // سعرٌ لم يُكتب بعد يُحفظ واحدًا — والنشر يفحصه
           askPrice: Math.max(1, Number(toLatinDigits(price).replace(/\D/g, '')) || 1),
           taxableSupply: null,
+          ...(candidate === null ? {} : { vehicleId: candidate.vehicleId }),
           vehicle: vehiclePayload(vehicle),
           /** **ومعاملٌ يُرسَل ولا يُقرأ صمتٌ** — فيُقرأ في النطاق ويُخزَّن. */
           showPlate,
@@ -370,6 +401,8 @@ export function SellWizard({
            * «أظهِرها مع الإعلان»، فيُنشر إعلانٌ بلا لوحة ولا كلمة.
            * والحمولة تُبنى مرّةً الآن.
            */
+          /** **ولا مركبةَ ثانية لسيارةٍ واحدة** — المعرّف يمرّ مع النشر. */
+          ...(candidate === null ? {} : { vehicleId: candidate.vehicleId }),
           vehicle: vehiclePayload(vehicle),
           showPlate,
           // المفاتيح وحدها — والخادم يقرأ بصماتها من عنده
@@ -587,6 +620,9 @@ export function SellWizard({
             brands={brands}
             cities={cities}
             locale={locale}
+            {...(candidate === null
+              ? {}
+              : { identity: { locked: true as const, title: candidate.title } })}
           />
 
           {/*
@@ -632,13 +668,19 @@ export function SellWizard({
               {t('next')}
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={saveVehicle}
-              disabled={!vehicleReady || publishing}
-            >
-              احفظ في سياراتي
-            </Button>
+            {/*
+              **ولا تُعرض لسيارةٍ فيه أصلًا**: زرٌّ يقول «احفظ في
+              سياراتي» لسيارةٍ جاء صاحبُها من «سياراتي» يَعِد بما وقع.
+            */}
+            {candidate !== null ? null : (
+              <Button
+                variant="outline"
+                onClick={saveVehicle}
+                disabled={!vehicleReady || publishing}
+              >
+                احفظ في سياراتي
+              </Button>
+            )}
           </div>
 
           {saveError === null ? null : (

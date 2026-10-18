@@ -145,7 +145,7 @@ export function OfferActions({
           disabled={pending || counterAmount === ''}
           onClick={submitCounter}
         >
-          {pending ? 'جار…' : 'أرسل العرض المقابل'}
+          {pending ? 'جاري…' : 'أرسل العرض المقابل'}
         </Button>
       </Modal>
 

@@ -21,7 +21,7 @@ const Body = z.object({ reason: z.string().max(300).nullable().optional() });
 
 const BLOCKED: Record<string, { ar: string; en: string }> = {
   LIVE_ORDERS: {
-    ar: 'عليك طلب جار — أنهه أو ألغه قبل الإغلاق.',
+    ar: 'عليك طلب جاري — أنهه أو ألغه قبل الإغلاق.',
     en: 'You have a live order — finish or cancel it first.',
   },
   HELD_ESCROW: {

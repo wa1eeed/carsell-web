@@ -69,6 +69,20 @@ const PUBLISH_ERROR: Record<
     en: 'Set your tax status before publishing.',
     status: 428,
   },
+  /**
+   * **ولا يُقال «غير موجودة» لمركبةِ غيرك** — أن يعرف سائلٌ أنّ
+   * المعرّف قائمٌ لسواه خبرٌ لا يُعطى. والجوابُ واحد في الحالين.
+   */
+  VEHICLE_NOT_FOUND: {
+    ar: 'لم نجد هذه السيارة في سياراتك.',
+    en: 'We could not find this car among yours.',
+    status: 404,
+  },
+  VEHICLE_ALREADY_LISTED: {
+    ar: 'هذه السيارة معروضة بالفعل — اسحب إعلانها القائم قبل عرضها من جديد.',
+    en: 'This car is already listed — withdraw its current listing first.',
+    status: 409,
+  },
   VIN_ALREADY_LISTED: {
     ar: 'هذه المركبة معروضة بالفعل — اسحب الإعلان القائم أولا.',
     en: 'This vehicle is already listed — withdraw the existing listing first.',
@@ -113,7 +127,7 @@ const PUBLISH_ERROR: Record<
     status: 422,
   },
   AUCTION_DEPOSIT_INVALID: {
-    ar: 'العربون خارج الحد — عال يطرد المزايدين، ومنخفض يفقد المزايدة جديتها.',
+    ar: 'العربون خارج الحد — عالي يطرد المزايدين، ومنخفض يفقد المزايدة جديتها.',
     en: 'The deposit is out of range — too high drives bidders away, too low makes bidding costless.',
     status: 422,
   },
@@ -150,6 +164,16 @@ const PublishBody = z.object({
    * والحارس في النطاق لا هنا: حارسٌ في العميل ليس حارسًا.
    */
   draft: z.boolean().optional(),
+  /**
+   * ═══ سيارةٌ قائمة في «سياراتي» ═══
+   *
+   * **ولولاها لكُتب صفٌّ ثانٍ لسيارةٍ واحدة**: من سجّلها في حسابه
+   * ليطلب عليها فحصًا ثمّ عرضها للبيع كان يخرج بمركبتين — فحصُها على
+   * واحدة وإعلانُها على الأخرى.
+   *
+   * والهويّةُ تُقرأ من صفّها في النطاق لا من هذا الجسد.
+   */
+  vehicleId: z.string().min(1).max(40).optional(),
   askPrice: z.number().int().min(1).max(100_000_000),
   taxableSupply: z.boolean().nullable(),
   vehicle: z.object({

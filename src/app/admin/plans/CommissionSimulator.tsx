@@ -105,7 +105,7 @@ export function CommissionSimulator({
 
       <div className="mt-5 flex flex-wrap items-center gap-5">
         <Button size="sm" disabled={pending} onClick={run}>
-          {pending ? 'جار…' : 'احسب'}
+          {pending ? 'جاري…' : 'احسب'}
         </Button>
 
         {result === null ? null : (

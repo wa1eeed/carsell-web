@@ -210,7 +210,7 @@ export function RequestService({
       */}
       <Button className="w-full" disabled={pending} onClick={submit}>
         <span className="flex flex-col items-center gap-0.5 leading-tight">
-          <span>{pending ? 'جار…' : `ادفع واطلب ${serviceName}`}</span>
+          <span>{pending ? 'جاري…' : `ادفع واطلب ${serviceName}`}</span>
           {pending ? null : <span className="font-num text-3xs opacity-75">{total} ر.س</span>}
         </span>
       </Button>

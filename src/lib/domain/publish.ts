@@ -15,6 +15,7 @@ import type {
 import { findDuplicate } from './listing-images';
 import { auctionSettings } from './admin-auction-settings';
 import { SEAT_TAKING_STATUSES, sellingAllowance } from './entitlements';
+import { LIVE_LISTING_STATUSES } from './garage';
 
 /**
  * ═══ نشر الإعلان — والحارس معه لا بعده ═══
@@ -57,6 +58,21 @@ export type PublishInput = {
   /** وصف البائع — اختياريّ عند النشر، ويُحرَّر لاحقًا من «مركباتي». */
   description?: string;
   /** استثناء الإعلان الضريبيّ — `null` يتبع وضع البائع */
+  /**
+   * ═══ مركبةٌ قائمة في مرآب البائع ═══
+   *
+   * **ولولاها لكُتبت نسختان من سيارةٍ واحدة.** `createListing` كانت
+   * تُنشئ `Vehicle` دائمًا، وزرُّ «اعرضها للبيع» في «سياراتي» يقود
+   * إلى معالجٍ فارغ — فمن سجّل سيارته في حسابه ليطلب عليها فحصًا ثمّ
+   * قرّر بيعها يملأ بياناتها ثانيةً، ويخرج بصفّين لمركبةٍ واحدة:
+   * فحصُها على أحدهما وإعلانُها على الآخر.
+   *
+   * وحين تُمرَّر، **تُقرأ هويّةُ المركبة من صفّها لا من المُدخَل**:
+   * الماركةُ والطرازُ والفئةُ والسنةُ والهيكل. والمُدخَل يحمل ما
+   * يتغيّر وحده — الممشى واللون والمدينة واللوحة — وهي الحقول نفسها
+   * التي يعدّلها `PATCH /api/v1/vehicles/{id}`.
+   */
+  vehicleId?: string;
   taxableSupply: boolean | null;
   vehicle: {
     brandId: string;
@@ -172,7 +188,10 @@ export type PublishFailure =
   | 'AUCTION_DEPOSIT_INVALID'
   | 'MIN_ACCEPT_INVALID'
   | 'SALE_METHOD_NOT_ALLOWED'
-  | 'LISTING_LIMIT_REACHED';
+  | 'LISTING_LIMIT_REACHED'
+  /** **ولا يُفرَّق بين الغائبة ومركبةِ غيرك**: وجودُها ليس خبرًا يُعطى. */
+  | 'VEHICLE_NOT_FOUND'
+  | 'VEHICLE_ALREADY_LISTED';
 
 export type PublishResult =
   | {
@@ -201,6 +220,77 @@ type Asset = { r2Key: string; phash: string; plateBlurred: boolean; qualityFlags
  *
  * وصار لها نادٍ ثالث: المرآب يُنشئ مركبةً بلا إعلان، فلا تُنسخ ثالثةً.
  */
+/**
+ * ═══ ما يتغيّر من المركبة بين تسجيلها وعرضها ═══
+ *
+ * الممشى يزيد، واللون يُصحَّح، والمدينة تنتقل، واللوحةُ قد تُدخَل
+ * الآن وقد كانت فارغة. **وهي الحقول نفسها التي يفتحها
+ * `PATCH /api/v1/vehicles/{id}`** — ولا ثالثَ لهما: قائمتان لما
+ * يُعدَّل تتباعدان أوّلَ حقلٍ يُضاف إلى إحداهما.
+ *
+ * وما عداها هويّةٌ: الماركةُ والطرازُ والفئةُ والسنةُ والهيكل. من
+ * غيّرها لم يصحّح سيارته، بل وضع مكانها سيارةً أخرى.
+ */
+export function mutableVehicleFields(
+  input: Pick<PublishInput, 'vehicle'>,
+): Prisma.VehicleUpdateInput {
+  const plateLetters = normalizeArabicLetters(input.vehicle.plateLetters ?? '');
+  const plateNumbers = normalizePlateNumbers(input.vehicle.plateNumbers ?? '');
+  return {
+    mileageKm: input.vehicle.mileageKm,
+    colorExterior: input.vehicle.colorExterior,
+    city: input.vehicle.city,
+    transmission: input.vehicle.transmission,
+    fuel: input.vehicle.fuel,
+    spec: input.vehicle.spec,
+    condition: input.vehicle.condition,
+    /** **والفارغُ لا يمحو مخزَّنًا**: من ترك اللوحة لم يطلب حذفها. */
+    ...(plateLetters === '' ? {} : { plateLetters }),
+    ...(plateNumbers === '' ? {} : { plateNumbers }),
+  };
+}
+
+/**
+ * ═══ مركبةُ المرآب — تُحلّ أو تُردّ ═══
+ *
+ * **ولا يُفرَّق بين الغائبة ومركبةِ غيرك**: أن يعرف سائلٌ أنّ المعرّف
+ * قائمٌ لسواه خبرٌ لا يُعطى. والجوابُ واحد في الحالين.
+ *
+ * **والمعروضةُ بالفعل تُردّ بسببها**: صاحبُها يعرف أنّها له، وإخفاءُ
+ * السبب يجعله يعيد المحاولة. وهي القاعدةُ نفسُها التي تمنع سيارةً
+ * بإعلانين — تُفسد كلّ عدّاد وكلّ إحصاء.
+ */
+async function resolveGarageVehicle(
+  input: PublishInput,
+): Promise<{ row: GarageVehicle } | { ok: false; reason: PublishFailure } | null> {
+  if (input.vehicleId === undefined) return null;
+
+  const row = await db.vehicle.findUnique({
+    where: { id: input.vehicleId },
+    select: {
+      id: true, ownerId: true, brandId: true, modelId: true, trimId: true,
+      year: true, vin: true,
+      listings: { where: { status: { in: [...LIVE_LISTING_STATUSES] } }, select: { id: true } },
+    },
+  });
+  if (row === null || row.ownerId !== input.sellerId) {
+    return { ok: false, reason: 'VEHICLE_NOT_FOUND' };
+  }
+  if (row.listings.length > 0) return { ok: false, reason: 'VEHICLE_ALREADY_LISTED' };
+  return { row };
+}
+
+type GarageVehicle = {
+  id: string;
+  ownerId: string;
+  brandId: string;
+  modelId: string;
+  /** **وقد تكون بلا فئة**: المخطّط يسمح بها فارغة، والنشرُ لا يسمح. */
+  trimId: string | null;
+  year: number;
+  vin: string | null;
+};
+
 export function vehicleFields(
   input: Pick<PublishInput, 'sellerId' | 'vehicle'>,
   catalogue: {
@@ -251,22 +341,50 @@ export function vehicleFields(
 
 async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult> {
   /**
+   * **والمسودّةُ تمرّ بالحلّ نفسه.** لو خرجت قبله لكتبت نسخةً ثانية
+   * من سيارةٍ في المرآب — والزرّ «احفظ كمسودة» قائمٌ في الخطوة
+   * الثانية، فالطريقُ مسلوك. وأخطرُ ما فيه أنّ أثرَه لا يُرى: مركبتان
+   * في «سياراتي» والمسودّةُ لا تظهر لأحد.
+   */
+  const existing = await resolveGarageVehicle(input);
+  if (existing !== null && 'reason' in existing) return existing;
+
+  const plan: PublishInput =
+    existing === null
+      ? input
+      : {
+          ...input,
+          vehicle: {
+            ...input.vehicle,
+            brandId: existing.row.brandId,
+            modelId: existing.row.modelId,
+            trimId: existing.row.trimId ?? input.vehicle.trimId,
+            year: existing.row.year,
+            vin: existing.row.vin,
+          },
+        };
+
+  /**
    * **والأسماء من الكتالوج لا من المُدخَل** — كما في النشر تمامًا.
    * وكتابةُ اسمٍ يرسله العميل تجعل الإعلان يقول ماركةً غير التي
    * يشير إليها معرّفه.
    */
   const [brand, model, trim] = await Promise.all([
-    db.brand.findUnique({ where: { id: input.vehicle.brandId } }),
-    db.model.findUnique({ where: { id: input.vehicle.modelId } }),
-    db.trim.findUnique({ where: { id: input.vehicle.trimId } }),
+    db.brand.findUnique({ where: { id: plan.vehicle.brandId } }),
+    db.model.findUnique({ where: { id: plan.vehicle.modelId } }),
+    db.trim.findUnique({ where: { id: plan.vehicle.trimId } }),
   ]);
   if (brand === null || model === null) return { ok: false, reason: 'BRAND_OR_MODEL_UNKNOWN' };
   if (trim === null) return { ok: false, reason: 'TRIM_UNKNOWN' };
 
   const { listing } = await db.$transaction(async (tx) => {
-    const vehicle = await tx.vehicle.create({
-      data: vehicleFields(input, { brand, model, trim }),
-    });
+    const vehicle =
+      existing === null
+        ? await tx.vehicle.create({ data: vehicleFields(plan, { brand, model, trim }) })
+        : await tx.vehicle.update({
+            where: { id: existing.row.id },
+            data: mutableVehicleFields(plan),
+          });
 
     const ref = await nextListingRef(tx, now);
     const row = await tx.listing.create({
@@ -282,7 +400,7 @@ async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult>
           ? {}
           : { description: input.description.trim().slice(0, 4000) }),
         showPlate: input.showPlate ?? false,
-        city: input.vehicle.city,
+        city: plan.vehicle.city,
       },
     });
 
@@ -507,9 +625,37 @@ export async function createListing(
     }
   }
 
+  /**
+   * ═══ مركبةُ المرآب تُحلّ قبل كلِّ ما يقرأ هويّتَها ═══
+   *
+   * فالكتالوجُ والرقمُ التسلسليّ وسببُ المراجعة ومدينةُ الإعلان
+   * كلُّها تقرأ `input.vehicle` — فلو حُلّت بعدها لقرأت المُرسَل من
+   * الشاشة لا المخزَّن، **فيكفي نداءٌ مباشر ببيانات أخرى ليُنشر
+   * إعلانٌ يقول ماركةً والمركبةُ ماركةٌ ثانية**.
+   */
+  const existing = await resolveGarageVehicle(input);
+  if (existing !== null && 'reason' in existing) return existing;
+
+  const plan: PublishInput =
+    existing === null
+      ? input
+      : {
+          ...input,
+          vehicle: {
+            ...input.vehicle,
+            /** الهويّةُ من الصفّ — ولا تُغيَّر بنشرٍ. */
+            brandId: existing.row.brandId,
+            modelId: existing.row.modelId,
+            /** والفئةُ من الصفّ إن كانت — وإلّا فمن الاستمارة، والنشرُ يفحصها. */
+            trimId: existing.row.trimId ?? input.vehicle.trimId,
+            year: existing.row.year,
+            vin: existing.row.vin,
+          },
+        };
+
   const [brand, model] = await Promise.all([
-    db.brand.findUnique({ where: { id: input.vehicle.brandId } }),
-    db.model.findUnique({ where: { id: input.vehicle.modelId } }),
+    db.brand.findUnique({ where: { id: plan.vehicle.brandId } }),
+    db.model.findUnique({ where: { id: plan.vehicle.modelId } }),
   ]);
   if (brand === null || model === null) return { ok: false, reason: 'BRAND_OR_MODEL_UNKNOWN' };
 
@@ -517,18 +663,20 @@ export async function createListing(
    * **هيكلٌ معروض بالفعل يُوقِف.** سيارةٌ بإعلانين تُفسد كل عدّاد وكل
    * إحصاء، وهذا رفضٌ لا مراجعة: الرقم واحدٌ لا يحتمل تأويلًا.
    */
-  if (input.vehicle.vin !== null && input.vehicle.vin !== '') {
+  if (plan.vehicle.vin !== null && plan.vehicle.vin !== '') {
     const listed = await db.vehicle.findFirst({
       where: {
-        vin: input.vehicle.vin,
-        listings: { some: { status: { in: ['PUBLISHED', 'PENDING_REVIEW', 'RESERVED'] } } },
+        vin: plan.vehicle.vin,
+        listings: { some: { status: { in: [...LIVE_LISTING_STATUSES] } } },
+        /** **ومركبةُ المرآب ليست نسختَها**: الصفُّ نفسُه لا يُحسب تكرارًا. */
+        ...(existing === null ? {} : { id: { not: existing.row.id } }),
       },
       select: { id: true },
     });
     if (listed !== null) return { ok: false, reason: 'VIN_ALREADY_LISTED' };
   }
 
-  const trim = await db.trim.findUnique({ where: { id: input.vehicle.trimId } });
+  const trim = await db.trim.findUnique({ where: { id: plan.vehicle.trimId } });
   // الفئة تُملي الهيكل والدفع والمقاعد — وغيابُها يعني حقولًا لا مصدر لها
   if (trim === null || trim.modelId !== model.id) return { ok: false, reason: 'TRIM_UNKNOWN' };
 
@@ -546,12 +694,21 @@ export async function createListing(
     return { ok: false, reason: 'IMAGE_NOT_UPLOADED' };
   }
 
-  const reviewReason = await reviewReasonFor(input, assets, now);
+  const reviewReason = await reviewReasonFor(plan, assets, now);
 
   return db.$transaction(async (tx): Promise<PublishResult> => {
-    const vehicle = await tx.vehicle.create({
-      data: vehicleFields(input, { brand, model, trim }),
-    });
+    /**
+     * **والقائمةُ تُحدَّث ولا تُستنسخ.** الممشى يزيد بين تسجيلِها
+     * وعرضِها، واللوحةُ قد تُدخَل الآن وقد كانت فارغة — فما يتغيّر
+     * يُكتب، والهويّةُ لا تُمسّ.
+     */
+    const vehicle =
+      existing === null
+        ? await tx.vehicle.create({ data: vehicleFields(plan, { brand, model, trim }) })
+        : await tx.vehicle.update({
+            where: { id: existing.row.id },
+            data: mutableVehicleFields(plan),
+          });
 
     const ref = await nextListingRef(tx, now);
 
@@ -578,7 +735,7 @@ export async function createListing(
          * له كاتبٌ عند النشر رغم أن النطاق يرفض العروض دونه.
          */
         ...(minAccept === null ? {} : { minAcceptPrice: new Prisma.Decimal(minAccept) }),
-        city: input.vehicle.city,
+        city: plan.vehicle.city,
         // تاريخ النشر يُكتب حين يُنشَر فعلًا — والمراجَع لم يُنشَر بعد
         publishedAt: reviewReason === null ? now : null,
       },

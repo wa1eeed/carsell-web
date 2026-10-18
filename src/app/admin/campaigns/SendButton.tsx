@@ -85,7 +85,7 @@ export function SendCampaignButton({
         </p>
         <div className="flex gap-2.5">
           <Button className="flex-1" disabled={busy} onClick={send}>
-            {busy ? 'جار…' : 'نعم، أرسل'}
+            {busy ? 'جاري…' : 'نعم، أرسل'}
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setAsking(false)}>
             تراجع

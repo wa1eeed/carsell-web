@@ -96,7 +96,7 @@ export function ChangePassword({ mustChange }: { mustChange: boolean }) {
         </p>
 
         <Button disabled={busy || !ready} onClick={submit}>
-          {busy ? 'جار…' : 'غير كلمتي'}
+          {busy ? 'جاري…' : 'غير كلمتي'}
         </Button>
       </div>
 

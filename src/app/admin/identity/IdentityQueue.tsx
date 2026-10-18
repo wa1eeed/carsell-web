@@ -168,7 +168,7 @@ export function IdentityQueue({
                     </span>
                     {row.business.crExpiresAt === null ||
                     Date.parse(row.business.crExpiresAt) > Date.now() ? null : (
-                      <Badge tone="danger">سجل منته</Badge>
+                      <Badge tone="danger">سجل منتهي</Badge>
                     )}
                     {row.business.vatNumber === null ? (
                       <span className="opacity-65">غير مسجل في الضريبة</span>

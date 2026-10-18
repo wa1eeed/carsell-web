@@ -117,7 +117,7 @@ rather than found by chance.
 | `StagePanel` | yes | `orderRef` · `stage` · `viewerIsBuyer` · `frozen` | 1 |
 | `TaxStatusDialog` | yes | `open` · `onClose` · `onSaved` · `initial` | 3 |
 | `VehicleControls` | yes | `vehicleId` · `mileageKm` · `colorExterior` · `city` · `cities` · `canRemove` | 1 |
-| `VehicleFields` | yes | `catalog` · `brands` · `cities` · `locale` | 2 |
+| `VehicleFields` | yes | `catalog` · `brands` · `cities` · `locale` · `identity` | 2 |
 | `VehiclePlateField` | yes | `catalog` | 2 |
 
 ## `src/components/ui`

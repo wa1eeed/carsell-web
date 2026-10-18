@@ -124,7 +124,7 @@ export const NOTIFICATION_GROUP_LABEL: Record<string, string> = {
 export const SEGMENT_FIELD_LABEL: Record<string, string> = {
   hasFavorites: 'لديه مفضلة',
   hasCompletedOrder: 'أتم صفقة',
-  hasActiveOrder: 'لديه طلب جار',
+  hasActiveOrder: 'لديه طلب جاري',
   hasListing: 'له إعلان',
   hasVehicle: 'أضاف مركبة',
   hasBid: 'زايد سابقا',
@@ -304,7 +304,7 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
   serviceConsentHours: {
     name: 'مهلة إذن البائع بالفحص',
     unit: 'ساعة',
-    effect: 'حين يطلب مشتر فحص مركبة معروضة. بعدها يسقط الطلب ولا يؤخذ مال.',
+    effect: 'حين يطلب مشتري فحص مركبة معروضة. بعدها يسقط الطلب ولا يؤخذ مال.',
   },
   viewingReminderHours: {
     name: 'التذكير قبل موعد المعاينة',

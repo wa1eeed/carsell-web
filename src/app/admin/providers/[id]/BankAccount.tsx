@@ -119,7 +119,7 @@ export function BankAccount({
         setToast(say((await response?.json().catch(() => null)) as Parameters<typeof say>[0]));
         return;
       }
-      setToast('فتح طلب التحويل — ينتظر اعتماد عضو ثان.');
+      setToast('فتح طلب التحويل — ينتظر اعتماد عضو ثاني.');
       router.refresh();
     });
   };
@@ -203,7 +203,7 @@ export function BankAccount({
             </label>
             <div className="flex items-center gap-2">
               <Button size="sm" disabled={busy || iban.trim() === ''} onClick={saveIban}>
-                {busy ? 'جار…' : 'احفظ'}
+                {busy ? 'جاري…' : 'احفظ'}
               </Button>
               {ibanMasked === null ? null : (
                 <Button size="sm" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>
@@ -261,7 +261,7 @@ export function BankAccount({
                 بهذا التسجيل <b>يخصم الدين</b> — فلا تسجلها قبل أن تخرج الحوالة فعلا.
               </p>
               <Button size="sm" disabled={busy || bankRef.trim().length < 4} onClick={approve}>
-                {busy ? 'جار…' : 'سجل الحوالة'}
+                {busy ? 'جاري…' : 'سجل الحوالة'}
               </Button>
             </>
           )}
@@ -285,10 +285,10 @@ export function BankAccount({
             />
           </label>
           <p className="text-3xs leading-loose opacity-70">
-            هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثان.
+            هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثاني.
           </p>
           <Button size="sm" disabled={busy} onClick={requestPayout}>
-            {busy ? 'جار…' : 'اطلب التحويل'}
+            {busy ? 'جاري…' : 'اطلب التحويل'}
           </Button>
         </div>
       )}

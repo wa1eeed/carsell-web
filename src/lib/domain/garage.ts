@@ -251,3 +251,82 @@ export async function removeVehicle(input: {
   await db.vehicle.delete({ where: { id: vehicle.id } });
   return { ok: true };
 }
+
+/**
+ * ═══ سيارةٌ من المرآب تُعرض للبيع ═══
+ *
+ * **وزرُّ «اعرضها للبيع» كان يقود إلى معالجٍ فارغ**، و`createListing`
+ * تُنشئ `Vehicle` دائمًا — فمن سجّل سيارته في حسابه ثمّ عرضها يخرج
+ * بصفّين لسيارةٍ واحدة: فحصُها على أحدهما وإعلانُها على الآخر،
+ * و«سياراتي» تعدّها اثنتين.
+ *
+ * فهذه تملأ المعالج بما يعرفه عنها، **وتقول صراحةً أيمكن عرضُها**:
+ * شاشةٌ تفتح استمارةً لسيارةٍ معروضةٍ بالفعل تَعِد بما سيرفضه الخادم.
+ */
+export type SaleCandidate = {
+  vehicleId: string;
+  title: string;
+  brandId: string;
+  modelId: string;
+  trimId: string | null;
+  year: number;
+  mileageKm: number;
+  colorExterior: string;
+  city: string;
+  transmission: string;
+  fuel: string;
+  spec: string;
+  condition: string;
+  vin: string | null;
+  plateLetters: string | null;
+  plateNumbers: string | null;
+  /** معروضةٌ الآن — فلا تُفتح لها استمارةُ عرض. */
+  alreadyListed: boolean;
+};
+
+export async function saleCandidate(
+  userId: string,
+  vehicleId: string,
+  locale: string,
+): Promise<SaleCandidate | null> {
+  const row = await db.vehicle.findUnique({
+    where: { id: vehicleId },
+    select: {
+      id: true, ownerId: true, year: true, city: true, mileageKm: true,
+      colorExterior: true, transmission: true, fuel: true, spec: true,
+      condition: true, vin: true, plateLetters: true, plateNumbers: true,
+      brandId: true, modelId: true, trimId: true,
+      brandName: true, modelName: true, trimName: true,
+      brand: { select: { nameEn: true, slug: true } },
+      model: { select: { nameEn: true } },
+      trim: { select: { nameEn: true } },
+      listings: {
+        where: { status: { in: [...LIVE_LISTING_STATUSES] } },
+        select: { id: true },
+      },
+    },
+  });
+
+  /** **ولا يُفرَّق بين الغائبة ومركبةِ غيرك** — وجودُها ليس خبرًا يُعطى. */
+  if (row === null || row.ownerId !== userId) return null;
+
+  return {
+    vehicleId: row.id,
+    title: vehicleTitle(row, locale),
+    brandId: row.brandId,
+    modelId: row.modelId,
+    trimId: row.trimId,
+    year: row.year,
+    mileageKm: row.mileageKm,
+    colorExterior: row.colorExterior,
+    city: row.city,
+    transmission: row.transmission,
+    fuel: row.fuel,
+    spec: row.spec,
+    condition: row.condition,
+    vin: row.vin,
+    plateLetters: row.plateLetters,
+    plateNumbers: row.plateNumbers,
+    alreadyListed: row.listings.length > 0,
+  };
+}

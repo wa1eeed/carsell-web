@@ -12,6 +12,7 @@ import { CITY_NAMES } from '@/lib/labels/cities';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
+import { saleCandidate } from '@/lib/domain/garage';
 import { sellingAllowance } from '@/lib/domain/entitlements';
 import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { auctionSettings } from '@/lib/domain/admin-auction-settings';
@@ -39,8 +40,10 @@ export async function generateMetadata({
  */
 export default async function SellPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -49,6 +52,23 @@ export default async function SellPage({
   // النشر يحتاج حسابًا — والتصفّح لا (Wm)
   const user = await currentUserFromCookies();
   if (user === null) redirect(`/${locale}/auth`);
+
+  /**
+   * ═══ `?vehicle=` — سيارةٌ من «سياراتي» تُعرض للبيع ═══
+   *
+   * **وزرُّ «اعرضها للبيع» كان يقود إلى هنا فارغًا**، فيُعيد صاحبُها
+   * إدخال بياناتها كلّها ويخرج بصفَّين لسيارةٍ واحدة. والمعاملُ يُقرأ
+   * الآن — ومعاملٌ يُرسَل ولا يُقرأ صمتٌ.
+   *
+   * **والمعروضةُ بالفعل تُردّ إلى قائمتها**: استمارةٌ تُفتح لما
+   * سيرفضه الخادم وعدٌ مُخلَف.
+   */
+  const query = await searchParams;
+  const asked = typeof query.vehicle === 'string' ? query.vehicle : null;
+  const candidate = asked === null ? null : await saleCandidate(user.id, asked, locale);
+  if (candidate !== null && candidate.alreadyListed) {
+    redirect(`/${locale}/account/vehicles`);
+  }
 
   const [brands, stats, auction, t] = await Promise.all([
     listSellableBrandOptions(),
@@ -175,6 +195,8 @@ export default async function SellPage({
             cities={cities}
             locale={locale}
             vinLookupEnabled={vinLookup}
+            /** **وسيارةُ المرآب تُملأ ولا تُعاد كتابتُها.** */
+            candidate={candidate}
           />
         </div>
       </main>

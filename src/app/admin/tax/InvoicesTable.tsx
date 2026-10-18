@@ -174,7 +174,7 @@ export function InvoicesTable({
             rows={3}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="صدرت على مشتر خاطئ · ألغي الطلب قبل التسليم · …"
+            placeholder="صدرت على مشتري خاطئ · ألغي الطلب قبل التسليم · …"
             className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
           />
           {/*
@@ -187,7 +187,7 @@ export function InvoicesTable({
 
         <div className="flex gap-2.5">
           <Button disabled={busy || reason.trim().length < 5} onClick={submit}>
-            {busy ? 'جار…' : 'أصدر الإشعار'}
+            {busy ? 'جاري…' : 'أصدر الإشعار'}
           </Button>
           <Button variant="outline" onClick={() => setTarget(null)}>
             تراجع

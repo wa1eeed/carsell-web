@@ -190,7 +190,7 @@ export function CommissionRules({
                   disabled={pending || !dirty}
                   onClick={() => save(row)}
                 >
-                  {pending ? 'جار…' : dirty ? 'احفظ' : 'لا تغيير'}
+                  {pending ? 'جاري…' : dirty ? 'احفظ' : 'لا تغيير'}
                 </Button>
               ) : null}
             </div>

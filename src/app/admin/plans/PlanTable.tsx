@@ -228,7 +228,7 @@ function PlanEditor({
 
         <div className="mt-6 flex gap-3">
           <Button disabled={pending} onClick={save}>
-            {pending ? 'جار…' : 'احفظ'}
+            {pending ? 'جاري…' : 'احفظ'}
           </Button>
           <Button variant="outline" disabled={pending} onClick={onClose}>
             إلغاء
