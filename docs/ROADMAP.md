@@ -982,10 +982,10 @@ and the sitemap, canonical links and QR payloads all read from it.
 > … https://waki.sa/ar/pdpl» — plus the payment marks (Visa · Mastercard ·
 > Apple Pay · mada · stc pay).
 
-- [ ] **Regulatory marks**: Digital Government Authority · Saudi Business Center
+- [x] **Regulatory marks**: Digital Government Authority · Saudi Business Center
       · National Data Governance Platform · VAT.
-- [ ] **Payment marks**: the methods the platform actually accepts.
-- [ ] **`/pdpl`** — a data-protection page that beats the reference.
+- [ ] **Payment marks**: the methods the platform actually accepts. *Blocked: the logo file has not reached the repository.*
+- [x] **`/pdpl`** — a data-protection page that beats the reference.
 
 **A badge is a claim, not decoration.** A VAT mark says "this platform is
 registered for VAT"; a Saudi Business Center mark says "this commercial
@@ -994,6 +994,14 @@ beneath the mark and link it to the official verification — which is what make
 the badge worth anything. So the marks are rows, not markup: each carries its
 registration number and verify URL, both set from the panel, and a mark whose
 number is missing is still shown but unverified until the owner fills it.
+
+**And legal documents have no editor.** `/admin/legal` lists them and nothing
+updates them — no route, no screen. So the PDPL text ships in the repository
+(`src/content/pdpl.ts`) rather than as a `LegalDocument`: putting it in the
+database would not make it editable and would add the problem of reaching a
+running environment, since the seed runs once on an empty one. **Writing an
+editor for legal documents is its own task**, and when it exists this page's
+text moves into it.
 
 That also means **the owner must confirm each one the platform actually holds**
 and switch off any it does not. A mark the platform has not earned is the

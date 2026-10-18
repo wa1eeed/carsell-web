@@ -107,7 +107,7 @@ rather than found by chance.
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
 | `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
-| `SiteHeader` | no | `active` · `actions` | 27 |
+| `SiteHeader` | no | `active` · `actions` | 28 |
 | `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 2 |
 | `SponsoredCard` | yes | `ad` · `label` · `ratio` | 6 |
 | `SponsoredLine` | yes | `ad` · `label` | 1 |
@@ -123,12 +123,12 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 109 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 110 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 99 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 14 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
 | `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 98 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |

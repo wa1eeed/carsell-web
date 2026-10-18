@@ -346,6 +346,10 @@
           {
             "label": "Privacy",
             "href": "/legal/privacy"
+          },
+          {
+            "label": "Data protection (PDPL)",
+            "href": "/pdpl"
           }
         ]
       }
