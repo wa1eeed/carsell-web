@@ -36,7 +36,11 @@ export function PlateField({
   numbers: string;
   onLetters: (next: string) => void;
   onNumbers: (next: string) => void;
-  label: string;
+  /**
+   * عنوانُ المجموعة — **ويُحذف حين يسمّيها ما حولها**: قسمٌ عنوانُه
+   * «لوحة المركبة» وفيه عنوانٌ ثانٍ بالنصّ نفسه يُقرأ عنوانين.
+   */
+  label?: string;
   hint?: string;
 }) {
   /**
@@ -64,9 +68,11 @@ export function PlateField({
     onLetters(next.slice(0, index + 1).join(''));
   };
 
+  const ready = chosen.length === 3 && numbers.length > 0;
+
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-2xs font-bold">{label}</span>
+      {label === undefined ? null : <span className="text-2xs font-bold">{label}</span>}
 
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1.5">
@@ -120,9 +126,21 @@ export function PlateField({
         <p className="text-3xs leading-loose opacity-70">{hint}</p>
       )}
 
-      {/* المعاينةُ تظهر حين تكتمل اللوحة — ونصفُ لوحةٍ لا يُعرض شكلًا. */}
+      {/*
+        ═══ الصفيحةُ تُرسم فارغةً، ويُكتب عليها وهو يختار ═══
+
+        **ولوحٌ أبيضُ أصدقُ من مربّعٍ مكتوبٍ فيه «ستظهر هنا»**: الأوّل
+        يُري البائعَ ما سيُطبع — المقاس والإطار والشعار وموضعَ كلّ
+        خانة — فيمسك الخطأ قبل النشر. والثاني يَعِد بصورةٍ لا يراها.
+        (طلب المالك ٢٠٢٦-١٠-١٨.)
+
+        **والحبرُ يظهر بمفتاحٍ يتبدّل**: `key` على المحتوى يُعيد
+        التركيب، فيُرى أنّ شيئًا كُتب الآن — بلا أن يقفز التخطيط.
+      */}
       <div className="w-64 max-w-full">
-        <LicensePlate letters={letters} numbers={numbers} size="fill" />
+        <div key={`${letters}-${numbers}`} className={ready ? 'plate-ink' : undefined}>
+          <LicensePlate letters={letters} numbers={numbers} size="fill" blank />
+        </div>
       </div>
     </div>
   );

@@ -6,20 +6,22 @@ import { db } from '@/lib/db';
 import { addVehicle } from '@/lib/domain/garage';
 
 const ROOT = process.cwd();
-const SCREEN = join(ROOT, 'src/app/[locale]/(site)/account/vehicles/new');
+const SCREEN = join(ROOT, 'src/app/[locale]/(site)/account/vehicles/new/page.tsx');
 const LIST = join(ROOT, 'src/app/[locale]/(site)/account/vehicles/page.tsx');
+const WIZARD = join(ROOT, 'src/app/[locale]/(site)/sell/SellWizard.tsx');
 const FIELDS = join(ROOT, 'src/components/site/VehicleFields.tsx');
 
 /**
- * ═══ أضف سيارة — البابُ الذي كان الزرّ يَعِد به ═══
+ * ═══ إضافةُ مركبة — بابٌ واحد واستمارةٌ واحدة ═══
  *
  * `POST /api/v1/vehicles` قائمٌ منذ بُني المرآب ولا شاشة تناديه، وزرُّ
  * «أضف سيارة» كان يقود إلى معالج البيع — ترويسةٌ تقول «بِع سيارتك».
+ * ثمّ صارت له شاشةٌ خاصّة، **فصارتا استمارتين لسؤالٍ واحد** — فجُمعتا
+ * خلف سؤالٍ يُطرح مرّةً في الأوّل (طلب المالك ٢٠٢٦-١٠-١٨).
  */
 describe('شاشة إضافة مركبة', () => {
-  it('الشاشة موجودة، والزرّ يقود إليها لا إلى معالج البيع', () => {
-    expect(existsSync(join(SCREEN, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(SCREEN, 'AddVehicleForm.tsx'))).toBe(true);
+  it('الوجهة قائمة، والزرّ يقود إليها لا إلى معالج البيع مباشرة', () => {
+    expect(existsSync(SCREEN)).toBe(true);
 
     const list = readFileSync(LIST, 'utf8');
     expect(list).toContain('account/vehicles/new');
@@ -28,14 +30,23 @@ describe('شاشة إضافة مركبة', () => {
   });
 
   /**
-   * **والمعامل المُرسَل يُقرأ.** الشاشة تُحوّل بـ`?saved=1` — ومعاملٌ
-   * لا يقرؤه أحد صمتٌ بعد نجاح: يملأ صاحبُها الاستمارة ويصل القائمة
-   * بلا كلمة. (وقع في `?listed=` من قبل.)
+   * **ومن ضغط «أضف سيارة» قد اختار** — فلا يُسأل ثانيةً: سؤالٌ بعد
+   * ضغطةٍ صريحة يقول لصاحبه إنّ ضغطته لم تصل.
+   */
+  it('والقصد يصل محددا، فلا يعاد السؤال', () => {
+    expect(readFileSync(SCREEN, 'utf8')).toContain('sell?intent=garage');
+    const wizard = readFileSync(WIZARD, 'utf8');
+    expect(wizard).toContain('initialIntent');
+    expect(wizard).toContain('<IntentChooser');
+  });
+
+  /**
+   * **والمعامل المُرسَل يُقرأ.** الحفظ يُحوّل بـ`?saved=1` — ومعاملٌ
+   * لا يقرؤه أحد صمتٌ بعد نجاح. (وقع في `?listed=` من قبل.)
    */
   it('و«حُفظت» تُقال — المعامل يُرسَل ويُقرأ', () => {
-    const form = readFileSync(join(SCREEN, 'AddVehicleForm.tsx'), 'utf8');
-    const sent = /account\/vehicles\?tab=garage&saved=1/.test(form);
-    expect(sent).toBe(true);
+    const wizard = readFileSync(WIZARD, 'utf8');
+    expect(/account\/vehicles\?tab=garage&saved=1/.test(wizard)).toBe(true);
     expect(readFileSync(LIST, 'utf8')).toContain("query.saved === '1'");
   });
 
@@ -45,30 +56,23 @@ describe('شاشة إضافة مركبة', () => {
    * تُبنى ثلاثَ مرّاتٍ بيد.
    */
   it('والبابان يقرآن حقولًا واحدة', () => {
-    const wizard = readFileSync(
-      join(ROOT, 'src/app/[locale]/(site)/sell/SellWizard.tsx'),
-      'utf8',
-    );
-    const form = readFileSync(join(SCREEN, 'AddVehicleForm.tsx'), 'utf8');
-    for (const source of [wizard, form]) {
-      expect(source).toContain('<VehicleFields');
-      expect(source).toContain('vehiclePayload(');
-    }
+    const wizard = readFileSync(WIZARD, 'utf8');
+    expect(wizard).toContain('<VehicleFields');
+    expect(wizard).toContain('vehiclePayload(');
     /** ولا يبني أحدُهما حمولته بيده. */
     expect(wizard).not.toContain('colorExterior: vehicle.colorExterior');
-    expect(form).not.toContain('colorExterior: vehicle.colorExterior');
+    /** ولا استمارةَ ثانيةً في الحساب. */
+    expect(
+      existsSync(join(ROOT, 'src/app/[locale]/(site)/account/vehicles/new/AddVehicleForm.tsx')),
+    ).toBe(false);
   });
 
   /**
    * **والنشرُ كان يُسقط اللوحة.** المسودّةُ تحملها والمرآبُ يحملها
-   * والنشرُ — وهو الطريق الغالب — بناها بيده فنُسيت: يملأ البائع
-   * لوحته ويؤشّر «أظهِرها»، فيُنشر إعلانٌ بلا لوحة ولا كلمة.
+   * والنشرُ — وهو الطريق الغالب — بناها بيده فنُسيت.
    */
   it('والنشر يحمل اللوحة وخانتَها', () => {
-    const wizard = readFileSync(
-      join(ROOT, 'src/app/[locale]/(site)/sell/SellWizard.tsx'),
-      'utf8',
-    );
+    const wizard = readFileSync(WIZARD, 'utf8');
     /** ثلاثةُ نداءاتٍ تبني حمولة المركبة: النشر والمسودّة والمرآب. */
     expect(wizard.match(/vehiclePayload\(vehicle\)/g)?.length).toBe(3);
     /** وخانةُ الإظهار تصل مع النشر والمسودّة — إنها خاصّيةُ الإعلان. */
@@ -118,7 +122,7 @@ describe('المركبة تُحفظ بلوحتها', () => {
         spec: 'SAUDI',
         condition: 'USED',
         city: 'الرياض',
-        colorExterior: 'أبيض',
+        colorExterior: 'ابيض',
         vin: null,
         /** يُلصق لاتينيًّا وبأرقامٍ عربية — ويُخزَّن معتمدًا. */
         plateLetters: 'ABJ',

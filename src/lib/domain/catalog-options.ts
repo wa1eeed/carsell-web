@@ -10,6 +10,18 @@ import { db } from '@/lib/db';
  */
 
 export type CatalogOption = { id: string; nameAr: string; nameEn: string };
+
+/**
+ * ماركةٌ بشعارها — **والشعارُ من الصفّ لا من ملفٍّ باسم المقطع**.
+ *
+ * لوحةُ الأدمن ترفعه إلى `Brand.logoUrl` منذ بُنيت، واشتقاقُه من
+ * المقطع (`/brands/toyota.svg`) يُنتج مصدرين يتباعدان: ماركةٌ يرفع لها
+ * المشغّل شعارًا فلا يظهر، وأخرى بلا شعارٍ تطلب ملفًّا غير موجود.
+ *
+ * و`null` حالٌ قائمة لا استثناء: قِيس ٢٠٢٦-١٠-١٨ فكانت **كلُّ
+ * الاثنتين والأربعين بلا شعار**. فالقائمةُ تقرأ الغياب ولا تنكسر به.
+ */
+export type BrandOption = CatalogOption & { logoUrl: string | null };
 export type FeatureOption = { key: string; nameAr: string; nameEn: string };
 
 export async function listBrandOptions(): Promise<CatalogOption[]> {
@@ -36,16 +48,22 @@ export async function listBrandOptions(): Promise<CatalogOption[]> {
  * **ولا تُستعمل في البحث**: الباحث يصفّي بما في السوق، وقائمةٌ فارغة
  * نتيجةٌ مفهومة لا طريقٌ مسدود.
  */
-export async function listSellableBrandOptions(): Promise<CatalogOption[]> {
+export async function listSellableBrandOptions(): Promise<BrandOption[]> {
   const rows = await db.brand.findMany({
     where: {
       visible: true,
       models: { some: { visible: true, trims: { some: { visible: true } } } },
     },
     orderBy: [{ sort: 'asc' }],
-    select: { id: true, nameAr: true, nameEn: true },
+    select: { id: true, nameAr: true, nameEn: true, logoUrl: true },
   });
-  return rows.map((row) => ({ id: row.id, nameAr: row.nameAr, nameEn: row.nameEn }));
+  return rows.map((row) => ({
+    id: row.id,
+    nameAr: row.nameAr,
+    nameEn: row.nameEn,
+    /** الفارغُ غيابٌ — ونصٌّ فارغٌ في `src` يطلب الصفحة نفسها. */
+    logoUrl: row.logoUrl === null || row.logoUrl === '' ? null : row.logoUrl,
+  }));
 }
 
 export async function listModelOptions(brandId: string | null): Promise<CatalogOption[]> {

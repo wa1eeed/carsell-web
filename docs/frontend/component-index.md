@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **160** components in **4** directories.
+Counted: **165** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -34,7 +34,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 10 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 10 |
 | `DetailStats` | no | `items` | 12 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 125 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 126 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -81,7 +81,7 @@ rather than found by chance.
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
 | `SettingsBlock` | yes | `title` · `children` | 2 |
-| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 5 |
+| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 7 |
 | `BidPanel` | yes | `listingRef` · `live` · `minimumNext` · `increment` · `depositAmount` · `buyNowPrice` · `signedIn` · `isOwn` · `locale` · `onPlaced` | 2 |
 | `BuyActions` | yes | `listingRef` · `price` · `type` · `isOwn` · `reserved` · `signedIn` · `locale` · `taxProfile` | 1 |
 | `CancelOrder` | yes | `orderRef` | 1 |
@@ -89,6 +89,7 @@ rather than found by chance.
 | `DisputePanel` | yes | `orderRef` · `canOpen` · `hasOpen` | 1 |
 | `FavoriteButton` | yes | `listingRef` · `initial` · `signedIn` · `signInHref` · `className` | 1 |
 | `InspectionSummary` | yes | `score` · `sections` · `onOpen` · `className` | 1 |
+| `IntentChooser` | no | `locale` | 1 |
 | `ListingControls` | yes | `listingRef` · `status` · `price` · `negotiable` · `description` · `hasActiveOrder` | 1 |
 | `ListingServices` | no | `services` · `ownVehicleId` | 1 |
 | `ListingStatsRow` | no | `stats` | 1 |
@@ -108,7 +109,7 @@ rather than found by chance.
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
 | `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
-| `SiteHeader` | no | `active` · `actions` | 29 |
+| `SiteHeader` | no | `active` · `actions` | 28 |
 | `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 2 |
 | `SponsoredCard` | yes | `ad` · `label` · `ratio` | 6 |
 | `SponsoredLine` | yes | `ad` · `label` | 1 |
@@ -118,7 +119,8 @@ rather than found by chance.
 | `TaxStatusDialog` | yes | `open` · `onClose` · `onSaved` · `initial` | 3 |
 | `VehicleControls` | yes | `vehicleId` · `mileageKm` · `colorExterior` · `city` · `cities` · `canRemove` | 1 |
 | `VehicleFields` | yes | `catalog` · `brands` · `cities` · `locale` · `identity` | 2 |
-| `VehiclePlateField` | yes | `catalog` | 2 |
+| `VehiclePlateField` | yes | `catalog` · `consent` · `step` | 1 |
+| `VehicleProgress` | yes | `catalog` | 1 |
 
 ## `src/components/ui`
 
@@ -126,13 +128,13 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 110 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 111 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 99 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 16 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 99 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 98 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -145,7 +147,7 @@ rather than found by chance.
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
-| `Field` | no | `label` · `hint` · `error` · `required` · `unit` · `htmlFor` · `children` | 125 |
+| `Field` | no | `label` · `hint` · `error` · `required` · `unit` · `htmlFor` · `children` | 126 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
@@ -167,6 +169,8 @@ rather than found by chance.
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 2 |
+| `BrandMark` | yes | `name` · `logoUrl` | 1 |
+| `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
 | `Quantity` | no | `unit` · `count` · `className` | 107 |
@@ -189,6 +193,7 @@ rather than found by chance.
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
 | `Toast` | no | `tone` · `title` · `description` · `className` | 74 |
+| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
 
 ## `src/components/ui/plate`
@@ -197,6 +202,6 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `EmblemIcon` | no | `emblem` · `className` · `monochrome` | 0 |
 | `EmblemShapes` | no | `art` · `monochrome` | 1 |
-| `LicensePlate` | no | `letters` · `numbers` · `size` · `className` | 5 |
+| `LicensePlate` | no | `letters` · `numbers` · `size` · `className` · `blank` | 6 |
 | `PlateField` | yes | `letters` · `numbers` · `onLetters` · `onNumbers` · `label` · `hint` | 1 |
 | `SaudiLicensePlate` | no | `plateType` · `plateFormat` · `arabicLetters` · `latinLetters` · `plateNumbers` · `arabicNumbers` · `latinNumbers` · `emblem` · `customEmblemUrl` · `size` · `animated` · `showReflection` · `className` · `stripSide` · `title` | 1 |

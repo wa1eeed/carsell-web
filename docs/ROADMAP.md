@@ -1092,6 +1092,60 @@ on it is not selling anything.
   letter — a plate missing its middle letter in front of a seller who had
   touched nothing.
 
+## 17 · The vehicle form, redesigned — *owner's request 2026-10-18* — **done**
+
+> «بينما انت تعمل على اللوحه في النموذج صحح ظهورها من خلال زر تفعيل خيارات
+> إظهار رقم اللوحة ضمن الإعلان + اعد تنسيق الخيارات و الحقول للنموذج بشكل
+> احترافي و جذاب و ذكي و يفضل اضافة انيميشن و جعل النموذج تفاعلي»
+
+The form that `VehicleFields` renders — used by the sell wizard's first step and
+by «أضف سيارة» in the account — is a flat two-column grid of eleven inputs with
+a bare checkbox at the end. Three things to fix:
+
+- [x] **A toggle, not a checkbox**, for «أظهر اللوحة مع الإعلان». A `Toggle`
+      already exists but lives inside `src/components/site/AuctionSettings.tsx`,
+      so nothing else can reach it — it belongs in `src/components/ui/`.
+- [x] **Sections instead of one grid**: identity · condition · specification ·
+      plate, each with its own heading and its own completion state, so the
+      seller can see what is left rather than scanning eleven fields.
+- [x] **Motion and interactivity**: the repository already has `step-in`,
+      `registry-scan` and `rail-fill` with a `prefers-reduced-motion` guard —
+      the new motion joins that vocabulary rather than inventing its own, and
+      every piece of it says *where you are* or *what just happened*, never
+      decorates.
+
+**And one flow, not two** — the owner's second message the same day:
+
+> «الامر طبعاً ينطبق على النموذجين .. اضافة اللوحة و نموذج البيع و يفضل دمج
+> النموذجين من خلال صفحة اوليه بخيارين اضافة السيارة في قائمة سيارات المستخدم
+> او خيار عرض السيارة للبيع .. طبعاً في خيار اضافة السياره في قائمه سيارات
+> المستخدم يكون فيه ملاحظه اسفل الخيار انه يمكنه بعد الاضافة عرضها للبيع او
+> طلب خدمات على السياره»
+
+- [x] A **choice step** before the form: list it for sale, or add it to «سياراتي»
+      — and under the second, in the owner's own words, a line saying the car
+      can be listed later or have a service ordered on it.
+- [x] `/account/vehicles/new` folds into that flow rather than keeping a second
+      shell of its own.
+
+**And the dropdowns**, third message the same day:
+
+> «الدروب داون ليست يجب ان تكون عصريه و احترافيه. وبالنسبه لدروب داون الماركه
+> يجب ان يعرض الماركات بجانبها صوره اللوقو لكل ماركه (يتم عرضها من اللوقو
+> المرتبط لكل ماركه مضافه في اعدادات الماركات في لوحة الادمن»
+
+- [x] A listbox of our own, not the browser's `<select>` — which cannot carry an
+      image, cannot be styled, and looks like a different product on every OS.
+- [x] The brand list shows each brand's logo, read from `Brand.logoUrl`, which
+      the admin's brand settings already upload and store.
+
+> **And no brand has a logo yet.** Measured 2026-10-18: 42 brands, **zero**
+> `logoUrl` values — the admin screen can set one and nothing ever has. So the
+> list must read correctly when the logo is missing (initials, not a broken
+> image), and the owner needs to upload them from `/admin/catalog/brands` for
+> the feature to show anything. A row that renders a gap is the «ما لا يُزرع لا
+> يُرى» class with a brand name on it.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

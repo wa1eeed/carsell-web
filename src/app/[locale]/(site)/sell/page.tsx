@@ -64,6 +64,16 @@ export default async function SellPage({
    * سيرفضه الخادم وعدٌ مُخلَف.
    */
   const query = await searchParams;
+
+  /**
+   * **والقصدُ يُقرأ من العنوان**: من ضغط «أضف سيارة» قد اختار، فلا
+   * يُسأل ثانيةً — وسؤالُه يقول له إنّ ضغطته لم تصل.
+   */
+  const initialIntent =
+    query.intent === 'garage' ? ('garage' as const)
+    : query.intent === 'sell' ? ('sell' as const)
+    : null;
+
   const asked = typeof query.vehicle === 'string' ? query.vehicle : null;
   const candidate = asked === null ? null : await saleCandidate(user.id, asked, locale);
   if (candidate !== null && candidate.alreadyListed) {
@@ -108,11 +118,30 @@ export default async function SellPage({
     <>
       <SiteHeader />
       <main className="min-h-screen bg-bg text-ink">
+        {/*
+          ═══ والصدرُ يتبع القصد ═══
+
+          ترويسةٌ تقول «بِع سيارتك بسعر عادل ومن دون عمولة» فوق استمارةٍ
+          يملؤها من يضيف سيارتَه إلى حسابه **وعدٌ لا يخصّه**: لا بيعَ
+          ولا عمولةَ ولا وسيطَ بيع. وتحتها ثلاثةُ أرقامٍ عن سوقٍ لن
+          يدخله اليوم.
+
+          **والنصّ المعروض وعدٌ لا وصف** — فالصدرُ يقول ما يقع فعلًا.
+        */}
         <section className="bg-ink text-bg">
           <div className="page-frame py-11">
             <h1 className="mb-5 max-w-2xl text-display leading-tight font-extrabold tracking-tight">
-              {t('title')}
-              <span className="block opacity-70">{t('titleTail')}</span>
+              {initialIntent === 'garage' ? (
+                <>
+                  أضف سيارتك
+                  <span className="block opacity-70">إلى حسابك</span>
+                </>
+              ) : (
+                <>
+                  {t('title')}
+                  <span className="block opacity-70">{t('titleTail')}</span>
+                </>
+              )}
             </h1>
 
             {/*
@@ -127,10 +156,15 @@ export default async function SellPage({
               مُطفأ: وعدٌ لا يجد صاحبُه حقلَه أسوأ من سطرٍ أقصر.
             */}
             <p className="mb-7 max-w-2xl text-sm leading-loose opacity-75">
-              {vinLookup ? t('leadVin') : t('lead')}
+              {initialIntent === 'garage'
+                ? 'سجل سيارتك عندك بدون ما تعرضها. تطلب عليها فحصا أو خدمة، وتعرضها للبيع وقت ما تحب.'
+                : vinLookup
+                  ? t('leadVin')
+                  : t('lead')}
             </p>
 
-            <dl className="flex flex-wrap gap-9">
+            {/* وأرقامُ السوق لمن يدخله — ومن يضيف سيارةً لا يدخله اليوم. */}
+            <dl className={initialIntent === 'garage' ? 'hidden' : 'flex flex-wrap gap-9'}>
               {[
                 /**
                  * **والعمولة من قاعدتها لا مكتوبةً بيد.** كانت `0`
@@ -197,6 +231,7 @@ export default async function SellPage({
             vinLookupEnabled={vinLookup}
             /** **وسيارةُ المرآب تُملأ ولا تُعاد كتابتُها.** */
             candidate={candidate}
+            initialIntent={initialIntent}
           />
         </div>
       </main>

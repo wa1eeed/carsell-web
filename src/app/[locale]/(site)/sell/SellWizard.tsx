@@ -24,11 +24,13 @@ import {
   FIELD_CLASS,
   VehicleFields,
   VehiclePlateField,
+  VehicleProgress,
   useVehicleCatalog,
   vehiclePayload,
-  type CatalogOption,
+  type BrandOption,
   type VehicleDraft,
 } from '@/components/site/VehicleFields';
+import { IntentChooser, type SaleIntent } from '@/components/site/IntentChooser';
 import { Stepper } from '@/components/ui/Stepper';
 import { PriceGuidance } from '@/components/site/PriceGuidance';
 import type { RangeStats } from '@/components/ui/RangeBar';
@@ -92,12 +94,13 @@ export function SellWizard({
   locale,
   vinLookupEnabled,
   candidate,
+  initialIntent,
   auctionLimits,
   rules,
   allowedMethods,
 }: {
   taxProfile: TaxProfile;
-  brands: readonly CatalogOption[];
+  brands: readonly BrandOption[];
   cities: readonly string[];
   locale: string;
   /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
@@ -110,6 +113,17 @@ export function SellWizard({
    * ماركتَها لم يصحّح سيارته بل وضع مكانها سيارةً أخرى.
    */
   candidate: SaleCandidate | null;
+  /**
+   * ═══ القصدُ يُسأل مرّةً في الأوّل ═══
+   *
+   * **وكانت استمارتان لسؤالٍ واحد**: `/sell` تنشر و`/account/vehicles/new`
+   * تحفظ، والحقولُ بينهما واحدة. فمن فتح إحداهما لا يعرف بالأخرى،
+   * ومن أراد تسجيل سيارته ليطلب عليها فحصًا سيق إلى «بِع سيارتك».
+   *
+   * وحين يصل مُحدَّدًا (`?intent=`) لا يُسأل: من ضغط «أضف سيارة» قد
+   * اختار، وسؤالُه ثانيةً يقول إنّ ضغطته لم تصل.
+   */
+  initialIntent: SaleIntent | null;
   /**
    * حدود المشغّل — **لا تُكتب هنا**. المدد وأدنى فرقٍ بين مزايدتين
    * والعربون في لوحة المزادات، ونسخُها يجعل المعالج يعرض مدّةً يرفضها
@@ -134,6 +148,11 @@ export function SellWizard({
   const t = useTranslations('sell');
   const tx = useTranslations('tax');
 
+  /**
+   * **وسيارةُ المرآب قصدُها البيع ضرورةً**: من ضغط «اعرضها للبيع»
+   * لسيارةٍ فيه لا يُسأل أيضيفها إليه — هي فيه.
+   */
+  const intent: SaleIntent | null = candidate !== null ? 'sell' : initialIntent;
   const [step, setStep] = useState<(typeof STEPS)[number]>('vehicle');
   /**
    * الكتالوجُ المتتالي ومعه حقولُ المركبة — **مشتركةٌ مع شاشة «أضف
@@ -270,7 +289,12 @@ export function SellWizard({
       }
 
       /** **والوجهة تقول أين حُفظت** — ومنها يُعرض أو يُطلب عليه خدمة. */
-      router.push(`/${locale}/account/vehicles?saved=1`);
+      /**
+       * **والتبويبُ `garage`**: السيارة حُفظت مخفيّةً عن السوق،
+       * والقائمةُ تفتح على «معروضة» افتراضًا — فيصلها صاحبُها ولا
+       * يجد ما أضافه، ولا شيء يقول أين ذهب.
+       */
+      router.push(`/${locale}/account/vehicles?tab=garage&saved=1`);
     })();
   };
 
@@ -544,14 +568,35 @@ export function SellWizard({
   const vehicleReady = catalog.ready;
   const photosReady = images.length > 0 && price !== '';
 
+  /**
+   * **والخطواتُ تتبع القصد.** من يضيف سيارةً إلى حسابه لا يمرّ بصورٍ
+   * ولا سعرٍ ولا طريقة بيع — وشريطٌ يعرض ثلاثًا وهو يسلك واحدةً
+   * يقول له إنّ أمامه ما ليس أمامه.
+   */
+  const steps = intent === 'garage' ? (['vehicle'] as const) : STEPS;
+
+  if (intent === null) {
+    return (
+      <section className="max-w-3xl pb-4">
+        <h2 className="mb-1.5 text-lg font-bold">وش تبي تسوي بسيارتك؟</h2>
+        <p className="mb-6 text-2xs leading-loose opacity-70">
+          البيانات وحدة في الحالتين — تختار الآن ونكمل معك.
+        </p>
+        <IntentChooser locale={locale} />
+      </section>
+    );
+  }
+
   return (
     <>
-      <Stepper
-        steps={STEPS.map((id) => ({ id, label: t(`step.${id}`) }))}
-        active={step}
-        onSelect={(id) => setStep(id as (typeof STEPS)[number])}
-        className="mb-9"
-      />
+      {steps.length < 2 ? null : (
+        <Stepper
+          steps={steps.map((id) => ({ id, label: t(`step.${id}`) }))}
+          active={step}
+          onSelect={(id) => setStep(id as (typeof STEPS)[number])}
+          className="mb-9"
+        />
+      )}
 
       {step === 'vehicle' ? (
         <section className="max-w-3xl">
@@ -613,7 +658,7 @@ export function SellWizard({
             </div>
           )}
 
-          <h2 className="mb-4 text-lg font-bold">{t('vehicleData')}</h2>
+          <VehicleProgress catalog={catalog} />
 
           <VehicleFields
             catalog={catalog}
@@ -626,31 +671,27 @@ export function SellWizard({
           />
 
           {/*
-            ═══ واللوحةُ تُدخَل هنا — وكان عمودُها بلا كاتب ═══
+            ═══ واللوحةُ قسمٌ بذاته — إدخالٌ دائم وإظهارٌ بمفتاح ═══
 
             `Vehicle.plateLetters` في المخطّط منذ بُني **ولا نموذجَ في
             المنتج يكتبه**: تكتبه البذرةُ وحدها، فكلُّ مركبةٍ ينشرها
             بائعٌ حقيقيّ بلا لوحة — وتقريرُ فحصها ينقصه ما تُعرف به.
-          */}
-          <div className="mt-7 border-t border-line-2 pt-6">
-            <VehiclePlateField catalog={catalog} />
 
-            {/*
-              **والإظهارُ اختيارٌ لا افتراض**: المنصّة تطمس اللوحة في
-              الصور، فعرضُها نصًّا بجوار صورةٍ مطموسة ينقض الطمس.
-            */}
-            <label className="mt-5 flex items-start gap-3 text-2xs leading-loose">
-              <input
-                type="checkbox"
-                checked={showPlate}
-                onChange={(event) => setShowPlate(event.target.checked)}
-                className="mt-0.5 size-4 shrink-0"
-              />
-              <span>
-                <span className="font-bold">{t('showPlate')}</span>
-                <span className="mt-0.5 block opacity-70">{t('showPlateHint')}</span>
-              </span>
-            </label>
+            **والإظهارُ اختيارٌ لا افتراض**: المنصّة تطمس اللوحة في
+            الصور، فعرضُها نصًّا بجوار صورةٍ مطموسة ينقض الطمس.
+          */}
+          <div className="mt-4">
+            <VehiclePlateField
+              catalog={catalog}
+              {...(intent === 'garage'
+                ? {}
+                : {
+                    consent: {
+                      on: showPlate,
+                      onToggle: () => setShowPlate((was) => !was),
+                    },
+                  })}
+            />
           </div>
 
           {/*
@@ -663,22 +704,27 @@ export function SellWizard({
             وبيانات هذه الخطوة وحدها تكفي لحفظها: الصور وطريقة البيع
             شرطا **العرض**.
           */}
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Button onClick={() => setStep('photos')} disabled={!vehicleReady}>
-              {t('next')}
-            </Button>
+          {/*
+            ═══ والزرُّ واحدٌ يتبع القصد ═══
 
-            {/*
-              **ولا تُعرض لسيارةٍ فيه أصلًا**: زرٌّ يقول «احفظ في
-              سياراتي» لسيارةٍ جاء صاحبُها من «سياراتي» يَعِد بما وقع.
-            */}
-            {candidate !== null ? null : (
-              <Button
-                variant="outline"
-                onClick={saveVehicle}
-                disabled={!vehicleReady || publishing}
-              >
-                احفظ في سياراتي
+            كانا زرَّين متجاورين — «التالي» و«احفظ في سياراتي» —
+            **وخياران متكافئان في آخر استمارةٍ يُعيدان السؤال الذي
+            أُجيب في أوّلها**. فمن اختار البيع يرى «التالي» وحده، ومن
+            اختار الإضافة يرى «احفظ السيارة» وحده.
+          */}
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            {intent === 'garage' ? (
+              <>
+                <Button onClick={saveVehicle} disabled={!vehicleReady || publishing}>
+                  {publishing ? 'نحفظ…' : 'احفظ السيارة'}
+                </Button>
+                <span className="text-3xs opacity-70">
+                  تحفظ مخفية عن السوق. تقدر تعرضها للبيع أو تطلب عليها خدمة بعد الحفظ.
+                </span>
+              </>
+            ) : (
+              <Button onClick={() => setStep('photos')} disabled={!vehicleReady}>
+                {t('next')}
               </Button>
             )}
           </div>
