@@ -319,10 +319,22 @@
   color: var(--mute);
 }
 
+/*
+ * ═══ وكلُّ قطعةٍ في مربّعها ═══
+ *
+ * كانت سردًا في أربعة أعمدة: اسمٌ ثمّ حالُه بينهما فراغ، **والفراغُ
+ * بين العمودين أوسع من الفراغ داخل العمود** — فكلمةُ «أصلي» تقع بين
+ * اسمين ولا يُعرف أيَّهما تصف. (قرار المالك ٢٠٢٦-١٠-١٨، وقد قرأها
+ * على الورقة.)
+ *
+ * فحدٌّ يلفّ الاثنين: الاسمُ سطرٌ وحالُه تحته، والمربّعُ يقول **هذان
+ * معًا** بلا أن يُقرأ ترتيبٌ ولا تُقدَّر مسافة. **والفصلُ بالخطوط لا
+ * بالمسافات** — وهي قاعدةُ المستودع نفسها.
+ */
 .sheet .panels ul {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.4mm 4mm;
+  gap: 1.6mm;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -330,18 +342,36 @@
 }
 .sheet .panels li {
   display: flex;
-  justify-content: space-between;
-  gap: 2mm;
-  padding-bottom: 1mm;
-  border-bottom: 0.2mm dotted var(--rule);
+  flex-direction: column;
+  gap: 0.4mm;
+  padding: 1.6mm 2mm;
+  border: 0.2mm solid var(--brand-edge);
+  border-radius: 1mm;
+  break-inside: avoid;
+}
+.sheet .panels .pk {
+  font-size: 6.6pt;
+  color: var(--mute);
 }
 .sheet .panels .pv {
-  color: var(--mute);
+  font-size: 7.6pt;
+  font-weight: 700;
+  color: var(--ok);
+}
+/* **وما خرج عن الأصل يُرى من بعيد** — فهو الخبر في هذا المربّع. */
+.sheet .panels li.repainted,
+.sheet .panels li.replaced {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 .sheet .panels li.repainted .pv,
 .sheet .panels li.replaced .pv {
-  font-weight: 700;
   color: var(--note);
+}
+.sheet .panels li.unknown .pv {
+  color: var(--mute);
 }
 .sheet .pnote {
   margin: 0 0 2.6mm;

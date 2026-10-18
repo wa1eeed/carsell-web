@@ -158,6 +158,14 @@ Three decisions worth keeping:
   the same URL is impossible and the URL is deliberately a child of the
   vehicle's; the chrome is therefore hidden wherever a sheet is present.
 
+**Each body panel sits in its own box.** It was a four-column list of
+`name … state` pairs, and the gap *between* columns is wider than the gap
+*within* one — so «أصلي» floats between two names and belongs to neither. The
+owner read it on the sheet and said so. A border around the pair settles it
+without the reader having to judge a distance: name above, state below, and the
+repainted ones tinted so they are found before they are read. Separation by
+rules, not by space — the repository's own rule.
+
 **And it wears the platform's colours.** Black ink on white is correct and
 cheap, and it does not read as a document issued by anyone. A brand band across
 the head of the card, the score as a green disc, section headers as green bands,
