@@ -12,6 +12,7 @@ import { LinkButton } from '@/components/ui/Button';
 import {
   REPORT_VALIDITY_DAYS,
   findReportByListingRef,
+  inspectionRefForListing,
   toPublicReport,
 } from '@/lib/domain/inspection';
 import { loadBodyDiagram } from '@/lib/domain/body-diagram';
@@ -108,8 +109,19 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
 
-  const report = slug[slug.length - 1] === 'inspection';
-  const parts = report ? slug.slice(0, -1) : slug;
+  /**
+   * ═══ والذيلُ يُقشَّر كما يقشّره `resolve` ═══
+   *
+   * كان يُسقط `inspection` وحدها، و`…/inspection/pdf` ذيلُها `pdf` —
+   * فتبقى خمسةُ أجزاء، ويردّ الفحصُ `{}`، **فالورقةُ بلا عنوانٍ
+   * البتّة**. ولا يظهر ذلك خطأً في شاشة: يظهر حين يحفظ القارئ الـPDF
+   * فيقترح المتصفّحُ اسمَ النافذة اسمًا للملفّ — «Claude» عند من
+   * فتحها من التطبيق. **وعنوانُ الصفحة هو اسمُ الملفّ المحفوظ.**
+   */
+  const sheet = slug[slug.length - 1] === 'pdf' && slug[slug.length - 2] === 'inspection';
+  const trimmed = sheet ? slug.slice(0, -1) : slug;
+  const report = trimmed[trimmed.length - 1] === 'inspection';
+  const parts = report ? trimmed.slice(0, -1) : trimmed;
   if (parts.length !== 4) return {};
 
   const row = await findListingForMetadata(fromSlug(parts[3] ?? ''));
@@ -118,6 +130,24 @@ export async function generateMetadata({
   const canonical = canonicalPath(locale, row);
   /** **وعنوان التبويب بلغة الصفحة** — كان اللقطة العربية على `/en` أيضًا. */
   const title = vehicleTitle(row.vehicle, locale);
+
+  /**
+   * ═══ وعنوانُ الورقة اسمُ ملفّها ═══
+   *
+   * المتصفّحُ يسمّي ملفَّ الـPDF بعنوان الصفحة. فيبدأ بمرجع التقرير —
+   * يفرز ويتميّز ولا يلتبس تقريران لسيارتين من طرازٍ واحد — ثمّ ما
+   * هو ولأيّ مركبة.
+   */
+  if (sheet) {
+    const reportRef = await inspectionRefForListing(row.ref);
+    return {
+      title:
+        reportRef === null
+          ? `تقرير فحص — ${title} — ${row.ref}`
+          : `${reportRef} — تقرير فحص — ${title}`,
+      robots: { index: false, follow: false },
+    };
+  }
 
   // التقرير محتوى فرعي — الإعلان هو ما يُفهرَس
   if (report) {

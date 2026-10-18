@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
+import { hasProbe } from '@/lib/domain/integration-probes';
 import { decryptSecret, encryptSecret, secretHint } from '@/lib/crypto/secrets';
 import { existsSync } from 'node:fs';
 import {
@@ -238,7 +239,21 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
 describe('A11 — الفحص لا يدّعي نجاحًا', () => {
   it('لا مزوّد بعد ⇒ لا نتيجة خضراء', async () => {
     const operator = await admin('المشغّل');
-    const integration = await db.integration.findFirstOrThrow();
+    /**
+     * **والطقمُ يشترط ما يفترضه.** كان يأخذ `findFirstOrThrow()` بلا
+     * ترتيب ويفترض أنّ أوّل صفٍّ بلا وصلة — فإذا وقع على
+     * `moyasar_platform` ولها مفتاحٌ مضبوط جرت الوصلةُ فعلًا وكُتب
+     * `false` مكان `null`. يمرّ وحده ويسقط بين جيرانه.
+     *
+     * و`hasProbe` تُسأل ولا يُكتب المفتاحُ بيد: وصلةٌ تُضاف غدًا
+     * لتكاملٍ آخر لا تُعيد السقوط.
+     */
+    const candidates = await db.integration.findMany({
+      orderBy: { key: 'asc' },
+      select: { key: true, lastCheckAt: true, lastCheckOk: true },
+    });
+    const integration = candidates.find((row) => !hasProbe(row.key));
+    if (integration === undefined) throw new Error('كلُّ التكاملات لها وصلة');
 
     const result = await checkConnection(operator, integration.key, null);
     expect(result.ok).toBe(true);

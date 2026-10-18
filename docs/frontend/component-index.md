@@ -159,7 +159,7 @@ rather than found by chance.
 | `FindingsTable` | yes | `sections` · `className` | 1 |
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
-| `Logo` | no | `variant` · `className` · `priority` | 8 |
+| `Logo` | no | `variant` · `className` · `priority` | 9 |
 | `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 80 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |

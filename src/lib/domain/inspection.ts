@@ -329,3 +329,22 @@ export function toPublicReport(
   };
 }
 
+
+/**
+ * مرجعُ التقرير المنشور لإعلانٍ — **للعنوان وحده**.
+ *
+ * ولا تُستعمل `findReportByListingRef` لذلك: تلك تجلب التقريرَ كاملًا
+ * بأقسامه ومركبته لتُبنى منه صفحة، وعنوانُ تبويبٍ لا يحتاج إلّا سطرًا.
+ * **وما يُجلَب يُسلسَل ولو لم يُرسَم** — فالقاعدة أن يُطلب ما يُستعمل.
+ */
+export async function inspectionRefForListing(listingRef: string): Promise<string | null> {
+  const row = await db.inspectionReport.findFirst({
+    where: {
+      publishedAt: { not: null },
+      vehicle: { listings: { some: { ref: listingRef } } },
+    },
+    orderBy: { inspectedAt: 'desc' },
+    select: { ref: true },
+  });
+  return row?.ref ?? null;
+}

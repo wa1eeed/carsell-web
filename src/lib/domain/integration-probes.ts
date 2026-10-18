@@ -64,7 +64,14 @@ export async function probeIntegration(
   return probe(secrets).catch(() => ({ state: 'FAILED', detail: null }) as ProbeResult);
 }
 
-/** أللتكامل وصلةٌ تُجرَّب؟ — سؤالُ الشاشة قبل أن تَعِد بفحص. */
+/**
+ * أللتكامل وصلةٌ تُجرَّب؟ — سؤالُ الشاشة قبل أن تَعِد بفحص.
+ *
+ * **ويسألها الاختبارُ أيضًا.** طقمٌ يريد تكاملًا «بلا وصلة» كان يأخذ
+ * أوّل صفٍّ بلا ترتيب ويأمل — فيقع أحيانًا على `moyasar_platform`
+ * فتجري الوصلةُ فعلًا ويُكتب `false` مكان `null`: يمرّ وحده ويسقط
+ * بين جيرانه. **والطقم يشترط ما يفترضه.**
+ */
 export function hasProbe(key: string): boolean {
   return PROBES[key] !== undefined;
 }
