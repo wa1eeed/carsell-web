@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { MAX_CARD_BADGES } from '@/lib/catalog/badges';
 import { canonicalPath } from './listing-detail';
 import type { ListingCard } from './listings';
 
@@ -96,6 +97,13 @@ export async function getDealerPage(
           model: { select: { nameEn: true } },
           },
         },
+        /** شاراتُ البطاقة — الموسومةُ وحدها، وبترتيب الكتالوج. */
+        features: {
+          where: { feature: { active: true, placements: { has: 'card_badge' } } },
+          orderBy: { feature: { sort: 'asc' } },
+          take: MAX_CARD_BADGES,
+          select: { feature: { select: { key: true, nameAr: true, nameEn: true } } },
+        },
         images: { orderBy: { sort: 'asc' } },
         auction: { include: { _count: { select: { bids: true } } } },
       },
@@ -167,6 +175,7 @@ export async function getDealerPage(
         sellerIsDealer: true,
         /** **إعلانُ من يقرأ** — ومالكُ المعرض يرى بطاقاته موسومة. */
         isOwn: viewerId !== null && row.sellerId === viewerId,
+        badges: row.features.map((link) => link.feature),
         highestBid: null,
         bidderCount: row.auction?._count.bids ?? null,
         endsAt: row.auction?.endsAt.toISOString() ?? null,

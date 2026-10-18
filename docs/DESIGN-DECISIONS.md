@@ -482,7 +482,7 @@ enum ApprovalStatus { PENDING APPROVED REJECTED EXPIRED EXECUTED }
    - `sell_form` — استمارة البائع (أُضيف ٢٠٢٦-١٠-١٨؛ انظر آخر الملف)
    - `search_filter` — فلتر البحث (Wb)
    - `listing_page` — صفحة السيارة (Wc)
-   - `card_badge` — شارة على البطاقة
+   - `card_badge` — شارة على البطاقة (صار له قارئ ٢٠٢٦-١٠-١٨؛ انظر آخر الملف)
 4. **الإخفاء** (`active = false`) يزيلها من الفلتر وصفحة السيارة، ولا يحذفها
    من الفئات ولا من الإعلانات المنشورة.
 5. **الحذف النهائي** متاح فقط لميزة غير مربوطة بأي فئة — **يُتحقّق في الخادم
@@ -1882,3 +1882,38 @@ it: editing the car afterwards does not rewrite an advert people are reading.
 joins the whole catalogue — `Feature.key` is global — so it will appear for
 every trim and every seller. The screen states that before the operator finds
 out from the consequences.
+
+
+---
+
+## 2026-10-18 — The card badge, a placement that had no reader
+
+**Owner's request, the same day:** «نعم اضف شارة على بطاقة السيارة».
+
+`card_badge` had been declared since A19, was settable from the admin panel,
+and **nothing in the product displayed it** — the eleventh instance of a value
+in the schema that nothing reads. A car card said only its city, mileage and
+gearbox; nothing told a buyer scanning a grid why one car differs from the next.
+
+**At most two per card.** The limit lives in the domain (`MAX_CARD_BADGES`), so
+the grid card and the list row cannot disagree, and the query takes only what
+it will show. A badge on every card is not a badge — the A19 note already said
+so, and this keeps it true.
+
+**Ordered by `Feature.sort`.** That is the catalogue's own order, which the
+operator already controls from `/admin/catalog/features`. Inventing a second
+priority in code would mean two sources for one decision.
+
+**Five ship flagged, as a starting point:** cooled seats, sunroof, panoramic
+roof, 360° camera, adaptive cruise. The test is what separates cars in the
+Saudi market, not what is desirable in the abstract — automatic air
+conditioning is in every car on the platform, and cooled seats are not. The
+operator changes the set from the panel with no deploy.
+
+### What the test measurement caught
+
+The first version of the limit test asked «is every card within the limit?» —
+and the seeded data tops out at two badges, so the answer was yes whatever the
+limit was. Raising the query's `take` to nine left it **green**: a blind gate.
+It now plants the extra features on a real listing, asserts the search returns
+exactly two and the two lowest-sorted, and removes what it planted.

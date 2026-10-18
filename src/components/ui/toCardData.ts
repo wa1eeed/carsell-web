@@ -1,4 +1,5 @@
 import type { ListingCardData } from '@/components/ui/CarCard';
+import { badgeLabel } from '@/lib/catalog/badges';
 
 /**
  * ═══ صفُّ البحث إلى بطاقة — **مرّةً لا أربعًا** ═══
@@ -30,11 +31,13 @@ export type SearchRow = {
   highestBid: string | null;
   bidderCount: number | null;
   endsAt: string | null;
+  /** بلغتيها من النطاق — والشاشة تختار، فهي التي تعرف لغتها. */
+  badges: readonly { key: string; nameAr: string; nameEn: string }[];
 };
 
 export function toCardData(
   row: SearchRow,
-  labels: { transmission: string; anonymousSeller: string },
+  labels: { transmission: string; anonymousSeller: string; locale: string },
 ): ListingCardData {
   /**
    * ═══ والحقول تُكتب واحدًا واحدًا — لا `...row` ═══
@@ -67,6 +70,7 @@ export function toCardData(
     sellerName: row.sellerName ?? labels.anonymousSeller,
     sellerVerified: row.sellerVerified,
     isOwn: row.isOwn,
+    badges: row.badges.map((badge) => badgeLabel(badge, labels.locale)),
     /**
      * **وحقول المزاد تُحذف لا تُصفَّر.** صفرٌ في «أعلى مزايدة» يوحي
      * بأن المركبة بلا قيمة، و`undefined` تجعل البطاقة لا تعرض السطر.

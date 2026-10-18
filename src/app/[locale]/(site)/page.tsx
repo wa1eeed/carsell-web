@@ -15,6 +15,7 @@ import type { ServedAd } from '@/lib/domain/ad-rules';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { BodyTypeStrip } from '@/components/ui/BodyTypeStrip';
 import { CarCard } from '@/components/ui/CarCard';
+import { badgeLabel } from '@/lib/catalog/badges';
 import { FaqAccordion } from '@/components/ui/FaqAccordion';
 import { HeroSearch } from '@/components/ui/HeroSearch';
 import {
@@ -172,6 +173,8 @@ export default async function HomePage({
     sellerVerified: item.sellerVerified,
     /** **إعلانُ من يقرأ** — ويُوسَم في الرئيسية كما في البحث. */
     isOwn: ownRefs.has(item.ref),
+    /** **وما يُمنح لبطاقةٍ يُمنح لأخواتها** — البحثُ والهبوطُ والمعرض. */
+    badges: item.badges.map((badge) => badgeLabel(badge, locale)),
   });
 
   return (

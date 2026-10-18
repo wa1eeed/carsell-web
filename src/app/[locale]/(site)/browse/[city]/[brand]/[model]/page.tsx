@@ -220,6 +220,7 @@ export default async function CityBrandModelLanding({
                   <Link href={item.href}>
                     <CarCard
                       data={toCardData(item, {
+                        locale,
                         transmission: te(`transmission.${item.transmission}`),
                         anonymousSeller: ANONYMOUS_SELLER,
                       })}

@@ -80,7 +80,11 @@ it passes over anything the seed already planted.
 or display it; **`sell_form` is the only one that asks anybody anything** — it
 decides whether the seller is offered that feature in the entry form. It was
 added 2026-10-18, when measuring showed `ListingFeature` had no writer in the
-product at all. The seed turns on every placement except `card_badge`.
+product at all. The seed turns on `trim_editor`, `sell_form`, `search_filter` and
+`listing_page` for every feature, and `card_badge` for five of them — cooled
+seats, sunroof, panoramic roof, 360° camera and adaptive cruise. Those five are
+a starting point the operator edits from the panel; the test for them is what
+separates cars in the Saudi market, not what is desirable in the abstract.
 
 `VehicleFeature` is written from the entry form (both intents), and
 `ListingFeature` is a **snapshot taken at publish time**, never a live read of

@@ -11,6 +11,7 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { CarCard } from '@/components/ui/CarCard';
+import { badgeLabel } from '@/lib/catalog/badges';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
@@ -235,6 +236,7 @@ export default async function DealerPage({
                       sellerName: listing.sellerName ?? dealer.name,
                       sellerVerified: listing.sellerVerified,
                       isOwn: listing.isOwn,
+                      badges: listing.badges.map((badge) => badgeLabel(badge, locale)),
                       ...(listing.bidderCount === null ? {} : { bidderCount: listing.bidderCount }),
                       ...(listing.endsAt === null ? {} : { endsAt: listing.endsAt }),
                     }}

@@ -39,6 +39,18 @@ export type ListingCardData = {
    * — والحارس صحيح، والشاشة لم تقل.
    */
   isOwn?: boolean;
+  /**
+   * ═══ ما يُميّزها في سطر ═══
+   *
+   * موضعُ `card_badge` معرَّفٌ منذ A19 ويُضبط من لوحة الأدمن،
+   * **ولم يكن يقرؤه شيء** — فبطاقةٌ لا تقول شيئًا عن سيارةٍ إلّا
+   * مدينتَها وممشاها. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   *
+   * **والتسميةُ جاهزة**: البطاقة لا تعرف لغتها من كائنٍ بلغتين،
+   * والشاشة تختار. و`MAX_CARD_BADGES` يحدّ العدد في النطاق لا هنا —
+   * فالحدُّ واحدٌ لكل شاشة.
+   */
+  badges?: readonly string[];
   /** للمزاد فقط */
   highestBid?: number;
   bidderCount?: number;
@@ -146,6 +158,32 @@ function Price({ data }: { data: ListingCardData }) {
   );
 }
 
+/**
+ * ═══ شاراتُ ما يُميّزها ═══
+ *
+ * **وشارةٌ على كل بطاقة ليست شارة** — فالعدد محدودٌ في النطاق
+ * (`MAX_CARD_BADGES`)، والصفُّ يختفي كلَّه حين لا شيء يُقال. والموضعُ
+ * تحت سطر البيانات لا فوق الصورة: الصورةُ ما جاء القارئ يراه.
+ *
+ * **ومكوّنٌ واحد للشكلين** — بطاقةُ الشبكة وصفُّ القائمة: ما يُمنح
+ * لأحدهما يُمنح للآخر، ونسختان تتباعدان أوّل تغيير.
+ */
+function BadgeRow({ badges }: { badges?: readonly string[] }) {
+  if (badges === undefined || badges.length === 0) return null;
+  return (
+    <p className="flex flex-wrap gap-1.5">
+      {badges.map((badge) => (
+        <span
+          key={badge}
+          className="rounded-sm bg-accent-100 px-2 py-0.5 text-3xs text-accent-900"
+        >
+          {badge}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 /** بطاقة الشبكة — Wa وWb. `sponsored` تضيف وسم «مموّل» الإلزامي. */
 export function CarCard({
   data,
@@ -192,6 +230,8 @@ export function CarCard({
         <MetaLine
           parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
         />
+
+        <BadgeRow badges={data.badges} />
 
         <div className="mt-auto flex items-end justify-between gap-3 border-b border-line-2 pb-3">
           <Price data={data} />
@@ -266,6 +306,7 @@ export function CarRow({
           <MetaLine
             parts={[data.city, { count: data.mileageKm, unit: 'km' }, data.transmissionLabel]}
           />
+          <BadgeRow badges={data.badges} />
           <Seller
             name={data.sellerName}
             verified={data.sellerVerified}

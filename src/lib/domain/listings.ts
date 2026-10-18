@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { MAX_CARD_BADGES, type CardBadge } from '@/lib/catalog/badges';
 import { cityLabel } from '@/lib/labels/cities';
 import { vehicleTitle } from './vehicle-title';
 import { canonicalPath } from './listing-detail';
@@ -454,6 +455,11 @@ export type ListingCard = {
    * فيردّه الخادم `OWN_LISTING`. والحارس صحيح، **والشاشة لم تقل**.
    */
   isOwn: boolean;
+  /**
+   * ما يُميّزها في سطر — اثنتان على الأكثر، من موضع `card_badge`.
+   * والتسميةُ بلغتيها، فالنطاق لا يعرف لغة الشاشة.
+   */
+  badges: CardBadge[];
   highestBid: string | null;
   bidderCount: number | null;
   endsAt: string | null;
@@ -521,6 +527,21 @@ export async function searchListings(
           trim: { select: { nameEn: true } },
           },
         },
+        /**
+         * **شاراتُ البطاقة — الموسومةُ وحدها.** `card_badge` كان موضعًا
+         * بلا قارئ: يُضبط من اللوحة ولا بطاقةَ تعرضه. والترشيحُ في
+         * الاستعلام لا في الشاشة — **ما لا يدخل الكائن لا يتسرّب منه**،
+         * ولا تُجلب تسعٌ وثلاثون ميزةً لتُعرض اثنتان.
+         */
+        features: {
+          where: { feature: { active: true, placements: { has: 'card_badge' } } },
+          orderBy: { feature: { sort: 'asc' } },
+          take: MAX_CARD_BADGES,
+          select: {
+            featureKey: true,
+            feature: { select: { key: true, nameAr: true, nameEn: true } },
+          },
+        },
         seller: { include: { dealer: true } },
         images: { orderBy: { sort: 'asc' } },
         auction: {
@@ -586,6 +607,7 @@ export async function searchListings(
         sellerIsDealer: row.seller.dealer != null,
         /** **إعلانُ من يقرأ** — والمقارنة هنا فلا تُنسخ في أربع شاشات. */
         isOwn: viewerId !== null && row.sellerId === viewerId,
+        badges: row.features.map((link) => link.feature),
         highestBid: highest?._max.amount?.toString() ?? null,
         /**
          * **والمزايدون غيرُ المزايدات.** كان هذا `_count.bids` تحت اسم

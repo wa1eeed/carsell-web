@@ -94,7 +94,8 @@
       "trim_editor",
       "search_filter",
       "listing_page",
-      "sell_form"
+      "sell_form",
+      "card_badge"
     ]
   },
   {
@@ -290,7 +291,8 @@
       "trim_editor",
       "search_filter",
       "listing_page",
-      "sell_form"
+      "sell_form",
+      "card_badge"
     ]
   },
   {
@@ -304,7 +306,8 @@
       "trim_editor",
       "search_filter",
       "listing_page",
-      "sell_form"
+      "sell_form",
+      "card_badge"
     ]
   },
   {
@@ -318,7 +321,8 @@
       "trim_editor",
       "search_filter",
       "listing_page",
-      "sell_form"
+      "sell_form",
+      "card_badge"
     ]
   },
   {
@@ -542,7 +546,8 @@
       "trim_editor",
       "search_filter",
       "listing_page",
-      "sell_form"
+      "sell_form",
+      "card_badge"
     ]
   }
 ]

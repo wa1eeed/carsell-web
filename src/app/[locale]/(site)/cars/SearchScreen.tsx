@@ -10,6 +10,7 @@ import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Button } from '@/components/ui/Button';
 import { CarCard, CarRow, type ListingCardData } from '@/components/ui/CarCard';
+import { badgeLabel } from '@/lib/catalog/badges';
 import { Chip } from '@/components/ui/Chip';
 import { SaveSearchButton } from '@/components/site/SaveSearchButton';
 import { SponsoredCard, SponsoredRow } from '@/components/site/SponsoredCard';
@@ -217,6 +218,7 @@ export function SearchScreen({
     sellerName: item.sellerName ?? ANONYMOUS_SELLER,
     sellerVerified: item.sellerVerified,
     isOwn: item.isOwn,
+    badges: item.badges.map((badge) => badgeLabel(badge, locale)),
     ...(item.publishedAt === null ? {} : { publishedAt: item.publishedAt }),
     ...(item.highestBid === null ? {} : { highestBid: Number(item.highestBid) }),
     ...(item.bidderCount === null ? {} : { bidderCount: item.bidderCount }),

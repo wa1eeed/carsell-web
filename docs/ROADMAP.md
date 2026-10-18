@@ -1437,8 +1437,11 @@ no reader at all.
       new feature joins the whole catalogue.
 - [x] A badge beside any trim feature the catalogue does not ask sellers about,
       so ticking it does not silently do nothing.
-- [ ] `card_badge` still has no reader — declared, settable, and used by
-      nothing.
+- [x] `card_badge` now has a reader — **owner's request, same day**: a badge
+      row on the car card, at most two, ordered by the catalogue's own `sort`.
+      Five features ship flagged as a starting point (cooled seats, sunroof,
+      panoramic roof, 360° camera, adaptive cruise); the operator changes that
+      from `/admin/catalog/features` with no deploy.
 
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 

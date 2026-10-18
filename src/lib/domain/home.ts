@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { MAX_CARD_BADGES, type CardBadge } from '@/lib/catalog/badges';
 import { cityLabel } from '@/lib/labels/cities';
 import { vehicleTitle } from './vehicle-title';
 import { verifiedSellerWhere } from './seller';
@@ -53,6 +54,8 @@ export type HomeCard = {
   imageCount: number;
   sellerName: string;
   sellerVerified: boolean;
+  /** ما يميّزها في سطر — اثنتان على الأكثر، من موضع `card_badge`. */
+  badges: CardBadge[];
   href: string;
 };
 
@@ -136,6 +139,13 @@ const CARD_INCLUDE = {
     },
   },
   seller: { select: { name: true, idVerified: true, dealer: { select: { nameAr: true, verified: true } } } },
+  /** شاراتُ البطاقة — الموسومةُ وحدها، وبترتيب الكتالوج. */
+  features: {
+    where: { feature: { active: true, placements: { has: 'card_badge' } } },
+    orderBy: { feature: { sort: 'asc' } },
+    take: MAX_CARD_BADGES,
+    select: { feature: { select: { key: true, nameAr: true, nameEn: true } } },
+  },
   images: { select: { id: true }, orderBy: { sort: 'asc' } },
   auction: { select: { id: true, endsAt: true, status: true, _count: { select: { bids: true } } } },
 } as const;
@@ -162,6 +172,7 @@ type CardRow = {
     idVerified: boolean;
     dealer: { nameAr: string; verified: boolean } | null;
   };
+  features: { feature: CardBadge }[];
   images: { id: string }[];
   auction: { id: string; endsAt: Date; status: string; _count: { bids: number } } | null;
 };
@@ -203,6 +214,7 @@ function toCard(
     imageCount: row.images.length,
     sellerName: row.seller.dealer?.nameAr ?? row.seller.name ?? '',
     sellerVerified: row.seller.idVerified || row.seller.dealer?.verified === true,
+    badges: row.features.map((link) => link.feature),
     href: canonicalPath(locale, row).path,
   };
 }

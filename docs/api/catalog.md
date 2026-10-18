@@ -159,9 +159,18 @@ One bank of features feeding trims, the search filter and the car page.
   `TrimFeature` and `ListingFeature` link and would only surface in production.
 - **The names are content.** Edited any time, visible immediately, no deploy.
 - **Five independent placements**: `trim_editor` · `sell_form` ·
-  `search_filter` · `listing_page` · `card_badge`. The seed turns on all but
-  `card_badge`, which is per-feature and off by default, because a badge on
-  every card is not a badge.
+  `search_filter` · `listing_page` · `card_badge`.
+- **`card_badge` puts a pill on the car card**, under the city/mileage line.
+  At most **two** per card (`MAX_CARD_BADGES`), ordered by the catalogue's own
+  `Feature.sort` — one source the operator already owns, rather than a second
+  priority hidden in code. The limit lives in the domain, not the screen, so
+  the grid card and the list row cannot disagree.
+  It was a placement with **no reader at all** until 2026-10-18: settable from
+  the panel since A19, displayed by nothing. Five features ship flagged as a
+  starting point — cooled seats, sunroof, panoramic roof, 360° camera,
+  adaptive cruise — chosen for what separates cars in the Saudi market rather
+  than what every car has. The operator changes that from the panel, no deploy.
+  A badge on every card is not a badge.
 - **`sell_form` is the only one that asks anybody anything.** The other four
   fill the catalogue or display it. It was added 2026-10-18, when measuring
   showed that `ListingFeature` **had no writer in the product at all**: the
