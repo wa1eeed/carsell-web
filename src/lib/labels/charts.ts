@@ -1,3 +1,5 @@
+import type { OrderStage } from '@/generated/prisma/enums';
+
 import { displayDigits } from '@/lib/arabic';
 
 /**
@@ -14,7 +16,7 @@ export const STAGE_LABEL: Record<string, string> = {
   PAYMENT: 'الدفع',
   TRANSFER: 'نقل الملكية',
   DONE: 'الإنهاء',
-};
+} satisfies Record<OrderStage, string>;
 
 /** مراحل أزمنة A2 — والمفتاح يصف الانتظار لا الحالة. */
 export const STAGE_TIME_LABEL: Record<string, string> = {

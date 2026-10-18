@@ -1,3 +1,5 @@
+import type { ReviewReason } from '@/generated/prisma/enums';
+
 /**
  * تسميات أسباب إحالة الإعلان للمراجعة (قرار ٣٣) — **مرّةً واحدة**.
  *
@@ -12,4 +14,4 @@ export const REVIEW_REASON_LABEL: Record<string, string> = {
   PRICE_OUTLIER: 'سعر شاذّ',
   NEW_ACCOUNT_BURST: 'حساب جديد',
   USER_REPORT: 'بلاغ',
-};
+} satisfies Record<ReviewReason, string>;

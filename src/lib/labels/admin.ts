@@ -1,8 +1,4 @@
-import type {
-  IntegrationCategory,
-  IntegrationEnv,
-  PaymentPurpose,
-} from '@/generated/prisma/enums';
+import type { AuctionStatus, BuyerType, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -26,14 +22,14 @@ export const LISTING_TYPE_LABEL: Record<string, string> = {
   DIRECT: 'بيع مباشر',
   NEGOTIATION: 'تفاوض',
   AUCTION: 'مزاد',
-};
+} satisfies Record<ListingType, string>;
 
 export const ORDER_SOURCE_LABEL: Record<string, string> = {
   DIRECT: 'بيع مباشر',
   BUY_NOW: 'شراء فوري',
   OFFER: 'تفاوض',
   AUCTION: 'مزاد',
-};
+} satisfies Record<OrderSource, string>;
 
 export const ORDER_STATUS_LABEL: Record<string, string> = {
   COMPLETED: 'مكتملة',
@@ -41,7 +37,7 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   CANCELLED: 'ملغاة',
   STALLED: 'متعثّرة',
   DISPUTED: 'متنازع عليها',
-};
+} satisfies Record<OrderStatus, string>;
 
 export const AUCTION_STATUS_LABEL: Record<string, string> = {
   LIVE: 'جارية',
@@ -49,7 +45,7 @@ export const AUCTION_STATUS_LABEL: Record<string, string> = {
   ENDED_MET: 'رست',
   ENDED_UNMET: 'لم تبلغ الاحتياطي',
   CANCELLED: 'ملغاة',
-};
+} satisfies Record<AuctionStatus, string>;
 
 /** بطاقات A1 — العنوان وشرائحه. */
 export const DASHBOARD_CARD_LABEL: Record<string, string> = {
@@ -160,13 +156,13 @@ export const SELLER_TYPE_LABEL: Record<string, string> = {
   DEALER_VAT: 'مورِّد مسجَّل',
   DEALER_NO_VAT: 'تاجر غير مسجَّل',
   COMPANY: 'شركة',
-};
+} satisfies Record<SellerType, string>;
 
 export const BUYER_TYPE_LABEL: Record<string, string> = {
   INDIVIDUAL: 'فرد',
   DEALER: 'تاجر',
   COMPANY: 'شركة',
-};
+} satisfies Record<BuyerType, string>;
 
 /**
  * ═══ لماذا لم تصدر الفاتورة ═══
@@ -192,28 +188,28 @@ export const SUPPLY_TYPE_LABEL: Record<string, string> = {
   SERVICE: 'الخدمات',
   ADMIN_FEE: 'رسوم إدارية',
   DISBURSEMENT: 'صرف بدلًا عن العميل',
-};
+} satisfies Record<SupplyType, string>;
 
 export const TAXABLE_BASE_LABEL: Record<string, string> = {
   FULL_VALUE: 'كامل القيمة',
   MARGIN: 'هامش الربح',
   FEE_ONLY: 'العمولة وحدها',
   OUT_OF_SCOPE: 'خارج النطاق؟ — لا فاتورة',
-};
+} satisfies Record<TaxableBase, string>;
 
 export const INVOICE_ISSUER_LABEL: Record<string, string> = {
   PLATFORM: 'المنصّة',
   SELLER: 'البائع',
   PLATFORM_ON_BEHALF: 'المنصة بالنيابة',
   NONE: 'لا أحد',
-};
+} satisfies Record<InvoiceIssuer, string>;
 
 export const INVOICE_STATUS_LABEL: Record<string, string> = {
   ISSUED: 'صادرة',
   REPORTED: 'مُبلَّغة',
   REPORT_FAILED: 'تعذّر الإبلاغ',
   CANCELLED: 'ملغاة',
-};
+} satisfies Record<InvoiceStatus, string>;
 
 /** «أي» لا «الكل»: الصفّ العامّ يطابق ما لم يجد أخصّ منه. */
 export const ANY_TYPE = 'أي';
@@ -225,7 +221,7 @@ export const DISPUTE_STATUS_LABEL: Record<string, string> = {
   RESOLVED_BUYER: 'حُسم للمشتري',
   RESOLVED_SELLER: 'حُسم للبائع',
   CLOSED: 'مغلق',
-};
+} satisfies Record<DisputeStatus, string>;
 
 export const RESOLUTION_LABEL: Record<string, string> = {
   FULL_REFUND: 'استرداد كامل',
@@ -332,7 +328,7 @@ export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
   GOODWILL_EXPENSE: 'تعويضات ومنح',
   PROVIDER_PAYABLE: 'حقوق مزوّدي الخدمات',
   PROVIDER_COST: 'تكلفة خدمات المزوّدين',
-};
+} satisfies Record<LedgerAccount, string>;
 
 /**
  * ═══ حالُ الحساب وحالُ هويّته — يُقرآن لا يُهجّيان ═══
@@ -348,7 +344,13 @@ export const USER_STATUS_LABEL: Record<string, string> = {
   ACTIVE: 'نشط',
   SUSPENDED: 'موقوف',
   BANNED: 'محظور',
-};
+  /**
+   * **وحسابٌ أغلقه صاحبُه ليس موقوفًا ولا محظورًا**: الثلاثة كانت
+   * القائمة كلَّها، و`CLOSED` يُكتب من `account-closure.ts` — فصفحةُ
+   * العميل كانت تعرض المفتاح الخام «CLOSED» لمن أغلق حسابه.
+   */
+  CLOSED: 'مُغلق بطلب صاحبه',
+} satisfies Record<UserStatus, string>;
 
 export const IDENTITY_STATUS_LABEL: Record<string, string> = {
   NONE: 'لم تُقدَّم',
@@ -356,7 +358,7 @@ export const IDENTITY_STATUS_LABEL: Record<string, string> = {
   CLARIFICATION: 'مُعلَّق للتوضيح',
   VERIFIED: 'موثّق',
   REJECTED: 'مرفوض',
-};
+} satisfies Record<IdentityStatus, string>;
 
 
 /**

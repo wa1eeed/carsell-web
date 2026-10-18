@@ -1,3 +1,5 @@
+import type { PaymentStatus, ServiceCategory, ServiceRequestStatus } from '@/generated/prisma/enums';
+
 /**
  * ═══ أحوالُ طلب الخدمة كما تُقرأ ═══
  *
@@ -17,7 +19,7 @@ export const SERVICE_REQUEST_STATUS: Record<string, string> = {
   DONE: 'اكتمل',
   FAILED: 'تعذّر تنفيذه',
   REFUNDED: 'رُدّ مبلغه',
-};
+} satisfies Record<ServiceRequestStatus, string>;
 
 /** ما يُعرض في عمود القيمة — ولكل حالٍ ما ينتظره صاحبُها فعلًا. */
 export const SERVICE_REQUEST_NEXT: Record<string, string> = {
@@ -30,7 +32,7 @@ export const SERVICE_REQUEST_NEXT: Record<string, string> = {
   DONE: 'التقرير جاهز',
   FAILED: 'راجع الدعم',
   REFUNDED: 'رُدّ المبلغ',
-};
+} satisfies Record<ServiceRequestStatus, string>;
 
 /**
  * فئةُ الخدمة — **وكانت تُعرض مفتاحًا خامًا** («PRE_PURCHASE») في
@@ -40,7 +42,7 @@ export const SERVICE_CATEGORY: Record<string, string> = {
   PRE_PURCHASE: 'قبل الشراء',
   POST_PURCHASE: 'بعد الشراء',
   SELLER: 'للبائع',
-};
+} satisfies Record<ServiceCategory, string>;
 
 /**
  * حالُ دفعةِ الطلب كما يقرؤها المشغّل.
@@ -57,8 +59,15 @@ export const SERVICE_PAYMENT_STATUS: Record<string, string> = {
   SETTLED: 'حُصِّل',
   PARTIALLY_SETTLED: 'حُصِّل جزئيًّا',
   CANCELLED: 'أُلغي ورُدّ',
+  /**
+   * **والردُّ بعد التحصيل حالٌ أخرى**: `PAYMENT_STATE` تحتها منذ
+   * كُتبت وهذه لم تكن — خريطتان للتعداد نفسه، تباعدتا. و`service.refunded`
+   * يُنتجهما، فطلبٌ رُدّ مبلغُه كان يعرض «RETURNED» خامًا للمشغّل.
+   */
+  RETURNED: 'رُدّ بعد التحصيل',
+  PARTIALLY_RETURNED: 'رُدّ جزءٌ منه',
   FAILED: 'فشلت',
-};
+} satisfies Record<PaymentStatus, string>;
 
 /**
  * ═══ حالُ دفعةِ الخدمة كما يقرؤها من دفع ═══
@@ -78,4 +87,4 @@ export const PAYMENT_STATE: Record<string, string> = {
   RETURNED: 'رُدّ المبلغ',
   PARTIALLY_RETURNED: 'رُدّ جزءٌ منه',
   FAILED: 'تعذّر السداد',
-};
+} satisfies Record<PaymentStatus, string>;

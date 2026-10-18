@@ -1,3 +1,5 @@
+import type { ProviderType } from '@/generated/prisma/enums';
+
 /**
  * ═══ أسماءُ حقول الإنجاز ═══
  *
@@ -117,7 +119,7 @@ export const SERVICE_DONE_BY_TYPE: Record<string, string> = {
   PHOTOGRAPHY: 'سُلّمت الصور',
   FINANCE: 'صدر القرار',
   OTHER: 'اكتمل',
-};
+} satisfies Record<ProviderType, string>;
 
 /**
  * عنوانُ نموذج الإنجاز في لوحة المزوّد — فعلُ الصنف لا «أنهِ» عامّة.
@@ -134,4 +136,4 @@ export const COMPLETION_FORM_TITLE: Record<string, string> = {
   PHOTOGRAPHY: 'تسليم الصور',
   FINANCE: 'قرار التمويل',
   OTHER: 'إثبات الإنجاز',
-};
+} satisfies Partial<Record<ProviderType, string>>;

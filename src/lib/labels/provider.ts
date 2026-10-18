@@ -1,3 +1,5 @@
+import type { AccountSignatory, ProviderAccountKind, ProviderAccountStatus, ServiceRequestStatus } from '@/generated/prisma/enums';
+
 /**
  * ═══ تسمياتُ لوحة المزوّدين ═══
  *
@@ -21,13 +23,24 @@ export const PROVIDER_STEP_NOTE: Record<string, string> = {
 };
 
 export const PROVIDER_REQUEST_STATUS: Record<string, string> = {
+  /**
+   * ═══ وما قبل الطابور يُسمّى أيضًا ═══
+   *
+   * الثلاثة الأولى لا تصل لوحةَ المزوّد (لا تُعرض إلّا المدفوعة)، لكن
+   * **صفحةَ المزوّد في الأدمن تعرض كلَّ طلباته** — فحالٌ بلا تسمية
+   * تُطبع مفتاحًا خامًا أمام مشغّل. والقائمة تكتمل بالتعداد لا بما
+   * رأته شاشةٌ واحدة.
+   */
+  AWAITING_SELLER: 'ينتظر إذن صاحب المركبة',
+  AWAITING_PAYMENT: 'ينتظر سداد الطالب',
+  DECLINED: 'لم يُؤذَن به',
   NEW: 'معروض',
   ASSIGNED: 'مقبول — لم يبدأ',
   IN_PROGRESS: 'قيد التنفيذ',
   DONE: 'مكتمل',
   FAILED: 'متعذّر',
   REFUNDED: 'رُدّ مبلغه',
-};
+} satisfies Record<ServiceRequestStatus, string>;
 
 /**
  * ═══ حالُ حساب الدفع كما يُقرأ ═══
@@ -45,7 +58,7 @@ export const PROVIDER_ACCOUNT_STATUS: Record<string, string> = {
   HOLD: 'موقوف مؤقّتًا',
   REJECTED: 'مرفوض',
   DISABLED: 'معطَّل',
-};
+} satisfies Record<ProviderAccountStatus, string>;
 
 /** وما يعنيه كلُّ حالٍ عمليًّا — فالمشغّل يعرف ما يفعل لا ما يُسمّى. */
 export const PROVIDER_ACCOUNT_NOTE: Record<string, string> = {
@@ -58,7 +71,7 @@ export const PROVIDER_ACCOUNT_NOTE: Record<string, string> = {
   HOLD: 'أوقفه المزوّد مؤقّتًا — لا تُسنَد إليه طلبات حتى يُرفع.',
   REJECTED: 'رُفض الحساب. راجع السبب، وقد يلزم إعادة التقديم.',
   DISABLED: 'أُغلق الحساب — ولا يصله مال.',
-};
+} satisfies Record<ProviderAccountStatus, string>;
 
 /** صفةُ المنشأة — وهي تحدّد ما تطلبه الجهة المنظِّمة من مستندات. */
 export const ACCOUNT_KIND_LABEL: Record<string, string> = {
@@ -67,13 +80,13 @@ export const ACCOUNT_KIND_LABEL: Record<string, string> = {
   COMPANY: 'شركة',
   GOVERNMENT: 'جهة حكومية',
   CHARITY: 'جهة خيرية',
-};
+} satisfies Record<ProviderAccountKind, string>;
 
 export const ACCOUNT_SIGNATORY_LABEL: Record<string, string> = {
   OWNER: 'المالك',
   COMMERCIAL_CONTRACT: 'عقدٌ تجاريّ',
   POWER_OF_ATTORNEY: 'وكالة',
-};
+} satisfies Record<AccountSignatory, string>;
 
 /** المستندات كما يسمّيها المزوّد — تُترجم ولا تُخترع. */
 export const ACCOUNT_DOCUMENT_LABEL: Record<string, string> = {
