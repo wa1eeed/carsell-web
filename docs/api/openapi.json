@@ -2194,7 +2194,8 @@
                     "maxLength": 120
                   },
                   "yearFrom": {
-                    "type": "integer"
+                    "type": "integer",
+                    "nullable": true
                   },
                   "yearTo": {
                     "type": "integer",
@@ -2217,8 +2218,7 @@
                 "required": [
                   "brandId",
                   "nameAr",
-                  "nameEn",
-                  "yearFrom"
+                  "nameEn"
                 ]
               }
             }
@@ -2275,7 +2275,8 @@
                     "maxLength": 120
                   },
                   "yearFrom": {
-                    "type": "integer"
+                    "type": "integer",
+                    "nullable": true
                   },
                   "yearTo": {
                     "type": "integer",
@@ -2348,7 +2349,8 @@
                     "maxLength": 120
                   },
                   "yearFrom": {
-                    "type": "integer"
+                    "type": "integer",
+                    "nullable": true
                   },
                   "yearTo": {
                     "type": "integer",

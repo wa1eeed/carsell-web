@@ -53,7 +53,8 @@ type ModelDraft = {
   id?: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  /** **وصفٌ لا قيد** — تُترك فارغةً (قرار المالك ٢٠٢٦-١٠-١٨). */
+  yearFrom: number | null;
   yearTo: number | null;
   /**
    * نوعُ التسجيل الافتراضيّ لهذا الطراز — يصل نموذجَ المستخدم
@@ -241,7 +242,7 @@ export function CatalogTree({
             className="mt-auto w-full"
             onClick={() =>
               setModelDraft({
-                nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(),
+                nameAr: '', nameEn: '', yearFrom: null,
                 yearTo: null, registrationType: 'PRIVATE',
               })
             }
@@ -266,11 +267,19 @@ export function CatalogTree({
                   <Quantity unit="trims" count={model.trimCount} />
                   <span aria-hidden className="opacity-40">·</span>
                   <Quantity unit="listings" count={model.listingCount} />
-                  <span aria-hidden className="opacity-40">·</span>
-                  <span className="bidi-isolate">
-                    السنوات <ArabicNumber value={model.yearFrom} grouped={false} />–
-                    <ArabicNumber value={model.yearTo ?? new Date().getFullYear()} grouped={false} />
-                  </span>
+                  {/* **والسنواتُ وصفٌ لا قيد** — فتُترك فارغةً ولا يُكتب سطرُها. */}
+                  {model.yearFrom === null ? null : (
+                    <>
+                      <span aria-hidden className="opacity-40">·</span>
+                      <span className="bidi-isolate">
+                        السنوات <ArabicNumber value={model.yearFrom} grouped={false} />–
+                        <ArabicNumber
+                          value={model.yearTo ?? new Date().getFullYear()}
+                          grouped={false}
+                        />
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
               <span className="flex-1" />
@@ -336,7 +345,14 @@ export function CatalogTree({
                   >
                     احذفه
                   </Button>
-                  <Button onClick={() => setDraft({ ...EMPTY_TRIM, yearFrom: model.yearFrom })}>
+                  <Button
+                    onClick={() =>
+                      setDraft({
+                        ...EMPTY_TRIM,
+                        yearFrom: model.yearFrom ?? new Date().getFullYear(),
+                      })
+                    }
+                  >
                     أضف فئة
                   </Button>
                 </>
@@ -536,12 +552,26 @@ export function CatalogTree({
                 ))}
               </select>
             </label>
+            {/*
+              ═══ وسنواتُ الطراز وصفٌ لا قيد ═══
+
+              **ولا تحدّ ما يختاره البائع**: قائمتُه من ١٩٦٠ إلى
+              السنة الجارية مهما كُتب هنا، ولا يفحصها نشرٌ ولا بحث.
+              وحقلٌ إلزاميٌّ يُقرأ قيدًا — فمن يملؤه يظنّ أنّه يحدّ ما
+              يُنشر تحته. (قرار المالك ٢٠٢٦-١٠-١٨: «لمزيد من الحرية».)
+            */}
             <label className={label}>
-              من سنة
+              من سنة — اختياري، ولا يحد اختيار البائع
               <input
                 type="number"
-                value={modelDraft.yearFrom}
-                onChange={(e) => setModelDraft({ ...modelDraft, yearFrom: Number(e.target.value) })}
+                placeholder="اتركها فارغة"
+                value={modelDraft.yearFrom ?? ''}
+                onChange={(e) =>
+                  setModelDraft({
+                    ...modelDraft,
+                    yearFrom: e.target.value === '' ? null : Number(e.target.value),
+                  })
+                }
                 className={cn(field, 'font-num', errors.yearFrom !== undefined && 'border-danger')}
               />
             </label>

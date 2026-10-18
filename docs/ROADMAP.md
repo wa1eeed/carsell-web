@@ -1319,6 +1319,29 @@ literals — so `CROSSOVER` and `CONVERTIBLE` would have been refused by the API
 the moment the editor offered them. It reads `z.enum(BodyType)` from the schema
 now, the way the rest of the product does.
 
+## 22 · The model's years describe, they do not restrict — *owner's decision 2026-10-18*
+
+> «سنة الصنع من المنطقي ان لا يتم ربطها بالماركه في اعدادات الماركات لمزيد من
+> الحرية»
+
+**Measured first: they already restricted nothing.** The seller's year list is
+derived 1960→current whatever the operator writes, and no publish check, search
+filter or facet reads `Model.yearFrom` — its only readers are three admin
+screens.
+
+**But a required field reads as a constraint.** Whoever fills it believes it
+bounds what can be listed under that model, and whoever sees «السنوات
+٢٠١٨–٢٠٢٢» beneath a model believes 2023 would be refused. The belief governs
+as surely as the rule would: an operator hesitates to add a model whose range
+they do not know, and reviews a listing whose year falls outside as if it were
+an error.
+
+- [x] `Model.yearFrom` is nullable, the line is not printed when it is empty,
+      and the label says so: «اختياري، ولا يحد اختيار البائع».
+- [x] What is already written stays — it is accurate description. What is
+      written from now on is still range-checked, because a year outside
+      1960–this year is a typo, not freedom.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

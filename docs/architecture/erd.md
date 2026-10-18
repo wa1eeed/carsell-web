@@ -465,7 +465,7 @@ Relations: `models` → `Model` · `vehicles` → `Vehicle`
 | `brandId` | `String` |  |
 | `nameAr` | `String` |  |
 | `nameEn` | `String` |  |
-| `yearFrom` | `Int` |  |
+| `yearFrom` | `Int?` |  |
 | `yearTo` | `Int?` |  |
 | `visible` | `Boolean` |  |
 

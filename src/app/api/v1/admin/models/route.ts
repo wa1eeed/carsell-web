@@ -18,7 +18,8 @@ const Body = z.object({
   brandId: z.string().min(1),
   nameAr: z.string().max(120),
   nameEn: z.string().max(120),
-  yearFrom: z.number().int(),
+  /** **ووصفٌ لا قيد** — تُترك فارغة (قرار المالك). */
+  yearFrom: z.number().int().nullable().optional(),
   yearTo: z.number().int().nullable().optional(),
   bodyType: BODY_TYPE.nullable().optional(),
   /** نوعُ التسجيل الافتراضيّ — يصل نموذجَ المستخدم مُختارًا. */

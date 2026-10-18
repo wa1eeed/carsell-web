@@ -275,7 +275,8 @@ export type ModelRow = {
   id: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  /** **وصفٌ لا قيد** — لا تحدّ ما يختاره البائع (قرار المالك). */
+  yearFrom: number | null;
   yearTo: number | null;
   bodyType: BodyType | null;
   /**
@@ -321,7 +322,7 @@ export type ModelInput = {
   brandId: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  yearFrom?: number | null;
   yearTo?: number | null;
   bodyType?: BodyType | null;
   registrationType?: RegistrationType | null;
@@ -352,18 +353,24 @@ export type CatalogError = { field: string; code: 'REQUIRED' | 'INVALID' };
 const YEAR_MIN = 1970;
 const YEAR_MAX = 2100;
 
+/**
+ * **والفارغُ مقبول** — سنواتُ الطراز وصفٌ لا قيد (قرار المالك
+ * ٢٠٢٦-١٠-١٨). وما كُتب يُفحص: سنةٌ خارج المدى خطأُ كتابةٍ لا حرّية.
+ */
 function validateYears(
-  yearFrom: number,
+  yearFrom: number | null | undefined,
   yearTo: number | null | undefined,
 ): CatalogError[] {
   const errors: CatalogError[] = [];
-  if (!Number.isInteger(yearFrom) || yearFrom < YEAR_MIN || yearFrom > YEAR_MAX) {
-    errors.push({ field: 'yearFrom', code: 'INVALID' });
+  if (yearFrom !== null && yearFrom !== undefined) {
+    if (!Number.isInteger(yearFrom) || yearFrom < YEAR_MIN || yearFrom > YEAR_MAX) {
+      errors.push({ field: 'yearFrom', code: 'INVALID' });
+    }
   }
   if (yearTo !== null && yearTo !== undefined) {
     if (!Number.isInteger(yearTo) || yearTo < YEAR_MIN || yearTo > YEAR_MAX) {
       errors.push({ field: 'yearTo', code: 'INVALID' });
-    } else if (yearTo < yearFrom) {
+    } else if (yearFrom !== null && yearFrom !== undefined && yearTo < yearFrom) {
       // سنة نهاية قبل البداية تنتج فئة لا تظهر لأي سنة
       errors.push({ field: 'yearTo', code: 'INVALID' });
     }
@@ -467,7 +474,7 @@ export async function createModel(
       brandId: input.brandId,
       nameAr: input.nameAr.trim(),
       nameEn: input.nameEn.trim(),
-      yearFrom: input.yearFrom,
+      yearFrom: input.yearFrom ?? null,
       yearTo: input.yearTo ?? null,
       bodyType: input.bodyType ?? null,
       registrationType: input.registrationType ?? null,
@@ -495,7 +502,7 @@ export async function updateModel(
 
   const nameAr = input.nameAr ?? before.nameAr;
   const nameEn = input.nameEn ?? before.nameEn;
-  const yearFrom = input.yearFrom ?? before.yearFrom;
+  const yearFrom = input.yearFrom === undefined ? before.yearFrom : input.yearFrom;
   const yearTo = input.yearTo === undefined ? before.yearTo : input.yearTo;
 
   const errors = [...validateNames(nameAr, nameEn), ...validateYears(yearFrom, yearTo)];
