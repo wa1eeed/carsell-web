@@ -830,7 +830,76 @@ export function VehiclePlateField({
         title="بيانات تسجيل المركبة"
         note="تعرف بها سيارتك عند طلب الخدمات — ولا يظهر منها في الإعلان إلا ما تختاره."
       >
-        <div className="mb-5 grid gap-4 sm:grid-cols-2">
+        {/*
+          ═══ الحالُ أوّلًا — فهي تحكم ما بعدها ═══
+
+          هل السيارةُ جديدةٌ أم مستعملة يُحدّد أيُّ رقمٍ يُسأل عنه:
+          لوحةٌ أم بطاقةٌ جمركية. فتسبقُهما في القراءة كما تسبقهما
+          في المنطق.
+        */}
+        <div className="mb-5 max-w-xs">
+          <Field label={t('condition')} htmlFor="veh-condition">
+            <Picker
+              id="veh-condition"
+              value={vehicle.condition}
+              placeholder={te('condition.USED')}
+              onChange={(next) =>
+                /** وتبديلُ الحال يُفرغ ما لا يخصّه — فلا يُرسل ما لا يُعرض. */
+                set(next === 'NEW' ? { condition: next } : { condition: next, customsCard: '' })
+              }
+              options={[
+                { value: 'USED', label: te('condition.USED') },
+                { value: 'NEW', label: te('condition.NEW') },
+              ]}
+            />
+          </Field>
+        </div>
+
+        {!isNew ? null : (
+          <div className="reveal mb-5">
+            <ChoiceGroup
+              label="حالة تسجيل السيارة"
+              hint="السيارة الجديدة قد تكون ما زالت ببطاقتها الجمركية ولم تصدر لها لوحات بعد."
+              value={registration}
+              onChange={(next) => {
+                const picked = next === 'customs' ? 'customs' : 'plate';
+                setRegistration(picked);
+                /**
+                 * **وتبديلُ الجواب يمحو ما لا يخصّه.** بطاقةٌ تبقى
+                 * مكتوبةً بعد اختيار «لوحات صادرة» تُرسَل إلى الخادم
+                 * وتُخزَّن — فتصير السيارةُ ببطاقةٍ ولوحةٍ معًا،
+                 * وتناقضُ ذلك لا يراه أحد.
+                 */
+                if (picked === 'plate') set({ customsCard: '' });
+                else set({ plateLetters: '', plateNumbers: '' });
+              }}
+              options={[
+                {
+                  value: 'plate',
+                  label: 'صدرت لها لوحات',
+                  hint: 'مسجلة في المرور ولها رقم لوحة.',
+                  icon: <PlateMark />,
+                },
+                {
+                  value: 'customs',
+                  label: 'ما زالت ببطاقة جمركية',
+                  hint: 'وصلت حديثا ولم تسجل بعد.',
+                  icon: <CustomsMark />,
+                },
+              ]}
+            />
+          </div>
+        )}
+
+        {/*
+          ═══ والرقمان جنبًا إلى جنب على الشاشة الواسعة ═══
+
+          **وهما رقما تعريفٍ واحدٍ لشيءٍ واحد**: رقمُ الهيكل واللوحة
+          يُقرآن معًا ويُنسخان من الرخصة نفسِها، فتفريقُهما بصفَّين
+          يجعل القارئَ يظنّ أنّ الثاني بندٌ آخر. وعلى الهاتف يعودان
+          عمودًا — لا يتّسع لهما صفّ. (طلب المالك ٢٠٢٦-١٠-١٨.)
+        */}
+        <div className="mb-5 grid items-start gap-5 sm:grid-cols-2">
           {/*
             **ورقمُ الهيكل لا يظهر في الإعلان** — يُدخَل ليُطلب به
             فحصٌ أو تقرير، لا ليُعرض. والتنويهُ بجواره لأنّ من لا
@@ -876,127 +945,63 @@ export function VehiclePlateField({
             />
           </Field>
 
-          <Field label={t('condition')} htmlFor="veh-condition">
-            <Picker
-              id="veh-condition"
-              value={vehicle.condition}
-              placeholder={te('condition.USED')}
-              onChange={(next) =>
-                /** وتبديلُ الحال يُفرغ ما لا يخصّه — فلا يُرسل ما لا يُعرض. */
-                set(next === 'NEW' ? { condition: next } : { condition: next, customsCard: '' })
-              }
-              options={[
-                { value: 'USED', label: te('condition.USED') },
-                { value: 'NEW', label: te('condition.NEW') },
-              ]}
-            />
-          </Field>
 
+          {/*
+            **والخانةُ الثانية واحدة**: بطاقةٌ أو لوحة، لا هما معًا —
+            فخياران لشيءٍ واحد يجعلان صاحبَهما يملأ الاثنين أو يحتار.
+          */}
+          {byCustoms ? (
+            <div className="reveal flex flex-col gap-3">
+              <Field
+                label="رقم البطاقة الجمركية"
+                    htmlFor="veh-customs"
+                    note="لا يظهر لأحد غيرك. عليه يصدر تأمين السيارة الجديدة قبل اللوحة، ويربط بنجم والمرور."
+                    {...(customs === '' || customs.length === CUSTOMS_LENGTH
+                      ? { hint: '١٠ أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
+                      : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب ١٠.` })}
+                  >
+                    <input
+                      id="veh-customs"
+                      dir="ltr"
+                      inputMode="numeric"
+                      placeholder="1234567890"
+                      maxLength={CUSTOMS_LENGTH}
+                      value={customs}
+                      /** أرقامٌ وحدها — فحرفٌ هنا يعني أنّه كتب رقم الهيكل. */
+                      onChange={(event) =>
+                        set({
+                          customsCard: toLatinDigits(event.target.value)
+                            .replace(/\D/g, '')
+                            .slice(0, CUSTOMS_LENGTH),
+                        })
+                      }
+                      className={cn(fieldShell(), 'font-num tracking-wider')}
+                    />
+                  </Field>
+              <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
+                حين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من «سياراتي».
+              </p>
+            </div>
+          ) : (
+            /*
+              ═══ وللوحةِ عنوانُها فوق تنويهها ═══
+
+              **والتنويهُ بلا عنوانٍ يُنسب إلى ما قبله.** كان يقع تحت
+              «حالة المركبة» مباشرةً فيُقرأ شرحًا لها — وهو يتكلّم عن
+              اللوحة. فالعنوانُ أوّلًا، ثمّ تنويهُه، ثمّ خاناته.
+              (تصحيحُ المالك ٢٠٢٦-١٠-١٨.)
+            */
+            <PlateField
+              label="رقم لوحة المركبة"
+              note="لا يظهر لأحد إلا باختيارك. وننصح بإدخاله لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص — أنت أو المشتري."
+              hint="ثلاثة حروف وأربعة أرقام، كما في رخصة السير."
+              letters={vehicle.plateLetters}
+              numbers={vehicle.plateNumbers}
+              onLetters={(plateLetters) => set({ plateLetters })}
+              onNumbers={(plateNumbers) => set({ plateNumbers })}
+            />
+          )}
         </div>
-
-        {/*
-          **والسؤالُ للجديدة وحدها.** المستعملةُ لا تكون مستعملةً إلّا
-          وقد سُجِّلت ولها لوحة — فسؤالُها عبثٌ يُبطئ من يعرف جوابه.
-        */}
-        {!isNew ? null : (
-          <div className="reveal mb-5">
-            <ChoiceGroup
-              label="حالة تسجيل السيارة"
-              hint="السيارة الجديدة قد تكون ما زالت ببطاقتها الجمركية ولم تصدر لها لوحات بعد."
-              value={registration}
-              onChange={(next) => {
-                const picked = next === 'customs' ? 'customs' : 'plate';
-                setRegistration(picked);
-                /**
-                 * **وتبديلُ الجواب يمحو ما لا يخصّه.** بطاقةٌ تبقى
-                 * مكتوبةً بعد اختيار «لوحات صادرة» تُرسَل إلى الخادم
-                 * وتُخزَّن — فتصير السيارةُ ببطاقةٍ ولوحةٍ معًا،
-                 * وتناقضُ ذلك لا يراه أحد.
-                 */
-                if (picked === 'plate') set({ customsCard: '' });
-                else set({ plateLetters: '', plateNumbers: '' });
-              }}
-              options={[
-                {
-                  value: 'plate',
-                  label: 'صدرت لها لوحات',
-                  hint: 'مسجلة في المرور ولها رقم لوحة.',
-                  icon: <PlateMark />,
-                },
-                {
-                  value: 'customs',
-                  label: 'ما زالت ببطاقة جمركية',
-                  hint: 'وصلت حديثا ولم تسجل بعد.',
-                  icon: <CustomsMark />,
-                },
-              ]}
-            />
-          </div>
-        )}
-
-        {!byCustoms ? null : (
-          <div className="reveal mb-5 max-w-sm">
-            {/*
-              **وعشرةُ أرقامٍ لا غير.** عليها تُفعَّل وثيقةُ التأمين
-              للمركبة الجديدة قبل صدور اللوحة، وتُربط بنجم والمرور
-              (قولُ المالك) — فرقمٌ ناقصٌ أو فيه حرفٌ يُرفض هناك لا هنا.
-            */}
-            <Field
-              label="رقم البطاقة الجمركية"
-              htmlFor="veh-customs"
-              note="لا يظهر لأحد غيرك. عليه يصدر تأمين السيارة الجديدة قبل اللوحة، ويربط بنجم والمرور."
-              {...(customs === '' || customs.length === CUSTOMS_LENGTH
-                ? { hint: '١٠ أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
-                : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب ١٠.` })}
-            >
-              <input
-                id="veh-customs"
-                dir="ltr"
-                inputMode="numeric"
-                placeholder="1234567890"
-                maxLength={CUSTOMS_LENGTH}
-                value={customs}
-                /** أرقامٌ وحدها — فحرفٌ هنا يعني أنّه كتب رقم الهيكل. */
-                onChange={(event) =>
-                  set({
-                    customsCard: toLatinDigits(event.target.value)
-                      .replace(/\D/g, '')
-                      .slice(0, CUSTOMS_LENGTH),
-                  })
-                }
-                className={cn(fieldShell(), 'font-num tracking-wider')}
-              />
-            </Field>
-          </div>
-        )}
-
-        {/*
-          **واللوحةُ تُخفى حين تُدخَل البطاقة** — خياران لشيءٍ واحد
-          يجعلان صاحبَهما يملأ الاثنين أو يحتار أيَّهما يخصّه.
-        */}
-        {byCustoms ? (
-          <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
-            حين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من «سياراتي».
-          </p>
-        ) : (
-          /*
-            ═══ وللوحةِ عنوانُها فوق تنويهها ═══
-
-            **والتنويهُ بلا عنوانٍ يُنسب إلى ما قبله.** كان يقع تحت
-            «حالة المركبة» مباشرةً فيُقرأ شرحًا لها — وهو يتكلّم عن
-            اللوحة. فالعنوانُ أوّلًا، ثمّ تنويهُه، ثمّ خاناته.
-            (تصحيحُ المالك ٢٠٢٦-١٠-١٨.)
-          */
-          <PlateField
-            label="رقم لوحة المركبة"
-            note="لا يظهر لأحد إلا باختيارك. وننصح بإدخاله لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص — أنت أو المشتري."
-            hint="ثلاثة حروف وأربعة أرقام، كما في رخصة السير."
-            letters={vehicle.plateLetters}
-            numbers={vehicle.plateNumbers}
-            onLetters={(plateLetters) => set({ plateLetters })}
-            onNumbers={(plateNumbers) => set({ plateNumbers })}
-          />
-        )}
 
         {/*
           **والسطرُ يتبع ما وقع**: من سجّل بطاقةً جمركية لا لوحةَ له،
