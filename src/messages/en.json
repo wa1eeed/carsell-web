@@ -366,7 +366,8 @@
       "regulatoryTitle": "Compliance and governance",
       "regulatoryNote": "We operate under the Kingdom’s regulations for e-commerce and personal data protection.",
       "paymentTitle": "Accepted payment methods"
-    }
+    },
+    "myAccount": "My account"
   },
   "dev": {
     "title": "Component library",

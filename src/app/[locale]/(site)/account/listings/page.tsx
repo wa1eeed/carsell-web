@@ -61,9 +61,10 @@ export default async function ListingsPage({
   if (user === null) redirect(`/${locale}/auth`);
 
   // التسمية من `enums` نفسها التي تقرؤها بطاقة الحساب — لا نسخة ثانية
-  const [data, te, query] = await Promise.all([
+  const [data, te, tui, query] = await Promise.all([
     getAccountData(user, locale),
     getTranslations('enums'),
+    getTranslations('site'),
     searchParams,
   ]);
 
@@ -137,7 +138,7 @@ export default async function ListingsPage({
                 }
       }
       action={
-        <LinkButton href={`/${locale}/sell`} size="sm">بع سيارتك</LinkButton>
+        <LinkButton href={`/${locale}/sell`} size="sm">{tui('sellYourCar')}</LinkButton>
       }
     >
       {shown.map((listing) => (

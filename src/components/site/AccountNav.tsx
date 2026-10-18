@@ -1,4 +1,4 @@
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { LinkButton } from '@/components/ui/Button';
 import { Link } from '@/i18n/navigation';
 import { currentUserFromCookies } from '@/lib/domain/account';
@@ -36,7 +36,16 @@ export async function AccountNav({
    * ورابطٌ يُحوَّل عند كل نقرة ليس رابطًا صحيحًا فيه بطء: هو إشارةٌ
    * لمحرّك البحث أنّ عناويننا ليست نهائية.
    */
-  const [user, locale] = await Promise.all([currentUserFromCookies(), getLocale()]);
+  /**
+   * **والترويسةُ بلغة من يقرؤها.** كانت تكتب «بع سيارتك» و«تسجيل
+   * الدخول» و«حسابي» نصًّا عربيًّا — فصفحةُ `/en` تعرضها عربيةً بين
+   * «Browse cars» و«Auctions». والمفاتيحُ في `site` منذ بُنيت.
+   */
+  const [user, locale, t] = await Promise.all([
+    currentUserFromCookies(),
+    getLocale(),
+    getTranslations('site'),
+  ]);
 
   if (user === null) {
     return (
@@ -48,10 +57,10 @@ export async function AccountNav({
           size="sm"
           className={stacked ? 'w-full' : 'hidden sm:inline-flex'}
         >
-          بع سيارتك
+          {t('sellYourCar')}
         </LinkButton>
         <LinkButton href={`/${locale}/auth`} size="sm" className={stacked ? 'w-full' : ''}>
-          تسجيل الدخول
+          {t('signIn')}
         </LinkButton>
       </span>
     );
@@ -61,13 +70,13 @@ export async function AccountNav({
    * الاسم قد يغيب — والتسجيل بالجوال وحده، فالاسم يُطلب لاحقًا.
    * فيُعرض «حسابي» بدلًا من فراغٍ أو رقمِ جوالٍ في ترويسة.
    */
-  const label = user.name ?? 'حسابي';
-  const initial = (user.name ?? 'ح').trim().charAt(0);
+  const label = user.name ?? t('myAccount');
+  const initial = (user.name ?? t('myAccount')).trim().charAt(0);
 
   return (
     <span className="flex items-center gap-2.5">
       <LinkButton href={`/${locale}/sell`} variant="outline" size="sm">
-        بع سيارتك
+        {t('sellYourCar')}
       </LinkButton>
 
       {/*

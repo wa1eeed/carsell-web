@@ -158,6 +158,13 @@ export function SellWizard({
    * الكتالوجُ المتتالي ومعه حقولُ المركبة — **مشتركةٌ مع شاشة «أضف
    * سيارة» في الحساب**، فاستمارتان لا تتباعدان.
    */
+  /**
+   * **واسمُ الكتالوج بلغة القارئ** — والقوائمُ تعرضه كذلك، فبطاقةُ
+   * المراجعة التي تكتب `nameAr` تناقض ما فوقها على `/en`.
+   */
+  const named = (row?: { nameAr: string; nameEn: string }): string =>
+    row === undefined ? '' : locale === 'en' && row.nameEn !== '' ? row.nameEn : row.nameAr;
+
   const catalog = useVehicleCatalog(
     candidate === null
       ? EMPTY_VEHICLE
@@ -393,7 +400,7 @@ export function SellWizard({
    * بدقّةٍ ليست فيه.
    */
   const segmentLabel = [
-    models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
+    named(models.find((row) => row.id === vehicle.modelId)),
     vehicle.year === '' ? '' : displayDigits(vehicle.year),
     vehicle.city === '' || priceStat?.scopedToCity !== true ? '' : `${t('inCity')} ${vehicle.city}`,
   ]
@@ -810,8 +817,8 @@ export function SellWizard({
               <h3 className="mb-3.5 text-xs font-bold">{t('summary')}</h3>
               <p className="mb-1 flex flex-wrap items-baseline gap-1.5 text-sm font-bold">
                 <span className="bidi-isolate">
-                  {brands.find((b) => b.id === vehicle.brandId)?.nameAr ?? ''}{' '}
-                  {models.find((m) => m.id === vehicle.modelId)?.nameAr ?? ''}
+                  {named(brands.find((b) => b.id === vehicle.brandId))}{' '}
+                  {named(models.find((m) => m.id === vehicle.modelId))}
                 </span>
                 {vehicle.year === '' ? null : (
                   <ArabicNumber value={Number(vehicle.year)} grouped={false} />
@@ -1164,8 +1171,8 @@ export function SellWizard({
                 label={t('review.vehicle')}
                 value={
                   [
-                    brands.find((row) => row.id === vehicle.brandId)?.nameAr ?? '',
-                    models.find((row) => row.id === vehicle.modelId)?.nameAr ?? '',
+                    named(brands.find((row) => row.id === vehicle.brandId)),
+                    named(models.find((row) => row.id === vehicle.modelId)),
                     vehicle.year === '' ? '' : displayDigits(vehicle.year),
                   ]
                     .filter((part) => part !== '')

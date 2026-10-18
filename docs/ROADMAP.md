@@ -1146,6 +1146,45 @@ a bare checkbox at the end. Three things to fix:
 > the feature to show anything. A row that renders a gap is the «ما لا يُزرع لا
 > يُرى» class with a brand name on it.
 
+## 18 · The year picker, and English for the catalogue — *owner's request 2026-10-18* — **done**
+
+> «سنة الصنع في نموذج اضافة السياره او بيعها يجب ان يكون دروب داون ليست فيه
+> الموديلات حسب الاحدث و كل سنه يتضمن السنه الجديده تلقائياً اقدم سياره 1960
+> الى السنه الحاليه / الماركات و الموديلات يجب اضافة لها اللغه الانجليزيه في
+> اعدادات الماركات بحيث ينعكس ذلك على تغير اللغه للمنصه بحيث لا تظهر باللغه
+> العربيه في حال تغيير لغة العرض للمنصه للغه الانجليزيه»
+
+- [x] **Year as a list, newest first**, 1960 to the current year — **derived, not
+      written**: a list ending at a year someone typed goes stale on the first of
+      January, and the newest model year is the one most sellers pick.
+- [x] **English catalogue names reach the screens.** The admin can already set
+      `nameEn` on brands, models and trims — measured 2026-10-18, all three
+      editors have the field and all 42 brands carry a value. What is missing is
+      the reading: screens print `nameAr` regardless of locale, and `Vehicle`
+      snapshots only the Arabic name (`brandName` · `modelName` · `trimName`),
+      so an English visitor reads Arabic on every card and every car page.
+
+      **What already existed, per the owner's standing instruction to say so:**
+      all three admin editors (brand, model, trim) already have the English
+      field, and every one of the 42 brands already carries a value. Nothing
+      was added there.
+
+      **What was missing was the reading.** Measured on the running site before
+      and after:
+
+      | page | Arabic words before | after |
+      | --- | --- | --- |
+      | `/en` | 6 | 5 — all of them **people's names** |
+      | `/en/cars` | 19 | 12 — people's and one dealer's name |
+      | `/en/account/vehicles` | 0 | 0 |
+
+      The brand chips on `/en/cars` printed «تويوتا · هيونداي · نيسان», and the
+      header printed «بع سيارتك» and «تسجيل الدخول» and «حسابي» as literal
+      Arabic beside «Browse cars». Both are fixed. What remains on `/en` is
+      real data — a seller is named خالد العتيبي in both languages — and the
+      account screens' own prose, which is the separately deferred «English UI
+      strings» item, not the catalogue.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

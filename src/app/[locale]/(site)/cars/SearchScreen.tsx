@@ -69,6 +69,24 @@ export function SearchScreen({
   savedAlready: boolean;
   locale: string;
 }) {
+  /**
+   * ═══ اسمُ الكتالوج بلغة القارئ ═══
+   *
+   * **وكانت الشرائح تقرأ `nameAr` دائمًا**: فصفحةُ `/en/cars` تعرض
+   * «تويوتا · هيونداي · نيسان» بين «All cities» و«Newest» — والماركةُ
+   * لها `nameEn` في المخطّط منذ بُني، ولوحةُ الأدمن تضبطه.
+   *
+   * **ودالّةٌ واحدة لا شرطٌ في ستّة مواضع**: شرطٌ منسوخ يُنسى في
+   * السابع. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   */
+  const named = useCallback(
+    (row?: { nameAr: string; nameEn: string }): string | undefined => {
+      if (row === undefined) return undefined;
+      return locale === 'en' && row.nameEn !== '' ? row.nameEn : row.nameAr;
+    },
+    [locale],
+  );
+
   const t = useTranslations('search');
   const te = useTranslations('enums');
   const tu = useTranslations('ui');
@@ -149,10 +167,10 @@ export function SearchScreen({
       </>
     );
 
-    const brandName = (id: string): string => brands.find((b) => b.id === id)?.nameAr ?? id;
-    const modelName = (id: string): string => models.find((m) => m.id === id)?.nameAr ?? id;
+    const brandName = (id: string): string => named(brands.find((b) => b.id === id)) ?? id;
+    const modelName = (id: string): string => named(models.find((m) => m.id === id)) ?? id;
     const featureName = (key: string): string =>
-      features.find((f) => f.key === key)?.nameAr ?? key;
+      named(features.find((f) => f.key === key)) ?? key;
 
     if (filters.type !== null) add('type', t(`type.${filters.type}`), { type: null });
     if (filters.brandId !== null) {
@@ -181,7 +199,7 @@ export function SearchScreen({
       add(`f:${key}`, featureName(key), {});
     }
     return out;
-  }, [filters, t, te, brands, models, features, fromQuery]);
+  }, [filters, t, te, brands, models, features, fromQuery, named]);
 
   const toCard = (item: ListingCard): ListingCardData => ({
     ref: item.ref,
@@ -307,7 +325,7 @@ export function SearchScreen({
                 count={facetLabel(result.facets.brandId[brand.id])}
                 onClick={() => apply({ brandId: filters.brandId === brand.id ? null : brand.id, modelId: null, trimId: null })}
               >
-                {brand.nameAr}
+                {named(brand)}
               </Chip>
             ))}
         </div>
@@ -319,7 +337,7 @@ export function SearchScreen({
                 active={filters.modelId === model.id}
                 onClick={() => toggle('modelId', model.id)}
               >
-                {model.nameAr}
+                {named(model)}
               </Chip>
             ))}
           </div>
@@ -677,7 +695,7 @@ export function SearchScreen({
                   })
                 }
               >
-                {feature.nameAr}
+                {named(feature)}
               </Chip>
             );
           })}

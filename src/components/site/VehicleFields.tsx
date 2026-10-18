@@ -86,6 +86,26 @@ export type VehicleDraft = {
   plateNumbers: string;
 };
 
+/**
+ * ═══ سنواتُ الصنع — تُشتقّ ولا تُكتب ═══
+ *
+ * **وقائمةٌ تنتهي بسنةٍ كتبها أحدٌ تتقادم أوّلَ يناير**: موديلُ السنة
+ * الجديدة يُطرح قبل أن تبدأ، وهو أكثرُ ما يُضاف — فبائعُه لا يجد سنته
+ * ويغلق الصفحة. فالحدُّ الأعلى **السنة الجارية محسوبةً عند التصيير**،
+ * والأدنى ١٩٦٠ بقرار المالك.
+ *
+ * **والأحدثُ أوّلًا**: من يبيع سيارةً عمرُها سنتان يجدها في أوّل سطر،
+ * ومن يبيع واحدةً عمرُها ثلاثون يبحث — وهو الأندر.
+ */
+const OLDEST_MODEL_YEAR = 1960;
+
+export function modelYears(now: Date = new Date()): number[] {
+  const newest = now.getFullYear();
+  const out: number[] = [];
+  for (let year = newest; year >= OLDEST_MODEL_YEAR; year -= 1) out.push(year);
+  return out;
+}
+
 export const EMPTY_VEHICLE: VehicleDraft = {
   vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
@@ -510,17 +530,22 @@ export function VehicleFields({
                 />
               </Field>
 
+              {/*
+                **والسنةُ قائمةٌ لا حقلُ كتابة.** حقلٌ حرّ يقبل «202»
+                و«20222» و«1899»، ويردّها الخادم بعد الإرسال —
+                والقائمةُ لا تعرض إلّا المقبول. (طلب المالك ٢٠٢٦-١٠-١٨.)
+              */}
               <Field label={t('year')} htmlFor="veh-year" required>
-                <input
+                <Picker
                   id="veh-year"
-                  dir="ltr"
-                  inputMode="numeric"
-                  placeholder="2022"
                   value={vehicle.year}
-                  onChange={(event) =>
-                    set({ year: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 4) })
-                  }
-                  className={cn(fieldShell(), 'font-num')}
+                  placeholder="اختر السنة"
+                  searchPlaceholder="اكتب السنة…"
+                  onChange={(next) => set({ year: next })}
+                  options={modelYears().map((year) => ({
+                    value: String(year),
+                    label: displayDigits(String(year)),
+                  }))}
                 />
               </Field>
             </div>
