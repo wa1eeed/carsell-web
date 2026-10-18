@@ -224,9 +224,10 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       state sync and submit-for-review. Walked on screen against the sandbox:
       `201`, both identifiers, the three required documents, and
       `mada 0.01700 · card 0.02700` from the percentages typed into the panel.
-- [ ] **The inspection form** behind `complete` — **its fields come from the
-      owner after the current tasks**, so the step completes without a form
-      today rather than inventing fields that would be replaced.
+- [x] **The inspection form** behind `complete`. Built 2026-10-17 — and the
+      hole was wider: `form` was declared and **never enforced**, so an
+      inspector could close an inspection with no report while revenue was
+      recognised and the money captured. `docs/workflows/provider-panel.md`.
 - [x] **Each provider step tells whoever paid.** `applyStep` wrote the status and
       said nothing — the person who paid learned neither that a centre took the
       work, nor that it finished, nor that it failed. Three notifications
@@ -565,7 +566,9 @@ Measurement and build order: `docs/BACKLOG.md` § I.
       with no door" check counted it as a caller. It strips comments now — the
       second gate in this repository fooled by prose, and the measurement after
       the fix found exactly this one.
-- [ ] **The report builder.** `InspectionReport` is written only by the seed.
+- [x] **The report builder.** Built 2026-10-17: `approveInspection` creates the
+      `InspectionReport` on admin approval, and `publishOnIssue` decides whether
+      it is public. Before that nothing but the seed could produce one.
 - [x] **Report ownership** (owner's decision 4). `InspectionReport.publishedAt`:
       the seller's report is public on the listing, a buyer's is private to
       whoever paid. It had been **any report to any visitor** — a buyer who paid
