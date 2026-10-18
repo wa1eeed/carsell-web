@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **166** components in **4** directories.
+Counted: **167** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -34,7 +34,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 10 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 10 |
 | `DetailStats` | no | `items` | 12 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 126 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 127 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -148,7 +148,8 @@ rather than found by chance.
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
-| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 126 |
+| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 127 |
+| `FieldNote` | no | `id` · `children` | 1 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
 | `HeroSearch` | yes | `cities` · `className` | 1 |
@@ -204,5 +205,5 @@ rather than found by chance.
 | `EmblemIcon` | no | `emblem` · `className` · `monochrome` | 0 |
 | `EmblemShapes` | no | `art` · `monochrome` | 1 |
 | `LicensePlate` | no | `letters` · `numbers` · `size` · `className` · `blank` | 6 |
-| `PlateField` | yes | `letters` · `numbers` · `onLetters` · `onNumbers` · `label` · `hint` | 1 |
+| `PlateField` | yes | `letters` · `numbers` · `onLetters` · `onNumbers` · `label` · `hint` · `note` | 1 |
 | `SaudiLicensePlate` | no | `plateType` · `plateFormat` · `arabicLetters` · `latinLetters` · `plateNumbers` · `arabicNumbers` · `latinNumbers` · `emblem` · `customEmblemUrl` · `size` · `animated` · `showReflection` · `className` · `stripSide` · `title` | 1 |

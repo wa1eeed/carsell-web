@@ -980,7 +980,8 @@ export function VehiclePlateField({
           </p>
         ) : (
           <PlateField
-            hint="لا يظهر في الإعلان إلا باختيارك. وننصح بإدخاله لتطلب به فحصا أو تقرير موجز — أنت أو المشتري."
+            note="لا يظهر لأحد إلا باختيارك. وننصح بإدخاله لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص — أنت أو المشتري."
+            hint="ثلاثة حروف وأربعة أرقام، كما في رخصة السير."
             letters={vehicle.plateLetters}
             numbers={vehicle.plateNumbers}
             onLetters={(plateLetters) => set({ plateLetters })}

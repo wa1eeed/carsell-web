@@ -1,5 +1,8 @@
 'use client';
 
+import { useId } from 'react';
+
+import { FieldNote } from '@/components/ui/Field';
 import { LicensePlate } from './LicensePlate';
 import {
   SAUDI_PLATE_LETTERS,
@@ -31,6 +34,7 @@ export function PlateField({
   onNumbers,
   label,
   hint,
+  note,
 }: {
   letters: string;
   numbers: string;
@@ -42,6 +46,11 @@ export function PlateField({
    */
   label?: string;
   hint?: string;
+  /**
+   * تنويهٌ فوق الخانات — **بالشكل الذي تلبسه بقيّةُ الحقول**
+   * (`FieldNote`): ما يَحكم قرارَ الكتابة يُقرأ قبلها، وبلونٍ يُرى.
+   */
+  note?: string;
 }) {
   /**
    * ═══ والمخزَّنُ يُطبَّع قبل أن يُوزَّع على الخانات ═══
@@ -55,6 +64,9 @@ export function PlateField({
    * وهي القاعدةُ نفسُها: الحقل يقبل كلّ صيغةٍ ويطبّعها — والمخزَّنُ
    * صيغةٌ كغيرها.
    */
+  /** **والتنويه يُقرأ مع الخانات** — لا يبقى زينةً لمن يُبصر وحده. */
+  const noteId = useId();
+
   const chosen = Array.from(normalizeArabicLetters(letters));
 
   const setAt = (index: number, value: string): void => {
@@ -74,6 +86,8 @@ export function PlateField({
     <div className="flex flex-col gap-3">
       {label === undefined ? null : <span className="text-2xs font-bold">{label}</span>}
 
+      {note === undefined ? null : <FieldNote id={noteId}>{note}</FieldNote>}
+
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1.5">
           <span className="text-3xs opacity-70">الحروف</span>
@@ -88,6 +102,7 @@ export function PlateField({
                   value={value}
                   disabled={!open}
                   aria-label={`الحرف ${String(index + 1)}`}
+                  {...(note === undefined ? {} : { 'aria-describedby': noteId })}
                   onChange={(event) => setAt(index, event.target.value)}
                   className="w-20 rounded-md border border-line bg-bg px-2 py-2 text-sm disabled:opacity-65"
                 >
@@ -116,6 +131,7 @@ export function PlateField({
             value={numbers}
             maxLength={4}
             aria-label="أرقام اللوحة"
+            {...(note === undefined ? {} : { 'aria-describedby': noteId })}
             onChange={(event) => onNumbers(normalizePlateNumbers(event.target.value))}
             className="font-num w-28 rounded-md border border-line bg-bg px-3 py-2 text-sm font-bold"
           />

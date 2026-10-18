@@ -91,27 +91,7 @@ export function Field({
         **والصفةُ تُمرَّر إلى المُدخَل لا تُلفّ حوله**: `aria-describedby`
         على عنصرٍ حاوٍ لا يصل قارئَ الشاشة عند التركيز.
       */}
-      {note === undefined ? null : (
-        <p
-          id={`${htmlFor}-note`}
-          className="-mt-0.5 flex items-start gap-1.5 rounded-md bg-accent-100 px-2.5 py-1.5 text-3xs leading-loose text-accent-900"
-        >
-          <svg
-            aria-hidden
-            viewBox="0 0 24 24"
-            className="mt-1 size-3 shrink-0"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 11v5M12 7.6v.1" />
-          </svg>
-          <span>{note}</span>
-        </p>
-      )}
+      {note === undefined ? null : <FieldNote id={`${htmlFor}-note`}>{note}</FieldNote>}
 
       {described.length === 0
         ? children
@@ -128,6 +108,44 @@ export function Field({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * ═══ تنويهُ الحقل — شكلٌ واحد أينما وقع ═══
+ *
+ * **وموضعُه فوق المُدخَل**: ما يَحكم قرارَ الكتابة يُقرأ قبلها. سطرٌ
+ * تحت الحقل يقول «لا يظهر لأحد غيرك» يصل بعد أن قرّر صاحبُه أن
+ * يتركه فارغًا — ومن خشي أن يُعرض رقمُه لا يكتبه ولا يعود ليقرأ.
+ *
+ * **وبلونه**: الشرحُ الرماديّ تحت كلّ حقل يُمسح بالعين، والتنويهُ
+ * الذي يرفع خشيةً يحتاج أن يُرى.
+ *
+ * **ومُصدَّرٌ لأنّ له ناديًا ثانيًا**: حقلُ اللوحة ليس `<input>` واحدًا
+ * فلا يلبس `Field`، وتنويهُه هو التنويهُ نفسُه — ونسخُ الشكل يُنتج
+ * تنويهين يتباعدان أوّلَ تغيير. (طلب المالك ٢٠٢٦-١٠-١٨.)
+ */
+export function FieldNote({ id, children }: { id?: string; children: ReactNode }) {
+  return (
+    <p
+      {...(id === undefined ? {} : { id })}
+      className="-mt-0.5 flex items-start gap-1.5 rounded-md bg-accent-100 px-2.5 py-1.5 text-3xs leading-loose text-accent-900"
+    >
+      <svg
+        aria-hidden
+        viewBox="0 0 24 24"
+        className="mt-1 size-3 shrink-0"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5M12 7.6v.1" />
+      </svg>
+      <span>{children}</span>
+    </p>
   );
 }
 
