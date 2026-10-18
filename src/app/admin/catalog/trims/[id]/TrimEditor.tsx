@@ -1,5 +1,6 @@
 'use client';
 
+import type { BodyType, FuelType } from '@/generated/prisma/enums';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -9,9 +10,15 @@ import { SpecRow } from '@/components/ui/StatCard';
 import { Toast } from '@/components/ui/Toast';
 import { cn } from '@/lib/cn';
 
-const BODY = { SEDAN: 'سيدان', SUV: 'دفع رباعي', PICKUP: 'وانيت', HATCHBACK: 'هاتشباك', COUPE: 'كوبيه', VAN: 'فان' } as const;
+const BODY = {
+  SEDAN: 'سيدان', SUV: 'دفع رباعي', CROSSOVER: 'كروس أوفر', PICKUP: 'وانيت',
+  HATCHBACK: 'هاتشباك', COUPE: 'كوبيه', CONVERTIBLE: 'مكشوفة', VAN: 'فان',
+} as const satisfies Record<BodyType, string>;
 const TRANS = { AUTOMATIC: 'أوتوماتيك', MANUAL: 'عادي', CVT: 'CVT', DCT: 'DCT' } as const;
-const FUEL = { PETROL: 'بنزين', DIESEL: 'ديزل', HYBRID: 'هايبرد', ELECTRIC: 'كهرباء' } as const;
+const FUEL = {
+  PETROL: 'بنزين', DIESEL: 'ديزل', HYBRID: 'هايبرد',
+  PLUGIN_HYBRID: 'هجين قابل للشحن', ELECTRIC: 'كهرباء',
+} as const satisfies Record<FuelType, string>;
 const DRIVE = { FWD: 'أمامي FWD', RWD: 'خلفي RWD', AWD: 'رباعي دائم AWD', FOUR_WD: 'رباعي 4WD' } as const;
 const GROUP = { SAFETY: 'الأمان', COMFORT: 'الراحة', TECH: 'التقنية' } as const;
 

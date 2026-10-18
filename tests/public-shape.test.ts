@@ -20,6 +20,13 @@ const FORBIDDEN_KEYS = [
    * استيرادٍ لا يُرى، وعرضُها لا يفيد مشتريًا ويُفيد من ينتحل.
    */
   'customsCard',
+  /**
+   * **وحالُ الفحص الدوريّ ورخصةِ السير لا تخرجان** (قرار المالك
+   * ٢٠٢٦-١٠-١٨): شأنُ المالك ومن يفحص، لا بندٌ في إعلان. وهما
+   * تُقرآن في لوحة الأدمن وفي صفحة سيارته وحدهما.
+   */
+  'periodicInspection',
+  'licenseStatus',
   'nationalIdEncrypted', 'minAcceptPrice', 'reservePrice', 'sellerId',
 ];
 

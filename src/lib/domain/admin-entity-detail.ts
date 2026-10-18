@@ -72,6 +72,18 @@ export type AdminListingDetail = {
      * السوق لا عن من يدير الإعلان ويطابقه بالاستمارة. */
     plateLetters: string | null;
     plateNumbers: string | null;
+    /**
+     * ═══ وبياناتُ التسجيل تُقرأ هنا ولا تُنشر ═══
+     *
+     * حالُ الفحص الدوريّ ورخصةِ السير **لا تخرجان في استجابةٍ عامّة**
+     * (قرار المالك ٢٠٢٦-١٠-١٨) — ومن يدير الإعلان يحتاجهما ليعرف ما
+     * يُطلب على المركبة من خدمة.
+     */
+    registrationType: string | null;
+    periodicInspection: string | null;
+    licenseStatus: string | null;
+    colorInterior: string | null;
+    paintStatus: string;
   };
 
   images: ListingImageRow[];
@@ -111,6 +123,11 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
           vin: true,
           plateLetters: true,
           plateNumbers: true,
+          registrationType: true,
+          periodicInspection: true,
+          licenseStatus: true,
+          colorInterior: true,
+          paintStatus: true,
         },
       },
       images: { orderBy: { sort: 'asc' } },
@@ -169,6 +186,11 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
       vin: listing.vehicle.vin,
       plateLetters: listing.vehicle.plateLetters,
       plateNumbers: listing.vehicle.plateNumbers,
+      registrationType: listing.vehicle.registrationType,
+      periodicInspection: listing.vehicle.periodicInspection,
+      licenseStatus: listing.vehicle.licenseStatus,
+      colorInterior: listing.vehicle.colorInterior,
+      paintStatus: listing.vehicle.paintStatus,
     },
 
     images: listing.images.map((image) => ({

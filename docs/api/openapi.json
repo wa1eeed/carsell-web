@@ -7209,6 +7209,45 @@
                   "customsCard": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "colorInterior": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "nullable": true
+                  },
+                  "paintStatus": {
+                    "type": "string",
+                    "enum": []
+                  },
+                  "registrationType": {
+                    "type": "string",
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "periodicInspection": {
+                    "type": "string",
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "licenseStatus": {
+                    "type": "string",
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "batteryKwh": {
+                    "type": "number",
+                    "maximum": 400,
+                    "nullable": true
+                  },
+                  "rangeKm": {
+                    "type": "integer",
+                    "maximum": 2000,
+                    "nullable": true
+                  },
+                  "chargePort": {
+                    "type": "string",
+                    "enum": [],
+                    "nullable": true
                   }
                 },
                 "required": [

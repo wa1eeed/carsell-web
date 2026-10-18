@@ -1,4 +1,10 @@
 import { LicensePlate } from '@/components/ui/plate/LicensePlate';
+import {
+  DOCUMENT_STATUS_LABEL,
+  PAINT_STATUS_LABEL,
+  REGISTRATION_TYPE_LABEL,
+  labelOf,
+} from '@/lib/labels/vehicle';
 import { Year } from '@/components/ui/Year';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
@@ -326,7 +332,30 @@ export default async function AdminListingDetailPage({
                 value={<ArabicNumber value={listing.vehicle.mileageKm} />}
               />
               <Field label="اللون" value={listing.vehicle.colorExterior} />
+              <Field label="اللون الداخلي" value={listing.vehicle.colorInterior ?? '—'} />
+              <Field
+                label="حالة الهيكل"
+                value={labelOf(PAINT_STATUS_LABEL, listing.vehicle.paintStatus)}
+              />
               <Field label="الحالة" value={listing.vehicle.condition} ltr />
+              <Field
+                label="نوع التسجيل"
+                value={labelOf(REGISTRATION_TYPE_LABEL, listing.vehicle.registrationType)}
+              />
+
+              {/*
+                **وحالُ الوثيقتين تُقرأ هنا ولا تُنشر** (قرار المالك):
+                شأنُ المالك ومن يفحص، ويحتاجها من يدير الإعلان ليعرف
+                ما يُطلب على المركبة من خدمة.
+              */}
+              <Field
+                label="الفحص الدوري"
+                value={labelOf(DOCUMENT_STATUS_LABEL, listing.vehicle.periodicInspection)}
+              />
+              <Field
+                label="رخصة السير"
+                value={labelOf(DOCUMENT_STATUS_LABEL, listing.vehicle.licenseStatus)}
+              />
               {/* الرقم التسلسليّ يُقارن خانةً بخانة */}
               <Field label="الرقم التسلسلي" value={listing.vehicle.vin ?? '—'} ltr />
 

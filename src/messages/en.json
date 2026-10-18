@@ -458,7 +458,8 @@
     "truncatedTemplates": "{count, plural, one{{n} template truncated} other{{n} templates truncated}}",
     "serviceConsents": "{count, plural, one{An inspection request awaits your consent} other{{n} inspection requests await your consent}}",
     "completedRequests": "{count, plural, one{one request} other{{n} requests}}",
-    "viewingsAwaiting": "{count, plural, one{One viewing awaits your reply} other{{n} viewings await your reply}}"
+    "viewingsAwaiting": "{count, plural, one{One viewing awaits your reply} other{{n} viewings await your reply}}",
+    "cylinders": "{count, plural, one{{n} cylinder} other{{n} cylinders}}"
   },
   "search": {
     "title": "Browse cars",
@@ -550,12 +551,15 @@
       "PETROL": "Petrol",
       "DIESEL": "Diesel",
       "HYBRID": "Hybrid",
-      "ELECTRIC": "Electric"
+      "ELECTRIC": "Electric",
+      "PLUGIN_HYBRID": "Plug-in hybrid"
     },
     "spec": {
       "SAUDI": "Saudi spec",
       "GCC": "GCC spec",
-      "AGENT_IMPORT": "Agent import"
+      "AGENT_IMPORT": "Agent import",
+      "AMERICAN": "American import",
+      "KOREAN": "Korean import"
     },
     "bodyType": {
       "SEDAN": "Sedan",
@@ -563,7 +567,9 @@
       "PICKUP": "Pickup",
       "HATCHBACK": "Hatchback",
       "COUPE": "Coupe",
-      "VAN": "Van"
+      "VAN": "Van",
+      "CROSSOVER": "Crossover",
+      "CONVERTIBLE": "Convertible"
     },
     "drivetrain": {
       "FWD": "FWD",
@@ -684,6 +690,30 @@
       "CANCELLED": "Cancelled",
       "STALLED": "Stalled",
       "DISPUTED": "Disputed"
+    },
+    "registrationType": {
+      "PRIVATE": "Private",
+      "PRIVATE_TRANSPORT": "Private transport",
+      "PUBLIC_TRANSPORT": "Public transport",
+      "MINIBUS": "Minibus",
+      "TAXI": "Taxi",
+      "MOTORCYCLE": "Motorcycle",
+      "HEAVY_EQUIPMENT": "Heavy equipment"
+    },
+    "documentStatus": {
+      "VALID": "Valid",
+      "EXPIRED": "Expired"
+    },
+    "chargePort": {
+      "CCS2": "CCS2",
+      "GBT": "GB/T",
+      "TYPE2": "Type 2"
+    },
+    "paintStatus": {
+      "ORIGINAL": "Factory paint",
+      "PARTIAL": "Partially resprayed",
+      "REPAINTED": "Fully resprayed",
+      "UNKNOWN": "Not stated"
     }
   },
   "services": {

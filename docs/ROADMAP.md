@@ -1227,6 +1227,64 @@ a bare checkbox at the end. Three things to fix:
         and entering it is recommended so an inspection or a Mojaz report can be
         ordered — by the seller or by the buyer.
 
+## 20 · Vehicle attributes, measured before building — *owner's requests 2026-10-18* — **done**
+
+Four messages in a row, asking for registration status on the car and a set of
+specification fields on the catalogue. **Measured first, because the owner's
+standing instruction is to skip what exists and say so.**
+
+### What already exists — nothing to build
+
+| asked for | where it lives | state |
+| --- | --- | --- |
+| نظام الدفع (FWD · RWD · AWD · 4WD) | `Trim.drivetrain`, enum `Drivetrain` | complete, all four |
+| عدد السلندرات | `Trim.cylinders` | 125 of 126 trims carry a value |
+| سعة المحرك | `Trim.engineL` (`Decimal(3,1)`) | 125 of 126 |
+| نوع الهيكل | `Trim.bodyType`, enum `BodyType` | exists, **six** of the owner's eight |
+| وارد المركبة | `Vehicle.spec`, enum `VehicleSpec` | exists, **three** of the owner's four |
+
+The admin trim editor already edits every one of them.
+
+### What is missing
+
+- [x] **`BodyType` lacks كروس أوفر and مكشوفة.** And the sell wizard's own
+      fallback list offers `WAGON` and `CONVERTIBLE` — **values the enum does
+      not have** — so a seller picking either sends a value the server rejects.
+      A latent break, found by this measurement.
+- [x] **`VehicleSpec` lacks أمريكي and كوري.** The owner says the import origin
+      moves the price strongly in this market, so folding American and Korean
+      imports into `AGENT_IMPORT` loses the distinction buyers pay for.
+- [x] **نوع التسجيل is entirely new** — خصوصي · نقل خاص · نقل عام · حافلة صغيرة
+      · أجرة · دراجة نارية · أشغال عامة. It is a property of the vehicle's
+      registration, not of the model.
+- [x] **حالة الفحص الدوري** (ساري / منتهي) and **حالة رخصة السير** (سارية /
+      منتهية) on the vehicle — shown in the entry form **only when the car is
+      used and its plates are issued**, in the admin listing page and in the
+      owner's own car page, and **never publicly**.
+- [x] Engine capacity and cylinders are inherited from the trim but **not shown
+      in the entry form** — the owner asked for them to be visible there.
+
+### And three more the measurement turned up
+
+- [x] **The engine/EV split.** The owner's condition tree: petrol and diesel ask
+      for capacity and cylinders; a full EV asks for battery, range and charge
+      port and is **not** asked for a gearbox (it has none); a hybrid or plug-in
+      is asked for both, because it has both. New columns for battery, range and
+      port, and `PLUGIN_HYBRID` added to `FuelType`.
+- [x] **`Vehicle.paintStatus` had no writer.** It has existed since the schema
+      was built, defaults to `UNKNOWN`, **and the search filters on «كامل
+      الوكالة»** — so every listing a real seller published fell out of that
+      filter whatever the car. Now asked, and required, as the owner specified.
+- [x] **`Vehicle.colorInterior` had no writer either.** Also required now.
+
+### What the owner must still do
+
+> The customs card, the VIN, the two document statuses and the interior colour
+> are all asked for on the form now. **The thirty-odd listings already in the
+> database carry none of them** — they predate the fields. Nothing is broken by
+> that (every one is nullable), but the admin's listing page will read «لم يحدد»
+> for them until their owners edit.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

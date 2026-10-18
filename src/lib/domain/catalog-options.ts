@@ -202,6 +202,12 @@ export async function trimsWithSpecs(modelId: string): Promise<TrimSpec[]> {
       id: true, nameAr: true, nameEn: true,
       bodyType: true, transmission: true, fuel: true, drivetrain: true,
       seats: true, doors: true, yearFrom: true, yearTo: true,
+      /**
+       * **وسعةُ المحرك وسلندراتُه كانتا تُخزَّنان ولا تُعرضان**:
+       * ١٢٥ فئةً من ١٢٦ تحملهما، ولم تبلغا استمارةَ الإدخال قطّ.
+       * (طلب المالك ٢٠٢٦-١٠-١٨.)
+       */
+      engineL: true, cylinders: true,
     },
   });
 
@@ -211,6 +217,8 @@ export async function trimsWithSpecs(modelId: string): Promise<TrimSpec[]> {
     transmission: String(row.transmission),
     fuel: String(row.fuel),
     drivetrain: String(row.drivetrain),
+    /** **و`Decimal` لا يعبر حدَّ الخادم** — نصًّا كما يُعرض. */
+    engineL: row.engineL === null ? null : String(row.engineL),
   }));
 }
 

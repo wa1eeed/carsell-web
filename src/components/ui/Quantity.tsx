@@ -70,6 +70,8 @@ export type Unit =
   | 'events'
   | 'monthsRange'
   | 'seats'
+  /** سلندراتُ المحرك — تُعرض في بطاقة الموروث من الفئة. */
+  | 'cylinders'
   | 'stages'
   | 'banners'
   | 'plans'

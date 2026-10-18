@@ -6,8 +6,12 @@ import { currentUser } from '@/lib/auth/session';
 import { parseFilters, searchListings } from '@/lib/domain/listings';
 import { createListing, type PublishFailure } from '@/lib/domain/publish';
 import {
+  ChargePort,
+  DocumentStatus,
   FuelType,
   ListingType,
+  PaintStatus,
+  RegistrationType,
   Transmission,
   VehicleCondition,
   VehicleSpec,
@@ -218,6 +222,21 @@ const PublishBody = z.object({
     plateNumbers: z.string().max(12).nullable().optional(),
     /** بطاقةٌ جمركية للجديدة التي لم تُسجَّل — ولا تظهر في استجابةٍ عامّة. */
     customsCard: CUSTOMS_CARD.nullable().optional(),
+    /**
+     * ═══ صفاتٌ أضافها المالك ٢٠٢٦-١٠-١٨ ═══
+     *
+     * **والحالتان لا تخرجان في استجابةٍ عامّة** — تُقرآن في لوحة
+     * الأدمن وفي صفحة سيارة صاحبها وحدهما.
+     */
+    colorInterior: z.string().max(40).nullable().optional(),
+    paintStatus: z.enum(PaintStatus).optional(),
+    registrationType: z.enum(RegistrationType).nullable().optional(),
+    periodicInspection: z.enum(DocumentStatus).nullable().optional(),
+    licenseStatus: z.enum(DocumentStatus).nullable().optional(),
+    /** وبيانُ الكهربائية — يُرسَل لمن له بطارية. */
+    batteryKwh: z.number().positive().max(400).nullable().optional(),
+    rangeKm: z.number().int().positive().max(2000).nullable().optional(),
+    chargePort: z.enum(ChargePort).nullable().optional(),
   }),
   /**
    * مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل.

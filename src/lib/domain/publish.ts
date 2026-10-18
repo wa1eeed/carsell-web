@@ -3,6 +3,12 @@ import { db } from '@/lib/db';
 import { nextListingRef } from './refs';
 import { Prisma } from '@/generated/prisma/client';
 import type {
+  ChargePort,
+  DocumentStatus,
+  PaintStatus,
+  RegistrationType,
+} from '@/generated/prisma/enums';
+import type {
   BodyType,
   Drivetrain,
   FuelType,
@@ -112,6 +118,21 @@ export type PublishInput = {
      * حتى تُسجَّل، وتُعرف بها. ولا تخرج في استجابةٍ عامّة.
      */
     customsCard?: string | null;
+    /**
+     * ═══ صفاتٌ أضافها المالك ٢٠٢٦-١٠-١٨ ═══
+     *
+     * **ولم يُبنَ منها ما كان قائمًا**: الدفعُ والسلندراتُ وسعةُ
+     * المحرك في `Trim` منذ بُني المخطّط. وهذه ما نقص.
+     */
+    colorInterior?: string | null;
+    paintStatus?: PaintStatus;
+    registrationType?: RegistrationType | null;
+    /** **ولا تخرجان في استجابةٍ عامّة** — قرارُ المالك. */
+    periodicInspection?: DocumentStatus | null;
+    licenseStatus?: DocumentStatus | null;
+    batteryKwh?: number | null;
+    rangeKm?: number | null;
+    chargePort?: ChargePort | null;
   };
   /** إظهارُ اللوحة مع الإعلان — اختيارُ البائع، وافتراضُه الإخفاء. */
   showPlate?: boolean;
@@ -254,6 +275,24 @@ export function mutableVehicleFields(
     ...(plateLetters === '' ? {} : { plateLetters }),
     ...(plateNumbers === '' ? {} : { plateNumbers }),
     ...(customsCard === '' ? {} : { customsCard }),
+    ...(input.vehicle.colorInterior == null || input.vehicle.colorInterior.trim() === ''
+      ? {}
+      : { colorInterior: input.vehicle.colorInterior.trim() }),
+    ...(input.vehicle.paintStatus === undefined ? {} : { paintStatus: input.vehicle.paintStatus }),
+    ...(input.vehicle.registrationType == null
+      ? {}
+      : { registrationType: input.vehicle.registrationType }),
+    ...(input.vehicle.periodicInspection == null
+      ? {}
+      : { periodicInspection: input.vehicle.periodicInspection }),
+    ...(input.vehicle.licenseStatus == null
+      ? {}
+      : { licenseStatus: input.vehicle.licenseStatus }),
+    ...(input.vehicle.batteryKwh == null
+      ? {}
+      : { batteryKwh: new Prisma.Decimal(input.vehicle.batteryKwh) }),
+    ...(input.vehicle.rangeKm == null ? {} : { rangeKm: input.vehicle.rangeKm }),
+    ...(input.vehicle.chargePort == null ? {} : { chargePort: input.vehicle.chargePort }),
   };
 }
 
@@ -344,6 +383,24 @@ export function vehicleFields(
     ...(plateLetters === '' ? {} : { plateLetters }),
     ...(plateNumbers === '' ? {} : { plateNumbers }),
     ...(customsCard === '' ? {} : { customsCard }),
+    ...(input.vehicle.colorInterior == null || input.vehicle.colorInterior.trim() === ''
+      ? {}
+      : { colorInterior: input.vehicle.colorInterior.trim() }),
+    ...(input.vehicle.paintStatus === undefined ? {} : { paintStatus: input.vehicle.paintStatus }),
+    ...(input.vehicle.registrationType == null
+      ? {}
+      : { registrationType: input.vehicle.registrationType }),
+    ...(input.vehicle.periodicInspection == null
+      ? {}
+      : { periodicInspection: input.vehicle.periodicInspection }),
+    ...(input.vehicle.licenseStatus == null
+      ? {}
+      : { licenseStatus: input.vehicle.licenseStatus }),
+    ...(input.vehicle.batteryKwh == null
+      ? {}
+      : { batteryKwh: new Prisma.Decimal(input.vehicle.batteryKwh) }),
+    ...(input.vehicle.rangeKm == null ? {} : { rangeKm: input.vehicle.rangeKm }),
+    ...(input.vehicle.chargePort == null ? {} : { chargePort: input.vehicle.chargePort }),
     ...(entered ? { vin } : {}),
   };
 }

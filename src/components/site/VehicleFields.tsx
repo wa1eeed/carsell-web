@@ -42,6 +42,9 @@ export type TrimSpec = CatalogOption & {
   drivetrain: string;
   seats: number;
   doors: number;
+  /** سعةُ المحرك نصًّا — `Decimal` لا يعبر حدَّ الخادم. */
+  engineL: string | null;
+  cylinders: number | null;
 };
 
 /** ما يعرفه الكتالوج عن هذا الطراز — والحقول تُحصر به. */
@@ -85,6 +88,19 @@ export type VehicleDraft = {
   /** لوحةُ المركبة — وكان العمودان في المخطّط بلا نموذجٍ يكتبهما. */
   plateLetters: string;
   plateNumbers: string;
+  /** لونُ المقصورة — عاملٌ بصريّ يسأل عنه المشتري. */
+  colorInterior: string;
+  /** حالُ الهيكل والصبغ — يقرّه البائع ويتجاوزه الفحص (قرار ١٦). */
+  paintStatus: string;
+  /** نوعُ التسجيل — تصنيفُ المرور، وافتراضُه من الطراز. */
+  registrationType: string;
+  /** حالُ الفحص الدوريّ ورخصةِ السير — للمستعملة ذات اللوحات. */
+  periodicInspection: string;
+  licenseStatus: string;
+  /** وبيانُ الكهربائية — يظهر بحسب الوقود. */
+  batteryKwh: string;
+  rangeKm: string;
+  chargePort: string;
   /**
    * بطاقةٌ جمركية — **للجديدة التي لم تُسجَّل بعد**.
    *
@@ -120,6 +136,13 @@ const OLDEST_MODEL_YEAR = 1960;
  * فالطولان هنا، يقرؤهما الحقلان والتنويهان معًا — ولا يُكتب رقمٌ
  * في موضعين.
  */
+export const REGISTRATION_TYPES = [
+  'PRIVATE', 'PRIVATE_TRANSPORT', 'PUBLIC_TRANSPORT',
+  'MINIBUS', 'TAXI', 'MOTORCYCLE', 'HEAVY_EQUIPMENT',
+] as const;
+
+export const DOCUMENT_STATES = ['VALID', 'EXPIRED'] as const;
+
 export const VIN_LENGTH = 17;
 export const CUSTOMS_LENGTH = 10;
 
@@ -134,6 +157,9 @@ export const EMPTY_VEHICLE: VehicleDraft = {
   vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
   plateLetters: '', plateNumbers: '', customsCard: '',
+  colorInterior: '', paintStatus: 'ORIGINAL', registrationType: 'PRIVATE',
+  periodicInspection: '', licenseStatus: '',
+  batteryKwh: '', rangeKm: '', chargePort: '',
 };
 
 export const LABEL_CLASS = 'mb-1.5 block text-2xs font-semibold opacity-70';
@@ -239,7 +265,21 @@ export function useVehicleCatalog(initial: VehicleDraft = EMPTY_VEHICLE) {
    */
   const sections = {
     identity: [vehicle.brandId, vehicle.modelId, vehicle.trimId, vehicle.year],
-    condition: [vehicle.mileageKm, vehicle.colorExterior, vehicle.city],
+    /**
+     * ═══ المطلوبُ قائمةٌ قالها المالك ═══
+     *
+     * «لا تجعل كل شيء إلزاميًّا حتى لا يتراجع المعلن عن النشر، ولكن
+     * ضع حقولًا حاسمة تضمن فلترة البحث» — فالممشى والوارد وحالُ
+     * الهيكل واللونان مطلوبة، ورقمُ الهيكل اختياريّ.
+     */
+    condition: [
+      vehicle.mileageKm,
+      vehicle.colorExterior,
+      vehicle.colorInterior,
+      vehicle.city,
+      vehicle.spec,
+      vehicle.paintStatus,
+    ],
   } as const;
 
   const filled = (group: readonly string[]): number =>
@@ -290,8 +330,25 @@ export function vehiclePayload(vehicle: VehicleDraft) {
     plateLetters: vehicle.plateLetters === '' ? null : vehicle.plateLetters,
     plateNumbers: vehicle.plateNumbers === '' ? null : vehicle.plateNumbers,
     customsCard: vehicle.customsCard.trim() === '' ? null : vehicle.customsCard.trim(),
+    colorInterior: vehicle.colorInterior.trim() === '' ? null : vehicle.colorInterior.trim(),
+    paintStatus: vehicle.paintStatus,
+    registrationType: vehicle.registrationType === '' ? null : vehicle.registrationType,
+    /** **والفارغُ غيابٌ لا قيمة**: مَن لم يُسأل لم يُجب. */
+    periodicInspection: vehicle.periodicInspection === '' ? null : vehicle.periodicInspection,
+    licenseStatus: vehicle.licenseStatus === '' ? null : vehicle.licenseStatus,
+    batteryKwh: numberOrNull(vehicle.batteryKwh),
+    rangeKm: numberOrNull(vehicle.rangeKm),
+    chargePort: vehicle.chargePort === '' ? null : vehicle.chargePort,
     vin: vehicle.vin === '' ? null : vehicle.vin,
   };
+}
+
+/** رقمٌ من حقلٍ نصّيّ — و`''` غيابٌ لا صفر. */
+function numberOrNull(value: string): number | null {
+  const clean = toLatinDigits(value).replace(/[^0-9.]/g, '');
+  if (clean === '') return null;
+  const n = Number(clean);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 /**
@@ -632,6 +689,17 @@ function MutableVehicleFields({
   const te = useTranslations('enums');
   const { vehicle, set, options, inheritedTrim, progress } = catalog;
 
+  /**
+   * ═══ شجرةُ الشروط — النموذجُ يتبع المحرّك ═══
+   *
+   * **ولا يُسأل أحدٌ عن محرّكٍ لا وجودَ له.** الكهربائيةُ بلا سعةِ
+   * محرّكٍ ولا سلندرات ولا ناقلِ حركةٍ تقليديّ؛ والبنزينُ بلا بطارية
+   * ولا مدًى ولا مدخلِ شحن؛ **والهجينُ يُسأل عن الاثنين لأنّ فيه
+   * الاثنين**. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   */
+  const isElectric = vehicle.fuel === 'ELECTRIC';
+  const hasBattery = isElectric || vehicle.fuel === 'HYBRID' || vehicle.fuel === 'PLUGIN_HYBRID';
+
   return (
     <>
       <div style={{ '--i': 1 } as CSSProperties}>
@@ -672,6 +740,46 @@ function MutableVehicleFields({
                 value={vehicle.colorExterior}
                 onChange={(event) => set({ colorExterior: event.target.value })}
                 className={fieldShell()}
+              />
+            </Field>
+
+            {/*
+              **واللونُ الداخليّ عاملٌ بصريّ يسأل عنه المشتري** — وكان
+              العمودُ في المخطّط بلا نموذجٍ يكتبه. (طلب المالك.)
+            */}
+            <Field label="اللون الداخلي" htmlFor="veh-colour-in" required>
+              <input
+                id="veh-colour-in"
+                placeholder="بيج"
+                value={vehicle.colorInterior}
+                onChange={(event) => set({ colorInterior: event.target.value })}
+                className={fieldShell()}
+              />
+            </Field>
+
+            {/*
+              ═══ حالُ الهيكل — **وكان عمودُه بلا كاتب** ═══
+
+              `Vehicle.paintStatus` في المخطّط منذ بُني ويسقط إلى
+              `UNKNOWN`، **والبحثُ يُرشّح بـ«كامل الوكالة»** — فكلُّ
+              إعلانٍ ينشره بائعٌ حقيقيّ يسقط من ذلك المرشِّح مهما كانت
+              سيارته. وهو إلزاميّ بقول المالك: يبني الثقة ويقلّل
+              الأسئلة المتكرّرة.
+            */}
+            <Field
+              label="حالة الهيكل والصبغ"
+              htmlFor="veh-paint"
+              hint="يقره البائع، ويتجاوزه تقرير الفحص إن اختلف."
+              required
+            >
+              <Picker
+                id="veh-paint"
+                value={vehicle.paintStatus}
+                placeholder="اختر الحالة"
+                onChange={(next) => set({ paintStatus: next })}
+                options={(['ORIGINAL', 'PARTIAL', 'REPAINTED', 'UNKNOWN'] as const).map(
+                  (value) => ({ value, label: te(`paintStatus.${value}`) }),
+                )}
               />
             </Field>
 
@@ -718,6 +826,90 @@ function MutableVehicleFields({
               <span className="font-num">
                 <Quantity unit="seats" count={inheritedTrim.seats} />
               </span>
+
+              {/*
+                **وسعةُ المحرك وسلندراتُه من الفئة** — في المخطّط منذ
+                بُني (١٢٥ فئةً من ١٢٦ تحملهما) ولم تُعرضا في
+                الاستمارة قطّ. وتسقطان عن الكهربائية. (طلب المالك.)
+              */}
+              {isElectric || inheritedTrim.engineL === null ? null : (
+                <>
+                  <span aria-hidden className="opacity-30">·</span>
+                  <span className="font-num" dir="ltr">
+                    {displayDigits(inheritedTrim.engineL)} L
+                  </span>
+                </>
+              )}
+              {isElectric || inheritedTrim.cylinders === null ? null : (
+                <>
+                  <span aria-hidden className="opacity-30">·</span>
+                  <span className="font-num">
+                    <Quantity unit="cylinders" count={inheritedTrim.cylinders} />
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
+          {/*
+            ═══ وبيانُ الكهربائية يظهر لمن له بطارية ═══
+
+            **ويرفع قيمةَ الإعلان**: من يبحث عن كهربائيةٍ يسأل عن
+            المدى والمدخل قبل أن يسأل عن اللون. و`CCS2` قياسيُّ
+            السعودية. (طلب المالك ٢٠٢٦-١٠-١٨.)
+          */}
+          {!hasBattery ? null : (
+            <div className="reveal mt-4 grid gap-4 sm:grid-cols-3">
+              <Field label="سعة البطارية" htmlFor="veh-battery" unit="kWh">
+                <input
+                  id="veh-battery"
+                  dir="ltr"
+                  inputMode="decimal"
+                  placeholder="77.4"
+                  value={vehicle.batteryKwh}
+                  onChange={(event) =>
+                    set({
+                      batteryKwh: toLatinDigits(event.target.value)
+                        .replace(/[^0-9.]/g, '')
+                        .slice(0, 6),
+                    })
+                  }
+                  className={cn(fieldShell(), 'font-num')}
+                />
+              </Field>
+
+              <Field label="المدى بالشحنة الواحدة" htmlFor="veh-range" unit="كم">
+                <input
+                  id="veh-range"
+                  dir="ltr"
+                  inputMode="numeric"
+                  placeholder="480"
+                  value={vehicle.rangeKm}
+                  onChange={(event) =>
+                    set({
+                      rangeKm: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 4),
+                    })
+                  }
+                  className={cn(fieldShell(), 'font-num')}
+                />
+              </Field>
+
+              <Field
+                label="نوع مدخل الشحن"
+                htmlFor="veh-port"
+                hint="CCS2 هو القياسي في السعودية."
+              >
+                <Picker
+                  id="veh-port"
+                  value={vehicle.chargePort}
+                  placeholder="اختياري"
+                  onChange={(next) => set({ chargePort: next })}
+                  options={(['CCS2', 'GBT', 'TYPE2'] as const).map((value) => ({
+                    value,
+                    label: te(`chargePort.${value}`),
+                  }))}
+                />
+              </Field>
             </div>
           )}
 
@@ -732,9 +924,15 @@ function MutableVehicleFields({
           <div className="grid gap-4 sm:grid-cols-3">
             {(
               [
-                ['transmission', options.transmissions],
+                /**
+                 * ═══ وناقلُ الحركة يسقط عن الكهربائية ═══
+                 *
+                 * **لا ناقلَ تقليديًّا فيها** — فحقلٌ يسأل عنه يُجبر
+                 * صاحبَها على جوابٍ لا يصف سيارته. (طلب المالك.)
+                 */
+                ...(isElectric ? [] : [['transmission', options.transmissions] as const]),
                 ['fuel', options.fuels],
-                ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
+                ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT', 'AMERICAN', 'KOREAN']],
               ] as const
             ).map(([key, values]) => (
               <Field key={key} label={t(key)} htmlFor={`veh-${key}`}>
@@ -822,6 +1020,8 @@ export function VehiclePlateField({
    */
   const isNew = vehicle.condition === 'NEW';
   const byCustoms = isNew && registration === 'customs';
+  /** مستعملةٌ ولها لوحات — وهي وحدها من تُسأل عن وثيقتيها. */
+  const asksDocuments = !isNew;
 
   return (
     <div style={{ '--i': 3 } as CSSProperties}>
@@ -883,6 +1083,27 @@ export function VehiclePlateField({
             />
           </Field>
 
+          {/*
+            ═══ نوعُ التسجيل — تصنيفُ المرور لا شكلُ المركبة ═══
+
+            **وهو غيرُ الهيكل**: بيك أبٌ واحد قد يكون «خصوصي» أو
+            «نقل خاص»، وفانٌ واحد «حافلة صغيرة» أو «نقل عام» —
+            والفرقُ في اللوحة والرسوم والتأمين لا في الشكل.
+            (طلب المالك ٢٠٢٦-١٠-١٨.)
+          */}
+          <Field label="نوع التسجيل" htmlFor="veh-regtype">
+            <Picker
+              id="veh-regtype"
+              value={vehicle.registrationType}
+              placeholder="اختر النوع"
+              onChange={(next) => set({ registrationType: next })}
+              options={REGISTRATION_TYPES.map((value) => ({
+                value,
+                label: te(`registrationType.${value}`),
+              }))}
+            />
+          </Field>
+
           <Field label={t('condition')} htmlFor="veh-condition">
             <Picker
               id="veh-condition"
@@ -933,6 +1154,52 @@ export function VehiclePlateField({
                 },
               ]}
             />
+          </div>
+        )}
+
+        {/*
+          ═══ وحالُ الوثيقتين — للمستعملة ذات اللوحات وحدها ═══
+
+          **الجديدةُ لم يحن فحصُها**، ومن لا لوحةَ له لا استمارةَ له.
+          فسؤالُ أيِّهما في غير موضعه يطلب جوابًا لا وجودَ له.
+          **ولا تُعرضان للعلن** (قرار المالك): تُقرآن في لوحة الأدمن
+          وفي صفحة سيارته وحدهما.
+        */}
+        {!asksDocuments ? null : (
+          <div className="reveal mb-5 grid gap-4 sm:grid-cols-2">
+            <Field
+              label="حالة الفحص الدوري"
+              htmlFor="veh-inspection"
+              note="لا تظهر في الإعلان. نسألها لنعرف ما تحتاجه سيارتك من خدمات."
+            >
+              <Picker
+                id="veh-inspection"
+                value={vehicle.periodicInspection}
+                placeholder="لم تحدد"
+                onChange={(next) => set({ periodicInspection: next })}
+                options={DOCUMENT_STATES.map((value) => ({
+                  value,
+                  label: te(`documentStatus.${value}`),
+                }))}
+              />
+            </Field>
+
+            <Field
+              label="حالة رخصة السير (الاستمارة)"
+              htmlFor="veh-license"
+              note="لا تظهر في الإعلان. نسألها لنعرف ما تحتاجه سيارتك من خدمات."
+            >
+              <Picker
+                id="veh-license"
+                value={vehicle.licenseStatus}
+                placeholder="لم تحدد"
+                onChange={(next) => set({ licenseStatus: next })}
+                options={DOCUMENT_STATES.map((value) => ({
+                  value,
+                  label: te(`documentStatus.${value}`),
+                }))}
+              />
+            </Field>
           </div>
         )}
 

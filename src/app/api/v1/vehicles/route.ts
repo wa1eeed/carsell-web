@@ -4,7 +4,11 @@ import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
 import { addVehicle } from '@/lib/domain/garage';
 import {
+  ChargePort,
+  DocumentStatus,
   FuelType,
+  PaintStatus,
+  RegistrationType,
   Transmission,
   VehicleCondition,
   VehicleSpec,
@@ -67,6 +71,21 @@ const Body = z.object({
    * **ولا تظهر في أيّ استجابة عامّة** — مسلكُ اللوحة نفسُه.
    */
   customsCard: CUSTOMS_CARD.nullable().optional(),
+  /**
+   * ═══ صفاتٌ أضافها المالك ٢٠٢٦-١٠-١٨ ═══
+   *
+   * **والحالتان لا تخرجان في استجابةٍ عامّة** — تُقرآن في لوحة
+   * الأدمن وفي صفحة سيارة صاحبها وحدهما.
+   */
+  colorInterior: z.string().max(40).nullable().optional(),
+  paintStatus: z.enum(PaintStatus).optional(),
+  registrationType: z.enum(RegistrationType).nullable().optional(),
+  periodicInspection: z.enum(DocumentStatus).nullable().optional(),
+  licenseStatus: z.enum(DocumentStatus).nullable().optional(),
+  /** وبيانُ الكهربائية — يُرسَل لمن له بطارية. */
+  batteryKwh: z.number().positive().max(400).nullable().optional(),
+  rangeKm: z.number().int().positive().max(2000).nullable().optional(),
+  chargePort: z.enum(ChargePort).nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {

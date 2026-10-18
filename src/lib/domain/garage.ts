@@ -77,6 +77,15 @@ export type GarageVehicle = {
   mileageKm: number;
   /** ما يُعدَّل — تقرؤه الاستمارة بلا نداءٍ ثانٍ. */
   colorExterior: string;
+  /**
+   * ═══ بياناتُ التسجيل — لصاحبها وحده ═══
+   *
+   * **لا تخرج في استجابةٍ عامّة** (قرار المالك ٢٠٢٦-١٠-١٨)، وهذه
+   * قائمةُ صاحبها: منها يعرف ما تحتاجه سيارتُه من خدمة.
+   */
+  registrationType: string | null;
+  periodicInspection: string | null;
+  licenseStatus: string | null;
   state: VehicleState;
   /** مرجع الإعلان الحيّ أو المُباع — ومنه يُفتح. و`null` لما في المرآب. */
   listingRef: string | null;
@@ -119,6 +128,14 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
     select: {
       id: true, year: true, city: true, mileageKm: true, colorExterior: true,
       brandName: true, modelName: true, trimName: true,
+      /**
+       * ═══ بياناتُ التسجيل في صفحة سيارته — **ولا تُنشر** ═══
+       *
+       * حالُ الفحص الدوريّ ورخصةِ السير لا تخرجان في استجابةٍ عامّة
+       * (قرار المالك ٢٠٢٦-١٠-١٨)، وصاحبُها أولى الناس بأن يراهما —
+       * فمنهما يعرف ما تحتاجه سيارتُه من خدمة.
+       */
+      registrationType: true, periodicInspection: true, licenseStatus: true,
       brand: { select: { nameEn: true, slug: true } },
       model: { select: { nameEn: true } },
       trim: { select: { nameEn: true } },
@@ -163,6 +180,9 @@ export async function myVehicles(userId: string, locale: string): Promise<Garage
               },
             }).path,
       listingStatus: shown?.status ?? null,
+      registrationType: row.registrationType,
+      periodicInspection: row.periodicInspection,
+      licenseStatus: row.licenseStatus,
       openServices: row.serviceRequests.length,
       canRemove: row._count.listings === 0 && row._count.inspectionReports === 0,
     };

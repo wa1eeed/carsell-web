@@ -210,6 +210,25 @@ export default async function MyVehiclesPage({
                 <span className="bidi-isolate">{cityLabel(vehicle.city, locale)}</span>
                 <span aria-hidden className="opacity-40">·</span>
                 <Quantity unit="km" count={vehicle.mileageKm} />
+                {/*
+                  ═══ وحالُ الوثيقتين لصاحبها وحده ═══
+
+                  **لا تُعرضان للعلن** (قرار المالك ٢٠٢٦-١٠-١٨)، وهذه
+                  صفحتُه. والمنتهيةُ تُعلَّم بلونٍ يُرى: من لا يعرف
+                  أنّ استمارته انتهت لا يجدّدها، **ويُوقَف على طريق**.
+                */}
+                {vehicle.periodicInspection !== 'EXPIRED' ? null : (
+                  <>
+                    <span aria-hidden className="opacity-40">·</span>
+                    <span className="text-warn-900">الفحص الدوري منتهي</span>
+                  </>
+                )}
+                {vehicle.licenseStatus !== 'EXPIRED' ? null : (
+                  <>
+                    <span aria-hidden className="opacity-40">·</span>
+                    <span className="text-warn-900">الاستمارة منتهية</span>
+                  </>
+                )}
                 {vehicle.openServices === 0 ? null : (
                   <>
                     <span aria-hidden className="opacity-40">·</span>

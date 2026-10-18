@@ -458,7 +458,8 @@
     "truncatedTemplates": "{count, plural, zero{لا قوالب ستختصر} one{قالب سيختصر} two{قالبان سيختصران} few{{n} قوالب ستختصر} many{{n} قالبا سيختصر} other{{n} قالب سيختصر}}",
     "serviceConsents": "{count, plural, zero{لا طلبات فحص تنتظر إذنك} one{طلب فحص ينتظر إذنك} two{طلبا فحص ينتظران إذنك} few{{n} طلبات فحص تنتظر إذنك} many{{n} طلب فحص تنتظر إذنك} other{{n} طلب فحص ينتظر إذنك}}",
     "completedRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبين} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
-    "viewingsAwaiting": "{count, plural, zero{لا مواعيد معاينة تنتظر ردك} one{موعد معاينة ينتظر ردك} two{موعدا معاينة ينتظران ردك} few{{n} مواعيد معاينة تنتظر ردك} many{{n} موعد معاينة تنتظر ردك} other{{n} موعد معاينة ينتظر ردك}}"
+    "viewingsAwaiting": "{count, plural, zero{لا مواعيد معاينة تنتظر ردك} one{موعد معاينة ينتظر ردك} two{موعدا معاينة ينتظران ردك} few{{n} مواعيد معاينة تنتظر ردك} many{{n} موعد معاينة تنتظر ردك} other{{n} موعد معاينة ينتظر ردك}}",
+    "cylinders": "{count, plural, zero{لا سلندرات} one{سلندر واحد} two{سلندران} few{{n} سلندرات} many{{n} سلندرا} other{{n} سلندر}}"
   },
   "search": {
     "title": "تصفح السيارات",
@@ -550,12 +551,15 @@
       "PETROL": "بنزين",
       "DIESEL": "ديزل",
       "HYBRID": "هجين",
-      "ELECTRIC": "كهربائية"
+      "ELECTRIC": "كهربائية",
+      "PLUGIN_HYBRID": "هجين قابل للشحن"
     },
     "spec": {
       "SAUDI": "وارد سعودي",
       "GCC": "خليجي",
-      "AGENT_IMPORT": "وارد وكيل"
+      "AGENT_IMPORT": "وارد وكيل",
+      "AMERICAN": "أمريكي",
+      "KOREAN": "كوري"
     },
     "bodyType": {
       "SEDAN": "سيدان",
@@ -563,7 +567,9 @@
       "PICKUP": "وانيت",
       "HATCHBACK": "هاتشباك",
       "COUPE": "كوبيه",
-      "VAN": "فان"
+      "VAN": "فان",
+      "CROSSOVER": "كروس أوفر",
+      "CONVERTIBLE": "مكشوفة"
     },
     "drivetrain": {
       "FWD": "أمامي",
@@ -684,6 +690,30 @@
       "CANCELLED": "ألغي",
       "STALLED": "توقف",
       "DISPUTED": "نزاع"
+    },
+    "registrationType": {
+      "PRIVATE": "خصوصي",
+      "PRIVATE_TRANSPORT": "نقل خاص",
+      "PUBLIC_TRANSPORT": "نقل عام",
+      "MINIBUS": "حافلة صغيرة",
+      "TAXI": "أجرة",
+      "MOTORCYCLE": "دراجة نارية",
+      "HEAVY_EQUIPMENT": "أشغال عامة"
+    },
+    "documentStatus": {
+      "VALID": "ساري",
+      "EXPIRED": "منتهي"
+    },
+    "chargePort": {
+      "CCS2": "CCS2",
+      "GBT": "GB/T",
+      "TYPE2": "Type 2"
+    },
+    "paintStatus": {
+      "ORIGINAL": "كامل الوكالة",
+      "PARTIAL": "رش جزئي",
+      "REPAINTED": "مرشوش بالكامل",
+      "UNKNOWN": "غير محدد"
     }
   },
   "services": {

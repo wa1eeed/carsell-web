@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-96 models · 63 enums
+96 models · 66 enums
 
 ## Relationships
 
@@ -53,6 +53,7 @@ erDiagram
   Brand ||--o{ Model : "models"
   Brand ||--o{ Vehicle : "vehicles"
   Model |o--|| BodyType : "bodyType"
+  Model |o--|| RegistrationType : "registrationType"
   Model }o--|| Brand : "brand"
   Model ||--o{ Trim : "trims"
   Model ||--o{ Vehicle : "vehicles"
@@ -69,6 +70,10 @@ erDiagram
   Feature ||--o{ ListingFeature : "listings"
   TrimFeature }o--|| Trim : "trim"
   TrimFeature }o--|| Feature : "feature"
+  Vehicle |o--|| RegistrationType : "registrationType"
+  Vehicle |o--|| DocumentStatus : "periodicInspection"
+  Vehicle |o--|| DocumentStatus : "licenseStatus"
+  Vehicle |o--|| ChargePort : "chargePort"
   Vehicle }o--|| BodyType : "bodyType"
   Vehicle }o--|| Transmission : "transmission"
   Vehicle }o--|| FuelType : "fuel"
@@ -462,7 +467,7 @@ Relations: `models` → `Model` · `vehicles` → `Vehicle`
 | `yearTo` | `Int?` |  |
 | `visible` | `Boolean` |  |
 
-Relations: `bodyType` → `BodyType` · `brand` → `Brand` · `trims` → `Trim` · `vehicles` → `Vehicle` · `priceStats` → `PriceStat`
+Relations: `bodyType` → `BodyType` · `registrationType` → `RegistrationType` · `brand` → `Brand` · `trims` → `Trim` · `vehicles` → `Vehicle` · `priceStats` → `PriceStat`
 
 ### `Trim`
 
@@ -517,6 +522,8 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `plateLetters` | `String?` |  |
 | `plateNumbers` | `String?` |  |
 | `customsCard` | `String?` |  |
+| `batteryKwh` | `Decimal?` |  |
+| `rangeKm` | `Int?` |  |
 | `brandId` | `String` |  |
 | `modelId` | `String` |  |
 | `trimId` | `String?` |  |
@@ -532,7 +539,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `city` | `String` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
+Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
 
 ### `VehicleHistoryItem`
 
@@ -1886,12 +1893,15 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `UserStatus` — `ACTIVE`, `SUSPENDED`, `BANNED`, `CLOSED`
 - `AdminRole` — `SUPER_ADMIN`, `OPS`, `FINANCE`, `SUPPORT`, `CONTENT`, `READONLY`
 - `DealerStatus` — `PENDING`, `ACTIVE`, `SUSPENDED`
-- `BodyType` — `SEDAN`, `SUV`, `PICKUP`, `HATCHBACK`, `COUPE`, `VAN`
+- `BodyType` — `SEDAN`, `SUV`, `/**`, `* كروس أوفر — **وكان معالجُ البيع يعرضه ولا وجودَ له هنا**.`, `* قائمتُه الاحتياطية تحمل `WAGON` و`CONVERTIBLE` منذ كُتبت،`, `* والتعدادُ لا يعرفهما: من اختار أحدَهما أرسل قيمةً يردّها الخادم.`, `* (طلب المالك ٢٠٢٦-١٠-١٨، ووُجد الخللُ في قياسه.)`, `*/`, `CROSSOVER`, `PICKUP`, `HATCHBACK`, `COUPE`, `CONVERTIBLE`, `VAN`
+- `RegistrationType` — `PRIVATE // خصوصي`, `PRIVATE_TRANSPORT // نقل خاص`, `PUBLIC_TRANSPORT // نقل عام`, `MINIBUS // حافلة صغيرة`, `TAXI // أجرة`, `MOTORCYCLE // دراجة نارية`, `HEAVY_EQUIPMENT // أشغال عامة`
+- `DocumentStatus` — `VALID // ساري`, `EXPIRED // منتهي`
 - `Transmission` — `AUTOMATIC`, `MANUAL`, `CVT`, `DCT`
-- `FuelType` — `PETROL`, `DIESEL`, `HYBRID`, `ELECTRIC`
+- `FuelType` — `PETROL`, `DIESEL`, `HYBRID`, `/** هجينٌ قابل للشحن — له بطاريةٌ تُشحن ومحرّكُ بنزين معًا. */`, `PLUGIN_HYBRID`, `ELECTRIC`
+- `ChargePort` — `CCS2`, `GBT`, `TYPE2`
 - `Drivetrain` — `FWD`, `RWD`, `AWD`, `FOUR_WD`
 - `FeatureGroup` — `SAFETY`, `COMFORT`, `TECH`
-- `VehicleSpec` — `SAUDI`, `GCC`, `AGENT_IMPORT`
+- `VehicleSpec` — `SAUDI`, `GCC`, `AGENT_IMPORT`, `AMERICAN`, `KOREAN`
 - `VehicleCondition` — `NEW`, `USED`
 - `EntryMode` — `VIN_LOOKUP`, `MANUAL`
 - `PaintStatus` — `ORIGINAL`, `PARTIAL`, `REPAINTED`, `UNKNOWN`
