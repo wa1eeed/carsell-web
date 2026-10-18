@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Logo } from '@/components/ui/Logo';
 import { Quantity } from '@/components/ui/Quantity';
 import type { InspectionSection, PointState, PublicInspectionReport } from '@/lib/domain/inspection';
 
@@ -93,6 +94,17 @@ export function ReportSheet({
         <div className="brand">
           <span className="wordmark">CARZ</span>
           <span className="kicker">تقرير فحص فنّي معتمد</span>
+          {/*
+            **والشعارُ مكوّنٌ واحد** — لا صورةٌ تُستدعى بمسارها هنا،
+            فملفُّه يتبدّل مرّةً ويصل كلَّ شاشةٍ وورقة.
+          */}
+          {/*
+            **ومقاسُه بثلاثة أصناف لا بواحد.** `cn` ضمُّ نصوصٍ لا دمجُ
+            أدوات، فـ`w-auto` المخبوزة في المكوّن تهزم ما أكتبه بصنفٍ
+            واحد مهما كان ترتيبُ الورقة — وقِيس فخرج الشعار ١٤ بكسلًا.
+            فالمقاسُ في `report-sheet.css` بـ`.sheet .brand .mark`.
+          */}
+          <Logo className="mark" />
         </div>
 
         <div className="identity">
