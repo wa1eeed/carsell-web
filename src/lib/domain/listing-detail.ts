@@ -167,6 +167,16 @@ export type PublicListingDetail = {
     condition: VehicleCondition;
     /** حالة الصبغ المعروضة ومصدرها — الفحص يتجاوز إقرار البائع (قرار ١٦). */
     paint: { status: PaintStatus; source: 'INSPECTION' | 'SELLER' };
+    /**
+     * ═══ اللوحةُ لا تخرج إلّا بإذن صاحبها ═══
+     *
+     * `Listing.showPlate` اختيارُ البائع، وافتراضُه الإخفاء. **والشرطُ
+     * يقع حيث تُجلب لا حيث تُعرض**: لوحةٌ تدخل الكائنَ ثمّ تُخفيها
+     * الشاشة تبقى في حمولة RSC في مصدر صفحةٍ عامّة — وهو مسلكُ
+     * `reservePrice` نفسه، وقد وقع مثلُه في تقرير الفحص الخاصّ.
+     */
+    plateLetters: string | null;
+    plateNumbers: string | null;
   };
 
   /**
@@ -657,6 +667,8 @@ export async function toPublicDetail(
       trimName: row.vehicle.trimName,
       year: row.vehicle.year,
       mileageKm: row.vehicle.mileageKm,
+      plateLetters: row.showPlate ? row.vehicle.plateLetters : null,
+      plateNumbers: row.showPlate ? row.vehicle.plateNumbers : null,
       transmission: row.vehicle.transmission,
       fuel: row.vehicle.fuel,
       bodyType: row.vehicle.bodyType,

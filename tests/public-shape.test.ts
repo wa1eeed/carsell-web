@@ -13,17 +13,32 @@ import { findPublishedListing, toPublicDetail } from '@/lib/domain/listing-detai
  * الأسماء، والقيمة نفسها تبقى.
  */
 const FORBIDDEN_KEYS = [
-  'iban', 'phone', 'email', 'vin', 'plateNumbers', 'plateLetters',
+  'iban', 'phone', 'email', 'vin',
   'nationalIdEncrypted', 'minAcceptPrice', 'reservePrice', 'sellerId',
 ];
 
-function walk(value: unknown, path: string, hits: string[]): void {
+/**
+ * ═══ واللوحةُ ليست محظورةً بإطلاق — بل بإذن صاحبها ═══
+ *
+ * كانت `plateLetters` و`plateNumbers` في قائمة المحظور بإطلاق، ثمّ
+ * قرّر المالك (٢٠٢٦-١٠-١٨) أن تُعرض **إن اختار البائع**
+ * (`Listing.showPlate`). فالقاعدةُ تبدّلت، والاختبارُ يتبعها —
+ * **ويشتدّ**: المحظورُ المطلق لا يقيس الحال الخطرة الجديدة، وهي
+ * لوحةٌ تخرج **وقد اختار صاحبُها الإخفاء**.
+ */
+const CONSENTED_KEYS = ['plateNumbers', 'plateLetters'];
+
+function walkOf(value: unknown, path: string, hits: string[], keys: string[]): void {
   if (value === null || typeof value !== 'object') return;
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
     const here = path === '' ? key : `${path}.${key}`;
-    if (FORBIDDEN_KEYS.includes(key)) hits.push(here);
-    walk(child, here, hits);
+    if (keys.includes(key)) hits.push(here);
+    walkOf(child, here, hits, keys);
   }
+}
+
+function walk(value: unknown, path: string, hits: string[]): void {
+  walkOf(value, path, hits, FORBIDDEN_KEYS);
 }
 
 describe('الشكل العامّ لصفحة السيارة', () => {
@@ -44,6 +59,40 @@ describe('الشكل العامّ لصفحة السيارة', () => {
     const hits: string[] = [];
     walk(detail, '', hits);
     expect(hits).toEqual([]);
+  });
+
+  /**
+   * **ولوحةٌ لم يأذن بها صاحبُها لا تخرج** — ولو خاليةَ القيمة في
+   * الشاشة: الشرطُ يقع حيث تُجلب لا حيث تُعرض، وما يدخل الكائنَ يُسلسَل
+   * في حمولة RSC ولو لم يُرسَم. وهو مسلكُ `reservePrice` نفسه.
+   */
+  it('ولوحةٌ اختار صاحبُها إخفاءها لا تخرج في الشكل العامّ', async () => {
+    const hidden = await db.listing.findFirst({
+      where: {
+        status: 'PUBLISHED',
+        showPlate: false,
+        vehicle: { plateLetters: { not: null } },
+      },
+      select: { ref: true },
+    });
+    /** **والطقمُ يشترط ما يفترضه** — لا يمرّ بلا صفٍّ يقيسه. */
+    expect(hidden, 'لا إعلانَ مخفيَّ اللوحة في القاعدة').not.toBeNull();
+    if (hidden === null) return;
+
+    const row = await findPublishedListing(hidden.ref);
+    if (row === null) return;
+    const detail = await toPublicDetail(row);
+
+    const leaked: string[] = [];
+    walkOf(detail, '', leaked, CONSENTED_KEYS);
+    /** حاضرةٌ مفتاحًا — فارغةٌ قيمةً: لا شيءَ من اللوحة في الحمولة. */
+    for (const path of leaked) {
+      const value = path.split('.').reduce<unknown>(
+        (acc, key) => (acc as Record<string, unknown>)[key],
+        detail,
+      );
+      expect(value, path).toBeNull();
+    }
   });
 
   /**

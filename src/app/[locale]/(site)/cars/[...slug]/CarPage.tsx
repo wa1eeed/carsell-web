@@ -46,6 +46,7 @@ import { RangeBar } from '@/components/ui/RangeBar';
 import { InspectionSummary } from '@/components/site/InspectionSummary';
 import { ScoreRing } from '@/components/ui/ScoreRing';
 import { SimilarGrid, type SimilarItem } from '@/components/ui/SimilarGrid';
+import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import { SpecTable } from '@/components/ui/SpecTable';
 import { Tabs } from '@/components/ui/Tabs';
 import type { Canonical, ListingService, PublicListingDetail } from '@/lib/domain/listing-detail';
@@ -615,7 +616,30 @@ export function CarPage({
 
           <Tabs items={tabs} active={tab} onChange={setTab} />
 
-          {tab === 'specs' ? <SpecTable entries={specs} /> : null}
+          {tab === 'specs' ? (
+            <>
+              {/*
+                ═══ واللوحةُ تُرسم حين يأذن صاحبُها ═══
+
+                `showPlate` اختيارُ البائع وافتراضُه الإخفاء، والنطاقُ
+                لا يُخرجها أصلًا حين يختار الإخفاء — فهذا الشرطُ عرضٌ
+                لا حراسة، والحراسةُ حيث تُجلب.
+
+                وموضعُها فوق المواصفات: اللوحةُ أوّلُ ما يُطابقه من
+                يعاين المركبة، وهي من المواصفات لا من الزينة.
+              */}
+              {vehicle.plateLetters === null ? null : (
+                <div className="mb-7 w-64 max-w-full">
+                  <LicensePlate
+                    letters={vehicle.plateLetters}
+                    numbers={vehicle.plateNumbers}
+                    size="fill"
+                  />
+                </div>
+              )}
+              <SpecTable entries={specs} />
+            </>
+          ) : null}
 
           {tab === 'inspection' ? (
             <section id="inspection" className="flex flex-col gap-6">

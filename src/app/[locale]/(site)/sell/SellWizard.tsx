@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cityLabel } from '@/lib/labels/cities';
+import { PlateField } from '@/components/ui/plate/PlateField';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -73,11 +74,17 @@ type Vehicle = {
   spec: string;
   city: string;
   colorExterior: string;
+  /** لوحةُ المركبة — وكان العمودان في المخطّط بلا نموذجٍ يكتبهما. */
+  plateLetters: string;
+  plateNumbers: string;
+  /** إظهارُها مع الإعلان — اختيارُ البائع، وافتراضُه الإخفاء. */
+  showPlate: boolean;
 };
 
 const EMPTY: Vehicle = {
   vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
+  plateLetters: '', plateNumbers: '', showPlate: false,
 };
 
 /**
@@ -271,6 +278,8 @@ export function SellWizard({
           condition: vehicle.condition,
           city: vehicle.city,
           colorExterior: vehicle.colorExterior,
+          plateLetters: vehicle.plateLetters || null,
+          plateNumbers: vehicle.plateNumbers || null,
           vin: vehicle.vin === '' ? null : vehicle.vin,
         }),
       }).catch(() => null);
@@ -321,8 +330,12 @@ export function SellWizard({
             condition: vehicle.condition,
             city: vehicle.city,
             colorExterior: vehicle.colorExterior,
+            plateLetters: vehicle.plateLetters || null,
+            plateNumbers: vehicle.plateNumbers || null,
             vin: vehicle.vin === '' ? null : vehicle.vin,
           },
+          /** **ومعاملٌ يُرسَل ولا يُقرأ صمتٌ** — فيُقرأ في النطاق ويُخزَّن. */
+          showPlate: vehicle.showPlate,
           images: images.map((image) => image.key),
         }),
       }).catch(() => null);
@@ -906,6 +919,41 @@ export function SellWizard({
                 <option value="USED">{te('condition.USED')}</option>
                 <option value="NEW">{te('condition.NEW')}</option>
               </select>
+            </label>
+          </div>
+
+          {/*
+            ═══ واللوحةُ تُدخَل هنا — وكان عمودُها بلا كاتب ═══
+
+            `Vehicle.plateLetters` في المخطّط منذ بُني **ولا نموذجَ في
+            المنتج يكتبه**: تكتبه البذرةُ وحدها، فكلُّ مركبةٍ ينشرها
+            بائعٌ حقيقيّ بلا لوحة — وتقريرُ فحصها ينقصه ما تُعرف به.
+          */}
+          <div className="mt-7 border-t border-line-2 pt-6">
+            <PlateField
+              label={t('plate')}
+              hint={t('plateHint')}
+              letters={vehicle.plateLetters}
+              numbers={vehicle.plateNumbers}
+              onLetters={(plateLetters) => set({ plateLetters })}
+              onNumbers={(plateNumbers) => set({ plateNumbers })}
+            />
+
+            {/*
+              **والإظهارُ اختيارٌ لا افتراض**: المنصّة تطمس اللوحة في
+              الصور، فعرضُها نصًّا بجوار صورةٍ مطموسة ينقض الطمس.
+            */}
+            <label className="mt-5 flex items-start gap-3 text-2xs leading-loose">
+              <input
+                type="checkbox"
+                checked={vehicle.showPlate}
+                onChange={(event) => set({ showPlate: event.target.checked })}
+                className="mt-0.5 size-4 shrink-0"
+              />
+              <span>
+                <span className="font-bold">{t('showPlate')}</span>
+                <span className="mt-0.5 block opacity-70">{t('showPlateHint')}</span>
+              </span>
             </label>
           </div>
 

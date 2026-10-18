@@ -172,6 +172,12 @@ const PublishBody = z.object({
     city: z.string().min(1).max(60),
     colorExterior: z.string().min(1).max(40),
     vin: z.string().max(20).nullable(),
+    /**
+     * لوحةُ المركبة — اختياريّة: مركبةٌ لم تُسجَّل بعدُ حالٌ قائمة.
+     * والتطبيعُ في النطاق لا هنا، فيُقبل ما يُلصق كما يُلصق.
+     */
+    plateLetters: z.string().max(20).nullable().optional(),
+    plateNumbers: z.string().max(12).nullable().optional(),
   }),
   /**
    * مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل.
@@ -181,6 +187,8 @@ const PublishBody = z.object({
    * الخطوة الأولى). وشرطُ «صورةٌ واحدة على الأقل» قائمٌ في
    * `createListing` لمسار النشر وحده، حيث موضعه.
    */
+  /** إظهارُ اللوحة مع الإعلان — اختيارُ البائع، وافتراضُه الإخفاء. */
+  showPlate: z.boolean().optional(),
   images: z.array(z.string().min(1).max(300)).max(10),
 
   /**

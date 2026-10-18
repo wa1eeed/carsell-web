@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Logo } from '@/components/ui/Logo';
+import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import { Quantity } from '@/components/ui/Quantity';
 import type { InspectionSection, PointState, PublicInspectionReport } from '@/lib/domain/inspection';
 
@@ -125,6 +126,23 @@ export function ReportSheet({
               </>
             )}
           </p>
+          {/*
+            ═══ واللوحةُ مع هويّة المركبة لا عمودًا خامسًا ═══
+
+            التقريرُ يصف مركبةً بعينها، واللوحةُ هي ما تُعرف به في
+            الشارع — فموضعُها حيث يُقرأ اسمُها وسنتُها ورقمُ هيكلها.
+            وعمودٌ خامسٌ في كرتٍ عرضُه ١٨٨مم يضغط الخمسةَ جميعًا.
+          */}
+          {report.vehicle.plateLetters === null ? null : (
+            <div className="plate">
+              <LicensePlate
+                letters={report.vehicle.plateLetters}
+                numbers={report.vehicle.plateNumbers}
+                size="fill"
+              />
+            </div>
+          )}
+
           <dl className="meta">
             <div>
               <dt>رقم التقرير</dt>

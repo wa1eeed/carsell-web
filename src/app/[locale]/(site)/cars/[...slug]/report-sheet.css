@@ -57,7 +57,7 @@
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   gap: 0 7mm;
-  align-items: start;
+  align-items: center;
   overflow: hidden;
   border: 0.3mm solid var(--brand-edge);
   border-top: 3mm solid var(--brand);
@@ -116,6 +116,9 @@
   -webkit-print-color-adjust: exact;
 }
 
+.sheet .identity {
+  text-align: center;
+}
 .sheet .identity h1 {
   margin: 0 0 1mm;
   color: var(--brand-deep);
@@ -133,20 +136,36 @@
   opacity: 0.45;
 }
 
+/*
+ * **وبياناتُ الكرت تُوسَّط** (قرار المالك ٢٠٢٦-١٠-١٨): خمسةُ حقولٍ
+ * في ثلاثة أعمدة، ومحاذاتُها إلى الحافّة تترك الصفَّ الثاني معلّقًا
+ * ناقصَ عمود. والتوسيطُ يجعل الكتلة متّزنةً أيًّا كان عددُ ما فيها.
+ */
 .sheet .meta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2.4mm 4mm;
+  gap: 2.8mm 4mm;
   margin: 0;
+  justify-items: center;
+  text-align: center;
 }
+/*
+ * **والعنوانُ عريضٌ والقيمةُ خفيفة** (قرار المالك ٢٠٢٦-١٠-١٨).
+ *
+ * كان العكس: عنوانٌ باهت وقيمةٌ عريضة. والقارئ يمسح الوثيقة بحثًا عن
+ * **الحقل** ثمّ يقرأ قيمته — فتعريضُ القيَم يُشوّش المسح بخمس كتلٍ
+ * ثقيلة متجاورة، وتعريضُ العناوين يجعلها سُلَّمًا تُركَض عليه العين.
+ */
 .sheet .meta dt {
-  font-size: 6.6pt;
-  color: var(--mute);
+  font-size: 7pt;
+  font-weight: 700;
+  color: var(--ink);
 }
 .sheet .meta dd {
-  margin: 0.4mm 0 0;
+  margin: 0.6mm 0 0;
   font-size: 8.2pt;
-  font-weight: 700;
+  font-weight: 400;
+  color: var(--mute);
 }
 /* **ومرجعٌ لا يُكسَر سطرًا**: «INS-2026-‏41800» يُقرأ رقمين لا رقمًا. */
 .sheet .meta dd.mono {
@@ -196,6 +215,15 @@
 }
 .sheet .grade-poor {
   color: var(--fail);
+}
+
+/*
+ * لوحةُ المركبة في صدر التقرير — وعرضُها من ارتفاعها بنسبة اللوحة
+ * الطويلة (٤٫٦٥ : ١)، فلا تُشوّه ولا تُزاحم الكرت.
+ */
+.sheet .plate {
+  width: 52mm;
+  margin: 0 auto 3.5mm;
 }
 
 .sheet .qr {

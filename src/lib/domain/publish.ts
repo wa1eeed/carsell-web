@@ -1,3 +1,4 @@
+import { normalizeArabicLetters, normalizePlateNumbers } from '@/lib/plate';
 import { db } from '@/lib/db';
 import { nextListingRef } from './refs';
 import { Prisma } from '@/generated/prisma/client';
@@ -78,7 +79,21 @@ export type PublishInput = {
     city: string;
     colorExterior: string;
     vin: string | null;
+    /**
+     * ═══ لوحةُ المركبة — وكان العمودان بلا كاتب ═══
+     *
+     * `Vehicle.plateLetters` و`plateNumbers` في المخطّط منذ بُني،
+     * **ولا نموذجَ في المنتج كلّه يكتبهما** — تكتبهما البذرةُ وحدها.
+     * فكلُّ مركبةٍ يُنشئها بائعٌ حقيقيّ بلا لوحة، وتقريرُ فحصها
+     * ينقصه ما تُعرف به. (قرار المالك ٢٠٢٦-١٠-١٨.)
+     *
+     * واختياريّان: مركبةٌ لم تُسجَّل بعدُ حالٌ قائمة.
+     */
+    plateLetters?: string | null;
+    plateNumbers?: string | null;
   };
+  /** إظهارُ اللوحة مع الإعلان — اختيارُ البائع، وافتراضُه الإخفاء. */
+  showPlate?: boolean;
   /**
    * **مفاتيح التخزين وحدها** — الترتيب هو ترتيب العرض.
    *
@@ -197,6 +212,8 @@ export function vehicleFields(
   const { brand, model, trim } = catalogue;
   const vin = input.vehicle.vin;
   const entered = vin !== null && vin !== '';
+  const plateLetters = normalizeArabicLetters(input.vehicle.plateLetters ?? '');
+  const plateNumbers = normalizePlateNumbers(input.vehicle.plateNumbers ?? '');
 
   return {
     ownerId: input.sellerId,
@@ -221,6 +238,13 @@ export function vehicleFields(
     condition: input.vehicle.condition,
     city: input.vehicle.city,
     entryMode: entered ? 'VIN_LOOKUP' : 'MANUAL',
+    /**
+     * **وتُطبَّع قبل التخزين لا عند العرض**: «أ» و«ي» وأرقامٌ عربية
+     * تَرِد من الاستمارة، والتخزينُ بالشكل المعتمد في جدول المرور —
+     * فالبحثُ يُطابقها، ولا يُترك التطبيعُ لكلّ قارئٍ يفعله بنفسه.
+     */
+    ...(plateLetters === '' ? {} : { plateLetters }),
+    ...(plateNumbers === '' ? {} : { plateNumbers }),
     ...(entered ? { vin } : {}),
   };
 }
@@ -257,6 +281,7 @@ async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult>
         ...(input.description === undefined || input.description.trim() === ''
           ? {}
           : { description: input.description.trim().slice(0, 4000) }),
+        showPlate: input.showPlate ?? false,
         city: input.vehicle.city,
       },
     });
@@ -545,6 +570,8 @@ export async function createListing(
           ? {}
           : { description: input.description.trim().slice(0, 4000) }),
         taxableSupply: input.taxableSupply,
+        /** **واختيارُ الإظهار يُخزَّن** — ومعاملٌ يُرسَل ولا يُقرأ صمتٌ بعد نجاح. */
+        showPlate: input.showPlate ?? false,
         negotiable: input.type === 'NEGOTIATION',
         /**
          * حدُّ القبول — **سرٌّ لا يخرج في أي استجابة عامّة**، ولم يكن

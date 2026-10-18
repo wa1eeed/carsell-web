@@ -97,6 +97,14 @@ export type PublicInspectionReport = {
     mileageKm: number;
     /** مقنَّع دائمًا — رقم الهيكل كامل يُمكّن من انتحال المركبة. */
     vinMasked: string | null;
+    /**
+     * **واللوحةُ من تمام التقرير** (قرار المالك ٢٠٢٦-١٠-١٨): وثيقةٌ تصف
+     * مركبةً بعينها ولا تُسمّيها بما يُعرف به في الشارع ناقصة. وهي هنا
+     * **بلا شرط `showPlate`**: ذاك اختيارُ عرضٍ في سوقٍ عامّ، وهذه
+     * وثيقةٌ عن مركبةٍ يقرؤها من يَعنيه أمرُها.
+     */
+    plateLetters: string | null;
+    plateNumbers: string | null;
   };
   listing: { ref: string; path: string } | null;
 };
@@ -202,6 +210,8 @@ const REPORT_INCLUDE = {
       year: true,
       mileageKm: true,
       vin: true,
+      plateLetters: true,
+      plateNumbers: true,
       listings: {
         where: { status: 'PUBLISHED' as const },
         take: 1,
@@ -321,6 +331,8 @@ export function toPublicReport(
       year: row.vehicle.year,
       mileageKm: row.vehicle.mileageKm,
       vinMasked: maskVin(row.vehicle.vin),
+      plateLetters: row.vehicle.plateLetters,
+      plateNumbers: row.vehicle.plateNumbers,
     },
     listing:
       listing === null

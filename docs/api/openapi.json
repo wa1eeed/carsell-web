@@ -7196,6 +7196,16 @@
                     "type": "string",
                     "maxLength": 20,
                     "nullable": true
+                  },
+                  "plateLetters": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "nullable": true
+                  },
+                  "plateNumbers": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "nullable": true
                   }
                 },
                 "required": [

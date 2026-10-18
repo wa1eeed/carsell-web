@@ -42,6 +42,12 @@ const Body = z.object({
   city: z.string().min(1).max(60),
   colorExterior: z.string().min(1).max(40),
   vin: z.string().max(20).nullable(),
+  /**
+   * لوحةُ المركبة — اختياريّة: مركبةٌ لم تُسجَّل بعدُ حالٌ قائمة.
+   * والتطبيعُ في النطاق لا هنا، فيُقبل ما يُلصق كما يُلصق.
+   */
+  plateLetters: z.string().max(20).nullable().optional(),
+  plateNumbers: z.string().max(12).nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {

@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **153** components in **3** directories.
+Counted: **158** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -19,6 +19,7 @@ rather than found by chance.
 
 - `BidStatus` — `src/components/site/AuctionSections.tsx`
 - `BidStep` — `src/components/site/AuctionSections.tsx`
+- `EmblemIcon` — `src/components/ui/plate/EmblemGraphic.tsx`
 
 ## `src/components/admin`
 
@@ -187,3 +188,13 @@ rather than found by chance.
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
 | `Toast` | no | `tone` · `title` · `description` · `className` | 74 |
 | `Year` | no | `value` · `className` | 5 |
+
+## `src/components/ui/plate`
+
+| Component | Client | Props | Referenced in |
+| --- | --- | --- | --- |
+| `EmblemIcon` | no | `emblem` · `className` · `monochrome` | 0 |
+| `EmblemShapes` | no | `art` · `monochrome` | 1 |
+| `LicensePlate` | no | `letters` · `numbers` · `size` · `className` | 5 |
+| `PlateField` | yes | `letters` · `numbers` · `onLetters` · `onNumbers` · `label` · `hint` | 1 |
+| `SaudiLicensePlate` | no | `plateType` · `plateFormat` · `arabicLetters` · `latinLetters` · `plateNumbers` · `arabicNumbers` · `latinNumbers` · `emblem` · `customEmblemUrl` · `size` · `animated` · `showReflection` · `className` · `stripSide` · `title` | 1 |

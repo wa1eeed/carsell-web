@@ -561,6 +561,7 @@ Relations: `source` → `VehicleHistorySource` · `vehicle` → `Vehicle`
 | `minAcceptPrice` | `Decimal?` |  |
 | `negotiable` | `Boolean` |  |
 | `description` | `String?` |  |
+| `showPlate` | `Boolean` |  |
 | `city` | `String` |  |
 | `viewCount` | `Int` |  |
 | `featuredUntil` | `DateTime?` |  |

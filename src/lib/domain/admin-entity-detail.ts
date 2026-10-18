@@ -68,6 +68,10 @@ export type AdminListingDetail = {
     condition: string;
     /** الرقم التسلسليّ — يُقارن خانةً بخانة، فلاتينيّ في العرض */
     vin: string | null;
+    /** **واللوحةُ تُعرض للمشغّل بلا شرط `showPlate`**: ذاك إخفاءٌ عن
+     * السوق لا عن من يدير الإعلان ويطابقه بالاستمارة. */
+    plateLetters: string | null;
+    plateNumbers: string | null;
   };
 
   images: ListingImageRow[];
@@ -105,6 +109,8 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
           colorExterior: true,
           condition: true,
           vin: true,
+          plateLetters: true,
+          plateNumbers: true,
         },
       },
       images: { orderBy: { sort: 'asc' } },
@@ -161,6 +167,8 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
       colorExterior: listing.vehicle.colorExterior,
       condition: listing.vehicle.condition,
       vin: listing.vehicle.vin,
+      plateLetters: listing.vehicle.plateLetters,
+      plateNumbers: listing.vehicle.plateNumbers,
     },
 
     images: listing.images.map((image) => ({

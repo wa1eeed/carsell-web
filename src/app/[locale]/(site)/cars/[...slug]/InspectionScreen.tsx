@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { LinkButton } from '@/components/ui/Button';
+import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import {
   BodyDiagram,
   FindingsTable,
@@ -85,21 +86,37 @@ export function InspectionScreen({
             )}
           </p>
 
+          {/* واللوحةُ مع هويّة المركبة — كما في ورقة الطباعة سواءً. */}
+          {report.vehicle.plateLetters === null ? null : (
+            <div className="mb-5 w-56">
+              <LicensePlate
+                letters={report.vehicle.plateLetters}
+                numbers={report.vehicle.plateNumbers}
+                size="fill"
+              />
+            </div>
+          )}
+
           <dl className="flex flex-wrap gap-8">
             {meta.map((entry) => (
               <div key={entry.key}>
-                <dt className="mb-1 text-3xs opacity-70">{entry.label}</dt>
+                {/* العنوانُ عريضٌ والقيمةُ خفيفة — كما في ورقة الطباعة سواءً. */}
+                <dt className="mb-1 text-3xs font-bold">{entry.label}</dt>
                 <dd
                   {...(entry.ltr === true ? { dir: 'ltr' as const } : {})}
-                  className={entry.ltr === true ? 'font-num bidi-ltr text-xs font-bold' : 'bidi-isolate text-xs font-bold'}
+                  className={
+                    entry.ltr === true
+                      ? 'font-num bidi-ltr text-xs opacity-80'
+                      : 'bidi-isolate text-xs opacity-80'
+                  }
                 >
                   {entry.value}
                 </dd>
               </div>
             ))}
             <div>
-              <dt className="mb-1 text-3xs opacity-70">{t('reportNumber')}</dt>
-              <dd className="font-num bidi-ltr text-xs font-bold">{report.ref}</dd>
+              <dt className="mb-1 text-3xs font-bold">{t('reportNumber')}</dt>
+              <dd className="font-num bidi-ltr text-xs opacity-80">{report.ref}</dd>
             </div>
           </dl>
         </div>

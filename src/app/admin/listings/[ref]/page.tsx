@@ -1,3 +1,4 @@
+import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import { Year } from '@/components/ui/Year';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
@@ -328,6 +329,24 @@ export default async function AdminListingDetailPage({
               <Field label="الحالة" value={listing.vehicle.condition} ltr />
               {/* الرقم التسلسليّ يُقارن خانةً بخانة */}
               <Field label="الرقم التسلسليّ" value={listing.vehicle.vin ?? '—'} ltr />
+
+              {/*
+                ═══ واللوحةُ مرسومةً لا نصًّا ═══
+
+                المشغّلُ يطابقها باستمارةٍ أو صورةٍ أمامه، ونصٌّ «ا ب ح
+                ٢٦١٣» يُقرأ حرفًا حرفًا بينما اللوحةُ المرسومة تُطابَق
+                بنظرة. وتُعرض هنا بلا شرط `showPlate`: ذاك إخفاءٌ عن
+                السوق لا عمّن يدير الإعلان.
+              */}
+              {listing.vehicle.plateLetters === null ? null : (
+                <div className="mt-4 w-56">
+                  <LicensePlate
+                    letters={listing.vehicle.plateLetters}
+                    numbers={listing.vehicle.plateNumbers}
+                    size="fill"
+                  />
+                </div>
+              )}
             </DetailCard>
           </>
         }

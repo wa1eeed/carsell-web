@@ -1008,6 +1008,56 @@ and switch off any it does not. A mark the platform has not earned is the
 clearest possible case of «النصّ المعروض وعدٌ لا وصف», with a regulator on the
 other end of it.
 
+## 14 · The licence plate, drawn — *owner's request 2026-10-18*
+
+> «دعنا نضيف تصميم لوحة السياره داخل صفحة تفاصيل السيارة ان اختار البائع عرض
+> اظهار عرض اللوحة مع اعلان السيارة .. كذلك عرض في لوحة الادمن … ايضاً عرض في
+> نموذج ادخال السياره … ايضاً عرضها في تقرير الفحص ضمن معلومات السيارة و طبعاً
+> ظهورها في تقرير الفحص ضروري لجعل التقرير متكامل»
+
+The spec is the owner's own, from another project of his:
+`/Users/aa/plate-auction-live-stream/docs/plate-rendering.md` — an SVG plate
+drawn to match the real thing: geometry per plate type, the seventeen approved
+letters with their unofficial Latin counterparts, ink-height sizing from Arial
+metrics rather than font size, and the engraved/embossed two-layer treatment.
+
+Today the platform stores `Vehicle.plateLetters` and `Vehicle.plateNumbers` and
+**draws nothing** — the plate appears only as text, and only in the admin.
+
+- [x] A plate component in `src/components/ui/`, built to that spec.
+- [x] The car detail page — **only when the seller chose to show it**.
+- [x] The admin vehicle page.
+- [x] The entry form — the sell wizard, with a live preview. **The columns had
+      no writer at all**: `Vehicle.plateLetters` has existed since the schema was
+      built and only the seed ever wrote it, so every vehicle a real seller
+      published had no plate and its inspection report lacked what identifies it.
+      There is no separate add-vehicle form today — `/account/vehicles` lists
+      them and `POST /api/v1/vehicles` creates them; that route accepts the plate
+      now, and the screen that would use it is still to be built.
+- [x] The inspection report, inside the vehicle block.
+
+**And showing a plate is a disclosure.** The platform already blurs plates in
+photos (`ListingImage.plateBlurred`), so printing the same plate in text beside
+the blurred photo would undo that deliberately. It therefore needs the seller's
+explicit choice (`Listing.showPlate`, off by default) — except in the inspection
+report, which the owner has ruled belongs there for completeness.
+
+## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18*
+
+> «نعم اسحب حذف التشكيل على كل الشاشات»
+
+The PDPL page and the trust marks were written plain after the owner read them.
+The rest of the product still carries full diacritics in its Arabic strings —
+screens, messages, seed data. A mixed product reads worse than either choice, so
+this is a single sweep: strip `\u064B-\u0652`, `\u0670` and the tatweel from
+user-facing text, **leaving code comments untouched** (they never reach a
+reader, and this repository's comments are deliberately voweled).
+
+- [ ] `src/messages/*.json` — every string.
+- [ ] Arabic literals in screens and components.
+- [ ] `prisma/seed-data/*.json` and the Arabic the seed writes.
+- [ ] A gate, so the next string written with diacritics is caught.
+
 ## Also open, outside the four stages
 
 These were asked for or decided earlier and are not part of the sequence above.

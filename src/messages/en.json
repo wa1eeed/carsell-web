@@ -1029,7 +1029,11 @@
       "auctionLock": "After the first bid the opening price, the reserve and the duration cannot be changed — check them now.",
       "closesAt": "Closes"
     },
-    "inCity": "in"
+    "inCity": "in",
+    "plate": "Licence plate",
+    "plateHint": "Letters from the traffic department list; numbers accept Arabic or Latin digits.",
+    "showPlate": "Show the plate on the listing",
+    "showPlateHint": "Plates are always blurred in photos. Showing it as text is your choice and can be changed later."
   },
   "order": {
     "subtitle": "Where your order and your money stand.",
