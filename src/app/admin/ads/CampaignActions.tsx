@@ -43,11 +43,11 @@ export function CampaignActions({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
-      setToast(paused ? 'استُؤنفت الحملة.' : 'أُوقفت الحملة — ولا تُعرض الآن.');
+      setToast(paused ? 'استؤنفت الحملة.' : 'أوقفت الحملة — ولا تعرض الآن.');
       router.refresh();
     });
   };

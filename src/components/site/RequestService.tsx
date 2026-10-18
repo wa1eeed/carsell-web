@@ -77,11 +77,11 @@ export function RequestService({
     return (
       <>
         <p className="mb-3 text-2xs leading-loose opacity-75">
-          لا مركبة في حسابك بعد — والخدمة تُطلب لمركبةٍ بعينها، فموعدُها
-          وموقعُها يتبعانها.
+          لا مركبة في حسابك بعد — والخدمة تطلب لمركبة بعينها، فموعدها
+          وموقعها يتبعانها.
         </p>
         <LinkButton href={addVehicleHref} className="w-full">
-          أضِف مركبتك
+          أضف مركبتك
         </LinkButton>
       </>
     );
@@ -116,11 +116,11 @@ export function RequestService({
           window.location.href = action;
           return;
         }
-        setToast(payload?.error?.messageAr ?? 'تعذّر إرسال الطلب.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إرسال الطلب.');
         return;
       }
 
-      setToast(`طلبك ${payload?.data?.ref ?? ''} وصل المزوّد — وتتابعه من «تقاريري».`);
+      setToast(`طلبك ${payload?.data?.ref ?? ''} وصل المزود — وتتابعه من «تقاريري».`);
       router.refresh();
     });
   };
@@ -183,7 +183,7 @@ export function RequestService({
             className="w-full rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-sm"
           />
           <span className="text-3xs leading-loose opacity-65">
-            اتركه فارغًا ليحدّده المزوّد في أقرب موعدٍ ضمن مهلته.
+            اتركه فارغا ليحدده المزود في أقرب موعد ضمن مهلته.
           </span>
         </label>
       </div>
@@ -210,7 +210,7 @@ export function RequestService({
       */}
       <Button className="w-full" disabled={pending} onClick={submit}>
         <span className="flex flex-col items-center gap-0.5 leading-tight">
-          <span>{pending ? 'جارٍ…' : `ادفع واطلب ${serviceName}`}</span>
+          <span>{pending ? 'جار…' : `ادفع واطلب ${serviceName}`}</span>
           {pending ? null : <span className="font-num text-3xs opacity-75">{total} ر.س</span>}
         </span>
       </Button>

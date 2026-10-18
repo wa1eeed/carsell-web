@@ -86,7 +86,7 @@ export default async function ListingsPage({
        * تقول «لا تخلطهما».
        */
       title="إعلاناتي"
-      subtitle="ما عرضتَه، وحاله، وكم شوهد."
+      subtitle="ما عرضته، وحاله، وكم شوهد."
       stats={<ListingStatsRow stats={data.listingStats} />}
       filters={
         data.listings.length === 0 ? undefined : (
@@ -137,7 +137,7 @@ export default async function ListingsPage({
                 }
       }
       action={
-        <LinkButton href={`/${locale}/sell`} size="sm">بِع سيارتك</LinkButton>
+        <LinkButton href={`/${locale}/sell`} size="sm">بع سيارتك</LinkButton>
       }
     >
       {shown.map((listing) => (
@@ -188,7 +188,7 @@ export default async function ListingsPage({
 
         {listing.reviewNote === null ? null : (
           <p className="mt-2 mb-4 rounded-md border border-warn-200 bg-warn-100 p-3.5 text-2xs leading-loose text-warn-900">
-            <b>أُعيد للتعديل:</b> {listing.reviewNote}
+            <b>أعيد للتعديل:</b> {listing.reviewNote}
           </p>
         )}
         </div>

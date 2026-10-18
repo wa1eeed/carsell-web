@@ -56,7 +56,7 @@ export function BidLogStats({ auction }: { auction: PublicAuction }) {
       <Stat label="سعر الافتتاح">
         <Money amount={Number(auction.startPrice)} showCurrency={false} size="sm" />
       </Stat>
-      <Stat label="متوسّط الفرق بين مزايدتين">
+      <Stat label="متوسط الفرق بين مزايدتين">
         {auction.averageStep === null ? (
           <span className="text-2xs opacity-65">—</span>
         ) : (
@@ -84,7 +84,7 @@ export function BidLogStats({ auction }: { auction: PublicAuction }) {
           />
         )}
       </Stat>
-      <Stat label="مرّات تمديد الوقت">
+      <Stat label="مرات تمديد الوقت">
         <span className="font-num text-2xs font-bold">
           <ArabicNumber value={auction.extendedCount} grouped={false} />
         </span>
@@ -126,9 +126,9 @@ export function AuctionTerms({ terms }: { terms: PublicAuction['terms'] }) {
        */
       body: (
         <>
-          يُحجز <Money amount={Number(terms.depositAmount)} size="sm" /> على بطاقتك عند أوّل
-          مزايدة ولا يُخصم. ويُفرَج عنه فور انتهاء المزاد إن لم يرسُ عليك، ويُخصم من
-          المطلوب إن رسا — ولا يُقبض إلّا ممّن رسا عليه ثم انسحب.
+          يحجز <Money amount={Number(terms.depositAmount)} size="sm" /> على بطاقتك عند أول
+          مزايدة ولا يخصم. ويفرج عنه فور انتهاء المزاد إن لم يرس عليك، ويخصم من
+          المطلوب إن رسا — ولا يقبض إلا ممن رسا عليه ثم انسحب.
         </>
       ),
     },
@@ -136,14 +136,14 @@ export function AuctionTerms({ terms }: { terms: PublicAuction['terms'] }) {
       title: 'التمديد التلقائي',
       body: (
         <>
-          أيّ مزايدة في آخر{' '}
-          <Quantity unit="minutes" count={Math.round(terms.extendWindowSeconds / 60)} /> تمدّد
+          أي مزايدة في آخر{' '}
+          <Quantity unit="minutes" count={Math.round(terms.extendWindowSeconds / 60)} /> تمدد
           المزاد <Quantity unit="minutes" count={Math.round(terms.extendBySeconds / 60)} />.
         </>
       ),
     },
     {
-      title: 'بعد الرسوّ',
+      title: 'بعد الرسو',
       body: (
         <>
           <Quantity unit="hours" count={terms.paymentWindowHours} /> لسداد كامل المبلغ في حساب
@@ -156,7 +156,7 @@ export function AuctionTerms({ terms }: { terms: PublicAuction['terms'] }) {
       body:
         terms.viewingCity === null && terms.viewingAddress === null ? (
           // غياب الموعد يُقال — ووعدُ معاينةٍ لا مكان لها أسوأ من صمت
-          <>لم يحدّد البائع موقع معاينة لهذا المزاد.</>
+          <>لم يحدد البائع موقع معاينة لهذا المزاد.</>
         ) : (
           <>
             متاحة في{' '}
@@ -229,7 +229,7 @@ export function ClosingSoonRail({
 
   return (
     <section className="mt-10">
-      <h2 className="mb-3.5 text-base font-bold">مزادات تُغلق قريبًا</h2>
+      <h2 className="mb-3.5 text-base font-bold">مزادات تغلق قريبا</h2>
       <ul className="grid gap-3.5 sm:grid-cols-3">
         {items.map((item) => (
           <li key={item.listingRef}>

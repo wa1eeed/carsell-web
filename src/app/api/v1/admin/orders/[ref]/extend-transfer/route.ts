@@ -39,7 +39,7 @@ export async function POST(
     return fail(
       {
         code: 'REASON_REQUIRED',
-        messageAr: 'اكتب سببًا للتمديد — يُقرأ بعد سنة.',
+        messageAr: 'اكتب سببا للتمديد — يقرأ بعد سنة.',
         messageEn: 'A reason is required — it will be read a year from now.',
       },
       422,
@@ -55,7 +55,7 @@ export async function POST(
       return fail(
         {
           code: 'REASON_REQUIRED',
-          messageAr: 'اكتب سببًا للتمديد — يُقرأ بعد سنة.',
+          messageAr: 'اكتب سببا للتمديد — يقرأ بعد سنة.',
           messageEn: 'A reason is required — it will be read a year from now.',
         },
         422,
@@ -66,8 +66,8 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'ALREADY_EXTENDED'
-            ? 'مُدّد هذا الطلب مرّة — ولا يُمدَّد ثانية.'
-            : 'لا سقف نقلٍ على هذا الطلب.',
+            ? 'مدد هذا الطلب مرة — ولا يمدد ثانية.'
+            : 'لا سقف نقل على هذا الطلب.',
         messageEn:
           result.reason === 'ALREADY_EXTENDED'
             ? 'This order was already extended once.'

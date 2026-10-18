@@ -43,13 +43,13 @@ export default async function AdminLegalPage() {
         («مستندان») — والعربية ستُّ حالات. و`subtitle` نصٌّ لا عنصر فلا
         يبلغها `<Quantity>`، فتُصاغ صيغةً لا يحكمها المعدود.
       */
-      subtitle={`المستندات (${displayDigits(String(summary.total))}) · تعديل جوهريّ يُخطَر قبل أسبوعين`}
+      subtitle={`المستندات (${displayDigits(String(summary.total))}) · تعديل جوهري يخطر قبل أسبوعين`}
       activeHref="/admin/legal"
       admin={admin}
     >
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
-        النسخ السارية وتواريخ سريانها. <b>نسخٌ موقّتة لا تحريرٌ حيّ</b> — ومن قبِل
-        الشروط قبِل نسخةً بعينها.
+        النسخ السارية وتواريخ سريانها. <b>نسخ موقتة لا تحرير حي</b> — ومن قبل
+        الشروط قبل نسخة بعينها.
       </p>
 
       {/*
@@ -101,8 +101,8 @@ export default async function AdminLegalPage() {
       </div>
 
       <MonitorList
-        empty={{ title: 'لا مستندات', description: 'المستندات القانونية تُزرع مع المنصّة.' }}
-        note="النسخة الجديدة لا تُحرَّر فوق القديمة: تُنشر برقمٍ وتاريخ سريان، والقديمة تبقى لمن قبِلها. ولهذا لا زرّ تحرير في هذه الشاشة."
+        empty={{ title: 'لا مستندات', description: 'المستندات القانونية تزرع مع المنصة.' }}
+        note="النسخة الجديدة لا تحرر فوق القديمة: تنشر برقم وتاريخ سريان، والقديمة تبقى لمن قبلها. ولهذا لا زر تحرير في هذه الشاشة."
       >
         {docs.map((doc) => (
           <MonitorRow
@@ -130,7 +130,7 @@ export default async function AdminLegalPage() {
               </span>
             </div>
 
-            {doc.hasSummary ? null : <Badge tone="warn">بلا ملخّص</Badge>}
+            {doc.hasSummary ? null : <Badge tone="warn">بلا ملخص</Badge>}
 
             <Badge tone={doc.active ? 'accent' : 'neutral'}>
               {doc.active ? 'سارية' : 'غير سارية'}

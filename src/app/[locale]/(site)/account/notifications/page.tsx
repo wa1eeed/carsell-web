@@ -80,7 +80,7 @@ export default async function NotificationsPage({
       <main className="min-h-screen bg-bg text-ink">
         <div className="page-frame">
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-6"
             items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: t('title') }]}

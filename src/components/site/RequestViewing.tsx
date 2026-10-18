@@ -52,7 +52,7 @@ export function RequestViewing({
 
   const send = (): void => {
     if (onDate === '') {
-      setError('اختر يومًا.');
+      setError('اختر يوما.');
       return;
     }
     setError(null);
@@ -68,11 +68,11 @@ export function RequestViewing({
         | null;
 
       if (response === null || !response.ok) {
-        setError(payload?.error?.messageAr ?? 'تعذّر إرسال الطلب.');
+        setError(payload?.error?.messageAr ?? 'تعذر إرسال الطلب.');
         return;
       }
       setOpen(false);
-      setToast('أُرسل طلبك. ستصلك رسالةٌ حين يردّ البائع.');
+      setToast('أرسل طلبك. ستصلك رسالة حين يرد البائع.');
       /** **والوجهةُ تُفتح** — فلا ينتهي الطلب بلا شاشةٍ يتابعه فيها */
       window.location.assign(`/${locale}/account/viewings`);
     });
@@ -86,7 +86,7 @@ export function RequestViewing({
 
       <Modal open={open} onClose={() => setOpen(false)} title={label}>
         <p className="mb-4 text-2xs leading-loose opacity-75">
-          اختر يومًا وفترة، ويردّ البائع بالقبول أو الاعتذار. ولا يُكشف مكان اللقاء إلّا بعد
+          اختر يوما وفترة، ويرد البائع بالقبول أو الاعتذار. ولا يكشف مكان اللقاء إلا بعد
           تأكيد الموعد.
         </p>
 
@@ -109,7 +109,7 @@ export function RequestViewing({
             حالةً من ستّ.
           */}
           <p className="-mt-2.5 text-3xs opacity-65">
-            المدّة المتاحة للحجز: <Quantity unit="days" count={MAX_DAYS_AHEAD} />
+            المدة المتاحة للحجز: <Quantity unit="days" count={MAX_DAYS_AHEAD} />
           </p>
 
           <fieldset className="flex flex-col gap-1.5">
@@ -145,7 +145,7 @@ export function RequestViewing({
             </div>
           </fieldset>
 
-          <Field htmlFor="v-note" label="ملاحظة للبائع" hint="اختيارية — مثل: أصل من الدمام، أفضّل نهاية الأسبوع.">
+          <Field htmlFor="v-note" label="ملاحظة للبائع" hint="اختيارية — مثل: أصل من الدمام، أفضل نهاية الأسبوع.">
             <textarea
               id="v-note"
               rows={3}
@@ -161,7 +161,7 @@ export function RequestViewing({
           )}
 
           <Button onClick={send} disabled={pending} className="w-full">
-            {pending ? 'يُرسَل…' : 'أرسل الطلب'}
+            {pending ? 'يرسل…' : 'أرسل الطلب'}
           </Button>
         </div>
       </Modal>

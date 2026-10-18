@@ -47,13 +47,13 @@ export function ChangePassword({ mustChange }: { mustChange: boolean }) {
         setToast(
           (code === undefined ? undefined : REASON[code]) ??
             payload?.error?.messageAr ??
-            'تعذّر تغيير الكلمة.',
+            'تعذر تغيير الكلمة.',
         );
         return;
       }
 
       setForm({ current: '', next: '', confirm: '' });
-      setToast('تغيّرت كلمتك.');
+      setToast('تغيرت كلمتك.');
       router.refresh();
     });
   };
@@ -64,7 +64,7 @@ export function ChangePassword({ mustChange }: { mustChange: boolean }) {
     <>
       {!mustChange ? null : (
         <p className="mb-4 rounded-lg border border-line bg-surface p-4 text-2xs leading-loose">
-          <b>كلمتك مؤقّتة.</b> أنشأها من فتح حسابك ومرّت بعينه — غيّرها الآن.
+          <b>كلمتك مؤقتة.</b> أنشأها من فتح حسابك ومرت بعينه — غيرها الآن.
         </p>
       )}
 
@@ -73,7 +73,7 @@ export function ChangePassword({ mustChange }: { mustChange: boolean }) {
           [
             ['current', 'الكلمة الحالية'],
             ['next', 'الكلمة الجديدة'],
-            ['confirm', 'أعِد الكلمة الجديدة'],
+            ['confirm', 'أعد الكلمة الجديدة'],
           ] as const
         ).map(([key, label]) => (
           <label key={key} className="flex flex-col gap-1.5">
@@ -96,7 +96,7 @@ export function ChangePassword({ mustChange }: { mustChange: boolean }) {
         </p>
 
         <Button disabled={busy || !ready} onClick={submit}>
-          {busy ? 'جارٍ…' : 'غيّر كلمتي'}
+          {busy ? 'جار…' : 'غير كلمتي'}
         </Button>
       </div>
 

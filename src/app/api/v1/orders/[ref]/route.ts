@@ -15,13 +15,13 @@ export const runtime = 'nodejs';
 const Body = z.object({ to: z.literal('DONE') });
 
 const MESSAGES: Record<string, { ar: string; en: string }> = {
-  NOT_PARTY: { ar: 'لست طرفًا في هذا الطلب.', en: 'You are not a party to this order.' },
+  NOT_PARTY: { ar: 'لست طرفا في هذا الطلب.', en: 'You are not a party to this order.' },
   INVALID_TRANSITION: {
     ar: 'لا يمكن الانتقال إلى هذه المرحلة الآن.',
     en: 'That stage cannot be entered right now.',
   },
   ORDER_FROZEN: {
-    ar: 'الطلب متنازَعٌ عليه — مجمَّد حتى يُحسم.',
+    ar: 'الطلب متنازع عليه — مجمد حتى يحسم.',
     en: 'This order is disputed and frozen until resolved.',
   },
   ORDER_CLOSED: { ar: 'الطلب مغلق.', en: 'This order is closed.' },
@@ -77,7 +77,7 @@ export async function PATCH(
     return fail(
       {
         code: 'WRONG_PARTY',
-        messageAr: 'المشتري هو من يؤكّد استلام المركبة ونقلها.',
+        messageAr: 'المشتري هو من يؤكد استلام المركبة ونقلها.',
         messageEn: 'The buyer confirms receipt and transfer.',
       },
       403,
@@ -92,7 +92,7 @@ export async function PATCH(
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر تحديث المرحلة.',
+        messageAr: text?.ar ?? 'تعذر تحديث المرحلة.',
         messageEn: text?.en ?? 'Could not update the stage.',
       },
       result.reason === 'NOT_PARTY' ? 403 : 409,
@@ -107,24 +107,24 @@ const CancelBody = z.object({ reason: z.string().min(3).max(500) });
 const CANCEL_MESSAGES: Record<CancelFailure, { ar: string; en: string; status: number }> = {
   NOT_FOUND: { ar: 'الطلب غير موجود.', en: 'Order not found.', status: 404 },
   NOT_PARTY: {
-    ar: 'لست طرفًا في هذا الطلب.',
+    ar: 'لست طرفا في هذا الطلب.',
     en: 'You are not a party to this order.',
     status: 403,
   },
   ALREADY_CLOSED: { ar: 'الطلب مغلق بالفعل.', en: 'This order is already closed.', status: 409 },
   TRANSFER_DONE: {
-    ar: 'نُقلت الملكية وأُفرج عن المبلغ — ولا إلغاء بعدها. افتح نزاعًا إن كان ثمّة خلاف.',
+    ar: 'نقلت الملكية وأفرج عن المبلغ — ولا إلغاء بعدها. افتح نزاعا إن كان ثمة خلاف.',
     en: 'Ownership transferred and funds released — cancellation is no longer possible. Open a dispute if something is wrong.',
     status: 409,
   },
   DISPUTED: {
-    ar: 'الطلب متنازَعٌ عليه — مجمَّد حتى يُحسم.',
+    ar: 'الطلب متنازع عليه — مجمد حتى يحسم.',
     en: 'This order is disputed and frozen until resolved.',
     status: 409,
   },
   REASON_REQUIRED: { ar: 'اكتب سبب الإلغاء.', en: 'Write a reason for cancelling.', status: 422 },
   GATEWAY_FAILED: {
-    ar: 'تعذّر إلغاء الحجز لدى بوابة الدفع — لم يتغيّر شيء، أعد المحاولة.',
+    ar: 'تعذر إلغاء الحجز لدى بوابة الدفع — لم يتغير شيء، أعد المحاولة.',
     en: 'The payment hold could not be released — nothing changed, please try again.',
     status: 502,
   },

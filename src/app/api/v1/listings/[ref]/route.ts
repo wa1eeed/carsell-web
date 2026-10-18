@@ -58,15 +58,15 @@ const EditBody = z.object({
 
 const EDIT_MESSAGES: Record<string, { ar: string; en: string }> = {
   LOCKED_BY_ORDER: {
-    ar: 'على هذا الإعلان طلبٌ قائم — لا يُعدَّل حتى ينتهي.',
+    ar: 'على هذا الإعلان طلب قائم — لا يعدل حتى ينتهي.',
     en: 'This listing has an active order and cannot be changed until it closes.',
   },
   NOT_EDITABLE: {
-    ar: 'لا يُعدَّل الإعلان في حالته الحالية.',
+    ar: 'لا يعدل الإعلان في حالته الحالية.',
     en: 'This listing cannot be changed in its current state.',
   },
   PRICE_INVALID: {
-    ar: 'السعر خارج الحدّ المقبول — راجع الرقم.',
+    ar: 'السعر خارج الحد المقبول — راجع الرقم.',
     en: 'That price is outside the accepted range.',
   },
   NOTHING_TO_CHANGE: { ar: 'لا تغيير.', en: 'Nothing to change.' },
@@ -104,7 +104,7 @@ export async function PATCH(
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر التعديل.',
+        messageAr: text?.ar ?? 'تعذر التعديل.',
         messageEn: text?.en ?? 'Could not apply the change.',
       },
       result.reason === 'PRICE_INVALID' || result.reason === 'NOTHING_TO_CHANGE' ? 422 : 409,
@@ -127,11 +127,11 @@ export async function PATCH(
  */
 const DELETE_MESSAGES: Record<string, { ar: string; en: string }> = {
   PUBLISHED_PAUSE_INSTEAD: {
-    ar: 'الإعلان منشور — أوقفه مؤقّتًا بدل حذفه، فسجلُّه يبقى لمن تفاوض عليه.',
+    ar: 'الإعلان منشور — أوقفه مؤقتا بدل حذفه، فسجله يبقى لمن تفاوض عليه.',
     en: 'This listing is live — pause it instead; its history stays for anyone who negotiated on it.',
   },
   HAS_HISTORY: {
-    ar: 'على الإعلان عرضٌ أو طلب — أوقفه مؤقّتًا، ولا يُمحى ما جرى عليه.',
+    ar: 'على الإعلان عرض أو طلب — أوقفه مؤقتا، ولا يمحى ما جرى عليه.',
     en: 'This listing has an offer or an order — pause it; what happened on it is not erased.',
   },
 };
@@ -156,7 +156,7 @@ export async function DELETE(
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر الحذف.',
+        messageAr: text?.ar ?? 'تعذر الحذف.',
         messageEn: text?.en ?? 'Could not delete.',
       },
       409,

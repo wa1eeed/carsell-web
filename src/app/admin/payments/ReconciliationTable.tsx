@@ -11,7 +11,7 @@ import type { Mismatch, ReconciliationRow } from '@/lib/domain/reconciliation';
 const STATUS_LABEL: Record<string, string> = {
   MATCHED: 'طوبقت',
   DIFFERS: 'فرق',
-  UNAVAILABLE: 'تعذّرت القراءة',
+  UNAVAILABLE: 'تعذرت القراءة',
 };
 
 const KIND_LABEL: Record<Mismatch['kind'], string> = {

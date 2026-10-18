@@ -75,7 +75,7 @@ export function FavoriteButton({
       onClick={toggle}
       disabled={pending}
       aria-pressed={on}
-      aria-label={on ? 'أزِلها من المفضّلة' : 'أضِفها إلى المفضّلة'}
+      aria-label={on ? 'أزلها من المفضلة' : 'أضفها إلى المفضلة'}
       className={cn(
         'flex size-9 items-center justify-center rounded-full border transition-colors',
         on ? 'border-danger bg-danger text-bg' : 'border-line bg-bg/85 hover:border-ink',

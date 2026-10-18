@@ -99,14 +99,14 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     items: [
       { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
       { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
-      { label: 'تحويل مستحقّات البائعين', href: '/admin/payouts', permission: 'finance.view' },
+      { label: 'تحويل مستحقات البائعين', href: '/admin/payouts', permission: 'finance.view' },
       /**
        * **وطابورٌ ثانٍ لا بندٌ واحد**: الطرفُ مزوّدٌ لا بائع،
        * والحسابُ `PROVIDER_PAYABLE` لا `SELLER_PAYABLE`، ومن يصرف
        * للمزوّدين يفتح شاشةً يرى فيها مزوّديه وحدهم — لا قائمةً
        * مخلوطةً يبحث فيها عن سبعةٍ بين مئة بائع.
        */
-      { label: 'صرف مستحقّات المزوّدين', href: '/admin/provider-payouts', permission: 'finance.view' },
+      { label: 'صرف مستحقات المزودين', href: '/admin/provider-payouts', permission: 'finance.view' },
       { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
       /**
@@ -135,7 +135,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
     title: 'التسويق والإعلان',
     items: [
-      { label: 'الإعلانات المموّلة', href: '/admin/ads', permission: 'finance.view' },
+      { label: 'الإعلانات الممولة', href: '/admin/ads', permission: 'finance.view' },
       { label: 'الحملات التسويقية', href: '/admin/campaigns' },
     ],
   },
@@ -148,9 +148,9 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
      */
     title: 'الإعدادات — المال',
     items: [
-      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view', description: 'نِسَب الضريبة وقواعد الإصدار ومن يُصدر الفاتورة.' },
-      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view', description: 'باقات البائعين ونِسَب العمولة على كل بيعة.' },
-      { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view', description: 'أيّ بوابةٍ تستقبل كل غرض، ورسوم المعالجة.' },
+      { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view', description: 'نسب الضريبة وقواعد الإصدار ومن يصدر الفاتورة.' },
+      { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view', description: 'باقات البائعين ونسب العمولة على كل بيعة.' },
+      { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view', description: 'أي بوابة تستقبل كل غرض، ورسوم المعالجة.' },
       { label: 'المدد والمهل', href: '/admin/deadlines', permission: 'finance.view', description: 'مهلة الدفع ونافذة النقل وقرار البائع وغيرها.' },
     ],
   },
@@ -162,18 +162,18 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        * ما يعرضه المنتج، لا مع الطابور الذي يُعالَج يوميًّا.
        */
       { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage', description: 'الخدمات المعروضة وأسعارها ومهلة تنفيذها.' },
-      { label: 'مزوّدو الخدمات', href: '/admin/providers', permission: 'services.manage', description: 'من ينفّذ الخدمات، وتغطيتُه، وعمولتنا منه.' },
-      { label: 'قالب الفحص', href: '/admin/inspection-template', permission: 'services.manage', description: 'أقسامُ الفحص وبنودُه وأوزانُها — يحرّرها المشغّل بلا نشر.' },
-      { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage', description: 'الماركات والموديلات والفئات التي تُبنى منها الإعلانات.' },
+      { label: 'مزودو الخدمات', href: '/admin/providers', permission: 'services.manage', description: 'من ينفذ الخدمات، وتغطيته، وعمولتنا منه.' },
+      { label: 'قالب الفحص', href: '/admin/inspection-template', permission: 'services.manage', description: 'أقسام الفحص وبنوده وأوزانها — يحررها المشغل بلا نشر.' },
+      { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage', description: 'الماركات والموديلات والفئات التي تبنى منها الإعلانات.' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage', description: 'أنواع الهياكل وصورها وترتيب عرضها.' },
-      { label: 'المميّزات', href: '/admin/catalog/features', permission: 'catalog.manage', description: 'المميّزات التي يختارها البائع ويُرشّح بها المشتري.' },
+      { label: 'المميزات', href: '/admin/catalog/features', permission: 'catalog.manage', description: 'المميزات التي يختارها البائع ويرشح بها المشتري.' },
       /**
        * **و«مساحات الإعلانات» حُذفت من هنا**: مسارُها `/admin/ads`
        * نفسُه الذي تحته «الإعلانات المموّلة» في «التسويق» — بندان
        * باسمين يفتحان الصفحة ذاتها. ومن ضغط الثاني ظنّ أنه أخطأ.
        * (والشاشة تجمع A30 وA31 عمدًا: من يعطّل مساحةً يرى ما سيوقفه.)
        */
-      { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view', description: 'الحدّ الأدنى للمزايدة والتمديد التلقائي والعربون.' },
+      { label: 'قواعد المزادات', href: '/admin/auction-settings', permission: 'finance.view', description: 'الحد الأدنى للمزايدة والتمديد التلقائي والعربون.' },
       { label: 'الأسئلة الشائعة', href: '/admin/faq', permission: 'notifications.manage', description: 'الأسئلة الشائعة ومواضع ظهورها.' },
       /**
        * **وقنوات الدعم محتوى لا نظام**: هي ما يظهر للزائر في صفحة
@@ -181,14 +181,14 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        * لا مع المفاتيح والبيئات.
        */
       { label: 'قنوات الدعم', href: '/admin/contact', permission: 'notifications.manage', description: 'الهاتف والواتساب والبريد الظاهرة في «تواصل معنا».' },
-      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية ونسخُها المنشورة.' },
+      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية ونسخها المنشورة.' },
     ],
   },
   {
     title: 'الإعدادات — النظام',
     items: [
-      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage', description: 'قوالب الرسائل ومتى تُرسل.' },
-      { label: 'إشعارات الجوال', href: '/admin/push', description: 'قنوات إشعارات الجوال وما يُفتح منها افتراضًا.' },
+      { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage', description: 'قوالب الرسائل ومتى ترسل.' },
+      { label: 'إشعارات الجوال', href: '/admin/push', description: 'قنوات إشعارات الجوال وما يفتح منها افتراضا.' },
       { label: 'الربط بالخدمات الخارجية', href: '/admin/integrations', permission: 'integrations.view', description: 'مفاتيح الربط وبيئاتها وحال كل تكامل.' },
       { label: 'الفريق والصلاحيات', href: '/admin/team', permission: 'team.manage', description: 'من في الفريق وبأي دور، ومصفوفة الصلاحيات.' },
     ],

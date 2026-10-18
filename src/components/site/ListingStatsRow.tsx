@@ -16,7 +16,7 @@ export function ListingStatsRow({ stats }: { stats: ListingStats }) {
   const cards: { label: string; value: number | null; note?: string }[] = [
     { label: 'المشاهدات', value: stats.views },
     { label: 'إضافات للمفضلة', value: stats.favorites },
-    { label: 'عروض تنتظر ردّك', value: stats.pendingOffers },
+    { label: 'عروض تنتظر ردك', value: stats.pendingOffers },
     {
       label: 'متوسط أيام العرض',
       value: stats.avgDaysListed,

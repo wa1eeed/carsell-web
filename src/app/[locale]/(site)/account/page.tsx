@@ -113,12 +113,12 @@ export default async function AccountPage({
               }
             >
               <p className="text-sm font-bold">
-                {listed === 'review' ? 'إعلانك قيد المراجعة' : 'نُشر إعلانك'}
+                {listed === 'review' ? 'إعلانك قيد المراجعة' : 'نشر إعلانك'}
               </p>
               <p className="mt-1.5 text-2xs leading-loose opacity-80">
                 {listed === 'review'
-                  ? 'يراجعه فريقنا قبل ظهوره في النتائج — ويصلك إشعار حين يُنشر.'
-                  : 'صار ظاهرًا في نتائج البحث. وستجد عروضه هنا.'}
+                  ? 'يراجعه فريقنا قبل ظهوره في النتائج — ويصلك إشعار حين ينشر.'
+                  : 'صار ظاهرا في نتائج البحث. وستجد عروضه هنا.'}
               </p>
               {listed === 'review' ? null : (
                 <p className="mt-2.5">
@@ -178,26 +178,26 @@ export default async function AccountPage({
                 */
                 key: 'vehicles',
                 label: 'سياراتي',
-                hint: garage.garage > 0 ? 'منها ما هو مخفيّ عن السوق' : 'ما تملكه من مركبات',
+                hint: garage.garage > 0 ? 'منها ما هو مخفي عن السوق' : 'ما تملكه من مركبات',
                 count: garage.total,
               },
-              { key: 'listings', label: 'إعلاناتي', hint: 'ما عرضتَه للبيع', count: data.listings.length },
-              { key: 'orders', label: 'طلباتي', hint: 'ما اشتريتَه وما في الطريق', count: data.orders.length },
+              { key: 'listings', label: 'إعلاناتي', hint: 'ما عرضته للبيع', count: data.listings.length },
+              { key: 'orders', label: 'طلباتي', hint: 'ما اشتريته وما في الطريق', count: data.orders.length },
               {
                 key: 'offers',
                 label: 'العروض',
-                hint: 'ما عُرض عليك وما عرضتَه',
+                hint: 'ما عرض عليك وما عرضته',
                 count: waitingOffers,
                 urgent: waitingOffers > 0,
               },
               {
                 key: 'searches',
                 label: 'بحوثي المحفوظة',
-                hint: fresh > 0 ? 'فيها جديد يطابق بحثك' : 'نخبرك بما يُنشر مطابقًا',
+                hint: fresh > 0 ? 'فيها جديد يطابق بحثك' : 'نخبرك بما ينشر مطابقا',
                 count: fresh,
                 urgent: fresh > 0,
               },
-              { key: 'favorites', label: 'المفضّلة', hint: 'ما حفظتَه للرجوع إليه', count: favorites },
+              { key: 'favorites', label: 'المفضلة', hint: 'ما حفظته للرجوع إليه', count: favorites },
               { key: 'reports', label: 'تقارير الفحص', hint: 'فحوص مركباتك', count: data.reports.length },
               /**
                * **والمعاينةُ لقاءٌ بين طرفي الصفقة** لا خدمةَ مزوّد
@@ -210,12 +210,12 @@ export default async function AccountPage({
                 label: 'مواعيد المعاينة',
                 hint:
                   data.viewingsAwaiting > 0
-                    ? 'طلباتٌ على إعلاناتك تنتظر ردّك'
-                    : 'مواعيدُ معاينةٍ لك وعليك',
+                    ? 'طلبات على إعلاناتك تنتظر ردك'
+                    : 'مواعيد معاينة لك وعليك',
                 count: data.viewingsAwaiting,
                 urgent: data.viewingsAwaiting > 0,
               },
-              { key: 'earnings', label: 'مستحقّاتي', hint: 'ما لك من كل صفقة' },
+              { key: 'earnings', label: 'مستحقاتي', hint: 'ما لك من كل صفقة' },
               { key: 'wallet', label: 'المحفظة', hint: 'رصيدك وكشفه' },
               { key: 'profile', label: 'بياناتي', hint: 'البريد والهوية والآيبان' },
             ]}

@@ -65,13 +65,13 @@ export function NewCampaign({ slots }: { slots: readonly Slot[] }) {
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر إنشاء الحملة.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إنشاء الحملة.');
         return;
       }
 
       setOpen(false);
       setDraft(EMPTY);
-      setToast('أُنشئت الحملة.');
+      setToast('أنشئت الحملة.');
       router.refresh();
     });
   };
@@ -98,7 +98,7 @@ export function NewCampaign({ slots }: { slots: readonly Slot[] }) {
         footer={
           <div className="flex items-center gap-2">
             <Button onClick={submit} disabled={!ready || pending}>
-              {pending ? 'يُنشأ…' : 'أنشئ الحملة'}
+              {pending ? 'ينشأ…' : 'أنشئ الحملة'}
             </Button>
             <Button variant="ghost" onClick={() => setOpen(false)}>
               إلغاء
@@ -190,7 +190,7 @@ export function NewCampaign({ slots }: { slots: readonly Slot[] }) {
             للكلّ، وحملةٌ للرياض لا تُعرض لمن يبحث في جدة **ولا لمن لم
             يختر مدينة** — عرضُها حينئذٍ بيعُ استهدافٍ لم يقع.
           */}
-          <Field label="مدينة الاستهداف — اتركها فارغة للكلّ">
+          <Field label="مدينة الاستهداف — اتركها فارغة للكل">
             <input
               value={draft.city}
               onChange={(event) => set({ city: event.target.value })}

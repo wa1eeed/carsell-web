@@ -45,7 +45,7 @@ export function normalize(text: string): string {
   return out
     .toLowerCase()
     // التشكيل والتطويل يُحذفان — لا يميّزان كلمةً عن أخرى
-    .replace(/[ـً-ْٰ]/g, '')
+    .replace(/[\u0640\u064B-\u0652\u0670]/g, '')
     .replace(/[أإآٱ]/g, 'ا')
     .replace(/ى/g, 'ي')
     .replace(/ؤ/g, 'و')

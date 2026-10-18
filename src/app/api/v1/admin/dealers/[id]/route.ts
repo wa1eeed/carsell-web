@@ -20,10 +20,10 @@ const STATUS: Record<string, number> = {
 };
 
 const MESSAGE: Record<string, string> = {
-  DEALER_NOT_FOUND: 'لا معرض بهذا المعرّف.',
-  CR_REQUIRED: 'لا شارة بلا سجل تجاريّ — الشارة تقول إن المنشأة مسجَّلة.',
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_DEALER_NOTE))}).`,
-  ALREADY: 'المعرض موثّق ونشط سلفًا.',
+  DEALER_NOT_FOUND: 'لا معرض بهذا المعرف.',
+  CR_REQUIRED: 'لا شارة بلا سجل تجاري — الشارة تقول إن المنشأة مسجلة.',
+  NOTE_REQUIRED: `الملاحظة أقصر من الحد (${displayDigits(String(MIN_DEALER_NOTE))}).`,
+  ALREADY: 'المعرض موثق ونشط سلفا.',
 };
 
 /** `POST /api/v1/admin/dealers/{id}` — توثيق أو إيقاف (A26). */
@@ -50,7 +50,7 @@ export async function POST(
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر تنفيذ القرار.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر تنفيذ القرار.',
         messageEn: 'Could not apply the dealer decision.',
       },
       STATUS[result.reason] ?? 409,

@@ -50,7 +50,7 @@ export function SendCampaignButton({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الإرسال.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الإرسال.');
         return;
       }
 
@@ -63,7 +63,7 @@ export function SendCampaignButton({
        */
       const sent = displayDigits(String(payload?.data?.sent ?? 0));
       const skipped = displayDigits(String(payload?.data?.skipped ?? 0));
-      setToast(`أُرسلت الحملة — الواصلون (${sent}) · المحجوبون بالسقف والتهدئة (${skipped})`);
+      setToast(`أرسلت الحملة — الواصلون (${sent}) · المحجوبون بالسقف والتهدئة (${skipped})`);
       router.refresh();
     });
   };
@@ -77,15 +77,15 @@ export function SendCampaignButton({
       <Modal open={asking} onClose={() => setAsking(false)} title="إرسال الحملة">
         <p className="mb-4 text-xs leading-loose">
           سترسل «<b>{nameAr}</b>» إلى من يطابق شريحتها الآن. والرسالة الخارجة لا
-          تُستردّ، ويُستهلَك بها سقفُ الشهر لكل من وصلته.
+          تسترد، ويستهلك بها سقف الشهر لكل من وصلته.
         </p>
         <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-          ومن تجاوز سقفه الشهريّ أو لم تمضِ تهدئته يُحجب تلقائيًّا — ويُقال عددهم
+          ومن تجاوز سقفه الشهري أو لم تمض تهدئته يحجب تلقائيا — ويقال عددهم
           بعد الإرسال.
         </p>
         <div className="flex gap-2.5">
           <Button className="flex-1" disabled={busy} onClick={send}>
-            {busy ? 'جارٍ…' : 'نعم، أرسل'}
+            {busy ? 'جار…' : 'نعم، أرسل'}
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setAsking(false)}>
             تراجع

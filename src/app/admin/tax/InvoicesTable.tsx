@@ -53,13 +53,13 @@ export function InvoicesTable({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الإلغاء.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الإلغاء.');
         return;
       }
 
       setTarget(null);
       setReason('');
-      setToast(`صدر إشعارٌ دائن ${payload?.data?.creditNoteNumber ?? ''}`.trim());
+      setToast(`صدر إشعار دائن ${payload?.data?.creditNoteNumber ?? ''}`.trim());
       router.refresh();
     });
   };
@@ -87,7 +87,7 @@ export function InvoicesTable({
     },
     {
       id: 'supplier',
-      header: 'المورِّد',
+      header: 'المورد',
       cell: (invoice) => <span className="bidi-isolate">{invoice.supplierName}</span>,
     },
     {
@@ -159,22 +159,22 @@ export function InvoicesTable({
       <Modal
         open={target !== null}
         onClose={() => setTarget(null)}
-        title="إلغاء فاتورة بإشعارٍ دائن"
+        title="إلغاء فاتورة بإشعار دائن"
       >
         <p className="mb-3.5 text-2xs leading-loose opacity-75">
-          لا تُحذف الفاتورة: يصدر إشعارٌ دائن يعاكسها، ويبقى الأصل مقروءًا معه.
+          لا تحذف الفاتورة: يصدر إشعار دائن يعاكسها، ويبقى الأصل مقروءا معه.
           <span dir="ltr" className="ms-1.5 font-num opacity-70">
             {target?.number}
           </span>
         </p>
 
         <label className="mb-3.5 flex flex-col gap-1.5">
-          <span className="text-3xs font-bold opacity-70">السبب — إلزاميّ</span>
+          <span className="text-3xs font-bold opacity-70">السبب — إلزامي</span>
           <textarea
             rows={3}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="صدرت على مشترٍ خاطئ · أُلغي الطلب قبل التسليم · …"
+            placeholder="صدرت على مشتر خاطئ · ألغي الطلب قبل التسليم · …"
             className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
           />
           {/*
@@ -182,12 +182,12 @@ export function InvoicesTable({
             سؤالٌ بلا جواب — والحدّ خمسة أحرف لا لأنه كافٍ بل لأن ما
             دونه ليس سببًا.
           */}
-          <span className="text-3xs opacity-65">يُقرأ في مراجعةٍ ضريبية بعد سنة.</span>
+          <span className="text-3xs opacity-65">يقرأ في مراجعة ضريبية بعد سنة.</span>
         </label>
 
         <div className="flex gap-2.5">
           <Button disabled={busy || reason.trim().length < 5} onClick={submit}>
-            {busy ? 'جارٍ…' : 'أصدِر الإشعار'}
+            {busy ? 'جار…' : 'أصدر الإشعار'}
           </Button>
           <Button variant="outline" onClick={() => setTarget(null)}>
             تراجع

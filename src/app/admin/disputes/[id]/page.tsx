@@ -32,9 +32,9 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
 const DISPUTE_STATUS: Record<string, string> = {
   OPEN: 'مفتوح',
   INVESTIGATING: 'قيد التحقيق',
-  RESOLVED_BUYER: 'حُسم للمشتري',
-  RESOLVED_SELLER: 'حُسم للبائع',
-  CLOSED: 'مُغلق',
+  RESOLVED_BUYER: 'حسم للمشتري',
+  RESOLVED_SELLER: 'حسم للبائع',
+  CLOSED: 'مغلق',
 };
 
 /* **ومفتاحٌ لا وجود له يسقط إلى محايد**: كان `RESOLVED` هنا والتعداد لا يعرفه */
@@ -96,12 +96,12 @@ export default async function AdminDisputeDetailPage({
         items={[
           { label: 'الحالة', value: DISPUTE_STATUS[dispute.status] ?? dispute.status },
           {
-            label: 'مهلة الردّ',
+            label: 'مهلة الرد',
             value: dispute.slaDueAt === null ? 'لا مهلة' : riyadh.format(new Date(dispute.slaDueAt)),
             ...(dispute.slaBreached ? { tone: 'danger' as const } : {}),
           },
           { label: 'الطلب', value: dispute.order.ref },
-          { label: 'فُتح', value: riyadh.format(new Date(dispute.openedAt)) },
+          { label: 'فتح', value: riyadh.format(new Date(dispute.openedAt)) },
         ]}
       />
 
@@ -111,7 +111,7 @@ export default async function AdminDisputeDetailPage({
         active={timeline ? 'timeline' : null}
         tabs={[
           { key: null, label: 'نظرة عامة' },
-          { key: 'timeline', label: 'خطّ الزمن' },
+          { key: 'timeline', label: 'خط الزمن' },
         ]}
       />
 
@@ -123,7 +123,7 @@ export default async function AdminDisputeDetailPage({
             note={<Quantity unit="messages" count={dispute.messages.length} />}
           >
             {dispute.messages.length === 0 ? (
-              <p className="text-2xs opacity-70">لا رسائل — فُتح النزاع بلا شرح.</p>
+              <p className="text-2xs opacity-70">لا رسائل — فتح النزاع بلا شرح.</p>
             ) : (
               dispute.messages.map((message) => (
                 <div key={message.index} className="border-b border-line py-3 last:border-0">
@@ -149,7 +149,7 @@ export default async function AdminDisputeDetailPage({
           <>
             <DetailCard title="النزاع">
               <Field label="السبب" value={dispute.reason} />
-              <Field label="فُتح" value={riyadh.format(new Date(dispute.openedAt))} />
+              <Field label="فتح" value={riyadh.format(new Date(dispute.openedAt))} />
               <Field label="فتحه" value={dispute.openedByName} />
               {dispute.slaDueAt === null ? null : (
                 <Field
@@ -167,7 +167,7 @@ export default async function AdminDisputeDetailPage({
             {dispute.resolvedAt === null ? (
               <DetailCard title="القرار">
                 <p className="text-2xs leading-loose opacity-70">
-                  لم يُحسم بعد. <b>ويحتاج القرار موافقة شخصين</b> في شاشة النزاعات — لا من هنا.
+                  لم يحسم بعد. <b>ويحتاج القرار موافقة شخصين</b> في شاشة النزاعات — لا من هنا.
                 </p>
                 <Link
                   href="/admin/disputes"
@@ -186,7 +186,7 @@ export default async function AdminDisputeDetailPage({
                     strong
                   />
                 )}
-                <Field label="حُسم" value={riyadh.format(new Date(dispute.resolvedAt))} />
+                <Field label="حسم" value={riyadh.format(new Date(dispute.resolvedAt))} />
               </DetailCard>
             )}
 
@@ -205,7 +205,7 @@ export default async function AdminDisputeDetailPage({
                 value={orderStateLabel(dispute.order.status, dispute.order.stage).text}
               />
               <Field
-                label="السعر المتّفق"
+                label="السعر المتفق"
                 value={<Money amount={Number(dispute.order.agreedPrice)} />}
               />
               <Field
@@ -230,9 +230,9 @@ export default async function AdminDisputeDetailPage({
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            الطلبُ الذي نشأ عنه، وفتحُ النزاع، ورسائلُه، وقرارُه، وأثر الفريق.
+            الطلب الذي نشأ عنه، وفتح النزاع، ورسائله، وقراره، وأثر الفريق.
           </p>
           <Timeline events={events} />
         </section>

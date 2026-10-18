@@ -20,7 +20,7 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: 'لوحة المزوّدين — كارز',
+  title: 'لوحة المزودين — كارز',
   /** لوحةُ عملٍ خاصّة، لا تُفهرَس */
   robots: { index: false, follow: false },
 };

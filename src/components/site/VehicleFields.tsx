@@ -322,7 +322,7 @@ export function VehicleFields({
       */}
       {inheritedTrim === null ? null : (
         <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3">
-          <p className="mb-2 text-3xs font-bold opacity-70">من الفئة — تُسجَّل كما هي</p>
+          <p className="mb-2 text-3xs font-bold opacity-70">من الفئة — تسجل كما هي</p>
           <p className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs">
             <span>{te(`bodyType.${inheritedTrim.bodyType}`)}</span>
             <span aria-hidden className="opacity-30">·</span>

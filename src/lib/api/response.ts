@@ -41,12 +41,12 @@ export const ERRORS = {
   /** مسحوبٌ **غير** غير موجود: الأوّل قرارٌ اتُّخذ والثاني خطأ إعداد. */
   API_KEY_REVOKED: {
     code: 'API_KEY_REVOKED',
-    messageAr: 'مفتاح الوصول مسحوب — أنشئ مفتاحًا جديدًا.',
+    messageAr: 'مفتاح الوصول مسحوب — أنشئ مفتاحا جديدا.',
     messageEn: 'Access key has been revoked — issue a new one.',
   },
   RATE_LIMITED: {
     code: 'RATE_LIMITED',
-    messageAr: 'تجاوزت حدّ الطلبات — أعد المحاولة بعد قليل.',
+    messageAr: 'تجاوزت حد الطلبات — أعد المحاولة بعد قليل.',
     messageEn: 'Rate limit exceeded — retry shortly.',
   },
   REPORT_DUPLICATE: {
@@ -71,17 +71,17 @@ export const ERRORS = {
   },
   OFFER_LISTING_CLOSED: {
     code: 'OFFER_LISTING_CLOSED',
-    messageAr: 'الإعلان لم يعد معروضًا.',
+    messageAr: 'الإعلان لم يعد معروضا.',
     messageEn: 'This listing is no longer available.',
   },
   OFFER_NOT_ACTIVE: {
     code: 'OFFER_NOT_ACTIVE',
-    messageAr: 'هذا العرض لم يعد نشطًا.',
+    messageAr: 'هذا العرض لم يعد نشطا.',
     messageEn: 'This offer is no longer active.',
   },
   AUCTION_NO_DECISION: {
     code: 'AUCTION_NO_DECISION',
-    messageAr: 'لا قرار معلّقًا على هذا المزاد.',
+    messageAr: 'لا قرار معلقا على هذا المزاد.',
     messageEn: 'This auction has no pending decision.',
   },
   /**
@@ -91,17 +91,17 @@ export const ERRORS = {
    */
   AUCTION_DECISION_CLOSED: {
     code: 'AUCTION_DECISION_CLOSED',
-    messageAr: 'انقضى وقت القرار، ورُدّ العربون إلى المزايد.',
+    messageAr: 'انقضى وقت القرار، ورد العربون إلى المزايد.',
     messageEn: 'The decision window has closed and the deposit was refunded.',
   },
   VIN_INVALID: {
     code: 'VIN_INVALID',
-    messageAr: 'رقم الهيكل غير صحيح — تحقّق من الخانات السبع عشرة.',
+    messageAr: 'رقم الهيكل غير صحيح — تحقق من الخانات السبع عشرة.',
     messageEn: 'That VIN is not valid — check all seventeen characters.',
   },
   VIN_NOT_RECOGNISED: {
     code: 'VIN_NOT_RECOGNISED',
-    messageAr: 'لم نتعرّف على هذا الرقم. أكمل البيانات يدويًا.',
+    messageAr: 'لم نتعرف على هذا الرقم. أكمل البيانات يدويا.',
     messageEn: 'We did not recognise this VIN. Fill in the details manually.',
   },
   VIN_ALREADY_LISTED: {
@@ -111,22 +111,22 @@ export const ERRORS = {
   },
  IMAGE_TOO_LARGE: {
     code: 'IMAGE_TOO_LARGE',
-    messageAr: 'حجم الصورة أكبر من المسموح. جرّب صورة أصغر.',
+    messageAr: 'حجم الصورة أكبر من المسموح. جرب صورة أصغر.',
     messageEn: 'The image is larger than allowed. Try a smaller one.',
   },
   IMAGE_INVALID: {
     code: 'IMAGE_INVALID',
-    messageAr: 'تعذّرت قراءة الملف كصورة.',
+    messageAr: 'تعذرت قراءة الملف كصورة.',
     messageEn: 'The file could not be read as an image.',
   },
   STORAGE_UNAVAILABLE: {
     code: 'STORAGE_UNAVAILABLE',
-    messageAr: 'تخزين الصور غير متاح حاليًا. حاول بعد قليل.',
+    messageAr: 'تخزين الصور غير متاح حاليا. حاول بعد قليل.',
     messageEn: 'Image storage is unavailable right now. Try again shortly.',
   },
   VALIDATION: (fields: Record<string, string>): ApiError => ({
     code: 'VALIDATION_FAILED',
-    messageAr: 'تحقّق من الحقول المعلَّمة.',
+    messageAr: 'تحقق من الحقول المعلمة.',
     messageEn: 'Check the highlighted fields.',
     fields,
   }),
@@ -142,7 +142,7 @@ export const ERRORS = {
   },
   OTP_COOLDOWN: {
     code: 'OTP_COOLDOWN',
-    messageAr: 'انتظر قليلًا قبل طلب رمز جديد.',
+    messageAr: 'انتظر قليلا قبل طلب رمز جديد.',
     messageEn: 'Wait a moment before requesting a new code.',
   },
   OTP_INVALID: {
@@ -152,17 +152,17 @@ export const ERRORS = {
   },
   OTP_EXPIRED: {
     code: 'OTP_EXPIRED',
-    messageAr: 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.',
+    messageAr: 'انتهت صلاحية الرمز. اطلب رمزا جديدا.',
     messageEn: 'The code has expired. Request a new one.',
   },
   OTP_CONSUMED: {
     code: 'OTP_CONSUMED',
-    messageAr: 'استُخدم هذا الرمز. اطلب رمزًا جديدًا.',
+    messageAr: 'استخدم هذا الرمز. اطلب رمزا جديدا.',
     messageEn: 'This code was already used. Request a new one.',
   },
   OTP_ATTEMPTS_EXHAUSTED: {
     code: 'OTP_ATTEMPTS_EXHAUSTED',
-    messageAr: 'استنفدت محاولات التحقّق. اطلب رمزًا جديدًا.',
+    messageAr: 'استنفدت محاولات التحقق. اطلب رمزا جديدا.',
     messageEn: 'No verification attempts left. Request a new code.',
   },
   UNAUTHORIZED: {
@@ -182,17 +182,17 @@ export const ERRORS = {
   },
   BRAND_HAS_CHILDREN: {
     code: 'BRAND_HAS_CHILDREN',
-    messageAr: 'لا تُحذف ماركة لها طرازات أو مركبات. أخفِها بدل حذفها.',
+    messageAr: 'لا تحذف ماركة لها طرازات أو مركبات. أخفها بدل حذفها.',
     messageEn: 'A brand with models or vehicles cannot be deleted. Hide it instead.',
   },
   CATALOG_HAS_CHILDREN: {
     code: 'CATALOG_HAS_CHILDREN',
-    messageAr: 'لا يُحذف عنصر له فئات أو مركبات. أخفِه بدل حذفه.',
+    messageAr: 'لا يحذف عنصر له فئات أو مركبات. أخفه بدل حذفه.',
     messageEn: 'An entry with trims or vehicles cannot be deleted. Hide it instead.',
   },
   FEATURE_LINKED: {
     code: 'FEATURE_LINKED',
-    messageAr: 'لا تُحذف ميزة مربوطة بفئة أو بإعلان. أخفِها بدل حذفها.',
+    messageAr: 'لا تحذف ميزة مربوطة بفئة أو بإعلان. أخفها بدل حذفها.',
     messageEn: 'A feature linked to a trim or listing cannot be deleted. Hide it instead.',
   },
   UPLOAD_NOT_CONFIGURED: {
@@ -214,22 +214,22 @@ export const ERRORS = {
   },
   ADMIN_INVALID_CODE: {
     code: 'ADMIN_INVALID_CODE',
-    messageAr: 'رمز التحقّق غير صحيح.',
+    messageAr: 'رمز التحقق غير صحيح.',
     messageEn: 'Incorrect verification code.',
   },
   ADMIN_LOCKED: {
     code: 'ADMIN_LOCKED',
-    messageAr: 'قُفل الحساب مؤقتًا بعد محاولات فاشلة. أعد المحاولة بعد ربع ساعة.',
+    messageAr: 'قفل الحساب مؤقتا بعد محاولات فاشلة. أعد المحاولة بعد ربع ساعة.',
     messageEn: 'Account temporarily locked after failed attempts. Try again in 15 minutes.',
   },
   ADMIN_INACTIVE: {
     code: 'ADMIN_INACTIVE',
-    messageAr: 'هذا الحساب غير مفعّل. راجع مدير النظام.',
+    messageAr: 'هذا الحساب غير مفعل. راجع مدير النظام.',
     messageEn: 'This account is not active. Contact the system administrator.',
   },
   ADMIN_NOT_ENROLLED: {
     code: 'ADMIN_NOT_ENROLLED',
-    messageAr: 'لم يُسجَّل التحقّق بخطوتين بعد. راجع مدير النظام.',
+    messageAr: 'لم يسجل التحقق بخطوتين بعد. راجع مدير النظام.',
     messageEn: 'Two-factor authentication is not enrolled. Contact the system administrator.',
   },
   ACCOUNT_BLOCKED: {

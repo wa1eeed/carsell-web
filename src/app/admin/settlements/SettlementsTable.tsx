@@ -26,8 +26,8 @@ import type { SettlementBlock, SettlementRow } from '@/lib/domain/settlement-que
  */
 
 const BLOCK_LABEL: Record<SettlementBlock, string> = {
-  NOT_TRANSFERRED: 'لم تُؤكَّد ملكية المركبة بعد',
-  DISPUTED: 'نزاعٌ قائم — المبلغ مجمَّد حتى يُحسم',
+  NOT_TRANSFERRED: 'لم تؤكد ملكية المركبة بعد',
+  DISPUTED: 'نزاع قائم — المبلغ مجمد حتى يحسم',
   GATEWAY_UNAVAILABLE: 'بوابة الحجز بلا وصلة — الإفراج يسقط ولو وافق عضوان',
 };
 
@@ -62,15 +62,15 @@ export function SettlementsTable({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تنفيذ الطلب.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تنفيذ الطلب.');
         return;
       }
 
       setConfirming(null);
       setToast(
         requestId === undefined
-          ? 'فُتح طلب الإفراج. ينتظر اعتماد عضوٍ ثانٍ.'
-          : 'اكتمل النصاب — أُفرج عن المبلغ إلى البائع.',
+          ? 'فتح طلب الإفراج. ينتظر اعتماد عضو ثان.'
+          : 'اكتمل النصاب — أفرج عن المبلغ إلى البائع.',
       );
       router.refresh();
     });
@@ -83,7 +83,7 @@ export function SettlementsTable({
     return (
       <EmptyState
         title="لا مبالغ محجوزة"
-        description="حين يدفع مشترٍ يظهر طلبه هنا حتى يُفرَج عنه للبائع."
+        description="حين يدفع مشتر يظهر طلبه هنا حتى يفرج عنه للبائع."
       />
     );
   }
@@ -92,7 +92,7 @@ export function SettlementsTable({
     <>
       {/* ═══ ينتظر الموافقة الثانية — أوّلًا لأنه ما يحتاج فعلًا الآن ═══ */}
       {awaitingApproval.length === 0 ? null : (
-        <Section title="ينتظر اعتماد عضوٍ ثانٍ" count={awaitingApproval.length} tone="warn">
+        <Section title="ينتظر اعتماد عضو ثان" count={awaitingApproval.length} tone="warn">
           {awaitingApproval.map((row) => {
             const approval = row.approval;
             if (approval === null) return null;
@@ -116,7 +116,7 @@ export function SettlementsTable({
                   {isRequester ? (
                     <span className="text-3xs opacity-65">أنت الطالب — يعتمده غيرك</span>
                   ) : alreadyApproved ? (
-                    <span className="text-3xs opacity-65">اعتمدتَه — ينتظر عضوًا آخر</span>
+                    <span className="text-3xs opacity-65">اعتمدته — ينتظر عضوا آخر</span>
                   ) : !canRelease ? (
                     <span className="text-3xs opacity-65">لا تملك صلاحية الإفراج</span>
                   ) : (
@@ -186,11 +186,11 @@ export function SettlementsTable({
               <Money amount={Number(confirming.netToSeller)} size="lg" decimals={2} />
             </div>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تُحرّك المبلغ</b> — تفتح طلبًا يعتمده عضوٌ ثانٍ، وعنده
-              يُنادى المزوّد. ولا يعتمده الطالب.
+              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثان، وعنده
+              ينادى المزود. ولا يعتمده الطالب.
             </p>
             <Button className="w-full" disabled={pending} onClick={() => call(confirming)}>
-              {pending ? 'جارٍ…' : 'افتح الطلب'}
+              {pending ? 'جار…' : 'افتح الطلب'}
             </Button>
           </>
         )}

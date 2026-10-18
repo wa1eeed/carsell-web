@@ -19,7 +19,7 @@ export const COMPLETION_FIELD: Record<string, string> = {
   receivedBy: 'استلمها',
   driverName: 'اسم السائق',
   truckPlate: 'لوحة الناقلة',
-  odometerKm: 'قراءة العدّاد عند التسليم',
+  odometerKm: 'قراءة العداد عند التسليم',
 
   /** التأمين */
   insurer: 'شركة التأمين',
@@ -28,7 +28,7 @@ export const COMPLETION_FIELD: Record<string, string> = {
   startsAt: 'بداية السريان',
   endsAt: 'نهاية السريان',
   premium: 'قسط التأمين',
-  deductible: 'مبلغ التحمّل',
+  deductible: 'مبلغ التحمل',
 
   /** نقلُ الملكية */
   transferChannel: 'قناة النقل',
@@ -40,7 +40,7 @@ export const COMPLETION_FIELD: Record<string, string> = {
   transferFees: 'رسوم النقل',
 
   /** التهيئة */
-  workDone: 'ما أُنجز',
+  workDone: 'ما أنجز',
   hours: 'ساعات العمل',
 
   /** التصوير */
@@ -55,7 +55,7 @@ export const COMPLETION_FIELD: Record<string, string> = {
   approvedAmount: 'مبلغ التمويل المعتمد',
   downPayment: 'الدفعة الأولى',
   monthlyInstalment: 'القسط الشهري',
-  tenorMonths: 'مدّة السداد',
+  tenorMonths: 'مدة السداد',
   /** **ونسبةُ ربحٍ لا فائدة** — والتسميةُ هنا ليست ذوقًا */
   profitRatePct: 'نسبة الربح السنوية',
   finalPayment: 'الدفعة الأخيرة',
@@ -63,19 +63,19 @@ export const COMPLETION_FIELD: Record<string, string> = {
   rejectionReason: 'سبب الرفض',
 
   /** غيرُ المصنَّف */
-  summary: 'وصفُ ما أُنجز',
+  summary: 'وصف ما أنجز',
 };
 
 /** خياراتُ حقول `SELECT` — ومفاتيحُها في المخطّط */
 export const COMPLETION_OPTION: Record<string, string> = {
-  THIRD_PARTY: 'ضدّ الغير',
+  THIRD_PARTY: 'ضد الغير',
   COMPREHENSIVE: 'شامل',
   APPROVED: 'موافقة',
   CONDITIONAL: 'موافقة مشروطة',
   REJECTED: 'رفض',
   /** قنواتُ نقل الملكية — ولكلٍّ مرجعُها وطريقةُ تتبّعها */
   ABSHER: 'أبشر',
-  TAM: 'منصّة تم',
+  TAM: 'منصة تم',
   TRAFFIC_DEPT: 'إدارة المرور',
   /** **واللوحةُ تبقى مع المركبة ما لم تُغيَّر** — والمشتري يسأل أوّلًا */
   KEPT: 'بقيت كما هي',
@@ -97,10 +97,10 @@ export const COMPLETION_OPTION: Record<string, string> = {
 export const COMPLETION_UNIT: Record<string, string> = {
   odometerKm: 'كم',
   hours: 'ساعة',
-  tenorMonths: 'شهرًا',
+  tenorMonths: 'شهرا',
   shotCount: 'صورة',
   /** **ونسبةٌ بلا «سنويًّا» تُقرأ على المدّة كلِّها** فتبدو نصفَ ما هي */
-  profitRatePct: 'بالمئة سنويًّا',
+  profitRatePct: 'بالمئة سنويا',
 };
 
 /**
@@ -112,11 +112,11 @@ export const COMPLETION_UNIT: Record<string, string> = {
  */
 export const SERVICE_DONE_BY_TYPE: Record<string, string> = {
   INSPECTION: 'التقرير جاهز',
-  SHIPPING: 'سُلّمت المركبة',
+  SHIPPING: 'سلمت المركبة',
   INSURANCE: 'صدرت الوثيقة',
-  TRANSFER: 'نُقلت الملكية',
+  TRANSFER: 'نقلت الملكية',
   DETAILING: 'انتهى العمل',
-  PHOTOGRAPHY: 'سُلّمت الصور',
+  PHOTOGRAPHY: 'سلمت الصور',
   FINANCE: 'صدر القرار',
   OTHER: 'اكتمل',
 } satisfies Record<ProviderType, string>;
@@ -132,7 +132,7 @@ export const COMPLETION_FORM_TITLE: Record<string, string> = {
   SHIPPING: 'إثبات التسليم',
   INSURANCE: 'بيانات الوثيقة',
   TRANSFER: 'إثبات نقل الملكية',
-  DETAILING: 'وصف العمل المُنجَز',
+  DETAILING: 'وصف العمل المنجز',
   PHOTOGRAPHY: 'تسليم الصور',
   FINANCE: 'قرار التمويل',
   OTHER: 'إثبات الإنجاز',

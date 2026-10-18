@@ -30,7 +30,7 @@ export const dynamic = 'force-dynamic';
  */
 const SEGMENTS: readonly { key: string | null; label: string }[] = [
   { key: null, label: 'الكل' },
-  { key: 'NEW', label: 'معلّقة' },
+  { key: 'NEW', label: 'معلقة' },
   { key: 'ASSIGNED', label: 'مسندة' },
   { key: 'IN_PROGRESS', label: 'قيد التنفيذ' },
   { key: 'DONE', label: 'مكتملة' },
@@ -39,14 +39,14 @@ const SEGMENTS: readonly { key: string | null; label: string }[] = [
    * **وحالةٌ بلا شريحة لا تُرى.** `REFUNDED` موجودةٌ في التعداد ويكتبها
    * المنتج، ولم تكن لها شريحة — فطلبٌ مستردٌّ لا يُبلَغ إلا من «الكل».
    */
-  { key: 'REFUNDED', label: 'مستردّة' },
+  { key: 'REFUNDED', label: 'مستردة' },
 ];
 
 /** اسمُ المرشَّح كما يُقرأ في سطر «معروضٌ: …». */
 const SCOPE_LABEL: Record<'open' | 'overdue' | 'unassigned', string> = {
   open: 'المفتوحة وحدها',
   overdue: 'المتجاوزة للمهلة وحدها',
-  unassigned: 'ما لا مزوّد له وحده',
+  unassigned: 'ما لا مزود له وحده',
 };
 
 /** بطاقةٌ تُفتح متى كان فيها ما يُفتح — والصفر لا يُربط. */
@@ -187,7 +187,7 @@ export default async function ServiceRequestsPage({
           show={health.unassigned > 0 && scope !== 'unassigned'}
         >
           <StatCard
-            label="بلا مزوّد"
+            label="بلا مزود"
             value={health.unassigned}
             tone={scope === 'unassigned' ? 'ink' : health.unassigned > 0 ? 'warn' : 'plain'}
           />
@@ -203,9 +203,9 @@ export default async function ServiceRequestsPage({
       */}
       {scope === null ? null : (
         <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
-          <span>معروضٌ: {SCOPE_LABEL[scope]}</span>
+          <span>معروض: {SCOPE_LABEL[scope]}</span>
           <Link href="/admin/service-requests" className="font-semibold underline opacity-100">
-            أزِل المرشّح
+            أزل المرشح
           </Link>
         </p>
       )}
@@ -215,10 +215,10 @@ export default async function ServiceRequestsPage({
       <ListFooter
         shown={requests.length}
         total={health.total}
-        note="المفتوح لا يُقتطَع، والمنجَز يُقرأ أحدثه"
-        can="إسناد الطلب إلى مزوّد، وتغيير حالته، وتسجيل سبب الإلغاء."
-        cannot="تعديل سعر الخدمة من هنا — السعر من الكتالوج، وتغييره يمسّ كل طلبٍ قادم."
-        automatic="طلبٌ تجاوز مهلته المعلنة يظهر أوكر."
+        note="المفتوح لا يقتطع، والمنجز يقرأ أحدثه"
+        can="إسناد الطلب إلى مزود، وتغيير حالته، وتسجيل سبب الإلغاء."
+        cannot="تعديل سعر الخدمة من هنا — السعر من الكتالوج، وتغييره يمس كل طلب قادم."
+        automatic="طلب تجاوز مهلته المعلنة يظهر أوكر."
       />
     </AdminShell>
   );

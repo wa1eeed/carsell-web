@@ -60,16 +60,16 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
 
   'finance.view': 'المدفوعات والضمان',
   'escrow.release': 'الإفراج عن الضمان',
-  'payouts.send': 'تحويل مستحقّات البائع',
+  'payouts.send': 'تحويل مستحقات البائع',
   'wallet.adjust': 'تسوية رصيد محفظة',
-  'providers.adjust': 'تسوية حساب مزوّد',
+  'providers.adjust': 'تسوية حساب مزود',
 
   'users.view': 'العملاء',
   'users.viewIdentity': 'توثيق الهوية — عرض المستند',
   'users.suspend': 'إيقاف حساب',
   'identity.review': 'مراجعة توثيق الهوية',
 
-  'catalog.manage': 'الكتالوج والمميّزات',
+  'catalog.manage': 'الكتالوج والمميزات',
   'catalog.uploadLogo': 'رفع شعار ماركة',
   'services.manage': 'الخدمات وأسعارها',
   'serviceRequests.handle': 'معالجة طلبات الخدمات',

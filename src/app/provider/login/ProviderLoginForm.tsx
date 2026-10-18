@@ -37,7 +37,7 @@ export function ProviderLoginForm() {
             | null;
 
           if (response === null || !response.ok) {
-            setError(payload?.error?.messageAr ?? 'تعذّر الدخول.');
+            setError(payload?.error?.messageAr ?? 'تعذر الدخول.');
             return;
           }
           /** تحميلٌ كامل — الجلسة تُقرأ في الخادم */

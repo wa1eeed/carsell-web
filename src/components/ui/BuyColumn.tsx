@@ -211,7 +211,7 @@ export function BuyColumn({
                 </>
               ) : (
                 <p className="mb-4 rounded-md border border-line bg-surface p-3.5 text-2xs leading-loose opacity-75">
-                  أُغلق هذا المزاد — وتفاصيل نتيجته في صفحته.
+                  أغلق هذا المزاد — وتفاصيل نتيجته في صفحته.
                 </p>
               )}
             </>

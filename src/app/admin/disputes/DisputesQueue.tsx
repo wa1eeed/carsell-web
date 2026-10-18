@@ -62,10 +62,10 @@ export function DisputesQueue({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(body?.error?.messageAr ?? 'تعذّر تسجيل الاقتراح.');
+        setToast(body?.error?.messageAr ?? 'تعذر تسجيل الاقتراح.');
         return;
       }
-      setToast('سُجّل الاقتراح — ينتظر موافقة عضو ثانٍ، ولم يُنفَّذ بعد.');
+      setToast('سجل الاقتراح — ينتظر موافقة عضو ثان، ولم ينفذ بعد.');
       setTarget(null);
       setAmount('');
       router.refresh();
@@ -87,13 +87,13 @@ export function DisputesQueue({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(body?.error?.messageAr ?? 'تعذّر اعتماد القرار.');
+        setToast(body?.error?.messageAr ?? 'تعذر اعتماد القرار.');
         return;
       }
       setToast(
         body?.data?.executed === true
-          ? 'نُفِّذ القرار — وحُرِّك مال الضمان بموجبه.'
-          : 'سُجِّلت موافقتك — ما زال ينتظر عضوًا آخر.',
+          ? 'نفذ القرار — وحرك مال الضمان بموجبه.'
+          : 'سجلت موافقتك — ما زال ينتظر عضوا آخر.',
       );
       router.refresh();
     });
@@ -116,7 +116,7 @@ export function DisputesQueue({
                     setAmount('');
                   }}
                 >
-                  اقترح قرارًا
+                  اقترح قرارا
                 </Button>
               ) : (
                 /*
@@ -139,7 +139,7 @@ export function DisputesQueue({
                     </span>
                   </span>
                   <Button size="sm" disabled={pending || isProposer} onClick={() => approve(row)}>
-                    {isProposer ? 'اقترحتَه — ينتظر عضوًا آخر' : 'اعتمد القرار'}
+                    {isProposer ? 'اقترحته — ينتظر عضوا آخر' : 'اعتمد القرار'}
                   </Button>
                 </span>
               )}
@@ -171,8 +171,8 @@ export function DisputesQueue({
         {target === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-              القرار لا يُنفَّذ بضغطك: يُسجَّل طلبًا ينتظر عضوًا ثانيًا، ويُنفَّذ
-              تلقائيًّا حين يكتمل النصاب — ولا تحويل يدويّ بعده.
+              القرار لا ينفذ بضغطك: يسجل طلبا ينتظر عضوا ثانيا، وينفذ
+              تلقائيا حين يكتمل النصاب — ولا تحويل يدوي بعده.
             </p>
 
             <p className="flex items-baseline gap-2 text-2xs">

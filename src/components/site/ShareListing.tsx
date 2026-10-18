@@ -90,7 +90,7 @@ export function ShareListing({
           <circle cx="18" cy="19" r="3" />
           <path d="M8.6 10.6 15.4 6.4M8.6 13.4l6.8 4.2" />
         </svg>
-        {copied ? 'نُسخ الرابط' : 'مشاركة'}
+        {copied ? 'نسخ الرابط' : 'مشاركة'}
       </button>
 
       {/*

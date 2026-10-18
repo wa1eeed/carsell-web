@@ -24,7 +24,7 @@ const MESSAGE: Record<string, string> = {
   LISTING_NOT_FOUND: 'لا إعلان بهذا المرجع.',
   NOT_IN_QUEUE: 'الإعلان لم يعد في القائمة — راجعه غيرك.',
   // الرقم عربيّ-هنديّ ومعزول، والجملة لا يحكمها المعدود
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_REVIEW_NOTE))}) — البائع يقرؤها ليُصلح.`,
+  NOTE_REQUIRED: `الملاحظة أقصر من الحد (${displayDigits(String(MIN_REVIEW_NOTE))}) — البائع يقرؤها ليصلح.`,
   SUSPEND_NOT_ALLOWED: 'إيقاف الحساب يحتاج صلاحية أعلى.',
 };
 
@@ -59,7 +59,7 @@ export async function POST(
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر تنفيذ القرار.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر تنفيذ القرار.',
         messageEn: 'Could not apply the review decision.',
       },
       STATUS[result.reason] ?? 409,

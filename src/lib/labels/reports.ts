@@ -12,7 +12,7 @@ export const REPORT_NAME: Record<ReportKey, string> = {
   ledger: 'دفتر الأستاذ',
   inventory_aging: 'أعمار المخزون',
   auction_performance: 'أداء المزادات',
-  service_requests: 'طلبات الخدمات والمزوّدين',
+  service_requests: 'طلبات الخدمات والمزودين',
   customers: 'العملاء وسلوكهم',
 };
 
@@ -21,14 +21,14 @@ export const REPORT_CONTENT: Record<ReportKey, string> = {
   sales_commissions: 'قيمة المبيعات · العمولة · الضريبة',
   ledger: 'القيود بطرفيها ومراجعها',
   inventory_aging: 'الإعلانات وأيام العرض',
-  auction_performance: 'الرسوّ · العرابين · التمديد',
+  auction_performance: 'الرسو · العرابين · التمديد',
   service_requests: 'الإسناد والالتزام',
   customers: 'يحتوي بيانات شخصية',
 };
 
 export const REPORT_SCHEDULE_LABEL: Record<ReportSchedule, string> = {
-  weekly_sunday: 'أسبوعيًّا — الأحد',
-  weekly: 'أسبوعيًّا',
-  monthly: 'شهريًّا',
+  weekly_sunday: 'أسبوعيا — الأحد',
+  weekly: 'أسبوعيا',
+  monthly: 'شهريا',
   on_demand: 'عند الطلب',
 };

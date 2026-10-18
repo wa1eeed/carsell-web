@@ -72,18 +72,18 @@ export default async function ViewingsPage({
       locale={locale}
       title="مواعيد المعاينة"
       crumb="المعاينات"
-      subtitle="مواعيدُ طلبتَها، وطلباتٌ على إعلاناتك. والمعاينةُ لقاءٌ بينك وبين الطرف الآخر — بلا وسيطٍ وبلا رسوم."
+      subtitle="مواعيد طلبتها، وطلبات على إعلاناتك. والمعاينة لقاء بينك وبين الطرف الآخر — بلا وسيط وبلا رسوم."
       stats={
         /** **والعدّادُ يُحسب بمرشّح ما يفتحه** — لا بكلّ صفٍّ في القائمة */
         <div className="flex flex-wrap gap-6">
-          <Stat label="ينتظر ردّك" value={awaiting} />
-          <Stat label="طلبتَها" value={asBuyer.length} />
+          <Stat label="ينتظر ردك" value={awaiting} />
+          <Stat label="طلبتها" value={asBuyer.length} />
         </div>
       }
       empty={{
         title: 'لا مواعيد',
         description:
-          'حين تطلب معاينة سيارةٍ من صفحتها، أو يطلب أحدٌ معاينة مركبتك، يظهر الموعد هنا.',
+          'حين تطلب معاينة سيارة من صفحتها، أو يطلب أحد معاينة مركبتك، يظهر الموعد هنا.',
       }}
     >
       {[
@@ -101,7 +101,7 @@ export default async function ViewingsPage({
           ? []
           : [
               <h2 key="h-buyer" className="mt-4 text-sm font-bold">
-                مواعيد طلبتَها
+                مواعيد طلبتها
               </h2>,
               ...asBuyer.map((row) => (
                 <Card key={`b-${row.ref}`} row={row} side="BUYER" />
@@ -178,7 +178,7 @@ function Card({ row, side }: { row: ViewingRow; side: 'BUYER' | 'SELLER' }) {
         */}
         {row.originalDate === null || row.originalPeriod === null ? null : (
           <Line
-            label={side === 'BUYER' ? 'كنتَ طلبتَ' : 'كان قد طلب'}
+            label={side === 'BUYER' ? 'كنت طلبت' : 'كان قد طلب'}
             value={
               <span className="opacity-70">
                 <span className="bidi-isolate">{riyadh.format(new Date(row.originalDate))}</span>

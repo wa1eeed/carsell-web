@@ -48,7 +48,7 @@ export async function POST(
       return fail(
         {
           code: result.reason,
-          messageAr: 'مفاتيح الإنتاج لا تُكتب من خارج الإنتاج.',
+          messageAr: 'مفاتيح الإنتاج لا تكتب من خارج الإنتاج.',
           messageEn: 'Live keys cannot be written from outside production.',
         },
         403,

@@ -55,11 +55,11 @@ export function MarginPanel({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
-      setToast(next ? 'مُنح هامش الربح — ويُسجَّل بمرجعه.' : 'سُحب هامش الربح.');
+      setToast(next ? 'منح هامش الربح — ويسجل بمرجعه.' : 'سحب هامش الربح.');
       router.refresh();
     });
   };
@@ -86,7 +86,7 @@ export function MarginPanel({
   if (!registered) {
     return (
       <p className="text-3xs leading-loose opacity-70">
-        الهامش يتبع التسجيل الضريبيّ — ولا رقم ضريبيّ لهذا الحساب.
+        الهامش يتبع التسجيل الضريبي — ولا رقم ضريبي لهذا الحساب.
       </p>
     );
   }
@@ -108,10 +108,10 @@ export function MarginPanel({
         disabled={pending || value.trim() === ''}
         onClick={() => send(true)}
       >
-        {pending ? 'يُحفظ…' : 'امنح هامش الربح'}
+        {pending ? 'يحفظ…' : 'امنح هامش الربح'}
       </Button>
       <p className="text-3xs leading-loose opacity-70">
-        يُحتسب على الفرق بين الشراء والبيع لا على كامل السعر — ولا يُطبَّق تلقائيًّا أبدًا.
+        يحتسب على الفرق بين الشراء والبيع لا على كامل السعر — ولا يطبق تلقائيا أبدا.
       </p>
       {toast === null ? null : <Toast title={toast} />}
     </div>

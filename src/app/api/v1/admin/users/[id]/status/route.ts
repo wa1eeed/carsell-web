@@ -21,15 +21,15 @@ const Body = z.object({
 
 const MESSAGES: Record<string, { ar: string; en: string }> = {
   REASON_REQUIRED: {
-    ar: 'اكتب سببًا يُقرأ لاحقًا — لا كلمة واحدة.',
+    ar: 'اكتب سببا يقرأ لاحقا — لا كلمة واحدة.',
     en: 'Write a reason that reads later — not a single word.',
   },
   ALREADY_IN_STATUS: {
-    ar: 'الحساب في هذه الحال أصلًا.',
+    ar: 'الحساب في هذه الحال أصلا.',
     en: 'The account is already in that state.',
   },
   LIVE_OBLIGATIONS: {
-    ar: 'عليه طلبٌ حيٌّ أو ضمانٌ محجوز — احسم الصفقة أوّلًا، أو أوقفه مؤقّتًا.',
+    ar: 'عليه طلب حي أو ضمان محجوز — احسم الصفقة أولا، أو أوقفه مؤقتا.',
     en: 'This account has a live order or held escrow — settle it first, or suspend instead.',
   },
 };
@@ -61,7 +61,7 @@ export async function POST(
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر تغيير حال الحساب.',
+        messageAr: text?.ar ?? 'تعذر تغيير حال الحساب.',
         messageEn: text?.en ?? 'Could not change the account state.',
       },
       result.reason === 'REASON_REQUIRED' ? 422 : 409,

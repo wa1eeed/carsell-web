@@ -50,7 +50,7 @@ export function DeadlinesTable({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
@@ -59,7 +59,7 @@ export function DeadlinesTable({
         delete next[row.key];
         return next;
       });
-      setToast('حُفظت المهلة. والطلبات القائمة تبقى على مهلتها.');
+      setToast('حفظت المهلة. والطلبات القائمة تبقى على مهلتها.');
       router.refresh();
     });
   };
@@ -77,9 +77,9 @@ export function DeadlinesTable({
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-sm font-bold">{label?.name ?? row.key}</h2>
                 {row.isDefault ? (
-                  <Badge tone="neutral">الافتراضيّ</Badge>
+                  <Badge tone="neutral">الافتراضي</Badge>
                 ) : (
-                  <Badge tone="accent">معدَّلة</Badge>
+                  <Badge tone="accent">معدلة</Badge>
                 )}
               </div>
 
@@ -115,7 +115,7 @@ export function DeadlinesTable({
                   وهي محقّة في الصنف — العربية ستّ حالات جمع.
                 */}
                 <span className="text-3xs opacity-65">
-                  الحدّ{' '}
+                  الحد{' '}
                   <span dir="ltr" className="font-num">
                     <ArabicNumber value={row.min} grouped={false} />–
                     <ArabicNumber value={row.max} grouped={false} />

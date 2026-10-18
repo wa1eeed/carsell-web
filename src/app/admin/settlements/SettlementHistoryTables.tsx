@@ -20,9 +20,9 @@ import type {
 
 const DEPOSIT_LABEL: Record<DepositRow['status'], { text: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   HELD: { text: 'محجوز', tone: 'warn' },
-  RELEASED: { text: 'رُدّ للمزايد', tone: 'neutral' },
-  APPLIED: { text: 'خُصم من الطلب', tone: 'accent' },
-  FORFEITED: { text: 'صودر للمنصّة', tone: 'warn' },
+  RELEASED: { text: 'رد للمزايد', tone: 'neutral' },
+  APPLIED: { text: 'خصم من الطلب', tone: 'accent' },
+  FORFEITED: { text: 'صودر للمنصة', tone: 'warn' },
 };
 
 export function SettlementHistoryTables({
@@ -50,7 +50,7 @@ export function SettlementHistoryTables({
     <>
       {settled.length === 0 ? null : (
         <Section
-          title="مُسوّى"
+          title="مسوى"
           note={
             <>
               هذا الشهر <Money amount={Number(settledThisMonth)} decimals={2} />
@@ -78,7 +78,7 @@ export function SettlementHistoryTables({
               ref_={row.orderRef}
               main={row.buyer}
               /** **والسبب يُعرض** — مبلغٌ رُدّ بلا سببٍ لا يُراجَع. */
-              sub={row.reason ?? 'بلا سبب مسجَّل'}
+              sub={row.reason ?? 'بلا سبب مسجل'}
               amount={row.amount}
               trailing={<span className="text-3xs opacity-65">{date.format(new Date(row.at))}</span>}
             />
@@ -97,7 +97,7 @@ export function SettlementHistoryTables({
                * **والدفتريّ القديم يُميَّز**: وسمٌ بلا مالٍ خلفه ليس
                * عربونًا، ومن يقرؤه مع أخيه يحسب المحجوز أكبر ممّا هو.
                */
-              sub={row.hasPayment ? 'محجوز بالبوابة' : 'دفتريّ — بلا دفعة'}
+              sub={row.hasPayment ? 'محجوز بالبوابة' : 'دفتري — بلا دفعة'}
               amount={row.amount}
               trailing={
                 <Badge tone={DEPOSIT_LABEL[row.status].tone}>{DEPOSIT_LABEL[row.status].text}</Badge>

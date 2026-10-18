@@ -27,8 +27,8 @@ const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'danger'
   RESERVED: { label: 'محجوز', tone: 'neutral' },
   SOLD: { label: 'مبيع', tone: 'neutral' },
   SUSPENDED: { label: 'موقوف', tone: 'danger' },
-  DRAFT: { label: 'مسودّة', tone: 'neutral' },
-  EXPIRED: { label: 'منتهٍ', tone: 'neutral' },
+  DRAFT: { label: 'مسودة', tone: 'neutral' },
+  EXPIRED: { label: 'منته', tone: 'neutral' },
 };
 
 const TYPE: Record<string, string> = {
@@ -39,7 +39,7 @@ const TYPE: Record<string, string> = {
 
 /** صفةُ البائع — وهي تغيّر المراجعة: معرضٌ موثَّق غيرُ فردٍ أوّلِ إعلان. */
 const SELLER_KIND: Record<string, { label: string; tone: 'accent' | 'neutral' }> = {
-  DEALER_VERIFIED: { label: 'معرض موثَّق', tone: 'accent' },
+  DEALER_VERIFIED: { label: 'معرض موثق', tone: 'accent' },
   DEALER: { label: 'معرض', tone: 'neutral' },
   INDIVIDUAL: { label: 'فرد', tone: 'neutral' },
 };
@@ -121,9 +121,9 @@ export function ListingCard({ row }: { row: ListingRow }) {
           <Badge tone={kind.tone}>{kind.label}</Badge>
           {row.planName === null ? null : <Badge tone="neutral">{row.planName}</Badge>}
           {row.publishedAt === null ? (
-            <span className="opacity-65">لم يُنشر بعد</span>
+            <span className="opacity-65">لم ينشر بعد</span>
           ) : (
-            <span className="opacity-65">نُشر {riyadh.format(new Date(row.publishedAt))}</span>
+            <span className="opacity-65">نشر {riyadh.format(new Date(row.publishedAt))}</span>
           )}
         </p>
       </div>

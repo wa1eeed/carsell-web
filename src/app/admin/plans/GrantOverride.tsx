@@ -57,7 +57,7 @@ export function GrantOverride({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setError('تعذّر منح التجاوز — راجع المعرّف والقيمة.');
+        setError('تعذر منح التجاوز — راجع المعرف والقيمة.');
         return;
       }
 
@@ -76,7 +76,7 @@ export function GrantOverride({
   if (!open) {
     return (
       <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="mb-3.5">
-        امنح تجاوزًا
+        امنح تجاوزا
       </Button>
     );
   }
@@ -85,16 +85,16 @@ export function GrantOverride({
     <div className="mb-4 flex flex-col gap-3 rounded-lg border border-line p-4">
       <div className="grid gap-3 md:grid-cols-2">
         <label>
-          <span className={label}>معرّف العميل</span>
+          <span className={label}>معرف العميل</span>
           <input dir="ltr" value={userId} onChange={(e) => setUserId(e.target.value)} className={field} />
         </label>
 
         <label>
-          <span className={label}>الخاصّية</span>
+          <span className={label}>الخاصية</span>
           <select value={key} onChange={(e) => setKey(e.target.value)} className={field}>
             {entitlements.map((row) => (
               <option key={row.key} value={row.key}>
-                {row.key} — الافتراضيّ {row.defaultValue}
+                {row.key} — الافتراضي {row.defaultValue}
               </option>
             ))}
           </select>
@@ -106,17 +106,17 @@ export function GrantOverride({
         </label>
 
         <label>
-          <span className={label}>حتى تاريخ — اتركه فارغًا لتجاوزٍ دائم</span>
+          <span className={label}>حتى تاريخ — اتركه فارغا لتجاوز دائم</span>
           <input type="date" dir="ltr" value={until} onChange={(e) => setUntil(e.target.value)} className={field} />
         </label>
       </div>
 
       <label>
-        <span className={label}>السبب — إلزاميّ</span>
+        <span className={label}>السبب — إلزامي</span>
         <input
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="لماذا مُنح هذا الاستثناء؟ يقرؤه من بعدك."
+          placeholder="لماذا منح هذا الاستثناء؟ يقرؤه من بعدك."
           className={field}
         />
       </label>

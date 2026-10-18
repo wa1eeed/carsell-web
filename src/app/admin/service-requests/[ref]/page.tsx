@@ -55,9 +55,9 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
 /** الالتزام نصًّا — والوحدة في التسمية لا بعد الرقم (البوابة ١٨). */
 function sla(hours: number | null): string {
   if (hours === null) return 'بلا التزام';
-  if (hours === 0) return 'فوريّ';
+  if (hours === 0) return 'فوري';
   if (hours < 72) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيّام (${displayDigits(String(Math.round(hours / 24)))})`;
+  return `أيام (${displayDigits(String(Math.round(hours / 24)))})`;
 }
 
 /**
@@ -109,7 +109,7 @@ export default async function AdminServiceRequestDetailPage({
           { label: 'المبلغ', value: <Money amount={Number(request.amount)} decimals={2} /> },
           { label: 'الحالة', value: SERVICE_REQUEST_STATUS[request.status] ?? request.status },
           { label: 'المهلة', value: request.dueAt === null ? 'لا مهلة' : riyadh.format(new Date(request.dueAt)), ...(request.overdue ? { tone: 'danger' as const } : {}) },
-          { label: 'طُلبت', value: riyadh.format(new Date(request.createdAt)) },
+          { label: 'طلبت', value: riyadh.format(new Date(request.createdAt)) },
         ]}
       />
 
@@ -119,7 +119,7 @@ export default async function AdminServiceRequestDetailPage({
         active={timeline ? 'timeline' : null}
         tabs={[
           { key: null, label: 'نظرة عامة' },
-          { key: 'timeline', label: 'خطّ الزمن' },
+          { key: 'timeline', label: 'خط الزمن' },
         ]}
       />
 
@@ -138,7 +138,7 @@ export default async function AdminServiceRequestDetailPage({
                 رسمنا الإداريّ سطرٌ ثانٍ مستقلّ — ودمجُه في السعر يُسقط
                 وصف الصرف عن المبلغ كلّه فتُستحقّ الضريبة على كامله.
               */}
-              <Field label="رسمنا الإداريّ" value={<Money amount={Number(request.adminFee)} decimals={2} />} />
+              <Field label="رسمنا الإداري" value={<Money amount={Number(request.adminFee)} decimals={2} />} />
             </DetailCard>
 
             {/*
@@ -173,7 +173,7 @@ export default async function AdminServiceRequestDetailPage({
             <DetailCard title="المال">
               {request.payment === null ? (
                 <p className="text-2xs leading-loose opacity-70">
-                  لم يُدفع بعد — ولا فاتورة قبل الدفع.
+                  لم يدفع بعد — ولا فاتورة قبل الدفع.
                 </p>
               ) : (
                 <>
@@ -214,7 +214,7 @@ export default async function AdminServiceRequestDetailPage({
               ليرى مالَه ومهلتَه ومزوّدَه، فمراجعةُ تقريره معها.
             */}
             {request.pendingInspection === null ? null : (
-              <DetailCard title="تقريرُ فحصٍ ينتظر المراجعة">
+              <DetailCard title="تقرير فحص ينتظر المراجعة">
                 <ReviewInspection
                   draftId={request.pendingInspection.draftId}
                   score={request.pendingInspection.score}
@@ -235,7 +235,7 @@ export default async function AdminServiceRequestDetailPage({
                   />
                 )}
                 {request.resultUrl === null ? (
-                  <p className="text-2xs opacity-70">لم يُرفع تقرير بعد.</p>
+                  <p className="text-2xs opacity-70">لم يرفع تقرير بعد.</p>
                 ) : (
                   <Field label="التقرير" value={request.resultUrl} ltr />
                 )}
@@ -246,7 +246,7 @@ export default async function AdminServiceRequestDetailPage({
         side={
           <>
             <DetailCard title="التوقيت">
-              <Field label="قُدّم" value={riyadh.format(new Date(request.createdAt))} />
+              <Field label="قدم" value={riyadh.format(new Date(request.createdAt))} />
               {request.dueAt === null ? (
                 <Field label="الموعد" value="بلا موعد" />
               ) : (
@@ -262,10 +262,10 @@ export default async function AdminServiceRequestDetailPage({
               )}
             </DetailCard>
 
-            <DetailCard title="المزوّد">
+            <DetailCard title="المزود">
               {request.provider === null ? (
                 <p className="text-2xs opacity-70">
-                  لم يُسنَد بعد — والإسناد آليّ لمزوّدٍ مفعّل في مدينة العميل بأقلّ حِمل.
+                  لم يسند بعد — والإسناد آلي لمزود مفعل في مدينة العميل بأقل حمل.
                 </p>
               ) : (
                 <>
@@ -275,7 +275,7 @@ export default async function AdminServiceRequestDetailPage({
                     href="/admin/providers"
                     className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                   >
-                    افتح المزوّدين
+                    افتح المزودين
                   </Link>
                 </>
               )}
@@ -298,7 +298,7 @@ export default async function AdminServiceRequestDetailPage({
                   href={`/admin/users/${request.customer.id}`}
                   className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
                 >
-                  افتح ملفّه
+                  افتح ملفه
                 </Link>
                 {request.listingRef === null ? null : (
                   <Link
@@ -317,9 +317,9 @@ export default async function AdminServiceRequestDetailPage({
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            طلبُ الخدمة وإسنادُها وموعدُها ونتيجتُها، وأثر الفريق.
+            طلب الخدمة وإسنادها وموعدها ونتيجتها، وأثر الفريق.
           </p>
           <Timeline events={events} />
         </section>

@@ -211,13 +211,13 @@ export default async function CityBrandLanding({
               href={`/${locale}/browse/${city}/${brand}?sort=price_asc`}
               active={sort === 'price_asc'}
             >
-              الأقلّ سعرًا
+              الأقل سعرا
             </FilterChip>
             <FilterChip
               href={`/${locale}/browse/${city}/${brand}?sort=price_desc`}
               active={sort === 'price_desc'}
             >
-              الأعلى سعرًا
+              الأعلى سعرا
             </FilterChip>
           </nav>
 

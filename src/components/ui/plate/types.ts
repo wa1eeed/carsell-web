@@ -33,9 +33,9 @@ export const PLATE_FORMAT_LABELS: Record<PlateFormat, string> = {
 }
 
 export const PLATE_FORMAT_HINTS: Record<PlateFormat, string> = {
-  standard: 'مستطيلة قريبة من المربّع — صفّان: العربي أعلى واللاتيني أسفله.',
-  long: 'الطويلة المعتادة — صفّان وشعار في الوسط.',
-  sport: 'قصيرة بصفٍّ واحد، بحروف وأرقام إنجليزية فقط بلا عربية.',
+  standard: 'مستطيلة قريبة من المربع — صفان: العربي أعلى واللاتيني أسفله.',
+  long: 'الطويلة المعتادة — صفان وشعار في الوسط.',
+  sport: 'قصيرة بصف واحد، بحروف وأرقام إنجليزية فقط بلا عربية.',
 }
 
 export const isLatinOnlyFormat = (format: PlateFormat): boolean => format === 'sport'

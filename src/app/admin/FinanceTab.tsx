@@ -63,7 +63,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card
           title="قيمة المبيعات"
-          subtitle="إجمالي ما بيع عبر المنصّة — قبل أي خصم (GMV)"
+          subtitle="إجمالي ما بيع عبر المنصة — قبل أي خصم (GMV)"
           amount={summary.gmv.total}
         >
           {summary.gmv.bySource.map((line) => (
@@ -90,7 +90,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
 
         <Card
           title="صافي الإيراد"
-          subtitle="ما أخذته المنصّة"
+          subtitle="ما أخذته المنصة"
           amount={summary.revenue.total}
         >
           {summary.revenue.byStream.length === 0 ? (
@@ -107,11 +107,11 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
         </Card>
 
         <Card title="نقد الضمان" subtitle="محتجز الآن" amount={summary.escrow.total}>
-          <Line label="محتجز جارٍ" amount={summary.escrow.held} />
+          <Line label="محتجز جار" amount={summary.escrow.held} />
           <Line label="عرابين محجوزة" amount={summary.escrow.deposits} />
-          <Line label="مجمّد بنزاع" amount={summary.escrow.frozen} />
+          <Line label="مجمد بنزاع" amount={summary.escrow.frozen} />
           <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-70">
-            المجمَّد بنزاع مطروحٌ من المحتجز الجاري لا مجموعٌ إليه — وإلّا عُدّ مرّتين.
+            المجمد بنزاع مطروح من المحتجز الجاري لا مجموع إليه — وإلا عد مرتين.
           </p>
         </Card>
 
@@ -164,9 +164,9 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       </div>
 
       <p className="mt-6 mb-3 flex items-baseline gap-2 text-2xs opacity-70">
-        <span className="font-bold">مؤشّرات تُحسب من غيرها</span>
+        <span className="font-bold">مؤشرات تحسب من غيرها</span>
         <span aria-hidden className="opacity-40">·</span>
-        <span>شهر {monthName(month)} كاملًا — لا آخر ثلاثين يومًا</span>
+        <span>شهر {monthName(month)} كاملا — لا آخر ثلاثين يوما</span>
       </p>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -175,34 +175,34 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           value={<Money amount={figures.cac} />}
           note={
             figures.newCustomers === 0 ? (
-              'لا عملاء جدد هذا الشهر — فلا تكلفة تُقسم عليهم.'
+              'لا عملاء جدد هذا الشهر — فلا تكلفة تقسم عليهم.'
             ) : (
               <>
-                ما صُرف على التسويق ÷ <Quantity unit="newCustomers" count={figures.newCustomers} />
+                ما صرف على التسويق ÷ <Quantity unit="newCustomers" count={figures.newCustomers} />
               </>
             )
           }
         />
         <Indicator
-          title="ما يدرّه العميل"
+          title="ما يدره العميل"
           value={<Money amount={figures.ltv} />}
           note={
             figures.payingCustomers === 0
               ? 'لا مشترين بعد.'
-              : <>إيراد المنصّة ÷ <Quantity unit="buyers" count={figures.payingCustomers} /></>
+              : <>إيراد المنصة ÷ <Quantity unit="buyers" count={figures.payingCustomers} /></>
           }
         />
         <Indicator
-          title="حصّة المنصّة"
+          title="حصة المنصة"
           value={
             <span className="font-num">
               <ArabicNumber value={figures.takeRatePct} decimals={2} grouped={false} />٪
             </span>
           }
-          note={<>من كل ريال مبيعات يبقى للمنصّة هذا القدر.</>}
+          note={<>من كل ريال مبيعات يبقى للمنصة هذا القدر.</>}
         />
         <Indicator
-          title="ما يدرّه العميل مقابل تكلفته"
+          title="ما يدره العميل مقابل تكلفته"
           value={
             figures.ltvOverCac === null ? (
               <span className="text-base opacity-70">لا تكلفة تسويق</span>
@@ -212,19 +212,19 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
               </span>
             )
           }
-          note="الجيّد 3× فأعلى — أقلّ منه يعني أننا ندفع لجلب العميل أكثر ممّا يعطينا."
+          note="الجيد 3× فأعلى — أقل منه يعني أننا ندفع لجلب العميل أكثر مما يعطينا."
         />
         <Indicator
           /* الوحدة في العنوان لا بعد الرقم: الكسر لا يُصرَّف جمعًا في العربية */
-          title="كم شهرًا حتى يغطّي العميل تكلفته"
+          title="كم شهرا حتى يغطي العميل تكلفته"
           value={
             figures.paybackMonths === null ? (
-              <span className="text-base opacity-70">لا ربح شهريّ بعد</span>
+              <span className="text-base opacity-70">لا ربح شهري بعد</span>
             ) : (
               <ArabicNumber value={figures.paybackMonths} decimals={1} grouped={false} />
             )
           }
-          note="حتى يعيد العميل ما كلّف جلبه."
+          note="حتى يعيد العميل ما كلف جلبه."
         />
         <Indicator
           title="النقد يكفي"
@@ -237,7 +237,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           }
           note={
             figures.runwayMonths === null
-              ? 'الإيراد يغطّي المصروف — فلا مدّة تنفد بعدها.'
+              ? 'الإيراد يغطي المصروف — فلا مدة تنفد بعدها.'
               : <>العجز <Money amount={figures.netBurn} /> كل شهر.</>
           }
         />

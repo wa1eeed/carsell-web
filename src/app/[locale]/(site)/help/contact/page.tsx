@@ -81,7 +81,7 @@ export default async function ContactPage({
           </h1>
           <p className="mb-8 text-sm leading-loose opacity-70">
             {locale === 'ar'
-              ? 'فريق الدعم يردّ في أوقات العمل. وللبلاغ على إعلانٍ بعينه استعمل «أبلغ عن الإعلان» في صفحته — يصلنا معه مرجعه.'
+              ? 'فريق الدعم يرد في أوقات العمل. وللبلاغ على إعلان بعينه استعمل «أبلغ عن الإعلان» في صفحته — يصلنا معه مرجعه.'
               : 'Support replies during working hours. To report a specific listing, use “Report listing” on its page so its reference reaches us with it.'}
           </p>
 

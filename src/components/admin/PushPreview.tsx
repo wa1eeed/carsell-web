@@ -28,7 +28,7 @@ export function PushPreview({
   if (template === null) {
     return (
       <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
-        لا قالب دفع مفعَّل بعد.
+        لا قالب دفع مفعل بعد.
       </p>
     );
   }
@@ -95,7 +95,7 @@ function Measure({
         <span className="opacity-65">/</span>
         <ArabicNumber value={limit} grouped={false} />
       </dd>
-      {over ? <Badge tone="warn">سيُختصر</Badge> : null}
+      {over ? <Badge tone="warn">سيختصر</Badge> : null}
     </span>
   );
 }

@@ -18,7 +18,7 @@ function EnvBanner() {
   return (
     <div className="flex items-center justify-center gap-2 bg-warn px-5 py-2 text-2xs font-bold text-ink">
       <span className="size-1.5 rounded-full bg-ink" aria-hidden />
-      بيئة تجربة — البيانات هنا وهمية ولا تمثّل الإنتاج
+      بيئة تجربة — البيانات هنا وهمية ولا تمثل الإنتاج
     </div>
   );
 }
@@ -110,7 +110,7 @@ export async function AdminShell({
                     key={item.label}
                     href={item.href ?? undefined}
                     aria-disabled={disabled}
-                    title={disabled ? 'قريبًا — لا ترميز تصميم بعد' : undefined}
+                    title={disabled ? 'قريبا — لا ترميز تصميم بعد' : undefined}
                     className={cn(
                       'flex items-center gap-2.5 rounded-sm px-3.5 py-2.5 text-sm',
                       isActive && 'bg-bg/13 font-bold',
@@ -128,7 +128,7 @@ export async function AdminShell({
                       </span>
                     )}
                     {disabled ? (
-                      <span className="text-3xs opacity-75">قريبًا</span>
+                      <span className="text-3xs opacity-75">قريبا</span>
                     ) : null}
                   </a>
                 );

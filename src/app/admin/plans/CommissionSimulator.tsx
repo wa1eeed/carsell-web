@@ -65,7 +65,7 @@ export function CommissionSimulator({
         | null;
 
       if (response === null || !response.ok || typeof payload?.data?.commission !== 'string') {
-        setError(payload?.error?.messageAr ?? 'تعذّرت المحاكاة.');
+        setError(payload?.error?.messageAr ?? 'تعذرت المحاكاة.');
         return;
       }
 
@@ -93,19 +93,19 @@ export function CommissionSimulator({
           label="حد أدنى"
           value={form.minFee}
           onChange={(v) => setForm({ ...form, minFee: v })}
-          note="فارغ = بلا حدّ"
+          note="فارغ = بلا حد"
         />
         <Field
           label="حد أقصى"
           value={form.maxFee}
           onChange={(v) => setForm({ ...form, maxFee: v })}
-          note="فارغ = بلا حدّ"
+          note="فارغ = بلا حد"
         />
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-5">
         <Button size="sm" disabled={pending} onClick={run}>
-          {pending ? 'جارٍ…' : 'احسب'}
+          {pending ? 'جار…' : 'احسب'}
         </Button>
 
         {result === null ? null : (
@@ -120,7 +120,7 @@ export function CommissionSimulator({
       </div>
 
       <p className="mt-4 text-3xs opacity-70">
-        الحساب هنا تجريبيّ ولا يغيّر شيئًا — وتطبيقه على باقة يحتاج موافقة شخصين.
+        الحساب هنا تجريبي ولا يغير شيئا — وتطبيقه على باقة يحتاج موافقة شخصين.
       </p>
     </section>
   );

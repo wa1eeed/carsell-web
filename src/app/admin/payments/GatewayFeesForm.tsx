@@ -75,10 +75,10 @@ export function GatewayFeesForm({
       ).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر الحفظ — راجع النسبة والمبلغ.');
+        setToast('تعذر الحفظ — راجع النسبة والمبلغ.');
         return;
       }
-      setToast('حُفظت الرسوم.');
+      setToast('حفظت الرسوم.');
       setOpen(false);
       router.refresh();
     });

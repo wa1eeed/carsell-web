@@ -43,9 +43,9 @@ export const metadata = { title: 'المدفوعات والضمان' };
 const GROUPS = [
   { key: null, label: 'الكل' },
   { key: 'ready', label: 'جاهز للإفراج' },
-  { key: 'awaiting', label: 'ينتظر اعتمادًا' },
+  { key: 'awaiting', label: 'ينتظر اعتمادا' },
   { key: 'blocked', label: 'محجوب' },
-  { key: 'settled', label: 'مُسوّى' },
+  { key: 'settled', label: 'مسوى' },
   { key: 'refunded', label: 'مسترجع' },
   { key: 'deposits', label: 'عرابين' },
 ] as const;
@@ -98,8 +98,8 @@ export default async function SettlementsPage({
       subtitle="الضمان والإفراج والتسويات" activeHref="/admin/settlements" admin={admin}>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-70">
-          ما هو محجوز لدى مزوّد الدفع باسم صفقاتنا. ويحتاج تحويل المبلغ موافقة شخصين: أحدهما
-          يطلب والآخر يعتمد، وعند الاعتماد يُنادى المزوّد.
+          ما هو محجوز لدى مزود الدفع باسم صفقاتنا. ويحتاج تحويل المبلغ موافقة شخصين: أحدهما
+          يطلب والآخر يعتمد، وعند الاعتماد ينادى المزود.
         </p>
         <div className="flex flex-col items-start gap-0.5">
           <span className="text-3xs opacity-70">المحجوز الآن</span>
@@ -139,10 +139,10 @@ export default async function SettlementsPage({
         note={
           isHistory
             ? 'سجل ما تمت تسويته · للقراءة فقط'
-            : 'ما لم يُفرَج عنه بعد'
+            : 'ما لم يفرج عنه بعد'
         }
-        can="طلب الإفراج عن مبلغٍ محجوز، واعتماد طلب غيره."
-        cannot="الطلب والاعتماد معًا — ولا يعتمد طالبٌ طلبَ نفسه، فالإفراج يحتاج شخصين."
+        can="طلب الإفراج عن مبلغ محجوز، واعتماد طلب غيره."
+        cannot="الطلب والاعتماد معا — ولا يعتمد طالب طلب نفسه، فالإفراج يحتاج شخصين."
       />
     </AdminShell>
   );

@@ -20,9 +20,9 @@ const STATUS: Record<string, number> = {
 };
 
 const MESSAGE: Record<string, string> = {
-  USER_NOT_FOUND: 'لا حساب بهذا المعرّف.',
+  USER_NOT_FOUND: 'لا حساب بهذا المعرف.',
   NOT_IN_QUEUE: 'الحساب لم يعد في القائمة — راجعه غيرك.',
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_IDENTITY_NOTE))}) — صاحبها يقرؤها ليُصلح.`,
+  NOTE_REQUIRED: `الملاحظة أقصر من الحد (${displayDigits(String(MIN_IDENTITY_NOTE))}) — صاحبها يقرؤها ليصلح.`,
 };
 
 /**
@@ -55,7 +55,7 @@ export async function POST(
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر تنفيذ القرار.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر تنفيذ القرار.',
         messageEn: 'Could not apply the identity decision.',
       },
       STATUS[result.reason] ?? 409,

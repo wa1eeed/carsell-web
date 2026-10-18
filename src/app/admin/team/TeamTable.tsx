@@ -44,11 +44,11 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر إنهاء الجلسات.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إنهاء الجلسات.');
         return;
       }
 
-      setToast('أُنهيت جلساته — يلزمه دخولٌ جديد.');
+      setToast('أنهيت جلساته — يلزمه دخول جديد.');
       router.refresh();
     });
   };
@@ -86,7 +86,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                   لعضوٍ واحد ليست أربعة أجهزة غالبًا.
                 */}
                 <span className="text-3xs opacity-65">
-                  <Quantity unit="sessions" count={row.activeSessions} /> حيّة
+                  <Quantity unit="sessions" count={row.activeSessions} /> حية
                 </span>
               </div>
 
@@ -99,7 +99,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                 disabled={pending || row.id === meId || row.activeSessions === 0}
                 onClick={() => revoke(row)}
               >
-                {row.id === meId ? 'استعمل الخروج' : 'أنهِ جلساته'}
+                {row.id === meId ? 'استعمل الخروج' : 'أنه جلساته'}
               </Button>
             </div>
           </div>

@@ -43,8 +43,8 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
         const count = payload?.error?.fields?.count;
         setToast(
           count === undefined
-            ? 'تعذّر الحفظ.'
-            : `لا يُحذف بندٌ أُجيب عنه — أجوبةٌ قائمة (${displayDigits(count)})`,
+            ? 'تعذر الحفظ.'
+            : `لا يحذف بند أجيب عنه — أجوبة قائمة (${displayDigits(count)})`,
         );
         return;
       }
@@ -70,8 +70,8 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
         </span>
         <span className="flex-1" />
         <p className="max-w-md text-3xs leading-loose opacity-70">
-          كلُّ تغييرٍ يرفع الإصدار — وبه يُعرف أيُّ نصٍّ رآه الفاحص يوم ملأ تقريره.
-          <b> والتقاريرُ الصادرة لا تتغيّر</b>: لقطتُها محفوظةٌ فيها.
+          كل تغيير يرفع الإصدار — وبه يعرف أي نص رآه الفاحص يوم ملأ تقريره.
+          <b> والتقارير الصادرة لا تتغير</b>: لقطتها محفوظة فيها.
         </p>
       </div>
 
@@ -102,7 +102,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                   onBlur={(event) => {
                     const nameAr = event.target.value.trim();
                     if (nameAr === '' || nameAr === category.nameAr) return;
-                    send({ action: 'category', categoryId: category.id, nameAr }, 'حُفظ اسم القسم.');
+                    send({ action: 'category', categoryId: category.id, nameAr }, 'حفظ اسم القسم.');
                   }}
                   className="w-44 rounded-md border border-line bg-surface px-2.5 py-1.5 text-2xs"
                 />
@@ -120,7 +120,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                       if (weight === category.weight || weight < 1) return;
                       send(
                         { action: 'category', categoryId: category.id, weight },
-                        'حُفظ الوزن.',
+                        'حفظ الوزن.',
                       );
                     }}
                     className="w-16 rounded-md border border-line bg-surface px-2 py-1.5 text-start font-num text-2xs"
@@ -134,14 +134,14 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                   إن أُجيب عنه. والزرُّ يغيب حيث لا يصحّ، وسببُه بجواره.
                 */}
                 {category.items.length > 0 ? (
-                  <span className="text-3xs opacity-65">يُفرَّغ قبل حذفه</span>
+                  <span className="text-3xs opacity-65">يفرغ قبل حذفه</span>
                 ) : (
                   <Button
                     size="sm"
                     variant="outline"
                     disabled={busy}
                     onClick={() =>
-                      send({ action: 'removeCategory', categoryId: category.id }, 'حُذف القسم.')
+                      send({ action: 'removeCategory', categoryId: category.id }, 'حذف القسم.')
                     }
                   >
                     احذف القسم
@@ -158,7 +158,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                         onBlur={(event) => {
                           const nameAr = event.target.value.trim();
                           if (nameAr === '' || nameAr === item.nameAr) return;
-                          send({ action: 'item', itemId: item.id, nameAr }, 'حُفظ البند.');
+                          send({ action: 'item', itemId: item.id, nameAr }, 'حفظ البند.');
                         }}
                         className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-2xs"
                       />
@@ -171,7 +171,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                         onClick={() =>
                           send(
                             { action: 'item', itemId: item.id, isCritical: !item.isCritical },
-                            item.isCritical ? 'لم يعد حرجًا.' : 'صار حرجًا.',
+                            item.isCritical ? 'لم يعد حرجا.' : 'صار حرجا.',
                           )
                         }
                         className={cn(
@@ -185,7 +185,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                       </button>
                       {item.answers > 0 ? (
                         <Badge tone="neutral">
-                          أُجيب <ArabicNumber value={item.answers} />
+                          أجيب <ArabicNumber value={item.answers} />
                         </Badge>
                       ) : (
                         <Button
@@ -193,7 +193,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                           variant="ghost"
                           className="text-danger"
                           disabled={busy}
-                          onClick={() => send({ action: 'remove', itemId: item.id }, 'حُذف البند.')}
+                          onClick={() => send({ action: 'remove', itemId: item.id }, 'حذف البند.')}
                         >
                           حذف
                         </Button>
@@ -222,13 +222,13 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                                 nameAr: draft.nameAr.trim(),
                                 isCritical: draft.isCritical,
                               },
-                              'أُضيف البند.',
+                              'أضيف البند.',
                             );
                             setDraft({ nameAr: '', isCritical: false });
                             setAdding(null);
                           }}
                         >
-                          أضِفه
+                          أضفه
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setAdding(null)}>
                           إلغاء
@@ -236,7 +236,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                       </div>
                     ) : (
                       <Button size="sm" variant="outline" onClick={() => setAdding(category.id)}>
-                        أضف بندًا
+                        أضف بندا
                       </Button>
                     )}
                   </div>
@@ -250,7 +250,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
         <section className="rounded-lg border border-dashed border-line p-4">
           {newCategory === null ? (
             <Button size="sm" variant="outline" onClick={() => setNewCategory('')}>
-              أضف قسمًا
+              أضف قسما
             </Button>
           ) : (
             <div className="flex flex-wrap items-center gap-2.5">
@@ -265,7 +265,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                 size="sm"
                 disabled={busy || newCategory.trim() === ''}
                 onClick={() => {
-                  send({ action: 'addCategory', nameAr: newCategory.trim() }, 'أُضيف القسم.');
+                  send({ action: 'addCategory', nameAr: newCategory.trim() }, 'أضيف القسم.');
                   setNewCategory(null);
                 }}
               >
@@ -277,7 +277,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
             </div>
           )}
           <p className="mt-2.5 text-3xs leading-loose opacity-65">
-            القسمُ يُضاف فارغًا ثم تُضاف بنودُه — ووزنُه الافتراضيّ واحد، يُعدَّل من رأسه.
+            القسم يضاف فارغا ثم تضاف بنوده — ووزنه الافتراضي واحد، يعدل من رأسه.
           </p>
         </section>
       </div>

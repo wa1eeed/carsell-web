@@ -45,17 +45,17 @@ export default async function AdminDealersPage({
     <AdminShell title="التجار والمعارض"
       subtitle="المعارض وتوثيقها" activeHref="/admin/dealers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        التحقّق والشارة والباقة. <b>ولا يُدار مخزونهم من هنا</b> — التاجر حسابٌ واحد
+        التحقق والشارة والباقة. <b>ولا يدار مخزونهم من هنا</b> — التاجر حساب واحد
         بواجهتين: التطبيق للميدان واللوحة للحجم.
       </p>
 
       <MonitorCards
         cards={[
-          { title: 'معارض نشطة', value: stats.active, note: 'موثّقة وتعرض' },
-          { title: 'تنتظر التحقّق', value: stats.pending, note: 'سجل تجاريّ' },
+          { title: 'معارض نشطة', value: stats.active, note: 'موثقة وتعرض' },
+          { title: 'تنتظر التحقق', value: stats.pending, note: 'سجل تجاري' },
           { title: 'متوسط المخزون', value: stats.averageInventory, note: 'مركبة لكل معرض' },
           {
-            title: 'حصّتها من الإعلانات',
+            title: 'حصتها من الإعلانات',
             value: `${displayDigits(String(stats.listingSharePct))}٪`,
             note: 'من المنشور',
           },
@@ -65,7 +65,7 @@ export default async function AdminDealersPage({
       <ListSearch
         action="/admin/dealers"
         value={term}
-        placeholder="اسم المعرض · المدينة · الرقم الضريبيّ"
+        placeholder="اسم المعرض · المدينة · الرقم الضريبي"
         keep={{ filter: active }}
       />
 
@@ -83,7 +83,7 @@ export default async function AdminDealersPage({
       {rows.length === 0 ? (
         <EmptyState
           title="لا معارض بهذه الحالة"
-          description="حين يسجّل معرضٌ حسابًا يظهر هنا بانتظار التحقّق من سجله التجاريّ."
+          description="حين يسجل معرض حسابا يظهر هنا بانتظار التحقق من سجله التجاري."
         />
       ) : (
         <DealersTable rows={rows} />

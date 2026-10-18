@@ -16,14 +16,14 @@
     "width": 1200,
     "height": 450,
     "sizeLabel": "١٦:٦",
-    "placement": "أسفل الملخّصات",
+    "placement": "أسفل الملخصات",
     "pricingModel": "week",
     "basePrice": "3500.00",
     "maxPerSession": 1
   },
   {
     "key": "search_inline",
-    "nameAr": "بطاقة مموّلة في النتائج",
+    "nameAr": "بطاقة ممولة في النتائج",
     "width": 600,
     "height": 400,
     "sizeLabel": "بطاقة سيارة",
@@ -34,7 +34,7 @@
   },
   {
     "key": "brand_featured",
-    "nameAr": "مربّع ماركة مميّزة",
+    "nameAr": "مربع ماركة مميزة",
     "width": 400,
     "height": 400,
     "sizeLabel": "١:١",
@@ -45,7 +45,7 @@
   },
   {
     "key": "service_featured",
-    "nameAr": "بطاقة خدمة مميّزة",
+    "nameAr": "بطاقة خدمة مميزة",
     "width": 1200,
     "height": 675,
     "sizeLabel": "بطاقة خدمة",

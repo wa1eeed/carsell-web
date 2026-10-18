@@ -24,8 +24,8 @@ import { toLatinDigits } from '@/lib/arabic';
  * تُسحب من العرض أوّلًا، والمفحوصة لها تقريرٌ يقرؤه مشترٍ.
  */
 const DENIED: Record<string, string> = {
-  HAS_LISTING: 'هذه السيارة معروضة — اسحب إعلانها أوّلًا ثم احذفها.',
-  HAS_INSPECTION: 'لها تقرير فحصٍ يقرؤه المشترون — لا تُحذف وتقريرُها قائم.',
+  HAS_LISTING: 'هذه السيارة معروضة — اسحب إعلانها أولا ثم احذفها.',
+  HAS_INSPECTION: 'لها تقرير فحص يقرؤه المشترون — لا تحذف وتقريرها قائم.',
 };
 
 export function VehicleControls({
@@ -79,12 +79,12 @@ export function VehicleControls({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر الحفظ.');
+        setToast('تعذر الحفظ.');
         return;
       }
 
       setEditing(false);
-      setToast('حُفظت البيانات.');
+      setToast('حفظت البيانات.');
       router.refresh();
     });
   };
@@ -100,12 +100,12 @@ export function VehicleControls({
           | { error?: { fields?: { vehicle?: string } } }
           | null;
         const why = payload?.error?.fields?.vehicle;
-        setToast((why === undefined ? undefined : DENIED[why]) ?? 'تعذّر الحذف.');
+        setToast((why === undefined ? undefined : DENIED[why]) ?? 'تعذر الحذف.');
         setConfirming(false);
         return;
       }
 
-      setToast('حُذفت السيارة.');
+      setToast('حذفت السيارة.');
       router.refresh();
     });
   };
@@ -132,7 +132,7 @@ export function VehicleControls({
               disabled={pending}
               className="relative z-10 rounded-full bg-danger px-3.5 py-1.5 text-3xs font-bold text-bg"
             >
-              أكّد الحذف
+              أكد الحذف
             </button>
             <button
               type="button"
@@ -182,7 +182,7 @@ export function VehicleControls({
               بحث عنهما صاحبُها في كل زاوية.
             */}
             <span className="text-3xs opacity-70">
-              الماركة والطراز والفئة تُسجَّل مرّةً عند الإضافة — ومن أخطأ فيها يحذف ويضيف.
+              الماركة والطراز والفئة تسجل مرة عند الإضافة — ومن أخطأ فيها يحذف ويضيف.
             </span>
           </span>
         </div>

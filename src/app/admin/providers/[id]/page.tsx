@@ -39,7 +39,7 @@ import {
 } from '@/lib/labels/provider';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'تفاصيل المزوّد' };
+export const metadata = { title: 'تفاصيل المزود' };
 
 const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   day: 'numeric',
@@ -104,10 +104,10 @@ export default async function AdminProviderPage({
   );
 
   return (
-    <AdminShell title="تفاصيل المزوّد" activeHref="/admin/providers" admin={admin}>
+    <AdminShell title="تفاصيل المزود" activeHref="/admin/providers" admin={admin}>
       <DetailHeader
         backHref="/admin/providers"
-        backLabel="كل المزوّدين"
+        backLabel="كل المزودين"
         reference={provider.nameEn}
         title={provider.nameAr}
         badges={
@@ -145,7 +145,7 @@ export default async function AdminProviderPage({
             ? []
             : [
                 {
-                  label: 'تعذّر',
+                  label: 'تعذر',
                   value: <ArabicNumber value={provider.counts.failed} />,
                   tone: 'warn' as const,
                 },
@@ -172,12 +172,12 @@ export default async function AdminProviderPage({
               {open.length === 0 ? (
                 <EmptyState
                   title={
-                    provider.requests.length === 0 ? 'لم يستلم طلبًا بعد' : 'لا شيء ينتظره الآن'
+                    provider.requests.length === 0 ? 'لم يستلم طلبا بعد' : 'لا شيء ينتظره الآن'
                   }
                   description={
                     provider.requests.length === 0
-                      ? 'يصله الطلب حين يُدفع ويكون في تخصّصه ومدنه.'
-                      : 'أنجز كلّ ما وصله.'
+                      ? 'يصله الطلب حين يدفع ويكون في تخصصه ومدنه.'
+                      : 'أنجز كل ما وصله.'
                   }
                 />
               ) : (
@@ -298,8 +298,8 @@ export default async function AdminProviderPage({
               فيُستوفى من حيث يُقرأ.
             */}
             <DetailCard
-              title="الحساب البنكيّ والتحويلات"
-              note="إلى أين يُحوَّل مستحقُّه، وما خرج إليه"
+              title="الحساب البنكي والتحويلات"
+              note="إلى أين يحول مستحقه، وما خرج إليه"
               className="mt-5"
             >
               <BankAccount
@@ -342,7 +342,7 @@ export default async function AdminProviderPage({
               title="حساب الدفع"
               note={
                 provider.account.syncedAt === null
-                  ? 'لم يُزامَن بعد'
+                  ? 'لم يزامن بعد'
                   : riyadh.format(new Date(provider.account.syncedAt))
               }
             >
@@ -355,12 +355,12 @@ export default async function AdminProviderPage({
                 </p>
               )}
               <Field
-                label="معرّف الحساب"
+                label="معرف الحساب"
                 ltr
                 value={provider.account.accountRef ?? '—'}
               />
               <Field
-                label="معرّف التحويل"
+                label="معرف التحويل"
                 ltr
                 value={provider.account.payoutRef ?? '—'}
               />
@@ -370,7 +370,7 @@ export default async function AdminProviderPage({
               */}
               {provider.account.fees === null ? null : (
                 <Field
-                  label="الرسوم المُرسَلة"
+                  label="الرسوم المرسلة"
                   ltr
                   value={`mada ${String(provider.account.fees.madaRate ?? '—')} · card ${String(
                     provider.account.fees.cardRate ?? '—',
@@ -405,7 +405,7 @@ export default async function AdminProviderPage({
               */}
               <p className="mt-2 text-3xs leading-loose opacity-70">
                 مجموع قيمة <Quantity unit="completedRequests" count={provider.earnedFrom} /> أنجزها.
-                وحصّتنا تُقتطع في التوزيع لدى البوّابة، فلا تُحسب هنا مرّتين.
+                وحصتنا تقتطع في التوزيع لدى البوابة، فلا تحسب هنا مرتين.
               </p>
             </DetailCard>
 
@@ -427,7 +427,7 @@ export default async function AdminProviderPage({
                 }
               />
               <Field
-                label="عمولتنا المسجَّلة"
+                label="عمولتنا المسجلة"
                 ltr
                 value={
                   provider.commissionPct === null
@@ -435,14 +435,14 @@ export default async function AdminProviderPage({
                     : `${displayDigits(provider.commissionPct)}٪`
                 }
               />
-              <Field label="الجوّال" ltr value={provider.contactPhone ?? '—'} />
+              <Field label="الجوال" ltr value={provider.contactPhone ?? '—'} />
               <Field label="البريد" ltr value={provider.contactEmail ?? '—'} />
             </DetailCard>
 
             <p className="mt-5 text-3xs leading-loose opacity-70">
               التحرير والإيقاف من{' '}
               <Link href="/admin/providers" className="font-bold underline underline-offset-2">
-                قائمة المزوّدين
+                قائمة المزودين
               </Link>
               .
             </p>

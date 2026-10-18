@@ -246,7 +246,7 @@ export function AccountScreen({
               <Quantity unit="serviceConsents" count={data.consentsAwaiting} />
             </span>
             <span className="mt-1 block text-2xs leading-loose opacity-75">
-              أذِن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئًا.
+              أذن أو ارفض قبل انقضاء المهلة — ولا تدفع أنت شيئا.
             </span>
           </span>
           <span aria-hidden className="opacity-40">←</span>
@@ -267,7 +267,7 @@ export function AccountScreen({
               <Quantity unit="viewingsAwaiting" count={data.viewingsAwaiting} />
             </span>
             <span className="mt-1 block text-2xs leading-loose opacity-75">
-              اقبل أو اعتذر — ولا يُكشف مكانُك إلّا بعد أن تقبل.
+              اقبل أو اعتذر — ولا يكشف مكانك إلا بعد أن تقبل.
             </span>
           </span>
           <span aria-hidden className="opacity-40">←</span>
@@ -323,9 +323,9 @@ export function AccountScreen({
           className="mb-8 flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 transition-opacity hover:opacity-80"
         >
           <span>
-            <span className="block text-sm font-bold">مستحقّاتي</span>
+            <span className="block text-sm font-bold">مستحقاتي</span>
             <span className="mt-1 block text-2xs opacity-70">
-              ما لك من كل صفقة، وممّ خُصم، ومتى يصلك
+              ما لك من كل صفقة، ومم خصم، ومتى يصلك
             </span>
           </span>
           <span aria-hidden className="text-lg opacity-65">←</span>

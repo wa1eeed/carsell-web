@@ -23,8 +23,8 @@ import { AR_DATE_LOCALE } from '@/lib/arabic';
 const SOURCE: Record<string, string> = {
   DIRECT: 'بيع مباشر',
   OFFER: 'قبول عرض',
-  AUCTION: 'رسوّ مزاد',
-  BUY_NOW: 'اشترِ الآن',
+  AUCTION: 'رسو مزاد',
+  BUY_NOW: 'اشتر الآن',
 };
 
 /**
@@ -34,14 +34,14 @@ const SOURCE: Record<string, string> = {
 const ESCROW: Record<string, { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   PENDING: { label: 'الضمان بانتظار الدفع', tone: 'warn' },
   HELD: { label: 'المال محجوز', tone: 'accent' },
-  RELEASED: { label: 'أُفرج للبائع', tone: 'neutral' },
-  REFUNDED: { label: 'رُدّ للمشتري', tone: 'neutral' },
+  RELEASED: { label: 'أفرج للبائع', tone: 'neutral' },
+  REFUNDED: { label: 'رد للمشتري', tone: 'neutral' },
   /*
     **والخامسةُ تُعدّ.** `EscrowStatus` خمسٌ لا أربع، وغيابُ
     `PARTIAL_REFUND` من الجدول يجعل الكرت يصمت عن طلبٍ رُدّ نصفُ
     مالِه — وهو أحوجُ ما يُقال.
   */
-  PARTIAL_REFUND: { label: 'رُدّ جزءٌ منه', tone: 'warn' },
+  PARTIAL_REFUND: { label: 'رد جزء منه', tone: 'warn' },
 };
 
 const date = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
@@ -151,9 +151,9 @@ export function OrderCard({ row }: { row: OrderRow }) {
         />
 
         {row.critical ? (
-          <Badge tone="danger">متأخّر جدًّا</Badge>
+          <Badge tone="danger">متأخر جدا</Badge>
         ) : row.late ? (
-          <Badge tone="warn">متأخّر</Badge>
+          <Badge tone="warn">متأخر</Badge>
         ) : null}
 
         <span className="font-num text-3xs opacity-65">{date.format(new Date(row.createdAt))}</span>

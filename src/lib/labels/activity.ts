@@ -13,25 +13,25 @@ import type { ActivityKind } from '@/lib/domain/admin-activity';
  * فما هنا هو **الزائد وحده**: ما لا مصدر له في الجدولين.
  */
 const EXTRA: Record<string, string> = {
-  'user.joined': 'حسابٌ جديد',
-  'auction.extended': 'مُدِّد المزاد',
-  'dispute.opened': 'فُتح نزاع',
-  'dispute.resolved': 'حُسم النزاع',
+  'user.joined': 'حساب جديد',
+  'auction.extended': 'مدد المزاد',
+  'dispute.opened': 'فتح نزاع',
+  'dispute.resolved': 'حسم النزاع',
 
   /*
     حالات الدفعة — **بأسماء التعداد لا بأسماءٍ متخيَّلة**. وكتبتُ
     `CAPTURED` أوّلًا وليست فيه، فأسقطها المترجم قبل أن تصير فرعًا
     ميّتًا في الشاشة.
   */
-  'payment.CREATED': 'أُنشئت دفعة',
-  'payment.REQUIRES_ACTION': 'الدفعة تنتظر تحقّق المستخدم',
+  'payment.CREATED': 'أنشئت دفعة',
+  'payment.REQUIRES_ACTION': 'الدفعة تنتظر تحقق المستخدم',
   'payment.PENDING': 'الدفعة بانتظار تأكيد البوابة',
-  'payment.HELD': 'حُجز المبلغ لدى البوابة',
-  'payment.SETTLED': 'سُوّيت الدفعة',
-  'payment.PARTIALLY_SETTLED': 'سُوّيت الدفعة جزئيًّا',
-  'payment.CANCELLED': 'أُلغي الحجز',
-  'payment.RETURNED': 'رُدّ المبلغ',
-  'payment.PARTIALLY_RETURNED': 'رُدّ جزءٌ من المبلغ',
+  'payment.HELD': 'حجز المبلغ لدى البوابة',
+  'payment.SETTLED': 'سويت الدفعة',
+  'payment.PARTIALLY_SETTLED': 'سويت الدفعة جزئيا',
+  'payment.CANCELLED': 'ألغي الحجز',
+  'payment.RETURNED': 'رد المبلغ',
+  'payment.PARTIALLY_RETURNED': 'رد جزء من المبلغ',
   'payment.FAILED': 'فشلت الدفعة',
 };
 

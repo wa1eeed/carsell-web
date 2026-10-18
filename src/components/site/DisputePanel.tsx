@@ -54,13 +54,13 @@ export function DisputePanel({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر فتح النزاع.');
+        setToast(payload?.error?.messageAr ?? 'تعذر فتح النزاع.');
         return;
       }
 
       setOpen(false);
       setReason('');
-      setToast('فُتح النزاع. المبلغ مجمَّد حتى يُحسم.');
+      setToast('فتح النزاع. المبلغ مجمد حتى يحسم.');
       router.refresh();
     });
   };
@@ -68,13 +68,13 @@ export function DisputePanel({
   return (
     <>
       <p className="mt-3 text-center text-3xs opacity-65">
-        وصلتك المركبة مخالفةً للوصف؟{' '}
+        وصلتك المركبة مخالفة للوصف؟{' '}
         <button
           type="button"
           onClick={() => setOpen(true)}
           className="font-bold underline underline-offset-2 hover:opacity-100"
         >
-          افتح نزاعًا
+          افتح نزاعا
         </button>
       </p>
 
@@ -84,8 +84,8 @@ export function DisputePanel({
           البائع، ومن لا يعرف ذلك يفتح نزاعًا على ما كان يُحلّ برسالة.
         */}
         <p className="mb-4 rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-          بفتح النزاع يُجمَّد المبلغ في حساب الضمان حتى يُحسم، ويتوقّف الإفراج
-          للبائع. فريقنا يراجعه ويردّ خلال المهلة المعلنة.
+          بفتح النزاع يجمد المبلغ في حساب الضمان حتى يحسم، ويتوقف الإفراج
+          للبائع. فريقنا يراجعه ويرد خلال المهلة المعلنة.
         </p>
 
         <label className="flex flex-col gap-1.5">
@@ -123,7 +123,7 @@ export function DisputePanel({
           disabled={pending || reason.trim().length < MIN_REASON}
           onClick={submit}
         >
-          {pending ? 'جارٍ…' : 'افتح النزاع'}
+          {pending ? 'جار…' : 'افتح النزاع'}
         </Button>
       </Modal>
 

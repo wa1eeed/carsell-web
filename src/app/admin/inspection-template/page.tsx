@@ -27,8 +27,8 @@ export default async function InspectionTemplatePage() {
     <AdminShell title="قالب الفحص" activeHref="/admin/inspection-template" admin={admin}>
       {template === null ? (
         <EmptyState
-          title="لا قالب فعّال"
-          description="القالبُ يصل بترحيل — وبلا واحدٍ فعّال لا تُفتح مسودّةُ فحص."
+          title="لا قالب فعال"
+          description="القالب يصل بترحيل — وبلا واحد فعال لا تفتح مسودة فحص."
         />
       ) : (
         <TemplateEditor template={template} />

@@ -54,8 +54,8 @@ const IDENTITY_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = 
  * خامًا بلا خطأ: عطلٌ صامت لا يراه إلا من قرأ الشاشة بالعربية.
  */
 const TAX_LABEL: Record<string, string> = {
-  INDIVIDUAL: 'غير مسجَّل في الضريبة',
-  VAT_REGISTERED: 'مسجَّل — ومعه رقم ضريبيّ',
+  INDIVIDUAL: 'غير مسجل في الضريبة',
+  VAT_REGISTERED: 'مسجل — ومعه رقم ضريبي',
 };
 
 /**
@@ -78,7 +78,7 @@ const TAX_LABEL: Record<string, string> = {
  */
 const TABS = [
   { key: null, label: 'نظرة عامة' },
-  { key: 'activity', label: 'خطّ الزمن' },
+  { key: 'activity', label: 'خط الزمن' },
   { key: 'money', label: 'المحفظة والدفتر' },
   { key: 'access', label: 'التوثيق والصلاحيات' },
 ] as const;
@@ -108,7 +108,7 @@ export default async function AdminUserDetailPage({
   const events = tab === 'activity' ? await userTimeline(user.id) : [];
 
   return (
-    <AdminShell title="ملفّ العميل" activeHref="/admin/users" admin={admin}>
+    <AdminShell title="ملف العميل" activeHref="/admin/users" admin={admin}>
       <DetailHeader
         backHref="/admin/users"
         backLabel="العملاء"
@@ -123,7 +123,7 @@ export default async function AdminUserDetailPage({
             </Badge>
             <Badge tone={IDENTITY_TONE[user.identityStatus] ?? 'neutral'}>
               {user.idVerified
-                ? 'هوية موثَّقة'
+                ? 'هوية موثقة'
                 : (IDENTITY_STATUS_LABEL[user.identityStatus] ?? user.identityStatus)}
             </Badge>
             {user.dealerName === null ? null : <Badge tone="neutral">{user.dealerName}</Badge>}
@@ -142,7 +142,7 @@ export default async function AdminUserDetailPage({
               user.wallet === null ? 'لا محفظة' : <Money amount={Number(user.wallet.balance)} />,
           },
           {
-            label: 'عضوٌ منذ',
+            label: 'عضو منذ',
             value: riyadh.format(new Date(user.createdAt)),
           },
         ]}
@@ -190,7 +190,7 @@ export default async function AdminUserDetailPage({
                       <Money amount={Number(listing.askPrice)} showCurrency={false} />
                       <span>{listing.status}</span>
                       {/* مسودّةٌ لم تُنشر بلا تاريخ — والفراغ أصدق من صفر */}
-                      <span>{listing.at === null ? 'لم يُنشر' : riyadh.format(new Date(listing.at))}</span>
+                      <span>{listing.at === null ? 'لم ينشر' : riyadh.format(new Date(listing.at))}</span>
                     </span>
                   </div>
                 ))
@@ -218,7 +218,7 @@ export default async function AdminUserDetailPage({
                         عميلٌ باع واشترى تُعرض طلباته مختلطةً بلا تمييز
                         فتُقرأ خطأً — والجانب هنا بجانب المرجع.
                       */}
-                      <Badge tone="neutral">{order.side === 'buyer' ? 'مشتريًا' : 'بائعًا'}</Badge>
+                      <Badge tone="neutral">{order.side === 'buyer' ? 'مشتريا' : 'بائعا'}</Badge>
                     </span>
                     <span className="flex items-center gap-3 text-3xs opacity-70">
                       {/*
@@ -251,10 +251,10 @@ export default async function AdminUserDetailPage({
 
       {tab !== 'activity' ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            ما فعله هذا الحساب في السوق مرتَّبًا: إنشاؤه، وإعلاناته، وعروضه،
-            وما اشتراه وما باعه، وبلاغاتُه، وأثر الفريق عليه.
+            ما فعله هذا الحساب في السوق مرتبا: إنشاؤه، وإعلاناته، وعروضه،
+            وما اشتراه وما باعه، وبلاغاته، وأثر الفريق عليه.
           </p>
           <Timeline events={events} />
         </section>
@@ -285,7 +285,7 @@ export default async function AdminUserDetailPage({
             >
               {user.ledger.length === 0 ? (
                 <p className="text-2xs opacity-70">
-                  لا قيود — ولم تمرّ عليه صفقةٌ مدفوعة بعد.
+                  لا قيود — ولم تمر عليه صفقة مدفوعة بعد.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
@@ -294,7 +294,7 @@ export default async function AdminUserDetailPage({
                       <tr className="border-b border-line">
                         <th className="p-2 text-start font-bold">الحدث</th>
                         <th className="p-2 text-start font-bold">الحساب</th>
-                        <th className="p-2 text-start font-bold">الاتّجاه</th>
+                        <th className="p-2 text-start font-bold">الاتجاه</th>
                         <th className="p-2 text-start font-bold">المبلغ</th>
                         <th className="p-2 text-start font-bold">الطلب</th>
                       </tr>
@@ -382,12 +382,12 @@ export default async function AdminUserDetailPage({
           <>
             {/* **والحساب والأرقام والتوثيق معًا هنا** — وهي ما يُقرَّر به في هذه التبويبة */}
             <DetailCard title="الحساب">
-              <Field label="رقم العميل" value={user.ref ?? 'لم يُمنح بعد'} ltr strong />
+              <Field label="رقم العميل" value={user.ref ?? 'لم يمنح بعد'} ltr strong />
               <Field label="الاسم" value={user.name} />
               <Field label="الهاتف" value={user.phone} ltr />
-              <Field label="البريد" value={user.email ?? 'لم يُضف'} ltr />
+              <Field label="البريد" value={user.email ?? 'لم يضف'} ltr />
               <Field label="الدور" value={user.role} ltr />
-              <Field label="انضمّ" value={riyadh.format(new Date(user.createdAt))} />
+              <Field label="انضم" value={riyadh.format(new Date(user.createdAt))} />
               <Field
                 label="موافقة التسويق"
                 value={user.marketingConsent ? 'موافق' : 'غير موافق'}
@@ -399,10 +399,10 @@ export default async function AdminUserDetailPage({
                 label="إعلانات"
                 value={<ArabicNumber value={user.counts.listings} />}
               />
-              <Field label="شراءً" value={<ArabicNumber value={user.counts.asBuyer} />} />
-              <Field label="بيعًا" value={<ArabicNumber value={user.counts.asSeller} />} />
+              <Field label="شراء" value={<ArabicNumber value={user.counts.asBuyer} />} />
+              <Field label="بيعا" value={<ArabicNumber value={user.counts.asSeller} />} />
               <Field
-                label="مفضّلة"
+                label="مفضلة"
                 value={<ArabicNumber value={user.counts.favorites} />}
               />
               <Field
@@ -432,16 +432,16 @@ export default async function AdminUserDetailPage({
               />
               {user.identitySubmittedAt === null ? null : (
                 <Field
-                  label="قُدّمت"
+                  label="قدمت"
                   value={riyadh.format(new Date(user.identitySubmittedAt))}
                 />
               )}
               <Field
-                label="الوضع الضريبيّ"
-                value={user.taxStatus === null ? 'لم يُسأل بعد' : (TAX_LABEL[user.taxStatus] ?? user.taxStatus)}
+                label="الوضع الضريبي"
+                value={user.taxStatus === null ? 'لم يسأل بعد' : (TAX_LABEL[user.taxStatus] ?? user.taxStatus)}
               />
               {user.vatNumber === null ? null : (
-                <Field label="الرقم الضريبيّ" value={user.vatNumber} ltr />
+                <Field label="الرقم الضريبي" value={user.vatNumber} ltr />
               )}
 
               {/*
@@ -478,7 +478,7 @@ export default async function AdminUserDetailPage({
                 </Link>
               ) : null}
               <p className="mt-2 text-3xs opacity-65">
-                رقم الهوية لا يُعرض هنا — قراءته تمرّ بمسارها المقيَّد وتُسجَّل.
+                رقم الهوية لا يعرض هنا — قراءته تمر بمسارها المقيد وتسجل.
               </p>
             </DetailCard>
           </>

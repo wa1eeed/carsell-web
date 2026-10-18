@@ -20,10 +20,10 @@ import { NewSegment } from './NewSegment';
 export const dynamic = 'force-dynamic';
 
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'مسودّة',
+  DRAFT: 'مسودة',
   SCHEDULED: 'مجدولة',
   RUNNING: 'جارية',
-  SENT: 'أُرسلت',
+  SENT: 'أرسلت',
   CANCELLED: 'ملغاة',
 };
 
@@ -50,7 +50,7 @@ const SEGMENTS: readonly { key: string | null; label: string; match: readonly st
   { key: null, label: 'الكل', match: [] },
   { key: 'running', label: 'جارية', match: ['RUNNING'] },
   { key: 'scheduled', label: 'مجدولة', match: ['SCHEDULED'] },
-  { key: 'draft', label: 'مسودّات', match: ['DRAFT'] },
+  { key: 'draft', label: 'مسودات', match: ['DRAFT'] },
   { key: 'done', label: 'منتهية', match: ['SENT', 'CANCELLED'] },
 ];
 
@@ -88,7 +88,7 @@ export default async function CampaignsPage({
   return (
     <AdminShell title="الحملات التسويقية" activeHref="/admin/campaigns" admin={admin}>
       <p className="mb-4 text-2xs opacity-70">
-        بريد ورسائل وإشعارات دفع · <strong>منفصلة تمامًا عن المعاملاتية</strong>
+        بريد ورسائل وإشعارات دفع · <strong>منفصلة تماما عن المعاملاتية</strong>
       </p>
 
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/campaigns" param="filter" />
@@ -100,9 +100,9 @@ export default async function CampaignsPage({
               <th className="p-3.5 text-start font-bold">الحملة</th>
               <th className="p-3.5 text-start font-bold">القناة</th>
               <th className="p-3.5 text-start font-bold">الشريحة</th>
-              <th className="p-3.5 text-end font-bold">أُرسل</th>
-              <th className="p-3.5 text-end font-bold">فُتح</th>
-              <th className="p-3.5 text-end font-bold">نُقر</th>
+              <th className="p-3.5 text-end font-bold">أرسل</th>
+              <th className="p-3.5 text-end font-bold">فتح</th>
+              <th className="p-3.5 text-end font-bold">نقر</th>
               <th className="p-3.5 text-end font-bold">تحويل</th>
               <th className="p-3.5 text-start font-bold">الحالة</th>
               <th className="p-3.5 text-start font-bold" />
@@ -112,7 +112,7 @@ export default async function CampaignsPage({
             {campaigns.length === 0 ? (
               <tr>
                 <td colSpan={9} className="p-6 text-center opacity-65">
-                  لا حملات بعد — الإرسال يُفعَّل مع التطبيق.
+                  لا حملات بعد — الإرسال يفعل مع التطبيق.
                 </td>
               </tr>
             ) : (
@@ -172,7 +172,7 @@ export default async function CampaignsPage({
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {segments.length === 0 ? (
           <p className="text-2xs opacity-65">
-            لا شرائح معرَّفة بعد — وأوّل شريحةٍ تُعرَّف من «عرِّف شريحة».
+            لا شرائح معرفة بعد — وأول شريحة تعرف من «عرف شريحة».
           </p>
         ) : (
           segments.map((segment) => (
@@ -185,7 +185,7 @@ export default async function CampaignsPage({
               <div className="flex flex-col gap-1.5 border-t border-line pt-3">
                 <Line label="مطابقون" value={segment.counts.matched} />
                 <Line label="وافقوا على التسويق" value={segment.counts.consented} />
-                <Line label="سيصلهم فعلًا" value={segment.counts.reachable} strong />
+                <Line label="سيصلهم فعلا" value={segment.counts.reachable} strong />
               </div>
             </section>
           ))
@@ -198,19 +198,19 @@ export default async function CampaignsPage({
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>الشريحة حيّة</strong> — تُعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل
+            <strong>الشريحة حية</strong> — تعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل
             الرسالة لمن خرج من شرطها بين اللحظتين.
           </li>
           <li>
-            حدّ أقصى <Quantity unit="messages" count={MARKETING_CAP_PER_MONTH} /> تسويقية شهريًا
+            حد أقصى <Quantity unit="messages" count={MARKETING_CAP_PER_MONTH} /> تسويقية شهريا
             لكل مستخدم.
           </li>
           <li>
             تهدئة <Quantity unit="hours" count={COOLDOWN_HOURS} /> بين حملتين على المستخدم نفسه.
           </li>
-          <li>موافقة التسويق شرطٌ لا يُتجاوَز — ومن لم يوافق لا يدخل أيّ شريحة إرسال.</li>
+          <li>موافقة التسويق شرط لا يتجاوز — ومن لم يوافق لا يدخل أي شريحة إرسال.</li>
           <li>
-            <strong>التسويقي ≠ المعاملاتي</strong>: نطاق فرعي ومزوّد منفصلان، حتى لا تؤثّر
+            <strong>التسويقي ≠ المعاملاتي</strong>: نطاق فرعي ومزود منفصلان، حتى لا تؤثر
             شكوى أو إلغاء اشتراك على وصول رمز التحقق وإشعارات الدفع.
           </li>
         </ul>
@@ -219,10 +219,10 @@ export default async function CampaignsPage({
       <ListFooter
         shown={campaigns.length}
         total={null}
-        note="الحملات التسويقية — منفصلةٌ عن المعاملاتية"
+        note="الحملات التسويقية — منفصلة عن المعاملاتية"
         can="إنشاء حملة وربطها بشريحة وإرسالها بعد مراجعتها."
-        cannot="إرسال حملةٍ أُرسلت أو أُلغيت، ولا تجاوز السقف الشهريّ أو مهلة التهدئة — والمحجوب بهما يُقال عدده."
-        automatic="الجمهور يُحوسَب لحظة الإرسال، ومن تجاوز سقفه أو كان في تهدئته يُستبعَد."
+        cannot="إرسال حملة أرسلت أو ألغيت، ولا تجاوز السقف الشهري أو مهلة التهدئة — والمحجوب بهما يقال عدده."
+        automatic="الجمهور يحوسب لحظة الإرسال، ومن تجاوز سقفه أو كان في تهدئته يستبعد."
       />
     </AdminShell>
   );

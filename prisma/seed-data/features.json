@@ -92,7 +92,7 @@
   },
   {
     "key": "parking_sensors",
-    "nameAr": "حسّاسات ركن",
+    "nameAr": "حساسات ركن",
     "nameEn": "Parking Sensors",
     "group": "SAFETY",
     "sort": 8,
@@ -144,7 +144,7 @@
   },
   {
     "key": "isofix",
-    "nameAr": "مثبّتات مقعد الطفل ISOFIX",
+    "nameAr": "مثبتات مقعد الطفل ISOFIX",
     "nameEn": "ISOFIX Anchors",
     "group": "SAFETY",
     "sort": 12,
@@ -170,7 +170,7 @@
   },
   {
     "key": "ac_auto",
-    "nameAr": "مكيّف أوتوماتيك",
+    "nameAr": "مكيف أوتوماتيك",
     "nameEn": "Automatic Climate Control",
     "group": "COMFORT",
     "sort": 14,
@@ -183,7 +183,7 @@
   },
   {
     "key": "ac_dual",
-    "nameAr": "تحكّم مزدوج بالمناطق",
+    "nameAr": "تحكم مزدوج بالمناطق",
     "nameEn": "Dual-zone Climate",
     "group": "COMFORT",
     "sort": 15,
@@ -196,7 +196,7 @@
   },
   {
     "key": "ac_rear",
-    "nameAr": "مكيّف خلفي",
+    "nameAr": "مكيف خلفي",
     "nameEn": "Rear AC Vents",
     "group": "COMFORT",
     "sort": 16,
@@ -248,7 +248,7 @@
   },
   {
     "key": "heated_seats",
-    "nameAr": "مقاعد مدفّأة",
+    "nameAr": "مقاعد مدفأة",
     "nameEn": "Heated Seats",
     "group": "COMFORT",
     "sort": 20,
@@ -261,7 +261,7 @@
   },
   {
     "key": "ventilated_seats",
-    "nameAr": "مقاعد مبرّدة",
+    "nameAr": "مقاعد مبردة",
     "nameEn": "Ventilated Seats",
     "group": "COMFORT",
     "sort": 21,
@@ -456,7 +456,7 @@
   },
   {
     "key": "digital_cluster",
-    "nameAr": "عدّادات رقمية",
+    "nameAr": "عدادات رقمية",
     "nameEn": "Digital Instrument Cluster",
     "group": "TECH",
     "sort": 36,
@@ -482,7 +482,7 @@
   },
   {
     "key": "cruise_control",
-    "nameAr": "مثبّت سرعة",
+    "nameAr": "مثبت سرعة",
     "nameEn": "Cruise Control",
     "group": "TECH",
     "sort": 38,
@@ -495,7 +495,7 @@
   },
   {
     "key": "adaptive_cruise",
-    "nameAr": "مثبّت سرعة تكيّفي",
+    "nameAr": "مثبت سرعة تكيفي",
     "nameEn": "Adaptive Cruise Control",
     "group": "TECH",
     "sort": 39,

@@ -61,7 +61,7 @@ export function AuctionPulse({
         {/* ═══ الوقت ═══ */}
         <div className="flex flex-col gap-2 bg-surface p-5">
           <span className="text-3xs opacity-70">
-            {live ? 'يُغلق بعد' : 'انتهى المزاد'}
+            {live ? 'يغلق بعد' : 'انتهى المزاد'}
           </span>
 
           {live ? (
@@ -90,9 +90,9 @@ export function AuctionPulse({
           </span>
 
           <span className="text-3xs leading-loose opacity-70">
-            يمتدّ{' '}
+            يمتد{' '}
             <Quantity unit="minutes" count={Math.round(auction.terms.extendBySeconds / 60)} />{' '}
-            مع أيّ مزايدة أخيرة
+            مع أي مزايدة أخيرة
           </span>
         </div>
 
@@ -147,7 +147,7 @@ export function AuctionPulse({
             <span aria-hidden className="text-base leading-none">
               {standing.top ? '●' : '○'}
             </span>
-            {standing.top ? 'مزايدتك هي الأعلى' : 'تجاوزك مزايدٌ آخر'}
+            {standing.top ? 'مزايدتك هي الأعلى' : 'تجاوزك مزايد آخر'}
           </span>
 
           {standing.amount === null ? null : (

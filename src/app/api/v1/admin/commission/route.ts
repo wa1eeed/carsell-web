@@ -24,9 +24,9 @@ const STATUS: Record<string, number> = {
 
 const MESSAGE: Record<string, string> = {
   PCT_OUT_OF_RANGE: `النسبة بين صفر و${MAX_COMMISSION_PCT} بالمئة.`,
-  NEGATIVE_AMOUNT: 'لا مبلغ سالبًا.',
-  MIN_ABOVE_MAX: 'الحدّ الأدنى أعلى من الأقصى.',
-  NO_CHARGE_ENABLED: 'مفعَّلة بصفر: اضبط نسبةً أو مبلغًا، أو عطّلها.',
+  NEGATIVE_AMOUNT: 'لا مبلغ سالبا.',
+  MIN_ABOVE_MAX: 'الحد الأدنى أعلى من الأقصى.',
+  NO_CHARGE_ENABLED: 'مفعلة بصفر: اضبط نسبة أو مبلغا، أو عطلها.',
 };
 
 /**
@@ -55,7 +55,7 @@ export async function PUT(request: NextRequest) {
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر الحفظ.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر الحفظ.',
         messageEn: 'Could not save the commission rule.',
       },
       STATUS[result.reason] ?? 409,

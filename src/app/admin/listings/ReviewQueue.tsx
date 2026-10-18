@@ -37,12 +37,12 @@ const REASON_LABEL = REVIEW_REASON_LABEL;
 function evidenceText(evidence: ReviewEvidence): string {
   if (evidence.kind === 'DUPLICATE_IMAGE') {
     return evidence.otherRef === null
-      ? 'صورة مكرّرة — والإعلان المطابق لم يعد قائمًا'
+      ? 'صورة مكررة — والإعلان المطابق لم يعد قائما'
       : `تطابق ${displayDigits(String(evidence.matchPct))}٪ مع ${evidence.otherRef}`;
   }
   if (evidence.kind === 'PRICE_OUTLIER') {
     return evidence.marketP25 === null
-      ? 'سعر شاذّ — ولا إحصاء سوق لهذا الطراز بعد'
+      ? 'سعر شاذ — ولا إحصاء سوق لهذا الطراز بعد'
       : `أقل ${displayDigits(String(evidence.belowPct))}٪ من ربع السوق الأدنى`;
   }
   if (evidence.kind === 'NEW_ACCOUNT_BURST') {
@@ -85,7 +85,7 @@ export function ReviewQueue({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تنفيذ القرار.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تنفيذ القرار.');
         return;
       }
 
@@ -93,10 +93,10 @@ export function ReviewQueue({
       setNote('');
       setToast(
         decision === 'APPROVE'
-          ? 'اعتُمد ونُشر.'
+          ? 'اعتمد ونشر.'
           : decision === 'RETURN'
-            ? 'أُعيد للبائع مع ملاحظتك.'
-            : 'رُفض الإعلان وأُوقف الحساب.',
+            ? 'أعيد للبائع مع ملاحظتك.'
+            : 'رفض الإعلان وأوقف الحساب.',
       );
       router.refresh();
     });
@@ -128,17 +128,17 @@ export function ReviewQueue({
           }
         />
         <Card
-          title="اعتُمد اليوم"
+          title="اعتمد اليوم"
           value={stats.approvedToday}
-          note={`${displayDigits(String(stats.reviewedSharePct))}٪ من المراجَع`}
+          note={`${displayDigits(String(stats.reviewedSharePct))}٪ من المراجع`}
         />
-        <Card title="أُعيد للبائع" value={stats.returnedToday} note="بملاحظة يقرؤها صاحبه" />
+        <Card title="أعيد للبائع" value={stats.returnedToday} note="بملاحظة يقرؤها صاحبه" />
         {/*
           **النسبة مقياسُ صحّة قواعد الترشيح لا زينة.** ارتفاع الطابور
           يعني أن قاعدةً صارت واسعة، لا أن المراجعين تأخّروا.
         */}
         <Card
-          title="نُشر مباشرةً بلا مراجعة"
+          title="نشر مباشرة بلا مراجعة"
           value={stats.publishedDirectToday}
           note={`${displayDigits(String(stats.directSharePct))}٪ من إعلانات اليوم`}
         />
@@ -154,7 +154,7 @@ export function ReviewQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا شيء ينتظر المراجعة"
-          description="القائمة للمرشَّح آليًّا وحده — وأكثر الإعلانات تُنشر بلا مروره."
+          description="القائمة للمرشح آليا وحده — وأكثر الإعلانات تنشر بلا مروره."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -198,7 +198,7 @@ export function ReviewQueue({
                       setNote('');
                     }}
                   >
-                    أعِده
+                    أعده
                   </Button>
                 </div>
               </div>
@@ -208,8 +208,8 @@ export function ReviewQueue({
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        هذه القائمة <b>للإعلانات المرشحة تلقائيًا فقط</b> — ولو مرّ به كل إعلان لتوقّف السوق. راجِع
-        قواعد الترشيح إذا تجاوزت القائمة خمسين إعلانًا.
+        هذه القائمة <b>للإعلانات المرشحة تلقائيا فقط</b> — ولو مر به كل إعلان لتوقف السوق. راجع
+        قواعد الترشيح إذا تجاوزت القائمة خمسين إعلانا.
       </p>
 
       <Modal
@@ -220,17 +220,17 @@ export function ReviewQueue({
         {open === null ? null : (
           <>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              يعود الإعلان مسودّةً عند صاحبه، <b>ويقرأ ملاحظتك</b>. وإعادةٌ بلا سبب تجعله
+              يعود الإعلان مسودة عند صاحبه، <b>ويقرأ ملاحظتك</b>. وإعادة بلا سبب تجعله
               ينشره كما هو فيعود إلى القائمة.
             </p>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-70">ما الذي يُصلحه؟</span>
+              <span className="text-2xs font-bold opacity-70">ما الذي يصلحه؟</span>
               <textarea
                 rows={4}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="مثال: الصور مأخوذة من إعلان آخر — ارفع صورًا للمركبة نفسها."
+                placeholder="مثال: الصور مأخوذة من إعلان آخر — ارفع صورا للمركبة نفسها."
                 className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm leading-loose"
               />
             </label>
@@ -253,7 +253,7 @@ export function ReviewQueue({
               disabled={pending || note.trim().length < MIN_REVIEW_NOTE}
               onClick={() => decide(open, 'RETURN')}
             >
-              {pending ? 'جارٍ…' : 'أعِده للبائع'}
+              {pending ? 'جار…' : 'أعده للبائع'}
             </Button>
 
             {/*
@@ -263,7 +263,7 @@ export function ReviewQueue({
             {canSuspend ? (
               <>
                 <p className="mt-5 border-t border-line pt-4 text-3xs leading-loose opacity-70">
-                  وإن كان الإعلان احتيالًا لا خطأً:
+                  وإن كان الإعلان احتيالا لا خطأ:
                 </p>
                 <Button
                   variant="outline"

@@ -70,11 +70,11 @@ export function AuctionSettingsForm({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
-      setToast('حُفظت — وتسري على المزادات الجديدة وحدها.');
+      setToast('حفظت — وتسري على المزادات الجديدة وحدها.');
       router.refresh();
     });
   };
@@ -88,11 +88,11 @@ export function AuctionSettingsForm({
           <Readonly
             label="التمديد عند مزايدة أخيرة"
             value={`دقائق (${displayDigits(String(Math.round(settings.extendBySeconds / 60)))})`}
-            note="يُضبط من المهل الزمنية"
+            note="يضبط من المهل الزمنية"
           />
           <Readonly
             label="نافذة التمديد"
-            value={`ثوانٍ (${displayDigits(String(settings.extendWindowSeconds))})`}
+            value={`ثوان (${displayDigits(String(settings.extendWindowSeconds))})`}
             note="آخر ما قبل الإغلاق"
           />
           <Field
@@ -144,7 +144,7 @@ export function AuctionSettingsForm({
             note="الموصى به 3–5٪ من الاحتياطي"
           />
           <Field
-            label="أقلّ فرق بين مزايدتين"
+            label="أقل فرق بين مزايدتين"
             value={form.minIncrement}
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, minIncrement: v })}
@@ -154,7 +154,7 @@ export function AuctionSettingsForm({
             value={form.winnerPaymentHours}
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, winnerPaymentHours: v })}
-            note="وعند عدم السداد يُصادَر العربون"
+            note="وعند عدم السداد يصادر العربون"
           />
         </section>
 
@@ -162,15 +162,15 @@ export function AuctionSettingsForm({
           <h2 className="mb-4 text-sm font-bold">الاحتياطي</h2>
 
           <Toggle
-            label="إخفاء السعر الاحتياطيّ عن المشترين"
-            note="تظهر الحالة «بُلغ / لم يُبلغ» بلا المبلغ"
+            label="إخفاء السعر الاحتياطي عن المشترين"
+            note="تظهر الحالة «بلغ / لم يبلغ» بلا المبلغ"
             checked={form.hideReserve}
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, hideReserve: v })}
           />
           <Toggle
-            label="السماح بـ«اشترِ الآن» قبل بلوغ الاحتياطي"
-            note="ويختفي تلقائيًّا عند بلوغه"
+            label="السماح بـ«اشتر الآن» قبل بلوغ الاحتياطي"
+            note="ويختفي تلقائيا عند بلوغه"
             checked={form.buyNowBeforeReserve}
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, buyNowBeforeReserve: v })}
@@ -178,7 +178,7 @@ export function AuctionSettingsForm({
           <Readonly
             label="مهلة قرار البائع دون الاحتياطي"
             value={`ساعات (${displayDigits(String(settings.sellerDecisionHours))})`}
-            note="بعدها يُغلق وتُرَدّ العرابين — من المهل الزمنية"
+            note="بعدها يغلق وترد العرابين — من المهل الزمنية"
           />
         </section>
       </div>
@@ -188,14 +188,14 @@ export function AuctionSettingsForm({
         مزادًا جاريًا، فيتردّد أو يفعلها ويخشى أثرها.
       */}
       <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        <b>التعديل لا يمسّ مزادًا جاريًا.</b> القواعد تُنسَخ لقطةً في كل مزاد وقت إنشائه
-        — فمزايدٌ بدأ على قاعدة لا تتغيّر عليه في منتصف المزاد. والتغيير يسري على
-        الجديد وحده، ويُسجَّل في سجل التدقيق باسم من فعله.
+        <b>التعديل لا يمس مزادا جاريا.</b> القواعد تنسخ لقطة في كل مزاد وقت إنشائه
+        — فمزايد بدأ على قاعدة لا تتغير عليه في منتصف المزاد. والتغيير يسري على
+        الجديد وحده، ويسجل في سجل التدقيق باسم من فعله.
       </p>
 
       {canEdit ? (
         <Button className="mt-5" disabled={pending} onClick={save}>
-          {pending ? 'جارٍ…' : 'احفظ'}
+          {pending ? 'جار…' : 'احفظ'}
         </Button>
       ) : null}
 

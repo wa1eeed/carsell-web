@@ -113,7 +113,7 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
         <span
           tabIndex={0}
           role="button"
-          aria-label={`كيف يُحسب ${meta.name}`}
+          aria-label={`كيف يحسب ${meta.name}`}
           className="flex size-5 shrink-0 cursor-help items-center justify-center rounded-full border border-line text-3xs font-bold opacity-65 transition-opacity hover:opacity-100 focus-visible:opacity-100"
         >
           ؟
@@ -121,7 +121,7 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
 
         <span className="pointer-events-none absolute top-11 z-30 hidden w-72 flex-col gap-2.5 rounded-lg border border-line bg-bg p-4 text-start shadow-2xl group-hover:flex group-focus-within:flex end-3">
           <Line title="ما هو" body={meta.what} />
-          <Line title="كيف يُحسب" body={meta.how} />
+          <Line title="كيف يحسب" body={meta.how} />
           <Line title="كيف يتحسن" body={meta.improve} />
         </span>
       </div>

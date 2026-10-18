@@ -58,12 +58,12 @@ export function StagePanel({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تحديث المرحلة.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تحديث المرحلة.');
         return;
       }
 
       setConfirming(false);
-      setToast('أُكّد الاستلام.');
+      setToast('أكد الاستلام.');
       router.refresh();
     });
   };
@@ -84,13 +84,13 @@ export function StagePanel({
     return (
       <>
         <section className="rounded-lg border-2 border-ink p-5">
-          <h2 className="mb-1.5 text-sm font-bold">أكّد استلام المركبة</h2>
+          <h2 className="mb-1.5 text-sm font-bold">أكد استلام المركبة</h2>
           <p className="mb-4 text-2xs leading-loose opacity-75">
-            لا تؤكّد قبل أن تنتقل الملكية باسمك فعلًا في المرور، وتستلم المركبة.
-            وبتأكيدك يُفرَج عن المبلغ للبائع مباشرةً — فافحص قبل الضغط.
+            لا تؤكد قبل أن تنتقل الملكية باسمك فعلا في المرور، وتستلم المركبة.
+            وبتأكيدك يفرج عن المبلغ للبائع مباشرة — فافحص قبل الضغط.
           </p>
           <Button className="w-full" disabled={pending} onClick={() => setConfirming(true)}>
-            أكّدتُ الاستلام ونقل الملكية
+            أكدت الاستلام ونقل الملكية
           </Button>
         </section>
 
@@ -104,16 +104,16 @@ export function StagePanel({
           title="تأكيد الاستلام"
         >
           <p className="mb-4 text-xs leading-loose">
-            بتأكيدك تُقرّ أن الملكية انتقلت باسمك وأنك استلمت المركبة، ويُفرَج عن
+            بتأكيدك تقر أن الملكية انتقلت باسمك وأنك استلمت المركبة، ويفرج عن
             المبلغ للبائع في الحال.
           </p>
           <p className="mb-4 rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-            إن كان في المركبة عيبٌ جوهريّ لم يُذكر، <b>افتح نزاعًا قبل أن تؤكّد</b> —
+            إن كان في المركبة عيب جوهري لم يذكر، <b>افتح نزاعا قبل أن تؤكد</b> —
             فبعد التأكيد يكون المبلغ قد وصل البائع.
           </p>
           <div className="flex gap-2.5">
             <Button className="flex-1" disabled={pending} onClick={() => move('DONE')}>
-              {pending ? 'جارٍ…' : 'نعم، أكّد'}
+              {pending ? 'جار…' : 'نعم، أكد'}
             </Button>
             <Button variant="outline" className="flex-1" onClick={() => setConfirming(false)}>
               تراجع
@@ -132,7 +132,7 @@ export function StagePanel({
    */
   const waiting =
     stage === 'PAYMENT' && viewerIsBuyer
-      ? 'بعد أن يُحجز مبلغك ينتقل الطلب إلى نقل الملكية.'
+      ? 'بعد أن يحجز مبلغك ينتقل الطلب إلى نقل الملكية.'
       : stage === 'TRANSFER' && !viewerIsBuyer
         ? 'ينتظر تأكيد المشتري استلام المركبة ونقل الملكية.'
         : null;

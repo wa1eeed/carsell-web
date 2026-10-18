@@ -21,7 +21,7 @@ export default function NotFound() {
         <p aria-hidden className="font-num mb-2 text-5xl font-bold opacity-25">404</p>
         <h1 className="mb-2.5 text-2xl font-bold">لا توجد هذه الصفحة</h1>
         <p className="mb-6 text-sm leading-loose opacity-75">
-          قد يكون الرابط قديمًا، أو الإعلان بيع وسُحب من العرض.
+          قد يكون الرابط قديما، أو الإعلان بيع وسحب من العرض.
         </p>
         <Link
           href="/ar"

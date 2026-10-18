@@ -18,7 +18,7 @@ const Body = z.object({
 
 const MESSAGE: Record<string, string> = {
   OUT_OF_BOUNDS: 'قيمة خارج الحدود — راجع العربون والفرق الأدنى والمهلة.',
-  NO_DURATIONS: 'اختر مدّةً واحدة على الأقل، وإلّا تعذّر إنشاء أي مزاد.',
+  NO_DURATIONS: 'اختر مدة واحدة على الأقل، وإلا تعذر إنشاء أي مزاد.',
 };
 
 /** `PUT /api/v1/admin/auction-settings` — افتراضيّات المزاد (A32). */
@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest) {
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر الحفظ.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر الحفظ.',
         messageEn: 'Could not save auction settings.',
       },
       422,

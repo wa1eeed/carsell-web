@@ -51,7 +51,7 @@ export default async function ProfilePage({
             النمط يبدو صدفةً لا قاعدة.
           */}
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-6"
             items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'إكمال الملف' }]}

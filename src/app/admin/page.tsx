@@ -29,9 +29,9 @@ const PERMISSION = {
 } as const;
 
 const SUBTITLE: Record<DashboardTab, string> = {
-  growth: 'نمو وأعداد — آخر ثلاثين يومًا',
+  growth: 'نمو وأعداد — آخر ثلاثين يوما',
   ops: 'تشغيلية — الطوابير والأزمنة',
-  finance: 'مالية — المبيعات وما تكسبه المنصّة من كل عميل',
+  finance: 'مالية — المبيعات وما تكسبه المنصة من كل عميل',
 };
 
 export default async function AdminDashboardPage({

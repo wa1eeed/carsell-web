@@ -51,7 +51,7 @@ export function MyAuctions({ rows }: { rows: readonly AccountAuction[] }) {
                   row.leading ? (
                     <Badge tone="accent">أنت الأعلى</Badge>
                   ) : (
-                    <Badge tone="warn">تُجوِزت</Badge>
+                    <Badge tone="warn">تجوزت</Badge>
                   )
                 ) : row.reserveMet ? (
                   <Badge tone="accent">بلغ الاحتياطي</Badge>

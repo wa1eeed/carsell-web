@@ -42,23 +42,23 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
 const DISPUTE_STATUS: Record<string, string> = {
   OPEN: 'مفتوح',
   INVESTIGATING: 'قيد التحقيق',
-  RESOLVED_BUYER: 'حُسم للمشتري',
-  RESOLVED_SELLER: 'حُسم للبائع',
-  CLOSED: 'مُغلق',
+  RESOLVED_BUYER: 'حسم للمشتري',
+  RESOLVED_SELLER: 'حسم للبائع',
+  CLOSED: 'مغلق',
 };
 
 /** قراراتُ الحسم — وهي نصٌّ في العمود لا تعداد. */
 const RESOLUTION_LABEL: Record<string, string> = {
-  FULL_REFUND: 'ردٌّ كامل للمشتري',
-  PARTIAL_SETTLEMENT: 'تسويةٌ جزئية',
-  RELEASE_TO_SELLER: 'إفراجٌ للبائع',
+  FULL_REFUND: 'رد كامل للمشتري',
+  PARTIAL_SETTLEMENT: 'تسوية جزئية',
+  RELEASE_TO_SELLER: 'إفراج للبائع',
 };
 
 const SOURCE_LABEL: Record<string, string> = {
   DIRECT: 'بيع مباشر',
   OFFER: 'قبول عرض',
-  AUCTION: 'رسوّ مزاد',
-  BUY_NOW: 'اشترِ الآن',
+  AUCTION: 'رسو مزاد',
+  BUY_NOW: 'اشتر الآن',
 };
 
 
@@ -75,20 +75,20 @@ const SOURCE_LABEL: Record<string, string> = {
  * مقصودًا. فالخريطة تُقاس على `groupBy` لا تُكتب من الذاكرة.
  */
 const EVENT_LABEL: Record<string, string> = {
-  'order.created': 'أُنشئ الطلب',
-  'stage.advanced': 'تقدّمت المرحلة',
+  'order.created': 'أنشئ الطلب',
+  'stage.advanced': 'تقدمت المرحلة',
   'payment.timeout': 'انقضت مهلة الدفع',
-  'invoice.blocked': 'حُجبت فاتورة',
-  'dispute.opened': 'فُتح نزاع',
-  'dispute.resolved': 'حُسم النزاع',
+  'invoice.blocked': 'حجبت فاتورة',
+  'dispute.opened': 'فتح نزاع',
+  'dispute.resolved': 'حسم النزاع',
 };
 
 /** سبب الحجب — ويُقرأ بعد شهورٍ في مطابقة، فيُكتب بلغةٍ تُفهم. */
 const BLOCKED_REASON: Record<string, string> = {
-  NO_MATCHING_RULE: 'لا قاعدة ضريبية تطابق البائع والمشتري — تُكتب قاعدة',
-  RULE_AWAITING_APPROVAL: 'القاعدة المطابِقة معطّلة — تُقَرّ من شاشة الضريبة',
-  INVOICED_WITH_ITS_OWN_PAYMENT: 'تُفوتَر مع دفعتها المستقلّة',
-  MARGIN_NOT_APPROVED: 'نظام الهامش غير معتمَد لهذا التاجر',
+  NO_MATCHING_RULE: 'لا قاعدة ضريبية تطابق البائع والمشتري — تكتب قاعدة',
+  RULE_AWAITING_APPROVAL: 'القاعدة المطابقة معطلة — تقر من شاشة الضريبة',
+  INVOICED_WITH_ITS_OWN_PAYMENT: 'تفوتر مع دفعتها المستقلة',
+  MARGIN_NOT_APPROVED: 'نظام الهامش غير معتمد لهذا التاجر',
   OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة لها',
   ALREADY_ISSUED: 'صدرت من قبل',
 };
@@ -101,7 +101,7 @@ function blockedNote(
   payload: { blocked?: { supplyType: string; reason: string }[] } | null,
 ): string {
   const rows = payload?.blocked ?? [];
-  if (rows.length === 0) return 'بلا تفصيل مسجَّل';
+  if (rows.length === 0) return 'بلا تفصيل مسجل';
   return rows
     .map((row) => {
       const supply = SUPPLY_LABEL[row.supplyType] ?? row.supplyType;
@@ -115,7 +115,7 @@ const SUPPLY_LABEL: Record<string, string> = {
   COMMISSION: 'العمولة',
   SERVICE: 'الخدمات',
   ADMIN_FEE: 'رسوم إدارية',
-  DISBURSEMENT: 'مبالغ ممرَّرة',
+  DISBURSEMENT: 'مبالغ ممررة',
 };
 
 const DOCUMENT_LABEL: Record<string, string> = {
@@ -149,7 +149,7 @@ const DOCUMENT_LABEL: Record<string, string> = {
 const TABS = [
   { key: null, label: 'نظرة عامة' },
   { key: 'money', label: 'المال والدفتر' },
-  { key: 'timeline', label: 'خطّ الزمن' },
+  { key: 'timeline', label: 'خط الزمن' },
   { key: 'payments', label: 'المدفوعات والضمان' },
   { key: 'documents', label: 'المستندات والنزاع' },
 ] as const;
@@ -231,7 +231,7 @@ export default async function AdminOrderDetailPage({
 
       <DetailStats
         items={[
-          { label: 'الإجماليّ', value: <Money amount={Number(order.money.totalAmount)} /> },
+          { label: 'الإجمالي', value: <Money amount={Number(order.money.totalAmount)} /> },
           /*
             **والحقل يقول الحال لا المرحلة.** «المرحلة: الدفع» على
             طلبٍ ملغى صحيحٌ حرفيًّا ومُضِلٌّ عمليًّا — فالعنوان صار
@@ -285,16 +285,16 @@ export default async function AdminOrderDetailPage({
         <DetailColumns
           main={
             <>
-            <DetailCard title="المال" note="المتّفق عليه والنهائيّ والرسوم">
+            <DetailCard title="المال" note="المتفق عليه والنهائي والرسوم">
               <Field
-                label="السعر المتّفق"
+                label="السعر المتفق"
                 value={<Money amount={Number(order.money.agreedPrice)} />}
                 strong
               />
               {order.money.settlementAmount === null ? null : (
                 // تسويةٌ جزئية بعد نزاع — والمتّفق يبقى للتدقيق
                 <Field
-                  label="المبلغ النهائيّ بعد التسوية"
+                  label="المبلغ النهائي بعد التسوية"
                   value={<Money amount={Number(order.money.settlementAmount)} />}
                   strong
                 />
@@ -308,11 +308,11 @@ export default async function AdminOrderDetailPage({
                 value={<Money amount={Number(order.money.sellerCommission)} />}
               />
               <Field
-                label="رسم النقل الحكوميّ"
+                label="رسم النقل الحكومي"
                 value={<Money amount={Number(order.money.transferFee)} />}
               />
               <Field
-                label="رسمنا الإداريّ"
+                label="رسمنا الإداري"
                 value={<Money amount={Number(order.money.transferAdminFee)} />}
               />
               <Field
@@ -335,7 +335,7 @@ export default async function AdminOrderDetailPage({
               />
               <p className="mt-3 text-3xs leading-loose opacity-70">
                 صافي البائع من القاعدة نفسها التي يقرؤها كشف التسوية وصفحة أرباحه — ولا
-                يُحسب هنا مرّةً ثانية.
+                يحسب هنا مرة ثانية.
               </p>
             </DetailCard>
 
@@ -350,7 +350,7 @@ export default async function AdminOrderDetailPage({
               >
                 {order.ledger.length === 0 ? (
                   <p className="text-2xs opacity-70">
-                    لا قيد على هذا الطلب — والقيد يُكتب عند حجز المبلغ لا عند إنشاء الطلب.
+                    لا قيد على هذا الطلب — والقيد يكتب عند حجز المبلغ لا عند إنشاء الطلب.
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
@@ -359,7 +359,7 @@ export default async function AdminOrderDetailPage({
                         <tr className="border-b border-line">
                           <th className="p-2 text-start font-bold">الحدث</th>
                           <th className="p-2 text-start font-bold">الحساب</th>
-                          <th className="p-2 text-start font-bold">الاتّجاه</th>
+                          <th className="p-2 text-start font-bold">الاتجاه</th>
                           <th className="p-2 text-start font-bold">المبلغ</th>
                         </tr>
                       </thead>
@@ -394,7 +394,7 @@ export default async function AdminOrderDetailPage({
               note={<>آخر <Quantity unit="events" count={order.timeline.length} /></>}
             >
               {order.timeline.length === 0 ? (
-                <p className="text-2xs opacity-70">لا أحداث مسجّلة.</p>
+                <p className="text-2xs opacity-70">لا أحداث مسجلة.</p>
               ) : (
                 <div className="flex flex-col">
                   {order.timeline.map((event) => (
@@ -422,7 +422,7 @@ export default async function AdminOrderDetailPage({
             </>
           }
           side={
-            <DetailCard title="الملخّص">
+            <DetailCard title="الملخص">
               <Field label="المشتري" value={order.buyer.name} />
               <Field label="البائع" value={order.seller.name} />
               <Field label="الإعلان" value={order.listing.ref} ltr />
@@ -434,10 +434,10 @@ export default async function AdminOrderDetailPage({
 
       {tab !== 'timeline' ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            أحداثُ الطلب والدفعات والضمان والفواتير والنزاعات وأثر الفريق في تسلسلٍ
-            واحد — والأقدم أوّلًا، فالقصّة تُقرأ من بدايتها.
+            أحداث الطلب والدفعات والضمان والفواتير والنزاعات وأثر الفريق في تسلسل
+            واحد — والأقدم أولا، فالقصة تقرأ من بدايتها.
           </p>
           <Timeline events={events} />
         </section>
@@ -471,7 +471,7 @@ export default async function AdminOrderDetailPage({
             </DetailCard>
 
             <DetailCard title="التوقيت">
-              <Field label="أُنشئ" value={riyadh.format(new Date(order.createdAt))} />
+              <Field label="أنشئ" value={riyadh.format(new Date(order.createdAt))} />
               <Field
                 label="دخل المرحلة"
                 value={riyadh.format(new Date(order.stageEnteredAt))}
@@ -514,7 +514,7 @@ export default async function AdminOrderDetailPage({
           side={
             <DetailCard title="المصدر">
               <Field label="كيف نشأ" value={SOURCE_LABEL[order.source] ?? order.source} />
-              <Field label="الإجماليّ" value={<Money amount={Number(order.money.totalAmount)} />} strong />
+              <Field label="الإجمالي" value={<Money amount={Number(order.money.totalAmount)} />} strong />
               <Link
                 href={`/admin/orders/${encodeURIComponent(order.ref)}?tab=money`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
@@ -540,18 +540,18 @@ export default async function AdminOrderDetailPage({
                 <Field label="الحالة" value={order.escrow.status} ltr />
                 <Field label="المبلغ" value={<Money amount={Number(order.escrow.amount)} />} strong />
                 <Field
-                  label="حُجز"
+                  label="حجز"
                   value={
                     order.escrow.heldAt === null
-                      ? 'لم يُحجز بعد'
+                      ? 'لم يحجز بعد'
                       : riyadh.format(new Date(order.escrow.heldAt))
                   }
                 />
                 <Field
-                  label="أُفرج"
+                  label="أفرج"
                   value={
                     order.escrow.releasedAt === null
-                      ? 'لم يُفرج بعد'
+                      ? 'لم يفرج بعد'
                       : riyadh.format(new Date(order.escrow.releasedAt))
                   }
                 />
@@ -560,7 +560,7 @@ export default async function AdminOrderDetailPage({
 
             {order.payments.length === 0 ? (
               <DetailCard title="الدفعات">
-                <p className="text-2xs opacity-70">لا دفعة مسجّلة بعد.</p>
+                <p className="text-2xs opacity-70">لا دفعة مسجلة بعد.</p>
               </DetailCard>
             ) : (
               <DetailCard title="الدفعات">
@@ -578,7 +578,7 @@ export default async function AdminOrderDetailPage({
           }
           side={
             <DetailCard title="التوقيت">
-              <Field label="أُنشئ" value={riyadh.format(new Date(order.createdAt))} />
+              <Field label="أنشئ" value={riyadh.format(new Date(order.createdAt))} />
               {order.dueAt === null ? null : (
                 <Field
                   label="المهلة"
@@ -623,7 +623,7 @@ export default async function AdminOrderDetailPage({
             ) : (
               <DetailCard
                 title="النزاع"
-                note={order.dispute.slaBreached ? 'فاتت مهلة الردّ' : undefined}
+                note={order.dispute.slaBreached ? 'فاتت مهلة الرد' : undefined}
               >
                 <Field
                   label="الحالة"
@@ -631,13 +631,13 @@ export default async function AdminOrderDetailPage({
                   strong
                 />
                 <Field label="السبب" value={order.dispute.reason} />
-                <Field label="فُتح" value={riyadh.format(new Date(order.dispute.openedAt))} />
+                <Field label="فتح" value={riyadh.format(new Date(order.dispute.openedAt))} />
                 {/*
                   **ومهلةُ الردّ أوّلُ ما يُستعجَل**: فواتُها يحسم
                   النزاع بلا ردّ البائع — فهي قرارٌ يقع بالصمت.
                 */}
                 <Field
-                  label="مهلة الردّ"
+                  label="مهلة الرد"
                   value={
                     order.dispute.slaDueAt === null ? (
                       'لا مهلة'
@@ -659,12 +659,12 @@ export default async function AdminOrderDetailPage({
                       label="القرار"
                       value={
                         order.dispute.resolution === null
-                          ? 'بلا قرار مسجَّل'
+                          ? 'بلا قرار مسجل'
                           : (RESOLUTION_LABEL[order.dispute.resolution] ?? order.dispute.resolution)
                       }
                     />
                     <Field
-                      label="حُسم"
+                      label="حسم"
                       value={riyadh.format(new Date(order.dispute.resolvedAt))}
                     />
                   </>
@@ -719,7 +719,7 @@ function PartyBlock({
     <div>
       <p className="mb-2 flex items-center gap-2.5 text-3xs font-bold tracking-[0.12em] opacity-65">
         {label}
-        {party.idVerified ? <Badge tone="accent">موثَّق</Badge> : <Badge tone="warn">بلا توثيق</Badge>}
+        {party.idVerified ? <Badge tone="accent">موثق</Badge> : <Badge tone="warn">بلا توثيق</Badge>}
       </p>
       {/* **والاسم يفتح ملفّه** — وكان نصًّا ميّتًا في أكثر شاشةٍ يُحقَّق فيها */}
       <Field label="الاسم" value={<PartyLink party={party} role={label} />} />

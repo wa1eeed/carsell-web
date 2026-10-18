@@ -36,7 +36,7 @@ export function SignOut({
     start(async () => {
       const response = await fetch(path, { method: 'POST' }).catch(() => null);
       if (response === null || !response.ok) {
-        setError('تعذّر تسجيل الخروج — حاول مرّة أخرى.');
+        setError('تعذر تسجيل الخروج — حاول مرة أخرى.');
         return;
       }
       /**
@@ -70,7 +70,7 @@ export function SignOut({
           <>
             <span className="flex-1" />
             <Button variant="ghost" onClick={() => setOpen(false)}>
-              ابقَ
+              ابق
             </Button>
             <Button variant="danger" disabled={pending} onClick={leave}>
               اخرج
@@ -79,7 +79,7 @@ export function SignOut({
         }
       >
         <p className="text-sm leading-loose opacity-72">
-          ستحتاج رمز تحقّق على جوالك لتدخل مرّة أخرى. وبياناتك وطلباتك تبقى كما هي.
+          ستحتاج رمز تحقق على جوالك لتدخل مرة أخرى. وبياناتك وطلباتك تبقى كما هي.
         </p>
         {error === null ? null : (
           <p className="mt-3 text-2xs text-danger">{error}</p>

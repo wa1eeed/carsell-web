@@ -114,7 +114,7 @@ export default async function OrdersPage({
         data.orders.length === 0
           ? {
               title: 'لا طلبات بعد',
-              description: 'حين تشتري مركبة يظهر طلبها هنا بمراحله الستّ ومهلة كل مرحلة.',
+              description: 'حين تشتري مركبة يظهر طلبها هنا بمراحله الست ومهلة كل مرحلة.',
             }
           : group === 'live'
             ? {
@@ -132,7 +132,7 @@ export default async function OrdersPage({
                 }
       }
       action={
-        <LinkButton href={`/${locale}/cars`} size="sm">تصفّح السيارات</LinkButton>
+        <LinkButton href={`/${locale}/cars`} size="sm">تصفح السيارات</LinkButton>
       }
     >
       {shown.map((order) => (

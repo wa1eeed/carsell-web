@@ -42,14 +42,14 @@ export default async function AdminSettingsPage() {
   return (
     <AdminShell
       title="الإعدادات"
-      subtitle="ما يُضبط مرّةً ويحكم ما بعده"
+      subtitle="ما يضبط مرة ويحكم ما بعده"
       activeHref="/admin/settings"
       admin={admin}
     >
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        هنا ما يحكم سلوك المنصّة: الأسعار والمهل والقواعد والقوالب. <b>وما تغيّره
-        هنا يسري على ما بعده لا على ما مضى</b> — طلبٌ قائم يحتفظ بالمهلة والسعر
-        اللذين قُرئا يوم أُنشئ.
+        هنا ما يحكم سلوك المنصة: الأسعار والمهل والقواعد والقوالب. <b>وما تغيره
+        هنا يسري على ما بعده لا على ما مضى</b> — طلب قائم يحتفظ بالمهلة والسعر
+        اللذين قرئا يوم أنشئ.
       </p>
 
       <div className="flex flex-col gap-9">

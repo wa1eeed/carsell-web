@@ -41,12 +41,12 @@ export default async function AdminAuctionsPage({
   return (
     <AdminShell title="المزادات" activeHref="/admin/auctions" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        الجارية والقادمة وما لم يبلغ احتياطيه. والاحتياطي نفسه لا يُعرض — يُعرض بلوغُه.
+        الجارية والقادمة وما لم يبلغ احتياطيه. والاحتياطي نفسه لا يعرض — يعرض بلوغه.
       </p>
 
       <MonitorCards
         cards={[
-          { title: 'جارية الآن', value: counts.live, note: 'الحالة وانقضاء الوقت معًا' },
+          { title: 'جارية الآن', value: counts.live, note: 'الحالة وانقضاء الوقت معا' },
           {
             title: 'قيمة المزايدات القائمة',
             value: `${displayDigits(Number(counts.liveValue).toLocaleString('en-US'))}`,
@@ -54,7 +54,7 @@ export default async function AdminAuctionsPage({
           },
           { title: 'لم تبلغ الاحتياطي', value: counts.unmet, note: 'تحتاج قرار البائع' },
           {
-            title: 'نسبة الرسوّ',
+            title: 'نسبة الرسو',
             value: `${displayDigits(String(counts.clearancePct))}٪`,
             note: 'من المنتهية',
           },
@@ -91,7 +91,7 @@ export default async function AdminAuctionsPage({
       {rows.length === 0 ? (
         <EmptyState
           title="لا مزادات هنا"
-          description="حين يُنشأ مزاد يظهر هنا بمزايداته ووقته."
+          description="حين ينشأ مزاد يظهر هنا بمزايداته ووقته."
         />
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -102,16 +102,16 @@ export default async function AdminAuctionsPage({
       )}
 
       <p className="mt-4 text-3xs leading-relaxed opacity-65">
-        الاحتياطي سرّ البائع — تعرض الشاشة بلوغَه لا قيمته، فلا يمرّ في لقطة شاشة.
+        الاحتياطي سر البائع — تعرض الشاشة بلوغه لا قيمته، فلا يمر في لقطة شاشة.
       </p>
 
       <ListFooter
         shown={rows.length}
         total={null}
-        note="الجارية والقادمة وما لم يبلغ احتياطيَه"
-        can="فتح المزاد لقراءة سجلّه، والانتقال إلى إعلانه أو بائعه."
-        cannot="المزايدة بدلًا عن أحد، ولا تعديل سعرٍ احتياطيّ بعد بدء المزاد — فالمزايدون بنوا عليه."
-        automatic="مزادٌ في آخر دقائقه يمتدّ تلقائيًّا مع كل مزايدة."
+        note="الجارية والقادمة وما لم يبلغ احتياطيه"
+        can="فتح المزاد لقراءة سجله، والانتقال إلى إعلانه أو بائعه."
+        cannot="المزايدة بدلا عن أحد، ولا تعديل سعر احتياطي بعد بدء المزاد — فالمزايدون بنوا عليه."
+        automatic="مزاد في آخر دقائقه يمتد تلقائيا مع كل مزايدة."
       />
     </AdminShell>
   );

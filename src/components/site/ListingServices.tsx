@@ -52,7 +52,7 @@ export function ListingServices({
                 <span className="text-2xs font-bold">{service.name}</span>
                 {/* **والمجّانيّ يُقال كلمةً لا صفرًا** — والصفر يُقرأ عطلًا */}
                 {Number(service.price) === 0 ? (
-                  <span className="text-3xs font-bold text-accent-700">مجّانًا</span>
+                  <span className="text-3xs font-bold text-accent-700">مجانا</span>
                 ) : (
                   <Money amount={Number(service.price)} size="sm" showCurrency={false} />
                 )}

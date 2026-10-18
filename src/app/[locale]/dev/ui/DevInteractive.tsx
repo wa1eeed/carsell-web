@@ -75,10 +75,10 @@ export function DevInteractive() {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <Case label="Button — primary · outline · ghost · danger · icon · بعدّاد">
+        <Case label="Button — primary · outline · ghost · danger · icon · بعداد">
           <Button>احفظ</Button>
           <Button variant="outline">إلغاء</Button>
-          <Button variant="ghost">تخطّي</Button>
+          <Button variant="ghost">تخطي</Button>
           <Button variant="danger">حذف</Button>
           <Button
             variant="icon"
@@ -93,10 +93,10 @@ export function DevInteractive() {
             الطلبات
           </Button>
           <Button size="sm">صغير</Button>
-          <Button disabled>معطّل</Button>
+          <Button disabled>معطل</Button>
         </Case>
 
-        <Case label="Chip — فلتر · نشط · بعدّاد · قابل للإزالة · معطّل">
+        <Case label="Chip — فلتر · نشط · بعداد · قابل للإزالة · معطل">
           <Chip onClick={() => undefined}>مباشر</Chip>
           <Chip active onClick={() => undefined}>
             تفاوض
@@ -105,7 +105,7 @@ export function DevInteractive() {
             مفحوصة
           </Chip>
           <Chip disabled onClick={() => undefined}>
-            معطّل
+            معطل
           </Chip>
           {chips.map((c) => (
             <Chip key={c} active onRemove={() => setChips(chips.filter((x) => x !== c))}>
@@ -115,7 +115,7 @@ export function DevInteractive() {
         </Case>
       </div>
 
-      <Case label="Tabs — بعدّاد في دائرة، والنشط داكن">
+      <Case label="Tabs — بعداد في دائرة، والنشط داكن">
         <div className="w-full">
           <Tabs items={TABS} active={tab} onChange={setTab} />
         </div>
@@ -128,7 +128,7 @@ export function DevInteractive() {
               {loading ? 'أوقف التحميل' : 'اعرض التحميل'}
             </Button>
             <span className="flex items-center gap-1.5 text-2xs opacity-70">
-              المحدَّد: <ArabicNumber value={selected.size} />
+              المحدد: <ArabicNumber value={selected.size} />
             </span>
           </div>
           <DataTable
@@ -200,7 +200,7 @@ export function DevInteractive() {
           }
         >
           <p className="text-base opacity-75">
-            سيُحذف هذا الإعلان نهائيًا. لا يمكن التراجع بعد التأكيد.
+            سيحذف هذا الإعلان نهائيا. لا يمكن التراجع بعد التأكيد.
           </p>
         </Modal>
       </Case>

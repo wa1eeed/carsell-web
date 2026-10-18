@@ -31,11 +31,11 @@ const SETTLED: readonly string[] = ['RESOLVED_BUYER', 'RESOLVED_SELLER', 'CLOSED
  * فنزاعٌ على طلبٍ أُفرج مالُه يُعالَج بغير ما يُعالَج به المحجوز.
  */
 const ESCROW: Record<string, { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
-  PENDING: { label: 'لم يُدفع بعد', tone: 'warn' },
+  PENDING: { label: 'لم يدفع بعد', tone: 'warn' },
   HELD: { label: 'المال محجوز', tone: 'accent' },
-  RELEASED: { label: 'أُفرج للبائع', tone: 'neutral' },
-  REFUNDED: { label: 'رُدّ للمشتري', tone: 'neutral' },
-  PARTIAL_REFUND: { label: 'رُدّ جزءٌ منه', tone: 'warn' },
+  RELEASED: { label: 'أفرج للبائع', tone: 'neutral' },
+  REFUNDED: { label: 'رد للمشتري', tone: 'neutral' },
+  PARTIAL_REFUND: { label: 'رد جزء منه', tone: 'warn' },
 };
 
 export function DisputeCard({
@@ -182,7 +182,7 @@ function Sla({ row, settled }: { row: DisputeRow; settled: boolean }) {
   if (row.overdue) {
     return (
       <span className="text-3xs font-bold text-danger">
-        <span className="opacity-80">تأخّر </span>
+        <span className="opacity-80">تأخر </span>
         <Duration hours={Math.abs(row.hoursToSla)} />
       </span>
     );

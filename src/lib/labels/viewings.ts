@@ -11,7 +11,7 @@ import type { ViewingParty, ViewingPeriod, ViewingStatus } from '@/generated/pri
  * الصلوات لا على الساعة. والساعاتُ بين قوسين لمن يريد الدقّة.
  */
 export const VIEWING_PERIOD: Record<string, string> = {
-  MORNING: 'صباحًا',
+  MORNING: 'صباحا',
   NOON: 'بعد الظهر',
   AFTERNOON: 'بعد العصر',
   EVENING: 'بعد المغرب',
@@ -26,35 +26,35 @@ export const VIEWING_PERIOD_HINT: Record<string, string> = {
 } satisfies Record<ViewingPeriod, string>;
 
 export const VIEWING_STATUS: Record<string, string> = {
-  REQUESTED: 'ينتظر ردّ البائع',
-  COUNTERED: 'اقترح البائع موعدًا آخر',
-  CONFIRMED: 'موعدٌ مؤكَّد',
+  REQUESTED: 'ينتظر رد البائع',
+  COUNTERED: 'اقترح البائع موعدا آخر',
+  CONFIRMED: 'موعد مؤكد',
   DECLINED: 'اعتذر البائع',
-  CANCELLED: 'أُلغي',
-  COMPLETED: 'تمّت',
+  CANCELLED: 'ألغي',
+  COMPLETED: 'تمت',
   /** **و«انقضى» غيرُ «رُفض»** — هذا لم يردّ عليه أحد */
-  EXPIRED: 'انقضى بلا ردّ',
+  EXPIRED: 'انقضى بلا رد',
 } satisfies Record<ViewingStatus, string>;
 
 /** وما يُنتظر — ولكلِّ حالٍ ما يفعله صاحبُها الآن */
 export const VIEWING_NEXT_BUYER: Record<string, string> = {
-  REQUESTED: 'بانتظار ردّه',
-  COUNTERED: 'اقبل اقتراحه أو ألغِ',
+  REQUESTED: 'بانتظار رده',
+  COUNTERED: 'اقبل اقتراحه أو ألغ',
   CONFIRMED: 'احضر في موعدك',
-  DECLINED: 'اقترح موعدًا آخر',
+  DECLINED: 'اقترح موعدا آخر',
   CANCELLED: 'انتهى',
   COMPLETED: 'انتهت',
-  EXPIRED: 'لم يردّ — اقترح موعدًا آخر',
+  EXPIRED: 'لم يرد — اقترح موعدا آخر',
 } satisfies Record<ViewingStatus, string>;
 
 export const VIEWING_NEXT_SELLER: Record<string, string> = {
-  REQUESTED: 'ردُّك مطلوب',
+  REQUESTED: 'ردك مطلوب',
   COUNTERED: 'بانتظار قبوله',
-  CONFIRMED: 'موعدٌ عليك',
-  DECLINED: 'اعتذرتَ عنه',
+  CONFIRMED: 'موعد عليك',
+  DECLINED: 'اعتذرت عنه',
   CANCELLED: 'انتهى',
   COMPLETED: 'انتهت',
-  EXPIRED: 'فاتك الردّ',
+  EXPIRED: 'فاتك الرد',
 } satisfies Record<ViewingStatus, string>;
 
 /** ومن ألغى — فالوسمُ وحده يجعل الطرفين يتّهمان بعضهما */

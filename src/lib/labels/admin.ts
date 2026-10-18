@@ -35,7 +35,7 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   COMPLETED: 'مكتملة',
   ACTIVE: 'جارية',
   CANCELLED: 'ملغاة',
-  STALLED: 'متعثّرة',
+  STALLED: 'متعثرة',
   DISPUTED: 'متنازع عليها',
 } satisfies Record<OrderStatus, string>;
 
@@ -53,7 +53,7 @@ export const DASHBOARD_CARD_LABEL: Record<string, string> = {
   vehicles: 'المركبات المضافة',
   listings: 'الإعلانات',
   orders: 'الطلبات',
-  repeat: 'العملاء المتكرّرون',
+  repeat: 'العملاء المتكررون',
   auctions: 'المزادات',
   serviceRequests: 'طلبات الخدمات',
 };
@@ -73,8 +73,8 @@ export const REST_OF_CITIES = '__rest__';
 export const REST_OF_CITIES_LABEL = 'بقية المدن';
 
 export const REVENUE_STREAM_LABEL: Record<string, string> = {
-  ads: 'إعلانات مموّلة',
-  commission: 'عمولة المنصّة',
+  ads: 'إعلانات ممولة',
+  commission: 'عمولة المنصة',
 };
 
 export const FINANCE_INPUT_LABEL: Record<string, string> = {
@@ -88,7 +88,7 @@ export const FINANCE_INPUT_LABEL: Record<string, string> = {
 };
 
 export const INTEGRATION_CATEGORY_LABEL: Record<IntegrationCategory, string> = {
-  IDENTITY: 'الهوية والتحقّق',
+  IDENTITY: 'الهوية والتحقق',
   PAYMENT: 'المدفوعات والضمان',
   GOVERNMENT: 'البيانات الحكومية والخدمات',
   INFRASTRUCTURE: 'الاتصال والبنية',
@@ -123,13 +123,13 @@ export const NOTIFICATION_GROUP_LABEL: Record<string, string> = {
 
 export const SEGMENT_FIELD_LABEL: Record<string, string> = {
   hasFavorites: 'لديه مفضلة',
-  hasCompletedOrder: 'أتمّ صفقة',
-  hasActiveOrder: 'لديه طلب جارٍ',
+  hasCompletedOrder: 'أتم صفقة',
+  hasActiveOrder: 'لديه طلب جار',
   hasListing: 'له إعلان',
   hasVehicle: 'أضاف مركبة',
-  hasBid: 'زايد سابقًا',
+  hasBid: 'زايد سابقا',
   isDealer: 'تاجر',
-  activeWithinDays: 'سجّل خلال (يومًا)',
+  activeWithinDays: 'سجل خلال (يوما)',
 };
 
 export const NOTIFICATION_CHANNEL_LABEL: Record<string, string> = {
@@ -139,7 +139,7 @@ export const NOTIFICATION_CHANNEL_LABEL: Record<string, string> = {
   inApp: 'داخل التطبيق',
 };
 
-export const ROUTE_DISABLED_LABEL = 'معطّل';
+export const ROUTE_DISABLED_LABEL = 'معطل';
 
 /** بدائل العرض حين يغيب الاسم — والنطاق يعيد `null` لا نصًّا. */
 export const ANONYMOUS_BIDDER = 'مزايد';
@@ -152,9 +152,9 @@ export const ANONYMOUS_SELLER = 'بائع';
  * و«لا نعرف بعد». والعلامة تنجو من كل ترجمة.
  */
 export const SELLER_TYPE_LABEL: Record<string, string> = {
-  INDIVIDUAL: 'فرد غير مسجَّل',
-  DEALER_VAT: 'مورِّد مسجَّل',
-  DEALER_NO_VAT: 'تاجر غير مسجَّل',
+  INDIVIDUAL: 'فرد غير مسجل',
+  DEALER_VAT: 'مورد مسجل',
+  DEALER_NO_VAT: 'تاجر غير مسجل',
   COMPANY: 'شركة',
 } satisfies Record<SellerType, string>;
 
@@ -172,14 +172,14 @@ export const BUYER_TYPE_LABEL: Record<string, string> = {
  * على الحالة نفسها.
  */
 export const INVOICE_BLOCK_REASON: Record<string, string> = {
-  NO_MATCHING_RULE: 'لا قاعدة تطابق هذه الحالة — اكتب قاعدةً لها',
-  RULE_AWAITING_APPROVAL: 'القاعدة المطابِقة تنتظر الإقرار — أقِرّها',
+  NO_MATCHING_RULE: 'لا قاعدة تطابق هذه الحالة — اكتب قاعدة لها',
+  RULE_AWAITING_APPROVAL: 'القاعدة المطابقة تنتظر الإقرار — أقرها',
   MARGIN_NOT_APPROVED: 'نظام هامش الربح غير معتمد لهذا البائع',
-  MARGIN_AMOUNT_MISSING: 'هامش الربح غير معروف — لا سعر شراء مسجَّل للمركبة',
-  OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة تُستحقّ',
+  MARGIN_AMOUNT_MISSING: 'هامش الربح غير معروف — لا سعر شراء مسجل للمركبة',
+  OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة تستحق',
   ALREADY_ISSUED: 'صدرت من قبل',
-  INVOICED_WITH_ITS_OWN_PAYMENT: 'فُوتِرت مع دفعتها لا مع التسوية',
-  UNKNOWN: 'سببٌ غير معروف',
+  INVOICED_WITH_ITS_OWN_PAYMENT: 'فوترت مع دفعتها لا مع التسوية',
+  UNKNOWN: 'سبب غير معروف',
 };
 
 export const SUPPLY_TYPE_LABEL: Record<string, string> = {
@@ -187,7 +187,7 @@ export const SUPPLY_TYPE_LABEL: Record<string, string> = {
   COMMISSION: 'العمولة',
   SERVICE: 'الخدمات',
   ADMIN_FEE: 'رسوم إدارية',
-  DISBURSEMENT: 'صرف بدلًا عن العميل',
+  DISBURSEMENT: 'صرف بدلا عن العميل',
 } satisfies Record<SupplyType, string>;
 
 export const TAXABLE_BASE_LABEL: Record<string, string> = {
@@ -198,7 +198,7 @@ export const TAXABLE_BASE_LABEL: Record<string, string> = {
 } satisfies Record<TaxableBase, string>;
 
 export const INVOICE_ISSUER_LABEL: Record<string, string> = {
-  PLATFORM: 'المنصّة',
+  PLATFORM: 'المنصة',
   SELLER: 'البائع',
   PLATFORM_ON_BEHALF: 'المنصة بالنيابة',
   NONE: 'لا أحد',
@@ -206,8 +206,8 @@ export const INVOICE_ISSUER_LABEL: Record<string, string> = {
 
 export const INVOICE_STATUS_LABEL: Record<string, string> = {
   ISSUED: 'صادرة',
-  REPORTED: 'مُبلَّغة',
-  REPORT_FAILED: 'تعذّر الإبلاغ',
+  REPORTED: 'مبلغة',
+  REPORT_FAILED: 'تعذر الإبلاغ',
   CANCELLED: 'ملغاة',
 } satisfies Record<InvoiceStatus, string>;
 
@@ -218,8 +218,8 @@ export const ANY_TYPE = 'أي';
 export const DISPUTE_STATUS_LABEL: Record<string, string> = {
   OPEN: 'مفتوح',
   INVESTIGATING: 'قيد الفحص',
-  RESOLVED_BUYER: 'حُسم للمشتري',
-  RESOLVED_SELLER: 'حُسم للبائع',
+  RESOLVED_BUYER: 'حسم للمشتري',
+  RESOLVED_SELLER: 'حسم للبائع',
   CLOSED: 'مغلق',
 } satisfies Record<DisputeStatus, string>;
 
@@ -239,95 +239,95 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
   offerTtlHours: {
     name: 'مهلة العرض',
     unit: 'ساعة',
-    effect: 'بعدها يسقط العرض تلقائيًّا ولا يعود البائع يستطيع قبوله.',
+    effect: 'بعدها يسقط العرض تلقائيا ولا يعود البائع يستطيع قبوله.',
   },
   paymentWindowHours: {
     name: 'مهلة الدفع',
     unit: 'ساعة',
-    effect: 'من إنشاء الطلب. بعدها يُلغى الطلب ويعود الإعلان معروضًا.',
+    effect: 'من إنشاء الطلب. بعدها يلغى الطلب ويعود الإعلان معروضا.',
   },
   transferDeadlineDays: {
     name: 'مهلة نقل الملكية',
     unit: 'يوم',
-    effect: 'من تأكيد الدفع. بعدها يُنبَّه الطرفان ويُفتح مسار النزاع.',
+    effect: 'من تأكيد الدفع. بعدها ينبه الطرفان ويفتح مسار النزاع.',
   },
   transferExtensionDays: {
     name: 'تمديد نقل الملكية',
     unit: 'يوم',
-    effect: 'تمديدٌ واحد لا أكثر، بسبب مكتوب ومسجَّل.',
+    effect: 'تمديد واحد لا أكثر، بسبب مكتوب ومسجل.',
   },
   sellerDecisionHours: {
     name: 'قرار البائع بعد المزاد',
     unit: 'ساعة',
-    effect: 'حين لا تبلغ المزايدات الاحتياطي. بعدها يسقط حقّه في القبول.',
+    effect: 'حين لا تبلغ المزايدات الاحتياطي. بعدها يسقط حقه في القبول.',
   },
   disputeSlaHours: {
-    name: 'مهلة الردّ على النزاع',
+    name: 'مهلة الرد على النزاع',
     unit: 'ساعة',
-    effect: 'الحدّ الذي يجب أن يردّ فيه فريق الدعم، ويُنبَّه عند تجاوزه.',
+    effect: 'الحد الذي يجب أن يرد فيه فريق الدعم، وينبه عند تجاوزه.',
   },
   settleWindowHours: {
     name: 'مهلة التسوية',
     unit: 'ساعة',
-    effect: 'المدّة المتاحة لإتمام التسوية بعد استيفاء شروط الإفراج.',
+    effect: 'المدة المتاحة لإتمام التسوية بعد استيفاء شروط الإفراج.',
   },
   auctionExtendWindowSeconds: {
     name: 'نافذة تمديد المزاد',
     unit: 'ثانية',
-    effect: 'مزايدةٌ داخل هذه النافذة قبل الإغلاق تمدّ المزاد.',
+    effect: 'مزايدة داخل هذه النافذة قبل الإغلاق تمد المزاد.',
   },
   auctionExtendBySeconds: {
     name: 'مقدار تمديد المزاد',
     unit: 'ثانية',
-    effect: 'كم يُمدّ المزاد عند مزايدةٍ أخيرة — بحدّ أقصى عشر مرّات.',
+    effect: 'كم يمد المزاد عند مزايدة أخيرة — بحد أقصى عشر مرات.',
   },
   reportValidityDays: {
     name: 'صلاحية تقرير الفحص',
     unit: 'يوم',
-    effect: 'بعدها يُعدّ التقرير قديمًا ويُطلب فحصٌ جديد.',
+    effect: 'بعدها يعد التقرير قديما ويطلب فحص جديد.',
   },
   paymentReminderHours: {
     name: 'تذكير الدفع قبل انقضاء المهلة',
     unit: 'ساعة',
-    effect: 'يصل المشتري تنبيهٌ واحد قبل سقوط طلبه بهذه المدّة.',
+    effect: 'يصل المشتري تنبيه واحد قبل سقوط طلبه بهذه المدة.',
   },
   auctionClosingReminderMinutes: {
     name: 'تذكير إغلاق المزاد',
     unit: 'دقيقة',
-    effect: 'يصل من زايد تنبيهٌ واحد قبل الإغلاق بهذه المدّة.',
+    effect: 'يصل من زايد تنبيه واحد قبل الإغلاق بهذه المدة.',
   },
   offerReminderHours: {
     name: 'تذكير سقوط العرض',
     unit: 'ساعة',
-    effect: 'يصل طرفَي العرض تنبيهٌ واحد قبل سقوطه بهذه المدّة.',
+    effect: 'يصل طرفي العرض تنبيه واحد قبل سقوطه بهذه المدة.',
   },
   serviceConsentHours: {
     name: 'مهلة إذن البائع بالفحص',
     unit: 'ساعة',
-    effect: 'حين يطلب مشترٍ فحص مركبةٍ معروضة. بعدها يسقط الطلب ولا يُؤخذ مال.',
+    effect: 'حين يطلب مشتر فحص مركبة معروضة. بعدها يسقط الطلب ولا يؤخذ مال.',
   },
   viewingReminderHours: {
     name: 'التذكير قبل موعد المعاينة',
     unit: 'ساعة',
-    effect: 'يصل الطرفين تنبيهٌ واحد قبل الموعد المؤكَّد بهذه المدّة.',
+    effect: 'يصل الطرفين تنبيه واحد قبل الموعد المؤكد بهذه المدة.',
   },
 };
 
 /** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */
 export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
-  ESCROW_AT_PROVIDER: 'لدى مزوّد الدفع',
-  BUYER_ADVANCE: 'قُبض ولم يُستحقّ',
+  ESCROW_AT_PROVIDER: 'لدى مزود الدفع',
+  BUYER_ADVANCE: 'قبض ولم يستحق',
   SELLER_PAYABLE: 'حقوق البائعين',
-  PLATFORM_REVENUE: 'إيراد المنصّة',
-  VAT_PAYABLE: 'ضريبة مستحقّة',
+  PLATFORM_REVENUE: 'إيراد المنصة',
+  VAT_PAYABLE: 'ضريبة مستحقة',
   GATEWAY_FEES_CLEARING: 'رسوم البوابة (عبور)',
   GOVT_FEES_CLEARING: 'رسوم حكومية (عبور)',
-  PLATFORM_CASH: 'ما وصلنا فعلًا',
+  PLATFORM_CASH: 'ما وصلنا فعلا',
   // **وحسابٌ بلا تسمية يُعرض مفتاحًا خامًا** — وهو ما وقع أوّل قيد محفظة
   WALLET_PAYABLE: 'أرصدة محافظ العملاء',
   GOODWILL_EXPENSE: 'تعويضات ومنح',
-  PROVIDER_PAYABLE: 'حقوق مزوّدي الخدمات',
-  PROVIDER_COST: 'تكلفة خدمات المزوّدين',
+  PROVIDER_PAYABLE: 'حقوق مزودي الخدمات',
+  PROVIDER_COST: 'تكلفة خدمات المزودين',
 } satisfies Record<LedgerAccount, string>;
 
 /**
@@ -349,14 +349,14 @@ export const USER_STATUS_LABEL: Record<string, string> = {
    * القائمة كلَّها، و`CLOSED` يُكتب من `account-closure.ts` — فصفحةُ
    * العميل كانت تعرض المفتاح الخام «CLOSED» لمن أغلق حسابه.
    */
-  CLOSED: 'مُغلق بطلب صاحبه',
+  CLOSED: 'مغلق بطلب صاحبه',
 } satisfies Record<UserStatus, string>;
 
 export const IDENTITY_STATUS_LABEL: Record<string, string> = {
-  NONE: 'لم تُقدَّم',
+  NONE: 'لم تقدم',
   PENDING: 'ينتظر المراجعة',
-  CLARIFICATION: 'مُعلَّق للتوضيح',
-  VERIFIED: 'موثّق',
+  CLARIFICATION: 'معلق للتوضيح',
+  VERIFIED: 'موثق',
   REJECTED: 'مرفوض',
 } satisfies Record<IdentityStatus, string>;
 
@@ -366,12 +366,12 @@ export const IDENTITY_STATUS_LABEL: Record<string, string> = {
  * فالصياغة هنا كما تقول القاعدة.
  */
 export const PROVIDER_EVENT_LABEL: Readonly<Record<string, string>> = {
-  'service.provider_due': 'استُحقّ عن خدمة',
-  'provider.admin_credit': 'قيدٌ يدويّ — زيادة',
-  'provider.admin_debit': 'قيدٌ يدويّ — خصم',
+  'service.provider_due': 'استحق عن خدمة',
+  'provider.admin_credit': 'قيد يدوي — زيادة',
+  'provider.admin_debit': 'قيد يدوي — خصم',
   /**
    * **وحدثٌ جديد تُكتب صياغتُه معه**: المفتاح الخام في كشفٍ يقرؤه
    * محاسبٌ أو المزوّدُ نفسه هو الصنف الذي وقع في قوالب الإشعار.
    */
-  'provider_payout.sent': 'حُوِّل إلى حسابه',
+  'provider_payout.sent': 'حول إلى حسابه',
 };

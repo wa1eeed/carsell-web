@@ -38,9 +38,9 @@ const TONE: Record<string, 'accent' | 'warn' | 'danger'> = {
 
 /** ما يُقال قبل الضغط — لا بعده. */
 const EXPLAIN: Record<string, string> = {
-  SUSPENDED: 'يُمنع من الدخول ومن كل إجراء، وجلستُه القائمة تنقطع فورًا. ويُرفع متى شئت.',
-  BANNED: 'حظرٌ دائم — لا يُرفع إلّا بقرارٍ ثانٍ منك. ولا يقع على من له طلبٌ حيّ أو ضمانٌ محجوز.',
-  ACTIVE: 'يعود الحساب كما كان، ويصل صاحبَه إشعارٌ بذلك.',
+  SUSPENDED: 'يمنع من الدخول ومن كل إجراء، وجلسته القائمة تنقطع فورا. ويرفع متى شئت.',
+  BANNED: 'حظر دائم — لا يرفع إلا بقرار ثان منك. ولا يقع على من له طلب حي أو ضمان محجوز.',
+  ACTIVE: 'يعود الحساب كما كان، ويصل صاحبه إشعار بذلك.',
 };
 
 export function StatusPanel({
@@ -72,7 +72,7 @@ export function StatusPanel({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تغيير حال الحساب.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تغيير حال الحساب.');
         return;
       }
 
@@ -95,7 +95,7 @@ export function StatusPanel({
 
       {!canSuspend ? (
         <p className="text-2xs leading-loose opacity-70">
-          لا تملك صلاحية إيقاف الحسابات — تُمنح لمن يتولّى التشغيل.
+          لا تملك صلاحية إيقاف الحسابات — تمنح لمن يتولى التشغيل.
         </p>
       ) : (
         <>
@@ -104,7 +104,7 @@ export function StatusPanel({
               **ويُقال ما يقع قبل أن يقع.** الإيقاف يقطع الجلسة القائمة
               لا الدخول وحده — ومن لا يعرف ذلك يظنّه إجراءً ألطف ممّا هو.
             */}
-            الإيقاف يقطع جلسته القائمة فورًا ويمنع كل إجراء، والسبب يُسجَّل ويصل صاحبَه.
+            الإيقاف يقطع جلسته القائمة فورا ويمنع كل إجراء، والسبب يسجل ويصل صاحبه.
           </p>
 
           <div className="flex flex-wrap gap-2">
@@ -119,7 +119,7 @@ export function StatusPanel({
                   setReason('');
                 }}
               >
-                {key === 'ACTIVE' ? 'أعِد تفعيله' : key === 'SUSPENDED' ? 'أوقفه' : 'احظره'}
+                {key === 'ACTIVE' ? 'أعد تفعيله' : key === 'SUSPENDED' ? 'أوقفه' : 'احظره'}
               </Button>
             ))}
           </div>
@@ -143,7 +143,7 @@ export function StatusPanel({
               onClick={send}
               disabled={busy || reason.trim().length < REASON_MIN}
             >
-              {busy ? 'يُحفظ…' : 'نفّذ'}
+              {busy ? 'يحفظ…' : 'نفذ'}
             </Button>
           </>
         }
@@ -158,17 +158,17 @@ export function StatusPanel({
               **والسبب يُقرأ بعد شهور.** «احتيال» وحدها لا تقول ما وقع،
               وهي أوّل ما يُسأل عنه حين يعترض صاحب الحساب.
             */}
-            السبب — يُسجَّل ويصل صاحب الحساب
+            السبب — يسجل ويصل صاحب الحساب
           </span>
           <textarea
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             rows={3}
             className="w-full rounded-md border border-line bg-bg p-3 text-2xs leading-loose outline-none focus:border-ink"
-            placeholder="ما الذي وقع، ومتى، وما الذي يُطلب منه ليعود"
+            placeholder="ما الذي وقع، ومتى، وما الذي يطلب منه ليعود"
           />
           {reason.trim().length >= REASON_MIN ? null : (
-            <span className="text-3xs opacity-65">اكتب جملةً تُقرأ لاحقًا — لا كلمة واحدة.</span>
+            <span className="text-3xs opacity-65">اكتب جملة تقرأ لاحقا — لا كلمة واحدة.</span>
           )}
         </label>
       </Modal>

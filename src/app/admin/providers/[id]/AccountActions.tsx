@@ -105,7 +105,7 @@ export function AccountActions({
 
   const say = (reason: string, detail: string | null): void => {
     const known = ACCOUNT_OPEN_FAILURE[reason];
-    setToast(known === undefined ? (detail ?? 'تعذّر الإجراء.') : known);
+    setToast(known === undefined ? (detail ?? 'تعذر الإجراء.') : known);
   };
 
   const post = (path: string, body?: unknown, method: 'POST' | 'PUT' = 'POST'): void => {
@@ -117,7 +117,7 @@ export function AccountActions({
       }).catch(() => null);
 
       if (response === null) {
-        setToast('تعذّر الاتصال — أعد المحاولة.');
+        setToast('تعذر الاتصال — أعد المحاولة.');
         return;
       }
 
@@ -137,7 +137,7 @@ export function AccountActions({
         setDocs({ id: providerId, list: payload.data.requiredDocuments });
       }
       setEditing(false);
-      setToast('تمّ.');
+      setToast('تم.');
       router.refresh();
     });
   };
@@ -153,10 +153,10 @@ export function AccountActions({
             <>
               <dl className="mb-3.5 flex flex-col gap-1.5 text-3xs">
                 <Row label="الصفة" value={file.kind === null ? '—' : ACCOUNT_KIND_LABEL[file.kind] ?? file.kind} />
-                <Row label="الاسم الآليّ" value={file.slug === '' ? '—' : file.slug} ltr />
+                <Row label="الاسم الآلي" value={file.slug === '' ? '—' : file.slug} ltr />
                 <Row label="بريد المدير" value={file.adminEmail === '' ? '—' : file.adminEmail} ltr />
                 <Row
-                  label="المُلّاك"
+                  label="الملاك"
                   value={file.owners === null ? '—' : displayDigits(String(file.owners))}
                 />
                 <Row
@@ -170,7 +170,7 @@ export function AccountActions({
               </dl>
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
-                  {complete ? 'تعديل الملف' : 'أكمل ملفّ التسجيل'}
+                  {complete ? 'تعديل الملف' : 'أكمل ملف التسجيل'}
                 </Button>
                 {/*
                   **والشرطُ يُعرض قبل لحظة الحاجة.** اكتشافُ «اضبط
@@ -187,7 +187,7 @@ export function AccountActions({
               </div>
               {complete && feesConfigured && platformConfigured ? (
                 <p className="mt-2.5 text-3xs leading-loose opacity-70">
-                  الفتح يُرسل دعوةً إلى بريد المدير، ولا رجعةَ فيه.
+                  الفتح يرسل دعوة إلى بريد المدير، ولا رجعة فيه.
                 </p>
               ) : (
                 <ul className="mt-2.5 flex flex-col gap-1 text-3xs leading-loose text-warn-900">
@@ -206,7 +206,7 @@ export function AccountActions({
                 onChange={(value) => put({ kind: value })}
               />
               <Text
-                label="الاسم الآليّ لدى البوّابة"
+                label="الاسم الآلي لدى البوابة"
                 value={draft.slug}
                 ltr
                 onChange={(value) => put({ slug: value })}
@@ -224,7 +224,7 @@ export function AccountActions({
                 onChange={(value) => put({ website: value })}
               />
               <Text
-                label="عدد المُلّاك"
+                label="عدد الملاك"
                 value={draft.owners}
                 ltr
                 onChange={(value) => put({ owners: value })}
@@ -237,7 +237,7 @@ export function AccountActions({
               />
               {draft.signatory === 'OWNER' ? null : (
                 <Text
-                  label="عدد الموقّعين"
+                  label="عدد الموقعين"
                   value={draft.signatoryCount}
                   ltr
                   onChange={(value) => put({ signatoryCount: value })}
@@ -249,7 +249,7 @@ export function AccountActions({
                   checked={draft.licence}
                   onChange={(event) => put({ licence: event.target.checked })}
                 />
-                نشاطُه يحتاج ترخيصًا خاصًّا
+                نشاطه يحتاج ترخيصا خاصا
               </label>
 
               <div className="flex flex-wrap gap-2">
@@ -301,7 +301,7 @@ export function AccountActions({
             disabled={pending}
             onClick={() => post(`/api/v1/admin/providers/${providerId}/account/sync`)}
           >
-            حدِّث الحال من البوّابة
+            حدث الحال من البوابة
           </Button>
           {/* **والتقديم بشرطه**: البوّابة هي من تقول إن المستندات اكتملت. */}
           {!docsComplete ? null : (
@@ -310,19 +310,19 @@ export function AccountActions({
               disabled={pending}
               onClick={() => post(`/api/v1/admin/providers/${providerId}/account/submit`)}
             >
-              قدِّم للمراجعة
+              قدم للمراجعة
             </Button>
           )}
         </div>
         {docsComplete ? null : (
           <p className="text-3xs leading-loose opacity-70">
-            المستندات ترفعها المنشأة في لوحة البوّابة بالدعوة التي وصلت بريدَ مديرها — ثم يُحدَّث
+            المستندات ترفعها المنشأة في لوحة البوابة بالدعوة التي وصلت بريد مديرها — ثم يحدث
             الحال من هنا.
           </p>
         )}
         {documents === null || documents.length === 0 ? null : (
           <div>
-            <p className="mb-1.5 text-3xs font-bold opacity-70">ما يطلبه المزوّد</p>
+            <p className="mb-1.5 text-3xs font-bold opacity-70">ما يطلبه المزود</p>
             <ul className="flex flex-col gap-1 text-3xs leading-loose opacity-75">
               {documents.map((document) => (
                 <li key={document.type}>

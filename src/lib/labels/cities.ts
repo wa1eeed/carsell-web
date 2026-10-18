@@ -46,7 +46,12 @@ export const CITY_SLUG: Record<string, string> = {
 export function normalizeArabic(value: string): string {
   return value
     .trim()
-    .replace(/[ً-ْـ]/g, '')
+    /**
+     * **والتشكيل بمهاربه لا بحروفه.** صفٌّ مكتوبٌ بالعلامات نفسها
+     * يقع ضحيّةَ أوّل مسحٍ آليّ للتشكيل في المستودع — فتصير الفئة
+     * `[-ـ]` بلا شكوى، ويتوقّف التطبيع، ولا اختبارَ يسأل عنه.
+     */
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
     .replace(/[إأآا]/g, 'ا')
     .replace(/ى/g, 'ي')
     .replace(/ة/g, 'ه')

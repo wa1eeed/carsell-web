@@ -62,7 +62,7 @@ export function OfferActions({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تنفيذ الإجراء.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تنفيذ الإجراء.');
         return;
       }
 
@@ -85,7 +85,7 @@ export function OfferActions({
   const submitCounter = (): void => {
     const value = Number(toLatinDigits(counterAmount).replace(/\D/g, ''));
     if (!Number.isFinite(value) || value <= 0) return;
-    send({ action: 'counter', amount: value }, 'أُرسل عرضك المقابل.');
+    send({ action: 'counter', amount: value }, 'أرسل عرضك المقابل.');
   };
 
   return (
@@ -96,12 +96,12 @@ export function OfferActions({
             <Button
               size="sm"
               disabled={pending}
-              onClick={() => send({ action: 'accept' }, 'قُبل العرض.')}
+              onClick={() => send({ action: 'accept' }, 'قبل العرض.')}
             >
               اقبل
             </Button>
             <Button size="sm" variant="outline" onClick={() => setCountering(true)}>
-              قابِل
+              قابل
             </Button>
           </>
         ) : (
@@ -109,7 +109,7 @@ export function OfferActions({
             size="sm"
             variant="outline"
             disabled={pending}
-            onClick={() => send({ action: 'withdraw' }, 'سُحب عرضك.')}
+            onClick={() => send({ action: 'withdraw' }, 'سحب عرضك.')}
           >
             اسحب
           </Button>
@@ -138,14 +138,14 @@ export function OfferActions({
           النظام، وهو الصنف نفسه الذي أصلحتُه في غيره.
         */}
         <p className="mt-3 text-3xs leading-loose opacity-70">
-          يصل إليه بمهلةٍ جديدة، ويبقى عرضه قائمًا حتى يُقبل أحدهما.
+          يصل إليه بمهلة جديدة، ويبقى عرضه قائما حتى يقبل أحدهما.
         </p>
         <Button
           className="mt-4 w-full"
           disabled={pending || counterAmount === ''}
           onClick={submitCounter}
         >
-          {pending ? 'جارٍ…' : 'أرسل العرض المقابل'}
+          {pending ? 'جار…' : 'أرسل العرض المقابل'}
         </Button>
       </Modal>
 

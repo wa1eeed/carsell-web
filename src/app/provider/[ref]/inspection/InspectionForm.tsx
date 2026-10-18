@@ -87,8 +87,8 @@ export function InspectionForm({ view }: { view: DraftView }) {
           | null;
         setToast(
           payload?.error?.fields?.inspection === 'NOTE_REQUIRED'
-            ? 'اكتب الملاحظة — كلُّ حالٍ غير «سليم» تُفسَّر.'
-            : 'تعذّر الحفظ — أعد المحاولة.',
+            ? 'اكتب الملاحظة — كل حال غير «سليم» تفسر.'
+            : 'تعذر الحفظ — أعد المحاولة.',
         );
         return;
       }
@@ -125,7 +125,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
         | null;
 
       if (response === null || !response.ok || typeof payload?.data?.id !== 'string') {
-        setToast('تعذّر رفع الصورة.');
+        setToast('تعذر رفع الصورة.');
         return;
       }
       const added = { id: payload.data.id, url: payload.data.url ?? null };
@@ -145,7 +145,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
       ).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر حذف الصورة.');
+        setToast('تعذر حذف الصورة.');
         return;
       }
       setShots((current) => ({
@@ -175,8 +175,8 @@ export function InspectionForm({ view }: { view: DraftView }) {
         const missing = payload?.error?.fields?.missing;
         setToast(
           missing === undefined
-            ? 'تعذّر الإرسال.'
-            : `بنودٌ بلا جواب (${displayDigits(missing)})`,
+            ? 'تعذر الإرسال.'
+            : `بنود بلا جواب (${displayDigits(missing)})`,
         );
         return;
       }
@@ -198,17 +198,17 @@ export function InspectionForm({ view }: { view: DraftView }) {
   return (
     <>
       <div className="mb-5 flex flex-wrap items-baseline gap-3 rounded-lg border border-line bg-surface p-4">
-        <span className="text-2xs font-bold">أُجيب</span>
+        <span className="text-2xs font-bold">أجيب</span>
         <span className="font-num text-base font-bold">
           <ArabicNumber value={answered} /> / <ArabicNumber value={view.total} />
         </span>
         <span className="flex-1" />
-        {!view.editable ? <Badge tone="warn">أُرسلت — لا تُعدَّل</Badge> : null}
+        {!view.editable ? <Badge tone="warn">أرسلت — لا تعدل</Badge> : null}
       </div>
 
       {view.returnNote === null ? null : (
         <div className="mb-5 rounded-lg border border-line bg-surface p-4">
-          <p className="mb-1.5 text-2xs font-bold">أُعيدت إليك بملاحظة</p>
+          <p className="mb-1.5 text-2xs font-bold">أعيدت إليك بملاحظة</p>
           <p className="text-2xs leading-loose opacity-80">{view.returnNote}</p>
         </div>
       )}
@@ -386,7 +386,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
           >
             {answered < view.total ? (
               <span className="flex flex-col items-center gap-0.5 leading-tight">
-                <span>أكمِل البنود لتُرسل</span>
+                <span>أكمل البنود لترسل</span>
                 <span className="font-num text-3xs opacity-75">
                   بقي <ArabicNumber value={view.total - answered} />
                 </span>
@@ -396,7 +396,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
             )}
           </Button>
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            بعد الإرسال <b>لا تُعدَّل</b> حتى تُعاد إليك بملاحظة.
+            بعد الإرسال <b>لا تعدل</b> حتى تعاد إليك بملاحظة.
           </p>
         </div>
       )}

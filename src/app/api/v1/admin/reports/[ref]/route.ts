@@ -22,9 +22,9 @@ const STATUS: Record<string, number> = {
 
 const MESSAGE: Record<string, string> = {
   REPORT_NOT_FOUND: 'لا بلاغ بهذا المرجع.',
-  ALREADY_CLOSED: 'البلاغ حُسم — حسمه غيرك.',
+  ALREADY_CLOSED: 'البلاغ حسم — حسمه غيرك.',
   // الرقم عربيّ-هنديّ ومعزول، والجملة لا يحكمها المعدود
-  NOTE_REQUIRED: `الملاحظة أقصر من الحدّ (${displayDigits(String(MIN_REPORT_NOTE))}) — وتُقرأ بعد شهور.`,
+  NOTE_REQUIRED: `الملاحظة أقصر من الحد (${displayDigits(String(MIN_REPORT_NOTE))}) — وتقرأ بعد شهور.`,
   NOT_LISTING: 'الإحالة إلى المراجعة للإعلانات وحدها.',
 };
 
@@ -52,7 +52,7 @@ export async function POST(
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر حسم البلاغ.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر حسم البلاغ.',
         messageEn: 'Could not resolve the report.',
       },
       STATUS[result.reason] ?? 409,

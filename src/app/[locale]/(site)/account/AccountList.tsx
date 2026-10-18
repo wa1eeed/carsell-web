@@ -80,7 +80,7 @@ export function AccountList({
             موضعَه من الشجرة إلّا منه.
           */}
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-6"
             items={[

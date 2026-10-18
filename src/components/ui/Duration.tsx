@@ -32,7 +32,7 @@ export function Duration({ hours }: { hours: number }) {
    * («لا ساعات») — وهي حالُ كل طلبٍ في دقائقه الأولى، أي حين يفتحه
    * المشغّل أوّل مرّة.
    */
-  if (hours < 1) return <span>أقلّ من ساعة</span>;
+  if (hours < 1) return <span>أقل من ساعة</span>;
   const { unit, count } = scale(hours);
   return <Quantity unit={unit} count={count} />;
 }

@@ -38,7 +38,7 @@ export function ChannelDefault({
     return (
       <span className="flex items-center gap-2 opacity-70">
         {defaultOn ? 'مفتوحة' : 'مغلقة'}
-        {locked ? <span className="text-3xs opacity-70">— الموافقة تُطلب</span> : null}
+        {locked ? <span className="text-3xs opacity-70">— الموافقة تطلب</span> : null}
       </span>
     );
   }
@@ -56,15 +56,15 @@ export function ChannelDefault({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
       /** **والتبديل لا يمسّ من اختار**: الافتراض لمن يأتي بعد اليوم. */
       setToast(
         defaultOn
-          ? 'صارت مغلقةً افتراضًا — ومن فتحها يبقى عليها.'
-          : 'صارت مفتوحةً افتراضًا — ومن أغلقها يبقى عليها.',
+          ? 'صارت مغلقة افتراضا — ومن فتحها يبقى عليها.'
+          : 'صارت مفتوحة افتراضا — ومن أغلقها يبقى عليها.',
       );
       router.refresh();
     });
@@ -74,7 +74,7 @@ export function ChannelDefault({
     <span className="flex items-center gap-2.5">
       <span className="opacity-70">{defaultOn ? 'مفتوحة' : 'مغلقة'}</span>
       <Button size="sm" variant="ghost" disabled={pending} onClick={toggle}>
-        {defaultOn ? 'أغلِقها' : 'افتحها'}
+        {defaultOn ? 'أغلقها' : 'افتحها'}
       </Button>
       {toast === null ? null : <Toast title={toast} />}
     </span>

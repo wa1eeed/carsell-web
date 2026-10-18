@@ -58,7 +58,7 @@ export function PartyLink({
           <span className="text-3xs opacity-65">{role}</span>
           {party.idVerified ? (
             <span className="rounded-sm bg-accent/12 px-1.5 py-px text-3xs font-bold text-accent-700">
-              موثَّق
+              موثق
             </span>
           ) : (
             <span className="rounded-sm bg-warn-100 px-1.5 py-px text-3xs font-bold text-warn-900">
@@ -79,7 +79,7 @@ export function PartyLink({
           <ArabicNumber value={party.previousOrders} />
         </span>
 
-        <span className="mt-0.5 text-3xs font-semibold text-accent-700">افتح الملفّ ←</span>
+        <span className="mt-0.5 text-3xs font-semibold text-accent-700">افتح الملف ←</span>
       </span>
     </span>
   );

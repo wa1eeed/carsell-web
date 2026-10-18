@@ -27,8 +27,8 @@ const STOPPED_AT: Record<string, string> = {
 
 const STOPPED: Record<string, { verb: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   COMPLETED: { verb: 'مكتمل', tone: 'accent' },
-  CANCELLED: { verb: 'أُلغي', tone: 'neutral' },
-  STALLED: { verb: 'توقّف', tone: 'warn' },
+  CANCELLED: { verb: 'ألغي', tone: 'neutral' },
+  STALLED: { verb: 'توقف', tone: 'warn' },
   DISPUTED: { verb: 'نزاع', tone: 'warn' },
 };
 

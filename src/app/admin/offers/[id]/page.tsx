@@ -28,7 +28,7 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
 /** حالاتُ العرض بالعربية — ولا شيفرةٌ في ترويسةٍ يقرؤها مشغّل. */
 const OFFER_STATUS: Record<string, string> = {
   PENDING: 'قائم',
-  COUNTERED: 'ردّ البائع بمقابل',
+  COUNTERED: 'رد البائع بمقابل',
   ACCEPTED: 'مقبول',
   REJECTED: 'مرفوض',
   WITHDRAWN: 'سحبه المشتري',
@@ -88,7 +88,7 @@ export default async function AdminOfferDetailPage({
             {offer.expired && offer.status === 'PENDING' ? (
               <Badge tone="danger">انقضت مهلته</Badge>
             ) : null}
-            {offer.autoRejected ? <Badge tone="neutral">رُفض آليًّا</Badge> : null}
+            {offer.autoRejected ? <Badge tone="neutral">رفض آليا</Badge> : null}
           </>
         }
       />
@@ -120,7 +120,7 @@ export default async function AdminOfferDetailPage({
         active={timeline ? 'timeline' : null}
         tabs={[
           { key: null, label: 'نظرة عامة' },
-          { key: 'timeline', label: 'خطّ الزمن' },
+          { key: 'timeline', label: 'خط الزمن' },
         ]}
       />
 
@@ -144,7 +144,7 @@ export default async function AdminOfferDetailPage({
                     الاتّجاه من `parentOfferId` لا من صاحب الصفّ — والمقابل
                     يحتفظ بمعرّف المشتري الأصليّ.
                   */}
-                  <Badge tone="neutral">{step.fromBuyer ? 'من المشتري' : 'مقابلٌ من البائع'}</Badge>
+                  <Badge tone="neutral">{step.fromBuyer ? 'من المشتري' : 'مقابل من البائع'}</Badge>
                   {step.id === offer.id ? <Badge tone="accent">هذا العرض</Badge> : null}
                 </span>
                 <span className="flex shrink-0 items-center gap-4">
@@ -166,7 +166,7 @@ export default async function AdminOfferDetailPage({
                 label="السعر المعروض"
                 value={<Money amount={Number(offer.listing.askPrice)} />}
               />
-              <Field label="قُدّم" value={riyadh.format(new Date(offer.createdAt))} />
+              <Field label="قدم" value={riyadh.format(new Date(offer.createdAt))} />
               <Field
                 label="ينتهي"
                 value={
@@ -180,7 +180,7 @@ export default async function AdminOfferDetailPage({
                 للبائع، وكشفُه في شاشةٍ يجعل المفاوضة بلا معنى.
               */}
               <p className="mt-3 text-3xs opacity-65">
-                الحدّ الأدنى للقبول لا يُعرض هنا — ولا في أي استجابة.
+                الحد الأدنى للقبول لا يعرض هنا — ولا في أي استجابة.
               </p>
             </DetailCard>
 
@@ -197,7 +197,7 @@ export default async function AdminOfferDetailPage({
                 href={`/admin/users/${offer.buyer.id}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
-                افتح ملفّ المشتري
+                افتح ملف المشتري
               </Link>
             </DetailCard>
 
@@ -222,9 +222,9 @@ export default async function AdminOfferDetailPage({
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            سلسلةُ التفاوض كاملةً بين هذا المشتري وهذا الإعلان، وما انتهت إليه.
+            سلسلة التفاوض كاملة بين هذا المشتري وهذا الإعلان، وما انتهت إليه.
           </p>
           <Timeline events={events} />
         </section>

@@ -313,6 +313,25 @@ function nestedInteractive(html: string): string[] {
   return [...new Set(found)];
 }
 
+/**
+ * ═══ تشكيلٌ في صفحةٍ مُصيَّرة — **وما لا تراه البوابة** ═══
+ *
+ * البوابة ٦١ تمسح المصدر: `src/**` وملفَّ الرسائل وبياناتِ البذرة.
+ * **ولا ترى القاعدة** — ونصُّ الوثائق القانونية والأسئلة الشائعة
+ * وقوالبِ الإشعار يُحرَّر من اللوحة، فسؤالٌ يكتبه الأدمن مشكولًا
+ * اليوم يظهر في مركز المساعدة ولا بوابةَ تعرف به.
+ *
+ * فيُقاس هنا، على ما يصل القارئ فعلًا: نصُّ الصفحة بلا وسومٍ ولا
+ * نصوص برمجية.
+ */
+function diacritics(html: string): string[] {
+  const text = html
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<style[\s\S]*?<\/style>/g, ' ')
+    .replace(/<[^>]+>/g, ' ');
+  return [...new Set((text.match(/\S*[\u064B-\u0652\u0670]\S*/g) ?? []).slice(0, 5))];
+}
+
 async function main(): Promise<void> {
   const cookies: Record<string, string> = {};
 
@@ -474,12 +493,15 @@ async function main(): Promise<void> {
   /* ٢ ─ وكلُّ رابطٍ في صفحةٍ فُتحت */
   const pages = [...visited.values()].filter((row) => row.status === 200).map((row) => row.url);
   const nested = new Map<string, string[]>();
+  const marked = new Map<string, string[]>();
   for (const page of pages) {
     const html = await fetch(`${BASE}${page}`, { headers: { cookie } })
       .then((r) => r.text())
       .catch(() => '');
     const inside = nestedInteractive(html);
     if (inside.length > 0) nested.set(page, inside);
+    const voweled = diacritics(html);
+    if (voweled.length > 0) marked.set(page, voweled);
     for (const href of links(html)) await visit(href, page);
   }
 
@@ -507,6 +529,14 @@ async function main(): Promise<void> {
   } else {
     console.log(`تفاعليّ داخل تفاعليّ — ${String(nested.size)} صفحة:`);
     for (const [page, inside] of nested) console.log(`  ${page}  ${inside.join(' · ')}`);
+    console.log('');
+  }
+
+  if (marked.size === 0) {
+    console.log('لا تشكيلَ في نصٍّ معروض في أيّ صفحة.\n');
+  } else {
+    console.log(`تشكيلٌ في نصٍّ معروض — ${String(marked.size)} صفحة:`);
+    for (const [page, words] of marked) console.log(`  ${page}  ${words.join(' · ')}`);
     console.log('');
   }
 

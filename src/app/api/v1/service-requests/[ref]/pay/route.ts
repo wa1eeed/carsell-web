@@ -21,14 +21,14 @@ const MESSAGES: Record<PayFailure, { ar: string; en: string; status: number }> =
   REQUEST_NOT_FOUND: { ar: 'لم نجد هذا الطلب.', en: 'Request not found.', status: 404 },
   NOT_REQUESTER: { ar: 'هذا الطلب ليس لك.', en: 'This request is not yours.', status: 403 },
   NOT_AWAITING_PAYMENT: {
-    ar: 'الطلب لا ينتظر سدادًا الآن.',
+    ar: 'الطلب لا ينتظر سدادا الآن.',
     en: 'This request is not awaiting payment.',
     status: 409,
   },
   NO_ROUTE: { ar: 'لا توجد بوابة دفع مضبوطة.', en: 'No payment route configured.', status: 503 },
-  ROUTE_DISABLED: { ar: 'بوابة الدفع معطّلة مؤقتًا.', en: 'The payment route is disabled.', status: 503 },
-  GATEWAY_FAILED: { ar: 'تعذّر حجز المبلغ — جرّب وسيلة أخرى.', en: 'The hold failed — try another method.', status: 402 },
-  REQUIRES_ACTION: { ar: 'يلزم إكمال التحقّق من بطاقتك.', en: 'Your card needs verification.', status: 402 },
+  ROUTE_DISABLED: { ar: 'بوابة الدفع معطلة مؤقتا.', en: 'The payment route is disabled.', status: 503 },
+  GATEWAY_FAILED: { ar: 'تعذر حجز المبلغ — جرب وسيلة أخرى.', en: 'The hold failed — try another method.', status: 402 },
+  REQUIRES_ACTION: { ar: 'يلزم إكمال التحقق من بطاقتك.', en: 'Your card needs verification.', status: 402 },
 };
 
 export async function POST(

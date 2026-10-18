@@ -45,10 +45,10 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'SELF_APPROVAL'
-            ? 'طالب الإفراج لا يوافق على طلبه — يلزم عضو ثانٍ.'
+            ? 'طالب الإفراج لا يوافق على طلبه — يلزم عضو ثان.'
             : result.reason === 'NOT_TRANSFERRED'
-              ? 'لم تُؤكَّد ملكية المركبة بعد — لا إفراج قبلها.'
-              : 'تعذّر الإفراج.',
+              ? 'لم تؤكد ملكية المركبة بعد — لا إفراج قبلها.'
+              : 'تعذر الإفراج.',
         messageEn:
           result.reason === 'SELF_APPROVAL'
             ? 'The requester cannot approve their own release.'

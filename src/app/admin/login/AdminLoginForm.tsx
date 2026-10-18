@@ -38,7 +38,7 @@ export function AdminLoginForm() {
       router.replace('/admin');
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'تعذّر الدخول.');
+      setError(caught instanceof Error ? caught.message : 'تعذر الدخول.');
       setBusy(false);
     }
   }
@@ -77,7 +77,7 @@ export function AdminLoginForm() {
         </label>
 
         <Button type="submit" disabled={busy} className="mt-1 w-full">
-          {busy ? 'جارٍ التحقّق…' : 'دخول'}
+          {busy ? 'جار التحقق…' : 'دخول'}
         </Button>
       </form>
 

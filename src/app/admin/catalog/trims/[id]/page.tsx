@@ -54,7 +54,7 @@ export default async function TrimEditorPage({
 
   return (
     <AdminShell
-      title={`${trim.model.nameAr} ${trim.nameEn} — محرّر الفئة`}
+      title={`${trim.model.nameAr} ${trim.nameEn} — محرر الفئة`}
       activeHref="/admin/catalog/brands"
       admin={admin}
     >
@@ -68,7 +68,7 @@ export default async function TrimEditorPage({
           { label: 'من سنة', value: <Year value={trim.yearFrom} /> },
           {
             label: 'إلى سنة',
-            value: trim.yearTo === null ? 'ما زالت تُنتج' : <Year value={trim.yearTo} />,
+            value: trim.yearTo === null ? 'ما زالت تنتج' : <Year value={trim.yearTo} />,
           },
         ]}
       />
@@ -78,17 +78,17 @@ export default async function TrimEditorPage({
         param="tab"
         active={timeline ? 'timeline' : null}
         tabs={[
-          { key: null, label: 'المحرّر' },
-          { key: 'timeline', label: 'سجلّ التعديل' },
+          { key: null, label: 'المحرر' },
+          { key: 'timeline', label: 'سجل التعديل' },
         ]}
       />
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">سجلّ التعديل</h2>
+          <h2 className="mb-1.5 text-sm font-bold">سجل التعديل</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            ما يُعدَّل هنا يُورَّث إلى كل مركبةٍ تُنشأ من هذه الفئة — فمن غيّره ومتى
-            سؤالٌ يُسأل حين تُشتكى سيارةٌ لا تطابق وصفَها.
+            ما يعدل هنا يورث إلى كل مركبة تنشأ من هذه الفئة — فمن غيره ومتى
+            سؤال يسأل حين تشتكى سيارة لا تطابق وصفها.
           </p>
           <Timeline events={events} />
         </section>

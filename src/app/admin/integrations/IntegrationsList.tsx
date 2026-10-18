@@ -29,7 +29,7 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
 const CONNECTION_LABEL: Record<ConnectionState, string> = {
   READY: 'تعمل',
   NO_KEYS: 'بلا مفاتيح',
-  OFF: 'غير مفعّلة',
+  OFF: 'غير مفعلة',
 };
 
 const CONNECTION_TONE: Record<ConnectionState, 'accent' | 'warn' | 'neutral'> = {
@@ -77,8 +77,8 @@ export function IntegrationsList({
       if (!response.ok) {
         setToast(
           payload.error?.code === 'SELF_APPROVAL'
-            ? 'طالب التدوير لا يوافق على طلبه — يلزم عضو ثانٍ.'
-            : 'تعذّر التنفيذ.',
+            ? 'طالب التدوير لا يوافق على طلبه — يلزم عضو ثان.'
+            : 'تعذر التنفيذ.',
         );
         return;
       }
@@ -101,7 +101,7 @@ export function IntegrationsList({
     post(
       `/api/v1/admin/integrations/${draft.key}/rotate`,
       { env: draft.env, secrets },
-      () => 'سُجّل الطلب — ينتظر موافقة عضو ثانٍ ولم يتغيّر شيء بعد.',
+      () => 'سجل الطلب — ينتظر موافقة عضو ثان ولم يتغير شيء بعد.',
     );
     setDraft(null);
   };
@@ -126,7 +126,7 @@ export function IntegrationsList({
                       <span className="font-num" dir="ltr">{row.key}</span>
                     </p>
                     <p className="mt-1.5 text-3xs leading-relaxed opacity-70">
-                      عند التعطّل: {row.failureBehavior}
+                      عند التعطل: {row.failureBehavior}
                     </p>
                     {/*
                       ═══ وجهة المزوّد — تُعرض لتُنسخ ═══
@@ -141,7 +141,7 @@ export function IntegrationsList({
                     */}
                     {row.webhookUrl === null ? null : (
                       <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5 text-3xs">
-                        <span className="opacity-70">يُنادينا على</span>
+                        <span className="opacity-70">ينادينا على</span>
                         <code
                           className="font-num select-all rounded bg-ink/8 px-1.5 py-0.5 opacity-80"
                           dir="ltr"
@@ -188,7 +188,7 @@ export function IntegrationsList({
                     {!row.envForced ? null : (
                       /* المخزَّن «إنتاج» والمستعمَل «اختبار» — تُقال لا تُخفى */
                       <span className="text-3xs text-warn">
-                        مخزَّنة على الإنتاج، وتعمل على الاختبار — القيد في الكود.
+                        مخزنة على الإنتاج، وتعمل على الاختبار — القيد في الكود.
                       </span>
                     )}
                   </div>
@@ -208,10 +208,10 @@ export function IntegrationsList({
                       «نجح» بعده كذب.
                     */}
                     {row.lastCheckAt === null ? (
-                      <span className="text-3xs opacity-65">لم يُفحص بعد</span>
+                      <span className="text-3xs opacity-65">لم يفحص بعد</span>
                     ) : (
                       <span className="text-3xs opacity-65">
-                        فُحص {riyadh.format(new Date(row.lastCheckAt))}
+                        فحص {riyadh.format(new Date(row.lastCheckAt))}
                       </span>
                     )}
                   </div>
@@ -237,16 +237,16 @@ export function IntegrationsList({
                         post(
                           `/api/v1/admin/integrations/${row.key}/environment`,
                           { to: row.storedEnv === 'LIVE' ? 'TEST' : 'LIVE' },
-                          () => 'سُجّل الطلب — ينتظر عضوًا ثانيًا.',
+                          () => 'سجل الطلب — ينتظر عضوا ثانيا.',
                         )
                       }
                     >
-                      {row.storedEnv === 'LIVE' ? 'أعِدها إلى الاختبار' : 'انقلها إلى الإنتاج'}
+                      {row.storedEnv === 'LIVE' ? 'أعدها إلى الاختبار' : 'انقلها إلى الإنتاج'}
                     </Button>
                   ) : row.pendingEnvSwitch.requestedBy === adminId ? (
                     <span className="text-3xs opacity-70">
-                      طلبتَ نقلها إلى {row.pendingEnvSwitch.to === 'LIVE' ? 'الإنتاج' : 'الاختبار'} —
-                      ينتظر عضوًا آخر
+                      طلبت نقلها إلى {row.pendingEnvSwitch.to === 'LIVE' ? 'الإنتاج' : 'الاختبار'} —
+                      ينتظر عضوا آخر
                     </span>
                   ) : (
                     <Button
@@ -258,8 +258,8 @@ export function IntegrationsList({
                           { requestId: row.pendingEnvSwitch?.id },
                           (data) =>
                             (data as { state?: string } | undefined)?.state === 'EXECUTED'
-                              ? 'اكتمل النصاب — بُدّلت البيئة.'
-                              : 'سُجّلت موافقتك.',
+                              ? 'اكتمل النصاب — بدلت البيئة.'
+                              : 'سجلت موافقتك.',
                         )
                       }
                     >
@@ -287,12 +287,12 @@ export function IntegrationsList({
                           أو فشلُه.
                         */
                         const result = (data as { result?: string } | undefined)?.result;
-                        if (result === 'LIVE_OK') return 'نُودي المزوّد وردّ — المفاتيح تعمل.';
+                        if (result === 'LIVE_OK') return 'نودي المزود ورد — المفاتيح تعمل.';
                         if (result === 'LIVE_FAILED') {
-                          return 'نُودي المزوّد ورفض — راجع المفاتيح أو البيئة.';
+                          return 'نودي المزود ورفض — راجع المفاتيح أو البيئة.';
                         }
                         if (result === 'UNTESTED') {
-                          return 'المفاتيح مضبوطة — ولا وصلة لهذا التكامل بعد لتُجرَّب.';
+                          return 'المفاتيح مضبوطة — ولا وصلة لهذا التكامل بعد لتجرب.';
                         }
                         return 'لا مفاتيح مضبوطة لهذا التكامل بعد.';
                       })
@@ -325,7 +325,7 @@ export function IntegrationsList({
                     </Button>
                   ) : row.pendingRotation.requestedBy === adminId ? (
                     /* الطالب يرى أنه ينتظر غيره — ولا يُعرض له زرّ يضغطه فيُرفض */
-                    <span className="text-3xs opacity-70">طلبتَه — ينتظر عضوًا آخر</span>
+                    <span className="text-3xs opacity-70">طلبته — ينتظر عضوا آخر</span>
                   ) : (
                     /*
                       ═══ والمعتمِد يرى ما يعتمده ═══
@@ -357,8 +357,8 @@ export function IntegrationsList({
                             { requestId: row.pendingRotation?.id },
                             (data) =>
                               (data as { state?: string } | undefined)?.state === 'EXECUTED'
-                                ? 'اكتمل النصاب — دُوِّر المفتاح.'
-                                : 'سُجّلت موافقتك.',
+                                ? 'اكتمل النصاب — دور المفتاح.'
+                                : 'سجلت موافقتك.',
                           )
                         }
                       >
@@ -391,8 +391,8 @@ export function IntegrationsList({
         {draft === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="text-2xs leading-relaxed opacity-70">
-              المفتاح الجديد يُشفَّر ويبقى في الطلب حتى يعتمده عضو ثانٍ. ولن يُستبدل القديم
-              قبل ذلك — <strong>فالطلب وحده ليس تدويرًا</strong>.
+              المفتاح الجديد يشفر ويبقى في الطلب حتى يعتمده عضو ثان. ولن يستبدل القديم
+              قبل ذلك — <strong>فالطلب وحده ليس تدويرا</strong>.
             </p>
 
             {/*
@@ -425,7 +425,7 @@ export function IntegrationsList({
               </div>
               {draft.env !== 'LIVE' ? null : (
                 <p className="rounded-md border border-warn-200 bg-warn-100 p-2.5 text-3xs leading-loose text-warn-900">
-                  مفتاحُ إنتاج — يمسّ مالًا حقيقيًّا فور اعتماده. تأكّد أنه من لوحة المزوّد
+                  مفتاح إنتاج — يمس مالا حقيقيا فور اعتماده. تأكد أنه من لوحة المزود
                   لا من بيئة الاختبار.
                 </p>
               )}

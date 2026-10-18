@@ -84,7 +84,7 @@ export default async function CompletionPage({
       <ProviderBar name={user.name} />
       <main className="mx-auto w-full max-w-2xl px-6 py-8">
         <Breadcrumb
-          label="مسار التنقّل"
+          label="مسار التنقل"
           separator="›"
           className="mb-5"
           items={[
@@ -96,7 +96,7 @@ export default async function CompletionPage({
 
         <h1 className="mb-1.5 text-2xl font-bold tracking-tight">{title}</h1>
         <p className="mb-7 text-2xs leading-loose opacity-70">
-          ما تكتبه هنا يراه صاحبُ الطلب، ويُحفظ إثباتًا لما أُنجز. ولا يُنهى الطلب قبل أن
+          ما تكتبه هنا يراه صاحب الطلب، ويحفظ إثباتا لما أنجز. ولا ينهى الطلب قبل أن
           تكتمل الحقول المطلوبة.
         </p>
 

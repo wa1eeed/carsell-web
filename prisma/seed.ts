@@ -49,12 +49,12 @@ if (APP_ENV === 'production') {
   console.error(
     [
       '',
-      '✗ رُفض التشغيل: APP_ENV=production',
+      '✗ رفض التشغيل: APP_ENV=production',
       '',
       '  سكربت الزرع يمسح كل الجداول ويعيد بناءها ببيانات وهمية.',
-      '  تشغيله على الإنتاج يعني فقدان بيانات حقيقية لا تُستعاد.',
+      '  تشغيله على الإنتاج يعني فقدان بيانات حقيقية لا تستعاد.',
       '',
-      '  الإنتاج يُرحَّل بـ`prisma migrate deploy` فقط — لا زرع ولا `db push`.',
+      '  الإنتاج يرحل بـ`prisma migrate deploy` فقط — لا زرع ولا `db push`.',
       '',
     ].join('\n'),
   );
@@ -240,7 +240,7 @@ function seedIban(bank: string, account: string): string {
     const candidate = `SA${String(check).padStart(2, '0')}${bank}${account}`;
     if (checkIban(candidate).ok) return candidate;
   }
-  throw new Error(`لا خانتَي تحقّق صحيحتين لـ${bank}${account}`);
+  throw new Error(`لا خانتي تحقق صحيحتين لـ${bank}${account}`);
 }
 
 /**
@@ -281,7 +281,7 @@ const CITIES = [
 const COLORS = [
   'أبيض',
   'أسود',
-  'فضّي',
+  'فضي',
   'رمادي',
   'أزرق',
   'بني',
@@ -455,10 +455,10 @@ async function reset(): Promise<void> {
       "Deposit","Bid","Auction","Offer","ListingFeature","ListingImage","Listing",
       "VehicleHistoryItem","Vehicle","TrimFeature","Feature","Trim","Model","Brand",
       "OtpChallenge","AdminUser","User","Dealer",
-      -- **والدفتر ليس له مفتاحٌ خارجيّ إلى الطلب، فلا يُفرَّغ بالتعاقب.**
-      -- فكان يتراكم عبر كل تشغيل اختبار ولا يُمسح أبدًا: قرأتُ فيه
-      -- ٢٠٧٬٧٥٠ «لدى مزوّد الدفع» والمال الفعليّ ٣٤٤٬٥٧٠ — ورقمٌ في
-      -- دفترٍ لا يطابق ما في الصناديق ليس خطأ عرضٍ بل دفترٌ غير موثوق.
+      -- **والدفتر ليس له مفتاح خارجي إلى الطلب، فلا يفرغ بالتعاقب.**
+      -- فكان يتراكم عبر كل تشغيل اختبار ولا يمسح أبدا: قرأت فيه
+      -- ٢٠٧٬٧٥٠ «لدى مزود الدفع» والمال الفعلي ٣٤٤٬٥٧٠ — ورقم في
+      -- دفتر لا يطابق ما في الصناديق ليس خطأ عرض بل دفتر غير موثوق.
       "LedgerEntry"
     RESTART IDENTITY CASCADE;
   `);
@@ -662,9 +662,9 @@ async function main(): Promise<void> {
   const seedPassword = process.env.ADMIN_PASSWORD ?? null;
   if (seedPassword === null && APP_ENV !== 'development') {
     console.error(
-      `\n✗ رُفض التشغيل: APP_ENV=${APP_ENV} بلا ADMIN_PASSWORD.\n` +
-        '  الافتراضيّ مكتوبٌ في المستودع، ونشرُه على عنوانٍ عامّ يفتح اللوحة لمن قرأه.\n' +
-        '  اضبط كلمةً قويّة واحتفظ بها:  openssl rand -base64 24\n',
+      `\n✗ رفض التشغيل: APP_ENV=${APP_ENV} بلا ADMIN_PASSWORD.\n` +
+        '  الافتراضي مكتوب في المستودع، ونشره على عنوان عام يفتح اللوحة لمن قرأه.\n' +
+        '  اضبط كلمة قوية واحتفظ بها:  openssl rand -base64 24\n',
     );
     process.exit(1);
   }
@@ -899,7 +899,7 @@ async function main(): Promise<void> {
       data: {
         providerId: p.id,
         email: `${type.toLowerCase()}@provider.example`,
-        name: `مشغّل ${nameAr}`,
+        name: `مشغل ${nameAr}`,
         /**
          * **ولا كلمةَ ثابتة هنا.** الحارس أعلى الملف يرفض الزرع خارج
          * التطوير بلا `ADMIN_PASSWORD` صريحة، وكلمةٌ أكتبها هنا تتجاوزه
@@ -1052,7 +1052,7 @@ async function main(): Promise<void> {
       prisma.user.create({
         data: {
           phone: `+9665${String(30000000 + i).padStart(8, '0')}`,
-          name: `مشترٍ ${i + 1}`,
+          name: `مشتر ${i + 1}`,
           // الثلث غير موثَّق — وحالتُه تتبع رايته، فيصير الطابور واقعيًّا
           identityStatus: i % 3 !== 0 ? 'VERIFIED' : i % 3 === 0 && i % 2 === 0 ? 'PENDING' : 'NONE',
           idVerified: i % 3 !== 0,
@@ -1095,11 +1095,11 @@ async function main(): Promise<void> {
 
   /** أوصافٌ بلغة السوق — لا جملًا تسويقية. */
   const DESCRIPTIONS: readonly string[] = [
-    'سيارة بحالة ممتازة، صيانة دورية في الوكالة ومالك واحد منذ الشراء. الصبغ في الرفرف الأيمن من خدش في موقف، ومثبت في تقرير الفحص. الإطارات الأمامية مغيّرة قبل ستة أشهر. قابلة للفحص في أي مركز يختاره المشتري.',
+    'سيارة بحالة ممتازة، صيانة دورية في الوكالة ومالك واحد منذ الشراء. الصبغ في الرفرف الأيمن من خدش في موقف، ومثبت في تقرير الفحص. الإطارات الأمامية مغيرة قبل ستة أشهر. قابلة للفحص في أي مركز يختاره المشتري.',
     'ممشى قليل والاستعمال داخل المدينة فقط. الصيانة كلها في الوكالة وفواتيرها موجودة. لا حوادث ولا صبغ. السعر قابل للتفاوض للجاد.',
-    'نظيفة جدًا من الداخل والخارج، بصمة كاملة وشاشة أصلية. غُيّرت البطارية والمكابح الأمامية هذا العام. الرخصة والتأمين ساريان حتى نهاية السنة.',
-    'مستخدمة في مشاوير العمل والطريق السريع، لذلك الممشى أعلى من مثيلاتها والمحرك بحالة ممتازة. آخر صيانة على عشرة آلاف كيلو. جاهزة للنقل فورًا.',
-    'ثاني مالك، والأول اشتراها من الوكالة. يوجد خدش بسيط على المصد الخلفي موضّح في الصور ولم يُصبغ. تُسلَّم بعد فحص المشتري ولا مانع من الفحص قبل الشراء.',
+    'نظيفة جدا من الداخل والخارج، بصمة كاملة وشاشة أصلية. غيرت البطارية والمكابح الأمامية هذا العام. الرخصة والتأمين ساريان حتى نهاية السنة.',
+    'مستخدمة في مشاوير العمل والطريق السريع، لذلك الممشى أعلى من مثيلاتها والمحرك بحالة ممتازة. آخر صيانة على عشرة آلاف كيلو. جاهزة للنقل فورا.',
+    'ثاني مالك، والأول اشتراها من الوكالة. يوجد خدش بسيط على المصد الخلفي موضح في الصور ولم يصبغ. تسلم بعد فحص المشتري ولا مانع من الفحص قبل الشراء.',
   ];
 
   type ListingRef = {
@@ -1322,7 +1322,7 @@ async function main(): Promise<void> {
         type: 'owner',
         titleAr: 'مالك واحد منذ الشراء',
         titleEn: 'One owner since purchase',
-        detailAr: 'لم تُنقل الملكية داخل المنصة منذ الإضافة.',
+        detailAr: 'لم تنقل الملكية داخل المنصة منذ الإضافة.',
         detailEn: 'Ownership has not changed inside the platform since it was added.',
         source: 'PLATFORM' as const,
         occurredAt: days(-between(200, 800)),
@@ -1789,7 +1789,7 @@ async function main(): Promise<void> {
       data: {
         orderId: order.id,
         openedBy: order.buyerId,
-        reason: resolved ? 'تأخّر نقل الملكية عن الموعد' : 'المركبة بحالةٍ غير الموصوفة في الإعلان',
+        reason: resolved ? 'تأخر نقل الملكية عن الموعد' : 'المركبة بحالة غير الموصوفة في الإعلان',
         /* **والتعدادُ يُقرأ لا يُتذكَّر**: لا `RESOLVED` فيه — بل بمن حُسم لصالحه */
         status: resolved ? 'RESOLVED_BUYER' : 'OPEN',
         slaDueAt: new Date(openedAt.getTime() + 48 * 3600 * 1000),
@@ -1865,8 +1865,8 @@ async function main(): Promise<void> {
         reporterId: reporter.id,
         targetType: 'listing',
         targetId: listing.id,
-        reason: n === 0 ? 'سعرٌ مضلّل' : 'صورٌ لا تخصّ المركبة',
-        details: n === 0 ? 'السعر المعروض أقلّ ممّا يطلبه البائع عند التواصل.' : null,
+        reason: n === 0 ? 'سعر مضلل' : 'صور لا تخص المركبة',
+        details: n === 0 ? 'السعر المعروض أقل مما يطلبه البائع عند التواصل.' : null,
         status: n === 0 ? 'open' : 'closed',
         createdAt: days(-between(1, 12)),
       },
@@ -1890,7 +1890,7 @@ async function main(): Promise<void> {
     },
     'مساعد أمامي أيسر': {
       state: 'NOTE',
-      note: 'بداية ترشيح زيت دون تأثير على الأداء. يُنصح بالمتابعة خلال ١٠٬٠٠٠ كم.',
+      note: 'بداية ترشيح زيت دون تأثير على الأداء. ينصح بالمتابعة خلال ١٠٬٠٠٠ كم.',
       photos: ['inspection/front-left-strut.jpg'],
     },
     'عمق نقشة الإطار الأمامي الأيمن': {
@@ -1915,12 +1915,12 @@ async function main(): Promise<void> {
      */
     'توربو (إن وجد)': {
       state: 'NOT_INSPECTED',
-      note: 'المركبة بمحرّك تنفّسٍ طبيعيّ — لا شاحن توربينيّ فيها.',
+      note: 'المركبة بمحرك تنفس طبيعي — لا شاحن توربيني فيها.',
       photos: [],
     },
     'الشاحن الكهربائي (إن وجد)': {
       state: 'NOT_INSPECTED',
-      note: 'المركبة بنزين — لا نظام شحن كهربائيّ فيها.',
+      note: 'المركبة بنزين — لا نظام شحن كهربائي فيها.',
       photos: [],
     },
   };
@@ -1935,11 +1935,11 @@ async function main(): Promise<void> {
   };
 
   const SECTION_NOTES: Record<string, string> = {
-    engine: 'ضغط متساوٍ على الأسطوانات، لا تسريب زيت.',
+    engine: 'ضغط متساو على الأسطوانات، لا تسريب زيت.',
     transmission: 'تعشيق سلس، لا اهتزاز عند التسارع.',
     brakes: 'الأقراص الأمامية ٧٢٪ من العمر، ومساعد أمامي أيسر بداية ترشيح.',
     tyres: 'الإطارات الأمامية بعمر سنتين، والخلفية بثلاث.',
-    body: 'هيكل سليم بلا حوادث مسجّلة. صبغ على المصد الخلفي فقط.',
+    body: 'هيكل سليم بلا حوادث مسجلة. صبغ على المصد الخلفي فقط.',
     electric: 'جميع الأنظمة تعمل، وشحن البطارية ضمن المدى.',
   };
 
@@ -2124,7 +2124,7 @@ async function main(): Promise<void> {
         sections,
         paintMap: {
           summary:
-            'هيكل سليم بلا حوادث مسجّلة. صبغ على المصد الخلفي فقط بسماكة ١٨٠ ميكرون. لا آثار لحام أو استبدال في أي قطعة أساسية.',
+            'هيكل سليم بلا حوادث مسجلة. صبغ على المصد الخلفي فقط بسماكة ١٨٠ ميكرون. لا آثار لحام أو استبدال في أي قطعة أساسية.',
           frontBumper: 'original',
           hood: 'original',
           roof: 'original',
@@ -2385,7 +2385,7 @@ async function main(): Promise<void> {
         status: 'COUNTERED',
         days: 4,
         period: 'NOON',
-        meeting: 'مواقف مجمّع العثيم، مخرج ٩، الرياض.',
+        meeting: 'مواقف مجمع العثيم، مخرج ٩، الرياض.',
         reason: null,
         by: null,
       },
@@ -2393,7 +2393,7 @@ async function main(): Promise<void> {
         status: 'CONFIRMED',
         days: 3,
         period: 'EVENING',
-        meeting: 'محطة بترومين، تقاطع طريق الملك عبدالعزيز مع الأمير سلطان، حيّ الملقا.',
+        meeting: 'محطة بترومين، تقاطع طريق الملك عبدالعزيز مع الأمير سلطان، حي الملقا.',
         reason: null,
         by: null,
       },
@@ -2429,7 +2429,7 @@ async function main(): Promise<void> {
           status: plan.status,
           onDate: new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())),
           period: plan.period,
-          buyerNote: n === 0 ? 'أصل من الدمام نهاية الأسبوع — أفضّل بعد العصر.' : null,
+          buyerNote: n === 0 ? 'أصل من الدمام نهاية الأسبوع — أفضل بعد العصر.' : null,
           /** وما طلبه المشتري قبل الاقتراح — فيُقرأ الفرق لا الموعدُ وحده */
           originalDate:
             plan.status === 'COUNTERED'
@@ -2601,8 +2601,8 @@ async function main(): Promise<void> {
   // ————— التكاملات (A11) —————
   await prisma.integration.createMany({
     data: [
-      ['otp_sms', 'رسائل التحقّق', 'Unifonic', 'INFRASTRUCTURE', 'ACTIVE', 'التحويل للاحتياطي خلال ٣٠ ثانية'],
-      ['nafath', 'النفاذ الوطني', 'Nafath', 'IDENTITY', 'INACTIVE', 'المسار اليدوي دائمًا متاح'],
+      ['otp_sms', 'رسائل التحقق', 'Unifonic', 'INFRASTRUCTURE', 'ACTIVE', 'التحويل للاحتياطي خلال ٣٠ ثانية'],
+      ['nafath', 'النفاذ الوطني', 'Nafath', 'IDENTITY', 'INACTIVE', 'المسار اليدوي دائما متاح'],
       /**
        * ═══ بوّابتان لا واحدة — قرار المالك ٢٠٢٦-١٠-١٤ ═══
        *
@@ -2613,12 +2613,12 @@ async function main(): Promise<void> {
        *
        * وحسابان مختلفان بإمكاناتٍ مختلفة، فمدخلان لا مدخل.
        */
-      ['payments', 'بوابة الدفع للمنصّة', 'Moyasar', 'PAYMENT', 'INACTIVE', 'رسالة واضحة وإعادة محاولة'],
-      ['moyasar_platform', 'بوابة الدفع للمزوّدين', 'Moyasar Platform', 'PAYMENT', 'INACTIVE', 'الخدمة تبقى تُطلب ويتأخّر التحصيل'],
+      ['payments', 'بوابة الدفع للمنصة', 'Moyasar', 'PAYMENT', 'INACTIVE', 'رسالة واضحة وإعادة محاولة'],
+      ['moyasar_platform', 'بوابة الدفع للمزودين', 'Moyasar Platform', 'PAYMENT', 'INACTIVE', 'الخدمة تبقى تطلب ويتأخر التحصيل'],
       ['vin_lookup', 'بيانات المركبة', 'Tamm', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي'],
       // سجلُّ المنشأة وعقدُ التأسيس والمفوَّضون — بالرقم الموحَّد
       ['lean', 'سجل المنشأة', 'Lean', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي'],
-      ['mojaz', 'تقارير موجز', 'Mojaz', 'GOVERNMENT', 'INACTIVE', 'ردّ المبلغ تلقائيًا'],
+      ['mojaz', 'تقارير موجز', 'Mojaz', 'GOVERNMENT', 'INACTIVE', 'رد المبلغ تلقائيا'],
       ['r2', 'الوسائط', 'Cloudflare R2', 'INFRASTRUCTURE', 'ACTIVE', 'عرض من الذاكرة المؤقتة'],
       ['email', 'البريد المعاملاتي', 'Resend', 'INFRASTRUCTURE', 'INACTIVE', 'طابور إعادة إرسال'],
     ].map(([key, nameAr, provider, category, status, failureBehavior]) => ({
@@ -2642,7 +2642,7 @@ async function main(): Promise<void> {
         titleAr: 'سيارات {brand} {model} {condition} في {city}',
         titleEn: '{condition} {brand} {model} cars in {city}',
         introAr:
-          '{count} سيارة {model} معروضة في {city} بأسعار من {priceMin} إلى {priceMax} ريال، جميعها موثّقة الملكية.',
+          '{count} سيارة {model} معروضة في {city} بأسعار من {priceMin} إلى {priceMax} ريال، جميعها موثقة الملكية.',
         introEn:
           '{count} {model} cars listed in {city}, priced from {priceMin} to {priceMax} SAR, all with verified ownership.',
         outroAr:
@@ -2953,14 +2953,14 @@ async function main(): Promise<void> {
     'قناة دفع': await prisma.pushChannel.count(),
     'بوابة دفع': await prisma.paymentGateway.count(),
     'قاعدة ضريبية': await prisma.taxRule.count(),
-    مفضّلة: await prisma.favorite.count(),
+    مفضلة: await prisma.favorite.count(),
     'مساحة إعلانية': await prisma.adSlot.count(),
     'جهة تمويل': await prisma.financeProvider.count(),
     تكامل: await prisma.integration.count(),
     'إحصاء سعر': await prisma.priceStat.count(),
     /** **والتسرّب الصامت يُقاس لا يُلاحَظ** — فكلُّ كيانٍ يُزرع يُعدّ. */
     'قيد دفتر': await prisma.ledgerEntry.count(),
-    'تحويل مزوّد': await prisma.providerPayout.count(),
+    'تحويل مزود': await prisma.providerPayout.count(),
   };
 
   console.log('');

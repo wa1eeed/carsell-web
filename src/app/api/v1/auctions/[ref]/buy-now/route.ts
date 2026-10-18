@@ -10,17 +10,17 @@ const MESSAGES: Record<string, { ar: string; en: string }> = {
   NOT_LIVE: { ar: 'المزاد غير مفتوح الآن.', en: 'This auction is not open.' },
   BUY_NOW_UNAVAILABLE: {
     // القاعدة ١٠ — ويُقال سببُها، فاختفاءٌ بلا تفسير يُقرأ عطلًا
-    ar: 'الشراء الفوري لم يعد متاحًا — بلغت المزايدات سعر البيع.',
+    ar: 'الشراء الفوري لم يعد متاحا — بلغت المزايدات سعر البيع.',
     en: 'Buy now is no longer available — bidding has met the reserve.',
   },
-  OWN_LISTING: { ar: 'لا تشترِ مركبتك.', en: 'You cannot buy your own vehicle.' },
+  OWN_LISTING: { ar: 'لا تشتر مركبتك.', en: 'You cannot buy your own vehicle.' },
   PROFILE_INCOMPLETE: {
     ar: 'أكمل بريدك وتوثيق هويتك قبل الشراء.',
     en: 'Complete your email and identity before buying.',
   },
-  TAX_STATUS_REQUIRED: { ar: 'حدّد وضعك الضريبي أوّلًا.', en: 'Set your tax status first.' },
-  ORDER_EXISTS: { ar: 'على هذه المركبة طلبٌ قائم.', en: 'This vehicle already has an order.' },
-  LISTING_UNAVAILABLE: { ar: 'الإعلان لم يعد متاحًا.', en: 'This listing is no longer available.' },
+  TAX_STATUS_REQUIRED: { ar: 'حدد وضعك الضريبي أولا.', en: 'Set your tax status first.' },
+  ORDER_EXISTS: { ar: 'على هذه المركبة طلب قائم.', en: 'This vehicle already has an order.' },
+  LISTING_UNAVAILABLE: { ar: 'الإعلان لم يعد متاحا.', en: 'This listing is no longer available.' },
 };
 
 /**
@@ -48,7 +48,7 @@ export async function POST(
     return fail(
       {
         code: `BUY_NOW_${result.reason}`,
-        messageAr: entry?.ar ?? 'تعذّر الشراء الفوري.',
+        messageAr: entry?.ar ?? 'تعذر الشراء الفوري.',
         messageEn: entry?.en ?? 'Could not complete the purchase.',
       },
       result.reason === 'AUCTION_NOT_FOUND' ? 404 : 422,

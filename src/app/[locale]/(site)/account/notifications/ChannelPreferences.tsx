@@ -52,7 +52,7 @@ export function ChannelPreferences({ channels }: { channels: readonly ChannelCho
         const payload = (await response?.json().catch(() => null)) as
           | { error?: { messageAr?: string } }
           | null;
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
       }
     });
   };
@@ -61,7 +61,7 @@ export function ChannelPreferences({ channels }: { channels: readonly ChannelCho
     <section className="mb-8 rounded-xl border border-line bg-surface p-5">
       <h2 className="mb-1.5 text-sm font-bold">ما يصلك</h2>
       <p className="mb-4 max-w-xl text-2xs leading-loose opacity-70">
-        أطفئ ما لا يعنيك. وما يخصّ مالك وصفقاتك يصلك دائمًا.
+        أطفئ ما لا يعنيك. وما يخص مالك وصفقاتك يصلك دائما.
       </p>
 
       <ul className="flex flex-col">
@@ -74,7 +74,7 @@ export function ChannelPreferences({ channels }: { channels: readonly ChannelCho
               <span className="block text-2xs font-semibold">{row.nameAr}</span>
               {row.userControllable ? null : (
                 <span className="mt-0.5 block text-3xs opacity-70">
-                  لا تُطفأ — فيها مواعيدُ ومبالغُ تخصّك.
+                  لا تطفأ — فيها مواعيد ومبالغ تخصك.
                 </span>
               )}
             </span>
@@ -98,7 +98,7 @@ export function ChannelPreferences({ channels }: { channels: readonly ChannelCho
                 />
               </button>
             ) : (
-              <span className="shrink-0 text-3xs font-bold opacity-65">دائمًا</span>
+              <span className="shrink-0 text-3xs font-bold opacity-65">دائما</span>
             )}
           </li>
         ))}

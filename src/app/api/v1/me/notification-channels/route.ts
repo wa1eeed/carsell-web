@@ -24,7 +24,7 @@ const Body = z.object({
 const MESSAGES: Record<string, { ar: string; en: string }> = {
   UNKNOWN_CHANNEL: { ar: 'قناة غير معروفة.', en: 'Unknown channel.' },
   CRITICAL_CHANNEL: {
-    ar: 'هذه لا تُطفأ — فيها مواعيدُ ومبالغُ تخصّك.',
+    ar: 'هذه لا تطفأ — فيها مواعيد ومبالغ تخصك.',
     en: 'This one cannot be muted — it carries your deadlines and your money.',
   },
 };
@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest) {
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر الحفظ.',
+        messageAr: text?.ar ?? 'تعذر الحفظ.',
         messageEn: text?.en ?? 'Could not save.',
       },
       result.reason === 'UNKNOWN_CHANNEL' ? 404 : 409,

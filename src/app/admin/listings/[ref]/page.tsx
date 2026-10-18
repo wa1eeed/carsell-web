@@ -141,8 +141,8 @@ export default async function AdminListingDetailPage({
           { label: 'العروض', value: <ArabicNumber value={listing.offers.length} /> },
           { label: 'المشاهدات', value: <ArabicNumber value={listing.viewCount} /> },
           {
-            label: 'نُشر',
-            value: listing.publishedAt === null ? 'لم يُنشر' : riyadh.format(new Date(listing.publishedAt)),
+            label: 'نشر',
+            value: listing.publishedAt === null ? 'لم ينشر' : riyadh.format(new Date(listing.publishedAt)),
           },
         ]}
       />
@@ -168,9 +168,9 @@ export default async function AdminListingDetailPage({
         <section className="rounded-xl border border-line p-5">
           <h2 className="mb-1.5 text-sm font-bold">تاريخ الإعلان</h2>
           <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
-            كلُّ حدثٍ وقع عليه — من إنشائه إلى آخر خطوة، مرتَّبًا من الأقدم.
-            <b> وما لا سجلَّ له لا يُعرض</b>: لا سطرَ لتغيّر سعرٍ ما دام لا يُسجَّل،
-            وسطرٌ مخترَعٌ في تحقيقٍ أسوأ من سطرٍ غائب.
+            كل حدث وقع عليه — من إنشائه إلى آخر خطوة، مرتبا من الأقدم.
+            <b> وما لا سجل له لا يعرض</b>: لا سطر لتغير سعر ما دام لا يسجل،
+            وسطر مخترع في تحقيق أسوأ من سطر غائب.
           </p>
           <Timeline events={events} />
         </section>
@@ -180,12 +180,12 @@ export default async function AdminListingDetailPage({
         <section className="rounded-xl border border-line p-5">
           <h2 className="mb-1.5 text-sm font-bold">الصور</h2>
           <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
-            <b>ونصفُ المراجعة بصريّ</b> — فالصورة هنا لا مفتاحُها: لوحةٌ ظاهرة أو
-            صورةٌ ضبابية تُردّ قبل قراءة سطر. وكانت تُعرض مفاتيحَ نصّية.
+            <b>ونصف المراجعة بصري</b> — فالصورة هنا لا مفتاحها: لوحة ظاهرة أو
+            صورة ضبابية ترد قبل قراءة سطر. وكانت تعرض مفاتيح نصية.
           </p>
 
           {listing.images.length === 0 ? (
-            <p className="text-2xs opacity-70">لا صور — وإعلانٌ بلا صورة لا يُنشر أصلًا.</p>
+            <p className="text-2xs opacity-70">لا صور — وإعلان بلا صورة لا ينشر أصلا.</p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {listing.images.map((image) => (
@@ -193,7 +193,7 @@ export default async function AdminListingDetailPage({
                   <div className="aspect-4/3 bg-ink/8">
                     {image.url === null ? (
                       <span className="flex size-full items-center justify-center text-3xs opacity-65">
-                        لا عنوان عامّ مضبوط
+                        لا عنوان عام مضبوط
                       </span>
                     ) : (
                       /* eslint-disable-next-line @next/next/no-img-element -- مفتاحُ R2 لا يمرّ بمحسّن الصور */
@@ -212,7 +212,7 @@ export default async function AdminListingDetailPage({
                       لوحةَ سيارةٍ لصاحبها لم يأذن بها.
                     */}
                     {image.plateBlurred ? (
-                      <Badge tone="accent">طُمست اللوحة</Badge>
+                      <Badge tone="accent">طمست اللوحة</Badge>
                     ) : (
                       <Badge tone="danger">بلا طمس</Badge>
                     )}
@@ -328,7 +328,7 @@ export default async function AdminListingDetailPage({
               <Field label="اللون" value={listing.vehicle.colorExterior} />
               <Field label="الحالة" value={listing.vehicle.condition} ltr />
               {/* الرقم التسلسليّ يُقارن خانةً بخانة */}
-              <Field label="الرقم التسلسليّ" value={listing.vehicle.vin ?? '—'} ltr />
+              <Field label="الرقم التسلسلي" value={listing.vehicle.vin ?? '—'} ltr />
 
               {/*
                 ═══ واللوحةُ مرسومةً لا نصًّا ═══
@@ -360,15 +360,15 @@ export default async function AdminListingDetailPage({
                 value={<ArabicNumber value={listing.viewCount} />}
               />
               <Field
-                label="نُشر"
+                label="نشر"
                 value={
                   listing.publishedAt === null
-                    ? 'لم يُنشر بعد'
+                    ? 'لم ينشر بعد'
                     : riyadh.format(new Date(listing.publishedAt))
                 }
               />
               {listing.closedAt === null ? null : (
-                <Field label="أُغلق" value={riyadh.format(new Date(listing.closedAt))} />
+                <Field label="أغلق" value={riyadh.format(new Date(listing.closedAt))} />
               )}
               {listing.closeReason === null ? null : (
                 <Field label="سبب الإغلاق" value={listing.closeReason} ltr />
@@ -380,13 +380,13 @@ export default async function AdminListingDetailPage({
               <Field label="الهاتف" value={listing.seller.phone} ltr />
               <Field
                 label="الهوية"
-                value={listing.seller.idVerified ? 'موثَّقة' : 'بلا توثيق'}
+                value={listing.seller.idVerified ? 'موثقة' : 'بلا توثيق'}
               />
               <Link
                 href={`/admin/users/${listing.seller.id}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
-                افتح ملفّه
+                افتح ملفه
               </Link>
             </DetailCard>
 
@@ -407,7 +407,7 @@ export default async function AdminListingDetailPage({
                 {listing.reviewedAt === null ? (
                   <Field label="القرار" value="ما زال قيد المراجعة" />
                 ) : (
-                  <Field label="روجِع" value={riyadh.format(new Date(listing.reviewedAt))} />
+                  <Field label="روجع" value={riyadh.format(new Date(listing.reviewedAt))} />
                 )}
                 {listing.reviewNote === null ? null : (
                   <Field label="الملاحظة" value={listing.reviewNote} />
@@ -429,7 +429,7 @@ export default async function AdminListingDetailPage({
                 />
                 {/* الاحتياطي لا يُعرض — ممنوعٌ في أي استجابة، والشاشة ليست استثناء */}
                 <p className="mt-3 text-3xs opacity-65">
-                  السعر الاحتياطيّ لا يُعرض هنا — ولا في أي شاشة.
+                  السعر الاحتياطي لا يعرض هنا — ولا في أي شاشة.
                 </p>
               </DetailCard>
             )}

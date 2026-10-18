@@ -46,12 +46,12 @@ export function CancelOrder({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر إلغاء الطلب.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إلغاء الطلب.');
         return;
       }
 
       setOpen(false);
-      setToast(paid ? 'أُلغي الطلب، ويُردّ المبلغ إلى وسيلة دفعك.' : 'أُلغي الطلب.');
+      setToast(paid ? 'ألغي الطلب، ويرد المبلغ إلى وسيلة دفعك.' : 'ألغي الطلب.');
       /** الفعل الناجح يُتبعه تحديثُ المصدر الذي تقرأ منه الشاشة. */
       router.refresh();
     });
@@ -64,14 +64,14 @@ export function CancelOrder({
         onClick={() => setOpen(true)}
         className="text-3xs opacity-70 underline-offset-4 hover:underline hover:opacity-100"
       >
-        ألغِ الطلب
+        ألغ الطلب
       </button>
 
       <Modal open={open} onClose={() => setOpen(false)} title="إلغاء الطلب">
         <p className="mb-4 text-xs leading-loose">
           {paid
-            ? 'يُلغى الحجز لدى بوابة الدفع ويعود المبلغ إلى وسيلة دفعك، ويعود الإعلان معروضًا للآخرين.'
-            : 'لم يُدفع شيء بعد — ويعود الإعلان معروضًا للآخرين.'}
+            ? 'يلغى الحجز لدى بوابة الدفع ويعود المبلغ إلى وسيلة دفعك، ويعود الإعلان معروضا للآخرين.'
+            : 'لم يدفع شيء بعد — ويعود الإعلان معروضا للآخرين.'}
         </p>
 
         <label className="mb-4 flex flex-col gap-1.5">
@@ -80,11 +80,11 @@ export function CancelOrder({
             rows={3}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="غيّرت رأيي · تأخّر البائع · وجدتُ مركبةً أنسب…"
+            placeholder="غيرت رأيي · تأخر البائع · وجدت مركبة أنسب…"
             className="rounded-md border border-line bg-bg px-3 py-2 text-2xs leading-loose"
           />
           <span className="text-3xs opacity-65">
-            يُقرأ في أي نزاعٍ لاحق — واكتب ما يكفي ليفهمه غيرك.
+            يقرأ في أي نزاع لاحق — واكتب ما يكفي ليفهمه غيرك.
           </span>
         </label>
 
@@ -94,7 +94,7 @@ export function CancelOrder({
             disabled={pending || reason.trim().length < 3}
             onClick={cancel}
           >
-            {pending ? 'جارٍ…' : 'نعم، ألغِ'}
+            {pending ? 'جار…' : 'نعم، ألغ'}
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>
             تراجع

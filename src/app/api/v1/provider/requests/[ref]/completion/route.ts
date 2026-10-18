@@ -18,16 +18,16 @@ const Body = z.object({
 const MESSAGES: Record<SaveCompletionFailure, { ar: string; en: string; status: number }> = {
   REQUEST_NOT_FOUND: { ar: 'لم نجد هذا الطلب.', en: 'Request not found.', status: 404 },
   NO_FORM: {
-    ar: 'لا نموذج إنجازٍ لهذا الطلب.',
+    ar: 'لا نموذج إنجاز لهذا الطلب.',
     en: 'This request has no completion form.',
     status: 404,
   },
   LOCKED: {
-    ar: 'أُنهي هذا الطلب، فلا يُعدَّل إثباتُه.',
+    ar: 'أنهي هذا الطلب، فلا يعدل إثباته.',
     en: 'This request is closed; its record cannot be changed.',
     status: 409,
   },
-  INVALID: { ar: 'راجِع الحقول المعلَّمة.', en: 'Check the marked fields.', status: 422 },
+  INVALID: { ar: 'راجع الحقول المعلمة.', en: 'Check the marked fields.', status: 422 },
 };
 
 /**

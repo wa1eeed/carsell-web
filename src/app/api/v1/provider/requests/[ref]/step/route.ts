@@ -16,12 +16,12 @@ const MESSAGES: Record<StepFailure, { ar: string; en: string; status: number }> 
   NOT_YOURS: { ar: 'هذا الطلب ليس لك.', en: 'This request is not yours.', status: 403 },
   /** **وسبقَك غيرُك** حالٌ قائمة لا عطل — فالرسالة تقولها */
   STEP_NOT_ALLOWED: {
-    ar: 'تعذّر تنفيذ هذه الخطوة — ربّما تغيّرت حال الطلب أو سبقك مزوّد آخر.',
+    ar: 'تعذر تنفيذ هذه الخطوة — ربما تغيرت حال الطلب أو سبقك مزود آخر.',
     en: 'That step is no longer available — the request changed, or another provider took it.',
     status: 409,
   },
   REASON_REQUIRED: {
-    ar: 'اكتب سبب التعذّر بجملةٍ يفهمها من يراجعه.',
+    ar: 'اكتب سبب التعذر بجملة يفهمها من يراجعه.',
     en: 'Write why it could not be done, in a sentence a reviewer can act on.',
     status: 422,
   },
@@ -30,7 +30,7 @@ const MESSAGES: Record<StepFailure, { ar: string; en: string; status: number }> 
    * يكتمل — والمزوّد لا يعرف ذلك من رسالةٍ عامّة، فيُعيد الضغط.
    */
   FORM_INCOMPLETE: {
-    ar: 'أكمل نموذج الإنجاز أوّلًا — لا يُقبل إنهاء الطلب بلا إثبات.',
+    ar: 'أكمل نموذج الإنجاز أولا — لا يقبل إنهاء الطلب بلا إثبات.',
     en: 'Fill in the completion form first — a request cannot be closed without it.',
     status: 422,
   },

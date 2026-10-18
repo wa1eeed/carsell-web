@@ -44,10 +44,10 @@ export function PasswordForm({ minLength }: { minLength: number }) {
           field === 'WRONG_PASSWORD'
             ? 'الكلمة الحالية غير صحيحة.'
             : field === 'WEAK_PASSWORD'
-              ? `الكلمة أقصر من الحدّ — محارف (${displayDigits(String(minLength))}) فأكثر.`
+              ? `الكلمة أقصر من الحد — محارف (${displayDigits(String(minLength))}) فأكثر.`
               : field === 'SAME_PASSWORD'
                 ? 'الكلمة الجديدة هي نفسها الحالية.'
-                : 'تعذّر التغيير.',
+                : 'تعذر التغيير.',
         );
         return;
       }
@@ -73,10 +73,10 @@ export function PasswordForm({ minLength }: { minLength: number }) {
           value={form.next}
           onChange={(v) => setForm({ ...form, next: v })}
           note={<><Quantity unit="characters" count={minLength} /> فأكثر</>}
-          error={tooShort ? 'أقصر من الحدّ' : undefined}
+          error={tooShort ? 'أقصر من الحد' : undefined}
         />
         <Field
-          label="أعِد الكلمة الجديدة"
+          label="أعد الكلمة الجديدة"
           value={form.confirm}
           onChange={(v) => setForm({ ...form, confirm: v })}
           error={mismatch ? 'لا تطابق ما فوقها' : undefined}
@@ -84,12 +84,12 @@ export function PasswordForm({ minLength }: { minLength: number }) {
 
         {/* **يُقال قبل الضغط لا بعده.** */}
         <p className="mt-4 rounded-lg border border-line bg-surface p-3.5 text-3xs leading-loose opacity-75">
-          <b>التغيير يُنهي جلساتك كلّها — بما فيها هذه.</b> وستعود إلى شاشة الدخول
+          <b>التغيير ينهي جلساتك كلها — بما فيها هذه.</b> وستعود إلى شاشة الدخول
           بالكلمة الجديدة.
         </p>
 
         <Button className="mt-5" disabled={pending || !ready} onClick={submit}>
-          {pending ? 'جارٍ…' : 'غيّر الكلمة'}
+          {pending ? 'جار…' : 'غير الكلمة'}
         </Button>
       </div>
 

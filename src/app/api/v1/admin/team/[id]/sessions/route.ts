@@ -26,8 +26,8 @@ export async function DELETE(
         code: result.reason,
         messageAr:
           result.reason === 'SELF'
-            ? 'لا تُنهِ جلساتك من هنا — استعمل الخروج.'
-            : 'لا عضو بهذا المعرّف.',
+            ? 'لا تنه جلساتك من هنا — استعمل الخروج.'
+            : 'لا عضو بهذا المعرف.',
         messageEn: 'Could not revoke sessions.',
       },
       result.reason === 'SELF' ? 422 : 404,

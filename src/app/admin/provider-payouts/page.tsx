@@ -9,7 +9,7 @@ import { ProviderPayoutsTable } from './ProviderPayoutsTable';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'صرف مستحقّات المزوّدين' };
+export const metadata = { title: 'صرف مستحقات المزودين' };
 
 /**
  * ═══ صرفُ مستحقّات المزوّدين — ولم يكن له شاشة ولا مسار ═══
@@ -35,19 +35,19 @@ export default async function ProviderPayoutsPage() {
 
   return (
     <AdminShell
-      title="صرف مستحقّات المزوّدين"
-      subtitle="ما استُحقّ لمزوّدي الخدمات ولم يُحوَّل بعد"
+      title="صرف مستحقات المزودين"
+      subtitle="ما استحق لمزودي الخدمات ولم يحول بعد"
       activeHref="/admin/provider-payouts"
       admin={admin}
     >
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-70">
-          هذه مستحقّات قُيّدت عند إنجاز كل خدمة ولم تصل المزوّد بعد. والحوالة تُنفَّذ من
-          البنك إلى حسابه، وتُسجَّل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما
+          هذه مستحقات قيدت عند إنجاز كل خدمة ولم تصل المزود بعد. والحوالة تنفذ من
+          البنك إلى حسابه، وتسجل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما
           يطلب والآخر يعتمد.
         </p>
         <div className="flex flex-col items-start gap-0.5">
-          <span className="text-3xs opacity-70">مستحقّ ولم يُحوَّل</span>
+          <span className="text-3xs opacity-70">مستحق ولم يحول</span>
           <Money amount={totalOwed} size="lg" decimals={2} />
         </div>
       </div>
@@ -62,9 +62,9 @@ export default async function ProviderPayoutsPage() {
       <ListFooter
         shown={owed.length + history.length}
         total={null}
-        note="المستحقّ من دفتر الحسابات — لا من مجموع الطلبات المنجَزة"
-        can="طلب تحويل مستحقّ مزوّد، واعتماد طلب غيرك بعد تنفيذ الحوالة."
-        cannot="الطلب والاعتماد معًا — ولا تحويل لمزوّدٍ بلا آيبان مسجَّل."
+        note="المستحق من دفتر الحسابات — لا من مجموع الطلبات المنجزة"
+        can="طلب تحويل مستحق مزود، واعتماد طلب غيرك بعد تنفيذ الحوالة."
+        cannot="الطلب والاعتماد معا — ولا تحويل لمزود بلا آيبان مسجل."
       />
     </AdminShell>
   );

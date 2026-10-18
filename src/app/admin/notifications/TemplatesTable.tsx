@@ -21,8 +21,8 @@ import { NOTIFICATION_GROUP_LABEL } from '@/lib/labels/admin';
 import type { TemplateRow } from '@/lib/domain/admin-notifications';
 
 const PRIORITY_LABEL: Record<string, string> = {
-  critical: 'حرِج',
-  high: 'عالٍ',
+  critical: 'حرج',
+  high: 'عال',
   normal: 'عادي',
 };
 
@@ -116,13 +116,13 @@ export function TemplatesTable({
         const blocked = Object.keys(body.error?.fields ?? {});
         setToast(
           blocked.length > 0
-            ? `لم يُحفظ — متغيّرات غير مصرَّح بها: ${blocked.join('، ')}`
-            : 'تعذّر الحفظ.',
+            ? `لم يحفظ — متغيرات غير مصرح بها: ${blocked.join('، ')}`
+            : 'تعذر الحفظ.',
         );
         return;
       }
 
-      setToast('حُفظ.');
+      setToast('حفظ.');
       setDraft(null);
       router.refresh();
     });
@@ -183,7 +183,7 @@ export function TemplatesTable({
           },
           {
             id: 'sent',
-            header: 'أُرسل',
+            header: 'أرسل',
             numeric: true,
             sortable: true,
             cell: (template) => <ArabicNumber value={template.sent} />,
@@ -205,7 +205,7 @@ export function TemplatesTable({
       <Sheet
         open={draft !== null}
         onClose={() => setDraft(null)}
-        title="محرّر النصّ"
+        title="محرر النص"
         className="w-[560px]"
         footer={
           <div className="flex items-center gap-2.5">
@@ -216,7 +216,7 @@ export function TemplatesTable({
               إلغاء
             </Button>
             {undeclared.length === 0 ? null : (
-              <span className="text-3xs text-danger">الحفظ موقوف حتى يُصرَّح بالمتغيّرات.</span>
+              <span className="text-3xs text-danger">الحفظ موقوف حتى يصرح بالمتغيرات.</span>
             )}
           </div>
         }
@@ -245,7 +245,7 @@ export function TemplatesTable({
               }
             />
             <Field
-              label="النصّ"
+              label="النص"
               multiline
               ltr={!isArabic}
               value={isArabic ? draft.bodyAr : draft.bodyEn}
@@ -255,7 +255,7 @@ export function TemplatesTable({
             />
 
             <div className="flex flex-col gap-2">
-              <span className="text-2xs font-bold opacity-70">المتغيّرات المصرَّح بها</span>
+              <span className="text-2xs font-bold opacity-70">المتغيرات المصرح بها</span>
               <div className="flex flex-wrap gap-1.5">
                 {draft.variables.map((name) => (
                   <Chip
@@ -283,18 +283,18 @@ export function TemplatesTable({
               </div>
               {undeclared.length > 0 ? (
                 <p className="text-3xs text-danger">
-                  متغيّر في النصّ بلا تصريح يصل المستخدم كما كُتب. أضِفه أو صحّحه.
+                  متغير في النص بلا تصريح يصل المستخدم كما كتب. أضفه أو صححه.
                 </p>
               ) : null}
               {unused.length > 0 ? (
                 <p className="text-3xs opacity-65">
-                  مصرَّح به ولا يُستعمل: {unused.join('، ')} — ليس خطأً، لكنّه غالبًا بقيّة نصّ قديم.
+                  مصرح به ولا يستعمل: {unused.join('، ')} — ليس خطأ، لكنه غالبا بقية نص قديم.
                 </p>
               ) : null}
             </div>
 
             <Field
-              label="نصّ الرسالة القصيرة"
+              label="نص الرسالة القصيرة"
               multiline
               ltr={!isArabic}
               value={isArabic ? draft.smsAr : draft.smsEn}

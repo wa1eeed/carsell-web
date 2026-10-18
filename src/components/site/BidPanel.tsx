@@ -110,7 +110,7 @@ export function BidPanel({
 
       if (response === null || !response.ok) {
         setConfirm(false);
-        setToast(payload?.error?.messageAr ?? 'تعذّر الشراء الفوري.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الشراء الفوري.');
         return;
       }
 
@@ -121,7 +121,7 @@ export function BidPanel({
       }
 
       setConfirm(false);
-      setToast('تمّ الشراء — وطلبك في مرحلة الدفع.');
+      setToast('تم الشراء — وطلبك في مرحلة الدفع.');
       router.refresh();
     });
   };
@@ -165,13 +165,13 @@ export function BidPanel({
           }
         }
 
-        setToast(payload?.error?.messageAr ?? 'تعذّرت المزايدة.');
+        setToast(payload?.error?.messageAr ?? 'تعذرت المزايدة.');
         return;
       }
 
       setNeedsCard(false);
 
-      setToast('سُجّلت مزايدتك.');
+      setToast('سجلت مزايدتك.');
       setOpen(false);
       setAmount('');
       if (onPlaced === undefined) router.refresh();
@@ -220,7 +220,7 @@ export function BidPanel({
           disabled={pending}
           onClick={() => (requireSession() ? undefined : setConfirm(true))}
         >
-          اشترِ الآن بـ <Money amount={Number(buyNowPrice)} />
+          اشتر الآن بـ <Money amount={Number(buyNowPrice)} />
         </Button>
       )}
 
@@ -230,16 +230,16 @@ export function BidPanel({
           <b>
             <Money amount={Number(buyNowPrice ?? 0)} />
           </b>{' '}
-          وينتهي المزاد فورًا — ولا رجعة فيه. ويُنشأ طلبٌ في مرحلة الدفع بمهلته.
+          وينتهي المزاد فورا — ولا رجعة فيه. وينشأ طلب في مرحلة الدفع بمهلته.
         </p>
         <Button className="w-full" disabled={pending} onClick={buyNowSubmit}>
-          {pending ? 'يُنفَّذ…' : 'أكّد الشراء'}
+          {pending ? 'ينفذ…' : 'أكد الشراء'}
         </Button>
       </Modal>
 
       <Modal open={open} onClose={() => setOpen(false)} title="مزايدة">
         <p className="mb-3.5 flex flex-wrap items-center gap-2 text-2xs opacity-75">
-          أقلّ مزايدة مقبولة <Money amount={Number(minimumNext)} />
+          أقل مزايدة مقبولة <Money amount={Number(minimumNext)} />
         </p>
         <label className="flex flex-col gap-1.5">
           <span className="text-2xs font-bold opacity-70">مبلغك</span>
@@ -296,7 +296,7 @@ export function BidPanel({
         */}
         {!needsCard ? null : (
           <div className="mt-3.5 rounded-lg border border-ink p-4">
-            <p className="mb-2.5 text-2xs font-bold">اختر بطاقةً لحجز العربون</p>
+            <p className="mb-2.5 text-2xs font-bold">اختر بطاقة لحجز العربون</p>
             <div className="mb-2.5 flex flex-wrap gap-2">
               {(
                 [
@@ -321,8 +321,8 @@ export function BidPanel({
               ))}
             </div>
             <p className="text-3xs leading-loose opacity-70">
-              يُحجز <Money amount={Number(depositAmount)} /> ولا يُخصم. ويُفرَج عنه فور
-              انتهاء المزاد إن لم يرسُ عليك.
+              يحجز <Money amount={Number(depositAmount)} /> ولا يخصم. ويفرج عنه فور
+              انتهاء المزاد إن لم يرس عليك.
             </p>
           </div>
         )}
@@ -339,18 +339,18 @@ export function BidPanel({
           هنا — والتذكير يسبق لحظة الحاجة.)
         */}
         <p className="mt-3 flex flex-wrap items-center gap-1.5 text-3xs leading-loose opacity-70">
-          يُحجز عربون <Money amount={Number(depositAmount)} /> على بطاقتك مرّةً واحدة ولا
-          يُخصم، ويُفرَج عنه إن لم يرسُ عليك — ويُخصم من المطلوب إن رسا.
+          يحجز عربون <Money amount={Number(depositAmount)} /> على بطاقتك مرة واحدة ولا
+          يخصم، ويفرج عنه إن لم يرس عليك — ويخصم من المطلوب إن رسا.
         </p>
         <p className="mt-2 flex flex-wrap items-center gap-1.5 rounded-md border border-warn-200 bg-warn-100 p-2.5 text-3xs leading-loose text-warn-900">
-          وإن رسا عليك ولم تُكمل الشراء، يُقبض العربون ولا يُردّ.
+          وإن رسا عليك ولم تكمل الشراء، يقبض العربون ولا يرد.
         </p>
         <Button
           className="mt-4 w-full"
           disabled={pending || amount === '' || (needsCard && method === null)}
           onClick={submit}
         >
-          {pending ? 'جارٍ…' : 'أرسل المزايدة'}
+          {pending ? 'جار…' : 'أرسل المزايدة'}
         </Button>
       </Modal>
 

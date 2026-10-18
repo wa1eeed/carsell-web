@@ -36,19 +36,19 @@ export default async function NotificationsPage() {
     <AdminShell title="الإشعارات والقوالب" activeHref="/admin/notifications" admin={admin}>
       <div className="mb-4 grid gap-4 md:grid-cols-3">
         <Stat
-          title="أُرسل هذا الشهر"
+          title="أرسل هذا الشهر"
           value={<ArabicNumber value={stats.sentThisMonth} />}
-          note="من جدول الإشعارات — لا عدّاد مخزَّن."
+          note="من جدول الإشعارات — لا عداد مخزن."
         />
         <Stat
           title="مقاطع الرسائل"
           value={<ArabicNumber value={stats.smsSegments} />}
-          note="تقدير: المُرسَل × متوسّط مقاطع القوالب."
+          note="تقدير: المرسل × متوسط مقاطع القوالب."
         />
         <Stat
           title="تكلفة الرسائل"
           value={<Money amount={stats.smsCost} decimals={2} />}
-          note="تقديرٌ حتى يصل مزوّد الرسائل — ولا رقم حقيقي قبله."
+          note="تقدير حتى يصل مزود الرسائل — ولا رقم حقيقي قبله."
         />
       </div>
 
@@ -65,14 +65,14 @@ export default async function NotificationsPage() {
         <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">قواعد الإرسال</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>القنوات الحرِجة لا يمكن للمستخدم إيقافها</strong> — رمز التحقق والدفع
-            والمزاد الذي يشارك فيه. إيقافُها يجعل المستخدم يخسر مزادًا أو مهلة دفع لأنه
-            أطفأ إشعارًا ظنّه تسويقيًّا.
+            <strong>القنوات الحرجة لا يمكن للمستخدم إيقافها</strong> — رمز التحقق والدفع
+            والمزاد الذي يشارك فيه. إيقافها يجعل المستخدم يخسر مزادا أو مهلة دفع لأنه
+            أطفأ إشعارا ظنه تسويقيا.
           </li>
-          <li>عدم الإزعاج 11 م – 8 ص، ويتجاوزه الحرِج وحده.</li>
-          <li>الإشعارات المتكرّرة تُجمَّع — عشرة إشعارات مزايدة في دقيقة إشعارٌ واحد.</li>
+          <li>عدم الإزعاج 11 م – 8 ص، ويتجاوزه الحرج وحده.</li>
+          <li>الإشعارات المتكررة تجمع — عشرة إشعارات مزايدة في دقيقة إشعار واحد.</li>
           <li>
-            كل نصّ يُقاس على متغيّراته المصرَّح بها قبل الحفظ، والعربي والإنجليزي معًا.
+            كل نص يقاس على متغيراته المصرح بها قبل الحفظ، والعربي والإنجليزي معا.
           </li>
         </ul>
       </section>
@@ -81,8 +81,8 @@ export default async function NotificationsPage() {
         shown={templates.length}
         total={null}
         note="القوالب المعاملاتية — والتسويقية في الحملات"
-        can="تحرير نصّ القالب بلغتيه ومعاينته بقيَم."
-        cannot="إيقاف إشعارٍ حرج — ما يمسّ مال المستخدم أو أمن حسابه يصله مهما أوقف."
+        can="تحرير نص القالب بلغتيه ومعاينته بقيم."
+        cannot="إيقاف إشعار حرج — ما يمس مال المستخدم أو أمن حسابه يصله مهما أوقف."
       />
     </AdminShell>
   );

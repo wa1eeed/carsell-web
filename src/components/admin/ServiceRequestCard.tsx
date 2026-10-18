@@ -21,7 +21,7 @@ import type { ServiceRequestRow } from '@/lib/domain/admin-services';
 
 const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'neutral' | 'danger' }> = {
   NEW: { label: 'جديد', tone: 'warn' },
-  ASSIGNED: { label: 'مُسنَد', tone: 'accent' },
+  ASSIGNED: { label: 'مسند', tone: 'accent' },
   IN_PROGRESS: { label: 'قيد التنفيذ', tone: 'accent' },
   DONE: { label: 'منجز', tone: 'neutral' },
   FAILED: { label: 'فشل', tone: 'danger' },
@@ -97,10 +97,10 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
         */}
         <span className="text-3xs opacity-65">
           {row.providerName === null ? (
-            <span className="font-bold text-warn-900">بلا مزوّد — ينتظر الإسناد</span>
+            <span className="font-bold text-warn-900">بلا مزود — ينتظر الإسناد</span>
           ) : (
             <>
-              <span>المزوّد </span>
+              <span>المزود </span>
               {row.providerId === null ? (
                 <span className="bidi-isolate">{row.providerName}</span>
               ) : (
@@ -148,7 +148,7 @@ function Sla({ row }: { row: ServiceRequestRow }) {
   if (row.overdue) {
     return (
       <span className="text-3xs font-bold text-danger">
-        <span className="opacity-80">تأخّر </span>
+        <span className="opacity-80">تأخر </span>
         <Duration hours={row.overdueHours} />
       </span>
     );
@@ -160,7 +160,7 @@ function Sla({ row }: { row: ServiceRequestRow }) {
   const left = Math.abs(row.overdueHours);
   return (
     <span className={left <= 6 ? 'text-3xs font-bold text-warn-900' : 'text-3xs opacity-65'}>
-      <span className="opacity-80">بقي للمزوّد </span>
+      <span className="opacity-80">بقي للمزود </span>
       <Duration hours={left} />
     </span>
   );

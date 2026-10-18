@@ -67,7 +67,7 @@ export default async function AdminAuctionDetailPage({
           <>
             {/* لا يُقال «مباشر» بعد انقضاء الوقت، ولا يُقال أبلغ الاحتياطي */}
             <Badge tone={pending ? 'warn' : auction.status === 'LIVE' ? 'accent' : 'neutral'}>
-              {pending ? 'انتهى — يُحتسب الآن' : auction.status}
+              {pending ? 'انتهى — يحتسب الآن' : auction.status}
             </Badge>
             {auction.extendedCount === 0 ? null : (
               <Badge tone="neutral">
@@ -83,7 +83,7 @@ export default async function AdminAuctionDetailPage({
           { label: 'أعلى مزايدة', value: auction.topBid === null ? 'لا مزايدات' : <Money amount={Number(auction.topBid)} /> },
           { label: 'المزايدات', value: <ArabicNumber value={auction.bids.length} /> },
           { label: 'العربون', value: <Money amount={Number(auction.depositAmount)} /> },
-          { label: 'يُغلق', value: riyadh.format(new Date(auction.endsAt)) },
+          { label: 'يغلق', value: riyadh.format(new Date(auction.endsAt)) },
         ]}
       />
 
@@ -93,7 +93,7 @@ export default async function AdminAuctionDetailPage({
         active={timeline ? 'timeline' : null}
         tabs={[
           { key: null, label: 'نظرة عامة' },
-          { key: 'timeline', label: 'خطّ الزمن' },
+          { key: 'timeline', label: 'خط الزمن' },
         ]}
       />
 
@@ -118,7 +118,7 @@ export default async function AdminAuctionDetailPage({
                         {bid.bidderName}
                       </span>
                       {index === 0 ? <Badge tone="accent">الأعلى</Badge> : null}
-                      {bid.isAuto ? <Badge tone="neutral">آليّة</Badge> : null}
+                      {bid.isAuto ? <Badge tone="neutral">آلية</Badge> : null}
                     </span>
                     <span className="flex shrink-0 items-center gap-4">
                       <Money amount={Number(bid.amount)} showCurrency={false} />
@@ -154,12 +154,12 @@ export default async function AdminAuctionDetailPage({
             <DetailCard title="القواعد">
               <Field label="سعر البداية" value={<Money amount={Number(auction.startPrice)} />} />
               <Field
-                label="أقلّ فرق"
+                label="أقل فرق"
                 value={<Money amount={Number(auction.bidIncrement)} />}
               />
               <Field label="العربون" value={<Money amount={Number(auction.depositAmount)} />} />
               {auction.buyNowPrice === null ? null : (
-                <Field label="اشترِ الآن" value={<Money amount={Number(auction.buyNowPrice)} />} />
+                <Field label="اشتر الآن" value={<Money amount={Number(auction.buyNowPrice)} />} />
               )}
               <Field
                 label="أعلى مزايدة"
@@ -173,7 +173,7 @@ export default async function AdminAuctionDetailPage({
                 يُستثنى منه شاشةٌ لأن قارئها أدمن.
               */}
               <p className="mt-3 text-3xs opacity-65">
-                السعر الاحتياطيّ لا يُعرض هنا — ولا في أي شاشة.
+                السعر الاحتياطي لا يعرض هنا — ولا في أي شاشة.
               </p>
             </DetailCard>
 
@@ -206,7 +206,7 @@ export default async function AdminAuctionDetailPage({
                 href={`/admin/users/${auction.seller.id}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
-                افتح ملفّه
+                افتح ملفه
               </Link>
             </DetailCard>
 
@@ -230,9 +230,9 @@ export default async function AdminAuctionDetailPage({
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            فتحُ المزاد ومزايداتُه وعرابينُه وإغلاقُه — ولا هويّة مزايدٍ هنا ولا في غيرها.
+            فتح المزاد ومزايداته وعرابينه وإغلاقه — ولا هوية مزايد هنا ولا في غيرها.
           </p>
           <Timeline events={events} />
         </section>

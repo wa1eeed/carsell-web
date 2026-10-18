@@ -54,7 +54,7 @@ export default async function AdminPlansPage() {
 
   return (
     <AdminShell title="الباقات والعمولة"
-      subtitle="حزمة قيَم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
+      subtitle="حزمة قيم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <Quantity unit="plans" count={stats.plans} /> ·{' '}
         {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${displayDigits(String(stats.paidPlans))})`}{' '}
@@ -77,7 +77,7 @@ export default async function AdminPlansPage() {
             // والتحرير أسفل الصفحة — والبطاقة تقول النافذة الآن.
             title: 'العمولة النافذة',
             value: `${displayDigits(pctLabel(seller?.enabled === true ? seller.pct : '0'))}٪`,
-            note: seller?.enabled === true ? 'على كل الباقات' : 'معطّلة على البائع',
+            note: seller?.enabled === true ? 'على كل الباقات' : 'معطلة على البائع',
           },
         ]}
       />
@@ -86,10 +86,10 @@ export default async function AdminPlansPage() {
         **والعمولة قبل الباقات.** هي ما يُسأل عنه ويُغيَّر، والباقات
         اليوم كلّها مجانية — فالأهمّ أعلى.
       */}
-      <h2 className="mb-3.5 text-sm font-bold">العمولة — ما يُخصم من كل بيعة</h2>
+      <h2 className="mb-3.5 text-sm font-bold">العمولة — ما يخصم من كل بيعة</h2>
       <CommissionRules rows={commission} canEdit={writable} />
 
-      <h2 className="mt-10 mb-3.5 text-sm font-bold">الباقات — حزمة قيَم للخصائص، لا منطق</h2>
+      <h2 className="mt-10 mb-3.5 text-sm font-bold">الباقات — حزمة قيم للخصائص، لا منطق</h2>
       {/* القراءة للجميع، والتعديل لمن يملك الكتابة — وحارسُه في المسار أيضًا. */}
       <PlanTable plans={plans} entitlements={entitlements} canEdit={writable} />
 
@@ -176,7 +176,7 @@ export default async function AdminPlansPage() {
       {writable ? <GrantOverride entitlements={entitlements} /> : null}
       {overrides.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          لا تجاوزات. وكل تجاوزٍ يُمنح يظهر هنا بسببه ومدّته.
+          لا تجاوزات. وكل تجاوز يمنح يظهر هنا بسببه ومدته.
         </p>
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -207,11 +207,11 @@ export default async function AdminPlansPage() {
       )}
 
       <div className="mt-10 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        <p className="mb-2 font-bold">قاعدتان لا تُخترقان</p>
+        <p className="mb-2 font-bold">قاعدتان لا تخترقان</p>
         <p>
-          الكود يسأل عن <b>الخاصّية</b> لا عن الباقة. والعمولة تُثبَّت لقطةً في الطلب وقت
-          إنشائه — فتعديلها اليوم لا يمسّ طلبًا قائمًا. وسحب خاصّية من مستخدم قائم يمرّ
-          بتجاوزٍ مؤقّت بسببه ومدّته، لا بقطعٍ فوريّ.
+          الكود يسأل عن <b>الخاصية</b> لا عن الباقة. والعمولة تثبت لقطة في الطلب وقت
+          إنشائه — فتعديلها اليوم لا يمس طلبا قائما. وسحب خاصية من مستخدم قائم يمر
+          بتجاوز مؤقت بسببه ومدته، لا بقطع فوري.
         </p>
       </div>
     </AdminShell>

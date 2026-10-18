@@ -12,9 +12,9 @@ const Body = z.object({
 });
 
 const REASON: Record<string, string> = {
-  NOT_FOUND: 'لا عميل بهذا المعرّف.',
-  NOT_REGISTERED: 'الهامش يتبع التسجيل الضريبيّ — والعميل غير مسجَّل.',
-  REF_REQUIRED: 'مرجع مستند الهيئة إلزاميّ عند المنح.',
+  NOT_FOUND: 'لا عميل بهذا المعرف.',
+  NOT_REGISTERED: 'الهامش يتبع التسجيل الضريبي — والعميل غير مسجل.',
+  REF_REQUIRED: 'مرجع مستند الهيئة إلزامي عند المنح.',
 };
 
 /**
@@ -55,7 +55,7 @@ export async function POST(
     return fail(
       {
         code: `MARGIN_${result.reason}`,
-        messageAr: REASON[result.reason] ?? 'تعذّر الحفظ.',
+        messageAr: REASON[result.reason] ?? 'تعذر الحفظ.',
         messageEn: result.reason,
       },
       result.reason === 'NOT_FOUND' ? 404 : 422,

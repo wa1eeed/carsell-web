@@ -28,7 +28,7 @@ const Body = z.object({
 });
 
 const MESSAGE: Record<string, string> = {
-  INVALID_RULES: 'القواعد غير صحيحة — اختر شرطًا واحدًا على الأقل.',
+  INVALID_RULES: 'القواعد غير صحيحة — اختر شرطا واحدا على الأقل.',
   KEY_TAKEN: 'هذا المفتاح مستعمل في شريحة أخرى.',
 };
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر الحفظ.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر الحفظ.',
         messageEn: 'Could not save the segment.',
       },
       422,

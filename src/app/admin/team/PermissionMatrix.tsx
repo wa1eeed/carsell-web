@@ -21,7 +21,7 @@ const CELL = 'grid-cols-[1.7fr_repeat(6,1fr)] gap-3.5 px-5';
 function Pill({ read, write }: { read: boolean; write: boolean }) {
   const track = write ? 'bg-accent' : read ? 'bg-accent-200' : 'bg-ink/15';
   const knob = write ? 'end-0.5' : read ? 'start-2.5' : 'start-0.5';
-  const label = write ? 'قراءة وكتابة' : read ? 'قراءة فقط' : 'لا يرى البند أصلًا';
+  const label = write ? 'قراءة وكتابة' : read ? 'قراءة فقط' : 'لا يرى البند أصلا';
 
   return (
     <span className={`relative inline-block h-5 w-9 rounded-full ${track}`} title={label}>

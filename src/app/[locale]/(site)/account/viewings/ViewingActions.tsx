@@ -55,7 +55,7 @@ export function ViewingActions({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر التنفيذ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر التنفيذ.');
         return;
       }
       /** تحميلٌ كامل — الحال تُقرأ في الخادم، فيُرى ما وقع لا ما قبله */
@@ -90,7 +90,7 @@ export function ViewingActions({
               يعيد المشتري الطلب — وأكثرُهم لا يعيد.
             */}
             <Button size="sm" variant="outline" onClick={() => setCountering(true)} disabled={pending}>
-              اقترح موعدًا آخر
+              اقترح موعدا آخر
             </Button>
             <Button size="sm" variant="ghost" className="border border-line" onClick={() => setDeclining(true)} disabled={pending}>
               اعتذر
@@ -115,15 +115,15 @@ export function ViewingActions({
           disabled={pending}
           onClick={() => send({ action: 'cancel' })}
         >
-          ألغِ الموعد
+          ألغ الموعد
         </Button>
       </div>
 
       <Modal open={accepting} onClose={() => setAccepting(false)} title="اقبل الموعد">
         <p className="mb-4 text-2xs leading-loose opacity-75">
-          اكتب أين يقابلك. يُعرض للمشتري بعد القبول وحده — ومعه رقمُك.
+          اكتب أين يقابلك. يعرض للمشتري بعد القبول وحده — ومعه رقمك.
         </p>
-        <Field htmlFor="v-mp" label="نقطة اللقاء" required hint="مثل: محطة بترومين، طريق الملك عبدالعزيز، حيّ الملقا.">
+        <Field htmlFor="v-mp" label="نقطة اللقاء" required hint="مثل: محطة بترومين، طريق الملك عبدالعزيز، حي الملقا.">
           <input
             id="v-mp"
             value={meetingPoint}
@@ -137,13 +137,13 @@ export function ViewingActions({
           disabled={pending || meetingPoint.trim().length < MIN_MEETING_POINT}
           onClick={() => send({ action: 'accept', meetingPoint })}
         >
-          {pending ? 'يُرسَل…' : 'أكّد الموعد'}
+          {pending ? 'يرسل…' : 'أكد الموعد'}
         </Button>
       </Modal>
 
       <Modal open={declining} onClose={() => setDeclining(false)} title="اعتذر عن الموعد">
         <p className="mb-4 text-2xs leading-loose opacity-75">
-          اكتب سببًا قصيرًا — فمن رُفض بلا سببٍ لا يعرف أيقترح موعدًا آخر أم يبحث عن غيرها.
+          اكتب سببا قصيرا — فمن رفض بلا سبب لا يعرف أيقترح موعدا آخر أم يبحث عن غيرها.
         </p>
         <Field htmlFor="v-rs" label="السبب" required>
           <textarea
@@ -160,14 +160,14 @@ export function ViewingActions({
           disabled={pending || reason.trim().length < MIN_DECLINE_REASON}
           onClick={() => send({ action: 'decline', reason })}
         >
-          {pending ? 'يُرسَل…' : 'أرسل الاعتذار'}
+          {pending ? 'يرسل…' : 'أرسل الاعتذار'}
         </Button>
       </Modal>
 
-      <Modal open={countering} onClose={() => setCountering(false)} title="اقترح موعدًا آخر">
+      <Modal open={countering} onClose={() => setCountering(false)} title="اقترح موعدا آخر">
         <p className="mb-4 text-2xs leading-loose opacity-75">
-          اختر ما يناسبك واكتب نقطة اللقاء. يصل المشتري اقتراحُك، فإن قبله تأكّد الموعد — ولا
-          يُكشف مكانُك قبل قبوله.
+          اختر ما يناسبك واكتب نقطة اللقاء. يصل المشتري اقتراحك، فإن قبله تأكد الموعد — ولا
+          يكشف مكانك قبل قبوله.
         </p>
 
         <div className="flex flex-col gap-4">
@@ -183,7 +183,7 @@ export function ViewingActions({
             />
           </Field>
           <p className="-mt-2.5 text-3xs opacity-65">
-            المدّة المتاحة للحجز: <Quantity unit="days" count={MAX_DAYS_AHEAD} />
+            المدة المتاحة للحجز: <Quantity unit="days" count={MAX_DAYS_AHEAD} />
           </p>
 
           <fieldset className="flex flex-col gap-1.5">
@@ -233,7 +233,7 @@ export function ViewingActions({
             disabled={pending || onDate === '' || meetingPoint.trim().length < MIN_MEETING_POINT}
             onClick={() => send({ action: 'counter', onDate, period, meetingPoint })}
           >
-            {pending ? 'يُرسَل…' : 'أرسل الاقتراح'}
+            {pending ? 'يرسل…' : 'أرسل الاقتراح'}
           </Button>
         </div>
       </Modal>

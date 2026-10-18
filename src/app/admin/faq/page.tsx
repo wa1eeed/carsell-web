@@ -55,14 +55,14 @@ export default async function AdminFaqPage({
   return (
     <AdminShell title="الأسئلة الشائعة" activeHref="/admin/faq" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        بنكٌ واحد، ومواضعُ كل سؤال تتبع طريقة البيع. وصفحة السيارة تعرض ستّة كحدّ أقصى —
+        بنك واحد، ومواضع كل سؤال تتبع طريقة البيع. وصفحة السيارة تعرض ستة كحد أقصى —
         وزيادتها تدفن الجواب الذي يبحث عنه المشتري.
       </p>
 
       <MonitorCards
         cards={[
           { title: 'أسئلة في البنك', value: stats.total, note: `أقسام (${String(stats.byCategory.length)})` },
-          { title: 'في صفحة السيارة', value: stats.onListingPage, note: 'أربعة إلى ستّة كحدّ أقصى' },
+          { title: 'في صفحة السيارة', value: stats.onListingPage, note: 'أربعة إلى ستة كحد أقصى' },
           { title: 'بلا ترجمة إنجليزية', value: stats.missingEn, note: 'تظهر بالعربية للجميع' },
           { title: 'الأقسام', value: stats.byCategory.length, note: 'تصنيف البنك' },
         ]}
@@ -82,7 +82,7 @@ export default async function AdminFaqPage({
       />
 
       {rows.length === 0 ? (
-        <EmptyState title="لا أسئلة" description="بنك الأسئلة يُزرع مع المنصّة." />
+        <EmptyState title="لا أسئلة" description="بنك الأسئلة يزرع مع المنصة." />
       ) : (
         <FaqTable rows={rows} />
       )}
@@ -90,9 +90,9 @@ export default async function AdminFaqPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="بنكٌ واحد ومواضع حسب طريقة البيع"
+        note="بنك واحد ومواضع حسب طريقة البيع"
         can="إضافة سؤال وتحريره وتغيير موضعه وترتيبه."
-        cannot="حذف سؤالٍ معروض على صفحةٍ حيّة بلا بديل — السؤال المحذوف يترك فراغًا يملؤه المشتري بظنّه."
+        cannot="حذف سؤال معروض على صفحة حية بلا بديل — السؤال المحذوف يترك فراغا يملؤه المشتري بظنه."
       />
     </AdminShell>
   );

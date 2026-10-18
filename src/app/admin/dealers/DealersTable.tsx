@@ -26,16 +26,16 @@ import { Quantity } from '@/components/ui/Quantity';
  */
 
 const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'ينتظر التحقّق',
+  PENDING: 'ينتظر التحقق',
   ACTIVE: 'نشط',
   SUSPENDED: 'موقوف',
 };
 
 /** ما يُتحقَّق منه قبل الشارة — بشريّ بمستنداتٍ خارج المنصّة. */
 const CHECKS = [
-  'السجل التجاريّ ساريًا',
+  'السجل التجاري ساريا',
   'مطابقة اسم المنشأة',
-  'الرقم الضريبيّ إن كانت مسجَّلة',
+  'الرقم الضريبي إن كانت مسجلة',
   'الآيبان باسم المنشأة',
   'عنوان المعرض',
 ];
@@ -62,7 +62,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تنفيذ القرار.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تنفيذ القرار.');
         return;
       }
 
@@ -70,10 +70,10 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
       setNote('');
       setToast(
         decision === 'VERIFY'
-          ? 'وُثّق المعرض — وصارت الشارة تظهر لمشتريه.'
+          ? 'وثق المعرض — وصارت الشارة تظهر لمشتريه.'
           : decision === 'SUSPEND'
-            ? 'أُوقف المعرض، والسبب مسجَّل.'
-            : 'أُعيد المعرض إلى النشاط.',
+            ? 'أوقف المعرض، والسبب مسجل.'
+            : 'أعيد المعرض إلى النشاط.',
       );
       router.refresh();
     });
@@ -95,7 +95,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
                 >
                   {row.name}
                 </Link>
-                {row.verified ? <Badge tone="accent">موثّق</Badge> : null}
+                {row.verified ? <Badge tone="accent">موثق</Badge> : null}
               </span>
               <span className="text-2xs opacity-70">{row.city}</span>
               {/* الأرقام النظامية تُقارن خانةً بخانة — لاتينيّة معزولة */}
@@ -113,7 +113,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
                 <span className="text-3xs opacity-65">
                   {row.ratingAvg === null
                     ? 'بلا تقييم'
-                    : `التقييم ${displayDigits(row.ratingAvg)} · مقيّمون (${displayDigits(String(row.ratingCount))})`}
+                    : `التقييم ${displayDigits(row.ratingAvg)} · مقيمون (${displayDigits(String(row.ratingCount))})`}
                 </span>
               </div>
 
@@ -144,8 +144,8 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
         {open === null ? null : (
           <>
             <dl className="mb-4 flex flex-col gap-2.5 border-b border-line pb-4 text-2xs">
-              <Line label="السجل التجاريّ" value={open.crNumber ?? 'غير مسجَّل'} mono />
-              <Line label="الرقم الضريبيّ" value={open.vatNumber ?? 'غير مسجَّل'} mono />
+              <Line label="السجل التجاري" value={open.crNumber ?? 'غير مسجل'} mono />
+              <Line label="الرقم الضريبي" value={open.vatNumber ?? 'غير مسجل'} mono />
               <Line label="المدينة" value={open.city} />
               <Line label="الأعضاء" value={displayDigits(String(open.memberCount))} />
             </dl>
@@ -154,7 +154,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
               **الفحوص بشرية بمستنداتٍ خارج المنصّة** — فلا تُدّعى آلية.
               والقائمة تذكّر بما يجب النظر فيه قبل منح شارةٍ يقرؤها مشترٍ.
             */}
-            <p className="mb-2 text-2xs font-bold opacity-70">تحقّق من هذه قبل الشارة:</p>
+            <p className="mb-2 text-2xs font-bold opacity-70">تحقق من هذه قبل الشارة:</p>
             <ul className="mb-4 flex flex-col gap-1.5">
               {CHECKS.map((check) => (
                 <li key={check} className="flex items-center gap-2 text-2xs opacity-75">
@@ -177,7 +177,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
             <div className="mt-4 flex flex-col gap-2">
               {open.status === 'SUSPENDED' ? (
                 <Button className="w-full" disabled={pending} onClick={() => decide(open, 'REINSTATE')}>
-                  أعِده إلى النشاط
+                  أعده إلى النشاط
                 </Button>
               ) : (
                 <Button
@@ -185,7 +185,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
                   disabled={pending || open.crNumber === null}
                   onClick={() => decide(open, 'VERIFY')}
                 >
-                  {open.crNumber === null ? 'لا شارة بلا سجل تجاريّ' : 'وثّق المعرض'}
+                  {open.crNumber === null ? 'لا شارة بلا سجل تجاري' : 'وثق المعرض'}
                 </Button>
               )}
 
@@ -196,14 +196,14 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
                   disabled={pending || note.trim().length < MIN_DEALER_NOTE}
                   onClick={() => decide(open, 'SUSPEND')}
                 >
-                  أوقِف المعرض
+                  أوقف المعرض
                 </Button>
               )}
             </div>
 
             <p className="mt-4 text-3xs leading-loose opacity-70">
-              الشارة تظهر لمشتريه في صفحة المعرض وفي كل بطاقة إعلان. ولا يُدار مخزونه من
-              هنا — العدد يُقرأ ولا يُلمس.
+              الشارة تظهر لمشتريه في صفحة المعرض وفي كل بطاقة إعلان. ولا يدار مخزونه من
+              هنا — العدد يقرأ ولا يلمس.
             </p>
           </>
         )}

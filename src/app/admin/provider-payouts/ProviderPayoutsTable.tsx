@@ -30,20 +30,20 @@ const STATUS: Record<
   ProviderPayoutRow['status'],
   { label: string; tone: 'accent' | 'warn' | 'neutral' }
 > = {
-  PENDING: { label: 'ينتظر اعتمادًا', tone: 'warn' },
-  SENT: { label: 'حُوِّل', tone: 'accent' },
-  FAILED: { label: 'تعذّر', tone: 'warn' },
-  CANCELLED: { label: 'أُلغي', tone: 'neutral' },
+  PENDING: { label: 'ينتظر اعتمادا', tone: 'warn' },
+  SENT: { label: 'حول', tone: 'accent' },
+  FAILED: { label: 'تعذر', tone: 'warn' },
+  CANCELLED: { label: 'ألغي', tone: 'neutral' },
 };
 
 const REASON: Record<string, string> = {
-  NO_IBAN: 'المزوّد بلا آيبان مسجَّل — يُدخَل من صفحته أوّلًا.',
-  EXCEEDS_PAYABLE: 'المبلغ أكبر من حقّه القائم.',
+  NO_IBAN: 'المزود بلا آيبان مسجل — يدخل من صفحته أولا.',
+  EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلبٌ ينتظر اعتمادًا — يُعتمد أو يُلغى أوّلًا.',
-  BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية — وبه تُطابَق بكشف البنك.',
-  NOT_PENDING: 'لم يبقَ الطلب منتظرًا — أُعتمد أو أُلغي.',
-  EXPIRED: 'انقضت مهلة الطلب — يُفتح طلبٌ جديد.',
+  ALREADY_PENDING: 'له طلب ينتظر اعتمادا — يعتمد أو يلغى أولا.',
+  BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية — وبه تطابق بكشف البنك.',
+  NOT_PENDING: 'لم يبق الطلب منتظرا — أعتمد أو ألغي.',
+  EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
   REASON_REQUIRED: 'اكتب سبب الإلغاء.',
 };
 
@@ -73,7 +73,7 @@ export function ProviderPayoutsTable({
     return (
       (key === undefined ? undefined : REASON[key]) ??
       payload?.error?.messageAr ??
-      'تعذّر تنفيذ الطلب.'
+      'تعذر تنفيذ الطلب.'
     );
   };
 
@@ -93,7 +93,7 @@ export function ProviderPayoutsTable({
         return;
       }
       setRequesting(null);
-      setToast('فُتح طلب التحويل. ينتظر اعتماد عضوٍ ثانٍ بعد تنفيذ الحوالة.');
+      setToast('فتح طلب التحويل. ينتظر اعتماد عضو ثان بعد تنفيذ الحوالة.');
       router.refresh();
     });
   };
@@ -118,7 +118,7 @@ export function ProviderPayoutsTable({
       }
       setApproving(null);
       setBankRef('');
-      setToast('سُجّلت الحوالة — وخُصم دَين المزوّد من الدفتر.');
+      setToast('سجلت الحوالة — وخصم دين المزود من الدفتر.');
       router.refresh();
     });
   };
@@ -130,14 +130,14 @@ export function ProviderPayoutsTable({
         {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ reason: 'أُلغي من الشاشة' }),
+          body: JSON.stringify({ reason: 'ألغي من الشاشة' }),
         },
       ).catch(() => null);
       if (response === null || !response.ok) {
         setToast(say((await response?.json().catch(() => null)) as Parameters<typeof say>[0]));
         return;
       }
-      setToast('أُلغي الطلب.');
+      setToast('ألغي الطلب.');
       router.refresh();
     });
   };
@@ -148,8 +148,8 @@ export function ProviderPayoutsTable({
   if (owed.length === 0 && history.length === 0) {
     return (
       <EmptyState
-        title="لا مستحقّات"
-        description="حين يُنجز مزوّدٌ خدمةً يُقيَّد له حقُّها هنا حتى يُحوَّل إلى حسابه."
+        title="لا مستحقات"
+        description="حين ينجز مزود خدمة يقيد له حقها هنا حتى يحول إلى حسابه."
       />
     );
   }
@@ -158,7 +158,7 @@ export function ProviderPayoutsTable({
     <>
       {/* ═══ ينتظر الاعتماد أوّلًا — فهو ما يحتاج فعلًا الآن ═══ */}
       {waiting.length === 0 ? null : (
-        <Section title="ينتظر اعتماد عضوٍ ثانٍ" count={waiting.length} tone="warn">
+        <Section title="ينتظر اعتماد عضو ثان" count={waiting.length} tone="warn">
           {waiting.map((row) => {
             const isRequester = row.requestedBy === adminId;
             return (
@@ -200,14 +200,14 @@ export function ProviderPayoutsTable({
                         disabled={pending}
                         onClick={() => cancel(row)}
                       >
-                        ألغِ
+                        ألغ
                       </Button>
                     </div>
                   ) : !canSend ? (
                     <span className="text-3xs opacity-65">لا تملك صلاحية التحويل</span>
                   ) : (
                     <Button size="sm" disabled={pending} onClick={() => setApproving(row)}>
-                      سجّل الحوالة
+                      سجل الحوالة
                     </Button>
                   )}
                 </div>
@@ -218,7 +218,7 @@ export function ProviderPayoutsTable({
       )}
 
       {owed.length === 0 ? null : (
-        <Section title="مستحقّ ولم يُحوَّل" count={owed.length} tone="ok">
+        <Section title="مستحق ولم يحول" count={owed.length} tone="ok">
           {owed.map((row) => (
             <div
               key={row.providerId}
@@ -243,7 +243,7 @@ export function ProviderPayoutsTable({
                   {PROVIDER_TYPE_LABEL[row.type]}
                   {' · '}
                   {row.ibanLast4 === null ? (
-                    'بلا آيبان — يُدخَل من صفحته'
+                    'بلا آيبان — يدخل من صفحته'
                   ) : (
                     <>
                       آيبان ينتهي بـ
@@ -257,7 +257,7 @@ export function ProviderPayoutsTable({
               <div className="flex flex-wrap items-center gap-5">
                 <Money amount={Number(row.payable)} decimals={2} />
                 {row.pendingPayoutId !== null ? (
-                  <Badge tone="warn">طلبٌ قائم</Badge>
+                  <Badge tone="warn">طلب قائم</Badge>
                 ) : !canSend ? (
                   <span className="text-3xs opacity-65">لا تملك صلاحية التحويل</span>
                 ) : row.ibanLast4 === null ? (
@@ -267,7 +267,7 @@ export function ProviderPayoutsTable({
                     variant="outline"
                     href={`/admin/providers/${encodeURIComponent(row.providerId)}`}
                   >
-                    أدخِل آيبانه
+                    أدخل آيبانه
                   </LinkButton>
                 ) : (
                   <Button
@@ -288,7 +288,7 @@ export function ProviderPayoutsTable({
       )}
 
       {done.length === 0 ? null : (
-        <Section title="سجلّ التحويلات" count={done.length} tone="neutral">
+        <Section title="سجل التحويلات" count={done.length} tone="neutral">
           {done.map((row) => (
             <div
               key={row.id}
@@ -313,21 +313,21 @@ export function ProviderPayoutsTable({
         النافذة تقول **ما يخرج وإلى أين** قبل الضغط، ولا تكتفي
         بـ«هل أنت متأكّد؟» — الرقم هو ما يُراجَع لا العزم.
       */}
-      <Modal open={requesting !== null} onClose={() => setRequesting(null)} title="طلب تحويل مستحقّات">
+      <Modal open={requesting !== null} onClose={() => setRequesting(null)} title="طلب تحويل مستحقات">
         {requesting === null ? null : (
           <>
             <dl className="mb-4 flex flex-col gap-2.5 border-b border-line pb-4 text-2xs">
-              <Line label="المزوّد" value={requesting.nameAr} />
+              <Line label="المزود" value={requesting.nameAr} />
               {/*
                 **والمبلغ بصيغةٍ واحدة في الشاشة كلّها**: `displayDigits`
                 تبدّل الخانات ولا تفصل الآلاف، فيصير الرقم في النافذة
                 غيرَه في الصفّ فوقها — رقمان لمالٍ واحد.
               */}
-              <MoneyLine label="حقّه القائم" value={requesting.payable} />
+              <MoneyLine label="حقه القائم" value={requesting.payable} />
               <Line label="آيبان ينتهي بـ" value={requesting.ibanLast4 ?? '—'} mono />
             </dl>
             <label className="mb-4 flex flex-col gap-2">
-              <span className="text-2xs opacity-70">المبلغ المحوَّل</span>
+              <span className="text-2xs opacity-70">المبلغ المحول</span>
               <input
                 dir="ltr"
                 inputMode="decimal"
@@ -337,11 +337,11 @@ export function ProviderPayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تُحرّك المبلغ</b> — تفتح طلبًا يعتمده عضوٌ ثانٍ بعد تنفيذ
+              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثان بعد تنفيذ
               الحوالة من البنك. ولا يعتمده الطالب.
             </p>
             <Button className="w-full" disabled={pending} onClick={request}>
-              {pending ? 'جارٍ…' : 'افتح الطلب'}
+              {pending ? 'جار…' : 'افتح الطلب'}
             </Button>
           </>
         )}
@@ -351,7 +351,7 @@ export function ProviderPayoutsTable({
         {approving === null ? null : (
           <>
             <dl className="mb-4 flex flex-col gap-2.5 border-b border-line pb-4 text-2xs">
-              <Line label="المزوّد" value={approving.providerName} />
+              <Line label="المزود" value={approving.providerName} />
               <MoneyLine label="المبلغ" value={approving.amount} />
               <Line label="آيبان ينتهي بـ" value={approving.ibanLast4 ?? '—'} mono />
             </dl>
@@ -368,11 +368,11 @@ export function ProviderPayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              بهذا التسجيل <b>يُخصم دَين المزوّد</b> من دفتر الحسابات — فلا تُسجّلها قبل أن
-              تخرج الحوالة فعلًا من البنك.
+              بهذا التسجيل <b>يخصم دين المزود</b> من دفتر الحسابات — فلا تسجلها قبل أن
+              تخرج الحوالة فعلا من البنك.
             </p>
             <Button className="w-full" disabled={pending} onClick={approve}>
-              {pending ? 'جارٍ…' : 'سجّل الحوالة'}
+              {pending ? 'جار…' : 'سجل الحوالة'}
             </Button>
           </>
         )}

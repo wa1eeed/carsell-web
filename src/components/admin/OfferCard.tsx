@@ -72,7 +72,7 @@ export function OfferCard({ row }: { row: OfferRow }) {
             {row.listingRef}
           </Link>
           <Badge size="sm" tone={row.autoRejected ? 'neutral' : (status?.tone ?? 'neutral')}>
-            {row.autoRejected ? 'رُفض تلقائيًّا' : (status?.label ?? row.status)}
+            {row.autoRejected ? 'رفض تلقائيا' : (status?.label ?? row.status)}
           </Badge>
           {row.round <= 1 ? null : (
             <Badge size="sm" tone="neutral">
@@ -148,7 +148,7 @@ function Deadline({ row, closed }: { row: OfferRow; closed: boolean }) {
   }
 
   if (row.lapsed) {
-    return <span className="text-3xs opacity-70">انقضت مهلته — يُسقَط قريبًا</span>;
+    return <span className="text-3xs opacity-70">انقضت مهلته — يسقط قريبا</span>;
   }
 
   const near = row.hoursToExpiry <= 6;

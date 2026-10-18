@@ -58,12 +58,12 @@ export default async function AdminAccountPage() {
               label="آخر دخول"
               value={
                 account.lastSeenAt === null
-                  ? 'لم يُسجَّل بعد'
+                  ? 'لم يسجل بعد'
                   : riyadh.format(new Date(account.lastSeenAt))
               }
             />
             <Row
-              label="جلسات حيّة"
+              label="جلسات حية"
               value={`${displayDigits(String(account.activeSessions))} — صلاحيتها ساعات (${displayDigits(String(ADMIN_SESSION_HOURS))})`}
             />
           </div>
@@ -74,7 +74,7 @@ export default async function AdminAccountPage() {
             نفسه بنقرة.
           */}
           <p className="mt-4 text-3xs leading-loose opacity-70">
-            الاسم والدور والبريد تُضبط من متغيّرات النشر، لا من هنا — فمن سرق جلسةً لا
+            الاسم والدور والبريد تضبط من متغيرات النشر، لا من هنا — فمن سرق جلسة لا
             يرفع دوره بنقرة.
           </p>
 

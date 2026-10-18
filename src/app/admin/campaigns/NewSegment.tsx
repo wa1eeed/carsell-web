@@ -60,11 +60,11 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
         | null;
 
       if (response === null || !response.ok) {
-        setToast(body?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(body?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
-      setToast('حُفظت الشريحة — وتُحوسَب وقت الإرسال لا الآن.');
+      setToast('حفظت الشريحة — وتحوسب وقت الإرسال لا الآن.');
       setOpen(false);
       setKey('');
       setNameAr('');
@@ -83,7 +83,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-        عرِّف شريحة
+        عرف شريحة
       </Button>
 
       <Sheet
@@ -98,7 +98,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
               disabled={pending || chosen.length === 0 || key.trim() === '' || nameAr.trim() === ''}
               onClick={save}
             >
-              {pending ? 'جارٍ…' : 'احفظ'}
+              {pending ? 'جار…' : 'احفظ'}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
               إلغاء
@@ -108,7 +108,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
       >
         <div className="flex flex-col gap-4">
           <p className="rounded-md border border-line p-3 text-3xs leading-loose opacity-75">
-            <b>الشريحة حيّة</b> — تُعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل الرسالة
+            <b>الشريحة حية</b> — تعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل الرسالة
             لمن خرج من شرطها بين اللحظتين.
           </p>
 
@@ -153,13 +153,13 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
                   >
                     <span>{SEGMENT_FIELD_LABEL[field.key] ?? field.key}</span>
                     <span className="text-3xs font-bold">
-                      {state === 'off' ? 'لا يُشترط' : state === 'on' ? 'يُشترط' : 'يُشترط نفيُه'}
+                      {state === 'off' ? 'لا يشترط' : state === 'on' ? 'يشترط' : 'يشترط نفيه'}
                     </span>
                   </button>
 
                   {state === 'off' || field.kind !== 'number' ? null : (
                     <label className="flex items-center gap-2.5 ps-3.5">
-                      <span className="text-3xs opacity-70">خلال كم يومًا</span>
+                      <span className="text-3xs opacity-70">خلال كم يوما</span>
                       <input
                         dir="ltr"
                         inputMode="numeric"

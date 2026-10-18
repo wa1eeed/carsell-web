@@ -44,11 +44,11 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
-      setToast(row.active ? 'عُطّلت المساحة — وحملاتها باقية.' : 'فُعّلت المساحة.');
+      setToast(row.active ? 'عطلت المساحة — وحملاتها باقية.' : 'فعلت المساحة.');
       router.refresh();
     });
   };
@@ -115,12 +115,12 @@ export function AdSlotTable({ rows }: { rows: readonly AdSlotRow[] }) {
                 </td>
                 <td className="p-3">
                   <Badge tone={row.active ? 'accent' : 'neutral'}>
-                    {row.active ? 'مفعّلة' : 'معطّلة'}
+                    {row.active ? 'مفعلة' : 'معطلة'}
                   </Badge>
                 </td>
                 <td className="p-3 text-end">
                   <Button size="sm" variant="outline" disabled={pending} onClick={() => toggle(row)}>
-                    {row.active ? 'عطّلها' : 'فعّلها'}
+                    {row.active ? 'عطلها' : 'فعلها'}
                   </Button>
                 </td>
               </tr>

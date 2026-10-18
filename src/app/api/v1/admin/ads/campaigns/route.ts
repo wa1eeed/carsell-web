@@ -21,9 +21,9 @@ const Body = z.object({
 
 const REASON: Record<string, string> = {
   SLOT_NOT_FOUND: 'المساحة غير موجودة.',
-  SLOT_INACTIVE: 'المساحة معطّلة — فعّلها أوّلًا أو اختر غيرها.',
+  SLOT_INACTIVE: 'المساحة معطلة — فعلها أولا أو اختر غيرها.',
   BAD_WINDOW: 'تاريخ الانتهاء قبل البدء أو يساويه.',
-  BAD_BUDGET: 'الميزانية رقمٌ موجب.',
+  BAD_BUDGET: 'الميزانية رقم موجب.',
   BAD_URL: 'رابط الإبداع والوجهة يبدآن بـhttp أو https.',
   NO_ADVERTISER: 'اسم المعلن مطلوب.',
 };
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
   if (!result.ok) {
     return fail(
-      { code: `AD_${result.reason}`, messageAr: REASON[result.reason] ?? 'تعذّر الإنشاء.', messageEn: result.reason },
+      { code: `AD_${result.reason}`, messageAr: REASON[result.reason] ?? 'تعذر الإنشاء.', messageEn: result.reason },
       422,
     );
   }

@@ -69,9 +69,9 @@ export function RevealPhone({
         }
         className="text-3xs font-bold underline underline-offset-4 opacity-75 hover:opacity-100"
       >
-        {busy ? 'يُكشف…' : 'أظهر الرقم'}
+        {busy ? 'يكشف…' : 'أظهر الرقم'}
       </button>
-      {!error ? null : <span className="text-3xs text-danger">تعذّر الكشف.</span>}
+      {!error ? null : <span className="text-3xs text-danger">تعذر الكشف.</span>}
     </span>
   );
 }

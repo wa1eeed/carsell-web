@@ -13,7 +13,7 @@ export function ProviderBar({ name }: { name: string }) {
   return (
     <header className="flex flex-wrap items-center gap-4 border-b border-line bg-surface px-6 py-4">
       <Logo />
-      <span className="text-2xs tracking-[0.18em] opacity-65">لوحة المزوّدين</span>
+      <span className="text-2xs tracking-[0.18em] opacity-65">لوحة المزودين</span>
       {/*
         ═══ وشاشةٌ لا يربط إليها شيء ليست شاشة ═══
 
@@ -26,7 +26,7 @@ export function ProviderBar({ name }: { name: string }) {
           طلباتك
         </Link>
         <Link href="/provider/earnings" className="-my-2 py-2 underline-offset-4 hover:underline">
-          مستحقّاتك
+          مستحقاتك
         </Link>
       </nav>
       <span className="flex-1" />

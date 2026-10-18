@@ -47,8 +47,8 @@ export function AgreementSheet({
         <header className="mb-7 border-b border-line pb-5">
           <h1 className="mb-1.5 text-2xl font-bold">عقد بيع مركبة</h1>
           <p className="text-2xs leading-relaxed opacity-70">
-            عقدٌ بين البائع والمشتري، صادرٌ عن كارز CARZ وثيقةً لما اتُّفق عليه.
-            <b className="opacity-90"> والمنصّة ليست طرفًا فيه</b> — دورها حفظ المبلغ
+            عقد بين البائع والمشتري، صادر عن كارز CARZ وثيقة لما اتفق عليه.
+            <b className="opacity-90"> والمنصة ليست طرفا فيه</b> — دورها حفظ المبلغ
             حتى نقل الملكية.
           </p>
           <p className="font-num mt-3 text-3xs opacity-70" dir="ltr">
@@ -81,7 +81,7 @@ export function AgreementSheet({
 
         <Section title="الثمن">
           <Pair
-            label="المتّفق عليه"
+            label="المتفق عليه"
             value={<Money amount={Number(agreement.price)} size="md" />}
           />
         </Section>

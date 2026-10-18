@@ -48,7 +48,7 @@ export async function AccountNav({
           size="sm"
           className={stacked ? 'w-full' : 'hidden sm:inline-flex'}
         >
-          بِع سيارتك
+          بع سيارتك
         </LinkButton>
         <LinkButton href={`/${locale}/auth`} size="sm" className={stacked ? 'w-full' : ''}>
           تسجيل الدخول
@@ -67,7 +67,7 @@ export async function AccountNav({
   return (
     <span className="flex items-center gap-2.5">
       <LinkButton href={`/${locale}/sell`} variant="outline" size="sm">
-        بِع سيارتك
+        بع سيارتك
       </LinkButton>
 
       {/*

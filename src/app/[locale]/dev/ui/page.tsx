@@ -186,7 +186,7 @@ export default async function DevUiPage({
               <InspectedBadge />
             </Case>
 
-            <Case label="PlateBadge — sm 82 · md 120 · lg 180 · المكافئ اللاتيني مشتقّ">
+            <Case label="PlateBadge — sm 82 · md 120 · lg 180 · المكافئ اللاتيني مشتق">
               <PlateBadge letters="أ ب ح" numbers="1234" size="sm" />
               <PlateBadge letters="أ ب ح" numbers="1234" size="md" />
               <PlateBadge letters="ب س د" numbers="4444" size="lg" />
@@ -244,7 +244,7 @@ export default async function DevUiPage({
               label="نقد الضمان"
               value={2_300_000}
               tone="ink"
-              breakdown={[{ label: 'محتجز جارٍ', value: 1_720_000 }]}
+              breakdown={[{ label: 'محتجز جار', value: 1_720_000 }]}
             />
           </div>
 
@@ -252,10 +252,10 @@ export default async function DevUiPage({
             <Case label="CarCard — تفاوض · مفحوصة">
               <CarCard data={CAR} className="w-full" />
             </Case>
-            <Case label="CarCard — مزاد بعدّاد">
+            <Case label="CarCard — مزاد بعداد">
               <CarCard data={AUCTION_CAR} className="w-full" />
             </Case>
-            <Case label="CarCard — مموّل">
+            <Case label="CarCard — ممول">
               <CarCard data={{ ...CAR, inspected: false }} sponsored className="w-full" />
             </Case>
           </div>
@@ -287,7 +287,7 @@ export default async function DevUiPage({
               </div>
             </Case>
 
-            <Case label="RangeBar — خارج النطاق (مثبّت عند الطرف)">
+            <Case label="RangeBar — خارج النطاق (مثبت عند الطرف)">
               <div className="w-full">
                 <RangeBar
                   price={195_000}
@@ -296,13 +296,13 @@ export default async function DevUiPage({
               </div>
             </Case>
 
-            <Case label="RangeBar — عيّنة < 8 ⇒ لا شيء يُعرض">
+            <Case label="RangeBar — عينة < 8 ⇒ لا شيء يعرض">
               <div className="w-full text-2xs opacity-65">
                 <RangeBar
                   price={145_000}
                   stats={{ p10: 1, p25: 2, p50: 3, p75: 4, p90: 5, sampleSize: 3 }}
                 />
-                البطاقة مخفية عمدًا — لا متوسط من ثلاث صفقات.
+                البطاقة مخفية عمدا — لا متوسط من ثلاث صفقات.
               </div>
             </Case>
           </div>
@@ -321,15 +321,15 @@ export default async function DevUiPage({
           <div className="grid gap-4 md:grid-cols-2">
             <Case label="Toast — نجاح · خطأ · معلومة">
               <div className="flex w-full flex-col gap-2.5">
-                <Toast tone="success" title="نُشر إعلانك" description="ظهر في نتائج البحث الآن." />
-                <Toast tone="error" title="تعذّر الحفظ" description="راجع الحقول المعلَّمة." />
+                <Toast tone="success" title="نشر إعلانك" description="ظهر في نتائج البحث الآن." />
+                <Toast tone="error" title="تعذر الحفظ" description="راجع الحقول المعلمة." />
                 <Toast tone="info" title="مهلة الدفع تقترب" />
               </div>
             </Case>
             <Case label="EmptyState">
               <EmptyState
                 title="لا نتائج مطابقة"
-                description="جرّب توسيع نطاق السعر أو إزالة بعض الفلاتر."
+                description="جرب توسيع نطاق السعر أو إزالة بعض الفلاتر."
                 className="w-full"
               />
             </Case>
@@ -338,7 +338,7 @@ export default async function DevUiPage({
 
         {/* ═══ الأصداف ═══ */}
         <Section title={t('shells')}>
-          <Case label="AdminShell — قائمة التنقّل: أربع مجموعات وثلاثون بندًا">
+          <Case label="AdminShell — قائمة التنقل: أربع مجموعات وثلاثون بندا">
             <div className="grid w-full gap-4 md:grid-cols-4">
               {ADMIN_NAV.map((group) => (
                 <div key={group.title} className="rounded-lg bg-ink p-3.5 text-bg">
@@ -353,7 +353,7 @@ export default async function DevUiPage({
                       }`}
                     >
                       <span className="flex-1 truncate">{item.label}</span>
-                      {item.href === null ? <span>قريبًا</span> : null}
+                      {item.href === null ? <span>قريبا</span> : null}
                     </p>
                   ))}
                 </div>

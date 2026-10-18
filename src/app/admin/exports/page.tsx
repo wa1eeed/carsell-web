@@ -45,10 +45,10 @@ export default async function AdminExportsPage() {
 
   return (
     <AdminShell title="التقارير والتصدير"
-      subtitle="تقارير جاهزة تُنزَّل — ولا تمسّ البيانات" activeHref="/admin/exports" admin={admin}>
+      subtitle="تقارير جاهزة تنزل — ولا تمس البيانات" activeHref="/admin/exports" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
-        <Quantity unit="reportsReady" count={stats.reports} /> جاهزة — كلٌّ منها{' '}
-        <b>استعلامٌ مسمّى على القراءة</b>، لا لقطةُ شاشة.
+        <Quantity unit="reportsReady" count={stats.reports} /> جاهزة — كل منها{' '}
+        <b>استعلام مسمى على القراءة</b>، لا لقطة شاشة.
       </p>
 
       {/*
@@ -57,8 +57,8 @@ export default async function AdminExportsPage() {
       */}
       {REPORT_SCHEDULING_RUNS ? null : (
         <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-75">
-          <b>التوليد المجدوَل لم يبدأ بعد.</b> عمود «الجدولة» يقول ما هو مقصود، والتنزيل
-          اليوم عند الطلب من هنا — ولا يصل ملفٌّ إلى أحد من تلقاء نفسه.
+          <b>التوليد المجدول لم يبدأ بعد.</b> عمود «الجدولة» يقول ما هو مقصود، والتنزيل
+          اليوم عند الطلب من هنا — ولا يصل ملف إلى أحد من تلقاء نفسه.
         </p>
       )}
 
@@ -69,14 +69,14 @@ export default async function AdminExportsPage() {
             value: stats.reports,
             note: <>يفتحها دورك: <Quantity unit="reportsReady" count={mine.length} /></>,
           },
-          { title: 'تصديرات هذا الشهر', value: stats.exportsThisMonth, note: 'المسجَّلة منها' },
+          { title: 'تصديرات هذا الشهر', value: stats.exportsThisMonth, note: 'المسجلة منها' },
           {
             title: 'تحتوي بيانات شخصية',
             value: stats.personalReports,
-            note: 'تحتاج صلاحية · وتُقيَّد',
+            note: 'تحتاج صلاحية · وتقيد',
           },
           {
-            title: 'حدّ الصفوف',
+            title: 'حد الصفوف',
             value: stats.rowLimit,
             note: 'لكل تصدير',
           },
@@ -119,7 +119,7 @@ export default async function AdminExportsPage() {
                     download
                     className="rounded-md border border-line px-3.5 py-1.5 text-2xs hover:border-ink"
                   >
-                    نزّل
+                    نزل
                   </a>
                 </td>
               </tr>
@@ -130,7 +130,7 @@ export default async function AdminExportsPage() {
 
       {hidden === 0 ? null : (
         <p className="mt-3 text-3xs opacity-70">
-          و<Quantity unit="reportsReady" count={hidden} /> لا يفتحها دورك — فلا تُعرض.
+          و<Quantity unit="reportsReady" count={hidden} /> لا يفتحها دورك — فلا تعرض.
         </p>
       )}
 
@@ -138,10 +138,10 @@ export default async function AdminExportsPage() {
         **سجلّ التصديرات من سجلّ التدقيق نفسه** — لا من جدولٍ ثانٍ
         يتباعد عنه أوّل تغيير.
       */}
-      <h2 className="mt-10 mb-3.5 text-sm font-bold">سجلّ التصديرات</h2>
+      <h2 className="mt-10 mb-3.5 text-sm font-bold">سجل التصديرات</h2>
       {log.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          لا تصدير مسجَّلًا. والتقارير المجمَّعة لا تُقيَّد — التقييد لما يحمل بيانات
+          لا تصدير مسجلا. والتقارير المجمعة لا تقيد — التقييد لما يحمل بيانات
           شخصية وحده.
         </p>
       ) : (
@@ -162,19 +162,19 @@ export default async function AdminExportsPage() {
 
       <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-2">
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-          <p className="mb-2 font-bold">أي تصدير يحمل بيانات شخصية يُسجَّل</p>
+          <p className="mb-2 font-bold">أي تصدير يحمل بيانات شخصية يسجل</p>
           <p>
-            اسم من صدّر ووقته وعدد الصفوف — في سجل التدقيق. <b>والملف يُنزَّل مباشرةً
-            ولا يُرسَل بالبريد</b>، ولا يُخزَّن نسخةً على الخادم تنتظر من يجدها.
+            اسم من صدر ووقته وعدد الصفوف — في سجل التدقيق. <b>والملف ينزل مباشرة
+            ولا يرسل بالبريد</b>، ولا يخزن نسخة على الخادم تنتظر من يجدها.
           </p>
         </div>
 
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-          <p className="mb-2 font-bold">لا تُبنى التقارير من الشاشات</p>
+          <p className="mb-2 font-bold">لا تبنى التقارير من الشاشات</p>
           <p>
-            كل تقرير <b>استعلامٌ مسمّى على القراءة</b> بأعمدةٍ ثابتة، وحدُّه{' '}
-            <Quantity unit="rows" count={stats.rowLimit} /> — فلا يُبطئ تقريرٌ ثقيل مزادًا
-            جاريًا.
+            كل تقرير <b>استعلام مسمى على القراءة</b> بأعمدة ثابتة، وحده{' '}
+            <Quantity unit="rows" count={stats.rowLimit} /> — فلا يبطئ تقرير ثقيل مزادا
+            جاريا.
           </p>
         </div>
       </div>

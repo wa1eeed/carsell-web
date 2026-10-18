@@ -21,10 +21,10 @@ import { Toast } from '@/components/ui/Toast';
  */
 
 const REASONS = [
-  { key: 'fraud', label: 'يبدو احتيالًا' },
+  { key: 'fraud', label: 'يبدو احتيالا' },
   { key: 'wrong_data', label: 'بيانات غير صحيحة' },
   { key: 'sold_elsewhere', label: 'بيعت وما زالت معروضة' },
-  { key: 'duplicate', label: 'مكرّر' },
+  { key: 'duplicate', label: 'مكرر' },
   { key: 'offensive', label: 'محتوى مسيء' },
   { key: 'other', label: 'سبب آخر' },
 ] as const;
@@ -63,7 +63,7 @@ export function ReportListing({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر إرسال البلاغ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إرسال البلاغ.');
         return;
       }
 
@@ -98,7 +98,7 @@ export function ReportListing({
           (قرار ٣٣). ومن يظنّه يحذف فورًا يبلّغ ليؤذي منافسًا.
         */}
         <p className="mb-4 text-2xs leading-loose opacity-75">
-          البلاغ يُحيل الإعلان إلى مراجعة بشرية، ولا يحذفه فورًا. ولا يعرف صاحب
+          البلاغ يحيل الإعلان إلى مراجعة بشرية، ولا يحذفه فورا. ولا يعرف صاحب
           الإعلان من أبلغ.
         </p>
 
@@ -132,7 +132,7 @@ export function ReportListing({
         </label>
 
         <Button className="mt-4 w-full" disabled={pending} onClick={submit}>
-          {pending ? 'جارٍ…' : 'أرسل البلاغ'}
+          {pending ? 'جار…' : 'أرسل البلاغ'}
         </Button>
       </Modal>
 

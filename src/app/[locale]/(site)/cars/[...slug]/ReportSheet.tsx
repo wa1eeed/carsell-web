@@ -34,8 +34,8 @@ const MARK: Record<PointState, { glyph: string; tone: string; label: string }> =
   OK: { glyph: '✓', tone: 'ok', label: 'سليم' },
   NOTE: { glyph: '!', tone: 'note', label: 'ملاحظة' },
   PAINT: { glyph: '!', tone: 'note', label: 'صبغ' },
-  FAIL: { glyph: '!', tone: 'fail', label: 'يحتاج إصلاحًا' },
-  NOT_INSPECTED: { glyph: '–', tone: 'none', label: 'لم يُفحَص' },
+  FAIL: { glyph: '!', tone: 'fail', label: 'يحتاج إصلاحا' },
+  NOT_INSPECTED: { glyph: '–', tone: 'none', label: 'لم يفحص' },
 };
 
 const PANEL_LABEL: Record<string, string> = {
@@ -94,7 +94,7 @@ export function ReportSheet({
       <header className="card">
         <div className="brand">
           <span className="wordmark">CARZ</span>
-          <span className="kicker">تقرير فحص فنّي معتمد</span>
+          <span className="kicker">تقرير فحص فني معتمد</span>
           {/*
             **والشعارُ مكوّنٌ واحد** — لا صورةٌ تُستدعى بمسارها هنا،
             فملفُّه يتبدّل مرّةً ويصل كلَّ شاشةٍ وورقة.
@@ -210,7 +210,7 @@ export function ReportSheet({
 
       {expired ? (
         <p className="banner">
-          انقضت صلاحيةُ هذا التقرير — وما فيه يصف المركبة يوم فُحصت لا اليوم.
+          انقضت صلاحية هذا التقرير — وما فيه يصف المركبة يوم فحصت لا اليوم.
         </p>
       ) : null}
 
@@ -222,7 +222,7 @@ export function ReportSheet({
             <span className="n">
               <ArabicNumber value={counts.ok} />
             </span>
-            <span className="t">بندًا سليمًا</span>
+            <span className="t">بندا سليما</span>
           </li>
           <li>
             <span className={`mark note`}>!</span>
@@ -236,7 +236,7 @@ export function ReportSheet({
             <span className="n">
               <ArabicNumber value={counts.none} />
             </span>
-            <span className="t">لم يُفحَص</span>
+            <span className="t">لم يفحص</span>
           </li>
           <li className="total">
             <span className="n">
@@ -263,7 +263,7 @@ export function ReportSheet({
 
       {report.paintMap.length === 0 ? null : (
         <section className="panels">
-          <h2>الهيكل الخارجي — حالُ كل قطعة</h2>
+          <h2>الهيكل الخارجي — حال كل قطعة</h2>
           {report.paintSummary === null ? null : <p className="pnote">{report.paintSummary}</p>}
           <ul>
             {report.paintMap.map((panel) => (
@@ -285,7 +285,7 @@ export function ReportSheet({
       {report.findings.length === 0 ? null : (
         <section className="findings">
           <h2>
-            ما يستحقّ الانتباه
+            ما يستحق الانتباه
             <span className="count">
               <ArabicNumber value={report.findings.length} />
             </span>
@@ -315,11 +315,11 @@ export function ReportSheet({
 
       <footer className="foot">
         <span>
-          صدر هذا التقرير من منصّة كارز · <bdi className="mono">carz.sa</bdi>
+          صدر هذا التقرير من منصة كارز · <bdi className="mono">carz.sa</bdi>
         </span>
         <span>
-          يصف التقريرُ حالَ المركبة يوم فُحصت، ولا يُغني عن المعاينة. ورقمُ الفاحص يُطابَق
-          لدى المنصّة.
+          يصف التقرير حال المركبة يوم فحصت، ولا يغني عن المعاينة. ورقم الفاحص يطابق
+          لدى المنصة.
         </span>
       </footer>
     </main>

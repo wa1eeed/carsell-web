@@ -10,7 +10,7 @@ import { ProviderBar } from '../ProviderBar';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'مستحقّاتك' };
+export const metadata = { title: 'مستحقاتك' };
 
 /**
  * ═══ كشفُ المزوّد — الطرف الثاني من الصرف ═══
@@ -50,34 +50,34 @@ export default async function ProviderEarningsPage() {
       <ProviderBar name={user.name} />
 
       <main className="mx-auto w-full max-w-4xl p-6">
-        <h1 className="mb-1.5 text-2xl font-bold tracking-tight">مستحقّاتك</h1>
+        <h1 className="mb-1.5 text-2xl font-bold tracking-tight">مستحقاتك</h1>
         <p className="mb-7 text-sm leading-loose opacity-70">
-          ما استُحقّ لك عن الخدمات التي أنجزتَها، وما حُوِّل إلى حسابك منه. والحوالة تُنفَّذ
-          من بنكنا إلى حسابك، ويُسجَّل مرجعُها هنا.
+          ما استحق لك عن الخدمات التي أنجزتها، وما حول إلى حسابك منه. والحوالة تنفذ
+          من بنكنا إلى حسابك، ويسجل مرجعها هنا.
         </p>
 
         <div className="mb-9 grid gap-px border border-line bg-line sm:grid-cols-3">
           <Figure label="لك الآن" amount={ledger.balance} strong />
-          <Figure label="مجموع ما استُحقّ" amount={ledger.credited} />
-          <Figure label="ما حُوِّل إليك" amount={ledger.debited} />
+          <Figure label="مجموع ما استحق" amount={ledger.credited} />
+          <Figure label="ما حول إليك" amount={ledger.debited} />
         </div>
 
         {/* ═══ أين يُحوَّل — وغيابُه سببُ تأخّر الحوالة ═══ */}
         <section className="mb-9">
-          <h2 className="mb-3 text-sm font-bold">حسابك البنكيّ</h2>
+          <h2 className="mb-3 text-sm font-bold">حسابك البنكي</h2>
           <div className="flex flex-wrap items-center justify-between gap-3 border-y border-line py-4">
             {iban === null ? (
               <>
                 <p className="text-2xs leading-loose opacity-70">
-                  لا حساب مسجَّل — ولا تُنفَّذ حوالةٌ قبله. أبلِغ من يدير حسابك عندنا
-                  ليُسجّله.
+                  لا حساب مسجل — ولا تنفذ حوالة قبله. أبلغ من يدير حسابك عندنا
+                  ليسجله.
                 </p>
-                <Badge tone="warn">لم يُسجَّل</Badge>
+                <Badge tone="warn">لم يسجل</Badge>
               </>
             ) : (
               <>
                 <p className="text-2xs leading-loose opacity-70">
-                  إليه تُنفَّذ الحوالات. ولتبديله راجِعنا — فتبديلُه بيد المالية.
+                  إليه تنفذ الحوالات. ولتبديله راجعنا — فتبديله بيد المالية.
                 </p>
                 <span dir="ltr" className="font-num text-sm font-bold">
                   {displayDigits(iban)}
@@ -92,7 +92,7 @@ export default async function ProviderEarningsPage() {
           <h2 className="mb-3 text-sm font-bold">الحوالات</h2>
           {sent.length === 0 ? (
             <p className="border-y border-line py-4 text-2xs leading-loose opacity-65">
-              لم تخرج حوالةٌ بعد. وما لك الآن يبقى مقيَّدًا باسمك حتى تُنفَّذ.
+              لم تخرج حوالة بعد. وما لك الآن يبقى مقيدا باسمك حتى تنفذ.
             </p>
           ) : (
             <ul className="flex flex-col divide-y divide-line border-y border-line">
@@ -123,7 +123,7 @@ export default async function ProviderEarningsPage() {
           <h2 className="mb-3 text-sm font-bold">كشف الحساب</h2>
           {ledger.lines.length === 0 ? (
             <p className="border-y border-line py-4 text-2xs leading-loose opacity-65">
-              لا حركة بعد. وأوّلُ خدمةٍ تُنجزها تُقيَّد لك هنا.
+              لا حركة بعد. وأول خدمة تنجزها تقيد لك هنا.
             </p>
           ) : (
             <ul className="flex flex-col divide-y divide-line border-y border-line">

@@ -24,7 +24,7 @@ const Body = z.object({
 const MESSAGES: Record<DecisionFailure, { ar: string; en: string; status: number }> = {
   REQUEST_NOT_FOUND: { ar: 'لم نجد هذا الطلب.', en: 'Request not found.', status: 404 },
   NOT_SELLER: {
-    ar: 'صاحب المركبة وحده يقرّر.',
+    ar: 'صاحب المركبة وحده يقرر.',
     en: 'Only the vehicle owner decides.',
     status: 403,
   },
@@ -44,7 +44,7 @@ const MESSAGES: Record<DecisionFailure, { ar: string; en: string; status: number
    * عددٌ معدود (البوابة ١٨). والحدّ نفسه تفرضه الشاشة والخادم معًا.
    */
   REASON_REQUIRED: {
-    ar: 'اكتب سبب الرفض بجملةٍ يفهمها طالب الفحص.',
+    ar: 'اكتب سبب الرفض بجملة يفهمها طالب الفحص.',
     en: 'Write why you declined, in a sentence the requester can act on.',
     status: 422,
   },

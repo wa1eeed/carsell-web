@@ -47,15 +47,15 @@ export default async function PushPage() {
   return (
     <AdminShell title="إشعارات الدفع" activeHref="/admin/push" admin={admin}>
       <p className="mb-4 text-2xs opacity-70">
-        FCM لأندرويد و APNs لآيفون · التسجيل والإرسال يُفعَّلان مع التطبيق
+        FCM لأندرويد و APNs لآيفون · التسجيل والإرسال يفعلان مع التطبيق
       </p>
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">
-        <Stat title="أجهزة مسجّلة" value={devices.total} />
+        <Stat title="أجهزة مسجلة" value={devices.total} />
         <Stat title="آيفون" value={devices.ios} />
         <Stat title="أندرويد" value={devices.android} />
         <Stat
-          title="رموز ميّتة"
+          title="رموز ميتة"
           value={devices.stale}
           note={<Counted message="unseenSince" count={STALE_TOKEN_DAYS} />}
         />
@@ -85,7 +85,7 @@ export default async function PushPage() {
                     <Badge tone="neutral">نعم</Badge>
                   ) : (
                     /* «لا — حرِجة» كما في الترميز: السبب مع الحكم */
-                    <Badge tone="warn">لا — حرِجة</Badge>
+                    <Badge tone="warn">لا — حرجة</Badge>
                   )}
                 </td>
                 <td className="p-3.5">
@@ -138,7 +138,7 @@ export default async function PushPage() {
 
         <div className="min-w-0">
           <h2 className="mb-3 flex flex-wrap items-center gap-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
-            قوالب الدفع مقيسةً بالحدّ
+            قوالب الدفع مقيسة بالحد
             {over.length === 0 ? null : (
               <Badge tone="warn">
                 {/* **والعدد لا يحكم المعدود بيدٍ** — ستّ صيغ جمعٍ لا تُكتب نصًّا */}
@@ -148,7 +148,7 @@ export default async function PushPage() {
           </h2>
 
           {templates.length === 0 ? (
-            <p className="text-2xs opacity-70">لا قوالب دفع مفعَّلة.</p>
+            <p className="text-2xs opacity-70">لا قوالب دفع مفعلة.</p>
           ) : (
             <ul className="flex flex-col divide-y divide-line border-y border-line">
               {templates.slice(0, 8).map((row) => (
@@ -160,7 +160,7 @@ export default async function PushPage() {
                     <ArabicNumber value={row.bodyChars} grouped={false} />
                   </span>
                   {row.titleOver || row.bodyOver ? (
-                    <Badge tone="warn">سيُختصر</Badge>
+                    <Badge tone="warn">سيختصر</Badge>
                   ) : (
                     <span aria-hidden className="shrink-0 text-accent-700">✓</span>
                   )}
@@ -169,7 +169,7 @@ export default async function PushPage() {
             </ul>
           )}
           <p className="mt-2.5 text-3xs leading-loose opacity-65">
-            العنوان ثمّ المتن بالحروف — والحدّ{' '}
+            العنوان ثم المتن بالحروف — والحد{' '}
             <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> و
             <Quantity unit="characters" count={PUSH_BODY_LIMIT} />.
           </p>
@@ -177,24 +177,24 @@ export default async function PushPage() {
       </section>
 
       <section className="rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">قواعد مفعّلة</h2>
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">قواعد مفعلة</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>الحرِجة لا تُطفأ</strong> — المزاد الذي يشارك فيه، والطلبات والدفع. ومن
-            يخسر مزادًا لأنه أطفأ إشعارًا ظنّه تسويقيًّا لا يعنيه أين كان الفحص، فالمنع في
+            <strong>الحرجة لا تطفأ</strong> — المزاد الذي يشارك فيه، والطلبات والدفع. ومن
+            يخسر مزادا لأنه أطفأ إشعارا ظنه تسويقيا لا يعنيه أين كان الفحص، فالمنع في
             المجال لا في الشاشة.
           </li>
-          <li>التسويقي مغلق افتراضيًا — الموافقة تُطلب لا تُفترض.</li>
+          <li>التسويقي مغلق افتراضيا — الموافقة تطلب لا تفترض.</li>
           <li>
-            الحدّ الآمن للنصّ: <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> للعنوان و
-            <Quantity unit="characters" count={PUSH_BODY_LIMIT} /> للمتن — وما زاد سيُختصر على
+            الحد الآمن للنص: <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> للعنوان و
+            <Quantity unit="characters" count={PUSH_BODY_LIMIT} /> للمتن — وما زاد سيختصر على
             أندرويد.
           </li>
-          <li>طلب الإذن بعد أوّل تفاعل ذي قيمة لا عند التشغيل.</li>
-          <li>تجميع إشعارات المزاد الواحد في إشعار متحدّث، واستبدال القديم بالمعرّف نفسه.</li>
-          <li>حذف رمز الجهاز عند أوّل رفض من المزوّد — والرمز الميّت يُطارَد بلا فائدة.</li>
+          <li>طلب الإذن بعد أول تفاعل ذي قيمة لا عند التشغيل.</li>
+          <li>تجميع إشعارات المزاد الواحد في إشعار متحدث، واستبدال القديم بالمعرف نفسه.</li>
+          <li>حذف رمز الجهاز عند أول رفض من المزود — والرمز الميت يطارد بلا فائدة.</li>
           <li>
-            إن كان المستخدم داخل التطبيق وعلى الشاشة المعنيّة فلا إشعار دفع — تحديث حيّ فقط.
+            إن كان المستخدم داخل التطبيق وعلى الشاشة المعنية فلا إشعار دفع — تحديث حي فقط.
           </li>
         </ul>
       </section>

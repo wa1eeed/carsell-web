@@ -50,10 +50,10 @@ export async function POST(
            * ورسالةٌ عامّة تجعل المشغّل يبحث عن صلاحيةٍ ناقصة.
            */
           result.reason === 'ENV_FORBIDDEN'
-            ? 'هذه البيئة مقيَّدة بالاختبار في الكود — التبديل لا أثر له فيها.'
+            ? 'هذه البيئة مقيدة بالاختبار في الكود — التبديل لا أثر له فيها.'
             : result.reason === 'ALREADY_PENDING'
-              ? 'على هذا التكامل طلبٌ قائم — اعتمده أو انتظر انقضاءه.'
-              : 'تعذّر تسجيل طلب تبديل البيئة.',
+              ? 'على هذا التكامل طلب قائم — اعتمده أو انتظر انقضاءه.'
+              : 'تعذر تسجيل طلب تبديل البيئة.',
         messageEn:
           result.reason === 'ENV_FORBIDDEN'
             ? 'This environment is pinned to TEST in code — switching has no effect here.'

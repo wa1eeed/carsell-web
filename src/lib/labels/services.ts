@@ -12,18 +12,18 @@ import type { PaymentStatus, ServiceCategory, ServiceRequestStatus } from '@/gen
 export const SERVICE_REQUEST_STATUS: Record<string, string> = {
   AWAITING_SELLER: 'ينتظر إذن صاحب المركبة',
   AWAITING_PAYMENT: 'ينتظر سدادك',
-  DECLINED: 'لم يُؤذَن به',
+  DECLINED: 'لم يؤذن به',
   NEW: 'في طابور الفاحصين',
-  ASSIGNED: 'مُسنَد إلى المزوّد',
+  ASSIGNED: 'مسند إلى المزود',
   IN_PROGRESS: 'قيد التنفيذ',
   DONE: 'اكتمل',
-  FAILED: 'تعذّر تنفيذه',
-  REFUNDED: 'رُدّ مبلغه',
+  FAILED: 'تعذر تنفيذه',
+  REFUNDED: 'رد مبلغه',
 } satisfies Record<ServiceRequestStatus, string>;
 
 /** ما يُعرض في عمود القيمة — ولكل حالٍ ما ينتظره صاحبُها فعلًا. */
 export const SERVICE_REQUEST_NEXT: Record<string, string> = {
-  AWAITING_SELLER: 'ينتظر إذنًا',
+  AWAITING_SELLER: 'ينتظر إذنا',
   AWAITING_PAYMENT: 'ادفع لتبدأ',
   DECLINED: 'انتهى',
   NEW: 'بانتظار الإسناد',
@@ -31,7 +31,7 @@ export const SERVICE_REQUEST_NEXT: Record<string, string> = {
   IN_PROGRESS: 'بانتظار التقرير',
   DONE: 'التقرير جاهز',
   FAILED: 'راجع الدعم',
-  REFUNDED: 'رُدّ المبلغ',
+  REFUNDED: 'رد المبلغ',
 } satisfies Record<ServiceRequestStatus, string>;
 
 /**
@@ -52,20 +52,20 @@ export const SERVICE_CATEGORY: Record<string, string> = {
  * يُسأل عنه أوّلَ نزاع.
  */
 export const SERVICE_PAYMENT_STATUS: Record<string, string> = {
-  CREATED: 'أُنشئت ولم تُحجز',
-  REQUIRES_ACTION: 'تنتظر تحقّق العميل',
+  CREATED: 'أنشئت ولم تحجز',
+  REQUIRES_ACTION: 'تنتظر تحقق العميل',
   PENDING: 'قيد التأكيد',
-  HELD: 'محجوز لدى البوّابة',
-  SETTLED: 'حُصِّل',
-  PARTIALLY_SETTLED: 'حُصِّل جزئيًّا',
-  CANCELLED: 'أُلغي ورُدّ',
+  HELD: 'محجوز لدى البوابة',
+  SETTLED: 'حصل',
+  PARTIALLY_SETTLED: 'حصل جزئيا',
+  CANCELLED: 'ألغي ورد',
   /**
    * **والردُّ بعد التحصيل حالٌ أخرى**: `PAYMENT_STATE` تحتها منذ
    * كُتبت وهذه لم تكن — خريطتان للتعداد نفسه، تباعدتا. و`service.refunded`
    * يُنتجهما، فطلبٌ رُدّ مبلغُه كان يعرض «RETURNED» خامًا للمشغّل.
    */
-  RETURNED: 'رُدّ بعد التحصيل',
-  PARTIALLY_RETURNED: 'رُدّ جزءٌ منه',
+  RETURNED: 'رد بعد التحصيل',
+  PARTIALLY_RETURNED: 'رد جزء منه',
   FAILED: 'فشلت',
 } satisfies Record<PaymentStatus, string>;
 
@@ -77,14 +77,14 @@ export const SERVICE_PAYMENT_STATUS: Record<string, string> = {
  * حالٍ مدفوعة، **وعلى طلبٍ مُنجَز المالُ قد حُصِّل**.
  */
 export const PAYMENT_STATE: Record<string, string> = {
-  CREATED: 'لم يُؤكَّد بعد',
+  CREATED: 'لم يؤكد بعد',
   REQUIRES_ACTION: 'ينتظر تأكيدك',
-  PENDING: 'ينتظر تأكيد البوّابة',
-  HELD: 'حُجز المبلغ',
-  SETTLED: 'حُصِّل المبلغ',
-  PARTIALLY_SETTLED: 'حُصِّل جزءٌ منه',
-  CANCELLED: 'أُلغي الحجز',
-  RETURNED: 'رُدّ المبلغ',
-  PARTIALLY_RETURNED: 'رُدّ جزءٌ منه',
-  FAILED: 'تعذّر السداد',
+  PENDING: 'ينتظر تأكيد البوابة',
+  HELD: 'حجز المبلغ',
+  SETTLED: 'حصل المبلغ',
+  PARTIALLY_SETTLED: 'حصل جزء منه',
+  CANCELLED: 'ألغي الحجز',
+  RETURNED: 'رد المبلغ',
+  PARTIALLY_RETURNED: 'رد جزء منه',
+  FAILED: 'تعذر السداد',
 } satisfies Record<PaymentStatus, string>;

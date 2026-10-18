@@ -31,7 +31,7 @@ export function SettlementSheet({
   backHref: string;
 }) {
   const deductions = [
-    { label: 'عمولة المنصّة', amount: Number(statement.commission) },
+    { label: 'عمولة المنصة', amount: Number(statement.commission) },
     { label: 'ضريبة العمولة', amount: Number(statement.commissionTax) },
     { label: 'رسوم معالجة الدفع', amount: Number(statement.gatewayFee) },
     { label: 'خدمات على الطلب', amount: Number(statement.servicesTotal) },
@@ -52,7 +52,7 @@ export function SettlementSheet({
         <header className="mb-7 border-b border-line pb-5">
           <h1 className="mb-1.5 text-2xl font-bold">كشف التسوية</h1>
           <p className="text-2xs leading-relaxed opacity-70">
-            تفصيلُ ما وصل البائع ولماذا — قيمةُ المركبة، وما خُصم بندًا بندًا،
+            تفصيل ما وصل البائع ولماذا — قيمة المركبة، وما خصم بندا بندا،
             والصافي.
           </p>
           <p className="font-num mt-3 text-3xs opacity-70" dir="ltr">
@@ -104,7 +104,7 @@ export function SettlementSheet({
 
         {Number(statement.returnedAmount) <= 0 ? null : (
           <p className="mt-5 rounded-lg border border-line p-4 text-3xs leading-loose opacity-75">
-            رُدّ إلى المشتري{' '}
+            رد إلى المشتري{' '}
             <Money amount={Number(statement.returnedAmount)} size="sm" /> من المبلغ المحجوز.
           </p>
         )}

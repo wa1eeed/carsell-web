@@ -24,19 +24,19 @@ import type { PendingProviderPayout, ProviderPayoutLine } from '@/lib/domain/pro
  */
 
 const IBAN_REASON: Record<string, string> = {
-  INVALID_FORMAT: 'الصيغة غير صحيحة — آيبان سعوديّ من ٢٤ خانة يبدأ بـSA.',
-  NOT_SAUDI: 'الآيبان ليس سعوديًّا.',
-  CHECKSUM: 'خانتا التحقّق لا تطابقان الرقم — راجِع خانةً خانةً.',
+  INVALID_FORMAT: 'الصيغة غير صحيحة — آيبان سعودي من ٢٤ خانة يبدأ بـSA.',
+  NOT_SAUDI: 'الآيبان ليس سعوديا.',
+  CHECKSUM: 'خانتا التحقق لا تطابقان الرقم — راجع خانة خانة.',
 };
 
 const PAYOUT_REASON: Record<string, string> = {
-  NO_IBAN: 'لا آيبان مسجَّل — يُدخَل أوّلًا.',
-  EXCEEDS_PAYABLE: 'المبلغ أكبر من حقّه القائم.',
+  NO_IBAN: 'لا آيبان مسجل — يدخل أولا.',
+  EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلبٌ ينتظر اعتمادًا — يُعتمد أو يُلغى أوّلًا.',
+  ALREADY_PENDING: 'له طلب ينتظر اعتمادا — يعتمد أو يلغى أولا.',
   BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية.',
-  NOT_PENDING: 'لم يبقَ الطلب منتظرًا.',
-  EXPIRED: 'انقضت مهلة الطلب — يُفتح طلبٌ جديد.',
+  NOT_PENDING: 'لم يبق الطلب منتظرا.',
+  EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
 };
 
 const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
@@ -93,19 +93,19 @@ export function BankAccount({
 
       if (response === null || !response.ok) {
         const key = payload?.error?.details?.iban;
-        setToast((key === undefined ? undefined : IBAN_REASON[key]) ?? 'تعذّر الحفظ.');
+        setToast((key === undefined ? undefined : IBAN_REASON[key]) ?? 'تعذر الحفظ.');
         return;
       }
       setIban('');
       setEditing(false);
-      setToast('حُفظ الحساب البنكيّ.');
+      setToast('حفظ الحساب البنكي.');
       router.refresh();
     });
   };
 
   const say = (payload: { error?: { details?: Record<string, string> } } | null): string => {
     const key = payload?.error?.details?.payout;
-    return (key === undefined ? undefined : PAYOUT_REASON[key]) ?? 'تعذّر تنفيذ الطلب.';
+    return (key === undefined ? undefined : PAYOUT_REASON[key]) ?? 'تعذر تنفيذ الطلب.';
   };
 
   const requestPayout = (): void => {
@@ -119,7 +119,7 @@ export function BankAccount({
         setToast(say((await response?.json().catch(() => null)) as Parameters<typeof say>[0]));
         return;
       }
-      setToast('فُتح طلب التحويل — ينتظر اعتماد عضوٍ ثانٍ.');
+      setToast('فتح طلب التحويل — ينتظر اعتماد عضو ثان.');
       router.refresh();
     });
   };
@@ -140,7 +140,7 @@ export function BankAccount({
         return;
       }
       setBankRef('');
-      setToast('سُجّلت الحوالة — وخُصم الدَّين من الدفتر.');
+      setToast('سجلت الحوالة — وخصم الدين من الدفتر.');
       router.refresh();
     });
   };
@@ -153,14 +153,14 @@ export function BankAccount({
         {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ reason: 'أُلغي من صفحة المزوّد' }),
+          body: JSON.stringify({ reason: 'ألغي من صفحة المزود' }),
         },
       ).catch(() => null);
       if (response === null || !response.ok) {
         setToast(say((await response?.json().catch(() => null)) as Parameters<typeof say>[0]));
         return;
       }
-      setToast('أُلغي الطلب.');
+      setToast('ألغي الطلب.');
       router.refresh();
     });
   };
@@ -172,7 +172,7 @@ export function BankAccount({
         <div className="flex items-baseline justify-between gap-4">
           <span className="text-2xs opacity-70">الآيبان</span>
           {ibanMasked === null ? (
-            <Badge tone="warn">لم يُدخَل</Badge>
+            <Badge tone="warn">لم يدخل</Badge>
           ) : (
             <span dir="ltr" className="font-num text-sm font-bold">
               {displayDigits(ibanMasked)}
@@ -182,13 +182,13 @@ export function BankAccount({
 
         {!canSend ? (
           <p className="text-3xs leading-loose opacity-65">
-            تبديلُ وجهة المال يحتاج صلاحية التحويل.
+            تبديل وجهة المال يحتاج صلاحية التحويل.
           </p>
         ) : editing ? (
           <>
             <label className="flex flex-col gap-2">
               <span className="text-3xs opacity-70">
-                آيبان سعوديّ — يُلصق بمسافاته كما هو من تطبيق المصرف
+                آيبان سعودي — يلصق بمسافاته كما هو من تطبيق المصرف
               </span>
               {/*
                 `dir="ltr"` — يُنسخ من مصدرٍ لاتينيّ ويُقارن خانةً بخانة.
@@ -203,7 +203,7 @@ export function BankAccount({
             </label>
             <div className="flex items-center gap-2">
               <Button size="sm" disabled={busy || iban.trim() === ''} onClick={saveIban}>
-                {busy ? 'جارٍ…' : 'احفظ'}
+                {busy ? 'جار…' : 'احفظ'}
               </Button>
               {ibanMasked === null ? null : (
                 <Button size="sm" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>
@@ -214,17 +214,17 @@ export function BankAccount({
           </>
         ) : (
           <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-            بدّل الحساب
+            بدل الحساب
           </Button>
         )}
       </div>
 
       {/* ═══ ما بقي له ═══ */}
       <div className="flex flex-col gap-1 border-b border-line py-4">
-        <span className="text-3xs opacity-70">مستحقّ ولم يُحوَّل</span>
+        <span className="text-3xs opacity-70">مستحق ولم يحول</span>
         <Money amount={owed} size="lg" decimals={2} />
         <p className="mt-1 text-3xs leading-loose opacity-70">
-          من دفتر الحسابات — ينمو بكل خدمةٍ يُنجزها، وينقص بما حُوِّل إليه.
+          من دفتر الحسابات — ينمو بكل خدمة ينجزها، وينقص بما حول إليه.
         </p>
       </div>
 
@@ -232,7 +232,7 @@ export function BankAccount({
       {pending !== null ? (
         <div className="flex flex-col gap-3 border-b border-line py-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-2xs opacity-70">طلبُ تحويل ينتظر عضوًا ثانيًا</span>
+            <span className="text-2xs opacity-70">طلب تحويل ينتظر عضوا ثانيا</span>
             <Money amount={Number(pending.amount)} decimals={2} />
           </div>
           {pending.requestedBy === meId ? (
@@ -241,7 +241,7 @@ export function BankAccount({
                 أنت الطالب — يعتمده غيرك. ولك إلغاؤه.
               </p>
               <Button size="sm" variant="outline" disabled={busy} onClick={cancel}>
-                ألغِ الطلب
+                ألغ الطلب
               </Button>
             </>
           ) : !canSend ? (
@@ -258,10 +258,10 @@ export function BankAccount({
                 />
               </label>
               <p className="text-3xs leading-loose opacity-70">
-                بهذا التسجيل <b>يُخصم الدَّين</b> — فلا تُسجّلها قبل أن تخرج الحوالة فعلًا.
+                بهذا التسجيل <b>يخصم الدين</b> — فلا تسجلها قبل أن تخرج الحوالة فعلا.
               </p>
               <Button size="sm" disabled={busy || bankRef.trim().length < 4} onClick={approve}>
-                {busy ? 'جارٍ…' : 'سجّل الحوالة'}
+                {busy ? 'جار…' : 'سجل الحوالة'}
               </Button>
             </>
           )}
@@ -269,7 +269,7 @@ export function BankAccount({
       ) : !canSend || owed <= 0 ? null : ibanMasked === null ? (
         <div className="border-b border-line py-4">
           <p className="text-3xs leading-loose opacity-70">
-            لا تحويل قبل الآيبان — أدخِله أعلاه.
+            لا تحويل قبل الآيبان — أدخله أعلاه.
           </p>
         </div>
       ) : (
@@ -285,19 +285,19 @@ export function BankAccount({
             />
           </label>
           <p className="text-3xs leading-loose opacity-70">
-            هذه الضغطة <b>لا تُحرّك المبلغ</b> — تفتح طلبًا يعتمده عضوٌ ثانٍ.
+            هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثان.
           </p>
           <Button size="sm" disabled={busy} onClick={requestPayout}>
-            {busy ? 'جارٍ…' : 'اطلب التحويل'}
+            {busy ? 'جار…' : 'اطلب التحويل'}
           </Button>
         </div>
       )}
 
       {/* ═══ وما وصله فعلًا ═══ */}
       <div className="pt-4">
-        <h3 className="mb-2.5 text-2xs font-bold opacity-80">ما حُوِّل إليه</h3>
+        <h3 className="mb-2.5 text-2xs font-bold opacity-80">ما حول إليه</h3>
         {sent.length === 0 ? (
-          <p className="text-3xs leading-loose opacity-65">لم تخرج حوالةٌ بعد.</p>
+          <p className="text-3xs leading-loose opacity-65">لم تخرج حوالة بعد.</p>
         ) : (
           <ul className="flex flex-col divide-y divide-line border-y border-line">
             {sent.map((row) => (

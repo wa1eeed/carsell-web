@@ -26,7 +26,7 @@ export function generateMetadata(): Metadata {
 const STATE: Record<VehicleState, { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   listed: { label: 'معروضة للبيع', tone: 'accent' },
   garage: { label: 'مخفية عن السوق', tone: 'neutral' },
-  sold: { label: 'مُباعة', tone: 'neutral' },
+  sold: { label: 'مباعة', tone: 'neutral' },
 };
 
 /**
@@ -123,7 +123,7 @@ export default async function MyVehiclesPage({
             role="status"
             className="rounded-xl border border-accent-200 bg-accent-100 px-5 py-4 text-2xs leading-loose text-accent-900"
           >
-            <span className="font-bold">حُفظت سيارتك.</span> هي مخفية عن السوق — تقدر تطلب
+            <span className="font-bold">حفظت سيارتك.</span> هي مخفية عن السوق — تقدر تطلب
             عليها خدمة، أو تعرضها للبيع وقت ما تحب.
           </p>
         )

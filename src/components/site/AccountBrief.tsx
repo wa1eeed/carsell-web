@@ -42,7 +42,7 @@ export function AccountBrief({ data, locale }: { data: AccountData; locale: stri
       key: 'offers',
       node: (
         <Link href={`/${locale}/account/offers`} className="font-bold underline underline-offset-2">
-          <Quantity unit="offers" count={waitingOffers} /> تنتظر ردّك
+          <Quantity unit="offers" count={waitingOffers} /> تنتظر ردك
         </Link>
       ),
     });
@@ -56,7 +56,7 @@ export function AccountBrief({ data, locale }: { data: AccountData; locale: stri
           href={`/${locale}/account/orders/${order.ref}`}
           className="font-bold underline underline-offset-2"
         >
-          {order.stage === 'PAYMENT' ? 'طلبٌ ينتظر الدفع' : 'طلبٌ في مرحلة نقل الملكية'}
+          {order.stage === 'PAYMENT' ? 'طلب ينتظر الدفع' : 'طلب في مرحلة نقل الملكية'}
         </Link>
       ),
     });

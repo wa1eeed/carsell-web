@@ -81,10 +81,10 @@ export function TrimEditor({
       const failed = responses.find((r) => !r.ok);
       if (failed !== undefined) {
         const json = (await failed.json()) as { error?: { messageAr: string } };
-        setToast({ tone: 'error', text: json.error?.messageAr ?? 'تعذّر الحفظ.' });
+        setToast({ tone: 'error', text: json.error?.messageAr ?? 'تعذر الحفظ.' });
         return;
       }
-      setToast({ tone: 'success', text: 'حُفظت الفئة.' });
+      setToast({ tone: 'success', text: 'حفظت الفئة.' });
       router.refresh();
     } finally {
       setBusy(false);
@@ -100,7 +100,7 @@ export function TrimEditor({
       <header className="flex items-end gap-4 rounded-lg border border-line bg-surface p-4.5">
         <div>
           <h2 className="text-xl font-bold">
-            {path.model} {trim.nameEn} — محرّر الفئة
+            {path.model} {trim.nameEn} — محرر الفئة
           </h2>
           <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs opacity-70">
             <span className="bidi-isolate">
@@ -168,9 +168,9 @@ export function TrimEditor({
 
         <section className="rounded-lg border border-line bg-surface p-5.5 lg:col-span-2">
           <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
-            قيَم موروثة
+            قيم موروثة
           </h3>
-          <p className="mb-3.5 text-xs opacity-70">تُملأ تلقائيًا ولا يعبّئها البائع</p>
+          <p className="mb-3.5 text-xs opacity-70">تملأ تلقائيا ولا يعبئها البائع</p>
 
           <div className="grid grid-cols-2 gap-3.5 md:grid-cols-3">
             {(
@@ -236,7 +236,7 @@ export function TrimEditor({
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <section className="rounded-lg border border-line bg-surface p-5.5 lg:col-span-2">
           <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-65">
-            المميّزات الافتراضية للفئة
+            المميزات الافتراضية للفئة
           </h3>
           {(Object.keys(GROUP) as (keyof typeof GROUP)[]).map((group) => {
             const inGroup = features.filter((f) => f.group === group);
@@ -270,9 +270,9 @@ export function TrimEditor({
 
         <section className="rounded-lg border border-line bg-surface p-5.5">
           <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
-            قيَم تدخلهاا البائع
+            قيم تدخلهاا البائع
           </h3>
-          <p className="mb-3 text-xs opacity-70">لا تُحرَّر هنا</p>
+          <p className="mb-3 text-xs opacity-70">لا تحرر هنا</p>
           <ul className="flex flex-col gap-2 text-sm opacity-72">
             {SELLER_FIELDS.map((f) => (
               <li key={f}>· {f}</li>
@@ -301,13 +301,13 @@ export function TrimEditor({
 
         <div className="flex flex-col gap-4">
           <p className="rounded-lg bg-warn-100 p-4.5 text-sm leading-loose text-warn-900">
-            تعديل قيمة موروثة <strong>لا يغيّر الإعلانات المنشورة</strong> — القيَم
-            تُنسخ لقطةً في الإعلان وقت النشر. التعديل يسري على الإعلانات الجديدة
-            وحدها، ويُسجَّل في سجل التدقيق.
+            تعديل قيمة موروثة <strong>لا يغير الإعلانات المنشورة</strong> — القيم
+            تنسخ لقطة في الإعلان وقت النشر. التعديل يسري على الإعلانات الجديدة
+            وحدها، ويسجل في سجل التدقيق.
           </p>
           <p className="rounded-lg border border-line bg-bg p-4.5 text-sm leading-loose opacity-72">
             <strong>الاستثناء المسموح:</strong> يمكن للبائع تجاوز قيمة موروثة واحدة
-            بسبب مكتوب (مثل ناقل مستبدل)، ويظهر الإعلان بوسم «قيمة معدّلة» للمشتري.
+            بسبب مكتوب (مثل ناقل مستبدل)، ويظهر الإعلان بوسم «قيمة معدلة» للمشتري.
           </p>
         </div>
       </div>

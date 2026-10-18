@@ -44,8 +44,8 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'NO_AUDIENCE'
-            ? 'لا أحد يطابق الشريحة بعد سقف الشهر والتهدئة — لن تصل أحدًا.'
-            : 'هذه الحملة أُرسلت أو أُلغيت — ولا تُرسَل مرّتين.',
+            ? 'لا أحد يطابق الشريحة بعد سقف الشهر والتهدئة — لن تصل أحدا.'
+            : 'هذه الحملة أرسلت أو ألغيت — ولا ترسل مرتين.',
         messageEn:
           result.reason === 'NO_AUDIENCE'
             ? 'Nobody matches this segment after the monthly cap and cooldown.'

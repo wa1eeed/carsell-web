@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
           result.reason === 'PROFILE_INCOMPLETE'
             ? 'أكمل بريدك وتوثيق هويتك قبل الشراء.'
             : result.reason === 'TAX_STATUS_REQUIRED'
-            ? 'حدّد وضعك الضريبي قبل إتمام الشراء.'
+            ? 'حدد وضعك الضريبي قبل إتمام الشراء.'
             : result.reason === 'ORDER_EXISTS'
               ? 'على هذه المركبة طلب قائم — تابعه أو انتظر انتهاء مهلته.'
               : result.reason === 'OWN_LISTING'

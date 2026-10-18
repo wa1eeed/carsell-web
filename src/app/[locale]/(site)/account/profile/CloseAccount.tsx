@@ -68,7 +68,7 @@ export function CloseAccount() {
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر إغلاق الحساب.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إغلاق الحساب.');
         return;
       }
 
@@ -86,16 +86,16 @@ export function CloseAccount() {
     <section className="mt-10 rounded-xl border border-line bg-surface p-5">
       <h2 className="mb-1.5 text-sm font-bold text-danger">إغلاق الحساب</h2>
       <p className="mb-4 max-w-xl text-2xs leading-loose opacity-85">
-        تُمسح بياناتك الشخصية — اسمك وجوّالك وبريدك وهويتك وآيبانك ومفضّلتك وبحوثك.
-        <b> وتبقى فواتيرك وعقودك وسجلّ صفقاتك</b>، فهي مستندات يلزم حفظها نظامًا، وقد
+        تمسح بياناتك الشخصية — اسمك وجوالك وبريدك وهويتك وآيبانك ومفضلتك وبحوثك.
+        <b> وتبقى فواتيرك وعقودك وسجل صفقاتك</b>، فهي مستندات يلزم حفظها نظاما، وقد
         صدرت باسمك وقت إصدارها.
       </p>
 
       {blockers === null ? (
-        <p className="text-2xs opacity-70">يُقرأ حالُ حسابك…</p>
+        <p className="text-2xs opacity-70">يقرأ حال حسابك…</p>
       ) : blocked ? (
         <div className="rounded-lg border border-line bg-bg p-4">
-          <p className="mb-2 text-2xs font-bold">لا يُغلق الآن:</p>
+          <p className="mb-2 text-2xs font-bold">لا يغلق الآن:</p>
           <ul className="flex flex-col gap-1.5 text-2xs leading-loose opacity-85">
             {blockers.map((row) => (
               <li key={row.code}>· {row.messageAr}</li>
@@ -118,23 +118,23 @@ export function CloseAccount() {
               تراجع
             </Button>
             <Button variant="danger" size="sm" onClick={close} disabled={busy || !typed}>
-              {busy ? 'يُغلق…' : 'أغلق نهائيًّا'}
+              {busy ? 'يغلق…' : 'أغلق نهائيا'}
             </Button>
           </>
         }
       >
         <p className="mb-3.5 text-xs leading-loose">
-          لا رجعة في هذا. ولن تستطيع الدخول بعدها بهذا الجوّال، ولا استعادة ما مُسح.
+          لا رجعة في هذا. ولن تستطيع الدخول بعدها بهذا الجوال، ولا استعادة ما مسح.
         </p>
 
         <label className="mb-3.5 flex flex-col gap-1.5">
-          <span className="text-2xs font-semibold">لماذا تغادر؟ (اختياريّ)</span>
+          <span className="text-2xs font-semibold">لماذا تغادر؟ (اختياري)</span>
           <textarea
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             rows={2}
             className="w-full rounded-md border border-line bg-bg p-3 text-2xs leading-loose outline-none focus:border-ink"
-            placeholder="يصلنا ولا يُنشَر"
+            placeholder="يصلنا ولا ينشر"
           />
         </label>
 

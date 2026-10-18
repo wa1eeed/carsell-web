@@ -79,7 +79,7 @@ export default async function AdminReportDetailPage({
         items={[
           { label: 'الحالة', value: report.status },
           { label: 'الهدف', value: report.targetRef ?? report.targetId },
-          { label: 'قُدّم', value: riyadh.format(new Date(report.createdAt)) },
+          { label: 'قدم', value: riyadh.format(new Date(report.createdAt)) },
         ]}
       />
 
@@ -89,7 +89,7 @@ export default async function AdminReportDetailPage({
         active={timeline ? 'timeline' : null}
         tabs={[
           { key: null, label: 'نظرة عامة' },
-          { key: 'timeline', label: 'خطّ الزمن' },
+          { key: 'timeline', label: 'خط الزمن' },
         ]}
       />
 
@@ -97,10 +97,10 @@ export default async function AdminReportDetailPage({
       <DetailColumns
         main={
           <>
-            <DetailCard title="نصّ البلاغ">
+            <DetailCard title="نص البلاغ">
               {report.details === null || report.details === '' ? (
                 <p className="text-2xs opacity-70">
-                  بلا تفصيل — والمبلِّغ اختار سببًا ولم يكتب شيئًا.
+                  بلا تفصيل — والمبلغ اختار سببا ولم يكتب شيئا.
                 </p>
               ) : (
                 <p className="text-2xs leading-loose">{report.details}</p>
@@ -126,7 +126,7 @@ export default async function AdminReportDetailPage({
               <Field label="المرجع" value={report.ref} ltr />
               <Field label="السبب" value={report.reason} ltr />
               <Field label="الحالة" value={report.status} ltr />
-              <Field label="قُدّم" value={riyadh.format(new Date(report.createdAt))} />
+              <Field label="قدم" value={riyadh.format(new Date(report.createdAt))} />
             </DetailCard>
 
             <DetailCard title="الهدف">
@@ -138,7 +138,7 @@ export default async function AdminReportDetailPage({
               <Field label="المرجع" value={report.targetRef ?? report.targetId} ltr />
               {targetHref === null ? (
                 <p className="mt-3 text-3xs opacity-65">
-                  لا شاشة لهذا النوع بعد — والمعرّف أعلاه.
+                  لا شاشة لهذا النوع بعد — والمعرف أعلاه.
                 </p>
               ) : (
                 <Link
@@ -150,13 +150,13 @@ export default async function AdminReportDetailPage({
               )}
             </DetailCard>
 
-            <DetailCard title="المبلِّغ">
+            <DetailCard title="المبلغ">
               <Field label="الاسم" value={report.reporter.name} />
               <Link
                 href={`/admin/users/${report.reporter.id}`}
                 className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
               >
-                افتح ملفّه
+                افتح ملفه
               </Link>
             </DetailCard>
           </>
@@ -166,9 +166,9 @@ export default async function AdminReportDetailPage({
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            تقديمُ البلاغ وما فعله الفريق به.
+            تقديم البلاغ وما فعله الفريق به.
           </p>
           <Timeline events={events} />
         </section>

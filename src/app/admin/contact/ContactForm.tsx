@@ -48,7 +48,7 @@ export function ContactForm({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
@@ -62,7 +62,7 @@ export function ContactForm({
         });
       }
 
-      setToast('تم الحفظ — وظهرت في صفحة «تواصل معنا» فورًا.');
+      setToast('تم الحفظ — وظهرت في صفحة «تواصل معنا» فورا.');
       router.refresh();
     });
   };
@@ -85,7 +85,7 @@ export function ContactForm({
             placeholder="info@carz.sa"
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, supportEmail: v })}
-            note="يُفتح بزرّ «بريد» في صفحة التواصل"
+            note="يفتح بزر «بريد» في صفحة التواصل"
           />
           <Field
             label="هاتف الدعم"
@@ -93,7 +93,7 @@ export function ContactForm({
             placeholder="05XXXXXXXX"
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, supportPhone: v })}
-            note="الصق الرقم بأي صيغة — نحوّله إلى +966 تلقائيًا"
+            note="الصق الرقم بأي صيغة — نحوله إلى +966 تلقائيا"
           />
           <Field
             label="واتساب الدعم"
@@ -101,7 +101,7 @@ export function ContactForm({
             placeholder="05XXXXXXXX"
             disabled={!canEdit}
             onChange={(v) => setForm({ ...form, supportWhatsapp: v })}
-            note="يُفتح على wa.me — فالصيغة الخاطئة رابط مكسور"
+            note="يفتح على wa.me — فالصيغة الخاطئة رابط مكسور"
           />
         </section>
 
@@ -142,13 +142,13 @@ export function ContactForm({
 
       <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <b>لا استمارة في صفحة التواصل.</b> صندوق رسائل بلا من يقرؤه أسوأ من رقم
-        ظاهر — يَعِد بردّ لا يأتي. والبلاغ على إعلان بعينه له زرّه في صفحة
+        ظاهر — يعد برد لا يأتي. والبلاغ على إعلان بعينه له زره في صفحة
         الإعلان، ويصلنا معه مرجعه.
       </p>
 
       {canEdit ? (
         <Button className="mt-5" disabled={pending} onClick={save}>
-          {pending ? 'جارٍ…' : 'احفظ'}
+          {pending ? 'جار…' : 'احفظ'}
         </Button>
       ) : null}
 

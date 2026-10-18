@@ -23,7 +23,7 @@ function key(): Buffer {
 
   const secret = process.env.SECRETS_KEY;
   if (secret === undefined || secret.length < 32) {
-    throw new Error('SECRETS_KEY غائب أو أقصر من 32 محرفًا — راجع .env.example');
+    throw new Error('SECRETS_KEY غائب أو أقصر من 32 محرفا — راجع .env.example');
   }
 
   cachedKey = scryptSync(secret, 'carsell.secrets.v1', 32);
@@ -54,7 +54,7 @@ export function encryptSecret(plaintext: string): string {
 export function decryptSecret(payload: string): string {
   const [version, ivPart, tagPart, dataPart] = payload.split('.');
   if (version !== 'v1' || ivPart === undefined || tagPart === undefined || dataPart === undefined) {
-    throw new Error('صيغة سرّ غير معروفة');
+    throw new Error('صيغة سر غير معروفة');
   }
 
   const tag = Buffer.from(tagPart, 'base64url');

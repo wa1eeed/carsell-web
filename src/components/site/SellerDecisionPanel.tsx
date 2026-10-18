@@ -50,7 +50,7 @@ export function SellerDecisionPanel({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر إرسال القرار.');
+        setToast(payload?.error?.messageAr ?? 'تعذر إرسال القرار.');
         return;
       }
 
@@ -66,7 +66,7 @@ export function SellerDecisionPanel({
         return;
       }
 
-      setToast(accept ? 'قُبلت المزايدة.' : 'رُفضت المزايدة ورُدّ العربون.');
+      setToast(accept ? 'قبلت المزايدة.' : 'رفضت المزايدة ورد العربون.');
       router.refresh();
     });
   };
@@ -81,8 +81,8 @@ export function SellerDecisionPanel({
       <section className="rounded-xl border border-line bg-surface p-5">
         <h2 className="mb-1.5 text-sm font-bold">انقضى وقت القرار</h2>
         <p className="text-2xs leading-loose opacity-75">
-          لم يبلغ المزاد سعرك الاحتياطيّ، ومضت مهلة قبول أعلى مزايدة — فرُدّ
-          العربون إلى المزايد. وتستطيع إعادة عرض المركبة بمزادٍ جديد أو بسعرٍ
+          لم يبلغ المزاد سعرك الاحتياطي، ومضت مهلة قبول أعلى مزايدة — فرد
+          العربون إلى المزايد. وتستطيع إعادة عرض المركبة بمزاد جديد أو بسعر
           مباشر.
         </p>
       </section>
@@ -92,10 +92,10 @@ export function SellerDecisionPanel({
   return (
     <>
       <section className="rounded-xl border-2 border-warn-200 bg-warn-100 p-5 text-warn-900">
-        <h2 className="mb-1.5 text-sm font-bold">انتهى المزاد دون سعرك الاحتياطيّ</h2>
+        <h2 className="mb-1.5 text-sm font-bold">انتهى المزاد دون سعرك الاحتياطي</h2>
         <p className="mb-4 text-2xs leading-loose opacity-80">
-          لك أن تقبل أعلى مزايدة أو ترفضها. وبقبولك يُنشأ الطلب مباشرةً ويُخصم
-          عربون المزايد من مستحقّه؛ وبرفضك — أو بمرور المهلة — يُرَدّ إليه.
+          لك أن تقبل أعلى مزايدة أو ترفضها. وبقبولك ينشأ الطلب مباشرة ويخصم
+          عربون المزايد من مستحقه؛ وبرفضك — أو بمرور المهلة — يرد إليه.
         </p>
 
         <div className="mb-4 flex flex-col gap-2.5 rounded-lg border border-warn-200 bg-bg p-3.5 text-ink">
@@ -123,7 +123,7 @@ export function SellerDecisionPanel({
             disabled={busy}
             onClick={() => send(false)}
           >
-            {busy ? 'جارٍ…' : 'أرفض'}
+            {busy ? 'جار…' : 'أرفض'}
           </Button>
         </div>
       </section>
@@ -132,11 +132,11 @@ export function SellerDecisionPanel({
       <Modal open={confirming} onClose={() => setConfirming(false)} title="قبول أعلى مزايدة">
         <p className="mb-4 text-xs leading-loose">
           بقبولك تبيع المركبة بمبلغ <Money amount={Number(decision.highestBid)} size="sm" /> —
-          وهو دون سعرك الاحتياطيّ. ويُنشأ الطلب في الحال ويُطالَب المزايد بالدفع.
+          وهو دون سعرك الاحتياطي. وينشأ الطلب في الحال ويطالب المزايد بالدفع.
         </p>
         <div className="flex gap-2.5">
           <Button className="flex-1" disabled={busy} onClick={() => send(true)}>
-            {busy ? 'جارٍ…' : 'نعم، أقبل'}
+            {busy ? 'جار…' : 'نعم، أقبل'}
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setConfirming(false)}>
             تراجع

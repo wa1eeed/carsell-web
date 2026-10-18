@@ -30,14 +30,14 @@ import {
 /** صياغةُ العطب — والنطاق يُعيد مفاتيح (البوابة ١٧) */
 const ISSUE: Record<CompletionIssueCode, string> = {
   REQUIRED: 'هذا الحقل مطلوب.',
-  TOO_SHORT: 'أقصرُ من أن يُفهم.',
-  TOO_LONG: 'أطولُ من المسموح.',
-  NOT_A_NUMBER: 'اكتب رقمًا.',
-  NEGATIVE: 'لا يصحّ أن يكون سالبًا.',
-  NOT_A_DATE: 'اختر تاريخًا صحيحًا.',
-  FUTURE_DATE: 'تاريخٌ لم يأتِ بعد — وأنت تُثبت ما وقع.',
-  PAST_DATE: 'تاريخٌ مضى.',
-  BEFORE_OTHER: 'يسبق التاريخَ الذي قبله.',
+  TOO_SHORT: 'أقصر من أن يفهم.',
+  TOO_LONG: 'أطول من المسموح.',
+  NOT_A_NUMBER: 'اكتب رقما.',
+  NEGATIVE: 'لا يصح أن يكون سالبا.',
+  NOT_A_DATE: 'اختر تاريخا صحيحا.',
+  FUTURE_DATE: 'تاريخ لم يأت بعد — وأنت تثبت ما وقع.',
+  PAST_DATE: 'تاريخ مضى.',
+  BEFORE_OTHER: 'يسبق التاريخ الذي قبله.',
   NOT_AN_OPTION: 'اختر من القائمة.',
 };
 
@@ -82,7 +82,7 @@ export function CompletionForm({
       const map: Record<string, CompletionIssueCode> = {};
       for (const issue of check.issues) map[issue.key] = issue.code;
       setIssues(map);
-      setToast('راجِع الحقول المعلَّمة.');
+      setToast('راجع الحقول المعلمة.');
       return;
     }
     setIssues({});
@@ -109,7 +109,7 @@ export function CompletionForm({
       if (saved === null || !saved.ok) {
         const remote = savedBody?.error?.fields;
         if (remote !== undefined) setIssues(remote);
-        setToast(savedBody?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(savedBody?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
@@ -124,7 +124,7 @@ export function CompletionForm({
         | null;
 
       if (done === null || !done.ok) {
-        setToast(doneBody?.error?.messageAr ?? 'حُفظ الإثبات، وتعذّر إنهاء الطلب.');
+        setToast(doneBody?.error?.messageAr ?? 'حفظ الإثبات، وتعذر إنهاء الطلب.');
         return;
       }
       window.location.assign(`/provider/${encodeURIComponent(ref_)}`);
@@ -205,11 +205,11 @@ export function CompletionForm({
 
         {locked ? (
           <p className="rounded-lg border border-line p-4 text-2xs leading-loose opacity-70">
-            أُنهي هذا الطلب، فالإثبات يُقرأ ولا يُعدَّل.
+            أنهي هذا الطلب، فالإثبات يقرأ ولا يعدل.
           </p>
         ) : (
           <Button onClick={submit} disabled={pending} className="w-full">
-            {pending ? 'يُحفظ…' : 'احفظ وأنهِ الطلب'}
+            {pending ? 'يحفظ…' : 'احفظ وأنه الطلب'}
           </Button>
         )}
       </div>

@@ -28,22 +28,22 @@ const MESSAGES: Record<RequestFailure, { ar: string; en: string; status: number 
   SERVICE_UNKNOWN: { ar: 'هذه الخدمة غير متاحة.', en: 'This service is unavailable.', status: 404 },
   VEHICLE_NOT_FOUND: { ar: 'لم نجد هذه المركبة.', en: 'Vehicle not found.', status: 404 },
   NOT_LISTED: {
-    ar: 'هذه السيارة غير معروضة للبيع، فلا يُطلب لها فحص إلّا من صاحبها.',
+    ar: 'هذه السيارة غير معروضة للبيع، فلا يطلب لها فحص إلا من صاحبها.',
     en: 'This car is not on the market, so only its owner can request an inspection.',
     status: 403,
   },
   CITY_NOT_COVERED: {
-    ar: 'لا مزوّد يغطّي مدينة السيارة بعد.',
+    ar: 'لا مزود يغطي مدينة السيارة بعد.',
     en: 'No provider covers the car’s city yet.',
     status: 422,
   },
   DATE_IN_PAST: {
-    ar: 'الموعد مضى — اختر وقتًا قادمًا.',
+    ar: 'الموعد مضى — اختر وقتا قادما.',
     en: 'That time has passed — pick a future one.',
     status: 422,
   },
   OWN_LISTING_NO_CONSENT: {
-    ar: 'تعذّر تحديد صاحب المركبة.',
+    ar: 'تعذر تحديد صاحب المركبة.',
     en: 'Could not determine the vehicle owner.',
     status: 409,
   },

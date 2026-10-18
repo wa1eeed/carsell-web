@@ -55,7 +55,7 @@ export function ReviewInspection({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر التنفيذ.');
+        setToast('تعذر التنفيذ.');
         return;
       }
       setToast(done);
@@ -71,13 +71,13 @@ export function ReviewInspection({
           <ArabicNumber value={score} />
         </span>
         <span className="text-2xs opacity-70">{grade === '' ? '—' : t(`grade.${grade}`)}</span>
-        {flagged ? <Badge tone="danger">بندٌ حرجٌ ساقط</Badge> : null}
+        {flagged ? <Badge tone="danger">بند حرج ساقط</Badge> : null}
       </div>
 
       <p className="mb-3.5 text-2xs leading-loose opacity-75">
         {willPublish
-          ? 'طالبُه صاحبُ المركبة — فالتقرير يصير عامًّا على الإعلان بالاعتماد، ولا يُسترجَع.'
-          : 'طالبُه ليس صاحبَ المركبة — فالتقرير يبقى خاصًّا به ولا يظهر على الإعلان.'}
+          ? 'طالبه صاحب المركبة — فالتقرير يصير عاما على الإعلان بالاعتماد، ولا يسترجع.'
+          : 'طالبه ليس صاحب المركبة — فالتقرير يبقى خاصا به ولا يظهر على الإعلان.'}
       </p>
 
       {returning ? (
@@ -86,7 +86,7 @@ export function ReviewInspection({
             rows={2}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            placeholder="ما الذي يُعيده؟ — يقرؤه الفاحص"
+            placeholder="ما الذي يعيده؟ — يقرؤه الفاحص"
             className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
           />
           <span className="flex gap-2">
@@ -94,9 +94,9 @@ export function ReviewInspection({
               size="sm"
               variant="outline"
               disabled={busy || note.trim().length < MIN_NOTE}
-              onClick={() => send({ action: 'return', note: note.trim() }, 'أُعيدت إلى الفاحص.')}
+              onClick={() => send({ action: 'return', note: note.trim() }, 'أعيدت إلى الفاحص.')}
             >
-              {busy ? 'جارٍ…' : 'أعِدها بهذه الملاحظة'}
+              {busy ? 'جار…' : 'أعدها بهذه الملاحظة'}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setReturning(false)}>
               إلغاء
@@ -108,12 +108,12 @@ export function ReviewInspection({
           <Button
             size="sm"
             disabled={busy}
-            onClick={() => send({ action: 'approve' }, 'اعتُمد وصدر التقرير.')}
+            onClick={() => send({ action: 'approve' }, 'اعتمد وصدر التقرير.')}
           >
-            {busy ? 'جارٍ…' : 'اعتمِد وأصدِر'}
+            {busy ? 'جار…' : 'اعتمد وأصدر'}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setReturning(true)}>
-            أعِدها بملاحظة
+            أعدها بملاحظة
           </Button>
         </span>
       )}

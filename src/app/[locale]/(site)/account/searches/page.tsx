@@ -48,14 +48,14 @@ export default async function SearchesPage({
     <AccountList
       locale={locale}
       title="بحوثي المحفوظة"
-      subtitle="نخبرك بما يُنشر مطابقًا لها."
+      subtitle="نخبرك بما ينشر مطابقا لها."
       empty={{
         title: 'لا بحوث محفوظة',
         description:
-          'حدّد ما تبحث عنه ثم اضغط «احفظ البحث» في صفحة النتائج — ونخبرك بكل سيارة جديدة تطابقه.',
+          'حدد ما تبحث عنه ثم اضغط «احفظ البحث» في صفحة النتائج — ونخبرك بكل سيارة جديدة تطابقه.',
       }}
       action={
-        <LinkButton href={`/${locale}/cars`} size="sm">ابدأ بحثًا</LinkButton>
+        <LinkButton href={`/${locale}/cars`} size="sm">ابدأ بحثا</LinkButton>
       }
     >
       {described.map((row) => (

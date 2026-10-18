@@ -22,31 +22,31 @@ export const VIEWING_MESSAGES: Record<ViewingFailure, { ar: string; en: string; 
     en: 'This is your own car.',
     status: 409,
   },
-  DATE_IN_PAST: { ar: 'اختر موعدًا لم يمضِ بعد.', en: 'Pick a slot that has not passed.', status: 422 },
+  DATE_IN_PAST: { ar: 'اختر موعدا لم يمض بعد.', en: 'Pick a slot that has not passed.', status: 422 },
   /**
    * **والعددُ لا يُقحَم في جملة**: `${n} يومًا` تُخرج رقمًا لاتينيًّا
    * وجمعًا يُصيب حالةً من ستّ. والمدّةُ تُعرض في النموذج بـ`Quantity`،
    * والرسالةُ هنا تقول ما وقع لا كم المسموح.
    */
   DATE_TOO_FAR: {
-    ar: 'هذا الموعد أبعد من المدّة المتاحة للحجز.',
+    ar: 'هذا الموعد أبعد من المدة المتاحة للحجز.',
     en: 'That slot is beyond the booking window.',
     status: 422,
   },
   ALREADY_OPEN: {
-    ar: 'لك طلبُ معاينةٍ قائمٌ على هذا الإعلان.',
+    ar: 'لك طلب معاينة قائم على هذا الإعلان.',
     en: 'You already have an open viewing on this listing.',
     status: 409,
   },
   VIEWING_NOT_FOUND: { ar: 'لم نجد هذا الموعد.', en: 'Viewing not found.', status: 404 },
   NOT_YOURS: { ar: 'هذا الموعد ليس لك.', en: 'This viewing is not yours.', status: 403 },
   NOT_PENDING: {
-    ar: 'لم يعد هذا الطلب ينتظر ردًّا.',
+    ar: 'لم يعد هذا الطلب ينتظر ردا.',
     en: 'This request is no longer awaiting a reply.',
     status: 409,
   },
   REASON_REQUIRED: {
-    ar: 'اكتب سبب الاعتذار — فمن رُفض بلا سببٍ لا يعرف أيعيد الطلب أم يبحث عن غيرها.',
+    ar: 'اكتب سبب الاعتذار — فمن رفض بلا سبب لا يعرف أيعيد الطلب أم يبحث عن غيرها.',
     en: 'Write why, so the buyer knows whether to try again.',
     status: 422,
   },
@@ -56,7 +56,7 @@ export const VIEWING_MESSAGES: Record<ViewingFailure, { ar: string; en: string; 
     status: 422,
   },
   NOT_COUNTERED: {
-    ar: 'لا اقتراحَ ينتظر قبولك على هذا الموعد.',
+    ar: 'لا اقتراح ينتظر قبولك على هذا الموعد.',
     en: 'There is no counter-proposal awaiting you on this viewing.',
     status: 409,
   },

@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest) {
         messageAr:
           result.reason === 'UNKNOWN_KEY'
             ? 'مهلة غير معروفة.'
-            : 'القيمة خارج الحدّ المسموح.',
+            : 'القيمة خارج الحد المسموح.',
         messageEn:
           result.reason === 'UNKNOWN_KEY'
             ? 'Unknown deadline key.'

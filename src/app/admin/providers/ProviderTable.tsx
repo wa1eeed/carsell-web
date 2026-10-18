@@ -75,9 +75,9 @@ function toDraft(row: ProviderRow): Draft {
  */
 function sla(hours: number | null): string {
   if (hours === null) return 'بلا التزام';
-  if (hours === 0) return 'فوريّ';
+  if (hours === 0) return 'فوري';
   if (hours < 72) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيّام (${displayDigits(String(Math.round(hours / 24)))})`;
+  return `أيام (${displayDigits(String(Math.round(hours / 24)))})`;
 }
 
 /**
@@ -124,10 +124,10 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
 
       if (!response.ok || json?.error !== undefined) {
         setErrors(json?.error?.fields ?? {});
-        setToast(json?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(json?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
-      setToast(draft.id === null ? 'أُضيف المزوّد.' : 'حُفظت البيانات.');
+      setToast(draft.id === null ? 'أضيف المزود.' : 'حفظت البيانات.');
       setDraft(null);
       router.refresh();
     } finally {
@@ -148,7 +148,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
@@ -156,9 +156,9 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
       setToast(
         row.active
           ? open === 0
-            ? 'عُطّل — ولن يستلم إسنادًا جديدًا.'
-            : `عُطّل — ولن يستلم إسنادًا جديدًا. والطلبات القائمة (${displayDigits(String(open))}) يُكملها.`
-          : 'فُعّل — ودخل الإسناد الآليّ.',
+            ? 'عطل — ولن يستلم إسنادا جديدا.'
+            : `عطل — ولن يستلم إسنادا جديدا. والطلبات القائمة (${displayDigits(String(open))}) يكملها.`
+          : 'فعل — ودخل الإسناد الآلي.',
       );
       router.refresh();
     });
@@ -169,7 +169,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
       {canEdit ? (
         <div className="mb-4 flex justify-end">
           <Button size="sm" onClick={() => setDraft(EMPTY)}>
-            أضِف مزوّدًا
+            أضف مزودا
           </Button>
         </div>
       ) : null}
@@ -178,13 +178,13 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
         <table className="w-full min-w-3xl border-collapse text-2xs">
           <thead>
             <tr className="border-b border-line bg-surface">
-              <th className="p-3 text-start font-bold">المزوّد</th>
+              <th className="p-3 text-start font-bold">المزود</th>
               <th className="p-3 text-start font-bold">النوع</th>
               <th className="p-3 text-start font-bold">العمولة</th>
               <th className="p-3 text-start font-bold">الالتزام</th>
               <th className="p-3 text-start font-bold">المدن</th>
-              <th className="p-3 text-start font-bold">الحِمل القائم</th>
-              <th className="p-3 text-start font-bold">مفعّل</th>
+              <th className="p-3 text-start font-bold">الحمل القائم</th>
+              <th className="p-3 text-start font-bold">مفعل</th>
               <th className="p-3" />
             </tr>
           </thead>
@@ -238,17 +238,17 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                 </td>
                 <td className="p-3">
                   <Badge tone={row.active ? 'accent' : 'neutral'}>
-                    {row.active ? 'مفعّل' : 'معطّل'}
+                    {row.active ? 'مفعل' : 'معطل'}
                   </Badge>
                 </td>
                 <td className="p-3 text-end">
                   {canEdit ? (
                     <span className="flex justify-end gap-2">
                       <Button size="sm" variant="ghost" onClick={() => setDraft(toDraft(row))}>
-                        عدّله
+                        عدله
                       </Button>
                       <Button size="sm" variant="outline" disabled={pending} onClick={() => toggle(row)}>
-                        {row.active ? 'عطّله' : 'فعّله'}
+                        {row.active ? 'عطله' : 'فعله'}
                       </Button>
                     </span>
                   ) : (
@@ -264,7 +264,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
       <Modal
         open={draft !== null}
         onClose={() => setDraft(null)}
-        title={draft?.id === null ? 'مزوّد جديد' : 'تعديل المزوّد'}
+        title={draft?.id === null ? 'مزود جديد' : 'تعديل المزود'}
         footer={
           <>
             <Button variant="ghost" onClick={() => setDraft(null)}>
@@ -336,7 +336,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
             </Field>
 
             <div className="grid grid-cols-2 gap-3.5">
-              <Field label="العمولة ٪ — اتركه فارغًا إن لم تُتّفق" error={errors.commissionPct}>
+              <Field label="العمولة ٪ — اتركه فارغا إن لم تتفق" error={errors.commissionPct}>
                 <input
                   dir="ltr"
                   inputMode="decimal"
@@ -347,7 +347,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                 />
               </Field>
 
-              <Field label="الالتزام بالساعات — فارغٌ يعني بلا التزام" error={errors.slaHours}>
+              <Field label="الالتزام بالساعات — فارغ يعني بلا التزام" error={errors.slaHours}>
                 <input
                   dir="ltr"
                   inputMode="numeric"
@@ -359,7 +359,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
               </Field>
             </div>
 
-            <Field label="المدن — افصلها بفاصلة. والفراغُ يعني كلَّ المدن" error={errors.cities}>
+            <Field label="المدن — افصلها بفاصلة. والفراغ يعني كل المدن" error={errors.cities}>
               <input
                 value={draft.cities}
                 onChange={(e) => setDraft({ ...draft, cities: e.target.value })}
@@ -374,7 +374,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
               سيُكمله المزوّد — ودمجُهما يجعل حفظَ هاتفٍ يُعطّل شركةً سهوًا.
             */}
             <p className="text-3xs opacity-65">
-              التفعيل والتعطيل من زرّ الصفّ — فله أثرٌ على الإسناد الجاري.
+              التفعيل والتعطيل من زر الصف — فله أثر على الإسناد الجاري.
             </p>
           </div>
         )}

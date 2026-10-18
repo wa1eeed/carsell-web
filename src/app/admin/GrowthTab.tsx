@@ -113,12 +113,12 @@ export async function GrowthTab() {
         <div className="mb-4 flex flex-wrap items-baseline gap-3">
           <h2 className="text-sm font-bold">الإعلانات حسب المدينة</h2>
           <span className="text-3xs opacity-65">
-            <Counted message="ofListings" count={cityTotal} /> نُشرت في المدى
+            <Counted message="ofListings" count={cityTotal} /> نشرت في المدى
           </span>
         </div>
 
         {cities.length === 0 ? (
-          <p className="text-2xs opacity-65">لا إعلانات نُشرت في هذا المدى.</p>
+          <p className="text-2xs opacity-65">لا إعلانات نشرت في هذا المدى.</p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {cities.map((city) => (
@@ -147,9 +147,9 @@ export async function GrowthTab() {
       </section>
 
       <p className="mt-4 text-3xs leading-relaxed opacity-65">
-        بطاقتا «المستخدم النشط» و«مصدر التسجيل» في التصميم لا مصدر لهما في المخطّط بعد —
-        الأولى تحتاج سجلّ نشاط والثانية عمودًا في المستخدم. وعرضهما بأرقام مقدَّرة كان
-        سيجعلهما تُصدَّقان.
+        بطاقتا «المستخدم النشط» و«مصدر التسجيل» في التصميم لا مصدر لهما في المخطط بعد —
+        الأولى تحتاج سجل نشاط والثانية عمودا في المستخدم. وعرضهما بأرقام مقدرة كان
+        سيجعلهما تصدقان.
       </p>
     </>
   );
@@ -274,7 +274,7 @@ function Funnel({ steps }: { steps: readonly { key: string; count: number }[] })
         والصمت يُقرأ «لم نفكر فيه» — وكلاهما غير صحيح.
       */}
       <li className="mt-3 rounded-lg border border-line bg-surface p-4">
-        <p className="mb-2 text-3xs font-bold opacity-70">ما لا يُقاس اليوم</p>
+        <p className="mb-2 text-3xs font-bold opacity-70">ما لا يقاس اليوم</p>
         <ul className="flex flex-col gap-1.5">
           {NOT_MEASURED.map((line) => (
             <li key={line} className="text-3xs leading-relaxed opacity-70">

@@ -182,7 +182,7 @@ export function AdminMobileNav({
                       className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-2xs opacity-65"
                     >
                       {item.label}
-                      <span className="text-3xs">قريبًا</span>
+                      <span className="text-3xs">قريبا</span>
                     </span>
                   ) : (
                     <Link

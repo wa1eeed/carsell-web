@@ -71,7 +71,7 @@ export default async function TaxEnginePage({
   const summary = summarize(rules);
 
   return (
-    <AdminShell title="محرّك الضريبة"
+    <AdminShell title="محرك الضريبة"
       subtitle="القواعد والفواتير والإشعارات" activeHref="/admin/tax" admin={admin}>
       <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
         <Quantity unit="taxRules" count={summary.total} />
@@ -92,12 +92,12 @@ export default async function TaxEnginePage({
       {summary.awaiting === 0 ? null : (
         <section className="mb-5 rounded-lg border border-warn-200 bg-warn-100 p-5 text-warn-900">
           <h2 className="mb-1.5 text-sm font-bold">
-            قواعد تنتظر المذكرة الضريبية — «المورِّد المفترض»
+            قواعد تنتظر المذكرة الضريبية — «المورد المفترض»
           </h2>
           <p className="text-2xs leading-loose opacity-85">
-            تعديل يناير 2026 قد يجعل المنصّة موِردًا مفترضًا حين يكون البائع فردًا غير
-            مسجَّل — فتُستحقّ الضريبة على كامل قيمة المركبة لا على العمولة. وحتى يصل
-            التصنيف المكتوب: تصدر هذه الصفقات عقدًا وكشف تسوية بلا فاتورة مركبة،
+            تعديل يناير 2026 قد يجعل المنصة موردا مفترضا حين يكون البائع فردا غير
+            مسجل — فتستحق الضريبة على كامل قيمة المركبة لا على العمولة. وحتى يصل
+            التصنيف المكتوب: تصدر هذه الصفقات عقدا وكشف تسوية بلا فاتورة مركبة،
             وفاتورتنا على العمولة وحدها.
           </p>
           <p className="mt-2.5 text-3xs opacity-75">
@@ -107,7 +107,7 @@ export default async function TaxEnginePage({
       )}
 
       <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
-        جدول القواعد — المطابقة بالأدقّ نطاقًا
+        جدول القواعد — المطابقة بالأدق نطاقا
       </h2>
       <RulesTable
         rules={rules}
@@ -117,19 +117,19 @@ export default async function TaxEnginePage({
       />
 
       <p className="mt-3 text-2xs leading-loose opacity-70">
-        <strong>غياب قاعدة مطابقة يوقف الإصدار ويسجّل السبب</strong> — لا يفترض النظام
-        معالجةً افتراضيّة أبدًا. و<strong>خارج النطاق تعني لا فاتورة منّا</strong> لا
-        فاتورةً بضريبة صفر: الصفر يقول «وردنا وضريبتها لا شيء»، والحقيقة أنّا لم نورّد.
+        <strong>غياب قاعدة مطابقة يوقف الإصدار ويسجل السبب</strong> — لا يفترض النظام
+        معالجة افتراضية أبدا. و<strong>خارج النطاق تعني لا فاتورة منا</strong> لا
+        فاتورة بضريبة صفر: الصفر يقول «وردنا وضريبتها لا شيء»، والحقيقة أنا لم نورد.
       </p>
 
       <h2 className="mt-7 mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
-        صفقة واحدة — ثلاثة مستندات، ولكلٍّ موِرده
+        صفقة واحدة — ثلاثة مستندات، ولكل مورده
       </h2>
       <div className="grid gap-4 md:grid-cols-3">
         <DocCard
           n={1}
           title="عقد بيع المركبة"
-          body="بين البائع والمشتري — لسنا طرفًا فيه، وليس فاتورة. رقم الهيكل والأطراف والسعر والفحص."
+          body="بين البائع والمشتري — لسنا طرفا فيه، وليس فاتورة. رقم الهيكل والأطراف والسعر والفحص."
           foot="يصدر عند تأكيد النقل"
         />
         <DocCard
@@ -141,7 +141,7 @@ export default async function TaxEnginePage({
         <DocCard
           n={3}
           title="الفواتير الضريبية"
-          body="قد تكون ثلاثًا في الصفقة الواحدة ومن مورّدين مختلفين — المركبة من التاجر، والعمولة والرسوم منّا."
+          body="قد تكون ثلاثا في الصفقة الواحدة ومن موردين مختلفين — المركبة من التاجر، والعمولة والرسوم منا."
           foot="متوافقة مع «فاتورة» · QR · UUID"
         />
       </div>
@@ -177,8 +177,8 @@ export default async function TaxEnginePage({
             <Quantity unit="blockedSettlements" count={blocked.length} />
           </p>
           <p className="mb-3 text-2xs leading-loose opacity-75">
-            تأكّدت التسوية ولم تصدر الفاتورة. وكلُّ سطرٍ يقول أيّ توريدٍ حُجب ولماذا —
-            وأكثرُه يُحَلّ بإقرار قاعدةٍ قائمة لا بكتابة جديدة.
+            تأكدت التسوية ولم تصدر الفاتورة. وكل سطر يقول أي توريد حجب ولماذا —
+            وأكثره يحل بإقرار قاعدة قائمة لا بكتابة جديدة.
           </p>
           <ul className="flex flex-col gap-2 text-2xs">
             {blocked.map((row) => (
@@ -207,7 +207,7 @@ export default async function TaxEnginePage({
           title={blocked.length === 0 ? 'لا فواتير بعد' : 'لا فاتورة صدرت'}
           description={
             blocked.length === 0
-              ? 'تصدر الفاتورة عند التسوية المؤكَّدة — و«ينتظر التأكيد» ليست واقعة بعد.'
+              ? 'تصدر الفاتورة عند التسوية المؤكدة — و«ينتظر التأكيد» ليست واقعة بعد.'
               : 'وقعت تسويات ولم تصدر لها فاتورة — السبب في الإنذار أعلاه.'
           }
         />
@@ -216,11 +216,11 @@ export default async function TaxEnginePage({
       )}
 
       <p className="mt-3 text-2xs leading-loose opacity-70">
-        <strong>لا تُحذف فاتورة أبدًا</strong> — الإلغاء إشعار دائن يشير إلى الأصل،
-        وكلاهما يبقى ويُقرأ معًا. وفجوةٌ في التسلسل لا تُشرح لمدقّق.
+        <strong>لا تحذف فاتورة أبدا</strong> — الإلغاء إشعار دائن يشير إلى الأصل،
+        وكلاهما يبقى ويقرأ معا. وفجوة في التسلسل لا تشرح لمدقق.
       </p>
       <p className="mt-1.5 text-2xs leading-loose opacity-70">
-        تصدير زاتكا XML والتوقيع والإبلاغ <strong>غير مبنيَّة بعد</strong> — تنتظر بيانات
+        تصدير زاتكا XML والتوقيع والإبلاغ <strong>غير مبنية بعد</strong> — تنتظر بيانات
         التسجيل لدى الهيئة.
       </p>
     
@@ -228,9 +228,9 @@ export default async function TaxEnginePage({
         shown={invoices.length}
         total={null}
         note="الفواتير الصادرة — والقواعد أعلاها"
-        can="إصدار إشعارٍ دائن على فاتورة، وإقرار قاعدةٍ ضريبية معطّلة بعد مراجعتها."
-        cannot="تعديل فاتورة صدرت أو حذفها — الفاتورة الضريبية مستندٌ لا يُنقَّح، وتصحيحُها إشعارٌ دائن يعاكسها."
-        automatic="فاتورةٌ تُحجب لغياب قاعدةٍ أو لتعطيلها تُسجَّل حدثًا على طلبها."
+        can="إصدار إشعار دائن على فاتورة، وإقرار قاعدة ضريبية معطلة بعد مراجعتها."
+        cannot="تعديل فاتورة صدرت أو حذفها — الفاتورة الضريبية مستند لا ينقح، وتصحيحها إشعار دائن يعاكسها."
+        automatic="فاتورة تحجب لغياب قاعدة أو لتعطيلها تسجل حدثا على طلبها."
       />
     </AdminShell>
   );

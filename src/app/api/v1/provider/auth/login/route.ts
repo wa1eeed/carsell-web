@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         code: result.reason,
         messageAr:
           result.reason === 'INACTIVE'
-            ? 'هذا الحساب موقوف — راجع إدارة المنصّة.'
+            ? 'هذا الحساب موقوف — راجع إدارة المنصة.'
             : 'البريد أو كلمة المرور غير صحيحة.',
         messageEn:
           result.reason === 'INACTIVE'

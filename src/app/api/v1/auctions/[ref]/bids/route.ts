@@ -19,18 +19,18 @@ const MESSAGES: Record<string, { ar: string; en: string }> = {
   NOT_LIVE: { ar: 'المزاد لم يبدأ بعد.', en: 'This auction is not live yet.' },
   ENDED: { ar: 'انتهى المزاد.', en: 'This auction has ended.' },
   OWN_AUCTION: { ar: 'لا تزايد على مركبتك.', en: 'You cannot bid on your own vehicle.' },
-  BELOW_MINIMUM: { ar: 'المبلغ دون أقلّ مزايدة مقبولة.', en: 'Below the minimum next bid.' },
+  BELOW_MINIMUM: { ar: 'المبلغ دون أقل مزايدة مقبولة.', en: 'Below the minimum next bid.' },
   NO_DEPOSIT: { ar: 'يلزم حجز العربون قبل المزايدة.', en: 'A deposit is required before bidding.' },
   PROFILE_INCOMPLETE: {
     ar: 'أكمل بريدك وتوثيق هويتك قبل المزايدة.',
     en: 'Complete your email and identity before bidding.',
   },
-  NOT_OPEN: { ar: 'المزاد لا يقبل عربونًا الآن.', en: 'This auction is not accepting deposits.' },
+  NOT_OPEN: { ar: 'المزاد لا يقبل عربونا الآن.', en: 'This auction is not accepting deposits.' },
 };
 
 function message(code: string, locale: 'ar' | 'en'): string {
   const entry = MESSAGES[code];
-  if (entry === undefined) return locale === 'ar' ? 'تعذّرت المزايدة.' : 'Could not place the bid.';
+  if (entry === undefined) return locale === 'ar' ? 'تعذرت المزايدة.' : 'Could not place the bid.';
   return locale === 'ar' ? entry.ar : entry.en;
 }
 
@@ -99,7 +99,7 @@ export async function POST(
       return fail(
         {
           code: 'DEPOSIT_METHOD_REQUIRED',
-          messageAr: 'أوّل مزايدة تحتاج بطاقة — يُحجز العربون ولا يُخصم إلّا إن رسا عليك وانسحبت.',
+          messageAr: 'أول مزايدة تحتاج بطاقة — يحجز العربون ولا يخصم إلا إن رسا عليك وانسحبت.',
           messageEn: 'Your first bid needs a card — the deposit is held, not charged.',
           fields: { amount: deposit.amount ?? '' },
         },
@@ -112,7 +112,7 @@ export async function POST(
       return fail(
         {
           code: 'DEPOSIT_REQUIRES_ACTION',
-          messageAr: 'أكمِل تحقّق البطاقة لتُحجز مزايدتك.',
+          messageAr: 'أكمل تحقق البطاقة لتحجز مزايدتك.',
           messageEn: 'Finish the card verification to place your bid.',
           fields: { actionUrl: deposit.actionUrl ?? '' },
         },

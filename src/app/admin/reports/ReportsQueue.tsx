@@ -31,10 +31,10 @@ import { Quantity } from '@/components/ui/Quantity';
  */
 
 const REASON_LABEL: Record<string, string> = {
-  fraud: 'يبدو احتيالًا',
+  fraud: 'يبدو احتيالا',
   wrong_data: 'بيانات غير صحيحة',
   sold_elsewhere: 'بيعت وما زالت معروضة',
-  duplicate: 'مكرّر',
+  duplicate: 'مكرر',
   offensive: 'محتوى مسيء',
   other: 'سبب آخر',
 };
@@ -42,15 +42,15 @@ const REASON_LABEL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   open: 'مفتوح',
   reviewing: 'قيد التحقيق',
-  actioned: 'اتُّخذ إجراء',
-  dismissed: 'صُرف النظر',
+  actioned: 'اتخذ إجراء',
+  dismissed: 'صرف النظر',
 };
 
 function waitedText(minutes: number): string {
   if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
+  return `أيام (${displayDigits(String(Math.floor(hours / 24)))})`;
 }
 
 type Action = 'REVIEW_LISTING' | 'DISMISS' | 'ACTIONED';
@@ -83,7 +83,7 @@ export function ReportsQueue({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر حسم البلاغ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر حسم البلاغ.');
         return;
       }
 
@@ -91,10 +91,10 @@ export function ReportsQueue({
       setNote('');
       setToast(
         action === 'REVIEW_LISTING'
-          ? 'أُحيل الإعلان إلى طابور المراجعة.'
+          ? 'أحيل الإعلان إلى طابور المراجعة.'
           : action === 'DISMISS'
-            ? 'صُرف النظر — والسبب مسجَّل.'
-            : 'أُغلق البلاغ بعد الإجراء.',
+            ? 'صرف النظر — والسبب مسجل.'
+            : 'أغلق البلاغ بعد الإجراء.',
       );
       router.refresh();
     });
@@ -118,8 +118,8 @@ export function ReportsQueue({
               : `أقدمها منذ ${waitedText(stats.oldestMinutes)}`
           }
         />
-        <Card title="قيد التحقيق" value={stats.reviewing} note="أُحيلت إلى مراجعة الإعلان" />
-        <Card title="حُسمت" value={stats.resolved} note="بإجراء أو بصرف نظر" />
+        <Card title="قيد التحقيق" value={stats.reviewing} note="أحيلت إلى مراجعة الإعلان" />
+        <Card title="حسمت" value={stats.resolved} note="بإجراء أو بصرف نظر" />
         <div className="rounded-lg border border-line p-5">
           <p className="mb-2 text-2xs opacity-70">أكثر الأسباب</p>
           {stats.byReason.length === 0 ? (
@@ -147,7 +147,7 @@ export function ReportsQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا بلاغات هنا"
-          description="عندما يُبلغ مستخدم عن إعلان أو حساب، يظهر البلاغ في هذه القائمة."
+          description="عندما يبلغ مستخدم عن إعلان أو حساب، يظهر البلاغ في هذه القائمة."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -205,8 +205,8 @@ export function ReportsQueue({
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        <b>البلاغ لا يحذف إعلانًا.</b> يُحيله إلى مراجعة بشرية — والحذف بمجرّد بلاغ يجعله
-        سلاحًا بيد منافس. وصاحب الإعلان لا يعرف من أبلغ.
+        <b>البلاغ لا يحذف إعلانا.</b> يحيله إلى مراجعة بشرية — والحذف بمجرد بلاغ يجعله
+        سلاحا بيد منافس. وصاحب الإعلان لا يعرف من أبلغ.
       </p>
 
       <Modal
@@ -219,7 +219,7 @@ export function ReportsQueue({
             <dl className="mb-4 flex flex-col gap-2.5 border-b border-line pb-4 text-2xs">
               <Line label="السبب" value={REASON_LABEL[open.reason] ?? open.reason} />
               <Line label="الهدف" value={open.targetTitle ?? open.targetId} />
-              <Line label="المبلِّغ" value={open.reporterName} />
+              <Line label="المبلغ" value={open.reporterName} />
             </dl>
 
             {open.details === null ? null : (
@@ -229,12 +229,12 @@ export function ReportsQueue({
             )}
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-2xs font-bold opacity-70">ما الذي قرّرتَه ولماذا؟</span>
+              <span className="text-2xs font-bold opacity-70">ما الذي قررته ولماذا؟</span>
               <textarea
                 rows={3}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="تُقرأ بعد شهور — اكتب ما يكفي ليفهمه غيرك."
+                placeholder="تقرأ بعد شهور — اكتب ما يكفي ليفهمه غيرك."
                 className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm leading-loose"
               />
             </label>
@@ -242,7 +242,7 @@ export function ReportsQueue({
             <div className="mt-4 flex flex-col gap-2">
               {open.targetType === 'listing' ? (
                 <Button className="w-full" disabled={pending} onClick={() => decide(open, 'REVIEW_LISTING')}>
-                  أحِل الإعلان إلى المراجعة
+                  أحل الإعلان إلى المراجعة
                 </Button>
               ) : null}
               <Button
@@ -251,7 +251,7 @@ export function ReportsQueue({
                 disabled={pending || note.trim().length < MIN_REPORT_NOTE}
                 onClick={() => decide(open, 'ACTIONED')}
               >
-                اتُّخذ إجراء — أغلِق
+                اتخذ إجراء — أغلق
               </Button>
               <Button
                 variant="outline"
@@ -259,7 +259,7 @@ export function ReportsQueue({
                 disabled={pending || note.trim().length < MIN_REPORT_NOTE}
                 onClick={() => decide(open, 'DISMISS')}
               >
-                صرْف النظر
+                صرف النظر
               </Button>
             </div>
           </>

@@ -57,7 +57,7 @@ export function ServiceRequestPanel({
           window.location.assign(action);
           return;
         }
-        setToast(payload?.error?.messageAr ?? 'تعذّر التنفيذ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر التنفيذ.');
         return;
       }
 
@@ -75,14 +75,14 @@ export function ServiceRequestPanel({
     return (
       <>
         <div className="flex flex-col gap-3 rounded-xl border-2 border-ink p-5">
-          <p className="text-sm font-bold">يُطلب فحصُ مركبتك</p>
+          <p className="text-sm font-bold">يطلب فحص مركبتك</p>
           <p className="text-2xs leading-loose opacity-75">
-            طلب أحد المهتمّين فحصَ هذه المركبة على حسابه. وبقبولك يصل الفاحص بياناتِ
-            التواصل والمدينة ليحدّد الموعد معك — ولا يُكشف شيء قبل ذلك. ولا تدفع أنت
-            شيئًا.
+            طلب أحد المهتمين فحص هذه المركبة على حسابه. وبقبولك يصل الفاحص بيانات
+            التواصل والمدينة ليحدد الموعد معك — ولا يكشف شيء قبل ذلك. ولا تدفع أنت
+            شيئا.
           </p>
           <div className="flex flex-wrap gap-2.5">
-            <Button disabled={pending} onClick={() => send('decision', { accept: true, reason: null }, 'أذِنتَ بالفحص.')}>
+            <Button disabled={pending} onClick={() => send('decision', { accept: true, reason: null }, 'أذنت بالفحص.')}>
               أذن بالفحص
             </Button>
             <Button variant="outline" disabled={pending} onClick={() => setDeclining(true)}>
@@ -104,7 +104,7 @@ export function ServiceRequestPanel({
               <Button
                 variant="danger"
                 disabled={pending || reason.trim().length < MIN_DECLINE_REASON}
-                onClick={() => send('decision', { accept: false, reason: reason.trim() }, 'رُفض الطلب.')}
+                onClick={() => send('decision', { accept: false, reason: reason.trim() }, 'رفض الطلب.')}
               >
                 ارفض
               </Button>
@@ -113,12 +113,12 @@ export function ServiceRequestPanel({
         >
           {/* **ورفضٌ بلا سببٍ يُعيد الطالب إلى الحيرة** — فالسبب شرط */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-2xs font-bold opacity-70">لماذا؟ — يقرؤه طالبُ الفحص</span>
+            <span className="text-2xs font-bold opacity-70">لماذا؟ — يقرؤه طالب الفحص</span>
             <textarea
               rows={3}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="مثال: المركبة محجوزة لمشترٍ آخر هذا الأسبوع."
+              placeholder="مثال: المركبة محجوزة لمشتر آخر هذا الأسبوع."
               className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm leading-loose"
             />
           </label>
@@ -133,9 +133,9 @@ export function ServiceRequestPanel({
     return (
       <>
         <div className="flex flex-col gap-3 rounded-xl border-2 border-ink p-5">
-          <p className="text-sm font-bold">أُذن بالفحص — يبقى السداد</p>
+          <p className="text-sm font-bold">أذن بالفحص — يبقى السداد</p>
           <p className="text-2xs leading-loose opacity-75">
-            يُحجز المبلغ على بطاقتك ولا يصل المزوّد إلّا بعد أداء الخدمة. وبعد السداد
+            يحجز المبلغ على بطاقتك ولا يصل المزود إلا بعد أداء الخدمة. وبعد السداد
             يذهب الطلب إلى فاحصي مدينة السيارة.
           </p>
           <Button
@@ -147,7 +147,7 @@ export function ServiceRequestPanel({
                   method: 'mada',
                   returnUrl: `${window.location.origin}/${locale}/account/reports/${encodeURIComponent(ref_)}`,
                 },
-                'حُجز المبلغ — الطلب في طابور الفاحصين.',
+                'حجز المبلغ — الطلب في طابور الفاحصين.',
               )
             }
           >

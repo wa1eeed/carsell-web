@@ -48,16 +48,16 @@ export default async function AdminAuditPage({
   return (
     <AdminShell title="سجل التدقيق" activeHref="/admin/audit" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        كل إجراء بمن فعله ومتى وماذا تغيّر. <b>لا يُعدَّل ولا يُحذف</b> — ولا زرّ في هذه
+        كل إجراء بمن فعله ومتى وماذا تغير. <b>لا يعدل ولا يحذف</b> — ولا زر في هذه
         الشاشة.
       </p>
 
       <MonitorCards
         cards={[
           { title: 'إجمالي المدخلات', value: counts.total ?? 0, note: 'منذ البداية' },
-          { title: 'تمسّ المال', value: counts.money ?? 0, note: 'إفراج · عمولة · مهل' },
-          { title: 'تمسّ بيانات شخصية', value: counts.identity ?? 0, note: 'اطلاع وتوثيق' },
-          { title: 'تمسّ الصلاحيات', value: counts.permissions ?? 0, note: 'حسابات وأدوار' },
+          { title: 'تمس المال', value: counts.money ?? 0, note: 'إفراج · عمولة · مهل' },
+          { title: 'تمس بيانات شخصية', value: counts.identity ?? 0, note: 'اطلاع وتوثيق' },
+          { title: 'تمس الصلاحيات', value: counts.permissions ?? 0, note: 'حسابات وأدوار' },
         ]}
       />
 
@@ -74,8 +74,8 @@ export default async function AdminAuditPage({
       />
 
       <MonitorList
-        empty={{ title: 'لا مدخلات', description: 'كل إجراء أدمن يُكتب هنا فور وقوعه.' }}
-        note="السجلّ يُضاف إليه ولا يُعدَّل. والاحتفاظ 24 شهرًا، والحذف لا سبيل إليه من اللوحة."
+        empty={{ title: 'لا مدخلات', description: 'كل إجراء أدمن يكتب هنا فور وقوعه.' }}
+        note="السجل يضاف إليه ولا يعدل. والاحتفاظ 24 شهرا، والحذف لا سبيل إليه من اللوحة."
       >
         {rows.map((row) => (
           <MonitorRow
@@ -93,7 +93,7 @@ export default async function AdminAuditPage({
 
             {/* النظام فاعلٌ أيضًا — ووسمُه يميّز ما وقع بلا إنسان */}
             <Badge tone={row.actorType === 'system' ? 'neutral' : 'ink'}>
-              {row.actorType === 'system' ? 'آليّ' : 'بشريّ'}
+              {row.actorType === 'system' ? 'آلي' : 'بشري'}
             </Badge>
 
             {/* العنوان يُقارن خانةً بخانة — لاتينيّ معزول */}
@@ -107,9 +107,9 @@ export default async function AdminAuditPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="السجلّ مضافٌ فقط"
+        note="السجل مضاف فقط"
         can="القراءة والترشيح والبحث."
-        cannot="تعديل سطرٍ أو حذفه — سجلٌّ يُنقَّح ليس سجلًّا، وقيمتُه كلّها في أنه لا يُنقَض."
+        cannot="تعديل سطر أو حذفه — سجل ينقح ليس سجلا، وقيمته كلها في أنه لا ينقض."
       />
     </AdminShell>
   );

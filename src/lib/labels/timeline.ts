@@ -10,15 +10,15 @@
  * يُقرأ في تحقيق، فغموضُه أسوأ من قبحه.
  */
 export const TIMELINE_LABEL: Record<string, string> = {
-  'listing.created': 'أُنشئ الإعلان',
-  'listing.queued': 'أُحيل إلى المراجعة',
+  'listing.created': 'أنشئ الإعلان',
+  'listing.queued': 'أحيل إلى المراجعة',
   'listing.reviewed': 'انتهت المراجعة',
-  'listing.published': 'نُشر الإعلان',
-  'listing.closed': 'أُغلق الإعلان',
+  'listing.published': 'نشر الإعلان',
+  'listing.closed': 'أغلق الإعلان',
 
-  'auction.opened': 'فُتح المزاد',
+  'auction.opened': 'فتح المزاد',
   'auction.bid': 'مزايدة',
-  'auction.closed': 'أُغلق المزاد',
+  'auction.closed': 'أغلق المزاد',
 
   /*
     ═══ الضمان والفواتير والدفعات ═══
@@ -29,57 +29,57 @@ export const TIMELINE_LABEL: Record<string, string> = {
     و`TaxInvoice` و`PaymentEvent`.
   */
   /* ═══ الحساب والمعرض والبلاغ والخدمة — ولكلٍّ كاتبٌ في `admin-entity-timelines` ═══ */
-  'trim.create': 'أُنشئت الفئة',
-  'trim.update': 'عُدِّلت الفئة',
-  'trim.delete': 'حُذفت الفئة',
+  'trim.create': 'أنشئت الفئة',
+  'trim.update': 'عدلت الفئة',
+  'trim.delete': 'حذفت الفئة',
 
-  'user.joined': 'أُنشئ الحساب',
+  'user.joined': 'أنشئ الحساب',
   /** **والدورُ يُقال**: «أُنشئ طلب» لا تقول أمشتريًا كان أم بائعًا. */
   'order.asBuyer': 'اشترى',
   'order.asSeller': 'باع',
-  'report.filed': 'قدّم بلاغًا',
+  'report.filed': 'قدم بلاغا',
 
-  'dealer.registered': 'سُجّل المعرض',
-  'dealer.marginScheme': 'مُنح نظام هامش الربح',
+  'dealer.registered': 'سجل المعرض',
+  'dealer.marginScheme': 'منح نظام هامش الربح',
 
-  'deposit.released': 'رُدّ العربون',
-  'dispute.message': 'رسالةٌ في النزاع',
+  'deposit.released': 'رد العربون',
+  'dispute.message': 'رسالة في النزاع',
 
-  'service.requested': 'طُلبت خدمة',
-  'service.scheduled': 'حُدّد موعد الخدمة',
+  'service.requested': 'طلبت خدمة',
+  'service.scheduled': 'حدد موعد الخدمة',
 
-  'escrow.held': 'حُجز المبلغ في الضمان',
-  'escrow.released': 'أُفرج عن الضمان',
+  'escrow.held': 'حجز المبلغ في الضمان',
+  'escrow.released': 'أفرج عن الضمان',
   'invoice.issued': 'صدرت فاتورة ضريبية',
 
-  'payment.CREATED': 'أُنشئت دفعة',
-  'payment.REQUIRES_ACTION': 'الدفعة تنتظر تحقّق المستخدم',
+  'payment.CREATED': 'أنشئت دفعة',
+  'payment.REQUIRES_ACTION': 'الدفعة تنتظر تحقق المستخدم',
   'payment.PENDING': 'الدفعة بانتظار تأكيد البوابة',
-  'payment.HELD': 'حُجز المبلغ لدى البوابة',
-  'payment.SETTLED': 'سُوّيت الدفعة',
-  'payment.PARTIALLY_SETTLED': 'سُوّيت الدفعة جزئيًّا',
-  'payment.CANCELLED': 'أُلغي الحجز',
-  'payment.RETURNED': 'رُدّ المبلغ',
-  'payment.PARTIALLY_RETURNED': 'رُدّ جزءٌ من المبلغ',
+  'payment.HELD': 'حجز المبلغ لدى البوابة',
+  'payment.SETTLED': 'سويت الدفعة',
+  'payment.PARTIALLY_SETTLED': 'سويت الدفعة جزئيا',
+  'payment.CANCELLED': 'ألغي الحجز',
+  'payment.RETURNED': 'رد المبلغ',
+  'payment.PARTIALLY_RETURNED': 'رد جزء من المبلغ',
   'payment.FAILED': 'فشلت الدفعة',
 
-  'dispute.opened': 'فُتح نزاع',
-  'dispute.resolved': 'حُسم النزاع',
+  'dispute.opened': 'فتح نزاع',
+  'dispute.resolved': 'حسم النزاع',
 
-  'offer.PENDING': 'عرضٌ وصل',
-  'offer.COUNTERED': 'عرضٌ مقابل',
-  'offer.ACCEPTED': 'قُبل العرض',
-  'offer.REJECTED': 'رُفض العرض',
-  'offer.AUTO_REJECTED': 'رُفض تلقائيًّا — دون الحدّ',
+  'offer.PENDING': 'عرض وصل',
+  'offer.COUNTERED': 'عرض مقابل',
+  'offer.ACCEPTED': 'قبل العرض',
+  'offer.REJECTED': 'رفض العرض',
+  'offer.AUTO_REJECTED': 'رفض تلقائيا — دون الحد',
   'offer.EXPIRED': 'سقط العرض بانقضاء مهلته',
   'offer.WITHDRAWN': 'سحب المشتري عرضه',
 
-  'order.created': 'أُنشئ طلب',
-  'stage.advanced': 'تقدّم الطلب مرحلةً',
+  'order.created': 'أنشئ طلب',
+  'stage.advanced': 'تقدم الطلب مرحلة',
   'payment.timeout': 'انقضت مهلة الدفع',
-  'invoice.blocked': 'تعذّر إصدار فاتورة',
+  'invoice.blocked': 'تعذر إصدار فاتورة',
   'order.completed': 'اكتمل الطلب',
-  'deposit.forfeited': 'صُودر العربون',
+  'deposit.forfeited': 'صودر العربون',
   /*
     **ولا يُضاف مفتاحٌ لحدثٍ لا يقع.** أضفتُ `order.cancelled` و
     `escrow.released` تحسّبًا، فبلّغت البوابة ١٩: مفتاحٌ لا يكتبه أحد
@@ -97,7 +97,7 @@ export const TIMELINE_LABEL: Record<string, string> = {
 export const TIMELINE_DETAIL: Record<string, string> = {
   ENDED_MET: 'بلغ الاحتياطي',
   ENDED_UNMET: 'لم يبلغ الاحتياطي',
-  CANCELLED: 'أُلغي',
+  CANCELLED: 'ألغي',
 
   /**
    * **وأسبابُ الإغلاق** — تُكتب في `closeReason` ويقرؤها خطُّ الزمن.
@@ -105,10 +105,10 @@ export const TIMELINE_DETAIL: Record<string, string> = {
    * **قيمةٌ مزروعة لا يكتبها المنتج** — تُترك كما هي لا تُترجَم.
    */
   'order.completed': 'اكتمل الطلب',
-  'order.created': 'أُنشئ عليه طلب',
-  'offer.accepted': 'قُبل عرضٌ عليه',
+  'order.created': 'أنشئ عليه طلب',
+  'offer.accepted': 'قبل عرض عليه',
   'auction.won': 'رسا المزاد',
-  'auction.buy_now': 'شُري فورًا',
+  'auction.buy_now': 'شري فورا',
 
   /*
     **ومراحلُ الطلب كلُّها هنا.** كانت `REQUEST` و`APPROVED` و
@@ -118,8 +118,8 @@ export const TIMELINE_DETAIL: Record<string, string> = {
   /* مصدرُ الطلب — يُعرض تفصيلًا على سطر «أُنشئ طلب» */
   DIRECT: 'بيع مباشر',
   OFFER: 'قبول عرض',
-  AUCTION: 'رسوّ مزاد',
-  BUY_NOW: 'اشترِ الآن',
+  AUCTION: 'رسو مزاد',
+  BUY_NOW: 'اشتر الآن',
 
   REQUEST: 'الطلب',
   APPROVED: 'موافقة البائع',

@@ -70,7 +70,7 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
         {identity === null ? (
           <>
             <p className="mb-4 text-sm leading-loose opacity-75">
-              هذا الاطلاع يُسجَّل باسمك وبالسبب الذي تكتبه، ويظهر للعميل في سجلّه.
+              هذا الاطلاع يسجل باسمك وبالسبب الذي تكتبه، ويظهر للعميل في سجله.
             </p>
             <label className="mb-2 block text-2xs font-semibold opacity-70">سبب الاطلاع</label>
             <textarea
@@ -80,10 +80,10 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
               className="mb-4 w-full rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm outline-none"
             />
             <Button onClick={() => void reveal()} disabled={reason.trim().length < 10 || busy}>
-              اكشف وسجّل
+              اكشف وسجل
             </Button>
             {reason.trim().length < 10 ? (
-              <p className="mt-2.5 text-2xs opacity-70">اكتب سببًا واضحًا — عشرة أحرف على الأقل.</p>
+              <p className="mt-2.5 text-2xs opacity-70">اكتب سببا واضحا — عشرة أحرف على الأقل.</p>
             ) : null}
           </>
         ) : (
@@ -106,14 +106,14 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
                 <dt className="text-2xs opacity-70">التوثيق</dt>
                 <dd>
                   <Badge tone={identity.idVerified ? 'accent' : 'neutral'}>
-                    {identity.idVerified ? 'موثّق' : 'غير موثّق'}
+                    {identity.idVerified ? 'موثق' : 'غير موثق'}
                   </Badge>
                 </dd>
               </div>
             </dl>
 
             <h3 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
-              سجلّ الاطلاع
+              سجل الاطلاع
             </h3>
             <ul className="flex flex-col gap-2.5 text-2xs">
               {log.map((entry, i) => (
@@ -126,7 +126,7 @@ export function IdentityPanel({ userId, allowed }: { userId: string; allowed: bo
             </ul>
             <p className="mt-4 flex items-center gap-1.5 text-3xs opacity-65">
               <Quantity unit="accesses" count={log.length} />
-              <span>مسجَّل</span>
+              <span>مسجل</span>
             </p>
           </>
         )}

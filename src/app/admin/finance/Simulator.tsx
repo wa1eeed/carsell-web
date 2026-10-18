@@ -55,7 +55,7 @@ export function Simulator({
           <Figure label="إيراد العمولة" value={<Money amount={scenario.commissionRevenue} />} />
           <Figure label="الإيراد الكلي" value={<Money amount={scenario.totalRevenue} />} />
           <Figure
-            label="حصّة المنصّة"
+            label="حصة المنصة"
             value={
               <span className="font-num">
                 <ArabicNumber value={scenario.takeRatePct} decimals={2} grouped={false} />٪
@@ -66,8 +66,8 @@ export function Simulator({
       )}
 
       <p className="mt-4 border-t border-line pt-3 text-3xs leading-relaxed opacity-70">
-        هذه أرقام مشتقّة من حركة آخر ثلاثين يومًا — لا وعدٌ بما سيقع. وتفعيل العمولة
-        فعليًّا يكون من «الباقات والعمولة»، ويُجرَّب على باقة واحدة أولًا.
+        هذه أرقام مشتقة من حركة آخر ثلاثين يوما — لا وعد بما سيقع. وتفعيل العمولة
+        فعليا يكون من «الباقات والعمولة»، ويجرب على باقة واحدة أولا.
       </p>
     </section>
   );

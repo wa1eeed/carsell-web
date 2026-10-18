@@ -137,7 +137,7 @@ export function ServicesTable({
         body: JSON.stringify(body),
       });
       if (!response.ok) {
-        setToast('تعذّر الحفظ.');
+        setToast('تعذر الحفظ.');
         return;
       }
       const payload = (await response.json()) as { data?: unknown };
@@ -173,8 +173,8 @@ export function ServicesTable({
         });
         setToast(
           response.ok
-            ? 'أُنشئت مخفيّة — انشرها حين تكتمل.'
-            : 'تعذّر الإنشاء: راجع المفتاح والاسم.',
+            ? 'أنشئت مخفية — انشرها حين تكتمل.'
+            : 'تعذر الإنشاء: راجع المفتاح والاسم.',
         );
         if (response.ok) router.refresh();
       });
@@ -186,8 +186,8 @@ export function ServicesTable({
       const untouched = (data as { untouchedRequests?: number } | undefined)?.untouchedRequests;
       // العددُ بين قوسين فلا يحكم المعدود — والعربية ستّ حالات جمع
       return untouched === undefined || untouched === 0
-        ? 'حُفظ.'
-        : `حُفظ · الطلبات القائمة (${displayDigits(String(untouched))}) بقيت بسعرها.`;
+        ? 'حفظ.'
+        : `حفظ · الطلبات القائمة (${displayDigits(String(untouched))}) بقيت بسعرها.`;
     });
     setDraft(null);
   };
@@ -217,7 +217,7 @@ export function ServicesTable({
 
       {!ordering ? null : (
         <p className="mb-3 text-2xs opacity-70">
-          الترتيب يحكم ظهورها في دليل الخدمات — والمرشِّح معطَّل ما دمتَ ترتّب.
+          الترتيب يحكم ظهورها في دليل الخدمات — والمرشح معطل ما دمت ترتب.
         </p>
       )}
 
@@ -228,7 +228,7 @@ export function ServicesTable({
             ['PRE_PURCHASE', CATEGORY_LABEL.PRE_PURCHASE, counts.PRE_PURCHASE],
             ['POST_PURCHASE', CATEGORY_LABEL.POST_PURCHASE, counts.POST_PURCHASE],
             ['SELLER', CATEGORY_LABEL.SELLER, counts.SELLER],
-            ['hidden', 'مخفيّة', counts.hidden],
+            ['hidden', 'مخفية', counts.hidden],
           ] as const
         ).map(([id, label, count]) => (
           <Chip
@@ -272,14 +272,14 @@ export function ServicesTable({
             /* «مجانًا» لا «٠» — الصفر رقمٌ يُقرأ سعرًا مفقودًا */
             cell: (service) =>
               Number(service.price) === 0 ? (
-                <span className="opacity-70">مجانًا</span>
+                <span className="opacity-70">مجانا</span>
               ) : (
                 <Money amount={service.price} />
               ),
           },
           {
             id: 'adminFee',
-            header: 'رسم إداريّ',
+            header: 'رسم إداري',
             numeric: true,
             /* المعطَّل شرطةٌ لا صفر — الصفر رقمٌ سارٍ والشرطة غيابُ قرار */
             cell: (service) =>
@@ -291,14 +291,14 @@ export function ServicesTable({
           },
           {
             id: 'provider',
-            header: 'المزوّد',
+            header: 'المزود',
             cell: (service) =>
               service.providerName !== null ? (
                 <span className="bidi-isolate">{service.providerName}</span>
               ) : service.isAutomated ? (
                 <Badge tone="neutral">تكامل آلي</Badge>
               ) : (
-                <span className="text-2xs opacity-65">بلا مزوّد</span>
+                <span className="text-2xs opacity-65">بلا مزود</span>
               ),
           },
           {
@@ -357,7 +357,7 @@ export function ServicesTable({
             header: 'الحالة',
             cell: (service) => (
               <Badge tone={service.active ? 'accent' : 'neutral'}>
-                {service.active ? 'منشورة' : 'مخفيّة'}
+                {service.active ? 'منشورة' : 'مخفية'}
               </Badge>
             ),
           },
@@ -374,18 +374,18 @@ export function ServicesTable({
                   <Button
                     size="sm"
                     variant="ghost"
-                    aria-label="حرّك لأعلى"
+                    aria-label="حرك لأعلى"
                     disabled={pending}
-                    onClick={() => patch(service.key, { move: 'up' }, () => 'تغيّر الترتيب.')}
+                    onClick={() => patch(service.key, { move: 'up' }, () => 'تغير الترتيب.')}
                   >
                     ↑
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
-                    aria-label="حرّك لأسفل"
+                    aria-label="حرك لأسفل"
                     disabled={pending}
-                    onClick={() => patch(service.key, { move: 'down' }, () => 'تغيّر الترتيب.')}
+                    onClick={() => patch(service.key, { move: 'down' }, () => 'تغير الترتيب.')}
                   >
                     ↓
                   </Button>
@@ -419,7 +419,7 @@ export function ServicesTable({
                 disabled={pending}
                 onClick={() => {
                   patch(draft.key, { active: !draft.active }, () =>
-                    draft.active ? 'أُخفيت.' : 'نُشرت.',
+                    draft.active ? 'أخفيت.' : 'نشرت.',
                   );
                   setDraft(null);
                 }}
@@ -441,7 +441,7 @@ export function ServicesTable({
                   onChange={(key) =>
                     setDraft({ ...draft, key: key.toLowerCase().replace(/[^a-z0-9_]/g, '') })
                   }
-                  hint="حروف لاتينية صغيرة وأرقام وشرطة سفلية — يدخل في المسارات ولا يتغيّر بعدها."
+                  hint="حروف لاتينية صغيرة وأرقام وشرطة سفلية — يدخل في المسارات ولا يتغير بعدها."
                 />
                 <label className="flex flex-col gap-1.5">
                   <span className="text-2xs font-bold opacity-70">المجموعة</span>
@@ -491,7 +491,7 @@ export function ServicesTable({
               onChange={(price) => setDraft({ ...draft, price })}
               hint={
                 (services.find((s) => s.key === draft.key)?.openRequests ?? 0) > 0
-                  ? 'الطلبات القائمة تبقى بسعرها — السعر لقطةٌ وقت الطلب.'
+                  ? 'الطلبات القائمة تبقى بسعرها — السعر لقطة وقت الطلب.'
                   : undefined
               }
             />
@@ -513,11 +513,11 @@ export function ServicesTable({
                     setDraft({ ...draft, adminFeeEnabled: event.target.checked })
                   }
                 />
-                رسم إداريّ على هذه الخدمة
+                رسم إداري على هذه الخدمة
               </label>
               <p className="text-3xs leading-loose opacity-70">
-                يُضاف سطرًا مستقلًّا فوق السعر — لا يُدمج فيه. وهو إيرادٌ لنا فتسري
-                عليه الضريبة، بخلاف ما يُمرَّر لجهةٍ أخرى كما هو.
+                يضاف سطرا مستقلا فوق السعر — لا يدمج فيه. وهو إيراد لنا فتسري
+                عليه الضريبة، بخلاف ما يمرر لجهة أخرى كما هو.
               </p>
               {/*
                 **ونسبةً أو مبلغًا — قرار المالك.** خدمةٌ بخمسين ريالًا
@@ -530,7 +530,7 @@ export function ServicesTable({
                   {(
                     [
                       ['FIXED', 'مبلغ ثابت'],
-                      ['PERCENT', 'نسبة من سعر المزوّد'],
+                      ['PERCENT', 'نسبة من سعر المزود'],
                     ] as const
                   ).map(([mode, label]) => (
                     <label key={mode} className="flex items-center gap-2 text-2xs">
@@ -549,14 +549,14 @@ export function ServicesTable({
                 <Field
                   label={
                     draft.adminFeeMode === 'PERCENT'
-                      ? 'النسبة من سعر المزوّد — شاملة الضريبة'
+                      ? 'النسبة من سعر المزود — شاملة الضريبة'
                       : 'الرسم بالريال — شامل الضريبة'
                   }
                   ltr
                   numeric
                   value={draft.adminFee}
                   onChange={(adminFee) => setDraft({ ...draft, adminFee })}
-                  hint="ما يُدخَل هنا هو ما يدفعه العميل — الضريبة مضمَّنة فيه وتُستخرج بالنسبة المعمول بها."
+                  hint="ما يدخل هنا هو ما يدفعه العميل — الضريبة مضمنة فيه وتستخرج بالنسبة المعمول بها."
                 />
               )}
             </div>

@@ -37,9 +37,9 @@ const SEGMENTS: readonly { key: UserSegment; label: string }[] = [
   { key: 'sellers', label: 'بائعون' },
   { key: 'individuals', label: 'أفراد' },
   { key: 'dealers', label: 'معارض' },
-  { key: 'verified', label: 'موثّقون' },
-  { key: 'unverified', label: 'غير موثّقين' },
-  { key: 'repeat', label: 'متكرّرون' },
+  { key: 'verified', label: 'موثقون' },
+  { key: 'unverified', label: 'غير موثقين' },
+  { key: 'repeat', label: 'متكررون' },
   { key: 'suspended', label: 'موقوفون' },
   { key: 'banned', label: 'محظورون' },
 ];
@@ -107,7 +107,7 @@ export default async function AdminUsersPage({
           واحد ولا شيء يفرّق. فيُقرأ أن ستّةً وعشرين نشطًا منهم أربعةٌ
           موثّقون.
         */}
-        <StatCard label="موثّق" value={segments.verified} />
+        <StatCard label="موثق" value={segments.verified} />
       </div>
 
       {/*
@@ -118,7 +118,7 @@ export default async function AdminUsersPage({
       {users.length === 0 ? (
         <EmptyState
           title="لا عملاء في هذه الشريحة"
-          description="جرّب شريحة أخرى أو امسح البحث."
+          description="جرب شريحة أخرى أو امسح البحث."
         />
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -130,9 +130,9 @@ export default async function AdminUsersPage({
       <ListFooter
         shown={users.length}
         total={segment === 'all' && term === null ? segments.all : null}
-        can="فتح ملفّ العميل لقراءة إعلاناته وطلباته وكشف محفظته، وطلب تعديل رصيده (يعتمده شخصٌ ثانٍ)."
-        cannot="عرض رقم الهوية أو صورتها من الجدول — الاطلاع فعلٌ مقصود على عميلٍ واحد بسببٍ مكتوب، ويُقيَّد قبل أن يُعرض شيء. والآيبان بأربعة أرقام: تكفي للمطابقة ولا تكفي للتحويل."
-        automatic="البحث لا يشمل رقم الجوال — رقمٌ كامل في مربّع بحثٍ يُسجَّل في كل سجلّ وصول."
+        can="فتح ملف العميل لقراءة إعلاناته وطلباته وكشف محفظته، وطلب تعديل رصيده (يعتمده شخص ثان)."
+        cannot="عرض رقم الهوية أو صورتها من الجدول — الاطلاع فعل مقصود على عميل واحد بسبب مكتوب، ويقيد قبل أن يعرض شيء. والآيبان بأربعة أرقام: تكفي للمطابقة ولا تكفي للتحويل."
+        automatic="البحث لا يشمل رقم الجوال — رقم كامل في مربع بحث يسجل في كل سجل وصول."
       />
     </AdminShell>
   );

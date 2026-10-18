@@ -20,7 +20,7 @@ import { sellerPayouts } from '@/lib/domain/payouts';
 export const dynamic = 'force-dynamic';
 
 export function generateMetadata(): Metadata {
-  return { title: 'مستحقّاتي', robots: { index: false, follow: false } };
+  return { title: 'مستحقاتي', robots: { index: false, follow: false } };
 }
 
 const BLOCKED_LABEL: Record<string, string> = {
@@ -80,22 +80,22 @@ export default async function EarningsPage({
             النمط يبدو صدفةً لا قاعدة.
           */}
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-6"
-            items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'مستحقّاتي' }]}
+            items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'مستحقاتي' }]}
           />
 
-          <h1 className="mb-1.5 text-3xl font-bold tracking-tight">مستحقّاتي</h1>
+          <h1 className="mb-1.5 text-3xl font-bold tracking-tight">مستحقاتي</h1>
           <p className="mb-8 text-sm leading-loose opacity-70">
-            بيانُ حقوقك من كل صفقة. والمبلغ محفوظ لدى مزوّد الدفع حتى تنتقل
-            الملكية ويؤكّد المشتري الاستلام، ثم يُحوَّل إلى آيبانك.
+            بيان حقوقك من كل صفقة. والمبلغ محفوظ لدى مزود الدفع حتى تنتقل
+            الملكية ويؤكد المشتري الاستلام، ثم يحول إلى آيبانك.
           </p>
 
           <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Card label="محتجز" note="لم يُستحقّ بعد" amount={book.held} />
-            <Card label="جاهز للصرف" note="حقّك القائم" amount={book.payable} strong />
-            <Card label="حُوِّل إليك" note="وصل آيبانك" amount={book.paidOut} />
+            <Card label="محتجز" note="لم يستحق بعد" amount={book.held} />
+            <Card label="جاهز للصرف" note="حقك القائم" amount={book.payable} strong />
+            <Card label="حول إليك" note="وصل آيبانك" amount={book.paidOut} />
           </div>
 
           <section className="mb-8 rounded-lg border border-line bg-surface p-5">
@@ -111,7 +111,7 @@ export default async function EarningsPage({
                 في صفقةٍ واحدة. والنصّ المعروض وعدٌ لا وصف.
               */}
               <div className="mt-1.5 border-t border-line pt-3">
-                <Row label="صافي ما استُحقّ لك" value={book.totals.earned} strong />
+                <Row label="صافي ما استحق لك" value={book.totals.earned} strong />
               </div>
             </dl>
 
@@ -181,7 +181,7 @@ export default async function EarningsPage({
           {book.lines.length === 0 ? (
             <EmptyState
               title="لا صفقات بعد"
-              description="حين تبيع مركبة يظهر هنا تفصيل مستحقّك منها."
+              description="حين تبيع مركبة يظهر هنا تفصيل مستحقك منها."
             />
           ) : (
             <div className="flex flex-col gap-2.5">
@@ -218,7 +218,7 @@ export default async function EarningsPage({
                     {line.blockedBy !== null ? (
                       <Badge tone="warn">{BLOCKED_LABEL[line.blockedBy] ?? line.blockedBy}</Badge>
                     ) : line.settled ? (
-                      <Badge tone="neutral">استُحقّ</Badge>
+                      <Badge tone="neutral">استحق</Badge>
                     ) : (
                       <Badge tone="accent">جاهز للصرف</Badge>
                     )}
@@ -229,13 +229,13 @@ export default async function EarningsPage({
                     <Row label="عمولة المنصة" value={line.commission} negative />
                     <Row label="رسوم البوابة" value={line.gatewayFee} negative />
                     <div className="mt-1 border-t border-line pt-2">
-                      <Row label="صافي مستحقّك" value={line.net} strong />
+                      <Row label="صافي مستحقك" value={line.net} strong />
                     </div>
                   </dl>
 
                   {line.releasesAt === null || line.blockedBy === null ? null : (
                     <p className="mt-2.5 text-3xs opacity-70">
-                      يُفرَج عنه بعد {line.releasesAt}
+                      يفرج عنه بعد {line.releasesAt}
                     </p>
                   )}
                 </article>

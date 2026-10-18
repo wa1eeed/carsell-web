@@ -27,8 +27,8 @@ export const metadata = { title: 'توثيق الهوية' };
  */
 const SEGMENTS: readonly { key: IdentityStatus | null; label: string }[] = [
   { key: 'PENDING', label: 'ينتظر' },
-  { key: 'CLARIFICATION', label: 'مُعلَّق للتوضيح' },
-  { key: 'VERIFIED', label: 'موثّق' },
+  { key: 'CLARIFICATION', label: 'معلق للتوضيح' },
+  { key: 'VERIFIED', label: 'موثق' },
   { key: 'REJECTED', label: 'مرفوض' },
 ];
 
@@ -97,8 +97,8 @@ export default async function AdminIdentityPage({
       */}
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         {nafathLive
-          ? 'الطلبات اليدوية فقط. التوثيق عبر النفاذ الوطني يتم تلقائيًا، والهدف أقل من ساعة.'
-          : 'كل طلب هنا يمرّ بمراجعة إنسان — النفاذ الوطني لم يُربط بعد، فلا توثيق تلقائيّ. والهدف أقل من ساعة.'}
+          ? 'الطلبات اليدوية فقط. التوثيق عبر النفاذ الوطني يتم تلقائيا، والهدف أقل من ساعة.'
+          : 'كل طلب هنا يمر بمراجعة إنسان — النفاذ الوطني لم يربط بعد، فلا توثيق تلقائي. والهدف أقل من ساعة.'}
       </p>
 
       <MonitorTabs tabs={tabs} active={status} basePath="/admin/identity" param="status" />
@@ -113,8 +113,8 @@ export default async function AdminIdentityPage({
             ? 'الطلبات اليدوية فقط · النفاذ الوطني تلقائي'
             : 'كل الطلبات يدوية · النفاذ الوطني غير مربوط'
         }
-        can="التوثيق أو طلب توضيح أو الرفض بسببٍ مكتوب."
-        cannot="عرض صورة الهوية أو رقمها كاملًا من الجدول — الاطلاع فعلٌ مقصود يُقيَّد قبل أن يُعرض شيء."
+        can="التوثيق أو طلب توضيح أو الرفض بسبب مكتوب."
+        cannot="عرض صورة الهوية أو رقمها كاملا من الجدول — الاطلاع فعل مقصود يقيد قبل أن يعرض شيء."
       />
     </AdminShell>
   );

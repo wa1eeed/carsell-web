@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
      * حالةٌ لا يصحّ الفعل فيها مهما أعاد.
      */
     return fail(
-      { code: result.reason, messageAr: 'أُلغيت هذه الفاتورة سلفًا.', messageEn: 'Already cancelled.' },
+      { code: result.reason, messageAr: 'ألغيت هذه الفاتورة سلفا.', messageEn: 'Already cancelled.' },
       result.reason === 'ALREADY_CANCELLED' ? 409 : 422,
     );
   }

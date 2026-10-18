@@ -28,9 +28,9 @@ export default function GlobalError({
     <html lang="ar" dir="rtl">
       <body className="flex min-h-screen items-center justify-center bg-bg p-10 text-ink">
         <main className="max-w-md text-center">
-          <h1 className="mb-2.5 text-2xl font-bold">تعذّر عرض الصفحة</h1>
+          <h1 className="mb-2.5 text-2xl font-bold">تعذر عرض الصفحة</h1>
           <p className="mb-6 text-sm leading-loose opacity-75">
-            حدث خلل غير متوقّع وسُجّل عندنا. حاول مجددًا، وإن تكرّر فأبلغ الدعم بالرمز أدناه.
+            حدث خلل غير متوقع وسجل عندنا. حاول مجددا، وإن تكرر فأبلغ الدعم بالرمز أدناه.
           </p>
           {error.digest === undefined ? null : (
             <p dir="ltr" className="bidi-isolate font-num mb-6 text-2xs opacity-70">
@@ -42,7 +42,7 @@ export default function GlobalError({
             onClick={reset}
             className="rounded-full border border-ink px-7 py-3 text-sm font-bold"
           >
-            حاول مجددًا
+            حاول مجددا
           </button>
         </main>
       </body>

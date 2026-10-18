@@ -12,7 +12,7 @@ import { AccountList, AccountRow, Money } from '../AccountList';
 export const dynamic = 'force-dynamic';
 
 export function generateMetadata(): Metadata {
-  return { title: 'المفضّلة', robots: { index: false, follow: false } };
+  return { title: 'المفضلة', robots: { index: false, follow: false } };
 }
 
 /** **كانت تُعدّ ولا تُقرأ** — بطاقة الحساب تعرض عددًا يربط إلى ٤٠٤. */
@@ -33,14 +33,14 @@ export default async function FavoritesPage({
   return (
     <AccountList
       locale={locale}
-      title="المفضّلة"
-      subtitle="ما حفظتَه للرجوع إليه."
+      title="المفضلة"
+      subtitle="ما حفظته للرجوع إليه."
       empty={{
         title: 'لا مركبات محفوظة',
-        description: 'احفظ ما يعجبك أثناء التصفّح ليظهر هنا بسعره وحاله.',
+        description: 'احفظ ما يعجبك أثناء التصفح ليظهر هنا بسعره وحاله.',
       }}
       action={
-        <LinkButton href={`/${locale}/cars`} size="sm">تصفّح السيارات</LinkButton>
+        <LinkButton href={`/${locale}/cars`} size="sm">تصفح السيارات</LinkButton>
       }
     >
       {favorites.map((item) => (

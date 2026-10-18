@@ -780,17 +780,17 @@ export function CarPage({
             محاولاتٌ أُولى، والرقم وحده لا يفرّق.
           */}
           <span className="mb-1.5 flex flex-wrap items-baseline gap-3.5">
-            <h2 className="text-2xl font-bold">سجلّ المزايدات</h2>
+            <h2 className="text-2xl font-bold">سجل المزايدات</h2>
             <BidLogHead bids={(shown ?? auction).bids} />
           </span>
           <p className="mb-5 text-3xs leading-loose opacity-70">
-            سجلٌّ غير قابل للتعديل — كل مزايدة موثّقة برقم المزايد وتوقيتٍ دقيق.
+            سجل غير قابل للتعديل — كل مزايدة موثقة برقم المزايد وتوقيت دقيق.
             وهويات المزايدين مخفية، وأرقامهم ثابتة داخل المزاد تتيح متابعة سلوكه.
           </p>
 
           {(shown ?? auction).bids.length === 0 ? (
             <p className="rounded-lg border border-line bg-surface p-5 text-2xs opacity-70">
-              لا مزايدات بعد — وأوّل مزايدة تبدأ من سعر الافتتاح.
+              لا مزايدات بعد — وأول مزايدة تبدأ من سعر الافتتاح.
             </p>
           ) : (
             <BidLogTable bids={(shown ?? auction).bids} locale={locale} />

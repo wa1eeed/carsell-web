@@ -66,17 +66,17 @@ export function WalletPanel({
         const field = payload?.error?.fields?.wallet;
         setToast(
           field === 'INSUFFICIENT_BALANCE'
-            ? 'الرصيد أقلّ من مبلغ الخصم.'
+            ? 'الرصيد أقل من مبلغ الخصم.'
             : field === 'ALREADY_PENDING'
-              ? 'يوجد طلبٌ معلّق لهذا العميل — يُبَتّ فيه أوّلًا.'
+              ? 'يوجد طلب معلق لهذا العميل — يبت فيه أولا.'
               : field === 'REASON_TOO_SHORT'
-                ? 'اكتب سببًا أوضح.'
-                : 'تعذّر إرسال الطلب.',
+                ? 'اكتب سببا أوضح.'
+                : 'تعذر إرسال الطلب.',
         );
         return;
       }
 
-      setToast('أُرسل الطلب — ينتظر موافقة شخصٍ ثانٍ.');
+      setToast('أرسل الطلب — ينتظر موافقة شخص ثان.');
       setForm({ direction: 'CREDIT', amount: '', reason: '' });
       router.refresh();
     });
@@ -92,13 +92,13 @@ export function WalletPanel({
       if (response === null || !response.ok) {
         setToast(
           response?.status === 403
-            ? 'لا توافق على طلبٍ أنت طلبتَه — يلزم شخصٌ ثانٍ.'
-            : 'تعذّرت الموافقة.',
+            ? 'لا توافق على طلب أنت طلبته — يلزم شخص ثان.'
+            : 'تعذرت الموافقة.',
         );
         return;
       }
 
-      setToast('نُفِّذ التعديل وقُيِّد في دفتر الحسابات.');
+      setToast('نفذ التعديل وقيد في دفتر الحسابات.');
       router.refresh();
     });
   };
@@ -125,11 +125,11 @@ export function WalletPanel({
 
           {pending.requestedBy === meId ? (
             <p className="text-3xs opacity-70">
-              أنت طلبتَه — ولا يوافق طالبُه على نفسه. يلزم شخصٌ ثانٍ.
+              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثان.
             </p>
           ) : canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>
-              {busy ? 'جارٍ…' : 'أوافق وأنفّذ'}
+              {busy ? 'جار…' : 'أوافق وأنفذ'}
             </Button>
           ) : (
             <p className="text-3xs opacity-70">لا تملك صلاحية الموافقة على تعديل الأرصدة.</p>
@@ -174,26 +174,26 @@ export function WalletPanel({
           </label>
 
           <label className="mb-3 flex flex-col gap-1.5">
-            <span className="text-3xs font-bold opacity-70">السبب — إلزاميّ</span>
+            <span className="text-3xs font-bold opacity-70">السبب — إلزامي</span>
             <textarea
               rows={2}
               value={form.reason}
               onChange={(event) => setForm({ ...form, reason: event.target.value })}
-              placeholder="تعويض عن تأخّر الشحن في الطلب ORD-…"
+              placeholder="تعويض عن تأخر الشحن في الطلب ORD-…"
               className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
             />
             <span className="text-3xs opacity-65">
-              <Quantity unit="characters" count={REASON_MIN} /> فأكثر — ويُقرأ بعد سنة.
+              <Quantity unit="characters" count={REASON_MIN} /> فأكثر — ويقرأ بعد سنة.
             </span>
           </label>
 
           <Button size="sm" disabled={busy || !ready} onClick={submit}>
-            {busy ? 'جارٍ…' : 'أرسل الطلب'}
+            {busy ? 'جار…' : 'أرسل الطلب'}
           </Button>
 
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            <b>لا يقع التعديل بهذه الضغطة.</b> يُرسَل طلبٌ ويوافق عليه شخصٌ ثانٍ، ثم
-            يُقيَّد في دفتر الحسابات.
+            <b>لا يقع التعديل بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثان، ثم
+            يقيد في دفتر الحسابات.
           </p>
         </div>
       ) : null}

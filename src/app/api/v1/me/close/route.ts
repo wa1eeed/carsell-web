@@ -21,23 +21,23 @@ const Body = z.object({ reason: z.string().max(300).nullable().optional() });
 
 const BLOCKED: Record<string, { ar: string; en: string }> = {
   LIVE_ORDERS: {
-    ar: 'عليك طلبٌ جارٍ — أنهِه أو ألغِه قبل الإغلاق.',
+    ar: 'عليك طلب جار — أنهه أو ألغه قبل الإغلاق.',
     en: 'You have a live order — finish or cancel it first.',
   },
   HELD_ESCROW: {
-    ar: 'في الضمان مبلغٌ محجوز على صفقةٍ لم تُحسم بعد.',
+    ar: 'في الضمان مبلغ محجوز على صفقة لم تحسم بعد.',
     en: 'Escrow still holds money on a deal that has not settled.',
   },
   LIVE_AUCTION: {
-    ar: 'لك مزادٌ قائم — انتظر إغلاقه أو ألغِه.',
+    ar: 'لك مزاد قائم — انتظر إغلاقه أو ألغه.',
     en: 'You have a live auction — wait for it to close or cancel it.',
   },
   HELD_DEPOSIT: {
-    ar: 'عربونُك محجوزٌ على مزاد — يُفرَج عنه عند إغلاقه.',
+    ar: 'عربونك محجوز على مزاد — يفرج عنه عند إغلاقه.',
     en: 'Your deposit is held on an auction — it is released when it closes.',
   },
   PENDING_PAYOUT: {
-    ar: 'لك تحويلٌ قيد التنفيذ — انتظر وصوله.',
+    ar: 'لك تحويل قيد التنفيذ — انتظر وصوله.',
     en: 'A payout is in flight — wait for it to land.',
   },
   WALLET_BALANCE: {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر إغلاق الحساب.',
+        messageAr: text?.ar ?? 'تعذر إغلاق الحساب.',
         messageEn: text?.en ?? 'Could not close the account.',
       },
       409,

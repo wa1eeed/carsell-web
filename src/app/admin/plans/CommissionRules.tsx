@@ -22,8 +22,8 @@ import type { CommissionRuleRow } from '@/lib/domain/admin-commission';
  */
 
 const LABEL: Record<string, { title: string; effect: string }> = {
-  SELLER: { title: 'عمولة البائع', effect: 'تُخصم ممّا يستلمه البائع' },
-  BUYER: { title: 'عمولة المشتري', effect: 'تُضاف إلى ما يدفعه المشتري' },
+  SELLER: { title: 'عمولة البائع', effect: 'تخصم مما يستلمه البائع' },
+  BUYER: { title: 'عمولة المشتري', effect: 'تضاف إلى ما يدفعه المشتري' },
 };
 
 /** مثالٌ ثابت — والرقم المستدير يجعل الأثر يُقرأ بلا حساب. */
@@ -81,7 +81,7 @@ export function CommissionRules({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
@@ -89,7 +89,7 @@ export function CommissionRules({
         const { [row.side]: _dropped, ...rest } = all;
         return rest;
       });
-      setToast('حُفظت. وتسري على ما يُنشأ بعدها — والطلبات القائمة على نسبتها.');
+      setToast('حفظت. وتسري على ما ينشأ بعدها — والطلبات القائمة على نسبتها.');
       router.refresh();
     });
   };
@@ -98,8 +98,8 @@ export function CommissionRules({
     <section className="mt-10">
       <h2 className="mb-1.5 text-sm font-bold">العمولة</h2>
       <p className="mb-5 max-w-xl text-2xs leading-loose opacity-70">
-        لكل طرف قاعدته. والتعديل يسري على ما يُنشأ بعده — والطلبات القائمة تبقى
-        على نسبتها المخزَّنة، فلا تتغيّر فاتورةٌ صدرت.
+        لكل طرف قاعدته. والتعديل يسري على ما ينشأ بعده — والطلبات القائمة تبقى
+        على نسبتها المخزنة، فلا تتغير فاتورة صدرت.
       </p>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -122,7 +122,7 @@ export function CommissionRules({
                   <span className="text-3xs opacity-70">{label.effect}</span>
                 </div>
                 <Badge tone={draft.enabled ? 'accent' : 'neutral'}>
-                  {draft.enabled ? 'مفعَّلة' : 'معطَّلة'}
+                  {draft.enabled ? 'مفعلة' : 'معطلة'}
                 </Badge>
               </div>
 
@@ -133,7 +133,7 @@ export function CommissionRules({
                   disabled={!canEdit}
                   onChange={(event) => patch(row.side, { enabled: event.target.checked }, draft)}
                 />
-                <span>خُذ هذه العمولة</span>
+                <span>خذ هذه العمولة</span>
               </label>
 
               <div className="grid grid-cols-2 gap-3">
@@ -150,14 +150,14 @@ export function CommissionRules({
                   onChange={(value) => patch(row.side, { fixedFee: value }, draft)}
                 />
                 <Field
-                  label="حدّ أدنى"
+                  label="حد أدنى"
                   value={draft.minFee}
                   placeholder="بلا"
                   disabled={!canEdit || !draft.enabled}
                   onChange={(value) => patch(row.side, { minFee: value }, draft)}
                 />
                 <Field
-                  label="حدّ أقصى"
+                  label="حد أقصى"
                   value={draft.maxFee}
                   placeholder="بلا"
                   disabled={!canEdit || !draft.enabled}
@@ -170,11 +170,11 @@ export function CommissionRules({
                 ٢٬٥٠٠ قبل أن يحفظ، لا بعد أن يشتكي بائع.
               */}
               <p className="mt-4 border-t border-line pt-3 text-2xs leading-loose opacity-75">
-                على سيارةٍ بـ<span className="font-num"> 100,000 </span>ريال:{' '}
+                على سيارة بـ<span className="font-num"> 100,000 </span>ريال:{' '}
                 <b className="font-num">
                   {effect.toLocaleString('ar-SA', { maximumFractionDigits: 2 })}
                 </b>{' '}
-                ريال {row.side === 'BUYER' ? 'يدفعها المشتري زيادةً' : 'تُخصم من البائع'}
+                ريال {row.side === 'BUYER' ? 'يدفعها المشتري زيادة' : 'تخصم من البائع'}
               </p>
 
               {row.revisions > 0 ? (
@@ -190,7 +190,7 @@ export function CommissionRules({
                   disabled={pending || !dirty}
                   onClick={() => save(row)}
                 >
-                  {pending ? 'جارٍ…' : dirty ? 'احفظ' : 'لا تغيير'}
+                  {pending ? 'جار…' : dirty ? 'احفظ' : 'لا تغيير'}
                 </Button>
               ) : null}
             </div>

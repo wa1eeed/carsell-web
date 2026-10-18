@@ -102,7 +102,7 @@ export function BrandsTable({
       error?: { messageAr: string };
     };
     if (json.data === undefined) {
-      setToast({ tone: 'error', text: json.error?.messageAr ?? 'تعذّر الرفع.' });
+      setToast({ tone: 'error', text: json.error?.messageAr ?? 'تعذر الرفع.' });
       return null;
     }
     // الملف يذهب إلى R2 مباشرةً — لا يمرّ بخادم Next
@@ -245,7 +245,7 @@ export function BrandsTable({
                     : await send(`/${draft.id}`, 'PATCH', draft);
                 if (done) {
                   setDraft(null);
-                  setToast({ tone: 'success', text: 'حُفظت الماركة.' });
+                  setToast({ tone: 'success', text: 'حفظت الماركة.' });
                 }
               }}
             >
@@ -281,7 +281,7 @@ export function BrandsTable({
 
             <label className="flex flex-col gap-1.5">
               <span className="text-2xs font-semibold opacity-70">
-                المعرّف في الرابط
+                المعرف في الرابط
               </span>
               <input
                 dir="ltr"
@@ -343,11 +343,11 @@ export function BrandsTable({
                 const done = await send(`/${removing.id}`, 'DELETE');
                 if (done) {
                   setRemoving(null);
-                  setToast({ tone: 'success', text: 'حُذفت الماركة.' });
+                  setToast({ tone: 'success', text: 'حذفت الماركة.' });
                 }
               }}
             >
-              {busy ? 'تُحذف…' : 'نعم، احذفها'}
+              {busy ? 'تحذف…' : 'نعم، احذفها'}
             </Button>
           </>
         }
@@ -356,12 +356,12 @@ export function BrandsTable({
           <p className="text-xs leading-loose">
             <b className="bidi-isolate">{removing.name}</b> {removing.blockedBy.lead}{' '}
             <Quantity unit={removing.blockedBy.unit} count={removing.blockedBy.count} /> — ولا
-            يُحذف ما يُستعمل. <b>أخفِها بدل حذفها</b>: تختفي من معالج البيع ومن الفلاتر، وتبقى
+            يحذف ما يستعمل. <b>أخفها بدل حذفها</b>: تختفي من معالج البيع ومن الفلاتر، وتبقى
             البيانات القائمة عليها كما هي.
           </p>
         ) : (
           <p className="text-xs leading-loose">
-            تُحذف <b className="bidi-isolate">{removing.name}</b> نهائيًّا ولا تُسترجَع — ولا طراز
+            تحذف <b className="bidi-isolate">{removing.name}</b> نهائيا ولا تسترجع — ولا طراز
             لها ولا مركبة.
           </p>
         )}

@@ -48,11 +48,11 @@ export function BodyTypesTable({
         body: JSON.stringify(body),
       });
       if (!response.ok) {
-        setToast('تعذّر الحفظ — تحقّق من الحقول.');
+        setToast('تعذر الحفظ — تحقق من الحقول.');
         return;
       }
       setDraft((current) => ({ ...current, [key]: {} }));
-      setToast('حُفظ.');
+      setToast('حفظ.');
       router.refresh();
     });
   };
@@ -112,7 +112,7 @@ export function BodyTypesTable({
             cell: (row) =>
               row.imageUrl === null ? (
                 <Badge tone={uploadsReady && canUpload ? 'neutral' : 'warn'}>
-                  {uploadsReady ? 'بلا صورة' : 'الرفع غير مهيّأ'}
+                  {uploadsReady ? 'بلا صورة' : 'الرفع غير مهيأ'}
                 </Badge>
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- معاينة إدارية صغيرة من R2

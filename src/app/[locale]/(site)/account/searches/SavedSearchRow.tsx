@@ -44,7 +44,7 @@ export function SavedSearchRow({
         () => null,
       );
       if (response === null || !response.ok) {
-        setToast('تعذّر الحذف.');
+        setToast('تعذر الحذف.');
         return;
       }
       setGone(true);
@@ -113,7 +113,7 @@ export function SavedSearchRow({
               }}
               className="rounded-md border border-line px-2.5 py-1.5 text-3xs font-semibold"
             >
-              {notify ? 'التنبيه مفعّل' : 'التنبيه مُطفأ'}
+              {notify ? 'التنبيه مفعل' : 'التنبيه مطفأ'}
             </button>
             <button
               type="button"

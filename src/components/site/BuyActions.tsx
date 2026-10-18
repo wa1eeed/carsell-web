@@ -158,7 +158,7 @@ export function BuyActions({
       <div className="mb-4 rounded-md border border-warn-200 bg-warn-100 p-3.5 text-2xs leading-loose text-warn-900">
         <p className="font-bold">محجوزة الآن</p>
         <p className="mt-1 opacity-80">
-          على هذه المركبة طلبٌ قائم. إن لم يكتمل عادت متاحة — وتستطيع طلب معاينة الآن.
+          على هذه المركبة طلب قائم. إن لم يكتمل عادت متاحة — وتستطيع طلب معاينة الآن.
         </p>
         {/*
           **والزرُّ صار يعمل.** كان يقول «قريبًا» ويُحيل إلى صفحة

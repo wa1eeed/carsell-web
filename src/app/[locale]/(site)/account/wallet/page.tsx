@@ -80,7 +80,7 @@ export default async function WalletPage({
             يبلغه بين مِلاحات الصفحة ولا يعلم أن «المحفظة» هي موضعُه.
           */}
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-5"
             items={[{ label: 'حسابي', href: `/${locale}/account` }, { label: 'المحفظة' }]}
@@ -110,7 +110,7 @@ export default async function WalletPage({
                   {holds.map((row) => (
                     <li key={row.auction.listing.ref} className="text-3xs leading-loose opacity-75">
                       مزاد {row.auction.listing.vehicle.brandName}{' '}
-                      {row.auction.listing.vehicle.modelName} — يُرَدّ عند الإغلاق إن لم تفز.
+                      {row.auction.listing.vehicle.modelName} — يرد عند الإغلاق إن لم تفز.
                     </li>
                   ))}
                 </ul>
@@ -139,8 +139,8 @@ export default async function WalletPage({
 
           <h2 className="mb-1.5 text-base font-bold">دفتر الحركات</h2>
           <p className="mb-4 text-3xs leading-loose opacity-70">
-            مضافٌ فقط، لا يُعدَّل. والرصيد محسوبٌ من الحركات لا مخزَّنًا رقمًا — والتصحيح
-            يقع بقيدٍ عكسيّ لا بتعديل حركة، فيُقرأ الدفتر سجلًّا لا يُنقَض.
+            مضاف فقط، لا يعدل. والرصيد محسوب من الحركات لا مخزنا رقما — والتصحيح
+            يقع بقيد عكسي لا بتعديل حركة، فيقرأ الدفتر سجلا لا ينقض.
           </p>
 
           {view.lines.length === 0 ? (
@@ -192,8 +192,8 @@ export default async function WalletPage({
           )}
 
           <p className="mt-5 flex flex-wrap items-center gap-2 text-3xs opacity-70">
-            <Badge tone="neutral">لا يُعدَّل</Badge>
-            كل حركةٍ هنا قيدٌ في دفتر الحسابات، وتصحيحُها قيدٌ جديد يعاكسها.
+            <Badge tone="neutral">لا يعدل</Badge>
+            كل حركة هنا قيد في دفتر الحسابات، وتصحيحها قيد جديد يعاكسها.
           </p>
         </div>
       </main>

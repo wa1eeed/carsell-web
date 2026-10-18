@@ -63,13 +63,13 @@ export function RoutesTable({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(body?.error?.messageAr ?? 'تعذّر اعتماد الطلب.');
+        setToast(body?.error?.messageAr ?? 'تعذر اعتماد الطلب.');
         return;
       }
       setToast(
         body?.data?.state === 'APPLIED'
-          ? 'طُبِّق التبديل — والمعاملات الجارية تبقى على بوابتها.'
-          : 'سُجِّلت موافقتك — ما زال ينتظر عضوًا آخر.',
+          ? 'طبق التبديل — والمعاملات الجارية تبقى على بوابتها.'
+          : 'سجلت موافقتك — ما زال ينتظر عضوا آخر.',
       );
       router.refresh();
     });
@@ -95,11 +95,11 @@ export function RoutesTable({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تغيير حالة الغرض.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تغيير حالة الغرض.');
         return;
       }
 
-      setToast(route.enabled ? 'عُطِّل الغرض — لا معاملات جديدة عليه.' : 'أُعيد تفعيل الغرض.');
+      setToast(route.enabled ? 'عطل الغرض — لا معاملات جديدة عليه.' : 'أعيد تفعيل الغرض.');
       router.refresh();
     });
   };
@@ -128,14 +128,14 @@ export function RoutesTable({
       if (!response.ok) {
         setToast(
           body.error?.code === 'REASON_REQUIRED'
-            ? 'اكتب سببًا — القرار بلا سببه يُعاد نقضه.'
+            ? 'اكتب سببا — القرار بلا سببه يعاد نقضه.'
             : body.error?.code === 'NOT_ELIGIBLE'
               ? 'هذه البوابة تنقصها قدرة يحتاجها الغرض.'
-              : 'تعذّر تسجيل الطلب.',
+              : 'تعذر تسجيل الطلب.',
         );
         return;
       }
-      setToast('سُجّل الطلب — ينتظر موافقة عضو ثانٍ، ولم يتغيّر التوجيه بعد.');
+      setToast('سجل الطلب — ينتظر موافقة عضو ثان، ولم يتغير التوجيه بعد.');
       setTarget(null);
       router.refresh();
     });
@@ -177,7 +177,7 @@ export function RoutesTable({
                     disabled={pending || isRequester}
                     onClick={() => approve(item)}
                   >
-                    {isRequester ? 'طلبتَه — ينتظر عضوًا آخر' : 'اعتمد التبديل'}
+                    {isRequester ? 'طلبته — ينتظر عضوا آخر' : 'اعتمد التبديل'}
                   </Button>
                 )}
               </div>
@@ -191,8 +191,8 @@ export function RoutesTable({
           <thead className="border-b border-line text-3xs opacity-65">
             <tr>
               <th className="p-3.5 text-start font-bold">الغرض</th>
-              <th className="p-3.5 text-start font-bold">البوابة الفعّالة</th>
-              <th className="p-3.5 text-end font-bold">مُسوّى هذا الشهر</th>
+              <th className="p-3.5 text-start font-bold">البوابة الفعالة</th>
+              <th className="p-3.5 text-end font-bold">مسوى هذا الشهر</th>
               <th className="p-3.5 text-end font-bold">محجوز الآن</th>
               <th className="p-3.5 text-start font-bold">البيئة</th>
               <th className="p-3.5 text-start font-bold" />
@@ -204,7 +204,7 @@ export function RoutesTable({
                 <td className="p-3.5">
                   <span className="font-bold">{PAYMENT_PURPOSE_LABEL[route.purpose]}</span>
                   {!route.enabled ? (
-                    <span className="block text-3xs opacity-65">معطّل — لا معاملات جديدة</span>
+                    <span className="block text-3xs opacity-65">معطل — لا معاملات جديدة</span>
                   ) : null}
                   {route.shortfall === null ? null : (
                     /* قِصَر المدّة تحذيرٌ يشرح الأثر ولا يمنع */
@@ -233,7 +233,7 @@ export function RoutesTable({
                   </Badge>
                   {route.storedEnv === route.activeEnv ? null : (
                     <span className="mt-1 block text-3xs text-warn">
-                      مخزَّن على {ENV_LABEL[route.storedEnv]} — القيد في الكود
+                      مخزن على {ENV_LABEL[route.storedEnv]} — القيد في الكود
                     </span>
                   )}
                 </td>
@@ -241,7 +241,7 @@ export function RoutesTable({
                   {!canManage ? null : (
                     <span className="flex flex-wrap justify-end gap-2">
                       <Button size="sm" variant="outline" onClick={() => openSwitch(route)}>
-                        غيّر البوابة
+                        غير البوابة
                       </Button>
                       {/*
                         **وحجزٌ قائم يمنع التعطيل** — والشاشة تقولها قبل
@@ -254,7 +254,7 @@ export function RoutesTable({
                         disabled={pending || (route.enabled && route.inFlight > 0)}
                         onClick={() => toggle(route)}
                       >
-                        {route.enabled ? 'عطّل' : 'فعّل'}
+                        {route.enabled ? 'عطل' : 'فعل'}
                       </Button>
                     </span>
                   )}
@@ -327,7 +327,7 @@ export function RoutesTable({
                   </label>
                 ))}
                 <p className="text-3xs opacity-65">
-                  البوابة التي تنقصها قدرة مطلوبة لا تظهر هنا أصلًا.
+                  البوابة التي تنقصها قدرة مطلوبة لا تظهر هنا أصلا.
                 </p>
               </div>
             )}
@@ -338,18 +338,18 @@ export function RoutesTable({
                 rows={2}
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
-                placeholder="ارتفاع الرسوم · تعطّل متكرّر · انتهاء العقد"
+                placeholder="ارتفاع الرسوم · تعطل متكرر · انتهاء العقد"
                 className="w-full rounded-sm border border-line bg-bg px-3 py-2 text-sm outline-none focus:border-ink/40"
               />
               <span className="text-3xs opacity-70">
-                إلزاميّ — بعد سنة لن يتذكّر أحد لماذا، والقرار بلا سببه يُعاد نقضه.
+                إلزامي — بعد سنة لن يتذكر أحد لماذا، والقرار بلا سببه يعاد نقضه.
               </span>
             </label>
 
             {selected === undefined ? null : (
               <div className="rounded-sm border border-line p-3 text-3xs leading-relaxed opacity-75">
-                المعاملات الجارية تبقى على {target.gatewayNameAr ?? ROUTE_DISABLED_LABEL}، والحجز القائم يُفرَج عنه من
-                حيث أُنشئ. والتبديل يسري على الجديد وحده من لحظة تنفيذه.
+                المعاملات الجارية تبقى على {target.gatewayNameAr ?? ROUTE_DISABLED_LABEL}، والحجز القائم يفرج عنه من
+                حيث أنشئ. والتبديل يسري على الجديد وحده من لحظة تنفيذه.
               </div>
             )}
           </div>
@@ -370,9 +370,9 @@ export function RoutesTable({
 function Shortfall({ maxHoldDays, neededDays }: HoldShortfall) {
   return (
     <>
-      أقصى مدّة حجز <Quantity unit="days" count={maxHoldDays} />، ومسار الطلب يحتاج{' '}
-      <Quantity unit="days" count={neededDays} /> (دفع + سقف نقل + نافذة استرجاع) — فسيتحوّل
-      الحجز إلى تحصيل مبكّر قبل أن تنقضي النافذة، وهذا يغيّر معنى الضمان للمشتري.
+      أقصى مدة حجز <Quantity unit="days" count={maxHoldDays} />، ومسار الطلب يحتاج{' '}
+      <Quantity unit="days" count={neededDays} /> (دفع + سقف نقل + نافذة استرجاع) — فسيتحول
+      الحجز إلى تحصيل مبكر قبل أن تنقضي النافذة، وهذا يغير معنى الضمان للمشتري.
     </>
   );
 }

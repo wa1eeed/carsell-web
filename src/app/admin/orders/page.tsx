@@ -38,7 +38,7 @@ const CLOSED = ['completed', 'cancelled', 'stalled', 'disputed'] as const;
 const CLOSED_LABEL: Record<(typeof CLOSED)[number], string> = {
   completed: 'مكتملة',
   cancelled: 'ملغاة',
-  stalled: 'متعثّرة',
+  stalled: 'متعثرة',
   disputed: 'نزاع',
 };
 
@@ -189,7 +189,7 @@ export default async function AdminOrdersPage({
           href={`/admin/orders?critical=1${active === null ? '' : `&tab=${active}`}`}
           show={critical > 0}
         >
-          <StatCard label="متأخّرة جدًّا" value={critical} tone={critical > 0 ? 'warn' : 'plain'} />
+          <StatCard label="متأخرة جدا" value={critical} tone={critical > 0 ? 'warn' : 'plain'} />
         </StatLink>
         <StatLink href="/admin/orders?tab=disputed" show={disputed > 0}>
           <StatCard label="عليها نزاع" value={disputed} tone={disputed > 0 ? 'warn' : 'plain'} />
@@ -226,7 +226,7 @@ export default async function AdminOrdersPage({
       {rows.length === 0 ? (
         <EmptyState
           title="لا طلبات في هذه الشريحة"
-          description="اختر شريحةً أخرى، أو ابحث بمرجع الطلب أو اسم أحد الطرفين."
+          description="اختر شريحة أخرى، أو ابحث بمرجع الطلب أو اسم أحد الطرفين."
         />
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -253,9 +253,9 @@ export default async function AdminOrdersPage({
             ? 'القائمة تعرض الطلبات الجارية · والمنتهية في شريحتيها'
             : 'طلبات منتهية — للمراجعة لا للمتابعة'
         }
-        can="نقل الطلب للمرحلة التالية إذا توقف التحديث التلقائي، وتمديد مهلة نقل الملكية مرة واحدة مع ذكر السبب، وإلغاء الطلب بدلًا عن الطرفين."
-        cannot="الإفراج عن مبلغ الضمان بضغطة — يحتاج موافقة شخصين وسببًا مكتوبًا، ويُقيَّد في سجلّ التدقيق."
-        automatic="طلبٌ تجاوز ضعف هدف مرحلته يظهر أوكر، وثلاثة أضعافه أحمر."
+        can="نقل الطلب للمرحلة التالية إذا توقف التحديث التلقائي، وتمديد مهلة نقل الملكية مرة واحدة مع ذكر السبب، وإلغاء الطلب بدلا عن الطرفين."
+        cannot="الإفراج عن مبلغ الضمان بضغطة — يحتاج موافقة شخصين وسببا مكتوبا، ويقيد في سجل التدقيق."
+        automatic="طلب تجاوز ضعف هدف مرحلته يظهر أوكر، وثلاثة أضعافه أحمر."
       />
     </AdminShell>
   );

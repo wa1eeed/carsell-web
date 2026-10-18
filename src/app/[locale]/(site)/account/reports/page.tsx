@@ -56,10 +56,10 @@ export default async function ReportsPage({
       subtitle="فحوص مركباتك ونتائجها."
       empty={{
         title: 'لا تقارير',
-        description: 'حين تُفحص مركبتك في مركز معتمد يظهر تقريرها هنا بنتيجته وتاريخه.',
+        description: 'حين تفحص مركبتك في مركز معتمد يظهر تقريرها هنا بنتيجته وتاريخه.',
       }}
       action={
-        <LinkButton href={`/${locale}/services/inspection`} size="sm">اطلب تقريرًا</LinkButton>
+        <LinkButton href={`/${locale}/services/inspection`} size="sm">اطلب تقريرا</LinkButton>
       }
     >
       {/*

@@ -38,7 +38,7 @@ export function ExtendTransfer({
   if (extendedAt !== null) {
     return (
       <p className="mt-2.5 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-75">
-        <b>مُدّد مرّة</b> — ولا يُمدَّد ثانية.
+        <b>مدد مرة</b> — ولا يمدد ثانية.
         {reason === null || reason === '' ? null : <> السبب: {reason}</>}
       </p>
     );
@@ -57,13 +57,13 @@ export function ExtendTransfer({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر التمديد.');
+        setToast(payload?.error?.messageAr ?? 'تعذر التمديد.');
         return;
       }
 
       setOpen(false);
       setText('');
-      setToast('مُدّد سقف النقل — وسُجّل السبب في الأثر.');
+      setToast('مدد سقف النقل — وسجل السبب في الأثر.');
       router.refresh();
     });
   };
@@ -71,7 +71,7 @@ export function ExtendTransfer({
   if (!open) {
     return (
       <Button size="sm" variant="outline" className="mt-2.5" onClick={() => setOpen(true)}>
-        مدّد سقف النقل
+        مدد سقف النقل
       </Button>
     );
   }
@@ -80,19 +80,19 @@ export function ExtendTransfer({
     <>
       <div className="mt-2.5 rounded-md border border-line p-3.5">
         <p className="mb-2.5 text-3xs leading-loose opacity-75">
-          يُضاف <Quantity unit="days" count={days} /> إلى السقف، مرّة واحدة. والسبب
-          إلزاميّ لأن التمديد يؤخّر مال المشتري — فمن يؤخّره يُسمّي لماذا.
+          يضاف <Quantity unit="days" count={days} /> إلى السقف، مرة واحدة. والسبب
+          إلزامي لأن التمديد يؤخر مال المشتري — فمن يؤخره يسمي لماذا.
         </p>
         <textarea
           rows={2}
           value={text}
           onChange={(event) => setText(event.target.value)}
-          placeholder="تأخّر موعد المرور بسبب…"
+          placeholder="تأخر موعد المرور بسبب…"
           className="mb-2.5 w-full rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
         />
         <div className="flex gap-2">
           <Button size="sm" disabled={busy || text.trim().length < REASON_MIN} onClick={submit}>
-            {busy ? 'جارٍ…' : 'مدّد'}
+            {busy ? 'جار…' : 'مدد'}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
             تراجع

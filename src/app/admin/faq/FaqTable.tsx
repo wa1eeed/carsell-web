@@ -135,10 +135,10 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
 
       if (!response.ok || json?.error !== undefined) {
         setErrors(json?.error?.fields ?? {});
-        setToast(json?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(json?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
-      setToast(text.id === null ? 'أُضيف السؤال.' : 'حُفظ السؤال.');
+      setToast(text.id === null ? 'أضيف السؤال.' : 'حفظ السؤال.');
       setText(null);
       router.refresh();
     } finally {
@@ -165,12 +165,12 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر حفظ المواضع.');
+        setToast('تعذر حفظ المواضع.');
         return;
       }
 
       setEditing(null);
-      setToast(draft.length === 0 ? 'سُحب السؤال من كل المواضع.' : 'حُفظت المواضع.');
+      setToast(draft.length === 0 ? 'سحب السؤال من كل المواضع.' : 'حفظت المواضع.');
       router.refresh();
     });
   };
@@ -184,11 +184,11 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر الحفظ.');
+        setToast('تعذر الحفظ.');
         return;
       }
 
-      setToast(row.active ? 'أُخفي السؤال من المنتج.' : 'عاد السؤال إلى الظهور.');
+      setToast(row.active ? 'أخفي السؤال من المنتج.' : 'عاد السؤال إلى الظهور.');
       router.refresh();
     });
   };
@@ -197,7 +197,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
     <>
       <div className="mb-4 flex justify-end">
         <Button size="sm" onClick={() => setText(EMPTY_TEXT)}>
-          أضِف سؤالًا
+          أضف سؤالا
         </Button>
       </div>
 
@@ -239,11 +239,11 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               </span>
 
               <Badge tone={row.active ? 'accent' : 'neutral'}>
-                {row.active ? 'يظهر' : 'مخفيّ'}
+                {row.active ? 'يظهر' : 'مخفي'}
               </Badge>
 
               <Button size="sm" variant="outline" disabled={pending} onClick={() => toggle(row)}>
-                {row.active ? 'أخفِه' : 'أظهِره'}
+                {row.active ? 'أخفه' : 'أظهره'}
               </Button>
 
               <Button
@@ -252,7 +252,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
                 disabled={pending}
                 onClick={() => setText(toTextDraft(row))}
               >
-                النصّ
+                النص
               </Button>
 
               <Button
@@ -269,8 +269,8 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
           {editing !== row.id ? null : (
             <div className="flex flex-col gap-3 bg-surface p-4">
               <p className="text-3xs leading-loose opacity-70">
-                اختر أين يظهر هذا السؤال. <b>وما لا تختاره يُحذف</b> — فالمحفوظ هو
-                الحال النهائية لا إضافةٌ على ما قبلها. والسؤال بلا موضعٍ لا يظهر لأحد.
+                اختر أين يظهر هذا السؤال. <b>وما لا تختاره يحذف</b> — فالمحفوظ هو
+                الحال النهائية لا إضافة على ما قبلها. والسؤال بلا موضع لا يظهر لأحد.
               </p>
 
               <div className="flex flex-wrap gap-2">
@@ -302,7 +302,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               */}
               {draft.some((entry) => entry.surface === 'listing_page') ? (
                 <label className="flex flex-wrap items-center gap-2.5 text-3xs">
-                  <span className="opacity-70">في صفحة السيارة — لأيّ طريقة بيع؟</span>
+                  <span className="opacity-70">في صفحة السيارة — لأي طريقة بيع؟</span>
                   <select
                     value={draft.find((e) => e.surface === 'listing_page')?.listingType ?? ''}
                     onChange={(event) =>
@@ -316,7 +316,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
                     }
                     className="rounded-md border border-line bg-bg px-3 py-1.5 text-3xs"
                   >
-                    <option value="">كلّها</option>
+                    <option value="">كلها</option>
                     {Object.entries(TYPE_LABEL).map(([value, typeLabel]) => (
                       <option key={value} value={value}>{typeLabel}</option>
                     ))}
@@ -398,7 +398,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
 
             {text.questionEn.trim() === '' || text.answerEn.trim() === '' ? (
               <p className="text-3xs text-warn-700">
-                بلا إنجليزية يظهر السؤال بالعربية للزائر الإنجليزيّ. يُحفظ، ويبقى موسومًا هنا.
+                بلا إنجليزية يظهر السؤال بالعربية للزائر الإنجليزي. يحفظ، ويبقى موسوما هنا.
               </p>
             ) : null}
 
@@ -417,7 +417,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
                 </select>
               </Field>
 
-              <Field label="الترتيب — فارغٌ يضعه آخرًا" error={errors.sort}>
+              <Field label="الترتيب — فارغ يضعه آخرا" error={errors.sort}>
                 <input
                   dir="ltr"
                   inputMode="numeric"
@@ -434,7 +434,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               كانت تُقرأ «أخفِه وامسح مواضعه»، فتصحيحُ حرفٍ يسحب سؤالًا.
             */}
             <p className="text-3xs opacity-65">
-              الإظهار والمواضع من أزرار الصفّ — ولكلٍّ أثرُه على ما يراه الزائر.
+              الإظهار والمواضع من أزرار الصف — ولكل أثره على ما يراه الزائر.
             </p>
           </div>
         )}

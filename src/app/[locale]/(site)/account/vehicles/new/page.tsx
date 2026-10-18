@@ -53,7 +53,7 @@ export default async function AddVehiclePage({
       <main className="min-h-screen bg-bg text-ink">
         <div className="mx-auto w-full max-w-3xl px-10 py-10">
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-6"
             items={[
@@ -69,7 +69,7 @@ export default async function AddVehiclePage({
             تقول لماذا، ومن لا يعرف الأثر لا يُضيف.
           */}
           <p className="mb-8 text-sm leading-loose opacity-70">
-            سجّل سيارتك في حسابك بدون ما تعرضها للبيع. تقدر تطلب عليها فحصًا أو خدمة، وتعرضها
+            سجل سيارتك في حسابك بدون ما تعرضها للبيع. تقدر تطلب عليها فحصا أو خدمة، وتعرضها
             للبيع وقت ما تحب.
           </p>
 

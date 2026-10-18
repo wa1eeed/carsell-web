@@ -67,7 +67,7 @@ export function PayPanel({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر بدء الدفع. لم يُحجز من بطاقتك شيء.');
+        setToast(payload?.error?.messageAr ?? 'تعذر بدء الدفع. لم يحجز من بطاقتك شيء.');
         return;
       }
 
@@ -84,7 +84,7 @@ export function PayPanel({
         return;
       }
 
-      setToast('حُجز المبلغ. ينتقل الطلب إلى نقل الملكية.');
+      setToast('حجز المبلغ. ينتقل الطلب إلى نقل الملكية.');
       router.refresh();
     });
   };
@@ -93,7 +93,7 @@ export function PayPanel({
     <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="mb-1.5 text-sm font-bold">ادفع لتأكيد الطلب</h2>
       <p className="mb-4 flex flex-wrap items-baseline gap-2 text-2xs leading-loose opacity-75">
-        <span>يُحجز</span>
+        <span>يحجز</span>
         <Money amount={total} />
         <span>في حساب الضمان — ولا يصل البائع قبل أن تنتقل الملكية باسمك.</span>
       </p>
@@ -118,7 +118,7 @@ export function PayPanel({
       </div>
 
       <Button className="w-full" onClick={pay} disabled={pending}>
-        {pending ? 'جارٍ…' : 'ادفع الآن'}
+        {pending ? 'جار…' : 'ادفع الآن'}
       </Button>
 
       {toast === null ? null : <Toast title={toast} />}

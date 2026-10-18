@@ -9,7 +9,7 @@ import { PayoutsTable } from './PayoutsTable';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'تحويل مستحقّات البائعين' };
+export const metadata = { title: 'تحويل مستحقات البائعين' };
 
 /**
  * ═══ الطرف الأخير من رحلة البيع — ولم يكن له شاشة ═══
@@ -36,19 +36,19 @@ export default async function PayoutsPage() {
 
   return (
     <AdminShell
-      title="تحويل مستحقّات البائعين"
-      subtitle="ما استُحقّ للبائعين ولم يُحوَّل بعد"
+      title="تحويل مستحقات البائعين"
+      subtitle="ما استحق للبائعين ولم يحول بعد"
       activeHref="/admin/payouts"
       admin={admin}
     >
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-70">
-          هذه مستحقّات استُحقّت بعد إتمام البيع ولم تصل البائع بعد. والحوالة تُنفَّذ من البنك
-          إلى آيبانه، وتُسجَّل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما يطلب
+          هذه مستحقات استحقت بعد إتمام البيع ولم تصل البائع بعد. والحوالة تنفذ من البنك
+          إلى آيبانه، وتسجل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما يطلب
           والآخر يعتمد.
         </p>
         <div className="flex flex-col items-start gap-0.5">
-          <span className="text-3xs opacity-70">مستحقّ ولم يُحوَّل</span>
+          <span className="text-3xs opacity-70">مستحق ولم يحول</span>
           <Money amount={totalOwed} size="lg" decimals={2} />
         </div>
       </div>
@@ -63,9 +63,9 @@ export default async function PayoutsPage() {
       <ListFooter
         shown={owed.length + history.length}
         total={null}
-        note="المستحقّ من دفتر الحسابات — لا من مجموع الطلبات"
-        can="طلب تحويل مستحقّات بائع، واعتماد طلب غيرك بعد تنفيذ الحوالة."
-        cannot="الطلب والاعتماد معًا — ولا تحويل لبائعٍ لم يُدخل آيبانه."
+        note="المستحق من دفتر الحسابات — لا من مجموع الطلبات"
+        can="طلب تحويل مستحقات بائع، واعتماد طلب غيرك بعد تنفيذ الحوالة."
+        cannot="الطلب والاعتماد معا — ولا تحويل لبائع لم يدخل آيبانه."
       />
     </AdminShell>
   );

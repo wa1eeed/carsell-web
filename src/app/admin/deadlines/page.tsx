@@ -26,8 +26,8 @@ export default async function DeadlinesPage() {
   return (
     <AdminShell title="المهل الزمنية" activeHref="/admin/deadlines" admin={admin}>
       <p className="mb-7 text-sm leading-loose opacity-70">
-        قواعد وقتٍ يديرها المشغّل. والتعديل يسري على ما يُنشأ بعده — والطلبات
-        والعروض القائمة تبقى على مهلتها المخزَّنة.
+        قواعد وقت يديرها المشغل. والتعديل يسري على ما ينشأ بعده — والطلبات
+        والعروض القائمة تبقى على مهلتها المخزنة.
       </p>
 
       <DeadlinesTable rows={rows} canManage={canWrite(admin.role, 'finance.view')} />

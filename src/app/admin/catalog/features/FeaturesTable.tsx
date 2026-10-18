@@ -16,10 +16,10 @@ const GROUP = { SAFETY: 'الأمان', COMFORT: 'الراحة', TECH: 'التق
 
 /** المواضع الأربعة المستقلة، وكل واحد يقرأه سطح مختلف. */
 const PLACEMENTS = [
-  ['trim_editor', 'قائمة مميّزات الفئة — A14'],
+  ['trim_editor', 'قائمة مميزات الفئة — A14'],
   ['search_filter', 'فلتر البحث — Wb'],
   ['listing_page', 'صفحة السيارة — Wc'],
-  ['card_badge', 'شارة مميّزة على البطاقة'],
+  ['card_badge', 'شارة مميزة على البطاقة'],
 ] as const;
 
 type Draft = {
@@ -183,13 +183,13 @@ export function FeaturesTable({
         columns={columns}
         rows={rows}
         rowKey={(f) => f.key}
-        empty={{ title: 'لا مميّزات مطابقة', description: 'جرّب مجموعة أخرى أو امسح البحث.' }}
+        empty={{ title: 'لا مميزات مطابقة', description: 'جرب مجموعة أخرى أو امسح البحث.' }}
       />
 
       <Modal
         open={draft !== null}
         onClose={() => setDraft(null)}
-        title={draft?.isNew === true ? 'ميزة جديدة' : 'محرّر الميزة'}
+        title={draft?.isNew === true ? 'ميزة جديدة' : 'محرر الميزة'}
         footer={
           <>
             {draft !== null && !draft.isNew && orphan ? (
@@ -199,7 +199,7 @@ export function FeaturesTable({
                 onClick={async () => {
                   if (await send(`/${draft.key}`, 'DELETE')) {
                     setDraft(null);
-                    setToast({ tone: 'success', text: 'حُذفت الميزة.' });
+                    setToast({ tone: 'success', text: 'حذفت الميزة.' });
                   }
                 }}
               >
@@ -218,7 +218,7 @@ export function FeaturesTable({
                   : await send(`/${key}`, 'PATCH', rest);
                 if (done) {
                   setDraft(null);
-                  setToast({ tone: 'success', text: 'حُفظت الميزة.' });
+                  setToast({ tone: 'success', text: 'حفظت الميزة.' });
                 }
               }}
             >
@@ -248,7 +248,7 @@ export function FeaturesTable({
                 />
               </label>
               <label className={label}>
-                المفتاح — ثابت ولا يُعدَّل
+                المفتاح — ثابت ولا يعدل
                 <input
                   dir="ltr"
                   readOnly={!draft.isNew}
@@ -277,8 +277,8 @@ export function FeaturesTable({
             </div>
 
             <p className="rounded-md bg-surface p-3.5 text-xs leading-loose opacity-72">
-              المفتاح يستعمله الكود ولا يتغيّر أبدًا. الاسمان محتوى يُحرَّر متى شئت —
-              تعديلهما يظهر فورًا في التطبيق والويب بلا نشر.
+              المفتاح يستعمله الكود ولا يتغير أبدا. الاسمان محتوى يحرر متى شئت —
+              تعديلهما يظهر فورا في التطبيق والويب بلا نشر.
             </p>
 
             <fieldset className="flex flex-col gap-2.5">

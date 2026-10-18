@@ -220,7 +220,7 @@ export function CatalogTree({
               setModelDraft({ nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(), yearTo: null })
             }
           >
-            أضف طرازًا
+            أضف طرازا
           </Button>
         ) : null}
       </aside>
@@ -282,13 +282,13 @@ export function CatalogTree({
                           done
                             ? setToast({
                                 tone: 'success',
-                                text: model.visible ? 'أُخفي الطراز.' : 'ظهر الطراز.',
+                                text: model.visible ? 'أخفي الطراز.' : 'ظهر الطراز.',
                               })
                             : null,
                       )
                     }
                   >
-                    {model.visible ? 'أخفِه' : 'أظهِره'}
+                    {model.visible ? 'أخفه' : 'أظهره'}
                   </Button>
                   <Button
                     variant="outline"
@@ -320,7 +320,7 @@ export function CatalogTree({
               columns={columns}
               rows={trims}
               rowKey={(t) => t.id}
-              empty={{ title: 'لا فئات لهذا الطراز', description: 'أضِف أول فئة بقيَمها الموروثة.' }}
+              empty={{ title: 'لا فئات لهذا الطراز', description: 'أضف أول فئة بقيمها الموروثة.' }}
             />
 
             <section className="rounded-lg border border-line bg-surface p-5.5">
@@ -329,10 +329,10 @@ export function CatalogTree({
               </h3>
               <p className="text-sm leading-loose opacity-72">
                 حين يختار البائع {brands.find((b) => b.id === brandId)?.nameAr} ←{' '}
-                {model.nameAr} ← إحدى الفئات، تُملأ آليًا: نوع الهيكل وناقل الحركة
-                والوقود والدفع وعدد المقاعد. فلا يعبّئ خمسة حقول، ولا تتضارب البيانات
-                بين إعلانين للطراز نفسه. والقيَم تُنسخ لقطةً وقت النشر — فتعديلها هنا
-                لا يمسّ إعلانًا منشورًا.
+                {model.nameAr} ← إحدى الفئات، تملأ آليا: نوع الهيكل وناقل الحركة
+                والوقود والدفع وعدد المقاعد. فلا يعبئ خمسة حقول، ولا تتضارب البيانات
+                بين إعلانين للطراز نفسه. والقيم تنسخ لقطة وقت النشر — فتعديلها هنا
+                لا يمس إعلانا منشورا.
               </p>
             </section>
           </>
@@ -357,7 +357,7 @@ export function CatalogTree({
                     : await send(`trims/${draft.id}`, 'PATCH', draft);
                 if (done) {
                   setDraft(null);
-                  setToast({ tone: 'success', text: 'حُفظت الفئة.' });
+                  setToast({ tone: 'success', text: 'حفظت الفئة.' });
                 }
               }}
             >
@@ -452,7 +452,7 @@ export function CatalogTree({
                   setModelDraft(null);
                   setToast({
                     tone: 'success',
-                    text: id === undefined ? 'أُضيف الطراز.' : 'حُفظ الطراز.',
+                    text: id === undefined ? 'أضيف الطراز.' : 'حفظ الطراز.',
                   });
                 }
               }}
@@ -492,7 +492,7 @@ export function CatalogTree({
             </label>
             <label className={label}>
               {/* **والفراغُ معنًى لا نقص**: طرازٌ يُنتَج إلى اليوم. */}
-              إلى سنة — يُترك فارغًا إن كان يُنتج
+              إلى سنة — يترك فارغا إن كان ينتج
               <input
                 type="number"
                 value={modelDraft.yearTo ?? ''}
@@ -534,12 +534,12 @@ export function CatalogTree({
                 if (done) {
                   const wasModel = removing.kind === 'models';
                   setRemoving(null);
-                  setToast({ tone: 'success', text: wasModel ? 'حُذف الطراز.' : 'حُذفت الفئة.' });
+                  setToast({ tone: 'success', text: wasModel ? 'حذف الطراز.' : 'حذفت الفئة.' });
                   if (wasModel) go({ model: undefined });
                 }
               }}
             >
-              {busy ? 'يُحذف…' : 'نعم، احذفه'}
+              {busy ? 'يحذف…' : 'نعم، احذفه'}
             </Button>
           </>
         }
@@ -548,12 +548,12 @@ export function CatalogTree({
           <p className="text-xs leading-loose">
             <b className="bidi-isolate">{removing.name}</b> {removing.blockedBy.lead}{' '}
             <Quantity unit={removing.blockedBy.unit} count={removing.blockedBy.count} /> — ولا
-            يُحذف ما يُستعمل. <b>أخفِه بدل حذفه</b>: يختفي من معالج البيع ومن الفلاتر، وتبقى
+            يحذف ما يستعمل. <b>أخفه بدل حذفه</b>: يختفي من معالج البيع ومن الفلاتر، وتبقى
             البيانات القائمة عليه كما هي.
           </p>
         ) : (
           <p className="text-xs leading-loose">
-            يُحذف <b className="bidi-isolate">{removing.name}</b> نهائيًّا ولا يُسترجَع.
+            يحذف <b className="bidi-isolate">{removing.name}</b> نهائيا ولا يسترجع.
             {removing.kind === 'models' ? ' ولا فئة عليه ولا مركبة.' : ' ولا مركبة عليها.'}
           </p>
         )}

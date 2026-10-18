@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest) {
     return fail(
       {
         code: result.reason,
-        messageAr: MESSAGE[result.reason] ?? 'تعذّر الحفظ.',
+        messageAr: MESSAGE[result.reason] ?? 'تعذر الحفظ.',
         messageEn: 'Could not save support channels.',
       },
       422,

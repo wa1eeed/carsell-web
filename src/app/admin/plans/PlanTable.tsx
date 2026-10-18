@@ -57,12 +57,12 @@ export function PlanTable({
                     <span className="flex items-center gap-2.5">
                       <span className="font-bold">{plan.nameAr}</span>
                       {plan.key === 'free' ? <Badge tone="neutral">افتراضية</Badge> : null}
-                      {plan.visible ? null : <Badge tone="warn">مخفيّة</Badge>}
+                      {plan.visible ? null : <Badge tone="warn">مخفية</Badge>}
                     </span>
                   </td>
                   <td className="p-3">
                     {Number(plan.price) === 0 ? (
-                      <span className="opacity-70">مجانًا</span>
+                      <span className="opacity-70">مجانا</span>
                     ) : (
                       <span className="font-num">
                         {displayDigits(plan.price)} ريال /{' '}
@@ -146,11 +146,11 @@ function PlanEditor({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
-      setToast('حُفظت الباقة — ولا تمسّ طلبًا قائمًا.');
+      setToast('حفظت الباقة — ولا تمس طلبا قائما.');
       router.refresh();
       onClose();
     });
@@ -161,8 +161,8 @@ function PlanEditor({
       <div className="w-full max-w-lg rounded-lg border border-line bg-bg p-6">
         <h3 className="mb-1 text-md font-bold">{plan.nameAr}</h3>
         <p className="mb-5 text-3xs opacity-70">
-          <Quantity unit="subscribers" count={plan.subscriberCount} /> — والتعديل لا يمسّ اشتراكًا
-          قائمًا حتى تجديده.
+          <Quantity unit="subscribers" count={plan.subscriberCount} /> — والتعديل لا يمس اشتراكا
+          قائما حتى تجديده.
         </p>
 
         <label className="mb-4 flex flex-col gap-1.5">
@@ -223,12 +223,12 @@ function PlanEditor({
         </div>
 
         <p className="mt-3 text-3xs opacity-65">
-          العدد ‎-1‎ يعني بلا حدّ. والنسبة بين صفر ومئة.
+          العدد ‎-1‎ يعني بلا حد. والنسبة بين صفر ومئة.
         </p>
 
         <div className="mt-6 flex gap-3">
           <Button disabled={pending} onClick={save}>
-            {pending ? 'جارٍ…' : 'احفظ'}
+            {pending ? 'جار…' : 'احفظ'}
           </Button>
           <Button variant="outline" disabled={pending} onClick={onClose}>
             إلغاء

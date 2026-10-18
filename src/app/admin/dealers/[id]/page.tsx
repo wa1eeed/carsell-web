@@ -61,7 +61,7 @@ export default async function AdminDealerDetailPage({
         badges={
           <>
             <Badge tone={dealer.status === 'ACTIVE' ? 'accent' : 'neutral'}>{dealer.status}</Badge>
-            {dealer.verified ? <Badge tone="accent">موثَّق</Badge> : <Badge tone="warn">بلا توثيق</Badge>}
+            {dealer.verified ? <Badge tone="accent">موثق</Badge> : <Badge tone="warn">بلا توثيق</Badge>}
             {dealer.marginSchemeApproved ? <Badge tone="neutral">هامش الربح</Badge> : null}
           </>
         }
@@ -81,7 +81,7 @@ export default async function AdminDealerDetailPage({
                 <ArabicNumber value={Number(dealer.ratingAvg)} decimals={1} />
               ),
           },
-          { label: 'سُجّل', value: riyadh.format(new Date(dealer.createdAt)) },
+          { label: 'سجل', value: riyadh.format(new Date(dealer.createdAt)) },
         ]}
       />
 
@@ -91,7 +91,7 @@ export default async function AdminDealerDetailPage({
         active={timeline ? 'timeline' : null}
         tabs={[
           { key: null, label: 'نظرة عامة' },
-          { key: 'timeline', label: 'خطّ الزمن' },
+          { key: 'timeline', label: 'خط الزمن' },
         ]}
       />
 
@@ -106,7 +106,7 @@ export default async function AdminDealerDetailPage({
               {dealer.members.length === 0 ? (
                 // معرضٌ بلا أعضاء لا ينشر شيئًا — وهو حالٌ تُقال لا تُخفى
                 <p className="text-2xs opacity-70">
-                  لا أعضاء — ومعرضٌ بلا عضوٍ لا ينشر إعلانًا.
+                  لا أعضاء — ومعرض بلا عضو لا ينشر إعلانا.
                 </p>
               ) : (
                 dealer.members.map((member) => (
@@ -164,10 +164,10 @@ export default async function AdminDealerDetailPage({
           <>
             <DetailCard title="المعرض">
               <Field label="الاسم" value={dealer.nameAr} />
-              <Field label="المعرّف" value={dealer.slug} ltr />
+              <Field label="المعرف" value={dealer.slug} ltr />
               <Field label="المدينة" value={dealer.city} />
-              <Field label="الهاتف" value={dealer.phone ?? 'لم يُضف'} ltr />
-              <Field label="انضمّ" value={riyadh.format(new Date(dealer.createdAt))} />
+              <Field label="الهاتف" value={dealer.phone ?? 'لم يضف'} ltr />
+              <Field label="انضم" value={riyadh.format(new Date(dealer.createdAt))} />
             </DetailCard>
 
             <DetailCard title="التوثيق">
@@ -176,12 +176,12 @@ export default async function AdminDealerDetailPage({
                 يرى على ماذا مُنحت، لا أنها مُنحت فحسب.
               */}
               <Field
-                label="السجلّ التجاريّ"
-                value={dealer.crNumber ?? 'لم يُقدَّم'}
+                label="السجل التجاري"
+                value={dealer.crNumber ?? 'لم يقدم'}
                 ltr
               />
-              <Field label="الرقم الضريبيّ" value={dealer.vatNumber ?? 'لم يُقدَّم'} ltr />
-              <Field label="الحالة" value={dealer.verified ? 'موثَّق' : 'بلا توثيق'} />
+              <Field label="الرقم الضريبي" value={dealer.vatNumber ?? 'لم يقدم'} ltr />
+              <Field label="الحالة" value={dealer.verified ? 'موثق' : 'بلا توثيق'} />
               {dealer.marginSchemeApproved ? (
                 <Field label="مرجع هامش الربح" value={dealer.marginSchemeRef ?? '—'} ltr />
               ) : null}
@@ -221,9 +221,9 @@ export default async function AdminDealerDetailPage({
 
       {!timeline ? null : (
         <section className="rounded-xl border border-line bg-surface p-5">
-          <h2 className="mb-1.5 text-sm font-bold">خطّ الزمن</h2>
+          <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            تسجيلُ المعرض وتوثيقُه وما نشره مخزونُه، وأثر الفريق عليه.
+            تسجيل المعرض وتوثيقه وما نشره مخزونه، وأثر الفريق عليه.
           </p>
           <Timeline events={events} />
         </section>

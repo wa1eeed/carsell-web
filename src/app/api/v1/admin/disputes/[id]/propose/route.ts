@@ -45,10 +45,10 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'NOT_OPEN'
-            ? 'النزاع لم يعد مفتوحًا.'
+            ? 'النزاع لم يعد مفتوحا.'
             : result.reason === 'AMOUNT_REQUIRED'
-              ? 'التسوية الجزئية تحتاج مبلغًا.'
-              : 'المبلغ لا يصلح تسويةً جزئية — لا يساوي الإجمالي ولا يتجاوزه.',
+              ? 'التسوية الجزئية تحتاج مبلغا.'
+              : 'المبلغ لا يصلح تسوية جزئية — لا يساوي الإجمالي ولا يتجاوزه.',
         messageEn:
           result.reason === 'NOT_OPEN'
             ? 'This dispute is no longer open.'

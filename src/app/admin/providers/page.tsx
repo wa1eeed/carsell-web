@@ -13,7 +13,7 @@ import { Duration } from '@/components/ui/Duration';
 import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'مزوّدو الخدمات والتمويل' };
+export const metadata = { title: 'مزودو الخدمات والتمويل' };
 
 /**
  * A28 — مزوّدو الخدمات والتمويل.
@@ -67,8 +67,8 @@ export default async function AdminProvidersPage({
   const writable = canWrite(admin.role, 'services.manage');
 
   return (
-    <AdminShell title="مزوّدو الخدمات والتمويل"
-      subtitle="المزوّدون والتزامهم" activeHref="/admin/providers" admin={admin}>
+    <AdminShell title="مزودو الخدمات والتمويل"
+      subtitle="المزودون والتزامهم" activeHref="/admin/providers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <Quantity unit="providers" count={rows.length} /> ·{' '}
         <Quantity unit="linkedServices" count={stats.servicesLinked} />
@@ -79,24 +79,24 @@ export default async function AdminProvidersPage({
       <MonitorCards
         cards={[
           {
-            title: 'مزوّدون نشطون',
+            title: 'مزودون نشطون',
             value: stats.active,
-            note: <>يغطّون <Quantity unit="cities" count={stats.cities} /></>,
+            note: <>يغطون <Quantity unit="cities" count={stats.cities} /></>,
           },
-          { title: 'طلبات مُسنَدة', value: stats.assignedThisMonth, note: 'هذا الشهر' },
+          { title: 'طلبات مسندة', value: stats.assignedThisMonth, note: 'هذا الشهر' },
           {
             title: 'تجاوز الالتزام',
             value: stats.breached,
             note:
               stats.breached === 0
-                ? 'لا تأخّر قائم'
+                ? 'لا تأخر قائم'
                 : `الإسقاط بعد تجاوزات (${displayDigits(String(stats.breachesBeforeSuspension))})`,
           },
           { title: 'خدمات مرتبطة', value: stats.servicesLinked, note: 'تصلها إسنادات' },
         ]}
       />
 
-      <h2 className="mb-3.5 text-sm font-bold">المزوّدون</h2>
+      <h2 className="mb-3.5 text-sm font-bold">المزودون</h2>
       <ProviderTable rows={rows} canEdit={writable} />
 
       {/*
@@ -106,7 +106,7 @@ export default async function AdminProvidersPage({
       <h2 className="mt-10 mb-3.5 text-sm font-bold">طلبات تجاوزت الالتزام</h2>
       {breached.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          لا طلب متأخّرًا الآن. والتأخّر يُقاس من مهلة الطلب نفسها لا من راية.
+          لا طلب متأخرا الآن. والتأخر يقاس من مهلة الطلب نفسها لا من راية.
         </p>
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -125,7 +125,7 @@ export default async function AdminProvidersPage({
                 </span>
               </div>
               <span className="font-num shrink-0 text-2xs text-danger">
-                تأخّر <Duration hours={row.overdueHours} />
+                تأخر <Duration hours={row.overdueHours} />
               </span>
             </div>
           ))}
@@ -145,11 +145,11 @@ export default async function AdminProvidersPage({
           */}
           <p className="mb-2 font-bold">قواعد الإسناد</p>
           <p>
-            الطلب المدفوع يُعرض على <strong>كل مزوّدي صنفه في مدينة المركبة</strong> —
-            ومن يقبله أوّلًا يأخذه وحده. و«المزوّد المرتبط بالخدمة» في الكتالوج مفضَّلٌ
-            لا حصريّ. ومزوّدٌ بلا حساب دفعٍ مفعَّل لا تصله الطلبات: يؤدّي العمل ثم لا
-            سبيل إلى سداد مستحقّه. <b>ولا اختيار بالحِمل بعد</b> — فمن سبق أخذ.
-            وتعطيل مزوّد لا يمسّ طلباته الجارية، يمنع الجديد فقط.
+            الطلب المدفوع يعرض على <strong>كل مزودي صنفه في مدينة المركبة</strong> —
+            ومن يقبله أولا يأخذه وحده. و«المزود المرتبط بالخدمة» في الكتالوج مفضل
+            لا حصري. ومزود بلا حساب دفع مفعل لا تصله الطلبات: يؤدي العمل ثم لا
+            سبيل إلى سداد مستحقه. <b>ولا اختيار بالحمل بعد</b> — فمن سبق أخذ.
+            وتعطيل مزود لا يمس طلباته الجارية، يمنع الجديد فقط.
           </p>
         </div>
 
@@ -157,8 +157,8 @@ export default async function AdminProvidersPage({
           <p className="mb-2 font-bold">التجاوز والإسقاط</p>
           <p>
             تجاوز الالتزام <Quantity unit="breaches" count={stats.breachesBeforeSuspension} /> في شهر
-            يُسقط المزوّد من الإسناد الآليّ حتى مراجعته —{' '}
-            <b>العميل لا يتحمّل تأخير مزوّد</b>.
+            يسقط المزود من الإسناد الآلي حتى مراجعته —{' '}
+            <b>العميل لا يتحمل تأخير مزود</b>.
           </p>
         </div>
       </div>
@@ -166,9 +166,9 @@ export default async function AdminProvidersPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="المزوّدون وتغطيتهم والتزامهم"
-        can="إضافة مزوّد وتعديل بياناته وربط خدماته به، وإيقافه عن الإسناد."
-        cannot="حذف مزوّدٍ له طلباتٌ قائمة — تاريخُ الطلب يشير إليه، وحذفُه يترك طلبًا بلا منفّذ."
+        note="المزودون وتغطيتهم والتزامهم"
+        can="إضافة مزود وتعديل بياناته وربط خدماته به، وإيقافه عن الإسناد."
+        cannot="حذف مزود له طلبات قائمة — تاريخ الطلب يشير إليه، وحذفه يترك طلبا بلا منفذ."
       />
     </AdminShell>
   );

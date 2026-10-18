@@ -197,10 +197,10 @@ export default async function CityBrandModelLanding({
               الأحدث
             </FilterChip>
             <FilterChip href={`${base}?sort=price_asc`} active={sort === 'price_asc'}>
-              الأقلّ سعرًا
+              الأقل سعرا
             </FilterChip>
             <FilterChip href={`${base}?sort=price_desc`} active={sort === 'price_desc'}>
-              الأعلى سعرًا
+              الأعلى سعرا
             </FilterChip>
           </nav>
 

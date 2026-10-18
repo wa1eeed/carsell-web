@@ -41,18 +41,18 @@ export default async function AdminOffersPage({
   return (
     <AdminShell title="العروض والمفاوضات" activeHref="/admin/offers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        ما يجري بين المشترين والبائعين. تُقرأ ولا تُغيَّر — والمفاوضة بين طرفيها.
+        ما يجري بين المشترين والبائعين. تقرأ ولا تغير — والمفاوضة بين طرفيها.
       </p>
 
       <MonitorCards
         cards={[
           { title: 'عروض نشطة', value: counts.active, note: 'حالتها نشطة ومهلتها قائمة' },
-          { title: 'عروض مقابلة', value: counts.countered, note: 'ردّ البائع بسعر' },
-          { title: 'بلا ردّ أكثر من يوم', value: counts.stale, note: 'تسقط تلقائيًّا بانقضاء المهلة' },
+          { title: 'عروض مقابلة', value: counts.countered, note: 'رد البائع بسعر' },
+          { title: 'بلا رد أكثر من يوم', value: counts.stale, note: 'تسقط تلقائيا بانقضاء المهلة' },
           {
             title: 'نسبة القبول',
             value: `${displayDigits(String(counts.acceptancePct))}٪`,
-            note: 'ممّا نظر فيه البائع',
+            note: 'مما نظر فيه البائع',
           },
         ]}
       />
@@ -72,14 +72,14 @@ export default async function AdminOffersPage({
           { key: 'active', label: 'بانتظار البائع', count: counts.active },
           { key: 'countered', label: 'عرض مقابل', count: counts.countered },
           { key: 'accepted', label: 'مقبولة', count: counts.accepted },
-          { key: 'auto', label: 'مرفوضة تلقائيًّا', count: counts.autoRejected },
+          { key: 'auto', label: 'مرفوضة تلقائيا', count: counts.autoRejected },
         ]}
       />
 
       {rows.length === 0 ? (
         <EmptyState
           title="لا عروض هنا"
-          description="حين يقدّم مشترٍ عرضًا يظهر هنا بحاله ومهلته."
+          description="حين يقدم مشتر عرضا يظهر هنا بحاله ومهلته."
         />
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -90,16 +90,16 @@ export default async function AdminOffersPage({
       )}
 
       <p className="mt-4 text-3xs leading-relaxed opacity-65">
-        لا زرّ في هذه الشاشة عمدًا: المفاوضة بين طرفين، ومن يملك زرًّا فيها يملك
+        لا زر في هذه الشاشة عمدا: المفاوضة بين طرفين، ومن يملك زرا فيها يملك
         ترجيح أحدهما.
       </p>
 
       <ListFooter
         shown={rows.length}
         total={null}
-        note="العروض النشطة — والمنتهية تسقط تلقائيًّا بعد مهلتها"
+        note="العروض النشطة — والمنتهية تسقط تلقائيا بعد مهلتها"
         can="قراءة سلسلة العرض والعرض المقابل، والانتقال إلى الإعلان أو طرفيه."
-        cannot="القبول أو الرفض بدلًا عن البائع — العرض عقدٌ بين طرفين، وقبولُه منّا يُنشئ التزامًا لم يقرّره صاحبه."
+        cannot="القبول أو الرفض بدلا عن البائع — العرض عقد بين طرفين، وقبوله منا ينشئ التزاما لم يقرره صاحبه."
       />
     </AdminShell>
   );

@@ -83,7 +83,7 @@ export default async function ServiceRequestPage({
       <main className="min-h-screen bg-bg text-ink">
         <div className="mx-auto w-full max-w-3xl px-10 py-10">
           <Breadcrumb
-            label="مسار التنقّل"
+            label="مسار التنقل"
             separator="›"
             className="mb-6"
             items={[
@@ -141,11 +141,11 @@ export default async function ServiceRequestPage({
           */}
           {view.status !== 'DECLINED' ? null : (
             <section className="mb-7 rounded-xl bg-warn-100 p-5 text-warn-900">
-              <h2 className="mb-1.5 text-sm font-bold">لم يُؤذَن بالفحص</h2>
+              <h2 className="mb-1.5 text-sm font-bold">لم يؤذن بالفحص</h2>
               <p className="text-2xs leading-loose">
                 {view.declineReason === 'consent.lapsed'
-                  ? 'انقضت مهلة صاحب المركبة دون ردّ، فسقط الطلب. ولم يُؤخذ منك شيء.'
-                  : (view.declineReason ?? 'لم يُذكر سبب.')}
+                  ? 'انقضت مهلة صاحب المركبة دون رد، فسقط الطلب. ولم يؤخذ منك شيء.'
+                  : (view.declineReason ?? 'لم يذكر سبب.')}
               </p>
             </section>
           )}
@@ -174,7 +174,7 @@ export default async function ServiceRequestPage({
             <Row label="قيمة الخدمة" value={<ArabicNumber value={Number(view.total)} decimals={2} />} />
             {Number(view.platformFee) === 0 ? null : (
               <Row
-                label="منها رسوم المنصّة"
+                label="منها رسوم المنصة"
                 value={<ArabicNumber value={Number(view.platformFee)} decimals={2} />}
               />
             )}
@@ -194,17 +194,17 @@ export default async function ServiceRequestPage({
                   */}
                   {view.paid
                     ? view.paymentStatus === null
-                      ? 'لا دفعة مسجَّلة'
+                      ? 'لا دفعة مسجلة'
                       : (PAYMENT_STATE[view.paymentStatus] ?? view.paymentStatus)
                     : view.status === 'AWAITING_SELLER'
-                      ? 'يُطلب بعد إذن صاحب المركبة'
+                      ? 'يطلب بعد إذن صاحب المركبة'
                       : view.status === 'AWAITING_PAYMENT'
                         ? 'مطلوب الآن'
-                        : 'لم يُطلب'}
+                        : 'لم يطلب'}
                 </span>
               }
             />
-            <Row label="طُلبت" value={<span className="bidi-isolate">{date.format(new Date(view.createdAt))}</span>} />
+            <Row label="طلبت" value={<span className="bidi-isolate">{date.format(new Date(view.createdAt))}</span>} />
             {view.scheduledAt === null ? null : (
               <Row
                 label="الموعد الذي اخترته"

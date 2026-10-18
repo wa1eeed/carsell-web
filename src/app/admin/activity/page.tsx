@@ -68,7 +68,7 @@ export default async function ActivityPage({
       <AutoRefresh seconds={30} />
 
       <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
-        كلُّ ما وقع في السوق مرتَّبًا بالأحدث — الإعلانات والعروض والطلبات والمدفوعات
+        كل ما وقع في السوق مرتبا بالأحدث — الإعلانات والعروض والطلبات والمدفوعات
         والمزايدات والنزاعات والحسابات الجديدة وأثر الفريق، في مجرى واحد.
       </p>
 
@@ -82,7 +82,7 @@ export default async function ActivityPage({
         cards={[
           { title: 'أحداث آخر ٢٤ ساعة', value: total, note: 'من كل المصادر' },
           { title: 'حركة السوق', value: market, note: 'بلا أثر الفريق' },
-          { title: 'نزاعات', value: counts.dispute, note: 'فُتحت أو حُسمت' },
+          { title: 'نزاعات', value: counts.dispute, note: 'فتحت أو حسمت' },
         ]}
       />
 
@@ -91,7 +91,7 @@ export default async function ActivityPage({
         param="kind"
         active={kind ?? null}
         tabs={[
-          { key: null, label: 'الكلّ' },
+          { key: null, label: 'الكل' },
           ...ACTIVITY_KINDS.map((one) => ({
             key: one,
             label: ACTIVITY_KIND_LABEL[one],
@@ -104,7 +104,7 @@ export default async function ActivityPage({
       {events.length === 0 ? (
         <EmptyState
           title="لا نشاط بعد"
-          description="ما يقع في السوق — إعلانٌ يُنشر، عرضٌ يصل، دفعةٌ تُسوّى — يظهر هنا لحظة وقوعه."
+          description="ما يقع في السوق — إعلان ينشر، عرض يصل، دفعة تسوى — يظهر هنا لحظة وقوعه."
         />
       ) : (
         <ol className="flex flex-col divide-y divide-line border-y border-line">

@@ -53,7 +53,7 @@ export async function publish(
   } catch (error) {
     // الحفظ نجح والنشر فشل: العميل سيلحق باللقطة التالية
     console.warn(
-      `[realtime] تعذّر نشر ${event.type} على ${channel}:`,
+      `[realtime] تعذر نشر ${event.type} على ${channel}:`,
       error instanceof Error ? error.message : String(error),
     );
     return { published: false, reason: 'FAILED' };

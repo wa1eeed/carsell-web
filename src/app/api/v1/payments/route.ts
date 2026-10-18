@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         code: result.reason,
         messageAr:
           result.reason === 'GATEWAY_FAILED'
-            ? 'تعذّر بدء الدفع الآن. لم يُخصم من بطاقتك شيء.'
+            ? 'تعذر بدء الدفع الآن. لم يخصم من بطاقتك شيء.'
             : 'لا يمكن بدء الدفع لهذا الطلب.',
         messageEn:
           result.reason === 'GATEWAY_FAILED'

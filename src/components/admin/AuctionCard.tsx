@@ -29,10 +29,10 @@ import type { AuctionRow } from '@/lib/domain/admin-monitors';
 
 const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
   SCHEDULED: { label: 'قادم', tone: 'neutral' },
-  LIVE: { label: 'جارٍ', tone: 'accent' },
+  LIVE: { label: 'جار', tone: 'accent' },
   ENDED_MET: { label: 'رسا', tone: 'accent' },
   ENDED_UNMET: { label: 'دون الاحتياطي', tone: 'warn' },
-  CANCELLED: { label: 'ملغًى', tone: 'neutral' },
+  CANCELLED: { label: 'ملغى', tone: 'neutral' },
 };
 
 const day = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
@@ -81,7 +81,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
             {row.listingRef}
           </Link>
           {settling ? (
-            <Badge size="sm" tone="warn">انقضى — يُحتسب</Badge>
+            <Badge size="sm" tone="warn">انقضى — يحتسب</Badge>
           ) : (
             <Badge size="sm" tone={status?.tone ?? 'neutral'}>
               {status?.label ?? row.status}
@@ -93,7 +93,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
           */}
           {settling || row.status === 'SCHEDULED' ? null : (
             <Badge size="sm" tone={row.reserveMet ? 'accent' : 'warn'}>
-              {row.reserveMet ? 'بلغ الاحتياطي' : 'لم يُبلغ'}
+              {row.reserveMet ? 'بلغ الاحتياطي' : 'لم يبلغ'}
             </Badge>
           )}
         </div>

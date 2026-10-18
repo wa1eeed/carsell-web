@@ -58,7 +58,7 @@ export function Timeline({ events }: { events: readonly TimelineEvent[] }) {
   if (events.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-line p-6 text-2xs opacity-70">
-        لا أحداث مسجَّلة على هذا الإعلان بعد.
+        لا أحداث مسجلة على هذا الإعلان بعد.
       </p>
     );
   }

@@ -47,7 +47,7 @@ export function StepActions({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر التنفيذ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر التنفيذ.');
         return;
       }
       /** تحميلٌ كامل — الحال تُقرأ في الخادم، فيُرى ما وقع لا ما قبله */
@@ -58,7 +58,7 @@ export function StepActions({
   if (steps.length === 0) {
     return (
       <p className="rounded-xl border border-line p-5 text-2xs leading-loose opacity-70">
-        لا إجراء مطلوبٌ منك على هذا الطلب الآن.
+        لا إجراء مطلوب منك على هذا الطلب الآن.
       </p>
     );
   }
@@ -97,7 +97,7 @@ export function StepActions({
       <Modal
         open={failing}
         onClose={() => setFailing(false)}
-        title="تعذّر تنفيذ الطلب"
+        title="تعذر تنفيذ الطلب"
         footer={
           <>
             <span className="flex-1" />
@@ -109,7 +109,7 @@ export function StepActions({
               disabled={pending || reason.trim().length < MIN_FAIL_REASON}
               onClick={() => send('fail', reason.trim())}
             >
-              أكّد التعذّر
+              أكد التعذر
             </Button>
           </>
         }
@@ -121,7 +121,7 @@ export function StepActions({
             rows={3}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="مثال: حضرتُ الموعد ولم أجد المركبة، ولم يردّ صاحبها."
+            placeholder="مثال: حضرت الموعد ولم أجد المركبة، ولم يرد صاحبها."
             className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm leading-loose"
           />
         </label>

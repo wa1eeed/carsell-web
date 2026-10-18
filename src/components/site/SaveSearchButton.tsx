@@ -19,9 +19,9 @@ import { Toast } from '@/components/ui/Toast';
  */
 
 const REASON: Record<string, string> = {
-  EMPTY_FILTERS: 'حدّد شيئًا أوّلًا — بحثٌ بلا فلتر يعني كل السيارات.',
-  LIMIT_REACHED: 'بلغتَ حدّ المحفوظات. احذف واحدًا قبل أن تحفظ غيره.',
-  DUPLICATE: 'هذا البحث محفوظٌ عندك.',
+  EMPTY_FILTERS: 'حدد شيئا أولا — بحث بلا فلتر يعني كل السيارات.',
+  LIMIT_REACHED: 'بلغت حد المحفوظات. احذف واحدا قبل أن تحفظ غيره.',
+  DUPLICATE: 'هذا البحث محفوظ عندك.',
 };
 
 export function SaveSearchButton({
@@ -72,12 +72,12 @@ export function SaveSearchButton({
 
       if (response === null || !response.ok) {
         const key = payload?.error?.fields?.search;
-        setToast((key === undefined ? undefined : REASON[key]) ?? payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast((key === undefined ? undefined : REASON[key]) ?? payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
       setJustSaved(query);
-      setToast('حُفظ البحث. سنخبرك بما يُنشر مطابقًا له.');
+      setToast('حفظ البحث. سنخبرك بما ينشر مطابقا له.');
     });
   };
 

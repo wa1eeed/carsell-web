@@ -56,7 +56,7 @@ export function StaffActions({
         | null;
 
       if (response === null || !response.ok || typeof payload?.data?.tempPassword !== 'string') {
-        setToast(payload?.error?.messageAr ?? 'تعذّر فتح الحساب.');
+        setToast(payload?.error?.messageAr ?? 'تعذر فتح الحساب.');
         return;
       }
 
@@ -80,7 +80,7 @@ export function StaffActions({
         | null;
 
       if (response === null || !response.ok) {
-        setToast('تعذّر التنفيذ.');
+        setToast('تعذر التنفيذ.');
         return;
       }
       if (typeof payload?.data?.tempPassword === 'string') {
@@ -96,22 +96,22 @@ export function StaffActions({
     <>
       {shown === null ? null : (
         <div className="mb-4 rounded-lg border border-line bg-surface p-4">
-          <p className="mb-2 text-2xs font-bold">كلمةُ الدخول المؤقّتة</p>
+          <p className="mb-2 text-2xs font-bold">كلمة الدخول المؤقتة</p>
           <p className="mb-2.5 text-3xs leading-loose opacity-75">
-            انسخها الآن وسلّمها للمزوّد — <b>لا تظهر مرّةً أخرى</b>، ويُجبَر على
-            تغييرها عند أوّل دخول.
+            انسخها الآن وسلمها للمزود — <b>لا تظهر مرة أخرى</b>، ويجبر على
+            تغييرها عند أول دخول.
           </p>
           <p dir="ltr" className="bidi-ltr mb-1 font-num text-2xs opacity-70">{shown.email}</p>
           <p dir="ltr" className="bidi-ltr font-num text-base font-bold">{shown.password}</p>
           <Button size="sm" variant="ghost" className="mt-2.5" onClick={() => setShown(null)}>
-            أخفِها
+            أخفها
           </Button>
         </div>
       )}
 
       {staff.length === 0 ? (
         <p className="mb-3.5 text-2xs leading-loose opacity-75">
-          بلا حساب لا يرى المزوّد طلباته ولا يؤكّد إنجازها.
+          بلا حساب لا يرى المزود طلباته ولا يؤكد إنجازها.
         </p>
       ) : (
         <div className="mb-3.5 flex flex-col divide-y divide-line">
@@ -123,7 +123,7 @@ export function StaffActions({
                   {person.email}
                 </span>
               </span>
-              {person.mustChangePassword ? <Badge tone="warn">لم يغيّر كلمته بعد</Badge> : null}
+              {person.mustChangePassword ? <Badge tone="warn">لم يغير كلمته بعد</Badge> : null}
               {person.active ? null : <Badge tone="danger">موقوف</Badge>}
               <span className="text-3xs opacity-65">
                 {person.lastSeenAt === null
@@ -137,7 +137,7 @@ export function StaffActions({
                     variant="ghost"
                     disabled={busy}
                     onClick={() =>
-                      patch(person.id, { resetPassword: true }, 'أُعيد ضبط الكلمة وسُحبت جلساته.')
+                      patch(person.id, { resetPassword: true }, 'أعيد ضبط الكلمة وسحبت جلساته.')
                     }
                   >
                     كلمة جديدة
@@ -151,11 +151,11 @@ export function StaffActions({
                       patch(
                         person.id,
                         { active: !person.active },
-                        person.active ? 'أُوقف الحساب.' : 'أُعيد تفعيل الحساب.',
+                        person.active ? 'أوقف الحساب.' : 'أعيد تفعيل الحساب.',
                       )
                     }
                   >
-                    {person.active ? 'أوقفه' : 'أعِده'}
+                    {person.active ? 'أوقفه' : 'أعده'}
                   </Button>
                 </span>
               )}
@@ -187,7 +187,7 @@ export function StaffActions({
           </label>
           <span className="flex gap-2">
             <Button size="sm" disabled={busy || !ready} onClick={create}>
-              {busy ? 'جارٍ…' : 'افتح الحساب'}
+              {busy ? 'جار…' : 'افتح الحساب'}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
               إلغاء

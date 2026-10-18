@@ -29,7 +29,7 @@ export async function GET(
   const page = `<!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>تحقّق من بطاقتك</title>
+<title>تحقق من بطاقتك</title>
 <style>
   /* صفحة مُحاكاة خارج نظام التصميم — بلا ألوان مكتوبة، فالمتصفّح يكفي */
   body{font-family:system-ui,sans-serif;display:grid;place-items:center;
@@ -41,10 +41,10 @@ export async function GET(
   code{direction:ltr;display:block;font-size:11px;opacity:.5;margin-top:14px}
 </style></head><body>
 <div class="card">
-  <h1>تحقّق من بطاقتك</h1>
-  <p>هذه صفحة تحقّق مُحاكاة في وضع التطوير. لا بطاقة حقيقية ولا مبلغ حقيقيّ.</p>
+  <h1>تحقق من بطاقتك</h1>
+  <p>هذه صفحة تحقق محاكاة في وضع التطوير. لا بطاقة حقيقية ولا مبلغ حقيقي.</p>
   <form method="POST">
-    <button name="decision" value="approve" type="submit">أكمِل الدفع</button>
+    <button name="decision" value="approve" type="submit">أكمل الدفع</button>
     <button name="decision" value="cancel" type="submit">إلغاء</button>
   </form>
   <code>${ref}</code>

@@ -340,7 +340,7 @@ export function OrderScreen({
             */}
             {Number(order.amounts.depositApplied ?? 0) === 0 ? null : (
               <div className="flex items-center justify-between gap-4 py-1.5 text-sm text-accent-700">
-                <span>عربون المزاد (محجوز سلفًا)</span>
+                <span>عربون المزاد (محجوز سلفا)</span>
                 <span className="font-bold">
                   −<ArabicNumber value={Number(order.amounts.depositApplied)} />
                 </span>

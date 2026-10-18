@@ -53,7 +53,7 @@ export function ListFooter({
         */}
         {truncated ? (
           <span className="rounded-full bg-warn-100 px-2 py-px font-bold text-warn-900">
-            معروضٌ جزءٌ منها — ضيّق بالبحث أو الشريحة
+            معروض جزء منها — ضيق بالبحث أو الشريحة
           </span>
         ) : null}
         {note === undefined ? null : (

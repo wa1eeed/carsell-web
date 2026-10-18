@@ -74,12 +74,12 @@ export function RulesTable({
       if (response === null || !response.ok) {
         setToast(
           response?.status === 403
-            ? 'طالب التعديل لا يوافق على طلبه — يلزم عضو ثانٍ.'
-            : 'تعذّر اعتماد التعديل.',
+            ? 'طالب التعديل لا يوافق على طلبه — يلزم عضو ثان.'
+            : 'تعذر اعتماد التعديل.',
         );
         return;
       }
-      setToast('طُبِّق التعديل — والفواتير الصادرة لم تتغيّر.');
+      setToast('طبق التعديل — والفواتير الصادرة لم تتغير.');
       router.refresh();
     });
   };
@@ -102,7 +102,7 @@ export function RulesTable({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر تسجيل الطلب.');
+        setToast('تعذر تسجيل الطلب.');
         return;
       }
 
@@ -111,8 +111,8 @@ export function RulesTable({
       };
       setToast(
         payload.data.state === 'APPLIED'
-          ? 'طُبِّق التعديل.'
-          : `سُجِّل الطلب — الموافقات (${displayDigits(String(payload.data.approvals ?? 1))} من ${displayDigits(String(payload.data.required ?? 2))}). ينتظر عضوًا ثانيًا.`,
+          ? 'طبق التعديل.'
+          : `سجل الطلب — الموافقات (${displayDigits(String(payload.data.approvals ?? 1))} من ${displayDigits(String(payload.data.required ?? 2))}). ينتظر عضوا ثانيا.`,
       );
       setDraft(null);
       router.refresh();
@@ -142,7 +142,7 @@ export function RulesTable({
                     </>
                   )}
                   {' · '}
-                  {item.edit.active ? 'تُفعَّل' : 'تبقى معطَّلة'}
+                  {item.edit.active ? 'تفعل' : 'تبقى معطلة'}
                   {' · الموافقات '}
                   <span className="font-num">
                     <ArabicNumber value={item.approvals} grouped={false} />
@@ -162,7 +162,7 @@ export function RulesTable({
                     disabled={pending || isRequester}
                     onClick={() => approve(item)}
                   >
-                    {isRequester ? 'طلبتَه — ينتظر عضوًا آخر' : 'اعتمد التعديل'}
+                    {isRequester ? 'طلبته — ينتظر عضوا آخر' : 'اعتمد التعديل'}
                   </Button>
                 )}
               </div>
@@ -227,7 +227,7 @@ export function RulesTable({
           },
           {
             id: 'issuer',
-            header: 'مُصدِر الفاتورة',
+            header: 'مصدر الفاتورة',
             cell: (rule) => INVOICE_ISSUER_LABEL[rule.invoiceIssuer] ?? rule.invoiceIssuer,
           },
           {
@@ -235,7 +235,7 @@ export function RulesTable({
             header: 'الحالة',
             cell: (rule) => (
               <Badge tone={rule.active ? 'accent' : 'warn'}>
-                {rule.active ? 'مفعَّلة' : 'ينتظر المذكرة'}
+                {rule.active ? 'مفعلة' : 'ينتظر المذكرة'}
               </Badge>
             ),
           },
@@ -299,8 +299,8 @@ export function RulesTable({
               قرّر. وأثر هذا الصفّ وثائقُ قانونية لا إعدادُ عرض.
             */}
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-              التعديل يحتاج موافقة عضو ثانٍ قبل أن يسري. والفواتير الصادرة بهذه
-              القاعدة لا تتغيّر — لقطتها منسوخة فيها كاملةً.
+              التعديل يحتاج موافقة عضو ثان قبل أن يسري. والفواتير الصادرة بهذه
+              القاعدة لا تتغير — لقطتها منسوخة فيها كاملة.
             </p>
 
             <Select
@@ -322,7 +322,7 @@ export function RulesTable({
             </label>
 
             <Select
-              label="مُصدِر الفاتورة"
+              label="مصدر الفاتورة"
               value={draft.invoiceIssuer}
               options={ISSUERS.map((key) => [key, INVOICE_ISSUER_LABEL[key] ?? key])}
               onChange={(invoiceIssuer) => setDraft({ ...draft, invoiceIssuer })}
@@ -336,9 +336,9 @@ export function RulesTable({
                 onChange={(event) => setDraft({ ...draft, active: event.target.checked })}
               />
               <span>
-                مفعَّلة
+                مفعلة
                 <span className="block text-2xs opacity-70">
-                  المعطَّلة تُعرض ولا تُطبَّق — وهي حال «ننتظر التصنيف» لا «قرّرنا الامتناع».
+                  المعطلة تعرض ولا تطبق — وهي حال «ننتظر التصنيف» لا «قررنا الامتناع».
                 </span>
               </span>
             </label>

@@ -69,7 +69,7 @@ export async function OpsTab() {
               <p className="mb-1 text-3xl font-bold">
                 <ArabicNumber value={metric.count} />
               </p>
-              <p className="mb-3.5 text-3xs opacity-65">طلبًا في المرحلة</p>
+              <p className="mb-3.5 text-3xs opacity-65">طلبا في المرحلة</p>
 
               {/* المتوسّط مقابل الهدف — الشريط يتجاوز حدّه فيُقرأ التجاوز */}
               <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-ink/10">
@@ -86,7 +86,7 @@ export async function OpsTab() {
               </div>
 
               <p className="flex flex-wrap items-center gap-1.5 text-3xs opacity-70">
-                <span>متوسّط</span>
+                <span>متوسط</span>
                 <ArabicNumber value={metric.averageHours} />
                 <span>ساعة · الهدف</span>
                 <ArabicNumber value={metric.targetHours} />
@@ -110,7 +110,7 @@ export async function OpsTab() {
                   <Badge tone="danger">
                     <span className="flex items-center gap-1.5">
                       <Quantity unit="exceeded" count={metric.critical} />
-                      <span>ضعف المدّة</span>
+                      <span>ضعف المدة</span>
                       <span aria-hidden>←</span>
                     </span>
                   </Badge>
@@ -153,8 +153,8 @@ export async function OpsTab() {
       {measured === times.length ? null : (
         // **صفٌّ بلا عيّنة صفرٌ لا «سريع»** — ويُقال بدل أن يُقرأ إنجازًا
         <p className="mt-2.5 text-3xs opacity-70">
-          <Quantity unit="stages" count={times.length - measured} /> بلا عيّنة في آخر تسعين يومًا
-          — تُعرض صفرًا لأنها لم تُقَس، لا لأنها فورية.
+          <Quantity unit="stages" count={times.length - measured} /> بلا عينة في آخر تسعين يوما
+          — تعرض صفرا لأنها لم تقس، لا لأنها فورية.
         </p>
       )}
 
@@ -163,13 +163,13 @@ export async function OpsTab() {
         points={daily.map((point) => ({ label: dayTick(point.day), value: point.count }))}
       />
 
-      <SectionHead title="جودة المحتوى والمزادات" note="من القاعدة المعلَنة تحت كل شريط" />
+      <SectionHead title="جودة المحتوى والمزادات" note="من القاعدة المعلنة تحت كل شريط" />
       <div className="grid gap-5 lg:grid-cols-2">
         <ShareBars
           shares={[
-            { label: 'طُمست لوحاتها', value: content.blurred },
-            { label: 'رُدّت لصاحبها بعد المراجعة', value: content.rejected, tone: 'warn' },
-            { label: 'أُحيلت لتكرار صورة', value: content.duplicates, tone: 'danger' },
+            { label: 'طمست لوحاتها', value: content.blurred },
+            { label: 'ردت لصاحبها بعد المراجعة', value: content.rejected, tone: 'warn' },
+            { label: 'أحيلت لتكرار صورة', value: content.duplicates, tone: 'danger' },
           ]}
           total={content.uploadedImages}
           baseNote={`القاعدة — الصور المرفوعة منذ الإطلاق (${displayDigits(String(content.uploadedImages))})`}
@@ -188,11 +188,11 @@ export async function OpsTab() {
             <Stat label="وسيط المزايدات" value={displayDigits(String(auctions.medianBids))} />
             {/* الوحدة في التسمية لا بعد الرقم — والجملة لا يحكمها المعدود */}
             <Stat
-              label="وسيط التمديد — بالمرّات"
+              label="وسيط التمديد — بالمرات"
               value={displayDigits(String(auctions.medianExtensions))}
             />
             <Stat
-              label="عربونٌ صودر"
+              label="عربون صودر"
               value={displayDigits(String(auctions.withdrawnAfterWin))}
             />
           </div>

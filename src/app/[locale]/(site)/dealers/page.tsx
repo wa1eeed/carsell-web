@@ -135,19 +135,19 @@ export default async function DealersPage({
               href={`/${locale}/dealers${city === null ? '' : `?city=${encodeURIComponent(city)}`}`}
               active={sort === null}
             >
-              الموثّقة أوّلًا
+              الموثقة أولا
             </FilterChip>
             <FilterChip
               href={`/${locale}/dealers?sort=rating${city === null ? '' : `&city=${encodeURIComponent(city)}`}`}
               active={sort === 'rating'}
             >
-              الأعلى تقييمًا
+              الأعلى تقييما
             </FilterChip>
             <FilterChip
               href={`/${locale}/dealers?sort=listings${city === null ? '' : `&city=${encodeURIComponent(city)}`}`}
               active={sort === 'listings'}
             >
-              الأكثر مخزونًا
+              الأكثر مخزونا
             </FilterChip>
           </nav>
 
@@ -216,10 +216,10 @@ export default async function DealersPage({
           <section className="mt-10 rounded-xl border border-line bg-surface p-6">
             <h2 className="mb-2 text-base font-bold">عندك معرض؟</h2>
             <p className="mb-4 max-w-2xl text-2xs leading-loose opacity-75">
-              سجّل معرضك بسجلّك التجاريّ، وارفع مخزونك دفعةً واحدة، وأدِر عروضك من لوحةٍ
-              مخصّصة — بعمولة صفر.
+              سجل معرضك بسجلك التجاري، وارفع مخزونك دفعة واحدة، وأدر عروضك من لوحة
+              مخصصة — بعمولة صفر.
             </p>
-            <LinkButton href={`/${locale}/help/contact`}>سجّل معرضك</LinkButton>
+            <LinkButton href={`/${locale}/help/contact`}>سجل معرضك</LinkButton>
           </section>
         </div>
       </main>

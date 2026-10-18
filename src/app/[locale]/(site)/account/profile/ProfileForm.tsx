@@ -99,12 +99,12 @@ export function ProfileForm({
       if (response === null || !response.ok || payload?.error !== undefined) {
         setErrors((prev) => ({
           ...prev,
-          taxStatus: payload?.error?.fields?.vatNumber ?? payload?.error?.messageAr ?? 'تعذّر الحفظ.',
+          taxStatus: payload?.error?.fields?.vatNumber ?? payload?.error?.messageAr ?? 'تعذر الحفظ.',
         }));
         return;
       }
       setErrors((prev) => ({ ...prev, taxStatus: undefined }));
-      setToast('حُفظ الوضع الضريبي.');
+      setToast('حفظ الوضع الضريبي.');
       router.refresh();
     });
   };
@@ -124,13 +124,13 @@ export function ProfileForm({
       if (response === null || !response.ok) {
         setErrors((prev) => ({
           ...prev,
-          [field]: payload?.error?.messageAr ?? 'تعذّر الحفظ.',
+          [field]: payload?.error?.messageAr ?? 'تعذر الحفظ.',
         }));
         return;
       }
 
       setErrors((prev) => ({ ...prev, [field]: undefined }));
-      setToast('حُفظ.');
+      setToast('حفظ.');
       router.refresh();
     });
   };
@@ -168,12 +168,12 @@ export function ProfileForm({
       <Row
         id="idVerification"
         title="توثيق الهوية"
-        note="الاسم كما في الهوية — يُقارن به عند نقل الملكية."
+        note="الاسم كما في الهوية — يقارن به عند نقل الملكية."
         done={!missing.includes('idVerification')}
         error={errors.idVerification}
       >
         {initial.idVerified ? (
-          <p className="text-2xs opacity-70">موثّقة — لا تُعدَّل من هنا.</p>
+          <p className="text-2xs opacity-70">موثقة — لا تعدل من هنا.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {/*
@@ -194,13 +194,13 @@ export function ProfileForm({
             <input
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
-              placeholder={isBusiness ? 'اسم المفوَّض كما في هويته' : 'الاسم الرباعي'}
+              placeholder={isBusiness ? 'اسم المفوض كما في هويته' : 'الاسم الرباعي'}
               className="rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
             />
 
             <label className="flex flex-col gap-1">
               <span className="text-3xs opacity-70">
-                {isBusiness ? 'رقم هوية المفوَّض' : 'رقم الهوية'}
+                {isBusiness ? 'رقم هوية المفوض' : 'رقم الهوية'}
               </span>
               <input
                 dir="ltr"
@@ -223,7 +223,7 @@ export function ProfileForm({
                 <input
                   value={businessName}
                   onChange={(event) => setBusinessName(event.target.value)}
-                  placeholder="اسم المنشأة كما في السجلّ التجاري"
+                  placeholder="اسم المنشأة كما في السجل التجاري"
                   className="rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm"
                 />
 
@@ -255,11 +255,11 @@ export function ProfileForm({
                     />
                   </label>
                 </div>
-                <p className="-mt-1 text-3xs opacity-65">والسجل المنتهي لا يُوثَّق به.</p>
+                <p className="-mt-1 text-3xs opacity-65">والسجل المنتهي لا يوثق به.</p>
 
                 <label className="flex flex-col gap-1">
                   <span className="text-3xs opacity-70">
-                    الرقم الضريبي — اتركه فارغًا إن لم تكن مسجَّلًا
+                    الرقم الضريبي — اتركه فارغا إن لم تكن مسجلا
                   </span>
                   <input
                     dir="ltr"
@@ -299,7 +299,7 @@ export function ProfileForm({
                   )
                 }
               >
-                وثّق
+                وثق
               </Button>
             </div>
           </div>
@@ -341,7 +341,7 @@ export function ProfileForm({
         <Row
           id="city"
           title="المدينة"
-          note="تُرشَّح بها العروض القريبة منك، وتُعرف منها نقطة الاستلام."
+          note="ترشح بها العروض القريبة منك، وتعرف منها نقطة الاستلام."
           done={!missing.includes('city')}
           error={errors.city}
         >
@@ -379,17 +379,17 @@ export function ProfileForm({
       <Row
         id="taxStatus"
         title="الوضع الضريبي"
-        note="هل تنطبق عليك ضريبة القيمة المضافة؟ — يحدّد شكل فاتورتك."
+        note="هل تنطبق عليك ضريبة القيمة المضافة؟ — يحدد شكل فاتورتك."
         done={!missing.includes('taxStatus')}
         error={errors.taxStatus}
       >
         <div className="flex flex-col gap-2.5">
           <div className="flex flex-wrap gap-2">
             <TypeChip on={vatRegistered === false} onClick={() => setVatRegistered(false)}>
-              لا تنطبق عليّ
+              لا تنطبق علي
             </TypeChip>
             <TypeChip on={vatRegistered === true} onClick={() => setVatRegistered(true)}>
-              مسجَّل في الضريبة
+              مسجل في الضريبة
             </TypeChip>
           </div>
 
@@ -428,7 +428,7 @@ export function ProfileForm({
       <Row
         id="bankName"
         title="اسم المصرف"
-        note="يُقرأ في كشف التحويل — والآيبان وحده لا يُطابَق بالعين."
+        note="يقرأ في كشف التحويل — والآيبان وحده لا يطابق بالعين."
         done={!missing.includes('bankName')}
         error={errors.bankName}
       >
@@ -457,7 +457,7 @@ export function ProfileForm({
         error={errors.iban}
       >
         {initial.hasIban ? (
-          <p className="text-2xs opacity-70">محفوظ ومشفّر — أدخِل آيبانًا جديدًا ليحلّ محلّه.</p>
+          <p className="text-2xs opacity-70">محفوظ ومشفر — أدخل آيبانا جديدا ليحل محله.</p>
         ) : null}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {/* يُلصق من تطبيق المصرف بمسافاته — والتطبيع عند الحفظ */}

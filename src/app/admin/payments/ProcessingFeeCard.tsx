@@ -10,8 +10,8 @@ import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import type { ProcessingFeeRow } from '@/lib/domain/payment-routing';
 
 const BEARER_LABEL: Record<'SELLER' | 'BUYER', string> = {
-  SELLER: 'تُخصم من مستحقّ البائع',
-  BUYER: 'تُضاف إلى إجمالي المشتري',
+  SELLER: 'تخصم من مستحق البائع',
+  BUYER: 'تضاف إلى إجمالي المشتري',
 };
 
 /**
@@ -57,7 +57,7 @@ export function ProcessingFeeCard({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر الحفظ — راجع النسبة والمبلغ.');
+        setToast('تعذر الحفظ — راجع النسبة والمبلغ.');
         return;
       }
 
@@ -69,8 +69,8 @@ export function ProcessingFeeCard({
        */
       setToast(
         payload.data.openOrders === 0
-          ? 'حُفظ.'
-          : `حُفظ · الطلبات القائمة (${displayDigits(String(payload.data.openOrders))}) تبقى بسياستها.`,
+          ? 'حفظ.'
+          : `حفظ · الطلبات القائمة (${displayDigits(String(payload.data.openOrders))}) تبقى بسياستها.`,
       );
       router.refresh();
     });
@@ -83,9 +83,9 @@ export function ProcessingFeeCard({
           رسوم معالجة الدفع — ما نأخذه نحن
         </h2>
         <p className="mb-4 text-2xs leading-loose opacity-70">
-          غير رسوم البوابات أعلاه: تلك ما تأخذه البوابة منّا، وهذه سياسة تحميلها على
-          الطرفين. وهي <strong>توريدٌ منّا</strong> فتسري عليها الضريبة — بخلاف رسوم نقل
-          الملكية الحكومية التي تُمرَّر كما هي.
+          غير رسوم البوابات أعلاه: تلك ما تأخذه البوابة منا، وهذه سياسة تحميلها على
+          الطرفين. وهي <strong>توريد منا</strong> فتسري عليها الضريبة — بخلاف رسوم نقل
+          الملكية الحكومية التي تمرر كما هي.
         </p>
 
         <label className="mb-4 flex cursor-pointer items-center gap-2.5 text-xs font-bold">
@@ -101,7 +101,7 @@ export function ProcessingFeeCard({
         {!enabled ? null : (
           <div className="flex flex-col gap-4 border-t border-line pt-4">
             <div>
-              <p className="mb-2 text-2xs font-bold opacity-70">من يتحمّلها</p>
+              <p className="mb-2 text-2xs font-bold opacity-70">من يتحملها</p>
               {/*
                 خيارٌ واحد لا خياران: خصمُها من البائع **و**إضافتها على
                 المشتري يأخذها مرّتين، وكلٌّ منهما يبدو صحيحًا وحده.
@@ -140,7 +140,7 @@ export function ProcessingFeeCard({
               اليدوية تخطئ في أكثرها.
             */}
             <p className="flex flex-wrap items-center gap-1.5 text-2xs opacity-70">
-              <span>على بيعةٍ قدرها</span>
+              <span>على بيعة قدرها</span>
               <Money amount={100_000} />
               <span aria-hidden className="opacity-40">←</span>
               <Money amount={sample} className="font-bold" />
@@ -149,7 +149,7 @@ export function ProcessingFeeCard({
 
             {!canManage ? null : (
               <p className="text-3xs leading-loose opacity-70">
-                الطلبات القائمة تبقى بسياستها — الرسم لقطةٌ وقت إنشاء الطلب.
+                الطلبات القائمة تبقى بسياستها — الرسم لقطة وقت إنشاء الطلب.
               </p>
             )}
           </div>

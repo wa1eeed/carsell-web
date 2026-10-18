@@ -32,7 +32,7 @@ const SEGMENTS = [
   { key: 'RESERVED', label: 'محجوزة' },
   { key: 'SOLD', label: 'مبيعة' },
   { key: 'SUSPENDED', label: 'موقوفة' },
-  { key: 'DRAFT', label: 'مسودّة' },
+  { key: 'DRAFT', label: 'مسودة' },
 ] as const;
 
 const FILTERS: readonly string[] = SEGMENTS.map((row) => row.key);
@@ -135,7 +135,7 @@ export default async function AdminAllListingsPage({
       {rows.length === 0 ? (
         <EmptyState
           title="لا إعلانات بهذه الحالة"
-          description="جرّب حالةً أخرى من التابز، أو امسح البحث."
+          description="جرب حالة أخرى من التابز، أو امسح البحث."
         />
       ) : (
         <div className="flex flex-col gap-3">
@@ -150,7 +150,7 @@ export default async function AdminAllListingsPage({
         total={active === null && term === null ? counts.total : null}
         note="الجرد كامل بحالاته — والمراجعة والقرار في طابور المراجعة"
         can="فتح الإعلان لقراءة تفاصيله وتاريخه، والانتقال إلى بائعه أو إلى طابور المراجعة."
-        cannot="تعديل سعر إعلانٍ أو وصفه — ذلك لصاحبه وحده من «إعلاناتي». وإيقاف الإدارة يُرفع من هنا لا يرفعه البائع."
+        cannot="تعديل سعر إعلان أو وصفه — ذلك لصاحبه وحده من «إعلاناتي». وإيقاف الإدارة يرفع من هنا لا يرفعه البائع."
       />
     </AdminShell>
   );

@@ -40,7 +40,7 @@ export default async function LedgerPage() {
         <section className="mb-7 rounded-xl border-2 border-danger bg-danger/10 p-5">
           <h2 className="text-sm font-bold text-danger">معاملات غير متوازنة</h2>
           <p className="mt-1.5 text-2xs leading-loose">
-            هذا لا يقع إلا بكاتبٍ يتجاوز <code>postEntries</code>. أوقِف الكتابة
+            هذا لا يقع إلا بكاتب يتجاوز <code>postEntries</code>. أوقف الكتابة
             وراجع القيود التالية قبل أي إفراج.
           </p>
           <ul className="mt-3 flex flex-col gap-1.5">
@@ -54,12 +54,12 @@ export default async function LedgerPage() {
       )}
 
       <div className="mb-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Figure label="إيراد المنصّة" note="العمولة والرسوم — لا قيمة المركبات" amount={book.revenue} strong />
-        <Figure label="ضريبة مستحقّة" note="ضريبة على عمولتنا ورسومنا — تُدفع للهيئة" amount={book.vatPayable} strong />
-        <Figure label="لدى مزوّد الدفع" note="التزامٌ تجاه الأطراف، لا مالٌ لنا" amount={book.atProvider} />
-        <Figure label="قُبض ولم يُستحقّ" note="دُفع ولم تُنقل الملكية بعد" amount={book.buyerAdvance} />
-        <Figure label="حقوق البائعين" note="استُحقّت ولم تُحوَّل" amount={book.sellerPayable} />
-        <Figure label="رسوم تمرّ إلى غيرنا" note={`بوابة ${book.clearing.gateway} · حكومية ${book.clearing.government}`} amount={book.clearing.gateway} />
+        <Figure label="إيراد المنصة" note="العمولة والرسوم — لا قيمة المركبات" amount={book.revenue} strong />
+        <Figure label="ضريبة مستحقة" note="ضريبة على عمولتنا ورسومنا — تدفع للهيئة" amount={book.vatPayable} strong />
+        <Figure label="لدى مزود الدفع" note="التزام تجاه الأطراف، لا مال لنا" amount={book.atProvider} />
+        <Figure label="قبض ولم يستحق" note="دفع ولم تنقل الملكية بعد" amount={book.buyerAdvance} />
+        <Figure label="حقوق البائعين" note="استحقت ولم تحول" amount={book.sellerPayable} />
+        <Figure label="رسوم تمر إلى غيرنا" note={`بوابة ${book.clearing.gateway} · حكومية ${book.clearing.government}`} amount={book.clearing.gateway} />
       </div>
 
       <section className="mb-7 rounded-lg border border-line bg-surface p-5">
@@ -75,7 +75,7 @@ export default async function LedgerPage() {
           ))}
         </dl>
         <p className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3 text-3xs opacity-65">
-          <span>قيود مسجَّلة</span>
+          <span>قيود مسجلة</span>
           <ArabicNumber value={book.entryCount} />
           {book.unbalanced.length === 0 ? <Badge tone="accent">كلها متوازنة</Badge> : null}
         </p>
@@ -89,7 +89,7 @@ export default async function LedgerPage() {
       {entries.length === 0 ? (
         <EmptyState
           title="الدفتر فارغ"
-          description="أوّل صفقة تُدفع تكتب أوّل قيد — والدفتر يبدأ من هناك."
+          description="أول صفقة تدفع تكتب أول قيد — والدفتر يبدأ من هناك."
         />
       ) : (
         <LedgerTable entries={entries} />

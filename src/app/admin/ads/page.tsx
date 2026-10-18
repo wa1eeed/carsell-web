@@ -45,7 +45,7 @@ const PHASES = [
   { key: 'live', label: 'نشطة' },
   { key: 'scheduled', label: 'مجدولة' },
   { key: 'ended', label: 'منتهية' },
-  { key: 'paused', label: 'متوقّفة' },
+  { key: 'paused', label: 'متوقفة' },
 ] as const;
 
 export default async function AdminAdsPage({
@@ -79,8 +79,8 @@ export default async function AdminAdsPage({
     <AdminShell title="مساحات الإعلانات والحملات"
       subtitle="المساحات وتسعيرها وحملاتها" activeHref="/admin/ads" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
-        المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يُخفي المساحة ولا يُلغي حملاتها</b>
-        — فمعلنٌ دفع لأسبوع لا يفقد مالَه بتعطيلٍ إداريّ.
+        المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يخفي المساحة ولا يلغي حملاتها</b>
+        — فمعلن دفع لأسبوع لا يفقد ماله بتعطيل إداري.
       </p>
 
       {/*
@@ -90,9 +90,9 @@ export default async function AdminAdsPage({
       */}
       {stats.served ? null : (
         <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-75">
-          <b>لا يُعرض إعلانٌ في المنتج بعد.</b> المساحات مضبوطةٌ ومسعَّرة هنا، ولا شاشة
-          في التطبيق تطلبها — فالأرقام أدناه إعدادٌ لا أداء. والحملات تُسجَّل ولا تظهر
-          لأحد حتى يُبنى مسار العرض.
+          <b>لا يعرض إعلان في المنتج بعد.</b> المساحات مضبوطة ومسعرة هنا، ولا شاشة
+          في التطبيق تطلبها — فالأرقام أدناه إعداد لا أداء. والحملات تسجل ولا تظهر
+          لأحد حتى يبنى مسار العرض.
         </p>
       )}
 
@@ -100,11 +100,11 @@ export default async function AdminAdsPage({
         cards={[
           {
             // العدد قيمةً والنسبة ملاحظةً — كالتصميم، والجملة لا يحكمها المعدود
-            title: 'مساحات مفعّلة',
+            title: 'مساحات مفعلة',
             value: stats.activeSlots,
-            note: `من ${displayDigits(String(stats.slots))} — والمعطّلة لا تُعرض للزائر`,
+            note: `من ${displayDigits(String(stats.slots))} — والمعطلة لا تعرض للزائر`,
           },
-          { title: 'حملات جارية', value: stats.liveCampaigns, note: 'بين تاريخَي البدء والانتهاء' },
+          { title: 'حملات جارية', value: stats.liveCampaigns, note: 'بين تاريخي البدء والانتهاء' },
           {
             title: 'السقف في جلسة الرئيسية',
             value: stats.sessionCap,
@@ -115,7 +115,7 @@ export default async function AdminAdsPage({
              * الخادم» — ولا إعلان في الرئيسية أصلًا. ورايةٌ واحدة
              * لسطوحٍ متعدّدة تجعل أوّل سطحٍ يُبنى يَعِد عن البقيّة.
              */
-            note: stats.homeServed ? 'يُفرَض في الخادم' : 'قاعدة — ولا إعلان في الرئيسية بعد',
+            note: stats.homeServed ? 'يفرض في الخادم' : 'قاعدة — ولا إعلان في الرئيسية بعد',
           },
           {
             title: 'إجمالي الحملات',
@@ -130,12 +130,12 @@ export default async function AdminAdsPage({
         <AdSlotTable rows={slots} />
       ) : (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          صلاحيتك قراءةٌ فقط — التفعيل والتعطيل لمن يملك الكتابة في المالية.
+          صلاحيتك قراءة فقط — التفعيل والتعطيل لمن يملك الكتابة في المالية.
         </p>
       )}
 
       <div className="mt-10 mb-3.5 flex items-center justify-between gap-4">
-        <h2 className="text-sm font-bold">الحملات المموّلة</h2>
+        <h2 className="text-sm font-bold">الحملات الممولة</h2>
         {/*
           **والزرّ هو ما كان ناقصًا.** الجدول يقرأ `AdCampaign` ولا
           شيء يكتبه — فجدولٌ فارغ يُقرأ «لا حملات الآن» وصوابُه «لا
@@ -147,8 +147,8 @@ export default async function AdminAdsPage({
 
       {campaigns.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          لا حملات بعد. و«حملة جديدة» أعلاه تُنشئ واحدة — وتظهر في نتائج البحث بعد
-          السادسة متى حلّ تاريخ بدئها.
+          لا حملات بعد. و«حملة جديدة» أعلاه تنشئ واحدة — وتظهر في نتائج البحث بعد
+          السادسة متى حل تاريخ بدئها.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-line">
@@ -157,7 +157,7 @@ export default async function AdminAdsPage({
               <tr className="border-b border-line bg-surface">
                 <th className="p-3 text-start font-bold">المعلن</th>
                 <th className="p-3 text-start font-bold">المساحة</th>
-                <th className="p-3 text-start font-bold">المدّة</th>
+                <th className="p-3 text-start font-bold">المدة</th>
                 <th className="p-3 text-start font-bold">ظهور</th>
                 <th className="p-3 text-start font-bold">نقرات</th>
                 <th className="p-3 text-start font-bold">النقر إلى الظهور</th>
@@ -207,13 +207,13 @@ export default async function AdminAdsPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">قواعد تحمي التطبيق من الإعلانات</p>
           <p>
-            <Quantity unit="banners" count={MAX_BANNERS_PER_SCREEN} /> لكل شاشة كحدّ أقصى ·
-            وسم «إعلان» أو «مموّل» إلزاميّ ·{' '}
+            <Quantity unit="banners" count={MAX_BANNERS_PER_SCREEN} /> لكل شاشة كحد أقصى ·
+            وسم «إعلان» أو «ممول» إلزامي ·{' '}
             <b>لا إعلان داخل مسار الدفع والمزايدة والنزاع</b> ·{' '}
-            <Quantity unit="ads" count={stats.sessionCap} /> كحدّ أقصى في جلسة الرئيسية
+            <Quantity unit="ads" count={stats.sessionCap} /> كحد أقصى في جلسة الرئيسية
             {stats.homeServed
-              ? '، والسقف يُفرَض في الخادم لا في التطبيق'
-              : ' — قاعدةٌ لم يبلغها مسارٌ بعد، فلا إعلان في الرئيسية'}
+              ? '، والسقف يفرض في الخادم لا في التطبيق'
+              : ' — قاعدة لم يبلغها مسار بعد، فلا إعلان في الرئيسية'}
             .
           </p>
         </div>
@@ -221,9 +221,9 @@ export default async function AdminAdsPage({
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">الأداء والبطارية</p>
           <p>
-            طلب واحد يجلب كل مساحات الشاشة · يُخزَّن{' '}
+            طلب واحد يجلب كل مساحات الشاشة · يخزن{' '}
             <Quantity unit="minutes" count={AD_CACHE_MINUTES} /> · تحميل كسول · صور WebP بمقاس
-            الجهاز · <b>لا فيديو تلقائيّ</b> · أحداث الظهور تُجمَّع وتُرسل كل{' '}
+            الجهاز · <b>لا فيديو تلقائي</b> · أحداث الظهور تجمع وترسل كل{' '}
             <Quantity unit="seconds" count={IMPRESSION_FLUSH_SECONDS} />.
           </p>
         </div>
@@ -233,8 +233,8 @@ export default async function AdminAdsPage({
         shown={allCampaigns.length}
         total={null}
         note="المساحات وحملاتها"
-        can="تفعيل مساحةٍ أو إيقافها وتعديل تسعيرها، وقراءة أداء الحملات."
-        cannot="تعديل حملةٍ جارية — المعلن اشترى مساحةً بشروطٍ معلنة، وتغييرُها تحته إخلال."
+        can="تفعيل مساحة أو إيقافها وتعديل تسعيرها، وقراءة أداء الحملات."
+        cannot="تعديل حملة جارية — المعلن اشترى مساحة بشروط معلنة، وتغييرها تحته إخلال."
       />
     </AdminShell>
   );

@@ -68,7 +68,7 @@ export function ListingControls({
   if (hasActiveOrder) {
     return (
       <p className="mt-2 text-3xs leading-loose opacity-70">
-        عليه طلبٌ قائم — لا يُعدَّل حتى ينتهي، والمشتري يدفع السعر الذي رآه.
+        عليه طلب قائم — لا يعدل حتى ينتهي، والمشتري يدفع السعر الذي رآه.
       </p>
     );
   }
@@ -84,12 +84,12 @@ export function ListingControls({
 
       if (response === null || !response.ok) {
         setConfirming(false);
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحذف.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحذف.');
         return;
       }
 
       setConfirming(false);
-      setToast('حُذف الإعلان.');
+      setToast('حذف الإعلان.');
       router.refresh();
     });
   };
@@ -111,13 +111,13 @@ export function ListingControls({
             تراجع
           </Button>
           <Button variant="danger" size="sm" onClick={remove} disabled={busy}>
-            {busy ? 'يُحذف…' : 'نعم، احذفه'}
+            {busy ? 'يحذف…' : 'نعم، احذفه'}
           </Button>
         </>
       }
     >
       <p className="text-xs leading-loose">
-        يُحذف الإعلان وصوره نهائيًّا ولا يُسترجَع. و<b>المركبة تبقى في «سياراتي»</b>، فتستطيع
+        يحذف الإعلان وصوره نهائيا ولا يسترجع. و<b>المركبة تبقى في «سياراتي»</b>، فتستطيع
         عرضها من جديد متى شئت.
       </p>
     </Modal>
@@ -135,7 +135,7 @@ export function ListingControls({
       return (
         <>
           <p className="mt-2 text-3xs leading-loose opacity-70">
-            قيد المراجعة — لا يُعدَّل حتى تنتهي، ولك سحبُه.
+            قيد المراجعة — لا يعدل حتى تنتهي، ولك سحبه.
           </p>
           <div className="mt-2.5 flex flex-wrap gap-2">
             <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirming(true)}>
@@ -168,7 +168,7 @@ export function ListingControls({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر الحفظ.');
+        setToast(payload?.error?.messageAr ?? 'تعذر الحفظ.');
         return;
       }
 
@@ -192,29 +192,29 @@ export function ListingControls({
           <Button
             size="sm"
             disabled={busy}
-            onClick={() => send({ paused: false }, 'عاد الإعلان معروضًا.')}
+            onClick={() => send({ paused: false }, 'عاد الإعلان معروضا.')}
           >
-            أعِد عرضه
+            أعد عرضه
           </Button>
         ) : status === 'PUBLISHED' ? (
           <Button
             size="sm"
             variant="outline"
             disabled={busy}
-            onClick={() => send({ paused: true }, 'أُوقف الإعلان — لا يراه الزوّار.')}
+            onClick={() => send({ paused: true }, 'أوقف الإعلان — لا يراه الزوار.')}
           >
-            أوقفه مؤقّتًا
+            أوقفه مؤقتا
           </Button>
         ) : null}
 
         <Button size="sm" variant="outline" disabled={busy} onClick={() => setOpen(!open)}>
-          {open ? 'إغلاق' : 'عدّل الإعلان'}
+          {open ? 'إغلاق' : 'عدل الإعلان'}
         </Button>
 
         {/* **والمسودّة تُحذف** — وما نُشر يُوقَف، فسجلُّه لمن تفاوض عليه. */}
         {!DELETABLE.has(status) ? null : (
           <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirming(true)}>
-            احذف المسودّة
+            احذف المسودة
           </Button>
         )}
       </div>
@@ -233,7 +233,7 @@ export function ListingControls({
             />
             {priceOk ? null : (
               <span className="text-3xs text-danger">
-                أقلّ سعر مقبول {displayDigits(String(PRICE_MIN))} ريال.
+                أقل سعر مقبول {displayDigits(String(PRICE_MIN))} ريال.
               </span>
             )}
           </label>
@@ -254,7 +254,7 @@ export function ListingControls({
               className="rounded-md border border-line bg-bg px-3 py-2 text-2xs leading-loose"
             />
             <span className="text-3xs opacity-65">
-              اذكر ما لا تقوله المواصفات — والصدق هنا يوفّر أسئلةً ونزاعًا لاحقًا.
+              اذكر ما لا تقوله المواصفات — والصدق هنا يوفر أسئلة ونزاعا لاحقا.
             </span>
           </label>
 
@@ -265,7 +265,7 @@ export function ListingControls({
               onChange={(event) => setDraft({ ...draft, negotiable: event.target.checked })}
               className="size-4 accent-ink"
             />
-            <span>قابل للتفاوض — يستطيع المشتري أن يعرض سعرًا</span>
+            <span>قابل للتفاوض — يستطيع المشتري أن يعرض سعرا</span>
           </label>
 
           <div className="flex gap-2">
@@ -279,11 +279,11 @@ export function ListingControls({
                     negotiable: draft.negotiable,
                     description: draft.description,
                   },
-                  'حُفظ — ويظهر للزوّار في الحال.',
+                  'حفظ — ويظهر للزوار في الحال.',
                 )
               }
             >
-              {busy ? 'جارٍ…' : 'احفظ'}
+              {busy ? 'جار…' : 'احفظ'}
             </Button>
             <Button
               size="sm"

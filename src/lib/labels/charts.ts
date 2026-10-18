@@ -20,7 +20,7 @@ export const STAGE_LABEL: Record<string, string> = {
 
 /** مراحل أزمنة A2 — والمفتاح يصف الانتظار لا الحالة. */
 export const STAGE_TIME_LABEL: Record<string, string> = {
-  approval: 'ردّ البائع',
+  approval: 'رد البائع',
   payment: 'إتمام الدفع',
   transfer: 'نقل الملكية',
   release: 'الإفراج عن المبلغ',

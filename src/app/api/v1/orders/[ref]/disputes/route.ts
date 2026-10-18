@@ -13,13 +13,13 @@ const Body = z.discriminatedUnion('action', [
 
 const MESSAGES: Record<string, { ar: string; en: string }> = {
   NOT_BUYER: {
-    ar: 'المشتري وحده يفتح نزاعًا على الطلب.',
+    ar: 'المشتري وحده يفتح نزاعا على الطلب.',
     en: 'Only the buyer can open a dispute on an order.',
   },
-  ALREADY_OPEN: { ar: 'على هذا الطلب نزاعٌ مفتوح.', en: 'This order already has an open dispute.' },
+  ALREADY_OPEN: { ar: 'على هذا الطلب نزاع مفتوح.', en: 'This order already has an open dispute.' },
   ORDER_CLOSED: { ar: 'الطلب مغلق.', en: 'This order is closed.' },
   BEFORE_PAYMENT: {
-    ar: 'لا نزاع قبل الدفع — ألغِ الطلب بدلًا من ذلك.',
+    ar: 'لا نزاع قبل الدفع — ألغ الطلب بدلا من ذلك.',
     en: 'No dispute before payment — cancel the order instead.',
   },
 };
@@ -69,7 +69,7 @@ export async function POST(
     return fail(
       {
         code: result.reason,
-        messageAr: text?.ar ?? 'تعذّر فتح النزاع.',
+        messageAr: text?.ar ?? 'تعذر فتح النزاع.',
         messageEn: text?.en ?? 'Could not open the dispute.',
       },
       result.reason === 'NOT_BUYER' ? 403 : 409,

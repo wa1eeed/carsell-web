@@ -79,10 +79,10 @@ export default async function PaymentsRoutingPage() {
       */}
       {blockedPurposes.length === 0 ? null : (
         <section className="mb-5 rounded-lg border border-warn/35 bg-warn-100 p-4.5">
-          <p className="mb-1.5 text-xs font-bold">أغراضٌ لا يُقبل فيها دفعٌ الآن</p>
+          <p className="mb-1.5 text-xs font-bold">أغراض لا يقبل فيها دفع الآن</p>
           <p className="mb-2.5 text-2xs leading-loose opacity-75">
-            بوابتها مربوطةٌ في القاعدة ولا وصلةَ لها في المنتج بعد — فكلُّ محاولة دفع
-            تُردّ. وجّهها إلى بوابةٍ تُحصّل، أو عطّل الغرض حتى تصل الوصلة.
+            بوابتها مربوطة في القاعدة ولا وصلة لها في المنتج بعد — فكل محاولة دفع
+            ترد. وجهها إلى بوابة تحصل، أو عطل الغرض حتى تصل الوصلة.
           </p>
           <ul className="flex flex-col gap-1 text-2xs">
             {blockedPurposes.map((route) => (
@@ -96,7 +96,7 @@ export default async function PaymentsRoutingPage() {
       )}
 
       <h2 className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
-        أغراض الدفع — لكلٍّ بوابته
+        أغراض الدفع — لكل بوابته
       </h2>
       <RoutesTable
         routes={routes}
@@ -114,7 +114,7 @@ export default async function PaymentsRoutingPage() {
             <div className="mb-3 flex items-baseline gap-2">
               <h3 className="flex-1 text-xs font-bold">{gateway.nameAr}</h3>
               <Badge tone={gateway.status === 'ACTIVE' ? 'accent' : 'neutral'}>
-                {gateway.status === 'ACTIVE' ? 'مربوطة' : 'غير مفعّلة'}
+                {gateway.status === 'ACTIVE' ? 'مربوطة' : 'غير مفعلة'}
               </Badge>
               {/* القدرات تصف ما تستطيعه البوابة، لا أنّ لنا طريقًا إليها */}
               {gateway.implemented ? null : <Badge tone="warn">بلا وصلة</Badge>}
@@ -128,10 +128,10 @@ export default async function PaymentsRoutingPage() {
             </div>
 
             <div className="flex flex-col gap-1.5 border-t border-line pt-3 text-2xs">
-              <Line label="أقصى مدّة حجز">
+              <Line label="أقصى مدة حجز">
                 <Quantity unit="days" count={gateway.capabilities.maxHoldDays} />
               </Line>
-              <Line label="مدّة التسوية">
+              <Line label="مدة التسوية">
                 {gateway.capabilities.settlementDelayHours === 0 ? (
                   <span>فوري</span>
                 ) : (
@@ -185,9 +185,9 @@ export default async function PaymentsRoutingPage() {
       </h2>
       {runs.length === 0 ? (
         <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
-          لم تُشغَّل المطابقة بعد. وهي تقرأ تسوية كل بوابة وتقارنها بدفترنا، وتكتب
-          <strong> جدول المعاملات المختلفة</strong> لا المجاميع — فالفرق حدثٌ يُعالَج لا
-          رقمٌ يُتأمَّل.
+          لم تشغل المطابقة بعد. وهي تقرأ تسوية كل بوابة وتقارنها بدفترنا، وتكتب
+          <strong> جدول المعاملات المختلفة</strong> لا المجاميع — فالفرق حدث يعالج لا
+          رقم يتأمل.
         </p>
       ) : (
         <ReconciliationTable runs={runs} />
@@ -199,16 +199,16 @@ export default async function PaymentsRoutingPage() {
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>المعاملات الجارية تبقى على بوابتها.</strong> الحجز القائم يُفرَج عنه من
-            حيث أُنشئ — <strong>لا نقل أرصدة بين بوابتين</strong>. ولهذا يُخزَّن مفتاح
-            البوابة في كل معاملة ويُقرأ منها لا من الإعداد.
+            <strong>المعاملات الجارية تبقى على بوابتها.</strong> الحجز القائم يفرج عنه من
+            حيث أنشئ — <strong>لا نقل أرصدة بين بوابتين</strong>. ولهذا يخزن مفتاح
+            البوابة في كل معاملة ويقرأ منها لا من الإعداد.
           </li>
-          <li>التبديل يسري على المعاملات الجديدة وحدها، ابتداءً من لحظة التنفيذ.</li>
-          <li>لا يمكن تعطيل غرض له معاملات جارية — يُوقف الجديد ويبقى القائم حتى ينتهي.</li>
-          <li>التبديل يحتاج موافقة عضوين ويُسجَّل باسميهما وبالبوابتين في سجل التدقيق.</li>
+          <li>التبديل يسري على المعاملات الجديدة وحدها، ابتداء من لحظة التنفيذ.</li>
+          <li>لا يمكن تعطيل غرض له معاملات جارية — يوقف الجديد ويبقى القائم حتى ينتهي.</li>
+          <li>التبديل يحتاج موافقة عضوين ويسجل باسميهما وبالبوابتين في سجل التدقيق.</li>
           <li>
-            <strong>البوابة التي تنقصها قدرة مطلوبة لا تظهر في القائمة أصلًا</strong> — لا
-            تُعرض ثم تُرفض. أمّا قِصَر مدّة الحجز فتحذيرٌ يشرح الأثر ولا يمنع.
+            <strong>البوابة التي تنقصها قدرة مطلوبة لا تظهر في القائمة أصلا</strong> — لا
+            تعرض ثم ترفض. أما قصر مدة الحجز فتحذير يشرح الأثر ولا يمنع.
           </li>
         </ul>
       </section>
@@ -223,12 +223,12 @@ export default async function PaymentsRoutingPage() {
       <section className="mt-10">
         <h2 className="mb-1 text-sm font-bold">تاريخ التبديل</h2>
         <p className="mb-3.5 text-3xs opacity-70">
-          كلُّ تبديلٍ بسببه ومن اعتمده — والقرار بلا سببه يُعاد نقضه.
+          كل تبديل بسببه ومن اعتمده — والقرار بلا سببه يعاد نقضه.
         </p>
 
         {changes.length === 0 ? (
           <p className="rounded-lg border border-line border-dashed p-5 text-2xs opacity-70">
-            لم يُبدَّل مسارٌ بعد. وأوّل تبديل يُسجَّل هنا بسببه ومن اعتمده.
+            لم يبدل مسار بعد. وأول تبديل يسجل هنا بسببه ومن اعتمده.
           </p>
         ) : (
           <ul className="flex flex-col gap-2.5">

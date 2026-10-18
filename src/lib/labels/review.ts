@@ -10,8 +10,8 @@ import type { ReviewReason } from '@/generated/prisma/enums';
  * والملف بلا `db`: تستورده مكوّنات العميل.
  */
 export const REVIEW_REASON_LABEL: Record<string, string> = {
-  DUPLICATE_IMAGE: 'صورة مكرّرة',
-  PRICE_OUTLIER: 'سعر شاذّ',
+  DUPLICATE_IMAGE: 'صورة مكررة',
+  PRICE_OUTLIER: 'سعر شاذ',
   NEW_ACCOUNT_BURST: 'حساب جديد',
   USER_REPORT: 'بلاغ',
 } satisfies Record<ReviewReason, string>;

@@ -41,7 +41,7 @@ export default async function ProviderQueuePage() {
       <main className="mx-auto w-full max-w-4xl p-6">
         <h1 className="mb-1.5 text-2xl font-bold tracking-tight">طلباتك</h1>
         <p className="mb-7 text-sm opacity-70">
-          المعروضُ على تخصّصك في مدنك، وما قبلتَه. والأقرب موعدًا أوّلًا.
+          المعروض على تخصصك في مدنك، وما قبلته. والأقرب موعدا أولا.
         </p>
 
         {rows.length === 0 ? (
@@ -55,7 +55,7 @@ export default async function ProviderQueuePage() {
           */
           <EmptyState
             title="لا طلبات الآن"
-            description="يصلك هنا كلُّ طلبٍ مدفوعٍ في تخصّصك ومدنك، والأقرب موعدًا أوّلًا. وراجِع هذه الصفحة — فالتنبيه خارج اللوحة لم يُوصَل بعد."
+            description="يصلك هنا كل طلب مدفوع في تخصصك ومدنك، والأقرب موعدا أولا. وراجع هذه الصفحة — فالتنبيه خارج اللوحة لم يوصل بعد."
           />
         ) : (
           <div className="flex flex-col divide-y divide-line border-y border-line">

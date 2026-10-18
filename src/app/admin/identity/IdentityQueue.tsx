@@ -36,8 +36,8 @@ const METHOD_LABEL: Record<string, string> = {
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'ينتظر',
-  CLARIFICATION: 'مُعلَّق للتوضيح',
-  VERIFIED: 'موثّق',
+  CLARIFICATION: 'معلق للتوضيح',
+  VERIFIED: 'موثق',
   REJECTED: 'مرفوض',
 };
 
@@ -70,7 +70,7 @@ export function IdentityQueue({
         | null;
 
       if (response === null || !response.ok) {
-        setToast(payload?.error?.messageAr ?? 'تعذّر تنفيذ القرار.');
+        setToast(payload?.error?.messageAr ?? 'تعذر تنفيذ القرار.');
         return;
       }
 
@@ -78,10 +78,10 @@ export function IdentityQueue({
       setNote('');
       setToast(
         decision === 'VERIFY'
-          ? 'وُثّق الحساب — وصار يستطيع النشر والشراء.'
+          ? 'وثق الحساب — وصار يستطيع النشر والشراء.'
           : decision === 'CLARIFY'
             ? 'تم طلب التوضيح. يبقى في قائمة التوثيق.'
-            : 'رُفض التوثيق، والسبب مسجَّل.',
+            : 'رفض التوثيق، والسبب مسجل.',
       );
       router.refresh();
     });
@@ -103,8 +103,8 @@ export function IdentityQueue({
                 )
           }
         />
-        <Card title="مُعلَّق للتوضيح" value={stats.clarification} note="ينتظر ردّ صاحبه" />
-        <Card title="موثّق" value={stats.verifiedTotal} note="عبر التاريخ" />
+        <Card title="معلق للتوضيح" value={stats.clarification} note="ينتظر رد صاحبه" />
+        <Card title="موثق" value={stats.verifiedTotal} note="عبر التاريخ" />
         {/*
           **النسبة مقياسٌ لطول الطابور لا زينة**: كلّما ارتفعت قلّ ما
           ينتظر إنسانًا — والتصميم يقولها في العنوان.
@@ -114,14 +114,14 @@ export function IdentityQueue({
           <span className="font-num text-3xl font-bold">
             {displayDigits(String(stats.nafathSharePct))}٪
           </span>
-          <p className="mt-1.5 text-3xs opacity-70">كلما ارتفعت قلّت الطلبات المعلّقة</p>
+          <p className="mt-1.5 text-3xs opacity-70">كلما ارتفعت قلت الطلبات المعلقة</p>
         </div>
       </StatGrid>
 
       {rows.length === 0 ? (
         <EmptyState
           title="لا أحد ينتظر التوثيق"
-          description="ما يصل هنا هو الإدخال اليدويّ والسجلّ التجاريّ — وكلُّه يمرّ بمراجعة إنسان."
+          description="ما يصل هنا هو الإدخال اليدوي والسجل التجاري — وكله يمر بمراجعة إنسان."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -168,10 +168,10 @@ export function IdentityQueue({
                     </span>
                     {row.business.crExpiresAt === null ||
                     Date.parse(row.business.crExpiresAt) > Date.now() ? null : (
-                      <Badge tone="danger">سجل منتهٍ</Badge>
+                      <Badge tone="danger">سجل منته</Badge>
                     )}
                     {row.business.vatNumber === null ? (
-                      <span className="opacity-65">غير مسجَّل في الضريبة</span>
+                      <span className="opacity-65">غير مسجل في الضريبة</span>
                     ) : null}
                   </span>
                 )}
@@ -211,8 +211,8 @@ export function IdentityQueue({
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        <b>ما يفتحه التوثيق:</b> نشر إعلان · تقديم عرض · المزايدة · استلام مبالغ. والتصفّح
-        والمفضّلة متاحان بلا توثيق.
+        <b>ما يفتحه التوثيق:</b> نشر إعلان · تقديم عرض · المزايدة · استلام مبالغ. والتصفح
+        والمفضلة متاحان بلا توثيق.
       </p>
 
       <Modal
@@ -236,7 +236,7 @@ export function IdentityQueue({
               مكتوب من شاشة العملاء — فلا يمرّ الاطّلاع عرَضًا مع كل قرار.
             */}
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-3xs leading-loose opacity-75">
-              رقم الهوية لا يُعرض في هذه الشاشة. كشفُه من شاشة العملاء بسببٍ مكتوب،
+              رقم الهوية لا يعرض في هذه الشاشة. كشفه من شاشة العملاء بسبب مكتوب،
               وكل عملية اطلاع مسجلة.
             </p>
 
@@ -248,14 +248,14 @@ export function IdentityQueue({
                 rows={3}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="مثال: صورة الهوية غير واضحة — أعِد رفعها بإضاءة أفضل."
+                placeholder="مثال: صورة الهوية غير واضحة — أعد رفعها بإضاءة أفضل."
                 className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm leading-loose"
               />
             </label>
 
             <div className="mt-4 flex flex-col gap-2">
               <Button className="w-full" disabled={pending} onClick={() => decide(open, 'VERIFY')}>
-                وثّق الحساب
+                وثق الحساب
               </Button>
               <Button
                 variant="outline"
@@ -263,7 +263,7 @@ export function IdentityQueue({
                 disabled={pending || note.trim().length < MIN_IDENTITY_NOTE}
                 onClick={() => decide(open, 'CLARIFY')}
               >
-                اطلب توضيحًا (يبقى في القائمة)
+                اطلب توضيحا (يبقى في القائمة)
               </Button>
               <Button
                 variant="outline"

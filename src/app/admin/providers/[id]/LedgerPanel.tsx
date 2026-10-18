@@ -64,11 +64,11 @@ export function LedgerPanel({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّر إرسال الطلب.');
+        setToast('تعذر إرسال الطلب.');
         return;
       }
       setForm({ direction: 'CREDIT', amount: '', reason: '' });
-      setToast('أُرسل الطلب — ينتظر موافقة شخصٍ ثانٍ.');
+      setToast('أرسل الطلب — ينتظر موافقة شخص ثان.');
       router.refresh();
     });
   };
@@ -81,10 +81,10 @@ export function LedgerPanel({
       }).catch(() => null);
 
       if (response === null || !response.ok) {
-        setToast('تعذّرت الموافقة.');
+        setToast('تعذرت الموافقة.');
         return;
       }
-      setToast('نُفِّذ القيد وكُتب في دفتر الحسابات.');
+      setToast('نفذ القيد وكتب في دفتر الحسابات.');
       router.refresh();
     });
   };
@@ -98,11 +98,11 @@ export function LedgerPanel({
 
       <div className="mb-4 flex flex-wrap gap-x-7 gap-y-2 text-2xs">
         <span className="flex flex-col gap-0.5">
-          <span className="opacity-70">استُحقّ له</span>
+          <span className="opacity-70">استحق له</span>
           <Money amount={Number(credited)} decimals={2} showCurrency={false} />
         </span>
         <span className="flex flex-col gap-0.5">
-          <span className="opacity-70">سُدِّد أو خُصم</span>
+          <span className="opacity-70">سدد أو خصم</span>
           <Money amount={Number(debited)} decimals={2} showCurrency={false} />
         </span>
       </div>
@@ -119,26 +119,26 @@ export function LedgerPanel({
 
           {pending.requestedBy === meId ? (
             <p className="text-3xs opacity-70">
-              أنت طلبتَه — ولا يوافق طالبُه على نفسه. يلزم شخصٌ ثانٍ.
+              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثان.
             </p>
           ) : canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>
-              {busy ? 'جارٍ…' : 'أوافق وأنفّذ'}
+              {busy ? 'جار…' : 'أوافق وأنفذ'}
             </Button>
           ) : (
-            <p className="text-3xs opacity-70">لا تملك صلاحية الموافقة على قيود المزوّدين.</p>
+            <p className="text-3xs opacity-70">لا تملك صلاحية الموافقة على قيود المزودين.</p>
           )}
         </div>
       )}
 
       {canAdjust && pending === null ? (
         <div className="mb-5 rounded-lg border border-line p-4">
-          <p className="mb-3 text-2xs font-bold">قيدٌ على الحساب</p>
+          <p className="mb-3 text-2xs font-bold">قيد على الحساب</p>
 
           <div className="mb-3 flex gap-2">
             {(
               [
-                ['CREDIT', 'زِد ما له علينا'],
+                ['CREDIT', 'زد ما له علينا'],
                 ['DEBIT', 'اخصم من حسابه'],
               ] as const
             ).map(([key, label]) => (
@@ -170,26 +170,26 @@ export function LedgerPanel({
           </label>
 
           <label className="mb-3 flex flex-col gap-1.5">
-            <span className="text-3xs font-bold opacity-70">السبب — إلزاميّ</span>
+            <span className="text-3xs font-bold opacity-70">السبب — إلزامي</span>
             <textarea
               rows={2}
               value={form.reason}
               onChange={(event) => setForm({ ...form, reason: event.target.value })}
-              placeholder="سُدِّد بحوالة بنكية بمرجع TRF-…"
+              placeholder="سدد بحوالة بنكية بمرجع TRF-…"
               className="rounded-md border border-line bg-surface px-3 py-2 text-2xs leading-loose"
             />
             <span className="text-3xs opacity-65">
-              <Quantity unit="characters" count={REASON_MIN} /> فأكثر — ويُقرأ بعد سنة.
+              <Quantity unit="characters" count={REASON_MIN} /> فأكثر — ويقرأ بعد سنة.
             </span>
           </label>
 
           <Button size="sm" disabled={busy || !ready} onClick={submit}>
-            {busy ? 'جارٍ…' : 'أرسل الطلب'}
+            {busy ? 'جار…' : 'أرسل الطلب'}
           </Button>
 
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            <b>لا يقع القيد بهذه الضغطة.</b> يُرسَل طلبٌ ويوافق عليه شخصٌ ثانٍ، ثم
-            يُكتب في دفتر الحسابات.
+            <b>لا يقع القيد بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثان، ثم
+            يكتب في دفتر الحسابات.
           </p>
         </div>
       ) : null}

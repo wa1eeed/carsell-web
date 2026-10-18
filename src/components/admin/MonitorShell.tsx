@@ -34,7 +34,7 @@ export function elapsed(minutes: number): string {
   if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيّام (${displayDigits(String(Math.floor(hours / 24)))})`;
+  return `أيام (${displayDigits(String(Math.floor(hours / 24)))})`;
 }
 
 /**
@@ -45,7 +45,7 @@ export function elapsed(minutes: number): string {
  * أم لا.
  */
 export function countdown(seconds: number): string {
-  if (seconds <= 0) return 'انتهى — يُحتسب الآن';
+  if (seconds <= 0) return 'انتهى — يحتسب الآن';
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   return `${displayDigits(String(h).padStart(2, '0'))}:${displayDigits(String(m).padStart(2, '0'))}`;

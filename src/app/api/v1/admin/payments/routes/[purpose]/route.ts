@@ -32,7 +32,7 @@ export async function POST(
   if (!parsed.success) {
     // السبب أوّل ما يُفحص: هو الحقل الوحيد الذي لا يُشتقّ
     return fail(
-      { code: 'REASON_REQUIRED', messageAr: 'اكتب سببًا للتبديل.', messageEn: 'A reason is required.' },
+      { code: 'REASON_REQUIRED', messageAr: 'اكتب سببا للتبديل.', messageEn: 'A reason is required.' },
       422,
     );
   }
@@ -57,7 +57,7 @@ export async function POST(
             : // القائم يُسمّى: «تعذّر» يدفع المشغّل يعيد المحاولة بلا فائدة
               result.reason === 'ALREADY_PENDING'
               ? 'على هذا الغرض طلب تبديل قائم — اعتمده أو انتظر انقضاءه.'
-              : 'تعذّر تسجيل طلب التبديل.',
+              : 'تعذر تسجيل طلب التبديل.',
         messageEn:
           result.reason === 'NOT_ELIGIBLE'
             ? 'This gateway lacks a capability the purpose requires.'
@@ -116,8 +116,8 @@ export async function PATCH(
         code: result.reason,
         messageAr:
           result.reason === 'HAS_IN_FLIGHT'
-            ? 'على هذا الغرض حجوزٌ قائمة — لا يُعطَّل حتى تُفرَج.'
-            : 'تعذّر تغيير حالة الغرض.',
+            ? 'على هذا الغرض حجوز قائمة — لا يعطل حتى تفرج.'
+            : 'تعذر تغيير حالة الغرض.',
         messageEn:
           result.reason === 'HAS_IN_FLIGHT'
             ? 'This purpose has held payments — it cannot be disabled until they settle.'

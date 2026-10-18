@@ -1078,21 +1078,49 @@ on it is not selling anything.
   row — so listing a car you already registered writes a second copy of it.
   Publishing from an existing vehicle needs domain work; recorded, not done.
 
-## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18*
+## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»
 
-The PDPL page and the trust marks were written plain after the owner read them.
-The rest of the product still carries full diacritics in its Arabic strings —
-screens, messages, seed data. A mixed product reads worse than either choice, so
-this is a single sweep: strip `\u064B-\u0652`, `\u0670` and the tatweel from
-user-facing text, **leaving code comments untouched** (they never reach a
-reader, and this repository's comments are deliberately voweled).
+The PDPL page and the trust marks were written plain after the owner read them;
+the rest of the product still carried full diacritics. A half-voweled product
+reads worse than either choice, so this was one sweep: strip `\u064B-\u0652`
+and `\u0670` from user-facing text, **leaving code comments untouched** (they
+never reach a reader, and this repository's comments are deliberately voweled).
 
-- [ ] `src/messages/*.json` — every string.
-- [ ] Arabic literals in screens and components.
-- [ ] `prisma/seed-data/*.json` and the Arabic the seed writes.
-- [ ] A gate, so the next string written with diacritics is caught.
+- [x] `src/messages/ar.json` — 463 marks. (`en.json` had none.)
+- [x] Arabic literals in screens and components — 4,322 marks in 272 files,
+      stripped outside comments only.
+- [x] `prisma/seed-data/*.json` — 609 marks across eight files, and the Arabic
+      `prisma/seed.ts` writes.
+- [x] A migration, because **the seed file does not reach a running
+      environment**: it runs once on an empty database and the admin screens
+      edit rather than re-seed, so legal text, FAQs, notification templates and
+      inspection point names would have stayed voweled in staging forever.
+      Reference tables only — `AuditLog`, sent notifications and disputes are
+      records of what was said, and rewriting those is forgery, not formatting.
+- [x] **Gate 61**, measured at zero and proved by six probes, including one that
+      writes a diacritic into a comment (it must stay silent) and one that
+      writes a tatweel (likewise).
+- [x] And the surface walk now reads diacritics out of the **rendered** page,
+      which the gate cannot: an admin who types a voweled FAQ into the panel
+      puts it on a screen without touching the repository.
+
+### Two things the sweep nearly broke
+
+- **The tatweel is not a diacritic here.** The plan said to strip it; measuring
+  said otherwise. All 24 occurrences are load-bearing — «ينتهي بـSA», «بـ350»,
+  the plate letter «هـ» and the search token «بـ» — and stripping it would have
+  produced wrong Arabic in the first case and a silent duplicate key in the
+  last two. It stays, and gate 61 is silent on it.
+
+- **Two normalisers wrote their diacritic range as literal marks.**
+  `normalizeArabic` in `cities.ts` and `normalize` in `lexicon.ts` both carried
+  `/[ً-ْـ]/` — which the sweep would have turned into `[-ـ]`, stopping Arabic
+  normalisation across search and city matching **with no compiler or lint
+  error and no test to ask**. They now use `\u` escapes, and
+  `tests/arabic-normalizers.test.ts` asserts both the behaviour and the escaped
+  form, because behaviour alone would pass right up until the day it broke.
 
 ## Also open, outside the four stages
 

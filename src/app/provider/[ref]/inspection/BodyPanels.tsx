@@ -82,7 +82,7 @@ export function BodyPanels({
         },
       ).catch(() => null);
 
-      if (response === null || !response.ok) setToast('تعذّر حفظ القطعة.');
+      if (response === null || !response.ok) setToast('تعذر حفظ القطعة.');
     });
   };
 
@@ -92,7 +92,7 @@ export function BodyPanels({
     <>
       <p className="mb-1.5 text-sm font-bold">خريطة الهيكل</p>
       <p className="mb-3.5 text-3xs leading-loose opacity-70">
-        اضغط قطعةً لتحديد حالها — وسماكةُ الطلاء اختيارية.
+        اضغط قطعة لتحديد حالها — وسماكة الطلاء اختيارية.
       </p>
 
       <div className="grid max-w-56 grid-cols-3 gap-1.5">
@@ -155,7 +155,7 @@ export function BodyPanels({
               className="w-full rounded-md border border-line bg-surface px-3 py-2 text-start font-num text-sm"
             />
             {current === undefined ? (
-              <span className="text-3xs opacity-65">اختر الحال أوّلًا.</span>
+              <span className="text-3xs opacity-65">اختر الحال أولا.</span>
             ) : null}
           </label>
         </div>
