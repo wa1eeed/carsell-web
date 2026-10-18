@@ -83,6 +83,20 @@ becomes optional or a catalogue row is added after a draft was opened. **Silence
 published as a promise.** The public state is now `NOT_INSPECTED`, with its own
 mark, its own count, and the inspector's reason printed beside it.
 
+And `REPAINT` closes the other half. «صبغ» was a display state the seed alone
+wrote — the inspector's form could not produce it, so no real report could ever
+show it. The owner's answer was to keep it («لا تحذفها و ابقها في البند»), so it
+became a state the inspector picks, scored at 0.7 (a repainted panel works; it
+is disclosed because it touches value, not because it is a fault). The section
+it belongs to is now «الهيكل الخارجي» — renamed by migration, because category
+names are rows and reference data reaches a live database by migration or it
+reaches only new environments.
+
+**And every state but «سليم» now owes a sentence.** The note was required for
+MINOR and MAJOR; «لا ينطبق» and «صبغ» could be saved silently. A point marked
+not-applicable with no reason reads as the inspector skipping work rather than
+as a fact about the car.
+
 Two consequences, both deliberate:
 
 - **A non-applicable point is not a finding.** It is excluded from «ما يستحقّ
@@ -93,6 +107,76 @@ Two consequences, both deliberate:
   `passed + findings = total`; with three buckets, leaving the third implicit
   makes "206 of 210 sound" read as "4 have notes" when it is 4 notes *and 2 not
   inspected*.
+
+## The inspector is a code, not a name
+
+> «اسم الفاحص بدل الاسم الصريح ضع رقم الآي دي للفاحص لمزيد من خصوصية الفاحص»
+> — the owner, 2026-10-18.
+
+`inspectorName` stays in the row — it is the record anyone would reach for in a
+dispute — and **leaves the public object entirely**. What ships is
+`inspectorCode`: `FA-7K4M`, derived from whoever filled the draft, stored on the
+report so it cannot drift when the derivation changes.
+
+Stable, so two reports by the same inspector read as the same inspector — half
+the value of a code. Not reversible: no name or id comes back out of it, and the
+internal match is against the stored name.
+
+The alphabet drops `0/O` and `1/I`: it is a code that gets read aloud on a phone
+and written down, and a character read as a digit loses the match.
+
+## The PDF is its own document
+
+> «يجب ان يكون البي دي اف مصمم بعنايه … كأنه تقرير بي دي اف مصمم … يحتوي على
+> مستطيل في مقدمه الصفحة ككرت معلومات السيارة و بجانبه QR كود يقود لرابط
+> السياره في المنصه على الدومين carz.sa»
+
+The button used to call `window.print()` on the web page — `pdfUrl` has never
+had a writer, so the fallback *was* the feature: site header, tabs, backgrounds
+that eat ink. A screenshot on paper.
+
+`…/{ref}/inspection/pdf` is a separate A4 layout (`ReportSheet` +
+`report-sheet.css`): a bordered **vehicle card** across the head of page one —
+wordmark, vehicle, report number, centre, inspector code, dates, the score — and
+the **QR beside it**, pointing at the listing on `APP_URL` (`carz.sa` in
+production). Then the tallies, the section bars, the body panels, the findings,
+and every point under its section.
+
+Three decisions worth keeping:
+
+- **HTML for print, not a PDF generator.** Arabic needs shaping and bidi, which
+  Node PDF libraries do not do — letters come out detached and reversed. A
+  browser shapes Arabic correctly because it does it every day. A headless
+  browser in the image would cost ~300MB, and a build here has already died on
+  a full disk.
+- **The QR points at the listing, not at the report.** Someone scanning a sheet
+  in their hand wants the car — its price, its photos, whether it is still
+  listed. The report is already in their hand.
+- **Nothing of the platform appears on the sheet.** It is rendered without the
+  shell, but the `(site)` layout still appends its footer — measured by opening
+  it: two footers on the page. `(site)` is a route group, so a second route at
+  the same URL is impossible and the URL is deliberately a child of the
+  vehicle's; the chrome is therefore hidden wherever a sheet is present.
+
+**And it wears the platform's colours.** Black ink on white is correct and
+cheap, and it does not read as a document issued by anyone. A brand band across
+the head of the card, the score as a green disc, section headers as green bands,
+findings on a gold tint with a rule down their edge — the same green the site
+uses, in weights that survive a printer. `print-color-adjust: exact` on the
+filled areas, because browsers drop backgrounds when printing unless told not to.
+
+Ink colours live in `globals.css` under «حبرُ الورق» — a separate, fixed set.
+Screen tokens invert in dark mode, and paper is ink on white regardless of the
+screen the print was ordered from.
+
+**The domain on the sheet is `SITE_URL`, not `APP_URL`.** `APP_URL` is the host
+that rendered the page — localhost in development, the staging domain in
+staging. Correct for sitemaps and absolute links, **wrong on a document that
+gets printed and handed over**: a report in a buyer's hand carrying a QR that
+resolves to `localhost:3000`, with that address printed under it. `SITE_URL`
+defaults to `https://carz.sa` so an environment that forgets the variable still
+prints a real address, and the path is unchanged — the same listing link, only
+the host differs.
 
 ## Values that are computed, not stored
 

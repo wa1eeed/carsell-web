@@ -20,9 +20,15 @@ import type { DraftItem, DraftView } from '@/lib/domain/inspection-draft';
  * **والأقسامُ مطويّة**: ٢١٠ بندًا مفتوحةً دفعةً واحدة لا تُقرأ، ومن
  * يبحث عن «الفرامل» يمرّ على خمسةٍ وثلاثين بندًا للمحرّك.
  */
+/**
+ * **وخمسُ حالاتٍ لا أربع.** «صبغ» كانت تُعرض في التقرير ولا يكتبها
+ * أحد — فلا تقريرٌ حقيقيّ يحملها. وهي ليست عطلًا: القطعة تعمل، لكنّها
+ * تُفصَح لأنها تمسّ القيمة. (قرار المالك ٢٠٢٦-١٠-١٨.)
+ */
 const STATES = [
   { key: 'PASS', label: 'سليم' },
   { key: 'MINOR', label: 'ملاحظة' },
+  { key: 'REPAINT', label: 'صبغ أو استبدال' },
   { key: 'MAJOR', label: 'عطل' },
   { key: 'NOT_APPLICABLE', label: 'لا ينطبق' },
 ] as const;
@@ -60,7 +66,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
    * عاد فوجد أقلَّ ممّا رأى. **والنصُّ المعروض وعدٌ لا وصف.**
    */
   const isSaved = (row: { state: State; note: string }): boolean =>
-    row.state !== 'MINOR' && row.state !== 'MAJOR' ? true : row.note.trim() !== '';
+    row.state === 'PASS' ? true : row.note.trim() !== '';
 
   const answered = Object.values(rows).filter(isSaved).length;
 
@@ -81,7 +87,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
           | null;
         setToast(
           payload?.error?.fields?.inspection === 'NOTE_REQUIRED'
-            ? 'الملاحظة إلزامية مع «ملاحظة» و«عطل».'
+            ? 'اكتب الملاحظة — كلُّ حالٍ غير «سليم» تُفسَّر.'
             : 'تعذّر الحفظ — أعد المحاولة.',
         );
         return;
@@ -99,7 +105,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
     const note = rows[item.id]?.note ?? '';
     setRows((current) => ({ ...current, [item.id]: { state, note } }));
 
-    if ((state === 'MINOR' || state === 'MAJOR') && note.trim() === '') return;
+    if (state !== 'PASS' && note.trim() === '') return;
     send({ kind: 'item', itemId: item.id, state, note: note.trim() || null });
   };
 
@@ -185,7 +191,7 @@ export function InspectionForm({ view }: { view: DraftView }) {
       [item.id]: { state: state ?? 'PASS', note },
     }));
     if (state === undefined) return;
-    if ((state === 'MINOR' || state === 'MAJOR') && note.trim() === '') return;
+    if (state !== 'PASS' && note.trim() === '') return;
     send({ kind: 'item', itemId: item.id, state, note: note.trim() || null });
   };
 
@@ -235,8 +241,8 @@ export function InspectionForm({ view }: { view: DraftView }) {
                 <div className="flex flex-col divide-y divide-line border-t border-line">
                   {category.items.map((item) => {
                     const row = rows[item.id];
-                    const needsNote =
-                      row !== undefined && (row.state === 'MINOR' || row.state === 'MAJOR');
+                    /** كلُّ حالٍ غير «سليم» تُفسَّر — ولا تُحفظ بلا سببها. */
+                    const needsNote = row !== undefined && row.state !== 'PASS';
 
                     return (
                       <div key={item.id} className="flex flex-col gap-2.5 px-4 py-3.5">

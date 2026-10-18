@@ -1,3 +1,4 @@
+import { InspectionResultState } from '@/generated/prisma/enums';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
@@ -24,7 +25,17 @@ const Body = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('item'),
     itemId: z.string().min(1).max(40),
-    state: z.enum(['PASS', 'MINOR', 'MAJOR', 'NOT_APPLICABLE']),
+    /**
+     * **والقائمةُ تُشتقّ من التعداد لا تُنسخ عنه.** نسخةٌ باليد تُقبل
+     * اليوم وتُردّ غدًا: أُضيفت `REPAINT` إلى التعداد وإلى النموذج
+     * وإلى الدفتر، **وهذا السطرُ وحده لم يعلم** — فزرُّ الفاحص يُرسل
+     * ويُردّ ٤٢٢ بلا سببٍ يفهمه.
+     *
+     * وليس كلُّ قائمةٍ يدويّة خطأً: مسارٌ يقبل بعضَ القيَم عمدًا
+     * (حالةُ المستخدم تمنع `CLOSED`) قائمتُه **إذنٌ** لا نسخة. والفارقُ
+     * في النيّة: هنا الحارسُ في النطاق، والمسار يمرّر ما يقبله.
+     */
+    state: z.nativeEnum(InspectionResultState),
     value: z.string().max(200).nullable().optional(),
     note: z.string().max(1000).nullable().optional(),
   }),

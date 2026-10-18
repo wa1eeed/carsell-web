@@ -6,6 +6,7 @@ import {
   gradeOf,
   maskVin,
   parsePaintMap,
+  inspectorCodeFor,
   parseSections,
   toPublicReport,
 } from '@/lib/domain/inspection';
@@ -147,5 +148,32 @@ describe('الدرجة والصلاحية', () => {
       (new Date(report.validUntil).getTime() - new Date(report.inspectedAt).getTime()) /
       (24 * 3600 * 1000);
     expect(Math.round(gap)).toBe(REPORT_VALIDITY_DAYS);
+  });
+});
+
+/**
+ * ═══ رمزُ الفاحص — يُعرض، والاسمُ لا يخرج ═══
+ *
+ * قرار المالك ٢٠٢٦-١٠-١٨: «بدل الاسم الصريح ضع رقم الآي دي للفاحص».
+ * والاسمُ يبقى في القاعدة أثرًا يُحتجّ به — **ولا يدخل الكائن العامّ**،
+ * فما لا يدخله لا يتسرّب منه. وهو مسلكُ `reservePrice` نفسه.
+ */
+describe('رمزُ الفاحص', () => {
+  it('ثابتٌ لمن فحص، ومختلفٌ لغيره', () => {
+    const a = inspectorCodeFor('provider-user-one');
+    expect(inspectorCodeFor('provider-user-one')).toBe(a);
+    expect(inspectorCodeFor('provider-user-two')).not.toBe(a);
+    /** **وبلا خاناتٍ ملتبسة** — رمزٌ يُملى في هاتفٍ ويُكتب. */
+    expect(a).toMatch(/^FA-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/);
+  });
+
+  it('والتقريرُ العامّ يحمل الرمز ولا يحمل الاسم', async () => {
+    const row = (await findReportByListingRef(await anyInspected(), null))!;
+    const report = toPublicReport(row, 'ar');
+
+    expect(report.inspectorCode).toMatch(/^FA-/);
+    /** والاسمُ في الصفّ، ولا أثر له في المُسلسَل. */
+    expect(row.inspectorName.length).toBeGreaterThan(0);
+    expect(JSON.stringify(report)).not.toContain(row.inspectorName);
   });
 });

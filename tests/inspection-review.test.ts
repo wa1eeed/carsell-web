@@ -182,6 +182,32 @@ describe('الإرسالُ لا يقع قبل الاكتمال', () => {
     );
   });
 
+  /**
+   * **و«صبغ» صارت حالًا يكتبها الفاحص** (قرار المالك ٢٠٢٦-١٠-١٨).
+   * كانت تُعرض في التقرير ولا يُنتجها نموذجٌ — فلا تقريرٌ حقيقيّ
+   * يحملها. وهي ليست عطلًا: القطعةُ تعمل، وتُفصَح لأنها تمسّ القيمة.
+   */
+  it('و«صبغ» تُجمَّد صبغًا لا سليمًا', () => {
+    const categories = [
+      {
+        key: 'body',
+        nameAr: 'الهيكل الخارجي',
+        items: [
+          { id: 'b1', key: 'rear_bumper', nameAr: 'سماكة طلاء المصد الخلفي' },
+          { id: 'b2', key: 'roof', nameAr: 'سماكة طلاء السقف' },
+        ],
+      },
+    ];
+    const answers = new Map([
+      ['b1', { state: 'REPAINT', note: 'سماكة ١٨٠ ميكرون مقابل ١١٥ للمجاور' }],
+      ['b2', { state: 'PASS', note: null }],
+    ]);
+
+    const [section] = freezeSections(categories, answers, new Map([['body', { score: 86 }]]));
+    expect(section?.points.find((p) => p.id === 'rear_bumper')?.state).toBe('PAINT');
+    expect(section?.points.find((p) => p.id === 'roof')?.state).toBe('OK');
+  });
+
   it('والمُرسَلةُ لا يعدّلها الفاحص', async () => {
     const ref = await request(true);
     await fill(ref);

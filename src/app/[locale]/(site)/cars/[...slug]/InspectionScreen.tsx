@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
-import { Button, LinkButton } from '@/components/ui/Button';
+import { LinkButton } from '@/components/ui/Button';
 import {
   BodyDiagram,
   FindingsTable,
@@ -38,11 +38,19 @@ export function InspectionScreen({
 }) {
   const t = useTranslations('ui');
 
+  /**
+   * **ومسارُ الورقة من مسار الإعلان** — فرعٌ منه، فلا يُبنى بيدٍ هنا
+   * ويتباعد عمّا يقوله `canonicalPath`.
+   */
+  const sheetPath =
+    report.listing === null ? null : `${report.listing.path}/inspection/pdf`;
+
   const meta = [
-    { key: 'centre', label: t('inspectionCentre'), value: report.centreName },
-    { key: 'inspector', label: t('inspector'), value: report.inspectorName },
-    { key: 'date', label: t('inspectionDate'), value: formatted.inspectedAt },
-    { key: 'validity', label: t('reportValidity'), value: formatted.validUntil },
+    { key: 'centre', label: t('inspectionCentre'), value: report.centreName, ltr: false },
+    /** **رمزٌ لا اسم** — ويُعزل اتجاهُه: `FA-7K4M` يُقارن خانةً بخانة. */
+    { key: 'inspector', label: t('inspectorCode'), value: report.inspectorCode, ltr: true },
+    { key: 'date', label: t('inspectionDate'), value: formatted.inspectedAt, ltr: false },
+    { key: 'validity', label: t('reportValidity'), value: formatted.validUntil, ltr: false },
   ].filter((entry) => entry.value !== null);
 
   return (
@@ -81,7 +89,12 @@ export function InspectionScreen({
             {meta.map((entry) => (
               <div key={entry.key}>
                 <dt className="mb-1 text-3xs opacity-70">{entry.label}</dt>
-                <dd className="bidi-isolate text-xs font-bold">{entry.value}</dd>
+                <dd
+                  {...(entry.ltr === true ? { dir: 'ltr' as const } : {})}
+                  className={entry.ltr === true ? 'font-num bidi-ltr text-xs font-bold' : 'bidi-isolate text-xs font-bold'}
+                >
+                  {entry.value}
+                </dd>
               </div>
             ))}
             <div>
@@ -92,10 +105,14 @@ export function InspectionScreen({
         </div>
 
         <div className="flex shrink-0 flex-col gap-2 print:hidden">
-          {report.pdfUrl === null ? (
-            <Button onClick={() => window.print()}>{t('downloadPdf')}</Button>
-          ) : (
-            <LinkButton href={report.pdfUrl} download className="w-full">
+          {/*
+            **وليست طباعةَ هذه الصفحة.** كان الزرّ ينادي `window.print()`
+            هنا، فيخرج ما على الشاشة على ورق: ترويسةُ الموقع وتبويباتٌ
+            وخلفياتٌ تُستهلك حبرًا. وصار يفتح **ورقةً مصمَّمة** مقاسُها
+            A4، فيها كرتُ المركبة ورمزُه — وهي تفتح حوار الحفظ بنفسها.
+          */}
+          {sheetPath === null ? null : (
+            <LinkButton href={sheetPath} target="_blank" rel="noopener" className="w-full">
               {t('downloadPdf')}
             </LinkButton>
           )}

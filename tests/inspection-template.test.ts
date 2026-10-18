@@ -2,7 +2,9 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import {
   activeTemplate,
+  addCategory,
   addItem,
+  removeCategory,
   removeItem,
   updateCategory,
   updateItem,
@@ -23,6 +25,7 @@ let inspector: ServiceProvider;
 let version: number;
 const madeItems: string[] = [];
 const madeRefs: string[] = [];
+const madeCategories: string[] = [];
 
 beforeAll(async () => {
   admin = await db.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } });
@@ -50,7 +53,13 @@ afterEach(async () => {
     await db.serviceRequest.deleteMany({ where: { id: { in: ids } } });
     madeRefs.length = 0;
   }
+  if (madeCategories.length > 0) {
+    await db.inspectionItem.deleteMany({ where: { categoryId: { in: madeCategories } } });
+    await db.inspectionCategory.deleteMany({ where: { id: { in: madeCategories } } });
+    madeCategories.length = 0;
+  }
   await db.auditLog.deleteMany({ where: { entity: 'InspectionItem' } });
+  await db.auditLog.deleteMany({ where: { entity: 'InspectionCategory' } });
   const template = await activeTemplate();
   if (template !== null) {
     await db.inspectionTemplate.update({ where: { id: template.id }, data: { version } });
@@ -183,5 +192,102 @@ describe('والحذفُ يُرفض ما دام أحدٌ أجاب', () => {
     const view = await draftView(ref, inspector.id);
     const still = view?.categories[0]?.items.find((row) => row.id === added.itemId);
     expect(still?.state).toBe('PASS');
+  });
+});
+
+/**
+ * ═══ وقسمٌ يُضاف ويُقاعَد — وكان التحريرُ نصفَه ═══
+ *
+ * `updateCategory` و`addItem` و`removeItem` مبنيّةٌ منذ نُقل القالب،
+ * **ولا إضافةَ قسمٍ ولا حذفُه** — فالمشغّل يُعيد تسمية قسمٍ ولا يفتح
+ * قسمًا. (قرار المالك ٢٠٢٦-١٠-١٨.)
+ */
+describe('أقسامُ القالب', () => {
+  it('يُضاف قسمٌ بمفتاحٍ مولَّدٍ لاتينيّ، ويرتفع الإصدار', async () => {
+    const before = (await activeTemplate())?.version ?? 0;
+
+    const created = await addCategory({
+      adminId: admin.id,
+      ip: null,
+      nameAr: 'الزجاج والمرايا',
+      nameEn: 'Glass and mirrors',
+      weight: 2,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok || created.categoryId === undefined) throw new Error('لم يُضَف');
+    madeCategories.push(created.categoryId);
+
+    const row = await db.inspectionCategory.findUniqueOrThrow({
+      where: { id: created.categoryId },
+      select: { key: true, nameAr: true, weight: true, sort: true },
+    });
+    /** **والمفتاحُ لاتينيٌّ يُولَّد** — فلا يكتبه مشغّلٌ بالعربية فيكسر المطابقة. */
+    expect(row.key).toMatch(/^[a-z0-9_]+$/);
+    expect(row.nameAr).toBe('الزجاج والمرايا');
+    expect(row.weight).toBe(2);
+
+    const after = (await activeTemplate())?.version ?? 0;
+    expect(after).toBeGreaterThan(before);
+  });
+
+  it('والمفتاحُ لا يصطدم بقسمٍ قائم', async () => {
+    const first = await addCategory({
+      adminId: admin.id, ip: null, nameAr: 'فحصٌ إضافيّ', nameEn: 'Extra check', weight: 1,
+    });
+    const second = await addCategory({
+      adminId: admin.id, ip: null, nameAr: 'فحصٌ إضافيّ آخر', nameEn: 'Extra check', weight: 1,
+    });
+    expect(first.ok && second.ok).toBe(true);
+    if (!first.ok || !second.ok) throw new Error('لم يُضافا');
+    madeCategories.push(first.categoryId ?? '', second.categoryId ?? '');
+
+    const keys = await db.inspectionCategory.findMany({
+      where: { id: { in: [first.categoryId ?? '', second.categoryId ?? ''] } },
+      select: { key: true },
+    });
+    expect(new Set(keys.map((row) => row.key)).size).toBe(2);
+  });
+
+  /**
+   * **ولا يُحذف قسمٌ فيه بند.** الحذفُ يمحو بنودَه بالسلسلة ومعها كلُّ
+   * جوابٍ عنها في كل مسودّة — فالشرطُ أغلظُ من شرط البند، والعددُ يُقال.
+   */
+  it('ولا يُحذف قسمٌ فيه بند — ويُقال عددُه', async () => {
+    const created = await addCategory({
+      adminId: admin.id, ip: null, nameAr: 'قسمٌ للقياس', nameEn: 'Measured', weight: 1,
+    });
+    if (!created.ok || created.categoryId === undefined) throw new Error('لم يُضَف');
+    madeCategories.push(created.categoryId);
+
+    const item = await addItem({
+      adminId: admin.id,
+      ip: null,
+      categoryId: created.categoryId,
+      nameAr: 'بندٌ للقياس',
+      nameEn: 'Measured point',
+      inputType: 'STATUS',
+      unit: null,
+      isCritical: false,
+    });
+    expect(item.ok).toBe(true);
+
+    const blocked = await removeCategory({
+      adminId: admin.id, ip: null, categoryId: created.categoryId,
+    });
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) {
+      expect(blocked.reason).toBe('HAS_ITEMS');
+      expect(blocked.count).toBe(1);
+    }
+
+    /** ويُفرَّغ ثمّ يُحذف — فلا يمرّ محوٌ جماعيّ تحت نقرةٍ واحدة. */
+    if (item.ok && item.itemId !== undefined) {
+      expect((await removeItem({ adminId: admin.id, ip: null, itemId: item.itemId })).ok).toBe(true);
+    }
+    const gone = await removeCategory({
+      adminId: admin.id, ip: null, categoryId: created.categoryId,
+    });
+    expect(gone.ok).toBe(true);
+    madeCategories.length = 0;
   });
 });

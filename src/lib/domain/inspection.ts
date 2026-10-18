@@ -1,6 +1,10 @@
 import { db } from '@/lib/db';
 import { DEADLINE_DEFAULTS } from './deadlines';
 import { canonicalPath } from './listing-detail';
+import { inspectorCodeFor } from './inspector-code';
+
+/** **ويُعاد تصديرُه** — فنداءاتُه التاريخية تقرؤه من هنا. */
+export { inspectorCodeFor } from './inspector-code';
 
 /**
  * تقرير الفحص — Wd.
@@ -63,7 +67,11 @@ export type PublicInspectionReport = {
   inspectedAt: string;
   /** محسوبة من تاريخ الفحص، فلا تاريخان يتناقضان. */
   validUntil: string;
-  inspectorName: string;
+  /**
+   * **رمزٌ لا اسم** (قرار المالك ٢٠٢٦-١٠-١٨). والاسمُ باقٍ في القاعدة
+   * أثرًا يُحتجّ به، ولا يدخل هذا الكائن — فما لا يدخله لا يتسرّب منه.
+   */
+  inspectorCode: string;
   centreName: string | null;
   pdfUrl: string | null;
 
@@ -289,7 +297,8 @@ export function toPublicReport(
     grade: gradeOf(row.score),
     inspectedAt: row.inspectedAt.toISOString(),
     validUntil: validUntil.toISOString(),
-    inspectorName: row.inspectorName,
+    /** و`null` لصفٍّ سبق العمود — فيُشتقّ عند القراءة ولا يُعرض فارغًا. */
+    inspectorCode: row.inspectorCode ?? inspectorCodeFor(row.inspectorName),
     centreName: row.serviceRequest.provider?.nameAr ?? null,
     pdfUrl: row.pdfUrl,
 
@@ -319,3 +328,4 @@ export function toPublicReport(
         : { ref: listing.ref, path: canonicalPath(locale, listing).path },
   };
 }
+

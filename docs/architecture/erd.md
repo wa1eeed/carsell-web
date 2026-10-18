@@ -1025,6 +1025,7 @@ Relations: `draft` → `InspectionDraft`
 | `sections` | `Json` |  |
 | `paintMap` | `Json` |  |
 | `inspectorName` | `String` |  |
+| `inspectorCode` | `String?` |  |
 | `inspectedAt` | `DateTime` |  |
 | `pdfUrl` | `String?` |  |
 | `publishedAt` | `DateTime?` |  |
@@ -1897,7 +1898,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ServiceRequestStatus` — `AWAITING_SELLER`, `AWAITING_PAYMENT`, `DECLINED`, `NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`, `FAILED`, `REFUNDED`
 - `InspectionInputType` — `STATUS`, `NUMBER`, `TEXT`, `SELECT`
 - `InspectionDraftStatus` — `DRAFT`, `SUBMITTED`, `RETURNED`, `APPROVED`
-- `InspectionResultState` — `PASS`, `MINOR`, `MAJOR`, `NOT_APPLICABLE`
+- `InspectionResultState` — `PASS`, `MINOR`, `MAJOR`, `REPAINT`, `NOT_APPLICABLE`
 - `CommissionSide` — `BUYER`, `SELLER`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`

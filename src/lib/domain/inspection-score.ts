@@ -24,6 +24,15 @@ const CREDIT: Readonly<Record<InspectionResultState, number | null>> = {
   PASS: 1,
   /** خدشٌ أو أثرُ استعمال — ينقص ولا يُسقط. */
   MINOR: 0.6,
+  /**
+   * **والصبغُ إفصاحٌ لا عطل.** القطعة المصبوغة تعمل، فحسمُها حسمُ
+   * `MINOR` لا `MAJOR` — لكنّها فوقه قليلًا: أثرُ الاستعمال يُستهلك
+   * ويُصلَح، والصبغُ يبقى في تاريخ المركبة ويُقرأ في كل بيعة.
+   *
+   * // DESIGN-Q: ٠٫٧ اجتهادٌ منّي بين «ملاحظة» و«سليم» — والرقم يمسّ
+   * الدرجة المعروضة، فهو قاعدةُ عملٍ لا تفصيلٌ تقنيّ. ينتظر كلمة المالك.
+   */
+  REPAINT: 0.7,
   MAJOR: 0,
   /** **خارج الحساب**: لا في البسط ولا في المقام. */
   NOT_APPLICABLE: null,
@@ -63,6 +72,8 @@ export type CategoryScore = {
   score: number | null;
   passed: number;
   minor: number;
+  /** مصبوغٌ أو مستبدَل — يُعدّ وحده، فالإفصاحُ غيرُ العطل. */
+  repaint: number;
   major: number;
   notApplicable: number;
 };
@@ -110,11 +121,12 @@ export function scoreInspection(
     const own = byKey.get(category.key) ?? [];
     let credit = 0;
     let counted = 0;
-    const tally = { passed: 0, minor: 0, major: 0, notApplicable: 0 };
+    const tally = { passed: 0, minor: 0, repaint: 0, major: 0, notApplicable: 0 };
 
     for (const item of own) {
       if (item.state === 'PASS') tally.passed += 1;
       else if (item.state === 'MINOR') tally.minor += 1;
+      else if (item.state === 'REPAINT') tally.repaint += 1;
       else if (item.state === 'MAJOR') tally.major += 1;
       else tally.notApplicable += 1;
 

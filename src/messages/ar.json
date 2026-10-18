@@ -153,7 +153,6 @@
     "reportNumber": "رقم التقرير",
     "reportValidity": "صلاحية التقرير",
     "until": "حتى",
-    "inspector": "الفاحص",
     "vin": "رقم الهيكل",
     "grade": {
       "EXCELLENT": "حالة ممتازة",
@@ -179,7 +178,8 @@
     "allSound": "سليمة كلّها",
     "expandAll": "افتح الأقسام كلّها",
     "collapseAll": "اطوِ الأقسام كلّها",
-    "stateFlagged": "عليه ملاحظة"
+    "stateFlagged": "عليه ملاحظة",
+    "inspectorCode": "رقم الفاحص"
   },
   "site": {
     "liveAuctions": "مزادات مباشرة",

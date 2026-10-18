@@ -320,3 +320,117 @@ export async function removeItem(
   );
   return { ok: true };
 }
+
+/**
+ * ═══ وقسمٌ يُضاف — وكان التحرير نصفَ تحرير ═══
+ *
+ * `updateCategory` و`addItem` و`removeItem` مبنيّةٌ منذ نُقل القالب
+ * إلى الجداول، **ولا `addCategory` ولا `removeCategory`** — فالمشغّل
+ * يُعيد تسمية قسمٍ ويحرّر بنودَه ولا يستطيع أن يفتح قسمًا جديدًا ولا
+ * أن يُقاعد قسمًا. وقرار المالك ٢٠٢٦-١٠-١٨ أن يُدار الكلُّ من اللوحة.
+ *
+ * **والمفتاحُ يُولَّد ولا يُكتب**: `key` ثابتٌ تُطابَق به اللقطةُ
+ * المجمَّدة بالقالب الجديد، فمفتاحٌ يكتبه مشغّلٌ بالعربية أو بمسافةٍ
+ * يكسر المطابقة بعد شهور. ويُشتقّ من الاسم بحروفٍ لاتينية، ويُذيَّل
+ * برقمٍ إن تكرّر — فلا يصطدم بقسمٍ قائم.
+ */
+function slugKey(name: string): string {
+  const latin = name
+    .normalize('NFKD')
+    .replace(/[^ -~]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return latin === '' ? 'section' : latin.slice(0, 24);
+}
+
+export async function addCategory(
+  input: Audit & { nameAr: string; nameEn: string; weight: number; icon?: string | null },
+  now: Date = new Date(),
+): Promise<TemplateResult & { categoryId?: string }> {
+  const nameAr = input.nameAr.trim();
+  if (nameAr === '') return { ok: false, reason: 'NAME_REQUIRED' };
+  if (input.weight < 1) return { ok: false, reason: 'BAD_WEIGHT' };
+
+  const template = await db.inspectionTemplate.findFirst({
+    where: { isActive: true },
+    select: { id: true },
+  });
+  if (template === null) return { ok: false, reason: 'NO_TEMPLATE' };
+
+  /** **والترتيبُ من الأعلى لا من العدد** — فجوةٌ واحدة تُنتج تصادمًا. */
+  const last = await db.inspectionCategory.findFirst({
+    where: { templateId: template.id },
+    orderBy: { sort: 'desc' },
+    select: { sort: true },
+  });
+
+  const base = slugKey(input.nameEn.trim() === '' ? nameAr : input.nameEn);
+  const taken = new Set(
+    (
+      await db.inspectionCategory.findMany({
+        where: { templateId: template.id },
+        select: { key: true },
+      })
+    ).map((row) => row.key),
+  );
+  let key = base;
+  for (let n = 2; taken.has(key); n += 1) key = `${base}_${String(n)}`;
+
+  const created = await db.inspectionCategory.create({
+    data: {
+      templateId: template.id,
+      key,
+      nameAr,
+      nameEn: input.nameEn.trim() || nameAr,
+      weight: input.weight,
+      sort: (last?.sort ?? -1) + 1,
+      ...(input.icon === undefined ? {} : { icon: input.icon }),
+    },
+    select: { id: true },
+  });
+
+  await bumpVersion(template.id);
+  await writeAudit(
+    { ...input, entityId: created.id, action: 'inspection.category_added', after: { nameAr, key } },
+    now,
+  );
+  return { ok: true, categoryId: created.id };
+}
+
+/**
+ * يحذف قسمًا — **ويرفض ما دام فيه بند**.
+ *
+ * و`InspectionItem.category` بـ`onDelete: Cascade`، فحذفُ قسمٍ يمحو
+ * بنودَه ومعها **كلَّ جوابٍ عنها في كل مسودّة** — بلا أن يرى المشغّل
+ * رقمًا واحدًا. فالشرطُ أغلظُ من شرط البند: يُفرَّغ القسمُ بندًا بندًا
+ * (وكلُّ بندٍ يُرفض حذفُه إن أُجيب عنه)، ثمّ يُحذف. وهكذا لا يمرّ
+ * محوٌ جماعيّ تحت نقرةٍ واحدة.
+ */
+export async function removeCategory(
+  input: Audit & { categoryId: string },
+  now: Date = new Date(),
+): Promise<TemplateResult> {
+  const category = await db.inspectionCategory.findUnique({
+    where: { id: input.categoryId },
+    select: { nameAr: true, templateId: true, _count: { select: { items: true } } },
+  });
+  if (category === null) return { ok: false, reason: 'NOT_FOUND' };
+  if (category._count.items > 0) {
+    return { ok: false, reason: 'HAS_ITEMS', count: category._count.items };
+  }
+
+  await db.inspectionCategory.delete({ where: { id: input.categoryId } });
+  await bumpVersion(category.templateId);
+  await writeAudit(
+    {
+      ...input,
+      entityId: input.categoryId,
+      action: 'inspection.category_removed',
+      after: { nameAr: category.nameAr },
+    },
+    now,
+  );
+  return { ok: true };
+}

@@ -124,7 +124,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 107 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 108 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 99 |
 | `InspectedBadge` | no | `className` | 3 |
@@ -167,7 +167,7 @@ rather than found by chance.
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 2 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 105 |
+| `Quantity` | no | `unit` · `count` · `className` | 106 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

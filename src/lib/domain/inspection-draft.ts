@@ -279,7 +279,12 @@ export async function saveDraftResult(
   if (!gate.ok) return { ok: false, reason: gate.reason === 'NO_TEMPLATE' ? 'NOT_YOURS' : gate.reason };
 
   const note = input.note?.trim() ?? null;
-  if ((input.state === 'MINOR' || input.state === 'MAJOR') && (note === null || note === '')) {
+  /**
+   * **وكلُّ حالٍ غير «سليم» تُفسَّر.** الملاحظةُ والعطلُ والصبغُ تقول
+   * للمشتري **ماذا** وجد الفاحص، و«لا ينطبق» تقول **لماذا** لم يُفحَص
+   * — و«لم يُفحَص» بلا سببٍ تُقرأ تقصيرًا من الفاحص لا وصفًا للمركبة.
+   */
+  if (input.state !== 'PASS' && (note === null || note === '')) {
     return { ok: false, reason: 'NOTE_REQUIRED' };
   }
 

@@ -24,6 +24,8 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
   const [open, setOpen] = useState<string | null>(template.categories[0]?.id ?? null);
   const [adding, setAdding] = useState<string | null>(null);
   const [draft, setDraft] = useState({ nameAr: '', isCritical: false });
+  /** `null` تعني «لا استمارة مفتوحة» — ونصًّا فارغًا تعني مفتوحةً فارغة. */
+  const [newCategory, setNewCategory] = useState<string | null>(null);
 
   const send = (body: unknown, done: string): void => {
     start(async () => {
@@ -89,6 +91,22 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                   <span aria-hidden className="text-2xs opacity-50">{isOpen ? '▲' : '▼'}</span>
                 </button>
 
+                {/*
+                  **واسمُ القسم يُحرَّر حيث يُقرأ.** كان الوزنُ وحده
+                  قابلًا للتحرير، والاسمُ نصًّا — فتصحيحُ تسميةٍ يحتاج
+                  نشرًا، وهو عينُ ما نُقل القالبُ إلى الجداول لأجله.
+                */}
+                <input
+                  defaultValue={category.nameAr}
+                  aria-label="اسم القسم"
+                  onBlur={(event) => {
+                    const nameAr = event.target.value.trim();
+                    if (nameAr === '' || nameAr === category.nameAr) return;
+                    send({ action: 'category', categoryId: category.id, nameAr }, 'حُفظ اسم القسم.');
+                  }}
+                  className="w-44 rounded-md border border-line bg-surface px-2.5 py-1.5 text-2xs"
+                />
+
                 <label className="flex items-center gap-2 text-3xs opacity-75">
                   الوزن
                   {/* رقمٌ يُقارن خانةً بخانة — لاتينيّ معزول */}
@@ -108,6 +126,27 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                     className="w-16 rounded-md border border-line bg-surface px-2 py-1.5 text-start font-num text-2xs"
                   />
                 </label>
+
+                {/*
+                  **ولا يُحذف قسمٌ فيه بند.** حذفُه يمحو بنودَه بالسلسلة
+                  ومعها كلُّ جوابٍ عنها في كل مسودّة — بلا رقمٍ يراه
+                  المشغّل. فيُفرَّغ بندًا بندًا، وكلُّ بندٍ يُرفض حذفُه
+                  إن أُجيب عنه. والزرُّ يغيب حيث لا يصحّ، وسببُه بجواره.
+                */}
+                {category.items.length > 0 ? (
+                  <span className="text-3xs opacity-65">يُفرَّغ قبل حذفه</span>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() =>
+                      send({ action: 'removeCategory', categoryId: category.id }, 'حُذف القسم.')
+                    }
+                  >
+                    احذف القسم
+                  </Button>
+                )}
               </div>
 
               {!isOpen ? null : (
@@ -206,6 +245,41 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
             </section>
           );
         })}
+
+        {/* ═══ وقسمٌ جديد — والمفتاحُ يُولَّد في النطاق لا يكتبه مشغّل ═══ */}
+        <section className="rounded-lg border border-dashed border-line p-4">
+          {newCategory === null ? (
+            <Button size="sm" variant="outline" onClick={() => setNewCategory('')}>
+              أضف قسمًا
+            </Button>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <input
+                autoFocus
+                value={newCategory}
+                placeholder="اسم القسم — «الزجاج والمرايا»"
+                onChange={(event) => setNewCategory(event.target.value)}
+                className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-2 text-2xs"
+              />
+              <Button
+                size="sm"
+                disabled={busy || newCategory.trim() === ''}
+                onClick={() => {
+                  send({ action: 'addCategory', nameAr: newCategory.trim() }, 'أُضيف القسم.');
+                  setNewCategory(null);
+                }}
+              >
+                أضف
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setNewCategory(null)}>
+                تراجع
+              </Button>
+            </div>
+          )}
+          <p className="mt-2.5 text-3xs leading-loose opacity-65">
+            القسمُ يُضاف فارغًا ثم تُضاف بنودُه — ووزنُه الافتراضيّ واحد، يُعدَّل من رأسه.
+          </p>
+        </section>
       </div>
 
       {toast === null ? null : <Toast title={toast} />}

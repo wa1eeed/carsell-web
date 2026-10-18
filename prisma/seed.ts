@@ -20,6 +20,8 @@ import { placeholderPng } from './placeholder-image';
 import { hashPassword } from '../src/lib/auth/password';
 import { encryptSecret } from '../src/lib/crypto/secrets';
 import { checkIban, ibanLast4 } from '../src/lib/domain/iban';
+/** **ونقيّةٌ بلا `db`** — فالاستيرادُ الساكن لا يجرّ عميلًا قبل تحميل البيئة. */
+import { inspectorCodeFor } from '../src/lib/domain/inspector-code';
 import { Prisma } from '../src/generated/prisma/client';
 import type {
   BodyType,
@@ -1915,6 +1917,9 @@ async function main(): Promise<void> {
 
   const inspectionServiceId = services.get('inspection') as string;
 
+  /** أسماءُ الفاحصين — تبقى في القاعدة، ويُعرض رمزُها وحده. */
+  const INSPECTORS = ['م. تركي الشمري', 'م. بدر المطيري', 'م. عبدالعزيز الحربي'] as const;
+
   /**
    * ═══ ودفترُ الخدمة يُكتب كما يكتبه المنتج ═══
    *
@@ -2079,8 +2084,14 @@ async function main(): Promise<void> {
         score: Math.round(
           sections.reduce((total, section) => total + section.score, 0) / sections.length,
         ),
-        inspectorName:
-          ['م. تركي الشمري', 'م. بدر المطيري', 'م. عبدالعزيز الحربي'][i] ?? 'م. فاحص',
+        /**
+         * **والاسمُ يبقى في القاعدة ولا يُعرض** (قرار المالك
+         * ٢٠٢٦-١٠-١٨): أثرٌ يُحتجّ به عند نزاع، ورمزُه هو المنشور.
+         * ويُشتقّ هنا بالدالّة نفسها التي يكتب بها المنتج — لا برمزٍ
+         * يُكتب بيد فيختلف عن اشتقاقه.
+         */
+        inspectorName: INSPECTORS[i] ?? 'م. فاحص',
+        inspectorCode: inspectorCodeFor(INSPECTORS[i] ?? 'م. فاحص'),
         inspectedAt: days(-between(5, 20)),
         sections,
         paintMap: {
@@ -2158,6 +2169,7 @@ async function main(): Promise<void> {
         vehicleId: buyerInspected.vehicleId,
         score: 78,
         inspectorName: 'م. تركي الشمري',
+        inspectorCode: inspectorCodeFor('م. تركي الشمري'),
         inspectedAt: days(-4),
         /** **خاصٌّ**: طالبُه ليس مالكَ المركبة. */
         publishedAt: null,

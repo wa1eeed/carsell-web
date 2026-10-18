@@ -1,0 +1,523 @@
+/*
+ * ═══ ورقةُ تقرير الفحص — A4 ═══
+ *
+ * **وملفٌّ مستقلّ لا أصنافُ المنصّة.** أصنافُ التصميم مبنيّةٌ لشاشةٍ
+ * تُمرَّر: ظلالٌ لا تُطبع، وخلفياتٌ تُستهلك حبرًا، وقياساتٌ بالبكسل لا
+ * معنى لها على ورق. وهذه الورقةُ تُقاس بالمليمتر.
+ *
+ * **والألوانُ هنا حبرٌ لا توكنات**: التوكنات تتبدّل بالوضع الداكن،
+ * وورقةٌ تُطبع بالأسود على الأبيض مهما كان وضعُ الشاشة. (استثناءٌ
+ * مُعلَن من قاعدة «لا لون مكتوب»، ومحصورٌ في هذا الملفّ.)
+ */
+
+@page {
+  size: A4;
+  margin: 12mm 11mm 14mm;
+}
+
+.sheet {
+  /* القيَم في `globals.css` تحت «حبرُ الورق» — ولا لون مكتوب هنا. */
+  --ink: var(--print-ink);
+  --mute: var(--print-mute);
+  --rule: var(--print-rule);
+  --ok: var(--print-ok);
+  --note: var(--print-note);
+  --fail: var(--print-fail);
+  --brand: var(--print-brand);
+  --brand-deep: var(--print-brand-deep);
+  --brand-soft: var(--print-brand-soft);
+  --brand-edge: var(--print-brand-edge);
+  --gold: var(--print-gold);
+  --gold-soft: var(--print-gold-soft);
+
+  width: 188mm;
+  margin: 0 auto;
+  color: var(--ink);
+  font-size: 8.4pt;
+  line-height: 1.5;
+}
+
+.sheet .mono {
+  font-family: Arial, sans-serif;
+  direction: ltr;
+  unicode-bidi: isolate;
+  letter-spacing: 0.02em;
+}
+
+/* ═══ كرتُ المركبة ═══ */
+/*
+ * ═══ كرتُ المركبة — والهويّةُ تُلبَس لا تُوصَف ═══
+ *
+ * كان حبرًا أسودَ على أبيض: صحيحٌ ورخيص، **ولا يُشبه وثيقةً رسمية**.
+ * فشريطُ هويّةٍ أخضر يعلو الكرت، والبياضُ يُقلَب عليه — وهو كلُّ ما
+ * يلزم ليُقرأ التقريرُ صادرًا عن جهة لا مطبوعًا من متصفّح.
+ */
+.sheet .card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0 7mm;
+  align-items: start;
+  overflow: hidden;
+  border: 0.3mm solid var(--brand-edge);
+  border-top: 3mm solid var(--brand);
+  border-radius: 2mm;
+  background: linear-gradient(180deg, var(--brand-soft) 0, var(--print-paper) 22mm);
+  padding: 5mm 6mm;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.sheet .brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+  padding-inline-end: 6mm;
+  border-inline-end: 0.2mm solid var(--brand-edge);
+}
+.sheet .wordmark {
+  font-size: 15pt;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--brand-deep);
+}
+.sheet .kicker {
+  font-size: 7pt;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.sheet .identity h1 {
+  margin: 0 0 1mm;
+  color: var(--brand-deep);
+  font-size: 13pt;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.sheet .facts {
+  margin: 0 0 3mm;
+  font-size: 8pt;
+  color: var(--mute);
+}
+.sheet .dot {
+  margin: 0 1.6mm;
+  opacity: 0.45;
+}
+
+.sheet .meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.4mm 4mm;
+  margin: 0;
+}
+.sheet .meta dt {
+  font-size: 6.6pt;
+  color: var(--mute);
+}
+.sheet .meta dd {
+  margin: 0.4mm 0 0;
+  font-size: 8.2pt;
+  font-weight: 700;
+}
+/* **ومرجعٌ لا يُكسَر سطرًا**: «INS-2026-‏41800» يُقرأ رقمين لا رقمًا. */
+.sheet .meta dd.mono {
+  white-space: nowrap;
+}
+
+/* والدرجةُ قرصٌ بلون الهويّة — أوّلُ ما تقع عليه العين */
+.sheet .score {
+  display: flex;
+  width: 26mm;
+  height: 26mm;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2mm;
+  border: 0.6mm solid var(--brand);
+  border-radius: 50%;
+  background: var(--brand-soft);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.sheet .score .value {
+  font-family: Arial, sans-serif;
+  font-size: 22pt;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--brand-deep);
+}
+.sheet .score .of {
+  font-size: 6pt;
+  color: var(--brand);
+}
+.sheet .grade {
+  margin-top: 0.8mm;
+  padding: 0.6mm 2.2mm;
+  border: 0.25mm solid currentcolor;
+  border-radius: 1mm;
+  font-size: 7pt;
+  font-weight: 700;
+}
+.sheet .grade-excellent,
+.sheet .grade-good {
+  color: var(--ok);
+}
+.sheet .grade-fair {
+  color: var(--note);
+}
+.sheet .grade-poor {
+  color: var(--fail);
+}
+
+.sheet .qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1mm;
+  width: 26mm;
+}
+.sheet .qr-box svg {
+  display: block;
+  width: 24mm;
+  height: 24mm;
+}
+.sheet .qr-cap,
+.sheet .qr-missing {
+  font-size: 6.2pt;
+  color: var(--mute);
+  text-align: center;
+}
+.sheet .qr-url {
+  font-size: 5.4pt;
+  color: var(--mute);
+  word-break: break-all;
+  text-align: center;
+}
+
+/* ═══ البنر والخلاصة ═══ */
+.sheet .banner {
+  margin: 4mm 0 0;
+  padding: 2.4mm 3mm;
+  border-inline-start: 0.8mm solid var(--note);
+  background: var(--print-warn-bg);
+  font-size: 8pt;
+  color: var(--note);
+}
+
+.sheet .summary {
+  display: grid;
+  grid-template-columns: 62mm 1fr;
+  gap: 7mm;
+  margin-top: 6mm;
+  padding-top: 5mm;
+  border-top: 0.2mm solid var(--rule);
+}
+
+.sheet .tallies {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sheet .tallies li {
+  display: flex;
+  align-items: baseline;
+  gap: 2.2mm;
+}
+.sheet .tallies .n {
+  font-family: Arial, sans-serif;
+  font-size: 11pt;
+  font-weight: 800;
+}
+.sheet .tallies .t {
+  font-size: 7.6pt;
+  color: var(--mute);
+}
+.sheet .tallies .total {
+  padding-top: 2mm;
+  border-top: 0.2mm solid var(--rule);
+}
+
+.sheet .mark {
+  display: inline-flex;
+  width: 3.6mm;
+  height: 3.6mm;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0.25mm solid currentcolor;
+  border-radius: 50%;
+  font-size: 6.4pt;
+  font-weight: 800;
+  line-height: 1;
+}
+.sheet .mark.ok {
+  color: var(--ok);
+}
+.sheet .mark.note {
+  color: var(--note);
+}
+.sheet .mark.fail {
+  color: var(--fail);
+  border-radius: 0.6mm;
+}
+.sheet .mark.none {
+  color: var(--mute);
+}
+
+.sheet .scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.4mm 7mm;
+  align-content: start;
+}
+.sheet .bar {
+  display: grid;
+  grid-template-columns: 34mm 1fr 8mm;
+  gap: 2.4mm;
+  align-items: center;
+  font-size: 7.6pt;
+}
+.sheet .bname {
+  font-weight: 700;
+}
+.sheet .track {
+  height: 1.2mm;
+  border-radius: 1mm;
+  background: var(--print-track);
+}
+.sheet .fill {
+  display: block;
+  height: 100%;
+  border-radius: 1mm;
+  background: var(--brand);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.sheet .bval {
+  font-weight: 800;
+  text-align: end;
+}
+
+/* ═══ الأقسام ═══ */
+.sheet h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 2.4mm;
+  margin: 7mm 0 2.6mm;
+  padding-bottom: 1.4mm;
+  border-bottom: 0.35mm solid var(--brand);
+  font-size: 10pt;
+  font-weight: 800;
+  color: var(--brand-deep);
+}
+.sheet h2 .count {
+  font-family: Arial, sans-serif;
+  font-size: 8pt;
+  color: var(--mute);
+}
+
+.sheet .panels ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.4mm 4mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 7.4pt;
+}
+.sheet .panels li {
+  display: flex;
+  justify-content: space-between;
+  gap: 2mm;
+  padding-bottom: 1mm;
+  border-bottom: 0.2mm dotted var(--rule);
+}
+.sheet .panels .pv {
+  color: var(--mute);
+}
+.sheet .panels li.repainted .pv,
+.sheet .panels li.replaced .pv {
+  font-weight: 700;
+  color: var(--note);
+}
+.sheet .pnote {
+  margin: 0 0 2.6mm;
+  font-size: 7.6pt;
+  color: var(--mute);
+}
+
+.sheet .findings ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sheet .findings li {
+  display: flex;
+  gap: 2.4mm;
+  margin-bottom: 1.2mm;
+  padding: 2mm 2.4mm;
+  border: 0.2mm solid var(--brand-edge);
+  border-inline-start: 0.8mm solid var(--gold);
+  border-radius: 1mm;
+  background: var(--gold-soft);
+  break-inside: avoid;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.sheet .fbody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1.6mm 2.4mm;
+}
+.sheet .fstate {
+  padding: 0.3mm 1.6mm;
+  border: 0.2mm solid var(--rule);
+  border-radius: 0.8mm;
+  font-size: 6.6pt;
+  color: var(--mute);
+}
+.sheet .fnote {
+  width: 100%;
+  margin-top: 0.4mm;
+  font-size: 7.4pt;
+  line-height: 1.45;
+  color: var(--mute);
+}
+
+/* ═══ متنُ البنود ═══ */
+.sheet .sect {
+  margin-bottom: 4mm;
+  break-inside: avoid;
+}
+.sheet .sect h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 1.6mm;
+  padding: 1.3mm 2.6mm;
+  border-inline-start: 1mm solid var(--brand);
+  background: var(--brand-soft);
+  border-radius: 1mm;
+  font-size: 8.4pt;
+  font-weight: 800;
+  color: var(--brand-deep);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.sheet .sect ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8mm 5mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sheet .sect li {
+  display: flex;
+  align-items: baseline;
+  gap: 1.8mm;
+  padding-bottom: 0.8mm;
+  border-bottom: 0.2mm dotted var(--rule);
+  font-size: 7.2pt;
+  break-inside: avoid;
+}
+.sheet .sect .pl {
+  flex: 1;
+  min-width: 0;
+}
+/*
+ * ═══ والموسومُ يأخذ السطر كلَّه، وملاحظتُه سطرًا تحته ═══
+ *
+ * الشبكةُ ثلاثةُ أعمدة، وملاحظةُ فاحصٍ في ثلثِ عرضٍ تتكسّر كلمةً في
+ * كل سطر فتختلط باسم البند. ثمّ جرّبتُها بجواره في سطرٍ واحد فازدحما:
+ * «مساعد أمامي أيسر — ملاحظة — بداية ترشيح…» يُقرأ جملةً واحدة لا
+ * بندًا وخبرَه. **فالاسمُ سطرٌ والخبرُ سطرٌ تحته**، بمسافةِ بادئةٍ
+ * تحاذي العلامة — فيُمسح الاسمُ وحده بالعين، ويُقرأ الخبرُ عند الحاجة.
+ */
+.sheet .sect li.flagged {
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  margin: 0.8mm 0 1.4mm;
+  padding-bottom: 1.6mm;
+  border-bottom-style: solid;
+}
+.sheet .sect li.flagged .pl {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+/* ووسمُ الحال يسبق الملاحظة فيُقرأ «ماذا» قبل «لماذا» */
+.sheet .sect .plabel {
+  display: inline-block;
+  margin-inline-end: 1.8mm;
+  padding: 0.2mm 1.4mm;
+  border: 0.18mm solid currentcolor;
+  border-radius: 0.8mm;
+  font-size: 6.2pt;
+  font-weight: 700;
+}
+
+.sheet .sect .pn {
+  /* سطرٌ مستقلّ: يملأ العرض فينزل تحت الاسم */
+  width: 100%;
+  padding-inline-start: 5.4mm;
+  margin-top: 0.6mm;
+  color: var(--note);
+  font-size: 6.8pt;
+  line-height: 1.45;
+}
+
+.sheet .foot {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+  margin-top: 7mm;
+  padding-top: 2.6mm;
+  border-top: 0.6mm solid var(--brand);
+  font-size: 6.6pt;
+  color: var(--mute);
+}
+
+/*
+ * ═══ ولا شيء من المنصّة داخل الورقة ═══
+ *
+ * الورقةُ تُقدَّم بلا `shell` — بلا ترويسةٍ ولا فتاتِ خبز — **وتخطيطُ
+ * المجموعة `(site)` يُلحق تذييلَه بعدها**: «تصفّح السيارات · المزادات
+ * · الشروط والأحكام» في ذيل تقريرٍ يُطبع ورقًا. وقِيس بالفتح: تذييلان
+ * في الصفحة، تذييلُ التقرير وتذييلُ الموقع.
+ *
+ * و**لا يُنتزع بتغيير المسار**: `(site)` مجموعةٌ لا تظهر في العنوان،
+ * فلا يصحّ مسارٌ ثانٍ بالعنوان نفسه خارجها — والعنوانُ فرعٌ من عنوان
+ * المركبة عمدًا. فيُحجب حيث يُعرَف: حيثما وُجدت الورقة.
+ */
+body:has(.sheet) > footer,
+body:has(.sheet) > header {
+  display: none;
+}
+
+/* ═══ وعلى الشاشة تُعرض كورقةٍ أيضًا ═══ */
+@media screen {
+  body:has(.sheet) {
+    background: var(--print-desk);
+  }
+  .sheet {
+    box-sizing: content-box;
+    margin: 8mm auto;
+    padding: 12mm 11mm 14mm;
+    background: var(--print-paper);
+    box-shadow: 0 2mm 8mm var(--print-shadow);
+  }
+}
+
+@media print {
+  .sheet .sect,
+  .sheet .findings li {
+    break-inside: avoid;
+  }
+  .sheet .summary {
+    break-after: auto;
+  }
+}

@@ -153,7 +153,6 @@
     "reportNumber": "Report number",
     "reportValidity": "Valid until",
     "until": "until",
-    "inspector": "Inspector",
     "vin": "VIN",
     "grade": {
       "EXCELLENT": "Excellent",
@@ -179,7 +178,8 @@
     "allSound": "All sound",
     "expandAll": "Expand all sections",
     "collapseAll": "Collapse all sections",
-    "stateFlagged": "Flagged"
+    "stateFlagged": "Flagged",
+    "inspectorCode": "Inspector code"
   },
   "site": {
     "liveAuctions": "live auctions",

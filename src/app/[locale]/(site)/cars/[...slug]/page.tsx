@@ -23,6 +23,10 @@ import { taxProfileOf } from '@/lib/domain/tax-profile';
 import { CarPage } from './CarPage';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { InspectionScreen } from './InspectionScreen';
+import { ReportSheet } from './ReportSheet';
+import './report-sheet.css';
+import { SITE_URL } from '@/lib/env';
+import { qrSvg } from '@/lib/qr';
 import { landingDepth } from '@/lib/domain/landing';
 import { JsonLd } from './JsonLd';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
@@ -53,8 +57,15 @@ async function resolve(params: Params) {
    * مركبةٍ معروضة، فرابطه فرع من رابطها لا جار له.
    */
   const raw = slug.map(fromSlug);
-  const wantsReport = raw[raw.length - 1] === 'inspection';
-  const parts = wantsReport ? raw.slice(0, -1) : raw;
+  /**
+   * **وورقةُ الطباعة فرعٌ من التقرير** — `…/inspection/pdf`. فعنوانُها
+   * يقول ما هي، ويُنسخ ويُفتح وحده، ولا تُبنى بمعاملٍ (`?print=1`)
+   * يضيع عند أوّل مشاركةٍ للرابط.
+   */
+  const wantsSheet = raw[raw.length - 1] === 'pdf' && raw[raw.length - 2] === 'inspection';
+  const trimmed = wantsSheet ? raw.slice(0, -1) : raw;
+  const wantsReport = trimmed[trimmed.length - 1] === 'inspection';
+  const parts = wantsReport ? trimmed.slice(0, -1) : trimmed;
 
   const ref = parts.length === 1 ? parts[0] : parts.length === 4 ? parts[3] : null;
   if (ref === undefined || ref === null) notFound();
@@ -78,11 +89,15 @@ async function resolve(params: Params) {
    * أعلاه. حلقة تحويل لا نهائية تُسقط الصفحة عن الفهرسة كلّها
    * وتظهر للزائر صفحة خطأ — وثمن الحارس مقارنة نصّين.
    */
-  const target = wantsReport ? `${canonical.path}/inspection` : canonical.path;
+  const target = wantsSheet
+    ? `${canonical.path}/inspection/pdf`
+    : wantsReport
+      ? `${canonical.path}/inspection`
+      : canonical.path;
   const here = `/${locale}/cars/${raw.map((part) => encodeURIComponent(part)).join('/')}`;
   if (!matches && target !== here) permanentRedirect(target);
 
-  return { row, canonical, locale, wantsReport };
+  return { row, canonical, locale, wantsReport, wantsSheet };
 }
 
 export async function generateMetadata({
@@ -201,6 +216,37 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
     resolved.locale === 'ar' ? AR_DATE_LOCALE : 'en-GB',
     { day: 'numeric', month: 'long', year: 'numeric' },
   );
+
+  /**
+   * ═══ وورقةُ الطباعة تُقدَّم عاريةً ═══
+   *
+   * بلا `shell`: لا ترويسةَ موقع ولا تذييل ولا فتات خبز — ورقةُ تقريرٍ
+   * مقاسُها A4، وكلُّ ما حولها حبرٌ يُهدر. والرمزُ يُرسم هنا على
+   * الخادم فتصل الصفحة مرسومة.
+   */
+  if (resolved.wantsSheet) {
+    const path = resolved.canonical.path;
+    /**
+     * **والنطاقُ الرسميّ لا مضيفُ التصيير.** ورقةٌ تُطبع من التطوير
+     * كانت تحمل رمزًا يقود إلى `localhost:3000` وعنوانًا تحته لا وجود
+     * له — ورقٌ لا يصل أحدًا. والمسارُ كما هو، ولا يتبدّل إلّا المضيف.
+     */
+    const listingUrl = report.listing === null ? null : `${SITE_URL}${path}`;
+    const qr = listingUrl === null ? null : await qrSvg(listingUrl, 220);
+
+    return (
+      <ReportSheet
+        report={report}
+        expired={expired}
+        qr={qr}
+        listingUrl={listingUrl}
+        formatted={{
+          inspectedAt: dateFormat.format(inspected),
+          validUntil: dateFormat.format(new Date(report.validUntil)),
+        }}
+      />
+    );
+  }
 
   return shell(
     <>

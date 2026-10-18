@@ -1,7 +1,7 @@
 import type { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import type { InspectionSection, PaintPanelState, PointState } from './inspection';
-import { publishOnIssue } from './inspection';
+import { inspectorCodeFor, publishOnIssue } from './inspection';
 import { scoreInspection, type ScoredItem } from './inspection-score';
 
 /**
@@ -77,7 +77,9 @@ export function freezeSections(
             ? 'FAIL'
             : answer.state === 'MINOR'
               ? 'NOTE'
-              : 'OK';
+              : answer.state === 'REPAINT'
+                ? 'PAINT'
+                : 'OK';
       return {
         id: item.key,
         label: item.nameAr,
@@ -246,6 +248,8 @@ export async function approveInspection(
       frozenSections: true,
       frozenPaintMap: true,
       frozenScore: true,
+      providerId: true,
+      providerUserId: true,
       serviceRequest: {
         select: {
           ref: true,
@@ -268,6 +272,14 @@ export async function approveInspection(
    */
   const inspectorName = draft.serviceRequest.provider?.nameAr ?? null;
   if (inspectorName === null) return { ok: false, reason: 'NO_PROVIDER' };
+
+  /**
+   * **والرمزُ من الشخص متى عُرف، ومن المركز وإلّا.** `providerUserId`
+   * هو من ملأ المسودّة فعلًا — فرمزُه يتكرّر على تقاريره هو، ومن قرأ
+   * تقريرين يعرف أنهما لفاحصٍ واحد. ومسودّةٌ فُتحت بلا مستخدم (مسارٌ
+   * إداريّ) تُنسب إلى مركزها، فلا يبقى الحقل فارغًا.
+   */
+  const inspectorCode = inspectorCodeFor(draft.providerUserId ?? draft.providerId);
 
   /** **والتسلسلُ من الأعلى لا من العدد** — فجوةٌ واحدة تجعل التالي يصطدم بمرجعٍ قائم. */
   const last = await db.inspectionReport.findFirst({
@@ -293,6 +305,7 @@ export async function approveInspection(
         sections: draft.frozenSections as Prisma.InputJsonValue,
         paintMap: (draft.frozenPaintMap ?? {}) as Prisma.InputJsonValue,
         inspectorName,
+        inspectorCode,
         inspectedAt: now,
         publishedAt: published ? now : null,
       },

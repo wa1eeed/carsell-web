@@ -45,6 +45,28 @@ export const R2_PREFIX: string = isProduction ? 'production' : 'staging';
  */
 export const APP_URL: string = (process.env.APP_URL ?? 'http://localhost:3000').replace(/\/+$/, '');
 
+/**
+ * ═══ نطاقُ المنصّة كما يُطبع على الورق ═══
+ *
+ * `APP_URL` عنوانُ **المضيف الذي يُصيّر**: محلّيٌّ في التطوير، ونطاقُ
+ * التجريب في staging. وذلك صحيحٌ لخريطة الموقع والروابط المطلقة —
+ * **وخطأٌ على وثيقةٍ تُطبع وتُسلَّم**: تقريرٌ في يد مشترٍ يحمل رمزًا
+ * يقود إلى `localhost:3000` لا يقود إلى شيء، ويقرأ تحته عنوانًا لا
+ * وجود له. قرار المالك ٢٠٢٦-١٠-١٨: «استبدل بالدومين الرسمي الذي تعمل
+ * عليه المنصه».
+ *
+ * فالوثائقُ تقرأ هذا، والنطاقُ الرسميّ `carz.sa`. **ومسارُ الرابط
+ * كما هو** — تفاصيلُ المركبة نفسها، ولا يتبدّل منه إلّا المضيف.
+ *
+ * وافتراضيُّه النطاقُ لا `localhost`: الورقةُ تُطبع من أيّ بيئة،
+ * وبيئةٌ تنسى المتغيّر تطبع عنوانًا صحيحًا لا عنوانَ حاسوبٍ مطوّر.
+ */
+export const SITE_URL: string = (
+  process.env.PUBLIC_SITE_URL ??
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  'https://carz.sa'
+).replace(/\/+$/, '');
+
 /** مفتاح كائن في R2 داخل مجلّد البيئة الحالية. */
 export function r2Key(...segments: readonly string[]): string {
   return [R2_PREFIX, ...segments]

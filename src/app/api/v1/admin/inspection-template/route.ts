@@ -3,7 +3,9 @@ import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import {
+  addCategory,
   addItem,
+  removeCategory,
   removeItem,
   updateCategory,
   updateItem,
@@ -44,6 +46,15 @@ const Body = z.discriminatedUnion('action', [
     isCritical: z.boolean().optional(),
   }),
   z.object({ action: z.literal('remove'), itemId: z.string().min(1).max(40) }),
+  /** قسمٌ جديد — والمفتاحُ يُولَّد في النطاق فلا يكتبه مشغّل. */
+  z.object({
+    action: z.literal('addCategory'),
+    nameAr: z.string().min(1).max(120),
+    nameEn: z.string().max(120).optional(),
+    weight: z.number().int().min(1).max(100).optional(),
+    icon: z.string().max(40).nullable().optional(),
+  }),
+  z.object({ action: z.literal('removeCategory'), categoryId: z.string().min(1).max(40) }),
 ]);
 
 export async function POST(request: NextRequest) {
@@ -71,7 +82,17 @@ export async function POST(request: NextRequest) {
               unit: body.unit ?? null,
               isCritical: body.isCritical ?? false,
             })
-          : await removeItem({ ...audit, itemId: body.itemId });
+          : body.action === 'remove'
+            ? await removeItem({ ...audit, itemId: body.itemId })
+            : body.action === 'addCategory'
+              ? await addCategory({
+                  ...audit,
+                  nameAr: body.nameAr,
+                  nameEn: body.nameEn ?? body.nameAr,
+                  weight: body.weight ?? 1,
+                  ...(body.icon === undefined ? {} : { icon: body.icon }),
+                })
+              : await removeCategory({ ...audit, categoryId: body.categoryId });
 
   if (!result.ok) {
     if (result.reason === 'NOT_FOUND') return fail(ERRORS.NOT_FOUND, 404);

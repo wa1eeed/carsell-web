@@ -937,6 +937,40 @@ Still with the owner, and it does not block the above:
 | **Naming** | «عطل» is sharper than the common case (a strut beginning to seep). The owner's own words suggest «يحتاج صيانة أو استبدال». A rename touches frozen reports, so it needs the owner's word first. |
 | **Scoring a non-inspected point** | Excluded from the section score, or counted against it? Nothing can produce one yet, so the question is not urgent — but it is a money-adjacent rule once it can. |
 
+## 12 · The report, continued — *owner's requests 2026-10-18*
+
+Five, given after reading the rebuilt report:
+
+> «لا تحذفها و ابقها في البند (الهيكل و الصبغ) واستبدل اسم البند (الهيكل
+> الخارجي) .. ايضاً البنود الاساسيه و الحقول الفرعيه لكامل الفحص يمكن اعداد
+> البنود و تعديلها و اضافتها و حذفها من الأدمن … طبعاً الملاحظات الاضافيه يمكن
+> اضافتها على الحاله من نوع (عليه ملاحظات) … ايضاً اسم الفاحص بدل الاسم الصريح
+> ضع رقم الآي دي للفاحص لمزيد من خصوصية الفاحص … بالنسبه لتحميل تقرير الفحص يجب
+> ان يكون البي دي اف مصمم بعنايه … كأنه تقرير بي دي اف مصمم … يحتوي على مستطيل
+> في مقدمه الصفحة ككرت معلومات السيارة و بجانبه QR كود يقود لرابط السياره في
+> المنصه على الدومين carz.sa»
+
+- [x] **`PAINT` stays, and gets the writer it never had.** The owner answered the
+      open question: keep «صبغ», inside the body section. So it becomes a state
+      the inspector can actually choose — today only the seed writes it, which
+      is why no real report could ever show it.
+- [x] **That section is renamed «الهيكل الخارجي».** Category names are rows now,
+      so this is a migration, not a seed edit — reference data reaches a live
+      database by migration or it reaches only new environments.
+- [x] **Categories can be added and removed from the panel.** `updateCategory`,
+      `updateItem`, `addItem` and `removeItem` exist; **`addCategory` and
+      `removeCategory` do not** — so the operator can rename a section and edit
+      its points but cannot create a section or retire one.
+- [x] **The inspector is identified by a code, not a name.** Privacy: the person
+      who inspected a stranger's car should not be named on a public page.
+- [x] **The PDF is a designed report, not a printout of the page.** Today the
+      button calls `window.print()` — `pdfUrl` has never had a writer. It needs
+      its own A4 layout: a vehicle card across the head of the first page with a
+      QR beside it pointing at the listing on `carz.sa`.
+
+**And `carz.sa` is the production domain** — recorded here because `APP_URL`
+and the sitemap, canonical links and QR payloads all read from it.
+
 ## Also open, outside the four stages
 
 These were asked for or decided earlier and are not part of the sequence above.
