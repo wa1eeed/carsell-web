@@ -6,10 +6,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
-import { CITY_SLUG } from '@/lib/labels/cities';
-
-/** مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط. */
-const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
+import { CITY_NAMES } from '@/lib/labels/cities';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { profileCompletion } from '@/lib/domain/profile';
 import { ProfileForm } from './ProfileForm';

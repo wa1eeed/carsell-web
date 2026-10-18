@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { cn } from '@/lib/cn';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
@@ -23,6 +24,7 @@ export function AccountList({
   crumb,
   subtitle,
   stats,
+  notice,
   filters,
   empty,
   action,
@@ -44,6 +46,13 @@ export function AccountList({
    * جوابٌ، وإخفاؤه يجعل الرقم يظهر فجأةً فيبدو أنه بُني الآن.
    */
   stats?: ReactNode;
+  /**
+   * بشارةُ ما وقع لتوّه — «حُفظت سيارتك».
+   *
+   * **وموضعُها فوق الترشيح**: من عاد من حفظٍ ناجح يقرأ النتيجة قبل
+   * أن يبحث عن صفّه، ولا يُزاحمها شريطُ تبويبات.
+   */
+  notice?: ReactNode;
   /**
    * صفُّ ترشيحٍ بين الترويسة والقائمة.
    *
@@ -95,6 +104,8 @@ export function AccountList({
 
           {stats === undefined ? null : <div className="mb-7">{stats}</div>}
 
+          {notice === undefined ? null : <div className="mb-6">{notice}</div>}
+
           {filters === undefined ? null : <div className="mb-6">{filters}</div>}
 
           {children.length === 0 ? (
@@ -133,11 +144,36 @@ export function AccountRow({
    */
   badge?: ReactNode;
 }) {
+  /**
+   * ═══ الرابطُ يمتدّ ولا يلفّ ═══
+   *
+   * كان الصفُّ كلُّه داخل `<Link>`، وتحته «اطلب خدمة» و«اعرضها للبيع»
+   * رابطان — **`<a>` داخل `<a>`**. وHTML لا يجيزه، فيعيد المتصفّح
+   * بناء الشجرة ويسقط التصيير بـ«Hydration failed» على أربع شاشات
+   * حساب. وهو الصنفُ الذي وُلدت منه البوابة ٤٨ (`<a><button>`)،
+   * **أفلتَ منها لأنّ التداخل يعبر حدَّ المكوّن**: اللافُّ هنا والملفوفُ
+   * في خاصّية `value` يبعثها النداء.
+   *
+   * والعلاجُ الامتداد: العنوانُ هو الرابط، و`after:inset-0` يمدّ
+   * مساحتَه على البطاقة كلِّها — فتُفتح بالنقر في أي موضع، وتبقى
+   * الأفعالُ (`relative z-10`) إخوةً له لا أبناء.
+   */
   const body = (
-    <div className="flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4">
+    <div
+      className={cn(
+        'relative flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4',
+        href === null ? '' : 'transition-opacity hover:opacity-80',
+      )}
+    >
       <div className="min-w-0">
         <p className="flex flex-wrap items-baseline gap-2 text-sm font-bold">
-          {title}
+          {href === null ? (
+            title
+          ) : (
+            <Link href={href} className="after:absolute after:inset-0 after:content-['']">
+              {title}
+            </Link>
+          )}
           {year === undefined ? null : (
             <span className="font-num text-2xs opacity-65">
               <ArabicNumber value={year} grouped={false} />
@@ -151,13 +187,7 @@ export function AccountRow({
     </div>
   );
 
-  return href === null ? (
-    <div className="opacity-70">{body}</div>
-  ) : (
-    <Link href={href} className="block transition-opacity hover:opacity-80">
-      {body}
-    </Link>
-  );
+  return href === null ? <div className="opacity-70">{body}</div> : body;
 }
 
 export { Money };

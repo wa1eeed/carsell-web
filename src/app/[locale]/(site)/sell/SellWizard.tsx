@@ -1,10 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { cityLabel } from '@/lib/labels/cities';
-import { PlateField } from '@/components/ui/plate/PlateField';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -21,6 +18,17 @@ import {
   Toggle,
   trimZeros,
 } from '@/components/site/AuctionSettings';
+import { cityLabel } from '@/lib/labels/cities';
+import {
+  EMPTY_VEHICLE,
+  FIELD_CLASS,
+  VehicleFields,
+  VehiclePlateField,
+  useVehicleCatalog,
+  vehiclePayload,
+  type CatalogOption,
+  type VehicleDraft,
+} from '@/components/site/VehicleFields';
 import { Stepper } from '@/components/ui/Stepper';
 import { PriceGuidance } from '@/components/site/PriceGuidance';
 import type { RangeStats } from '@/components/ui/RangeBar';
@@ -28,64 +36,6 @@ import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import type { TaxProfile } from '@/lib/domain/tax-profile';
 import { displayDigits, toLatinDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
-
-type Option = { id: string; nameAr: string; nameEn: string };
-
-/** فئةٌ **بمواصفاتها** — وهي ما يملأ الحقول عند اختيارها. */
-type TrimSpec = Option & {
-  bodyType: string;
-  transmission: string;
-  fuel: string;
-  drivetrain: string;
-  seats: number;
-  doors: number;
-};
-
-/** ما يعرفه الكتالوج عن هذا الطراز — والحقول تُحصر به. */
-type SpecOptions = {
-  bodyTypes: string[];
-  transmissions: string[];
-  fuels: string[];
-  drivetrains: string[];
-  seats: number[];
-  fromTrims: number;
-};
-
-const ALL_OPTIONS: SpecOptions = {
-  bodyTypes: ['SEDAN', 'SUV', 'HATCHBACK', 'COUPE', 'PICKUP', 'VAN', 'WAGON', 'CONVERTIBLE'],
-  transmissions: ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT'],
-  fuels: ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC'],
-  drivetrains: ['FWD', 'RWD', 'AWD', 'FOURWD'],
-  seats: [2, 4, 5, 7, 8],
-  fromTrims: 0,
-};
-
-type Vehicle = {
-  vin: string;
-  brandId: string;
-  modelId: string;
-  /** الفئة تُملي الهيكل والدفع والمقاعد — فلا تُكتب يدويًّا */
-  trimId: string;
-  condition: string;
-  year: string;
-  mileageKm: string;
-  transmission: string;
-  fuel: string;
-  spec: string;
-  city: string;
-  colorExterior: string;
-  /** لوحةُ المركبة — وكان العمودان في المخطّط بلا نموذجٍ يكتبهما. */
-  plateLetters: string;
-  plateNumbers: string;
-  /** إظهارُها مع الإعلان — اختيارُ البائع، وافتراضُه الإخفاء. */
-  showPlate: boolean;
-};
-
-const EMPTY: Vehicle = {
-  vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
-  transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
-  plateLetters: '', plateNumbers: '', showPlate: false,
-};
 
 /**
  * رقمٌ من حقلٍ يقبل كل صيغة لصق — **و`null` للفارغ لا صفر**.
@@ -145,7 +95,7 @@ export function SellWizard({
   allowedMethods,
 }: {
   taxProfile: TaxProfile;
-  brands: readonly Option[];
+  brands: readonly CatalogOption[];
   cities: readonly string[];
   locale: string;
   /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
@@ -172,14 +122,20 @@ export function SellWizard({
 }) {
   const router = useRouter();
   const t = useTranslations('sell');
-  const te = useTranslations('enums');
   const tx = useTranslations('tax');
 
   const [step, setStep] = useState<(typeof STEPS)[number]>('vehicle');
-  const [vehicle, setVehicle] = useState<Vehicle>(EMPTY);
-  const [models, setModels] = useState<Option[]>([]);
-  const [trims, setTrims] = useState<TrimSpec[]>([]);
-  const [options, setOptions] = useState<SpecOptions>(ALL_OPTIONS);
+  /**
+   * الكتالوجُ المتتالي ومعه حقولُ المركبة — **مشتركةٌ مع شاشة «أضف
+   * سيارة» في الحساب**، فاستمارتان لا تتباعدان.
+   */
+  const catalog = useVehicleCatalog(EMPTY_VEHICLE);
+  const { vehicle, set, models } = catalog;
+  /**
+   * **وإظهارُ اللوحة خاصّيةُ الإعلان لا المركبة** — فهي خارج
+   * `VehicleDraft`: مركبةٌ في المرآب لا تُعرض على أحد.
+   */
+  const [showPlate, setShowPlate] = useState(false);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [price, setPrice] = useState('');
   /**
@@ -266,22 +222,7 @@ export function SellWizard({
       const response = await fetch('/api/v1/vehicles', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          brandId: vehicle.brandId,
-          modelId: vehicle.modelId,
-          trimId: vehicle.trimId,
-          year: Number(toLatinDigits(vehicle.year).replace(/\D/g, '')),
-          mileageKm: Number(toLatinDigits(vehicle.mileageKm).replace(/\D/g, '')),
-          transmission: vehicle.transmission,
-          fuel: vehicle.fuel,
-          spec: vehicle.spec,
-          condition: vehicle.condition,
-          city: vehicle.city,
-          colorExterior: vehicle.colorExterior,
-          plateLetters: vehicle.plateLetters || null,
-          plateNumbers: vehicle.plateNumbers || null,
-          vin: vehicle.vin === '' ? null : vehicle.vin,
-        }),
+        body: JSON.stringify(vehiclePayload(vehicle)),
       }).catch(() => null);
 
       setPublishing(false);
@@ -318,24 +259,9 @@ export function SellWizard({
           // سعرٌ لم يُكتب بعد يُحفظ واحدًا — والنشر يفحصه
           askPrice: Math.max(1, Number(toLatinDigits(price).replace(/\D/g, '')) || 1),
           taxableSupply: null,
-          vehicle: {
-            brandId: vehicle.brandId,
-            modelId: vehicle.modelId,
-            trimId: vehicle.trimId,
-            year: Number(toLatinDigits(vehicle.year).replace(/\D/g, '')),
-            mileageKm: Number(toLatinDigits(vehicle.mileageKm).replace(/\D/g, '')),
-            transmission: vehicle.transmission,
-            fuel: vehicle.fuel,
-            spec: vehicle.spec,
-            condition: vehicle.condition,
-            city: vehicle.city,
-            colorExterior: vehicle.colorExterior,
-            plateLetters: vehicle.plateLetters || null,
-            plateNumbers: vehicle.plateNumbers || null,
-            vin: vehicle.vin === '' ? null : vehicle.vin,
-          },
+          vehicle: vehiclePayload(vehicle),
           /** **ومعاملٌ يُرسَل ولا يُقرأ صمتٌ** — فيُقرأ في النطاق ويُخزَّن. */
-          showPlate: vehicle.showPlate,
+          showPlate,
           images: images.map((image) => image.key),
         }),
       }).catch(() => null);
@@ -437,20 +363,15 @@ export function SellWizard({
           type: method,
           askPrice: Number(toLatinDigits(price).replace(/\D/g, '')),
           taxableSupply,
-          vehicle: {
-            brandId: vehicle.brandId,
-            modelId: vehicle.modelId,
-            trimId: vehicle.trimId,
-            year: Number(toLatinDigits(vehicle.year).replace(/\D/g, '')),
-            mileageKm: Number(toLatinDigits(vehicle.mileageKm).replace(/\D/g, '')),
-            transmission: vehicle.transmission,
-            fuel: vehicle.fuel,
-            spec: vehicle.spec,
-            condition: vehicle.condition,
-            city: vehicle.city,
-            colorExterior: vehicle.colorExterior,
-            vin: vehicle.vin === '' ? null : vehicle.vin,
-          },
+          /**
+           * **وكان النشرُ يُسقط اللوحة.** المسودّةُ تحملها والمرآبُ
+           * يحملها والنشرُ — وهو الطريق الغالب — يبني جسده بيده فنُسي
+           * فيه الحقلان والخانةُ معهما: يملأ البائعُ اللوحة ويؤشّر
+           * «أظهِرها مع الإعلان»، فيُنشر إعلانٌ بلا لوحة ولا كلمة.
+           * والحمولة تُبنى مرّةً الآن.
+           */
+          vehicle: vehiclePayload(vehicle),
+          showPlate,
           // المفاتيح وحدها — والخادم يقرأ بصماتها من عنده
           images: images.map((image) => image.key),
 
@@ -526,61 +447,6 @@ export function SellWizard({
   const [alreadyListed, setAlreadyListed] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const set = (patch: Partial<Vehicle>): void => setVehicle((v) => ({ ...v, ...patch }));
-
-  const loadModels = async (brandId: string): Promise<void> => {
-    if (brandId === '') {
-      setModels([]);
-      return;
-    }
-    const response = await fetch(`/api/v1/models?brandId=${brandId}`);
-    const body = (await response.json()) as { data?: Option[] };
-    setModels(body.data ?? []);
-  };
-
-  /** الفئات تتبع الطراز — كما تتبع الطرازاتُ الماركة. */
-  const loadTrims = async (modelId: string): Promise<void> => {
-    if (modelId === '') {
-      setTrims([]);
-      return;
-    }
-    const response = await fetch(`/api/v1/trims?modelId=${modelId}`);
-    const body = (await response.json()) as {
-      data?: { trims?: TrimSpec[]; options?: SpecOptions };
-    };
-    setTrims(body.data?.trims ?? []);
-    /**
-     * **والخيارات من الكتالوج لا من التعداد.** وطرازٌ بلا فئاتٍ منشورة
-     * يعود بالتعداد كاملًا — والحصرُ إلى لا شيء يقفل الاستمارة على
-     * بائعٍ لا يجد خيارًا واحدًا ولا رسالةً تقول لماذا.
-     */
-    setOptions(body.data?.options ?? ALL_OPTIONS);
-  };
-
-  /**
-   * ═══ اختيار الفئة يملأ ما تمليه ═══
-   *
-   * `Trim` يحمل الهيكل وناقل الحركة والوقود والدفع والمقاعد منذ اليوم
-   * الأوّل، **ولا أحد كان يقرؤها في الإدخال**: تُعرض ليتعرّف البائع
-   * على فئته، ثم يملأ الحقول بيده من قائمةٍ ثابتة — فيُنشر إعلانٌ
-   * بمواصفةٍ تناقض فئته.
-   */
-  /** الفئة المختارة — ومنها يُعرض الموروث. */
-  const inheritedTrim = trims.find((row) => row.id === vehicle.trimId) ?? null;
-
-  const pickTrim = (trimId: string): void => {
-    const trim = trims.find((row) => row.id === trimId);
-    if (trim === undefined) {
-      set({ trimId });
-      return;
-    }
-    /**
-     * **ويُملأ ما يقبله الخادم وحده.** الهيكل والدفع والمقاعد تأتيه من
-     * الفئة مباشرةً (قرار ٣٢)، فوضعُها في الحالة يوهم أنها تُرسَل.
-     */
-    set({ trimId, transmission: trim.transmission, fuel: trim.fuel });
-  };
-
   /**
    * الجلب. **فشله يفتح الإدخال اليدوي ويقول السبب** — ولا يطلب من
    * البائع رقمًا آخر لا يملكه.
@@ -619,7 +485,7 @@ export function SellWizard({
         return;
       }
 
-      const patch: Partial<Vehicle> = { vin: body.data.vin };
+      const patch: Partial<VehicleDraft> = { vin: body.data.vin };
       let filled = 0;
       if (body.data.year !== null) {
         patch.year = String(body.data.year);
@@ -628,7 +494,7 @@ export function SellWizard({
       if (body.data.brandId !== null) {
         patch.brandId = body.data.brandId;
         filled += 1;
-        await loadModels(body.data.brandId);
+        await catalog.loadModels(body.data.brandId);
       }
 
       set(patch);
@@ -641,14 +507,8 @@ export function SellWizard({
     }
   };
 
-  const label = 'mb-1.5 block text-2xs font-semibold opacity-70';
-  const field =
-    'w-full rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm outline-none';
-
-  const vehicleReady =
-    vehicle.brandId !== '' && vehicle.modelId !== '' && vehicle.trimId !== '' &&
-    vehicle.year !== '' && vehicle.mileageKm !== '' && vehicle.city !== '' &&
-    vehicle.colorExterior !== '';
+  const field = FIELD_CLASS;
+  const vehicleReady = catalog.ready;
   const photosReady = images.length > 0 && price !== '';
 
   return (
@@ -722,205 +582,12 @@ export function SellWizard({
 
           <h2 className="mb-4 text-lg font-bold">{t('vehicleData')}</h2>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label>
-              <span className={label}>{t('brand')}</span>
-              <select
-                value={vehicle.brandId}
-                onChange={(event) => {
-                  set({ brandId: event.target.value, modelId: '' });
-                  void loadModels(event.target.value);
-                }}
-                className={field}
-              >
-                <option value="" />
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {locale === 'ar' ? brand.nameAr : brand.nameEn}
-                  </option>
-                ))}
-              </select>
-              {/*
-                ═══ وبابٌ لما ليس في القائمة ═══
-
-                القائمة صارت تعرض ما يُكمَل وحده — **وشرطٌ يُفرَض بلا
-                بابٍ لاستيفائه قفلٌ بلا مفتاح**: من لا يجد ماركته يغلق الصفحة
-                ولا نعرف أنّه جاء. فسطرٌ واحد يفتح الطريق ويُسمِعُنا الطلب.
-              */}
-              <Link
-                href={`/${locale}/help/contact`}
-                className="mt-1.5 inline-block py-1 text-3xs opacity-70 underline underline-offset-4 hover:opacity-100"
-              >
-                {t('brandMissing')}
-              </Link>
-            </label>
-
-            <label>
-              <span className={label}>{t('model')}</span>
-              <select
-                value={vehicle.modelId}
-                onChange={(event) => {
-                  set({ modelId: event.target.value, trimId: '' });
-                  void loadTrims(event.target.value);
-                }}
-                disabled={models.length === 0}
-                className={field}
-              >
-                <option value="" />
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {locale === 'ar' ? model.nameAr : model.nameEn}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {/*
-              **الفئة إلزامية**: منها يُنسخ الهيكل والدفع وعدد المقاعد.
-              وطلبُها من البائع حقلٌ واحد، وإدخالُها يدويًّا أربعةٌ يخطئ
-              في أحدها — والمخطّط نفسه يقول إنها «تُنسخ لقطةً وقت النشر».
-            */}
-            <label>
-              <span className={label}>{t('trim')}</span>
-              <select
-                value={vehicle.trimId}
-                onChange={(event) => pickTrim(event.target.value)}
-                disabled={trims.length === 0}
-                className={field}
-              >
-                <option value="" />
-                {trims.map((trim) => (
-                  <option key={trim.id} value={trim.id}>
-                    {locale === 'ar' ? trim.nameAr : trim.nameEn}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              <span className={label}>{t('year')}</span>
-              <input
-                dir="ltr"
-                inputMode="numeric"
-                value={vehicle.year}
-                onChange={(event) =>
-                  set({ year: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 4) })
-                }
-                className={cn(field, 'font-num')}
-              />
-            </label>
-
-            <label>
-              <span className={label}>{t('mileage')}</span>
-              <input
-                dir="ltr"
-                inputMode="numeric"
-                value={vehicle.mileageKm}
-                onChange={(event) =>
-                  set({ mileageKm: toLatinDigits(event.target.value).replace(/\D/g, '').slice(0, 7) })
-                }
-                className={cn(field, 'font-num')}
-              />
-            </label>
-
-            {/*
-              **الخيارات من الكتالوج لا من التعداد.** وكانت أربعة نواقل
-              وأربعة أنواع وقود لكل مركبة — فيُعرض «كهربائي» على
-              لاندكروزر، ويختاره بائعٌ فيُنشر إعلانٌ بمواصفةٍ لا وجود لها.
-
-              و«المواصفة الإقليمية» تبقى كاملةً: سعوديّ أو خليجيّ أو وارد
-              وكيل صفةُ استيرادٍ لا تُملى من الفئة.
-            */}
-            {/*
-              ═══ الموروث من الفئة يُعرض ولا يُحرَّر ═══
-
-              الخادم يأخذ الهيكل والدفع والمقاعد **من الفئة** لقطةً
-              (قرار ٣٢) — فحقلٌ يملؤه البائع بها لا يغيّر شيئًا، وهو
-              وعدٌ مُخلَف بشكل حقل. وكان الهيكل غائبًا عن الاستمارة
-              أصلًا، فلا البائع يراه ولا يعرف ما سيُنشر.
-            */}
-            {inheritedTrim === null ? null : (
-              <div className="sm:col-span-2 rounded-lg border border-line bg-surface px-4 py-3">
-                <p className="mb-2 text-3xs font-bold opacity-70">من الفئة — تُسجَّل كما هي</p>
-                <p className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs">
-                  <span>{te(`bodyType.${inheritedTrim.bodyType}`)}</span>
-                  <span aria-hidden className="opacity-30">·</span>
-                  <span>{te(`drivetrain.${inheritedTrim.drivetrain}`)}</span>
-                  <span aria-hidden className="opacity-30">·</span>
-                  {/* الجملة لا يحكمها المعدود — والعدد بين قوسين (البوابة ١٨) */}
-                  <span className="font-num">
-                    <Quantity unit="seats" count={inheritedTrim.seats} />
-                  </span>
-                </p>
-              </div>
-            )}
-
-            {(
-              [
-                ['transmission', options.transmissions],
-                ['fuel', options.fuels],
-                ['spec', ['SAUDI', 'GCC', 'AGENT_IMPORT']],
-              ] as const
-            ).map(([key, values]) => (
-              <label key={key}>
-                <span className={label}>{t(key)}</span>
-                <select
-                  value={vehicle[key]}
-                  onChange={(event) => set({ [key]: event.target.value })}
-                  className={field}
-                >
-                  {values.map((value) => (
-                    <option key={value} value={value}>
-                      {te(`${key}.${value}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-
-            <label>
-              <span className={label}>{t('city')}</span>
-              <select
-                value={vehicle.city}
-                onChange={(event) => set({ city: event.target.value })}
-                className={field}
-              >
-                <option value="" />
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {cityLabel(city, locale)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {/*
-              اللون والحالة **يُجمعان هنا لأن المخطّط يطلبهما**، وكان
-              المعالج يرسل بلا لون فيردّ الخادم ٤٢٢ — نشرٌ لا يمكن أن
-              ينجح من الشاشة أصلًا. والحالة مرشِّح في البحث، فغيابها
-              يُخفي المركبة عن نصف الباحثين.
-            */}
-            <label>
-              <span className={label}>{t('colorExterior')}</span>
-              <input
-                value={vehicle.colorExterior}
-                onChange={(event) => set({ colorExterior: event.target.value })}
-                className={field}
-              />
-            </label>
-
-            <label>
-              <span className={label}>{t('condition')}</span>
-              <select
-                value={vehicle.condition}
-                onChange={(event) => set({ condition: event.target.value })}
-                className={field}
-              >
-                <option value="USED">{te('condition.USED')}</option>
-                <option value="NEW">{te('condition.NEW')}</option>
-              </select>
-            </label>
-          </div>
+          <VehicleFields
+            catalog={catalog}
+            brands={brands}
+            cities={cities}
+            locale={locale}
+          />
 
           {/*
             ═══ واللوحةُ تُدخَل هنا — وكان عمودُها بلا كاتب ═══
@@ -930,14 +597,7 @@ export function SellWizard({
             بائعٌ حقيقيّ بلا لوحة — وتقريرُ فحصها ينقصه ما تُعرف به.
           */}
           <div className="mt-7 border-t border-line-2 pt-6">
-            <PlateField
-              label={t('plate')}
-              hint={t('plateHint')}
-              letters={vehicle.plateLetters}
-              numbers={vehicle.plateNumbers}
-              onLetters={(plateLetters) => set({ plateLetters })}
-              onNumbers={(plateNumbers) => set({ plateNumbers })}
-            />
+            <VehiclePlateField catalog={catalog} />
 
             {/*
               **والإظهارُ اختيارٌ لا افتراض**: المنصّة تطمس اللوحة في
@@ -946,8 +606,8 @@ export function SellWizard({
             <label className="mt-5 flex items-start gap-3 text-2xs leading-loose">
               <input
                 type="checkbox"
-                checked={vehicle.showPlate}
-                onChange={(event) => set({ showPlate: event.target.checked })}
+                checked={showPlate}
+                onChange={(event) => setShowPlate(event.target.checked)}
                 className="mt-0.5 size-4 shrink-0"
               />
               <span>

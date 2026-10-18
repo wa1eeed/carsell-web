@@ -54,6 +54,19 @@ export function normalizeArabic(value: string): string {
 }
 
 
+/**
+ * ═══ مدنُ المنصّة — قائمةٌ واحدة ═══
+ *
+ * ثلاثُ شاشاتٍ كانت تكتب `[...new Set(Object.keys(CITY_SLUG))]` بيدها،
+ * **ورابعةٌ لم تكتبها**: معالجُ البيع كان يأخذ مدنَه من `groupBy` على
+ * الإعلانات المنشورة — فعلى قاعدةٍ جديدة لا إعلان فيها تعود القائمة
+ * فارغة، والمدينةُ شرطٌ في «التالي»، **فلا أحد يستطيع نشر أوّل
+ * إعلان**. شرطٌ يُفرَض ولا بابَ لاستيفائه.
+ *
+ * والمكرّرة تُطوى: «مكة» و«مكة المكرمة» مقطعٌ واحد.
+ */
+export const CITY_NAMES: readonly string[] = [...new Set(Object.keys(CITY_SLUG))];
+
 /** الجدول مُطبَّعًا — يُبنى مرّة ويُقرأ كثيرًا. */
 export const CITY_SLUG_NORMALIZED: Record<string, string> = Object.fromEntries(
   Object.entries(CITY_SLUG).map(([key, value]) => [normalizeArabic(key), value]),

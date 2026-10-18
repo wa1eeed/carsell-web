@@ -8,6 +8,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { db } from '@/lib/db';
 import { listSellableBrandOptions } from '@/lib/domain/catalog-options';
+import { CITY_NAMES } from '@/lib/labels/cities';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
@@ -49,15 +50,24 @@ export default async function SellPage({
   const user = await currentUserFromCookies();
   if (user === null) redirect(`/${locale}/auth`);
 
-  const [brands, cities, stats, auction, t] = await Promise.all([
+  const [brands, stats, auction, t] = await Promise.all([
     listSellableBrandOptions(),
-    db.listing
-      .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
-      .then((rows) => rows.map((row) => row.city).sort()),
     db.priceStat.aggregate({ _avg: { daysToSellMedian: true } }),
     auctionSettings(),
     getTranslations('sell'),
   ]);
+
+  /**
+   * ═══ والمدنُ قائمةُ المنصّة لا مدنُ الإعلانات القائمة ═══
+   *
+   * كانت تُجمع بـ`groupBy` على المنشور — **فعلى قاعدةٍ جديدة لا إعلان
+   * فيها تعود فارغة**، والمدينةُ شرطٌ في «التالي» و«احفظ في سياراتي»،
+   * فيقف أوّلُ بائعٍ أمام زرٍّ معطَّل لا يقول لماذا. ولا باب: لا تُنشر
+   * الإعلانات حتى يُنشر إعلان.
+   *
+   * وهي القائمة نفسها التي تقرؤها شاشاتُ الحساب والتسجيل.
+   */
+  const cities = CITY_NAMES;
 
   const medianDays = Math.round(stats._avg.daysToSellMedian ?? 0);
 

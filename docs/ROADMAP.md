@@ -1031,9 +1031,7 @@ Today the platform stores `Vehicle.plateLetters` and `Vehicle.plateNumbers` and
       no writer at all**: `Vehicle.plateLetters` has existed since the schema was
       built and only the seed ever wrote it, so every vehicle a real seller
       published had no plate and its inspection report lacked what identifies it.
-      There is no separate add-vehicle form today — `/account/vehicles` lists
-      them and `POST /api/v1/vehicles` creates them; that route accepts the plate
-      now, and the screen that would use it is still to be built.
+      The route accepts the plate now, and the screen that uses it is § 16.
 - [x] The inspection report, inside the vehicle block.
 
 **And showing a plate is a disclosure.** The platform already blurs plates in
@@ -1041,6 +1039,44 @@ photos (`ListingImage.plateBlurred`), so printing the same plate in text beside
 the blurred photo would undo that deliberately. It therefore needs the seller's
 explicit choice (`Listing.showPlate`, off by default) — except in the inspection
 report, which the owner has ruled belongs there for completeness.
+
+## 16 · Add a vehicle from the account — *owner's request 2026-10-18* — **done**
+
+> «نعم ابنِ شاشة إضافة مركبة في الحساب»
+
+`POST /api/v1/vehicles` has existed since the garage was built, and **nothing
+called it** except a secondary button inside the sell wizard. The «أضف سيارة»
+button on `/account/vehicles` pointed at `/sell` — a page headed «بِع سيارتك»
+that asks for photos, a price and a sale method. Those are the conditions of
+*offering*, not of *owning*: a man who registers a car to order an inspection
+on it is not selling anything.
+
+- [x] `/[locale]/account/vehicles/new` — the screen, with the plate field and
+      its live preview.
+- [x] The «أضف سيارة» button repointed at it.
+- [x] `?saved=1` read on the list, so a successful save says so. It was being
+      sent and nobody read it — the same silence `?listed=` once had.
+
+### Three defects the work uncovered
+
+- **Publishing dropped the plate.** The wizard built its vehicle payload by
+  hand in three calls — publish, draft, garage — and the plate reached two of
+  them. A seller who filled the plate and ticked «أظهِر اللوحة مع الإعلان» got
+  a listing with neither, and no word. The same shape had already cost the
+  colour and the condition (a 422 the screen could never avoid), so the payload
+  is built once now in `vehiclePayload`, and **gate 60** checks both ends: every
+  field the form shows is sent, and every field the route requires is sent.
+
+- **Nobody could publish the first listing.** The sell wizard sourced its city
+  dropdown from `groupBy` over *published* listings. On a fresh database that
+  list is empty, the city is required for «التالي», and listings are what would
+  fill it — a lock with no key. Cities now come from `CITY_NAMES`, the one list
+  the account, auth and profile screens already read.
+
+- **«اعرضها للبيع» still duplicates the vehicle.** A garage car's sell button
+  goes to the empty wizard, and `createListing` always creates a new `Vehicle`
+  row — so listing a car you already registered writes a second copy of it.
+  Publishing from an existing vehicle needs domain work; recorded, not done.
 
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18*
 

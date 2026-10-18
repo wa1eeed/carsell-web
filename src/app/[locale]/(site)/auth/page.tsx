@@ -1,8 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { CITY_SLUG } from '@/lib/labels/cities';
-
-/** مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط. */
-const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
+import { CITY_NAMES } from '@/lib/labels/cities';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';

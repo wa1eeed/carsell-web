@@ -14,14 +14,8 @@ import { currentUserFromCookies } from '@/lib/domain/account';
 import { myVehicles, garageCounts, type VehicleState } from '@/lib/domain/garage';
 import { cityLabel } from '@/lib/labels/cities';
 import { VehicleControls } from '@/components/site/VehicleControls';
-import { CITY_SLUG } from '@/lib/labels/cities';
+import { CITY_NAMES } from '@/lib/labels/cities';
 import { AccountList, AccountRow } from '../AccountList';
-
-/**
- * مدنُ المنصّة — من جدول المقاطع نفسه الذي يبني الروابط، فلا قائمتان
- * تتباعدان. والمكرّرة تُطوى (مكة/مكة المكرمة مقطعٌ واحد).
- */
-const CITY_NAMES = [...new Set(Object.keys(CITY_SLUG))];
 
 export const dynamic = 'force-dynamic';
 
@@ -94,6 +88,13 @@ export default async function MyVehiclesPage({
    * **والترشيح بالعنوان لا بحالةٍ في المتصفّح**: الشاشة خادمية،
    * ويُشارَك الرابط، ويعمل بلا JS، ويعود إليه زرُّ الرجوع.
    */
+  /**
+   * **وما حُفظ تُقال بشارته.** شاشةُ «أضف سيارة» تُحوّل إلى هنا
+   * بـ`?saved=1` — ومعاملٌ يُرسَل ولا يُقرأ صمتٌ بعد نجاح: يملأ
+   * صاحبُها الاستمارة ويصل القائمة بلا كلمة، فلا يعرف أحُفظت أم لا.
+   */
+  const saved = query.saved === '1';
+
   const asked = typeof query.tab === 'string' ? query.tab : 'listed';
   const tab: Tab = (TABS as readonly string[]).includes(asked) ? (asked as Tab) : 'listed';
 
@@ -116,6 +117,17 @@ export default async function MyVehiclesPage({
 
         والشريحة تُخبر وتَفعل، والسطر يُخبر فقط. فبقي الذي يُفعل به.
       */
+      notice={
+        !saved ? undefined : (
+          <p
+            role="status"
+            className="rounded-xl border border-accent-200 bg-accent-100 px-5 py-4 text-2xs leading-loose text-accent-900"
+          >
+            <span className="font-bold">حُفظت سيارتك.</span> هي مخفية عن السوق — تقدر تطلب
+            عليها خدمة، أو تعرضها للبيع وقت ما تحب.
+          </p>
+        )
+      }
       filters={
         counts.total === 0 ? undefined : (
           <nav className="flex flex-wrap items-center gap-2.5">
@@ -165,8 +177,13 @@ export default async function MyVehiclesPage({
                   description: 'السيارات اللي بعتها وانتقلت ملكيتها تظهر هنا.',
                 }
       }
+      /*
+        **والزرّ يفتح البابَ الذي يسمّيه.** كان يقود إلى `/sell` —
+        ترويسةٌ تقول «بِع سيارتك» ومعالجٌ ينتهي بالنشر — ومن يضيف
+        سيارةً إلى حسابه قد لا يبيعها: يطلب عليها فحصًا أو تأمينًا.
+      */
       action={
-        <LinkButton href={`/${locale}/sell`} size="sm">أضف سيارة</LinkButton>
+        <LinkButton href={`/${locale}/account/vehicles/new`} size="sm">أضف سيارة</LinkButton>
       }
     >
       {shown.map((vehicle) => {

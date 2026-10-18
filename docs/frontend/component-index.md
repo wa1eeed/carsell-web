@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **158** components in **4** directories.
+Counted: **160** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -108,7 +108,7 @@ rather than found by chance.
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
 | `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
-| `SiteHeader` | no | `active` · `actions` | 28 |
+| `SiteHeader` | no | `active` · `actions` | 29 |
 | `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 2 |
 | `SponsoredCard` | yes | `ad` · `label` · `ratio` | 6 |
 | `SponsoredLine` | yes | `ad` · `label` | 1 |
@@ -117,6 +117,8 @@ rather than found by chance.
 | `StagePanel` | yes | `orderRef` · `stage` · `viewerIsBuyer` · `frozen` | 1 |
 | `TaxStatusDialog` | yes | `open` · `onClose` · `onSaved` · `initial` | 3 |
 | `VehicleControls` | yes | `vehicleId` · `mileageKm` · `colorExterior` · `city` · `cities` · `canRemove` | 1 |
+| `VehicleFields` | yes | `catalog` · `brands` · `cities` · `locale` | 2 |
+| `VehiclePlateField` | yes | `catalog` | 2 |
 
 ## `src/components/ui`
 
@@ -129,8 +131,8 @@ rather than found by chance.
 | `Badge` | no | `tone` · `size` · `children` · `className` | 99 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
-| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 98 |
+| `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 16 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 99 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -167,7 +169,7 @@ rather than found by chance.
 | `PhoneInput` | yes | `value` · `onChange` · `disabled` · `invalid` · `label` · `className` | 2 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 106 |
+| `Quantity` | no | `unit` · `count` · `className` | 107 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

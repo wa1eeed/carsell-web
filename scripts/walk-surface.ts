@@ -277,6 +277,42 @@ function links(html: string): string[] {
   ];
 }
 
+/**
+ * ═══ تفاعليّ داخل تفاعليّ — **في الشجرة المُصيَّرة** ═══
+ *
+ * البوابة ٤٨ تمنع `<a><button>` **في ملفّ واحد**، وأفلتَ منها ما يعبر
+ * حدَّ المكوّن: `AccountRow` كان يلفّ الصفَّ كلَّه في `<Link>`،
+ * و«اطلب خدمة» رابطٌ يبعثه النداء في خاصّية — فصار `<a>` داخل `<a>`
+ * على أربع شاشات حساب. وHTML لا يجيزه، فيعيد المتصفّح بناء الشجرة
+ * ويسقط التصيير بـ«Hydration failed».
+ *
+ * **ولا يُقاس نصًّا**: اللافُّ في ملفّ والملفوفُ في ملفٍّ آخر، ولا
+ * يلتقيان إلّا في الصفحة المُصيَّرة. فالقياس هنا — حيث HTML أمامنا.
+ *
+ * ومسحٌ بمكدّسٍ على الوسوم الأربعة يكفي: `<a>` و`<button>` لا يتداخل
+ * أيٌّ منها في أيّ.
+ */
+function nestedInteractive(html: string): string[] {
+  const found: string[] = [];
+  const stack: string[] = [];
+  for (const match of html.matchAll(/<(\/?)(a|button)\b([^>]*)>/g)) {
+    const [, closing, tag = '', attrs = ''] = match;
+    if (closing === '/') {
+      const at = stack.lastIndexOf(tag);
+      if (at !== -1) stack.splice(at, 1);
+      continue;
+    }
+    /** الوسمُ المغلَق على نفسه لا يفتح شيئًا. */
+    if (attrs.endsWith('/')) continue;
+    if (stack.length > 0) {
+      const href = /href="([^"]*)"/.exec(attrs)?.[1] ?? '';
+      found.push(`<${stack[stack.length - 1] ?? ''}> ⊃ <${tag}${href === '' ? '' : ` href="${href}"`}>`);
+    }
+    stack.push(tag);
+  }
+  return [...new Set(found)];
+}
+
 async function main(): Promise<void> {
   const cookies: Record<string, string> = {};
 
@@ -437,10 +473,13 @@ async function main(): Promise<void> {
 
   /* ٢ ─ وكلُّ رابطٍ في صفحةٍ فُتحت */
   const pages = [...visited.values()].filter((row) => row.status === 200).map((row) => row.url);
+  const nested = new Map<string, string[]>();
   for (const page of pages) {
     const html = await fetch(`${BASE}${page}`, { headers: { cookie } })
       .then((r) => r.text())
       .catch(() => '');
+    const inside = nestedInteractive(html);
+    if (inside.length > 0) nested.set(page, inside);
     for (const href of links(html)) await visit(href, page);
   }
 
@@ -462,6 +501,14 @@ async function main(): Promise<void> {
   console.log(`وجهات معرَّفة: ${String(defined.length)} · مُقاسة: ${String(all.length)}`);
   console.log(`٢٠٠: ${String(all.filter((r) => r.status === 200).length)}`);
   console.log(`تحويل: ${String(redirects.length)} · ساقطة: ${String(broken.length)}\n`);
+
+  if (nested.size === 0) {
+    console.log('لا عنصرَ تفاعليّ داخل تفاعليّ في أيّ صفحة.\n');
+  } else {
+    console.log(`تفاعليّ داخل تفاعليّ — ${String(nested.size)} صفحة:`);
+    for (const [page, inside] of nested) console.log(`  ${page}  ${inside.join(' · ')}`);
+    console.log('');
+  }
 
   if (skipped.length > 0) {
     console.log(`تُخطّيت (مقاطع مفتوحة): ${skipped.join(' · ')}\n`);
