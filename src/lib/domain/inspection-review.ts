@@ -1,6 +1,6 @@
 import type { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
-import type { InspectionSection, PaintPanelState } from './inspection';
+import type { InspectionSection, PaintPanelState, PointState } from './inspection';
 import { publishOnIssue } from './inspection';
 import { scoreInspection, type ScoredItem } from './inspection-score';
 
@@ -31,6 +31,64 @@ export type SubmitResult =
  * والمواصفة تشترطه، وسببُه أنّ بندًا بلا جواب يُقرأ على أنه سليم —
  * فتخرج درجةٌ مبنيّةٌ على ما لم يُفحَص.
  */
+/**
+ * ═══ اللقطةُ بالشكل الذي يقرؤه العرضُ العامّ ═══
+ *
+ * `parseSections` مبنيّةٌ منذ بُني العرض وتقرأ هذا الشكل بعينه —
+ * فالتجميدُ إليه لا إلى شكلٍ جديد، وإلّا بُني عارضٌ ثانٍ يتباعد.
+ *
+ * **ومصدَّرةٌ نقيّةً لتُقاس**: فرعُ «بندٌ بلا جواب» لا يبلغه مسارُ
+ * الإرسال (الاكتمالُ شرطٌ قبله)، ودالّةٌ تقرأ القاعدة لا تُقاس إلّا
+ * بزرعِ حالٍ لا يسمح بها المنتج. فالقاعدةُ هنا، وتُستدعى من هناك.
+ */
+export function freezeSections(
+  categories: readonly {
+    key: string;
+    nameAr: string;
+    items: readonly { id: string; key: string; nameAr: string }[];
+  }[],
+  answers: ReadonlyMap<string, { state: string; note: string | null }>,
+  scores: ReadonlyMap<string, { score: number | null }>,
+): InspectionSection[] {
+  return categories.map((category) => ({
+    key: category.key,
+    name: category.nameAr,
+    score: Math.round(scores.get(category.key)?.score ?? 0),
+    note: null,
+    points: category.items.map((item) => {
+      const answer = answers.get(item.id);
+      /**
+       * ═══ والسكوتُ لا يُترجَم إجازةً ═══
+       *
+       * كان كلُّ ما ليس `MAJOR` ولا `MINOR` يُجمَّد «سليمًا». وذلك
+       * بابان لا باب:
+       *
+       *   · **بندٌ بلا جواب** — يمنعه شرطُ الاكتمال اليوم، لكنّ
+       *     الافتراضيّ يقول ما سيقع حين يصير بندٌ اختياريًّا أو
+       *     يُضاف إلى الكتالوج بعد أن فُتحت المسودّة.
+       *   · **و`NOT_APPLICABLE`** — وهو **حالٌ حيّ**: التعداد يحمله
+       *     منذ بُني، والحاسبةُ تُخرجه من البسط والمقام معًا. فكان
+       *     بندٌ أعلن الفاحصُ أنه لا ينطبق يُنشر «سليمًا».
+       */
+      const state: PointState =
+        answer === undefined || answer.state === 'NOT_APPLICABLE'
+          ? 'NOT_INSPECTED'
+          : answer.state === 'MAJOR'
+            ? 'FAIL'
+            : answer.state === 'MINOR'
+              ? 'NOTE'
+              : 'OK';
+      return {
+        id: item.key,
+        label: item.nameAr,
+        state,
+        note: answer?.note ?? null,
+        photos: [],
+      };
+    }),
+  }));
+}
+
 export async function submitInspection(
   input: { ref: string; providerId: string },
   now: Date = new Date(),
@@ -99,37 +157,7 @@ export async function submitInspection(
   );
   const perCategory = new Map(result.categories.map((row) => [row.key, row]));
 
-  /**
-   * ═══ واللقطةُ بالشكل الذي يقرؤه العرضُ العامّ ═══
-   *
-   * `parseSections` مبنيّةٌ منذ بُني العرض وتقرأ هذا الشكل بعينه —
-   * فالتجميدُ إليه لا إلى شكلٍ جديد، وإلّا بُني عارضٌ ثانٍ يتباعد.
-   */
-  const sections: InspectionSection[] = categories.map((category) => {
-    const summary = perCategory.get(category.key);
-    return {
-      key: category.key,
-      name: category.nameAr,
-      score: Math.round(summary?.score ?? 0),
-      note: null,
-      points: category.items.map((item) => {
-        const answer = answers.get(item.id);
-        const state =
-          answer?.state === 'MAJOR'
-            ? 'FAIL'
-            : answer?.state === 'MINOR'
-              ? 'NOTE'
-              : ('OK' as const);
-        return {
-          id: item.key,
-          label: item.nameAr,
-          state,
-          note: answer?.note ?? null,
-          photos: [],
-        };
-      }),
-    };
-  });
+  const sections = freezeSections(categories, answers, perCategory);
 
   const paintMap: Record<string, PaintPanelState | string> = {};
   for (const panel of draft.panels) {

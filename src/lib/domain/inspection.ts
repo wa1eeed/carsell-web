@@ -18,8 +18,21 @@ import { canonicalPath } from './listing-detail';
 /** الافتراضيّ — والسارية من إعداد الأدمن. */
 export const REPORT_VALIDITY_DAYS = DEADLINE_DEFAULTS.reportValidityDays;
 
-/** حالة النقطة. `OK` هي الغالبية العظمى ولا تُعرض في جدول الملاحظات. */
-export type PointState = 'OK' | 'NOTE' | 'PAINT' | 'FAIL';
+/**
+ * حالة النقطة.
+ *
+ * ═══ و`NOT_INSPECTED` ليست ترفًا ═══
+ *
+ * كان التجميد يكتب **«سليم» لكل بندٍ لم يُجَب عنه** — فبندٌ لم ينظر
+ * إليه أحد يُنشر وعدًا للمشتري. واليوم لا يقع (الإرسال مرفوض حتى
+ * تُجَب البنود كلُّها)، لكنّه لغمٌ مؤجَّل: أوّلُ بندٍ يصير اختياريًّا،
+ * أو بندٌ يُضاف إلى الكتالوج بعد أن فُتحت مسودّة، يُنشر **صمتًا في
+ * ثوب إجازة**.
+ *
+ * ومرجعُ السوق يفصلها صراحةً: «اجتياز» و«لم يتم التحقق بعد» و«يوجد
+ * خلل ما» — ثلاثُ علاماتٍ لا اثنتان.
+ */
+export type PointState = 'OK' | 'NOTE' | 'PAINT' | 'FAIL' | 'NOT_INSPECTED';
 
 export type InspectionPoint = {
   id: string;
@@ -56,6 +69,12 @@ export type PublicInspectionReport = {
 
   totalPoints: number;
   passedPoints: number;
+  /**
+   * **ما لم يُفحَص يُعدّ باسمه.** كان المجموع دلوين — سليمٌ وملاحظة —
+   * فصار ثلاثة، وتركُ الثالث ضمنيًّا يجعل «٢٠٦ سليمة من ٢١٠» تُقرأ
+   * «أربعٌ عليها ملاحظة» وهي أربعٌ **واثنتان لم تُفحصا**.
+   */
+  notInspectedPoints: number;
   sections: InspectionSection[];
   /** النقاط غير السليمة وحدها — وهي الخبر. */
   findings: InspectionPoint[];
@@ -105,7 +124,10 @@ function parsePoint(raw: unknown, index: number, sectionKey: string): Inspection
 
   const rawState = asString(point.state);
   const state: PointState =
-    rawState === 'NOTE' || rawState === 'PAINT' || rawState === 'FAIL'
+    rawState === 'NOTE' ||
+    rawState === 'PAINT' ||
+    rawState === 'FAIL' ||
+    rawState === 'NOT_INSPECTED'
       ? rawState
       : point.ok === false
         ? 'NOTE'
@@ -245,7 +267,15 @@ export function toPublicReport(
   const validUntil = new Date(row.inspectedAt);
   validUntil.setDate(validUntil.getDate() + REPORT_VALIDITY_DAYS);
 
-  const findings = points.filter((point) => point.state !== 'OK');
+  /**
+   * **وما لا ينطبق ليس ملاحظة.** «الخبر» هو ما وجده الفاحصُ على
+   * المركبة — وبندٌ أعلن أنه لا ينطبق (توربو في محرّكٍ بلا توربو)
+   * يُحشر في «ما يستحقّ الانتباه» فيُقلق على لا شيء، ويُطيل قائمةً
+   * قيمتُها في قِصَرها.
+   */
+  const findings = points.filter(
+    (point) => point.state !== 'OK' && point.state !== 'NOT_INSPECTED',
+  );
   const listing = row.vehicle.listings[0] ?? null;
 
   const summary =
@@ -265,6 +295,7 @@ export function toPublicReport(
 
     totalPoints: points.length,
     passedPoints: points.filter((point) => point.state === 'OK').length,
+    notInspectedPoints: points.filter((point) => point.state === 'NOT_INSPECTED').length,
     sections,
     findings,
     photos: findings.flatMap((finding) =>

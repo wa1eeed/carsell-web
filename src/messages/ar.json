@@ -134,18 +134,14 @@
     "home": "الرئيسية",
     "cars": "تصفّح السيارات",
     "openingPrice": "سعر الافتتاح",
-    "pointsWithNotes": "البنود التي عليها ملاحظات",
-    "showPassed": "اعرض البنود السليمة",
-    "showFindingsOnly": "الملاحظات فقط",
     "noFindings": "لا ملاحظات",
     "noFindingsBody": "جميع البنود سليمة في هذا التقرير.",
-    "point": "البند",
     "state": {
       "NOTE": "ملاحظة",
       "PAINT": "صبغ",
-      "FAIL": "يحتاج إصلاحًا"
+      "FAIL": "يحتاج إصلاحًا",
+      "NOT_INSPECTED": "لم يُفحَص"
     },
-    "inspectorNote": "ملاحظة الفاحص",
     "statePass": "سليم",
     "findingPhotos": "صور الملاحظات",
     "bodyAndPaintMap": "مخطط الهيكل والصبغ",
@@ -172,14 +168,18 @@
     "noReport": "لا تقرير فحص",
     "noReportBody": "هذه السيارة غير مفحوصة. تقدر تطلب فحص من دليل الخدمات.",
     "breadcrumb": "مسار التنقّل",
-    "stateColumn": "الحالة",
     "reservedTitle": "محجوزة بطلب قائم",
     "reservedBody": "عليها طلب جاري من مشتري آخر. إذا لم يكتمل ستعود للعرض، وتقدر تضيفها للمفضلة ليصلك إشعار.",
     "soldTitle": "مباعة",
     "soldBody": "تمت الصفقة وانتقلت الملكية. الصفحة باقية للأرشيف، وتجد سيارات مشابهة بالأسفل.",
     "privateReport": "لديك تقرير فحصٍ خاصٌّ بك على هذه المركبة",
     "privateReportBody": "دفعتَ ثمنه فهو لك وحدك — لا يراه البائع ولا غيرُه حتى تشاركه.",
-    "openPrivateReport": "افتح تقريرك"
+    "openPrivateReport": "افتح تقريرك",
+    "checkedPoints": "البنود المفحوصة",
+    "allSound": "سليمة كلّها",
+    "expandAll": "افتح الأقسام كلّها",
+    "collapseAll": "اطوِ الأقسام كلّها",
+    "stateFlagged": "عليه ملاحظة"
   },
   "site": {
     "liveAuctions": "مزادات مباشرة",

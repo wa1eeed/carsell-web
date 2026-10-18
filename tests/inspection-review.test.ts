@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { draftView, ensureDraft, saveDraftResult } from '@/lib/domain/inspection-draft';
 import {
   approveInspection,
+  freezeSections,
   returnInspection,
   submitInspection,
 } from '@/lib/domain/inspection-review';
@@ -132,6 +133,53 @@ describe('الإرسالُ لا يقع قبل الاكتمال', () => {
     expect(draft.status).toBe('SUBMITTED');
     expect(draft.frozenScore).toBe(100);
     expect(draft.frozenSections).not.toBeNull();
+  });
+
+  /**
+   * ═══ والسكوتُ لا يُجمَّد إجازةً ═══
+   *
+   * كان التجميد يكتب «سليم» لكلّ ما ليس `MAJOR` ولا `MINOR` — وذلك
+   * بابان: بندٌ بلا جواب (يمنعه شرطُ الاكتمال اليوم)، و**`لا ينطبق`
+   * وهو حالٌ حيّ** يختاره الفاحص في نموذجه والحاسبةُ تُخرجه من
+   * الحساب. فكان بندٌ أعلن الفاحصُ أنه لا ينطبق **يُنشر سليمًا**.
+   *
+   * والقاعدةُ تُقاس نقيّةً: فرعُ «بلا جواب» لا يبلغه مسارُ الإرسال،
+   * فاختبارٌ عبر المسار يقيس الشرطَ لا القاعدة.
+   */
+  it('ولا ينطبق ولا جوابَ يُجمَّدان «لم يُفحَص» لا «سليم»', () => {
+    const categories = [
+      {
+        key: 'engine',
+        nameAr: 'المحرك',
+        items: [
+          { id: 'i1', key: 'compression', nameAr: 'ضغط الأسطوانات' },
+          { id: 'i2', key: 'turbo', nameAr: 'توربو (إن وجد)' },
+          { id: 'i3', key: 'belt', nameAr: 'سير التوقيت' },
+          { id: 'i4', key: 'leak', nameAr: 'تسريب زيت' },
+        ],
+      },
+    ];
+    const answers = new Map([
+      ['i1', { state: 'PASS', note: null }],
+      ['i2', { state: 'NOT_APPLICABLE', note: 'المركبة بلا شاحن توربينيّ' }],
+      ['i3', { state: 'MINOR', note: 'بداية تشقّق سطحيّ' }],
+      /** و`i4` بلا جوابٍ أصلًا */
+    ]);
+
+    const [section] = freezeSections(categories, answers, new Map([['engine', { score: 91 }]]));
+    const state = (key: string): string | undefined =>
+      section?.points.find((point) => point.id === key)?.state;
+
+    expect(state('compression')).toBe('OK');
+    expect(state('belt')).toBe('NOTE');
+    /** **وهما معًا «لم يُفحَص»** — لا «سليم». */
+    expect(state('turbo')).toBe('NOT_INSPECTED');
+    expect(state('leak')).toBe('NOT_INSPECTED');
+
+    /** **وسببُ «لا ينطبق» يبقى مع البند** — فالقارئ يعرف لمَ لم يُفحَص. */
+    expect(section?.points.find((point) => point.id === 'turbo')?.note).toBe(
+      'المركبة بلا شاحن توربينيّ',
+    );
   });
 
   it('والمُرسَلةُ لا يعدّلها الفاحص', async () => {

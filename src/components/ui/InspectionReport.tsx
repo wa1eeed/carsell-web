@@ -10,11 +10,80 @@ import { Quantity } from './Quantity';
 import { cn } from '@/lib/cn';
 import type { InspectionSection, PointState } from '@/lib/domain/inspection';
 
-const STATE_TONE: Record<Exclude<PointState, 'OK'>, 'warn' | 'danger'> = {
+/**
+ * ═══ العلامةُ شكلٌ لا لونٌ وحده ═══
+ *
+ * ثلاثُ علاماتٍ **متمايزةُ الشكل**: صحٌّ للسليم، وتعجّبٌ في دائرةٍ لما
+ * عليه ملاحظة، وتعجّبٌ في مثلّثٍ لما يحتاج إصلاحًا، وشَرطةٌ لما لم
+ * يُفحَص. ولو كان اللونُ وحده الفارقَ لما قرأها عاجزٌ عن تمييز
+ * الأحمر من الأخضر — وهم واحدٌ من كلّ اثني عشر رجلًا.
+ *
+ * **ويبقى النصُّ مع العلامة** في كل صفّ: العلامة تُسرّع القراءة ولا
+ * تحملها وحدها.
+ */
+const STATE_TONE: Record<PointState, 'accent' | 'warn' | 'danger' | 'neutral'> = {
+  OK: 'accent',
   NOTE: 'warn',
   PAINT: 'warn',
   FAIL: 'danger',
+  NOT_INSPECTED: 'neutral',
 };
+
+const MARK_CLASS: Record<PointState, string> = {
+  OK: 'bg-accent-100 text-accent-800',
+  NOTE: 'bg-warn-200 text-warn-900',
+  PAINT: 'bg-warn-200 text-warn-900',
+  FAIL: 'bg-danger/12 text-danger',
+  NOT_INSPECTED: 'bg-ink/8 text-ink/55',
+};
+
+/** **السليمُ أوّلًا في العدّ، وآخرًا في العرض** — والخبرُ ما ليس سليمًا. */
+const ORDER: Record<PointState, number> = {
+  FAIL: 0,
+  NOT_INSPECTED: 1,
+  PAINT: 2,
+  NOTE: 3,
+  OK: 4,
+};
+
+/**
+ * علامةُ الحالة — رسمٌ واحد يتبدّل مساره.
+ *
+ * و`aria-hidden` لأن الصفّ يحمل تسميتها نصًّا: قارئُ الشاشة يقرأ
+ * «سليم» لا «أيقونة».
+ */
+function StateMark({ state, className }: { state: PointState; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'inline-flex size-5 shrink-0 items-center justify-center rounded-full',
+        MARK_CLASS[state],
+        className,
+      )}
+    >
+      <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round">
+        {state === 'OK' ? (
+          <path d="M20 6 9 17l-5-5" />
+        ) : state === 'NOT_INSPECTED' ? (
+          <path d="M5 12h14" />
+        ) : state === 'FAIL' ? (
+          <>
+            {/* مثلّثٌ — شكلٌ ثالثٌ يميّزه عن الدائرة بلا لون */}
+            <path d="M12 4 2.5 20h19z" strokeWidth={2.4} />
+            <path d="M12 10v4" />
+            <path d="M12 17.4h.01" />
+          </>
+        ) : (
+          <>
+            <path d="M12 7v6" />
+            <path d="M12 16.6h.01" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
 
 /**
  * درجات الأقسام — شريط وقيمة وملاحظة الفاحص.
@@ -51,11 +120,19 @@ export function SectionScores({ sections }: { sections: readonly InspectionSecti
 }
 
 /**
- * جدول البنود.
+ * ═══ البنودُ تحت أقسامها — لا جدولٌ مسطَّح بمئتي سطر ═══
  *
- * **يفتتح بغير السليم** — أربعة بنود من ٢١٠ هي الخبر، وقائمةٌ بـ٢١٠
- * سطرًا أغلبها «سليم» تدفن الأربعة. والسليمة خلف زرّ صريح يقول عددها،
- * فلا يظنّ القارئ أننا أخفيناها.
+ * كان جدولًا واحدًا بـ٢١٠ صفوف وزرٌّ يفتحها دفعةً — المعلومة صحيحة
+ * والشكل خطأ: من يسأل «كيف الفرامل؟» يمسح قائمةً لا تقول أين ينتهي
+ * قسمٌ ويبدأ آخر.
+ *
+ * فكلُّ قسمٍ **طيّةٌ تُفتح**، ورأسُها يحمل خلاصته: درجتُه، وكم سليمًا
+ * فيه وكم عليه ملاحظة. **وما فيه ملاحظةٌ يُفتح ابتداءً** وما سلم
+ * يبقى مطويًّا — فالأربعةُ التي هي الخبر أوّلُ ما يُقرأ، والبقيّةُ
+ * حاضرةٌ معدودةٌ على بُعد نقرة.
+ *
+ * **والبنودُ داخل القسم تُرتَّب بحالها لا بترتيب الكتالوج**: ما يحتاج
+ * إصلاحًا، فما لم يُفحَص، فالملاحظات، فالسليم.
  */
 export function FindingsTable({
   sections,
@@ -65,70 +142,201 @@ export function FindingsTable({
   className?: string;
 }) {
   const t = useTranslations('ui');
-  const [showAll, setShowAll] = useState(false);
 
-  const points = sections.flatMap((section) =>
-    section.points.map((point) => ({ ...point, section: section.name })),
-  );
-  const findings = points.filter((point) => point.state !== 'OK');
-  const passed = points.length - findings.length;
-  const rows = showAll ? points : findings;
+  const points = sections.flatMap((section) => section.points);
+  const counts = {
+    OK: points.filter((point) => point.state === 'OK').length,
+    findings: points.filter((point) => point.state !== 'OK' && point.state !== 'NOT_INSPECTED')
+      .length,
+    NOT_INSPECTED: points.filter((point) => point.state === 'NOT_INSPECTED').length,
+  };
+
+  /**
+   * **والمفتوحُ ابتداءً يُشتقّ من المحتوى لا يُنسخ في حالة** (البوابة
+   * ٣٠): الحالةُ تحمل ما **بدّله القارئ** وحده، فإن وصل تقريرٌ آخر لم
+   * تتقادم. و`null` تعني «كما هو افتراضًا».
+   */
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
+  /**
+   * **والقسمُ يُفتح لما يستحقّ النظر.** «لم يُفحَص» ليس خبرًا سيّئًا
+   * فلا يفتح قسمًا — لكنّه يُعدّ في المفتاح، فمن أراده وجده.
+   */
+  const hasFindings = (section: InspectionSection): boolean =>
+    section.points.some((point) => point.state !== 'OK' && point.state !== 'NOT_INSPECTED');
+  const isOpen = (section: InspectionSection): boolean =>
+    toggled[section.key] ?? hasFindings(section);
+
+  const allOpen = sections.every((section) => isOpen(section));
+  const toggleAll = (): void => {
+    const next: Record<string, boolean> = {};
+    for (const section of sections) next[section.key] = !allOpen;
+    setToggled(next);
+  };
+
+  if (points.length === 0) {
+    return (
+      <section className={className}>
+        <EmptyState title={t('noFindings')} description={t('noFindingsBody')} />
+      </section>
+    );
+  }
 
   return (
     <section className={className}>
-      <header className="mb-5 flex flex-wrap items-baseline gap-3.5">
+      <header className="mb-4 flex flex-wrap items-baseline gap-3.5">
         <h2 className="flex items-baseline gap-2 text-2xl font-bold">
-          {t('pointsWithNotes')}
+          {t('checkedPoints')}
           <span className="text-base font-medium opacity-70">
-            <ArabicNumber value={findings.length} /> {t('outOf')}{' '}
             <ArabicNumber value={points.length} />
           </span>
         </h2>
         <span className="h-px flex-1 bg-line" />
-        <ActionButton onClick={() => setShowAll((current) => !current)}>
-          {showAll ? t('showFindingsOnly') : t('showPassed')}{' '}
-          {showAll ? null : <ArabicNumber value={passed} />}
+        <ActionButton onClick={toggleAll}>
+          {allOpen ? t('collapseAll') : t('expandAll')}
         </ActionButton>
       </header>
 
-      {rows.length === 0 ? (
-        <EmptyState title={t('noFindings')} description={t('noFindingsBody')} />
-      ) : (
-        <table className="w-full text-start">
-          <thead>
-            <tr className="border-b border-line text-3xs font-bold tracking-[0.1em] opacity-70">
-              <th className="pb-3 text-start">{t('point')}</th>
-              {/*
-                **ورأس العمود كان يطبع `ui.state` حرفيًّا.** المفتاح
-                خريطةٌ لتسميات الصفوف (`NOTE`/`PAINT`/`FAIL`) لا نصًّا،
-                فردّت `next-intl` اسم المفتاح نفسه — وكل من فتح تقرير
-                فحصٍ قرأ «ui.state» عنوانًا لعمود. والتصميم «الحالة».
-              */}
-              <th className="pb-3 text-start">{t('stateColumn')}</th>
-              <th className="pb-3 text-start">{t('inspectorNote')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((point) => (
-              <tr key={point.id} className="border-b border-line-2">
-                <td className="w-56 py-3 text-sm font-medium">
-                  <span className="bidi-isolate">{point.label}</span>
-                  <span className="mt-0.5 block text-3xs opacity-65">{point.section}</span>
-                </td>
-                <td className="w-28 py-3">
-                  {point.state === 'OK' ? (
-                    <Badge tone="accent">{t('statePass')}</Badge>
-                  ) : (
-                    <Badge tone={STATE_TONE[point.state]}>{t(`state.${point.state}`)}</Badge>
+      {/*
+        ═══ ومفتاحُ العلامات يُقرأ قبلها لا بعدها ═══
+
+        ثلاثُ علاماتٍ لا تُفهم بلا مفتاح، ومرجعُ السوق يضعه في الذيل —
+        فمن لم يبلغه يخمّن. وهو هنا **عدّادٌ وخلاصةٌ معًا**: يشرح
+        العلامة ويقول كم بندًا تحتها.
+      */}
+      <ul className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2.5 border-y border-line-2 py-3">
+        <LegendItem state="OK" label={t('statePass')} count={counts.OK} />
+        <LegendItem state="NOTE" label={t('stateFlagged')} count={counts.findings} />
+        <LegendItem
+          state="NOT_INSPECTED"
+          label={t('state.NOT_INSPECTED')}
+          count={counts.NOT_INSPECTED}
+        />
+      </ul>
+
+      <ul className="flex flex-col gap-2.5">
+        {sections.map((section) => {
+          const open = isOpen(section);
+          const sound = section.points.filter((point) => point.state === 'OK').length;
+          const flagged = section.points.length - sound;
+          const rows = [...section.points].sort((a, b) => ORDER[a.state] - ORDER[b.state]);
+
+          return (
+            <li key={section.key} className="rounded-xl border border-line">
+              <h3>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setToggled((current) => ({ ...current, [section.key]: !open }))
+                  }
+                  aria-expanded={open}
+                  aria-controls={`section-${section.key}`}
+                  className="flex w-full items-center gap-3.5 p-4 text-start hover:bg-surface"
+                >
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 24 24"
+                    className={cn(
+                      'size-4 shrink-0 opacity-50 transition-transform',
+                      open ? 'rotate-90' : 'rtl:-scale-x-100',
+                    )}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+
+                  <span className="min-w-0 flex-1 text-sm font-bold">{section.name}</span>
+
+                  {/*
+                    **وخلاصةُ القسم على رأسه** — فالمطويُّ يقول ما فيه
+                    قبل أن يُفتح، ولا يُفتح المرءُ ستّة أقسامٍ ليعرف
+                    أيُّها يعنيه.
+                  */}
+                  <span className="flex shrink-0 items-center gap-2.5 text-3xs">
+                    {flagged === 0 ? (
+                      <span className="flex items-center gap-1.5 text-accent-800">
+                        <StateMark state="OK" />
+                        {t('allSound')}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 opacity-80">
+                        <StateMark state="NOTE" />
+                        <ArabicNumber value={flagged} />
+                      </span>
+                    )}
+                    <span className="w-9 text-end text-sm font-bold">
+                      <ArabicNumber value={section.score} grouped={false} />
+                    </span>
+                  </span>
+                </button>
+              </h3>
+
+              {open ? (
+                <div id={`section-${section.key}`} className="border-t border-line-2 px-4 pb-1">
+                  {section.note === null ? null : (
+                    <p className="border-b border-line-2 py-3 text-xs leading-loose opacity-70">
+                      {section.note}
+                    </p>
                   )}
-                </td>
-                <td className="py-3 text-xs opacity-75">{point.note ?? ''}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+                  <ul className="grid gap-x-8 sm:grid-cols-2">
+                    {rows.map((point) => (
+                      <li
+                        key={point.id}
+                        className="flex items-start gap-2.5 border-b border-line-2 py-2.5 last:border-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-0"
+                      >
+                        <StateMark state={point.state} className="mt-0.5" />
+                        <span className="min-w-0 flex-1">
+                          <span className="bidi-isolate block text-xs font-medium">
+                            {point.label}
+                          </span>
+                          {point.state === 'OK' ? null : (
+                            <span className="mt-1 flex flex-wrap items-baseline gap-2">
+                              <Badge tone={STATE_TONE[point.state]}>
+                                {point.state === 'NOT_INSPECTED'
+                                  ? t('state.NOT_INSPECTED')
+                                  : t(`state.${point.state}`)}
+                              </Badge>
+                              {point.note === null ? null : (
+                                <span className="text-3xs leading-relaxed opacity-75">
+                                  {point.note}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </section>
+  );
+}
+
+function LegendItem({
+  state,
+  label,
+  count,
+}: {
+  state: PointState;
+  label: string;
+  count: number;
+}) {
+  return (
+    <li className="flex items-center gap-2 text-3xs">
+      <StateMark state={state} />
+      <span className="opacity-75">{label}</span>
+      <span className="font-bold">
+        <ArabicNumber value={count} />
+      </span>
+    </li>
   );
 }
 

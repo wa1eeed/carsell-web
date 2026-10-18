@@ -46,11 +46,23 @@ describe('٢١٠ نقطة من قاعدة البيانات', () => {
     }
   });
 
-  it('السليم والملاحظ يجمعان إلى المجموع', async () => {
+  /**
+   * **والدلاءُ ثلاثة لا اثنان.** كان الحكم `سليم + ملاحظة = المجموع`،
+   * وهو صحيحٌ ما دام كلُّ ما ليس سليمًا ملاحظةً. ثمّ صار لـ«لم يُفحَص»
+   * دلوُه — فبندٌ لا ينطبق ليس إجازةً ولا خبرًا سيّئًا. والاختبارُ كان
+   * يثبّت العالَم القديم، فصُحّح معه لا بدلَه.
+   */
+  it('السليم والملاحظ وما لم يُفحَص يجمعون إلى المجموع', async () => {
     const report = toPublicReport((await findReportByListingRef(await anyInspected(), null))!, 'ar');
-    expect(report.passedPoints + report.findings.length).toBe(report.totalPoints);
+    expect(report.passedPoints + report.findings.length + report.notInspectedPoints).toBe(
+      report.totalPoints,
+    );
     expect(report.findings.length).toBeGreaterThan(0);
-    for (const finding of report.findings) expect(finding.state).not.toBe('OK');
+    for (const finding of report.findings) {
+      expect(finding.state).not.toBe('OK');
+      /** **ولا «لم يُفحَص» في الملاحظات** — فالقائمة تقول ما وُجد. */
+      expect(finding.state).not.toBe('NOT_INSPECTED');
+    }
   });
 
   it('كل صورة تحمل اسم بندها — صورة بلا سياق لا تُثبت شيئًا', async () => {

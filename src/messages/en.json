@@ -134,18 +134,14 @@
     "home": "Home",
     "cars": "Browse cars",
     "openingPrice": "Opening price",
-    "pointsWithNotes": "Points with notes",
-    "showPassed": "Show passing points",
-    "showFindingsOnly": "Notes only",
     "noFindings": "No notes",
     "noFindingsBody": "Every point passed in this report.",
-    "point": "Point",
     "state": {
       "NOTE": "Note",
       "PAINT": "Repainted",
-      "FAIL": "Needs repair"
+      "FAIL": "Needs repair",
+      "NOT_INSPECTED": "Not inspected"
     },
-    "inspectorNote": "Inspector note",
     "statePass": "Pass",
     "findingPhotos": "Photos of notes",
     "bodyAndPaintMap": "Body and paint map",
@@ -172,14 +168,18 @@
     "noReport": "No inspection report",
     "noReportBody": "This vehicle has not been inspected. Order an inspection from the services directory.",
     "breadcrumb": "Breadcrumb",
-    "stateColumn": "Status",
     "reservedTitle": "Reserved by an open order",
     "reservedBody": "Another buyer has an order in progress. If it does not complete, it returns to the market — add it to your favourites to be told.",
     "soldTitle": "Sold",
     "soldBody": "This sale completed and ownership transferred. The page stays for the record — similar vehicles are listed below.",
     "privateReport": "You have a private inspection report on this car",
     "privateReportBody": "You paid for it, so it is yours alone — the seller cannot see it until you share it.",
-    "openPrivateReport": "Open your report"
+    "openPrivateReport": "Open your report",
+    "checkedPoints": "Points inspected",
+    "allSound": "All sound",
+    "expandAll": "Expand all sections",
+    "collapseAll": "Collapse all sections",
+    "stateFlagged": "Flagged"
   },
   "site": {
     "liveAuctions": "live auctions",

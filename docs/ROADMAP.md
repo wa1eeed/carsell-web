@@ -905,6 +905,38 @@ Sequenced after the current work, as the owner asked.
 | **The inspection form fields** | Still with the owner, after the current tasks. A reference was given (`halacarly.com`, inspection tab) and the standard set: match the best car sites, work on web and phone. The form is therefore built so the **point list is data** it reads — swapping the list does not rebuild the form. |
 | **The order stages** — six or seven | Stage 2 of the owner's own ordering; see above. |
 
+## 11 · The report's points, grouped and marked — *owner's request 2026-10-18*
+
+> «يجب ان تكون الحقول الفرعيه مرتبه و فرعيه تحت البنود الاساسيه (توقل) و ان
+> حصل نضيف ايقونات و ايضاً علامة صح للسليم و علامة تعجب للي فيه ملاحظه او غير
+> سليم و علامة مناسبه للي لم يتم فحصه» — and «خلك مبدع و احترافي».
+
+Asked after reading the published report of a seeded car. What is there today:
+a flat table of 210 rows, defaulting to the 4 findings with a button that
+expands all 210 at once — correct information, wrong shape. A buyer asking "how
+are the brakes?" has to scan a list that does not say where one section ends.
+
+- [x] **Points nest under their section, each section a toggle.** Sections
+      carrying a finding open by default; sound sections stay closed with their
+      count on the header, so the four findings are still the first thing read.
+- [x] **A mark per state, not a word alone** — a check for sound, an exclamation
+      for a note or a fault, and its own mark for a point that was not examined.
+      Colour is never the only carrier: the icon's shape differs too, and each
+      row keeps its text label.
+- [x] **`NOT_INSPECTED` exists at last.** The freeze used to map *anything not
+      answered* to «سليم» — publishing a point nobody looked at as sound. It is
+      unreachable today (submission is blocked until all 210 are answered) but
+      it is a landmine: the first optional point, or a catalogue row added after
+      a draft was opened, publishes silence as a promise.
+
+Still with the owner, and it does not block the above:
+
+| What | Why it matters |
+| --- | --- |
+| **`PAINT` («صبغ») has no writer** | Measured: only the seed writes it. The inspector's form offers سليم · ملاحظة · عطل, and the freeze emits OK · NOTE · FAIL. So no real report can ever show «صبغ» — the paint story belongs to the body diagram, which exists and works. Proposal: drop it from the point states. |
+| **Naming** | «عطل» is sharper than the common case (a strut beginning to seep). The owner's own words suggest «يحتاج صيانة أو استبدال». A rename touches frozen reports, so it needs the owner's word first. |
+| **Scoring a non-inspected point** | Excluded from the section score, or counted against it? Nothing can produce one yet, so the question is not urgent — but it is a money-adjacent rule once it can. |
+
 ## Also open, outside the four stages
 
 These were asked for or decided earlier and are not part of the sequence above.
