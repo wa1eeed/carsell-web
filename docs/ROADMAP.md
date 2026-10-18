@@ -974,6 +974,32 @@ Five, given after reading the rebuilt report:
 **And `carz.sa` is the production domain** — recorded here because `APP_URL`
 and the sitemap, canonical links and QR payloads all read from it.
 
+## 13 · Trust marks in the footer, and a PDPL page — *owner's request 2026-10-18*
+
+> «في فوتر المنصه لتعزيز الموثوقيه اعتقد يجب ان نضيف الشعارات التاليه ولكن بذكاء
+> و احترافيه تضاهي المنصات السعوديه و العالميه و ايضاً ضع صفحة في المنصه بخصوص
+> حماية البيانات PDPL بحيث يكون محتواها افضل من المحتوى في الرابط التالي كمثال
+> … https://waki.sa/ar/pdpl» — plus the payment marks (Visa · Mastercard ·
+> Apple Pay · mada · stc pay).
+
+- [ ] **Regulatory marks**: Digital Government Authority · Saudi Business Center
+      · National Data Governance Platform · VAT.
+- [ ] **Payment marks**: the methods the platform actually accepts.
+- [ ] **`/pdpl`** — a data-protection page that beats the reference.
+
+**A badge is a claim, not decoration.** A VAT mark says "this platform is
+registered for VAT"; a Saudi Business Center mark says "this commercial
+registration exists". Saudi platforms that do this well print the **number**
+beneath the mark and link it to the official verification — which is what makes
+the badge worth anything. So the marks are rows, not markup: each carries its
+registration number and verify URL, both set from the panel, and a mark whose
+number is missing is still shown but unverified until the owner fills it.
+
+That also means **the owner must confirm each one the platform actually holds**
+and switch off any it does not. A mark the platform has not earned is the
+clearest possible case of «النصّ المعروض وعدٌ لا وصف», with a regulator on the
+other end of it.
+
 ## Also open, outside the four stages
 
 These were asked for or decided earlier and are not part of the sequence above.

@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-95 models · 62 enums
+96 models · 63 enums
 
 ## Relationships
 
@@ -211,6 +211,7 @@ erDiagram
   FaqPlacement |o--|| ListingType : "listingType"
   FaqPlacement }o--|| FaqItem : "faq"
   BodyTypeDisplay }o--|| BodyType : "key"
+  TrustMark }o--|| TrustMarkKind : "kind"
   Notification }o--|| User : "user"
   NotificationTemplate |o--|| PushChannel : "pushChannel"
   AdSlot ||--o{ AdCampaign : "campaigns"
@@ -1279,6 +1280,21 @@ Relations: `listingType` → `ListingType` · `faq` → `FaqItem`
 
 Relations: `key` → `BodyType`
 
+### `TrustMark`
+
+| Field | Type | Key |
+|---|---|---|
+| `key` | `String` | PK |
+| `nameAr` | `String` |  |
+| `nameEn` | `String` |  |
+| `logoPath` | `String` |  |
+| `registrationNo` | `String?` |  |
+| `verifyUrl` | `String?` |  |
+| `active` | `Boolean` |  |
+| `sort` | `Int` |  |
+
+Relations: `kind` → `TrustMarkKind`
+
 ### `LegalDocument`
 
 | Field | Type | Key |
@@ -1902,6 +1918,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `CommissionSide` — `BUYER`, `SELLER`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
+- `TrustMarkKind` — `REGULATORY`, `PAYMENT`
 - `ServiceFeeMode` — `FIXED`, `PERCENT`
 - `ProviderAccountKind` — `FREELANCER`, `ESTABLISHMENT`, `COMPANY`, `GOVERNMENT`, `CHARITY`
 - `AccountSignatory` — `OWNER`, `COMMERCIAL_CONTRACT`, `POWER_OF_ATTORNEY`

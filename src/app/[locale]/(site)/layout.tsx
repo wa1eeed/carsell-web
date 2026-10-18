@@ -15,11 +15,19 @@ import { SiteFooter } from '@/components/site/SiteHeader';
  *
  * ولا يشمل `/admin` ولا `/provider`: لوحتا عملٍ لا موقع.
  */
-export default function SiteLayout({ children }: { children: ReactNode }) {
+export default async function SiteLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  /** واللغةُ من المسار — فالتذييل يسمّي علاماتِه بلغة من يقرؤه. */
+  const { locale } = await params;
   return (
     <>
       {children}
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </>
   );
 }

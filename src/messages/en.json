@@ -357,7 +357,12 @@
     "menu": "Menu",
     "closeMenu": "Close menu",
     "promoTitlePaid": "Sell with confidence — the money sits in escrow",
-    "promoBodyPaid": "Direct sale, negotiation and auction"
+    "promoBodyPaid": "Direct sale, negotiation and auction",
+    "trust": {
+      "regulatoryTitle": "Compliance and governance",
+      "regulatoryNote": "We operate under the Kingdom’s regulations for e-commerce and personal data protection.",
+      "paymentTitle": "Accepted payment methods"
+    }
   },
   "dev": {
     "title": "Component library",

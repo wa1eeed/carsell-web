@@ -1,4 +1,7 @@
 import { useLocale, useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import { TrustMarks } from './TrustMarks';
+import { trustMarks } from '@/lib/domain/trust-marks';
 import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Countdown } from '@/components/ui/Countdown';
@@ -218,8 +221,17 @@ export function SiteHeader({
  * و«الباقات» كانت أسماءً بلا مسارات، فحُذفت حتى تُبنى — ورابطٌ يفتح
  * ٤٠٤ أسوأ من غيابه.
  */
-export function SiteFooter() {
-  const t = useTranslations('site');
+export async function SiteFooter({ locale }: { locale: string }) {
+  /**
+   * **و`getTranslations` لا `useTranslations`**: التذييلُ صار يقرأ
+   * علاماتِ الموثوقية من القاعدة، فصار مكوّنًا غير متزامن — والخطّافُ
+   * لا يُستدعى فيه.
+   */
+  const t = await getTranslations('site');
+  const [regulatory, payment] = await Promise.all([
+    trustMarks('REGULATORY'),
+    trustMarks('PAYMENT'),
+  ]);
 
   /**
    * **ويقرأ أعمدتَه بنفسه.** كان يأخذها خاصّيةً، فكانت كل صفحةٍ تريده
@@ -233,7 +245,8 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-line bg-surface px-10 py-10">
-      <div className="mx-auto flex w-full max-w-page flex-wrap gap-10">
+      <div className="mx-auto flex w-full max-w-page flex-col gap-10">
+      <div className="flex flex-wrap gap-10">
         <div className="min-w-56 flex-1">
           <Logo className="h-9" />
           <p className="mt-2.5 max-w-72 text-xs leading-loose opacity-70">
@@ -271,6 +284,22 @@ export function SiteFooter() {
             </ul>
           </div>
         ))}
+      </div>
+
+      {/*
+        ═══ وعلاماتُ الموثوقية أسفلَ الروابط لا فوقها ═══
+
+        من يصل التذييل يبحث عن رابط — والشعاراتُ فوقه تُؤخّره عنه.
+        وموضعُها الصحيح بعده: تطمئن من فرغ من بحثه، ولا تعترض من لم
+        يفرغ.
+      */}
+      <TrustMarks
+        marks={regulatory}
+        locale={locale}
+        title={t('trust.regulatoryTitle')}
+        note={t('trust.regulatoryNote')}
+      />
+      <TrustMarks marks={payment} locale={locale} title={t('trust.paymentTitle')} />
       </div>
     </footer>
   );
