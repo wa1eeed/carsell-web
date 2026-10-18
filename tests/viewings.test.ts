@@ -576,16 +576,44 @@ describe('ما مضى', () => {
     expect(byRef.get(confirmed.ref)).toBe('COMPLETED');
   });
 
-  /** **والعدّادُ يُحسب بما يُنتظر فعلًا** — لا بكلّ صفٍّ في القائمة */
+  /**
+   * **والعدّادُ يُحسب بما يُنتظر فعلًا** — لا بكلّ صفٍّ في القائمة.
+   *
+   * **والحكمُ على فارقِ صفِّنا لا على العدّاد العامّ**: الدالّة تعدّ
+   * لكلّ البائع، وكان الاختبار يقول `toBe(0)` — فحين صار **أقدمُ
+   * إعلانٍ منشور** إعلانًا لبائعٍ له معاينةٌ مزروعة منتظرة سقط على ما
+   * لا يقيسه. والصنف مسجَّل في CLAUDE.md، وهذا ثانيه.
+   *
+   * فالشرطُ يُشترط صريحًا: لا صفَّ آخر لهذا البائع ينقضي بين
+   * اللحظتين — ثمّ الفارقُ **واحد**، هو صفُّنا وحده.
+   */
   it('والعدّادُ يستبعد ما مضى وقتُه', async () => {
     const seat = await ask({ onDate: '2026-10-19', period: 'EVENING' });
-    expect(await viewingsAwaiting(seat.sellerId, NOW)).toBeGreaterThanOrEqual(1);
-    /** بعد الموعد — لم يعد ينتظر ردًّا من أحد */
-    const after = await viewingsAwaiting(seat.sellerId, new Date('2026-10-20T06:00:00.000Z'));
-    const mine = await db.viewing.count({
-      where: { ref: seat.ref, status: 'REQUESTED' },
+    const past = new Date('2026-10-20T06:00:00.000Z');
+
+    const others = await db.viewing.findMany({
+      where: {
+        ref: { not: seat.ref },
+        OR: [
+          { sellerId: seat.sellerId, status: ViewingStatus.REQUESTED },
+          { buyerId: seat.sellerId, status: ViewingStatus.COUNTERED },
+        ],
+      },
+      select: { onDate: true, period: true },
     });
-    expect(mine).toBe(1);
-    expect(after).toBe(0);
+    const inWindow = others.filter((row) => {
+      const ends = slotEnd(row.onDate, row.period).getTime();
+      return ends > NOW.getTime() && ends <= past.getTime();
+    });
+    expect(inWindow).toEqual([]);
+
+    const before = await viewingsAwaiting(seat.sellerId, NOW);
+    expect(before).toBeGreaterThanOrEqual(1);
+
+    /** بعد الموعد — لم يعد ينتظر ردًّا من أحد */
+    const after = await viewingsAwaiting(seat.sellerId, past);
+    /** **والحالة لم تتغيّر** — فالاستبعادُ بالوقت لا بالحالة. */
+    expect(await db.viewing.count({ where: { ref: seat.ref, status: 'REQUESTED' } })).toBe(1);
+    expect(before - after).toBe(1);
   });
 });

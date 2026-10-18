@@ -105,7 +105,16 @@ async function sweep(when: string): Promise<void> {
    */
   const stalePending = await db.approvalRequest.deleteMany({
     where: {
-      kind: { in: ['PAYMENT_ROUTE', 'KEY_ROTATION', 'INTEGRATION_ENV', 'SELLER_PAYOUT'] },
+      kind: {
+        in: [
+          'PAYMENT_ROUTE',
+          'KEY_ROTATION',
+          'INTEGRATION_ENV',
+          'SELLER_PAYOUT',
+          /** **وأثرٌ جديد يُضاف إلى الاستعادة المشتركة** في يومه. */
+          'PROVIDER_PAYOUT',
+        ],
+      },
       status: 'PENDING',
     },
   });
@@ -117,6 +126,23 @@ async function sweep(when: string): Promise<void> {
   const stalePayouts = await db.payout.deleteMany({ where: { status: 'PENDING' } });
   if (stalePayouts.count > 0) {
     console.log(`  نُظّف ${String(stalePayouts.count)} تحويلًا معلَّقًا من تحقّق سابق`);
+  }
+
+  /**
+   * ومثلُه تحويلُ المزوّد — و`ALREADY_PENDING` تحرسه بالقاعدة نفسها.
+   *
+   * **وما وسمته البذرة يُستثنى**: الحذفُ بالشكل لا يفرّق بين بقايا
+   * مشيٍ يدويّ وصفٍّ زُرع ليُرى، فكان طلبُ البذرة المنتظر يختفي بعد
+   * أوّل تشغيل — وشاشةُ الصرف تعود بلا قسمِ «ينتظر اعتماد عضوٍ ثانٍ»
+   * في بيئةٍ تُزرع لتُعرض.
+   */
+  const staleProviderPayouts = await db.providerPayout.deleteMany({
+    where: { status: 'PENDING', NOT: { note: 'seed' } },
+  });
+  if (staleProviderPayouts.count > 0) {
+    console.log(
+      `  نُظّف ${String(staleProviderPayouts.count)} تحويل مزوّد معلَّقًا من تحقّق سابق`,
+    );
   }
   if (stalePending.count > 0) {
     console.log(`  نُظّف ${String(stalePending.count)} طلب موافقة معلّق من تحقّق سابق`);
@@ -148,6 +174,25 @@ async function sweep(when: string): Promise<void> {
     const ids = staleProviders.map((row) => row.id);
     await db.serviceRequest.updateMany({ where: { providerId: { in: ids } }, data: { providerId: null } });
     await db.auditLog.deleteMany({ where: { entityId: { in: ids } } });
+    /**
+     * **وتحويلاتُه تُحذف قبله**: `ProviderPayout → ServiceProvider`
+     * بـ`onDelete: Restrict`، فمزوّدُ اختبارٍ صُرف له يمنع حذفَ نفسه —
+     * ويسقط التنظيفُ كلُّه على قيدٍ أجنبيّ، لا هذا السطر وحده.
+     */
+    await db.providerPayout.deleteMany({ where: { providerId: { in: ids } } });
+    /**
+     * **وقيودُه في الدفتر تُحذف بمعاملتها لا بمعرّفه**: قيدٌ باسمه
+     * يقابله قيدٌ على حسابنا بلا اسم، وحذفُ طرفٍ واحد يترك في الدفتر
+     * معاملةً **غير متوازنة** تُسقط كل اختبارٍ يفحص التوازن.
+     */
+    const providerEntries = await db.ledgerEntry.findMany({
+      where: { providerId: { in: ids } },
+      select: { txnId: true },
+    });
+    const transactions = [...new Set(providerEntries.map((row) => row.txnId))];
+    if (transactions.length > 0) {
+      await db.ledgerEntry.deleteMany({ where: { txnId: { in: transactions } } });
+    }
     await db.serviceProvider.deleteMany({ where: { id: { in: ids } } });
     console.log(`  نُظّف ${String(staleProviders.length)} مزوّد اختبار ${when}`);
   }

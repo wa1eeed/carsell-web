@@ -33,6 +33,7 @@ export async function adminNavCounts(now: Date = new Date()): Promise<AdminNavCo
     serviceRequests,
     dealers,
     payouts,
+    providerPayouts,
     settlements,
   ] = await Promise.all([
     db.listing.count({ where: { status: 'PENDING_REVIEW' } }),
@@ -49,6 +50,10 @@ export async function adminNavCounts(now: Date = new Date()): Promise<AdminNavCo
      */
     db.approvalRequest.count({
       where: { kind: 'SELLER_PAYOUT', status: 'PENDING', expiresAt: { gt: now } },
+    }),
+    /** ومستحقُّ المزوّد مثلُه — دَينٌ لطرفٍ ثالث يقف حتى ينظر ثانٍ. */
+    db.approvalRequest.count({
+      where: { kind: 'PROVIDER_PAYOUT', status: 'PENDING', expiresAt: { gt: now } },
     }),
     db.approvalRequest.count({
       where: { kind: 'ESCROW_RELEASE', status: 'PENDING', expiresAt: { gt: now } },
@@ -71,6 +76,7 @@ export async function adminNavCounts(now: Date = new Date()): Promise<AdminNavCo
   put('/admin/service-requests', serviceRequests);
   put('/admin/dealers', dealers);
   put('/admin/payouts', payouts);
+  put('/admin/provider-payouts', providerPayouts);
   put('/admin/settlements', settlements);
 
   return counts;

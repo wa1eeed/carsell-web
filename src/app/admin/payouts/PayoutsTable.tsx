@@ -150,7 +150,9 @@ export function PayoutsTable({
                 <div className="flex min-w-0 flex-col gap-1">
                   <Link
                     href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
-                    className="bidi-isolate truncate text-sm underline underline-offset-4 hover:opacity-75"
+                    /* **ومساحةُ اللمس ليست مساحةَ النصّ** (WCAG 2.2): حشوٌ رأسيّ
+                      وهامشٌ سالب — يتّسع الهدف ولا يتحرّك سطر. */
+                    className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
                   >
                     {row.sellerName ?? '—'}
                   </Link>
@@ -201,7 +203,9 @@ export function PayoutsTable({
               <div className="flex min-w-0 flex-col gap-1">
                 <Link
                   href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
-                  className="bidi-isolate truncate text-sm underline underline-offset-4 hover:opacity-75"
+                  /* **ومساحةُ اللمس ليست مساحةَ النصّ** (WCAG 2.2): حشوٌ رأسيّ
+                      وهامشٌ سالب — يتّسع الهدف ولا يتحرّك سطر. */
+                    className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
                 >
                   {row.name === '' ? '—' : row.name}
                 </Link>

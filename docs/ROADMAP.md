@@ -734,9 +734,14 @@ What the owner asked for, item by item:
 - [x] **A statement of account** (كشف حساب).
 - [x] **Posting a debit or a credit** to that account by hand — second approver
       required, as for a customer's wallet.
-- [ ] **How the money actually reaches them** — nothing debits `PROVIDER_PAYABLE`
-      yet, so the balance is everything ever earned, not what is still owed. The
-      manual entry covers it until the answer arrives; see `docs/OPEN-QUESTIONS.md`.
+- [x] **How the money actually reaches them** — «ابدأ بصرف مستحقات المزودين»
+      (2026-10-18). `ProviderPayout` with a two-person quorum, mirroring the
+      seller flow: `/admin/provider-payouts` is the queue, the provider's own
+      page carries the bank account and what was transferred, and
+      `provider_payout.sent` debits `PROVIDER_PAYABLE` so the balance now means
+      *what is still owed*. `ServiceProvider.iban` was added with it — the
+      destination had no field, so the guard would have been a lock with no key.
+      The provider reads the same figures at `/provider/earnings`.
 
 And the standing instruction that came with it:
 
@@ -750,6 +755,14 @@ provider's money is *not* held by us (`recordServiceCaptured` moves it to
 `ESCROW_AT_PROVIDER`; the screen reads «رصيدُه ليس عندنا — المال يذهب إليه من
 البوّابة مباشرةً»). A balance and a statement mean we do keep an account for
 them. See `docs/OPEN-QUESTIONS.md`.
+
+**Answered in practice while the question stands open:** until the provider
+gateway's split payments are switched on, the money *is* ours — we capture it
+(`service.captured`) and owe them (`PROVIDER_PAYABLE`). So the payout path pays
+from `PLATFORM_CASH`, and a provider paid by a future split is never credited
+here, so the two cannot double-pay. The statement that reads «رصيدُه ليس عندنا»
+is about the **gateway account balance**, which we mirror and do not compute —
+a different number from what we owe them, and now labelled as such on the page.
 
 ---
 

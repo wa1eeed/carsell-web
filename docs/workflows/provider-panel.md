@@ -138,6 +138,68 @@ And the amount is the **request's value, not the provider's share**: our cut is
 deducted in the split at the gateway, and computing it here with a second rule
 would produce two answers to one question.
 
+- **The bank account and what was transferred** — see below.
+
+## Paying the provider
+
+> «ابدأ بصرف مستحقات المزودين» — the owner, 2026-10-18.
+
+`PROVIDER_PAYABLE` was credited on every completed service and **nothing ever
+debited it**. The inspector inspected, we booked a debt, and no path in the
+product moved a riyal to them; the balance on their page meant *everything ever
+earned*, never *what is still owed*.
+
+### The queue
+
+`/admin/provider-payouts` lists who is owed, read **from the ledger** rather than
+from a sum of their requests, with the pending requests first because that is
+what needs a person now. It mirrors `/admin/payouts` for sellers deliberately:
+one shape for "money leaves to an external account", learned once.
+
+A separate screen, not a mixed one: whoever pays providers should not search for
+seven rows among a hundred sellers. And a separate table (`ProviderPayout`), not
+a nullable column on `Payout` — the party is a `ServiceProvider`, the account is
+`PROVIDER_PAYABLE`, and one foreign key cannot point at two tables.
+
+### Two people, and the second one writes
+
+`requestProviderPayout` opens an `ApprovalRequest` with `requiredApprovals: 2`
+and **moves nothing**. `approveProviderPayout`, run by a different admin, writes
+the `SENT` row, the ledger entry and the audit record in one transaction. The
+requester cannot approve their own request (403, not 422 — it is forbidden to
+this person however often they retry), and cancelling *is* theirs: the quorum
+guards money leaving, not calling it off.
+
+The amount is re-checked against the ledger at approval, not only at request: a
+manual adjustment in between would otherwise let an approved transfer exceed
+what is owed.
+
+The bank reference is required, because the transfer itself is executed by
+finance from the bank — integrations are deferred — and this row is what
+reconciles against the bank statement.
+
+### The destination had no field
+
+`ServiceProvider.iban` was added with the flow. Enforcing "no payout without an
+IBAN" with no way to enter one is a lock with no key — the same mistake
+`profileCompletion` made against buyers. It is written through
+`PUT /api/v1/admin/providers/{id}/iban` (write-only, `payouts.send`, never a
+field in the general edit form that would blank it on save), stored encrypted
+like `User.iban`, and read back masked — `SA03••••7519`. Validation is
+`checkIban`, mod-97 included: a correct length and prefix do not stop a
+transposed digit, and that money does not come back.
+
+### What the provider sees
+
+`/provider/earnings` answers the three questions in their own words: **لك الآن**
+(what is still owed), **مجموع ما استُحقّ** (everything ever earned) and **ما
+حُوِّل إليك** (what has arrived), plus the bank account on file, the transfers
+with their references, and the full statement. Only `SENT` rows are shown: a
+request awaiting a second approver is not money that arrived.
+
+The statement's wording is its own map (`PROVIDER_SELF_EVENT_LABEL`), because
+the admin's says «حُوِّل إلى **حسابه**» and this reader is the provider.
+
 ## Not yet
 
 - The **inspection form** behind `complete`. Its fields come from the owner

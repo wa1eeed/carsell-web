@@ -21,9 +21,15 @@ import { providerDetail } from '@/lib/domain/admin-provider-detail';
 import { providerPlatformReady } from '@/lib/domain/provider-account';
 import { getProviderFeePlan } from '@/lib/domain/provider-fees';
 import { AccountActions } from './AccountActions';
+import { BankAccount } from './BankAccount';
 import { LedgerPanel } from './LedgerPanel';
 import { StaffActions } from './StaffActions';
 import { pendingProviderAdjustment, providerLedger } from '@/lib/domain/provider-ledger';
+import {
+  pendingProviderPayout,
+  providerIbanMasked,
+  providerPayoutLines,
+} from '@/lib/domain/provider-payouts';
 
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import {
@@ -62,12 +68,24 @@ export default async function AdminProviderPage({
   if (!can(admin.role, 'services.manage')) redirect('/admin');
 
   const { id } = await params;
-  const [provider, feePlan, platformReady, ledger, pendingEntry] = await Promise.all([
+  const [
+    provider,
+    feePlan,
+    platformReady,
+    ledger,
+    pendingEntry,
+    ibanMasked,
+    pendingPayout,
+    sentPayouts,
+  ] = await Promise.all([
     providerDetail(id),
     getProviderFeePlan(),
     providerPlatformReady(),
     providerLedger(id),
     pendingProviderAdjustment(id),
+    providerIbanMasked(id),
+    pendingProviderPayout(id),
+    providerPayoutLines(id),
   ]);
   if (provider === null) notFound();
 
@@ -265,6 +283,32 @@ export default async function AdminProviderPage({
                 lines={ledger.lines}
                 pending={pendingEntry}
                 canAdjust={canWrite(admin.role, 'providers.adjust')}
+                meId={admin.id}
+              />
+            </DetailCard>
+
+            {/*
+              ═══ وأين يُحوَّل ما له ═══
+
+              `PROVIDER_PAYABLE` كان يُقيَّد دائنًا عند كل خدمةٍ تُنجَز
+              **ولا شيء يخصمه** — ولا حقلٌ يقول أين يُحوَّل. فالدَّين
+              ينمو إلى الأبد ولا ريالٌ يصل المزوّد.
+
+              **والبابُ هنا لا في الطابور**: المانعُ يُقرأ في صفحته،
+              فيُستوفى من حيث يُقرأ.
+            */}
+            <DetailCard
+              title="الحساب البنكيّ والتحويلات"
+              note="إلى أين يُحوَّل مستحقُّه، وما خرج إليه"
+              className="mt-5"
+            >
+              <BankAccount
+                providerId={provider.id}
+                ibanMasked={ibanMasked}
+                payable={ledger.balance}
+                pending={pendingPayout}
+                sent={sentPayouts}
+                canSend={canWrite(admin.role, 'payouts.send')}
                 meId={admin.id}
               />
             </DetailCard>

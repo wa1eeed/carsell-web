@@ -367,4 +367,9 @@ export const PROVIDER_EVENT_LABEL: Readonly<Record<string, string>> = {
   'service.provider_due': 'استُحقّ عن خدمة',
   'provider.admin_credit': 'قيدٌ يدويّ — زيادة',
   'provider.admin_debit': 'قيدٌ يدويّ — خصم',
+  /**
+   * **وحدثٌ جديد تُكتب صياغتُه معه**: المفتاح الخام في كشفٍ يقرؤه
+   * محاسبٌ أو المزوّدُ نفسه هو الصنف الذي وقع في قوالب الإشعار.
+   */
+  'provider_payout.sent': 'حُوِّل إلى حسابه',
 };

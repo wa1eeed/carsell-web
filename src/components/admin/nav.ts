@@ -100,6 +100,13 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
       { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
       { label: 'تحويل مستحقّات البائعين', href: '/admin/payouts', permission: 'finance.view' },
+      /**
+       * **وطابورٌ ثانٍ لا بندٌ واحد**: الطرفُ مزوّدٌ لا بائع،
+       * والحسابُ `PROVIDER_PAYABLE` لا `SELLER_PAYABLE`، ومن يصرف
+       * للمزوّدين يفتح شاشةً يرى فيها مزوّديه وحدهم — لا قائمةً
+       * مخلوطةً يبحث فيها عن سبعةٍ بين مئة بائع.
+       */
+      { label: 'صرف مستحقّات المزوّدين', href: '/admin/provider-payouts', permission: 'finance.view' },
       { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
       /**

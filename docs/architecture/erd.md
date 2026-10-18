@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-94 models · 62 enums
+95 models · 62 enums
 
 ## Relationships
 
@@ -139,6 +139,8 @@ erDiagram
   Wallet }o--|| User : "user"
   Wallet ||--o{ WalletEntry : "entries"
   WalletEntry }o--|| Wallet : "wallet"
+  ProviderPayout }o--|| PayoutStatus : "status"
+  ProviderPayout }o--|| ServiceProvider : "provider"
   Payout }o--|| PayoutStatus : "status"
   Payout }o--|| User : "seller"
   Escrow }o--|| EscrowStatus : "status"
@@ -221,6 +223,7 @@ erDiagram
   ServiceProvider ||--o{ Service : "services"
   ServiceProvider ||--o{ ServiceRequest : "requests"
   ServiceProvider ||--o{ ProviderUser : "users"
+  ServiceProvider ||--o{ ProviderPayout : "payouts"
   EntitlementOverride |o--|| User : "user"
   Integration }o--|| IntegrationCategory : "category"
   Integration }o--|| IntegrationStatus : "status"
@@ -730,6 +733,25 @@ Relations: `user` → `User` · `entries` → `WalletEntry`
 | `createdAt` | `DateTime` |  |
 
 Relations: `wallet` → `Wallet`
+
+### `ProviderPayout`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `providerId` | `String` |  |
+| `amount` | `Decimal` |  |
+| `ibanLast4` | `String?` |  |
+| `bankRef` | `String?` |  |
+| `note` | `String?` |  |
+| `approvalRequestId` | `String?` | unique |
+| `requestedBy` | `String` |  |
+| `sentBy` | `String?` |  |
+| `createdAt` | `DateTime` |  |
+| `sentAt` | `DateTime?` |  |
+| `failedAt` | `DateTime?` |  |
+
+Relations: `status` → `PayoutStatus` · `provider` → `ServiceProvider`
 
 ### `Payout`
 
@@ -1394,6 +1416,7 @@ Relations: `reporter` → `User`
 | `slaHours` | `Int?` |  |
 | `cities` | `String[]` |  |
 | `active` | `Boolean` |  |
+| `iban` | `String?` |  |
 | `accountRef` | `String?` | unique |
 | `payoutRef` | `String?` |  |
 | `accountNote` | `String?` |  |
@@ -1408,7 +1431,7 @@ Relations: `reporter` → `User`
 | `accountDocsComplete` | `Boolean` |  |
 | `accountFees` | `Json?` |  |
 
-Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `accountKind` → `ProviderAccountKind` · `accountSignatory` → `AccountSignatory` · `services` → `Service` · `requests` → `ServiceRequest` · `users` → `ProviderUser`
+Relations: `type` → `ProviderType` · `accountStatus` → `ProviderAccountStatus` · `accountKind` → `ProviderAccountKind` · `accountSignatory` → `AccountSignatory` · `services` → `Service` · `requests` → `ServiceRequest` · `users` → `ProviderUser` · `payouts` → `ProviderPayout`
 
 ### `EntitlementOverride`
 
@@ -1886,7 +1909,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `IntegrationEnv` — `TEST`, `LIVE`
 - `IntegrationCategory` — `IDENTITY`, `PAYMENT`, `GOVERNMENT`, `INFRASTRUCTURE`
 - `IntegrationStatus` — `ACTIVE`, `INACTIVE`, `DEGRADED`
-- `ApprovalKind` — `ESCROW_RELEASE`, `SELLER_PAYOUT`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PROVIDER_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
+- `ApprovalKind` — `ESCROW_RELEASE`, `SELLER_PAYOUT`, `PROVIDER_PAYOUT`, `DISPUTE_RESOLUTION`, `KEY_ROTATION`, `INTEGRATION_ENV`, `PAYMENT_ROUTE`, `COMMISSION_CHANGE`, `TAX_RULE_CHANGE`, `WALLET_ADJUSTMENT`, `PROVIDER_ADJUSTMENT`, `PLAN_CHANGE`, `USER_BAN`
 - `ApprovalStatus` — `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`, `EXECUTED`
 - `CampaignStatus` — `DRAFT`, `SCHEDULED`, `RUNNING`, `SENT`, `CANCELLED`
 - `PaymentPurpose` — `VEHICLE_ESCROW`, `AUCTION_DEPOSIT`, `WALLET_TOPUP`, `SERVICE_PURCHASE`, `TRANSFER_FEE`, `SUBSCRIPTION`

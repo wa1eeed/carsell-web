@@ -556,6 +556,50 @@ export async function recordOrderCaptured(
 }
 
 /**
+ * ═══ وحُوِّل مستحقُّ المزوّد ═══
+ *
+ * ```
+ *   مدين   PROVIDER_PAYABLE   ٤٥٠
+ *   دائن   PLATFORM_CASH      ٤٥٠
+ * ```
+ *
+ * **وبه يُصفَّر حقُّه.** و`recordServiceEarned` تُقيّده دائنًا عند كل
+ * خدمةٍ تُنجَز **ولا شيء كان يخصمه** — فرصيدُه في لوحته «مستحقّ» وهو
+ * مجموعُ ما كسبه منذ بدأ، لا ما بقي له. وهو نمطُ `recordSellerPayout`
+ * نفسُه قبل أن يُبنى بابُه.
+ *
+ * **والخروجُ من رصيدنا لدى المزوّد** لا من المحجوز: لا يُدفع لأحدٍ من
+ * مالٍ لم يُحصَّل (قرار المالك ٢٠٢٦-١٠-١٧).
+ */
+export async function recordProviderPayout(
+  writer: Writer,
+  input: {
+    providerId: string;
+    amount: Prisma.Decimal | number | string;
+    note?: string;
+  },
+  now: Date = new Date(),
+): Promise<PostResult> {
+  return postEntries(
+    writer,
+    {
+      event: 'provider_payout.sent',
+      postings: [
+        {
+          account: 'PROVIDER_PAYABLE',
+          direction: 'DEBIT',
+          amount: input.amount,
+          providerId: input.providerId,
+          ...(input.note === undefined ? {} : { note: input.note }),
+        },
+        { account: 'PLATFORM_CASH', direction: 'CREDIT', amount: input.amount },
+      ],
+    },
+    now,
+  );
+}
+
+/**
  * ═══ ٤· حُصِّل المحجوز فوصل المال ═══
  *
  * ```

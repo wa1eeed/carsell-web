@@ -19,6 +19,7 @@ import { devPut, devStoreAllowed } from '../src/lib/storage/dev-store';
 import { placeholderPng } from './placeholder-image';
 import { hashPassword } from '../src/lib/auth/password';
 import { encryptSecret } from '../src/lib/crypto/secrets';
+import { checkIban, ibanLast4 } from '../src/lib/domain/iban';
 import { Prisma } from '../src/generated/prisma/client';
 import type {
   BodyType,
@@ -93,6 +94,15 @@ async function ledgerEvents(): Promise<LedgerEvents> {
 /** **وأرقامُ الطلب تُحسب بحاسبة المنتج** — ولو زُرعت بيدٍ ناقضت قاعدةَ العمولة. */
 type Amounts = Awaited<ReturnType<typeof loadAmounts>>;
 const loadAmounts = () => import('../src/lib/domain/order-amounts');
+
+type Money = Awaited<ReturnType<typeof loadMoney>>;
+const loadMoney = () => import('../src/lib/domain/money');
+
+let moneyModule: Money | null = null;
+async function money(): Promise<Money> {
+  moneyModule ??= await loadMoney();
+  return moneyModule;
+}
 
 let amountsModule: Amounts | null = null;
 async function computeOrderAmounts(
@@ -201,6 +211,41 @@ const REAL_NOW = (() => {
 })();
 const realHours = (n: number): Date => new Date(REAL_NOW.getTime() + n * 3_600_000);
 const hours = (n: number): Date => new Date(NOW.getTime() + n * 3_600_000);
+
+/**
+ * ═══ آيبانٌ يقبله فحصُ المنتج نفسه ═══
+ *
+ * كان البائعون يُبذرون بـ`SA03` + ١٨ خانة عشوائية: **٢٢ خانة لا ٢٤**،
+ * وخانتا تحقّقٍ لا تطابقان شيئًا — فصفٌّ يرفضه `checkIban` يسكن عمودًا
+ * يكتبه المنتج عبرها. و`ibanLast4` تقبله (تشترط ٨ خانات فقط) فلا يشتكي
+ * أحد، حتى يُلصق في استمارةٍ فتردّه بـ«خانتا التحقّق».
+ *
+ * **والخانتان تُشتقّان بالفحص لا بحسابٍ ثانٍ**: `checkIban` هي مُطبِّقة
+ * mod-97 الوحيدة، وتجربةُ تسعٍ وتسعين قيمةً عليها أرخصُ من نسخها.
+ */
+/**
+ * رقمُ حسابٍ من ١٨ خانة — **بالتجزيء لا برقمٍ واحد**: `10 ** 17`
+ * يتجاوز `MAX_SAFE_INTEGER`، فالعشوائيُّ فوقه يفقد خاناته الأخيرة
+ * ويُطبَع أُسًّا — فيخرج آيبانٌ فيه حرف `e`.
+ */
+function seedAccountDigits(): string {
+  const half = (): string => String(between(100_000_000, 999_999_999));
+  return `${half()}${half()}`;
+}
+
+function seedIban(bank: string, account: string): string {
+  for (let check = 0; check < 100; check += 1) {
+    const candidate = `SA${String(check).padStart(2, '0')}${bank}${account}`;
+    if (checkIban(candidate).ok) return candidate;
+  }
+  throw new Error(`لا خانتَي تحقّق صحيحتين لـ${bank}${account}`);
+}
+
+/**
+ * وسمُ ما زرعته البذرة من صفوفٍ يحذفها تنظيفُ الاختبارات بالشكل —
+ * ويُقرأ في `tests/global-setup.ts` بالاسم نفسه.
+ */
+const SEED_NOTE = 'seed';
 
 const CITIES = [
   'الرياض',
@@ -806,6 +851,16 @@ async function main(): Promise<void> {
         accountRef: `seed-merchant-${type.toLowerCase()}`,
         payoutRef: `seed-entity-${type.toLowerCase()}`,
         accountSyncAt: NOW,
+        /**
+         * ═══ وأين يُحوَّل مستحقُّه ═══
+         *
+         * `PROVIDER_PAYABLE` يُقيَّد له عند كل خدمةٍ تُنجَز، والصرف
+         * يردّ `NO_IBAN` بلا هذا الحقل — **فبيئةٌ بلا آيبانٍ مزروع
+         * لا يُصرف فيها لأحد**، وطابورُ الصرف يُعرض كلُّه معطَّلًا.
+         *
+         * ومشفَّرٌ كما يكتبه المنتج، وبخانتَي تحقّقٍ صحيحتين.
+         */
+        iban: encryptSecret(seedIban(String(between(10, 99)), seedAccountDigits())),
       },
     });
     providers.set(type, p.id);
@@ -947,9 +1002,7 @@ async function main(): Promise<void> {
            * يصيب على نصف الصفوف. والبيانات المزروعة تُحاكي شكل
            * الحقيقيّ لا اسمه فقط.
            */
-          iban: encryptSecret(
-            `SA03${between(10, 99)}${between(1000000000000000, 9999999999999999)}`,
-          ),
+          iban: encryptSecret(seedIban(String(between(10, 99)), seedAccountDigits())),
           createdAt: days(-between(60, 700)),
         },
       }),
@@ -1843,6 +1896,82 @@ async function main(): Promise<void> {
   const inspectionServiceId = services.get('inspection') as string;
 
   /**
+   * ═══ ودفترُ الخدمة يُكتب كما يكتبه المنتج ═══
+   *
+   * البذرة كانت تكتب `status: 'DONE'` مباشرةً، و`applyStep` تشترط
+   * `paymentId !== null` لتقيّد — **فلا قيدَ خدمةٍ واحد في الدفتر**:
+   * قِيس فكان `PROVIDER_PAYABLE` **صفر صفوف**. والأثر شاشاتٌ كاملة:
+   * رصيدُ كل مزوّد ٠٫٠٠ في صفحته، وكشفُه فارغ، **وطابورُ الصرف لا
+   * يعرض أحدًا** — فميزةٌ تُبنى ولا تُرى عاملةً في أيّ بيئة.
+   *
+   * والأرقام بحاسبة المنتج (`serviceTotal`): السعرُ للمزوّد، ورسمُنا
+   * فوقه، والضريبة على المجموع — ولو كُتبت بيدٍ ناقضت قاعدةَ الرسم.
+   */
+  async function settleServiceRequest(input: {
+    requestId: string;
+    ref: string;
+    requesterId: string;
+    providerId: string | null;
+    price: Prisma.Decimal;
+    paidAt: Date;
+    doneAt: Date;
+  }): Promise<void> {
+    const { serviceTotal } = await money();
+    const amounts = serviceTotal(input.price, new D('15.00'), null);
+
+    const payment = await prisma.payment.create({
+      data: {
+        purpose: 'SERVICE_PURCHASE',
+        gatewayKey: 'bank_escrow',
+        amount: amounts.total,
+        method: 'mada',
+        status: 'SETTLED',
+        holdRef: `hold_${input.ref.toLowerCase()}`,
+        settleRef: `stl_${input.ref.toLowerCase()}`,
+        settledAmount: amounts.total,
+        settledAt: input.doneAt,
+        heldAt: input.paidAt,
+        createdAt: input.paidAt,
+      },
+    });
+
+    await prisma.serviceRequest.update({
+      where: { id: input.requestId },
+      data: {
+        amount: amounts.total,
+        adminFee: amounts.platformFee,
+        vatAmount: amounts.vat,
+        paymentId: payment.id,
+      },
+    });
+
+    const { recordServiceEarned, recordServicePaid } = await ledgerEvents();
+    await recordServicePaid(
+      prisma,
+      {
+        ref: input.ref,
+        paymentId: payment.id,
+        requesterId: input.requesterId,
+        total: amounts.total,
+      },
+      input.paidAt,
+    );
+    await recordServiceEarned(
+      prisma,
+      {
+        ref: input.ref,
+        paymentId: payment.id,
+        requesterId: input.requesterId,
+        total: amounts.total,
+        platformFee: amounts.platformFee,
+        vat: amounts.vat,
+        providerId: input.providerId,
+      },
+      input.doneAt,
+    );
+  }
+
+  /**
    * ═══ تقريرُ فحصٍ في كل نوع بيع ═══
    *
    * كان التقريران كلاهما على `listings[0]` و`listings[1]`، **وهما
@@ -1951,6 +2080,17 @@ async function main(): Promise<void> {
         },
       },
     });
+
+    /** **والمال يُقيَّد مع الإنجاز** — فحقُّ الفاحص يظهر في طابور الصرف. */
+    await settleServiceRequest({
+      requestId: request.id,
+      ref: request.ref,
+      requesterId: l.sellerId,
+      providerId: providers.get('INSPECTION') ?? null,
+      price: new D('450.00'),
+      paidAt: days(-between(21, 40)),
+      doneAt: days(-between(5, 20)),
+    });
   }
 
   /**
@@ -2033,6 +2173,16 @@ async function main(): Promise<void> {
         },
       },
     });
+
+    await settleServiceRequest({
+      requestId: request.id,
+      ref: request.ref,
+      requesterId: reportBuyer.id,
+      providerId: providers.get('INSPECTION') ?? null,
+      price: new D('450.00'),
+      paidAt: days(-12),
+      doneAt: days(-4),
+    });
   }
 
   /**
@@ -2048,7 +2198,7 @@ async function main(): Promise<void> {
    */
   const QUEUE: readonly {
     service: string;
-    status: 'NEW' | 'ASSIGNED' | 'IN_PROGRESS' | 'FAILED' | 'REFUNDED';
+    status: 'NEW' | 'ASSIGNED' | 'IN_PROGRESS' | 'DONE' | 'FAILED' | 'REFUNDED';
     provider: 'INSPECTION' | 'SHIPPING' | 'DETAILING' | 'TRANSFER' | null;
     /** ساعاتٌ من الآن — سالبٌ يعني أن المهلة فاتت. */
     dueInHours: number;
@@ -2073,6 +2223,17 @@ async function main(): Promise<void> {
     { service: 'inspection', status: 'IN_PROGRESS', provider: 'INSPECTION', dueInHours: 18, scheduledInHours: 6 },
     { service: 'inspection', status: 'FAILED', provider: 'INSPECTION', dueInHours: -60, scheduledInHours: -72 },
     { service: 'detailing', status: 'REFUNDED', provider: 'DETAILING', dueInHours: -96, scheduledInHours: -100 },
+    /**
+     * ═══ ومُنجَزٌ لغير الفاحص — وإلّا فطابورُ الصرف مزوّدٌ واحد ═══
+     *
+     * كلُّ ما يُنجَز في الزرع فحصٌ، فـ`PROVIDER_PAYABLE` كلُّه لمركز
+     * الفحص: شاشةُ الصرف صفٌّ واحد، وخمسةُ مزوّدين أرصدتُهم ٠٫٠٠ في
+     * صفحاتهم. فواحدٌ لكلّ من الشحن والنقل والتلميع — وهي أصنافٌ لها
+     * نماذجُ إنجازٍ مختلفة، فيُرى الكشفُ بحركاتٍ من مصادر.
+     */
+    { service: 'shipping', status: 'DONE', provider: 'SHIPPING', dueInHours: -220, scheduledInHours: -240 },
+    { service: 'ownership_transfer', status: 'DONE', provider: 'TRANSFER', dueInHours: -190, scheduledInHours: -200 },
+    { service: 'detailing', status: 'DONE', provider: 'DETAILING', dueInHours: -150, scheduledInHours: -160 },
   ];
 
   /**
@@ -2105,7 +2266,7 @@ async function main(): Promise<void> {
      */
     const asBuyer = n === 0 ? ((await docBuyer)?.buyerId ?? l.sellerId) : l.sellerId;
 
-    await prisma.serviceRequest.create({
+    const created = await prisma.serviceRequest.create({
       data: {
         ref: `SRV-2026-${String(3100 + n)}`,
         serviceId,
@@ -2123,6 +2284,19 @@ async function main(): Promise<void> {
         createdAt: hours(plan.dueInHours - 48),
       },
     });
+
+    /** **والمُنجَز وحده يُقيَّد** — وما قبله لم يقع توريدُه بعد. */
+    if (plan.status === 'DONE') {
+      await settleServiceRequest({
+        requestId: created.id,
+        ref: created.ref,
+        requesterId: asBuyer,
+        providerId: plan.provider === null ? null : (providers.get(plan.provider) ?? null),
+        price,
+        paidAt: hours(plan.dueInHours - 48),
+        doneAt: hours(plan.dueInHours + 2),
+      });
+    }
   }
 
   // ————— مواعيد المعاينة —————
@@ -2590,6 +2764,110 @@ async function main(): Promise<void> {
     });
   }
 
+  /**
+   * ═══ وصرفُ المستحقّات بحالَيه — المُرسَل والمنتظِر ═══
+   *
+   * `PROVIDER_PAYABLE` صار له خاصمٌ، **وبلا صفٍّ مزروع لا يُرى**:
+   * شاشةُ الصرف تُفتح وقسمُ «ينتظر اعتماد عضوٍ ثانٍ» فارغٌ دائمًا،
+   * وبطاقةُ المزوّد تقول «لم تخرج حوالةٌ بعد» في كل بيئة — فالنصابُ
+   * الذي بُني وطابورُه لا يُقاسان بالنقر قطّ.
+   *
+   * **وكلُّ قيمةِ تعدادٍ يكتبها المنتج تُزرع**: فواحدٌ `SENT` بقيده في
+   * الدفتر (فيُقرأ الخصمُ في الكشف)، وواحدٌ `PENDING` بطلب موافقته
+   * (فتظهر شارةُ المِلاحة ويُعتمد بالنقر).
+   */
+  const financeAdmin = admins.find((row) => row.role === 'FINANCE') ?? admins[0];
+  const opsAdmin = admins.find((row) => row.role === 'OPS') ?? admins[0];
+
+  if (financeAdmin !== undefined && opsAdmin !== undefined) {
+    const { providerBalance } = await import('../src/lib/domain/provider-ledger');
+    const { recordProviderPayout } = await ledgerEvents();
+
+    const inspectionId = providers.get('INSPECTION');
+    const shippingId = providers.get('SHIPPING');
+
+    /** ① حوالةٌ خرجت فعلًا — ومرجعُها هو ما يُطابَق بكشف البنك. */
+    if (inspectionId !== undefined) {
+      const sentAt = days(-3);
+      const amount = new D('450.00');
+      const bankRef = 'TRF-2026-104417';
+      const payout = await prisma.providerPayout.create({
+        data: {
+          providerId: inspectionId,
+          amount,
+          status: 'SENT',
+          ibanLast4: ibanLast4(
+            (
+              await prisma.serviceProvider.findUniqueOrThrow({
+                where: { id: inspectionId },
+                select: { iban: true },
+              })
+            ).iban,
+          ),
+          bankRef,
+          requestedBy: opsAdmin.id,
+          sentBy: financeAdmin.id,
+          createdAt: days(-4),
+          sentAt,
+        },
+      });
+
+      /** **والقيد مع الصفّ لا بعده**: حوالةٌ بلا قيدٍ تُصرف مرّتين. */
+      await recordProviderPayout(
+        prisma,
+        { providerId: inspectionId, amount, note: `payout ${payout.id} · ${bankRef}` },
+        sentAt,
+      );
+    }
+
+    /** ② وطلبٌ ينتظر الثانيَ — بمهلته، فيُعتمد أو ينقضي. */
+    if (shippingId !== undefined) {
+      const payable = new D(await providerBalance(shippingId));
+      if (payable.greaterThan(0)) {
+        const request = await prisma.approvalRequest.create({
+          data: {
+            kind: 'PROVIDER_PAYOUT',
+            entityType: 'ServiceProvider',
+            entityId: shippingId,
+            payload: { amount: payable.toFixed(2) },
+            requestedBy: opsAdmin.id,
+            approvedBy: [],
+            requiredApprovals: 2,
+            status: 'PENDING',
+            expiresAt: hours(60),
+          },
+        });
+
+        await prisma.providerPayout.create({
+          data: {
+            providerId: shippingId,
+            amount: payable,
+            status: 'PENDING',
+            ibanLast4: ibanLast4(
+              (
+                await prisma.serviceProvider.findUniqueOrThrow({
+                  where: { id: shippingId },
+                  select: { iban: true },
+                })
+              ).iban,
+            ),
+            approvalRequestId: request.id,
+            requestedBy: opsAdmin.id,
+            createdAt: hours(-12),
+            /**
+             * **ووسمُ البذرة يُنجّيه من التنظيف بالشكل.** `global-setup`
+             * يحذف كل تحويلٍ `PENDING` — وهو محقٌّ في بقايا المشي
+             * اليدويّ — فصفٌّ مزروع يختفي بعد أوّل `npm run verify`،
+             * فتعود الشاشة التي زُرع ليُرى فيها فارغةً. والوسمُ صريحٌ
+             * في الطرفين.
+             */
+            note: SEED_NOTE,
+          },
+        });
+      }
+    }
+  }
+
   const counts = {
     ماركة: await prisma.brand.count(),
     'نوع هيكل': await prisma.bodyTypeDisplay.count(),
@@ -2620,6 +2898,9 @@ async function main(): Promise<void> {
     'جهة تمويل': await prisma.financeProvider.count(),
     تكامل: await prisma.integration.count(),
     'إحصاء سعر': await prisma.priceStat.count(),
+    /** **والتسرّب الصامت يُقاس لا يُلاحَظ** — فكلُّ كيانٍ يُزرع يُعدّ. */
+    'قيد دفتر': await prisma.ledgerEntry.count(),
+    'تحويل مزوّد': await prisma.providerPayout.count(),
   };
 
   console.log('');

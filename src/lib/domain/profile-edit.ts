@@ -3,6 +3,14 @@ import { APP_ENV } from '@/lib/env';
 import { recordTrialVerification, submitIdentity } from './identity-state';
 import { toLatinDigits } from '@/lib/arabic';
 import { encryptSecret } from '@/lib/crypto/secrets';
+/**
+ * **والفحصُ من وحدة الآيبان** — ويُعاد تصديرُه هنا لأن نداءاتِه
+ * التاريخية تقرؤه من هذا المسار، ونقلُه بلا تصديرٍ يكسرها بلا داعٍ.
+ */
+import { checkIban, type IbanFailure } from './iban';
+
+export { checkIban, normalizeIban } from './iban';
+export type { IbanFailure } from './iban';
 
 /**
  * ═══ إكمال الملف — الشرط الذي كان يُفرَض بلا وسيلة لاستيفائه ═══
@@ -15,23 +23,12 @@ import { encryptSecret } from '@/lib/crypto/secrets';
  * وشرطٌ يُفرَض بلا بابٍ يُستوفى منه ليس تشديدًا: هو **قفلٌ بلا مفتاح**.
  */
 
-const IBAN_LENGTH = 24;
 const SAUDI_ID_LENGTH = 10;
 
 export type EmailFailure = 'INVALID' | 'TAKEN';
-export type IbanFailure = 'INVALID_FORMAT' | 'NOT_SAUDI' | 'CHECKSUM';
 export type IdFailure = 'INVALID_ID' | 'NAME_REQUIRED' | 'ALREADY_VERIFIED';
 
 export type SaveResult<F> = { ok: true } | { ok: false; reason: F };
-
-/**
- * **يقبل كل صيغة لصق ويطبّعها.** الآيبان يُنسخ من تطبيق المصرف بمسافات
- * كل أربع خانات، ومن يمنع ذلك يظنّ أنه يمنع الخطأ وهو يصنعه.
- */
-export function normalizeIban(raw: string): string {
-  // علامات الاتّجاه تُلصق مع النصّ من تطبيقات المصارف — تُحذف بهروبها
-  return raw.replace(/[\s\u200e\u200f-]/g, '').toUpperCase();
-}
 
 /**
  * الأرقام العربية-الهندية تُلصق كما هي — والتخزين لاتينيّ.
@@ -40,29 +37,6 @@ export function normalizeIban(raw: string): string {
  */
 export function normalizeDigits(raw: string): string {
   return toLatinDigits(raw).replace(/\D/g, '');
-}
-
-/**
- * فحص الآيبان السعودي — الطول والبادئة و**خانتا التحقّق (mod-97)**.
- *
- * والأخيرة هي التي تُمسك الخانة المقلوبة: طولٌ صحيح وبادئةٌ صحيحة لا
- * يمنعان رقمًا خاطئًا، والمال يذهب إلى حسابٍ آخر أو يُردّ بعد أسبوع.
- */
-export function checkIban(raw: string): { ok: true; value: string } | { ok: false; reason: IbanFailure } {
-  const value = normalizeIban(raw);
-  if (!/^[A-Z]{2}[0-9A-Z]+$/.test(value)) return { ok: false, reason: 'INVALID_FORMAT' };
-  if (!value.startsWith('SA')) return { ok: false, reason: 'NOT_SAUDI' };
-  if (value.length !== IBAN_LENGTH) return { ok: false, reason: 'INVALID_FORMAT' };
-
-  // القياسي: أوّل أربعة إلى الآخر، ثم كل حرف رقمان، ثم mod 97 = 1
-  const rearranged = value.slice(4) + value.slice(0, 4);
-  const numeric = rearranged.replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
-
-  let remainder = 0;
-  for (const digit of numeric) remainder = (remainder * 10 + Number(digit)) % 97;
-  if (remainder !== 1) return { ok: false, reason: 'CHECKSUM' };
-
-  return { ok: true, value };
 }
 
 export async function setEmail(userId: string, raw: string): Promise<SaveResult<EmailFailure>> {

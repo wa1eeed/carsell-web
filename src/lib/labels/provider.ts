@@ -106,3 +106,27 @@ export const ACCOUNT_OPEN_FAILURE: Record<string, string> = {
   SIGNATORY_COUNT: 'عدد الموقّعين مطلوبٌ حين لا يكون التوقيع للمالك.',
   WEBSITE: 'الموقع يبدأ بـhttp أو https — أو يُترك فارغًا.',
 };
+
+/**
+ * ═══ أحداثُ كشفه كما يقرؤها هو ═══
+ *
+ * `PROVIDER_EVENT_LABEL` في `labels/admin.ts` يخاطب المشغّل: «حُوِّل
+ * إلى **حسابه**». وعرضُها على المزوّد في كشفه يجعل الشاشة تتحدّث عنه
+ * بصيغة الغائب وهو صاحبُها — فالنصُّ المعروض خطابٌ لقارئه لا وصفٌ له.
+ *
+ * **والخريطتان لا تُدمجان**: الشاشتان قارئان مختلفان، ونصٌّ واحد
+ * يُرضي أحدهما ويُغرب على الآخر.
+ */
+export const PROVIDER_SELF_EVENT_LABEL: Readonly<Record<string, string>> = {
+  'service.provider_due': 'استُحقّ عن خدمة',
+  'provider.admin_credit': 'قيدٌ يدويّ — زيادة',
+  'provider.admin_debit': 'قيدٌ يدويّ — خصم',
+  'provider_payout.sent': 'حُوِّل إلى حسابك',
+};
+
+/**
+ * **وما لا يخصّ قارئه لا يُعرض له**: ملاحظةُ قيد التحويل تحمل معرّف
+ * الصفّ الداخليّ (`payout cmv…`) ومرجعَ الحوالة معًا — الأوّل لا يعني
+ * المزوّد شيئًا، والثاني مكتوبٌ له في «الحوالات» بتاريخه.
+ */
+export const PROVIDER_SELF_NOTELESS: readonly string[] = ['provider_payout.sent'];

@@ -90,7 +90,7 @@ billions and losing money.
 | `GATEWAY_FEES_CLEARING` | Clearing | Passes from the seller to the provider. |
 | `GOVT_FEES_CLEARING` | Clearing | The transfer fee, paid on the customer's behalf. |
 | `PLATFORM_CASH` | Asset | What has actually reached us. |
-| `PROVIDER_PAYABLE` | Liability | What we owe a service provider for work delivered. Not the vehicle seller — a different party, paid on a different schedule. |
+| `PROVIDER_PAYABLE` | Liability | What we owe a service provider for work delivered. Not the vehicle seller — a different party, paid on a different schedule. Credited at `service.provider_due`, debited at `provider_payout.sent`. |
 | `PROVIDER_COST` | Expense | The provider's own price: **our cost of sale**, because on services we are the supplier. |
 
 ---
@@ -352,6 +352,51 @@ should not get one.
 **The money moves before the books.** If the gateway refuses the cancellation,
 nothing is written and a second attempt finds the same state; the reverse would
 leave a ledger saying "refunded" over money still held.
+
+#### 5.5.5 `provider_payout.sent` — the provider was paid
+
+```
+  DEBIT   PROVIDER_PAYABLE     900.00
+  CREDIT  PLATFORM_CASH        900.00
+```
+
+**`PROVIDER_PAYABLE` had no debit at all.** It was credited on every completed
+service (5.5.2) and nothing ever reduced it: the inspector inspects, we book a
+debt, and no path in the whole product moved a riyal to them. Their panel read
+"owed" and meant *everything ever earned*, not what is still outstanding. This
+is `payout.sent` (5.3) for the other party.
+
+**The credit side is `PLATFORM_CASH`, not `ESCROW_AT_PROVIDER`** — the same
+correction §4 made for sellers. Nobody is paid out of money that was never
+captured; a payout against a hold would drive "held at the gateway" negative.
+
+**The debit carries the provider's name** (`providerId`), so the statement at
+`/admin/providers/[id]` and at `/provider/earnings` can be built from the ledger
+itself rather than a second table that drifts from it.
+
+**Two people, as for a seller.** `requestProviderPayout` opens an
+`ApprovalRequest` with `requiredApprovals: 2` and writes nothing to the ledger;
+`approveProviderPayout` — a different admin — writes the row, this entry and the
+audit record in one transaction. Splitting them would leave a transfer with no
+entry explaining it, and the debt would be paid twice.
+
+**The right is re-checked at approval, not only at request.** A manual
+adjustment between the two would leave an approved transfer larger than what is
+owed, and money would leave against no liability.
+
+**The bank reference is required.** The transfer itself is executed by finance
+from the bank (integrations are deferred by the owner), so this row is what
+reconciles against the bank statement: who approved, under which reference, to
+which IBAN. A transfer with no reference cannot be proved.
+
+**And the destination had no field.** `ServiceProvider.iban` was added with it —
+encrypted like `User.iban`, never truncated in the database (gate 26), written
+through `PUT /api/v1/admin/providers/{id}/iban` and read back masked. Enforcing
+"no payout without an IBAN" while offering no way to enter one is a lock with no
+key.
+
+**When the provider gateway's split payments go live**, money reaching a provider
+that way is never credited here in the first place, so it cannot be paid twice.
 
 ## 6. The seller's financial file
 
