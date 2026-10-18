@@ -1139,12 +1139,28 @@ a bare checkbox at the end. Three things to fix:
 - [x] The brand list shows each brand's logo, read from `Brand.logoUrl`, which
       the admin's brand settings already upload and store.
 
-> **And no brand has a logo yet.** Measured 2026-10-18: 42 brands, **zero**
-> `logoUrl` values — the admin screen can set one and nothing ever has. So the
-> list must read correctly when the logo is missing (initials, not a broken
-> image), and the owner needs to upload them from `/admin/catalog/brands` for
-> the feature to show anything. A row that renders a gap is the «ما لا يُزرع لا
-> يُرى» class with a brand name on it.
+> **And no brand had a logo.** Measured 2026-10-18: 42 brands, **zero**
+> `logoUrl` values — the admin screen could set one and nothing ever had. The
+> list reads correctly without one (initials, not a broken image).
+>
+> **Closed the same day** at the owner's instruction («ارفع شعارات الماركات من
+> البذرة»): every brand now carries `/brand-logos/<slug>.svg`, written by the
+> seed for a fresh database and by a migration for a running one — because the
+> seed runs once on an empty schema and would never have reached staging.
+>
+> **What ships is ours, not the manufacturers'.** The files are typographic
+> monograms in the platform's palette — a filled square with the brand's
+> initials — so every row renders something deliberate and aligned. Real
+> manufacturer artwork is a **file swap at the same name**: no code, no
+> database. `public/brand-logos/README.md` says so, and the admin uploader
+> remains the path for anyone without repository access.
+>
+> **And the migration will not touch a logo the operator uploaded** —
+> `WHERE "logoUrl" IS NULL` — so a real mark set from the panel survives it.
+>
+> Manufacturer logos are trademarks. Displaying them to identify a vehicle is
+> what car marketplaces do, but **which artwork is used and where it comes from
+> is the owner's call**, not something to decide inside a commit.
 
 ## 18 · The year picker, and English for the catalogue — *owner's request 2026-10-18* — **done**
 
