@@ -618,7 +618,10 @@ renders exactly 3 cards.
 
 **Left, and deliberately so:**
 
-- [ ] **PDF of the report** — optional in the spec; «اطبع» works today.
+- [x] **PDF of the report** — ~~optional in the spec; «اطبع» works today~~ built
+      2026-10-18 on the owner's instruction: `…/inspection/pdf`, its own A4
+      layout with the vehicle card and a QR to the listing on `carz.sa`. See
+      § 12 and `docs/api/inspection.md`.
 - [ ] **Notifications** — deferred by the owner, and providers have no
       notification channel at all yet (`Notification.userId` is a market
       account; a provider is a third identity).
