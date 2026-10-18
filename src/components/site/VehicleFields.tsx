@@ -831,13 +831,58 @@ export function VehiclePlateField({
         note="تعرف بها سيارتك عند طلب الخدمات — ولا يظهر منها في الإعلان إلا ما تختاره."
       >
         {/*
-          ═══ الحالُ أوّلًا — فهي تحكم ما بعدها ═══
+          ═══ الرقمُ والحال في صفّ، واللوحةُ تحتهما ═══
 
-          هل السيارةُ جديدةٌ أم مستعملة يُحدّد أيُّ رقمٍ يُسأل عنه:
-          لوحةٌ أم بطاقةٌ جمركية. فتسبقُهما في القراءة كما تسبقهما
-          في المنطق.
+          **وجُرِّبت اللوحةُ بجوار رقم الهيكل فلم تناسب**: الحقلُ
+          سطرٌ واحد وهي خاناتٌ ومعاينةٌ وتنويه، فيطول أحدُ عمودَي
+          الصفّ ضعفَ الآخر ويختلّ. فعادت إلى عرضها الكامل — ولها
+          بطاقتُها: الخاناتُ والمعاينةُ متجاورتان فيها، يُغيّر
+          ويرى في موضعٍ واحد. (تصحيحُ المالك ٢٠٢٦-١٠-١٨.)
         */}
-        <div className="mb-5 max-w-xs">
+        <div className="mb-5 grid items-start gap-5 sm:grid-cols-2">
+          {/*
+            **ورقمُ الهيكل لا يظهر في الإعلان** — يُدخَل ليُطلب به
+            فحصٌ أو تقرير، لا ليُعرض. والتنويهُ بجواره لأنّ من لا
+            يعرف لماذا يُسأل عنه لا يكتبه. (طلب المالك ٢٠٢٦-١٠-١٨.)
+          */}
+          {/*
+            ═══ ورقمُ الهيكل سبعةَ عشرَ خانةً — لا عشرًا ═══
+            **والخلطُ بينه وبين البطاقة الجمركية يكسر وثيقةَ تأمين.**
+            البطاقةُ عشرةُ أرقام، ورقمُ الهيكل سبعةَ عشرَ خانةً فيها
+            حروفٌ وأرقام (قولُ المالك ٢٠٢٦-١٠-١٨). ومن يكتب أحدَهما
+            في حقل الآخر لا يعرف أنّه أخطأ حتى تُرفض وثيقتُه.
+            فالحقلُ يقول طولَه ويعدّ ما كُتب — **ولا يُترك الخطأ
+            ليُكتشف عند الخدمة**.
+          */}
+          <Field
+            label={t('vinTitle')}
+            htmlFor="veh-vin"
+            note="لا يظهر لأحد غيرك. نحفظه لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص."
+            {...(vin === '' || vin.length === VIN_LENGTH
+              ? { hint: '١٧ خانة — حروف وأرقام، كما في الرخصة أو خلف الزجاج الأمامي.' }
+              /** والعددُ بين قوسين فلا يحكم المعدود (البوابة ١٨). */
+              : { error: `الخانات المكتوبة (${displayDigits(String(vin.length))}) والمطلوب ١٧.` })}
+          >
+            <input
+              id="veh-vin"
+              dir="ltr"
+              inputMode="text"
+              placeholder="JTDBE32K123456789"
+              maxLength={VIN_LENGTH}
+              value={vin}
+              /** والحروفُ والأرقامُ وحدها — ولا مسافةَ ولا شرطة. */
+              onChange={(event) =>
+                set({
+                  vin: toLatinDigits(event.target.value)
+                    .toUpperCase()
+                    .replace(/[^0-9A-Z]/g, '')
+                    .slice(0, VIN_LENGTH),
+                })
+              }
+              className={cn(fieldShell(), 'font-num tracking-wider')}
+            />
+          </Field>
+
           <Field label={t('condition')} htmlFor="veh-condition">
             <Picker
               id="veh-condition"
@@ -892,116 +937,60 @@ export function VehiclePlateField({
         )}
 
         {/*
-          ═══ والرقمان جنبًا إلى جنب على الشاشة الواسعة ═══
-
-          **وهما رقما تعريفٍ واحدٍ لشيءٍ واحد**: رقمُ الهيكل واللوحة
-          يُقرآن معًا ويُنسخان من الرخصة نفسِها، فتفريقُهما بصفَّين
-          يجعل القارئَ يظنّ أنّ الثاني بندٌ آخر. وعلى الهاتف يعودان
-          عمودًا — لا يتّسع لهما صفّ. (طلب المالك ٢٠٢٦-١٠-١٨.)
+          **والخانةُ الثانية واحدة**: بطاقةٌ أو لوحة، لا هما معًا —
+          فخياران لشيءٍ واحد يجعلان صاحبَهما يملأ الاثنين أو يحتار.
         */}
-        <div className="mb-5 grid items-start gap-5 sm:grid-cols-2">
-          {/*
-            **ورقمُ الهيكل لا يظهر في الإعلان** — يُدخَل ليُطلب به
-            فحصٌ أو تقرير، لا ليُعرض. والتنويهُ بجواره لأنّ من لا
-            يعرف لماذا يُسأل عنه لا يكتبه. (طلب المالك ٢٠٢٦-١٠-١٨.)
-          */}
-          {/*
-            ═══ ورقمُ الهيكل سبعةَ عشرَ خانةً — لا عشرًا ═══
+        {byCustoms ? (
+          <div className="reveal flex flex-col gap-3">
+            <Field
+              label="رقم البطاقة الجمركية"
+                  htmlFor="veh-customs"
+                  note="لا يظهر لأحد غيرك. عليه يصدر تأمين السيارة الجديدة قبل اللوحة، ويربط بنجم والمرور."
+                  {...(customs === '' || customs.length === CUSTOMS_LENGTH
+                    ? { hint: '١٠ أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
+                    : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب ١٠.` })}
+                >
+                  <input
+                    id="veh-customs"
+                    dir="ltr"
+                    inputMode="numeric"
+                    placeholder="1234567890"
+                    maxLength={CUSTOMS_LENGTH}
+                    value={customs}
+                    /** أرقامٌ وحدها — فحرفٌ هنا يعني أنّه كتب رقم الهيكل. */
+                    onChange={(event) =>
+                      set({
+                        customsCard: toLatinDigits(event.target.value)
+                          .replace(/\D/g, '')
+                          .slice(0, CUSTOMS_LENGTH),
+                      })
+                    }
+                    className={cn(fieldShell(), 'font-num tracking-wider')}
+                  />
+                </Field>
+            <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
+              حين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من «سياراتي».
+            </p>
+          </div>
+        ) : (
+          /*
+            ═══ وللوحةِ عنوانُها فوق تنويهها ═══
 
-            **والخلطُ بينه وبين البطاقة الجمركية يكسر وثيقةَ تأمين.**
-            البطاقةُ عشرةُ أرقام، ورقمُ الهيكل سبعةَ عشرَ خانةً فيها
-            حروفٌ وأرقام (قولُ المالك ٢٠٢٦-١٠-١٨). ومن يكتب أحدَهما
-            في حقل الآخر لا يعرف أنّه أخطأ حتى تُرفض وثيقتُه.
-
-            فالحقلُ يقول طولَه ويعدّ ما كُتب — **ولا يُترك الخطأ
-            ليُكتشف عند الخدمة**.
-          */}
-          <Field
-            label={t('vinTitle')}
-            htmlFor="veh-vin"
-            note="لا يظهر لأحد غيرك. نحفظه لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص."
-            {...(vin === '' || vin.length === VIN_LENGTH
-              ? { hint: '١٧ خانة — حروف وأرقام، كما في الرخصة أو خلف الزجاج الأمامي.' }
-              /** والعددُ بين قوسين فلا يحكم المعدود (البوابة ١٨). */
-              : { error: `الخانات المكتوبة (${displayDigits(String(vin.length))}) والمطلوب ١٧.` })}
-          >
-            <input
-              id="veh-vin"
-              dir="ltr"
-              inputMode="text"
-              placeholder="JTDBE32K123456789"
-              maxLength={VIN_LENGTH}
-              value={vin}
-              /** والحروفُ والأرقامُ وحدها — ولا مسافةَ ولا شرطة. */
-              onChange={(event) =>
-                set({
-                  vin: toLatinDigits(event.target.value)
-                    .toUpperCase()
-                    .replace(/[^0-9A-Z]/g, '')
-                    .slice(0, VIN_LENGTH),
-                })
-              }
-              className={cn(fieldShell(), 'font-num tracking-wider')}
-            />
-          </Field>
-
-
-          {/*
-            **والخانةُ الثانية واحدة**: بطاقةٌ أو لوحة، لا هما معًا —
-            فخياران لشيءٍ واحد يجعلان صاحبَهما يملأ الاثنين أو يحتار.
-          */}
-          {byCustoms ? (
-            <div className="reveal flex flex-col gap-3">
-              <Field
-                label="رقم البطاقة الجمركية"
-                    htmlFor="veh-customs"
-                    note="لا يظهر لأحد غيرك. عليه يصدر تأمين السيارة الجديدة قبل اللوحة، ويربط بنجم والمرور."
-                    {...(customs === '' || customs.length === CUSTOMS_LENGTH
-                      ? { hint: '١٠ أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
-                      : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب ١٠.` })}
-                  >
-                    <input
-                      id="veh-customs"
-                      dir="ltr"
-                      inputMode="numeric"
-                      placeholder="1234567890"
-                      maxLength={CUSTOMS_LENGTH}
-                      value={customs}
-                      /** أرقامٌ وحدها — فحرفٌ هنا يعني أنّه كتب رقم الهيكل. */
-                      onChange={(event) =>
-                        set({
-                          customsCard: toLatinDigits(event.target.value)
-                            .replace(/\D/g, '')
-                            .slice(0, CUSTOMS_LENGTH),
-                        })
-                      }
-                      className={cn(fieldShell(), 'font-num tracking-wider')}
-                    />
-                  </Field>
-              <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
-                حين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من «سياراتي».
-              </p>
-            </div>
-          ) : (
-            /*
-              ═══ وللوحةِ عنوانُها فوق تنويهها ═══
-
-              **والتنويهُ بلا عنوانٍ يُنسب إلى ما قبله.** كان يقع تحت
-              «حالة المركبة» مباشرةً فيُقرأ شرحًا لها — وهو يتكلّم عن
-              اللوحة. فالعنوانُ أوّلًا، ثمّ تنويهُه، ثمّ خاناته.
-              (تصحيحُ المالك ٢٠٢٦-١٠-١٨.)
-            */
-            <PlateField
-              label="رقم لوحة المركبة"
-              note="لا يظهر لأحد إلا باختيارك. وننصح بإدخاله لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص — أنت أو المشتري."
-              hint="ثلاثة حروف وأربعة أرقام، كما في رخصة السير."
-              letters={vehicle.plateLetters}
-              numbers={vehicle.plateNumbers}
-              onLetters={(plateLetters) => set({ plateLetters })}
-              onNumbers={(plateNumbers) => set({ plateNumbers })}
-            />
-          )}
-        </div>
+            **والتنويهُ بلا عنوانٍ يُنسب إلى ما قبله.** كان يقع تحت
+            «حالة المركبة» مباشرةً فيُقرأ شرحًا لها — وهو يتكلّم عن
+            اللوحة. فالعنوانُ أوّلًا، ثمّ تنويهُه، ثمّ خاناته.
+            (تصحيحُ المالك ٢٠٢٦-١٠-١٨.)
+          */
+          <PlateField
+            label="رقم لوحة المركبة"
+            note="لا يظهر لأحد إلا باختيارك. وننصح بإدخاله لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص — أنت أو المشتري."
+            hint="ثلاثة حروف وأربعة أرقام، كما في رخصة السير."
+            letters={vehicle.plateLetters}
+            numbers={vehicle.plateNumbers}
+            onLetters={(plateLetters) => set({ plateLetters })}
+            onNumbers={(plateNumbers) => set({ plateNumbers })}
+          />
+        )}
 
         {/*
           **والسطرُ يتبع ما وقع**: من سجّل بطاقةً جمركية لا لوحةَ له،

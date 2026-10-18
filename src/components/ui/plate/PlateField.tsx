@@ -88,6 +88,14 @@ export function PlateField({
 
       {note === undefined ? null : <FieldNote id={noteId}>{note}</FieldNote>}
 
+      {/*
+        ═══ الخاناتُ والمعاينةُ وجهان لشيءٍ واحد ═══
+
+        **فتُجمعان في بطاقةٍ واحدة**: كانت الخاناتُ في سطرٍ والمعاينةُ
+        تحت سطرَي شرحٍ بينهما، فيكتب البائعُ حرفًا ثمّ يبحث عن أثره.
+        وهما متجاوران الآن — يُغيّر ويرى في موضعٍ واحد.
+      */}
+      <div className="flex flex-col gap-4 rounded-xl border border-line bg-bg p-4">
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1.5">
           <span className="text-3xs opacity-70">الحروف</span>
@@ -104,7 +112,7 @@ export function PlateField({
                   aria-label={`الحرف ${String(index + 1)}`}
                   {...(note === undefined ? {} : { 'aria-describedby': noteId })}
                   onChange={(event) => setAt(index, event.target.value)}
-                  className="w-20 rounded-md border border-line bg-bg px-2 py-2 text-sm disabled:opacity-65"
+                  className="w-20 rounded-md border border-line bg-surface px-2 py-2 text-sm disabled:opacity-65"
                 >
                   <option value="">—</option>
                   {SAUDI_PLATE_LETTERS.map((entry) => (
@@ -133,14 +141,10 @@ export function PlateField({
             aria-label="أرقام اللوحة"
             {...(note === undefined ? {} : { 'aria-describedby': noteId })}
             onChange={(event) => onNumbers(normalizePlateNumbers(event.target.value))}
-            className="font-num w-28 rounded-md border border-line bg-bg px-3 py-2 text-sm font-bold"
+            className="font-num w-28 rounded-md border border-line bg-surface px-3 py-2 text-sm font-bold"
           />
         </div>
       </div>
-
-      {hint === undefined ? null : (
-        <p className="text-3xs leading-loose opacity-70">{hint}</p>
-      )}
 
       {/*
         ═══ الصفيحةُ تُرسم فارغةً، ويُكتب عليها وهو يختار ═══
@@ -153,11 +157,21 @@ export function PlateField({
         **والحبرُ يظهر بمفتاحٍ يتبدّل**: `key` على المحتوى يُعيد
         التركيب، فيُرى أنّ شيئًا كُتب الآن — بلا أن يقفز التخطيط.
       */}
-      <div className="w-64 max-w-full">
-        <div key={`${letters}-${numbers}`} className={ready ? 'plate-ink' : undefined}>
-          <LicensePlate letters={letters} numbers={numbers} size="fill" blank />
+        {/*
+          **والصفيحةُ تملأ بطاقتَها.** معاينةٌ بعرضِ الرُّبع داخل
+          مستطيلٍ واسع تبدو شاردةً عنه، ولا يُقرأ منها ما كُتب — وهي
+          الموضعُ الذي يُمسك فيه البائعُ خطأَ لوحته قبل النشر.
+        */}
+        <div className="w-full">
+          <div key={`${letters}-${numbers}`} className={ready ? 'plate-ink' : undefined}>
+            <LicensePlate letters={letters} numbers={numbers} size="fill" blank />
+          </div>
         </div>
       </div>
+
+      {hint === undefined ? null : (
+        <p className="text-3xs leading-loose opacity-70">{hint}</p>
+      )}
     </div>
   );
 }
