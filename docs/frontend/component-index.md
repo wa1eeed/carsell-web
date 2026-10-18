@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **165** components in **4** directories.
+Counted: **166** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -76,7 +76,7 @@ rather than found by chance.
 | `ClosingSoonRail` | no | `items` | 2 |
 | `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
 | `SpecStrip` | no | `items` | 1 |
-| `Choice` | yes | `options` · `active` · `onSelect` | 2 |
+| `Choice` | yes | `options` · `active` · `onSelect` | 3 |
 | `Note` | yes | `children` | 99 |
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
@@ -140,6 +140,7 @@ rather than found by chance.
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
 | `CarRow` | no | `data` · `className` | 3 |
 | `Chip` | yes | `active` · `count` · `onRemove` · `onClick` · `disabled` · `children` · `className` | 12 |
+| `ChoiceGroup` | yes | `label` · `hint` · `value` · `options` · `onChange` · `className` | 1 |
 | `CompletionRecord` | no | `title` · `rows` | 2 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 6 |

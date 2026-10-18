@@ -1208,6 +1208,11 @@ a bare checkbox at the end. Three things to fix:
   - [x] **For a new car: a customs card number or a plate.** A new column; the
         plate columns have existed since the schema was built but a customs card
         has not.
+  - [x] **And the question is asked, not inferred** — the owner's refinement the
+        same evening: the customs option appears only for a new car, and then as
+        a question («صدرت لها لوحات» / «ما زالت ببطاقة جمركية»), with the field
+        following the answer. Showing both fields and hiding one when the other
+        was typed made the seller read two fields and guess which was theirs.
   - [x] The plate note in the owner's words: it does not appear in the listing,
         and entering it is recommended so an inspection or a Mojaz report can be
         ordered — by the seller or by the buyer.

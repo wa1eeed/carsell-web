@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Field, fieldShell } from '@/components/ui/Field';
+import { ChoiceGroup } from '@/components/ui/ChoiceGroup';
 import { BrandMark, Picker } from '@/components/ui/Picker';
 import { Quantity } from '@/components/ui/Quantity';
 import { Toggle } from '@/components/ui/Toggle';
@@ -774,16 +775,35 @@ export function VehiclePlateField({
   const complete = vehicle.plateLetters.length === 3 && vehicle.plateNumbers.length > 0;
 
   /**
+   * **وحالُ التسجيل سؤالُ شاشةٍ لا حقلٌ يُرسَل.** المخزَّنُ هو الجواب:
+   * بطاقةٌ مكتوبة تعني «جمركية»، وغيابُها يعني «لوحات». فلا يُضاف
+   * إلى `VehicleDraft` حقلٌ لا يصل الخادم (البوابة ٦٠).
+   *
+   * **ويُشتقّ ابتداؤه من المخزَّن** — فمن يعود إلى استمارةٍ مملوءة
+   * يجد جوابَه كما تركه، لا السؤالَ من أوّله.
+   */
+  const [registration, setRegistration] = useState<'customs' | 'plate'>(
+    vehicle.customsCard.trim() === '' ? 'plate' : 'customs',
+  );
+
+  /**
    * ═══ والجديدةُ قد لا تكون مسجَّلة بعد ═══
    *
    * المستوردةُ حديثًا لا لوحةَ لها حتى تُسجَّل، وتُعرف ببطاقتها
    * الجمركية. **وسؤالُ صاحبها عن لوحة يجعله يتركها فارغة** — فلا
    * يُعرف المركبُ بشيء، ولا تُطلب عليه خدمة.
    *
-   * فالسؤالُ يتبع الحال: الجديدةُ تختار، والمستعملةُ لوحةٌ بلا سؤال.
+   * ═══ والسؤالُ يُطرح صريحًا لا يُستنتج من حقلٍ يُملأ ═══
+   *
+   * كان الحقلان يظهران معًا للجديدة، ويختفي أحدُهما حين يُكتب
+   * الآخر — **فيقرأ صاحبُها حقلين ولا يعرف أيُّهما يخصّه**، ويجرّب.
+   * فالسؤالُ الآن أوّلًا: «ببطاقة جمركية أم بلوحات صادرة؟» —
+   * والحقلُ بعده واحد. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   *
+   * **والمستعملةُ لا تُسأل**: لا تكون مستعملةً إلّا وقد سُجِّلت.
    */
   const isNew = vehicle.condition === 'NEW';
-  const byCustoms = isNew && vehicle.customsCard.trim() !== '';
+  const byCustoms = isNew && registration === 'customs';
 
   return (
     <div style={{ '--i': 3 } as CSSProperties}>
@@ -832,11 +852,54 @@ export function VehiclePlateField({
             />
           </Field>
 
-          {!isNew ? null : (
+        </div>
+
+        {/*
+          **والسؤالُ للجديدة وحدها.** المستعملةُ لا تكون مستعملةً إلّا
+          وقد سُجِّلت ولها لوحة — فسؤالُها عبثٌ يُبطئ من يعرف جوابه.
+        */}
+        {!isNew ? null : (
+          <div className="reveal mb-5">
+            <ChoiceGroup
+              label="حالة تسجيل السيارة"
+              hint="السيارة الجديدة قد تكون ما زالت ببطاقتها الجمركية ولم تصدر لها لوحات بعد."
+              value={registration}
+              onChange={(next) => {
+                const picked = next === 'customs' ? 'customs' : 'plate';
+                setRegistration(picked);
+                /**
+                 * **وتبديلُ الجواب يمحو ما لا يخصّه.** بطاقةٌ تبقى
+                 * مكتوبةً بعد اختيار «لوحات صادرة» تُرسَل إلى الخادم
+                 * وتُخزَّن — فتصير السيارةُ ببطاقةٍ ولوحةٍ معًا،
+                 * وتناقضُ ذلك لا يراه أحد.
+                 */
+                if (picked === 'plate') set({ customsCard: '' });
+                else set({ plateLetters: '', plateNumbers: '' });
+              }}
+              options={[
+                {
+                  value: 'plate',
+                  label: 'صدرت لها لوحات',
+                  hint: 'مسجلة في المرور ولها رقم لوحة.',
+                  icon: <PlateMark />,
+                },
+                {
+                  value: 'customs',
+                  label: 'ما زالت ببطاقة جمركية',
+                  hint: 'وصلت حديثا ولم تسجل بعد.',
+                  icon: <CustomsMark />,
+                },
+              ]}
+            />
+          </div>
+        )}
+
+        {!byCustoms ? null : (
+          <div className="reveal mb-5 max-w-sm">
             <Field
-              label="البطاقة الجمركية"
+              label="رقم البطاقة الجمركية"
               htmlFor="veh-customs"
-              hint="للجديدة التي لم تسجل بعد. اتركها فارغة إن كانت مسجلة ولها لوحة."
+              hint="لا يظهر في الإعلان — نحتاجه لطلب الخدمات قبل أن تصدر اللوحة."
             >
               <input
                 id="veh-customs"
@@ -848,17 +911,16 @@ export function VehiclePlateField({
                 className={cn(fieldShell(), 'font-num tracking-wider')}
               />
             </Field>
-          )}
-        </div>
+          </div>
+        )}
 
         {/*
           **واللوحةُ تُخفى حين تُدخَل البطاقة** — خياران لشيءٍ واحد
           يجعلان صاحبَهما يملأ الاثنين أو يحتار أيَّهما يخصّه.
         */}
         {byCustoms ? (
-          <p className="reveal rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
-            سجلنا البطاقة الجمركية. وحين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من
-            «سياراتي».
+          <p className="rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
+            حين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من «سياراتي».
           </p>
         ) : (
           <PlateField
@@ -911,6 +973,16 @@ export function VehiclePlateField({
         )}
       </Section>
     </div>
+  );
+}
+
+/** علامةُ بطاقةٍ جمركية — لخيار «ما زالت ببطاقة جمركية». */
+function CustomsMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 9.5h18M7 13.5h4M7 16h7" />
+    </svg>
   );
 }
 

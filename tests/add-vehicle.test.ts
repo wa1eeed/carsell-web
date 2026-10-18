@@ -103,6 +103,56 @@ describe('شاشة إضافة مركبة', () => {
  * عربية، فتُخزَّن الحروفُ معتمدةً والأرقامُ لاتينية.
  */
 describe('المركبة تُحفظ بلوحتها', () => {
+  /**
+   * **والجديدةُ قد لا تكون مسجَّلة بعد** — فتُعرف ببطاقتها الجمركية.
+   * والعمودُ لا يُقرأ في استجابةٍ عامّة (`public-shape`)، فهذا يفحص
+   * أنّه **يُكتب** — وعمودٌ بلا كاتبٍ هو الصنف الذي تكرّر عشر مرّات.
+   */
+  it('والبطاقة الجمركية تُخزَّن للجديدة', async () => {
+    const [owner, trim] = await Promise.all([
+      db.user.findFirstOrThrow({ select: { id: true } }),
+      db.trim.findFirstOrThrow({ select: { id: true, modelId: true, model: { select: { brandId: true } } } }),
+    ]);
+
+    const result = await addVehicle({
+      sellerId: owner.id,
+      vehicle: {
+        brandId: trim.model.brandId,
+        modelId: trim.modelId,
+        trimId: trim.id,
+        year: 2026,
+        mileageKm: 0,
+        transmission: 'AUTOMATIC',
+        fuel: 'PETROL',
+        spec: 'SAUDI',
+        condition: 'NEW',
+        city: 'جدة',
+        colorExterior: 'ابيض',
+        vin: null,
+        /** جديدةٌ لم تُسجَّل: بطاقةٌ بلا لوحة. */
+        plateLetters: null,
+        plateNumbers: null,
+        customsCard: ' 8820114477 ',
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    try {
+      const row = await db.vehicle.findUniqueOrThrow({
+        where: { id: result.vehicleId },
+        select: { customsCard: true, plateLetters: true, plateNumbers: true },
+      });
+      /** **وتُقلَّم قبل التخزين** — ومسافةٌ طرفية تجعل المطابقة تخطئ. */
+      expect(row.customsCard).toBe('8820114477');
+      expect(row.plateLetters).toBeNull();
+      expect(row.plateNumbers).toBeNull();
+    } finally {
+      await db.vehicle.delete({ where: { id: result.vehicleId } });
+    }
+  });
+
   it('addVehicle يخزّن اللوحة مطبَّعةً، وبلا إعلان', async () => {
     const [owner, trim] = await Promise.all([
       db.user.findFirstOrThrow({ select: { id: true } }),
