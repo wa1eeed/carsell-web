@@ -84,6 +84,9 @@ export type AdminListingDetail = {
     licenseStatus: string | null;
     colorInterior: string | null;
     paintStatus: string;
+    /** وإقرارُ صاحبها عن تاريخها — للمستعملة وحدها. */
+    accidentStatus: string | null;
+    previousOwners: string | null;
   };
 
   images: ListingImageRow[];
@@ -128,6 +131,8 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
           licenseStatus: true,
           colorInterior: true,
           paintStatus: true,
+          accidentStatus: true,
+          previousOwners: true,
         },
       },
       images: { orderBy: { sort: 'asc' } },
@@ -191,6 +196,8 @@ export async function adminListingDetail(ref: string): Promise<AdminListingDetai
       licenseStatus: listing.vehicle.licenseStatus,
       colorInterior: listing.vehicle.colorInterior,
       paintStatus: listing.vehicle.paintStatus,
+      accidentStatus: listing.vehicle.accidentStatus,
+      previousOwners: listing.vehicle.previousOwners,
     },
 
     images: listing.images.map((image) => ({

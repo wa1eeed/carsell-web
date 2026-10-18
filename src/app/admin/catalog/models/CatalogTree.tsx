@@ -1,6 +1,6 @@
 'use client';
 
-import type { BodyType, FuelType } from '@/generated/prisma/enums';
+import type { BodyType, FuelType, RegistrationType } from '@/generated/prisma/enums';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -55,7 +55,23 @@ type ModelDraft = {
   nameEn: string;
   yearFrom: number;
   yearTo: number | null;
+  /**
+   * نوعُ التسجيل الافتراضيّ لهذا الطراز — يصل نموذجَ المستخدم
+   * مُختارًا مسبقًا، ويبقى له تغييرُه. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   */
+  registrationType: RegistrationType | null;
 };
+
+/** تصنيفُ المرور — خصوصي · نقل خاص · … */
+const REG = {
+  PRIVATE: 'خصوصي',
+  PRIVATE_TRANSPORT: 'نقل خاص',
+  PUBLIC_TRANSPORT: 'نقل عام',
+  MINIBUS: 'حافلة صغيرة',
+  TAXI: 'أجرة',
+  MOTORCYCLE: 'دراجة نارية',
+  HEAVY_EQUIPMENT: 'أشغال عامة',
+} as const satisfies Record<RegistrationType, string>;
 
 const EMPTY_TRIM: TrimDraft = {
   nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(),
@@ -224,7 +240,10 @@ export function CatalogTree({
             size="sm"
             className="mt-auto w-full"
             onClick={() =>
-              setModelDraft({ nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(), yearTo: null })
+              setModelDraft({
+                nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(),
+                yearTo: null, registrationType: 'PRIVATE',
+              })
             }
           >
             أضف طرازا
@@ -274,6 +293,7 @@ export function CatalogTree({
                         nameAr: model.nameAr,
                         nameEn: model.nameEn,
                         yearFrom: model.yearFrom,
+                        registrationType: model.registrationType,
                         yearTo: model.yearTo,
                       })
                     }
@@ -487,6 +507,34 @@ export function CatalogTree({
                 onChange={(e) => setModelDraft({ ...modelDraft, nameEn: e.target.value })}
                 className={cn(field, 'bidi-ltr', errors.nameEn !== undefined && 'border-danger')}
               />
+            </label>
+            {/*
+              ═══ نوعُ التسجيل الافتراضيّ ═══
+
+              **وهو غيرُ الهيكل**: بيك أبٌ واحد قد يكون «خصوصي» أو
+              «نقل خاص»، والفرقُ في اللوحة والرسوم والتأمين. ويصل
+              نموذجَ المستخدم مُختارًا، ويبقى له تغييرُه.
+            */}
+            <label className={label}>
+              نوع التسجيل الافتراضي
+              <select
+                value={modelDraft.registrationType ?? ''}
+                onChange={(e) =>
+                  setModelDraft({
+                    ...modelDraft,
+                    registrationType:
+                      e.target.value === '' ? null : (e.target.value as RegistrationType),
+                  })
+                }
+                className={field}
+              >
+                <option value="">— بلا افتراض</option>
+                {(Object.keys(REG) as RegistrationType[]).map((key) => (
+                  <option key={key} value={key}>
+                    {REG[key]}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className={label}>
               من سنة

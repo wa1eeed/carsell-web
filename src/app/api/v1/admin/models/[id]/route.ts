@@ -1,12 +1,18 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { BodyType, RegistrationType } from '@/generated/prisma/enums';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import { deleteModel, updateModel } from '@/lib/domain/catalog';
 
 export const runtime = 'nodejs';
 
-const BODY_TYPE = z.enum(['SEDAN', 'SUV', 'PICKUP', 'HATCHBACK', 'COUPE', 'VAN']);
+/**
+ * **والتعدادُ من المخطّط لا مكتوبًا بيد.** كان قائمةً حرفيّة من ستّ،
+ * فلمّا أُضيف `CROSSOVER` و`CONVERTIBLE` بقيت ترفضهما — ولا شيء
+ * يُنبّه: قائمةٌ منسوخةٌ لا يحرسها مُصرِّف.
+ */
+const BODY_TYPE = z.enum(BodyType);
 
 const Body = z.object({
   nameAr: z.string().max(120).optional(),
@@ -14,6 +20,8 @@ const Body = z.object({
   yearFrom: z.number().int().optional(),
   yearTo: z.number().int().nullable().optional(),
   bodyType: BODY_TYPE.nullable().optional(),
+  /** نوعُ التسجيل الافتراضيّ — يصل نموذجَ المستخدم مُختارًا. */
+  registrationType: z.enum(RegistrationType).nullable().optional(),
   visible: z.boolean().optional(),
 });
 

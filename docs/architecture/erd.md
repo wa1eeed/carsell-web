@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-96 models · 66 enums
+96 models · 68 enums
 
 ## Relationships
 
@@ -73,6 +73,8 @@ erDiagram
   Vehicle |o--|| RegistrationType : "registrationType"
   Vehicle |o--|| DocumentStatus : "periodicInspection"
   Vehicle |o--|| DocumentStatus : "licenseStatus"
+  Vehicle |o--|| AccidentStatus : "accidentStatus"
+  Vehicle |o--|| PreviousOwners : "previousOwners"
   Vehicle |o--|| ChargePort : "chargePort"
   Vehicle }o--|| BodyType : "bodyType"
   Vehicle }o--|| Transmission : "transmission"
@@ -539,7 +541,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `city` | `String` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
+Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
 
 ### `VehicleHistoryItem`
 
@@ -1895,6 +1897,8 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `DealerStatus` — `PENDING`, `ACTIVE`, `SUSPENDED`
 - `BodyType` — `SEDAN`, `SUV`, `/**`, `* كروس أوفر — **وكان معالجُ البيع يعرضه ولا وجودَ له هنا**.`, `* قائمتُه الاحتياطية تحمل `WAGON` و`CONVERTIBLE` منذ كُتبت،`, `* والتعدادُ لا يعرفهما: من اختار أحدَهما أرسل قيمةً يردّها الخادم.`, `* (طلب المالك ٢٠٢٦-١٠-١٨، ووُجد الخللُ في قياسه.)`, `*/`, `CROSSOVER`, `PICKUP`, `HATCHBACK`, `COUPE`, `CONVERTIBLE`, `VAN`
 - `RegistrationType` — `PRIVATE // خصوصي`, `PRIVATE_TRANSPORT // نقل خاص`, `PUBLIC_TRANSPORT // نقل عام`, `MINIBUS // حافلة صغيرة`, `TAXI // أجرة`, `MOTORCYCLE // دراجة نارية`, `HEAVY_EQUIPMENT // أشغال عامة`
+- `AccidentStatus` — `NONE // بدون حوادث`, `REPORTED // حوادث مسجلة`, `UNREPORTED // حوادث غير مسجلة`
+- `PreviousOwners` — `FIRST // مالك أول`, `SECOND // مالك ثان`, `THREE // ٣ ملاك سابقين`, `FOUR // ٤ ملاك سابقين`, `MORE_THAN_FOUR // أكثر من ٤`
 - `DocumentStatus` — `VALID // ساري`, `EXPIRED // منتهي`
 - `Transmission` — `AUTOMATIC`, `MANUAL`, `CVT`, `DCT`
 - `FuelType` — `PETROL`, `DIESEL`, `HYBRID`, `/** هجينٌ قابل للشحن — له بطاريةٌ تُشحن ومحرّكُ بنزين معًا. */`, `PLUGIN_HYBRID`, `ELECTRIC`

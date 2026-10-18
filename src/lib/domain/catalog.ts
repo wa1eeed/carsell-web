@@ -12,6 +12,7 @@ import type {
   Drivetrain,
   FeatureGroup,
   FuelType,
+  RegistrationType,
   Transmission,
 } from '@/generated/prisma/enums';
 
@@ -277,6 +278,11 @@ export type ModelRow = {
   yearFrom: number;
   yearTo: number | null;
   bodyType: BodyType | null;
+  /**
+   * نوعُ التسجيل الافتراضيّ — يضبطه المشغّل هنا، ويصل نموذجَ
+   * المستخدم مُختارًا. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   */
+  registrationType: RegistrationType | null;
   visible: boolean;
   trimCount: number;
   listingCount: number;
@@ -318,6 +324,7 @@ export type ModelInput = {
   yearFrom: number;
   yearTo?: number | null;
   bodyType?: BodyType | null;
+  registrationType?: RegistrationType | null;
   visible?: boolean;
 };
 
@@ -392,6 +399,7 @@ export async function listModels(brandId: string): Promise<ModelRow[]> {
     yearFrom: m.yearFrom,
     yearTo: m.yearTo,
     bodyType: m.bodyType,
+    registrationType: m.registrationType,
     visible: m.visible,
     trimCount: m._count.trims,
     listingCount: byModel.get(m.id) ?? 0,
@@ -462,6 +470,7 @@ export async function createModel(
       yearFrom: input.yearFrom,
       yearTo: input.yearTo ?? null,
       bodyType: input.bodyType ?? null,
+      registrationType: input.registrationType ?? null,
       visible: input.visible ?? true,
     },
   });
@@ -497,6 +506,9 @@ export async function updateModel(
     data: {
       nameAr: nameAr.trim(), nameEn: nameEn.trim(), yearFrom, yearTo,
       ...(input.bodyType === undefined ? {} : { bodyType: input.bodyType }),
+      ...(input.registrationType === undefined
+        ? {}
+        : { registrationType: input.registrationType }),
       ...(input.visible === undefined ? {} : { visible: input.visible }),
     },
   });

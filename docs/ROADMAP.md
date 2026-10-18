@@ -1285,6 +1285,40 @@ The admin trim editor already edits every one of them.
 > that (every one is nullable), but the admin's listing page will read «لم يحدد»
 > for them until their owners edit.
 
+## 21 · Usage history, and a percentage instead of a count — *owner's request 2026-10-18* — **done**
+
+> «ارقام الحقول الذي يظهر مقابل عنوان بيانات السياره 10/10 قد يحبط المستخدم و
+> يعتقد ان الخطوات كثيره لذلك قم بإزالته و استبدله بنسبة إكتمال … حالة الهيكل و
+> الصبغ ننقلها … بحيث تكون تندرج في قسم مخصص لحالة استخدام السيارة … حالة
+> الحوادث و الاضرار … عدد الملاك السابقين … وطبعاً هذا القسم يتم اخفائه في حال
+> كانت حالة السيارة جديدة»
+
+- [x] **A percentage, not a tally.** «٧ / ٧» counts fields, and a count of
+      fields reads as a list of chores. A percentage says how far along you are
+      and nothing about how much there is.
+- [x] **A section of its own for how the car has been used**, after the
+      registration data:
+  - [x] **حالة الحوادث والأضرار** — بدون حوادث · يوجد حوادث مسجلة · يوجد حوادث
+        غير مسجلة. New.
+  - [x] **حالة الهيكل الخارجي** — the paint status, moved here out of «حالها
+        اليوم» where it sat beside the colour.
+  - [x] **عدد الملاك السابقين** — مالك أول … أكثر من أربعة. New.
+- [x] **And the whole section disappears for a new car** — it has no accident
+      history and no previous owners, so asking is asking for an answer that
+      does not exist.
+
+### And the admin side, because a column with no editor is a column with no writer
+
+Adding `Model.registrationType` to the schema and stopping there would have
+created exactly the defect this repository keeps closing. So the model editor in
+`/admin/catalog/models` now has **نوع التسجيل الافتراضي**, and it travels:
+model → the user's form, pre-selected, still editable.
+
+And the admin models route carried a **hand-written** body-type list of six
+literals — so `CROSSOVER` and `CONVERTIBLE` would have been refused by the API
+the moment the editor offered them. It reads `z.enum(BodyType)` from the schema
+now, the way the rest of the product does.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

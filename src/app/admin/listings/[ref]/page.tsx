@@ -1,6 +1,8 @@
 import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import {
+  ACCIDENT_STATUS_LABEL,
   DOCUMENT_STATUS_LABEL,
+  PREVIOUS_OWNERS_LABEL,
   PAINT_STATUS_LABEL,
   REGISTRATION_TYPE_LABEL,
   labelOf,
@@ -336,6 +338,15 @@ export default async function AdminListingDetailPage({
               <Field
                 label="حالة الهيكل"
                 value={labelOf(PAINT_STATUS_LABEL, listing.vehicle.paintStatus)}
+              />
+              {/* وإقرارُ صاحبها عن تاريخها — يقرؤه من يراجع الإعلان. */}
+              <Field
+                label="الحوادث"
+                value={labelOf(ACCIDENT_STATUS_LABEL, listing.vehicle.accidentStatus)}
+              />
+              <Field
+                label="الملاك السابقون"
+                value={labelOf(PREVIOUS_OWNERS_LABEL, listing.vehicle.previousOwners)}
               />
               <Field label="الحالة" value={listing.vehicle.condition} ltr />
               <Field

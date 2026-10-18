@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **167** components in **4** directories.
+Counted: **168** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -121,6 +121,7 @@ rather than found by chance.
 | `VehicleFields` | yes | `catalog` · `brands` · `cities` · `locale` · `identity` | 2 |
 | `VehiclePlateField` | yes | `catalog` · `consent` · `step` | 1 |
 | `VehicleProgress` | yes | `catalog` | 1 |
+| `VehicleUsageFields` | yes | `catalog` · `step` | 1 |
 
 ## `src/components/ui`
 

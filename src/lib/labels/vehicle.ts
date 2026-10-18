@@ -1,7 +1,9 @@
 import type {
+  AccidentStatus,
   ChargePort,
   DocumentStatus,
   PaintStatus,
+  PreviousOwners,
   RegistrationType,
 } from '@/generated/prisma/enums';
 
@@ -51,3 +53,17 @@ export function labelOf(
   if (value === null || value === '') return fallback;
   return map[value] ?? value;
 }
+
+export const ACCIDENT_STATUS_LABEL = {
+  NONE: 'بدون حوادث',
+  REPORTED: 'يوجد حوادث مسجلة',
+  UNREPORTED: 'يوجد حوادث غير مسجلة',
+} as const satisfies Record<AccidentStatus, string>;
+
+export const PREVIOUS_OWNERS_LABEL = {
+  FIRST: 'مالك أول',
+  SECOND: 'مالك ثاني',
+  THREE: '٣ ملاك سابقين',
+  FOUR: '٤ ملاك سابقين',
+  MORE_THAN_FOUR: 'أكثر من ٤ ملاك',
+} as const satisfies Record<PreviousOwners, string>;

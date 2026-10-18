@@ -6,11 +6,13 @@ import { currentUser } from '@/lib/auth/session';
 import { parseFilters, searchListings } from '@/lib/domain/listings';
 import { createListing, type PublishFailure } from '@/lib/domain/publish';
 import {
+  AccidentStatus,
   ChargePort,
   DocumentStatus,
   FuelType,
   ListingType,
   PaintStatus,
+  PreviousOwners,
   RegistrationType,
   Transmission,
   VehicleCondition,
@@ -230,6 +232,8 @@ const PublishBody = z.object({
      */
     colorInterior: z.string().max(40).nullable().optional(),
     paintStatus: z.enum(PaintStatus).optional(),
+    accidentStatus: z.enum(AccidentStatus).nullable().optional(),
+    previousOwners: z.enum(PreviousOwners).nullable().optional(),
     registrationType: z.enum(RegistrationType).nullable().optional(),
     periodicInspection: z.enum(DocumentStatus).nullable().optional(),
     licenseStatus: z.enum(DocumentStatus).nullable().optional(),

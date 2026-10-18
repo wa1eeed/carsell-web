@@ -2202,14 +2202,12 @@
                   },
                   "bodyType": {
                     "type": "string",
-                    "enum": [
-                      "SEDAN",
-                      "SUV",
-                      "PICKUP",
-                      "HATCHBACK",
-                      "COUPE",
-                      "VAN"
-                    ],
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "registrationType": {
+                    "type": "string",
+                    "enum": [],
                     "nullable": true
                   },
                   "visible": {
@@ -2285,14 +2283,12 @@
                   },
                   "bodyType": {
                     "type": "string",
-                    "enum": [
-                      "SEDAN",
-                      "SUV",
-                      "PICKUP",
-                      "HATCHBACK",
-                      "COUPE",
-                      "VAN"
-                    ],
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "registrationType": {
+                    "type": "string",
+                    "enum": [],
                     "nullable": true
                   },
                   "visible": {
@@ -2360,14 +2356,12 @@
                   },
                   "bodyType": {
                     "type": "string",
-                    "enum": [
-                      "SEDAN",
-                      "SUV",
-                      "PICKUP",
-                      "HATCHBACK",
-                      "COUPE",
-                      "VAN"
-                    ],
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "registrationType": {
+                    "type": "string",
+                    "enum": [],
                     "nullable": true
                   },
                   "visible": {
@@ -7218,6 +7212,16 @@
                   "paintStatus": {
                     "type": "string",
                     "enum": []
+                  },
+                  "accidentStatus": {
+                    "type": "string",
+                    "enum": [],
+                    "nullable": true
+                  },
+                  "previousOwners": {
+                    "type": "string",
+                    "enum": [],
+                    "nullable": true
                   },
                   "registrationType": {
                     "type": "string",

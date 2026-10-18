@@ -3,9 +3,11 @@ import { db } from '@/lib/db';
 import { nextListingRef } from './refs';
 import { Prisma } from '@/generated/prisma/client';
 import type {
+  AccidentStatus,
   ChargePort,
   DocumentStatus,
   PaintStatus,
+  PreviousOwners,
   RegistrationType,
 } from '@/generated/prisma/enums';
 import type {
@@ -126,6 +128,9 @@ export type PublishInput = {
      */
     colorInterior?: string | null;
     paintStatus?: PaintStatus;
+    /** وإقرارُ صاحبها عن تاريخها — للمستعملة وحدها. */
+    accidentStatus?: AccidentStatus | null;
+    previousOwners?: PreviousOwners | null;
     registrationType?: RegistrationType | null;
     /** **ولا تخرجان في استجابةٍ عامّة** — قرارُ المالك. */
     periodicInspection?: DocumentStatus | null;
@@ -279,6 +284,12 @@ export function mutableVehicleFields(
       ? {}
       : { colorInterior: input.vehicle.colorInterior.trim() }),
     ...(input.vehicle.paintStatus === undefined ? {} : { paintStatus: input.vehicle.paintStatus }),
+    ...(input.vehicle.accidentStatus == null
+      ? {}
+      : { accidentStatus: input.vehicle.accidentStatus }),
+    ...(input.vehicle.previousOwners == null
+      ? {}
+      : { previousOwners: input.vehicle.previousOwners }),
     ...(input.vehicle.registrationType == null
       ? {}
       : { registrationType: input.vehicle.registrationType }),
@@ -387,6 +398,12 @@ export function vehicleFields(
       ? {}
       : { colorInterior: input.vehicle.colorInterior.trim() }),
     ...(input.vehicle.paintStatus === undefined ? {} : { paintStatus: input.vehicle.paintStatus }),
+    ...(input.vehicle.accidentStatus == null
+      ? {}
+      : { accidentStatus: input.vehicle.accidentStatus }),
+    ...(input.vehicle.previousOwners == null
+      ? {}
+      : { previousOwners: input.vehicle.previousOwners }),
     ...(input.vehicle.registrationType == null
       ? {}
       : { registrationType: input.vehicle.registrationType }),

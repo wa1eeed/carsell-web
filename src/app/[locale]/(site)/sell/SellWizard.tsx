@@ -25,6 +25,7 @@ import {
   VehicleFields,
   VehiclePlateField,
   VehicleProgress,
+  VehicleUsageFields,
   useVehicleCatalog,
   vehiclePayload,
   type BrandOption,
@@ -687,7 +688,11 @@ export function SellWizard({
             **والإظهارُ اختيارٌ لا افتراض**: المنصّة تطمس اللوحة في
             الصور، فعرضُها نصًّا بجوار صورةٍ مطموسة ينقض الطمس.
           */}
-          <div className="mt-4">
+          {/*
+            **وحالُ الاستخدام بعد بيانات التسجيل** — إقرارٌ عن تاريخها
+            يتبع ما تُعرف به، ويسقط كلُّه عن الجديدة.
+          */}
+          <div className="mt-4 flex flex-col gap-4">
             <VehiclePlateField
               catalog={catalog}
               {...(intent === 'garage'
@@ -699,6 +704,7 @@ export function SellWizard({
                     },
                   })}
             />
+            <VehicleUsageFields catalog={catalog} />
           </div>
 
           {/*

@@ -4,10 +4,12 @@ import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
 import { addVehicle } from '@/lib/domain/garage';
 import {
+  AccidentStatus,
   ChargePort,
   DocumentStatus,
   FuelType,
   PaintStatus,
+  PreviousOwners,
   RegistrationType,
   Transmission,
   VehicleCondition,
@@ -79,6 +81,8 @@ const Body = z.object({
    */
   colorInterior: z.string().max(40).nullable().optional(),
   paintStatus: z.enum(PaintStatus).optional(),
+  accidentStatus: z.enum(AccidentStatus).nullable().optional(),
+  previousOwners: z.enum(PreviousOwners).nullable().optional(),
   registrationType: z.enum(RegistrationType).nullable().optional(),
   periodicInspection: z.enum(DocumentStatus).nullable().optional(),
   licenseStatus: z.enum(DocumentStatus).nullable().optional(),

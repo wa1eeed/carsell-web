@@ -714,6 +714,18 @@
       "PARTIAL": "Partially resprayed",
       "REPAINTED": "Fully resprayed",
       "UNKNOWN": "Not stated"
+    },
+    "accidentStatus": {
+      "NONE": "No accidents",
+      "REPORTED": "Reported accidents",
+      "UNREPORTED": "Unreported accidents"
+    },
+    "previousOwners": {
+      "FIRST": "First owner",
+      "SECOND": "Second owner",
+      "THREE": "Three previous owners",
+      "FOUR": "Four previous owners",
+      "MORE_THAN_FOUR": "More than four owners"
     }
   },
   "services": {

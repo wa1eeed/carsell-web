@@ -714,6 +714,18 @@
       "PARTIAL": "رش جزئي",
       "REPAINTED": "مرشوش بالكامل",
       "UNKNOWN": "غير محدد"
+    },
+    "accidentStatus": {
+      "NONE": "بدون حوادث",
+      "REPORTED": "يوجد حوادث مسجلة",
+      "UNREPORTED": "يوجد حوادث غير مسجلة"
+    },
+    "previousOwners": {
+      "FIRST": "مالك أول",
+      "SECOND": "مالك ثاني",
+      "THREE": "٣ ملاك سابقين",
+      "FOUR": "٤ ملاك سابقين",
+      "MORE_THAN_FOUR": "أكثر من ٤ ملاك"
     }
   },
   "services": {

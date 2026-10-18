@@ -92,6 +92,9 @@ export type VehicleDraft = {
   colorInterior: string;
   /** حالُ الهيكل والصبغ — يقرّه البائع ويتجاوزه الفحص (قرار ١٦). */
   paintStatus: string;
+  /** وحالُ استخدامها — للمستعملة وحدها. */
+  accidentStatus: string;
+  previousOwners: string;
   /** نوعُ التسجيل — تصنيفُ المرور، وافتراضُه من الطراز. */
   registrationType: string;
   /** حالُ الفحص الدوريّ ورخصةِ السير — للمستعملة ذات اللوحات. */
@@ -143,6 +146,12 @@ export const REGISTRATION_TYPES = [
 
 export const DOCUMENT_STATES = ['VALID', 'EXPIRED'] as const;
 
+export const ACCIDENT_STATES = ['NONE', 'REPORTED', 'UNREPORTED'] as const;
+
+export const PREVIOUS_OWNERS = [
+  'FIRST', 'SECOND', 'THREE', 'FOUR', 'MORE_THAN_FOUR',
+] as const;
+
 export const VIN_LENGTH = 17;
 export const CUSTOMS_LENGTH = 10;
 
@@ -158,6 +167,7 @@ export const EMPTY_VEHICLE: VehicleDraft = {
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
   plateLetters: '', plateNumbers: '', customsCard: '',
   colorInterior: '', paintStatus: 'ORIGINAL', registrationType: 'PRIVATE',
+  accidentStatus: '', previousOwners: '',
   periodicInspection: '', licenseStatus: '',
   batteryKwh: '', rangeKm: '', chargePort: '',
 };
@@ -278,7 +288,6 @@ export function useVehicleCatalog(initial: VehicleDraft = EMPTY_VEHICLE) {
       vehicle.colorInterior,
       vehicle.city,
       vehicle.spec,
-      vehicle.paintStatus,
     ],
   } as const;
 
@@ -332,6 +341,8 @@ export function vehiclePayload(vehicle: VehicleDraft) {
     customsCard: vehicle.customsCard.trim() === '' ? null : vehicle.customsCard.trim(),
     colorInterior: vehicle.colorInterior.trim() === '' ? null : vehicle.colorInterior.trim(),
     paintStatus: vehicle.paintStatus,
+    accidentStatus: vehicle.accidentStatus === '' ? null : vehicle.accidentStatus,
+    previousOwners: vehicle.previousOwners === '' ? null : vehicle.previousOwners,
     registrationType: vehicle.registrationType === '' ? null : vehicle.registrationType,
     /** **والفارغُ غيابٌ لا قيمة**: مَن لم يُسأل لم يُجب. */
     periodicInspection: vehicle.periodicInspection === '' ? null : vehicle.periodicInspection,
@@ -403,22 +414,14 @@ function Section({
           مرّةً عند الاكتمال لا ما دامت مكتملة: حركةٌ دائمة في قسمٍ
           فرغ منه صاحبه تسحب العين إلى ما لا يحتاجها.
         */}
-        {done === undefined || total === undefined ? null : (
-          <span
-            key={complete ? 'done' : 'pending'}
-            className={cn(
-              'shrink-0 rounded-full px-2.5 py-1 text-3xs font-bold',
-              complete ? 'settle bg-accent-100 text-accent-900' : 'bg-line/60 text-ink/70',
-            )}
-          >
-            {complete ? (
-              'اكتمل'
-            ) : (
-              <span className="font-num">
-                <ArabicNumber value={done} grouped={false} /> /{' '}
-                <ArabicNumber value={total} grouped={false} />
-              </span>
-            )}
+        {/*
+          **والشارةُ تقول «تمّ» ولا تعدّ.** رقمٌ مقابل كلّ عنوانٍ
+          يُقرأ قائمةَ أعمال، والعلامةُ وحدها تكفي لمن يمسح الصفحة.
+          (طلب المالك ٢٠٢٦-١٠-١٨.)
+        */}
+        {!complete ? null : (
+          <span className="settle shrink-0 rounded-full bg-accent-100 px-2.5 py-1 text-3xs font-bold text-accent-900">
+            اكتمل
           </span>
         )}
       </header>
@@ -448,10 +451,16 @@ export function VehicleProgress({ catalog }: { catalog: VehicleCatalog }) {
         <p className="text-2xs font-bold">
           {catalog.ready ? 'بيانات السيارة مكتملة' : 'بيانات السيارة'}
         </p>
-        {/* الكسرُ زينةُ قراءةٍ — والمعنى في `progressbar` تحته. */}
+        {/*
+          ═══ نسبةٌ لا عدَّ حقول ═══
+
+          **وعدُّ الحقول يُقرأ قائمةَ أعمال.** «٧ / ٧» يقول للقارئ كم
+          أمامه قبل أن يبدأ — ومن رآها عشرةً ظنّ الطريق طويلًا فأغلق.
+          والنسبةُ تقول كم قطع ولا تقول كم بقي عددًا. (طلب المالك
+          ٢٠٢٦-١٠-١٨.) والمعنى في `progressbar` تحته.
+        */}
         <p aria-hidden className="font-num text-3xs opacity-70">
-          <ArabicNumber value={done} grouped={false} /> /{' '}
-          <ArabicNumber value={total} grouped={false} />
+          <ArabicNumber value={pct} percent />
         </p>
       </div>
 
@@ -757,31 +766,6 @@ function MutableVehicleFields({
               />
             </Field>
 
-            {/*
-              ═══ حالُ الهيكل — **وكان عمودُه بلا كاتب** ═══
-
-              `Vehicle.paintStatus` في المخطّط منذ بُني ويسقط إلى
-              `UNKNOWN`، **والبحثُ يُرشّح بـ«كامل الوكالة»** — فكلُّ
-              إعلانٍ ينشره بائعٌ حقيقيّ يسقط من ذلك المرشِّح مهما كانت
-              سيارته. وهو إلزاميّ بقول المالك: يبني الثقة ويقلّل
-              الأسئلة المتكرّرة.
-            */}
-            <Field
-              label="حالة الهيكل والصبغ"
-              htmlFor="veh-paint"
-              hint="يقره البائع، ويتجاوزه تقرير الفحص إن اختلف."
-              required
-            >
-              <Picker
-                id="veh-paint"
-                value={vehicle.paintStatus}
-                placeholder="اختر الحالة"
-                onChange={(next) => set({ paintStatus: next })}
-                options={(['ORIGINAL', 'PARTIAL', 'REPAINTED', 'UNKNOWN'] as const).map(
-                  (value) => ({ value, label: te(`paintStatus.${value}`) }),
-                )}
-              />
-            </Field>
 
             <Field label={t('city')} htmlFor="veh-city" required>
               <Picker
@@ -1298,6 +1282,95 @@ export function VehiclePlateField({
             </Toggle>
           </div>
         )}
+      </Section>
+    </div>
+  );
+}
+
+/**
+ * ═══ حالُ استخدام المركبة — قسمٌ بذاته، وللمستعملة وحدها ═══
+ *
+ * **والجديدةُ لا حوادثَ لها ولا مالكَ سابق**، فسؤالُها عنهما يطلب
+ * جوابًا لا وجودَ له — ويُشعر صاحبَها أنّ عليه ما ليس عليه.
+ *
+ * وكان «حالُ الهيكل والصبغ» بين اللون والمدينة في «حالها اليوم» —
+ * وهو **إقرارٌ عن تاريخها** لا وصفٌ لحالها اليوم. فاجتمع مع أخويه:
+ * الحوادثُ أوّلًا لأنّها أثقلُها، ثمّ الهيكلُ الخارجيّ، ثمّ الملّاك.
+ * (طلب المالك ٢٠٢٦-١٠-١٨.)
+ */
+export function VehicleUsageFields({
+  catalog,
+  step = 5,
+}: {
+  catalog: VehicleCatalog;
+  step?: number;
+}) {
+  const te = useTranslations('enums');
+  const { vehicle, set } = catalog;
+
+  /** **ولا تُسأل الجديدة** — ولا يُرسَل عنها ما لم يُسأل عنه. */
+  if (vehicle.condition === 'NEW') return null;
+
+  return (
+    <div style={{ '--i': 4 } as CSSProperties}>
+      <Section
+        step={step}
+        title="حالة استخدام السيارة"
+        note="إقرارك عن تاريخها — ويبني ثقة المشتري ويقلل الأسئلة المتكررة."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/*
+            **والمسجَّلُ غيرُ غير المسجَّل.** حادثٌ في نجم يظهر في
+            تقرير «موجز» ويعرفه المشتري مهما قال البائع، وغيرُ
+            المسجَّل لا يظهر — فالتفريقُ إقرارٌ من صاحبه.
+          */}
+          <Field
+            label="حالة الحوادث والأضرار"
+            htmlFor="veh-accidents"
+            hint="المسجل يظهر في تقرير موجز، فذكره يوفر عليك السؤال."
+          >
+            <Picker
+              id="veh-accidents"
+              value={vehicle.accidentStatus}
+              placeholder="اختر الحالة"
+              onChange={(next) => set({ accidentStatus: next })}
+              options={ACCIDENT_STATES.map((value) => ({
+                value,
+                label: te(`accidentStatus.${value}`),
+              }))}
+            />
+          </Field>
+
+          <Field
+            label="حالة الهيكل الخارجي"
+            htmlFor="veh-paint"
+            hint="يقره البائع، ويتجاوزه تقرير الفحص إن اختلف."
+          >
+            <Picker
+              id="veh-paint"
+              value={vehicle.paintStatus}
+              placeholder="اختر الحالة"
+              onChange={(next) => set({ paintStatus: next })}
+              options={(['ORIGINAL', 'PARTIAL', 'REPAINTED', 'UNKNOWN'] as const).map(
+                (value) => ({ value, label: te(`paintStatus.${value}`) }),
+              )}
+            />
+          </Field>
+
+          {/* **وعددُ الملّاك يُحرّك السعر** — «مالك أول» وصفٌ يُبحث عنه. */}
+          <Field label="عدد الملاك السابقين" htmlFor="veh-owners">
+            <Picker
+              id="veh-owners"
+              value={vehicle.previousOwners}
+              placeholder="اختر العدد"
+              onChange={(next) => set({ previousOwners: next })}
+              options={PREVIOUS_OWNERS.map((value) => ({
+                value,
+                label: te(`previousOwners.${value}`),
+              }))}
+            />
+          </Field>
+        </div>
       </Section>
     </div>
   );
