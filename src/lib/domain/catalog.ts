@@ -697,9 +697,22 @@ export async function deleteTrim(
 //  المميّزات (A19)
 // ═══════════════════════════════════════════════════════════
 
-/** مواضع الظهور الأربعة المستقلة — قرار A19 بند ٣. */
+/**
+ * مواضع الظهور المستقلّة — قرار A19 بند ٣، وخامسُها من ٢٠٢٦-١٠-١٨.
+ *
+ * **وكانت الأربعةُ كلُّها للمشغّل أو للقارئ**: محرّرُ الفئة يملأ
+ * الكتالوج، والفلترُ وصفحةُ السيارة والشارةُ تعرض. **ولا موضعَ يقول
+ * «اسأل البائعَ عن هذه»** — فلم تكن الاستمارة تسأله أصلًا، وبقي
+ * `ListingFeature` بلا كاتبٍ في المنتج كلِّه.
+ *
+ * و`sell_form` يُقرَّر **مرّةً في الكتالوج لا في كلّ فئة**: الفئاتُ
+ * تحمل ٤٫١ ميزةً وسطيًّا، فحصرُ الاستمارة بها يُري بائعَ مرسيدس
+ * أربعةَ مربّعات ولا يدعه يقول «فتحة سقف». والفئةُ تُرجّح لا تحصر:
+ * ما تحمله يصل البائعَ **مُعلَّمًا** (قرار المالك ٢٠٢٦-١٠-١٨).
+ */
 export const FEATURE_PLACEMENTS = [
   'trim_editor',
+  'sell_form',
   'search_filter',
   'listing_page',
   'card_badge',
@@ -805,7 +818,7 @@ export async function createFeature(
       group: input.group,
       sort: input.sort ?? 0,
       active: input.active ?? true,
-      placements: input.placements ?? ['trim_editor', 'listing_page'],
+      placements: input.placements ?? ['trim_editor', 'sell_form', 'listing_page'],
     },
   });
 

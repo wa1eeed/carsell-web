@@ -74,6 +74,15 @@ added here therefore ships with a migration as well —
 only what is missing (`WHERE NOT EXISTS`, matched on brand + English name), so
 it passes over anything the seed already planted.
 
+### Where each placement is read
+
+`placements` carries five independent values. Four of them fill the catalogue
+or display it; **`sell_form` is the only one that asks anybody anything** — it
+decides whether the seller is offered that feature in the entry form. It was
+added 2026-10-18, when measuring showed `ListingFeature` had no writer in the
+product at all. The seed turns on every placement except `card_badge`.
+
+`VehicleFeature` is written from the entry form (both intents), and
 `ListingFeature` is a **snapshot taken at publish time**, never a live read of
 `TrimFeature`. A seller may add or remove features on their own listing; editing
 the trim later must not change listings that are already published.

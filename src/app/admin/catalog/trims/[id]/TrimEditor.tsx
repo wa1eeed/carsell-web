@@ -1,6 +1,7 @@
 'use client';
 
 import type { BodyType, FuelType } from '@/generated/prisma/enums';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -54,6 +55,7 @@ export function TrimEditor({
   path,
   vehicleCount,
   features,
+  inSellForm,
   selected,
   canEdit,
 }: {
@@ -61,6 +63,8 @@ export function TrimEditor({
   path: { brand: string; model: string; brandId: string; modelId: string };
   vehicleCount: number;
   features: readonly { key: string; nameAr: string; group: keyof typeof GROUP }[];
+  /** هل تُعرض هذه الميزة في استمارة البائع — وحالُها من الكتالوج. */
+  inSellForm: Readonly<Record<string, boolean>>;
   selected: readonly string[];
   canEdit: boolean;
 }) {
@@ -69,6 +73,64 @@ export function TrimEditor({
   const [keys, setKeys] = useState<string[]>([...selected]);
   const [toast, setToast] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  /**
+   * ═══ زرُّ + — الميزةُ تُضاف وتُسمّى من هنا ═══
+   *
+   * **وكان المحرّر يُعلّم من قائمةٍ ثابتة وحدها**: ميزةٌ لا توجد في
+   * الكتالوج لا سبيل إلى إضافتها إلّا بمغادرة الشاشة إلى
+   * `/admin/catalog/features` والعودة. (طلب المالك ٢٠٢٦-١٠-١٨.)
+   *
+   * **والمُنشَأةُ هنا تدخل الكتالوج كلَّه** لا هذه الفئةَ وحدها —
+   * `Feature.key` مفتاحٌ عامّ تشترك فيه كلُّ الفئات. فيُقال ذلك في
+   * الشاشة، لا يُكتشف بعد أن تظهر الميزةُ عند كلّ بائع.
+   */
+  const [adding, setAdding] = useState<{
+    nameAr: string;
+    nameEn: string;
+    group: keyof typeof GROUP;
+  } | null>(null);
+
+  async function createFeature(): Promise<void> {
+    if (adding === null) return;
+    /** المفتاحُ يُشتقّ من الاسم الإنجليزيّ — ولا يُطلب من المشغّل. */
+    const key = adding.nameEn
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40);
+    if (key === '' || adding.nameAr.trim() === '') {
+      setToast({ tone: 'error', text: 'الاسمان مطلوبان، والإنجليزي بحروف لاتينية.' });
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await fetch('/api/v1/admin/features', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          key,
+          nameAr: adding.nameAr.trim(),
+          nameEn: adding.nameEn.trim(),
+          group: adding.group,
+          /** تُضاف ظاهرةً في المحرّر وفي استمارة البائع وصفحة السيارة. */
+          placements: ['trim_editor', 'sell_form', 'listing_page'],
+        }),
+      });
+      if (!response.ok) {
+        const json = (await response.json()) as { error?: { messageAr: string } };
+        setToast({ tone: 'error', text: json.error?.messageAr ?? 'تعذرت إضافة الميزة.' });
+        return;
+      }
+      /** **وتُعلَّم لهذه الفئة فورًا** — من أضافها أرادها هنا. */
+      setKeys((was) => [...new Set([...was, key])]);
+      setAdding(null);
+      setToast({ tone: 'success', text: 'أضفت الميزة وعلمتها لهذه الفئة. احفظ لتثبت.' });
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function save(): Promise<void> {
     setBusy(true);
@@ -251,6 +313,20 @@ export function TrimEditor({
           <h3 className="mb-3.5 text-3xs font-bold tracking-[0.14em] opacity-65">
             المميزات الافتراضية للفئة
           </h3>
+          {/*
+            **والعنوانُ وعدٌ، فيقول ما يفعله التعليم.** كان يُقرأ
+            «المميزات التي تظهر للبائع»، وهو خطأ: ما يظهر في
+            الاستمارة يقرّره الكتالوج بموضع `sell_form` مرّةً،
+            وهذه ترجيحٌ — تصل مُعلَّمةً ويشطب البائع ما ليس عنده.
+          */}
+          <p className="mb-3.5 text-xs leading-relaxed opacity-70">
+            ما تعلمه هنا يصل البائع <b>معلما مسبقا</b> في استمارته، ويشطب ما ليس في
+            سيارته. وظهور الميزة نفسها في الاستمارة يقرره موضع «استمارة البائع» في{' '}
+            <Link href="/admin/catalog/features" className="underline underline-offset-4">
+              صفحة المميزات
+            </Link>
+            .
+          </p>
           {(Object.keys(GROUP) as (keyof typeof GROUP)[]).map((group) => {
             const inGroup = features.filter((f) => f.group === group);
             if (inGroup.length === 0) return null;
@@ -273,17 +349,94 @@ export function TrimEditor({
                         className="size-4 accent-[var(--color-accent)]"
                       />
                       {f.nameAr}
+                      {/*
+                        **وميزةٌ لا يسأل عنها البائعُ تُقال**: تعليمُها
+                        هنا بلا أثرٍ في الاستمارة، ومن علّمها ينتظر
+                        ظهورًا لا يقع.
+                      */}
+                      {inSellForm[f.key] === true ? null : (
+                        <span className="text-3xs opacity-65">(لا تظهر في الاستمارة)</span>
+                      )}
                     </label>
                   ))}
                 </div>
               </div>
             );
           })}
+
+          {/*
+            ═══ زرُّ + ═══
+
+            **ولا يُخفى أثرُه.** الميزةُ المُنشَأة تدخل الكتالوج كلَّه
+            — `Feature.key` مفتاحٌ عامّ — فتظهر لكلّ فئة ولكلّ بائع.
+            وقولُ ذلك هنا أرخص من اكتشافه بعد أن تظهر عند الجميع.
+          */}
+          {!canEdit ? null : adding === null ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="mt-4"
+              onClick={() => setAdding({ nameAr: '', nameEn: '', group: 'COMFORT' })}
+            >
+              + أضف ميزة
+            </Button>
+          ) : (
+            <div className="mt-4 rounded-lg border border-line bg-bg p-4">
+              <p className="mb-3 text-2xs leading-relaxed opacity-70">
+                تضاف إلى كتالوج المميزات كله — فتظهر لكل فئة ولكل بائع، لا لهذه الفئة
+                وحدها.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className={label}>
+                  الاسم بالعربي
+                  <input
+                    value={adding.nameAr}
+                    onChange={(e) => setAdding({ ...adding, nameAr: e.target.value })}
+                    className={field}
+                    placeholder="مقاعد خلفية مدفأة"
+                  />
+                </label>
+                <label className={label}>
+                  الاسم بالإنجليزي
+                  <input
+                    value={adding.nameEn}
+                    onChange={(e) => setAdding({ ...adding, nameEn: e.target.value })}
+                    className={cn(field, 'bidi-ltr')}
+                    placeholder="Heated rear seats"
+                  />
+                </label>
+                <label className={label}>
+                  المجموعة
+                  <select
+                    value={adding.group}
+                    onChange={(e) =>
+                      setAdding({ ...adding, group: e.target.value as keyof typeof GROUP })
+                    }
+                    className={cn(field, 'text-sm')}
+                  >
+                    {(Object.keys(GROUP) as (keyof typeof GROUP)[]).map((g) => (
+                      <option key={g} value={g}>
+                        {GROUP[g]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="mt-3.5 flex gap-2">
+                <Button size="sm" disabled={busy} onClick={() => void createFeature()}>
+                  أضفها
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setAdding(null)}>
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="rounded-lg border border-line bg-surface p-5.5">
           <h3 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
-            قيم تدخلهاا البائع
+            قيم يدخلها البائع
           </h3>
           <p className="mb-3 text-xs opacity-70">لا تحرر هنا</p>
           <ul className="flex flex-col gap-2 text-sm opacity-72">

@@ -50,8 +50,30 @@ export async function addVehicle(
   if (brand === null || model === null) return { ok: false, reason: 'BRAND_OR_MODEL_UNKNOWN' };
   if (trim === null) return { ok: false, reason: 'TRIM_UNKNOWN' };
 
+  /**
+   * **والمميّزاتُ تُكتب مع المركبة** — فالاستمارةُ واحدةٌ للمسلكين،
+   * وقسمٌ يُملأ في أحدهما ويُهمَل في الآخر هو «معاملٌ يُرسَل ولا
+   * يُقرأ»: ينتهي البائع من تعليم عشرين ميزةً ولا يُحفظ منها شيء.
+   * والترشيحُ بما في الكتالوج، فمفتاحٌ مخترَع لا يصير صفًّا.
+   */
+  const keys = [...new Set(input.vehicle.features ?? [])];
+  const known =
+    keys.length === 0
+      ? []
+      : (
+          await db.feature.findMany({
+            where: { key: { in: keys }, active: true, placements: { has: 'sell_form' } },
+            select: { key: true },
+          })
+        ).map((row) => row.key);
+
   const vehicle = await db.vehicle.create({
-    data: vehicleFields(input, { brand, model, trim }),
+    data: {
+      ...vehicleFields(input, { brand, model, trim }),
+      ...(known.length === 0
+        ? {}
+        : { features: { create: known.map((featureKey) => ({ featureKey })) } }),
+    },
     select: { id: true },
   });
 
@@ -300,6 +322,8 @@ export type SaleCandidate = {
   vin: string | null;
   plateLetters: string | null;
   plateNumbers: string | null;
+  /** ما أقرّه عنها سابقًا — يصل الاستمارةَ مُعلَّمًا. */
+  features: string[];
   /** معروضةٌ الآن — فلا تُفتح لها استمارةُ عرض. */
   alreadyListed: boolean;
 };
@@ -320,6 +344,11 @@ export async function saleCandidate(
       brand: { select: { nameEn: true, slug: true } },
       model: { select: { nameEn: true } },
       trim: { select: { nameEn: true } },
+      /**
+       * ما سبق أن أقرّه عنها — **فلا يُسأل مرّتين**: من سجّلها في
+       * مرآبه بمميّزاتها ثمّ عرضها للبيع يجدها مُعلَّمة.
+       */
+      features: { select: { featureKey: true } },
       listings: {
         where: { status: { in: [...LIVE_LISTING_STATUSES] } },
         select: { id: true },
@@ -347,6 +376,7 @@ export async function saleCandidate(
     vin: row.vin,
     plateLetters: row.plateLetters,
     plateNumbers: row.plateNumbers,
+    features: row.features.map((link) => link.featureKey),
     alreadyListed: row.listings.length > 0,
   };
 }

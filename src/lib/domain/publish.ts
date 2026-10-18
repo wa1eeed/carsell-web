@@ -116,6 +116,19 @@ export type PublishInput = {
     plateLetters?: string | null;
     plateNumbers?: string | null;
     /**
+     * ═══ ما يقرّه البائع عن سيارته ═══
+     *
+     * **و`ListingFeature` كان بلا كاتبٍ في المنتج كلِّه**: تزرعه
+     * البذرة ولا شاشةَ ولا مسارَ يكتبه — فستّون إعلانًا من اثنين
+     * وستّين تحمل مميّزات، والستّون مزروعة. والفلترُ يعرض «فتحة سقف»
+     * ولا إعلانَ حقيقيّ يحملها. (طلب المالك ٢٠٢٦-١٠-١٨.)
+     *
+     * ويُخزَّن على **المركبة** لا على الإعلان وحده: الاستمارة واحدةٌ
+     * للمسلكين، فمن سجّل سيارته في مرآبه ثمّ عرضها لا يُسأل مرّتين.
+     * و`ListingFeature` لقطةٌ تُؤخذ منه عند النشر (قرار ١٩).
+     */
+    features?: string[];
+    /**
      * بطاقةٌ جمركية — **للجديدة التي لم تُسجَّل بعد**: لا لوحةَ لها
      * حتى تُسجَّل، وتُعرف بها. ولا تخرج في استجابةٍ عامّة.
      */
@@ -262,6 +275,40 @@ type Asset = { r2Key: string; phash: string; plateBlurred: boolean; qualityFlags
  * وما عداها هويّةٌ: الماركةُ والطرازُ والفئةُ والسنةُ والهيكل. من
  * غيّرها لم يصحّح سيارته، بل وضع مكانها سيارةً أخرى.
  */
+/**
+ * مميّزاتُ المركبة تُستبدَل لا تُراكَم — **فالشطبُ فعلٌ كالتعليم**:
+ * من أزال «فتحة سقف» أراد إزالتها، ودمجُ القديم بالجديد يجعل الشطب
+ * بلا أثر. ويُرشَّح المُدخَل بما يعرفه الكتالوج فعلًا، فمفتاحٌ مخترَع
+ * لا يصير صفًّا ولا يُسقط المعاملة بخطأ مفتاحٍ أجنبيّ.
+ */
+async function writeVehicleFeatures(
+  tx: Prisma.TransactionClient,
+  vehicleId: string,
+  keys: readonly string[] | undefined,
+): Promise<string[]> {
+  if (keys === undefined) {
+    const current = await tx.vehicleFeature.findMany({
+      where: { vehicleId },
+      select: { featureKey: true },
+    });
+    return current.map((row) => row.featureKey);
+  }
+
+  const known = await tx.feature.findMany({
+    where: { key: { in: [...new Set(keys)] }, active: true, placements: { has: 'sell_form' } },
+    select: { key: true },
+  });
+  const accepted = known.map((row) => row.key);
+
+  await tx.vehicleFeature.deleteMany({ where: { vehicleId } });
+  if (accepted.length > 0) {
+    await tx.vehicleFeature.createMany({
+      data: accepted.map((featureKey) => ({ vehicleId, featureKey })),
+    });
+  }
+  return accepted;
+}
+
 export function mutableVehicleFields(
   input: Pick<PublishInput, 'vehicle'>,
 ): Prisma.VehicleUpdateInput {
@@ -469,6 +516,8 @@ async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult>
             data: mutableVehicleFields(plan),
           });
 
+    const featureKeys = await writeVehicleFeatures(tx, vehicle.id, plan.vehicle.features);
+
     const ref = await nextListingRef(tx, now);
     const row = await tx.listing.create({
       data: {
@@ -491,6 +540,18 @@ async function saveDraft(input: PublishInput, now: Date): Promise<PublishResult>
      * **والصور تُربط بمالكها.** مفتاحٌ رفعه غيرك لا يصير صورتك بذكر
      * مفتاحه — والشرط هنا كما في النشر.
      */
+
+    /**
+     * **واللقطةُ تُؤخذ هنا** (قرار ١٩): `ListingFeature` لا يقرأ
+     * المركبةَ حيًّا — فتعديلُ صاحبها بعد النشر لا يغيّر إعلانًا
+     * يقرؤه الناس، ولا تغيّره مراجعةُ الكتالوج.
+     */
+    if (featureKeys.length > 0) {
+      await tx.listingFeature.createMany({
+        data: featureKeys.map((featureKey) => ({ listingId: row.id, featureKey })),
+      });
+    }
+
     const owned = await tx.uploadedAsset.findMany({
       where: { r2Key: { in: input.images }, ownerId: input.sellerId },
     });
@@ -793,6 +854,8 @@ export async function createListing(
             data: mutableVehicleFields(plan),
           });
 
+    const featureKeys = await writeVehicleFeatures(tx, vehicle.id, plan.vehicle.features);
+
     const ref = await nextListingRef(tx, now);
 
     const listing = await tx.listing.create({
@@ -869,6 +932,17 @@ export async function createListing(
           status:
             reviewReason !== null || startsAt.getTime() > now.getTime() ? 'SCHEDULED' : 'LIVE',
         },
+      });
+    }
+
+    /**
+     * **واللقطةُ تُؤخذ هنا** (قرار ١٩): `ListingFeature` لا يقرأ
+     * المركبةَ حيًّا — فتعديلُ صاحبها بعد النشر لا يغيّر إعلانًا
+     * يقرؤه الناس، ولا تغيّره مراجعةُ الكتالوج.
+     */
+    if (featureKeys.length > 0) {
+      await tx.listingFeature.createMany({
+        data: featureKeys.map((featureKey) => ({ listingId: listing.id, featureKey })),
       });
     }
 

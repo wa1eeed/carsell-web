@@ -6,7 +6,13 @@ import { createFeature, featureCounts, listFeatures } from '@/lib/domain/catalog
 
 export const runtime = 'nodejs';
 
-const PLACEMENT = z.enum(['trim_editor', 'search_filter', 'listing_page', 'card_badge']);
+const PLACEMENT = z.enum([
+  'trim_editor',
+  'sell_form',
+  'search_filter',
+  'listing_page',
+  'card_badge',
+]);
 
 const Body = z.object({
   key: z.string().max(40),

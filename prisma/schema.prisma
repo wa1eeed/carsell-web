@@ -537,6 +537,7 @@ model Feature {
   placements String[]
 
   trims    TrimFeature[]
+  vehicles VehicleFeature[]
   listings ListingFeature[]
 
   @@index([group, sort])
@@ -643,6 +644,7 @@ model Vehicle {
   model              Model               @relation(fields: [modelId], references: [id], onDelete: Restrict)
   trim               Trim?               @relation(fields: [trimId], references: [id], onDelete: SetNull)
   listings           Listing[]
+  features           VehicleFeature[]
   history            VehicleHistoryItem[]
   inspectionReports  InspectionReport[]
   serviceRequests    ServiceRequest[]
@@ -817,6 +819,35 @@ model ListingImage {
 }
 
 /// قرار ١٩ — مميّزات الإعلان: لقطة وقت النشر، لا قراءة حيّة من الفئة
+/**
+ * ═══ مميّزاتُ المركبة — يقرّها صاحبُها ═══
+ *
+ * **وكان `ListingFeature` بلا كاتبٍ في المنتج كلِّه**: تزرعه البذرة
+ * ولا شاشةَ ولا مسارَ ولا دالّةَ نطاقٍ تكتبه. قِيس ٢٠٢٦-١٠-١٨ فكان
+ * ٦٠ إعلانًا من ٦٢ يحمل مميّزات — **والستّون كلُّها مزروعة**،
+ * والاثنان المنشوران من الشاشة بلا واحدة. فالفلتر يعرض «فتحة سقف»
+ * ولا إعلانَ حقيقيّ يحملها أبدًا.
+ *
+ * ═══ ولماذا على المركبة لا على الإعلان وحده ═══
+ *
+ * الاستمارةُ واحدةٌ للمسلكين (إضافةٌ إلى «سياراتي» أو عرضٌ للبيع)،
+ * فقسمٌ يظهر في أحدهما ويُهمَل في الآخر هو «معاملٌ يُرسَل ولا يُقرأ».
+ * والمميّزةُ صفةُ السيارة لا صفةُ الإعلان: من سجّلها في مرآبه ليطلب
+ * عليها فحصًا ثمّ عرضها للبيع لا يُسأل مرّتين.
+ *
+ * و`ListingFeature` يبقى **لقطةً** تُؤخذ عند النشر (قرار ١٩): تعديلُ
+ * المركبة بعده لا يمسّ إعلانًا منشورًا.
+ */
+model VehicleFeature {
+  vehicleId  String
+  featureKey String
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureKey], references: [key], onDelete: Restrict)
+
+  @@id([vehicleId, featureKey])
+}
+
 model ListingFeature {
   listingId  String
   featureKey String

@@ -52,6 +52,15 @@ export default async function TrimEditorPage({
     orderBy: [{ group: 'asc' }, { sort: 'asc' }],
   });
 
+  /**
+   * **وهل يسأل البائعُ عنها أصلًا؟** تعليمُ ميزةٍ بلا موضع
+   * `sell_form` لا أثرَ له في الاستمارة — والمحرّر يقول ذلك بجوارها
+   * بدل أن ينتظر المشغّل ظهورًا لا يقع.
+   */
+  const inSellForm = Object.fromEntries(
+    features.map((row) => [row.key, row.placements.includes('sell_form')]),
+  );
+
   return (
     <AdminShell
       title={`${trim.model.nameAr} ${trim.nameEn} — محرر الفئة`}
@@ -128,6 +137,7 @@ export default async function TrimEditorPage({
           nameAr: f.nameAr,
           group: f.group,
         }))}
+        inSellForm={inSellForm}
         selected={trim.features.map((f) => f.featureKey)}
         canEdit={canWrite(admin.role, 'catalog.manage')}
       />

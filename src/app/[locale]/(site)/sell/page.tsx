@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { db } from '@/lib/db';
-import { listSellableBrandOptions } from '@/lib/domain/catalog-options';
+import { listSellableBrandOptions, listSellFormFeatures } from '@/lib/domain/catalog-options';
 import { CITY_NAMES } from '@/lib/labels/cities';
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
@@ -80,8 +80,13 @@ export default async function SellPage({
     redirect(`/${locale}/account/vehicles`);
   }
 
-  const [brands, stats, auction, t] = await Promise.all([
+  const [brands, sellFeatures, stats, auction, t] = await Promise.all([
     listSellableBrandOptions(),
+    /**
+     * **وقائمةُ ما يُسأل عنه من الكتالوج مرّةً**: ثابتةٌ للصفحة كلّها
+     * فلا تُجلب مع كلّ طراز، ويقرّرها المشغّل بموضع `sell_form`.
+     */
+    listSellFormFeatures(),
     db.priceStat.aggregate({ _avg: { daysToSellMedian: true } }),
     auctionSettings(),
     getTranslations('sell'),
@@ -227,6 +232,7 @@ export default async function SellPage({
             taxProfile={taxProfileOf(user)}
             brands={brands}
             cities={cities}
+            sellFeatures={sellFeatures}
             locale={locale}
             vinLookupEnabled={vinLookup}
             /** **وسيارةُ المرآب تُملأ ولا تُعاد كتابتُها.** */

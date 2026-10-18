@@ -7256,6 +7256,12 @@
                     "type": "string",
                     "enum": [],
                     "nullable": true
+                  },
+                  "features": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [

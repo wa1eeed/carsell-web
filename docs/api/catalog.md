@@ -158,9 +158,35 @@ One bank of features feeding trims, the search filter and the car page.
   protection is in the type rather than in a check. Changing it would break every
   `TrimFeature` and `ListingFeature` link and would only surface in production.
 - **The names are content.** Edited any time, visible immediately, no deploy.
-- **Four independent placements**: `trim_editor` · `search_filter` ·
-  `listing_page` · `card_badge`. The seed turns on the first three; `card_badge`
-  is per-feature and off by default, because a badge on every card is not a badge.
+- **Five independent placements**: `trim_editor` · `sell_form` ·
+  `search_filter` · `listing_page` · `card_badge`. The seed turns on all but
+  `card_badge`, which is per-feature and off by default, because a badge on
+  every card is not a badge.
+- **`sell_form` is the only one that asks anybody anything.** The other four
+  fill the catalogue or display it. It was added 2026-10-18, when measuring
+  showed that `ListingFeature` **had no writer in the product at all**: the
+  seed wrote it and nothing else did, so 60 of 62 listings carried features and
+  all 60 were seeded. The two published through the screen carried none, and
+  always would have. A buyer filtering on «فتحة سقف» would never have found a
+  real listing.
+- **Which features the seller is asked about is decided here, once** — not
+  per trim. Trims carry 4.1 features on average, so narrowing the form to a
+  trim's list would show a Mercedes seller four checkboxes and would need the
+  operator to walk 360 trims to fix it. The trim's list **pre-ticks** instead:
+  what the trim comes with reaches the seller already marked, and they untick
+  what their car lacks. (Owner's decision 2026-10-18: «في الكتالوج مرّة ·
+  والفئة تُرجّح».)
+- **The trim editor can create a feature inline** with `+`, naming it in both
+  languages and picking its group; the key is derived from the English name.
+  The screen says plainly that the new feature joins the whole catalogue —
+  `Feature.key` is global — rather than letting the operator discover that
+  after it appears for every seller.
+- **Features live on the `Vehicle`**, and `ListingFeature` is a snapshot taken
+  at publish (decision 19). The entry form is one form for two intents — adding
+  to «سياراتي» or listing for sale — so a section filled on one path and
+  dropped on the other would be a parameter sent and never read. A car
+  registered in the garage with its features keeps them when it is later
+  listed, and its owner is not asked twice.
 - **Hiding** removes a feature from the filter and the car page. It does **not**
   unlink it from trims and does not touch published listings.
 - **Deleting** is only possible for a feature linked to no trim and no listing,

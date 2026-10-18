@@ -18,6 +18,7 @@ import {
   Toggle,
   trimZeros,
 } from '@/components/site/AuctionSettings';
+import type { SellFormFeature } from '@/lib/catalog/features';
 import { cityLabel } from '@/lib/labels/cities';
 import {
   EMPTY_VEHICLE,
@@ -26,6 +27,7 @@ import {
   VehiclePlateField,
   VehicleProgress,
   VehicleUsageFields,
+  VehicleFeatureFields,
   useVehicleCatalog,
   vehiclePayload,
   type BrandOption,
@@ -92,6 +94,7 @@ export function SellWizard({
   taxProfile,
   brands,
   cities,
+  sellFeatures,
   locale,
   vinLookupEnabled,
   candidate,
@@ -103,6 +106,8 @@ export function SellWizard({
   taxProfile: TaxProfile;
   brands: readonly BrandOption[];
   cities: readonly string[];
+  /** ما يسأل عنه الكتالوج في الاستمارة — موضع `sell_form`. */
+  sellFeatures: readonly SellFormFeature[];
   locale: string;
   /** الراية المطفأة تُخفي الحقل كلّيًا — لا تُعطّله. */
   vinLookupEnabled: boolean;
@@ -185,6 +190,8 @@ export function SellWizard({
           vin: candidate.vin ?? '',
           plateLetters: candidate.plateLetters ?? '',
           plateNumbers: candidate.plateNumbers ?? '',
+          /** ما أقرّه عنها في مرآبه — فلا يُسأل مرّتين. */
+          features: candidate.features,
         },
   );
   const { vehicle, set, models } = catalog;
@@ -705,6 +712,16 @@ export function SellWizard({
                   })}
             />
             <VehicleUsageFields catalog={catalog} />
+            {/*
+              **والمميّزاتُ آخرَ وصفِ السيارة** — بعد حالها وتسجيلها
+              وتاريخها: قائمةٌ طويلة تُفتح قبل الأساسيات تُشعر من
+              يملؤها أنّ الاستمارة بلا نهاية.
+            */}
+            <VehicleFeatureFields
+              catalog={catalog}
+              features={sellFeatures}
+              locale={locale}
+            />
           </div>
 
           {/*

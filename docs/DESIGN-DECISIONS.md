@@ -476,9 +476,10 @@ enum ApprovalStatus { PENDING APPROVED REJECTED EXPIRED EXECUTED }
 1. **المفتاح ثابت** ولا يُعدَّل بعد الإنشاء. الاسمان **محتوى** يُحرَّر ويظهر
    فورًا بلا نشر.
 2. ثلاث مجموعات بترتيب عرض يحدّده الأدمن.
-3. **أربعة مواضع ظهور مستقلة** لكل ميزة، تُخزَّن `placements String[]` على
+3. **خمسة مواضع ظهور مستقلة** لكل ميزة، تُخزَّن `placements String[]` على
    `Feature`:
    - `trim_editor` — قائمة الفئة (A14)
+   - `sell_form` — استمارة البائع (أُضيف ٢٠٢٦-١٠-١٨؛ انظر آخر الملف)
    - `search_filter` — فلتر البحث (Wb)
    - `listing_page` — صفحة السيارة (Wc)
    - `card_badge` — شارة على البطاقة
@@ -1830,3 +1831,54 @@ seller's fuel and gearbox options to the union of the model's visible trims, so
 a lone petrol trim would make the hybrid unlistable. Models sold with more than
 one powertrain carry a trim for each — Grand Vitara petrol and hybrid, D-Max
 automatic and manual, Jimny 3-door and 5-door.
+
+
+---
+
+## 2026-10-18 — The features belong to the seller, and the catalogue decides what is asked
+
+**Owner's request:** «المميزات الافتراضية للفئة المفروض ما تكون يتم تحديدها من
+لوحة الادمن و انما يتم عرضها في نموذج اضافة السياره او بيعها بحيث المستخدم
+يحددها … بدل التشيك مارك فقط للادمن تكون زر + و تضاف المميزات مع تشيك مارك
+لتفعيل ظهورها في نموذج الادخال»
+
+**He was right, and the gap was wider than the request.** Measuring first:
+`ListingFeature` had **no writer anywhere in the product**. The seed wrote it
+and nothing else did — no screen, no route, no domain function. In the
+development database, 60 of 62 listings carried features and **all 60 were
+seeded**; the two published through the screen carried none and always would
+have. The sell form had no features section at all, so the seller was never
+asked. A buyer filtering on «فتحة سقف» would never have reached a real listing.
+
+**The seed is what hid it.** Every spot-check looked right, because the table
+was full. What was missing was not visible in the data — only in the question
+«who writes this row?».
+
+### The one question that forked the build
+
+Per-trim control, as the request described, costs more than it looks: trims
+carry **4.1 features on average** (the four the seed links to every trim). If
+the trim's list decided which fields the seller sees, a Mercedes GLC seller
+would see four checkboxes and could never say «فتحة سقف» — and fixing that
+means the operator walking **360 trims**.
+
+**Owner's decision: «في الكتالوج مرّة · والفئة تُرجّح».** A fifth placement,
+`sell_form`, decides once per feature whether the seller is asked about it —
+the same mechanism that already decides the filter and the car page. The trim's
+list keeps its own meaning and **pre-ticks**: what the trim comes with reaches
+the seller already marked, and they untick what their car lacks.
+
+### What else the shape forced
+
+**The features live on the `Vehicle`, not on the listing alone.** The entry
+form is one form serving two intents — adding to «سياراتي» or listing for sale
+— so a section filled on one path and silently dropped on the other would be a
+parameter sent and never read. A car registered in the garage keeps its
+features when it is later listed, and its owner is not asked twice.
+`ListingFeature` stays a snapshot taken at publish, exactly as decision 19 set
+it: editing the car afterwards does not rewrite an advert people are reading.
+
+**The `+` says what it does.** A feature created from inside one trim's screen
+joins the whole catalogue — `Feature.key` is global — so it will appear for
+every trim and every seller. The screen states that before the operator finds
+out from the consequences.

@@ -13,6 +13,7 @@ import { Toggle } from '@/components/ui/Toggle';
 import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import { PlateField } from '@/components/ui/plate/PlateField';
 import { ALL_OPTIONS, type SpecOptions } from '@/lib/catalog/specs';
+import type { SellFormFeature } from '@/lib/catalog/features';
 import { cityLabel } from '@/lib/labels/cities';
 import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
@@ -46,6 +47,8 @@ export type TrimSpec = CatalogOption & {
   /** سعةُ المحرك نصًّا — `Decimal` لا يعبر حدَّ الخادم. */
   engineL: string | null;
   cylinders: number | null;
+  /** ما تأتي به الفئة — يصل البائعَ مُعلَّمًا، ولا يحصر ما يراه. */
+  featureKeys: string[];
 };
 
 /** ما يعرفه الكتالوج عن هذا الطراز — والحقول تُحصر به. */
@@ -77,6 +80,14 @@ export type VehicleDraft = {
   colorInterior: string;
   /** حالُ الهيكل والصبغ — يقرّه البائع ويتجاوزه الفحص (قرار ١٦). */
   paintStatus: string;
+  /**
+   * ═══ ما تحمله سيارته — يقرّه هو ═══
+   *
+   * **ولم يكن يُسأل.** `ListingFeature` بلا كاتبٍ في المنتج كلِّه،
+   * فالفلترُ يعرض «فتحة سقف» ولا إعلانَ حقيقيّ يحملها. والفئةُ
+   * تُرجّح فتصل مُعلَّمةً، وهو يشطب ما ليس عنده.
+   */
+  features: string[];
   /** وحالُ استخدامها — للمستعملة وحدها. */
   accidentStatus: string;
   previousOwners: string;
@@ -149,6 +160,7 @@ export function modelYears(now: Date = new Date()): number[] {
 
 export const EMPTY_VEHICLE: VehicleDraft = {
   vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
+  features: [],
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
   plateLetters: '', plateNumbers: '', customsCard: '',
   colorInterior: '', paintStatus: 'ORIGINAL', registrationType: 'PRIVATE',
@@ -224,7 +236,17 @@ export function useVehicleCatalog(initial: VehicleDraft = EMPTY_VEHICLE) {
      * **ويُملأ ما يقبله الخادم وحده.** الهيكل والدفع والمقاعد تأتيه من
      * الفئة مباشرةً (قرار ٣٢)، فوضعُها في الحالة يوهم أنها تُرسَل.
      */
-    set({ trimId, transmission: trim.transmission, fuel: trim.fuel });
+    /**
+     * **والفئةُ تُرجّح ولا تحسم.** ما تأتي به يصل مُعلَّمًا، ولا
+     * يُمسَح ما علّمه البائع بيده: من شطب «فتحة سقف» ثمّ بدّل الفئة
+     * لا يُعاد تعليمُها عليه خطأً — بل يُضاف الجديد إلى اختياره.
+     */
+    set({
+      trimId,
+      transmission: trim.transmission,
+      fuel: trim.fuel,
+      features: [...new Set([...vehicle.features, ...trim.featureKeys])],
+    });
   };
 
   /**
@@ -336,6 +358,8 @@ export function vehiclePayload(vehicle: VehicleDraft) {
     rangeKm: numberOrNull(vehicle.rangeKm),
     chargePort: vehicle.chargePort === '' ? null : vehicle.chargePort,
     vin: vehicle.vin === '' ? null : vehicle.vin,
+    /** ما يقرّه البائع عن سيارته — والشطبُ فعلٌ، فالفارغةُ تُرسَل. */
+    features: vehicle.features,
   };
 }
 
@@ -1403,5 +1427,117 @@ function PlateMark() {
       <rect x="2.5" y="6.5" width="19" height="11" rx="2" />
       <path d="M6.5 11h2M11 11h2M15.5 11h2M6.5 14.5h11" />
     </svg>
+  );
+}
+
+/**
+ * ═══ مميّزاتُ السيارة — يقرّها صاحبُها ═══
+ *
+ * **ولم تكن الاستمارةُ تسأل عنها قطّ.** الكتالوجُ فيه تسعٌ وثلاثون
+ * ميزة، والفئاتُ تحمل ألفًا وأربعمئة رابط، والفلترُ يصفّي بها وصفحةُ
+ * السيارة تعرضها — **و`ListingFeature` بلا كاتبٍ في المنتج كلِّه**.
+ * قِيس ٢٠٢٦-١٠-١٨: ستّون إعلانًا من اثنين وستّين تحمل مميّزات،
+ * والستّون مزروعة. فمن صفّى على «فتحة سقف» لم يجد إعلانًا واحدًا
+ * حقيقيًّا. (طلب المالك ٢٠٢٦-١٠-١٨.)
+ *
+ * ═══ والقائمةُ من الكتالوج، والعلامةُ من الفئة ═══
+ *
+ * ما يظهر هنا يقرّره المشغّل **مرّةً** في `/admin/catalog/features`
+ * بموضع `sell_form` — لا في كلّ فئة: الفئاتُ تحمل ٤٫١ ميزةً وسطيًّا،
+ * فحصرُ الاستمارة بها يُري بائعَ مرسيدس أربعةَ مربّعات ولا يدعه يقول
+ * «فتحة سقف». والفئةُ تُرجّح: ما تأتي به يصل مُعلَّمًا، ويشطب هو ما
+ * ليس في سيارته. (قرار المالك: «في الكتالوج مرّة · والفئة تُرجّح».)
+ */
+const FEATURE_GROUPS = [
+  ['SAFETY', 'الأمان'],
+  ['COMFORT', 'الراحة'],
+  ['TECH', 'التقنية'],
+] as const;
+
+export function VehicleFeatureFields({
+  catalog,
+  features,
+  locale,
+  step = 6,
+}: {
+  catalog: VehicleCatalog;
+  features: readonly SellFormFeature[];
+  locale: string;
+  step?: number;
+}) {
+  const { vehicle, set } = catalog;
+
+  /**
+   * **وكتالوجٌ فارغٌ لا يُعرض قسمًا فارغًا.** المشغّل قد يرفع
+   * `sell_form` عن كلّ ميزة، وعنوانٌ تحته فراغٌ يقرؤه البائع عطلًا.
+   */
+  if (features.length === 0) return null;
+
+  const toggle = (key: string): void =>
+    set({
+      features: vehicle.features.includes(key)
+        ? vehicle.features.filter((one) => one !== key)
+        : [...vehicle.features, key],
+    });
+
+  /** المجموعاتُ بترتيبٍ ثابت، وما لا مجموعةَ له يلحق في آخرها. */
+  const known = new Set(FEATURE_GROUPS.map(([key]) => key as string));
+  const groups: readonly (readonly [string, string, readonly SellFormFeature[]])[] = [
+    ...FEATURE_GROUPS.map(
+      ([key, title]) => [key, title, features.filter((one) => one.group === key)] as const,
+    ),
+    ['OTHER', 'أخرى', features.filter((one) => !known.has(one.group))] as const,
+  ].filter(([, , rows]) => rows.length > 0);
+
+  const chosen = vehicle.features.length;
+
+  return (
+    <div style={{ '--i': 5 } as CSSProperties}>
+      <Section
+        step={step}
+        title="مميزاتها"
+        note="علم ما في سيارتك فعلا — والمشتري يصفي بها، فالدقة تجلب الجاد."
+      >
+        {/*
+          **والعددُ يُصاغ فلا يحكم المعدودُ الجملة** — «المحدد (٣)»
+          لا «٣ مميزات»، فالعربية ستُّ صيغ والرقم لاتينيّ في النصّ.
+        */}
+        <p className="mb-4 text-3xs opacity-70">
+          المحدد (<ArabicNumber value={chosen} grouped={false} />)
+        </p>
+
+        <div className="flex flex-col gap-5">
+          {groups.map(([key, title, rows]) => (
+            <fieldset key={key} className="border-0 p-0">
+              <legend className="mb-2.5 text-2xs font-bold opacity-80">{title}</legend>
+              <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+                {rows.map((feature) => {
+                  const on = vehicle.features.includes(feature.key);
+                  return (
+                    <label
+                      key={feature.key}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-2xs transition-colors',
+                        on ? 'bg-accent-100/60' : 'hover:bg-line/40',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() => toggle(feature.key)}
+                        className="size-4 shrink-0 accent-accent"
+                      />
+                      <span className="min-w-0">
+                        {locale === 'ar' ? feature.nameAr : feature.nameEn}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+        </div>
+      </Section>
+    </div>
   );
 }

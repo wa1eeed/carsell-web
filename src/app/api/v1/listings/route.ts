@@ -241,6 +241,11 @@ const PublishBody = z.object({
     batteryKwh: z.number().positive().max(400).nullable().optional(),
     rangeKm: z.number().int().positive().max(2000).nullable().optional(),
     chargePort: z.enum(ChargePort).nullable().optional(),
+    /**
+     * ما يقرّه البائع عن سيارته — **والنطاق يرشّحها بما في الكتالوج**،
+     * فمفتاحٌ مخترَع لا يصير صفًّا. والفارغةُ تُرسَل: الشطبُ فعلٌ.
+     */
+    features: z.array(z.string().max(40)).max(120).optional(),
   }),
   /**
    * مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل.

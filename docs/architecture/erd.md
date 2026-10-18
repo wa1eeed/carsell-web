@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-96 models · 68 enums
+97 models · 68 enums
 
 ## Relationships
 
@@ -67,6 +67,7 @@ erDiagram
   Trim ||--o{ Vehicle : "vehicles"
   Feature }o--|| FeatureGroup : "group"
   Feature ||--o{ TrimFeature : "trims"
+  Feature ||--o{ VehicleFeature : "vehicles"
   Feature ||--o{ ListingFeature : "listings"
   TrimFeature }o--|| Trim : "trim"
   TrimFeature }o--|| Feature : "feature"
@@ -90,6 +91,7 @@ erDiagram
   Vehicle }o--|| Model : "model"
   Vehicle |o--|| Trim : "trim"
   Vehicle ||--o{ Listing : "listings"
+  Vehicle ||--o{ VehicleFeature : "features"
   Vehicle ||--o{ VehicleHistoryItem : "history"
   Vehicle ||--o{ InspectionReport : "inspectionReports"
   Vehicle ||--o{ ServiceRequest : "serviceRequests"
@@ -108,6 +110,8 @@ erDiagram
   Listing ||--o{ ServiceRequest : "serviceRequests"
   Listing ||--o{ Viewing : "viewings"
   ListingImage }o--|| Listing : "listing"
+  VehicleFeature }o--|| Vehicle : "vehicle"
+  VehicleFeature }o--|| Feature : "feature"
   ListingFeature }o--|| Listing : "listing"
   ListingFeature }o--|| Feature : "feature"
   Offer }o--|| OfferStatus : "status"
@@ -501,7 +505,7 @@ Relations: `bodyType` → `BodyType` · `transmission` → `Transmission` · `fu
 | `active` | `Boolean` |  |
 | `placements` | `String[]` |  |
 
-Relations: `group` → `FeatureGroup` · `trims` → `TrimFeature` · `listings` → `ListingFeature`
+Relations: `group` → `FeatureGroup` · `trims` → `TrimFeature` · `vehicles` → `VehicleFeature` · `listings` → `ListingFeature`
 
 ### `TrimFeature`
 
@@ -541,7 +545,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `city` | `String` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
+Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `features` → `VehicleFeature` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
 
 ### `VehicleHistoryItem`
 
@@ -600,6 +604,15 @@ Relations: `type` → `ListingType` · `status` → `ListingStatus` · `reviewRe
 | `qualityFlags` | `String[]` |  |
 
 Relations: `listing` → `Listing`
+
+### `VehicleFeature`
+
+| Field | Type | Key |
+|---|---|---|
+| `vehicleId` | `String` |  |
+| `featureKey` | `String` |  |
+
+Relations: `vehicle` → `Vehicle` · `feature` → `Feature`
 
 ### `ListingFeature`
 

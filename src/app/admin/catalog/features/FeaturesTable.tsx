@@ -14,9 +14,11 @@ import { cn } from '@/lib/cn';
 
 const GROUP = { SAFETY: 'الأمان', COMFORT: 'الراحة', TECH: 'التقنية' } as const;
 
-/** المواضع الأربعة المستقلة، وكل واحد يقرأه سطح مختلف. */
+/** المواضع المستقلة، وكل واحد يقرأه سطح مختلف. */
 const PLACEMENTS = [
   ['trim_editor', 'قائمة مميزات الفئة — A14'],
+  /** **وهذا وحده يسأل البائع** — الأربعة الباقية تملأ أو تعرض. */
+  ['sell_form', 'استمارة البائع — يسأل عنها عند الإضافة والبيع'],
   ['search_filter', 'فلتر البحث — Wb'],
   ['listing_page', 'صفحة السيارة — Wc'],
   ['card_badge', 'شارة مميزة على البطاقة'],
@@ -170,7 +172,7 @@ export function FeaturesTable({
               setDraft({
                 key: '', isNew: true, nameAr: '', nameEn: '',
                 group: 'SAFETY', active: true,
-                placements: ['trim_editor', 'listing_page'],
+                placements: ['trim_editor', 'sell_form', 'listing_page'],
               })
             }
           >

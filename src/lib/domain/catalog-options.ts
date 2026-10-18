@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { ALL_SPECS, type SpecOptions } from '@/lib/catalog/specs';
+import type { SellFormFeature } from '@/lib/catalog/features';
 
 /**
  * خيارات الكتالوج للشاشات — **نوع معلَن يبنيه مُسلسِل**.
@@ -75,6 +76,31 @@ export async function listModelOptions(brandId: string | null): Promise<CatalogO
     select: { id: true, nameAr: true, nameEn: true },
   });
   return rows.map((row) => ({ id: row.id, nameAr: row.nameAr, nameEn: row.nameEn }));
+}
+
+/**
+ * ═══ ما تسأل عنه استمارةُ البائع ═══
+ *
+ * **ولم تكن تسأل عن شيء.** `ListingFeature` بلا كاتبٍ في المنتج كلِّه
+ * — تزرعه البذرة وحدها — فالفلترُ يعرض «فتحة سقف» ولا إعلانَ حقيقيّ
+ * يحملها. وقِيس ٢٠٢٦-١٠-١٨: ٦٠ إعلانًا من ٦٢ تحمل مميّزات، والستّون
+ * مزروعة.
+ *
+ * **والقرارُ في الكتالوج مرّة** (`sell_form`) لا في كلّ فئة: الفئاتُ
+ * تحمل ٤٫١ ميزةً وسطيًّا، فحصرُ الاستمارة بها يُري بائعَ مرسيدس
+ * أربعةَ مربّعات ويمشي المشغّل في ٣٦٠ فئة ليصلحها.
+ */
+export type { SellFormFeature };
+
+export async function listSellFormFeatures(): Promise<SellFormFeature[]> {
+  const rows = await db.feature.findMany({
+    where: { active: true, placements: { has: 'sell_form' } },
+    orderBy: [{ group: 'asc' }, { sort: 'asc' }],
+    select: { key: true, nameAr: true, nameEn: true, group: true },
+  });
+  return rows.map((row) => ({
+    key: row.key, nameAr: row.nameAr, nameEn: row.nameEn, group: String(row.group),
+  }));
 }
 
 export async function listFeatureOptions(placement: string): Promise<FeatureOption[]> {
@@ -164,6 +190,12 @@ export type TrimSpec = {
   /** فارغةٌ في الفئة القياسية — وصفُ الطراز كلِّه لا جيلٍ منه. */
   yearFrom: number | null;
   yearTo: number | null;
+  /**
+   * ما تأتي به هذه الفئة — **ترجيحٌ لا حصر**. يصل البائعَ مُعلَّمًا
+   * مسبقًا في استمارته، ويشطب ما ليس في سيارته. (قرار المالك
+   * ٢٠٢٦-١٠-١٨: «في الكتالوج مرّة · والفئة تُرجّح».)
+   */
+  featureKeys: string[];
 };
 
 /**
@@ -186,11 +218,14 @@ export async function trimsWithSpecs(modelId: string): Promise<TrimSpec[]> {
        * (طلب المالك ٢٠٢٦-١٠-١٨.)
        */
       engineL: true, cylinders: true,
+      /** المفاتيحُ وحدها — الأسماءُ تأتي من كتالوج الاستمارة مرّةً. */
+      features: { select: { featureKey: true } },
     },
   });
 
-  return rows.map((row) => ({
+  return rows.map(({ features, ...row }) => ({
     ...row,
+    featureKeys: features.map((link) => link.featureKey),
     bodyType: String(row.bodyType),
     transmission: String(row.transmission),
     fuel: String(row.fuel),

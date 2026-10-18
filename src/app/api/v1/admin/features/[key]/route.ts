@@ -6,7 +6,13 @@ import { deleteFeature, updateFeature } from '@/lib/domain/catalog';
 
 export const runtime = 'nodejs';
 
-const PLACEMENT = z.enum(['trim_editor', 'search_filter', 'listing_page', 'card_badge']);
+const PLACEMENT = z.enum([
+  'trim_editor',
+  'sell_form',
+  'search_filter',
+  'listing_page',
+  'card_badge',
+]);
 
 /** لا `key` هنا — المفتاح ثابت ولا يُعدَّل بعد الإنشاء (قرار A19 بند ١). */
 const Body = z.object({

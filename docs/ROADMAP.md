@@ -1397,6 +1397,49 @@ sellable, and no number on the platform that is not true.
       could not be searched by one, which 73 familiar models hid and 230 did
       not: nobody finds «جي إل سي» by typing GLC.
 
+## 24 · Features belong to the seller, not to the operator — *owner's request 2026-10-18*
+
+> «المميزات الافتراضية للفئة المفروض ما تكون يتم تحديدها من لوحة الادمن و انما
+> يتم عرضها في نموذج اضافة السياره او بيعها بحيث المستخدم يحددها / و يكون في
+> الادمن المميزات الافتراضية للفئة لمقصد ظهور حقولها في نموذج الاضافة و الادخال
+> ... بدل التشيك مارك فقط للادمن تكون زر + و تضاف المميزات مع تشيك مارك لتفعيل
+> ظهورها في نموذج الادخال»
+
+**Measured first, and the gap is wider than the request describes.**
+
+`ListingFeature` has **no writer anywhere in the product**. The seed writes it
+and nothing else does — no screen, no route, no domain function. Measured in the
+development database: **60 of 62 listings carry features, and all 60 are seeded.**
+The two published through the product today (`ADS2026A0062`, `ADS2026A0063`)
+carry none, and always would.
+
+And the sell form has **no features section at all**. The seller is never asked.
+So the whole chain exists — 39 features, 1,472 trim links, a search filter that
+offers them, a car page that renders them — and the one step that would put a
+feature on a real listing was never built. Eleventh instance of the pattern.
+
+Two placements are declared and read by nothing: `listing_page` is read by the
+car page through the listing's own features (so it works), but `card_badge` has
+no reader at all.
+
+- [x] **Asked of the owner, who chose «في الكتالوج مرّة · والفئة تُرجّح».**
+      Per-trim control (as the request described) would show a GLC seller four
+      checkboxes and need the operator to walk 360 trims. So a fifth placement,
+      `sell_form`, decides once per feature whether the seller is asked — and
+      the trim's list **pre-ticks** instead of narrowing.
+- [x] A grouped features section in the entry form, on **both** intents, that
+      the seller fills. 39 features, pre-ticked from the trim.
+- [x] Features stored on the `Vehicle` (`VehicleFeature`), and `ListingFeature`
+      written as a snapshot at publish — decision 19 unchanged. A car added to
+      the garage keeps them, and its owner is not asked twice when listing.
+- [x] A `+` in the trim's feature list that creates and names a feature inline,
+      in both languages, and ticks it for that trim. It says plainly that the
+      new feature joins the whole catalogue.
+- [x] A badge beside any trim feature the catalogue does not ask sellers about,
+      so ticking it does not silently do nothing.
+- [ ] `card_badge` still has no reader — declared, settable, and used by
+      nothing.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»
