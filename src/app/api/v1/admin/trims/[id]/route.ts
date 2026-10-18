@@ -14,7 +14,7 @@ const DRIVETRAIN = z.enum(['FWD','RWD','AWD','FOUR_WD']);
 const Body = z.object({
   nameAr: z.string().max(120).optional(),
   nameEn: z.string().max(120).optional(),
-  yearFrom: z.number().int().optional(),
+  yearFrom: z.number().int().nullable().optional(),
   yearTo: z.number().int().nullable().optional(),
   bodyType: BODY_TYPE.optional(),
   transmission: TRANSMISSION.optional(),

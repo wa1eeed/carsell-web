@@ -36,7 +36,7 @@ type Trim = {
   id: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  yearFrom: number | null;
   yearTo: number | null;
   bodyType: keyof typeof BODY;
   transmission: keyof typeof TRANS;
@@ -150,9 +150,15 @@ export function TrimEditor({
                 من سنة
                 <input
                   type="number"
-                  value={draft.yearFrom}
-                  onChange={(e) => setDraft({ ...draft, yearFrom: Number(e.target.value) })}
+                  value={draft.yearFrom ?? ''}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      yearFrom: e.target.value === '' ? null : Number(e.target.value),
+                    })
+                  }
                   className={cn(field, 'font-num')}
+                  placeholder="اختيارية"
                 />
               </label>
               <label className={label}>

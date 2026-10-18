@@ -12,6 +12,7 @@ import { Quantity } from '@/components/ui/Quantity';
 import { Toggle } from '@/components/ui/Toggle';
 import { LicensePlate } from '@/components/ui/plate/LicensePlate';
 import { PlateField } from '@/components/ui/plate/PlateField';
+import { ALL_OPTIONS, type SpecOptions } from '@/lib/catalog/specs';
 import { cityLabel } from '@/lib/labels/cities';
 import { displayDigits, toLatinDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
@@ -48,23 +49,7 @@ export type TrimSpec = CatalogOption & {
 };
 
 /** ما يعرفه الكتالوج عن هذا الطراز — والحقول تُحصر به. */
-export type SpecOptions = {
-  bodyTypes: string[];
-  transmissions: string[];
-  fuels: string[];
-  drivetrains: string[];
-  seats: number[];
-  fromTrims: number;
-};
-
-export const ALL_OPTIONS: SpecOptions = {
-  bodyTypes: ['SEDAN', 'SUV', 'HATCHBACK', 'COUPE', 'PICKUP', 'VAN', 'WAGON', 'CONVERTIBLE'],
-  transmissions: ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT'],
-  fuels: ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC'],
-  drivetrains: ['FWD', 'RWD', 'AWD', 'FOURWD'],
-  seats: [2, 4, 5, 7, 8],
-  fromTrims: 0,
-};
+export { ALL_OPTIONS, type SpecOptions };
 
 /**
  * المركبةُ كما تُدخَل — **ولا `showPlate` فيها**: إظهارُ اللوحة
@@ -587,9 +572,19 @@ export function VehicleFields({
                     set({ modelId: next, trimId: '' });
                     void catalog.loadTrims(next);
                   }}
+                  /**
+                   * **والاسمُ الآخر يُعرض ويُبحث به.** الماركةُ تحمل
+                   * سطرًا ثانيًا منذ بُنيت، والطرازُ لا — وكان ذلك
+                   * يمرّ على ثلاثةٍ وسبعين طرازًا معروفة الأسماء.
+                   * ثمّ وصل الكتالوج العريض بمئتين وثلاثين، فصار من
+                   * يبحث عن «GLC» أو «X5» **لا يجد شيئًا**: التسمية
+                   * العربية «جي إل سي» لا يكتبها أحد، والبحث يقارن
+                   * المعروض وحده. (و`Picker` يرشّح بـ`sub` أصلًا.)
+                   */
                   options={models.map((model) => ({
                     value: model.id,
                     label: locale === 'ar' ? model.nameAr : model.nameEn,
+                    ...otherName(model.nameAr, model.nameEn, locale),
                   }))}
                 />
               </Field>
@@ -617,6 +612,7 @@ export function VehicleFields({
                   options={trims.map((trim) => ({
                     value: trim.id,
                     label: locale === 'ar' ? trim.nameAr : trim.nameEn,
+                    ...otherName(trim.nameAr, trim.nameEn, locale),
                   }))}
                 />
               </Field>
@@ -661,6 +657,20 @@ export function VehicleFields({
       <MutableVehicleFields catalog={catalog} cities={cities} locale={locale} />
     </div>
   );
+}
+
+/**
+ * الاسمُ باللغة الأخرى سطرًا ثانيًا — **ولا يُكرَّر حين يتّحدان**:
+ * فئةٌ اسمها «LE» بالعربية والإنجليزية تُصبح سطرين متطابقين.
+ */
+function otherName(
+  nameAr: string,
+  nameEn: string,
+  locale: string,
+): { sub?: string } {
+  const other = locale === 'ar' ? nameEn : nameAr;
+  const shown = locale === 'ar' ? nameAr : nameEn;
+  return other === shown ? {} : { sub: other };
 }
 
 /** علامةُ سيارةٍ — لبطاقة الهويّة المقفلة. */

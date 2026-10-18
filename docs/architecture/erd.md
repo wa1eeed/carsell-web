@@ -479,7 +479,7 @@ Relations: `bodyType` → `BodyType` · `registrationType` → `RegistrationType
 | `modelId` | `String` |  |
 | `nameAr` | `String` |  |
 | `nameEn` | `String` |  |
-| `yearFrom` | `Int` |  |
+| `yearFrom` | `Int?` |  |
 | `yearTo` | `Int?` |  |
 | `seats` | `Int` |  |
 | `doors` | `Int` |  |

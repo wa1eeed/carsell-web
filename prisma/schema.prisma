@@ -375,11 +375,20 @@ model Model {
 }
 
 model Trim {
-  id       String @id @default(cuid())
-  modelId  String
-  nameAr   String
-  nameEn   String
-  yearFrom Int
+  id      String @id @default(cuid())
+  modelId String
+  nameAr  String
+  nameEn  String
+  /**
+   * ═══ وسنواتُ الفئة وصفٌ كذلك ═══
+   *
+   * أختُ `Model.yearFrom` (قرار المالك ٢٠٢٦-١٠-١٨)، وصارت اختيارية
+   * حين وصل الكتالوج العريض: فئةٌ «قياسية» تصف الطراز كلَّه لا جيلًا
+   * منه، **وسنةٌ تُكتب لها تدّعي حدًّا لا وجود له** — «باترول قياسي
+   * من ٢٠٢٠» تكذب على من يعرض باترول ٢٠١٥. ولا يقرؤها نشرٌ ولا بحث،
+   * فالفارغُ صمتٌ صادق لا نقص.
+   */
+  yearFrom Int?
   yearTo   Int?
 
   // القيَم الموروثة — تُنسخ لقطةً إلى الإعلان وقت النشر

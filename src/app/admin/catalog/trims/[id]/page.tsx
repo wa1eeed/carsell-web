@@ -65,7 +65,11 @@ export default async function TrimEditorPage({
       <DetailStats
         items={[
           { label: 'مركبات تستعملها', value: <ArabicNumber value={trim._count.vehicles} /> },
-          { label: 'من سنة', value: <Year value={trim.yearFrom} /> },
+          {
+            label: 'من سنة',
+            /** فارغةٌ في الفئة القياسية — ولا تُطبع «٠» في موضع سنة. */
+            value: trim.yearFrom === null ? 'كل السنوات' : <Year value={trim.yearFrom} />,
+          },
           {
             label: 'إلى سنة',
             value: trim.yearTo === null ? 'ما زالت تنتج' : <Year value={trim.yearTo} />,

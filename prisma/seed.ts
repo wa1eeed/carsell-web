@@ -318,14 +318,15 @@ type TrimRow = {
   engineL: number | null;
   cylinders: number | null;
   horsepower: number | null;
-  yearFrom: number;
+  /** اختيارية: الفئة القياسية تصف الطراز كلَّه لا جيلًا منه. */
+  yearFrom: number | null;
   yearTo: number | null;
 };
 
 type ModelRow = {
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  yearFrom: number | null;
   yearTo: number | null;
   bodyType: BodyType;
   visible: boolean;
@@ -783,7 +784,8 @@ async function main(): Promise<void> {
         for (const key of ALWAYS) {
           trimLinks.push({ trimId: trim.id, featureKey: key, isDefault: true });
         }
-        if (t.yearFrom >= 2020) {
+        /** والفارغُ لا يُقارن — فئةٌ بلا سنةٍ لا تدّعي كاميرا خلفية. */
+        if (t.yearFrom !== null && t.yearFrom >= 2020) {
           trimLinks.push({
             trimId: trim.id,
             featureKey: FROM_2020,
@@ -1105,7 +1107,15 @@ async function main(): Promise<void> {
   });
 
   // ————— ٦٠ إعلانًا على الأنواع والمدن والحالات —————
-  const buildableTrims = allTrims.filter((t) => t.row.yearTo === null);
+  /**
+   * **والسوقُ المعروض يُبنى من الفئات الموصوفة كاملةً وحدها.**
+   * الكتالوج العريض يحمل فئةً «قياسية» لكل طراز بلا سعةِ محرّكٍ ولا
+   * سلندرات — صادقةً عن قصد — وإعلانٌ تجريبيّ يُبنى منها يعرض مركبةً
+   * ناقصةَ الوصف في واجهةٍ يُقاس عليها الشكل. فالبذرةُ تعرض ما يكتمل.
+   */
+  const buildableTrims = allTrims.filter(
+    (t) => t.row.yearTo === null && t.row.engineL !== null,
+  );
 
   /** أوصافٌ بلغة السوق — لا جملًا تسويقية. */
   const DESCRIPTIONS: readonly string[] = [
@@ -1153,7 +1163,7 @@ async function main(): Promise<void> {
   for (let i = 0; i < plan.length; i += 1) {
     const type = plan[i] as 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
     const t = i < PLANTED ? (buildableTrims[0] as (typeof buildableTrims)[number]) : pick(buildableTrims);
-    const year = between(Math.max(t.row.yearFrom, 2018), 2026);
+    const year = between(Math.max(t.row.yearFrom ?? 2018, 2018), 2026);
     const age = 2026 - year;
     const mileageKm = age === 0 ? between(500, 8000) : between(8000, 45000) * age;
     const city = i < PLANTED ? (CITIES[0] as string) : pick(CITIES);

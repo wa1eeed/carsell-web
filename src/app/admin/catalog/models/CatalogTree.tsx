@@ -31,7 +31,8 @@ type TrimDraft = {
   id?: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  /** اختيارية — الفئة القياسية تصف الطراز كلَّه لا جيلًا منه. */
+  yearFrom: number | null;
   bodyType: keyof typeof BODY;
   transmission: keyof typeof TRANS;
   fuel: keyof typeof FUEL;
@@ -75,7 +76,7 @@ const REG = {
 } as const satisfies Record<RegistrationType, string>;
 
 const EMPTY_TRIM: TrimDraft = {
-  nameAr: '', nameEn: '', yearFrom: new Date().getFullYear(),
+  nameAr: '', nameEn: '', yearFrom: null,
   bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL',
   drivetrain: 'FWD', seats: 5, doors: 4,
 };
@@ -347,10 +348,7 @@ export function CatalogTree({
                   </Button>
                   <Button
                     onClick={() =>
-                      setDraft({
-                        ...EMPTY_TRIM,
-                        yearFrom: model.yearFrom ?? new Date().getFullYear(),
-                      })
+                      setDraft({ ...EMPTY_TRIM, yearFrom: model.yearFrom })
                     }
                   >
                     أضف فئة
@@ -457,7 +455,6 @@ export function CatalogTree({
               [
                 ['seats', 'عدد المقاعد'],
                 ['doors', 'عدد الأبواب'],
-                ['yearFrom', 'من سنة'],
               ] as const
             ).map(([key, title]) => (
               <label key={key} className={label}>
@@ -470,6 +467,26 @@ export function CatalogTree({
                 />
               </label>
             ))}
+
+            {/*
+              **وسنةُ الفئة اختيارية** كسنة الطراز: «قياسي» يصف الطراز
+              كلَّه، وسنةٌ تُكتب له تدّعي حدًّا لا يفرضه شيء.
+            */}
+            <label className={label}>
+              من سنة
+              <input
+                type="number"
+                value={draft.yearFrom ?? ''}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    yearFrom: e.target.value === '' ? null : Number(e.target.value),
+                  })
+                }
+                placeholder="اختيارية"
+                className={cn(field, 'font-num', errors.yearFrom !== undefined && 'border-danger')}
+              />
+            </label>
           </div>
         )}
       </Modal>

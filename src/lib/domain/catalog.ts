@@ -301,7 +301,7 @@ export type TrimRow = {
   id: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  yearFrom: number | null;
   yearTo: number | null;
   bodyType: BodyType;
   transmission: Transmission;
@@ -329,12 +329,15 @@ export type ModelInput = {
   visible?: boolean;
 };
 
-/** القيَم الموروثة إلزامية كلها — فئة ناقصة تُملأ فراغًا في نموذج البيع. */
+/**
+ * القيَم الموروثة إلزامية كلها — فئة ناقصة تُملأ فراغًا في نموذج البيع.
+ * **عدا السنوات**: وصفٌ لا قيد، كما في `ModelInput` (قرار المالك ٢٠٢٦-١٠-١٨).
+ */
 export type TrimInput = {
   modelId: string;
   nameAr: string;
   nameEn: string;
-  yearFrom: number;
+  yearFrom?: number | null;
   yearTo?: number | null;
   bodyType: BodyType;
   transmission: Transmission;
@@ -558,7 +561,7 @@ export async function createTrim(
       modelId: input.modelId,
       nameAr: input.nameAr.trim(),
       nameEn: input.nameEn.trim(),
-      yearFrom: input.yearFrom,
+      yearFrom: input.yearFrom ?? null,
       yearTo: input.yearTo ?? null,
       bodyType: input.bodyType,
       transmission: input.transmission,
@@ -598,7 +601,7 @@ export async function updateTrim(
 
   const nameAr = input.nameAr ?? before.nameAr;
   const nameEn = input.nameEn ?? before.nameEn;
-  const yearFrom = input.yearFrom ?? before.yearFrom;
+  const yearFrom = input.yearFrom === undefined ? before.yearFrom : input.yearFrom;
   const yearTo = input.yearTo === undefined ? before.yearTo : input.yearTo;
 
   const errors = [...validateNames(nameAr, nameEn), ...validateYears(yearFrom, yearTo)];

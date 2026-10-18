@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { ALL_SPECS, type SpecOptions } from '@/lib/catalog/specs';
 
 /**
  * خيارات الكتالوج للشاشات — **نوع معلَن يبنيه مُسلسِل**.
@@ -122,31 +123,7 @@ export async function listAdminBrandOptions(): Promise<AdminBrandOption[]> {
  * تقول له لماذا.
  */
 
-export type SpecOptions = {
-  bodyTypes: string[];
-  transmissions: string[];
-  fuels: string[];
-  drivetrains: string[];
-  seats: number[];
-  /** كم فئةً بُني منها الحصر — وصفرٌ يعني أن التعداد كاملٌ عن قصد */
-  fromTrims: number;
-};
-
-/** التعداد كاملًا — يُعاد حين لا يعرف الكتالوج شيئًا عن الطراز. */
-/**
- * التعداد كاملًا — يُعاد حين لا يعرف الكتالوج شيئًا عن الطراز.
- *
- * **والقيَم من المخطّط حرفًا بحرف.** كتبتُ `FOURWD` من الذاكرة
- * والتعداد `FOUR_WD`، فسقطت القيمة إلى فرع «غير المعروف» — تُعرض
- * وتعمل، لكن ترتيبها يصير آخر القائمة بلا سبب يراه أحد.
- */
-export const ALL_SPECS: Omit<SpecOptions, 'fromTrims'> = {
-  bodyTypes: ['SEDAN', 'SUV', 'PICKUP', 'HATCHBACK', 'COUPE', 'VAN'],
-  transmissions: ['AUTOMATIC', 'MANUAL', 'CVT', 'DCT'],
-  fuels: ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC'],
-  drivetrains: ['FWD', 'RWD', 'AWD', 'FOUR_WD'],
-  seats: [2, 4, 5, 7, 8],
-};
+export { ALL_SPECS, type SpecOptions };
 
 /** ترتيبٌ ثابت للعرض — والاتّحاد يُرتَّب به لا بترتيب الصفوف. */
 function ordered(values: ReadonlySet<string>, order: readonly string[]): string[] {
@@ -184,7 +161,8 @@ export type TrimSpec = {
   drivetrain: string;
   seats: number;
   doors: number;
-  yearFrom: number;
+  /** فارغةٌ في الفئة القياسية — وصفُ الطراز كلِّه لا جيلٍ منه. */
+  yearFrom: number | null;
   yearTo: number | null;
 };
 

@@ -16,7 +16,7 @@ const Body = z.object({
   modelId: z.string().min(1),
   nameAr: z.string().max(120),
   nameEn: z.string().max(120),
-  yearFrom: z.number().int(),
+  yearFrom: z.number().int().nullable().optional(),
   yearTo: z.number().int().nullable().optional(),
   bodyType: BODY_TYPE,
   transmission: TRANSMISSION,

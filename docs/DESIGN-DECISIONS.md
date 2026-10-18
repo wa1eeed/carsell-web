@@ -1786,3 +1786,47 @@ would come undone in silence.
 operator owns; composing tax copy on their behalf is not the code's job. The
 false promise is withdrawn, and they write the answer when they set their
 rate.
+
+---
+
+## 2026-10-18 — The catalogue is wide, and its numbers are empty
+
+**Owner's question:** «ما رأيك لو نضيف جميع براندات السيارات بجميع فئاتها و
+طرازاتها في المنصه بحيث عند الديبلوي تكون مضافه ولا نبذل جهد كبير في اضافتها
+يدوياً / كذلك نراعى ملئ الحقول الاخرى التابعه لها مثل السلندرات و سعة المحرك ..
+الخ بما يتناسب مع الواقع لمختلف البراندات ؟ هل يمكنك ذلك بكل دقة و احترافيه ؟»
+
+**What was answered before building.** Breadth is knowable and was offered in
+full: the brands, their real Saudi-market models, and for each the body type,
+drivetrain, fuel, gearbox, seats and doors. Per-trim engine capacity, cylinder
+count and horsepower are **not** knowable to that standard from memory, and
+decision 32 snapshots a trim's specs onto the `Vehicle` at publish — so a
+guessed litre figure does not sit in a catalogue table waiting to be corrected.
+It travels into the listing a buyer reads, the inspection report a provider
+fills, and the price statistic another seller prices against, and nothing shows
+it entering.
+
+**Owner's decision: «اتساع بلا أرقام مخترعة».** Every brand becomes sellable;
+`engineL`, `cylinders` and `horsepower` stay empty until A12's import or the
+operator fills them.
+
+### What it cost, and what it bought
+
+Before: 42 brands, **10 with any model at all**. The sell wizard hides a brand
+with no visible trim, because a trim is required to publish — so three quarters
+of the list was invisible and no Mercedes, BMW, Tesla or Jetour could be listed.
+
+After: 303 models and 360 trims, and **no brand without a sellable path**.
+
+### Two things the work settled on its own
+
+**A trim's `yearFrom` became optional**, as the model's did in §22. A trim named
+«قياسي» describes the model, not one generation of it, and a year written on it
+would claim a boundary nothing enforces — «باترول قياسي من ٢٠٢٠» is a lie told
+to whoever lists a 2015 Patrol.
+
+**One trim per model is a constraint, not a default.** The sell form narrows the
+seller's fuel and gearbox options to the union of the model's visible trims, so
+a lone petrol trim would make the hybrid unlistable. Models sold with more than
+one powertrain carry a trim for each — Grand Vitara petrol and hybrid, D-Max
+automatic and manual, Jimny 3-door and 5-door.

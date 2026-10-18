@@ -1358,6 +1358,45 @@ an error.
       written from now on is still range-checked, because a year outside
       1960–this year is a typo, not freedom.
 
+## 23 · The catalogue, broad enough to sell from — *owner's request 2026-10-18*
+
+> «ما رأيك لو نضيف جميع براندات السيارات بجميع فئاتها و طرازاتها في المنصه
+> بحيث عند الديبلوي تكون مضافه ولا نبذل جهد كبير في اضافتها يدوياً / كذلك
+> نراعى ملئ الحقول الاخرى التابعه لها مثل السلندرات و سعة المحرك .. الخ بما
+> يتناسب مع الواقع لمختلف البراندات ؟»
+
+**Measured before answering: 42 brands, 10 with models, 73 models, 126 trims.**
+Thirty-two brands — three quarters of the list — had no model at all, so the
+sell wizard hid them and nobody could list a Mercedes, a BMW, a Tesla or a
+Jetour.
+
+**What was answered, and what the owner chose.** Breadth is knowable: model
+names, body type, drivetrain, fuel, transmission, seats, doors. Per-trim
+`engineL`, `cylinders` and `horsepower` are not — and decision 32 snapshots a
+trim's specs onto the `Vehicle` at publish, so a wrong litre figure travels
+into the listing, the inspection report and the price statistic without anyone
+seeing it enter. The owner chose **«اتساع بلا أرقام مخترعة»**: every brand
+sellable, and no number on the platform that is not true.
+
+- [x] **230 models and 234 trims** for the 32 empty brands, each model with a
+      trim per powertrain it is actually sold with in Saudi Arabia — and
+      `engineL` / `cylinders` / `horsepower` left empty, for the operator or
+      A12's import to fill. The catalogue now reads 42 brands · 303 models ·
+      360 trims, and **no brand is without a sellable path**.
+- [x] Both paths, each measured: the seed on a throwaway database built from
+      scratch, and `20261019050000_catalog_breadth` on the running one. The
+      migration inserts only what is missing, matched on brand + English name,
+      so it passes over whatever the seed already planted.
+- [x] `Trim.yearFrom` became optional, as `Model.yearFrom` did in §22 — a trim
+      called «قياسي» describes the model, not one generation of it.
+- [x] Two defects the work uncovered, both fixed here: the fallback spec list
+      offered `WAGON` and `FOURWD`, **which the schema does not have**, and
+      lacked `CROSSOVER` and `PLUGIN_HYBRID`, **which it does** — so the fuel
+      tree's plug-in-hybrid branch had no way to be reached. It is derived from
+      the enum now. And the model and trim pickers showed no English name and
+      could not be searched by one, which 73 familiar models hid and 230 did
+      not: nobody finds «جي إل سي» by typing GLC.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»
@@ -1417,7 +1456,7 @@ Each links to where it is specified.
 | My cars (the garage) | `docs/BACKLOG.md` § B | **usable end to end**; its only open row is the plate, which follows § F |
 | English UI strings | `docs/BACKLOG.md` § D | deferred by the owner — **655 lines / 68 files**, re-measured 2026-10-17. The data fix shipped (twice) and the percent sign is fixed; **error messages still read `messageAr` in 19 of 20 places** although `messageEn` is already in hand — listed there, open. `/en` is in the sitemap, so what stays Arabic is advertised. |
 | `home_story` ad slot has no design | `docs/DESIGN-DECISIONS.md` | question pending |
-| Full car catalogue (A12 CSV import) | `docs/BUILD-WEB-ADMIN.md` §A12 | **32 of 42 brands have no models.** The sell wizard now offers only the 10 completable ones, with a “tell us” link; importing the catalogue restores the rest with no code change. |
+| Full car catalogue (A12 CSV import) | `docs/BUILD-WEB-ADMIN.md` §A12 · ROADMAP §23 | **Breadth shipped 2026-10-18: all 42 brands are sellable.** What A12 still adds is depth — real trim names and the engine figures left empty on purpose. The sell wizard still hides a brand with no visible trim, and still offers the “tell us” link. |
 | Six plan entitlements still have no reader | `docs/NOTES.md` | `featured_slots` · `bulk_upload` · `team_seats` · `priority_support` have no feature behind them; `deposit_required` and `commission_pct` are governed elsewhere today. Listed, not forgotten. |
 | Notification templates still silent | `docs/BACKLOG.md` § G | 7 remain, all declared with a reason, guarded by gate 45 |
 | Production build barrier | `CLAUDE.md` | **Clear.** Measured 2026-10-16 after `rm -rf .next-check`: compiled in 19.9s, 101 static pages, exit 0, working tree restored. The cause was `NODE_ENV=development` during `next build`; still run `npm run build:check` before any release, because `verify` does not build. |
