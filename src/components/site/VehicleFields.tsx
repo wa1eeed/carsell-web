@@ -84,6 +84,14 @@ export type VehicleDraft = {
   /** لوحةُ المركبة — وكان العمودان في المخطّط بلا نموذجٍ يكتبهما. */
   plateLetters: string;
   plateNumbers: string;
+  /**
+   * بطاقةٌ جمركية — **للجديدة التي لم تُسجَّل بعد**.
+   *
+   * المستوردةُ حديثًا لا لوحةَ لها حتى تُسجَّل. وسؤالُ صاحبها عن لوحةٍ
+   * لا يملكها يجعله يتركها فارغة — فلا يُعرف المركبُ بشيء، ولا تُطلب
+   * عليه خدمةُ فحصٍ ولا تقريرُ موجز.
+   */
+  customsCard: string;
 };
 
 /**
@@ -109,7 +117,7 @@ export function modelYears(now: Date = new Date()): number[] {
 export const EMPTY_VEHICLE: VehicleDraft = {
   vin: '', brandId: '', modelId: '', trimId: '', condition: 'USED', year: '', mileageKm: '',
   transmission: 'AUTOMATIC', fuel: 'PETROL', spec: 'SAUDI', city: '', colorExterior: '',
-  plateLetters: '', plateNumbers: '',
+  plateLetters: '', plateNumbers: '', customsCard: '',
 };
 
 export const LABEL_CLASS = 'mb-1.5 block text-2xs font-semibold opacity-70';
@@ -265,6 +273,7 @@ export function vehiclePayload(vehicle: VehicleDraft) {
     colorExterior: vehicle.colorExterior,
     plateLetters: vehicle.plateLetters === '' ? null : vehicle.plateLetters,
     plateNumbers: vehicle.plateNumbers === '' ? null : vehicle.plateNumbers,
+    customsCard: vehicle.customsCard.trim() === '' ? null : vehicle.customsCard.trim(),
     vin: vehicle.vin === '' ? null : vehicle.vin,
   };
 }
@@ -664,18 +673,6 @@ function MutableVehicleFields({
               />
             </Field>
 
-            <Field label={t('condition')} htmlFor="veh-condition">
-              <Picker
-                id="veh-condition"
-                value={vehicle.condition}
-                placeholder={te('condition.USED')}
-                onChange={(next) => set({ condition: next })}
-                options={[
-                  { value: 'USED', label: te('condition.USED') },
-                  { value: 'NEW', label: te('condition.NEW') },
-                ]}
-              />
-            </Field>
           </div>
         </Section>
       </div>
@@ -772,25 +769,112 @@ export function VehiclePlateField({
   step?: number;
 }) {
   const t = useTranslations('sell');
-  const complete =
-    catalog.vehicle.plateLetters.length === 3 && catalog.vehicle.plateNumbers.length > 0;
+  const te = useTranslations('enums');
+  const { vehicle, set } = catalog;
+  const complete = vehicle.plateLetters.length === 3 && vehicle.plateNumbers.length > 0;
+
+  /**
+   * ═══ والجديدةُ قد لا تكون مسجَّلة بعد ═══
+   *
+   * المستوردةُ حديثًا لا لوحةَ لها حتى تُسجَّل، وتُعرف ببطاقتها
+   * الجمركية. **وسؤالُ صاحبها عن لوحة يجعله يتركها فارغة** — فلا
+   * يُعرف المركبُ بشيء، ولا تُطلب عليه خدمة.
+   *
+   * فالسؤالُ يتبع الحال: الجديدةُ تختار، والمستعملةُ لوحةٌ بلا سؤال.
+   */
+  const isNew = vehicle.condition === 'NEW';
+  const byCustoms = isNew && vehicle.customsCard.trim() !== '';
 
   return (
     <div style={{ '--i': 3 } as CSSProperties}>
       <Section
         step={step}
-        title="لوحة المركبة"
-        note="تظهر في تقرير الفحص دائما — وفي الإعلان باختيارك وحدك."
+        title="بيانات تسجيل المركبة"
+        note="تعرف بها سيارتك عند طلب الخدمات — ولا يظهر منها في الإعلان إلا ما تختاره."
       >
-        <PlateField
-          hint={t('plateHint')}
-          letters={catalog.vehicle.plateLetters}
-          numbers={catalog.vehicle.plateNumbers}
-          onLetters={(plateLetters) => catalog.set({ plateLetters })}
-          onNumbers={(plateNumbers) => catalog.set({ plateNumbers })}
-        />
+        <div className="mb-5 grid gap-4 sm:grid-cols-2">
+          {/*
+            **ورقمُ الهيكل لا يظهر في الإعلان** — يُدخَل ليُطلب به
+            فحصٌ أو تقرير، لا ليُعرض. والتنويهُ بجواره لأنّ من لا
+            يعرف لماذا يُسأل عنه لا يكتبه. (طلب المالك ٢٠٢٦-١٠-١٨.)
+          */}
+          <Field
+            label={t('vinTitle')}
+            htmlFor="veh-vin"
+            hint="لا يظهر في الإعلان — نحتاجه لطلب الخدمات على سيارتك."
+          >
+            <input
+              id="veh-vin"
+              dir="ltr"
+              placeholder="JTDBE32K123456789"
+              maxLength={17}
+              value={vehicle.vin}
+              onChange={(event) =>
+                set({ vin: toLatinDigits(event.target.value).toUpperCase().slice(0, 17) })
+              }
+              className={cn(fieldShell(), 'font-num tracking-wider')}
+            />
+          </Field>
 
-        {consent === undefined ? (
+          <Field label={t('condition')} htmlFor="veh-condition">
+            <Picker
+              id="veh-condition"
+              value={vehicle.condition}
+              placeholder={te('condition.USED')}
+              onChange={(next) =>
+                /** وتبديلُ الحال يُفرغ ما لا يخصّه — فلا يُرسل ما لا يُعرض. */
+                set(next === 'NEW' ? { condition: next } : { condition: next, customsCard: '' })
+              }
+              options={[
+                { value: 'USED', label: te('condition.USED') },
+                { value: 'NEW', label: te('condition.NEW') },
+              ]}
+            />
+          </Field>
+
+          {!isNew ? null : (
+            <Field
+              label="البطاقة الجمركية"
+              htmlFor="veh-customs"
+              hint="للجديدة التي لم تسجل بعد. اتركها فارغة إن كانت مسجلة ولها لوحة."
+            >
+              <input
+                id="veh-customs"
+                dir="ltr"
+                placeholder="1234567890"
+                maxLength={30}
+                value={vehicle.customsCard}
+                onChange={(event) => set({ customsCard: event.target.value.slice(0, 30) })}
+                className={cn(fieldShell(), 'font-num tracking-wider')}
+              />
+            </Field>
+          )}
+        </div>
+
+        {/*
+          **واللوحةُ تُخفى حين تُدخَل البطاقة** — خياران لشيءٍ واحد
+          يجعلان صاحبَهما يملأ الاثنين أو يحتار أيَّهما يخصّه.
+        */}
+        {byCustoms ? (
+          <p className="reveal rounded-lg border border-line bg-bg px-4 py-3 text-3xs leading-loose opacity-75">
+            سجلنا البطاقة الجمركية. وحين تسجل السيارة وتصدر لها لوحة تقدر تضيفها من
+            «سياراتي».
+          </p>
+        ) : (
+          <PlateField
+            hint="لا يظهر في الإعلان إلا باختيارك. وننصح بإدخاله لتطلب به فحصا أو تقرير موجز — أنت أو المشتري."
+            letters={vehicle.plateLetters}
+            numbers={vehicle.plateNumbers}
+            onLetters={(plateLetters) => set({ plateLetters })}
+            onNumbers={(plateNumbers) => set({ plateNumbers })}
+          />
+        )}
+
+        {/*
+          **والسطرُ يتبع ما وقع**: من سجّل بطاقةً جمركية لا لوحةَ له،
+          فسطرٌ يقول «اللوحة تبقى خاصة بك» يَعِد بما لا وجود له.
+        */}
+        {byCustoms ? null : consent === undefined ? (
           <p className="mt-4 text-3xs leading-loose opacity-70">
             اللوحة تبقى خاصة بك. وإذا عرضت السيارة للبيع لاحقا تختار وقتها إظهارها من عدمه.
           </p>
@@ -813,8 +897,8 @@ export function VehiclePlateField({
               <div className="flex flex-wrap items-center gap-4">
                 <div className="w-56 max-w-full">
                   <LicensePlate
-                    letters={catalog.vehicle.plateLetters}
-                    numbers={catalog.vehicle.plateNumbers}
+                    letters={vehicle.plateLetters}
+                    numbers={vehicle.plateNumbers}
                     size="fill"
                   />
                 </div>

@@ -1185,6 +1185,33 @@ a bare checkbox at the end. Three things to fix:
       account screens' own prose, which is the separately deferred «English UI
       strings» item, not the catalogue.
 
+## 19 · Registration data on the form — *owner's request 2026-10-18* — **done**
+
+> «الدروب داون لست يجب ان يفتح بطريقه صحيحه حيث يظهر وكأنه يغطي او تغطي عليه
+> الاقسام اللي تحته .. ايضا: في قسم لوحة المركبة اعد تسميته بيانات تسجيل
+> المركبة / يجب اضافة حقل رقم الهيكل (بجانبها تنويه رقم الهيكل لا يظهر في
+> الاعلان و لكن لغرض طلب الخدمات) و خيار جديد او مستعمل و في حال جديد اضافة
+> خيار بطاقة جمركيه او رقم اللوحة و بجانبها (تنويه رقم اللوحة لا يظهر في
+> الاعلان و ينصح ادخاله وذلك لغرض طلب الخدمات مثل الفحص او اصدار تقارير موجز
+> عندما تطلبها او يطلبها المشتري)»
+
+- [x] **The list opens behind the sections below it.** The cause is ours: every
+      section carries `animation: step-in` with `animation-fill-mode: both`, and
+      an element filling a transform animation **keeps a stacking context** — so
+      a panel inside section 1 cannot paint above section 2 whatever its
+      `z-index`. The panel moves to a portal.
+- [x] «لوحة المركبة» becomes **«بيانات تسجيل المركبة»**, and carries:
+  - [x] **VIN**, with the owner's own note: it does not appear in the listing,
+        it is there so services can be ordered on the car.
+  - [x] **New or used**, moved here from «حالها اليوم» — because what identifies
+        a car that has not been registered yet is not a plate.
+  - [x] **For a new car: a customs card number or a plate.** A new column; the
+        plate columns have existed since the schema was built but a customs card
+        has not.
+  - [x] The plate note in the owner's words: it does not appear in the listing,
+        and entering it is recommended so an inspection or a Mojaz report can be
+        ordered — by the seller or by the buyer.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

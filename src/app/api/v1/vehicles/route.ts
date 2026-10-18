@@ -48,6 +48,11 @@ const Body = z.object({
    */
   plateLetters: z.string().max(20).nullable().optional(),
   plateNumbers: z.string().max(12).nullable().optional(),
+  /**
+   * بطاقةٌ جمركية — للجديدة التي لم تُسجَّل بعد، فلا لوحةَ لها.
+   * **ولا تظهر في أيّ استجابة عامّة** — مسلكُ اللوحة نفسُه.
+   */
+  customsCard: z.string().max(30).nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {

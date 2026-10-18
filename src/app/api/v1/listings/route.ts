@@ -202,6 +202,8 @@ const PublishBody = z.object({
      */
     plateLetters: z.string().max(20).nullable().optional(),
     plateNumbers: z.string().max(12).nullable().optional(),
+    /** بطاقةٌ جمركية للجديدة التي لم تُسجَّل — ولا تظهر في استجابةٍ عامّة. */
+    customsCard: z.string().max(30).nullable().optional(),
   }),
   /**
    * مفاتيح التخزين وحدها — والبصمة تُقرأ من الخادم لا من العميل.

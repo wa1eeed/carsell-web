@@ -14,6 +14,12 @@ import { findPublishedListing, toPublicDetail } from '@/lib/domain/listing-detai
  */
 const FORBIDDEN_KEYS = [
   'iban', 'phone', 'email', 'vin',
+  /**
+   * **والبطاقةُ الجمركية محظورةٌ بإطلاق** — بخلاف اللوحة. اللوحةُ
+   * يختار صاحبُها إظهارها لأنّها تُرى في الشارع؛ والبطاقةُ مستندُ
+   * استيرادٍ لا يُرى، وعرضُها لا يفيد مشتريًا ويُفيد من ينتحل.
+   */
+  'customsCard',
   'nationalIdEncrypted', 'minAcceptPrice', 'reservePrice', 'sellerId',
 ];
 

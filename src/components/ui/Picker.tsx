@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/cn';
 
 /**
@@ -25,6 +26,19 @@ import { cn } from '@/lib/cn';
  *
  * **والمغلقةُ تبقى حقلًا**: الشكل من `fieldShell` نفسِه الذي تلبسه
  * بقيّةُ الحقول — فلا يبدو سطرٌ في الاستمارة غريبًا عن جيرانه.
+ *
+ * ═══ واللوحةُ تُرسم خارج الشجرة ═══
+ *
+ * **والسببُ من عندنا.** كلُّ قسمٍ في النموذج يحمل `animation: step-in`
+ * بـ`fill-mode: both`، وعنصرٌ يملأ حركةً تمسّ `transform` **يبقى
+ * سياقَ تراكمٍ مستقلًّا إلى الأبد** — فلوحةٌ داخل القسم الأوّل لا
+ * يمكن أن تعلو القسمَ الثاني مهما بلغ `z-index`، لأنّ المقارنة تقع
+ * بين السياقين لا بين العنصرين.
+ *
+ * وزيادةُ الرقم تُعالج عرَضًا واحدًا وتترك الصنف. **فتُرسم في
+ * `body`** بموضعٍ ثابتٍ محسوبٍ من مستطيل الزرّ: تخرج من كلّ سياق
+ * تراكم ومن كلّ `overflow` يقصّها، ويتبع موضعُها الزرَّ عند التمرير
+ * وتغيُّر المقاس. (طلب المالك ٢٠٢٦-١٠-١٨.)
  */
 export type PickerOption = {
   value: string;
@@ -66,8 +80,35 @@ export function Picker({
 
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const listId = useId();
+
+  /**
+   * **وموضعُها يُقاس لا يُفترض.** `position: fixed` بإحداثيّاتٍ من
+   * مستطيل الزرّ — فتلتصق به مهما كان داخل أيّ حاوٍ.
+   *
+   * **وتُقلب فوقه حين لا يتّسع تحته**: قائمةٌ تخرج من أسفل الشاشة
+   * تُقرأ «فارغة» لمن لا يُفكّر في التمرير.
+   */
+  const [box, setBox] = useState<{ top: number; left: number; width: number; drop: 'down' | 'up' } | null>(
+    null,
+  );
+
+  const place = useCallback((): void => {
+    const anchor = buttonRef.current;
+    if (anchor === null) return;
+    const rect = anchor.getBoundingClientRect();
+    const below = window.innerHeight - rect.bottom;
+    const panel = panelRef.current?.offsetHeight ?? 280;
+    const up = below < Math.min(panel, 280) && rect.top > below;
+    setBox({
+      top: up ? rect.top - 6 : rect.bottom + 6,
+      left: rect.left,
+      width: rect.width,
+      drop: up ? 'up' : 'down',
+    });
+  }, []);
 
   const picked = options.find((option) => option.value === value) ?? null;
   const withSearch = searchable ?? options.length > 8;
@@ -79,13 +120,35 @@ export function Picker({
           `${option.label} ${option.sub ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()),
         );
 
-  /** **والنقرُ خارجها يُغلق** — وإلّا بقيت مفتوحةً فوق ما تحتها. */
+  /** يُقاس قبل أوّل رسم — فلا تُرى اللوحةُ تقفز إلى موضعها. */
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open, place]);
+
+  /**
+   * **والمرساةُ تتحرّك.** مع `fixed` يبقى الموضعُ حيث قِيس، فتمريرُ
+   * الصفحة يترك اللوحةَ معلّقةً بعيدًا عن حقلها. و`capture` ليبلغها
+   * تمريرُ أيّ حاوٍ لا تمريرُ النافذة وحده.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const follow = (): void => place();
+    window.addEventListener('scroll', follow, true);
+    window.addEventListener('resize', follow);
+    return () => {
+      window.removeEventListener('scroll', follow, true);
+      window.removeEventListener('resize', follow);
+    };
+  }, [open, place]);
+
+  /** **والنقرُ خارجها يُغلق** — واللوحةُ خارج الجذر فتُستثنى صراحةً. */
   useEffect(() => {
     if (!open) return;
     const away = (event: MouseEvent): void => {
-      if (rootRef.current !== null && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) === true) return;
+      if (panelRef.current?.contains(target) === true) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', away);
     return () => document.removeEventListener('mousedown', away);
@@ -196,8 +259,25 @@ export function Picker({
         </svg>
       </button>
 
-      {!open ? null : (
-        <div className="reveal absolute z-30 mt-1.5 w-full overflow-hidden rounded-xl border border-line bg-bg shadow-[0_18px_40px_-24px_var(--color-ink)]">
+      {!open || box === null || typeof document === 'undefined'
+        ? null
+        : createPortal(
+        <div
+          ref={panelRef}
+          /*
+            **ولوحةُ المفاتيح تتبعها خارج الشجرة.** المعالِجُ على الجذر
+            لا يبلغه حدثٌ من حقل البحث بعد النقل إلى `body` — فالأسهم
+            تتوقّف عن التنقّل، و`Escape` لا يُغلق، ولا شيء يقول لماذا.
+          */
+          onKeyDown={onKey}
+          style={{
+            position: 'fixed',
+            top: box.drop === 'down' ? box.top : undefined,
+            bottom: box.drop === 'up' ? window.innerHeight - box.top : undefined,
+            left: box.left,
+            width: box.width,
+          }}
+          className="reveal z-50 overflow-hidden rounded-xl border border-line bg-bg shadow-[0_18px_40px_-24px_var(--color-ink)]">
           {!withSearch ? null : (
             <div className="border-b border-line p-2">
               <input
@@ -275,7 +355,8 @@ export function Picker({
               })
             )}
           </ul>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

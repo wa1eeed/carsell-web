@@ -516,6 +516,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `vin` | `String?` |  |
 | `plateLetters` | `String?` |  |
 | `plateNumbers` | `String?` |  |
+| `customsCard` | `String?` |  |
 | `brandId` | `String` |  |
 | `modelId` | `String` |  |
 | `trimId` | `String?` |  |

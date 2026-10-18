@@ -7206,6 +7206,11 @@
                     "type": "string",
                     "maxLength": 12,
                     "nullable": true
+                  },
+                  "customsCard": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "nullable": true
                   }
                 },
                 "required": [

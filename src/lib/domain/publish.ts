@@ -107,6 +107,11 @@ export type PublishInput = {
      */
     plateLetters?: string | null;
     plateNumbers?: string | null;
+    /**
+     * بطاقةٌ جمركية — **للجديدة التي لم تُسجَّل بعد**: لا لوحةَ لها
+     * حتى تُسجَّل، وتُعرف بها. ولا تخرج في استجابةٍ عامّة.
+     */
+    customsCard?: string | null;
   };
   /** إظهارُ اللوحة مع الإعلان — اختيارُ البائع، وافتراضُه الإخفاء. */
   showPlate?: boolean;
@@ -236,6 +241,7 @@ export function mutableVehicleFields(
 ): Prisma.VehicleUpdateInput {
   const plateLetters = normalizeArabicLetters(input.vehicle.plateLetters ?? '');
   const plateNumbers = normalizePlateNumbers(input.vehicle.plateNumbers ?? '');
+  const customsCard = (input.vehicle.customsCard ?? '').trim();
   return {
     mileageKm: input.vehicle.mileageKm,
     colorExterior: input.vehicle.colorExterior,
@@ -247,6 +253,7 @@ export function mutableVehicleFields(
     /** **والفارغُ لا يمحو مخزَّنًا**: من ترك اللوحة لم يطلب حذفها. */
     ...(plateLetters === '' ? {} : { plateLetters }),
     ...(plateNumbers === '' ? {} : { plateNumbers }),
+    ...(customsCard === '' ? {} : { customsCard }),
   };
 }
 
@@ -304,6 +311,7 @@ export function vehicleFields(
   const entered = vin !== null && vin !== '';
   const plateLetters = normalizeArabicLetters(input.vehicle.plateLetters ?? '');
   const plateNumbers = normalizePlateNumbers(input.vehicle.plateNumbers ?? '');
+  const customsCard = (input.vehicle.customsCard ?? '').trim();
 
   return {
     ownerId: input.sellerId,
@@ -335,6 +343,7 @@ export function vehicleFields(
      */
     ...(plateLetters === '' ? {} : { plateLetters }),
     ...(plateNumbers === '' ? {} : { plateNumbers }),
+    ...(customsCard === '' ? {} : { customsCard }),
     ...(entered ? { vin } : {}),
   };
 }
