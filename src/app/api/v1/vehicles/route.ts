@@ -29,6 +29,20 @@ export const dynamic = 'force-dynamic';
  *
  * **والتعدادات من المخطّط لا مكتوبةً بيد** — كما في مسار الإعلانات.
  */
+/**
+ * ═══ طولان لا يُخلطان — ويُفرَضان في الخادم ═══
+ *
+ * **البطاقةُ الجمركية عشرةُ أرقام، ورقمُ الهيكل سبعةَ عشرَ خانةً**
+ * فيها حروفٌ وأرقام (قولُ المالك ٢٠٢٦-١٠-١٨). ووثيقةُ تأمين المركبة
+ * الجديدة تُفعَّل على البطاقة وتُربط بنجم والمرور — فمن كتب رقم
+ * الهيكل مكانها لا يعرف أنّه أخطأ حتى تُرفض وثيقتُه.
+ *
+ * **والشاشةُ تمنعه، والخادمُ يفرضه**: حارسٌ في العميل ليس حارسًا،
+ * ونداءٌ مباشر يكتب ما يشاء.
+ */
+const VIN = z.string().regex(/^[0-9A-Z]{17}$/, 'VIN_FORMAT');
+const CUSTOMS_CARD = z.string().regex(/^[0-9]{10}$/, 'CUSTOMS_FORMAT');
+
 const Body = z.object({
   brandId: z.string().min(1).max(40),
   modelId: z.string().min(1).max(40),
@@ -41,7 +55,7 @@ const Body = z.object({
   condition: z.enum(VehicleCondition),
   city: z.string().min(1).max(60),
   colorExterior: z.string().min(1).max(40),
-  vin: z.string().max(20).nullable(),
+  vin: VIN.nullable(),
   /**
    * لوحةُ المركبة — اختياريّة: مركبةٌ لم تُسجَّل بعدُ حالٌ قائمة.
    * والتطبيعُ في النطاق لا هنا، فيُقبل ما يُلصق كما يُلصق.
@@ -52,7 +66,7 @@ const Body = z.object({
    * بطاقةٌ جمركية — للجديدة التي لم تُسجَّل بعد، فلا لوحةَ لها.
    * **ولا تظهر في أيّ استجابة عامّة** — مسلكُ اللوحة نفسُه.
    */
-  customsCard: z.string().max(30).nullable().optional(),
+  customsCard: CUSTOMS_CARD.nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {

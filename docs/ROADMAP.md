@@ -1208,6 +1208,16 @@ a bare checkbox at the end. Three things to fix:
   - [x] **For a new car: a customs card number or a plate.** A new column; the
         plate columns have existed since the schema was built but a customs card
         has not.
+- [x] **The two numbers must not be confused**, with the owner's own facts: the
+      customs card is **10 digits**, the VIN is **17 characters** of letters and
+      digits. Insurance on a new car before its plates are issued is activated
+      on the 10-digit customs card and linked to Najm and the traffic system —
+      so a seller who types one into the other's field breaks the policy, and
+      the form must refuse rather than accept and fail later.
+- [x] **A note under each field's label, in its own colour**, saying it is not
+      shown to anyone else and exists so services can be ordered later —
+      insurance issue or renewal, a Mojaz report, inspection.
+
   - [x] **And the question is asked, not inferred** — the owner's refinement the
         same evening: the customs option appears only for a new car, and then as
         a question («صدرت لها لوحات» / «ما زالت ببطاقة جمركية»), with the field

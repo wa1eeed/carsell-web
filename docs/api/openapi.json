@@ -7194,7 +7194,6 @@
                   },
                   "vin": {
                     "type": "string",
-                    "maxLength": 20,
                     "nullable": true
                   },
                   "plateLetters": {
@@ -7209,7 +7208,6 @@
                   },
                   "customsCard": {
                     "type": "string",
-                    "maxLength": 30,
                     "nullable": true
                   }
                 },

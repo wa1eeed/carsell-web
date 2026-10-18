@@ -108,6 +108,21 @@ export type VehicleDraft = {
  */
 const OLDEST_MODEL_YEAR = 1960;
 
+/**
+ * ═══ طولان لا يُخلطان ═══
+ *
+ * **البطاقةُ الجمركية عشرةُ أرقام، ورقمُ الهيكل سبعةَ عشرَ خانةً**
+ * فيها حروفٌ وأرقام (قولُ المالك ٢٠٢٦-١٠-١٨). والخلطُ بينهما ليس
+ * خطأً في حقل: وثيقةُ تأمين المركبة الجديدة تُفعَّل على البطاقة
+ * وتُربط بنجم والمرور — فمن كتب رقم الهيكل مكانها **لا يعرف أنّه
+ * أخطأ حتى تُرفض وثيقتُه**.
+ *
+ * فالطولان هنا، يقرؤهما الحقلان والتنويهان معًا — ولا يُكتب رقمٌ
+ * في موضعين.
+ */
+export const VIN_LENGTH = 17;
+export const CUSTOMS_LENGTH = 10;
+
 export function modelYears(now: Date = new Date()): number[] {
   const newest = now.getFullYear();
   const out: number[] = [];
@@ -782,6 +797,9 @@ export function VehiclePlateField({
    * **ويُشتقّ ابتداؤه من المخزَّن** — فمن يعود إلى استمارةٍ مملوءة
    * يجد جوابَه كما تركه، لا السؤالَ من أوّله.
    */
+  const vin = vehicle.vin;
+  const customs = vehicle.customsCard;
+
   const [registration, setRegistration] = useState<'customs' | 'plate'>(
     vehicle.customsCard.trim() === '' ? 'plate' : 'customs',
   );
@@ -818,19 +836,41 @@ export function VehiclePlateField({
             فحصٌ أو تقرير، لا ليُعرض. والتنويهُ بجواره لأنّ من لا
             يعرف لماذا يُسأل عنه لا يكتبه. (طلب المالك ٢٠٢٦-١٠-١٨.)
           */}
+          {/*
+            ═══ ورقمُ الهيكل سبعةَ عشرَ خانةً — لا عشرًا ═══
+
+            **والخلطُ بينه وبين البطاقة الجمركية يكسر وثيقةَ تأمين.**
+            البطاقةُ عشرةُ أرقام، ورقمُ الهيكل سبعةَ عشرَ خانةً فيها
+            حروفٌ وأرقام (قولُ المالك ٢٠٢٦-١٠-١٨). ومن يكتب أحدَهما
+            في حقل الآخر لا يعرف أنّه أخطأ حتى تُرفض وثيقتُه.
+
+            فالحقلُ يقول طولَه ويعدّ ما كُتب — **ولا يُترك الخطأ
+            ليُكتشف عند الخدمة**.
+          */}
           <Field
             label={t('vinTitle')}
             htmlFor="veh-vin"
-            hint="لا يظهر في الإعلان — نحتاجه لطلب الخدمات على سيارتك."
+            note="لا يظهر لأحد غيرك. نحفظه لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص."
+            {...(vin === '' || vin.length === VIN_LENGTH
+              ? { hint: '١٧ خانة — حروف وأرقام، كما في الرخصة أو خلف الزجاج الأمامي.' }
+              /** والعددُ بين قوسين فلا يحكم المعدود (البوابة ١٨). */
+              : { error: `الخانات المكتوبة (${displayDigits(String(vin.length))}) والمطلوب ١٧.` })}
           >
             <input
               id="veh-vin"
               dir="ltr"
+              inputMode="text"
               placeholder="JTDBE32K123456789"
-              maxLength={17}
-              value={vehicle.vin}
+              maxLength={VIN_LENGTH}
+              value={vin}
+              /** والحروفُ والأرقامُ وحدها — ولا مسافةَ ولا شرطة. */
               onChange={(event) =>
-                set({ vin: toLatinDigits(event.target.value).toUpperCase().slice(0, 17) })
+                set({
+                  vin: toLatinDigits(event.target.value)
+                    .toUpperCase()
+                    .replace(/[^0-9A-Z]/g, '')
+                    .slice(0, VIN_LENGTH),
+                })
               }
               className={cn(fieldShell(), 'font-num tracking-wider')}
             />
@@ -896,18 +936,34 @@ export function VehiclePlateField({
 
         {!byCustoms ? null : (
           <div className="reveal mb-5 max-w-sm">
+            {/*
+              **وعشرةُ أرقامٍ لا غير.** عليها تُفعَّل وثيقةُ التأمين
+              للمركبة الجديدة قبل صدور اللوحة، وتُربط بنجم والمرور
+              (قولُ المالك) — فرقمٌ ناقصٌ أو فيه حرفٌ يُرفض هناك لا هنا.
+            */}
             <Field
               label="رقم البطاقة الجمركية"
               htmlFor="veh-customs"
-              hint="لا يظهر في الإعلان — نحتاجه لطلب الخدمات قبل أن تصدر اللوحة."
+              note="لا يظهر لأحد غيرك. عليه يصدر تأمين السيارة الجديدة قبل اللوحة، ويربط بنجم والمرور."
+              {...(customs === '' || customs.length === CUSTOMS_LENGTH
+                ? { hint: '١٠ أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
+                : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب ١٠.` })}
             >
               <input
                 id="veh-customs"
                 dir="ltr"
+                inputMode="numeric"
                 placeholder="1234567890"
-                maxLength={30}
-                value={vehicle.customsCard}
-                onChange={(event) => set({ customsCard: event.target.value.slice(0, 30) })}
+                maxLength={CUSTOMS_LENGTH}
+                value={customs}
+                /** أرقامٌ وحدها — فحرفٌ هنا يعني أنّه كتب رقم الهيكل. */
+                onChange={(event) =>
+                  set({
+                    customsCard: toLatinDigits(event.target.value)
+                      .replace(/\D/g, '')
+                      .slice(0, CUSTOMS_LENGTH),
+                  })
+                }
                 className={cn(fieldShell(), 'font-num tracking-wider')}
               />
             </Field>
