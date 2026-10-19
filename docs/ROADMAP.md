@@ -1553,7 +1553,7 @@ Each links to where it is specified.
 | Lean Technologies registry lookup on the dealer CR step | `docs/BACKLOG.md` § Dealer registration | built behind a flag; credentials entered in `/admin/integrations` |
 | Nafath | deferred by the owner — a contract with the provider is pending | not started |
 | Plates as a sellable item | `docs/BACKLOG.md` § F — and the garage's one open row in § B | **decided: after launch** |
-| `cn` does not merge Tailwind classes, while its comment says the last one wins | `docs/BACKLOG.md` § E | risk recorded, awaiting a decision: `tailwind-merge` (a dependency) or an audit of each component |
+| `cn` does not merge Tailwind classes | `docs/BACKLOG.md` § E | **decided 2026-10-19, by measurement.** 9 real collisions in 2,073 elements, one of them a live defect (the header's «بع سيارتك» showed on mobile because `hidden` cannot beat a button's `inline-flex`). No dependency: the defect is fixed on a wrapper, the lying comment is gone, and the crawler counts collisions on every walk so growth is visible. |
 | My cars (the garage) | `docs/BACKLOG.md` § B | **usable end to end**; its only open row is the plate, which follows § F |
 | English UI strings | `docs/BACKLOG.md` § D | deferred by the owner — **655 lines / 68 files**, re-measured 2026-10-17. The data fix shipped (twice) and the percent sign is fixed; **error messages still read `messageAr` in 19 of 20 places** although `messageEn` is already in hand — listed there, open. `/en` is in the sitemap, so what stays Arabic is advertised. |
 | `home_story` ad slot has no design | `docs/DESIGN-DECISIONS.md` | question pending |

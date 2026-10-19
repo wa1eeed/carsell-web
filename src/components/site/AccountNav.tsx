@@ -51,14 +51,33 @@ export async function AccountNav({
     return (
       <span className={stacked ? 'flex flex-col gap-2.5' : 'flex items-center gap-2.5'}>
         {/* الزرّ عنصر تفاعل والرابط تنقّل — لا يُخلطان */}
-        <LinkButton
-          href={`/${locale}/sell`}
-          variant="outline"
-          size="sm"
-          className={stacked ? 'w-full' : 'hidden sm:inline-flex'}
-        >
-          {t('sellYourCar')}
-        </LinkButton>
+        {/*
+          ═══ والإخفاءُ على الغلاف لا على الزرّ ═══
+
+          كان `className="hidden sm:inline-flex"` على `LinkButton`
+          نفسِه — **ولا يُخفيه**: `cn` يصفّ الأصناف ولا يدمجها، وقاعدةُ
+          `inline-flex` في أساس الزرّ تغلب `hidden` **في الترتيبين**
+          (قِيس في المتصفّح: `inline-flex hidden` و`hidden inline-flex`
+          كلتاهما تُنتجان `inline-flex`). فالذي يقرّر هو ترتيبُ تيلويند
+          في مخرَجه لا ترتيبُ النصّ.
+
+          وأثرُه مرئيّ: الزرّ يظهر على ٣٧٥px للزائر غير المسجَّل وقد
+          أُريد إخفاؤه ليتّسع الشريط — وفيضُ الترويسة على الهاتف
+          مسجَّلٌ في `CLAUDE.md`، وهذا نصفُ علاجه الذي لم يقع.
+
+          والغلافُ لا أساسَ له يغالبه، فالإخفاءُ عليه يقع.
+        */}
+        {stacked ? (
+          <LinkButton href={`/${locale}/sell`} variant="outline" size="sm" className="w-full">
+            {t('sellYourCar')}
+          </LinkButton>
+        ) : (
+          <span className="hidden sm:inline-flex">
+            <LinkButton href={`/${locale}/sell`} variant="outline" size="sm">
+              {t('sellYourCar')}
+            </LinkButton>
+          </span>
+        )}
         <LinkButton href={`/${locale}/auth`} size="sm" className={stacked ? 'w-full' : ''}>
           {t('signIn')}
         </LinkButton>

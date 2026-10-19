@@ -325,6 +325,78 @@ function nestedInteractive(html: string): string[] {
  * فيُقاس هنا، على ما يصل القارئ فعلًا: نصُّ الصفحة بلا وسومٍ ولا
  * نصوص برمجية.
  */
+/**
+ * ═══ تصادمُ أصناف تيلويند — صنفان لخاصّيةٍ واحدة ═══
+ *
+ * `cn` يصفّ الأصناف ولا يدمجها، **ومن يقرّر الفائز هو ترتيبُ تيلويند
+ * في مخرَجه لا ترتيبُ النصّ**. فصنفٌ يمرّره المُنادي قد يُغلَب بصنفٍ
+ * في أساس المكوّن — ويبقى ظاهرًا في الـDOM فيبدو الفحصُ سليمًا.
+ *
+ * وقد أخفى إخفاءَ «بع سيارتك» على الهاتف، وقبله مقاسَ الشعار.
+ *
+ * **ولا يُقاس إلّا على المُصيَّر**: الشيفرةُ تقول ماذا مُرِّر، والصفحةُ
+ * تقول ماذا وقع. وقِيس ٢٠٢٦-١٠-١٩ فكان تسعةً — ويُعاد في كل زحفة
+ * فلا ينمو صامتًا.
+ *
+ * **والخاصّيةُ لا العائلة**: «border» عرضٌ و«border-line» لون، فليسا
+ * تصادمًا. وأوّلُ قياسٍ خلطهما فأعلن ٨٨٤ وأكثرُها وهم.
+ */
+const TEXT_SIZES = new Set([
+  '3xs', '2xs', 'xs', 'sm', 'base',
+  'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl',
+]);
+
+function tailwindProperty(cls: string): string | null {
+  const at = cls.lastIndexOf(':');
+  const bare = at === -1 ? cls : cls.slice(at + 1);
+  const mods = at === -1 ? '' : cls.slice(0, at + 1);
+  const key = (name: string): string => mods + name;
+
+  let m = /^-?(min-w|min-h|max-w|max-h|w|h)-/.exec(bare);
+  if (m !== null) return key(m[1] ?? '');
+  if (/^size-/.test(bare)) return key('size');
+  m = /^-?(px|py|pt|pb|ps|pe|p)-/.exec(bare);
+  if (m !== null) return key(m[1] ?? '');
+  m = /^-?(mx|my|mt|mb|ms|me|m)-/.exec(bare);
+  if (m !== null) return key(m[1] ?? '');
+  m = /^(gap-x|gap-y|gap)-/.exec(bare);
+  if (m !== null) return key(m[1] ?? '');
+  m = /^text-(.+)$/.exec(bare);
+  if (m !== null) return key(TEXT_SIZES.has(m[1] ?? '') ? 'font-size' : 'text-color');
+  if (/^bg-/.test(bare)) return key('bg');
+  m = /^rounded(-[tbse][lr]?)?-/.exec(bare);
+  if (m !== null) return key(`rounded${m[1] ?? ''}`);
+  if (/^opacity-/.test(bare)) return key('opacity');
+  if (/^leading-/.test(bare)) return key('leading');
+  if (/^z-/.test(bare)) return key('z');
+  if (/^grid-cols-/.test(bare)) return key('grid-cols');
+  if (/^flex-(row|col)(-reverse)?$/.test(bare)) return key('flex-dir');
+  if (/^(block|inline|inline-block|flex|inline-flex|grid|inline-grid|hidden|contents|table)$/.test(bare)) {
+    return key('display');
+  }
+  if (/^(absolute|relative|fixed|sticky|static)$/.test(bare)) return key('position');
+  if (/^font-(thin|light|normal|medium|semibold|bold|extrabold|black)$/.test(bare)) {
+    return key('font-weight');
+  }
+  return null;
+}
+
+function classClashes(html: string): string[] {
+  const found = new Set<string>();
+  for (const match of html.matchAll(/class="([^"]{3,600})"/g)) {
+    const classes = (match[1] ?? '').split(/\s+/).filter((one) => one !== '');
+    const seen = new Map<string, string>();
+    for (const cls of classes) {
+      const property = tailwindProperty(cls);
+      if (property === null) continue;
+      const prior = seen.get(property);
+      if (prior !== undefined && prior !== cls) found.add(`${prior} ⟂ ${cls}`);
+      seen.set(property, cls);
+    }
+  }
+  return [...found].slice(0, 6);
+}
+
 function diacritics(html: string): string[] {
   const text = html
     .replace(/<script[\s\S]*?<\/script>/g, ' ')
@@ -503,6 +575,7 @@ async function main(): Promise<void> {
   const pages = [...visited.values()].filter((row) => row.status === 200).map((row) => row.url);
   const nested = new Map<string, string[]>();
   const marked = new Map<string, string[]>();
+  const clashing = new Map<string, string[]>();
   for (const page of pages) {
     const html = await fetch(`${BASE}${page}`, { headers: { cookie } })
       .then((r) => r.text())
@@ -511,6 +584,8 @@ async function main(): Promise<void> {
     if (inside.length > 0) nested.set(page, inside);
     const voweled = diacritics(html);
     if (voweled.length > 0) marked.set(page, voweled);
+    const clashes = classClashes(html);
+    if (clashes.length > 0) clashing.set(page, clashes);
     for (const href of links(html)) await visit(href, page);
   }
 
@@ -546,6 +621,21 @@ async function main(): Promise<void> {
   } else {
     console.log(`تشكيلٌ في نصٍّ معروض — ${String(marked.size)} صفحة:`);
     for (const [page, words] of marked) console.log(`  ${page}  ${words.join(' · ')}`);
+    console.log('');
+  }
+
+  if (clashing.size === 0) {
+    console.log('لا صنفَين لخاصّيةٍ واحدة في أيّ عنصر.\n');
+  } else {
+    /**
+     * **وليست كلُّها عطلًا** — بعضُها يُحسم لصالح المُنادي صدفةً. لكن
+     * أيَّها يفوز يقرّره ترتيبُ تيلويند لا ترتيبُ النصّ، فكلُّها
+     * موضعُ عطلٍ محتمل. والرقمُ يُقارن بما قبله: نموُّه يعيد سؤال
+     * `tailwind-merge` ومعه دليلُه.
+     */
+    const total = [...clashing.values()].reduce((sum, rows) => sum + rows.length, 0);
+    console.log(`صنفان لخاصّيةٍ واحدة — ${String(total)} في ${String(clashing.size)} صفحة:`);
+    for (const [page, rows] of clashing) console.log(`  ${page}  ${rows.join(' · ')}`);
     console.log('');
   }
 

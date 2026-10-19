@@ -637,13 +637,43 @@ English. It does not cover throwing away English we already hold:
 `sitemap.ts` submits every `/en` URL to search engines. Whatever stays Arabic
 there is an advertised promise, not a draft.
 
-### E · Known risk, awaiting a decision
+### E · `cn` does not merge — **decided and measured 2026-10-19**
 
 `cn` concatenates class names and does not merge Tailwind utilities, while its
-comment claims the last one wins. A base utility can silently defeat one passed
-by a caller, with the class visible in the DOM so inspection looks right. It hid
-the logo's size for as long as the header has existed. `tailwind-merge` fixes it
-everywhere and adds a dependency; the alternative is auditing each component.
+comment claimed the last one wins. A base utility can silently defeat one passed
+by a caller, with the class visible in the DOM so inspection looks right.
+
+**The decision needed a number, so one was taken.** Eight public pages, 2,073
+elements with a class attribute, counting only pairs that set the **same CSS
+property** — `border` is a width and `border-line` is a colour, so they are not
+a clash, and a first scan that conflated them reported 884 of which almost all
+were noise.
+
+**Nine real collisions, two shapes.** One resolves in the caller's favour by
+luck of Tailwind's scale order (`px-9` beats `px-4.5` either way round). The
+other is a live defect, measured in the browser:
+
+```
+inline-flex hidden  → inline-flex
+hidden inline-flex  → inline-flex
+```
+
+`hidden` cannot hide a `Button`, in either order. `AccountNav` passed
+`hidden sm:inline-flex` to the header's «بع سيارتك», so it **showed on mobile**
+for every signed-out visitor — and the header overflowing at 375px is recorded
+in `CLAUDE.md` as an open symptom. This was half its cause.
+
+**Decision: no dependency.** Nine occurrences do not buy `tailwind-merge`, and
+the repository's own rule is to add a library only when the need outgrows a few
+lines. Instead:
+
+- The defect is fixed where it belongs: a caller that must beat a component's
+  base class puts it **on a wrapper**, which has no base to fight.
+- `cn`'s comment no longer promises merging. A comment that lies is worse than
+  no comment — whoever read it believed it and passed `hidden` to a button.
+- **The count is now measured on every crawl.** `walk-surface.ts` reports
+  «صنفان لخاصّيةٍ واحدة» with a total, so the number cannot grow in silence. If
+  it grows, the dependency question returns with evidence instead of a hunch.
 
 ### F · Plates as a sellable item — **awaiting the owner's decision**
 
