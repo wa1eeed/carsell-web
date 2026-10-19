@@ -1640,6 +1640,60 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 31 · `WebhookEvent` — the gateway's own words, with no door — *owner's request 2026-10-19*
+
+> «اصلح WebhookEvent»
+
+Named by gate 64 the day it was built. Every callback Moyasar sends is stored
+with its full payload, and **nothing reads the table**: when a payment goes
+wrong the evidence is there and nobody can look at it.
+
+Measuring the route found three more, each worse than the missing screen:
+
+- [x] **`signatureOk` is never `false`.** A rejected callback returns 401
+      *before* the store, so the column that exists to record a rejection has
+      never recorded one — and a run of rejections is exactly what a rotated
+      key or a prober looks like. It is now written, **bounded**: only when the
+      reference already matches one of our payments, and capped per payment, so
+      the table cannot be filled from the open internet.
+- [x] **`applyState`'s result is thrown away.** The gateway says «settled», a
+      late webhook is refused as an invalid transition, the row is marked
+      processed, and nothing anywhere says the refusal happened. The outcome is
+      now recorded per event: applied / unmapped type / refused, with the
+      reason, and the status we actually wrote.
+- [x] **No link to the payment.** The reference lives inside the JSON, so «what
+      did the gateway say about this payment?» was not a question the database
+      could answer. A `paymentId` column, backfilled from the payload.
+- [x] **A retry leaves no trace.** The second delivery fails the primary key
+      and returns 200; the gateway retrying eight times meant nothing was
+      recorded. Counted on the existing row.
+
+- [x] `/admin/webhooks`, and the same list **on the order's payment tab** —
+      that is where an operator is standing when the question arises.
+- [x] Removed from the reader register in `docs/architecture/editability.md`;
+      gate 64 refuses the file until it is.
+
+### And nothing would have been visible anyway
+
+`WebhookEvent` has **zero rows** in the development database, and so does
+`PaymentEvent` beside thirteen payments: the seed creates payments without
+their trail, and the trial gateway confirms instantly rather than calling back.
+So the screen would have shipped as an empty state that nobody could ever fill
+— «ما لا يُزرع لا يُرى», recorded here after nine defects hid in an order
+status the seed never planted.
+
+- [x] Both are seeded, in every shape the product writes: applied, unmapped
+      type, refused transition, bad signature, and one with retries.
+- [x] Walked: the screen lists all five shapes with their filters, the payload
+      opens on the row, and the order's payments tab shows the four callbacks
+      that belong to its payment — a rejected signature, one that never
+      completed, one applied, and a type with no matching state.
+- [x] **And the probe caught a blind test.** The check «the route records before
+      it returns 401» read the file as text, so commenting the call out left it
+      green — the exact shape that fooled gates 50, 52 and 19. `stripComments`
+      now has one home (`scripts/strip-comments.mjs`) read by the gates, the
+      model tools and this test, instead of the two copies it had.
+
 ## 30 · `SeoTemplate` — the prose search engines read — *owner's request 2026-10-19*
 
 > «اصلح SeoTemplate»

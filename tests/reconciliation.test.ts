@@ -174,7 +174,13 @@ describe('المطابقة اليومية — ومرجعُ التحصيل يُح
      */
     const { readFile } = await import('node:fs/promises');
     const route = await readFile('src/app/api/v1/webhooks/payments/route.ts', 'utf8');
-    expect(route).toMatch(/payment_captured:\s*'SETTLED'/);
     expect(route).toMatch(/settleRef:\s*holdRef/);
+
+    /**
+     * **والخريطةُ انتقلت إلى النطاق** لتقرأها الشاشةُ أيضًا — فالفحصُ
+     * يتبع المصدر. وقراءتُها كقيمةٍ أصدقُ من نصٍّ على أيّ حال.
+     */
+    const { WEBHOOK_STATUS } = await import('@/lib/domain/webhooks');
+    expect(WEBHOOK_STATUS['payment_captured']).toBe('SETTLED');
   });
 });

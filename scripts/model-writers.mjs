@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stripComments } from './strip-comments.mjs';
 
 /**
  * ═══ مَن يكتب هذا النموذج؟ — مصدرٌ واحد لقارئيه ═══
@@ -70,12 +71,6 @@ const read = (path) => {
  * **والأسطرُ تُحفَظ** كما في `stripComments` في `check-tokens`: النصُّ
  * يذهب و`\n` يبقى، فلا يَضلّ ترقيمُ سطرٍ يُطبع في إنذار.
  */
-function stripComments(source) {
-  const blank = (text) => text.replace(/[^\n]/g, ' ');
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, blank)
-    .replace(/(^|[^:])(\/\/[^\n]*)/g, (_match, lead, body) => `${lead}${blank(body)}`);
-}
 
 const readCode = (path) => stripComments(read(path));
 

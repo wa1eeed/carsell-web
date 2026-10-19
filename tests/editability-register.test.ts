@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
@@ -122,8 +123,12 @@ describe('سجل ما لا يُعدَّل', () => {
     }
   });
 
-  /** **والبوابةُ تُقاس بكسرِ ما تحرسه** — في الاتّجاهين. */
-  it('والبوابة ٦٤ ترد الحذف والزيادة معا', () => {
+  /**
+   * **والبوابةُ تُقاس بكسرِ ما تحرسه.** وسجلُّ القارئ فارغٌ اليوم —
+   * صار لكلّ نموذجٍ قارئ — فالاتّجاه الوحيد القابل للقياس على الشجرة
+   * هو الزيادة: اسمٌ يُعلَن وله قارئ.
+   */
+  it('والبوابة ٦٤ ترد إعلان ما له قارئ', () => {
     const original = readFileSync(REGISTER, 'utf8');
     const run = (): string => {
       try {
@@ -137,12 +142,9 @@ describe('سجل ما لا يُعدَّل', () => {
     };
 
     try {
-      writeFileSync(REGISTER, original.replace('| `WebhookEvent` |', '| `WebhookEventX` |'), 'utf8');
-      expect(run()).toContain('WebhookEvent');
-
       writeFileSync(
         REGISTER,
-        original.replace('| `WebhookEvent` |', '| `Listing` | سببٌ للقياس وحده |\n| `WebhookEvent` |'),
+        original.replace(READER_SECTION, `${READER_SECTION}\n\n| Model | Why |\n|---|---|\n| \`Listing\` | سببٌ للقياس وحده |`),
         'utf8',
       );
       expect(run()).toContain('Listing');
@@ -150,6 +152,58 @@ describe('سجل ما لا يُعدَّل', () => {
       writeFileSync(REGISTER, original, 'utf8');
     }
   }, 90_000);
+
+  /**
+   * ═══ والاتّجاه الآخر يُقاس على شجرةٍ مصنوعة ═══
+   *
+   * «نموذجٌ لا يقرؤه شيء» لا يوجد في الشجرة اليوم، **فالشرط يُصنَع لا
+   * يُنتظَر**: شجرةٌ صغيرة فيها نموذجٌ بلا قارئ، وآخرُ يُقرأ باسمه،
+   * وثالثٌ يُقرأ عبر حقلِ والده — وهي الحالة التي لولاها لأنذرت
+   * البوابة على ستّةٍ من ثمانية.
+   */
+  it('ويُقاس التصنيف على شجرة مصنوعة: مباشر وعلائقي وبلا قارئ', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'reader-'));
+    try {
+      mkdirSync(join(dir, 'prisma'), { recursive: true });
+      mkdirSync(join(dir, 'src'), { recursive: true });
+      writeFileSync(
+        join(dir, 'prisma', 'schema.prisma'),
+        [
+          'model Invoice {',
+          '  id    String @id',
+          '  lines InvoiceLine[]',
+          '}',
+          '',
+          'model InvoiceLine {',
+          '  id        String  @id',
+          '  invoiceId String',
+          '  invoice   Invoice @relation(fields: [invoiceId], references: [id])',
+          '}',
+          '',
+          'model Ghost {',
+          '  id String @id',
+          '}',
+          '',
+        ].join('\n'),
+        'utf8',
+      );
+      writeFileSync(
+        join(dir, 'src', 'reader.ts'),
+        [
+          "const rows = await db.invoice.findMany({ include: { lines: true } });",
+          '// db.ghost.findMany() — اسمٌ في تعليقٍ لا نداء',
+          'export default rows;',
+          '',
+        ].join('\n'),
+        'utf8',
+      );
+
+      // `Invoice` باسمه · `InvoiceLine` عبر حقل والده · `Ghost` بلا قارئ
+      expect(unreadModels(dir)).toEqual(['Ghost']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 
   /** **والتصنيفُ مصدرٌ واحد** — تقرؤه الأداةُ والبوابة معًا. */
   it('والأداة والبوابة تقرآن تصنيفا واحدا', () => {

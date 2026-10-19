@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-97 models · 68 enums
+97 models · 69 enums
 
 ## Relationships
 
@@ -275,9 +275,13 @@ erDiagram
   Payment }o--|| PaymentStatus : "status"
   Payment |o--|| Order : "order"
   Payment ||--o{ PaymentEvent : "events"
+  Payment ||--o{ WebhookEvent : "webhooks"
   PaymentEvent |o--|| PaymentStatus : "fromStatus"
   PaymentEvent }o--|| PaymentStatus : "toStatus"
   PaymentEvent }o--|| Payment : "payment"
+  WebhookEvent |o--|| Payment : "payment"
+  WebhookEvent }o--|| WebhookOutcome : "outcome"
+  WebhookEvent |o--|| PaymentStatus : "appliedStatus"
   TaxRule |o--|| SellerType : "sellerType"
   TaxRule |o--|| BuyerType : "buyerType"
   TaxRule }o--|| SupplyType : "supplyType"
@@ -1707,7 +1711,7 @@ Relations: `purpose` → `PaymentPurpose` · `fromEnvironment` → `IntegrationE
 | `cancelledAt` | `DateTime?` |  |
 | `failedAt` | `DateTime?` |  |
 
-Relations: `deposit` → `Deposit` · `purpose` → `PaymentPurpose` · `environment` → `IntegrationEnv` · `status` → `PaymentStatus` · `order` → `Order` · `events` → `PaymentEvent`
+Relations: `deposit` → `Deposit` · `purpose` → `PaymentPurpose` · `environment` → `IntegrationEnv` · `status` → `PaymentStatus` · `order` → `Order` · `events` → `PaymentEvent` · `webhooks` → `WebhookEvent`
 
 ### `PaymentEvent`
 
@@ -1744,6 +1748,11 @@ Relations: `fromStatus` → `PaymentStatus` · `toStatus` → `PaymentStatus` ·
 | `processedAt` | `DateTime?` |  |
 | `receivedAt` | `DateTime` |  |
 | `payload` | `Json` |  |
+| `paymentId` | `String?` |  |
+| `note` | `String?` |  |
+| `repeats` | `Int` |  |
+
+Relations: `payment` → `Payment` · `outcome` → `WebhookOutcome` · `appliedStatus` → `PaymentStatus`
 
 ### `TaxRule`
 
@@ -1960,6 +1969,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `CampaignStatus` — `DRAFT`, `SCHEDULED`, `RUNNING`, `SENT`, `CANCELLED`
 - `PaymentPurpose` — `VEHICLE_ESCROW`, `AUCTION_DEPOSIT`, `WALLET_TOPUP`, `SERVICE_PURCHASE`, `TRANSFER_FEE`, `SUBSCRIPTION`
 - `PaymentStatus` — `CREATED`, `REQUIRES_ACTION`, `PENDING`, `HELD`, `SETTLED`, `PARTIALLY_SETTLED`, `CANCELLED`, `RETURNED`, `PARTIALLY_RETURNED`, `FAILED`
+- `WebhookOutcome` — `RECEIVED`, `APPLIED`, `UNMAPPED`, `REFUSED`, `BAD_SIGNATURE`
 - `AccountType` — `INDIVIDUAL`, `BUSINESS`
 - `TaxStatus` — `INDIVIDUAL`, `VAT_REGISTERED`
 - `SellerType` — `INDIVIDUAL`, `DEALER_VAT`, `DEALER_NO_VAT`, `COMPANY`

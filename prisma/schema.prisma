@@ -2938,6 +2938,7 @@ model Payment {
 
   order  Order?         @relation(fields: [orderId], references: [id], onDelete: Restrict)
   events PaymentEvent[]
+  webhooks      WebhookEvent[]
 
   @@index([orderId, createdAt])
   @@index([status, createdAt])
@@ -2998,7 +2999,13 @@ model IdempotencyKey {
 
 /// ويب هوك وصل — **يُخزَّن معرّفه قبل معالجته**.
 /// المزوّد يعيد الإرسال عند أيّ شكّ، والمعالجة مرّتين تُفرج عن المال مرّتين.
+/// ما قالته البوّابة بنصّه — **وما فعلناه به**.
+///
+/// الحمولةُ وحدها تقول ما وصل ولا تقول ماذا ترتّب عليه: ويبهوكٌ
+/// متأخّر يُرفض انتقالُه فيُكتب «عولج» ولا أثرَ للرفض في مكان.
+/// فالنتيجةُ تُسجَّل مع الحمولة، وكلُّ قيمةٍ فيها لها كاتب.
 model WebhookEvent {
+  /// معرّف البوّابة نفسُه — فإعادةُ الإرسال تصطدم به ولا تُكرَّر.
   id          String   @id
   provider    String
   type        String
@@ -3007,7 +3014,40 @@ model WebhookEvent {
   receivedAt  DateTime @default(now())
   payload     Json
 
+  /// **والدفعة تُربط بعمود لا بحقلٍ داخل JSON**: «ماذا قالت البوّابة
+  /// عن هذه الدفعة؟» سؤالٌ لم تكن القاعدة تجيبه.
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  /// ماذا ترتّب عليه — ولا قيمةَ هنا بلا كاتب.
+  outcome WebhookOutcome @default(RECEIVED)
+  /// الحالُ الذي كُتب فعلًا، و`null` حين لم يُكتب شيء.
+  appliedStatus PaymentStatus?
+  /// سببُ الرفض بنصّه (`INVALID_TRANSITION`…) — لمن يفتح الصفّ.
+  note String?
+
+  /// **وإعادةُ الإرسال أثرٌ يُقاس**: البوّابة تعيد عند أيّ شكّ،
+  /// وثمانيةُ تسليماتٍ لحدثٍ واحد تقول شيئًا — وكانت تُردّ ٢٠٠ بلا أثر.
+  repeats Int @default(0)
+
   @@index([provider, receivedAt])
+  @@index([paymentId, receivedAt])
+  @@index([outcome, receivedAt])
+}
+
+/// ما ترتّب على الويبهوك — **والرفضُ يُسجَّل كما يُسجَّل القبول**.
+enum WebhookOutcome {
+  /// وصل وسُجّل ولمّا يُعالَج بعد. **وصفٌّ يبقى عليه يقول إنّنا متنا
+  /// في منتصف المعالجة** — وهو أثرٌ لا يُرى بغير تسجيله.
+  RECEIVED
+  /// طُبّق على الدفعة وغيّر حالَها.
+  APPLIED
+  /// نوعٌ لا يقابله حالٌ عندنا — وصل وسُجّل ولم يُغيّر شيئًا.
+  UNMAPPED
+  /// قابله حالٌ ورفضه `applyState` — ويبهوكٌ متأخّر لا يقلب فشلًا نجاحًا.
+  REFUSED
+  /// توقيعٌ لا يطابق — ومرجعُه مع ذلك دفعةٌ عندنا.
+  BAD_SIGNATURE
 }
 
 // ═══════════════════════════════════════════════════════════

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { CLIPPED_NOUNS } from './clipped-nouns.mjs';
+import { stripComments } from './strip-comments.mjs';
 import {
   EDITOR_SECTION,
   READER_SECTION,
@@ -434,12 +435,6 @@ function checkColourUtilities() {
  * والمخالفة في ٥٥ — فيذهب القارئ إلى سطرٍ سليم ويظنّ الإنذار كاذبًا.
  * فيُفرَّغ جسدُ التعليق ويبقى `\n` مكانه: النصّ يذهب والترقيم يبقى.
  */
-function stripComments(source) {
-  const blank = (text) => text.replace(/[^\n]/g, ' ');
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, blank)
-    .replace(/(^|[^:])(\/\/[^\n]*)/g, (_match, lead, body) => `${lead}${blank(body)}`);
-}
 
 // ————— القاعدة ١١: ترحيل ماليّ بلا نقض —————
 /**

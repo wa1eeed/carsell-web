@@ -330,6 +330,38 @@ The limiter is in-memory and therefore **per instance, and lost on restart**. It
 is stated as a nuisance-blocker, not a security boundary; a real limit needs
 Redis, which already exists for the live channel.
 
+### What happened to each callback is recorded, not only that it arrived
+
+`WebhookEvent` stored the body and nothing else, and **nothing read the table**
+(gate 64 named it). Building the reader exposed three things the missing screen
+had hidden:
+
+- **`signatureOk` was never `false`.** A rejected callback returned 401 *before*
+  the store, so the column that exists to record a rejection never recorded
+  one — and a run of rejections is what a rotated key or a prober looks like.
+  It is written now, **bounded**: only when the reference already matches one of
+  our payments, so the table cannot be filled from the open internet, and capped
+  at `BAD_SIGNATURE_CAP` per payment so a known reference cannot be used either.
+- **`applyState`'s result was thrown away.** The gateway says «captured», a late
+  callback is refused as an invalid transition, the row is marked processed, and
+  nothing anywhere said so. Each event now carries its `outcome`
+  (`RECEIVED` → `APPLIED` / `UNMAPPED` / `REFUSED` / `BAD_SIGNATURE`), the status
+  actually written, and the refusal reason.
+- **A retry left no trace.** The second delivery fails the primary key and
+  returns 200; eight deliveries of one event meant nothing was recorded. Counted
+  on the existing row as `repeats`.
+
+`RECEIVED` is not decoration: the row is written **before** processing, because
+the primary key is the idempotency guard. A row still on `RECEIVED` says we died
+mid-handling, which is an event no other record would show.
+
+The type-to-status map lives in `src/lib/domain/webhooks.ts`, not in the route,
+because the admin screen reads it too — to say «a type with no matching state
+here» rather than inventing a second list that drifts.
+
+Read at `/admin/webhooks`, and on the order's own payments tab, which is where
+the operator is standing when the question comes up.
+
 ## 9 · Tax is not decided here
 
 No tax is computed on vehicle value anywhere, and no document calls itself a

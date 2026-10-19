@@ -21,6 +21,8 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { TRANSFER_EXTENSION_DAYS } from '@/lib/domain/transfer-windows';
 import { ExtendTransfer } from './ExtendTransfer';
 import { adminOrderDetail } from '@/lib/domain/admin-order-detail';
+import { webhooksForPayments } from '@/lib/domain/webhooks';
+import { WebhookRowView } from '@/app/admin/webhooks/WebhookRowView';
 import { orderTimeline } from '@/lib/domain/admin-order-timeline';
 import { LEDGER_ACCOUNT_LABEL } from '@/lib/labels/admin';
 import { STAGE_LABEL } from '@/lib/labels/charts';
@@ -174,6 +176,9 @@ export default async function AdminOrderDetailPage({
 
   /** الصياغة من `labels/orders` — قاعدةٌ واحدة تقرؤها اللوحة كلُّها. */
   const state = orderStateLabel(order.status, order.stage);
+
+  /** ردودُ البوّابة على دفعات هذا الطلب — تُعرض في تبويب المدفوعات. */
+  const webhooks = await webhooksForPayments(order.payments.map((payment) => payment.id));
 
   const search = await searchParams;
   const raw = typeof search.tab === 'string' ? search.tab : undefined;
@@ -573,6 +578,29 @@ export default async function AdminOrderDetailPage({
                 ))}
               </DetailCard>
             )}
+
+            {/*
+              ═══ وما قالته البوّابة، حيث يقف المشغّل ═══
+
+              `WebhookEvent` كان يُكتب بلا قارئ: الدفعة لا تتحرّك،
+              والسببُ ردٌّ متأخّر رفضه النظام أو نوعٌ لا يقابله حالٌ
+              عندنا — **والدليلُ في الجدول ولا بابَ إليه**. وموضعُ
+              السؤال هنا لا في شاشةٍ أخرى، فالباب عند موضع الحاجة.
+            */}
+            <DetailCard title="ردود بوابة الدفع">
+              {webhooks.length === 0 ? (
+                <p className="text-2xs leading-loose opacity-70">
+                  لا رد من البوابة على دفعات هذا الطلب. وهذا متوقع على البوابة
+                  التجريبية: تؤكد فورا بلا استدعاء.
+                </p>
+              ) : (
+                <div className="-my-2 flex flex-col divide-y divide-line">
+                  {webhooks.map((row) => (
+                    <WebhookRowView key={row.id} row={row} orderRef={null} purpose={null} compact />
+                  ))}
+                </div>
+              )}
+            </DetailCard>
 
             </>
           }

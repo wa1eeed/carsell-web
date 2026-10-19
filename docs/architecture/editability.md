@@ -50,7 +50,7 @@ than no check at all.
 
 | Model | Why nothing reads it |
 |---|---|
-| `WebhookEvent` | **A real gap.** Every gateway callback is stored — provider, type, `signatureOk`, `processedAt` and the full payload — and the `create` doubles as the idempotency guard, so the table is the only record of what Moyasar actually sent. Nothing reads it: when a payment goes wrong the evidence is in the table and there is no door to it. ROADMAP §30. |
+_Empty: every model has a reader._
 
 ## Removed from the register
 
@@ -63,6 +63,14 @@ surely as one that omits a model without one.
   job, at the four tiers the reader falls back through.
 - `VehicleHistoryItem` is written at the three moments the platform witnesses:
   an inspection published, a sale completed, a service done.
+- `WebhookEvent` is read at `/admin/webhooks` and, where the question actually
+  arises, on the order's own payments tab. Building the reader exposed three
+  defects the missing screen had been hiding: `signatureOk` was never `false`
+  (a rejected callback returned 401 *before* the store), `applyState`'s refusal
+  was thrown away so a late webhook was recorded as processed, and a retry left
+  no trace at all. All three are now recorded per event, and the seed plants
+  every shape — the table had zero rows, so the screen would have shipped as an
+  empty state nobody could fill.
 - `SeoTemplate` is edited at `/admin/seo`, and — the part the register was
   describing wrongly — it is **read** at last: the title and description of both
   landing pages and of unfiltered `/cars` come from it, with `src/messages`

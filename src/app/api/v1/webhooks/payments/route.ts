@@ -1,22 +1,24 @@
 import type { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
+import {
+  WEBHOOK_STATUS,
+  closeWebhook,
+  countRepeat,
+  openWebhook,
+  recordBadSignature,
+} from '@/lib/domain/webhooks';
 import { clientIp, rateLimit } from '@/lib/api/rate-limit';
 import type { PaymentRefs } from '@/lib/domain/payments';
 import { applyState } from '@/lib/domain/payments';
 import { resolveForPayment } from '@/lib/payments/resolve';
-import type { PaymentStatus } from '@/generated/prisma/enums';
 
 export const runtime = 'nodejs';
 
-/** ما ترسله البوابة ⇒ ما نكتبه عندنا — بلغة الضمان. */
-const MAPPING: Record<string, PaymentStatus> = {
-  payment_authorized: 'HELD',
-  payment_captured: 'SETTLED',
-  payment_paid: 'SETTLED',
-  payment_voided: 'CANCELLED',
-  payment_refunded: 'RETURNED',
-  payment_failed: 'FAILED',
-};
+/**
+ * ما ترسله البوابة ⇒ ما نكتبه عندنا — **وقائمتُها في النطاق**:
+ * تقرؤها الشاشةُ أيضًا لتقول «نوعٌ لا يقابله حالٌ عندنا»، ونسختان
+ * تتباعدان أوّلَ نوعٍ يُضاف.
+ */
 
 /**
  * `POST /api/v1/webhooks/payments` — ويبهوك البوابة.
@@ -73,26 +75,36 @@ export async function POST(request: NextRequest) {
   if (payment === null) return new Response('unknown reference', { status: 404 });
 
   const gateway = await resolveForPayment(payment.gatewayKey, payment.environment);
+  const envelope = {
+    id: event.id,
+    provider: payment.gatewayKey,
+    type: event.type,
+    paymentId: payment.id,
+    payload: JSON.parse(raw) as object,
+  };
+
   if (!gateway.verifySignature(raw, signature)) {
-    // لا يُخزَّن ولا يُعالَج — ومن لا توقيع له ليس البوابة
+    /**
+     * ═══ ولا يُعالَج — لكنّه يُسجَّل ═══
+     *
+     * كان يُردّ ٤٠١ **قبل** التخزين، فعمودُ `signatureOk` الذي وُضع
+     * لتسجيل الرفض لم يسجّل رفضًا قطّ. **وسلسلةُ رفضٍ هي بعينها شكلُ
+     * مفتاحٍ دُوِّر خطأً أو من يُجرّب** — ولا شيء كان يُريها.
+     *
+     * والتسجيلُ محدود: المرجعُ يطابق دفعةً عندنا، ولكلّ دفعةٍ سقف.
+     */
+    await recordBadSignature(envelope);
     return new Response('invalid signature', { status: 401 });
   }
 
-  const stored = await db.webhookEvent
-    .create({
-      data: {
-        id: event.id,
-        provider: payment.gatewayKey,
-        type: event.type,
-        signatureOk: true,
-        payload: JSON.parse(raw) as object,
-      },
-    })
-    .catch(() => null);
+  const opened = await openWebhook(envelope);
+  // **وإعادةُ الإرسال تُعدّ** — كانت تُردّ ٢٠٠ بلا أثر في مكان
+  if (!opened) {
+    await countRepeat(event.id).catch(() => null);
+    return new Response('duplicate', { status: 200 });
+  }
 
-  if (stored === null) return new Response('duplicate', { status: 200 });
-
-  const target = MAPPING[event.type];
+  const target = WEBHOOK_STATUS[event.type];
   if (target !== undefined) {
     /**
      * ═══ والتحصيل يُحفظ بمرجعه ═══
@@ -120,9 +132,32 @@ export async function POST(request: NextRequest) {
           : { settledAmount: live.settledAmount }),
       };
     }
-    await applyState(payment.id, target, 'gateway', new Date(), { webhookId: event.id }, refs);
+    const result = await applyState(
+      payment.id,
+      target,
+      'gateway',
+      new Date(),
+      { webhookId: event.id },
+      refs,
+    );
+
+    /**
+     * ═══ ونتيجةُ `applyState` تُسجَّل ═══
+     *
+     * كانت تُهمَل: البوّابة تقول «حُصِّل»، وويبهوكٌ متأخّر يُرفض
+     * انتقالُه، ويُكتب الصفُّ «معالَجًا» — **ولا أثرَ للرفض في مكان**،
+     * فيقف المشغّل أمام دفعةٍ لم تتحرّك بلا سببٍ مكتوب.
+     */
+    await closeWebhook(
+      event.id,
+      result.ok ? 'APPLIED' : 'REFUSED',
+      result.ok ? result.status : null,
+      result.ok ? null : result.reason,
+    );
+  } else {
+    // نوعٌ لا يقابله حالٌ عندنا — وصل وسُجّل ولم يُغيّر شيئًا
+    await closeWebhook(event.id, 'UNMAPPED', null, null);
   }
-  await db.webhookEvent.update({ where: { id: event.id }, data: { processedAt: new Date() } });
 
   return new Response('ok', { status: 200 });
 }

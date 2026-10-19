@@ -445,7 +445,10 @@ async function reset(): Promise<void> {
     TRUNCATE TABLE
       "CreditNote","TaxInvoiceLine","TaxInvoice","TaxRule",
       "VehicleSaleAgreement","SettlementStatement",
-      "PaymentEvent","Payment","PaymentRouteChange","PaymentRoute","PaymentGateway",
+      -- **و WebhookEvent يسمى ولا يترك للتتابع**: مفتاحه إلى الدفعة
+      -- SET NULL، فلولا التسمية لبقي صف يتيم يصف دفعة لا وجود لها.
+      -- (والعلامة الخلفية تنهي القالب النصي هنا، فلا تكتب فيه.)
+      "WebhookEvent","PaymentEvent","Payment","PaymentRouteChange","PaymentRoute","PaymentGateway",
       "DeviceToken","NotificationPreference","PushChannel","CampaignSend","Campaign","Segment",
       "ApprovalRequest","AuditLog","Report","PriceStat","SeoTemplate","Integration",
       "AdCampaign","AdSlot","NotificationTemplate","FaqPlacement","FaqItem",
@@ -1483,6 +1486,14 @@ async function main(): Promise<void> {
    */
   const CANCELLED_INDEX = 12;
   const orderListings = listings.slice(0, CANCELLED_INDEX + 1);
+  /**
+   * **والأشكالُ النادرة تُعلَّق على أوّل دفعةٍ توجد، لا على أوّل دورة.**
+   * علّقتُها أوّلًا على `i === 0` فلم تُزرع واحدةٌ منها: المرحلة عند
+   * الدورة الأولى قبل «دفع»، فلا دفعةَ أصلًا — شرطٌ صامت يُخرج صفرًا
+   * ولا يشكو.
+   */
+  let rareHooksPlanted = false;
+
   for (let i = 0; i < orderListings.length; i += 1) {
     const l = orderListings[i] as ListingRef;
     const cancelled = i === CANCELLED_INDEX;
@@ -1592,7 +1603,8 @@ async function main(): Promise<void> {
        * الذي بُني بنصاب عضوين لا يُرى عاملًا في أيّ بيئة.
        */
       const settled = stage === 'DONE';
-      await prisma.payment.create({
+      const holdRef = `hold_seed_${String(1000 + i)}`;
+      const payment = await prisma.payment.create({
         data: {
           orderId: order.id,
           purpose: 'VEHICLE_ESCROW',
@@ -1600,12 +1612,100 @@ async function main(): Promise<void> {
           amount: total,
           method: 'mada',
           status: settled ? 'SETTLED' : 'HELD',
-          holdRef: `hold_seed_${String(1000 + i)}`,
+          holdRef,
           ...(settled ? { settleRef: `stl_seed_${String(1000 + i)}`, settledAmount: total, settledAt: days(-1) } : {}),
           heldAt,
           createdAt: heldAt,
         },
       });
+
+      /**
+       * ═══ وأثرُ الدفعة يُزرع معها ═══
+       *
+       * `PaymentEvent` كان **صفرَ صفوفٍ أمام ثلاث عشرة دفعة**: البذرة
+       * تكتب الحالَ النهائيّ بلا الطريق إليه، وشاشةُ النشاط تقرأ هذا
+       * الجدول — فلا انتقالَ دفعةٍ واحد يظهر فيها في أيّ بيئة.
+       */
+      await prisma.paymentEvent.create({
+        data: {
+          paymentId: payment.id,
+          type: 'payment_authorized',
+          fromStatus: 'PENDING',
+          toStatus: 'HELD',
+          source: 'gateway',
+          createdAt: heldAt,
+        },
+      });
+      if (settled) {
+        await prisma.paymentEvent.create({
+          data: {
+            paymentId: payment.id,
+            type: 'payment_captured',
+            fromStatus: 'HELD',
+            toStatus: 'SETTLED',
+            source: 'gateway',
+            createdAt: days(-1),
+          },
+        });
+      }
+
+      /**
+       * ═══ وردُّ البوّابة يُزرع بكلّ أشكاله ═══
+       *
+       * `WebhookEvent` كان **صفرَ صفوفٍ** كذلك، فشاشةُ الردود كانت
+       * ستُشحن حالةً فارغة لا يملؤها أحد: البوّابة التجريبية تؤكّد
+       * فورًا بلا استدعاء. **وما لا يُزرع لا يُرى** — وتسعةُ عيوبٍ
+       * سكنت حالَ طلبٍ لم تفتحه شاشةٌ قطّ قبل هذا.
+       *
+       * فتُزرع الأشكال الخمسة التي يكتبها المنتج: طُبّق، ونوعٌ بلا
+       * مقابل، ورفضٌ لانتقالٍ متأخّر، وتوقيعٌ لا يطابق، وواحدٌ لم
+       * تكتمل معالجتُه.
+       */
+      const hook = (
+        suffix: string,
+        type: string,
+        extra: Partial<Prisma.WebhookEventUncheckedCreateInput>,
+        at: Date,
+      ) =>
+        prisma.webhookEvent.create({
+          data: {
+            id: `evt_seed_${String(1000 + i)}_${suffix}`,
+            provider: 'bank_escrow',
+            type,
+            signatureOk: true,
+            paymentId: payment.id,
+            payload: { id: `evt_seed_${String(1000 + i)}_${suffix}`, type, data: { id: holdRef } },
+            receivedAt: at,
+            processedAt: at,
+            ...extra,
+          },
+        });
+
+      await hook('auth', 'payment_authorized', { outcome: 'APPLIED', appliedStatus: 'HELD' }, heldAt);
+      if (settled) {
+        await hook('cap', 'payment_captured', { outcome: 'APPLIED', appliedStatus: 'SETTLED' }, days(-1));
+        // ردٌّ متأخّر بعد التحصيل — يُرفض انتقالُه، والرفضُ يُسجَّل
+        await hook(
+          'late',
+          'payment_authorized',
+          { outcome: 'REFUSED', note: 'INVALID_TRANSITION', repeats: 2 },
+          days(-1),
+        );
+      }
+      if (!rareHooksPlanted) {
+        rareHooksPlanted = true;
+        // نوعٌ ترسله البوّابة ولا يقابله حالٌ في دفتر الضمان
+        await hook('pend', 'payment_pending', { outcome: 'UNMAPPED' }, heldAt);
+        // توقيعٌ لا يطابق — ومرجعُه مع ذلك دفعةٌ عندنا
+        await hook(
+          'forged',
+          'payment_captured',
+          { outcome: 'BAD_SIGNATURE', signatureOk: false },
+          days(-2),
+        );
+        // سُجّل قبل المعالجة ولم يُغلق — أي أنّ المعالجة توقّفت
+        await hook('half', 'payment_refunded', { outcome: 'RECEIVED', processedAt: null }, days(-2));
+      }
 
       await prisma.escrow.create({
         data: {

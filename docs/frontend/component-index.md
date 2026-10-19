@@ -41,13 +41,13 @@ rather than found by chance.
 | `ExportLink` | no | `reportKey` · `allowed` | 5 |
 | `IdentityPanel` | yes | `userId` · `allowed` | 1 |
 | `KpiCard` | no | `kpi` | 1 |
-| `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 22 |
+| `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 23 |
 | `ListingCard` | no | `row` | 7 |
 | `ListSearch` | no | `action` · `value` · `placeholder` · `keep` | 6 |
-| `MonitorCards` | no | `cards` | 13 |
-| `MonitorList` | no | `children` · `empty` · `note` | 2 |
-| `MonitorRow` | no | `title` · `subtitle` · `meta` · `children` | 2 |
-| `MonitorTabs` | no | `tabs` · `active` · `basePath` · `param` | 29 |
+| `MonitorCards` | no | `cards` | 14 |
+| `MonitorList` | no | `children` · `empty` · `note` | 3 |
+| `MonitorRow` | no | `title` · `subtitle` · `meta` · `children` | 3 |
+| `MonitorTabs` | no | `tabs` · `active` · `basePath` · `param` | 30 |
 | `OfferCard` | no | `row` | 1 |
 | `OrderCard` | no | `row` | 3 |
 | `PartyLink` | no | `party` · `role` · `className` | 1 |
@@ -131,9 +131,9 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 113 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 114 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 101 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 103 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
