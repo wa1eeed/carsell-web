@@ -1,6 +1,6 @@
 # Open work — the owner's list, tracked
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-10-20_
 
 Everything the owner has asked for that is not yet done, so nothing lives only
 in a conversation. Closed items stay here with their commit so the list reads as
@@ -40,14 +40,28 @@ are examples, not the whole set — each screen is compared against its block in
       مزايدين» header and a card layout below `sm` so the amount is never
       behind a horizontal scroll. Countdown, closing-soon rail, dealer card and
       the stats strip were already built. Still missing from the design:
-  - [ ] **CSV download** of the bid log — needs a route.
+  - [x] **CSV download** of the bid log — `GET /api/v1/auctions/{ref}/bids/export`,
+        carrying exactly what the page shows (alias, time, step, type, amount)
+        and nothing it does not: no `bidderId`, no identity. Unguarded because
+        the page is, and a guard on a copy of something open reassures without
+        protecting. Extensions appear as rows, and a BOM so Excel on Windows
+        does not open the Arabic as mojibake.
   - [ ] **Cancelled bids** («ملغاة · إخلال بالشروط») — `Bid` has no
         cancellation field. Who may void a bid and on what grounds is a
-        business rule, not a layout question.
-  - [ ] **Inline event rows** — «مُدّد وقت الإغلاق ٥ دقائق» and «أُلغيت
-        مزايدة #U-… — إخلال بشروط المزاد» between the bid rows. Needs the
-        extension and cancellation events to be recorded per auction.
-  - [ ] **«اعرض الـ١٣ مزايدة الأقدم»** — the log shows every bid today.
+        business rule, not a layout question. **Asked** 2026-10-20 with a
+        proposal in `DESIGN-DECISIONS.md`; nothing is built on a guess, and
+        `AuctionEventKind` deliberately holds no value for it — a value in the
+        schema with no writer is the class this repository has closed eleven
+        times.
+  - [x] **Inline event rows** — the extension half is built: `AuctionEvent`
+        records each extension with its seconds at the moment it happens, and
+        the log prints «مدد وقت الإغلاق · ٥ دقائق» between the two bids it fell
+        between. **It used to be counted and not recorded**: `extendedCount`
+        said «extended twice» while a reader saw a bid at 21:59 and a close at
+        22:05 with nothing explaining the gap. The cancellation half waits on
+        the rule above.
+  - [x] **«اعرض الـ١٣ مزايدة الأقدم»** — the newest eight are open and the
+        rest fold behind a control that names how many it opens.
 - [~] **Account home** — the tab bar is gone; the page now stacks the design's
       sections (إعلاناتي · العروض الواردة على مركباتك · طلباتي · مزاداتي ·
       تقارير الفحص), three rows each with «عرض الكل» to the full page, and each

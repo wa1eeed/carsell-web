@@ -1642,6 +1642,45 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 37 · The auction's bid log, finished — *owner's request 2026-10-20*
+
+Four rows of the design were left open on the auction detail (`docs/BACKLOG.md`
+§ Auction detail). Three are plumbing; the fourth is a business rule and is
+asked, not guessed.
+
+- [x] **Older bids are folded.** The log prints every bid, and the design folds
+      all but the newest with «اعرض الـ١٣ مزايدة الأقدم». A log of sixty bids
+      buries the ones that decide the auction.
+- [x] **CSV of the log.** It carries exactly what the page already shows —
+      alias, time, step, type, amount — so it discloses nothing the page does
+      not. A bidder who wants to check a close needs the rows, not a screenshot.
+- [x] **Extensions appear in the log.** An auction extends itself when a bid
+      lands inside the closing window, `extendedCount` counts them, **and the
+      moment is recorded nowhere**: the reader sees a bid at 21:59 and a close
+      at 22:05 with nothing saying why. The extension is written as an event
+      and printed between the bids.
+- [ ] **Cancelled bids are a business rule, and it is asked.** `Bid` has no
+      cancellation field, and who may void a bid and on what grounds decides
+      who wins and whose deposit is forfeited. Raised with the designer;
+      nothing is built on a guess.
+- [x] Walked: a live auction with twelve bids opens on eight, the control reads
+      «اعرض ٤ مزايدات الأقدم» and opening it shows all thirteen rows, the
+      extension prints between the bids it fell between — «مدد وقت الإغلاق · ٥
+      دقائق · ١٩ أكتوبر ١٩:٥٧:٢١» — and the CSV downloads with the extension as
+      its own row and no `bidderId` anywhere in it.
+
+### What the walk caught
+
+The extension row was built in the **desktop table only**, and the table is
+hidden below `sm`. On a phone — where most of this log is read — the bids
+showed and the extension did not. What is added to one of the two layouts is
+added to the other.
+
+And the first probe of the new test passed while the writer was disabled: it
+searched for `auctionEvent.create` as text, which survives inside `if (false)`.
+The assertion is behavioural now — a bid placed inside the closing window, and
+the row it must leave behind.
+
 ## 36 · The sell page proposes a price, or stops promising one — *owner's request 2026-10-19*
 
 The hero reads «ونقترح عليك سعرا مبنيا على صفقات حقيقية لمثل سيارتك», and the

@@ -307,6 +307,20 @@ describe('auction.extend — القاعدة ٧', () => {
 
     expect(bid.ok && bid.extended).toBe(true);
     expect(bid.ok && bid.endsAt.getTime()).toBe(at(moment + EXTEND_BY_SECONDS).getTime());
+
+    /**
+     * ═══ والتمديد يُسجَّل لا يُعدّ ═══
+     *
+     * `extendedCount` يقول «مُدّد مرّتين» ولا يقول متى ولا بكم،
+     * **فيقرأ الزائر في السجلّ مزايدةً عند ٢١:٥٩ وإغلاقًا عند ٢٢:٠٥
+     * ولا شيء يفسّر الفارق**. والصفُّ هو ما يُطبع بين المزايدات.
+     */
+    const events = await db.auctionEvent.findMany({ where: { auctionId } });
+    expect(events).toHaveLength(1);
+    expect(events[0]?.kind).toBe('EXTENDED');
+    expect(events[0]?.seconds).toBe(EXTEND_BY_SECONDS);
+    expect(events[0]?.createdAt.getTime()).toBe(at(moment).getTime());
+
     await teardown();
   });
 

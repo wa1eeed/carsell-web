@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-97 models · 69 enums
+98 models · 70 enums
 
 ## Relationships
 
@@ -122,7 +122,10 @@ erDiagram
   Auction }o--|| AuctionStatus : "status"
   Auction }o--|| Listing : "listing"
   Auction ||--o{ Bid : "bids"
+  Auction ||--o{ AuctionEvent : "events"
   Auction ||--o{ Deposit : "deposits"
+  AuctionEvent }o--|| AuctionEventKind : "kind"
+  AuctionEvent }o--|| Auction : "auction"
   Bid }o--|| Auction : "auction"
   Bid }o--|| User : "bidder"
   Deposit }o--|| DepositStatus : "status"
@@ -660,7 +663,18 @@ Relations: `status` → `OfferStatus` · `listing` → `Listing` · `buyer` → 
 | `viewingAddress` | `String?` |  |
 | `sellerDecisionDueAt` | `DateTime?` |  |
 
-Relations: `status` → `AuctionStatus` · `listing` → `Listing` · `bids` → `Bid` · `deposits` → `Deposit`
+Relations: `status` → `AuctionStatus` · `listing` → `Listing` · `bids` → `Bid` · `events` → `AuctionEvent` · `deposits` → `Deposit`
+
+### `AuctionEvent`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `auctionId` | `String` |  |
+| `seconds` | `Int?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `kind` → `AuctionEventKind` · `auction` → `Auction`
 
 ### `Bid`
 
@@ -1936,6 +1950,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReviewReason` — `DUPLICATE_IMAGE /// تكرار صورة > ٩٠٪ مع إعلان مستخدم آخر`, `PRICE_OUTLIER /// سعر أقل من ٤٠٪ من PriceStat.p25`, `NEW_ACCOUNT_BURST /// حساب عمره < ٧ أيام وله أكثر من ٣ إعلانات`, `USER_REPORT /// بلاغ وارد`
 - `OfferStatus` — `PENDING`, `COUNTERED`, `ACCEPTED`, `REJECTED`, `WITHDRAWN`, `EXPIRED`
 - `AuctionStatus` — `SCHEDULED`, `LIVE`, `ENDED_MET`, `ENDED_UNMET`, `CANCELLED`
+- `AuctionEventKind` — `EXTENDED`
 - `DepositStatus` — `HELD`, `RELEASED`, `FORFEITED`, `APPLIED`
 - `OrderSource` — `DIRECT`, `OFFER`, `AUCTION`, `BUY_NOW`
 - `OrderStage` — `REQUEST`, `APPROVED`, `INSPECTION`, `PAYMENT`, `TRANSFER`, `DONE`

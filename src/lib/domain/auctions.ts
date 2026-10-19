@@ -186,6 +186,18 @@ export async function placeBid(
         where: { id: auction.id },
         data: { endsAt, extendedCount: { increment: 1 } },
       });
+
+      /**
+       * ═══ والتمديد يُسجَّل لا يُعدّ ═══
+       *
+       * `extendedCount` يقول «مُدّد مرّتين» ولا يقول متى ولا بكم،
+       * **فيقرأ الزائر في السجلّ مزايدةً عند ٢١:٥٩ وإغلاقًا عند
+       * ٢٢:٠٥ ولا شيء يفسّر الفارق** — والتصميم يرسم سطرًا بينهما.
+       * والعدُّ ليس سجلًّا.
+       */
+      await tx.auctionEvent.create({
+        data: { auctionId: auction.id, kind: 'EXTENDED', seconds: extendBy, createdAt: now },
+      });
     }
 
     /**
@@ -799,6 +811,13 @@ export type PublicAuction = {
     step: string | null;
     top: boolean;
   }[];
+  /**
+   * ما وقع للمزاد خارج المزايدات — ويُطبع بينها بوقته.
+   *
+   * **والتمديد كان يُعَدّ ولا يُسجَّل**: يقرأ الزائرُ مزايدةً عند
+   * ٢١:٥٩ وإغلاقًا عند ٢٢:٠٥ ولا شيء يفسّر الفارق.
+   */
+  events: { kind: 'EXTENDED'; seconds: number | null; at: string }[];
   /** سعر الافتتاح ووقتُه — قاع السجلّ في التصميم. */
   openedAt: string;
   /** إحصاءات السجلّ: متوسّط الفرق · آخر مزايدة · مرّات التمديد. */
@@ -854,6 +873,7 @@ export async function getAuction(
     include: {
       listing: { select: { ref: true } },
       bids: { orderBy: { createdAt: 'desc' }, take: 50 },
+      events: { orderBy: { createdAt: 'desc' }, take: 20 },
       _count: { select: { bids: true } },
     },
   });
@@ -910,6 +930,11 @@ export async function getAuction(
         top: index === 0,
       };
     }),
+    events: auction.events.map((event) => ({
+      kind: event.kind,
+      seconds: event.seconds,
+      at: event.createdAt.toISOString(),
+    })),
     openedAt: auction.startsAt.toISOString(),
     averageStep:
       auction.bids.length < 2 || highest === null

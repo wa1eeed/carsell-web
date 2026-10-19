@@ -911,6 +911,7 @@ model Auction {
 
   listing  Listing   @relation(fields: [listingId], references: [id], onDelete: Restrict)
   bids     Bid[]
+  events   AuctionEvent[]
   deposits Deposit[]
 
   @@index([status, endsAt])
@@ -922,6 +923,31 @@ enum AuctionStatus {
   ENDED_MET
   ENDED_UNMET
   CANCELLED
+}
+
+/// ما وقع للمزاد خارج المزايدات — ويُطبع بينها في السجلّ.
+///
+/// **والتمديد كان يقع ولا يُسجَّل**: `extendedCount` يَعُدّ ولا يقول
+/// متى ولا بكم، فيقرأ الزائرُ مزايدةً عند ٢١:٥٩ وإغلاقًا عند ٢٢:٠٥
+/// ولا شيء يفسّر الفارق. والعدُّ ليس سجلًّا.
+model AuctionEvent {
+  id        String           @id @default(cuid())
+  auctionId String
+  kind      AuctionEventKind
+  /// ثوانٍ أُضيفت — للتمديد وحده، و`null` لغيره.
+  seconds   Int?
+  createdAt DateTime         @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId, createdAt])
+}
+
+/// ولا قيمةَ هنا بلا كاتب — والإلغاء قاعدةُ عملٍ لم تُقرَّر بعد،
+/// فلا تُعرَّف قيمتُه قبل أن يُعرَف من يملكه وبأيّ سبب.
+enum AuctionEventKind {
+  /// مُدّد وقت الإغلاق لأنّ مزايدةً وقعت داخل نافذة الإغلاق.
+  EXTENDED
 }
 
 model Bid {

@@ -18,7 +18,6 @@ closed that class a dozen times; the list is here so it is seen in a table
 rather than found by chance.
 
 - `BidStatus` — `src/components/site/AuctionSections.tsx`
-- `BidStep` — `src/components/site/AuctionSections.tsx`
 - `EmblemIcon` — `src/components/ui/plate/EmblemGraphic.tsx`
 
 ## `src/components/admin`
@@ -34,7 +33,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 10 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 10 |
 | `DetailStats` | no | `items` | 12 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 128 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 129 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -70,18 +69,18 @@ rather than found by chance.
 | `AuctionTerms` | no | `terms` | 1 |
 | `BidLogHead` | no | `bids` | 1 |
 | `BidLogStats` | no | `auction` | 1 |
-| `BidLogTable` | no | `bids` · `locale` | 1 |
 | `BidStatus` | no | `top` · `isAuto` | 0 |
-| `BidStep` | no | `step` | 0 |
+| `BidStep` | no | `step` | 1 |
 | `ClosingSoonRail` | no | `items` | 2 |
 | `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
 | `SpecStrip` | no | `items` | 1 |
 | `Choice` | yes | `options` · `active` · `onSelect` | 3 |
-| `Note` | yes | `children` | 100 |
+| `Note` | yes | `children` | 101 |
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
 | `SettingsBlock` | yes | `title` · `children` | 2 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 7 |
+| `BidLogTable` | yes | `bids` · `events` · `locale` · `listingRef` | 1 |
 | `BidPanel` | yes | `listingRef` · `live` · `minimumNext` · `increment` · `depositAmount` · `buyNowPrice` · `signedIn` · `isOwn` · `locale` · `onPlaced` | 2 |
 | `BuyActions` | yes | `listingRef` · `price` · `type` · `isOwn` · `reserved` · `signedIn` · `locale` · `taxProfile` | 1 |
 | `CancelOrder` | yes | `orderRef` | 1 |
@@ -131,9 +130,9 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 115 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 116 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 104 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 105 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
@@ -151,7 +150,7 @@ rather than found by chance.
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
-| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 128 |
+| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 129 |
 | `FieldNote` | no | `id` · `children` | 1 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
@@ -178,7 +177,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 111 |
+| `Quantity` | no | `unit` · `count` · `className` | 112 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

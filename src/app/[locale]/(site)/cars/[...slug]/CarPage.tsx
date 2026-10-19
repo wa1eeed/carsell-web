@@ -29,7 +29,6 @@ import {
   AuctionTerms,
   BidLogHead,
   BidLogStats,
-  BidLogTable,
   ClosingSoonRail,
   SellerCard,
   SpecStrip,
@@ -42,6 +41,7 @@ import type { PublicAuction, ViewerStanding } from '@/lib/domain/auctions';
 import { HistoryList } from '@/components/ui/HistoryList';
 import { PaintMap } from '@/components/ui/PaintMap';
 import { Quantity } from '@/components/ui/Quantity';
+import { BidLogTable } from '@/components/site/BidLog';
 import { RangeBar } from '@/components/ui/RangeBar';
 import { InspectionSummary } from '@/components/site/InspectionSummary';
 import { ScoreRing } from '@/components/ui/ScoreRing';
@@ -793,7 +793,12 @@ export function CarPage({
               لا مزايدات بعد — وأول مزايدة تبدأ من سعر الافتتاح.
             </p>
           ) : (
-            <BidLogTable bids={(shown ?? auction).bids} locale={locale} />
+            <BidLogTable
+              bids={(shown ?? auction).bids}
+              events={(shown ?? auction).events}
+              locale={locale}
+              listingRef={(shown ?? auction).listingRef}
+            />
           )}
 
           <BidLogStats auction={shown ?? auction} />
