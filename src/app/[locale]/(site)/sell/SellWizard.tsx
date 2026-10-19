@@ -796,7 +796,8 @@ export function SellWizard({
               price={Number(toLatinDigits(price).replace(/\D/g, ''))}
               stat={priceStat}
               segment={segmentLabel}
-              />
+              onUse={(suggested) => setPrice(String(suggested))}
+            />
 
             {/*
               ═══ استثناء الإعلان الواحد ═══

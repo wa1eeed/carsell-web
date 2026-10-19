@@ -1,6 +1,6 @@
 # The register — everything the owner asked for, in the order they set it
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-10-20_
 
 This file exists because the owner asked for one thing above all others: that
 nothing they have asked for gets lost. A promise does not guarantee that; a
@@ -1641,6 +1641,49 @@ platform itself knows and the buyer most wants to read.
       repository's standing rule, followed rather than rediscovered.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
+
+## 36 · The sell page proposes a price, or stops promising one — *owner's request 2026-10-19*
+
+The hero reads «ونقترح عليك سعرا مبنيا على صفقات حقيقية لمثل سيارتك», and the
+wizard does nothing of the kind: `PriceGuidance` returns `null` while the price
+field is empty, so it **positions a number the seller already chose** — it never
+proposes one. For a model with no `PriceStat` row, 42 of 73 of them, nothing
+appears either way and the seller is left with an empty box under a sentence
+that promised help.
+
+- [x] Propose the median **before** a price is typed, with the slice it was
+      computed on and the number of deals behind it, and a control that fills
+      the field with it.
+- [x] Say so when there is nothing to propose. The hero made a promise; silence
+      after a promise reads as a fault in the page, not as absent data.
+- [x] **And the hero promises what always happens.** «نقترح» is true only where
+      a stat exists; the sentence now says we show where the price sits, and
+      the proposal appears on top of that when the data is there. A screen that
+      says one thing while the system does another is a broken promise, which
+      this repository stops for even when the difference looks small.
+- [x] Walked the wizard to the price step on a Tucson 2024: the card reads
+      «سعر مقترح لمثل سيارتك · ٨٦٬٠٠٠ · توسان ٢٠٢٤ · ٥٢ صفقة», and the figure
+      is the stored `p50` for that slice to the riyal. Pressing «استخدم هذا
+      السعر» filled the field and the card switched to positioning — «سعرك ضمن
+      السوق», 70,500 · 86,000 · 101,500.
+- [x] **And the slice names what the figure was computed on, not what was
+      asked.** The stat row's city is `*`, so the card says «توسان ٢٠٢٤» with
+      no city — the lie recorded in CLAUDE.md, avoided by `scopedToCity`.
+
+### And the gate's own clock
+
+Gate 65 compared the stamp against `toISOString()`, which is UTC. At 00:31 in
+Riyadh it read yesterday and refused a document dated today — **the first three
+hours of every day would have failed**, on the first midnight after it was
+switched on. A date written in a document is a human claim in its writer's
+timezone, so it is measured in that timezone.
+
+### What the walk caught
+
+`RangeBar` reserved `pt-7` — 28px — for a label that is **two lines**: «هذا
+الإعلان» and the price, 41px together. So the price sat **on** the bar and read
+as clipped, and it is the number the reader came for. A test could not see it;
+the measurement is 3px of clearance where there had been −13.
 
 ## 35 · The two-approval requirement is removed — *owner's decision 2026-10-14, built 2026-10-19*
 

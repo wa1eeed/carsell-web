@@ -3971,7 +3971,15 @@ function checkDocsReviewed() {
     return; // خارج مستودع git — لا قياس، ولا إنذارٌ كاذب
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  /**
+   * ═══ واليومُ بتوقيت الجهاز لا بـUTC ═══
+   *
+   * `toISOString` تُخرج UTC، **فأوّلُ ثلاث ساعاتٍ من كلّ يومٍ في
+   * الرياض تسقط**: الكاتبُ يؤرّخ بيومه والبوابة تقرأ أمس فتقول
+   * «تاريخٌ في المستقبل». وقعت في أوّل منتصفِ ليلٍ بعد تفعيلها.
+   * والتاريخُ في وثيقةٍ دعوى بشرية بتوقيت كاتبها، فيُقاس به.
+   */
+  const today = new Date().toLocaleDateString('en-CA');
 
   const walkDocs = (dir) => {
     const out = [];

@@ -72,7 +72,15 @@ export function RangeBar({
 
   return (
     <div className={cn('flex flex-col gap-3.5', className)}>
-      <div className="relative pt-7">
+      {/*
+        ═══ والحشوُ يسع التسمية بسطرَيها ═══
+
+        كان `pt-7` (٢٨ بكسلًا) والتسميةُ سطران: «هذا الإعلان» ثمّ الرقم
+        — واحدٌ وأربعون بكسلًا. **فكان الرقمُ يركب الشريط** ويُقرأ
+        مقصوصًا، وهو السعرُ الذي جاء القارئُ لأجله. وكشفه فتحُ الشاشة
+        لا اختبار: المقاسُ لا يسقط، والرقمُ يُقرأ نصفَه.
+      */}
+      <div className="relative pt-11">
         {/* التسمية موسَّطة على المؤشّر */}
         <div
           className="absolute top-0 -translate-x-1/2 rtl:translate-x-1/2"

@@ -1076,7 +1076,11 @@
     "plate": "Licence plate",
     "plateHint": "Letters from the traffic department list; numbers accept Arabic or Latin digits.",
     "showPlate": "Show the plate on the listing",
-    "showPlateHint": "Plates are always blurred in photos. Showing it as text is your choice and can be changed later."
+    "showPlateHint": "Plates are always blurred in photos. Showing it as text is your choice and can be changed later.",
+    "suggestTitle": "A suggested price for a car like yours",
+    "suggestNote": "Half of what sold in this slice went above this figure and half below — built from completed deals, not asking prices.",
+    "suggestUse": "Use this price",
+    "suggestNone": "Not enough completed deals like yours yet. Enter your price and we will show where it sits once there are."
   },
   "order": {
     "subtitle": "Where your order and your money stand.",
