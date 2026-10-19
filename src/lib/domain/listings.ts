@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { monthlyPayment } from './money';
 import { MAX_CARD_BADGES, type CardBadge } from '@/lib/catalog/badges';
 import { cityLabel } from '@/lib/labels/cities';
 import { vehicleTitle } from './vehicle-title';
@@ -479,17 +480,6 @@ export type SearchResult = {
  * القسط الشهري التقريبي — حساب محلي بلا استدعاء (قرار ١٤).
  * قسط ثابت على رأس مال بعد دفعة أولى، بنسبة ربح سنوية بسيطة.
  */
-function monthlyPayment(
-  price: number,
-  downPct: number,
-  months: number,
-  ratePct: number,
-): number {
-  const principal = price * (1 - downPct / 100);
-  const total = principal * (1 + (ratePct / 100) * (months / 12));
-  return Math.round(total / months / 10) * 10;
-}
-
 export async function searchListings(
   filters: Filters,
   locale = 'ar',

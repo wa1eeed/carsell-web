@@ -1787,6 +1787,61 @@
         }
       }
     },
+    "/api/v1/admin/financing": {
+      "put": {
+        "summary": "PUT /api/v1/admin/financing",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "downPaymentPct": {
+                    "type": "number"
+                  },
+                  "months": {
+                    "type": "integer"
+                  },
+                  "profitRatePct": {
+                    "type": "number"
+                  },
+                  "minPrice": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "downPaymentPct",
+                  "months",
+                  "profitRatePct",
+                  "minPrice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/identity/{userId}": {
       "post": {
         "summary": "POST /api/v1/admin/identity/{userId}",

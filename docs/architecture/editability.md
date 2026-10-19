@@ -31,7 +31,6 @@ about: **can anybody change this row without a deploy?**
 | `Invoice` | **Legacy, superseded.** The real one is `TaxInvoice`, written by `issueInvoice` in `tax.ts` with ZATCA numbering, a rule snapshot and a QR. This table keeps six seeded rows and nothing reads it for tax. Removing it is a destructive migration on a table with `User` and `Order` relations, so it waits for a deliberate cleanup. |
 | `SeoTemplate` | **A real gap.** The intro and outro printed on public landing pages — read by search engines before anybody else — cannot be changed without a deploy. |
 | `FinanceProvider` | **A real gap.** Financing partners are seeded. Adding or removing one needs a deploy. |
-| `FinanceSetting` | **A real gap.** The down-payment percentage, term and profit rate behind every «أو شهريا» figure on a car card. A rate change needs a deploy. |
 | `Entitlement` | Plan entitlements are seeded with their plan. `Plan` itself is editable from `/admin/plans`; what each plan *grants* is not. Six entitlements already have no reader at all — recorded in `docs/NOTES.md`. |
 | `Subscription` | Nothing subscribes: there is one free plan at zero commission and no paid tier yet. The table waits for the dealer panel, which the owner deferred. |
 | `DeviceToken` | **Not seeded either** — nothing creates one. Push tokens come from a mobile app that does not exist; the only code touching the table deletes rows on account closure. |
@@ -47,6 +46,10 @@ surely as one that omits a model without one.
   job, at the four tiers the reader falls back through.
 - `VehicleHistoryItem` is written at the three moments the platform witnesses:
   an inspection published, a sale completed, a service done.
+- `FinanceSetting` is edited at `/admin/financing`, which shows the instalment
+  its numbers produce on three sample prices **before** the save — «نسبة الربح
+  ٦٪» does not say what «٢٬١٤٠ شهريا» says, and the figure it publishes sits
+  under every car on the platform.
 
 ## What this does not claim
 

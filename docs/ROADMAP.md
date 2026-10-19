@@ -1640,6 +1640,38 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 29 · Financing terms, editable at last — *owner's request 2026-10-19*
+
+> «اصلح FinanceSetting»
+
+Four numbers — down payment, term, annual profit rate, and the price floor
+below which no instalment is shown at all — sitting behind every «أو شهريا» on
+every car card, and behind whether a listing counts as financeable. Seeded, and
+**nothing edited them**: changing a rate the financier renegotiates each season
+needed a full deploy. Named by gate 63.
+
+- [x] `/admin/financing`, in «الإعدادات — المال» beside tax, plans and
+      deadlines — `/admin/finance` is the P&L dashboard, a different thing.
+- [x] **The screen shows the instalment its numbers produce, on three sample
+      prices, before the save.** «نسبة الربح ٦٪» does not say what «٢٬١٤٠
+      شهريا» says, and the figure being published sits under every car.
+- [x] Limits enforced in the domain, not the field: a direct call arrives
+      without a screen, and a stray value prints a nonsense instalment platform
+      wide. A 100% down payment is rejected — principal zero, instalment zero,
+      a number that means nothing.
+- [x] Every change writes an `AuditLog`.
+- [x] **And the instalment formula was written twice**, byte for byte, in
+      `listings.ts` and `listing-detail.ts` — two copies of a money rule that
+      diverge at the first edit, so the search card says one figure and the car
+      page another. Moved to `money.ts`, which both now call. Making its inputs
+      editable raised that risk rather than lowering it.
+- [x] The screen computes live, so it cannot import `money.ts` — that reaches
+      `db` through `tax.ts` and would drag Prisma into the browser bundle. The
+      shared half lives in `src/lib/finance/terms.ts`, and **a test asserts the
+      two produce identical figures** across four cases rather than trusting it.
+- [x] Walked: the panel saved 9%, and a public search card for an 88,000 car
+      then read «أو شهريا ١٬٧٠٠» — the formula's exact output. Restored after.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

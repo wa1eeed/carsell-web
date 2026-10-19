@@ -151,6 +151,12 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'الرسوم والضرائب', href: '/admin/tax', permission: 'finance.view', description: 'نسب الضريبة وقواعد الإصدار ومن يصدر الفاتورة.' },
       { label: 'الباقات والعمولة', href: '/admin/plans', permission: 'finance.view', description: 'باقات البائعين ونسب العمولة على كل بيعة.' },
       { label: 'طرق الدفع', href: '/admin/payments', permission: 'finance.view', description: 'أي بوابة تستقبل كل غرض، ورسوم المعالجة.' },
+      /**
+       * **والتمويل إعدادُ منتجٍ لا تقريرُ أرباح.** `/admin/finance`
+       * لوحةُ الربح والخسارة، وهذه الأربعةُ أرقام تبني «أو شهريا»
+       * على كلّ بطاقة — وكانت لا تتغيّر إلّا بنشر (البوابة ٦٣).
+       */
+      { label: 'التمويل والقسط', href: '/admin/financing', permission: 'finance.view', description: 'الدفعة الأولى والمدة ونسبة الربح وأقل سعر يظهر له قسط.' },
       { label: 'المدد والمهل', href: '/admin/deadlines', permission: 'finance.view', description: 'مهلة الدفع ونافذة النقل وقرار البائع وغيرها.' },
     ],
   },

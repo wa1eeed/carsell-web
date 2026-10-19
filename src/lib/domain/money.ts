@@ -146,3 +146,29 @@ export function serviceTotal(
   const vat = net.times(new Prisma.Decimal(vatPct)).dividedBy(100).toDecimalPlaces(2);
   return { providerNet, platformFee, net, vat, total: net.plus(vat) };
 }
+
+/**
+ * ═══ القسطُ التقريبيّ — قاعدةُ مالٍ تُكتب مرّة ═══
+ *
+ * كانت **مكتوبةً مرّتين** حرفًا بحرف: نسخةٌ محلّية في `listings.ts`
+ * وأخرى مصدَّرة في `listing-detail.ts`. ونسختان لقاعدة مالٍ تتباعدان
+ * أوّلَ تغيير — فتقول بطاقةُ البحث «١٬٩٠٠ شهريًّا» وصفحةُ السيارة
+ * «٢٬١٤٠» للسيارة نفسها، ولا شيء يقول أيُّهما الصواب.
+ *
+ * **وخطرُها ازداد يوم صارت مدخلاتُها تُحرَّر من اللوحة**: من يغيّر
+ * نسبةَ الربح يغيّر نصفَ الشاشات لا كلَّها.
+ *
+ * وهي قرارُ ١٤: قسطٌ ثابت على رأس مالٍ بعد دفعةٍ أولى، بنسبة ربحٍ
+ * سنوية بسيطة — حسابٌ محلّيّ بلا استدعاء مموّل، ويُقرَّب إلى أقرب
+ * عشرة فلا يُقرأ وعدًا بالهللة.
+ */
+export function monthlyPayment(
+  price: number,
+  downPct: number,
+  months: number,
+  ratePct: number,
+): number {
+  const principal = price * (1 - downPct / 100);
+  const total = principal * (1 + (ratePct / 100) * (months / 12));
+  return Math.round(total / months / 10) * 10;
+}

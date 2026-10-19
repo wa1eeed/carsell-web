@@ -1,4 +1,7 @@
 import { db } from '@/lib/db';
+import { monthlyPayment } from './money';
+/** **وقاعدةُ القسط في `money.ts` وحدها** — وهذه إعادةُ تصديرٍ لمن اعتادها هنا. */
+export { monthlyPayment };
 import { activeRule, commissionFrom } from './order-amounts';
 import { cityLabel } from '@/lib/labels/cities';
 import { brandLabel, modelLabel, vehicleTitle } from './vehicle-title';
@@ -452,16 +455,7 @@ export async function findListingForMetadata(ref: string) {
 }
 
 /** القسط الشهري — حساب محلّي بلا استدعاء (قرار ١٤). */
-export function monthlyPayment(
-  price: number,
-  downPct: number,
-  months: number,
-  ratePct: number,
-): number {
-  const principal = price * (1 - downPct / 100);
-  const total = principal * (1 + (ratePct / 100) * (months / 12));
-  return Math.round(total / months / 10) * 10;
-}
+
 
 function paintPanels(map: unknown): PaintPanel[] {
   if (typeof map !== 'object' || map === null) return [];
