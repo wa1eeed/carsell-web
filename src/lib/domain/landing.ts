@@ -90,6 +90,22 @@ export type LandingContent = LandingKey & {
   /** ما يُبنى منه العنوان والوصف — والصياغة في الشاشة. */
   priceMin: string | null;
   priceMax: string | null;
+  /**
+   * ═══ سعرُ المركبة الوسطى في هذه الصفحة ═══
+   *
+   * **لا متوسّطَ سوق.** القرار ٢٦ طلب `{median}` من `PriceStat`،
+   * ومفتاحُه `modelId × year × trimId × city × mileageBucket`: فرقمٌ
+   * يُجمع عبر صفوفه يخلط موديل ٢٠١٥ بموديل ٢٠٢٤ ويُقدَّم «وسيطَ سعر
+   * الطراز في المدينة» — وهي الكذبة المسجّلة في CLAUDE.md: «الوصفُ
+   * يُبنى من المُطابِق لا من المُدخَل».
+   *
+   * وهذا رقمٌ عن **هذه الصفحة وحدها**، مقروءٌ من `where` نفسِه الذي
+   * أخرج العدّ والمدى — فلا يمكن أن يصف شريحةً غير المعروضة.
+   *
+   * **وهو سعرُ سيارةٍ قائمة لا حسابًا**: عند العدد الزوجيّ يُؤخذ
+   * الأدنى من الوسطَيْن، فيبقى الرقمُ ثمنًا يراه الزائر في الشبكة.
+   */
+  priceMid: string | null;
   inspectedCount: number;
   /** مسار البحث المكافئ — الصفحة بوّابةٌ إليه لا بديلٌ عنه. */
   searchQuery: string;
@@ -161,8 +177,20 @@ export async function landingContent(
     },
   };
 
-  const [bounds, inspectedCount, brandId, modelId] = await Promise.all([
+  /**
+   * موضعُ الوسطى: `floor((n-1)/2)` — الأدنى من الوسطَيْن عند الزوجيّ.
+   * و`skip` لا جلبُ الشريحة كلّها: صفٌّ واحد يعود مهما كبرت.
+   */
+  const middle = Math.floor((picked.count - 1) / 2);
+
+  const [bounds, midRow, inspectedCount, brandId, modelId] = await Promise.all([
     db.listing.aggregate({ where, _min: { askPrice: true }, _max: { askPrice: true } }),
+    db.listing.findFirst({
+      where,
+      orderBy: { askPrice: 'asc' },
+      skip: middle,
+      select: { askPrice: true },
+    }),
     db.listing.count({
       /** **المنشور وحده** — وعدّادٌ يعدّ تقارير خاصّة يَعِد بما لا يُفتح. */
       where: {
@@ -194,6 +222,7 @@ export async function landingContent(
     modelId: modelId?.id ?? null,
     priceMin: bounds._min.askPrice?.toString() ?? null,
     priceMax: bounds._max.askPrice?.toString() ?? null,
+    priceMid: midRow?.askPrice.toString() ?? null,
     inspectedCount,
     searchQuery: params.toString(),
   };

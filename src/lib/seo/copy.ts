@@ -46,6 +46,7 @@ export function landingSeoValues(content: LandingContent, locale: NumeralLocale)
     count: formatNumber(content.count, locale),
     priceMin: money(content.priceMin),
     priceMax: money(content.priceMax),
+    priceMid: money(content.priceMid),
     inspected: content.inspectedCount === 0 ? null : formatNumber(content.inspectedCount, locale),
   };
 }

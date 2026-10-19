@@ -1640,6 +1640,47 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 32 · The two open questions from §30, answered — *owner's decision 2026-10-19*
+
+> «طبق الاثنين»
+
+**A median that is true.** Decision 26 asked for `{median}` from `PriceStat`,
+and §30 left it out because that table is keyed by model × year × trim × city ×
+mileage bucket: anything aggregated across those rows is not «the median price
+of a Yukon in Jeddah», it is 2015 mixed with 2024. The variable now exists and
+says something else — **the middle asking price among the listings on this very
+page**, read from the same `where` clause that produced the count and the range,
+so it cannot describe a different slice than the one shown. It is an observed
+price, not an average: for an even count the lower of the two middles, so the
+figure is always a real car's asking price.
+
+- [x] `priceMid` in `landingContent`, computed from the page's own slice.
+- [x] No separate threshold: a landing page does not exist below
+      `MIN_LISTINGS`, so the figure is always backed by at least three cars.
+      Inventing a second cut-off would be a number nobody could justify.
+
+**The intro leaves the screen.** It repeated the stat row above it almost word
+for word, and a visitor arriving from a search engine read the same three facts
+twice. It stays as the `<meta description>`, which is the only place it was ever
+doing work — that is the text the search result shows, and its numbers are what
+earns the click. The outro stays on the page, because it says what the stat row
+cannot: inspection reports that can be read before contacting a seller, and
+payment held until ownership moves.
+
+- [x] Removed from both landing pages; still the description for both, and for
+      unfiltered `/cars`.
+- [x] **And the panel stops promising otherwise.** The field was labelled
+      «المقدمة» beside a preview headed «الوصف والمقدمة» — a screen that says a
+      text appears on the page while it does not is a broken promise, which this
+      repository stops for even when the difference looks like a detail.
+- [x] Walked: the duplicated paragraph is gone from the page, the description
+      now reads «وأسعارها من 28,000 إلى 97,000 ريال وأوسطها 72,000» — and the
+      three cars on that page are listed at 28,000 · 72,000 · 97,000, so the
+      figure is the middle one's own asking price.
+- [x] Proved by breaking it three ways: taking the lowest instead of the
+      middle, widening the query to all published listings, and putting the
+      intro back on the page. Each failed the test it should.
+
 ## 31 · `WebhookEvent` — the gateway's own words, with no door — *owner's request 2026-10-19*
 
 > «اصلح WebhookEvent»

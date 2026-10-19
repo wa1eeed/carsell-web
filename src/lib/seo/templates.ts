@@ -32,15 +32,19 @@ export function isSeoSurface(value: string): value is SeoSurface {
  *
  * **ولا متوسّطَ سوقٍ فيها.** القرار ٢٦ يسمّي `PriceStat` مصدرًا
  * للمتغيّرات، ومفتاحُه `model × year × trim × city × mileageBucket`:
- * فمتوسّطٌ يُجمع عبر السنوات ليس «متوسّط سعر يوكن في جدة» بل خلطُ
- * موديل ٢٠١٥ بموديل ٢٠٢٤. وCLAUDE.md يسجّل هذه الكذبة بعينها —
- * «الوصفُ يُبنى من المُطابِق لا من المُدخَل» — فالسؤال رُفع إلى
- * المصمّم، والقائمة تبقى على ما تُطابقه الصفحة حرفًا.
+ * فمتوسّطٌ يُجمع عبر صفوفه ليس «وسيط سعر يوكن في جدة» بل خلطُ موديل
+ * ٢٠١٥ بموديل ٢٠٢٤. وCLAUDE.md يسجّل هذه الكذبة بعينها — «الوصفُ
+ * يُبنى من المُطابِق لا من المُدخَل».
+ *
+ * و`priceMid` ليس ذاك: **سعرُ المركبة الوسطى في هذه الصفحة**، من
+ * `where` نفسِه الذي أخرج العدّ والمدى. (قرار المالك ٢٠٢٦-١٠-١٩.)
  */
 export const SEO_VARIABLES: Record<SeoSurface, readonly string[]> = {
   search: ['count'],
-  landing_brand: ['brand', 'city', 'count', 'priceMin', 'priceMax', 'inspected'],
-  landing_model: ['brand', 'model', 'city', 'count', 'priceMin', 'priceMax', 'inspected'],
+  landing_brand: ['brand', 'city', 'count', 'priceMin', 'priceMax', 'priceMid', 'inspected'],
+  landing_model: [
+    'brand', 'model', 'city', 'count', 'priceMin', 'priceMax', 'priceMid', 'inspected',
+  ],
 };
 
 /** نفسُ نمط `notification-text` — صيغةٌ واحدة للمتغيّر في المنصّة كلّها. */

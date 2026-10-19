@@ -2789,13 +2789,13 @@ async function main(): Promise<void> {
         titleEn:
           '{brand} cars for sale in {city}',
         introAr:
-          'سيارات {brand} المعروضة الآن في {city}: {count}. وأسعارها من {priceMin} إلى {priceMax} ريال، وكلها موثقة الملكية على كارز.',
+          'سيارات {brand} المعروضة الآن في {city}: {count}. وأسعارها من {priceMin} إلى {priceMax} ريال وأوسطها {priceMid}، وكلها موثقة الملكية على كارز.',
         introEn:
-          '{brand} cars listed in {city} right now: {count}. Priced from {priceMin} to {priceMax} SAR, all with verified ownership on CARZ.',
+          '{brand} cars listed in {city} right now: {count}. Priced from {priceMin} to {priceMax} SAR with the middle one at {priceMid}, all with verified ownership on CARZ.',
         outroAr:
-          'وتقارير الفحص المنشورة في هذه الصفحة: {inspected}. تقرؤها قبل أن تتواصل مع البائع، والدفع محفوظ حتى تنقل الملكية.',
+          'تقارير الفحص المنشورة في هذه الصفحة: {inspected}. تقرؤها قبل أن تتواصل مع البائع، والدفع محفوظ حتى تنقل الملكية باسمك.',
         outroEn:
-          'Published inspection reports on this page: {inspected}. Read them before contacting the seller, and payment is held until ownership moves.',
+          'Published inspection reports on this page: {inspected}. Read them before contacting the seller, and payment is held until ownership moves to your name.',
       },
       {
         key: 'landing_city_brand_model',
@@ -2805,13 +2805,13 @@ async function main(): Promise<void> {
         titleEn:
           '{brand} {model} for sale in {city}',
         introAr:
-          '{brand} {model} المعروضة الآن في {city}: {count}. وأسعارها من {priceMin} إلى {priceMax} ريال على كارز، مع نقل ملكية ودفع محفوظ.',
+          '{brand} {model} المعروضة الآن في {city}: {count}. وأسعارها من {priceMin} إلى {priceMax} ريال وأوسطها {priceMid}، مع نقل ملكية ودفع محفوظ على كارز.',
         introEn:
-          '{brand} {model} listed in {city} right now: {count}. Priced from {priceMin} to {priceMax} SAR on CARZ, with ownership transfer and protected payment.',
+          '{brand} {model} listed in {city} right now: {count}. Priced from {priceMin} to {priceMax} SAR with the middle one at {priceMid}, with ownership transfer and protected payment on CARZ.',
         outroAr:
-          'وتقارير الفحص المنشورة في هذه الصفحة: {inspected}. تذكر حالة الهيكل والمحرك وقطع الغيار المستبدلة.',
+          'تقارير الفحص المنشورة في هذه الصفحة: {inspected}. تذكر حالة الهيكل والمحرك وقطع الغيار المستبدلة، وتقرأ قبل أن تتواصل مع البائع.',
         outroEn:
-          'Published inspection reports on this page: {inspected}. They cover body, engine and replaced parts.',
+          'Published inspection reports on this page: {inspected}. They cover body, engine and replaced parts, and are read before you contact the seller.',
       },
     ],
   });

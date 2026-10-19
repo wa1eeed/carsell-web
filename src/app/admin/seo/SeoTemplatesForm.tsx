@@ -25,13 +25,19 @@ type Draft = {
   active: boolean;
 };
 
+/**
+ * **والتسميةُ تقول أين يقع النصّ فعلًا.** كان الحقلُ «المقدمة» وفوق
+ * المعاينة «الوصف والمقدمة»، ثمّ خرجت المقدّمةُ من الشاشة وبقيت وصفًا
+ * لنتيجة البحث — **وشاشةٌ تقول شيئًا والنظام يفعل غيره وعدٌ مُخلَف**،
+ * يُوقَف عنده ولو بدا الفرقُ تفصيلًا.
+ */
 const FIELDS = [
   { key: 'titleAr', label: 'العنوان (عربي)', en: false, rows: 1 },
   { key: 'titleEn', label: 'العنوان (إنجليزي)', en: true, rows: 1 },
-  { key: 'introAr', label: 'المقدمة (عربي)', en: false, rows: 3 },
-  { key: 'introEn', label: 'المقدمة (إنجليزي)', en: true, rows: 3 },
-  { key: 'outroAr', label: 'الخاتمة (عربي)', en: false, rows: 3 },
-  { key: 'outroEn', label: 'الخاتمة (إنجليزي)', en: true, rows: 3 },
+  { key: 'introAr', label: 'وصف نتيجة البحث (عربي)', en: false, rows: 3 },
+  { key: 'introEn', label: 'وصف نتيجة البحث (إنجليزي)', en: true, rows: 3 },
+  { key: 'outroAr', label: 'الفقرة في أسفل الصفحة (عربي)', en: false, rows: 3 },
+  { key: 'outroEn', label: 'الفقرة في أسفل الصفحة (إنجليزي)', en: true, rows: 3 },
 ] as const satisfies readonly { key: keyof Draft; label: string; en: boolean; rows: number }[];
 
 /**
@@ -230,8 +236,11 @@ export function SeoTemplatesForm({
                   المعاينة بمثال — {sample.note}
                 </span>
                 <PreviewLine label="العنوان" text={renderSeo(draft.titleAr, sample.values)} />
-                <PreviewLine label="الوصف والمقدمة" text={renderSeo(draft.introAr, sample.values)} />
-                <PreviewLine label="الخاتمة" text={renderSeo(draft.outroAr, sample.values)} />
+                <PreviewLine
+                  label="في نتيجة البحث"
+                  text={renderSeo(draft.introAr, sample.values)}
+                />
+                <PreviewLine label="في الصفحة" text={renderSeo(draft.outroAr, sample.values)} />
               </div>
 
               <div className="mt-4 flex flex-wrap items-center justify-between gap-4">

@@ -16,6 +16,7 @@ import {
 } from '@/lib/seo/templates';
 import { SEO_SAMPLE, SEO_SURFACE_LABEL, SEO_VARIABLE_LABEL } from '@/lib/labels/seo';
 import { landingCombinations, landingContent } from '@/lib/domain/landing';
+import { stripComments } from '../scripts/strip-comments.mjs';
 
 const ROOT = process.cwd();
 const admin = { id: 'test-admin-seo' };
@@ -167,6 +168,64 @@ describe('نصوص السيو تُقرأ وتُحرَّر', () => {
     /** ولا قوسٌ باقٍ: متغيّرٌ لم يُملأ يعني فقرةً كان يجب أن تُحذف. */
     expect(copy.title).not.toContain('{');
     expect(copy.intro).not.toContain('{');
+  });
+
+  /**
+   * ═══ والوسطى من الصفحة نفسِها ═══
+   *
+   * **لا وسيطَ سوق.** يُقاس بحسابه مستقلًّا من أسعار الشريحة: لو
+   * قرأ النطاق شريحةً أعمّ (أو أهمل المدينة) لاختلف الرقمان — وهي
+   * الكذبة المسجَّلة «الوصفُ يُبنى من المُطابِق لا من المُدخَل».
+   */
+  it('وسعر الوسطى من أسعار هذه الشريحة لا من شريحة أعم', async () => {
+    const combination = (await landingCombinations()).find((entry) => entry.modelSlug === null);
+    expect(combination).toBeDefined();
+    if (combination === undefined) return;
+
+    const content = await landingContent(combination.citySlug, combination.brandSlug, null);
+    expect(content).not.toBeNull();
+    if (content === null) return;
+
+    const prices = (
+      await db.listing.findMany({
+        where: {
+          status: 'PUBLISHED',
+          city: content.city,
+          vehicle: { brandName: content.brand },
+        },
+        orderBy: { askPrice: 'asc' },
+        select: { askPrice: true },
+      })
+    ).map((row) => row.askPrice.toString());
+
+    expect(prices).toHaveLength(content.count);
+    /** الأدنى من الوسطَيْن — فالرقمُ ثمنُ سيارةٍ قائمة لا حساب. */
+    const expected = prices[Math.floor((prices.length - 1) / 2)];
+    expect(content.priceMid).toBe(expected);
+
+    // وهو داخلُ المدى دائمًا — وإلّا فالشريحتان مختلفتان
+    expect(Number(content.priceMid)).toBeGreaterThanOrEqual(Number(content.priceMin));
+    expect(Number(content.priceMid)).toBeLessThanOrEqual(Number(content.priceMax));
+  });
+
+  /**
+   * ═══ والمقدّمةُ وصفٌ لا فقرة ═══
+   *
+   * قرارُ المالك ٢٠٢٦-١٠-١٩: خرجت من الشاشة لأنّها تكرّر سطرَ
+   * الإحصاء فوقها، وبقيت `<meta description>`. **والفحصُ على
+   * الموضعين معًا**: لو بقيت تُصيَّر لعاد التكرار، ولو سقطت من
+   * الوصف لفقدت الصفحةُ نصَّ نتيجة بحثها.
+   */
+  it('والمقدمة وصف لا فقرة — تغيب عن الشاشة وتبقى في الوصف', () => {
+    for (const path of [
+      'src/app/[locale]/(site)/browse/[city]/[brand]/page.tsx',
+      'src/app/[locale]/(site)/browse/[city]/[brand]/[model]/page.tsx',
+    ]) {
+      const page = stripComments(readFileSync(join(ROOT, path), 'utf8'));
+      expect(page, path).not.toContain('<SeoProse text={copy.intro}');
+      expect(page, path).toContain('<SeoProse text={copy.outro}');
+      expect(page, path).toContain('copy.intro ??');
+    }
   });
 
   /**

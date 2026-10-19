@@ -26,6 +26,7 @@ export const SEO_VARIABLE_LABEL: Record<string, string> = {
   count: 'عدد السيارات المعروضة في هذه الصفحة',
   priceMin: 'أقل سعر معروض',
   priceMax: 'أعلى سعر معروض',
+  priceMid: 'سعر السيارة الوسطى في هذه الصفحة — لا متوسط سوق',
   inspected: 'كم منها بتقرير فحص منشور',
 };
 
@@ -57,6 +58,7 @@ export const SEO_SAMPLE: Record<SeoSurface, Sample> = {
       count: n(12),
       priceMin: n(85000),
       priceMax: n(320000),
+      priceMid: n(148000),
       inspected: n(7),
     },
   },
@@ -69,6 +71,7 @@ export const SEO_SAMPLE: Record<SeoSurface, Sample> = {
       count: n(9),
       priceMin: n(72000),
       priceMax: n(148000),
+      priceMid: n(96000),
       inspected: n(4),
     },
   },
