@@ -1642,6 +1642,42 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 34 · `ApiKey` — a public API nobody can call — *owner's request 2026-10-19*
+
+Three routes under `/api/public/v1` demand a key: the listings page, a single
+listing, and the dealer index. The authenticator is built — hashed storage,
+constant-time comparison, «revoked» separated from «unknown» — the minting
+function is built, the per-key rate limit is built, and the documentation says
+«keys are inserted directly for now».
+
+**No key is inserted anywhere.** The seed creates none, no screen issues one, no
+route mints one, and `mintKey()` has no caller outside its own test. So the
+public API cannot be called in any environment that has ever existed: a lock
+built, guarded, documented — and no key cut for it. That is the shape closed
+twice before in this repository, most recently when `profileCompletion` was
+enforced before `/account/profile` existed.
+
+- [x] `/admin/api-keys`: issue, rename, re-limit, revoke. The raw key is shown
+      **once**, at creation, and never again — a «show me my key» feature is a
+      back door into every integration that uses it.
+- [x] Every action writes `AuditLog`. A key is an identity; who cut it and when
+      is the only record that it was authorised.
+- [x] **Scopes are enforced, or they do not appear in the form.** The field is
+      stored and returned today and checked nowhere, which `docs/api/public.md`
+      records as «worse than no field» — and building a UI for it without the
+      check would be a screen promising what the system does not do. Each route
+      declares the scope it needs; an empty list keeps today's meaning, the full
+      public read surface, so no key already cut stops working.
+- [x] The scope catalogue is **derived from the routes that declare it**, not a
+      second list beside them.
+- [x] Proved by breaking it three ways: the scope check neutered, the raw secret
+      written into the `AuditLog`, and a route's scope removed — each failed the
+      test it should.
+- [x] **And the client/server gate caught the fourth.** The panel imported the
+      rate-limit range from the domain module, which reaches `db`; the browser
+      shape now lives in `src/lib/api/keys.ts`. Fourth occurrence of that class,
+      and the first the gate stopped before it was committed.
+
 ## 33 · The documentation is guarded where it can be, dated where it cannot — *owner's request 2026-10-19*
 
 > «ابدأ بالمولدين وبوابة التاريخ وأصلح الخمسة و طبق اقتراحاتك»

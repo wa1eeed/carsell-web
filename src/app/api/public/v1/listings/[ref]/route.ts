@@ -10,7 +10,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ ref: string }> },
 ) {
-  const guard = await requirePublicKey(request);
+  const guard = await requirePublicKey(request, 'read:listings');
   if (!guard.ok) return guard.response;
 
   const { ref } = await params;

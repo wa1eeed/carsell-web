@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { ERRORS, fail } from './response';
 import { checkApiKey } from './public-key';
 import { rateLimit } from './rate-limit';
+import { type ApiScope, allows } from './scopes';
 
 /**
  * حارس الـAPI العام — مفتاحٌ ثم حدّ.
@@ -20,7 +21,19 @@ export type PublicGuard =
 
 const WINDOW_SECONDS = 60;
 
-export async function requirePublicKey(request: NextRequest): Promise<PublicGuard> {
+/**
+ * ═══ والنطاقُ يُفحص — أو لا يُعرض ═══
+ *
+ * `scopes` كان يُخزَّن ويُعاد ولا يُفحص في موضع، و`docs/api/public.md`
+ * يسمّيها: «حقلٌ يبدو صلاحيةً ولا يُفحص أسوأ من غياب الحقل». فصار
+ * **كلُّ مسارٍ يُعلن نطاقَه**، والحارسُ يفحصه — وبُني الفحصُ مع
+ * الشاشة التي تُصدر المفاتيح لا بعدها، فلا نافذةَ يعمل فيها الحقلُ
+ * بلا حارس.
+ */
+export async function requirePublicKey(
+  request: NextRequest,
+  needed?: ApiScope,
+): Promise<PublicGuard> {
   const check = await checkApiKey(request.headers.get('authorization'));
 
   if (!check.ok) {
@@ -31,6 +44,11 @@ export async function requirePublicKey(request: NextRequest): Promise<PublicGuar
           ? ERRORS.API_KEY_REVOKED
           : ERRORS.API_KEY_INVALID;
     return { ok: false, response: fail(error, 401) };
+  }
+
+  /** **والمنعُ بالنطاق ٤٠٣ لا ٤٠١**: المفتاحُ صحيحٌ ولا يملك هذا السطح. */
+  if (needed !== undefined && !allows(check.scopes, needed)) {
+    return { ok: false, response: fail(ERRORS.API_KEY_SCOPE(needed), 403) };
   }
 
   const verdict = rateLimit(`public:${check.id}`, check.rateLimit, WINDOW_SECONDS);

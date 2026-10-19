@@ -44,6 +44,16 @@ export const ERRORS = {
     messageAr: 'مفتاح الوصول مسحوب — أنشئ مفتاحا جديدا.',
     messageEn: 'Access key has been revoked — issue a new one.',
   },
+  /**
+   * **ومنعُ النطاق ليس منعَ المفتاح.** المفتاحُ صحيحٌ ولا يملك هذا
+   * السطح، فالرسالة تسمّي النطاق الناقص — ومن يقرأ «مفتاح غير صالح»
+   * يُبدّل مفتاحًا سليمًا ولا يصل إلى شيء.
+   */
+  API_KEY_SCOPE: (scope: string) => ({
+    code: 'API_KEY_SCOPE',
+    messageAr: `مفتاح الوصول لا يملك النطاق «${scope}».`,
+    messageEn: `This access key does not hold the «${scope}» scope.`,
+  }),
   RATE_LIMITED: {
     code: 'RATE_LIMITED',
     messageAr: 'تجاوزت حد الطلبات — أعد المحاولة بعد قليل.',

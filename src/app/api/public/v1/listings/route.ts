@@ -26,7 +26,7 @@ const Query = z.object({
  * كشطٍ لا واجهة تكامل.
  */
 export async function GET(request: NextRequest) {
-  const guard = await requirePublicKey(request);
+  const guard = await requirePublicKey(request, 'read:listings');
   if (!guard.ok) return guard.response;
 
   const params = request.nextUrl.searchParams;

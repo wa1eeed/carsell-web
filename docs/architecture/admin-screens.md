@@ -13,8 +13,8 @@ of a job's position, and how a screen with no sidebar entry is reached. Those
 are written here by hand, and a new row with an empty reason fails the check.
 
 <!-- generated:begin -->
-**44** entries in the sidebar, across 8 groups, against
-**45** folders under `src/app/admin`.
+**45** entries in the sidebar, across 8 groups, against
+**46** folders under `src/app/admin`.
 
 ### المتابعة
 
@@ -98,6 +98,7 @@ are written here by hand, and a new row with an empty reason fails the check.
 | الإشعارات والقوالب | `/admin/notifications` | `notifications.manage` | قوالب الرسائل ومتى ترسل. |
 | إشعارات الجوال | `/admin/push` | — | قنوات إشعارات الجوال وما يفتح منها افتراضا. |
 | الربط بالخدمات الخارجية | `/admin/integrations` | `integrations.view` | مفاتيح الربط وبيئاتها وحال كل تكامل. |
+| مفاتيح الواجهة العامة | `/admin/api-keys` | `integrations.view` | من يقرأ كتالوجنا من خارج الموقع وبأي حد. |
 | الفريق والصلاحيات | `/admin/team` | `team.manage` | من في الفريق وبأي دور، ومصفوفة الصلاحيات. |
 
 ### Folders with no sidebar entry

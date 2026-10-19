@@ -73,10 +73,39 @@ absence across a full page and a single listing.
 Nothing about buyers, offers, orders, or payments is exposed. The public surface
 is the catalogue, and only what is already visible on the website.
 
+## Issuing a key
+
+`/admin/api-keys` issues, renames, re-limits and revokes. Until 2026-10-19 this
+note said «keys are inserted directly for now» — and **nothing inserted one**:
+not the seed, not a screen, not a route, and `mintKey()` had no caller outside
+its own test. The three routes above could not be called in any environment that
+had ever existed. A lock built, guarded and documented, with no key cut for it.
+
+- The raw key is returned **once**, in the issuing response, and never again.
+  It is stored hashed; `adminApiKeys()` does not select `keyHash`, and the
+  `AuditLog` entry records the prefix, never the secret — writing it to a log
+  that gets read would undo the hashing.
+- **Revocation is final.** No re-activation: a key is withdrawn because it
+  leaked or its holder's contract ended, and restoring it restores a secret to
+  whoever should not have it. The replacement is a new key.
+- Every issue, change and revocation writes `AuditLog`. A key is an identity;
+  who cut it and when is the only record that it was authorised.
+
+### Scopes are enforced
+
+Each route declares the scope it needs and `requirePublicKey` checks it, with
+`403 API_KEY_SCOPE` naming the missing scope — a valid key that lacks a surface
+is not an invalid key, and saying so sends the integrator to the right fix.
+
+An **empty list keeps its original meaning**: the full public read surface. Every
+key cut before the check existed is empty, so enforcement does not silently
+break an integration; restricting one is an explicit choice.
+
+This section used to read «stored and returned but not yet enforced… a field
+that looks like a permission and is not checked is worse than no field». The
+check was built together with the screen that grants it, so there was never a
+window where the form promised something the guard did not do.
+
 ## Not built
 
-- Key management screen in the admin. Keys are inserted directly for now.
-- Scopes are stored and returned but not yet enforced — every valid key gets
-  the full read surface. **This is recorded here rather than left implied:** a
-  field that looks like a permission and is not checked is worse than no field.
 - A shared rate-limit counter, per the warning above.

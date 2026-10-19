@@ -87,7 +87,10 @@ surely as one that omits a model without one.
 ## What this does not claim
 
 A model absent from this table has *some* code path that writes it. That is not
-the same as having a screen an operator can use: `ApiKey` is written only by a
-`lastUsedAt` stamp on every read, so nobody can issue a key. The measurement is
-textual and cannot read intent — `npm run dead-ends` prints that caveat under
-its own output, and certainty still comes from opening the screen.
+the same as having a screen an operator can use, and `ApiKey` was the example
+this paragraph used to give: written only by a `lastUsedAt` stamp on every read,
+so nobody could issue a key — **and three public routes demanded one**. It got
+its screen on 2026-10-19 (ROADMAP §34); the caveat stands even though its
+example no longer does. The measurement is textual and cannot read intent —
+`npm run dead-ends` prints that caveat under its own output, and certainty still
+comes from opening the screen.

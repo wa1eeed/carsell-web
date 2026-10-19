@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 /** `GET /api/public/v1/dealers` — المعارض النشطة. */
 export async function GET(request: NextRequest) {
-  const guard = await requirePublicKey(request);
+  const guard = await requirePublicKey(request, 'read:dealers');
   if (!guard.ok) return guard.response;
 
   return ok(await listPublicDealers('ar'));

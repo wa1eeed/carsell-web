@@ -217,6 +217,14 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'الإشعارات والقوالب', href: '/admin/notifications', permission: 'notifications.manage', description: 'قوالب الرسائل ومتى ترسل.' },
       { label: 'إشعارات الجوال', href: '/admin/push', description: 'قنوات إشعارات الجوال وما يفتح منها افتراضا.' },
       { label: 'الربط بالخدمات الخارجية', href: '/admin/integrations', permission: 'integrations.view', description: 'مفاتيح الربط وبيئاتها وحال كل تكامل.' },
+      /**
+       * **ومفتاحُ الواجهة العامّة قفلٌ بلا مفتاح.** ثلاثةُ مسارات تحت
+       * `/api/public/v1` تطلبه، والمصادقةُ و`mintKey` والحدُّ كلُّها
+       * مبنيّة — **ولا شيء يُصدر مفتاحًا**: لا بذرة ولا شاشة ولا مسار.
+       * فالواجهةُ العامّة لم تكن تُنادى في أيّ بيئةٍ وُجدت.
+       * (وبابُه ٢٠٢٦-١٠-١٩.)
+       */
+      { label: 'مفاتيح الواجهة العامة', href: '/admin/api-keys', permission: 'integrations.view', description: 'من يقرأ كتالوجنا من خارج الموقع وبأي حد.' },
       { label: 'الفريق والصلاحيات', href: '/admin/team', permission: 'team.manage', description: 'من في الفريق وبأي دور، ومصفوفة الصلاحيات.' },
     ],
   },
