@@ -1,5 +1,7 @@
 # The inspection journey — three parties
 
+_Last updated: 2026-10-19_
+
 The owner's rules, 2026-10-14 (`docs/DESIGN-DECISIONS.md`):
 
 - **Whoever requests pays**, seller or buyer. One membership, two roles: a

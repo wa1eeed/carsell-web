@@ -1,5 +1,7 @@
 # Home page (Wa)
 
+_Last updated: 2026-10-19_
+
 `src/lib/domain/home.ts` is one batched call returning everything Wa renders.
 
 ## Every number is counted, never written

@@ -1,5 +1,7 @@
 # Blocking an account
 
+_Last updated: 2026-10-19_
+
 ## The lock that had no key
 
 Every piece of this was built except the one that acts:

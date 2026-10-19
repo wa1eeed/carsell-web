@@ -1,5 +1,7 @@
 # The provider panel
 
+_Last updated: 2026-10-19_
+
 One panel for every provider type — the owner's decision, 2026-10-14:
 
 > «ليس لكل مزوّد خدمة لوحة مستقلّة، وإنما نريد **لوحة مزوّدين موحَّدة** مهما

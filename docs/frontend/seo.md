@@ -1,29 +1,80 @@
 # SEO surfaces: landing pages, structured data, the sitemap
 
-Three things carry the marketplace into search results: the **landing pages**
-(`/browse/{city}/{brand}[/{model}]`), the **structured data** every public page
-emits, and the **sitemap**, which is derived from rows rather than written by
-hand.
+_Last updated: 2026-10-19_
 
-## Landing pages are generated only for combinations that exist
+Four things carry the marketplace into search results: the **landing pages**
+(city × brand × model), the **editorial text** an operator writes for them, the
+**structured data** on every listing, and the **sitemap** that declares both.
 
-`landingCombinations()` reads published listings and keeps a combination when it
-has at least `MIN_LISTINGS` (3). An empty landing page is worse than a missing
-one: the visitor arrives, finds nothing and leaves, and the engine learns that
-the site promises what it does not hold — which costs the pages that do hold it.
+## The editorial text is edited, not deployed
 
-The threshold is checked **per request**, not only at generation. A combination
-published in `sitemap.xml` today falls below the threshold tomorrow when a car
-sells, so the page redirects (301) to the search with its filters while anything
-remains, and 404s only when nothing is behind it. A link you published yourself
-and then killed is worse than a link you never published.
+Decision 26 asked for «قالب + متغيّرات… يحرّرها الأدمن» — one template per
+surface instead of thousands of hand-written pages. It existed in the schema as
+`SeoTemplate` and **was wired at neither end**: one seeded row, and no query in
+`src/` touched the table. What the pages actually printed came from
+`src/messages/*.json`, so changing a title a search engine indexes needed a full
+deploy, and the intro and outro paragraphs the decision designed were never
+built at all.
 
-**And the seed plants one on purpose.** Measured: the biggest city × brand ×
-model combination in seeded data was **two** — below the threshold — so the
-model-level landing page could not be opened in any development environment. It
-had kept a defect its sibling had already been fixed for (see below) precisely
-because nothing could render it. The first three listings are now pinned to one
-city and one trim. **What is not seeded is not seen.**
+Three surfaces now read a template, because three pages render one:
+
+| Surface | Page | What the template drives |
+| --- | --- | --- |
+| `search` | `/cars` with no filters | Title and description only — filtered search is `noindex`, so there is nothing else to drive. |
+| `landing_brand` | `/browse/{city}/{brand}` | Title, description, and the paragraph below the grid. |
+| `landing_model` | `/browse/{city}/{brand}/{model}` | The same three. |
+
+There is no `landing_city` surface, although the schema's comment named one: no
+city-only page exists, and a surface with no page behind it is the «value in the
+schema with no door» class this repository has closed eleven times.
+
+Edited at `/admin/seo`, with a live preview on sample values, an `AuditLog` per
+save, and the variable list per surface shown beside the fields. Rows reach a
+running environment **by migration**, because the seed only ever runs on an empty
+database.
+
+### A paragraph whose variable has no value is dropped whole
+
+Decision 26 said it about percentiles («إن كانت العيّنة أقل من ٨، أخفِ الفقرة
+كاملة»); it is generalised to every variable. «منها ٠ سيارة مفحوصة» and «بأسعار
+من إلى» read as defects, and a landing page is the thing that gets indexed — what
+prints there stays in the results after it is fixed. A missing paragraph is
+cheaper than an incomplete one.
+
+The panel enforces the other half: a placeholder the page cannot fill is refused
+on save, in the domain and not only in the field, because a direct call arrives
+without a screen.
+
+### The variables describe this page, and nothing wider
+
+`brand` · `model` · `city` · `count` · `priceMin` · `priceMax` · `priceMid` ·
+`inspected` — all read from the same `where` clause that produced the grid, so
+the sentence cannot describe a slice other than the one shown.
+
+**`priceMid` is not a market median.** Decision 26 named `PriceStat` as the
+source, and that table is keyed by model × year × trim × city × mileage bucket:
+anything aggregated across those rows mixes a 2015 car with a 2024 one and then
+calls itself «the median price of this model in this city». `priceMid` is the
+middle asking price **among the cars on this page** — and an observed one, the
+lower of the two middles when the count is even, so the figure is always a real
+car's price.
+
+### The intro is the description, not a paragraph
+
+It used to print above the grid, where it repeated the stat row word for word —
+the count and the price range twice in three lines. It is now the
+`<meta description>` only, which is the one place it was doing work: that is the
+text a search result shows, and its numbers are what earns the click. The outro
+stays on the page because it says what the stat row cannot — inspection reports
+that can be read before contacting a seller, and payment held until ownership
+moves.
+
+The panel labels them for where they land («وصف نتيجة البحث» and «الفقرة في
+أسفل الصفحة»), because a screen that says a text appears on the page while it
+does not is a broken promise, and this repository stops for those.
+
+The message files stay as the fallback: an operator who empties a title or
+switches a template off must not leave a page without one.
 
 ## Both landing levels show their cars
 

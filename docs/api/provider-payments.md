@@ -1,5 +1,7 @@
 # The provider payments gateway
 
+_Last updated: 2026-10-19_
+
 Two gateways, not one — the owner's decision, 2026-10-14.
 
 | | The platform's gateway | The providers' gateway |

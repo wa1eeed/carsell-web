@@ -1,5 +1,7 @@
 # Orders, stages, escrow and disputes (task 18)
 
+_Last updated: 2026-10-19_
+
 ## Stages move forward, one step
 
 Skipping a stage means an order reaching "transfer" without payment. **Going back

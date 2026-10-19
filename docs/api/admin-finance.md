@@ -1,5 +1,7 @@
 # Admin: finance and notifications (task 24)
 
+_Last updated: 2026-10-19_
+
 Screens `A3` (finance) and `A8` (notifications and templates) in
 `design/CarSell Admin.dc.html`. Domain: `src/lib/domain/admin-finance.ts`,
 `src/lib/domain/admin-notifications.ts`, `src/lib/domain/notification-text.ts`,

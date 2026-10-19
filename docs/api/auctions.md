@@ -1,5 +1,7 @@
 # Auctions — rules 6–10
 
+_Last updated: 2026-10-19_
+
 ## Rule 6 · minimum bid
 
 First bid = **opening price, with no increment**. Adding the increment to the

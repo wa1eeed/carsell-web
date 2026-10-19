@@ -1,5 +1,7 @@
 # Payments: purpose-based routing, escrow interface, capabilities
 
+_Last updated: 2026-10-19_
+
 Decisions 30, 33, 34, 35. Screen `A20` in `design/CarSell Admin.dc.html`.
 
 > **Status.** This document defines the contract. The schema, the interface and

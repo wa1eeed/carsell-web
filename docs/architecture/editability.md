@@ -1,5 +1,7 @@
 # Models the product never edits
 
+_Last updated: 2026-10-19_
+
 **Generated-adjacent: the list is derived from the code, the reasons are not.**
 Gate 63 reads `scripts/model-writers.mjs`, classifies every model in the schema,
 and requires that each one the product neither creates nor edits appears below

@@ -1,5 +1,7 @@
 # Design system
 
+_Last updated: 2026-10-19_
+
 The single source of truth for colour, type, spacing and direction is
 `src/app/globals.css`. Nothing in this document is decorative advice — every
 value here is enforced either by the token layer or by a CI check.

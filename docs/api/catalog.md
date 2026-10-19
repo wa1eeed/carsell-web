@@ -1,5 +1,7 @@
 # Catalog — brands (A12)
 
+_Last updated: 2026-10-19_
+
 `/admin/catalog/brands`. Business logic in `src/lib/domain/catalog.ts`; the
 routes validate shape and delegate.
 

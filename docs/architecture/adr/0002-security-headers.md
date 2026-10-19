@@ -1,5 +1,7 @@
 # ADR 0002 — Security headers, and a nonce-based CSP
 
+_Last updated: 2026-10-19_
+
 **Status:** accepted · 2026-10-11
 **Applies from:** task 96 onward.
 

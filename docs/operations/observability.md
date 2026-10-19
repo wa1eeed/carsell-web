@@ -1,5 +1,7 @@
 # Errors and logs
 
+_Last updated: 2026-10-19_
+
 ## One entry point
 
 Every error is reported through `reportError()` in

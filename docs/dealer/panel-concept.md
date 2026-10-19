@@ -1,5 +1,7 @@
 # Dealer panel — the owner's concept, read against what exists
 
+_Last updated: 2026-10-19_
+
 The owner shared a dashboard mockup on 2026-10-13. This file records what it
 shows and, more usefully, **where it disagrees with the model we have**, so the
 disagreements are settled before anything is built on either side.

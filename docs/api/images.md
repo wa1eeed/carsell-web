@@ -1,5 +1,7 @@
 # Listing images — blur before storage
 
+_Last updated: 2026-10-19_
+
 ## Why the upload path changed
 
 R2 uploads are **signed and direct from the browser** for brand and dealer logos:

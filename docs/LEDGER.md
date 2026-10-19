@@ -1,5 +1,7 @@
 # The ledger
 
+_Last updated: 2026-10-19_
+
 A double-entry, append-only book that answers two questions nothing else in the
 product can answer:
 

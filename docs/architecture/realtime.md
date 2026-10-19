@@ -1,5 +1,7 @@
 # Realtime
 
+_Last updated: 2026-10-19_
+
 Live updates for auctions, offers and orders.
 
 The service itself (`services/realtime`) is built in **task 19**. Everything

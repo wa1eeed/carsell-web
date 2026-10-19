@@ -1,5 +1,7 @@
 # Admin authentication
 
+_Last updated: 2026-10-19_
+
 Password + TOTP. **Completely separate from user authentication** — a different
 table, a different cookie, no shared JWT and no shared middleware. Mixing a staff
 identity with a marketplace-user identity would make a hole in either one a hole

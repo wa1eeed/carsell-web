@@ -1,5 +1,7 @@
 # Services, help and legal (Wi · Wn · Wo)
 
+_Last updated: 2026-10-19_
+
 Three screens that share one property: **their content is edited by the admin and
 never written in code.** The consequence is that every count on them is computed.
 "8 articles" under a help topic must become 9 when an editor adds the ninth, or

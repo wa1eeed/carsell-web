@@ -1,5 +1,7 @@
 # Sign-in and account (Wm · Wf)
 
+_Last updated: 2026-10-19_
+
 ## Wm — one step, not two
 
 Signing in and signing up are the same action: the first successful verification

@@ -1,5 +1,7 @@
 # Components
 
+_Last updated: 2026-10-19_
+
 Everything lives in `src/components/ui/`, with two shells in
 `src/components/admin/` and `src/components/site/`.
 

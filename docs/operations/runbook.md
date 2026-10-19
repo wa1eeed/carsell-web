@@ -1,5 +1,7 @@
 # Runbook
 
+_Last updated: 2026-10-19_
+
 What to check and what to do when something is wrong. One section per system.
 Grows with each task that adds a moving part.
 

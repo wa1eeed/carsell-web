@@ -1,5 +1,7 @@
 # ADR 0001 — Realtime lives in its own service
 
+_Last updated: 2026-10-19_
+
 **Status:** accepted · 2026-08-02
 **Applies from:** task 10 onward; the service itself is built in task 19.
 

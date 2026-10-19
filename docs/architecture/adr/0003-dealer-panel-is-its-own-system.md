@@ -1,5 +1,7 @@
 # ADR 0003 — The dealer panel is its own system, not a view of CARZ
 
+_Last updated: 2026-10-19_
+
 **Status:** accepted · 2026-10-13
 **Applies from:** the next dealer-facing task onward.
 

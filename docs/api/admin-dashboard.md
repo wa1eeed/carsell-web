@@ -1,5 +1,7 @@
 # Admin: dashboard and integrations (task 25)
 
+_Last updated: 2026-10-19_
+
 Screens `A1` (dashboard, growth and counts) and `A11` (integrations and API keys)
 in `design/CarSell Admin.dc.html`. Domain:
 `src/lib/domain/admin-dashboard.ts`, `src/lib/domain/admin-integrations.ts`,

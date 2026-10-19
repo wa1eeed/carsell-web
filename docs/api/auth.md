@@ -1,5 +1,7 @@
 # Auth
 
+_Last updated: 2026-10-19_
+
 Phone + one-time code. No passwords, no NextAuth. The same endpoints serve the
 web and the Flutter app: the web reads the session from an `HttpOnly` cookie, the
 app from an `Authorization: Bearer` header.

@@ -1,5 +1,7 @@
 # Inspection report (Wd)
 
+_Last updated: 2026-10-19_
+
 `/{locale}/cars/{city}/{brand}/{model}/{ref}/inspection`
 
 ## The report lives under the listing

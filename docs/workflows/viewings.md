@@ -1,5 +1,7 @@
 # Viewings — an appointment between two parties, not a provider service
 
+_Last updated: 2026-10-19_
+
 Built 2026-10-17. The owner was asked whether a viewing is a direct
 buyer↔seller appointment or a provider service, and answered:
 

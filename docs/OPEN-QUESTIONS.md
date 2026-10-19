@@ -1,5 +1,7 @@
 # Open questions
 
+_Last updated: 2026-10-19_
+
 Assumptions taken **without asking** in tasks 18–22, re-read with a second eye.
 The question here is not "was this reasonable" but **"what breaks if the
 assumption is wrong"** — an assumption that looked obvious is exactly the kind

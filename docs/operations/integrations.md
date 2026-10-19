@@ -1,5 +1,7 @@
 # Integration inventory
 
+_Last updated: 2026-10-19_
+
 Every external dependency, what it does, what happens when it is not there, and
 where its keys live. Status is read from the `Integration` and `PaymentGateway`
 tables, not from this page — the table is the truth and this is the explanation.

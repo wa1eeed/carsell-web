@@ -1,5 +1,7 @@
 # Runbook
 
+_Last updated: 2026-10-19_
+
 **Commands, not explanations.** Copy, paste, read the output.
 
 Every procedure here assumes `.env` is loaded:

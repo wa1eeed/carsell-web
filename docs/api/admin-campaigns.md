@@ -1,5 +1,7 @@
 # Admin: campaigns and push (task 26)
 
+_Last updated: 2026-10-19_
+
 Screens `A9` (marketing campaigns) and `A10` (push notifications) in
 `design/CarSell Admin.dc.html`. Domain: `src/lib/domain/admin-campaigns.ts`,
 `src/lib/domain/push-channels.ts`.

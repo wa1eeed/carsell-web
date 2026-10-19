@@ -1,5 +1,7 @@
 # Admin: operations, orders, customers (tasks 21–22)
 
+_Last updated: 2026-10-19_
+
 ## A2 · stage metrics against a target line
 
 **A count alone says nothing.** Twenty orders in "payment" is normal if they

@@ -1,5 +1,7 @@
 # Closing an account
 
+_Last updated: 2026-10-19_
+
 Until this was built there was **no way out**: no screen, no route, no domain
 function. Whoever registered stayed registered.
 

@@ -1,5 +1,7 @@
 # Car page (Wc)
 
+_Last updated: 2026-10-19_
+
 `GET /api/v1/listings/{ref}` and `/{locale}/cars/{city}/{brand}/{model}/{ref}`
 are the same object. The route does not build its own — if it did, the guard
 below would have to be written twice, and writing it twice is how a secret gets

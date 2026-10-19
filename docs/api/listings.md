@@ -1,5 +1,7 @@
 # Listings search (Wb)
 
+_Last updated: 2026-10-19_
+
 `GET /api/v1/listings` and `/[locale]/cars` are the same query. Filters are
 parsed by **one function** used by both — if each parsed its own, a shared link
 would render a different result than the screen it came from.

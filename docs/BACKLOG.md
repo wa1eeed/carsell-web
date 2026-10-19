@@ -1,5 +1,7 @@
 # Open work — the owner's list, tracked
 
+_Last updated: 2026-10-19_
+
 Everything the owner has asked for that is not yet done, so nothing lives only
 in a conversation. Closed items stay here with their commit so the list reads as
 a record, not a wish.

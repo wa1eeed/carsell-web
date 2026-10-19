@@ -1,5 +1,7 @@
 # Search
 
+_Last updated: 2026-10-19_
+
 How a sentence becomes filters, and how a search becomes a standing alert.
 
 ---

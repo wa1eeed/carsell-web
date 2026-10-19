@@ -1,5 +1,7 @@
 # State machines
 
+_Last updated: 2026-10-19_
+
 The five paths a transaction can take. Each diagram is the shape the code
 actually enforces — the transition tables are cited beside each one, so a reader
 can check the drawing against the source rather than trusting it.

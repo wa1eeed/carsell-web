@@ -1,5 +1,7 @@
 # The licence plate
 
+_Last updated: 2026-10-19_
+
 The plate is drawn, not printed as text. `SaudiLicensePlate` renders it as
 **vector SVG**, so it stays sharp from a thumbnail to a printed A4 report.
 

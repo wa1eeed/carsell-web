@@ -1,5 +1,7 @@
 # Tax and invoicing model
 
+_Last updated: 2026-10-19_
+
 Screen `A21`. Domain: `src/lib/domain/tax.ts` — **the only file that computes
 tax**, enforced by gate 16.
 

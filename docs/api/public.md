@@ -1,5 +1,7 @@
 # Public API — `/api/public/v1`
 
+_Last updated: 2026-10-19_
+
 Read-only. Key-authenticated, rate-limited per key.
 
 ## Authentication

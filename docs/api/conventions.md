@@ -1,5 +1,7 @@
 # API conventions
 
+_Last updated: 2026-10-19_
+
 Applies to every route under `/api/v1`. The public API (`/api/public/v1`) is
 built and follows the same envelope — see [`public.md`](public.md).
 

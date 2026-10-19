@@ -1,5 +1,7 @@
 # Dealer panel — requirements, read against the code
 
+_Last updated: 2026-10-19_
+
 The owner's brief (2026-10-13): the panel must carry **simplified accounting**
 that replaces the showroom's accounting software, and it must compete with the
 systems Saudi showrooms use today (Daftra, Mezan and the like). What follows is

@@ -1,5 +1,7 @@
 # Admin: service requests and services (task 23)
 
+_Last updated: 2026-10-19_
+
 Screens `A6` (service requests) and `A7` (services and pricing) in
 `design/CarSell Admin.dc.html`. Domain layer: `src/lib/domain/admin-services.ts`.
 

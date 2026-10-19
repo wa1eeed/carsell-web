@@ -1,5 +1,7 @@
 # Deploying staging to a VPS with Coolify
 
+_Last updated: 2026-10-19_
+
 This is the checklist for putting `staging.carsell.one` on a VPS. It is written
 in English per the documentation rule; the reasoning behind each guard is in the
 source comments (Arabic).

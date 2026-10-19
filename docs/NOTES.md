@@ -1,5 +1,7 @@
 # Notes — things to do before a specific task
 
+_Last updated: 2026-10-19_
+
 Short-lived reminders that would otherwise be lost between sessions. Delete an
 entry once its task lands. Permanent decisions belong in `DESIGN-DECISIONS.md`,
 not here.

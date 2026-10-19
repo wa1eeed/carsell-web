@@ -1,5 +1,7 @@
 # Design deviations
 
+_Last updated: 2026-10-19_
+
 Screens or components built **without design markup**, and places where the
 build departs from the markup on purpose. Each entry states what was built, on
 what basis, and what the designer still has to review.

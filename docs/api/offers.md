@@ -1,5 +1,7 @@
 # Offers — rules 1–5
 
+_Last updated: 2026-10-19_
+
 `POST /api/v1/offers` · `PATCH /api/v1/offers/{id}`
 
 ## The rules live in the domain, not the route

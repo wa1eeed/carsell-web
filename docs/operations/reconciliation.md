@@ -1,5 +1,7 @@
 # Daily reconciliation
 
+_Last updated: 2026-10-19_
+
 `src/lib/domain/reconciliation.ts`. Surfaced on `/admin/payments`.
 
 Our ledger is a mirror, and **a mirror that is never held against the original

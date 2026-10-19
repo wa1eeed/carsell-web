@@ -1,5 +1,7 @@
 # CarSell — documentation
 
+_Last updated: 2026-10-19_
+
 A Saudi car marketplace: listings, negotiation, auctions, escrowed payment,
 ownership transfer, and ZATCA-compliant invoicing. Next.js App Router,
 PostgreSQL via Prisma, Arabic-first with English alongside.
@@ -129,10 +131,35 @@ error a third time.
 
 ## What keeps these documents honest
 
-Measured 2026-10-19: **62 files · 25,635 lines**, of which about **2,200 (9%)
-are generated** and fail `npm run verify` when they drift — the ERD, OpenAPI's
-142 paths, the component index — plus the state names in
-`workflows/state-machines.md`, checked against the schema's enums.
+Measured 2026-10-19 (after this sweep): **64 files · 26,565 lines**, of which
+about **2,200 are generated** — the ERD, OpenAPI's 144 paths, the component
+index, the scheduler's job table and the admin screen index — and all of them
+fail `npm run verify` when they drift.
+
+**The rest used to have no guard at all**, and asked on the same day whether the
+documentation matched the platform, the answer was five live failures found in
+minutes: this file claimed «62 files» when there were 63, `frontend/seo.md` had
+no idea the SEO text had been rebuilt that morning, `workflows/scheduler.md`
+said «thirteen jobs» against seventeen in the registry, `TASKS.md` stopped at
+gate 42 against 64 shipped, and a dozen files carried no date at all — including
+one that had gained an undated present-tense section hours earlier.
+
+Three rules came out of it, two of them mechanical:
+
+1. **Generate what can be generated.** The scheduler's table and the admin
+   screen index are derived from `JOBS` and from `nav.ts`. What a tool cannot
+   write is preserved across regenerations — the «why here» of a job's position,
+   and how a screen without a sidebar entry is reached — and a new row with an
+   empty reason fails the check rather than shipping blank.
+2. **Every document says when it was last updated** (gate 65), and the date may
+   not be older than the last commit that touched the file. It does not claim
+   anyone verified the contents; it claims something a tool can prove, and it
+   tells a reader how old what they are reading is. The dates start at
+   2026-10-19 because the line was introduced then; what was stale on that day
+   is recorded in ROADMAP §33, which is where a measurement belongs.
+3. **Every task updates its matching document in the same commit** — the rule
+   that already existed, and which held: all five failures were in documents
+   that no task owned.
 
 **Gate 62** adds the cheapest guard over the remaining 91%: every repository
 path a document names inside backticks must exist. It was measured before being

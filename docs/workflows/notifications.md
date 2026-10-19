@@ -1,5 +1,7 @@
 # Who gets told, and when
 
+_Last updated: 2026-10-19_
+
 A notification is a row in `Notification` keyed by `templateKey`; the text comes
 from `NotificationTemplate`, seeded from
 `prisma/seed-data/notification-templates.json`. Writing one is `notify()` in

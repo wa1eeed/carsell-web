@@ -1,5 +1,7 @@
 # The register — everything the owner asked for, in the order they set it
 
+_Last updated: 2026-10-19_
+
 This file exists because the owner asked for one thing above all others: that
 nothing they have asked for gets lost. A promise does not guarantee that; a
 written list that is read at the start of every session does.
@@ -1639,6 +1641,66 @@ platform itself knows and the buyer most wants to read.
       repository's standing rule, followed rather than rediscovered.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
+
+## 33 · The documentation is guarded where it can be, dated where it cannot — *owner's request 2026-10-19*
+
+> «ابدأ بالمولدين وبوابة التاريخ وأصلح الخمسة و طبق اقتراحاتك»
+
+Asked whether the documentation matches the platform, the answer was a
+measurement, not a reassurance. 63 files · 26,249 lines, of which ~2,200 are
+generated and fail `verify` when they drift. **The other 85% had no guard at
+all**, and five live failures turned up in minutes:
+
+- [x] `README.md` claimed «Measured 2026-10-19: 62 files · 25,635 lines» — and
+      was already wrong **the same day**.
+- [x] `frontend/seo.md` had **zero** mentions of `SeoTemplate`, `/admin/seo` or
+      the meta description, hours after the SEO text was rebuilt.
+- [x] `workflows/scheduler.md` said «Thirteen jobs» with **seventeen** in the
+      registry, and did not know `recomputePriceStats` — a document that exists
+      only because «the scheduler had no documentation» was a recorded lesson.
+- [x] `TASKS.md` last changed 2026-10-12, stops at gate 42 against 64 shipped.
+      `RUNBOOK.md` had not been touched since 2026-08-02.
+- [x] Many files carry **no date at all** — `api/payments.md` among them, where
+      an undated present-tense section was added the same day, against the
+      standing rule written in `README.md` itself.
+
+### Two generators and one gate
+
+- [x] **The scheduler's job table is generated from `JOBS`** — and the «why
+      here» column survives: the generator reads the existing table, keeps each
+      note by job name, and leaves a new job's note empty so `--check` refuses
+      it. A table that cannot fall behind, with prose a tool could never write.
+- [x] **`architecture/admin-screens.md` is generated from `nav.ts`** — 45
+      folders against 39 nav entries, and nothing anywhere listed them. The six
+      without an entry are listed too: a screen with no door is the class this
+      repository has closed eleven times.
+- [x] **Gate 65: every document carries `Last measured`**, and it may not be
+      older than the last commit that touched the file. It turns «is this
+      true?» into «when was it checked?», which is a question a tool can ask.
+      Measured before being switched on, and the files migrated first.
+
+### And the language rule says what is true
+
+`CLAUDE.md` says «والتوثيق كله بالإنجليزية». Six files are majority Arabic, and
+rightly so: `DESIGN-DECISIONS.md` quotes the owner, `NOTES.md` is a session
+journal. A rule contradicted by a fifth of the tree is not enforced, it is
+ignored — so it now names the exception instead of pretending there is none.
+- [x] Proved by breaking what each guard guards: a stamp removed, a stamp older
+      than the file's last commit, a stamp in the future, and a row deleted from
+      the generated table — each failed the check it should, and
+      `tests/docs-guards.test.ts` keeps all four proven.
+- [x] **And the generator's first parser lied.** It required `permission:` on
+      the line, and three entries do not have one — so the index was short by
+      three and declared their screens «with no door» while they sat in the
+      sidebar. A generated document that lies is worse than a hand-written one,
+      because its reader believes it. Fields are read one by one now, and a
+      disabled entry (`href: null`) is listed rather than silently dropped.
+
+### What the measurement now says
+
+63 → **64 files · 26,565 lines**. Generated and checked: the ERD, OpenAPI's 144
+paths, the component index, the scheduler's 17 jobs, and 44 sidebar entries
+across the admin index. Everything else carries a date a tool can disprove.
 
 ## 32 · The two open questions from §30, answered — *owner's decision 2026-10-19*
 
