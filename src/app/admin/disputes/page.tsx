@@ -15,11 +15,11 @@ export const dynamic = 'force-dynamic';
  * ═══ النزاعات — الطابور الذي لم تكن له شاشة ═══
  *
  * النطاق كامل ومختبَر منذ المهمة ١٨: فتحٌ ورسائل واقتراح قرار وموافقة
- * بعضوين وتنفيذٌ تلقائيّ عند اكتمالها. **ولا مسار كان ينادي أيًّا منها،
+ * بنصابٍ صار واحدًا وتنفيذٌ تلقائيّ عند اكتماله (أُلغي نصابُ العضوين بقرار المالك ٢٠٢٦-١٠-١٤؛ ROADMAP §٣٥). **ولا مسار كان ينادي أيًّا منها،
  * ولا شاشة تعرض الطابور** — فالنزاع يُفتح ولا يُحسم، والمال محجوز.
  *
  * والقرار ماليّ بحت — استردادٌ كامل أو تسوية جزئية أو إفراج للبائع —
- * فحارسه `escrow.release`، وهو في نصاب العضوين لا يملكه دورٌ وحده.
+ * فحارسه `escrow.release`، ومن لا يملكه لاه دورٌ وحده.
  */
 /** شرائح A17 — والتصميم يسمّيها «البلاغات والنزاعات»؛ والبلاغات شاشتُها. */
 const SEGMENTS: readonly { key: string | null; label: string }[] = [
@@ -62,7 +62,7 @@ export default async function DisputesPage({
         <span aria-hidden className="opacity-40">·</span>
         <Counted message="overdueDisputes" count={overdue.length} />
         <span aria-hidden className="opacity-40">·</span>
-        <span>القرار يحتاج موافقة عضوين</span>
+        <span>كل قرار يسجل باسم من حسمه</span>
       </p>
 
       <MonitorTabs tabs={tabs} active={filter} basePath="/admin/disputes" param="filter" />
@@ -85,7 +85,7 @@ export default async function DisputesPage({
         total={null}
         note="المهلة تجري من لحظة الفتح"
         can="قراءة الرسائل والأدلة، وطلب قرار مالي (استرداد أو تسوية جزئية أو إفراج)."
-        cannot="تنفيذ القرار المالي وحده — يحتاج موافقة شخصين وسببا مكتوبا، ويقيد في سجل التدقيق."
+        cannot="حسم نزاع بلا سبب مكتوب — والقرار يقيد في سجل التدقيق باسم من حسمه وبما حسم به."
         automatic="نزاع تجاوز مهلته يظهر أحمر، والطلب يبقى مجمدا حتى يحسم."
       />
     </AdminShell>

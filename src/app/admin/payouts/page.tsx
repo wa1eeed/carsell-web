@@ -43,9 +43,9 @@ export default async function PayoutsPage() {
     >
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-70">
-          هذه مستحقات استحقت بعد إتمام البيع ولم تصل البائع بعد. والحوالة تنفذ من البنك
-          إلى آيبانه، وتسجل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما يطلب
-          والآخر يعتمد.
+          مستحقات بائعين استحقت بعد إتمام البيع ولم تصلهم بعد. والحوالة تنفذها أنت من
+          البنك إلى آيبان البائع، ثم تسجلها هنا بمرجعها على خطوتين: تفتح الطلب أولا،
+          وتدخل مرجع الحوالة بعد تنفيذها.
         </p>
         <div className="flex flex-col items-start gap-0.5">
           <span className="text-3xs opacity-70">مستحق ولم يحول</span>
@@ -65,7 +65,7 @@ export default async function PayoutsPage() {
         total={null}
         note="المستحق من دفتر الحسابات — لا من مجموع الطلبات"
         can="طلب تحويل مستحقات بائع، واعتماد طلب غيرك بعد تنفيذ الحوالة."
-        cannot="الطلب والاعتماد معا — ولا تحويل لبائع لم يدخل آيبانه."
+        cannot="تحويل لبائع لم يدخل آيبانه، أو إقفال طلب بلا مرجع حوالة."
       />
     </AdminShell>
   );

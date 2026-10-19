@@ -24,7 +24,7 @@ import type { PayableSeller, PayoutRow } from '@/lib/domain/payouts';
  */
 
 const STATUS: Record<PayoutRow['status'], { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
-  PENDING: { label: 'ينتظر اعتمادا', tone: 'warn' },
+  PENDING: { label: 'ينتظر مرجع الحوالة', tone: 'warn' },
   SENT: { label: 'حول', tone: 'accent' },
   FAILED: { label: 'تعذر', tone: 'warn' },
   CANCELLED: { label: 'ألغي', tone: 'neutral' },
@@ -34,7 +34,7 @@ const REASON: Record<string, string> = {
   NO_IBAN: 'البائع لم يدخل آيبانه بعد — ولا تحويل بلا آيبان.',
   EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلب ينتظر اعتمادا — يعتمد أو يلغى أولا.',
+  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة — يعتمد أو يلغى أولا.',
   BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية — وبه تطابق بكشف البنك.',
   NOT_PENDING: 'لم يبق الطلب منتظرا — أعتمد أو ألغي.',
   EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
@@ -80,7 +80,7 @@ export function PayoutsTable({
         return;
       }
       setRequesting(null);
-      setToast('فتح طلب التحويل. ينتظر اعتماد عضو ثاني بعد تنفيذ الحوالة.');
+      setToast('سجل طلب التحويل. نفذ الحوالة من البنك ثم أدخل مرجعها هنا.');
       router.refresh();
     });
   };
@@ -139,7 +139,7 @@ export function PayoutsTable({
     <>
       {/* ═══ ينتظر الاعتماد أوّلًا — فهو ما يحتاج فعلًا الآن ═══ */}
       {waiting.length === 0 ? null : (
-        <Section title="ينتظر اعتماد عضو ثاني" count={waiting.length} tone="warn">
+        <Section title="ينتظر مرجع الحوالة" count={waiting.length} tone="warn">
           {waiting.map((row) => {
             const isRequester = row.requestedBy === adminId;
             return (
@@ -304,8 +304,8 @@ export function PayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثاني بعد تنفيذ
-              الحوالة من البنك. ولا يعتمده الطالب.
+              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح الطلب فقط. نفذ الحوالة من البنك،
+              ثم أدخل مرجعها هنا لتكتمل.
             </p>
             <Button className="w-full" disabled={pending} onClick={request}>
               {pending ? 'جاري…' : 'افتح الطلب'}

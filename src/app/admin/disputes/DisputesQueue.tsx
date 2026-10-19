@@ -65,7 +65,7 @@ export function DisputesQueue({
         setToast(body?.error?.messageAr ?? 'تعذر تسجيل الاقتراح.');
         return;
       }
-      setToast('سجل الاقتراح — ينتظر موافقة عضو ثاني، ولم ينفذ بعد.');
+      setToast('حسم النزاع — والضمان تحرك بحسب قرارك.');
       setTarget(null);
       setAmount('');
       router.refresh();
@@ -93,7 +93,7 @@ export function DisputesQueue({
       setToast(
         body?.data?.executed === true
           ? 'نفذ القرار — وحرك مال الضمان بموجبه.'
-          : 'سجلت موافقتك — ما زال ينتظر عضوا آخر.',
+          : 'نفذ القرار.',
       );
       router.refresh();
     });
@@ -139,7 +139,7 @@ export function DisputesQueue({
                     </span>
                   </span>
                   <Button size="sm" disabled={pending || isProposer} onClick={() => approve(row)}>
-                    {isProposer ? 'اقترحته — ينتظر عضوا آخر' : 'اعتمد القرار'}
+                    {isProposer ? 'اقترحته' : 'اعتمد القرار'}
                   </Button>
                 </span>
               )}
@@ -160,7 +160,7 @@ export function DisputesQueue({
               onClick={propose}
               disabled={pending || (resolution === 'PARTIAL_SETTLEMENT' && amount === '')}
             >
-              اطلب الموافقة الثانية
+              احسم النزاع
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setTarget(null)}>
               إلغاء
@@ -171,7 +171,7 @@ export function DisputesQueue({
         {target === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-              القرار لا ينفذ بضغطك: يسجل طلبا ينتظر عضوا ثانيا، وينفذ
+              القرار ينفذ بضغطك: يتحرك الضمان بحسب ما اخترت، ويقيد
               تلقائيا حين يكتمل النصاب — ولا تحويل يدوي بعده.
             </p>
 

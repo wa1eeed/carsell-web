@@ -42,9 +42,9 @@ export default async function ProviderPayoutsPage() {
     >
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-lg text-sm leading-loose opacity-70">
-          هذه مستحقات قيدت عند إنجاز كل خدمة ولم تصل المزود بعد. والحوالة تنفذ من
-          البنك إلى حسابه، وتسجل هنا بمرجعها — ويحتاج التسجيل موافقة شخصين: أحدهما
-          يطلب والآخر يعتمد.
+          مستحقات مزودين قيدت عند إنجاز كل خدمة ولم تصلهم بعد. والحوالة تنفذها أنت من
+          البنك إلى حساب المزود، ثم تسجلها هنا بمرجعها على خطوتين: تفتح الطلب أولا،
+          وتدخل مرجع الحوالة بعد تنفيذها.
         </p>
         <div className="flex flex-col items-start gap-0.5">
           <span className="text-3xs opacity-70">مستحق ولم يحول</span>
@@ -64,7 +64,7 @@ export default async function ProviderPayoutsPage() {
         total={null}
         note="المستحق من دفتر الحسابات — لا من مجموع الطلبات المنجزة"
         can="طلب تحويل مستحق مزود، واعتماد طلب غيرك بعد تنفيذ الحوالة."
-        cannot="الطلب والاعتماد معا — ولا تحويل لمزود بلا آيبان مسجل."
+        cannot="تحويل لمزود بلا آيبان مسجل، أو إقفال طلب بلا مرجع حوالة."
       />
     </AdminShell>
   );

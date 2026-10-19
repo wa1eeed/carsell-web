@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { displayDigits, toLatinDigits } from '@/lib/arabic';
+import { toLatinDigits } from '@/lib/arabic';
 import {
   ANY_TYPE,
   BUYER_TYPE_LABEL,
@@ -37,7 +37,7 @@ type Draft = {
  * **المعطَّلة تُعرض ولا تُخفى.** ثلاثٌ منها تنتظر مذكرةً ضريبية، وهي
  * أكبر انكشافٍ ماليّ في المنتج — وإخفاؤها يجعله غير مرئيّ لمن يديره.
  *
- * **والتحرير بنصاب عضوين.** تفعيلُ صفٍّ ينتظر مذكرة قد ينقل الضريبة من
+ * **والتحرير يسري فور حفظه** (أُلغي نصابُ العضوين بقرار المالك ٢٠٢٦-١٠-١٤؛ ROADMAP §٣٥). تفعيلُ صفٍّ ينتظر مذكرة قد ينقل الضريبة من
  * ١٥٠ إلى ١٥٬٠٠٠ في صفقة واحدة، فلا تُعدَّل بيدٍ واحدة.
  */
 export function RulesTable({
@@ -74,7 +74,7 @@ export function RulesTable({
       if (response === null || !response.ok) {
         setToast(
           response?.status === 403
-            ? 'طالب التعديل لا يوافق على طلبه — يلزم عضو ثاني.'
+            ? 'تعذر التعديل.'
             : 'تعذر اعتماد التعديل.',
         );
         return;
@@ -112,7 +112,7 @@ export function RulesTable({
       setToast(
         payload.data.state === 'APPLIED'
           ? 'طبق التعديل.'
-          : `سجل الطلب — الموافقات (${displayDigits(String(payload.data.approvals ?? 1))} من ${displayDigits(String(payload.data.required ?? 2))}). ينتظر عضوا ثانيا.`,
+          : 'سجل الطلب ولم يسر بعد.',
       );
       setDraft(null);
       router.refresh();
@@ -162,7 +162,7 @@ export function RulesTable({
                     disabled={pending || isRequester}
                     onClick={() => approve(item)}
                   >
-                    {isRequester ? 'طلبته — ينتظر عضوا آخر' : 'اعتمد التعديل'}
+                    {isRequester ? 'طلبته' : 'اعتمد التعديل'}
                   </Button>
                 )}
               </div>
@@ -299,7 +299,7 @@ export function RulesTable({
               قرّر. وأثر هذا الصفّ وثائقُ قانونية لا إعدادُ عرض.
             */}
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-              التعديل يحتاج موافقة عضو ثاني قبل أن يسري. والفواتير الصادرة بهذه
+              التعديل يسري فور حفظه ويسجل باسمك. والفواتير الصادرة بهذه
               القاعدة لا تتغير — لقطتها منسوخة فيها كاملة.
             </p>
 

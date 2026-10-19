@@ -33,7 +33,7 @@ const PAYOUT_REASON: Record<string, string> = {
   NO_IBAN: 'لا آيبان مسجل — يدخل أولا.',
   EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلب ينتظر اعتمادا — يعتمد أو يلغى أولا.',
+  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة — يعتمد أو يلغى أولا.',
   BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية.',
   NOT_PENDING: 'لم يبق الطلب منتظرا.',
   EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
@@ -119,7 +119,7 @@ export function BankAccount({
         setToast(say((await response?.json().catch(() => null)) as Parameters<typeof say>[0]));
         return;
       }
-      setToast('فتح طلب التحويل — ينتظر اعتماد عضو ثاني.');
+      setToast('سجل طلب التحويل. نفذ الحوالة ثم أدخل مرجعها.');
       router.refresh();
     });
   };
@@ -232,7 +232,7 @@ export function BankAccount({
       {pending !== null ? (
         <div className="flex flex-col gap-3 border-b border-line py-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-2xs opacity-70">طلب تحويل ينتظر عضوا ثانيا</span>
+            <span className="text-2xs opacity-70">طلب تحويل ينتظر مرجع الحوالة</span>
             <Money amount={Number(pending.amount)} decimals={2} />
           </div>
           {pending.requestedBy === meId ? (
@@ -285,7 +285,8 @@ export function BankAccount({
             />
           </label>
           <p className="text-3xs leading-loose opacity-70">
-            هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح طلبا يعتمده عضو ثاني.
+            هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح الطلب فقط. نفذ الحوالة من البنك،
+            ثم أدخل مرجعها هنا لتكتمل.
           </p>
           <Button size="sm" disabled={busy} onClick={requestPayout}>
             {busy ? 'جاري…' : 'اطلب التحويل'}

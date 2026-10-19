@@ -69,7 +69,7 @@ export function RoutesTable({
       setToast(
         body?.data?.state === 'APPLIED'
           ? 'طبق التبديل — والمعاملات الجارية تبقى على بوابتها.'
-          : 'سجلت موافقتك — ما زال ينتظر عضوا آخر.',
+          : 'طبق التبديل.',
       );
       router.refresh();
     });
@@ -135,7 +135,7 @@ export function RoutesTable({
         );
         return;
       }
-      setToast('سجل الطلب — ينتظر موافقة عضو ثاني، ولم يتغير التوجيه بعد.');
+      setToast('طبق التبديل — والتوجيه الجديد ساري الآن.');
       setTarget(null);
       router.refresh();
     });
@@ -177,7 +177,7 @@ export function RoutesTable({
                     disabled={pending || isRequester}
                     onClick={() => approve(item)}
                   >
-                    {isRequester ? 'طلبته — ينتظر عضوا آخر' : 'اعتمد التبديل'}
+                    {isRequester ? 'طلبته' : 'اعتمد التبديل'}
                   </Button>
                 )}
               </div>
@@ -273,7 +273,7 @@ export function RoutesTable({
         footer={
           <div className="flex items-center gap-2.5">
             <Button onClick={submit} disabled={pending || chosen === '' || reason.trim().length < 10}>
-              اطلب الموافقة الثانية
+              بدل التوجيه
             </Button>
             <Button variant="ghost" onClick={() => setTarget(null)}>
               إلغاء

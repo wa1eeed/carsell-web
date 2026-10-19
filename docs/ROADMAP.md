@@ -1642,6 +1642,46 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 38 · The admin panel: complete, controllable, plainly written — *owner's request 2026-10-20*
+
+> «العديد من الاعدادات حقولها و اعداداتها فيها نواقص… محتوى صفحات لوحة الادمن
+> يجب ان نطورها… النصوص بداخلها واضح انه صياغه ذكاء اصطناعي و غير مفهومه…
+> ينقصها الفنكشنز مثل امكانية التعديل… فيه بعض الاشياء مالها صفحة تفاصيل»
+
+A program, not one task. Measured on 2026-10-20: **46 screens**, 13 of which
+write nothing, 36 with no detail page, and **107 Arabic paragraphs longer than
+90 characters** written in the aphoristic register this repository uses for
+*code comments* — which is the wrong register for a screen an operator works in.
+
+### 38a — The panel was telling operators a rule that no longer exists *(done)*
+
+- [x] **42 visible strings across 11 screens** still said an action waits for a
+      second approver, three weeks of work after the quorum was removed
+      (§35). The worst was «هذه الضغطة **لا تحرك المبلغ**» above a button that
+      now releases escrow immediately — an operator clicking it expecting a
+      draft moves a buyer's money.
+- [x] Two more were **never true at all**: `/admin/auction-settings` carried a
+      «يحتاج موافقة شخصين» badge and the commission simulator said applying a
+      rate needs two people. `COMMISSION_CHANGE` and `PLAN_CHANGE` have no
+      writer anywhere — the badge described an approval that was never built.
+- [x] Each was rewritten to what the screen actually does, in the plain register
+      the owner asked for: «أفرج عن المبلغ إلى البائع», «سجل طلب التحويل. نفذ
+      الحوالة من البنك ثم أدخل مرجعها هنا».
+- [x] **Gate 66** — no screen may promise a second approver while
+      `REQUIRED_APPROVALS` is 1. It **reads the number rather than storing an
+      opinion**: raise the quorum back to two and the same wording is allowed
+      again, so the gate can never become a rule that contradicts the code.
+      Proved in both directions.
+
+### What stays open in this program
+
+- [ ] **Settings screens with missing fields** — measured per screen against the
+      model's columns, not guessed.
+- [ ] **Entities with no detail page**: payouts, provider payouts, settlements,
+      campaigns, ad slots, services, team, identity, api-keys, webhooks.
+- [ ] **Detail pages that do not give 360°** — measured one by one.
+- [ ] **The remaining copy**, screen by screen, in the plain register.
+
 ## 37 · The auction's bid log, finished — *owner's request 2026-10-20*
 
 Four rows of the design were left open on the auction detail (`docs/BACKLOG.md`

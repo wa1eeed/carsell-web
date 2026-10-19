@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits, toLatinDigits } from '@/lib/arabic';
@@ -133,7 +132,6 @@ export function AuctionSettingsForm({
         <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="mb-4 flex items-center gap-2.5 text-sm font-bold">
             العربون والمزايدة
-            <Badge tone="warn">يحتاج موافقة شخصين</Badge>
           </h2>
 
           <Field

@@ -54,7 +54,7 @@ export default async function IntegrationsPage() {
           نقلٍ إلى الإنتاج — أخطر ما يُطلب في هذه الشاشة — يُقرأ
           مفتاحًا ينتظر تدويرًا.
         */}
-        <Stat title="بيئة تنتظر اعتمادا" value={summary.pendingEnvSwitches} />
+        <Stat title="تبديل بيئة لم يكتمل" value={summary.pendingEnvSwitches} />
       </div>
 
       <IntegrationsList
@@ -72,10 +72,10 @@ export default async function IntegrationsPage() {
           </li>
           <li>الأسرار مخزنة بـAES-256-GCM، والعبث بالنص المشفر يكشف ولا يفك إلى قمامة.</li>
           <li>
-            <strong>التدوير بعضوين</strong> — والطالب لا يوافق على طلبه، وإلا صار «عضوان»
-            عضوا واحدا يضغط مرتين.
+            <strong>كل تدوير يسجل</strong> — باسم من نفذه ووقته. والمفتاح الجديد يشفر
+            قبل أن يخزن، ولا يعرض بعدها.
           </li>
-          <li>السر الجديد يبقى في الطلب حتى تكتمل الموافقة — فالتدوير لا يقع قبل إقراره.</li>
+          <li>التدوير يسري فور تنفيذه، والمفتاح القديم يتوقف في حينه.</li>
           <li>كل طلب وموافقة وفحص يكتب في سجل التدقيق باسم من فعله.</li>
         </ul>
       </section>

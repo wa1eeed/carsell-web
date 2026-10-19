@@ -77,7 +77,7 @@ export function IntegrationsList({
       if (!response.ok) {
         setToast(
           payload.error?.code === 'SELF_APPROVAL'
-            ? 'طالب التدوير لا يوافق على طلبه — يلزم عضو ثاني.'
+            ? 'تعذر التدوير.'
             : 'تعذر التنفيذ.',
         );
         return;
@@ -101,7 +101,7 @@ export function IntegrationsList({
     post(
       `/api/v1/admin/integrations/${draft.key}/rotate`,
       { env: draft.env, secrets },
-      () => 'سجل الطلب — ينتظر موافقة عضو ثاني ولم يتغير شيء بعد.',
+      () => 'دور المفتاح — والجديد ساري الآن.',
     );
     setDraft(null);
   };
@@ -237,7 +237,7 @@ export function IntegrationsList({
                         post(
                           `/api/v1/admin/integrations/${row.key}/environment`,
                           { to: row.storedEnv === 'LIVE' ? 'TEST' : 'LIVE' },
-                          () => 'سجل الطلب — ينتظر عضوا ثانيا.',
+                          () => 'بدلت البيئة.',
                         )
                       }
                     >
@@ -246,7 +246,7 @@ export function IntegrationsList({
                   ) : row.pendingEnvSwitch.requestedBy === adminId ? (
                     <span className="text-3xs opacity-70">
                       طلبت نقلها إلى {row.pendingEnvSwitch.to === 'LIVE' ? 'الإنتاج' : 'الاختبار'} —
-                      ينتظر عضوا آخر
+                      لم يكتمل
                     </span>
                   ) : (
                     <Button
@@ -325,7 +325,7 @@ export function IntegrationsList({
                     </Button>
                   ) : row.pendingRotation.requestedBy === adminId ? (
                     /* الطالب يرى أنه ينتظر غيره — ولا يُعرض له زرّ يضغطه فيُرفض */
-                    <span className="text-3xs opacity-70">طلبته — ينتظر عضوا آخر</span>
+                    <span className="text-3xs opacity-70">طلبته — لم يكتمل</span>
                   ) : (
                     /*
                       ═══ والمعتمِد يرى ما يعتمده ═══
@@ -391,7 +391,7 @@ export function IntegrationsList({
         {draft === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="text-2xs leading-relaxed opacity-70">
-              المفتاح الجديد يشفر ويبقى في الطلب حتى يعتمده عضو ثاني. ولن يستبدل القديم
+              المفتاح الجديد يشفر قبل أن يخزن، ويستبدل القديم
               قبل ذلك — <strong>فالطلب وحده ليس تدويرا</strong>.
             </p>
 

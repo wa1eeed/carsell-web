@@ -69,7 +69,7 @@ export default async function PaymentsRoutingPage() {
         <span aria-hidden className="opacity-40">·</span>
         <Quantity unit="servableGateways" count={servable.length} />
         <span aria-hidden className="opacity-40">·</span>
-        <span>التبديل يحتاج موافقة عضوين</span>
+        <span>كل تبديل يسجل باسم من نفذه</span>
       </p>
 
       {/*
@@ -205,7 +205,7 @@ export default async function PaymentsRoutingPage() {
           </li>
           <li>التبديل يسري على المعاملات الجديدة وحدها، ابتداء من لحظة التنفيذ.</li>
           <li>لا يمكن تعطيل غرض له معاملات جارية — يوقف الجديد ويبقى القائم حتى ينتهي.</li>
-          <li>التبديل يحتاج موافقة عضوين ويسجل باسميهما وبالبوابتين في سجل التدقيق.</li>
+          <li>كل تبديل يسجل في سجل التدقيق باسم من نفذه وبالبوابتين: من أي بوابة إلى أي بوابة.</li>
           <li>
             <strong>البوابة التي تنقصها قدرة مطلوبة لا تظهر في القائمة أصلا</strong> — لا
             تعرض ثم ترفض. أما قصر مدة الحجز فتحذير يشرح الأثر ولا يمنع.
