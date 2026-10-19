@@ -1,4 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs';
+import { classifyModels } from './model-writers.mjs';
 import { join, relative } from 'node:path';
 
 /**
@@ -48,76 +49,17 @@ function read(path) {
   }
 }
 
-/** ═══ ١ · نماذجُ لا يكتبها إلّا الزرع ═══ */
+/**
+ * ═══ ١ · نماذجُ لا يكتبها إلّا الزرع ═══
+ *
+ * **والتصنيفُ في `model-writers.mjs`** — تقرؤه البوابة ٦٣ أيضًا حين
+ * تفرض أن يكون لكلّ نموذجٍ بلا محرّرٍ سببٌ معلَن. ونسختان منه
+ * تتباعدان أوّلَ تغيير، والأضعفُ هو الذي يُقرأ.
+ */
 function modelsWithoutWriter() {
-  const schema = read(join(ROOT, 'prisma', 'schema.prisma'));
-  const models = [...schema.matchAll(/^model\s+(\w+)\s*\{/gm)].map((m) => m[1]);
-
-  /**
-   * الكتابة بأيّ من صيغها — و`db` و`tx` و`prisma` أسماءٌ لكاتبٍ واحد.
-   *
-   * **والسطر الواحد لا يكفي**: المنسِّق يكسر السلسلة فيصير
-   * `db.idempotencyKey\n  .create(` — فأبلغتْ أوّلُ نسخةٍ من هذه
-   * الأداة أن الجدول بلا كاتب **وهو مكتوبٌ ومستعمَل في مسارين**.
-   * وفراغٌ بين الاسم والنداء يُسمح به، والبحث على النصّ كلّه لا سطرًا
-   * سطرًا.
-   */
-  const verbs = (model, names) => {
-    const lower = model.charAt(0).toLowerCase() + model.slice(1);
-    return new RegExp(
-      `\\b(?:db|tx|prisma|writer|client)\\s*\\.\\s*${lower}\\s*\\.\\s*(?:${names})\\b`,
-    );
-  };
-
-  /**
-   * ═══ الإنشاءُ غيرُ التعديل — وخلطُهما يُعمي المقياس ═══
-   *
-   * كانت الأداة تسأل عن **الإنشاء وحده**، فصفٌّ مرجعيّ تزرعه البذرة
-   * ويعدّله المشغّل من اللوحة يُقرأ «لا كاتب إطلاقًا» — كأنّه ميّت.
-   *
-   * **وكشفَه أنّه لم يتغيّر بعد إصلاحه**: بُني محرّر علامات الموثوقية
-   * (`db.trustMark.update`) وبقي التقرير يقول عنها ما كان يقوله قبله
-   * حرفًا بحرف. **ومقياسٌ يقرأ الحالَ نفسَه قبل العطل وبعد إصلاحه لا
-   * يقيس شيئًا** — ويُرسل من يقرؤه ليبني ما هو مبنيّ.
-   *
-   * فثلاثُ حالاتٍ لا حالتان، والثالثةُ هي الطابور الحقيقيّ: صفٌّ
-   * يزرعه الزرع **ولا شيء يعدّله** — لا يتغيّر إلّا بنشرٍ جديد.
-   */
-  const createOf = (model) => verbs(model, 'create|createMany|upsert');
-  /**
-   * **والحذفُ ليس تعديلًا.** أوّلُ صياغةٍ عدّته منه، فصار `DeviceToken`
-   * «مرجعيّةٌ سليمة» ولا شيء يلمسه إلّا `deleteMany` عند إغلاق الحساب —
-   * جدولٌ لا يُنشَأ ولا يُعدَّل، وإنّما يُمحى. وقِيس فظهر، ولولا القياس
-   * لنقل المقياسُ الكذبَ من ضفّةٍ إلى أخرى.
-   */
-  const editOf = (model) => verbs(model, 'update|updateMany|upsert');
-
-  const product = [...walk(join(ROOT, 'src'))].map((path) => ({ path, text: read(path) }));
-
-  const seed = read(join(ROOT, 'prisma', 'seed.ts'));
-  const migrations = [...walk(join(ROOT, 'prisma', 'migrations'))]
-    .filter((path) => path.endsWith('.sql'))
-    .map((path) => read(path))
-    .join('\n');
-
-  const orphans = [];
-  for (const model of models) {
-    const creates = createOf(model);
-    const edits = editOf(model);
-    if (product.some((file) => creates.test(file.text))) continue;
-
-    const edited = product.some((file) => edits.test(file.text));
-    /**
-     * **والزرعُ يصل بترحيلٍ كما يصل بملفّ بذرة** — قالبُ الفحص كلُّه
-     * زُرع بـ`INSERT` في ترحيل، فلولا هذا لقيل عنه «لا كاتب إطلاقًا».
-     */
-    const seeded =
-      creates.test(seed) ||
-      new RegExp(`INSERT\\s+INTO\\s+"${model}"`, 'i').test(migrations);
-
-    orphans.push({ model, seeded, edited });
-  }
-  return orphans;
+  return classifyModels(ROOT)
+    .filter((row) => !row.created)
+    .map((row) => ({ model: row.model, seeded: row.seeded, edited: row.edited }));
 }
 
 /** ═══ ٢ · قيَمُ تعدادٍ لا يكتبها أحد ═══ */

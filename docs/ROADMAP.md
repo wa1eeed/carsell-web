@@ -1552,6 +1552,37 @@ Option (أ) was the cheapest of the three offered, and the owner chose it first.
 - [x] A path the text marks as removed is allowed, so history stays readable
       without the gate going blind.
 
+## 27 · A register of what nobody can edit — *owner's request 2026-10-19*
+
+> «واصل بـ(ب)» — the second of the three guards offered.
+
+**The proposal was wrong, and measuring it showed why.** (ب) was going to
+require every sentence promising an operator capability to name a screen.
+Measured: **39 such lines, 37 without a path** — but reading them, most are
+quotations of the owner's own request, entries in the journal, or *descriptions
+of the bug itself*. A gate on words would have raised an alarm on nearly all of
+them, and an alarm that is usually false is worse than none.
+
+So the gate does not read the prose. It reads the thing the prose is about:
+**can anybody change this row without a deploy?**
+
+- [x] **Gate 63** — every model the product neither creates nor edits must
+      appear in `docs/architecture/editability.md` with a reason. Checked both
+      ways: a model that loses its editor must be added, one that gains an
+      editor must be removed, so the register cannot lie in either direction.
+      It is gate 45's shape («a writer or a declared silence») applied to rows.
+- [x] The classifier moved to `scripts/model-writers.mjs`, read by both the
+      gate and `npm run dead-ends` — two checks measuring one thing must not
+      keep separate copies.
+- [x] Measured at **ten models**, each now declared. Writing those ten reasons
+      turned up two gaps nobody had named:
+      - **`PriceStat` has no writer and no scheduled job.** The price guidance
+        a seller reads — «مبنيّ على ١٧ صفقة» — is frozen at seeded values and
+        never learns from a real sale.
+      - **`VehicleHistoryItem` has zero references in `src/`.** A car's history
+        timeline is demo data; nothing adds to it after an inspection, a
+        service or a transfer.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

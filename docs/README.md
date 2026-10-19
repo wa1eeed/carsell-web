@@ -144,9 +144,14 @@ A path the sentence marks as removed is allowed, so a dated journal entry in
 `NOTES.md` can still name a file that is gone. Strictness must not be bought by
 erasing history, and readable history must not be bought by a blind gate.
 
-**What is still unguarded** is the sentence that was never true: 61 places in
-these documents promise an operator capability («set from the panel»), and
-nothing checks that the panel exists. Three such claims were wrong this session.
-Until that is gated, the rule is: **if it is not machine-checked, do not write
-it in the present tense** — generate it, check its names, or date it («measured
-on X, it was Y»).
+**Gate 63** guards the sentence that was never true — but not by reading it.
+Measured on the same day: 39 lines here promise an operator capability, and
+most are quotations of the owner's request, journal entries, or descriptions of
+the bug itself, so a gate on words would have cried wolf on nearly all of them.
+Instead it checks the claim's subject: every model the product neither creates
+nor edits must appear in `architecture/editability.md` with a reason, and the
+register is checked both ways so it cannot go stale either.
+
+What remains unguarded is prose that names no model and no path. The standing
+rule for it: **if it is not machine-checked, do not write it in the present
+tense** — generate it, check its names, or date it («measured on X, it was Y»).

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { CLIPPED_NOUNS } from './clipped-nouns.mjs';
+import { classifyModels } from './model-writers.mjs';
 /**
  * بوابة الجودة — القسم ١٤ من BUILD-WEB-ADMIN.md
  *
@@ -3792,6 +3793,65 @@ function checkDocPathsExist() {
     });
   }
 }
+
+
+/**
+ * ═══ ٦٣ · كلُّ نموذجٍ بلا محرّرٍ له سببٌ معلَن ═══
+ *
+ * **والدعوى تُفحص في الشيء لا في النصّ.** أخطرُ تعفّنٍ في التوثيق جملةٌ
+ * لم تصحّ يوم كُتبت: «يُضبط من اللوحة» تُكتب وقت التخطيط تصف نيّةً،
+ * وتُقرأ بعد شهرٍ وصفًا لواقع. ووقعت ثلاثًا في جلسةٍ واحدة، أشدُّها
+ * رقمُ علامة الموثوقية — **ولا لوحةَ أصلًا**.
+ *
+ * **وفحصُ النثر بالكلمات لا يفرّق بين دعوى ووصفِ دعوى.** قِيس
+ * ٢٠٢٦-١٠-١٩: تسعٌ وثلاثون جملةً تَعِد بقدرةٍ للمشغّل، وأكثرُها
+ * اقتباسُ طلبٍ للمالك، أو سردٌ في السجلّ، أو **وصفُ العطل نفسِه**.
+ * فبوابةٌ على الكلمات تُنذر على الجميع — وإنذارٌ كاذبٌ متكرّر يُعطّل
+ * القياس أشدَّ من غيابه.
+ *
+ * فتُفحص **القدرة** لا الجملة: نموذجٌ لا يُنشئه المنتج ولا يعدّله
+ * **لا يتغيّر صفُّه إلّا بنشرٍ جديد** — فإمّا تُبنى شاشتُه، أو يُعلَن
+ * سببُه في السجلّ. وهو شكلُ البوابة ٤٥ نفسُه: «كاتبٌ أو صمتٌ معلَن».
+ *
+ * **والسجلُّ يُفحص في الاتّجاهين**: نموذجٌ فقد محرّرَه يجب أن يُضاف،
+ * ونموذجٌ كسبه يجب أن يُحذف — وإلّا صار السجلُّ نفسُه وثيقةً تكذب.
+ */
+function checkEditabilityRegister() {
+  const register = join(ROOT, 'docs', 'architecture', 'editability.md');
+  if (!existsSync(register)) {
+    problems.push('docs/architecture/editability.md  مفقود — والبوابة ٦٣ تقرؤه');
+    return;
+  }
+
+  const text = readFileSync(register, 'utf8');
+  /** الاسمُ يُذكر في عمود الجدول بين علامتي اقتباسٍ خلفية. */
+  const declared = new Set(
+    [...text.matchAll(/^\|\s*`(\w+)`\s*\|/gm)].map((match) => match[1] ?? ''),
+  );
+
+  const rows = classifyModels(ROOT);
+  const stuck = rows
+    .filter((row) => !row.created && !row.edited)
+    .map((row) => row.model);
+
+  for (const model of stuck) {
+    if (declared.has(model)) continue;
+    problems.push(
+      `docs/architecture/editability.md  «${model}» لا يُنشئه المنتج ولا يعدّله — ` +
+        'فإمّا تُبنى شاشتُه، أو يُعلَن سببُه في السجلّ.',
+    );
+  }
+
+  for (const model of declared) {
+    if (stuck.includes(model)) continue;
+    problems.push(
+      `docs/architecture/editability.md  «${model}» صار له محرّرٌ في المنتج — ` +
+        'يُرفع من السجلّ، فالسجلُّ لا يكذب في الاتّجاه الآخر.',
+    );
+  }
+}
+
+checkEditabilityRegister();
 
 checkDocPathsExist();
 
