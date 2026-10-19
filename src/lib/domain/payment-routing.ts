@@ -11,6 +11,7 @@ import {
 } from '@/lib/payments/gateway';
 import { effectiveEnvironment } from './integration-env';
 import { gatewayImplemented } from '@/lib/payments/resolve';
+import { REQUIRED_APPROVALS, selfApprovalBlocked, soloQuorum } from './approvals';
 
 /**
  * A20 — إعدادات الدفع والتوجيه (قرار ٣٤).
@@ -203,7 +204,7 @@ export async function requestRouteSwitch(
 
   const current = await db.paymentRoute.findUnique({ where: { purpose: input.purpose } });
 
-  await db.approvalRequest.create({
+  const request = await db.approvalRequest.create({
     data: {
       kind: 'PAYMENT_ROUTE',
       entityType: 'PaymentRoute',
@@ -217,7 +218,7 @@ export async function requestRouteSwitch(
       },
       requestedBy: admin.id,
       approvedBy: [],
-      requiredApprovals: 2,
+      requiredApprovals: REQUIRED_APPROVALS,
       status: 'PENDING',
       expiresAt: new Date(now.getTime() + SWITCH_WINDOW_HOURS * 3600 * 1000),
     },
@@ -236,6 +237,15 @@ export async function requestRouteSwitch(
       createdAt: now,
     },
   });
+
+  /**
+   * **والطالبُ هو النصاب حين يكون النصاب واحدًا** (قرار المالك
+   * ٢٠٢٦-١٠-١٤): فالطلبُ يُنفَّذ في النداء نفسِه ولا يُترك معلَّقًا
+   * ينتظر الشخصَ نفسَه ليضغط ثانيةً. والصفُّ يبقى بمن طلب ومن نفّذ.
+   */
+  if (soloQuorum()) {
+    await approveRouteSwitch(admin, request.id, ip, now);
+  }
 
   return { ok: true, state: 'PENDING' };
 }
@@ -334,7 +344,7 @@ export async function approveRouteSwitch(
       await tx.approvalRequest.update({ where: { id: requestId }, data: { status: 'EXPIRED' } });
       return { ok: false, reason: 'EXPIRED' };
     }
-    if (request.requestedBy === admin.id || request.approvedBy.includes(admin.id)) {
+    if (selfApprovalBlocked(request, admin.id) || request.approvedBy.includes(admin.id)) {
       return { ok: false, reason: 'SELF_APPROVAL' };
     }
 

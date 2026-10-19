@@ -103,7 +103,8 @@ describe('تعديل القاعدة بنصاب عضوين', () => {
    * **ما يحتاج حراسةً يُبنى محروسًا.** ولا يوجد مسارٌ يعدّل قاعدةً بيدٍ
    * واحدة: تفعيلُ صفٍّ ينتظر مذكرة قد ينقل الضريبة من ١٥٠ إلى ١٥٬٠٠٠.
    */
-  it('الطلب وحده لا يغيّر شيئًا — والثاني ينفّذ', async () => {
+  /** ═══ ونصابُ الواحد: الطلبُ يُطبِّق (قرار المالك ٢٠٢٦-١٠-١٤) ═══ */
+  it('الطلب يطبّق في النداء نفسه، ولا يُعتمد مرّتين', async () => {
     const [one, two] = await Promise.all([admin(), admin()]);
     const rule = await db.taxRule.findFirstOrThrow({ where: { active: false } });
 
@@ -120,27 +121,22 @@ describe('تعديل القاعدة بنصاب عضوين', () => {
         },
         null,
       );
-      expect(asked).toMatchObject({ ok: true, state: 'PENDING', approvals: 1, required: 2 });
+      expect(asked).toMatchObject({ ok: true, state: 'APPLIED' });
 
-      // لم يتغيّر شيء بعد
-      expect((await db.taxRule.findUniqueOrThrow({ where: { id: rule.id } })).active).toBe(false);
-
-      const request = await db.approvalRequest.findFirstOrThrow({
-        where: { kind: 'TAX_RULE_CHANGE', entityId: rule.id, status: 'PENDING' },
-      });
-
-      // ولا يوافق الطالب على نفسه
-      expect(await approveRuleChange(one, request.id, null)).toEqual({
-        ok: false,
-        reason: 'SELF_APPROVAL',
-      });
-      expect((await db.taxRule.findUniqueOrThrow({ where: { id: rule.id } })).active).toBe(false);
-
-      expect(await approveRuleChange(two, request.id, null)).toEqual({
-        ok: true,
-        state: 'APPLIED',
-      });
+      // والقاعدة تبدّلت في النداء نفسه
       expect((await db.taxRule.findUniqueOrThrow({ where: { id: rule.id } })).active).toBe(true);
+
+      // ولم يبقَ معلَّقٌ ينتظر أحدًا
+      const request = await db.approvalRequest.findFirstOrThrow({
+        where: { kind: 'TAX_RULE_CHANGE', entityId: rule.id },
+        orderBy: { id: 'desc' },
+      });
+      expect(request.status).not.toBe('PENDING');
+      /** الطالبُ يُكتب ساعةَ الطلب، ثمّ يُضاف عند التنفيذ — فيظهر مرّتين. */
+      expect(request.approvedBy[0]).toBe(one.id);
+
+      // ولا يُعتمد مرّتين
+      expect(await approveRuleChange(two, request.id, null)).toMatchObject({ ok: false });
     } finally {
       await db.taxRule.update({
         where: { id: rule.id },

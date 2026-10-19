@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import {
-  approveRouteSwitch,
+
   requestRouteSwitch,
   routeChanges,
 } from '@/lib/domain/payment-routing';
@@ -66,14 +66,7 @@ describe('═══ التبديل يترك قصّته ═══', () => {
     }, null);
     expect(asked.ok).toBe(true);
 
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { kind: 'PAYMENT_ROUTE', entityId: purpose, status: 'PENDING' },
-    });
-
-    const applied = await approveRouteSwitch(two, request.id, null);
-    expect(applied.ok).toBe(true);
-    if (applied.ok) expect(applied.state).toBe('APPLIED');
-
+    // الطلبُ طبّق في النداء نفسه — نصابُ الواحد (قرار المالك ٢٠٢٦-١٠-١٤)
     const history = await routeChanges(5);
     const row = history.find((entry) => entry.purpose === purpose && entry.reason === reason);
 

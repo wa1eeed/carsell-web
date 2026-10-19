@@ -167,7 +167,7 @@ describe('النصاب — اثنان لا واحد', () => {
     });
   });
 
-  it('طالبُ التحويل لا يعتمده، والثاني يعتمده فيُخصم الدَّين', async () => {
+  it('طالبُ التحويل يُتمّه بمرجع حوالته، فيُخصم الدَّين', async () => {
     await credit('700.00');
     const before = new Prisma.Decimal(await providerBalance(providerId));
 
@@ -176,18 +176,16 @@ describe('النصاب — اثنان لا واحد', () => {
     /** **ولا مال يخرج عند الطلب** — الرصيد كما كان. */
     expect(await providerBalance(providerId)).toBe(before.toFixed(2));
 
-    const self = await approveProviderPayout({
-      payoutId,
-      adminId: requester.id,
-      bankRef: 'TRF-9001',
-      ip: null,
-    });
-    expect(self.ok).toBe(false);
-    if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
-
+    /**
+     * ═══ ونصابُ الواحد (قرار المالك ٢٠٢٦-١٠-١٤) ═══
+     *
+     * **والمرحلتان تبقيان بطبع الصرف لا بنصابه**: `bankRef` مرجعُ
+     * حوالةٍ وقعت فعلًا ولا يملكه الطالبُ ساعةَ الطلب. فالطالبُ نفسُه
+     * يُتمّها حين يُحوّل — والممنوعُ العضوُ الثاني لا الخطوةُ الثانية.
+     */
     const done = await approveProviderPayout({
       payoutId,
-      adminId: approver.id,
+      adminId: requester.id,
       bankRef: 'TRF-9001',
       ip: null,
     });

@@ -1,6 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { postEntries } from './ledger';
+import { REQUIRED_APPROVALS, selfApprovalBlocked, soloQuorum } from './approvals';
 
 /**
  * ═══ حسابُ المزوّد — وكان دَينًا بلا صاحب ═══
@@ -119,7 +120,9 @@ export type ProviderAdjustRequestResult =
         | 'BAD_AMOUNT'
         | 'REASON_TOO_SHORT'
         | 'INSUFFICIENT_BALANCE'
-        | 'ALREADY_PENDING';
+        | 'ALREADY_PENDING'
+        /** استوفى الطالبُ النصابَ وتعذّر التطبيق — فالمال لم يتحرّك. */
+        | 'APPLY_FAILED';
     };
 
 /**
@@ -184,7 +187,7 @@ export async function requestProviderAdjustment(
       },
       requestedBy: input.adminId,
       approvedBy: [],
-      requiredApprovals: 2,
+      requiredApprovals: REQUIRED_APPROVALS,
       status: 'PENDING',
       expiresAt: new Date(now.getTime() + 72 * 3600 * 1000),
     },
@@ -208,6 +211,19 @@ export async function requestProviderAdjustment(
       createdAt: now,
     },
   });
+
+  /**
+   * **والطالبُ هو النصاب حين يكون النصاب واحدًا** (قرار المالك
+   * ٢٠٢٦-١٠-١٤): فالطلبُ يُنفَّذ في النداء نفسِه ولا يُترك معلَّقًا
+   * ينتظر الشخصَ نفسَه ليضغط ثانيةً. والصفُّ يبقى بمن طلب ومن نفّذ.
+   */
+  if (soloQuorum()) {
+    const applied = await approveProviderAdjustment(
+      { requestId: request.id, adminId: input.adminId, ip: input.ip },
+      now,
+    );
+    if (!applied.ok) return { ok: false, reason: 'APPLY_FAILED' };
+  }
 
   return { ok: true, requestId: request.id };
 }
@@ -236,8 +252,8 @@ export async function approveProviderAdjustment(
   if (request.expiresAt !== null && request.expiresAt.getTime() < now.getTime()) {
     return { ok: false, reason: 'EXPIRED' };
   }
-  /** **ولا يوافق طالبُه على نفسه** — وإلّا فالنصاب واحدٌ بلباس اثنين. */
-  if (request.requestedBy === input.adminId || request.approvedBy.includes(input.adminId)) {
+  /** **ومنعُ الذاتية يتبع الرقم** — فنصابُ الواحد طالبُه نصابُه. */
+  if (selfApprovalBlocked(request, input.adminId) || request.approvedBy.includes(input.adminId)) {
     return { ok: false, reason: 'SELF_APPROVAL' };
   }
 

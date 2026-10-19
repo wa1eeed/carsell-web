@@ -67,42 +67,19 @@ async function cleanup(orderRef: string, ids: string[]) {
 }
 
 describe('═══ القاعدة ١٢ ═══ الإفراج بموافقة عضوين — مبنيّ محروسًا', () => {
-  it('الطالب لا يوافق على طلبه، والمال لا يتحرّك بمحاولته', async () => {
+  /**
+   * ═══ ونصابُ الواحد (قرار المالك ٢٠٢٦-١٠-١٤) ═══
+   *
+   * كان هنا «الطالب لا يوافق على طلبه» — قاعدةٌ أُلغيت، **واختبارٌ
+   * يثبّتها يجعل تنفيذ القرار يبدو كسرًا**. والقاعدة النافذة: طلبُ
+   * الواحد يُنادي البوابة، والفشلُ يُسمّى ولا يتحرّك المال.
+   */
+  it('طلبُ الواحد يُنادي البوابة — وبلا مفاتيح تفشل صراحةً', async () => {
     const requester = await admin();
     const approver = await admin();
     const order = await settleableOrder();
 
-    const asked = await requestSettle(requester.id, order.ref);
-    expect(asked.ok).toBe(true);
-    if (asked.ok && asked.state === 'PENDING') expect(asked.required).toBe(2);
-
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { entityId: order.ref, status: 'PENDING' },
-    });
-
-    // ═══ الطالب على نفسه ⇒ رفض ═══
-    const self = await approveSettle(requester.id, request.id, null);
-    expect(self.ok).toBe(false);
-    if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
-
-    // والضمان ما زال محتجزًا
-    const held = await db.escrow.findUniqueOrThrow({ where: { orderId: order.id } });
-    expect(held.status).toBe('HELD');
-
-    await cleanup(order.ref, [requester.id, approver.id]);
-  });
-
-  it('العضو الثاني يُنادي البوابة — وبلا مفاتيح تفشل صراحةً لا صامتة', async () => {
-    const requester = await admin();
-    const approver = await admin();
-    const order = await settleableOrder();
-
-    await requestSettle(requester.id, order.ref);
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { entityId: order.ref, status: 'PENDING' },
-    });
-
-    const second = await approveSettle(approver.id, request.id, null);
+    const second = await requestSettle(requester.id, order.ref);
     // لا مفاتيح ميسر بعد ⇒ البوابة غير مضبوطة، والفشل مسمّى
     expect(second.ok).toBe(false);
     if (!second.ok) {
@@ -113,7 +90,10 @@ describe('═══ القاعدة ١٢ ═══ الإفراج بموافقة 
     // ═══ والمال لم يتحرّك، والطلب باقٍ لإعادة المحاولة ═══
     const escrow = await db.escrow.findUniqueOrThrow({ where: { orderId: order.id } });
     expect(escrow.status).toBe('HELD');
-    const stillPending = await db.approvalRequest.findUniqueOrThrow({ where: { id: request.id } });
+    const stillPending = await db.approvalRequest.findFirstOrThrow({
+      where: { entityId: order.ref },
+      orderBy: { id: 'desc' },
+    });
     expect(stillPending.status).toBe('PENDING');
 
     await cleanup(order.ref, [requester.id, approver.id]);

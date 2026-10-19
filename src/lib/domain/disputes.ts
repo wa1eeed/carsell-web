@@ -5,6 +5,7 @@ import { republishListing, suspendListing } from './listing-state';
 import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import type { DisputeStatus } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
+import { REQUIRED_APPROVALS, selfApprovalBlocked, soloQuorum } from './approvals';
 
 /**
  * النزاعات — ثلاث قواعد مُلزِمة.
@@ -19,7 +20,6 @@ import { Prisma } from '@/generated/prisma/client';
 
 /** الافتراضيّ — والسارية من إعداد الأدمن. */
 export const DISPUTE_SLA_HOURS = DEADLINE_DEFAULTS.disputeSlaHours;
-export const REQUIRED_APPROVALS = 2;
 
 /** أقلّ ما يُمنَح عند استئناف مهلة الدفع بعد نزاع (قرار ٣). */
 export const MIN_RESUMED_PAYMENT_MS = 6 * 3600 * 1000;
@@ -190,7 +190,16 @@ export async function addDisputeMessage(
 
 export type ProposeResult =
   | { ok: true; approvalId: string }
-  | { ok: false; reason: 'DISPUTE_NOT_FOUND' | 'NOT_OPEN' | 'AMOUNT_REQUIRED' | 'AMOUNT_INVALID' };
+  | {
+      ok: false;
+      reason:
+        | 'DISPUTE_NOT_FOUND'
+        | 'NOT_OPEN'
+        | 'AMOUNT_REQUIRED'
+        | 'AMOUNT_INVALID'
+        /** استوفى الطالبُ النصابَ وتعذّر الحسم — فالضمان لم يتحرّك. */
+        | 'APPLY_FAILED';
+    };
 
 /**
  * ═══ القاعدة ٢، الشطر الأول ═══ اقتراح قرار ⇒ طلب موافقة.
@@ -251,6 +260,16 @@ export async function proposeResolution(
     data: { approvalId: approval.id, status: 'INVESTIGATING' },
   });
 
+  /**
+   * **والطالبُ هو النصاب حين يكون النصاب واحدًا** (قرار المالك
+   * ٢٠٢٦-١٠-١٤) — فالحسمُ يقع في النداء نفسِه، ولا يبقى نزاعٌ
+   * «قيد التحقيق» ينتظر الشخصَ نفسَه ليضغط ثانيةً.
+   */
+  if (soloQuorum()) {
+    const applied = await approveResolution({ approvalId: approval.id, adminId: input.adminId }, now);
+    if (!applied.ok) return { ok: false, reason: 'APPLY_FAILED' };
+  }
+
   return { ok: true, approvalId: approval.id };
 }
 
@@ -274,7 +293,7 @@ export async function approveResolution(
     if (approval === null) return { ok: false, reason: 'APPROVAL_NOT_FOUND' };
     if (approval.status !== 'PENDING') return { ok: false, reason: 'NOT_PENDING' };
     if (approval.expiresAt <= now) return { ok: false, reason: 'EXPIRED' };
-    if (approval.requestedBy === input.adminId) return { ok: false, reason: 'SELF_APPROVAL' };
+    if (selfApprovalBlocked(approval, input.adminId)) return { ok: false, reason: 'SELF_APPROVAL' };
     if (approval.approvedBy.includes(input.adminId)) return { ok: false, reason: 'ALREADY_APPROVED' };
 
     const approvedBy = [...approval.approvedBy, input.adminId];
@@ -292,6 +311,27 @@ export async function approveResolution(
 
     // ═══ التنفيذ التلقائي على الضمان — لا تحويل يدوي بعده ═══
     await executeResolution(tx, approval.entityId, approval.payload, input.adminId, now);
+
+    /**
+     * ═══ وأثرُ من حسم ═══
+     *
+     * **حسمُ النزاع لم يكن يكتب `AuditLog` إطلاقًا** — يقسم الضمانَ
+     * بين مشترٍ وبائع ولا يترك سطرًا باسم من قرّر. وكان نصابُ العضوين
+     * هو الحارس الوحيد، فلمّا أُلغي بقرار المالك (٢٠٢٦-١٠-١٤) لم يبقَ
+     * شيء. **فالأثرُ يُكتب قبل أن يُخفَّض النصاب لا بعده.**
+     */
+    await tx.auditLog.create({
+      data: {
+        actorId: input.adminId,
+        actorType: 'admin',
+        entity: 'Dispute',
+        entityId: approval.entityId,
+        action: 'dispute.resolved',
+        before: { status: 'INVESTIGATING' },
+        after: approval.payload as Prisma.InputJsonValue,
+        createdAt: now,
+      },
+    });
 
     return { ok: true, executed: true, approvals: approvedBy.length };
   });

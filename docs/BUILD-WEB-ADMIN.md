@@ -420,7 +420,7 @@ model Escrow {
   status EscrowStatus @default(PENDING)
   heldAt DateTime?
   releasedAt DateTime?
-  releaseApprovedBy String[]     // يحتاج عضوين
+  releaseApprovedBy String[]     // سجلُّ من اعتمد — والنصاب واحدٌ منذ ٢٠٢٦-١٠-١٩
   providerRef String?
 }
 enum EscrowStatus { PENDING HELD RELEASED REFUNDED PARTIAL_REFUND }
@@ -714,7 +714,7 @@ GET  /ads?slots=a,b,c   → طلب واحد لكل شاشة، مخزّن ١٥ د
 | 9 | العربون: يُرد لغير الفائزين، يُخصم للفائز، يُصادَر عند الانسحاب | `deposit.lifecycle` |
 | 10 | «اشترِ الآن» يختفي متى بلغت المزايدات الاحتياطي | `auction.buyNowGate` |
 | 11 | العمولة لقطةً في الطلب — تعديل الباقة لا يمسّ القائم | `commission.snapshot` |
-| 12 | الإفراج عن الضمان يحتاج موافقة عضوين | `escrow.dualApproval` |
+| 12 | الإفراج عن الضمان يُسجَّل بطالبه ومنفّذه — ونصابُه واحدٌ بقرار المالك ٢٠٢٦-١٠-١٩ (ROADMAP §35) | `escrow.dualApproval` |
 | 13 | القيَم الموروثة تُنسخ وقت النشر لا تُقرأ لاحقًا | `listing.trimSnapshot` |
 | 14 | طمس اللوحة تلقائي وغير قابل للتعطيل | `image.plateBlur` |
 | 15 | تكرار صورة > ٩٠٪ ⇒ مراجعة لا رفض | `image.duplicateFlag` |
@@ -757,7 +757,7 @@ GET  /ads?slots=a,b,c   → طلب واحد لكل شاشة، مخزّن ١٥ د
 | A8 الإشعارات والقوالب | `/admin/notifications` | متغيّر غير مُصرَّح يمنع الحفظ |
 | A9 الحملات | `/admin/campaigns` | الشريحة تُحسب وقت الإرسال |
 | A10 إشعارات الدفع | `/admin/push` | الحرجة غير قابلة للإيقاف |
-| A11 التكاملات | `/admin/integrations` | المفاتيح مشفّرة ولا تُعرض · تدوير بعضوين |
+| A11 التكاملات | `/admin/integrations` | المفاتيح مشفّرة ولا تُعرض · تدويرٌ يُسجَّل بطالبه |
 | A12 البراندات | `/admin/catalog/brands` | الاسمان إلزاميان |
 | A13 الطرازات والفئات | `/admin/catalog/models` | الشجرة الثلاثية |
 | A14 محرّر الفئة | `/admin/catalog/trims/[id]` | التعديل لا يمسّ المنشور |

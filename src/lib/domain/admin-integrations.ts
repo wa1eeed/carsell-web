@@ -4,6 +4,7 @@ import type { AdminUser } from '@/generated/prisma/client';
 import type { IntegrationEnv } from '@/generated/prisma/enums';
 import { encryptSecret, secretHint } from '@/lib/crypto/secrets';
 import { effectiveEnvironment, environmentIsForced } from './integration-env';
+import { REQUIRED_APPROVALS, selfApprovalBlocked, soloQuorum } from './approvals';
 
 /**
  * A11 — التكاملات ومفاتيح الربط.
@@ -275,7 +276,7 @@ export async function requestRotation(
       payload: { env, encrypted: encryptSecret(JSON.stringify(secrets)), hints },
       requestedBy: admin.id,
       approvedBy: [],
-      requiredApprovals: 2,
+      requiredApprovals: REQUIRED_APPROVALS,
       status: 'PENDING',
       expiresAt: new Date(now.getTime() + ROTATION_WINDOW_HOURS * 3600 * 1000),
     },
@@ -296,7 +297,13 @@ export async function requestRotation(
     },
   });
 
-  return { ok: true, state: 'PENDING', approvals: 1, required: 2 };
+  /**
+   * **والطالبُ هو النصاب حين يكون النصاب واحدًا** (قرار المالك
+   * ٢٠٢٦-١٠-١٤) — ولا صفَّ معلَّق ينتظر الشخصَ نفسَه.
+   */
+  if (soloQuorum()) return approveRotation(admin, request.id, ip, now);
+
+  return { ok: true, state: 'PENDING', approvals: 1, required: REQUIRED_APPROVALS };
 }
 
 /**
@@ -317,7 +324,7 @@ export async function approveRotation(
       await tx.approvalRequest.update({ where: { id: requestId }, data: { status: 'EXPIRED' } });
       return { ok: false, reason: 'EXPIRED' };
     }
-    if (request.requestedBy === admin.id || request.approvedBy.includes(admin.id)) {
+    if (selfApprovalBlocked(request, admin.id) || request.approvedBy.includes(admin.id)) {
       return { ok: false, reason: 'SELF_APPROVAL' };
     }
 
@@ -412,7 +419,7 @@ export async function requestEnvSwitch(
   });
   if (existing !== null) return { ok: false, reason: 'ALREADY_PENDING' };
 
-  await db.approvalRequest.create({
+  const request = await db.approvalRequest.create({
     data: {
       kind: 'INTEGRATION_ENV',
       entityType: 'Integration',
@@ -420,7 +427,7 @@ export async function requestEnvSwitch(
       payload: { to },
       requestedBy: admin.id,
       approvedBy: [],
-      requiredApprovals: 2,
+      requiredApprovals: REQUIRED_APPROVALS,
       status: 'PENDING',
       expiresAt: new Date(now.getTime() + ROTATION_WINDOW_HOURS * 3600 * 1000),
     },
@@ -440,7 +447,13 @@ export async function requestEnvSwitch(
     },
   });
 
-  return { ok: true, state: 'PENDING', approvals: 1, required: 2 };
+  /**
+   * **ونصابُ الواحد يُنفّذ هنا أيضًا** — و`approveRotation` تعالج
+   * الصنفين (`KEY_ROTATION` و`INTEGRATION_ENV`)، فلا مسارَ ثانٍ.
+   */
+  if (soloQuorum()) return approveRotation(admin, request.id, ip, now);
+
+  return { ok: true, state: 'PENDING', approvals: 1, required: REQUIRED_APPROVALS };
 }
 
 function effectiveEnvironmentIsStored(): boolean {

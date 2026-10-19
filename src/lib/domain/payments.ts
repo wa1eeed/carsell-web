@@ -6,6 +6,7 @@ import type { PaymentPurpose, PaymentStatus } from '@/generated/prisma/enums';
 import { gatewayImplemented, resolveForPayment, resolveGateway } from '@/lib/payments/resolve';
 import { canSettle } from './transfer-windows';
 import { isLiveOrder } from './order-state';
+import { REQUIRED_APPROVALS, selfApprovalBlocked, soloQuorum } from './approvals';
 
 /**
  * مسار الدفع — **بلغة الضمان** (قرار ٣٤).
@@ -680,6 +681,7 @@ export type SettleResult =
 export async function requestSettle(
   adminId: string,
   orderRef: string,
+  ip: string | null = null,
   now: Date = new Date(),
 ): Promise<SettleResult> {
   const order = await db.order.findUnique({
@@ -709,7 +711,7 @@ export async function requestSettle(
   });
   if (existing !== null) return { ok: false, reason: 'ALREADY_PENDING' };
 
-  await db.approvalRequest.create({
+  const request = await db.approvalRequest.create({
     data: {
       kind: 'ESCROW_RELEASE',
       entityType: 'Order',
@@ -717,13 +719,21 @@ export async function requestSettle(
       payload: { paymentId: order.payments[0]?.id ?? null },
       requestedBy: adminId,
       approvedBy: [],
-      requiredApprovals: 2,
+      requiredApprovals: REQUIRED_APPROVALS,
       status: 'PENDING',
       expiresAt: new Date(now.getTime() + SETTLE_WINDOW_HOURS * 3600 * 1000),
     },
   });
 
-  return { ok: true, state: 'PENDING', approvals: 1, required: 2 };
+  /**
+   * **والطالبُ هو النصاب حين يكون النصاب واحدًا** (قرار المالك
+   * ٢٠٢٦-١٠-١٤): فلا يُترك صفٌّ معلَّق ينتظر الشخصَ نفسَه ليضغط
+   * ثانيةً. والصفُّ يبقى مكتوبًا بمن طلب ومن نفّذ — وهو الأثر الذي
+   * حلّ محلّ العضو الثاني.
+   */
+  if (soloQuorum()) return approveSettle(adminId, request.id, ip, now);
+
+  return { ok: true, state: 'PENDING', approvals: 1, required: REQUIRED_APPROVALS };
 }
 
 /**
@@ -747,7 +757,7 @@ export async function approveSettle(
     await db.approvalRequest.update({ where: { id: requestId }, data: { status: 'EXPIRED' } });
     return { ok: false, reason: 'EXPIRED' };
   }
-  if (request.requestedBy === adminId || request.approvedBy.includes(adminId)) {
+  if (selfApprovalBlocked(request, adminId) || request.approvedBy.includes(adminId)) {
     return { ok: false, reason: 'SELF_APPROVAL' };
   }
 

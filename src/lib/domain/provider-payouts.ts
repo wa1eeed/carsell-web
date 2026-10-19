@@ -5,6 +5,7 @@ import { encryptSecret } from '@/lib/crypto/secrets';
 import { checkIban, ibanLast4, ibanMasked, type IbanFailure } from './iban';
 import { recordProviderPayout } from './ledger-events';
 import { providerBalance } from './provider-ledger';
+import { REQUIRED_APPROVALS, selfApprovalBlocked } from './approvals';
 
 /**
  * ═══ صرفُ مستحقّات المزوّدين — الطرف الذي لم يُبنَ ═══
@@ -272,7 +273,7 @@ export async function requestProviderPayout(
         payload: { amount: amount.toFixed(2), ibanLast4: last4 },
         requestedBy: input.adminId,
         approvedBy: [],
-        requiredApprovals: 2,
+        requiredApprovals: REQUIRED_APPROVALS,
         status: 'PENDING',
         expiresAt: new Date(now.getTime() + APPROVAL_HOURS * 3600 * 1000),
       },
@@ -361,7 +362,18 @@ export async function approveProviderPayout(
   }
 
   /** **ولا يعتمد طالبُه على نفسه** — وإلّا فالنصاب واحدٌ بلباس اثنين. */
-  if (payout.requestedBy === input.adminId || (request?.approvedBy ?? []).includes(input.adminId)) {
+  /**
+   * ═══ والصرفُ مرحلتان بطبعه لا بنصابه ═══
+   *
+   * `bankRef` مرجعُ حوالةٍ وقعت فعلًا، ولا يملكه الطالبُ ساعةَ الطلب.
+   * فالمرحلتان تبقيان بعد نصاب الواحد — **لكنّهما لشخصٍ واحد**: يَطلب
+   * ثمّ يُدخل المرجعَ حين يُحوّل. والممنوعُ هو العضو الثاني لا الخطوة
+   * الثانية.
+   */
+  if (
+    (request !== null && selfApprovalBlocked(request, input.adminId)) ||
+    (request?.approvedBy ?? []).includes(input.adminId)
+  ) {
     return { ok: false, reason: 'SELF_APPROVAL' };
   }
 

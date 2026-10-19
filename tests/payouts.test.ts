@@ -161,7 +161,15 @@ describe('نصاب التحويل', () => {
     expect(Number(entry?.amount)).toBe(4000);
   });
 
-  it('لا يعتمد الطالبُ طلبَ نفسه', async () => {
+  /**
+   * ═══ ونصابُ الواحد: الطالبُ يُتمّ تحويلَه ═══
+   *
+   * قرار المالك ٢٠٢٦-١٠-١٤ («الأدمن يملك صلاحية مطلقة»). **والمرحلتان
+   * تبقيان بطبع الصرف لا بنصابه**: `bankRef` مرجعُ حوالةٍ وقعت فعلًا،
+   * ولا يملكه الطالبُ ساعةَ الطلب — فالممنوعُ العضوُ الثاني لا الخطوة
+   * الثانية.
+   */
+  it('يعتمد الطالبُ طلبَ نفسه، ومرجعُ الحوالة يُكتب', async () => {
     const { sellerId } = await sellerWithPayable(1500);
     const requested = await requestPayout({
       sellerId,
@@ -172,16 +180,17 @@ describe('نصاب التحويل', () => {
     if (!requested.ok) throw new Error(requested.reason);
     PAYOUT_IDS.push(requested.payoutId);
 
-    expect(
-      await approvePayout({
-        payoutId: requested.payoutId,
-        adminId: 'admin-solo',
-        bankRef: 'FT26101100992',
-        ip: null,
-      }),
-    ).toEqual({ ok: false, reason: 'SELF_APPROVAL' });
+    const approved = await approvePayout({
+      payoutId: requested.payoutId,
+      adminId: 'admin-solo',
+      bankRef: 'FT26101100992',
+      ip: null,
+    });
+    expect(approved.ok).toBe(true);
 
-    await rejectPayout({ payoutId: requested.payoutId, adminId: 'admin-solo', reason: 'تنظيف', ip: null });
+    const row = await db.payout.findUniqueOrThrow({ where: { id: requested.payoutId } });
+    expect(row.status).toBe('SENT');
+    expect(row.bankRef).toBe('FT26101100992');
   });
 
   it('لا يتجاوز حقَّه القائم ولا يخرج بلا آيبان', async () => {

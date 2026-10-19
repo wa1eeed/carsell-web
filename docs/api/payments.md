@@ -281,12 +281,19 @@ The screen promising a second approver while the system has no way to accept one
 is not a missing feature. It is a system reporting that it did something it did
 not do, and an operator waiting for an approval that has nowhere to happen.
 
-`checkApprovalQuorum` in `scripts/check-tokens.mjs` now asserts three things for
-every approval kind created in the domain with `requiredApprovals >= 2`:
+`checkApprovalQuorum` in `scripts/check-tokens.mjs` asserts three things for
+every approval kind created in the domain, **whatever the quorum is**:
 
 1. an `approve*` function exists in the same file,
 2. some API route calls it by name,
-3. every permission in `DUAL_APPROVAL` is checked by name in some route.
+3. every permission in `RECORDED_ACTIONS` is checked by name in some route.
+
+The quorum itself became **one** on 2026-10-19 by the owner's decision
+(ROADMAP §35), and the gate was re-aimed rather than deleted: the class it was
+born from — a request kind with no approver, an approver with no route, a check
+on a weaker permission — does not depend on how many people sign. Had it kept
+testing for `>= 2`, it would have switched itself off on the day of the
+decision.
 
 **Its limit is deliberate and worth knowing**: check 3 asks "does *a* route check
 this permission?", not "does *this* route check the right one." Binding a route

@@ -7,6 +7,7 @@ import {
   providerLedger,
   requestProviderAdjustment,
 } from '@/lib/domain/provider-ledger';
+import { REQUIRED_APPROVALS, selfApprovalBlocked } from '@/lib/domain/approvals';
 import type { AdminUser, ServiceProvider } from '@/generated/prisma/client';
 
 /**
@@ -65,42 +66,44 @@ async function ask(
   return result.requestId;
 }
 
-describe('القيدُ لا يقع بيدٍ واحدة', () => {
-  it('الطلبُ يُنشأ معلّقًا ولا يمسّ الرصيد', async () => {
-    const before = await providerBalance(provider.id);
-    const id = await ask('CREDIT', 100);
-
-    expect(await providerBalance(provider.id)).toBe(before);
-    const pending = await pendingProviderAdjustment(provider.id);
-    expect(pending?.id).toBe(id);
-    expect(pending?.direction).toBe('CREDIT');
-  });
-
-  it('ولا يوافق طالبُه على نفسه', async () => {
-    const id = await ask('CREDIT', 100);
-    const result = await approveProviderAdjustment({
-      requestId: id,
-      adminId: requester.id,
-      ip: null,
-    });
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('SELF_APPROVAL');
-  });
-
-  it('والثاني ينفّذه فيتحرّك الرصيد بمقداره', async () => {
+/**
+ * ═══ والنصابُ صار واحدًا — قرار المالك ٢٠٢٦-١٠-١٤ ═══
+ *
+ * «الأدمن يملك صلاحية مطلقة». فكانت هذه الاختبارات تُثبّت نصابَ
+ * العضوين، **واختبارٌ يثبّت قاعدةً أُلغيت يجعل تنفيذَ القرار يبدو
+ * كسرًا**. فتُعاد صياغتها على القاعدة النافذة: واحدٌ يُتمّ، والأثرُ
+ * يبقى مكتوبًا — وهو ما حلّ محلّ العضو الثاني.
+ */
+describe('القيدُ يقع بيدٍ واحدة، ويُكتب أثرُه', () => {
+  it('الطلبُ وحده ينفّذ، والرصيد يتحرّك بمقداره', async () => {
     const before = Number(await providerBalance(provider.id));
-    const id = await ask('CREDIT', 100);
+    await ask('CREDIT', 100);
 
-    const result = await approveProviderAdjustment({
-      requestId: id,
-      adminId: approver.id,
-      ip: null,
-    });
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(Number(result.balance)).toBeCloseTo(before + 100, 2);
+    expect(Number(await providerBalance(provider.id))).toBeCloseTo(before + 100, 2);
+    // ولا يبقى معلَّقًا ينتظر أحدًا
+    expect(await pendingProviderAdjustment(provider.id)).toBeNull();
   });
 
-  it('وطلبٌ ثانٍ لا يُفتح ما دام الأوّل معلّقًا', async () => {
+  /** **والأثرُ هو الحارس الباقي** — فمن قيّد مكتوبٌ باسمه ومبلغه. */
+  it('ويُكتب في سجل التدقيق بمن قيّد وبكم', async () => {
+    await ask('DEBIT', 70);
+    const log = await db.auditLog.findFirst({
+      where: { entity: 'ServiceProvider', entityId: provider.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(log).not.toBeNull();
+    expect(log?.actorId).toBe(requester.id);
+    expect(JSON.stringify(log?.after)).toContain('70.00');
+  });
+
+  /** **ورفعُ النصاب إلى اثنين يعيد منعَ الذاتية بلا تعديلٍ آخر.** */
+  it('ومنع الموافقة الذاتية يتبع الرقم لا الشيفرة', () => {
+    expect(REQUIRED_APPROVALS).toBe(1);
+    expect(selfApprovalBlocked({ requestedBy: 'a', requiredApprovals: 1 }, 'a')).toBe(false);
+    expect(selfApprovalBlocked({ requestedBy: 'a', requiredApprovals: 2 }, 'a')).toBe(true);
+  });
+
+  it('وطلبٌ ثانٍ يُفتح لأنّ الأوّل نُفِّذ ولم يبقَ معلّقًا', async () => {
     await ask('CREDIT', 100);
     const second = await requestProviderAdjustment({
       providerId: provider.id,
@@ -110,8 +113,8 @@ describe('القيدُ لا يقع بيدٍ واحدة', () => {
       adminId: requester.id,
       ip: null,
     });
-    expect(second.ok).toBe(false);
-    if (!second.ok) expect(second.reason).toBe('ALREADY_PENDING');
+    expect(second.ok).toBe(true);
+    if (second.ok) made.push(second.requestId);
   });
 
   it('والسببُ إلزاميّ — سطرٌ يُقرأ بعد سنة', async () => {
@@ -130,8 +133,8 @@ describe('القيدُ لا يقع بيدٍ واحدة', () => {
 
 describe('الدفترُ يبقى متوازنًا والاسمُ على طرفه', () => {
   it('القيدُ مزدوجٌ متوازن، والمزوّد على طرفه وحده', async () => {
-    const id = await ask('CREDIT', 100);
-    expect((await approveProviderAdjustment({ requestId: id, adminId: approver.id, ip: null })).ok).toBe(true);
+    // الطلبُ ينفّذ بنفسه الآن — فالقيد يقع بنداءٍ واحد
+    await ask('CREDIT', 100);
 
     const rows = await db.ledgerEntry.findMany({
       where: { event: 'provider.admin_credit' },

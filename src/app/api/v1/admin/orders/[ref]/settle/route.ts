@@ -32,7 +32,7 @@ export async function POST(
 
   const result =
     parsed.data.requestId === undefined
-      ? await requestSettle(guard.admin.id, ref)
+      ? await requestSettle(guard.admin.id, ref, guard.ip)
       : await approveSettle(guard.admin.id, parsed.data.requestId, guard.ip);
 
   if (!result.ok) {

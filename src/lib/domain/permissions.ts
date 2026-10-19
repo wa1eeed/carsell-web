@@ -38,17 +38,25 @@ export type Permission =
 export type Grant = true | 'read';
 
 /**
- * إجراءات لا يكفيها دور واحد ولو كان الأعلى: تُنشئ `ApprovalRequest`
- * ويوافق عليها عضو ثانٍ (`SUPER_ADMIN` أو `FINANCE`).
+ * ═══ إجراءاتٌ تُسجَّل قبل أن تقع ═══
+ *
+ * كانت تسمّى `DUAL_APPROVAL` وتعني «لا يكفيها دور واحد، ويوافق عليها
+ * عضو ثانٍ». **وأُلغي نصابُ العضوين بقرار المالك ٢٠٢٦-١٠-١٤** («الأدمن
+ * يملك صلاحية مطلقة») — فالاسمُ صار يَعِد بما لا يقع، **والوعدُ
+ * المُخلَف يبقى بعد حذف ما وعد به** ما لم يُفتَّش عن نصّه.
+ *
+ * وما بقي منها حقيقةً: كلُّ إجراءٍ هنا **يُنشئ `ApprovalRequest` فيبقى
+ * له صفٌّ بمن طلب ومن نفّذ**، وصلاحيتُه تُفحص **باسمها** في مساره لا
+ * بأضعف منها — وهما ما تحرسه البوابة ١٩.
  */
-export const DUAL_APPROVAL: ReadonlySet<Permission> = new Set([
+export const RECORDED_ACTIONS: ReadonlySet<Permission> = new Set([
   'escrow.release',
   'integrations.rotateKeys',
-  // مالُ عميلٍ لا يمسّه واحد — والمنحة كالإفراج
+  // مالُ عميلٍ — والمنحة كالإفراج، كلتاهما تُسجَّل بصفٍّ وأثر
   'wallet.adjust',
   /**
    * **وحسابُ المزوّد مالُ طرفٍ ثالث**: دَينٌ علينا لجهةٍ خارجية، وقيدٌ
-   * بيدٍ واحدة فيه يُنقص ما لها أو يزيده بلا شاهد. وهو كالمحفظة لا دونها.
+   * فيه يُنقص ما لها أو يزيده، فلا يقع بلا صفٍّ يسمّي فاعلَه. وهو كالمحفظة لا دونها.
    */
   'providers.adjust',
   /**
@@ -144,9 +152,9 @@ export function canWrite(role: AdminRole, permission: Permission): boolean {
   return MATRIX[role][permission] === true;
 }
 
-/** هل يلزم هذا الإجراء موافقة عضو ثانٍ؟ */
-export function needsDualApproval(permission: Permission): boolean {
-  return DUAL_APPROVAL.has(permission);
+/** هل يترك هذا الإجراء صفَّ موافقةٍ وتُفحص صلاحيتُه باسمها؟ */
+export function isRecordedAction(permission: Permission): boolean {
+  return RECORDED_ACTIONS.has(permission);
 }
 
 /**

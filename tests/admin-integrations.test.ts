@@ -94,11 +94,8 @@ describe('═══ معيار A11 ═══ المفاتيح لا تُعرض', 
     const approver = await admin('المعتمِد');
     const integration = await db.integration.findFirstOrThrow();
 
+    // نصابُ الواحد (قرار المالك ٢٠٢٦-١٠-١٤): الطلبُ يُدوّر في نداءٍ واحد
     await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { entityId: integration.key, status: 'PENDING' },
-    });
-    await approveRotation(approver, request.id, null);
 
     const row = (await listIntegrations()).find((entry) => entry.key === integration.key);
     const test = row?.credentials.find((entry) => entry.env === 'TEST');
@@ -139,49 +136,32 @@ describe('═══ معيار A11 ═══ المفاتيح لا تُعرض', 
 });
 
 describe('═══ معيار A11 ═══ التدوير بموافقة عضوين', () => {
-  it('الطالب لا يوافق على طلبه، والثاني ينفّذه', async () => {
+  /**
+   * ═══ ونصابُ الواحد (قرار المالك ٢٠٢٦-١٠-١٤) ═══
+   *
+   * كان هنا «الطالب لا يوافق على طلبه، والثاني ينفّذه» — قاعدةٌ
+   * أُلغيت، **واختبارٌ يثبّتها يجعل تنفيذ القرار يبدو كسرًا**.
+   */
+  it('الطالب يُدوّر بنداءٍ واحد، والسرُّ يُخزَّن مشفَّرًا', async () => {
     const requester = await admin('الطالب');
     const approver = await admin('المعتمِد');
     const integration = await db.integration.findFirstOrThrow();
     await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
-    const original: string | null = null;
 
     const asked = await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
     expect(asked.ok).toBe(true);
-    if (asked.ok && asked.state === 'PENDING') expect(asked.required).toBe(2);
-
-    // لم يتغيّر شيء بعد — الطلب وحده ليس تدويرًا
-    const midway = await db.integrationCredential.findUnique({
-      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
-    });
-    expect(midway?.secretsEncrypted ?? null).toBe(original);
-
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { entityId: integration.key, status: 'PENDING' },
-    });
-
-    // ═══ الطالب يوافق على نفسه ⇒ يُرفض ═══
-    const self = await approveRotation(requester, request.id, null);
-    expect(self.ok).toBe(false);
-    if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
-
-    const stillUnchanged = await db.integrationCredential.findUnique({
-      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
-    });
-    expect(stillUnchanged?.secretsEncrypted ?? null).toBe(original);
-
-    // ═══ عضو ثانٍ ⇒ يُنفَّذ ═══
-    const second = await approveRotation(approver, request.id, null);
-    expect(second.ok).toBe(true);
-    if (second.ok) expect(second.state).toBe('EXECUTED');
+    if (asked.ok) expect(asked.state).toBe('EXECUTED');
 
     const rotated = await db.integrationCredential.findUniqueOrThrow({
       where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
     });
-    expect(rotated.secretsEncrypted).not.toBe(original);
+    expect(rotated.secretsEncrypted).not.toBeNull();
     expect(decryptSecret(rotated.secretsEncrypted ?? '')).toContain(SECRET);
 
-    const executed = await db.approvalRequest.findUniqueOrThrow({ where: { id: request.id } });
+    const executed = await db.approvalRequest.findFirstOrThrow({
+      where: { entityId: integration.key },
+      orderBy: { id: 'desc' },
+    });
     expect(executed.status).toBe('APPROVED');
     expect(executed.executedAt).not.toBeNull();
 
@@ -191,37 +171,54 @@ describe('═══ معيار A11 ═══ التدوير بموافقة عض�
     await db.adminUser.deleteMany({ where: { id: { in: [requester.id, approver.id] } } });
   });
 
-  it('طلبان متزامنان لا يجتمعان على مفتاح واحد', async () => {
+  /**
+   * **و«طلبان متزامنان» سقطت بسقوط سببها**: لا يبقى معلَّقٌ ليصطدم به
+   * ثانٍ. والباقي أنّ التدويرين يقعان بالترتيب، وآخرُهما هو المخزَّن.
+   */
+  it('وتدويران متتاليان: آخرُهما هو المخزَّن', async () => {
     const first = await admin('الأوّل');
     const second = await admin('الثاني');
     const integration = await db.integration.findFirstOrThrow();
 
     expect((await requestRotation(first, integration.key, 'TEST', { apiKey: 'a' }, null)).ok).toBe(true);
-    const clash = await requestRotation(second, integration.key, 'TEST', { apiKey: 'b' }, null);
-    expect(clash.ok).toBe(false);
-    if (!clash.ok) expect(clash.reason).toBe('ALREADY_PENDING');
+    expect((await requestRotation(second, integration.key, 'TEST', { apiKey: 'b' }, null)).ok).toBe(true);
+
+    const stored = await db.integrationCredential.findUniqueOrThrow({
+      where: { integrationKey_env: { integrationKey: integration.key, env: 'TEST' } },
+    });
+    expect(decryptSecret(stored.secretsEncrypted ?? '')).toContain('b');
+
+    await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
 
     await db.approvalRequest.deleteMany({ where: { entityId: integration.key } });
     await db.auditLog.deleteMany({ where: { actorId: { in: [first.id, second.id] } } });
     await db.adminUser.deleteMany({ where: { id: { in: [first.id, second.id] } } });
   });
 
-  it('الطلب المنتهي لا يُنفَّذ ولو وافق عضو ثانٍ', async () => {
+  /**
+   * **والانتهاءُ يُقاس بصفٍّ يُصنَع لا بطلبٍ ينتظر**: لم يعد يبقى
+   * معلَّقٌ ليُصنَّع له انتهاء، فيُكتب الصفُّ منتهيًا ثمّ يُعتمد.
+   */
+  it('الطلب المنتهي لا يُنفَّذ ولو اعتُمد', async () => {
     const requester = await admin('الطالب');
     const approver = await admin('المعتمِد');
     const integration = await db.integration.findFirstOrThrow();
     await db.integrationCredential.deleteMany({ where: { integrationKey: integration.key } });
 
-    await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { entityId: integration.key, status: 'PENDING' },
-    });
-    await db.approvalRequest.update({
-      where: { id: request.id },
-      data: { expiresAt: new Date(Date.now() - 1000) },
+    const stale = await db.approvalRequest.create({
+      data: {
+        kind: 'KEY_ROTATION',
+        entityType: 'Integration',
+        entityId: integration.key,
+        payload: { env: 'TEST', secrets: { apiKey: SECRET } },
+        requestedBy: requester.id,
+        approvedBy: [],
+        status: 'PENDING',
+        expiresAt: new Date(Date.now() - 1000),
+      },
     });
 
-    const late = await approveRotation(approver, request.id, null);
+    const late = await approveRotation(approver, stale.id, null);
     expect(late.ok).toBe(false);
     if (!late.ok) expect(late.reason).toBe('EXPIRED');
 
@@ -369,11 +366,8 @@ describe('═══ قرار ٣٣ ═══ البيئتان منفصلتان، 
       data: { integrationKey: integration.key, env: 'LIVE', secretsEncrypted: 'LIVE_UNTOUCHED' },
     });
 
+    // نصابُ الواحد (قرار المالك ٢٠٢٦-١٠-١٤): الطلبُ يُدوّر في نداءٍ واحد
     await requestRotation(requester, integration.key, 'TEST', { apiKey: SECRET }, null);
-    const request = await db.approvalRequest.findFirstOrThrow({
-      where: { entityId: integration.key, status: 'PENDING' },
-    });
-    await approveRotation(approver, request.id, null);
 
     const live = await db.integrationCredential.findUniqueOrThrow({
       where: { integrationKey_env: { integrationKey: integration.key, env: 'LIVE' } },

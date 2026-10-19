@@ -998,30 +998,23 @@ function checkPrismaBoundary() {
 }
 
 /**
- * ═══ البوابة ١٩ — نصاب العضوين يُبنى كاملًا أو لا يُبنى ═══
+ * ═══ البوابة ١٩ — طلبُ الموافقة يُبنى كاملًا أو لا يُبنى ═══
  *
- * **وقع ثلاث مرّات، فأُغلِق آليًا:**
+ * وُلدت من ثلاثة نصفِ نصاب: موافِقٌ بلا دالّة، ودالّةٌ بلا زرٍّ يبلغها،
+ * وفحصٌ على صلاحيةٍ أضعف من المسمّاة. **وأُلغي نصابُ العضوين بقرار
+ * المالك ٢٠٢٦-١٠-١٤** — فلم تُحذف البوابة بل أُعيد تصويبُها: الصنفُ
+ * الذي وُلدت منه **ما زال حيًّا بأيّ نصاب**.
  *
- *   ١· تدوير المفاتيح كان يفحص `integrations.view` لا `rotateKeys` —
- *      و`OPS` يملك العرض ولا يملك التدوير، فكان عضوان من `OPS`
- *      يستوفيان النصاب على سرٍّ حيّ. النصاب قائم، وأهله غير أهله.
- *   ٢· تبديل بوابة الدفع كان يكتب طلبًا بنصاب عضوين **ولا دالّة
- *      موافقةٍ في الملف كلّه** — فلا يُطبَّق تبديلٌ أبدًا.
- *   ٣· تعديل القاعدة الضريبية كانت له دالّة ومسار **ولا زرّ** —
- *      فيبقى معلَّقًا حتى ينقضي.
+ * فتفحص ثلاثة، ولا تسأل عن عدد الموافقين:
+ *   ١· كلُّ صنفِ طلبٍ يُنشأ له دالّةُ `approve*` في ملفّه — وإلّا فطلبٌ
+ *      لا يُعتمد أبدًا.
+ *   ٢· وتلك الدالّة يناديها مسار — ودالّةٌ لا يبلغها أحد كأنّها ليست.
+ *   ٣· وكلُّ صلاحيةٍ في `RECORDED_ACTIONS` تُفحص **باسمها** في مسارها،
+ *      لا بأضعف منها — فالإجراء المحروس باسمٍ آخر بلا حارس.
  *
- * والثلاثة صنفٌ واحد: **نصفُ نصاب**. والشاشة تقول «ينتظر عضوًا ثانيًا»
- * والنظام لا يملك ما يُنتظَر — وعدٌ لا يقابله مسار.
- *
- * فالفحص ثلاثيّ لكل نوع موافقة يُنشأ في النطاق:
- *   • دالّة موافقة تقابل دالّة الطلب
- *   • مسار API ينادي دالّة الموافقة
- *   • والصلاحية المسمّاة في `DUAL_APPROVAL` تُفحص باسمها لا بأضعف منها
- *
- * **وحدُّها معلوم**: الشطر الثالث يسأل «أيفحصها مسارٌ ما؟» لا «أيفحصها
- * هذا المسار؟» — فلو حُرِس مسارٌ واحد بأضعف منها وحُرِس آخر بها لم تُرفع
- * مخالفة. الربط بين المسار وصلاحيته المقصودة لا يُشتقّ من النصّ، والفحص
- * يمسك ما وقع فعلًا: صلاحية نصاب **لا يفحصها شيء**.
+ * **والتعليق يُحذف قبل البحث** (`stripComments`): تعليقٌ يذكر اسمَ
+ * دالّةٍ يُقرأ نداءً فتسكت البوابة على طلبٍ بلا باب — وهو الصنف الذي
+ * خدع البوابتين ٥٠ و٥٢.
  */
 function checkApprovalQuorum() {
   const domain = join(ROOT, 'src', 'lib', 'domain');
@@ -1057,13 +1050,17 @@ function checkApprovalQuorum() {
   for (const [kind, file] of creators) {
     const rel = relative(ROOT, file);
     const source = stripComments(readFileSync(file, 'utf8'));
-    /* نصاب العضوين وحده معنيّ — طلبٌ بعضوٍ واحد ليس نصابًا */
-    if (!/requiredApprovals:\s*[2-9]/.test(source) && !/REQUIRED_APPROVALS/.test(source)) continue;
+    /**
+     * **ويُفحص أيُّ نصابٍ كان.** كان الشرط «عضوان فأكثر»، فلمّا صار
+     * النصابُ واحدًا كان ذلك سيُطفئ البوابة في يوم القرار — والصنفُ
+     * الذي وُلدت منه لا علاقةَ له بالعدد.
+     */
+    if (!/requiredApprovals:\s*[1-9]/.test(source) && !/REQUIRED_APPROVALS/.test(source)) continue;
 
     const local = approvers.filter((entry) => entry.file === file);
     if (local.length === 0) {
       problems.push(
-        `${rel}  «${kind}» يُنشأ بنصاب عضوين ولا دالّة `
+        `${rel}  «${kind}» يُنشئ طلبَ موافقةٍ ولا دالّة `
           + `approve* في ملفه — طلبٌ لا يُعتمد أبدًا`,
       );
       continue;
@@ -1073,16 +1070,16 @@ function checkApprovalQuorum() {
     if (!reachable) {
       problems.push(
         `${rel}  «${local.map((entry) => entry.name).join('/')}» لا يناديها مسار — `
-          + `الموافقة الثانية بلا باب`,
+          + `الموافقة بلا باب`,
       );
     }
   }
 
-  /* ③ صلاحيات DUAL_APPROVAL تُفحص بأسمائها */
+  /* ③ صلاحيات RECORDED_ACTIONS تُفحص بأسمائها */
   const permissionsFile = join(domain, 'permissions.ts');
   if (!existsSync(permissionsFile)) return;
   const permissions = readFileSync(permissionsFile, 'utf8');
-  const block = /DUAL_APPROVAL[^=]*=\s*new Set\(\[([\s\S]*?)\]\)/.exec(permissions);
+  const block = /RECORDED_ACTIONS[^=]*=\s*new Set\(\[([\s\S]*?)\]\)/.exec(permissions);
   if (block === null) return;
 
   for (const match of (block[1] ?? '').matchAll(/'([\w.]+)'/g)) {
@@ -1091,7 +1088,7 @@ function checkApprovalQuorum() {
     const pattern = new RegExp(`requireAdmin\\([^)]*'${permission.replaceAll('.', '\\.')}'`);
     if (!pattern.test(routeSource)) {
       problems.push(
-        `src/lib/domain/permissions.ts  «${permission}» في DUAL_APPROVAL ولا مسار يفحصها — `
+        `src/lib/domain/permissions.ts  «${permission}» في RECORDED_ACTIONS ولا مسار يفحصها — `
           + `الإجراء محروسٌ باسمٍ آخر أو بلا حارس`,
       );
     }

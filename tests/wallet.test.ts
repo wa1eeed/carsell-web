@@ -96,31 +96,45 @@ describe('طلب تعديل الرصيد', () => {
 });
 
 describe('الموافقة الثانية هي التي تُنفّذ', () => {
-  it('لا يوافق طالبُه على نفسه — ولا رصيد يتحرّك', async () => {
+  /**
+   * ═══ ونصابُ الواحد: طالبُه يُتمّه (قرار المالك ٢٠٢٦-١٠-١٤) ═══
+   *
+   * **واختبارٌ يثبّت قاعدةً أُلغيت يجعل تنفيذَ القرار يبدو كسرًا** —
+   * فهذا يقيس القاعدة النافذة: نداءٌ واحد يحرّك الرصيد، والأثرُ
+   * مكتوبٌ باسم من حرّكه.
+   */
+  it('طالبُه يُتمّه — والرصيد يتحرّك بنداءٍ واحد', async () => {
     const id = await subject();
     const asked = await requestWalletAdjustment({
       userId: id, direction: 'CREDIT', amount: 250, reason: 'تعويض عن تأخّر الشحن',
       adminId: ASKER, ip: null,
     });
-    expect(asked.ok).toBe(true);
+    expect(asked.ok, JSON.stringify(asked)).toBe(true);
     if (!asked.ok) return;
 
-    const self = await approveWalletAdjustment({
-      requestId: asked.requestId, adminId: ASKER, ip: null,
-    });
-    expect(self).toEqual({ ok: false, reason: 'SELF_APPROVAL' });
+    expect(await walletBalance(id)).toBe('250.00');
 
-    // **ولا شيء وقع** — والرفض لا يترك أثرًا نصفيًّا
-    expect(await walletBalance(id)).toBe('0.00');
+    /** **والأثرُ هو الحارس الباقي** بعد العضو الثاني. */
+    const log = await db.auditLog.findFirst({
+      where: { entity: 'User', entityId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(log?.actorId).toBe(ASKER);
   });
 
-  it('وطلبٌ ثانٍ لا يُفتح والأوّل معلّق', async () => {
+  /**
+   * **و«طلبٌ ثانٍ لا يُفتح والأوّل معلّق» سقطت بسقوط سببها**: لم يعد
+   * يبقى معلَّقٌ أصلًا. والحارسُ القائم مكانَها أن الخصم لا يتجاوز
+   * الرصيد — وهو يُقاس **بتجاوزه**.
+   */
+  it('والخصم فوق الرصيد يُرفض', async () => {
     const id = await subject();
-    const again = await requestWalletAdjustment({
-      userId: id, direction: 'CREDIT', amount: 90, reason: 'منحة ترحيبية للعميل',
+    const over = await requestWalletAdjustment({
+      userId: id, direction: 'DEBIT', amount: 9_000, reason: 'خصمٌ يتجاوز الرصيد',
       adminId: ASKER, ip: null,
     });
-    expect(again).toEqual({ ok: false, reason: 'ALREADY_PENDING' });
+    expect(over.ok).toBe(false);
+    expect(await walletBalance(id)).toBe('250.00');
   });
 
   /**
@@ -131,14 +145,8 @@ describe('الموافقة الثانية هي التي تُنفّذ', () => {
    */
   it('الموافقة تكتب الرصيد والقيدين المتوازنين معًا', async () => {
     const id = await subject();
-    const pending = await pendingAdjustment(id);
-    expect(pending).not.toBeNull();
-    if (pending === null) return;
-
-    const applied = await approveWalletAdjustment({
-      requestId: pending.id, adminId: APPROVER, ip: null,
-    });
-    expect(applied).toEqual({ ok: true, balance: '250.00' });
+    // الطلبُ كتب الثلاثة في معاملةٍ واحدة — ولا معلَّقَ بعده
+    expect(await pendingAdjustment(id)).toBeNull();
 
     const view = await walletView(id);
     expect(view.balance).toBe('250.00');
@@ -191,10 +199,8 @@ describe('الموافقة الثانية هي التي تُنفّذ', () => {
     expect(asked.ok).toBe(true);
     if (!asked.ok) return;
 
-    const applied = await approveWalletAdjustment({
-      requestId: asked.requestId, adminId: APPROVER, ip: null,
-    });
-    expect(applied).toEqual({ ok: true, balance: '150.00' });
+    // الطلبُ نفّذ — فلا موافقةَ ثانية
+    expect(await walletBalance(id)).toBe('150.00');
 
     const view = await walletView(id);
     // الأحدث أوّلًا، والرصيد المتراكم يُحسب من الأقدم

@@ -9,7 +9,7 @@ import {
   resolveAdminSession,
   revokeAllSessions,
 } from '@/lib/domain/admin-auth';
-import { can, canWrite, needsDualApproval } from '@/lib/domain/permissions';
+import { can, canWrite, isRecordedAction } from '@/lib/domain/permissions';
 
 const EMAIL = 'test-ops@carsell.one';
 const PASSWORD = 'S3cret-Admin-Pass';
@@ -206,8 +206,8 @@ describe('مصفوفة الصلاحيات', () => {
   });
 
   it('الإفراج عن الضمان وتدوير المفاتيح يلزمهما عضوان', () => {
-    expect(needsDualApproval('escrow.release')).toBe(true);
-    expect(needsDualApproval('integrations.rotateKeys')).toBe(true);
-    expect(needsDualApproval('orders.changeStage')).toBe(false);
+    expect(isRecordedAction('escrow.release')).toBe(true);
+    expect(isRecordedAction('integrations.rotateKeys')).toBe(true);
+    expect(isRecordedAction('orders.changeStage')).toBe(false);
   });
 });

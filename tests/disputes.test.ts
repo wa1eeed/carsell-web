@@ -234,7 +234,7 @@ describe('dispute.sla — القاعدة ٣', () => {
   });
 });
 
-describe('dispute.dualApproval — القاعدة ٢', () => {
+describe('dispute.resolution — القاعدة ٢ بنصاب الواحد', () => {
   async function proposeAndApprove(resolution: 'FULL_REFUND' | 'PARTIAL_SETTLEMENT' | 'RELEASE_TO_SELLER', amount?: number) {
     const opened = await openDispute({ orderRef, openedBy: buyerId, reason: 'س' }, T0);
     if (!opened.ok) throw new Error('open failed');
@@ -246,38 +246,50 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     return { opened, proposed };
   }
 
-  it('موافقة واحدة لا تُنفّذ', async () => {
+  /**
+   * ═══ والنصابُ صار واحدًا (قرار المالك ٢٠٢٦-١٠-١٤) ═══
+   *
+   * كانت ثلاثةُ اختباراتٍ هنا تُثبّت «عينين مستقلّتين»، **واختبارٌ
+   * يثبّت قاعدةً أُلغيت يجعل تنفيذَ القرار يبدو كسرًا**. والقاعدةُ
+   * النافذة: الاقتراحُ يحسم، والأثرُ يبقى مكتوبًا.
+   */
+  it('الاقتراح وحده يحسم، والضمان يتحرّك', async () => {
     const { proposed } = await proposeAndApprove('FULL_REFUND');
+    expect(proposed.ok).toBe(true);
     if (!proposed.ok) return;
-
-    const first = await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(3));
-    expect(first.ok && first.executed).toBe(false);
-    expect(first.ok && first.approvals).toBe(1);
 
     const escrow = await db.escrow.findUniqueOrThrow({ where: { orderId } });
-    expect(escrow.status).toBe('HELD');
+    expect(escrow.status).toBe('REFUNDED');
     await teardown();
   });
 
-  /** «عضوان» تعني عينين مستقلّتين لا ضغطتين من شخص واحد. */
-  it('المقترِح لا يوافق على اقتراحه', async () => {
-    const { proposed } = await proposeAndApprove('FULL_REFUND');
-    if (!proposed.ok) return;
+  /**
+   * ═══ والأثرُ هو ما حلّ محلّ العضو الثاني ═══
+   *
+   * **وحسمُ النزاع لم يكن يكتب `AuditLog` إطلاقًا**: يقسم الضمانَ بين
+   * مشترٍ وبائع ولا يترك سطرًا باسم من قرّر. وكان النصابُ حارسَه
+   * الوحيد — فكُتب الأثرُ قبل أن يُخفَّض، لا بعده.
+   */
+  it('ويُكتب أثرٌ باسم من حسم وبما حسم به', async () => {
+    const { opened, proposed } = await proposeAndApprove('FULL_REFUND');
+    if (!proposed.ok || !opened.ok) return;
 
-    const self = await approveResolution({ approvalId: proposed.approvalId, adminId: adminA }, hours(3));
-    expect(self.ok).toBe(false);
-    if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
+    const log = await db.auditLog.findFirst({
+      where: { entity: 'Dispute', entityId: opened.disputeId, action: 'dispute.resolved' },
+    });
+    expect(log).not.toBeNull();
+    expect(log?.actorId).toBe(adminA);
+    expect(JSON.stringify(log?.after)).toContain('FULL_REFUND');
     await teardown();
   });
 
-  it('العضو الواحد لا يوافق مرّتين', async () => {
+  it('وطلبٌ حُسم لا يُحسم ثانيةً', async () => {
     const { proposed } = await proposeAndApprove('FULL_REFUND');
     if (!proposed.ok) return;
 
-    await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(3));
     const twice = await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(4));
     expect(twice.ok).toBe(false);
-    if (!twice.ok) expect(twice.reason).toBe('ALREADY_APPROVED');
+    if (!twice.ok) expect(twice.reason).toBe('NOT_PENDING');
     await teardown();
   });
 
@@ -285,13 +297,7 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     const { proposed } = await proposeAndApprove('FULL_REFUND');
     if (!proposed.ok) return;
 
-    const admin3 = await db.adminUser.create({
-      data: { email: `c${Date.now()}@carsell.one`, name: 'ج', role: 'OPS', passwordHash: 'x' },
-    });
-    await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(3));
-    const done = await approveResolution({ approvalId: proposed.approvalId, adminId: admin3.id }, hours(4));
-
-    expect(done.ok && done.executed).toBe(true);
+    // الاقتراحُ حسم — فلا موافقةَ ثانية ولا عضوٌ ثالث
     expect((await db.escrow.findUniqueOrThrow({ where: { orderId } })).status).toBe('REFUNDED');
 
     const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
@@ -307,7 +313,6 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     expect(listing.status).toBe('PUBLISHED');
     expect(listing.closedAt).toBeNull();
 
-    await db.adminUser.delete({ where: { id: admin3.id } });
     await teardown();
   });
 
@@ -358,12 +363,7 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     const { proposed } = await proposeAndApprove('RELEASE_TO_SELLER');
     if (!proposed.ok) return;
 
-    const admin3 = await db.adminUser.create({
-      data: { email: `e${Date.now()}@carsell.one`, name: 'هـ', role: 'OPS', passwordHash: 'x' },
-    });
-    await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(3));
-    await approveResolution({ approvalId: proposed.approvalId, adminId: admin3.id }, hours(4));
-
+    // الاقتراحُ حسم عند الساعة ٢ — فمنها تُستأنف المهلة
     const escrow = await db.escrow.findUniqueOrThrow({ where: { orderId } });
     expect(escrow.status).toBe('RELEASED');
     expect(escrow.releasedAt).not.toBeNull();
@@ -376,9 +376,8 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
     expect(order.status).toBe('ACTIVE');
     expect(order.paymentPausedRemainingMs).toBeNull();
-    expect(order.paymentDueAt?.getTime()).toBe(hours(4 + 24).getTime());
+    expect(order.paymentDueAt?.getTime()).toBe(hours(2 + 24).getTime());
 
-    await db.adminUser.delete({ where: { id: admin3.id } });
     await teardown();
   });
 
@@ -394,16 +393,10 @@ describe('dispute.dualApproval — القاعدة ٢', () => {
     );
     if (!proposed.ok) return;
 
-    const admin3 = await db.adminUser.create({
-      data: { email: `g${Date.now()}@carsell.one`, name: 'ز', role: 'OPS', passwordHash: 'x' },
-    });
-    await approveResolution({ approvalId: proposed.approvalId, adminId: adminB }, hours(3));
-    await approveResolution({ approvalId: proposed.approvalId, adminId: admin3.id }, hours(10));
-
+    // حُسم عند الساعة ٢، والمتبقّي ساعةٌ واحدة يُرفَع إلى ستّ
     const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
-    expect(order.paymentDueAt?.getTime()).toBe(hours(16).getTime());
+    expect(order.paymentDueAt?.getTime()).toBe(hours(2 + 6).getTime());
 
-    await db.adminUser.delete({ where: { id: admin3.id } });
     await teardown();
   });
 

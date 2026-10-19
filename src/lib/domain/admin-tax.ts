@@ -3,6 +3,7 @@ import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
 import type { InvoiceIssuer, SupplyType, TaxableBase } from '@/generated/prisma/enums';
 import { isVatRegistered } from './tax-profile';
+import { REQUIRED_APPROVALS, soloQuorum } from './approvals';
 
 /**
  * A21 — محرّك الضريبة.
@@ -158,7 +159,6 @@ export type RuleChangeResult =
   | { ok: true; state: 'APPLIED' }
   | { ok: false; reason: 'NOT_FOUND' | 'SELF_APPROVAL' | 'INVALID' };
 
-const REQUIRED_APPROVALS = 2;
 const REQUEST_WINDOW_HOURS = 72;
 
 /**
@@ -228,6 +228,13 @@ export async function requestRuleChange(
     },
   });
 
+  /**
+   * **والطالبُ هو النصاب حين يكون النصاب واحدًا** (قرار المالك
+   * ٢٠٢٦-١٠-١٤): فالطلبُ يُنفَّذ في النداء نفسِه ولا يُترك معلَّقًا
+   * ينتظر الشخصَ نفسَه ليضغط ثانيةً. والصفُّ يبقى بمن طلب ومن نفّذ.
+   */
+  if (soloQuorum()) return approveRuleChange(admin, request.id, ip, now);
+
   return {
     ok: true,
     state: 'PENDING',
@@ -291,7 +298,18 @@ export async function approveRuleChange(
     return { ok: false, reason: 'NOT_FOUND' };
   }
   if (request.status !== 'PENDING') return { ok: false, reason: 'NOT_FOUND' };
-  if (request.approvedBy.includes(admin.id)) return { ok: false, reason: 'SELF_APPROVAL' };
+  /**
+   * ═══ ومنعُ الذاتية يتبع الرقم ═══
+   *
+   * **وهذا الملفُّ وحده يكتب الطالبَ في `approvedBy`** ساعةَ الطلب —
+   * فحصُ القائمة فيه كان يقوم مقام فحص الطالب. ومع نصابِ الواحد
+   * يصير الطلبُ نفسُه استيفاءً، فلو بقي الفحصان كما هما لرفض
+   * `requestRuleChange` تنفيذَ نفسِه برمز «موافقةٌ ذاتية» — وهو ما
+   * وقع فعلًا وكشفه الاختبار.
+   */
+  if (request.requiredApprovals > 1 && request.approvedBy.includes(admin.id)) {
+    return { ok: false, reason: 'SELF_APPROVAL' };
+  }
 
   if (request.expiresAt.getTime() <= now.getTime()) {
     await db.approvalRequest.update({ where: { id: requestId }, data: { status: 'EXPIRED' } });

@@ -107,7 +107,7 @@ describe('═══ قرار ٣٦ ═══ السبب إلزاميّ', () => {
     await db.adminUser.delete({ where: { id: operator.id } });
   });
 
-  it('وبسبب مكتوب يُسجَّل طلبٌ بعضوين ولا يُنفَّذ فورًا', async () => {
+  it('وبسبب مكتوب يُسجَّل الطلب وينفَّذ — والسبب يبقى في حمولته', async () => {
     const operator = await admin();
     const before = await db.paymentRoute.findUniqueOrThrow({ where: { purpose: 'SERVICE_PURCHASE' } });
 
@@ -122,14 +122,19 @@ describe('═══ قرار ٣٦ ═══ السبب إلزاميّ', () => {
     expect(result.ok).toBe(true);
 
     const request = await db.approvalRequest.findFirstOrThrow({ where: { kind: 'PAYMENT_ROUTE' } });
-    expect(request.requiredApprovals).toBe(2);
-    expect(request.approvedBy).toEqual([]);
+    /** **ونصابُ الواحد** (قرار المالك ٢٠٢٦-١٠-١٤) — فالطالب يُتمّه. */
+    expect(request.requiredApprovals).toBe(1);
+    expect(request.approvedBy).toEqual([operator.id]);
     expect((request.payload as { reason?: string }).reason).toBe('ارتفاع رسوم تاب بعد تجديد العقد');
 
-    // والتوجيه لم يتغيّر — الطلب وحده ليس تبديلًا
+    // والتوجيه تبدّل في النداء نفسه — والسببُ مكتوبٌ في الصفّ
     const after = await db.paymentRoute.findUniqueOrThrow({ where: { purpose: 'SERVICE_PURCHASE' } });
-    expect(after.gatewayKey).toBe(before.gatewayKey);
+    expect(after.gatewayKey).toBe('moyasar');
 
+    await db.paymentRoute.update({
+      where: { purpose: 'SERVICE_PURCHASE' },
+      data: { gatewayKey: before.gatewayKey, environment: before.environment },
+    });
     await db.approvalRequest.deleteMany({ where: { kind: 'PAYMENT_ROUTE' } });
     await db.auditLog.deleteMany({ where: { actorId: operator.id } });
     await db.adminUser.delete({ where: { id: operator.id } });
@@ -254,7 +259,7 @@ describe('═══ القاعدة ٤ ═══ نصاب العضوين يكتم
    * موافقةٍ في الملف كلّه**. فكل طلب تبديلٍ يبقى معلَّقًا حتى ينقضي،
    * ولا تُبدَّل بوابةُ غرضٍ مرّة واحدة.
    */
-  it('الطالب لا يعتمد طلبه، والثاني يعتمده فيُطبَّق', async () => {
+  it('الطالبُ يُتمّ طلبَه فيُطبَّق، ولا يُعتمد مرّتين', async () => {
     const requester = await admin();
     const second = await admin();
     const before = await db.paymentRoute.findUniqueOrThrow({
@@ -275,37 +280,20 @@ describe('═══ القاعدة ٤ ═══ نصاب العضوين يكتم
       );
       expect(asked.ok).toBe(true);
 
-      // الشاشة تقرأ المعلَّق — ولا تقول «ينتظر» ثم لا تعرض المنتظِر
-      const waiting = await pendingSwitches();
-      const mine = waiting.find((entry) => entry.purpose === 'SERVICE_PURCHASE');
-      expect(mine).toBeDefined();
-      expect(mine?.toGatewayKey).toBe(to);
-      expect(mine?.required).toBe(2);
-
-      // ═══ الطالب لا يوافق على طلبه ═══
-      const self = await approveRouteSwitch(requester, mine?.id ?? '', null);
-      expect(self.ok).toBe(false);
-      if (!self.ok) expect(self.reason).toBe('SELF_APPROVAL');
-
-      // ولم يتغيّر شيء بمحاولته
-      const untouched = await db.paymentRoute.findUniqueOrThrow({
-        where: { purpose: 'SERVICE_PURCHASE' },
-      });
-      expect(untouched.gatewayKey).toBe(before.gatewayKey);
-
-      // ═══ والثاني يُكمل النصاب فيُطبَّق ═══
-      const done = await approveRouteSwitch(second, mine?.id ?? '', null);
-      expect(done.ok).toBe(true);
-      if (done.ok) expect(done.state).toBe('APPLIED');
-
+      // ═══ ونصابُ الواحد يُطبّق في النداء نفسه ═══
       const after = await db.paymentRoute.findUniqueOrThrow({
         where: { purpose: 'SERVICE_PURCHASE' },
       });
       expect(after.gatewayKey).toBe(to);
 
-      // والطلب لم يعد معلَّقًا — فلا يُعتمد مرّتين
+      // فلا يبقى معلَّقٌ ينتظر أحدًا، ولا يُعتمد مرّتين
       expect(await pendingSwitches()).toHaveLength(0);
-      const twice = await approveRouteSwitch(second, mine?.id ?? '', null);
+      const request = await db.approvalRequest.findFirstOrThrow({
+        where: { kind: 'PAYMENT_ROUTE' },
+        orderBy: { id: 'desc' },
+      });
+      expect(request.approvedBy).toEqual([requester.id]);
+      const twice = await approveRouteSwitch(second, request.id, null);
       expect(twice.ok).toBe(false);
     } finally {
       // الاختبار يعيد ما غيّره — والتوجيه صفٌّ مزروع لا مصنوع هنا

@@ -1642,6 +1642,62 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 35 · The two-approval requirement is removed — *owner's decision 2026-10-14, built 2026-10-19*
+
+> «موافقة العضوين يجب أن نعمل على إزالة هذا القيد من لوحة الأدمن، حيث الأدمن
+> يملك صلاحية مطلقة»
+
+Nine flows wrote `requiredApprovals: 2`: escrow release, seller payouts,
+provider payouts, wallet and provider-ledger adjustments, key rotation,
+environment switch, payment-route switch, tax-rule changes and dispute
+resolution. The quorum is now **one**, from a single named constant — it was
+hardcoded in three files and defined twice more with the same name and value,
+which is how two copies of one rule drift.
+
+- [x] The requester is the quorum: a request whose quorum is already met
+      **executes in the same call**, rather than leaving a pending row for the
+      same person to click a second time. Two clicks by one admin is the
+      «عضوان عضوًا يضغط مرّتين» the code itself mocked.
+- [x] Self-approval is refused **only while the quorum is greater than one** —
+      so raising it back to two restores the old behaviour with no other edit.
+- [x] **Gate 19 is re-aimed, not deleted.** It exists because half-built quorums
+      shipped three times, and that class is still live: a request kind with no
+      approver, an approver with no route, a check on a weaker permission.
+      Deleting the rule without the gate leaves a gate guarding nothing;
+      deleting the gate leaves the class unguarded. It now asserts the path is
+      complete whatever the quorum is.
+
+### What replaces it for money
+
+The third open item asked what control remains once a single admin can move
+money. The answer was «every such action already writes `AuditLog`» — and
+measuring it found that **dispute resolution writes none**. It splits escrow
+between buyer and seller and left no audit row at all; the quorum was the only
+control it ever had.
+
+- [x] `AuditLog` on dispute resolution, with the split and the reason, before
+      the quorum is lowered — not after.
+- [x] **Twenty tests asserted the rule that was removed**, across eight files —
+      «الطالب لا يوافق على طلبه», «الطلب وحده لا يغيّر شيئًا», «والثاني ينفّذ».
+      Each was rewritten to the rule in force, because a test that pins a
+      cancelled rule makes carrying out the decision look like breakage.
+- [x] And three of them pinned behaviour that **no longer has a subject**: «a
+      second request does not open while the first is pending» cannot happen
+      when nothing stays pending. Those were replaced by the guard that is
+      still real — a debit above the balance, measured by exceeding it.
+- [x] **The gate's own premise would have switched it off.** It tested for
+      `requiredApprovals >= 2`; on the day the quorum became one it would have
+      skipped every flow silently. It reads `[1-9]` now, and was proved by
+      renaming an approver — it named the orphaned kind.
+
+### What the rename caught
+
+`DUAL_APPROVAL` is `RECORDED_ACTIONS`. The old name promised a second member
+after the member was gone, and **the promise outlives the rule it was written
+for unless its text is hunted down**: four documents still described key
+rotation and escrow release as «بموافقة عضوين», two of them specifications a
+reader would take as current.
+
 ## 34 · `ApiKey` — a public API nobody can call — *owner's request 2026-10-19*
 
 Three routes under `/api/public/v1` demand a key: the listings page, a single
