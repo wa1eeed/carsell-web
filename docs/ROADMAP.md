@@ -984,7 +984,30 @@ and the sitemap, canonical links and QR payloads all read from it.
 
 - [x] **Regulatory marks**: Digital Government Authority · Saudi Business Center
       · National Data Governance Platform · VAT.
-- [ ] **Payment marks**: the methods the platform actually accepts. *Blocked: the logo file has not reached the repository.*
+- [x] **Payment marks** — unblocked 2026-10-19: the owner supplied
+      `public/trust/payment-icons.webp`, one strip of five. Cut into five files
+      and five rows (mada first — the national scheme and the most used), so a
+      method can be switched off on its own; a strip would show all five or
+      none, and a method that fails at checkout is a promise broken at the
+      worst moment.
+      - [x] **The white tile removed** at the owner's request: content is what
+            is clearly dark or saturated, because the tile's shadow is neutral
+            grey at `rgb(222)` and a naive white test keeps the whole card; and
+            the erase is a flood fill from the border, because «MasterCard» is
+            written in white *inside* its circles and a blanket key punches
+            holes in it.
+      - [x] **The strip reads as one line on mobile**, tighter than the
+            regulatory row: the five are read as a sentence, and wrapping
+            splits them into what looks like two lists.
+      - [x] **The regulatory marks take two lines on mobile, not three** — a
+            two-column grid promises the count, which `flex-wrap` cannot.
+      - [x] `ndgp.png`: shortened at the owner's request, then **restored
+            whole** the same day when he said the full wordmark reads better.
+            It is the body's own mark again.
+      - [x] Order set so VAT sits furthest right and the Digital Government
+            Authority immediately to its left (owner, 2026-10-19). `sort` is
+            not editable from the panel — which edits the number, the link and
+            the visibility — so order travels as a migration.
 - [x] **`/pdpl`** — a data-protection page that beats the reference.
 
 **A badge is a claim, not decoration.** A VAT mark says "this platform is

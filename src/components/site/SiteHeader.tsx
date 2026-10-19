@@ -299,7 +299,7 @@ export async function SiteFooter({ locale }: { locale: string }) {
         title={t('trust.regulatoryTitle')}
         note={t('trust.regulatoryNote')}
       />
-      <TrustMarks marks={payment} locale={locale} title={t('trust.paymentTitle')} />
+      <TrustMarks marks={payment} locale={locale} title={t('trust.paymentTitle')} dense />
       </div>
     </footer>
   );

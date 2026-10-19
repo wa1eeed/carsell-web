@@ -62,23 +62,60 @@ function modelsWithoutWriter() {
    * وفراغٌ بين الاسم والنداء يُسمح به، والبحث على النصّ كلّه لا سطرًا
    * سطرًا.
    */
-  const writeOf = (model) => {
+  const verbs = (model, names) => {
     const lower = model.charAt(0).toLowerCase() + model.slice(1);
     return new RegExp(
-      `\\b(?:db|tx|prisma|writer|client)\\s*\\.\\s*${lower}\\s*\\.\\s*(?:create|createMany|upsert)\\b`,
+      `\\b(?:db|tx|prisma|writer|client)\\s*\\.\\s*${lower}\\s*\\.\\s*(?:${names})\\b`,
     );
   };
 
+  /**
+   * ═══ الإنشاءُ غيرُ التعديل — وخلطُهما يُعمي المقياس ═══
+   *
+   * كانت الأداة تسأل عن **الإنشاء وحده**، فصفٌّ مرجعيّ تزرعه البذرة
+   * ويعدّله المشغّل من اللوحة يُقرأ «لا كاتب إطلاقًا» — كأنّه ميّت.
+   *
+   * **وكشفَه أنّه لم يتغيّر بعد إصلاحه**: بُني محرّر علامات الموثوقية
+   * (`db.trustMark.update`) وبقي التقرير يقول عنها ما كان يقوله قبله
+   * حرفًا بحرف. **ومقياسٌ يقرأ الحالَ نفسَه قبل العطل وبعد إصلاحه لا
+   * يقيس شيئًا** — ويُرسل من يقرؤه ليبني ما هو مبنيّ.
+   *
+   * فثلاثُ حالاتٍ لا حالتان، والثالثةُ هي الطابور الحقيقيّ: صفٌّ
+   * يزرعه الزرع **ولا شيء يعدّله** — لا يتغيّر إلّا بنشرٍ جديد.
+   */
+  const createOf = (model) => verbs(model, 'create|createMany|upsert');
+  /**
+   * **والحذفُ ليس تعديلًا.** أوّلُ صياغةٍ عدّته منه، فصار `DeviceToken`
+   * «مرجعيّةٌ سليمة» ولا شيء يلمسه إلّا `deleteMany` عند إغلاق الحساب —
+   * جدولٌ لا يُنشَأ ولا يُعدَّل، وإنّما يُمحى. وقِيس فظهر، ولولا القياس
+   * لنقل المقياسُ الكذبَ من ضفّةٍ إلى أخرى.
+   */
+  const editOf = (model) => verbs(model, 'update|updateMany|upsert');
+
   const product = [...walk(join(ROOT, 'src'))].map((path) => ({ path, text: read(path) }));
+
+  const seed = read(join(ROOT, 'prisma', 'seed.ts'));
+  const migrations = [...walk(join(ROOT, 'prisma', 'migrations'))]
+    .filter((path) => path.endsWith('.sql'))
+    .map((path) => read(path))
+    .join('\n');
 
   const orphans = [];
   for (const model of models) {
-    const pattern = writeOf(model);
-    if (product.some((file) => pattern.test(file.text))) continue;
+    const creates = createOf(model);
+    const edits = editOf(model);
+    if (product.some((file) => creates.test(file.text))) continue;
 
-    /** يُكتب في الزرع وحده ⇒ يوجد في المخطّط ولا يُنشئه مستخدم. */
-    const seeded = pattern.test(read(join(ROOT, 'prisma', 'seed.ts')));
-    orphans.push({ model, seeded });
+    const edited = product.some((file) => edits.test(file.text));
+    /**
+     * **والزرعُ يصل بترحيلٍ كما يصل بملفّ بذرة** — قالبُ الفحص كلُّه
+     * زُرع بـ`INSERT` في ترحيل، فلولا هذا لقيل عنه «لا كاتب إطلاقًا».
+     */
+    const seeded =
+      creates.test(seed) ||
+      new RegExp(`INSERT\\s+INTO\\s+"${model}"`, 'i').test(migrations);
+
+    orphans.push({ model, seeded, edited });
   }
   return orphans;
 }
@@ -201,10 +238,42 @@ const models = modelsWithoutWriter();
 const enums = enumValuesWithoutWriter();
 const functions = domainFunctionsWithoutCaller();
 
-console.log('═══ نماذجُ لا يكتبها المنتج ═══');
+/**
+ * **والترتيبُ بالخطورة**: ما لا يلمسه شيء أوّلًا، ثمّ ما يُزرع ولا
+ * يُعدَّل (طابورُ العمل الحقيقيّ)، ثمّ المرجعيُّ السليم — وهذا الأخير
+ * يُعدّ ولا يُسرَد، فسردُه يُغرق ما قبله.
+ */
+const dead = models.filter((row) => !row.seeded && !row.edited);
+const frozen = models.filter((row) => row.seeded && !row.edited);
+const reference = models.filter((row) => row.edited);
+
+console.log('═══ نماذجُ لا يُنشئها المنتج ═══');
 if (models.length === 0) console.log('  لا شيء.');
-for (const row of models) {
-  console.log(`  ${row.model.padEnd(28)} ${row.seeded ? '— الزرع وحده يكتبه' : '— لا كاتب إطلاقًا'}`);
+
+if (dead.length > 0) {
+  console.log('\n  ▸ لا يُنشئها ولا يعدّلها شيء — ميّتة أو ناقصةُ حلقة:');
+  for (const row of dead) console.log(`      ${row.model}`);
+}
+
+if (frozen.length > 0) {
+  console.log('\n  ▸ يزرعها الزرع ولا شيء يعدّلها — لا تتغيّر إلّا بنشر:');
+  for (const row of frozen) console.log(`      ${row.model}`);
+}
+
+if (reference.length > 0) {
+  console.log(
+    `\n  ▸ يزرعها الزرع ويكتب عليها المنتج: ${String(reference.length)} — ` +
+      reference.map((row) => row.model).join(' · '),
+  );
+  /**
+   * **ولا يقول هذا السطرُ إنّ لها محرّرًا.** المقياسُ نصّيّ: يرى
+   * `update` ولا يعرف ما تكتبه. و`ApiKey` منها — وكلُّ ما يلمسه
+   * ختمُ `lastUsedAt` عند كل قراءة، فلا أحد يُصدر مفتاحًا أصلًا.
+   * فمن أراد يقينًا **يفتح الشاشة**، كما تقول قاعدةُ المستودع.
+   */
+  console.log(
+    '      (كتابةٌ قد تكون ختمَ استعمالٍ لا تحريرًا — تُقاس بفتح الشاشة)',
+  );
 }
 
 console.log('\n═══ قيَمُ تعدادٍ بلا كاتب ═══');

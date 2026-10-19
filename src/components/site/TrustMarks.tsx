@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { cn } from '@/lib/cn';
 import type { TrustMarkView } from '@/lib/domain/trust-marks';
 
 /**
@@ -20,12 +21,26 @@ import type { TrustMarkView } from '@/lib/domain/trust-marks';
   locale,
   title,
   note,
+  dense = false,
 }: {
   marks: readonly TrustMarkView[];
   locale: string;
   title: string;
   /** سطرٌ يشرح ما تعنيه العلامات — فلا تُقرأ زينةً. */
   note?: string;
+  /**
+   * ═══ شريطُ الدفع يُقرأ صفًّا واحدًا ═══
+   *
+   * **وخمسةُ وسائلَ ليست أربعَ جهات.** الجهاتُ النظامية تُقرأ واحدةً
+   * واحدة، ووسائلُ الدفع تُقرأ **جملةً**: «يقبل مدى وفيزا وماستركارد
+   * وأبل باي وإس تي سي باي». فمسافاتُ الجهات الواسعة تفرّقها، والالتفافُ
+   * على الهاتف يقسمها سطرين فتبدو قائمتين. (طلب المالك ٢٠٢٦-١٠-١٩.)
+   *
+   * فالمسافةُ تضيق، والصفُّ لا يلتفّ، والارتفاعُ يصغر على الهاتف حتى
+   * تسعَ الخمسةُ في ٣٧٥px — لا بانكماشٍ يقصّها (`min-w-0` على عنصرٍ
+   * مرن يحذف المحتوى، وقد وقع في المِلاحة).
+   */
+  dense?: boolean;
 }) {
   if (marks.length === 0) return null;
   const isArabic = locale === 'ar';
@@ -34,7 +49,25 @@ import type { TrustMarkView } from '@/lib/domain/trust-marks';
     <section className="border-t border-line-2 pt-7">
       <p className="mb-5 text-3xs font-bold tracking-[0.14em] opacity-65">{title}</p>
 
-      <ul className="flex flex-wrap items-center gap-x-10 gap-y-7">
+      {/*
+        ═══ والجهاتُ النظامية سطران على الهاتف لا ثلاثة ═══
+
+        **والصفُّ المرن لا يَعِد بعدد.** `flex-wrap` يضع ما يتّسع، وأربعُ
+        شعاراتٍ عريضة في ٣٧٥px تنزل **ثلاثةَ أسطر** — والتذييل يطول بلا
+        أن يقول أحدٌ شيئًا. والشبكةُ تَعِد: عمودان ⇒ أربعةٌ في سطرين
+        مهما اختلفت عروضُها. (طلب المالك ٢٠٢٦-١٠-١٩.)
+
+        **والشعارُ يُصغَّر ولا يُقصّ**: `max-w-full` مع `object-contain`
+        يُنقص ارتفاعَه داخل عموده — ولا يُحذف منه شيء.
+      */}
+      <ul
+        className={cn(
+          'items-center',
+          dense
+            ? 'flex flex-nowrap gap-x-3 sm:gap-x-5'
+            : 'grid grid-cols-2 gap-x-6 gap-y-6 sm:flex sm:flex-wrap sm:gap-x-10 sm:gap-y-7',
+        )}
+      >
         {marks.map((mark) => {
           const name = isArabic ? mark.nameAr : mark.nameEn;
           const body = (
@@ -44,7 +77,10 @@ import type { TrustMarkView } from '@/lib/domain/trust-marks';
                 alt={name}
                 width={180}
                 height={60}
-                className="h-11 w-auto object-contain opacity-80 transition group-hover:opacity-100"
+                className={cn(
+                  'w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100',
+                  dense ? 'h-6 sm:h-10' : 'h-9 sm:h-11',
+                )}
               />
               {mark.registrationNo === null ? null : (
                 <span className="mt-1.5 block text-3xs opacity-65">
@@ -58,7 +94,7 @@ import type { TrustMarkView } from '@/lib/domain/trust-marks';
           );
 
           return (
-            <li key={mark.key}>
+            <li key={mark.key} className={dense ? 'min-w-0 shrink' : undefined}>
               {mark.verifyUrl === null ? (
                 <span className="group -my-1 block py-1">{body}</span>
               ) : (
