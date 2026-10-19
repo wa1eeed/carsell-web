@@ -1583,6 +1583,63 @@ So the gate does not read the prose. It reads the thing the prose is about:
         timeline is demo data; nothing adds to it after an inspection, a
         service or a transfer.
 
+## 28 · The two gaps the register named — *owner's request 2026-10-19*
+
+> «اصلح ثغرتي PriceStat و VehicleHistoryItem»
+
+Both were found by writing the reasons in §27's register, not by counting.
+
+### `PriceStat` — guidance that never learns
+
+The seller's price guidance reads these rows, and **nothing wrote them**: no
+screen, no domain function, and no entry in `src/lib/jobs/run.ts`. So «مبني
+على ١٧ صفقة» has always meant seventeen *seeded* deals, and would have meant
+the same after a thousand real sales.
+
+The seed already says what the source should be: «ووسيطُ السوق في الحقيقة من
+**صفقاتٍ مكتملة**، لا من أسعار طلبنا» — and explains why asking prices are the
+wrong input: most model-years have one listing, so the median equals that
+listing's own price and the indicator says nothing about anything.
+
+- [x] `recomputePriceStats`, registered in `src/lib/jobs/run.ts` and running
+      last with the reconciliation: it reads what settled, and its failure
+      delays no money and no notification. Source is `agreedPrice` on orders at
+      `DONE`/`COMPLETED` — never `askPrice`, and a test asserts that.
+- [x] One deal feeds all **four tiers** the reader falls back through, in the
+      10,000 km buckets it rounds to, with percentiles interpolated rather than
+      snapped to a member — on a sample of eight, `p90` would otherwise be the
+      single dearest deal, read as a ceiling for the market.
+- [x] **It never replaces a usable row with an unusable one.** A key under
+      `PRICE_STAT_MIN_SAMPLE` is left alone. Measured on development data: 2
+      completed deals → 8 candidate slices → **0 written, 8 left**, so the
+      first real sale improves the guidance instead of deleting it.
+- [x] `daysToSellMedian` from published to completed, so «يُباع خلال» comes
+      from our own sales too.
+
+### `VehicleHistoryItem` — a timeline that never grows
+
+Zero references in `src/`. A car's history is seeded demo data; nothing adds to
+it when the car is inspected, serviced or transferred — the three things the
+platform itself knows and the buyer most wants to read.
+
+- [x] Written at the three moments the platform witnesses: an inspection
+      **published** (an unpublished report belongs to whoever asked for it), a
+      sale completed, a service done. **Only what we witnessed** — the seller's
+      own claims are already his description, and a platform line carries more
+      weight than it has earned if it merely repeats him.
+- [x] The inspection line's source is `INSPECTION`, not `PLATFORM`: the
+      inspector is a third party, and that distinction is what makes the line
+      worth anything to a buyer.
+- [x] No line is written twice — a duplicate in a car's history reads as two
+      events.
+- [x] **And the shared fixture now restores it.** `advanceStage` writes history,
+      so a test that completes an order would otherwise leave a permanent line
+      on a seeded car, read by everyone who opens its page. Third effect traced
+      into `tests/helpers/order-fixture.ts` after the ledger and the bell — the
+      repository's standing rule, followed rather than rediscovered.
+- [x] Walked end to end: a seeded order driven through all five stages writes
+      exactly one `owner` line, and severing the call fails the test.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

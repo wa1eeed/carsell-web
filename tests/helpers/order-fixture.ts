@@ -91,6 +91,28 @@ export async function restoreOrder(snapshot: OrderSnapshot): Promise<void> {
     },
   });
 
+  /**
+   * **وتاريخُ المركبة أثرٌ جديد على كيانٍ مشترك.** صار `advanceStage`
+   * إلى `DONE` يكتب سطرًا في تاريخ المركبة («نقل ملكية عبر المنصة»)،
+   * فاختبارٌ يُكمل طلبًا يترك سطرًا دائمًا في سيارةٍ مزروعة — يقرؤه
+   * كلُّ من يفتح صفحتها، ولا يراه أحد حتى يعدّ اختبارٌ آخر سطورها.
+   *
+   * وهو ثالثُ أثرٍ يُتبَع هنا بعد الدفتر والإشعار، والقاعدة واحدة:
+   * **الاستعادة في هذا الملفّ وحده، والأثرُ الجديد يُتبَع فيه مرّة**.
+   */
+  const listing = await db.listing.findUnique({
+    where: { id: snapshot.order.listingId },
+    select: { vehicleId: true },
+  });
+  if (listing !== null) {
+    await db.vehicleHistoryItem.deleteMany({
+      where: {
+        vehicleId: listing.vehicleId,
+        occurredAt: { gt: snapshot.order.stageEnteredAt },
+      },
+    });
+  }
+
   const { id: _id, ...fields } = snapshot.order;
   await db.order.update({ where: { id }, data: fields });
 

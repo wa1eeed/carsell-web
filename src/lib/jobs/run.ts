@@ -13,6 +13,7 @@ import { remindClosingAuctions, remindPaymentDue } from '@/lib/domain/reminders'
 import { settleableOrders } from '@/lib/domain/transfer-windows';
 import { settleOnTransferConfirmed } from '@/lib/domain/payments';
 import { reconcileYesterday } from '@/lib/domain/reconciliation';
+import { recomputePriceStats } from '@/lib/domain/price-stats';
 
 /**
  * ═══ الوظائف الزمنية — والمهلة التي لا تُنفَّذ ليست مهلة ═══
@@ -114,6 +115,19 @@ const JOBS: readonly Job[] = [
    * وكان تعليقُ هذا السجلّ يذكرها قبل أن تُسجَّل فيه.
    */
   { name: 'reconcileYesterday', run: (now) => reconcileYesterday(now) },
+
+  /**
+   * ═══ وإحصاءُ السعر بعد كلّ ما يُتمّ صفقة ═══
+   *
+   * يقرأ الطلباتِ المكتملة ويكتب شرائحَ `PriceStat` التي يقرؤها
+   * إرشادُ السعر عند البائع. **وكان بلا كاتبٍ إطلاقًا**: لا شاشة ولا
+   * دالّة ولا وظيفة — فالعددُ «مبنيّ على ١٧ صفقة» يعني صفقاتٍ مزروعة
+   * ولا يتغيّر بعد ألف بيعةٍ حقيقية.
+   *
+   * وموضعُه آخرًا مع المطابقة: يقرأ ما استقرّ اليوم، وفشلُه لا يؤخّر
+   * مالًا ولا إخطارًا.
+   */
+  { name: 'recomputePriceStats', run: async (now) => (await recomputePriceStats(now)).written },
 ];
 
 /**

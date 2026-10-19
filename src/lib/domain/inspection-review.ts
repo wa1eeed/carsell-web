@@ -1,4 +1,5 @@
 import type { Prisma } from '@/generated/prisma/client';
+import { recordInspection } from './vehicle-history';
 import { db } from '@/lib/db';
 import type { InspectionSection, PaintPanelState, PointState } from './inspection';
 import { inspectorCodeFor, publishOnIssue } from './inspection';
@@ -310,6 +311,14 @@ export async function approveInspection(
         publishedAt: published ? now : null,
       },
     });
+
+    /**
+     * **والمنشورُ وحده يدخل التاريخ.** تقريرٌ لم يُنشر خاصٌّ بطالبه،
+     * وسطرٌ في تاريخ السيارة يقرؤه كلُّ مشترٍ — فما لم يُعلَن لا يُشهَد
+     * به. ومصدرُه `INSPECTION` لا `PLATFORM`: الفاحصُ طرفٌ ثالث،
+     * والتمييزُ هو ما يجعل السطر يساوي شيئًا.
+     */
+    if (published) await recordInspection(tx, draft.vehicleId, now);
     await tx.inspectionDraft.update({
       where: { id: draft.id },
       data: { status: 'APPROVED', reviewedAt: now, reviewedBy: input.adminId },

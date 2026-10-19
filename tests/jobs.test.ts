@@ -61,6 +61,8 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
        * يُشغّلها**، فدفترُنا مرآةٌ لا تُقارَن بأصل.
        */
       'reconcileYesterday',
+    /** أُضيفت ٢٠٢٦-١٠-١٩: إحصاءُ السعر كان بلا كاتب. */
+    'recomputePriceStats',
     ]);
     expect(run.failed).toBe(0);
     for (const outcome of run.outcomes) expect(outcome.ok).toBe(true);

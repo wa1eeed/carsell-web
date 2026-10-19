@@ -400,6 +400,7 @@ export async function applyStep(
         vatAmount: true,
         paymentId: true,
         providerId: true,
+        vehicleId: true,
         service: { select: { nameAr: true } },
       },
     });
@@ -414,6 +415,17 @@ export async function applyStep(
        * **وطلبٌ لم يُدفع لا يُقيَّد**: الزرع يُنشئ طلباتٍ مُنجَزة بلا
        * دفعة، وقيدٌ لها يُنشئ إيرادًا لم يُقبض مقابلُه.
        */
+      /**
+       * **وخدمةٌ أُنجزت على مركبةٍ تدخل تاريخَها.** `VehicleHistoryItem`
+       * كان بلا كاتبٍ في المنتج كلِّه — فسيارةٌ خُدمت عندنا تبقى بلا
+       * سطر. وتُكتب لكلّ منجَزة ولو لم تُدفع بعد: الواقعةُ وقعت،
+       * والدفترُ شأنٌ آخر.
+       */
+      if (step.to === 'DONE' && row.vehicleId !== null) {
+        const { recordService } = await import('./vehicle-history');
+        await recordService(db, row.vehicleId, row.service.nameAr, now);
+      }
+
       if (step.to === 'DONE' && row.paymentId !== null) {
         const { recordServiceEarned } = await import('./ledger-events');
         await recordServiceEarned(

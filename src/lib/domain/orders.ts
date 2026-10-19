@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { recordTransfer } from './vehicle-history';
 import { markListingSold, reserveListing } from './listing-state';
 import { nextOrderRef } from './refs';
 import type { OrderDocument, SettlementFigures } from './documents';
@@ -103,7 +104,20 @@ export async function advanceStage(
      * بيع. وداخل المعاملة لا بعدها: طلبٌ اكتمل وإعلانٌ لم يتبعه هو
      * صفٌّ يكذب، ولا شيء يُبلّغ أن الحلقة انكسرت.
      */
-    if (input.to === 'DONE') await markListingSold(tx, order.listingId, now);
+    if (input.to === 'DONE') {
+      await markListingSold(tx, order.listingId, now);
+      /**
+       * **وتاريخُ المركبة يسجّل ما شهدناه.** `VehicleHistoryItem` كان
+       * بلا كاتبٍ في المنتج كلِّه: صفحةُ السيارة تعرض السطور وتزرعها
+       * البذرة، ولا شيء يضيف إليها بعد بيعةٍ تمّت عندنا. وداخل
+       * المعاملة كأختها: طلبٌ اكتمل وتاريخٌ لم يتبعه صفٌّ يكذب.
+       */
+      const sold = await tx.listing.findUnique({
+        where: { id: order.listingId },
+        select: { vehicleId: true },
+      });
+      if (sold !== null) await recordTransfer(tx, sold.vehicleId, now);
+    }
 
     await tx.orderEvent.create({
       data: {

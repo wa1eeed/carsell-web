@@ -29,14 +29,24 @@ about: **can anybody change this row without a deploy?**
 |---|---|
 | `LegalDocument` | **Deliberate** — «نسخ موقّتة لا تحرير حيّ». Whoever accepted the terms accepted a *specific version*, so editing in place would make their consent apply to text they never read. Each change is a new version with an effective date. **But the publishing path does not exist either**: a new version still needs a deploy. ROADMAP «Also open». |
 | `Invoice` | **Legacy, superseded.** The real one is `TaxInvoice`, written by `issueInvoice` in `tax.ts` with ZATCA numbering, a rule snapshot and a QR. This table keeps six seeded rows and nothing reads it for tax. Removing it is a destructive migration on a table with `User` and `Order` relations, so it waits for a deliberate cleanup. |
-| `PriceStat` | **A real gap.** The seller's price guidance («مبنيّ على ١٧ صفقة») is computed from these rows, and **nothing writes them** — no screen, no domain function, and no scheduled job (measured 2026-10-19 against `src/lib/jobs/run.ts`). So the guidance is frozen at whatever the seed planted and never learns from a real sale. |
-| `VehicleHistoryItem` | **A real gap.** Zero references in `src/`. A car's history timeline is seeded demo data; nothing in the product adds to it after an inspection, a service or a transfer. |
 | `SeoTemplate` | **A real gap.** The intro and outro printed on public landing pages — read by search engines before anybody else — cannot be changed without a deploy. |
 | `FinanceProvider` | **A real gap.** Financing partners are seeded. Adding or removing one needs a deploy. |
 | `FinanceSetting` | **A real gap.** The down-payment percentage, term and profit rate behind every «أو شهريا» figure on a car card. A rate change needs a deploy. |
 | `Entitlement` | Plan entitlements are seeded with their plan. `Plan` itself is editable from `/admin/plans`; what each plan *grants* is not. Six entitlements already have no reader at all — recorded in `docs/NOTES.md`. |
 | `Subscription` | Nothing subscribes: there is one free plan at zero commission and no paid tier yet. The table waits for the dealer panel, which the owner deferred. |
 | `DeviceToken` | **Not seeded either** — nothing creates one. Push tokens come from a mobile app that does not exist; the only code touching the table deletes rows on account closure. |
+
+## Removed from the register
+
+`PriceStat` and `VehicleHistoryItem` were here on 2026-10-19 and are not any
+more: both got writers the same day, and gate 63 refused the file until they
+were taken out. A register that keeps a model after its screen exists lies as
+surely as one that omits a model without one.
+
+- `PriceStat` is recomputed from **completed orders** by the `recomputePriceStats`
+  job, at the four tiers the reader falls back through.
+- `VehicleHistoryItem` is written at the three moments the platform witnesses:
+  an inspection published, a sale completed, a service done.
 
 ## What this does not claim
 
