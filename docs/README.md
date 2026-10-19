@@ -126,3 +126,27 @@ mistake that happened **twice**. Add to them rather than fixing the same class o
 error a third time.
 - [LEDGER.md](LEDGER.md) — the double-entry ledger: accounts, the four money moments, and why a ledger is not a wallet.
 - [DEPLOY-STAGING.md](DEPLOY-STAGING.md) — deploying staging to a VPS with Coolify.
+
+## What keeps these documents honest
+
+Measured 2026-10-19: **62 files · 25,635 lines**, of which about **2,200 (9%)
+are generated** and fail `npm run verify` when they drift — the ERD, OpenAPI's
+142 paths, the component index — plus the state names in
+`workflows/state-machines.md`, checked against the schema's enums.
+
+**Gate 62** adds the cheapest guard over the remaining 91%: every repository
+path a document names inside backticks must exist. It was measured before being
+switched on — 179 references, 2 broken — and found a real lie on its first run:
+`api/admin-auth.md` described TOTP in the present tense long after the feature
+was deleted.
+
+A path the sentence marks as removed is allowed, so a dated journal entry in
+`NOTES.md` can still name a file that is gone. Strictness must not be bought by
+erasing history, and readable history must not be bought by a blind gate.
+
+**What is still unguarded** is the sentence that was never true: 61 places in
+these documents promise an operator capability («set from the panel»), and
+nothing checks that the panel exists. Three such claims were wrong this session.
+Until that is gated, the rule is: **if it is not machine-checked, do not write
+it in the present tense** — generate it, check its names, or date it («measured
+on X, it was Y»).

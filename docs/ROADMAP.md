@@ -1521,6 +1521,37 @@ false alarm thirty-five times is worse than none.
 - [x] `isClippedNoun` is one module both the gate and the walker read, so the
       walker stopped reporting «مشترٍ».
 
+## 26 · Documentation that cannot lie about a path — *owner's request 2026-10-19*
+
+> «ابدأ بـ(أ) ثم واصل» — after asking whether the documentation is kept
+> accurate, and how that could be guaranteed.
+
+**Answered by measurement, not assurance.** 62 documents · 25,635 lines, of
+which **~2,200 (9%) are generated** and fail `verify` when stale: the ERD,
+OpenAPI's 142 paths, the component index, plus the state names in
+`state-machines.md`, which are checked against the schema's enums. The other
+91% is prose nothing verifies.
+
+And the decay is **not staleness**. Three documented claims this session were
+wrong the day they were written: the roadmap said a trust mark's number «is set
+from the panel» when no panel existed; `cn`'s comment said the last class wins,
+which the browser disproves; `state-machines.md` draws a transition the product
+cannot make. A sentence written at planning time describes an *intention*, and
+is read a month later as a *description*.
+
+Option (أ) was the cheapest of the three offered, and the owner chose it first.
+
+- [x] **Gate 62 — every repository path a document names must exist.** Measured
+      before enabling, as the rule requires: **179 unique references, 2 broken**
+      — under the ten-alarm line, so it ships enabled the same day.
+- [x] The two were both `totp`, removed when the designer dropped two-factor
+      auth. One is a dated journal entry in `NOTES.md` — true when written — and
+      one is **`docs/api/admin-auth.md` describing TOTP in the present tense**,
+      a whole section about a feature that does not exist. The gate found a real
+      lie on its first run.
+- [x] A path the text marks as removed is allowed, so history stays readable
+      without the gate going blind.
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

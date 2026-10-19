@@ -3731,6 +3731,70 @@ function checkNoDiacritics() {
   }
 }
 
+
+/**
+ * ═══ ٦٢ · كلُّ مسارٍ تذكره وثيقةٌ موجود ═══
+ *
+ * **والتوثيقُ يتعفّن في موضعين، وهذا أرخصُهما حراسةً.** المرجعُ إلى
+ * ملفٍّ حُذف أو نُقل لا يشكو منه شيء: يقرؤه القارئ فيبحث عمّا لا
+ * وجود له، ويظنّ الخللَ في فهمه.
+ *
+ * **وقِيس قبل أن يُفعَّل** (كما تقضي قاعدة المستودع): مئةٌ وتسعةٌ
+ * وسبعون مرجعًا فريدًا، **اثنان مكسوران** — فدون حدّ العشرة، فيُشحن
+ * مفعَّلًا في يومه. وكلاهما `totp`: بقايا مصادقةٍ ثنائية ألغاها
+ * المصمّم. وأحدُهما لم يكن مرجعًا ميّتًا فحسب بل **قسمًا كاملًا في
+ * `docs/api/admin-auth.md` يصف الميزة بصيغة الحاضر** — فأخرجت
+ * البوابةُ كذبةً حقيقية في أوّل تشغيل.
+ *
+ * ═══ والتاريخُ يبقى مقروءًا ═══
+ *
+ * سجلُّ `NOTES.md` يذكر ملفّات حُذفت، وذلك **صوابٌ**: الحدثُ وقع
+ * والملفُّ كان. فمسارٌ يقول نصُّه إنّه «محذوف» يمرّ — وبهذا لا تُشترى
+ * صرامةُ البوابة بمسحِ التاريخ، ولا تُشترى قراءةُ التاريخ بعمى
+ * البوابة.
+ */
+function checkDocPathsExist() {
+  const docs = join(ROOT, 'docs');
+  if (!existsSync(docs)) return;
+
+  /** جذورُ المستودع — ونصٌّ كـ`package.json` بلا جذرٍ لا يُفحص. */
+  const ROOTS = [
+    'src/', 'scripts/', 'prisma/', 'tests/', 'docs/',
+    'public/', 'eslint-rules/', 'design/', '.github/',
+  ];
+  const PATH_RE =
+    /`([A-Za-z0-9_][A-Za-z0-9_\-./[\]@]*\.(?:ts|tsx|mjs|js|json|css|md|sql|prisma|yml|yaml|sh|webp|png|svg))`/g;
+  /** **والمحذوفُ يُقال** — فيُقرأ التاريخ ولا تعمى البوابة. */
+  /**
+   * **وبمهاربها لا بحروفها.** كُتبت «ح\u064Fذف» بالضمّة نفسِها فأمسكها
+   * اختبارُ `arabic-normalizers` في حينه: نمطٌ يحمل علامةَ تشكيلٍ
+   * حرفية يُبطله أوّلُ مسحٍ آليّ للتشكيل — بلا شكوى من مُصرِّفٍ ولا
+   * لينت. وهي ثالثةُ مواضعَ وقعت فيها، والحارسُ هو الذي ردّها.
+   */
+  const GONE = /\u0645\u062D\u0630\u0648\u0641|\u062D\u064F\u0630\u0641|removed|deleted|no longer exists/;
+
+  for (const file of walk(docs)) {
+    if (!file.endsWith('.md')) continue;
+    const rel = relative(ROOT, file).split(sep).join('/');
+    const lines = readFileSync(file, 'utf8').split('\n');
+
+    lines.forEach((line, index) => {
+      for (const match of line.matchAll(PATH_RE)) {
+        const target = match[1] ?? '';
+        if (!ROOTS.some((root) => target.startsWith(root))) continue;
+        if (existsSync(join(ROOT, target))) continue;
+        if (GONE.test(line)) continue;
+        problems.push(
+          `${rel}:${String(index + 1)}  مسارٌ لا وجود له: «${target}» — ` +
+            'إمّا يُصحَّح، أو يُقال في السطر إنّه محذوف.',
+        );
+      }
+    });
+  }
+}
+
+checkDocPathsExist();
+
 checkNoDiacritics();
 
 

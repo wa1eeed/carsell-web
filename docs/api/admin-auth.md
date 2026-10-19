@@ -63,16 +63,23 @@ An empty hash never verifies. That is the deliberate state the migration leaves
 existing admin rows in: an account with no known password must not be able to
 sign in until `SUPER_ADMIN` resets it.
 
-## TOTP
+## TOTP — removed
 
-RFC 6238 over HOTP, SHA-1, 6 digits, 30-second step, ±1 step tolerance.
+**There is no second factor.** The designer dropped it, and sign-in is the
+password alone. This section used to describe a working implementation in the
+present tense long after it was deleted — a whole feature the document
+promised and the product did not have. Gate 62 found it by asking after
+`tests/totp.test.ts`, removed with the rest. (2026-10-19.)
 
-Implemented directly on `node:crypto` rather than through a library: the
-algorithm is about thirty lines and has **official test vectors** in RFC 6238,
-so verifying against those is stronger evidence than trusting a dependency.
-`tests/totp.test.ts` runs all six published vectors.
+What it was, kept because the reasoning outlives the code: RFC 6238 over HOTP,
+SHA-1, six digits, a thirty-second step and ±1 step of tolerance, implemented
+directly on `node:crypto` rather than through a library — the algorithm is
+about thirty lines and RFC 6238 publishes official test vectors, so checking
+against those is stronger evidence than trusting a dependency. Comparison was
+timing-safe across the whole tolerance window.
 
-Comparison is timing-safe across the whole tolerance window.
+If a second factor returns, it returns as a decision in
+`docs/DESIGN-DECISIONS.md` first.
 
 ## No self-service
 
