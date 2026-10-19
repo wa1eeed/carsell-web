@@ -17,6 +17,8 @@ import { toCardData } from '@/components/ui/toCardData';
 import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
 import { FilterChip } from '@/components/ui/FilterChip';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { SeoProse } from '@/components/site/SeoProse';
+import { landingSeoValues, seoCopy } from '@/lib/seo/copy';
 import { LandingJsonLd } from '../../../JsonLd';
 
 export const dynamic = 'force-dynamic';
@@ -31,9 +33,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (content === null) return {};
 
   const t = await getTranslations({ locale, namespace: 'landing' });
+
+  /** قالبُ المشغّل أوّلًا، وملفُّ الرسائل سقوطًا آمنًا — كصفحة الماركة. */
+  const copy = await seoCopy('landing_model', locale, landingSeoValues(content, locale));
+
   return {
-    title: t('titleModel', { model: content.model ?? content.brand, city: content.city }),
-    description: t('metaModel', { model: content.model ?? content.brand, city: content.city, count: content.count }),
+    title:
+      copy.title ??
+      t('titleModel', { model: content.model ?? content.brand, city: content.city }),
+    description:
+      copy.intro ??
+      t('metaModel', { model: content.model ?? content.brand, city: content.city, count: content.count }),
     // الأصل واحد — والصفحة بوّابةٌ إلى البحث لا نسخةٌ منه
     alternates: { canonical: `/${locale}/browse/${city}/${brand}/${model}` },
   };
@@ -110,6 +120,8 @@ export default async function CityBrandModelLanding({
   const base = `/${locale}/browse/${content.citySlug}/${content.brandSlug}/${content.modelSlug ?? ''}`;
 
   const viewer = await currentUserFromCookies();
+  /** نفسُ القالب الذي بُني منه الوصف — فلا نصّان لصفحةٍ واحدة. */
+  const copy = await seoCopy('landing_model', locale, landingSeoValues(content, locale));
   const results = await searchListings(
     {
       ...EMPTY_FILTERS,
@@ -186,6 +198,9 @@ export default async function CityBrandModelLanding({
             )}
           </p>
 
+          {/* المقدّمةُ نفسُها التي تذهب إلى `<meta description>` (القرار ٢٦). */}
+          <SeoProse text={copy.intro} />
+
           {/*
             ═══ شريط الترتيب ═══
 
@@ -238,6 +253,8 @@ export default async function CityBrandModelLanding({
             {t('browseModel', { model: content.model ?? content.brand, city: content.city })}
           </Link>
 
+          {/* والخاتمةُ آخرُ ما يُقرأ — وتُسقَط كاملةً متى نقص متغيّرُها. */}
+          <SeoProse text={copy.outro} variant="outro" />
         </div>
       </main>
     </>

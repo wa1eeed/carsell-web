@@ -1340,14 +1340,13 @@ Relations: `kind` → `TrustMarkKind`
 | Field | Type | Key |
 |---|---|---|
 | `key` | `String` | PK |
-| `surface` | `String` |  |
+| `surface` | `String` | unique |
 | `titleAr` | `String` |  |
 | `titleEn` | `String` |  |
 | `introAr` | `String` |  |
 | `introEn` | `String` |  |
 | `outroAr` | `String` |  |
 | `outroEn` | `String` |  |
-| `variables` | `String[]` |  |
 | `active` | `Boolean` |  |
 
 ### `Notification`

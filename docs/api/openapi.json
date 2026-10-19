@@ -4079,6 +4079,80 @@
         }
       }
     },
+    "/api/v1/admin/seo/{key}": {
+      "patch": {
+        "summary": "PATCH /api/v1/admin/seo/{key}",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "notifications.manage",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titleAr": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "titleEn": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "introAr": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "introEn": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "outroAr": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "outroEn": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/services": {
       "post": {
         "summary": "POST /api/v1/admin/services",

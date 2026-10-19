@@ -5,6 +5,8 @@ import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { db } from '@/lib/db';
+import { formatNumber } from '@/lib/arabic';
+import { seoCopy } from '@/lib/seo/copy';
 import {
   listBrandOptions,
   listFeatureOptions,
@@ -67,14 +69,38 @@ const dropped = (params: URLSearchParams): Set<string> =>
   new Set((params.get('-') ?? '').split(',').filter((part) => part !== ''));
 
 export async function generateMetadata({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<Search>;
 }): Promise<Metadata> {
   const filters = parseFilters(toParams(await searchParams));
   // صفحات مفلترة لا تُفهرَس — محتوى مكرّر بلا قيمة بحثية.
   // صفحات الهبوط المخصّصة تأتي في المهمة ١٠-ب.
-  return activeFilterCount(filters) > 0 ? { robots: { index: false } } : {};
+  if (activeFilterCount(filters) > 0) return { robots: { index: false } };
+
+  /**
+   * ═══ والمفهرسةُ منها كانت بلا عنوانٍ خاصّ ═══
+   *
+   * `{}` تعني عنوانَ التخطيط العامّ: «كارز» على صفحةٍ هي أهمُّ ما
+   * يُفهرَس بعد الرئيسية. فالعنوانُ والوصفُ من القالب الذي يحرّره
+   * المشغّل (القرار ٢٦)، و`{count}` عددُ المعروض الآن.
+   *
+   * **ولا مقدّمةَ معروضة هنا**: شريطُ البحث ونتائجُه تصميمٌ قائم،
+   * وإضافةُ فقرةٍ فوقه قرارُ مصمّم لا قرارُ مطوّر. فالقالبُ يُقرأ
+   * في الترويسة وحدها.
+   */
+  const { locale } = await params;
+  const count = await db.listing.count({ where: { status: 'PUBLISHED' } });
+  const copy = await seoCopy('search', locale, {
+    count: formatNumber(count, locale === 'en' ? 'en' : 'ar'),
+  });
+
+  return {
+    ...(copy.title === null ? {} : { title: copy.title }),
+    ...(copy.intro === null ? {} : { description: copy.intro }),
+  };
 }
 
 /**

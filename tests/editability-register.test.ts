@@ -3,13 +3,26 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { classifyModels, frozenModels, untouchedModels } from '../scripts/model-writers.mjs';
+import {
+  EDITOR_SECTION,
+  READER_SECTION,
+  classifyModels,
+  declaredModels,
+  frozenModels,
+  unreadModels,
+  untouchedModels,
+} from '../scripts/model-writers.mjs';
 
 const ROOT = process.cwd();
 const REGISTER = join(ROOT, 'docs/architecture/editability.md');
 
-const declared = (text: string): string[] =>
-  [...text.matchAll(/^\|\s*`(\w+)`\s*\|/gm)].map((m) => m[1] ?? '');
+/**
+ * **والاختبارُ يقرأ قائمةَ البوابة لا نسخةً منها.** صار للسجلّ
+ * جدولان — ما لا يُعدَّل وما لا يُقرأ — فقراءةُ الملفّ كلّه تجعل كلَّ
+ * فحصٍ يُنذر بصفوف الآخر. (وقع: `WebhookEvent` معلَنٌ في جدول القارئ
+ * فأُنذِر بأنّه «صار له محرّر».)
+ */
+const declared = (text: string): string[] => declaredModels(text, EDITOR_SECTION);
 
 /**
  * ═══ نموذجٌ بلا محرّرٍ له سببٌ معلَن ═══
@@ -65,13 +78,71 @@ describe('سجل ما لا يُعدَّل', () => {
 
     try {
       /** حذفُ مذكور ⇒ «لا يُنشئه المنتج ولا يعدّله». */
-      writeFileSync(REGISTER, original.replace('| `SeoTemplate` |', '| `SeoTemplateX` |'), 'utf8');
-      expect(run()).toContain('SeoTemplate');
+      writeFileSync(REGISTER, original.replace('| `LegalDocument` |', '| `LegalDocumentX` |'), 'utf8');
+      expect(run()).toContain('LegalDocument');
 
       /** وإعلانُ ما له محرّرٌ ⇒ «يُرفع من السجلّ». */
       writeFileSync(
         REGISTER,
         original.replace('| `DeviceToken` |', '| `Listing` | سببٌ للقياس وحده |\n| `DeviceToken` |'),
+        'utf8',
+      );
+      expect(run()).toContain('Listing');
+    } finally {
+      writeFileSync(REGISTER, original, 'utf8');
+    }
+  }, 90_000);
+
+  /**
+   * ═══ وسجلُّ القارئ — البوابة ٦٤ ═══
+   *
+   * **وصفٌّ لا يقرؤه أحد أسوأ من صفٍّ لا يعدّله أحد**: `SeoTemplate`
+   * مرّ «مزروعًا» شهورًا ولا استعلامَ في `src/` يلمس جدوله، فنصُّ
+   * السيو لم يُوصَل من طرفيه. وفحصُ الكاتب لا يراه.
+   */
+  it('وكل نموذج بلا قارئ معلَن في جدوله', () => {
+    const text = readFileSync(REGISTER, 'utf8');
+    const listed = new Set(declaredModels(text, READER_SECTION));
+    const unread = unreadModels(ROOT);
+
+    expect(unread.filter((model: string) => !listed.has(model))).toEqual([]);
+    expect([...listed].filter((model) => !unread.includes(model))).toEqual([]);
+  });
+
+  /**
+   * **والعلائقيُّ يُقرأ باسم حقله**: `TaxInvoiceLine` عبر
+   * `taxInvoice.include: { lines: true }` لا باسمه. ولولا ذلك أنذرت
+   * البوابةُ على ستّةٍ من ثمانية — **وإنذارٌ كاذبٌ متكرّر يُعطّل
+   * القياس أشدَّ من غيابه**.
+   */
+  it('ولا تُنذر على ما يُقرأ عبر علاقته', () => {
+    const unread = unreadModels(ROOT);
+    for (const model of ['TaxInvoiceLine', 'SettlementStatement', 'ListingFeature', 'PlanEntitlement']) {
+      expect(unread, `${model} يُقرأ عبر والده`).not.toContain(model);
+    }
+  });
+
+  /** **والبوابةُ تُقاس بكسرِ ما تحرسه** — في الاتّجاهين. */
+  it('والبوابة ٦٤ ترد الحذف والزيادة معا', () => {
+    const original = readFileSync(REGISTER, 'utf8');
+    const run = (): string => {
+      try {
+        execFileSync('node', ['scripts/check-tokens.mjs'], {
+          cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        return '';
+      } catch (error) {
+        return String((error as { stderr?: string }).stderr ?? '');
+      }
+    };
+
+    try {
+      writeFileSync(REGISTER, original.replace('| `WebhookEvent` |', '| `WebhookEventX` |'), 'utf8');
+      expect(run()).toContain('WebhookEvent');
+
+      writeFileSync(
+        REGISTER,
+        original.replace('| `WebhookEvent` |', '| `Listing` | سببٌ للقياس وحده |\n| `WebhookEvent` |'),
         'utf8',
       );
       expect(run()).toContain('Listing');

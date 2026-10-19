@@ -58,6 +58,28 @@ const read = (path) => {
 };
 
 /**
+ * ═══ ويُنزَع التعليقُ قبل كلّ مطابقة ═══
+ *
+ * **«ظهر الاسمُ ⇒ إذن هو موصول»** هو الشكل الذي خدع البوابتين ٥٠ و٥٢
+ * وتعليقاتُ هذا المستودع تسمّي الحقول والدوال في كل سطر. وهذا الملفُّ
+ * كان يقرأ النصَّ خامًّا: تعليقٌ يكتب `db.seoTemplate.update` شرحًا
+ * يجعل الجدولَ «مُعدَّلًا» وهو ليس كذلك، **وهو سكوتٌ لا إنذار** فلا
+ * يكشفه أحد. وقِيس يومَ كُتب هذا: صفرُ نماذجَ تتبدّل بالنزع — فهو
+ * إغلاقٌ للصنف قبل أن يقع، لا إصلاحٌ لعطلٍ قائم.
+ *
+ * **والأسطرُ تُحفَظ** كما في `stripComments` في `check-tokens`: النصُّ
+ * يذهب و`\n` يبقى، فلا يَضلّ ترقيمُ سطرٍ يُطبع في إنذار.
+ */
+function stripComments(source) {
+  const blank = (text) => text.replace(/[^\n]/g, ' ');
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, blank)
+    .replace(/(^|[^:])(\/\/[^\n]*)/g, (_match, lead, body) => `${lead}${blank(body)}`);
+}
+
+const readCode = (path) => stripComments(read(path));
+
+/**
  * **والسطرُ الواحد لا يكفي**: المنسِّق يكسر السلسلة فيصير
  * `db.idempotencyKey\n  .create(` — فأبلغتْ أوّلُ نسخةٍ أن الجدول بلا
  * كاتبٍ وهو مكتوبٌ في مسارين. فالبحث على النصّ كلّه لا سطرًا سطرًا.
@@ -72,6 +94,14 @@ function verbs(model, names) {
 export const CREATES = (model) => verbs(model, 'create|createMany|upsert');
 export const EDITS = (model) => verbs(model, 'update|updateMany|upsert');
 
+/**
+ * **والقراءةُ فعلٌ ثالث.** صفٌّ لا يقرؤه أحد أسوأ من صفٍّ لا يعدّله
+ * أحد، وفحصُ الكاتب لا يراه: `SeoTemplate` مرّ «مزروعًا» شهورًا ولا
+ * استعلامَ في `src/` يلمس جدوله.
+ */
+export const READS = (model) =>
+  verbs(model, 'findMany|findFirst|findUnique|findFirstOrThrow|findUniqueOrThrow|count|aggregate|groupBy');
+
 export function schemaModels(root) {
   const schema = read(join(root, 'prisma', 'schema.prisma'));
   return [...schema.matchAll(/^model\s+(\w+)\s*\{/gm)].map((match) => match[1]);
@@ -84,7 +114,7 @@ export function schemaModels(root) {
  * الزرع **ولا شيء يعدّله** — لا يتغيّر إلّا بنشرٍ جديد.
  */
 export function classifyModels(root) {
-  const product = [...walkCode(join(root, 'src'))].map((path) => read(path));
+  const product = [...walkCode(join(root, 'src'))].map((path) => readCode(path));
   const seed = read(join(root, 'prisma', 'seed.ts'));
   const migrations = [...walkSql(join(root, 'prisma', 'migrations'))]
     .map((path) => read(path))
@@ -117,3 +147,72 @@ export function untouchedModels(root) {
     .filter((row) => !row.created && !row.edited && !row.seeded)
     .map((row) => row.model);
 }
+
+/**
+ * ═══ ومَن يقرأ هذا النموذج؟ — والعلائقيُّ يُقرأ باسم حقله ═══
+ *
+ * `TaxInvoiceLine` لا يظهر في استعلامٍ قطّ: يُقرأ عبر
+ * `taxInvoice.include: { lines: true }`. ففحصٌ على `db.<model>.find*`
+ * وحده يقول «بلا قارئ» عن ستّةٍ من ثمانية — **وإنذارٌ كاذبٌ متكرّر
+ * يُعطّل القياس أشدَّ من غيابه**: من يقرأ تقريرًا خمسةُ أسداسه خطأ
+ * يتخطّاه، فتغرق فيه الحالةُ الحقيقية.
+ *
+ * فالنموذجُ مقروءٌ إن لمسه استعلامٌ باسمه، **أو** إن كان لوالدٍ حقلٌ
+ * من نوعه يُنتقى في استعلام (`field: true` أو `field: {`).
+ */
+export function unreadModels(root) {
+  const product = [...walkCode(join(root, 'src'))].map((path) => readCode(path));
+  const schema = read(join(root, 'prisma', 'schema.prisma'));
+
+  const blocks = [...schema.matchAll(/model\s+(\w+)\s*\{([\s\S]*?)\n\}/g)]
+    .map((match) => [match[1], match[2]]);
+
+  const unread = [];
+  for (const model of schemaModels(root)) {
+    const direct = READS(model);
+    if (product.some((text) => direct.test(text))) continue;
+
+    /** حقولُ الوالدين من نوعه — `lines TaxInvoiceLine[]` و`settlement SettlementStatement?`. */
+    const fields = [];
+    for (const [name, body] of blocks) {
+      if (name === model) continue;
+      for (const line of body.split('\n')) {
+        const match = line.match(new RegExp(`^\\s*(\\w+)\\s+${model}(\\[\\])?\\s*\\??(\\s|$)`));
+        if (match !== null) fields.push(match[1]);
+      }
+    }
+
+    const viaRelation = fields.some((field) =>
+      product.some((text) => new RegExp(`\\b${field}\\s*:\\s*(true|\\{)`).test(text)),
+    );
+    if (!viaRelation) unread.push(model);
+  }
+  return unread;
+}
+
+/**
+ * ═══ ومن يقرأ السجلّ؟ — قائمةٌ واحدة لا نسختان ═══
+ *
+ * صار للسجلّ جدولان: ما لا يُعدَّل (البوابة ٦٣) وما لا يُقرأ (٦٤).
+ * **وكلُّ فحصين يقيسان الشيءَ نفسه يقرآن قائمةً واحدة** — وإلّا
+ * تباعدا، والأضعفُ منهما هو الذي يُقرأ. فالبوابةُ والاختبار يقرآن
+ * هذه الدالّة، وقراءةُ الملفّ كلّه تجعل كلَّ جدولٍ يُنذر بصفوف الآخر
+ * (وقع: أُنذِر على `WebhookEvent` بأنّه «صار له محرّر»).
+ */
+export function sectionOf(text, heading) {
+  const start = text.indexOf(heading);
+  if (start === -1) return '';
+  const next = text.indexOf('\n## ', start + heading.length);
+  return next === -1 ? text.slice(start) : text.slice(start, next);
+}
+
+/** أسماءُ النماذج المعلَنة في جدولِ قسمٍ واحد. */
+export function declaredModels(text, heading) {
+  return [...sectionOf(text, heading).matchAll(/^\|\s*`(\w+)`\s*\|/gm)].map(
+    (match) => match[1] ?? '',
+  );
+}
+
+/** عنوانا القسمين — تقرؤهما البوابتان والاختبار. */
+export const EDITOR_SECTION = '## The register';
+export const READER_SECTION = '## The second register';

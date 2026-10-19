@@ -2658,31 +2658,60 @@ async function main(): Promise<void> {
   });
 
   // ————— قوالب نصوص SEO (قرار ٢٦) —————
+  /**
+   * ثلاثةُ أسطح لأنّ الصفحات ثلاث — `SEO_SURFACES` تسمّيها، وسطحٌ بلا
+   * صفحةٍ تَصيّره قيمةٌ بلا باب. **والنصُّ نفسُه في الترحيل**: البذرة
+   * لقاعدةٍ فارغة، والترحيلُ لبيئةٍ تعمل.
+   */
   await prisma.seoTemplate.createMany({
     data: [
       {
         key: 'search_results',
         surface: 'search',
-        titleAr: 'سيارات {brand} {model} {condition} في {city}',
-        titleEn: '{condition} {brand} {model} cars in {city}',
+        titleAr:
+          'سيارات مستعملة للبيع في السعودية',
+        titleEn:
+          'Used cars for sale in Saudi Arabia',
         introAr:
-          '{count} سيارة {model} معروضة في {city} بأسعار من {priceMin} إلى {priceMax} ريال، جميعها موثقة الملكية.',
+          'السيارات المعروضة الآن على كارز: {count}. موثقة الملكية ومفحوصة قبل العرض، مع نقل ملكية ودفع محفوظ.',
         introEn:
-          '{count} {model} cars listed in {city}, priced from {priceMin} to {priceMax} SAR, all with verified ownership.',
+          'Cars listed on CARZ right now: {count}. Verified ownership, inspected before listing, with ownership transfer and protected payment.',
         outroAr:
-          'متوسط سعر {model} المستعملة في {city} {median} ريال، ويتفاوت حسب سنة الصنع والممشى ودرجة الفحص.',
+          '',
         outroEn:
-          'The median price for a used {model} in {city} is {median} SAR, varying with year, mileage and inspection score.',
-        variables: [
-          'brand',
-          'model',
-          'city',
-          'condition',
-          'count',
-          'priceMin',
-          'priceMax',
-          'median',
-        ],
+          '',
+      },
+      {
+        key: 'landing_city_brand',
+        surface: 'landing_brand',
+        titleAr:
+          'سيارات {brand} للبيع في {city}',
+        titleEn:
+          '{brand} cars for sale in {city}',
+        introAr:
+          'سيارات {brand} المعروضة الآن في {city}: {count}. وأسعارها من {priceMin} إلى {priceMax} ريال، وكلها موثقة الملكية على كارز.',
+        introEn:
+          '{brand} cars listed in {city} right now: {count}. Priced from {priceMin} to {priceMax} SAR, all with verified ownership on CARZ.',
+        outroAr:
+          'وتقارير الفحص المنشورة في هذه الصفحة: {inspected}. تقرؤها قبل أن تتواصل مع البائع، والدفع محفوظ حتى تنقل الملكية.',
+        outroEn:
+          'Published inspection reports on this page: {inspected}. Read them before contacting the seller, and payment is held until ownership moves.',
+      },
+      {
+        key: 'landing_city_brand_model',
+        surface: 'landing_model',
+        titleAr:
+          '{brand} {model} للبيع في {city}',
+        titleEn:
+          '{brand} {model} for sale in {city}',
+        introAr:
+          '{brand} {model} المعروضة الآن في {city}: {count}. وأسعارها من {priceMin} إلى {priceMax} ريال على كارز، مع نقل ملكية ودفع محفوظ.',
+        introEn:
+          '{brand} {model} listed in {city} right now: {count}. Priced from {priceMin} to {priceMax} SAR on CARZ, with ownership transfer and protected payment.',
+        outroAr:
+          'وتقارير الفحص المنشورة في هذه الصفحة: {inspected}. تذكر حالة الهيكل والمحرك وقطع الغيار المستبدلة.',
+        outroEn:
+          'Published inspection reports on this page: {inspected}. They cover body, engine and replaced parts.',
       },
     ],
   });

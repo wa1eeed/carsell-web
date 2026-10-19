@@ -1640,6 +1640,84 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 30 · `SeoTemplate` — the prose search engines read — *owner's request 2026-10-19*
+
+> «اصلح SeoTemplate»
+
+Named by gate 63 as a model nothing edits. Measuring found worse: **nothing
+reads it either.** One seeded row (`search_results`), surface `search`, and no
+query anywhere in `src/` touches the table — so decision 26's «قالب +
+متغيّرات… يحرّرها الأدمن» was never wired at either end.
+
+And what the landing pages actually print comes from `src/messages/*.json` —
+`landing.title`, `landing.meta` — so changing the title a search engine indexes
+needs a deploy. The intro and outro paragraphs decision 26 designed, the two
+that carry the page's substance, **were never built at all**: the page is a
+heading, a stat line, a sort bar and a grid.
+
+- [x] Reader first, in both landing pages — title and description from the row,
+      intro above the grid, outro below. The message file stays the fallback:
+      an operator who empties a title must not leave the page without one.
+- [x] **A paragraph whose variable has no value is dropped whole**, never
+      printed with a blank. This is decision 26's own rule («إن كانت العيّنة
+      أقل من ٨، أخفِ الفقرة كاملة») generalised: «٠ مفحوصة» and «من إلى» read
+      as defects, and on a landing page the defect is what gets indexed.
+- [x] Variables are exactly what `landingContent` already computes for *that*
+      page — count, price range, inspected count, brand, model, city. No
+      market median: `PriceStat` is keyed by model × year × trim × city ×
+      mileage bucket, and a figure averaged across years is not «متوسط سعر
+      يوكن في جدة». CLAUDE.md records that exact lie («الوصفُ يُبنى من
+      المُطابِق لا من المُدخَل»). Raised with the designer instead.
+- [x] `/admin/seo` with a live preview, the variable list per surface, and an
+      `AuditLog` per save. Three surfaces, because three pages render them —
+      not the six the decision guessed at, and not a `landing_city` surface
+      with no page behind it.
+- [x] Rows reach a running environment **by migration**, not by the seed.
+- [x] Removed from `docs/architecture/editability.md` — gate 63 fails until it
+      is.
+
+### Gate 64 — and the second register
+
+The writer side has been guarded since gate 63. The reader side was not, and
+`SeoTemplate` is its second instance. Measured across 97 models: six that no
+`db.<model>.find*` touches are read through a parent's `include`
+(`ListingFeature`, `Invoice`, `InspectionDraftPanel`, `PlanEntitlement`,
+`TaxInvoiceLine`, `SettlementStatement`), so a naive check would have cried
+wolf six times out of eight. Counting relation reads leaves exactly two, and
+after this task, one.
+
+- [x] `WebhookEvent` — **written on every gateway callback and read by
+      nothing.** Provider, type, `signatureOk`, `processedAt` and the full
+      payload of every webhook we have ever received, with no door to any of
+      it: when a payment goes wrong the evidence is in the table and nobody can
+      look. Declared in the register, and the screen is the next task.
+- [x] `model-writers.mjs` gains `READS` and strips comments before matching —
+      it did not, and gates 50, 52 and 19 were each fooled by a comment that
+      named what it was looking for. Measured at zero today, so the hardening
+      changes nothing now; it is the recorded class, closed before it bites.
+- [x] Walked: the panel saved a new title, the public landing page's `<title>`
+      changed with no deploy, an `AuditLog` row recorded it, and the original
+      was restored through the panel so the trail tells the true story.
+- [x] **Measured in a production build, not inferred.** In dev the whole
+      template row appears in the HTML — Next's own instrumentation, which also
+      serialises the `NEXT_LOCALE` cookie and a row read only inside
+      `generateMetadata`, where nothing can reach the component tree. Built and
+      served on :3100: zero occurrences of the raw row, zero unfilled `{…}`.
+
+### What the walk caught that no test did
+
+The first wording was «{count} سيارة {brand} معروضة في {city}», and the page
+printed **«3 سيارة تويوتا»** into `<meta description>` — «3 سيارات» is the
+correct Arabic. The count was governing its noun, which is the Toast lesson
+(gate 18) **in a place no gate reaches**: the text lives in the database and is
+typed by an operator, with no compiler, no lint and no review.
+
+So it is checked in the two places that can see it: the screen warns while the
+operator types, and a test reads the rows **as they are in the database**, which
+covers what arrives by migration as well as by seed. All three templates were
+reworded so the number ends its clause — «سيارات تويوتا المعروضة الآن في
+الرياض: ٣.» — and the sentence never asks the numeral to agree with anything.
+
 ## 29 · Financing terms, editable at last — *owner's request 2026-10-19*
 
 > «اصلح FinanceSetting»

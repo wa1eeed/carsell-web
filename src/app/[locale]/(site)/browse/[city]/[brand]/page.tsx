@@ -11,12 +11,14 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
 import { landingContent, landingFallback, landingSiblings } from '@/lib/domain/landing';
+import { landingSeoValues, seoCopy } from '@/lib/seo/copy';
 import { EMPTY_FILTERS, SORTS, type Sort, searchListings } from '@/lib/domain/listings';
 import { CarCard } from '@/components/ui/CarCard';
 import { toCardData } from '@/components/ui/toCardData';
 import { ANONYMOUS_SELLER } from '@/lib/labels/admin';
 import { FilterChip } from '@/components/ui/FilterChip';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { SeoProse } from '@/components/site/SeoProse';
 import { LandingJsonLd } from '../../JsonLd';
 
 export const dynamic = 'force-dynamic';
@@ -31,9 +33,22 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (content === null) return {};
 
   const t = await getTranslations({ locale, namespace: 'landing' });
+
+  /**
+   * ═══ والعنوانُ من قالبٍ يحرّره المشغّل ═══
+   *
+   * كان من `src/messages/*.json` وحدها، **فتغييرُ عنوانٍ يُفهرسه
+   * محرّكُ بحثٍ يحتاج نشرًا كاملًا** (القرار ٢٦). وملفُّ الرسائل يبقى
+   * السقوطَ الآمن: مشغّلٌ يُفرِغ العنوان أو يُطفئ القالب لا يترك
+   * صفحةً بلا عنوان — وصفحةٌ بلا `<title>` تُفهرَس برابطها.
+   */
+  const copy = await seoCopy('landing_brand', locale, landingSeoValues(content, locale));
+
   return {
-    title: t('title', { brand: content.brand, city: content.city }),
-    description: t('meta', { brand: content.brand, city: content.city, count: content.count }),
+    title: copy.title ?? t('title', { brand: content.brand, city: content.city }),
+    description:
+      copy.intro ??
+      t('meta', { brand: content.brand, city: content.city, count: content.count }),
     // الأصل واحد — والصفحة بوّابةٌ إلى البحث لا نسخةٌ منه
     alternates: { canonical: `/${locale}/browse/${city}/${brand}` },
   };
@@ -121,6 +136,8 @@ export default async function CityBrandLanding({
   const sort = SORTS.includes(resolvedSort) ? resolvedSort : 'newest';
 
   const viewer = await currentUserFromCookies();
+  /** نفسُ القالب الذي بُني منه الوصف — فما يُقرأ في نتيجة البحث يُقرأ في الصفحة. */
+  const copy = await seoCopy('landing_brand', locale, landingSeoValues(content, locale));
   const results = await searchListings(
     {
       ...EMPTY_FILTERS,
@@ -196,6 +213,16 @@ export default async function CityBrandLanding({
               </>
             )}
           </p>
+
+          {/*
+            ═══ والمقدّمةُ نصٌّ يحرّره المشغّل ═══
+
+            القرار ٢٦ يرسم مقدّمةً وخاتمة، **ولم تُبنَ واحدةٌ منهما**:
+            كانت الصفحة عنوانًا وسطرَ إحصاءٍ وشبكة. وهي الفقرةُ نفسُها
+            التي تذهب إلى `<meta description>` — فما يقرؤه الزائر هو
+            ما يقرؤه محرّكُ البحث، لا نصّان.
+          */}
+          <SeoProse text={copy.intro} />
 
           {/*
             ═══ شريط الترتيب ═══
@@ -281,6 +308,13 @@ export default async function CityBrandLanding({
               </ul>
             </>
           )}
+
+          {/*
+            والخاتمةُ تحت كلّ شيء: آخرُ ما يُقرأ، و`renderSeo` تُسقطها
+            كاملةً متى نقصت قيمةُ متغيّرها — «منها ٠ سيارة مفحوصة»
+            تُقرأ عطلًا، وهذه صفحةٌ تُفهرَس.
+          */}
+          <SeoProse text={copy.outro} variant="outro" />
         </div>
       </main>
     </>

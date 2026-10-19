@@ -2236,17 +2236,25 @@ model LegalDocument {
   @@index([active, sort])
 }
 
+/// قالبُ النصّ التحريريّ لسطحٍ واحد (القرار ٢٦).
+///
+/// **والسطحُ فريد**: قارئُ الصفحة يأخذ أوّلَ صفٍّ فعّال لسطحها،
+/// فصفّان لسطحٍ واحد يجعلان المعروضَ رهنَ ترتيبٍ لا يضبطه أحد.
+/// والأسطحُ ثلاثة لأنّ الصفحات ثلاث — `SEO_SURFACES` تسمّيها.
+///
+/// ولا عمودَ `variables`: الصفحةُ هي التي تملأ المتغيّرات، فقائمتُها
+/// تُشتقّ من `SEO_VARIABLES` ولا تُنسخ في صفّ يتباعد عنها.
 model SeoTemplate {
-  key       String   @id
-  surface   String // search | landing_city | landing_brand | landing_model …
-  titleAr   String
-  titleEn   String
-  introAr   String
-  introEn   String
-  outroAr   String
-  outroEn   String
-  variables String[]
-  active    Boolean  @default(true)
+  key     String @id
+  surface String @unique
+
+  titleAr String
+  titleEn String
+  introAr String
+  introEn String
+  outroAr String
+  outroEn String
+  active  Boolean @default(true)
 }
 
 /// الإشعار المُرسَل — القالب يصف الشكل، وهذا يسجّل الواقعة.

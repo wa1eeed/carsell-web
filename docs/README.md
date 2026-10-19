@@ -152,6 +152,16 @@ Instead it checks the claim's subject: every model the product neither creates
 nor edits must appear in `architecture/editability.md` with a reason, and the
 register is checked both ways so it cannot go stale either.
 
+**Gate 64** is the reader half of the same idea, and it exists because gate 63
+was not enough: `SeoTemplate` passed as «seeded» for months while **nothing in
+`src/` read the table at all**, so the editorial text decision 26 designed was
+wired at neither end. A row nobody can read is worse than a row nobody can
+edit. The register has a second table for it, checked both ways, and a model
+counts as read when a query names it *or* when a parent's relation field is
+selected — `TaxInvoiceLine` is only ever read through `taxInvoice.include`.
+Measured across 97 models: eight with no direct reader, six of them read
+through a parent, so the naive form would have been five-sixths noise.
+
 What remains unguarded is prose that names no model and no path. The standing
 rule for it: **if it is not machine-checked, do not write it in the present
 tense** — generate it, check its names, or date it («measured on X, it was Y»).

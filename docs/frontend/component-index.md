@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **169** components in **4** directories.
+Counted: **170** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -107,6 +107,7 @@ rather than found by chance.
 | `SaveSearchButton` | yes | `query` · `signedIn` · `saved` · `locale` | 1 |
 | `SearchAbout` | no | `total` · `priceRange` · `scope` · `siblings` | 1 |
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
+| `SeoProse` | no | `text` · `variant` | 2 |
 | `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
 | `SiteHeader` | no | `active` · `actions` | 28 |
@@ -130,13 +131,13 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 112 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 113 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 100 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 101 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 100 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 101 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -177,7 +178,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 109 |
+| `Quantity` | no | `unit` · `count` · `className` | 110 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |
@@ -196,7 +197,7 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 76 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 79 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
 
