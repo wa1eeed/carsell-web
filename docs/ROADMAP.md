@@ -1464,6 +1464,40 @@ no reader at all.
       panoramic roof, 360° camera, adaptive cruise); the operator changes that
       from `/admin/catalog/features` with no deploy.
 
+## 25 · The sweep reached the code, not the content — *measured 2026-10-19*
+
+Not a request: found by **walking the pages**, which is the only thing that
+reads what a visitor actually reads.
+
+**Gate 61 scans `src/` and `prisma/seed-data/*.json`. It never scanned
+`prisma/migrations/*.sql`** — and the whole inspection template, a hundred item
+names, was seeded by a migration rather than a seed file. So «تشقّق الأقراص»
+and «المكيّف» sat vowelled in the report a buyer reads, nine months of
+notification templates and service steps with them, and the SEO intro printed
+on public landing pages.
+
+**And the one measurement that could see it was crying wolf.** The walker
+flagged diacritics on **36 pages**; 35 of them were «مشترٍ», a defective noun
+that is spelled correctly — the exact case gate 61 has an exemption for and the
+walker did not. Five real leaks drowned in it. A measurement that reports a
+false alarm thirty-five times is worse than none.
+
+- [x] `20261019080000_strip_content_diacritics` — the four tables the first
+      sweep missed: integrations, SEO templates, ad slots, inspection items and
+      categories. **Reference rows only**: a seller's description, a buyer's
+      note on a viewing, a dispute reason and a provider's name are words
+      somebody said, and editing them is forgery, not formatting — the same
+      line the first sweep drew.
+- [x] Gate 61 now reads migration SQL, comments stripped, with the seven
+      already-applied files listed by name. An applied migration's file cannot
+      change — its checksum would stop every deployment — so its rows are
+      corrected by a new migration and its file stays as history.
+- [x] A regex character class is not displayed text, so `E'[…]'` is excluded.
+      And the new migration writes its class with `\u` escapes, which the
+      2026-10-18 migration's own comment demands and its own code did not do.
+- [x] `isClippedNoun` is one module both the gate and the walker read, so the
+      walker stopped reporting «مشترٍ».
+
 ## 15 · Strip Arabic diacritics from every screen — *owner's decision 2026-10-18* — **done**
 
 > «نعم اسحب حذف التشكيل على كل الشاشات»

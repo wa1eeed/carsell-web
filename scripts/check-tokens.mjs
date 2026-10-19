@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { CLIPPED_NOUNS } from './clipped-nouns.mjs';
 /**
  * بوابة الجودة — القسم ١٤ من BUILD-WEB-ADMIN.md
  *
@@ -3598,14 +3599,8 @@ const DIACRITICS = /[\u064B-\u0652\u0670]/;
  * الياءُ الكاملة: «جاري» · «ثاني» · «مشتري» — وهي صورةُ الكتابة
  * الدارجة في واجهات السوق السعودي أصلًا.
  */
-const CLIPPED = [
-  '\u062C\u0627\u0631', '\u062B\u0627\u0646', '\u062B\u0648\u0627\u0646',
-  '\u0645\u0646\u062A\u0647', '\u0645\u0634\u062A\u0631', '\u0639\u0627\u0644',
-  '\u0628\u0627\u0642', '\u0643\u0627\u0641', '\u0645\u0627\u0636', '\u0631\u0627\u0636',
-  '\u0645\u062A\u0628\u0642', '\u0642\u0627\u0636', '\u0645\u062D\u0627\u0645',
-  '\u062F\u0627\u0639', '\u0646\u0627\u062F', '\u063A\u0627\u0644', '\u062A\u0627\u0644',
-  '\u0645\u0628\u0646', '\u0645\u0633\u062A\u0648\u0641', '\u0645\u0644\u063A',
-];
+/** **والقائمةُ في ملفّها** — يقرؤها الماشي على الصفحات أيضًا. */
+const CLIPPED = CLIPPED_NOUNS;
 const CLIPPED_RE = new RegExp(
   `(?<![\\u0621-\\u064A])(${CLIPPED.join('|')})(?![\\u0621-\\u064A])`,
 );
@@ -3682,6 +3677,56 @@ function checkNoDiacritics() {
     for (const value of seen.slice(0, 20)) report(rel, lineOf(value), value);
     for (const value of clipped.slice(0, 20)) {
       clip(rel, lineOf(value), CLIPPED_RE.exec(value)?.[1] ?? '');
+    }
+  }
+
+  /**
+   * ═══ ٣ ─ وبياناتُ الترحيلات — وهي التي أفلتت ═══
+   *
+   * **والبوابةُ كانت تقرأ `src/` و`seed-data/*.json` وحدهما.** وقالبُ
+   * الفحص كلُّه — مئةُ بندٍ بأسمائها — زُرع بترحيلٍ لا بملفّ بذرة،
+   * فمرّ من تحتها مشكولًا وظهر في تقرير الفحص الذي يقرؤه المشتري.
+   * ومثلُه قوالبُ الإشعار وخطواتُ الخدمة. كشفَه المشيُ على الصفحات
+   * لا البوابة.
+   *
+   * **وما سبق تطبيقُه لا يُعدَّل**: ملفُّ ترحيلٍ طُبّق له بصمةٌ
+   * مسجَّلة، وتغييرُه يُوقف النشر على كل بيئةٍ قائمة. فصفوفُه تُصحَّح
+   * بترحيلٍ جديد (`20261019080000`)، وملفُّه يبقى تاريخًا — ويُستثنى
+   * هنا بالاسم لا بالصمت.
+   */
+  const APPLIED_BEFORE_THE_SWEEP = new Set([
+    '20260805110000_wallet_accounts',
+    '20260805120000_wallet_approval_kind',
+    '20261015090000_service_step_templates',
+    '20261016180000_account_block_templates',
+    '20261017123000_seed_inspection_template',
+    '20261017170200_viewing_notifications',
+    '20261017180100_viewing_counter_templates',
+  ]);
+
+  const migrations = join(ROOT, 'prisma', 'migrations');
+  if (existsSync(migrations)) {
+    for (const file of walk(migrations)) {
+      if (!file.endsWith('.sql')) continue;
+      const rel = relative(ROOT, file).split(sep).join('/');
+      const folder = rel.split('/')[2] ?? '';
+      if (APPLIED_BEFORE_THE_SWEEP.has(folder)) continue;
+      /** **والتعليقُ يُفرَّغ** — وتعليقاتُ ترحيلات هذا المستودع مشكولة عمدًا. */
+      const text = readFileSync(file, 'utf8')
+        .split('\n')
+        .map((line) => line.replace(/--.*$/, ''))
+        .join('\n');
+      text.split('\n').forEach((line, index) => {
+        /**
+         * **وفئةُ المسح ليست نصًّا معروضًا.** `regexp_replace(…, E'[…]')`
+         * تحمل علاماتِ التشكيل لأنها تصفها، لا لأنها تُطبع — فتُستبعد
+         * الفئةُ وحدها ويُفحص باقي السطر. والأصحّ كتابتُها بمهاربها
+         * (`\\u064B`) كما يقول ترحيل ١٨-١٠: ملفٌّ مكتوبٌ بالعلامات
+         * نفسِها يقع ضحيّةَ المسح التالي فيصير `[-]` بلا شكوى.
+         */
+        const bare = line.replace(/E'\[[^']*\]'/g, "E'[]'");
+        if (DIACRITICS.test(bare)) report(rel, index + 1, bare);
+      });
     }
   }
 }

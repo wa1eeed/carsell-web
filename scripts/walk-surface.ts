@@ -1,3 +1,4 @@
+import { isClippedNoun } from './clipped-nouns.mjs';
 /**
  * ═══ مشيُ السطح — كلُّ وجهةٍ وكلُّ رابطٍ فيها ═══
  *
@@ -329,7 +330,15 @@ function diacritics(html: string): string[] {
     .replace(/<script[\s\S]*?<\/script>/g, ' ')
     .replace(/<style[\s\S]*?<\/style>/g, ' ')
     .replace(/<[^>]+>/g, ' ');
-  return [...new Set((text.match(/\S*[\u064B-\u0652\u0670]\S*/g) ?? []).slice(0, 5))];
+  /**
+   * **والمنقوصُ ليس تشكيلًا.** «مشترٍ» تنوينُها يعوّض ياءً محذوفة،
+   * فهي صحيحةٌ كما هي — وكانت تُعلَن مخالفةً على ستٍّ وثلاثين صفحة
+   * فتُغرق خمسةَ مواضعَ حقيقية. والقائمةُ مشتركةٌ مع البوابة ٦١.
+   */
+  const found = (text.match(/\S*[\u064B-\u0652\u0670]\S*/g) ?? []).filter(
+    (word) => !isClippedNoun(word),
+  );
+  return [...new Set(found)].slice(0, 5);
 }
 
 async function main(): Promise<void> {

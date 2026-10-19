@@ -74,6 +74,16 @@ added here therefore ships with a migration as well —
 only what is missing (`WHERE NOT EXISTS`, matched on brand + English name), so
 it passes over anything the seed already planted.
 
+### Reference content that ships as SQL
+
+Not every reference row lives in this folder. The inspection template, the
+notification templates and the service step templates were seeded by
+**migrations**, which is correct — a migration is how reference data reaches a
+database that is already running. But gate 61 only scanned `src/` and the JSON
+here, so that content kept its Arabic diacritics long after the 2026-10-18
+sweep, and the vowelled item names showed up in the inspection report a buyer
+reads. The gate reads migration SQL now; see ROADMAP §25.
+
 ### Where each placement is read
 
 `placements` carries five independent values. Four of them fill the catalogue
