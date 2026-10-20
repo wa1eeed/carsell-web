@@ -380,10 +380,10 @@ company's number is a **business** line, usually a landline — the provider for
 shipped in `98d78b4` rejected `+966 11 234 5678` as invalid. Account identity
 stays mobile-only (it receives the OTP).
 
-- [ ] `ApiKey` — no writer anywhere, while `public-key.ts` authenticates
-      partners by key: **the partner API cannot be reached by anyone.** Issuing
-      keys is an access-control decision (who may hold one, what it may read,
-      how it is revoked), not a missing form — needs the owner's call.
+- [x] `ApiKey` — issued, scoped and revoked from `/admin/api-keys` (task 39).
+      The secret is shown once at creation and never again; scopes are an
+      explicit list; revocation is immediate and audited. **The partner API is
+      reachable.**
 - [x] `FaqPlacement` — a placement editor per question (replace-not-append,
       closed surface list, audited), walked end to end to the car page.
 - [ ] `DeviceToken` — no writer until the mobile app exists.
