@@ -122,8 +122,15 @@ async function sweep(when: string): Promise<void> {
   /**
    * **وتحويلٌ معلَّق من مشيٍ يدويّ يمنع طلبًا ثانيًا** لصاحبه
    * (`ALREADY_PENDING`) — فيسقط اختبارُ النصاب على ما لم يصنعه.
+   *
+   * **وما وسمته البذرة يُستثنى** — كما في تحويل المزوّد تمامًا. وكان
+   * الاستثناءُ هناك وحده، فاختفى طلبُ البائع المزروع بعد أوّل تشغيل
+   * وعادت الشاشةُ بلا قسمِ «ينتظر مرجع الحوالة» في بيئةٍ تُزرع لتُعرض.
+   * **وأثرٌ جديد يُتبَع في الاستعادة المشتركة مرّة** — وهذه ثانيتُه.
    */
-  const stalePayouts = await db.payout.deleteMany({ where: { status: 'PENDING' } });
+  const stalePayouts = await db.payout.deleteMany({
+    where: { status: 'PENDING', NOT: { note: 'seed' } },
+  });
   if (stalePayouts.count > 0) {
     console.log(`  نُظّف ${String(stalePayouts.count)} تحويلًا معلَّقًا من تحقّق سابق`);
   }

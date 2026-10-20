@@ -428,3 +428,119 @@ export async function sellerPayouts(sellerId: string, take = 20): Promise<Seller
         ],
   );
 }
+
+/**
+ * ═══ تحويلٌ واحد بكلّ ما يفسّره ═══
+ *
+ * كان التحويل **صفًّا في قائمة**: مبلغٌ وحالٌ وأربعُ خاناتٍ من آيبان.
+ * فمن سأل «لماذا لهذا البائع أربعةَ عشرَ ألفًا؟» لم يجد جوابًا إلّا
+ * بفتح الدفتر وترشيحه بيده، ومن سأل «من طلب الحوالة ومن أرسلها؟»
+ * لم يجد موضعًا يسأل فيه أصلًا.
+ *
+ * **والرصيدُ يُفسَّر بقيوده لا برقمه**: كلُّ سطرٍ باسم طلبه، فيُقرأ
+ * المبلغ كما تكوَّن.
+ */
+export type PayoutDetail = {
+  id: string;
+  amount: string;
+  status: 'PENDING' | 'SENT' | 'FAILED' | 'CANCELLED';
+  ibanLast4: string | null;
+  bankRef: string | null;
+  note: string | null;
+  createdAt: string;
+  sentAt: string | null;
+  failedAt: string | null;
+  requestedBy: string;
+  requestedByName: string | null;
+  sentBy: string | null;
+  sentByName: string | null;
+  /** `ref` اختياريٌّ في المخطّط — صفوفٌ قديمة تُملأ بترحيلٍ لاحق. */
+  seller: { id: string; name: string | null; ref: string | null; hasIban: boolean };
+  /** رصيدُ البائع الآن — وما بقي له بعد هذا التحويل. */
+  payableNow: string;
+  /** القيودُ التي كوّنت الرصيد، الأحدثُ أوّلًا. */
+  lines: {
+    id: string;
+    direction: 'DEBIT' | 'CREDIT';
+    amount: string;
+    event: string;
+    orderRef: string | null;
+    createdAt: string;
+  }[];
+};
+
+export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
+  const row = await db.payout.findUnique({
+    where: { id },
+    include: { seller: { select: { id: true, name: true, ref: true, iban: true } } },
+  });
+  if (row === null) return null;
+
+  /**
+   * **والقيدُ يُجمع بصاحبه**: `SELLER_PAYABLE` حسابٌ دائنُ الطبيعة،
+   * فالرصيد `CREDIT − DEBIT` — والطرحُ بالعكس يُظهر دَينًا علينا
+   * حيث لا دَين.
+   */
+  const entries = await db.ledgerEntry.findMany({
+    where: { account: 'SELLER_PAYABLE', userId: row.sellerId },
+    orderBy: { createdAt: 'desc' },
+    take: 60,
+    select: {
+      id: true, direction: true, amount: true, event: true,
+      orderId: true, createdAt: true,
+    },
+  });
+
+  const orderIds = [...new Set(entries.flatMap((e) => (e.orderId === null ? [] : [e.orderId])))];
+  const orders =
+    orderIds.length === 0
+      ? []
+      : await db.order.findMany({ where: { id: { in: orderIds } }, select: { id: true, ref: true } });
+  const refById = new Map(orders.map((order) => [order.id, order.ref]));
+
+  const balance = entries.reduce(
+    (sum, entry) => (entry.direction === 'CREDIT' ? sum.plus(entry.amount) : sum.minus(entry.amount)),
+    zero,
+  );
+
+  /** أسماءُ من طلب ومن أرسل — ومعرّفٌ خامّ لا يقول للقارئ شيئًا. */
+  const adminIds = [row.requestedBy, ...(row.sentBy === null ? [] : [row.sentBy])];
+  const admins = await db.adminUser.findMany({
+    where: { id: { in: adminIds } },
+    select: { id: true, name: true },
+  });
+  const adminName = (adminId: string | null): string | null =>
+    adminId === null ? null : (admins.find((a) => a.id === adminId)?.name ?? null);
+
+  return {
+    id: row.id,
+    amount: row.amount.toFixed(2),
+    status: row.status,
+    ibanLast4: row.ibanLast4,
+    bankRef: row.bankRef,
+    note: row.note,
+    createdAt: row.createdAt.toISOString(),
+    sentAt: row.sentAt?.toISOString() ?? null,
+    failedAt: row.failedAt?.toISOString() ?? null,
+    requestedBy: row.requestedBy,
+    requestedByName: adminName(row.requestedBy),
+    sentBy: row.sentBy,
+    sentByName: adminName(row.sentBy),
+    seller: {
+      id: row.seller.id,
+      name: row.seller.name,
+      ref: row.seller.ref,
+      /** **ولا يخرج الآيبان** — وجودُه حالٌ تُعرض، ورقمُه لا. */
+      hasIban: row.seller.iban !== null,
+    },
+    payableNow: balance.toFixed(2),
+    lines: entries.map((entry) => ({
+      id: entry.id,
+      direction: entry.direction,
+      amount: entry.amount.toFixed(2),
+      event: entry.event,
+      orderRef: entry.orderId === null ? null : (refById.get(entry.orderId) ?? null),
+      createdAt: entry.createdAt.toISOString(),
+    })),
+  };
+}

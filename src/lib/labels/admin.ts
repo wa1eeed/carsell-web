@@ -314,6 +314,36 @@ export const DEADLINE_LABEL: Record<string, { name: string; unit: string; effect
 };
 
 /** أسماء حسابات دفتر الأستاذ — وطبيعة كلٍّ منها في `docs/LEDGER.md`. */
+/**
+ * ═══ حدثُ القيد — ما الذي حرّك الحساب ═══
+ *
+ * `LEDGER_ACCOUNT_LABEL` تسمّي **الحساب**، وهذه تسمّي **الواقعة**.
+ * وصفحةُ التحويل تعرض قيودَ حساب البائع، فمفتاحٌ خامٌّ مثل
+ * `order.earned` لا يقول للمشغّل شيئًا — **وقيمةٌ بلا تسمية تُعرض
+ * خامًّا أو لا تُعرض**، وهو الصنف الذي أُغلق في قوالب الإشعار وحسابات
+ * الدفتر وشاشة الصرف.
+ */
+export const LEDGER_EVENT_LABEL: Record<string, string> = {
+  'order.paid': 'دفع المشتري',
+  'order.captured': 'حصل من البوابة',
+  'order.earned': 'استحق بعد نقل الملكية',
+  'payout.sent': 'حول إلى البائع',
+  'deposit.captured': 'حصل عربون',
+  'deposit.forfeited': 'صودر عربون',
+  'refund.before_earning': 'رد قبل الاستحقاق',
+  'refund.after_earning': 'رد بعد الاستحقاق',
+  'service.paid': 'دفع خدمة',
+  'service.captured': 'حصل مبلغ خدمة',
+  'service.earned': 'استحقت خدمة',
+  'service.refunded': 'ردت خدمة',
+  'service.provider_due': 'استحق للمزود',
+  'provider_payout.sent': 'حول إلى المزود',
+  'wallet.admin_credit': 'منحة من الأدمن',
+  'wallet.admin_debit': 'خصم من الأدمن',
+  'provider.admin_credit': 'تسوية للمزود',
+  'provider.admin_debit': 'تسوية على المزود',
+};
+
 export const LEDGER_ACCOUNT_LABEL: Record<string, string> = {
   ESCROW_AT_PROVIDER: 'لدى مزود الدفع',
   BUYER_ADVANCE: 'قبض ولم يستحق',

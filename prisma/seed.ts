@@ -3081,6 +3081,74 @@ async function main(): Promise<void> {
     }
   }
 
+  /**
+   * ═══ وتحويلاتُ البائعين تُزرع كما تُزرع تحويلاتُ المزوّدين ═══
+   *
+   * `Payout` كان **صفرَ صفوفٍ** وحساب `SELLER_PAYABLE` موجبًا لبائعين —
+   * فشاشةُ «تحويل مستحقات البائعين» تعرض من يستحقّ ولا تعرض حوالةً
+   * واحدة، وصفحةُ تفاصيل التحويل تُشحن بلا ما يملؤها. **وما لا يُزرع
+   * لا يُرى.**
+   */
+  if (financeAdmin !== undefined && opsAdmin !== undefined) {
+    const { payableSellers } = await import('../src/lib/domain/payouts');
+    const { recordSellerPayout } = await ledgerEvents();
+    const owed = await payableSellers();
+
+    /**
+     * **والمزروعُ يُحاكي ما يُنتجه المنتج**: `requestPayout` يرفض بائعًا
+     * بلا آيبان، **فحوالةٌ مزروعة لبائعٍ بلا آيبان حالٌ لا يبلغها
+     * المنتج** — وتُقرأ في الشاشة «آيبان مسجل: لا» فوق حوالةٍ أُرسلت.
+     */
+    const withIban = owed.filter((row) => row.ibanLast4 !== null);
+
+    /** ① حوالةٌ خرجت — ومرجعُها هو ما يُطابَق بكشف البنك. */
+    const first = withIban[0];
+    if (first !== undefined) {
+      const amount = new D(first.payable).dividedBy(2).toDecimalPlaces(2);
+      if (amount.greaterThan(0)) {
+        await prisma.payout.create({
+          data: {
+            sellerId: first.sellerId,
+            amount,
+            status: 'SENT',
+            ibanLast4: first.ibanLast4,
+            bankRef: 'TRF-2026-900318',
+            requestedBy: opsAdmin.id,
+            sentBy: financeAdmin.id,
+            createdAt: days(-5),
+            sentAt: days(-4),
+          },
+        });
+        /** **والقيد مع الصفّ لا بعده** — حوالةٌ بلا قيدٍ تُصرف مرّتين. */
+        await recordSellerPayout(
+          prisma,
+          { sellerId: first.sellerId, amount, note: 'حوالة مزروعة للعرض' },
+          days(-4),
+        );
+      }
+    }
+
+    /** ② وطلبٌ مفتوح ينتظر مرجع حوالته. */
+    const second = withIban[1] ?? withIban[0];
+    if (second !== undefined) {
+      const amount = new D(second.payable).dividedBy(3).toDecimalPlaces(2);
+      if (amount.greaterThan(0)) {
+        await prisma.payout.create({
+          data: {
+            sellerId: second.sellerId,
+            amount,
+            status: 'PENDING',
+            ibanLast4: second.ibanLast4,
+            requestedBy: opsAdmin.id,
+            createdAt: hours(-9),
+            /** ووسمُ البذرة يُنجّيه من تنظيف `global-setup` بالشكل. */
+            note: SEED_NOTE,
+          },
+        });
+      }
+    }
+  }
+
   const counts = {
     ماركة: await prisma.brand.count(),
     'نوع هيكل': await prisma.bodyTypeDisplay.count(),

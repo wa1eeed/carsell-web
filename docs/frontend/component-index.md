@@ -29,11 +29,11 @@ rather than found by chance.
 | `AdminMobileNav` | yes | `groups` · `activeHref` · `title` | 1 |
 | `AuctionCard` | no | `row` | 1 |
 | `AutoRefresh` | yes | `seconds` | 1 |
-| `DetailCard` | no | `title` · `note` · `children` · `className` | 10 |
-| `DetailColumns` | no | `main` · `side` | 10 |
-| `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 10 |
-| `DetailStats` | no | `items` | 12 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 129 |
+| `DetailCard` | no | `title` · `note` · `children` · `className` | 11 |
+| `DetailColumns` | no | `main` · `side` | 11 |
+| `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 11 |
+| `DetailStats` | no | `items` | 13 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 130 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -130,9 +130,9 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 116 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 117 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 104 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 105 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
@@ -150,7 +150,7 @@ rather than found by chance.
 | `Duration` | no | `hours` | 11 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
-| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 129 |
+| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 130 |
 | `FieldNote` | no | `id` · `children` | 1 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
@@ -168,7 +168,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 9 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 81 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 82 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |

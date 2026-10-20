@@ -1673,6 +1673,36 @@ write nothing, 36 with no detail page, and **107 Arabic paragraphs longer than
       again, so the gate can never become a rule that contradicts the code.
       Proved in both directions.
 
+### 38b — A payout had no page of its own *(done)*
+
+A transfer of a seller's money showed as **one row in a list**: amount, status,
+four digits of an IBAN. To answer «why does this seller have 14,500 owed?» an
+operator had to open the ledger and filter it by hand, and to see who asked for
+the transfer and who sent it there was nowhere to look at all.
+
+- [x] `/admin/payouts/{id}` — the amount and where it came from (**the ledger
+      lines that built this seller's balance, each naming its order**), the
+      bank details, who requested and who sent it and when, the audit trail,
+      and the actions that are still open on it.
+- [x] Rows in the list link to it, and so does the seller's own page.
+
+### What 38b caught on the way
+
+- **`Payout` was zero rows.** The screen listed who was owed and never a single
+  transfer, so the detail page would have shipped with nothing to open. Two are
+  seeded now — one sent with its bank reference, one waiting for it.
+- **And the seeded pending one vanished after the first test run.** The shared
+  cleanup deletes every `PENDING` payout — the exemption for seeded rows existed
+  for *provider* payouts only, written when that exact thing happened there. The
+  second occurrence of a class is where it gets closed, so the seller side now
+  carries the same exemption.
+- **The first seeded transfer went to a seller with no IBAN** — a state the
+  product refuses to create (`requestPayout` rejects it), and the page read
+  «آيبان مسجل: لا» above a transfer that had been sent. Seeded data imitates
+  what the product produces, not just its shape.
+- **Amounts are shown to the halala.** 47,287.50 was rendering as «47,288» in a
+  figure an operator reconciles against a bank statement.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
