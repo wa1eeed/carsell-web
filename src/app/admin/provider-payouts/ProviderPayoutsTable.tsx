@@ -10,6 +10,7 @@ import { Money } from '@/components/ui/Money';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
+import { PAYOUT_STATUS_LABEL } from '@/lib/labels/admin';
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import type { PayableProvider, ProviderPayoutRow } from '@/lib/domain/provider-payouts';
 
@@ -25,16 +26,6 @@ import type { PayableProvider, ProviderPayoutRow } from '@/lib/domain/provider-p
  * طلبًا ينتظر عضوًا ثانيًا. و«سجّل الحوالة» عند الاعتماد: فالمعتمِد
  * يُقرّ أن الحوالة **خرجت فعلًا** ويكتب مرجعها، وهو ما يخصم الدَّين.
  */
-
-const STATUS: Record<
-  ProviderPayoutRow['status'],
-  { label: string; tone: 'accent' | 'warn' | 'neutral' }
-> = {
-  PENDING: { label: 'ينتظر مرجع الحوالة', tone: 'warn' },
-  SENT: { label: 'حول', tone: 'accent' },
-  FAILED: { label: 'تعذر', tone: 'warn' },
-  CANCELLED: { label: 'ألغي', tone: 'neutral' },
-};
 
 const REASON: Record<string, string> = {
   NO_IBAN: 'المزود بلا آيبان مسجل — يدخل من صفحته أولا.',
@@ -323,7 +314,9 @@ export function ProviderPayoutsTable({
               </div>
               <div className="flex items-center gap-5">
                 <Money amount={Number(row.amount)} decimals={2} />
-                <Badge tone={STATUS[row.status].tone}>{STATUS[row.status].label}</Badge>
+                <Badge tone={PAYOUT_STATUS_LABEL[row.status].tone}>
+                  {PAYOUT_STATUS_LABEL[row.status].label}
+                </Badge>
               </div>
             </div>
           ))}

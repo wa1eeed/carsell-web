@@ -3106,23 +3106,31 @@ async function main(): Promise<void> {
     if (first !== undefined) {
       const amount = new D(first.payable).dividedBy(2).toDecimalPlaces(2);
       if (amount.greaterThan(0)) {
-        await prisma.payout.create({
+        const bankRef = 'TRF-2026-900318';
+        const sent = await prisma.payout.create({
           data: {
             sellerId: first.sellerId,
             amount,
             status: 'SENT',
             ibanLast4: first.ibanLast4,
-            bankRef: 'TRF-2026-900318',
+            bankRef,
             requestedBy: opsAdmin.id,
             sentBy: financeAdmin.id,
             createdAt: days(-5),
             sentAt: days(-4),
           },
         });
-        /** **والقيد مع الصفّ لا بعده** — حوالةٌ بلا قيدٍ تُصرف مرّتين. */
+        /**
+         * **والقيد مع الصفّ لا بعده** — حوالةٌ بلا قيدٍ تُصرف مرّتين.
+         *
+         * **وصياغةُ ملاحظته صياغةُ المنتج** (`approvePayout`): صفحةُ
+         * التحويل تقرأ المعرّف من هذا النصّ لتعرض المرجع البنكيّ، فنصٌّ
+         * مزروعٌ بصيغةٍ أخرى يجعل سطرَ الخصم «—» في بيانةِ العرض وحدها
+         * — عطلٌ يراه من يفتح الشاشة ولا يراه اختبار.
+         */
         await recordSellerPayout(
           prisma,
-          { sellerId: first.sellerId, amount, note: 'حوالة مزروعة للعرض' },
+          { sellerId: first.sellerId, amount, note: `payout ${sent.id} · ${bankRef}` },
           days(-4),
         );
       }

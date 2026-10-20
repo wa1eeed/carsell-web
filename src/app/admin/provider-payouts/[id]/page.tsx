@@ -15,7 +15,7 @@ import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { providerPayoutDetail } from '@/lib/domain/provider-payouts';
-import { LEDGER_EVENT_LABEL } from '@/lib/labels/admin';
+import { LEDGER_EVENT_LABEL, PAYOUT_STATUS_LABEL } from '@/lib/labels/admin';
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 
@@ -30,13 +30,6 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   minute: '2-digit',
   timeZone: 'Asia/Riyadh',
 });
-
-const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'danger' | 'neutral' }> = {
-  PENDING: { label: 'ينتظر مرجع الحوالة', tone: 'warn' },
-  SENT: { label: 'حول', tone: 'accent' },
-  FAILED: { label: 'فشل', tone: 'danger' },
-  CANCELLED: { label: 'ألغي', tone: 'neutral' },
-};
 
 /**
  * ═══ تحويلُ مزوّدٍ واحد — وكان صفًّا في قائمة ═══
@@ -59,7 +52,7 @@ export default async function AdminProviderPayoutPage({
   const payout = await providerPayoutDetail(decodeURIComponent(id));
   if (payout === null) notFound();
 
-  const state = STATUS[payout.status] ?? { label: payout.status, tone: 'neutral' as const };
+  const state = PAYOUT_STATUS_LABEL[payout.status];
   /**
    * **والمهلةُ تُقاس لا تُفترض.** طلبٌ مضى على مهلته يبقى `PENDING` في
    * القاعدة، فعرضُه «ينتظر» وحده يُقرأ انتظارًا وهو موات.
@@ -153,10 +146,20 @@ export default async function AdminProviderPayoutPage({
                         >
                           {line.requestRef}
                         </Link>
-                      ) : (
-                        <span className="bidi-isolate max-w-40 truncate text-3xs opacity-65">
-                          {line.note ?? '—'}
+                      ) : line.payoutId === payout.id ? (
+                        <span dir="ltr" className="font-num text-3xs opacity-65">
+                          {line.payoutRef ?? 'هذه الحوالة'}
                         </span>
+                      ) : line.payoutId !== null ? (
+                        /* **وقيدُ تحويلٍ آخر يفتحه** — فالرصيد يُقرأ إلى آخره. */
+                        <Link
+                          href={`/admin/provider-payouts/${encodeURIComponent(line.payoutId)}`}
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
+                        >
+                          {line.payoutRef ?? 'حوالة سابقة'}
+                        </Link>
+                      ) : (
+                        <span className="text-3xs opacity-65">—</span>
                       )}
                       <span className="bidi-isolate text-3xs opacity-65">
                         {riyadh.format(new Date(line.createdAt))}

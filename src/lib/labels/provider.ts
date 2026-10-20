@@ -134,7 +134,7 @@ export const PROVIDER_SELF_EVENT_LABEL: Readonly<Record<string, string>> = {
   'service.provider_due': 'استحق عن خدمة',
   'provider.admin_credit': 'قيد يدوي — زيادة',
   'provider.admin_debit': 'قيد يدوي — خصم',
-  'provider_payout.sent': 'حول إلى حسابك',
+  'provider_payout.sent': 'حوالة إلى حسابك',
 };
 
 /**

@@ -1,4 +1,4 @@
-import type { AuctionStatus, BuyerType, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
+import type { AuctionStatus, BuyerType, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -327,7 +327,7 @@ export const LEDGER_EVENT_LABEL: Record<string, string> = {
   'order.paid': 'دفع المشتري',
   'order.captured': 'حصل من البوابة',
   'order.earned': 'استحق بعد نقل الملكية',
-  'payout.sent': 'حول إلى البائع',
+  'payout.sent': 'حوالة إلى البائع',
   'deposit.captured': 'حصل عربون',
   'deposit.forfeited': 'صودر عربون',
   'refund.before_earning': 'رد قبل الاستحقاق',
@@ -337,7 +337,7 @@ export const LEDGER_EVENT_LABEL: Record<string, string> = {
   'service.earned': 'استحقت خدمة',
   'service.refunded': 'ردت خدمة',
   'service.provider_due': 'استحق للمزود',
-  'provider_payout.sent': 'حول إلى المزود',
+  'provider_payout.sent': 'حوالة إلى المزود',
   'wallet.admin_credit': 'منحة من الأدمن',
   'wallet.admin_debit': 'خصم من الأدمن',
   'provider.admin_credit': 'تسوية للمزود',
@@ -403,5 +403,31 @@ export const PROVIDER_EVENT_LABEL: Readonly<Record<string, string>> = {
    * **وحدثٌ جديد تُكتب صياغتُه معه**: المفتاح الخام في كشفٍ يقرؤه
    * محاسبٌ أو المزوّدُ نفسه هو الصنف الذي وقع في قوالب الإشعار.
    */
-  'provider_payout.sent': 'حول إلى حسابه',
+  'provider_payout.sent': 'حوالة إلى حسابه',
+};
+
+/**
+ * ═══ حالُ التحويل — تسميةٌ واحدة لأربع شاشات ═══
+ *
+ * كانت مكتوبةً أربع مرّات: قائمتا البائعين والمزوّدين وصفحتا تفاصيلهما
+ * — **وتباعدت في جلسةٍ واحدة**: `FAILED` «تعذّر» في قائمةٍ و«فشل» في
+ * صفحةٍ تفتحها القائمةُ نفسُها.
+ *
+ * **والتعهّدُ على التعداد** (`Record<PayoutStatus, …>`): حالٌ تُضاف إلى
+ * المخطّط يشكو منها المُصرِّف هنا، ولا تُعرض خامّةً في شاشة.
+ *
+ * ═══ وصياغتُها تُقرأ بلا تشكيل ═══
+ *
+ * «حوّل» و«أُلغي» تُكتبان بلا تشكيل «حول» و«ألغي» — والأولى تُقرأ
+ * «حَوْل»، والثانية فعلًا مبنيًّا للمعلوم. فالوصفُ أسلمُ من الفعل:
+ * «محول» و«ملغى» لا تحتملان قراءةً ثانية.
+ */
+export const PAYOUT_STATUS_LABEL: Record<
+  PayoutStatus,
+  { label: string; tone: 'accent' | 'warn' | 'danger' | 'neutral' }
+> = {
+  PENDING: { label: 'ينتظر مرجع الحوالة', tone: 'warn' },
+  SENT: { label: 'محول', tone: 'accent' },
+  FAILED: { label: 'تعذر', tone: 'danger' },
+  CANCELLED: { label: 'ملغى', tone: 'neutral' },
 };

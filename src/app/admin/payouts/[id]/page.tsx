@@ -15,7 +15,7 @@ import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { payoutDetail } from '@/lib/domain/payouts';
-import { LEDGER_EVENT_LABEL } from '@/lib/labels/admin';
+import { LEDGER_EVENT_LABEL, PAYOUT_STATUS_LABEL } from '@/lib/labels/admin';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 
 export const dynamic = 'force-dynamic';
@@ -29,13 +29,6 @@ const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
   minute: '2-digit',
   timeZone: 'Asia/Riyadh',
 });
-
-const STATUS: Record<string, { label: string; tone: 'accent' | 'warn' | 'danger' | 'neutral' }> = {
-  PENDING: { label: 'ينتظر مرجع الحوالة', tone: 'warn' },
-  SENT: { label: 'حول', tone: 'accent' },
-  FAILED: { label: 'فشل', tone: 'danger' },
-  CANCELLED: { label: 'ألغي', tone: 'neutral' },
-};
 
 /**
  * ═══ تحويلُ مستحقٍّ واحد — وكان صفًّا في قائمة ═══
@@ -53,7 +46,7 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
   const payout = await payoutDetail(decodeURIComponent(id));
   if (payout === null) notFound();
 
-  const state = STATUS[payout.status] ?? { label: payout.status, tone: 'neutral' as const };
+  const state = PAYOUT_STATUS_LABEL[payout.status];
 
   return (
     <AdminShell title="تحويل مستحق" activeHref="/admin/payouts" admin={admin}>
@@ -127,15 +120,27 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
                       <span className="min-w-0 flex-1 text-2xs">
                         {LEDGER_EVENT_LABEL[line.event] ?? line.event}
                       </span>
-                      {line.orderRef === null ? (
-                        <span className="text-3xs opacity-65">—</span>
-                      ) : (
+                      {line.orderRef !== null ? (
                         <Link
                           href={`/admin/orders/${encodeURIComponent(line.orderRef)}`}
-                          className="bidi-ltr font-num text-3xs underline underline-offset-2"
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
                         >
                           {line.orderRef}
                         </Link>
+                      ) : line.payoutId === payout.id ? (
+                        /* **ومعرّفٌ خامّ لا يقول شيئًا** — فالمرجع البنكيّ مكانه. */
+                        <span dir="ltr" className="font-num text-3xs opacity-65">
+                          {line.payoutRef ?? 'هذه الحوالة'}
+                        </span>
+                      ) : line.payoutId !== null ? (
+                        <Link
+                          href={`/admin/payouts/${encodeURIComponent(line.payoutId)}`}
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
+                        >
+                          {line.payoutRef ?? 'حوالة سابقة'}
+                        </Link>
+                      ) : (
+                        <span className="text-3xs opacity-65">—</span>
                       )}
                       <span className="bidi-isolate text-3xs opacity-65">
                         {riyadh.format(new Date(line.createdAt))}

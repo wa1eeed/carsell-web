@@ -10,6 +10,7 @@ import { Money } from '@/components/ui/Money';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
+import { PAYOUT_STATUS_LABEL } from '@/lib/labels/admin';
 import type { PayableSeller, PayoutRow } from '@/lib/domain/payouts';
 
 /**
@@ -23,12 +24,6 @@ import type { PayableSeller, PayoutRow } from '@/lib/domain/payouts';
  * وهو ما يُصفّر حقّ البائع في الدفتر.
  */
 
-const STATUS: Record<PayoutRow['status'], { label: string; tone: 'accent' | 'warn' | 'neutral' }> = {
-  PENDING: { label: 'ينتظر مرجع الحوالة', tone: 'warn' },
-  SENT: { label: 'حول', tone: 'accent' },
-  FAILED: { label: 'تعذر', tone: 'warn' },
-  CANCELLED: { label: 'ألغي', tone: 'neutral' },
-};
 
 const REASON: Record<string, string> = {
   NO_IBAN: 'البائع لم يدخل آيبانه بعد — ولا تحويل بلا آيبان.',
@@ -291,7 +286,9 @@ export function PayoutsTable({
               </div>
               <div className="flex items-center gap-5">
                 <Money amount={Number(row.amount)} decimals={2} />
-                <Badge tone={STATUS[row.status].tone}>{STATUS[row.status].label}</Badge>
+                <Badge tone={PAYOUT_STATUS_LABEL[row.status].tone}>
+                  {PAYOUT_STATUS_LABEL[row.status].label}
+                </Badge>
               </div>
             </div>
           ))}

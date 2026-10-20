@@ -465,6 +465,13 @@ export type PayoutDetail = {
     amount: string;
     event: string;
     orderRef: string | null;
+    /**
+     * التحويلُ الذي أنشأ القيد ومرجعُه البنكيّ — **مُطابَقان لا
+     * مُستنتَجَين**: `payout.sent` تكتب في `note` نصًّا فيه معرّفُ
+     * التحويل، ومعرّفٌ خامّ في شاشةٍ لا يقول للمشغّل شيئًا.
+     */
+    payoutId: string | null;
+    payoutRef: string | null;
     createdAt: string;
   }[];
   /** عددُ قيود الحساب كلِّها — ليُقال إن المعروض مقتطع. */
@@ -492,7 +499,7 @@ export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
     take: DETAIL_LINES,
     select: {
       id: true, direction: true, amount: true, event: true,
-      orderId: true, createdAt: true,
+      orderId: true, note: true, createdAt: true,
     },
   });
 
@@ -502,6 +509,17 @@ export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
       ? []
       : await db.order.findMany({ where: { id: { in: orderIds } }, select: { id: true, ref: true } });
   const refById = new Map(orders.map((order) => [order.id, order.ref]));
+
+  /**
+   * تحويلاتُ هذا البائع — ليُقرأ قيدُ الخصم بمرجعه البنكيّ لا بمعرّفٍ
+   * خامّ. **ويُطابَق بالمعرّف الكامل** لا بشكل النصّ.
+   */
+  const payouts = await db.payout.findMany({
+    where: { sellerId: row.sellerId },
+    select: { id: true, bankRef: true },
+  });
+  const payoutInNote = (note: string | null): { id: string; bankRef: string | null } | null =>
+    note === null ? null : (payouts.find((candidate) => note.includes(candidate.id)) ?? null);
 
   /**
    * **والرصيدُ من تجميعةٍ كاملة لا من المعروض.** جمعُ آخر ستّين قيدًا
@@ -552,6 +570,8 @@ export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
       amount: entry.amount.toFixed(2),
       event: entry.event,
       orderRef: entry.orderId === null ? null : (refById.get(entry.orderId) ?? null),
+      payoutId: payoutInNote(entry.note)?.id ?? null,
+      payoutRef: payoutInNote(entry.note)?.bankRef ?? null,
       createdAt: entry.createdAt.toISOString(),
     })),
   };

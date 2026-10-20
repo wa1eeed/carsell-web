@@ -114,6 +114,14 @@ describe('صفحة تفاصيل تحويل المزود', () => {
       0,
     );
     expect(Number(after.payableNow)).not.toBeCloseTo(shown, 2);
+ 
+    /**
+     * **ويُستعاد في موضعه لا في `afterAll` وحده**: جارُه في الملفّ
+     * نفسِه يقرأ آخر ستّين قيدًا، فستُّون قيدًا مزروعة تطرد منها قيدَ
+     * التحويل الذي يقيسه — فيسقط على ما لا يقيسه. و`afterAll` يبقى
+     * شبكةَ أمانٍ لو سقط الاختبار قبل هذا السطر.
+     */
+    await db.ledgerEntry.deleteMany({ where: { txnId: posted.txnId } });
   });
 
   /**
@@ -137,6 +145,34 @@ describe('صفحة تفاصيل تحويل المزود', () => {
     if (sent !== undefined) expect(sent.requestRef).toBeNull();
   });
 
+  /**
+   * ═══ ومعرّفٌ خامّ ليس مرجعًا ═══
+   *
+   * `provider_payout.sent` تكتب في `note` نصًّا فيه معرّفُ التحويل،
+   * فكان سطرُ الخصم يقول `…rqu55jisvvlx · TRF-2026-104417` في شاشةٍ
+   * يطابقها مشغّلٌ بكشف بنك. والمرجعُ يُطابَق بصفّ التحويل لا بشكل
+   * النصّ، فيُعرض ما يُقرأ.
+   */
+  it('وقيد التحويل يحمل مرجعه البنكي لا معرفه الخام', async () => {
+    const sent = await db.providerPayout.findFirst({
+      where: { status: 'SENT', bankRef: { not: null } },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(sent, 'لا تحويل مُرسَل مزروع — فالقياس لا يقع').not.toBeNull();
+    if (sent === null) return;
+
+    const detail = await providerPayoutDetail(sent.id);
+    expect(detail).not.toBeNull();
+    if (detail === null) return;
+
+    const own = detail.lines.find((line) => line.payoutId === sent.id);
+    expect(own, 'لا قيدَ خصمٍ لهذا التحويل في حسابه').toBeDefined();
+    if (own === undefined) return;
+    expect(own.direction).toBe('DEBIT');
+    expect(own.payoutRef).toBe(sent.bankRef);
+    expect(own.requestRef).toBeNull();
+  });
+
   /** **ولا يخرج الآيبان** — وجودُه حالٌ تُعرض، ورقمُه لا. */
   it('ولا يخرج الآيبان من القراءة', async () => {
     const payout = await db.providerPayout.findFirstOrThrow({ orderBy: { createdAt: 'desc' } });
@@ -148,6 +184,29 @@ describe('صفحة تفاصيل تحويل المزود', () => {
 
     expect(Object.keys(detail?.provider ?? {})).not.toContain('iban');
     if (provider.iban !== null) expect(JSON.stringify(detail)).not.toContain(provider.iban);
+  });
+
+  /**
+   * ═══ وتسميةُ الحال تُكتب مرّة ═══
+   *
+   * كانت في أربعة ملفّات — قائمتا البائعين والمزوّدين وصفحتا تفاصيلهما
+   * — **وتباعدت في جلسةٍ واحدة**: `FAILED` «تعذّر» في قائمةٍ و«فشل» في
+   * الصفحة التي تفتحها. والشاشاتُ الأربع تقرأ `PAYOUT_STATUS_LABEL`،
+   * وهي الوحيدة التي تحمل تعهّد التعداد.
+   */
+  it('وتسمية حال التحويل في موضع واحد تقرؤه الشاشات الأربع', () => {
+    const screens = [
+      'src/app/admin/payouts/PayoutsTable.tsx',
+      'src/app/admin/payouts/[id]/page.tsx',
+      'src/app/admin/provider-payouts/ProviderPayoutsTable.tsx',
+      'src/app/admin/provider-payouts/[id]/page.tsx',
+    ];
+    for (const screen of screens) {
+      const source = stripComments(readFileSync(join(ROOT, screen), 'utf8'));
+      expect(source, screen).toContain('PAYOUT_STATUS_LABEL');
+      /** ولا خريطةَ حالٍ محلّية بجوارها — وإلّا عادت تتباعد. */
+      expect(source, screen).not.toMatch(/SENT:\s*\{\s*label:/);
+    }
   });
 
   it('ومعرف لا وجود له يعيد null', async () => {

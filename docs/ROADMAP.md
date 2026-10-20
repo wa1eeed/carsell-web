@@ -1742,6 +1742,23 @@ reference.
   code did — it described the data, not the code. Both tests now plant past the
   limit in one balanced transaction and restore it by `txnId`, and the fix was
   proved by reverting it.
+- **A raw cuid was on screen in a figure an operator reconciles.** The ledger has
+  no column for the transfer that produced a debit, so `payout.sent` writes
+  `payout ‹id› · ‹bank ref›` into `note` — and the line rendered it, truncated,
+  as «…rqu55jisvvlx · TRF-2026-104417». Both pages now match the note against
+  that party's own payout rows and show the **bank reference**, linking to the
+  earlier transfer when the line belongs to one.
+- **The seeded seller transfer wrote its own wording into that note**, so its
+  debit line read «—» where a real one reads its reference — seeded data that
+  does not imitate what the product writes. The seed now uses the product's
+  wording, and a test asserts the line carries `bankRef` for every sent payout.
+- **Four copies of the payout status labels, already drifting.** `FAILED` was
+  «تعذّر» in a list and «فشل» in the page that list opens — in one session. One
+  `PAYOUT_STATUS_LABEL` keyed `Record<PayoutStatus, …>` now serves all four, so
+  a status added to the schema fails the compiler instead of rendering raw.
+- **And two labels could not be read.** Unvowelled, «حوّل» is «حَوْل» and «أُلغي»
+  is an active verb. A noun reads one way only: «محول» · «ملغى» · «حوالة إلى
+  البائع».
 
 ### What stays open in this program
 

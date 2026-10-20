@@ -134,6 +134,40 @@ describe('صفحة تفاصيل التحويل', () => {
       0,
     );
     expect(Number(detail.payableNow)).not.toBeCloseTo(shown, 2);
+ 
+    /**
+     * **ويُستعاد في موضعه لا في `afterAll` وحده**: جارُه في الملفّ
+     * نفسِه يقرأ آخر ستّين قيدًا، فستُّون قيدًا مزروعة تطرد منها قيدَ
+     * التحويل الذي يقيسه — فيسقط على ما لا يقيسه. و`afterAll` يبقى
+     * شبكةَ أمانٍ لو سقط الاختبار قبل هذا السطر.
+     */
+    await db.ledgerEntry.deleteMany({ where: { txnId: posted.txnId } });
+  });
+
+  /**
+   * ═══ ومعرّفٌ خامّ ليس مرجعًا ═══
+   *
+   * `payout.sent` تكتب في `note` نصًّا فيه معرّفُ التحويل، فكان سطرُ
+   * الخصم يقول معرّفًا خامًّا — أو «—» حين لا يُقرأ — في شاشةٍ يطابقها
+   * مشغّلٌ بكشف بنك. والمرجعُ يُطابَق بصفّ التحويل لا بشكل النصّ.
+   */
+  it('وقيد التحويل يحمل مرجعه البنكي', async () => {
+    const sent = await db.payout.findFirst({
+      where: { status: 'SENT', bankRef: { not: null } },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(sent, 'لا تحويل مُرسَل مزروع — فالقياس لا يقع').not.toBeNull();
+    if (sent === null) return;
+
+    const detail = await payoutDetail(sent.id);
+    expect(detail).not.toBeNull();
+    if (detail === null) return;
+
+    const own = detail.lines.find((line) => line.payoutId === sent.id);
+    expect(own, 'لا قيدَ خصمٍ لهذا التحويل في حساب البائع').toBeDefined();
+    if (own === undefined) return;
+    expect(own.direction).toBe('DEBIT');
+    expect(own.payoutRef).toBe(sent.bankRef);
   });
 
   it('ومعرف لا وجود له يعيد null', async () => {

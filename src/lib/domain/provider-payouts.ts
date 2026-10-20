@@ -651,6 +651,13 @@ export type ProviderPayoutDetail = {
      * بنك›`. فالرابط يُبنى من المُطابِق لا من المُدخَل.
      */
     requestRef: string | null;
+    /**
+     * التحويلُ الذي أنشأ القيد ومرجعُه البنكيّ — **مُطابَقان لا
+     * مُستنتَجَين**: `provider_payout.sent` تكتب في `note` نصًّا فيه
+     * معرّفُ التحويل، ومعرّفٌ خامّ في شاشةٍ لا يقول للمشغّل شيئًا.
+     */
+    payoutId: string | null;
+    payoutRef: string | null;
     note: string | null;
     createdAt: string;
   }[];
@@ -706,11 +713,25 @@ export async function providerPayoutDetail(id: string): Promise<ProviderPayoutDe
    * وما لم يكن يُعرض نصًّا كما هو.
    */
   const notes = [...new Set(entries.flatMap((entry) => (entry.note === null ? [] : [entry.note])))];
-  const requests =
+  const [requests, payouts] = await Promise.all([
     notes.length === 0
       ? []
-      : await db.serviceRequest.findMany({ where: { ref: { in: notes } }, select: { ref: true } });
+      : db.serviceRequest.findMany({ where: { ref: { in: notes } }, select: { ref: true } }),
+    /**
+     * تحويلاتُ هذا المزوّد — ليُقرأ قيدُ الخصم بمرجعه البنكيّ لا
+     * بمعرّفٍ خامّ. والمزوّد تحويلاتُه قليلة، فالقائمة كلُّها أرخص من
+     * تفكيك النصّ بنمط.
+     */
+    db.providerPayout.findMany({
+      where: { providerId: row.providerId },
+      select: { id: true, bankRef: true },
+    }),
+  ]);
   const refs = new Set(requests.map((serviceRequest) => serviceRequest.ref));
+
+  /** **ويُطابَق بالمعرّف الكامل** — فنصٌّ يحويه هو قيدُ ذلك التحويل. */
+  const payoutInNote = (note: string | null): { id: string; bankRef: string | null } | null =>
+    note === null ? null : (payouts.find((candidate) => note.includes(candidate.id)) ?? null);
 
   const adminIds = [row.requestedBy, ...(row.sentBy === null ? [] : [row.sentBy])];
   const admins = await db.adminUser.findMany({
@@ -751,6 +772,8 @@ export async function providerPayoutDetail(id: string): Promise<ProviderPayoutDe
       amount: entry.amount.toFixed(2),
       event: entry.event,
       requestRef: entry.note !== null && refs.has(entry.note) ? entry.note : null,
+      payoutId: payoutInNote(entry.note)?.id ?? null,
+      payoutRef: payoutInNote(entry.note)?.bankRef ?? null,
       note: entry.note,
       createdAt: entry.createdAt.toISOString(),
     })),
