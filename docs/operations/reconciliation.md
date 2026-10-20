@@ -1,6 +1,6 @@
 # Daily reconciliation
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-10-20_
 
 `src/lib/domain/reconciliation.ts`. Surfaced on `/admin/payments`.
 
@@ -84,6 +84,33 @@ Two figures must agree at any moment:
 `/admin/payouts` shows both: the owed list is computed from the ledger, never
 from the sum of orders, so a disagreement between the two is visible rather than
 averaged away.
+
+## One transfer at a time: `/admin/payouts/{id}` and `/admin/provider-payouts/{id}`
+
+Reconciling a line on a bank statement is a question about **one** transfer:
+what left, against which reference, and out of what. Each detail page answers it
+without the ledger being filtered by hand —
+
+| On the page | Where it comes from |
+|---|---|
+| The amount, to the halala | `Payout.amount` / `ProviderPayout.amount` |
+| The reference to match | `bankRef` — required before the transfer is recorded |
+| What the balance is made of | the account's entries, newest first, each naming its order (sellers) or its service request (providers) |
+| What is still owed | `accountBalance('SELLER_PAYABLE', {userId})` · `providerBalance(providerId)` |
+| Who asked and who entered the reference | `requestedBy` / `sentBy`, resolved to names |
+
+Two rules hold on both pages:
+
+- **The balance is the account's aggregate, never the sum of the lines shown.**
+  The list of entries is capped (`DETAIL_LINES`) and the card says so when it is
+  truncated. Summing what is displayed would print a figure that disagrees with
+  the one the transfer guard enforces, so the screen would offer money the
+  approval then refuses.
+- **A reference is a link only when it resolves.** The ledger has no column for
+  a service-request reference, so it is carried in `note` — and
+  `provider_payout.sent` writes its own text into the same field. The page
+  matches the value against `ServiceRequest.ref` and leaves anything else as
+  plain text.
 
 ## Not built yet
 

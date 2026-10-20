@@ -605,3 +605,154 @@ export async function pendingProviderPayout(
     expiresAt: request?.expiresAt.toISOString() ?? null,
   };
 }
+
+export type ProviderPayoutDetail = {
+  id: string;
+  amount: string;
+  status: PayoutStatus;
+  ibanLast4: string | null;
+  bankRef: string | null;
+  note: string | null;
+  createdAt: string;
+  sentAt: string | null;
+  failedAt: string | null;
+  requestedBy: string;
+  requestedByName: string | null;
+  sentBy: string | null;
+  sentByName: string | null;
+  /**
+   * مهلةُ طلب الموافقة — و`null` يعني لا طلبَ له أصلًا (نصابُ الواحد).
+   *
+   * **ومهلةٌ انقضت تُقرأ انتظارًا إن لم تُعرض**: من يفتح طلبًا عمرُه
+   * أربعةُ أيّام يحتاج أن يعرف أنه مات لا أنه ينتظره.
+   */
+  expiresAt: string | null;
+  provider: {
+    id: string;
+    nameAr: string;
+    type: ProviderType;
+    active: boolean;
+    /** **ولا يخرج الآيبان** — وجودُه حالٌ تُعرض، ورقمُه لا. */
+    hasIban: boolean;
+  };
+  /** حقُّه القائم الآن — بالتجميعة الكاملة، لا بما عُرض من قيود. */
+  payableNow: string;
+  /** القيودُ التي كوّنت الرصيد، الأحدثُ أوّلًا — وهي عرضٌ مقتطع. */
+  lines: {
+    id: string;
+    direction: 'DEBIT' | 'CREDIT';
+    amount: string;
+    event: string;
+    /**
+     * مرجعُ طلب الخدمة الذي كوّن القيد — **إن طابق صفًّا قائمًا**.
+     *
+     * فالدفتر يكتب المرجع في `note` إذ لا عمود له، و«مرجعٌ» بشكله
+     * ليس مرجعًا: `provider_payout.sent` تكتب فيه `payout … · ‹مرجع
+     * بنك›`. فالرابط يُبنى من المُطابِق لا من المُدخَل.
+     */
+    requestRef: string | null;
+    note: string | null;
+    createdAt: string;
+  }[];
+  /** عددُ قيود الحساب كلِّها — ليُقال إن المعروض مقتطع. */
+  lineCount: number;
+};
+
+/** سقفُ ما يُعرض من قيود — والرصيد لا يُحسب منه. */
+export const DETAIL_LINES = 60;
+
+/**
+ * ═══ تحويلُ مزوّدٍ واحد — وكان صفًّا في قائمة ═══
+ *
+ * اسمٌ ومبلغٌ ومرجعُ حوالة، ولا موضعَ يُسأل فيه «من أيّ خدماتٍ تكوّن
+ * هذا المبلغ؟» — وهو سؤالُ المطابقة مع كشف البنك لا فضول. فالرصيد
+ * هنا **مفسَّرٌ بقيوده**، وكلُّ قيدٍ باسم طلب الخدمة الذي أنشأه.
+ */
+export async function providerPayoutDetail(id: string): Promise<ProviderPayoutDetail | null> {
+  const row = await db.providerPayout.findUnique({
+    where: { id },
+    include: {
+      provider: { select: { id: true, nameAr: true, type: true, active: true, iban: true } },
+    },
+  });
+  if (row === null) return null;
+
+  const where = { account: 'PROVIDER_PAYABLE' as const, providerId: row.providerId };
+
+  const [entries, lineCount, payableNow, request] = await Promise.all([
+    db.ledgerEntry.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: DETAIL_LINES,
+      select: { id: true, direction: true, amount: true, event: true, note: true, createdAt: true },
+    }),
+    db.ledgerEntry.count({ where }),
+    /**
+     * **والرصيدُ من تجميعةٍ كاملة لا من المعروض.** جمعُ آخر ستّين قيدًا
+     * يُنتج رقمًا يخالف ما يفحصه حارسُ الصرف نفسه — فتقول الشاشة حقًّا
+     * وتردّ الموافقة «يتجاوز حقّه»، ورقمان لمالٍ واحد.
+     */
+    providerBalance(row.providerId),
+    row.approvalRequestId === null
+      ? Promise.resolve(null)
+      : db.approvalRequest.findUnique({
+          where: { id: row.approvalRequestId },
+          select: { expiresAt: true },
+        }),
+  ]);
+
+  /**
+   * المراجعُ تُطابَق بالجدول: ما كان `note` فيه مرجعَ طلبٍ قائم يُفتح،
+   * وما لم يكن يُعرض نصًّا كما هو.
+   */
+  const notes = [...new Set(entries.flatMap((entry) => (entry.note === null ? [] : [entry.note])))];
+  const requests =
+    notes.length === 0
+      ? []
+      : await db.serviceRequest.findMany({ where: { ref: { in: notes } }, select: { ref: true } });
+  const refs = new Set(requests.map((serviceRequest) => serviceRequest.ref));
+
+  const adminIds = [row.requestedBy, ...(row.sentBy === null ? [] : [row.sentBy])];
+  const admins = await db.adminUser.findMany({
+    where: { id: { in: adminIds } },
+    select: { id: true, name: true },
+  });
+  /** **ومن فعل يُقال باسمه**: سطرٌ يقول `cmg3f…` لا يُجيب «من حوّل؟». */
+  const adminName = (adminId: string | null): string | null =>
+    adminId === null ? null : (admins.find((admin) => admin.id === adminId)?.name ?? null);
+
+  return {
+    id: row.id,
+    amount: row.amount.toFixed(2),
+    status: row.status,
+    ibanLast4: row.ibanLast4,
+    bankRef: row.bankRef,
+    note: row.note,
+    createdAt: row.createdAt.toISOString(),
+    sentAt: row.sentAt === null ? null : row.sentAt.toISOString(),
+    failedAt: row.failedAt === null ? null : row.failedAt.toISOString(),
+    requestedBy: row.requestedBy,
+    requestedByName: adminName(row.requestedBy),
+    sentBy: row.sentBy,
+    sentByName: adminName(row.sentBy),
+    expiresAt: request === null ? null : request.expiresAt.toISOString(),
+    provider: {
+      id: row.provider.id,
+      nameAr: row.provider.nameAr,
+      type: row.provider.type,
+      active: row.provider.active,
+      hasIban: row.provider.iban !== null,
+    },
+    payableNow,
+    lineCount,
+    lines: entries.map((entry) => ({
+      id: entry.id,
+      direction: entry.direction,
+      amount: entry.amount.toFixed(2),
+      event: entry.event,
+      requestRef: entry.note !== null && refs.has(entry.note) ? entry.note : null,
+      note: entry.note,
+      createdAt: entry.createdAt.toISOString(),
+    })),
+  };
+}

@@ -175,6 +175,17 @@ export function ProviderPayoutsTable({
                   >
                     {row.providerName}
                   </Link>
+                  {/*
+                    **والصفُّ يُفتح**: قائمةٌ بلا بابٍ إلى تفاصيلها تجعل
+                    المشغّل يسأل «من أيّ خدماتٍ تكوّن هذا المبلغ؟» ولا
+                    يجد أين يسأل.
+                  */}
+                  <Link
+                    href={`/admin/provider-payouts/${encodeURIComponent(row.id)}`}
+                    className="-my-1 w-fit py-1 text-3xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  >
+                    تفاصيل التحويل
+                  </Link>
                   <span className="text-3xs opacity-65">
                     {row.ibanLast4 === null ? (
                       'لا آيبان'
@@ -295,7 +306,17 @@ export function ProviderPayoutsTable({
               className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="bidi-isolate truncate text-sm">{row.providerName}</span>
+                {/*
+                  **والصفُّ المنتهي يُفتح كما يُفتح المعلَّق**: من يراجع
+                  حوالةً خرجت يسأل «من أيّ خدماتٍ تكوّنت؟» — وهو سؤالُ
+                  المطابقة مع كشف البنك، لا فضول.
+                */}
+                <Link
+                  href={`/admin/provider-payouts/${encodeURIComponent(row.id)}`}
+                  className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
+                >
+                  {row.providerName}
+                </Link>
                 <span dir="ltr" className="font-num text-3xs opacity-65">
                   {row.bankRef ?? '—'}
                 </span>

@@ -1703,14 +1703,67 @@ the transfer and who sent it there was nowhere to look at all.
 - **Amounts are shown to the halala.** 47,287.50 was rendering as «47,288» in a
   figure an operator reconciles against a bank statement.
 
+### 38c — A provider's transfer, and the balance that two screens disagreed about *(done)*
+
+The provider side of 38b: `PROVIDER_PAYABLE` is credited on every completed
+service and debited only by a bank transfer entered by hand, so «why is 1,350
+owed to this inspection shop?» is a question an operator asks while reconciling
+a bank statement — and the list answered it with a name, an amount and a bank
+reference.
+
+- [x] `/admin/provider-payouts/{id}` — the amount, **the ledger lines that built
+      this provider's balance, each linking to the service request that created
+      it**, the bank details, the provider's type and whether an IBAN is on
+      file, who requested and who entered the reference and when, and the
+      approval window if the request still has one.
+- [x] Both sections of the list open it — the queue and the history.
+- [x] **The reference is resolved, not inferred.** The ledger has no column for
+      a service-request reference, so it is written into `note` — and
+      `provider_payout.sent` writes `payout … · ‹bank ref›` into the same field.
+      A link built from the shape of the text would point at a 404; it is
+      matched against `ServiceRequest.ref` and only a row that exists is a link.
+- [x] **`/admin/settlements` needs no page of its own** — measured, not assumed:
+      every row already links to `/admin/orders/{ref}`, where the escrow, the
+      ledger and the documents for that settlement already are. A second page
+      would say what the first says and drift from it on the first edit.
+
+### What 38c caught on the way
+
+- **The balance on a payout detail page was summed from the sixty lines it
+  displays.** Not from the account. A seller or provider with more ledger
+  entries than that would read one number on the screen while the transfer
+  guard (`accountBalance` in `requestPayout`/`approvePayout`) enforced another —
+  the screen says the money is owed and the approval answers «exceeds what is
+  owed». **Two numbers for one money**, and the seller page had shipped with it
+  in 38b. Both now read the aggregate, and the card says plainly when the lines
+  shown are only the most recent of more.
+- **The test for it was green on data that could not reach the limit.** Nothing
+  seeded has sixty ledger entries, so comparing the two sums passed whatever the
+  code did — it described the data, not the code. Both tests now plant past the
+  limit in one balanced transaction and restore it by `txnId`, and the fix was
+  proved by reverting it.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
       model's columns, not guessed.
-- [ ] **Entities with no detail page**: payouts, provider payouts, settlements,
-      campaigns, ad slots, services, team, identity, api-keys, webhooks.
+- [ ] **Entities with no detail page**: campaigns, ad slots, services, team,
+      identity, api-keys, webhooks. (Payouts and provider payouts are done;
+      settlements measured as not needing one.)
 - [ ] **Detail pages that do not give 360°** — measured one by one.
 - [ ] **The remaining copy**, screen by screen, in the plain register.
+- [ ] **«ساعات (٤٨)» — the parenthesised count survived gate 41 in template
+      literals.** Found by clicking the service-request link from the new
+      provider-payout page: the SLA field reads «الالتزام · ساعات (٤٨)», which
+      is the exact shape gate 41 was built to forbid. The gate reads JSX
+      (`({displayDigits(`) and exempts template literals, because toast text
+      cannot take a component — but **the exemption is by form, not by
+      destination**, and these strings are handed to components that accept a
+      `ReactNode`. Measured 2026-10-20: **38 occurrences**, of which the toast
+      and HTTP-error strings are legitimately exempt and the rest are displayed
+      labels — `sla()` duplicated in two files, an age helper duplicated in two
+      more, and `value={...}` on three fields of `/admin/auction-settings`.
+      Over the ten-alarm limit, so the copy moves first and the gate follows.
 
 ## 37 · The auction's bid log, finished — *owner's request 2026-10-20*
 

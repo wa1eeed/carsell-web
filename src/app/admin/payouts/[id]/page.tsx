@@ -11,6 +11,7 @@ import {
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Money } from '@/components/ui/Money';
+import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { payoutDetail } from '@/lib/domain/payouts';
@@ -82,8 +83,8 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
             ...(Number(payout.payableNow) < 0 ? { tone: 'danger' as const } : {}),
           },
           {
-            label: 'قيود كونت الرصيد',
-            value: <ArabicNumber value={payout.lines.length} />,
+            label: 'قيود على حسابه',
+            value: <ArabicNumber value={payout.lineCount} />,
           },
         ]}
       />
@@ -100,7 +101,22 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
             */}
             <DetailCard
               title="من أين جاء هذا الرصيد"
-              note="حساب مستحقات البائعين — الأحدث أولا"
+              note={
+                /*
+                  **والمعروضُ يقول إنه مقتطع.** «الأحدث أوّلًا» على ستّين
+                  من مئةٍ تُقرأ «هذا كلُّ الحساب»، فيُجمع المعروض فلا
+                  يبلغ الرصيد — ويُقرأ الفرق عطلًا في الدفتر.
+                */
+                payout.lineCount > payout.lines.length ? (
+                  <>
+                    حساب مستحقات البائعين — آخر{' '}
+                    <Quantity unit="ledgerLines" count={payout.lines.length} /> من أصل{' '}
+                    <ArabicNumber value={payout.lineCount} />
+                  </>
+                ) : (
+                  'حساب مستحقات البائعين — الأحدث أولا'
+                )
+              }
             >
               {payout.lines.length === 0 ? (
                 <p className="text-2xs opacity-70">لا قيود على هذا الحساب بعد.</p>

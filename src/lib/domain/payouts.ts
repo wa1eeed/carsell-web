@@ -458,7 +458,7 @@ export type PayoutDetail = {
   seller: { id: string; name: string | null; ref: string | null; hasIban: boolean };
   /** رصيدُ البائع الآن — وما بقي له بعد هذا التحويل. */
   payableNow: string;
-  /** القيودُ التي كوّنت الرصيد، الأحدثُ أوّلًا. */
+  /** القيودُ التي كوّنت الرصيد، الأحدثُ أوّلًا — وهي عرضٌ مقتطع. */
   lines: {
     id: string;
     direction: 'DEBIT' | 'CREDIT';
@@ -467,7 +467,12 @@ export type PayoutDetail = {
     orderRef: string | null;
     createdAt: string;
   }[];
+  /** عددُ قيود الحساب كلِّها — ليُقال إن المعروض مقتطع. */
+  lineCount: number;
 };
+
+/** سقفُ ما يُعرض من قيود — والرصيد لا يُحسب منه. */
+export const DETAIL_LINES = 60;
 
 export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
   const row = await db.payout.findUnique({
@@ -484,7 +489,7 @@ export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
   const entries = await db.ledgerEntry.findMany({
     where: { account: 'SELLER_PAYABLE', userId: row.sellerId },
     orderBy: { createdAt: 'desc' },
-    take: 60,
+    take: DETAIL_LINES,
     select: {
       id: true, direction: true, amount: true, event: true,
       orderId: true, createdAt: true,
@@ -498,10 +503,16 @@ export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
       : await db.order.findMany({ where: { id: { in: orderIds } }, select: { id: true, ref: true } });
   const refById = new Map(orders.map((order) => [order.id, order.ref]));
 
-  const balance = entries.reduce(
-    (sum, entry) => (entry.direction === 'CREDIT' ? sum.plus(entry.amount) : sum.minus(entry.amount)),
-    zero,
-  );
+  /**
+   * **والرصيدُ من تجميعةٍ كاملة لا من المعروض.** جمعُ آخر ستّين قيدًا
+   * يُنتج رقمًا يخالف ما يفحصه حارسُ الصرف نفسه (`accountBalance` في
+   * `requestPayout` و`approvePayout`) — فتقول الشاشة حقًّا وتردّ
+   * الموافقة «يتجاوز حقّه»، ورقمان لمالٍ واحد.
+   */
+  const balance = await accountBalance('SELLER_PAYABLE', { userId: row.sellerId });
+  const lineCount = await db.ledgerEntry.count({
+    where: { account: 'SELLER_PAYABLE', userId: row.sellerId },
+  });
 
   /** أسماءُ من طلب ومن أرسل — ومعرّفٌ خامّ لا يقول للقارئ شيئًا. */
   const adminIds = [row.requestedBy, ...(row.sentBy === null ? [] : [row.sentBy])];
@@ -534,6 +545,7 @@ export async function payoutDetail(id: string): Promise<PayoutDetail | null> {
       hasIban: row.seller.iban !== null,
     },
     payableNow: balance.toFixed(2),
+    lineCount,
     lines: entries.map((entry) => ({
       id: entry.id,
       direction: entry.direction,
