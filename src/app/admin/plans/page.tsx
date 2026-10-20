@@ -57,7 +57,13 @@ export default async function AdminPlansPage() {
       subtitle="حزمة قيم للخصائص، لا منطق" activeHref="/admin/plans" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <Quantity unit="plans" count={stats.plans} /> ·{' '}
-        {stats.paidPlans === 0 ? 'كلها مجانية اليوم' : `مدفوعة (${displayDigits(String(stats.paidPlans))})`}{' '}
+        {stats.paidPlans === 0 ? (
+          'كلها مجانية اليوم'
+        ) : (
+          <>
+            منها <Quantity unit="plans" count={stats.paidPlans} /> مدفوعة
+          </>
+        )}{' '}
         · العمولة{' '}
         {seller?.enabled !== true || Number(seller.pct) === 0
           ? 'صفر'

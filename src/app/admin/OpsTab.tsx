@@ -172,7 +172,12 @@ export async function OpsTab() {
             { label: 'أحيلت لتكرار صورة', value: content.duplicates, tone: 'danger' },
           ]}
           total={content.uploadedImages}
-          baseNote={`القاعدة — الصور المرفوعة منذ الإطلاق (${displayDigits(String(content.uploadedImages))})`}
+          baseNote={
+            <>
+              القاعدة — <Quantity unit="photos" count={content.uploadedImages} /> رفعت منذ
+              الإطلاق
+            </>
+          }
         />
 
         <div className="rounded-xl border border-line bg-surface px-5 py-4.5">

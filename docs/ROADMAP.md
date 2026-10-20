@@ -1760,6 +1760,43 @@ reference.
   is an active verb. A noun reads one way only: «محول» · «ملغى» · «حوالة إلى
   البائع».
 
+### 38d — «ساعات (٤٨)»: the exemption was by form, not by destination *(done)*
+
+Found by clicking the service-request link from the new provider-payout page:
+the SLA field read «الالتزام · ساعات (٤٨)» — the exact shape gate 41 exists to
+forbid, in the screen an operator reads to answer a provider's question.
+
+The gate read JSX (`({displayDigits(`) and exempted every template literal,
+because toast text cannot take a component. But **a template literal reaches a
+component as readily as it reaches a toast**: `value={\`ساعات (${n})\`}` is a
+prop typed `ReactNode`, not a system message. Twenty-four sites passed under it.
+
+- [x] Measured 2026-10-20: **38 occurrences**, of which 14 are genuine
+      plain-string sinks (6 toasts, 4 HTTP error messages, 2 form-field errors,
+      2 more) and **24 were displayed labels**. Over the ten-alarm limit, so the
+      copy moved first and the gate followed — as the rule in `CLAUDE.md` says.
+- [x] **Two helpers were written twice, and both wrote the bad shape.** `sla()`
+      byte-for-byte in `ProviderTable` and the service-request page → one
+      `<Sla hours>`; an elapsed-time helper in `ReportsQueue` and
+      `MonitorShell` → `<Duration minutes>`, a second input to the component
+      that already owned the rule. The `MonitorShell` copy **had no caller at
+      all** and was deleted rather than converted.
+- [x] Three props were widened to `ReactNode` so the right thing is possible:
+      `AdminShell.subtitle`, `ShareBars.baseNote`, and the account page's `Row`.
+      A prop typed `string` is what forces the workaround in the first place.
+- [x] New plural units where none existed: `docSections` · `legalDocs` ·
+      `reports`. Three screens then read «٨ مستندات» · «٩ أقسام» · «٣ بلاغات»
+      instead of «المستندات (٨)».
+- [x] **The sparkline's spoken label said the wrong thing entirely.** «منحنى —
+      عدد النقاط (٣٠)» tells a screen-reader user an implementation detail; it
+      now says the trend and the span — «منحنى صاعد من ‹أول› إلى ‹آخر›».
+- [x] **Gate 41 now checks the template's owner**, not its form: a displayed
+      prop (`value` · `note` · `subtitle` · `label` …) may not be built from a
+      string carrying a parenthesised count; everything else is left alone,
+      because a repeated false alarm disables measurement more thoroughly than
+      no gate at all. Comments are stripped first. Proved in both directions by
+      a test that breaks what it guards and then checks the toast stays silent.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
@@ -1769,18 +1806,6 @@ reference.
       settlements measured as not needing one.)
 - [ ] **Detail pages that do not give 360°** — measured one by one.
 - [ ] **The remaining copy**, screen by screen, in the plain register.
-- [ ] **«ساعات (٤٨)» — the parenthesised count survived gate 41 in template
-      literals.** Found by clicking the service-request link from the new
-      provider-payout page: the SLA field reads «الالتزام · ساعات (٤٨)», which
-      is the exact shape gate 41 was built to forbid. The gate reads JSX
-      (`({displayDigits(`) and exempts template literals, because toast text
-      cannot take a component — but **the exemption is by form, not by
-      destination**, and these strings are handed to components that accept a
-      `ReactNode`. Measured 2026-10-20: **38 occurrences**, of which the toast
-      and HTTP-error strings are legitimately exempt and the rest are displayed
-      labels — `sla()` duplicated in two files, an age helper duplicated in two
-      more, and `value={...}` on three fields of `/admin/auction-settings`.
-      Over the ten-alarm limit, so the copy moves first and the gate follows.
 
 ## 37 · The auction's bid log, finished — *owner's request 2026-10-20*
 

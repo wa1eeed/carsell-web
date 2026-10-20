@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
+import { Quantity } from '@/components/ui/Quantity';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
@@ -33,22 +34,44 @@ import { Duration } from '@/components/ui/Duration';
 // التسميات في `labels/review.ts` — تقرؤها هذه الشاشة وشاشة التفاصيل
 const REASON_LABEL = REVIEW_REASON_LABEL;
 
-/** الدليل جملةً — والنطاق أعطى أرقامًا (البوابة ١٧). */
-function evidenceText(evidence: ReviewEvidence): string {
+/**
+ * الدليل جملةً — والنطاق أعطى أرقامًا (البوابة ١٧).
+ *
+ * **ومكوّنٌ لا نصّ**: «عمر الحساب (٣) · إعلاناته (١٢)» التفافٌ على
+ * بوابة الجمع يُقرأ أنّ النصّ آليّ، و`<Quantity>` تصوغ الحالات الستّ.
+ */
+function Evidence({ evidence }: { evidence: ReviewEvidence }) {
   if (evidence.kind === 'DUPLICATE_IMAGE') {
-    return evidence.otherRef === null
-      ? 'صورة مكررة — والإعلان المطابق لم يعد قائما'
-      : `تطابق ${displayDigits(String(evidence.matchPct))}٪ مع ${evidence.otherRef}`;
+    return (
+      <>
+        {evidence.otherRef === null
+          ? 'صورة مكررة — والإعلان المطابق لم يعد قائما'
+          : `تطابق ${displayDigits(String(evidence.matchPct))}٪ مع ${evidence.otherRef}`}
+      </>
+    );
   }
   if (evidence.kind === 'PRICE_OUTLIER') {
-    return evidence.marketP25 === null
-      ? 'سعر شاذ — ولا إحصاء سوق لهذا الطراز بعد'
-      : `أقل ${displayDigits(String(evidence.belowPct))}٪ من ربع السوق الأدنى`;
+    return (
+      <>
+        {evidence.marketP25 === null
+          ? 'سعر شاذ — ولا إحصاء سوق لهذا الطراز بعد'
+          : `أقل ${displayDigits(String(evidence.belowPct))}٪ من ربع السوق الأدنى`}
+      </>
+    );
   }
   if (evidence.kind === 'NEW_ACCOUNT_BURST') {
-    return `عمر الحساب (${displayDigits(String(evidence.accountAgeDays))}) · إعلاناته (${displayDigits(String(evidence.listingCount))})`;
+    return (
+      <>
+        حساب عمره <Quantity unit="days" count={evidence.accountAgeDays} /> ·{' '}
+        <Quantity unit="listings" count={evidence.listingCount} />
+      </>
+    );
   }
-  return `بلاغات: ${displayDigits(String(evidence.reportCount))}`;
+  return (
+    <>
+      <Quantity unit="reports" count={evidence.reportCount} />
+    </>
+  );
 }
 
 /** الانتظار — دقائق ثم ساعات، فلا يُقرأ «١٤٠ دقيقة». */
@@ -177,7 +200,9 @@ export function ReviewQueue({
                   <Badge tone={row.reason === 'USER_REPORT' ? 'warn' : 'neutral'}>
                     {REASON_LABEL[row.reason] ?? row.reason}
                   </Badge>
-                  <span className="text-3xs opacity-70">{evidenceText(row.evidence)}</span>
+                  <span className="text-3xs opacity-70">
+                    <Evidence evidence={row.evidence} />
+                  </span>
                 </div>
 
                 <div className="flex flex-col items-start gap-0.5">

@@ -111,9 +111,14 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
                   المخزون <Quantity unit="inventory" count={row.inventory} />
                 </span>
                 <span className="text-3xs opacity-65">
-                  {row.ratingAvg === null
-                    ? 'بلا تقييم'
-                    : `التقييم ${displayDigits(row.ratingAvg)} · مقيمون (${displayDigits(String(row.ratingCount))})`}
+                  {row.ratingAvg === null ? (
+                    'بلا تقييم'
+                  ) : (
+                    <>
+                      التقييم {displayDigits(row.ratingAvg)} ·{' '}
+                      <Quantity unit="reviews" count={row.ratingCount} />
+                    </>
+                  )}
                 </span>
               </div>
 

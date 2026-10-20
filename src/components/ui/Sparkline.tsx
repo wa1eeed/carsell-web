@@ -1,4 +1,3 @@
-import { displayDigits } from '@/lib/arabic';
 import { cn } from '@/lib/cn';
 
 /**
@@ -56,6 +55,24 @@ export function Sparkline({
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
 
+  /**
+   * ═══ والوصفُ المسموع يقول ما يُفيد ═══
+   *
+   * كان «منحنى — عدد النقاط (٣٠)»: عددُ النقاط تفصيلُ رسمٍ لا يعني
+   * قارئًا بالصوت، والعددُ بين قوسين التفافٌ على بوابة الجمع يُقرأ
+   * آليًّا (البوابة ٤١). **وما يُفيد الاتّجاه**: من أين بدأ وإلى أين
+   * انتهى، وهو ما يراه المبصر في لمحة.
+   */
+  const first = points[0];
+  const last = points[points.length - 1];
+  const trend =
+    first === undefined || last === undefined || last.value === first.value
+      ? 'مستقر'
+      : last.value > first.value
+        ? 'صاعد'
+        : 'هابط';
+  const spoken = `منحنى ${trend} من ${first?.label ?? ''} إلى ${last?.label ?? ''}`;
+
   const line = coords.join(' ');
   const area = `0,100 ${line} 100,100`;
 
@@ -72,7 +89,7 @@ export function Sparkline({
         style={{ height }}
         className="block w-full"
         role="img"
-        aria-label={`منحنى — عدد النقاط (${displayDigits(String(points.length))})`}
+        aria-label={spoken}
       >
         <polyline points={area} className="fill-accent/13" />
         <polyline

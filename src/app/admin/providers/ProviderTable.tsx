@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { Sla } from '@/components/admin/Sla';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Sheet';
@@ -64,20 +65,6 @@ function toDraft(row: ProviderRow): Draft {
     slaHours: row.slaHours === null ? '' : String(row.slaHours),
     cities: row.cities.join('، '),
   };
-}
-
-/**
- * الالتزام نصًّا — **كما يكتبه التصميم**: «فوريّ» ثم بالساعات حتى
- * يومين، ثم بالأيّام. و«أيّام (٢)» لالتزامٍ ٤٨ ساعة أبعد عن القارئ من
- * «ساعات (٤٨)»، وهي المدّة التي يقولها العقد.
- *
- * والجملة لا يحكمها المعدود (البوابة ١٨).
- */
-function sla(hours: number | null): string {
-  if (hours === null) return 'بلا التزام';
-  if (hours === 0) return 'فوري';
-  if (hours < 72) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيام (${displayDigits(String(Math.round(hours / 24)))})`;
 }
 
 /**
@@ -157,7 +144,13 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
         row.active
           ? open === 0
             ? 'عطل — ولن يستلم إسنادا جديدا.'
-            : `عطل — ولن يستلم إسنادا جديدا. والطلبات القائمة (${displayDigits(String(open))}) يكملها.`
+            : /*
+                **ورسالةُ الـToast نصٌّ لا عنصر** — لا يبلغها `<Quantity>`
+                (البوابة ١٨). فتُصاغ الجملة فلا يحكم العددُ المعدود،
+                والعددُ المعروض يبقى: المشغّل يحتاج أن يعرف كم طلبًا
+                يُكمله المزوّد بعد التعطيل.
+              */
+              `عطل — ولن يستلم إسنادا جديدا. والطلبات القائمة (${displayDigits(String(open))}) يكملها.`
           : 'فعل — ودخل الإسناد الآلي.',
       );
       router.refresh();
@@ -222,7 +215,9 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                     ? '—'
                     : `${displayDigits(String(Number(row.commissionPct)))}٪`}
                 </td>
-                <td className="p-3 opacity-75">{sla(row.slaHours)}</td>
+                <td className="p-3 opacity-75">
+                  <Sla hours={row.slaHours} />
+                </td>
                 <td className="p-3 opacity-75">
                   {row.cities.length === 0 ? 'كل المدن' : row.cities.join(' · ')}
                 </td>

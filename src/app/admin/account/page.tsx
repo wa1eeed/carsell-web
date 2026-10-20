@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { Quantity } from '@/components/ui/Quantity';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { ownAccount } from '@/lib/domain/admin-account';
 import { ADMIN_SESSION_HOURS } from '@/lib/domain/admin-auth';
 import { PERMISSION_LIST, can, canWrite } from '@/lib/domain/permissions';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { PasswordForm } from './PasswordForm';
-import { Quantity } from '@/components/ui/Quantity';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'حسابي' };
@@ -64,7 +65,12 @@ export default async function AdminAccountPage() {
             />
             <Row
               label="جلسات حية"
-              value={`${displayDigits(String(account.activeSessions))} — صلاحيتها ساعات (${displayDigits(String(ADMIN_SESSION_HOURS))})`}
+              value={
+                <>
+                  <Quantity unit="sessions" count={account.activeSessions} /> — صلاحيتها{' '}
+                  <Quantity unit="hours" count={ADMIN_SESSION_HOURS} />
+                </>
+              }
             />
           </div>
 
@@ -110,7 +116,7 @@ export default async function AdminAccountPage() {
   );
 }
 
-function Row({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
+function Row({ label, value, ltr }: { label: string; value: ReactNode; ltr?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
       <span className="text-2xs opacity-70">{label}</span>

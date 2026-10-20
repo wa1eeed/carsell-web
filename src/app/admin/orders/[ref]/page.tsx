@@ -348,9 +348,11 @@ export default async function AdminOrderDetailPage({
               <DetailCard
                 title="حركة الحسابات"
                 note={
-                  order.ledger.length === 0
-                    ? 'لا قيد بعد'
-                    : `قيود (${displayDigits(String(order.ledger.length))})`
+                  order.ledger.length === 0 ? (
+                    'لم يقيد شيء'
+                  ) : (
+                    <Quantity unit="ledgerLines" count={order.ledger.length} />
+                  )
                 }
               >
                 {order.ledger.length === 0 ? (

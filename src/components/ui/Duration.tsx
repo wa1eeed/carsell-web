@@ -25,14 +25,34 @@ function scale(hours: number): { unit: Unit; count: number } {
 /**
  * مدّةٌ بوحدتها الطبيعية — **وتُصدَّر لأن غير الطلبات يحتاجها**: مهلة
  * نزاعٍ ومهلة عرضٍ ومهلة مزاد. ونسخةٌ ثانية منها تصوغ «٢ ساعة».
+ *
+ * ═══ والدقائق مدخلٌ ثانٍ لا مكوّنٌ ثانٍ ═══
+ *
+ * طابورُ البلاغات يقيس بالدقائق («منذ ٧ دقائق»)، وكانت له دالّةٌ
+ * تصوغ بيدها — ونسختُها في `MonitorShell` بلا منادٍ أصلًا. ومدخلان
+ * لقاعدةٍ واحدة أسلمُ من قاعدتين تتباعدان.
  */
-export function Duration({ hours }: { hours: number }) {
+type DurationProps = { hours: number; minutes?: never } | { minutes: number; hours?: never };
+
+export function Duration(props: DurationProps) {
+  /**
+   * **والصفرُ في سياق الزمن جملةٌ خاصّة**: `Quantity` تصوغه نفيًا («لا
+   * دقائق»)، و«منذ لا دقائق» تقع في اللحظة الأولى — أي حين يفتح
+   * المشغّل الطابور على بلاغٍ وصل للتوّ.
+   */
+  if (props.minutes !== undefined) {
+    if (props.minutes < 1) return <span>الآن</span>;
+    if (props.minutes < 60) return <Quantity unit="minutes" count={props.minutes} />;
+    const { unit, count } = scale(Math.floor(props.minutes / 60));
+    return <Quantity unit={unit} count={count} />;
+  }
+
   /**
    * **وأقلُّ من ساعةٍ تُقال بجملتها.** `Quantity` تصوغ الصفر نفيًا
    * («لا ساعات») — وهي حالُ كل طلبٍ في دقائقه الأولى، أي حين يفتحه
    * المشغّل أوّل مرّة.
    */
-  if (hours < 1) return <span>أقل من ساعة</span>;
-  const { unit, count } = scale(hours);
+  if (props.hours < 1) return <span>أقل من ساعة</span>;
+  const { unit, count } = scale(props.hours);
   return <Quantity unit={unit} count={count} />;
 }

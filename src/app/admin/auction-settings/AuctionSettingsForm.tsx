@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { displayDigits, toLatinDigits } from '@/lib/arabic';
+import { toLatinDigits } from '@/lib/arabic';
 import type { AuctionSettings } from '@/lib/domain/admin-auction-settings';
 import { Quantity } from '@/components/ui/Quantity';
 
@@ -86,12 +86,12 @@ export function AuctionSettingsForm({
 
           <Readonly
             label="التمديد عند مزايدة أخيرة"
-            value={`دقائق (${displayDigits(String(Math.round(settings.extendBySeconds / 60)))})`}
+            value={<Quantity unit="minutes" count={Math.round(settings.extendBySeconds / 60)} />}
             note="يضبط من المهل الزمنية"
           />
           <Readonly
             label="نافذة التمديد"
-            value={`ثواني (${displayDigits(String(settings.extendWindowSeconds))})`}
+            value={<Quantity unit="seconds" count={settings.extendWindowSeconds} />}
             note="آخر ما قبل الإغلاق"
           />
           <Field
@@ -175,7 +175,7 @@ export function AuctionSettingsForm({
           />
           <Readonly
             label="مهلة قرار البائع دون الاحتياطي"
-            value={`ساعات (${displayDigits(String(settings.sellerDecisionHours))})`}
+            value={<Quantity unit="hours" count={settings.sellerDecisionHours} />}
             note="بعدها يغلق وترد العرابين — من المهل الزمنية"
           />
         </section>
@@ -232,7 +232,7 @@ function Field({
   );
 }
 
-function Readonly({ label, value, note }: { label: string; value: string; note: string }) {
+function Readonly({ label, value, note }: { label: string; value: ReactNode; note: string }) {
   return (
     <div className="mb-3.5 flex flex-col gap-1">
       <span className="text-2xs font-bold opacity-70">{label}</span>

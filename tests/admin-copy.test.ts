@@ -66,6 +66,56 @@ describe('نصوص اللوحة تطابق القاعدة النافذة', () =>
     }
   });
 
+  /**
+   * ═══ والعددُ بين قوسين لا يُفلت في قالبٍ نصّيّ ═══
+   *
+   * البوابة ٤١ كانت تقرأ JSX وحده وتُعفي كلَّ قالب — **والقالبُ يبلغ
+   * مكوّنًا كما يبلغ Toast**. فمرّت «الالتزام · ساعات (٤٨)» وأخواتُها،
+   * وكُشفت بفتح الشاشة لا بالقياس. والفحصُ الآن على صاحب القالب:
+   * خاصّيةٌ تُعرض لا تُبنى بنصّ، والـToast متروك بقاعدته المكتوبة.
+   */
+  it('والبوابة ٤١ ترد «كلمة (رقم)» في خاصّيةٍ تُعرض وتدع الـToast', () => {
+    const target = join(ADMIN, 'service-requests/[ref]/page.tsx');
+    const original = readFileSync(target, 'utf8');
+
+    const run = (): string => {
+      try {
+        execFileSync('node', ['scripts/check-tokens.mjs'], {
+          cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        return '';
+      } catch (error) {
+        return String((error as { stderr?: string }).stderr ?? '');
+      }
+    };
+
+    /** ولا مخالفةَ في الشجرة قبل الكسر — وإلّا فالقياس على ضجيج. */
+    expect(run()).toBe('');
+
+    try {
+      writeFileSync(
+        target,
+        `${original}
+const probe = <Field label="x" value={\`ساعات (\${n})\`} />;
+`,
+        'utf8',
+      );
+      expect(run()).toContain('service-requests');
+
+      /** **والـToast لا يُنذَر عليه**: نصٌّ خالص لا يبلغه مكوّن. */
+      writeFileSync(
+        target,
+        `${original}
+const probe = setToast(\`ساعات (\${n})\`);
+`,
+        'utf8',
+      );
+      expect(run()).toBe('');
+    } finally {
+      writeFileSync(target, original, 'utf8');
+    }
+  }, 180_000);
+
   /** **والبوابةُ تُقاس بكسرِ ما تحرسه** — وتقرأ الرقمَ لا تحفظه. */
   it('والبوابة ٦٦ ترد النصَّ الكاذب وتسكت إن رُفع النصاب', () => {
     const target = join(ADMIN, 'payouts/page.tsx');

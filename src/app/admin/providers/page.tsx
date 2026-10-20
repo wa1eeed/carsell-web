@@ -7,7 +7,6 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import { breachedRequests, providerList, providerStats } from '@/lib/domain/admin-providers';
-import { displayDigits } from '@/lib/arabic';
 import { ProviderTable } from './ProviderTable';
 import { Duration } from '@/components/ui/Duration';
 import { Quantity } from '@/components/ui/Quantity';
@@ -88,9 +87,13 @@ export default async function AdminProvidersPage({
             title: 'تجاوز الالتزام',
             value: stats.breached,
             note:
-              stats.breached === 0
-                ? 'لا تأخر قائم'
-                : `الإسقاط بعد تجاوزات (${displayDigits(String(stats.breachesBeforeSuspension))})`,
+              stats.breached === 0 ? (
+                'لا تأخر قائم'
+              ) : (
+                <>
+                  حد الإسقاط <Quantity unit="breaches" count={stats.breachesBeforeSuspension} />
+                </>
+              ),
           },
           { title: 'خدمات مرتبطة', value: stats.servicesLinked, note: 'تصلها إسنادات' },
         ]}

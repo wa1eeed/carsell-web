@@ -2296,19 +2296,41 @@ function checkPlainArabic() {
  *
  * **والاستثناء رسائلُ الـToast** (ونظائرُها من النصوص الخالصة): لا
  * يبلغها مكوّن، والقاعدة فيها مكتوبة — تُصاغ الجملة فلا يحكم العددُ
- * المعدود، «الطلبات القائمة (١٠)». فالفحص على JSX وحده: `({displayDigits`
- * داخل نصٍّ معروض، لا `` `(${displayDigits` `` داخل قالبٍ نصّيّ.
+ * المعدود، «الطلبات القائمة (١٠)».
+ *
+ * ═══ والاستثناءُ كان بالشكل، وصوابُه بالمقصد ═══
+ *
+ * كان الفحص على JSX وحده (`({displayDigits`) ويُعفي كلَّ قالبٍ نصّيّ —
+ * **والقالبُ النصّيّ يبلغ مكوّنًا كما يبلغ Toast**: `value={\`ساعات
+ * (${n})\`}` خاصّيةٌ تقبل `ReactNode`، لا رسالةَ نظام. فمرّت تحته
+ * أربعٌ وعشرون موضعًا، منها «الالتزام · ساعات (٤٨)» في صفحة طلب
+ * الخدمة — وكُشفت بفتح الشاشة لا بالقياس.
+ *
+ * **فالفحصُ على صاحب القالب**: خاصّيةٌ تُعرض (`value` · `note` ·
+ * `subtitle` · `label` …) لا تُبنى بنصّ، وما عداها متروك — والـToast
+ * ونظائرُه تُعرَف بأنها ليست منها. والقائمة تُوسَّع حين يظهر سينك
+ * معروضٌ ليس فيها، ولا تُستبدل بإنذارٍ على الجميع: إنذارٌ كاذب متكرّر
+ * يُعطّل القياس أشدَّ من غيابه.
  */
+const DISPLAY_PROPS =
+  /\b(value|note|baseNote|subtitle|title|label|hint|description|placeholder|caption|meta|cannot|can)\s*[:=]\s*\{?\s*`[^`]*[\u0621-\u064A]\s*\(\$\{/g;
+
 function checkParentheticalCounts() {
   for (const file of walk('src')) {
     if (!file.endsWith('.tsx')) continue;
-    const source = readFileSync(file, 'utf8');
+    const source = stripComments(readFileSync(file, 'utf8'));
     const rel = relative(ROOT, file);
     const lines = source.split('\n');
     for (const [n, line] of lines.entries()) {
       if (!line.includes('({displayDigits(')) continue;
       problems.push(
         `${rel}:${String(n + 1)}  «كلمة (رقم)» التفافٌ على بوابة الجمع — استعمل <Quantity unit> أو <Duration hours>`,
+      );
+    }
+    for (const match of source.matchAll(DISPLAY_PROPS)) {
+      const n = source.slice(0, match.index).split('\n').length;
+      problems.push(
+        `${rel}:${String(n)}  «كلمة (رقم)» في خاصّيةٍ تُعرض — استعمل <Quantity unit> أو <Duration hours>`,
       );
     }
   }

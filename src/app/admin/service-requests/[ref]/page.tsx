@@ -4,6 +4,7 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { DetailCard, DetailColumns, DetailHeader, DetailStats, Field } from '@/components/admin/DetailShell';
 import { AdminLink } from '@/components/admin/AdminLink';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
+import { Sla } from '@/components/admin/Sla';
 import { Timeline } from '@/components/admin/Timeline';
 import { ReviewInspection } from './ReviewInspection';
 import { CompletionRecord } from '@/components/ui/CompletionRecord';
@@ -15,7 +16,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { adminServiceRequestDetail } from '@/lib/domain/admin-detail-readers';
 import { serviceRequestTimeline } from '@/lib/domain/admin-entity-timelines';
-import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+import { AR_DATE_LOCALE } from '@/lib/arabic';
 import {
   SERVICE_CATEGORY,
   SERVICE_PAYMENT_STATUS,
@@ -51,14 +52,6 @@ const STATUS_TONE: Record<string, 'accent' | 'warn' | 'danger' | 'neutral'> = {
   FAILED: 'danger',
   REFUNDED: 'danger',
 };
-
-/** الالتزام نصًّا — والوحدة في التسمية لا بعد الرقم (البوابة ١٨). */
-function sla(hours: number | null): string {
-  if (hours === null) return 'بلا التزام';
-  if (hours === 0) return 'فوري';
-  if (hours < 72) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيام (${displayDigits(String(Math.round(hours / 24)))})`;
-}
 
 /**
  * تفاصيل طلب الخدمة — المزوّد والالتزام والنتيجة.
@@ -270,7 +263,7 @@ export default async function AdminServiceRequestDetailPage({
               ) : (
                 <>
                   <Field label="الاسم" value={request.provider.nameAr} />
-                  <Field label="الالتزام" value={sla(request.provider.slaHours)} />
+                  <Field label="الالتزام" value={<Sla hours={request.provider.slaHours} />} />
                   <Link
                     href="/admin/providers"
                     className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"

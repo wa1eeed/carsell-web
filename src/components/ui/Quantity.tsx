@@ -66,7 +66,13 @@ export type Unit =
   | 'deposits'
   | 'members'
   | 'attachments'
+  /** بلاغاتُ الزوّار على إعلان — «٣ بلاغات». */
+  | 'reports'
+  /** المستنداتُ النظامية — «٨ مستندات». */
+  | 'legalDocs'
   | 'ledgerLines'
+  /** أقسامُ مستندٍ أو بنكِ أسئلة — «موزّعة على ثلاثة أقسام». */
+  | 'docSections'
   | 'events'
   | 'monthsRange'
   | 'seats'

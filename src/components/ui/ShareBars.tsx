@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { cn } from '@/lib/cn';
 
@@ -23,7 +24,7 @@ export function ShareBars({
   className,
 }: {
   shares: readonly Share[];
-  baseNote: string;
+  baseNote: ReactNode;
   total?: number;
   decimals?: number;
   className?: string;

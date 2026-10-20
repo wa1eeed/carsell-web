@@ -40,7 +40,11 @@ export async function AdminShell({
    * ويقول ما تفعله الشاشة في سطر، فيعرف الداخل أين هو قبل أن يقرأ
    * جدولًا. وكان غائبًا عندنا: عنوانٌ وحده في شريطٍ عريض.
    */
-  subtitle?: string;
+  /**
+   * **وعنصرٌ لا نصّ**: كان نصًّا، فكُتب فيه «المستندات (٨)» التفافًا
+   * على بوابة الجمع — والالتفافُ يُقرأ أنّ النصّ آليّ (البوابة ٤١).
+   */
+  subtitle?: ReactNode;
   activeHref?: string;
   actions?: ReactNode;
   admin: Pick<AdminUser, 'name' | 'role'>;

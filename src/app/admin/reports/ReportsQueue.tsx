@@ -7,11 +7,11 @@ import { useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { MonitorTabs } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
+import { Duration } from '@/components/ui/Duration';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { displayDigits } from '@/lib/arabic';
 import type { ReportRow, ReportStats } from '@/lib/domain/admin-reports';
 import { MIN_REPORT_NOTE } from '@/lib/domain/report-rules';
 import { Quantity } from '@/components/ui/Quantity';
@@ -45,13 +45,6 @@ const STATUS_LABEL: Record<string, string> = {
   actioned: 'اتخذ إجراء',
   dismissed: 'صرف النظر',
 };
-
-function waitedText(minutes: number): string {
-  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيام (${displayDigits(String(Math.floor(hours / 24)))})`;
-}
 
 type Action = 'REVIEW_LISTING' | 'DISMISS' | 'ACTIONED';
 
@@ -115,7 +108,7 @@ export function ReportsQueue({
           note={
             stats.oldestMinutes === null
               ? 'لا شيء ينتظر'
-              : `أقدمها منذ ${waitedText(stats.oldestMinutes)}`
+              : <>أقدمها منذ <Duration minutes={stats.oldestMinutes} /></>
           }
         />
         <Card title="قيد التحقيق" value={stats.reviewing} note="أحيلت إلى مراجعة الإعلان" />
@@ -185,7 +178,9 @@ export function ReportsQueue({
 
                 <div className="flex flex-col items-start gap-0.5">
                   <span className="bidi-isolate text-2xs opacity-75">{row.reporterName}</span>
-                  <span className="text-3xs opacity-65">منذ {waitedText(row.waitingMinutes)}</span>
+                  <span className="text-3xs opacity-65">
+                    منذ <Duration minutes={row.waitingMinutes} />
+                  </span>
                 </div>
 
                 <Button

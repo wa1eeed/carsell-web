@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **170** components in **4** directories.
+Counted: **171** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -53,6 +53,7 @@ rather than found by chance.
 | `PushPreview` | no | `template` · `titleLimit` · `bodyLimit` | 1 |
 | `SectionHead` | no | `title` · `note` | 7 |
 | `ServiceRequestCard` | no | `row` | 1 |
+| `Sla` | no | `hours` | 4 |
 | `StatCard` | no | `title` · `value` · `note` · `className` | 17 |
 | `StatGrid` | no | `children` · `className` | 4 |
 | `Timeline` | no | `events` | 11 |
@@ -147,7 +148,7 @@ rather than found by chance.
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 6 |
 | `DataTable` | yes | — | 11 |
-| `Duration` | no | `hours` | 11 |
+| `Duration` | no | `count` | 13 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 131 |
@@ -177,7 +178,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 114 |
+| `Quantity` | no | `unit` · `count` · `className` | 117 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

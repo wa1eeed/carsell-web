@@ -29,14 +29,6 @@ export type MonitorTab = {
   tone?: 'neutral' | 'warn' | 'danger';
 };
 
-/** الوقت المنقضي نصًّا — والجملة لا يحكمها المعدود (البوابة ١٨). */
-export function elapsed(minutes: number): string {
-  if (minutes < 60) return `دقائق (${displayDigits(String(minutes))})`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `ساعات (${displayDigits(String(hours))})`;
-  return `أيام (${displayDigits(String(Math.floor(hours / 24)))})`;
-}
-
 /**
  * عدّاد تنازليّ **يُرسَم على الخادم**.
  *

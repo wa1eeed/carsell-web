@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Badge } from '@/components/ui/Badge';
+import { Quantity } from '@/components/ui/Quantity';
 import { StatCard } from '@/components/ui/StatCard';
 import { MonitorList, MonitorRow } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -38,12 +39,12 @@ export default async function AdminLegalPage() {
   return (
     <AdminShell
       title="الصفحات القانونية"
-      /*
-        **والجمع لا يُكتب بيد.** «٨ مستندات» تُصيب، و«٢ مستندات» تُخطئ
-        («مستندان») — والعربية ستُّ حالات. و`subtitle` نصٌّ لا عنصر فلا
-        يبلغها `<Quantity>`، فتُصاغ صيغةً لا يحكمها المعدود.
-      */
-      subtitle={`المستندات (${displayDigits(String(summary.total))}) · تعديل جوهري يخطر قبل أسبوعين`}
+      /* **والجمع من `<Quantity>` لا من يد** — و`subtitle` تقبل عنصرًا. */
+      subtitle={
+        <>
+          <Quantity unit="legalDocs" count={summary.total} /> · تعديل جوهري يخطر قبل أسبوعين
+        </>
+      }
       activeHref="/admin/legal"
       admin={admin}
     >
@@ -108,7 +109,7 @@ export default async function AdminLegalPage() {
           <MonitorRow
             key={doc.key}
             title={doc.titleAr}
-            subtitle={`أقسام (${displayDigits(String(doc.sectionCount))})`}
+            subtitle={<Quantity unit="docSections" count={doc.sectionCount} />}
             meta={doc.key}
           >
             <div className="flex flex-col items-start gap-0.5">
