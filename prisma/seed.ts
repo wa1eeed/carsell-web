@@ -2675,12 +2675,20 @@ async function main(): Promise<void> {
       createdAt: days(-14),
     },
   });
+  /**
+   * **والنصُّ يُزرع مع الصفّ**: `subjectAr` و`bodyAr` عمودان يقرؤهما
+   * المشغّل قبل أن يُمضي رسالةً لا رجعة فيها، وحملةٌ مزروعة بلا نصّ
+   * تُري شاشتَها في حالها النادرة وحدها.
+   */
   await prisma.campaign.create({
     data: {
       nameAr: 'عاد سعر سيارة في مفضلتك',
       channels: ['push'],
       segmentId: favouriteSegment.id,
       status: 'DRAFT',
+      subjectAr: 'انخفض سعر سيارة تتابعها',
+      bodyAr:
+        'السيارة التي أضفتها إلى مفضلتك نزل سعرها. افتح الإعلان لترى السعر الجديد قبل أن يسبقك غيرك.',
       createdBy: superAdminId,
       createdAt: days(-6),
     },
@@ -2692,6 +2700,54 @@ async function main(): Promise<void> {
     where: { id: { in: consenting.filter((_, i) => i % 3 === 0).map((u) => u.id) } },
     data: { marketingConsent: true, marketingConsentAt: days(-30) },
   });
+
+  /**
+   * ═══ وحملةٌ أُرسلت — وإلّا بقي نصفُ الشاشة غيرَ مرئيّ ═══
+   *
+   * الصفحةُ تعرض «من وصلتهم» ومعدّلات الفتح والنقر والتحويل، ولم يكن
+   * في البذرة صفُّ `CampaignSend` واحد — **فما لا يُزرع لا يُرى**،
+   * والشاشةُ التي لا تُفتح على بياناتها لا يُقاس عليها شيء.
+   *
+   * **وتاريخُها أقدمُ من التهدئة** (`COOLDOWN_HOURS`): لو أُرسلت
+   * اليوم لحُجب كلُّ من وصلته عن كلّ حملةٍ أخرى، فتقول شاشةُ المسودّة
+   * «سيصلهم صفر» وهي حالٌ صحيحة تُقرأ عطلًا في بيئةٍ للعرض.
+   */
+  const sentSegment = await prisma.segment.findFirstOrThrow({ where: { key: 'added_no_listing' } });
+  const recipients = await prisma.user.findMany({
+    where: { marketingConsent: true },
+    select: { id: true },
+    take: 6,
+  });
+  if (recipients.length > 0) {
+    const blast = await prisma.campaign.create({
+      data: {
+        nameAr: 'أكمل إعلانك وابدأ البيع',
+        channels: ['email'],
+        segmentId: sentSegment.id,
+        status: 'SENT',
+        subjectAr: 'مركبتك جاهزة — ينقصها إعلان',
+        bodyAr:
+          'أضفت مركبة إلى حسابك ولم تنشر إعلانها بعد. أكمل الخطوات الباقية وستكون أمام المشترين اليوم.',
+        createdBy: superAdminId,
+        createdAt: days(-21),
+        sentAt: days(-18),
+      },
+    });
+
+    /** أثرٌ متدرّج: فتح أكثرُهم، ونقر بعضُهم، وحوّل واحد. */
+    await prisma.campaignSend.createMany({
+      data: recipients.map((user, i) => ({
+        campaignId: blast.id,
+        userId: user.id,
+        channel: 'email',
+        sentAt: days(-18),
+        openedAt: i < 4 ? days(-18) : null,
+        clickedAt: i < 2 ? days(-17) : null,
+        convertedAt: i === 0 ? days(-16) : null,
+      })),
+      skipDuplicates: true,
+    });
+  }
   await prisma.adSlot.createMany({
     data: load<AdSlotRow[]>('ad-slots.json').map((s) => ({
       ...s,

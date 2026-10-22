@@ -1,4 +1,10 @@
 import { db } from '@/lib/db';
+import {
+  COOLDOWN_HOURS,
+  MARKETING_CAP_PER_MONTH,
+  validRules,
+  type SegmentRule,
+} from '@/lib/campaigns/segments';
 import type { AdminUser, Prisma } from '@/generated/prisma/client';
 
 /**
@@ -13,31 +19,17 @@ import type { AdminUser, Prisma } from '@/generated/prisma/client';
  */
 
 /** الحقول التي يجوز بناء شرط عليها — **قائمة مغلقة**. */
-export const SEGMENT_FIELDS = [
-  { key: 'hasFavorites', kind: 'bool' },
-  { key: 'hasCompletedOrder', kind: 'bool' },
-  { key: 'hasActiveOrder', kind: 'bool' },
-  { key: 'hasListing', kind: 'bool' },
-  { key: 'hasVehicle', kind: 'bool' },
-  { key: 'hasBid', kind: 'bool' },
-  { key: 'isDealer', kind: 'bool' },
-  { key: 'activeWithinDays', kind: 'number' },
-] as const;
-
-export type SegmentRule = { field: string; negate?: boolean; value?: number };
-
-const FIELD_KEYS: readonly string[] = SEGMENT_FIELDS.map((entry) => entry.key);
-
-export function validRules(rules: unknown): rules is SegmentRule[] {
-  if (!Array.isArray(rules) || rules.length === 0) return false;
-  return rules.every(
-    (rule: unknown) =>
-      rule !== null &&
-      typeof rule === 'object' &&
-      typeof (rule as SegmentRule).field === 'string' &&
-      FIELD_KEYS.includes((rule as SegmentRule).field),
-  );
-}
+/**
+ * **والمشتركُ مع الشاشة في ملفّه بلا `db`** — وهو يُعاد تصديره هنا
+ * فلا يتغيّر مستوردٌ قائم.
+ */
+export {
+  SEGMENT_FIELDS,
+  validRules,
+  MARKETING_CAP_PER_MONTH,
+  COOLDOWN_HOURS,
+} from '@/lib/campaigns/segments';
+export type { SegmentFieldKey, SegmentRule } from '@/lib/campaigns/segments';
 
 /** يترجم شرطًا واحدًا إلى `where` — والنفي بـ`NOT` لا بقلب الشرط يدويًّا. */
 function conditionOf(rule: SegmentRule, now: Date): Prisma.UserWhereInput {
@@ -70,8 +62,49 @@ function conditionOf(rule: SegmentRule, now: Date): Prisma.UserWhereInput {
   return rule.negate === true ? { NOT: base } : base;
 }
 
-export const MARKETING_CAP_PER_MONTH = 4;
-export const COOLDOWN_HOURS = 72;
+/**
+ * ═══ من يُحجب الآن — قاعدةٌ واحدة يقرؤها العرضُ والإرسال ═══
+ *
+ * كانت مكتوبةً مرّتين حرفًا بحرف: مرّةً في `resolveSegment` لتعرض
+ * «سيصلهم فعلًا»، ومرّةً في `sendCampaign` لتختار من يُكتب له. **وهما
+ * رقمان لجمهورٍ واحد**: تتغيّر مهلةُ التهدئة في موضعٍ فتقول الشاشة
+ * سبعةً ويصل خمسة، ولا شيء يشكو.
+ *
+ * **والسببُ يُفصَّل لا يُجمَع**: «حُجب ثمانية» لا يقول للمشغّل شيئًا،
+ * و«ستّةٌ في تهدئتهم واثنان بلغا سقف الشهر» يقول له أيُؤجّل أم يُلغي.
+ */
+export type Blocked = {
+  /** خرج من حملةٍ قبل أقلّ من `COOLDOWN_HOURS`. */
+  cooldown: Set<string>;
+  /** بلغ `MARKETING_CAP_PER_MONTH` هذا الشهر. */
+  cap: Set<string>;
+  /** الاتّحاد — وهو ما يُطرح من الجمهور. */
+  all: Set<string>;
+};
+
+export async function blockedRecipients(now: Date = new Date()): Promise<Blocked> {
+  const cooldownSince = new Date(now.getTime() - COOLDOWN_HOURS * 3600 * 1000);
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+  const [recent, heavy] = await Promise.all([
+    db.campaignSend.findMany({
+      where: { sentAt: { gte: cooldownSince } },
+      select: { userId: true },
+      distinct: ['userId'],
+    }),
+    db.campaignSend.groupBy({
+      by: ['userId'],
+      where: { sentAt: { gte: monthStart } },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const cooldown = new Set<string>(recent.map((row) => row.userId));
+  const cap = new Set<string>(
+    heavy.flatMap((row) => ((row._count._all ?? 0) >= MARKETING_CAP_PER_MONTH ? [row.userId] : [])),
+  );
+  return { cooldown, cap, all: new Set<string>([...cooldown, ...cap]) };
+}
 
 export type SegmentCounts = {
   /** من يطابق القواعد. */
@@ -98,35 +131,17 @@ export async function resolveSegment(
     AND: rules.map((rule) => conditionOf(rule, now)),
   };
 
-  const cooldownSince = new Date(now.getTime() - COOLDOWN_HOURS * 3600 * 1000);
-  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-
-  const [matched, consented, recentIds, heavyIds] = await Promise.all([
+  const [matched, consented, blocked] = await Promise.all([
     db.user.count({ where }),
     db.user.count({ where: { ...where, marketingConsent: true } }),
-    // خرج للتوّ من حملة — التهدئة ٧٢ ساعة
-    db.campaignSend.findMany({
-      where: { sentAt: { gte: cooldownSince } },
-      select: { userId: true },
-      distinct: ['userId'],
-    }),
-    db.campaignSend.groupBy({
-      by: ['userId'],
-      where: { sentAt: { gte: monthStart } },
-      _count: { _all: true },
-    }),
+    blockedRecipients(now),
   ]);
 
-  const blocked = new Set<string>(recentIds.map((row) => row.userId));
-  for (const row of heavyIds) {
-    if ((row._count._all ?? 0) >= MARKETING_CAP_PER_MONTH) blocked.add(row.userId);
-  }
-
   const reachable =
-    blocked.size === 0
+    blocked.all.size === 0
       ? consented
       : await db.user.count({
-          where: { ...where, marketingConsent: true, id: { notIn: [...blocked] } },
+          where: { ...where, marketingConsent: true, id: { notIn: [...blocked.all] } },
         });
 
   return { matched, consented, reachable };
@@ -274,10 +289,9 @@ export async function sendCampaign(
   }
 
   const rules = validRules(campaign.segment.rules) ? campaign.segment.rules : [];
-  const cooldownSince = new Date(now.getTime() - COOLDOWN_HOURS * 3600 * 1000);
-  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-  const [candidates, recent, heavy] = await Promise.all([
+  /** **والقاعدةُ واحدة** — ما تعرضه الشاشة هو ما يُكتب به. */
+  const [candidates, blocked] = await Promise.all([
     db.user.findMany({
       where: {
         status: 'ACTIVE',
@@ -286,24 +300,10 @@ export async function sendCampaign(
       },
       select: { id: true },
     }),
-    db.campaignSend.findMany({
-      where: { sentAt: { gte: cooldownSince } },
-      select: { userId: true },
-      distinct: ['userId'],
-    }),
-    db.campaignSend.groupBy({
-      by: ['userId'],
-      where: { sentAt: { gte: monthStart } },
-      _count: { _all: true },
-    }),
+    blockedRecipients(now),
   ]);
 
-  const blocked = new Set<string>(recent.map((row) => row.userId));
-  for (const row of heavy) {
-    if ((row._count._all ?? 0) >= MARKETING_CAP_PER_MONTH) blocked.add(row.userId);
-  }
-
-  const audience = candidates.filter((user) => !blocked.has(user.id));
+  const audience = candidates.filter((user) => !blocked.all.has(user.id));
   if (audience.length === 0) return { ok: false, reason: 'NO_AUDIENCE' };
 
   const channel = campaign.channels[0] ?? 'push';
@@ -339,4 +339,160 @@ export async function sendCampaign(
   ]);
 
   return { ok: true, sent: audience.length, skipped: candidates.length - audience.length };
+}
+
+export type CampaignDetail = {
+  id: string;
+  nameAr: string;
+  channels: string[];
+  status: string;
+  /** ما سيصل المستخدم — وكان لا يُعرض في شاشةٍ قطّ. */
+  subjectAr: string | null;
+  bodyAr: string | null;
+  segment: { id: string; key: string; nameAr: string; rules: SegmentRule[] };
+  scheduledAt: string | null;
+  sentAt: string | null;
+  createdAt: string;
+  createdBy: string;
+  createdByName: string | null;
+  /**
+   * الجمهورُ الآن — **بالقاعدة التي يطبّقها الإرسال نفسُه**، لا بقاعدةٍ
+   * ثانية تشبهها.
+   */
+  audience: {
+    matched: number;
+    consented: number;
+    reachable: number;
+    /** الفجوةُ مفصَّلة: من حُجب ولماذا. */
+    blockedByCooldown: number;
+    blockedByCap: number;
+  };
+  /** بعد الإرسال — وقبله أصفارٌ وقائمةٌ فارغة. */
+  results: {
+    sent: number;
+    opened: number;
+    clicked: number;
+    converted: number;
+    rows: {
+      id: string;
+      name: string | null;
+      ref: string | null;
+      userId: string;
+      channel: string;
+      sentAt: string;
+      openedAt: string | null;
+      clickedAt: string | null;
+      convertedAt: string | null;
+    }[];
+  };
+};
+
+/** سقفُ ما يُعرض من المستقبِلين — والعدّادُ يقول العددَ كلَّه. */
+export const CAMPAIGN_ROWS = 50;
+
+/**
+ * ═══ حملةٌ واحدة — وكانت صفًّا في جدول ═══
+ *
+ * الصفُّ يقول اسمًا وأربعة عدّادات، **ولا موضعَ يُقرأ فيه نصُّ الرسالة
+ * التي ستخرج**. والإرسال لا رجعة فيه ويستهلك سقفَ الشهر لكلّ من وصلته،
+ * فنافذةُ التأكيد تسمّي الحملة ولا تُري ما فيها — يُمضي المشغّل بريدًا
+ * إلى آلافٍ وهو لا يعرف ماذا يقول.
+ */
+export async function campaignDetail(
+  id: string,
+  now: Date = new Date(),
+): Promise<CampaignDetail | null> {
+  const campaign = await db.campaign.findUnique({
+    where: { id },
+    include: {
+      segment: { select: { id: true, key: true, nameAr: true, rules: true } },
+      sends: {
+        orderBy: { sentAt: 'desc' },
+        take: CAMPAIGN_ROWS,
+        select: {
+          id: true, userId: true, channel: true, sentAt: true,
+          openedAt: true, clickedAt: true, convertedAt: true,
+          user: { select: { name: true, ref: true } },
+        },
+      },
+    },
+  });
+  if (campaign === null) return null;
+
+  const rules = validRules(campaign.segment.rules) ? campaign.segment.rules : [];
+  const where: Prisma.UserWhereInput = {
+    status: 'ACTIVE',
+    AND: rules.map((rule) => conditionOf(rule, now)),
+  };
+
+  const [matched, consented, blocked, totals, admin] = await Promise.all([
+    db.user.count({ where }),
+    db.user.count({ where: { ...where, marketingConsent: true } }),
+    blockedRecipients(now),
+    /** العدّاداتُ من تجميعةٍ كاملة — لا من الصفوف المعروضة. */
+    db.campaignSend.findMany({
+      where: { campaignId: id },
+      select: { openedAt: true, clickedAt: true, convertedAt: true },
+    }),
+    db.adminUser.findUnique({ where: { id: campaign.createdBy }, select: { name: true } }),
+  ]);
+
+  const consentedIn = async (ids: readonly string[]): Promise<number> =>
+    ids.length === 0
+      ? 0
+      : db.user.count({ where: { ...where, marketingConsent: true, id: { in: [...ids] } } });
+
+  /**
+   * **والمحجوبُ يُعدّ داخل الشريحة لا في الدنيا كلّها**: «٤٠٠ في
+   * تهدئتهم» عن منصّةٍ كلِّها لا تقول شيئًا عن هذه الحملة.
+   */
+  const [blockedByCooldown, blockedByCap] = await Promise.all([
+    consentedIn([...blocked.cooldown]),
+    consentedIn([...blocked.cap].filter((userId) => !blocked.cooldown.has(userId))),
+  ]);
+
+  const reachable =
+    blocked.all.size === 0
+      ? consented
+      : await db.user.count({
+          where: { ...where, marketingConsent: true, id: { notIn: [...blocked.all] } },
+        });
+
+  return {
+    id: campaign.id,
+    nameAr: campaign.nameAr,
+    channels: campaign.channels,
+    status: campaign.status,
+    subjectAr: campaign.subjectAr,
+    bodyAr: campaign.bodyAr,
+    segment: {
+      id: campaign.segment.id,
+      key: campaign.segment.key,
+      nameAr: campaign.segment.nameAr,
+      rules,
+    },
+    scheduledAt: campaign.scheduledAt?.toISOString() ?? null,
+    sentAt: campaign.sentAt?.toISOString() ?? null,
+    createdAt: campaign.createdAt.toISOString(),
+    createdBy: campaign.createdBy,
+    createdByName: admin?.name ?? null,
+    audience: { matched, consented, reachable, blockedByCooldown, blockedByCap },
+    results: {
+      sent: totals.length,
+      opened: totals.filter((row) => row.openedAt !== null).length,
+      clicked: totals.filter((row) => row.clickedAt !== null).length,
+      converted: totals.filter((row) => row.convertedAt !== null).length,
+      rows: campaign.sends.map((row) => ({
+        id: row.id,
+        userId: row.userId,
+        name: row.user.name,
+        ref: row.user.ref,
+        channel: row.channel,
+        sentAt: row.sentAt.toISOString(),
+        openedAt: row.openedAt?.toISOString() ?? null,
+        clickedAt: row.clickedAt?.toISOString() ?? null,
+        convertedAt: row.convertedAt?.toISOString() ?? null,
+      })),
+    },
+  };
 }

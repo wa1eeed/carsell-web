@@ -1797,12 +1797,50 @@ prop typed `ReactNode`, not a system message. Twenty-four sites passed under it.
       no gate at all. Comments are stripped first. Proved in both directions by
       a test that breaks what it guards and then checks the toast stays silent.
 
+### 38e — A campaign could be fired without reading what it says *(done)*
+
+A marketing campaign showed as a table row: a name, a channel, four counters.
+**Nothing in the product displayed `subjectAr` or `bodyAr`** — two columns the
+schema has carried since it was written and no screen ever read. The send
+confirmation names the campaign and shows its audience size, so an operator
+approved an irreversible send to thousands without being able to read the text
+that would go out.
+
+- [x] `/admin/campaigns/{id}` — the message as it will arrive, the segment with
+      its rules in readable Arabic, the audience now, **who is blocked and
+      why**, and after sending the recipients with open/click/convert. The send
+      button moved here too, where the text is in front of the operator.
+- [x] Rows in the list link to it.
+- [x] **The audience rule was written twice.** `resolveSegment` computed
+      cooldown-and-cap to show «سيصلهم فعلا» and `sendCampaign` computed the
+      same thing to choose who gets written — **two numbers for one audience**.
+      Change the cooldown in one place and the screen says seven while five
+      receive. One `blockedRecipients()` now serves both, and it returns the two
+      sets separately so the page can say «one in cooldown, one at the monthly
+      cap» instead of «two blocked».
+- [x] `SEGMENT_FIELDS` and the marketing limits moved to `lib/campaigns/` so the
+      label map can pledge `Record<SegmentFieldKey, string>` without dragging
+      Prisma into the browser bundle. `CAMPAIGN_STATUS_LABEL` is now one map
+      with an enum pledge instead of a copy per screen.
+
+### What 38e caught on the way
+
+- **The only seeded campaign had no text and no sends**, so half the screen
+  could not be seen and the empty-text branch was the only one reachable. A
+  draft with its copy and a sent one with six recipients are seeded now.
+- **The first version of the blocked-breakdown test was blind.** Nothing seeded
+  is in cooldown or at the cap, so `cooldown + cap === consented − reachable`
+  reduced to `0 === 0` and passed whatever the code did — **proved by zeroing
+  the cap term and watching it stay green**. The test now plants all three
+  cases, including a user blocked for *both* reasons, which is the only one that
+  catches double counting.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
       model's columns, not guessed.
-- [ ] **Entities with no detail page**: campaigns, ad slots, services, team,
-      identity, api-keys, webhooks. (Payouts and provider payouts are done;
+- [ ] **Entities with no detail page**: ad slots, services, team, identity,
+      api-keys, webhooks. (Payouts, provider payouts and campaigns are done;
       settlements measured as not needing one.)
 - [ ] **Detail pages that do not give 360°** — measured one by one.
 - [ ] **The remaining copy**, screen by screen, in the plain register.

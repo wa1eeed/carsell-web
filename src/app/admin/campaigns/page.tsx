@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ListFooter } from '@/components/admin/ListFooter';
@@ -14,24 +15,12 @@ import {
   listSegments,
   SEGMENT_FIELDS,
 } from '@/lib/domain/admin-campaigns';
+import { CAMPAIGN_STATUS_LABEL, NOTIFICATION_CHANNEL_LABEL } from '@/lib/labels/admin';
 import { SendCampaignButton } from './SendButton';
 import { NewSegment } from './NewSegment';
 
 export const dynamic = 'force-dynamic';
 
-const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'مسودة',
-  SCHEDULED: 'مجدولة',
-  RUNNING: 'جارية',
-  SENT: 'أرسلت',
-  CANCELLED: 'ملغاة',
-};
-
-const CHANNEL_LABEL: Record<string, string> = {
-  email: 'بريد',
-  sms: 'رسالة',
-  push: 'دفع',
-};
 
 /**
  * A9 — الحملات التسويقية.
@@ -118,9 +107,20 @@ export default async function CampaignsPage({
             ) : (
               campaigns.map((campaign) => (
                 <tr key={campaign.id}>
-                  <td className="p-3.5">{campaign.nameAr}</td>
                   <td className="p-3.5">
-                    {campaign.channels.map((channel) => CHANNEL_LABEL[channel] ?? channel).join(' + ')}
+                    {/*
+                      **والصفُّ يُفتح**: نصُّ الرسالة التي ستخرج لا يُقرأ
+                      من جدولٍ بأربعة عدّادات، والإرسال لا رجعة فيه.
+                    */}
+                    <Link
+                      href={`/admin/campaigns/${encodeURIComponent(campaign.id)}`}
+                      className="bidi-isolate -my-1 block py-1 underline underline-offset-4 hover:opacity-75"
+                    >
+                      {campaign.nameAr}
+                    </Link>
+                  </td>
+                  <td className="p-3.5">
+                    {campaign.channels.map((channel) => NOTIFICATION_CHANNEL_LABEL[channel] ?? channel).join(' + ')}
                   </td>
                   <td className="p-3.5 opacity-70">{campaign.segmentName}</td>
                   <td className="p-3.5 text-end">
@@ -137,7 +137,7 @@ export default async function CampaignsPage({
                   </td>
                   <td className="p-3.5">
                     <Badge tone={campaign.status === 'SENT' ? 'accent' : 'neutral'}>
-                      {STATUS_LABEL[campaign.status] ?? campaign.status}
+                      {CAMPAIGN_STATUS_LABEL[campaign.status as keyof typeof CAMPAIGN_STATUS_LABEL] ?? campaign.status}
                     </Badge>
                   </td>
                   <td className="p-3.5">

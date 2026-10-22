@@ -7,6 +7,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { toLatinDigits } from '@/lib/arabic';
 import { SEGMENT_FIELD_LABEL } from '@/lib/labels/admin';
+import type { SegmentFieldKey } from '@/lib/campaigns/segments';
 
 /**
  * ═══ تعريف شريحة ═══
@@ -23,7 +24,12 @@ import { SEGMENT_FIELD_LABEL } from '@/lib/labels/admin';
  * فكلُّ شرطٍ له ثلاث حالات: لا يُشترط · يُشترط · يُشترط نفيُه.
  */
 
-type Field = { key: string; kind: 'bool' | 'number' };
+/**
+ * **والمفتاحُ من المصدر لا `string`**: نسخةٌ تُوسِّعه تقبل حقلًا لا
+ * تسميةَ له فيُعرض خامًّا — وهي القائمة التي تُحاكي مصدرها بدل أن
+ * تُشتقّ منه.
+ */
+type Field = { key: SegmentFieldKey; kind: 'bool' | 'number' };
 type State = 'off' | 'on' | 'not';
 
 export function NewSegment({ fields }: { fields: readonly Field[] }) {

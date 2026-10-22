@@ -1,4 +1,5 @@
-import type { AuctionStatus, BuyerType, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
+import type { SegmentFieldKey } from '@/lib/campaigns/segments';
+import type { AuctionStatus, BuyerType, CampaignStatus, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -121,7 +122,23 @@ export const NOTIFICATION_GROUP_LABEL: Record<string, string> = {
   service: 'الخدمات',
 };
 
-export const SEGMENT_FIELD_LABEL: Record<string, string> = {
+/**
+ * حالُ الحملة — **بتعهّد تعدادها** (البوابة ٥٩): حالٌ تُضاف إلى
+ * المخطّط يشكو منها المُصرِّف هنا، ولا تُعرض خامّةً في شاشة.
+ */
+export const CAMPAIGN_STATUS_LABEL: Record<CampaignStatus, string> = {
+  DRAFT: 'مسودة',
+  SCHEDULED: 'مجدولة',
+  RUNNING: 'جارية',
+  SENT: 'أرسلت',
+  CANCELLED: 'ملغاة',
+};
+
+/**
+ * حقولُ الشريحة — **والمفتاحُ من `SEGMENT_FIELDS` لا من `string`**:
+ * حقلٌ يُضاف هناك بلا تسميةٍ هنا يُعرض خامًّا للمشغّل.
+ */
+export const SEGMENT_FIELD_LABEL: Record<SegmentFieldKey, string> = {
   hasFavorites: 'لديه مفضلة',
   hasCompletedOrder: 'أتم صفقة',
   hasActiveOrder: 'لديه طلب جاري',
