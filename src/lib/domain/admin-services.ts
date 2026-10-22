@@ -1,7 +1,12 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
-import type { ServiceRequestStatus } from '@/generated/prisma/enums';
+import type {
+  ProviderType,
+  ServiceCategory,
+  ServiceFeeMode,
+  ServiceRequestStatus,
+} from '@/generated/prisma/enums';
 
 /**
  * الخدمات في اللوحة — A6 وA7.
@@ -518,6 +523,20 @@ export type ServiceEdit = {
   descEn?: string;
   slaHours?: number | null;
   placements?: string[];
+  /**
+   * **وما تشمله الخدمة يُحرَّر** — كان يُزرع ويُقرأ ولا يُكتب، فبندٌ
+   * يُضاف إلى ما يراه المشتري قبل الدفع كان يحتاج نشرًا.
+   */
+  includesAr?: string[];
+  includesEn?: string[];
+  /** صنفُ من يؤدّيها — وبه يُجمع طابورُ مدينة المركبة. */
+  providerType?: ProviderType | null;
+  /** المزوّدُ المفضَّل — واحدٌ لا طابور، و`null` يتركها للصنف. */
+  providerId?: string | null;
+  /** `FIXED` ريالًا و`PERCENT` نسبةً — وكان يُختار عند الإنشاء وحده. */
+  adminFeeMode?: ServiceFeeMode;
+  /** مجموعةُ العرض — وكانت تُختار عند الإنشاء وحده كذلك. */
+  category?: ServiceCategory;
 };
 
 /**
@@ -558,16 +577,23 @@ export async function editService(
       entity: 'Service',
       entityId: key,
       action: 'service.edited',
-      before: {
-        nameAr: before.nameAr, nameEn: before.nameEn,
-        descAr: before.descAr, descEn: before.descEn,
-        slaHours: before.slaHours, placements: before.placements,
-      },
-      after: {
-        nameAr: after.nameAr, nameEn: after.nameEn,
-        descAr: after.descAr, descEn: after.descEn,
-        slaHours: after.slaHours, placements: after.placements,
-      },
+      /**
+       * **والقيدُ يُشتقّ من الحقول المُرسَلة** لا من قائمةٍ مكتوبةٍ بيد:
+       * حقلٌ يُضاف إلى `ServiceEdit` ولا يُضاف هنا يُعدَّل بلا أثرٍ في
+       * سجلّ التدقيق — وهو السجلّ الذي يُقرأ عند التحقيق.
+       */
+      before: Object.fromEntries(
+        Object.keys(edit).map((field) => [
+          field,
+          (before as unknown as Record<string, unknown>)[field] ?? null,
+        ]),
+      ),
+      after: Object.fromEntries(
+        Object.keys(edit).map((field) => [
+          field,
+          (after as unknown as Record<string, unknown>)[field] ?? null,
+        ]),
+      ),
       ip,
       createdAt: now,
     },
@@ -721,5 +747,130 @@ export async function changeServiceAdminFee(
     enabled: after.adminFeeEnabled,
     adminFee: after.adminFee.toString(),
     untouchedRequests: openRequests,
+  };
+}
+
+export type ServiceDetail = {
+  id: string;
+  key: string;
+  nameAr: string;
+  nameEn: string;
+  descAr: string;
+  descEn: string;
+  price: string;
+  adminFeeEnabled: boolean;
+  adminFee: string;
+  adminFeeMode: 'FIXED' | 'PERCENT';
+  category: string;
+  active: boolean;
+  slaHours: number | null;
+  isAutomated: boolean;
+  placements: string[];
+  sort: number;
+  /**
+   * ما تشمله الخدمة — **بنودٌ تُعرض للمشتري قبل زرّ الدفع**، ولم يكن
+   * في المنتج كلِّه ما يكتبها: تزرعها البذرة ويقرؤها الموقع، فمن أراد
+   * تعديل بندٍ واحد احتاج نشرًا.
+   */
+  includesAr: string[];
+  includesEn: string[];
+  /**
+   * صنفُ من يؤدّيها — وبه يُجمع طابورُ المدينة (قرار المالك: الفحص
+   * يذهب لفاحصي مدينة المركبة). و`providerId` مزوّدٌ مفضَّل واحد لا
+   * طابور، فغيابُ الصنف يترك الإسناد بلا قاعدة.
+   */
+  providerType: string | null;
+  provider: { id: string; nameAr: string } | null;
+  /** عدّاداتٌ محسوبة — لا أعمدةٌ مخزَّنة تكذب أوّل إلغاء. */
+  totalRequests: number;
+  openRequests: number;
+  doneRequests: number;
+  revenue: string;
+  /** آخر الطلبات على هذه الخدمة. */
+  recent: {
+    id: string;
+    ref: string;
+    status: ServiceRequestStatus;
+    amount: string;
+    createdAt: string;
+    providerName: string | null;
+  }[];
+};
+
+/** سقفُ ما يُعرض من الطلبات — والعدّادُ يقول العددَ كلَّه. */
+export const SERVICE_RECENT = 10;
+
+/**
+ * ═══ خدمةٌ واحدة — وثلاثةُ حقولٍ لا يبلغها أحد ═══
+ *
+ * الجدولُ يعرض السعرَ والرسمَ والظهور، **ولا موضعَ فيه لِما تشمله
+ * الخدمة**: مصفوفةٌ يقرؤها المشتري قبل أن يدفع، تزرعها البذرة ولا
+ * تعدّلها شاشة. ومثلُها `providerType` — القاعدةُ التي يُبنى عليها
+ * طابورُ المدينة.
+ */
+export async function serviceDetail(key: string): Promise<ServiceDetail | null> {
+  const service = await db.service.findUnique({
+    where: { key },
+    include: { provider: { select: { id: true, nameAr: true } } },
+  });
+  if (service === null) return null;
+
+  const [counts, earned, recent] = await Promise.all([
+    db.serviceRequest.groupBy({
+      by: ['status'],
+      where: { serviceId: service.id },
+      _count: { _all: true },
+    }),
+    db.serviceRequest.aggregate({
+      where: { serviceId: service.id, status: 'DONE' },
+      _sum: { amount: true },
+    }),
+    db.serviceRequest.findMany({
+      where: { serviceId: service.id },
+      orderBy: { createdAt: 'desc' },
+      take: SERVICE_RECENT,
+      select: {
+        id: true, ref: true, status: true, amount: true, createdAt: true,
+        provider: { select: { nameAr: true } },
+      },
+    }),
+  ]);
+
+  const countOf = (predicate: (status: ServiceRequestStatus) => boolean): number =>
+    counts.reduce((sum, row) => (predicate(row.status) ? sum + (row._count._all ?? 0) : sum), 0);
+
+  return {
+    id: service.id,
+    key: service.key,
+    nameAr: service.nameAr,
+    nameEn: service.nameEn,
+    descAr: service.descAr,
+    descEn: service.descEn,
+    price: service.price.toString(),
+    adminFeeEnabled: service.adminFeeEnabled,
+    adminFee: service.adminFee.toString(),
+    adminFeeMode: service.adminFeeMode,
+    category: service.category,
+    active: service.active,
+    slaHours: service.slaHours,
+    isAutomated: service.isAutomated,
+    placements: service.placements,
+    sort: service.sort,
+    includesAr: service.includesAr,
+    includesEn: service.includesEn,
+    providerType: service.providerType,
+    provider: service.provider,
+    totalRequests: countOf(() => true),
+    openRequests: countOf((status) => (OPEN_STATUSES as readonly string[]).includes(status)),
+    doneRequests: countOf((status) => status === 'DONE'),
+    revenue: (earned._sum.amount ?? new Prisma.Decimal(0)).toString(),
+    recent: recent.map((row) => ({
+      id: row.id,
+      ref: row.ref,
+      status: row.status,
+      amount: row.amount.toString(),
+      createdAt: row.createdAt.toISOString(),
+      providerName: row.provider?.nameAr ?? null,
+    })),
   };
 }

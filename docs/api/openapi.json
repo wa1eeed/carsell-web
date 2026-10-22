@@ -4522,6 +4522,53 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "includesAr": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "includesEn": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "INSPECTION",
+                      "SHIPPING",
+                      "INSURANCE",
+                      "TRANSFER",
+                      "DETAILING",
+                      "PHOTOGRAPHY",
+                      "FINANCE",
+                      "OTHER"
+                    ],
+                    "nullable": true
+                  },
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40,
+                    "nullable": true
+                  },
+                  "adminFeeMode": {
+                    "type": "string",
+                    "enum": [
+                      "FIXED",
+                      "PERCENT"
+                    ]
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "PRE_PURCHASE",
+                      "POST_PURCHASE",
+                      "SELLER"
+                    ]
                   }
                 }
               }

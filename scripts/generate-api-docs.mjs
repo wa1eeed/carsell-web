@@ -187,6 +187,18 @@ function zodField(expr) {
     const values = inner === null ? [] : [...inner[1].matchAll(/'([^']*)'/g)].map((m) => m[1]);
     return wrap({ type: 'string', enum: values });
   }
+  /**
+   * ═══ `z.nativeEnum(Name)` — والقيَمُ من التعداد المولَّد ═══
+   *
+   * **والقائمةُ تُشتقّ من التعداد لا تُكتب بجواره** (قاعدةُ المستودع)،
+   * فمسارٌ يكتبها هكذا كان يظهر في `unparsed` كأنّ مخطّطه غامض — وهو
+   * أوضحُ من نسخةٍ بيد. فتُقرأ قيَمُه من `generated/prisma/enums.ts`،
+   * فتبقى الوثيقة صادقةً بلا يدٍ تحدّثها.
+   */
+  if (/^z\.nativeEnum\(/.test(expr)) {
+    const name = expr.match(/z\.nativeEnum\((\w+)\)/);
+    return wrap({ type: 'string', enum: name === null ? [] : enumValues(name[1]) });
+  }
   if (/^z\.array\(/.test(expr)) return wrap({ type: 'array', items: { type: 'string' } });
   if (/^z\.literal\(/.test(expr)) {
     const value = expr.match(/z\.literal\('([^']*)'\)/);
@@ -246,6 +258,19 @@ function splitFields(body) {
   }
   if (current.trim() !== '') out.push(current);
   return out;
+}
+
+/** قيَمُ تعدادٍ مولَّد — تُقرأ مرّةً ثم تُحفظ. */
+let ENUMS = null;
+function enumValues(name) {
+  if (ENUMS === null) {
+    ENUMS = new Map();
+    const source = readFileSync(join(ROOT, 'src/generated/prisma/enums.ts'), 'utf8');
+    for (const [, key, body] of source.matchAll(/export const (\w+) = \{([\s\S]*?)\} as const/g)) {
+      ENUMS.set(key, [...body.matchAll(/'([^']*)'/g)].map((m) => m[1]));
+    }
+  }
+  return ENUMS.get(name) ?? [];
 }
 
 /**

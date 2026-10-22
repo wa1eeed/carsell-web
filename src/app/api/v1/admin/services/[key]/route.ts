@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { ProviderType, ServiceCategory, ServiceFeeMode } from '@/generated/prisma/enums';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
 import {
@@ -25,6 +26,23 @@ const Body = z.object({
   /** الرسم الإداريّ — الرايةُ والقيمة معًا، فلا تُفعَّل بلا مبلغ */
   adminFeeEnabled: z.boolean().optional(),
   adminFee: z.number().int().min(0).max(100_000).optional(),
+  /**
+   * **وما تشمله الخدمة يُحرَّر من هنا** — كان يُزرع ويقرؤه المشتري قبل
+   * الدفع، ولا شاشةَ تكتبه: بندٌ واحد يحتاج نشرًا.
+   */
+  includesAr: z.array(z.string().min(1).max(160)).max(20).optional(),
+  includesEn: z.array(z.string().min(1).max(160)).max(20).optional(),
+  /** صنفُ من يؤدّيها — وبه يُجمع طابورُ مدينة المركبة. */
+  /**
+   * **والقائمةُ تُشتقّ من التعداد لا تُكتب بجواره** (`nativeEnum`) —
+   * نسخةٌ مكتوبةٌ بيدٍ نقصت منها `OTHER` في أوّل صياغة، فقيمةٌ في
+   * المخطّط يردّها الخادم بلا سبب.
+   */
+  providerType: z.nativeEnum(ProviderType).nullable().optional(),
+  providerId: z.string().min(1).max(40).nullable().optional(),
+  /** الوضعُ والمجموعة — كانا يُختاران عند الإنشاء وحده. */
+  adminFeeMode: z.nativeEnum(ServiceFeeMode).optional(),
+  category: z.nativeEnum(ServiceCategory).optional(),
 });
 
 /**

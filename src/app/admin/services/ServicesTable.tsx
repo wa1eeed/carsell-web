@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useMemo, useState, useTransition } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -252,7 +253,17 @@ export function ServicesTable({
             header: 'الخدمة',
             cell: (service) => (
               <span className="flex flex-col gap-0.5">
-                <span className="bidi-isolate font-bold">{service.nameAr}</span>
+                {/*
+                  **والصفُّ يُفتح**: ما تشمله الخدمة وصنفُ من يؤدّيها
+                  ووضعُ رسمها لا يبلغها هذا الجدول — وثلاثتُها تُقرأ
+                  للمشتري أو تحكم إسنادَه.
+                */}
+                <Link
+                  href={`/admin/services/${encodeURIComponent(service.key)}`}
+                  className="bidi-isolate -my-1 block py-1 font-bold underline underline-offset-4 hover:opacity-75"
+                >
+                  {service.nameAr}
+                </Link>
                 <span className="font-num text-3xs opacity-65">{service.key}</span>
               </span>
             ),

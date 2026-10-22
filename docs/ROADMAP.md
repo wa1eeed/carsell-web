@@ -1,6 +1,6 @@
 # The register — everything the owner asked for, in the order they set it
 
-_Last updated: 2026-10-20_
+_Last updated: 2026-10-22_
 
 This file exists because the owner asked for one thing above all others: that
 nothing they have asked for gets lost. A promise does not guarantee that; a
@@ -1835,12 +1835,44 @@ that would go out.
   cases, including a user blocked for *both* reasons, which is the only one that
   catches double counting.
 
+### 38f — Three service fields nothing could reach *(done)*
+
+Measured `Service`'s columns against every screen and route that writes them:
+**`includesAr`, `includesEn` and `providerType` had no writer at all**, and
+`adminFeeMode` and `category` could be set only at creation.
+
+That is not cosmetic. `includesAr` is the list of what the service covers,
+**shown to a buyer right above the pay button** — the schema comment says the
+design puts it there because a price is judged against what it buys, not against
+a sentence. It was seeded, read by the public page, and changeable only by
+deploying. `providerType` is the rule the city queue is built on (the owner's
+rule: an inspection goes to inspectors in the vehicle's city); without it the
+assignment has no basis. And `adminFeeMode` is the owner's own decision that a
+platform fee may be a percentage or a fixed amount — a service created with a
+fixed fee could never be switched.
+
+- [x] `/admin/services/{key}` — everything the model holds, the recent requests
+      with their state, the provider and the SLA, where it appears, **and an
+      editor for the five fields the list cannot reach**.
+- [x] The fee-mode selector shows the computed riyal effect of the mode in the
+      field, from what is typed rather than what is saved.
+- [x] Rows in the list link to it.
+- [x] **The audit entry is now derived from the fields that were sent.** It was
+      a hand-written list of six columns, so any field added to `ServiceEdit`
+      would have been editable with no trace in the log that is read during an
+      investigation.
+- [x] The route's enum lists come from the schema (`z.nativeEnum`) rather than
+      being typed beside it — the first draft omitted `OTHER`, which is the
+      eleventh instance of a list that imitates an enum instead of deriving
+      from it. The API doc generator learned `nativeEnum` so the published
+      schema carries the real values.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
-      model's columns, not guessed.
-- [ ] **Entities with no detail page**: ad slots, services, team, identity,
-      api-keys, webhooks. (Payouts, provider payouts and campaigns are done;
+      model's columns, not guessed. (Services measured and closed in 38f.)
+- [ ] **Entities with no detail page**: ad slots, team, identity, api-keys,
+      webhooks. (Payouts, provider payouts and campaigns are done;
       settlements measured as not needing one.)
 - [ ] **Detail pages that do not give 360°** — measured one by one.
 - [ ] **The remaining copy**, screen by screen, in the plain register.
