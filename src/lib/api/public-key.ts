@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
 import { db } from '@/lib/db';
 
 /**
@@ -11,17 +11,13 @@ import { db } from '@/lib/db';
  * يبني «استرجاع المفتاح» يبني بابًا خلفيًّا على كل حسابٍ يستعمله.
  */
 
-const PREFIX_LENGTH = 8;
+/**
+ * **والسكُّ والتجزئة في ملفٍّ بلا `db`** — فالبذرةُ تستوردهما بلا أن
+ * تجرّ عميلَ Prisma ثانيًا. ويُعادان هنا فلا يتغيّر مستوردٌ قائم.
+ */
+import { hashKey, PREFIX_LENGTH } from './key-mint';
 
-export function hashKey(raw: string): string {
-  return createHash('sha256').update(raw).digest('hex');
-}
-
-/** يعيد المفتاح الخام **مرّة واحدة** — ولا يُخزَّن ولا يُعاد بعدها. */
-export function mintKey(): { raw: string; prefix: string; keyHash: string } {
-  const raw = `csk_${randomBytes(24).toString('base64url')}`;
-  return { raw, prefix: raw.slice(0, PREFIX_LENGTH), keyHash: hashKey(raw) };
-}
+export { hashKey, mintKey, PREFIX_LENGTH } from './key-mint';
 
 export type KeyCheck =
   | { ok: true; id: string; name: string; scopes: string[]; rateLimit: number }

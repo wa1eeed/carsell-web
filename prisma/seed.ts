@@ -19,6 +19,7 @@ import { devPut, devStoreAllowed } from '../src/lib/storage/dev-store';
 import { placeholderPng } from './placeholder-image';
 import { hashPassword } from '../src/lib/auth/password';
 import { encryptSecret } from '../src/lib/crypto/secrets';
+import { mintKey } from '../src/lib/api/key-mint';
 import { checkIban, ibanLast4 } from '../src/lib/domain/iban';
 /** **ونقيّةٌ بلا `db`** — فالاستيرادُ الساكن لا يجرّ عميلًا قبل تحميل البيئة. */
 import { inspectorCodeFor } from '../src/lib/domain/inspector-code';
@@ -2753,6 +2754,83 @@ async function main(): Promise<void> {
       ...s,
       basePrice: new D(s.basePrice),
     })),
+  });
+
+  /**
+   * ═══ حملةٌ إعلانية وأثرُها — وإلّا بقيت الشاشة على حالها الفارغ ═══
+   *
+   * المساحاتُ السبع مزروعة و**لا حملةَ واحدة**، فجدولُ الحملات يقول
+   * «لا حملات بعد» وأعمدةُ الظهور والنقر والـCTR لا تُرى — ومن فتح
+   * الشاشة لا يعرف أتعمل الميزة أم لا. **وما لا يُزرع لا يُرى.**
+   */
+  const bannerSlot = await prisma.adSlot.findUnique({ where: { key: 'home_banner' } });
+  if (bannerSlot !== null) {
+    await prisma.adCampaign.create({
+      data: {
+        advertiserName: 'تأمين الراجحي',
+        slotKey: bannerSlot.key,
+        creativeUrl: '/uploads/seed/ad-banner.png',
+        targetUrl: 'https://example.sa/offer',
+        startsAt: days(-10),
+        endsAt: days(18),
+        budget: new D('3500'),
+        status: 'active',
+        priority: 10,
+        /** أثرٌ واقعيّ: نسبةُ نقرٍ قريبةٌ من ١٪ لا رقمٌ مستدير. */
+        impressions: 18_420,
+        clicks: 174,
+      },
+    });
+    await prisma.adCampaign.create({
+      data: {
+        advertiserName: 'معرض النخبة',
+        slotKey: bannerSlot.key,
+        creativeUrl: '/uploads/seed/ad-banner-2.png',
+        targetUrl: 'https://example.sa/elite',
+        startsAt: days(-60),
+        endsAt: days(-32),
+        budget: new D('3500'),
+        status: 'ended',
+        impressions: 41_902,
+        clicks: 388,
+      },
+    });
+  }
+
+  /**
+   * ═══ ومفتاحُ واجهةٍ عامّة — الشاشةُ كانت تُفتح على فراغها وحده ═══
+   *
+   * **والمفتاحُ الخامّ لا يُزرع**: يُعرض مرّةً عند إصداره ولا يُسترجع،
+   * فالمخزَّن مُجزَّأ. وبذرةٌ تكتب مفتاحًا يعمل تُسلّم كلَّ بيئةٍ
+   * مفتاحًا معروفًا — فيُزرع المجزَّأ وحده، ولا أحد يملك أصلَه.
+   */
+  const publicKey = mintKey();
+  await prisma.apiKey.create({
+    data: {
+      name: 'موقع شريك — قراءة الإعلانات',
+      prefix: publicKey.prefix,
+      keyHash: publicKey.keyHash,
+      scopes: ['read:listings'],
+      rateLimit: 120,
+      createdBy: superAdminId,
+      createdAt: days(-24),
+      lastUsedAt: hours(-3),
+    },
+  });
+  const revokedKey = mintKey();
+  await prisma.apiKey.create({
+    data: {
+      name: 'تطبيق تجريبي — سحب',
+      prefix: revokedKey.prefix,
+      keyHash: revokedKey.keyHash,
+      scopes: ['read:listings', 'read:dealers'],
+      rateLimit: 60,
+      active: false,
+      createdBy: superAdminId,
+      createdAt: days(-52),
+      revokedAt: days(-9),
+      lastUsedAt: days(-10),
+    },
   });
 
   // ————— جهات التمويل (قرار ١٤: عرض وحساب فقط) —————

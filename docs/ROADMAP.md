@@ -1894,11 +1894,47 @@ but not where they signed in from or what their role actually grants.
   added without a label. It reads `src/` only, the same scope as the existing
   dead-label gate, so the two cannot disagree about `seed.run`.
 
+### 38h — The last four needed no page; two needed rows *(done)*
+
+The remaining four on the list were measured the way settlements was, by asking
+what a detail page would answer that the screen does not. Every column of
+`AdSlot`, `AdCampaign`, `ApiKey` and `WebhookEvent` is already on its screen —
+and for the other two the case file already exists elsewhere:
+
+| Entity | Verdict |
+|---|---|
+| Identity | **No page.** A request's subject is a user, and `/admin/users/{id}` already holds the status, the audited reveal, the tax status and the margin scheme. The queue's rows link there. |
+| Webhooks | **No page.** The row carries the whole payload and the outcome, and links to the order's payments tab, where the events for that payment appear together. |
+| Ad slots | **No page.** The slots table carries every column, and the campaigns table beneath it carries delivery per campaign. |
+| API keys | **No page.** The panel shows the scopes, the rate limit, last use and revocation; a key has no request trail to open. |
+
+**But two of them had never been seen with data in them.** `ApiKey` and
+`AdCampaign` were zero rows, so both screens could only ever be opened on their
+empty state — the scopes, the rate limit, the revoked shape, the impressions,
+the clicks and the CTR column had never been rendered in any environment. That
+is what reads as «a page that is not finished», and it is a seeding gap, not a
+missing screen.
+
+- [x] Two API keys seeded, one live and one revoked. **The raw key is not
+      seeded** — it is shown once at issue and stored hashed, so seeding a
+      working key would hand every environment a known credential. Only the
+      hash is planted, and a test asserts no stored value is in key form.
+- [x] Two ad campaigns seeded, one running and one ended, with impressions and
+      clicks whose ratio is near 1% — a seeded CTR of 50% poisons every reading
+      of the screen.
+- [x] `mintKey`/`hashKey` moved to `lib/api/key-mint.ts`. They are pure crypto
+      but lived beside `checkApiKey`, which imports `db` — so the seed could not
+      use them without pulling a second Prisma client in. Same split as
+      `lib/campaigns/segments.ts` and `lib/seo/templates.ts`.
+- [x] **Two number formats in one screen.** Slot prices grouped («٦٬٠٠٠») while
+      impressions beside them did not («١٨٤٢٠»), because `displayDigits`
+      substitutes digits without grouping. Both are `<ArabicNumber>` now.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
-      model's columns, not guessed. (Services measured and closed in 38f.)
-- [ ] **Entities with no detail page**: ad slots, identity, api-keys, webhooks. (Payouts, provider payouts and campaigns are done;
+      model's columns, not guessed. (Services measured and closed in 38f;
+      ad slots, api-keys and webhooks measured clean in 38h.) (Payouts, provider payouts and campaigns are done;
       settlements measured as not needing one.)
 - [ ] **Detail pages that do not give 360°** — measured one by one.
 - [ ] **The remaining copy**, screen by screen, in the plain register.

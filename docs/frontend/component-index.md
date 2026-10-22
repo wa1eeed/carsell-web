@@ -131,7 +131,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 121 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 122 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 109 |
 | `InspectedBadge` | no | `className` | 3 |

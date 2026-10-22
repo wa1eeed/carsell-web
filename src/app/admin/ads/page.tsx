@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards } from '@/components/admin/MonitorShell';
@@ -174,10 +175,21 @@ export default async function AdminAdsPage({
                   <td className="p-3 opacity-70">
                     {riyadh.format(new Date(row.startsAt))} — {riyadh.format(new Date(row.endsAt))}
                   </td>
-                  <td className="font-num p-3">{displayDigits(String(row.impressions))}</td>
-                  <td className="font-num p-3">{displayDigits(String(row.clicks))}</td>
-                  <td className="font-num p-3 opacity-75">
-                    {displayDigits(row.ctrPct.toFixed(1))}٪
+                  {/*
+                    **وصيغةٌ واحدة للرقم في الشاشة الواحدة**: أسعارُ
+                    المساحات فوقها مفصولةُ الآلاف («٦٬٠٠٠»)، وظهورٌ
+                    يُكتب «١٨٤٢٠» بجوارها رقمان بصيغتين — و`displayDigits`
+                    تبدّل الخانات ولا تفصل، و`ArabicNumber` تفعل الاثنتين.
+                  */}
+                  <td className="p-3">
+                    <ArabicNumber value={row.impressions} />
+                  </td>
+                  <td className="p-3">
+                    <ArabicNumber value={row.clicks} />
+                  </td>
+                  <td className="p-3 opacity-75">
+                    {/* **وعلامةُ النسبة داخل المقطع** لا بجواره (البوابة). */}
+                    <ArabicNumber value={row.ctrPct} decimals={1} percent />
                   </td>
                   <td className="p-3">
                     {/*
