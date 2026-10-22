@@ -84,7 +84,7 @@ export function PasswordForm({ minLength }: { minLength: number }) {
 
         {/* **يُقال قبل الضغط لا بعده.** */}
         <p className="mt-4 rounded-lg border border-line bg-surface p-3.5 text-3xs leading-loose opacity-75">
-          <b>التغيير ينهي جلساتك كلها — بما فيها هذه.</b> وستعود إلى شاشة الدخول
+          <b>التغيير ينهي جلساتك كلها، بما فيها هذه.</b> وستعود إلى شاشة الدخول
           بالكلمة الجديدة.
         </p>
 

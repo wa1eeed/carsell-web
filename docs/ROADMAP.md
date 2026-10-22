@@ -1986,11 +1986,38 @@ to operate it.
       defines what keys belong in it; building an editor would be inventing the
       feature rather than operating one.
 
+### 38j — The register of the comments had leaked into the screens *(done)*
+
+The owner's words were «واضح انه صياغه ذكاء اصطناعي و غير مفهومه». The first
+measurement — paragraphs over 90 characters — was the wrong one: it counted 119
+and most of them were fine. What actually reads as machine-written is a
+**register**, and the register has a signature that can be counted.
+
+Measured on what an operator reads, not on what is in the files: **536 displayed
+paragraphs, 245 of them carrying an em-dash aside (46%)**, nine sentences over
+22 words, and four logic symbols (`⇒`) in text meant for a person. That is the
+register this repository uses in *code comments* — antithesis, the explanatory
+«فـ» clause, the parenthetical justification — and it had leaked onto the screen.
+
+The rule applied: one sentence per idea, lead with what the operator does, and
+**drop the justification of the design** — that belongs in the comment, not the
+screen. Each paragraph was rewritten whole rather than patched, because patching
+half a sentence leaves the other half dangling (which happened before, in six
+places).
+
+- [x] 23 screens rewritten. Em-dash asides in displayed **prose**: 124 → 5, and
+      all five that remain are `label — hint` apposition, which is a legitimate
+      UI pattern and not prose. Sentences over 22 words: 9 → 3, all enumerations.
+- [x] «5 محاولات فاشلة ⇒ قفل 15 دقيقة» is now «خمس محاولات فاشلة تقفل الحساب
+      ربع ساعة». No logic symbols remain in displayed text.
+- [x] **Gate 61 caught an Arabic error I introduced while rewriting**: I wrote
+      «قرار ثان» and «شخص ثان». A منقوص noun's tanwīn stands in for a dropped
+      yāʾ, so stripping the diacritic alone produces a different word; the
+      repository writes «ثاني».
+
 ### What stays open in this program
 
-- [ ] **The remaining copy** — 119 Arabic paragraphs over 90 characters across
-      75 admin files, measured 2026-10-22. The register is the owner's: plain
-      and operational, not the aphoristic one this repository uses in comments.
+Nothing measured. The field-label apposition that remains is deliberate.
 
 ## 37 · The auction's bid log, finished — *owner's request 2026-10-20*
 

@@ -269,8 +269,8 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
           {editing !== row.id ? null : (
             <div className="flex flex-col gap-3 bg-surface p-4">
               <p className="text-3xs leading-loose opacity-70">
-                اختر أين يظهر هذا السؤال. <b>وما لا تختاره يحذف</b> — فالمحفوظ هو
-                الحال النهائية لا إضافة على ما قبلها. والسؤال بلا موضع لا يظهر لأحد.
+                اختر أين يظهر هذا السؤال. <b>وما لا تختاره يحذف:</b> المحفوظ هو الحال
+                النهائية لا إضافة على ما قبلها. والسؤال بلا موضع لا يظهر لأحد.
               </p>
 
               <div className="flex flex-wrap gap-2">
@@ -434,7 +434,7 @@ export function FaqTable({ rows }: { rows: readonly FaqRow[] }) {
               كانت تُقرأ «أخفِه وامسح مواضعه»، فتصحيحُ حرفٍ يسحب سؤالًا.
             */}
             <p className="text-3xs opacity-65">
-              الإظهار والمواضع من أزرار الصف — ولكل أثره على ما يراه الزائر.
+              الإظهار والمواضع من أزرار الصف، ولكل أثره على ما يراه الزائر.
             </p>
           </div>
         )}

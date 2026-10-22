@@ -383,8 +383,7 @@ export function TrimEditor({
           ) : (
             <div className="mt-4 rounded-lg border border-line bg-bg p-4">
               <p className="mb-3 text-2xs leading-relaxed opacity-70">
-                تضاف إلى كتالوج المميزات كله — فتظهر لكل فئة ولكل بائع، لا لهذه الفئة
-                وحدها.
+                تضاف إلى كتالوج المميزات كله، فتظهر لكل فئة ولكل بائع لا لهذه الفئة وحدها.
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className={label}>
@@ -467,9 +466,9 @@ export function TrimEditor({
 
         <div className="flex flex-col gap-4">
           <p className="rounded-lg bg-warn-100 p-4.5 text-sm leading-loose text-warn-900">
-            تعديل قيمة موروثة <strong>لا يغير الإعلانات المنشورة</strong> — القيم
-            تنسخ لقطة في الإعلان وقت النشر. التعديل يسري على الإعلانات الجديدة
-            وحدها، ويسجل في سجل التدقيق.
+            تعديل قيمة موروثة <strong>لا يغير الإعلانات المنشورة</strong>، فالقيم تنسخ
+            لقطة في الإعلان وقت النشر. والتعديل يسري على الإعلانات الجديدة وحدها، ويسجل
+            في سجل التدقيق.
           </p>
           <p className="rounded-lg border border-line bg-bg p-4.5 text-sm leading-loose opacity-72">
             <strong>الاستثناء المسموح:</strong> يمكن للبائع تجاوز قيمة موروثة واحدة

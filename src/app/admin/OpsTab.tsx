@@ -134,7 +134,7 @@ export async function OpsTab() {
         })}
       </div>
 
-      <SectionHead title="أزمنة المراحل" note="نصف الطلبات تنهي المرحلة أسرع من هذا — بالساعات، مقابل الهدف" />
+      <SectionHead title="أزمنة المراحل" note="نصف الطلبات تنهي المرحلة أسرع من هذا، بالساعات مقابل الهدف" />
       {/*
         **الوسيط لا المتوسّط**: صفقةٌ واحدة تعطّلت شهرًا تُفسد المتوسّط
         وحدها فيبدو النظام أبطأ ممّا هو.
@@ -153,8 +153,7 @@ export async function OpsTab() {
       {measured === times.length ? null : (
         // **صفٌّ بلا عيّنة صفرٌ لا «سريع»** — ويُقال بدل أن يُقرأ إنجازًا
         <p className="mt-2.5 text-3xs opacity-70">
-          <Quantity unit="stages" count={times.length - measured} /> بلا عينة في آخر تسعين يوما
-          — تعرض صفرا لأنها لم تقس، لا لأنها فورية.
+          <Quantity unit="stages" count={times.length - measured} /> بلا عينة في آخر تسعين يوما. تعرض صفرا لأنها لم تقس، لا لأنها فورية.
         </p>
       )}
 

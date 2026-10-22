@@ -63,7 +63,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card
           title="قيمة المبيعات"
-          subtitle="إجمالي ما بيع عبر المنصة — قبل أي خصم (GMV)"
+          subtitle="إجمالي ما بيع عبر المنصة قبل أي خصم (GMV)"
           amount={summary.gmv.total}
         >
           {summary.gmv.bySource.map((line) => (
@@ -111,7 +111,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           <Line label="عرابين محجوزة" amount={summary.escrow.deposits} />
           <Line label="مجمد بنزاع" amount={summary.escrow.frozen} />
           <p className="mt-2.5 border-t border-line pt-2.5 text-3xs opacity-70">
-            المجمد بنزاع مطروح من المحتجز الجاري لا مجموع إليه — وإلا عد مرتين.
+            المجمد بنزاع مطروح من المحتجز الجاري لا مجموع إليه، وإلا عد مرتين.
           </p>
         </Card>
 

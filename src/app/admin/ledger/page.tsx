@@ -89,7 +89,7 @@ export default async function LedgerPage() {
       {entries.length === 0 ? (
         <EmptyState
           title="الدفتر فارغ"
-          description="أول صفقة تدفع تكتب أول قيد — والدفتر يبدأ من هناك."
+          description="أول صفقة تدفع تكتب أول قيد، ويبدأ الدفتر من هناك."
         />
       ) : (
         <LedgerTable entries={entries} />

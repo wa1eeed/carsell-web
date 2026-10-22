@@ -188,7 +188,7 @@ export function IntegrationsList({
                     {!row.envForced ? null : (
                       /* المخزَّن «إنتاج» والمستعمَل «اختبار» — تُقال لا تُخفى */
                       <span className="text-3xs text-warn">
-                        مخزنة على الإنتاج، وتعمل على الاختبار — القيد في الكود.
+                        مخزنة على الإنتاج، وتعمل على الاختبار. والقيد في الكود.
                       </span>
                     )}
                   </div>
@@ -289,10 +289,10 @@ export function IntegrationsList({
                         const result = (data as { result?: string } | undefined)?.result;
                         if (result === 'LIVE_OK') return 'نودي المزود ورد — المفاتيح تعمل.';
                         if (result === 'LIVE_FAILED') {
-                          return 'نودي المزود ورفض — راجع المفاتيح أو البيئة.';
+                          return 'نودي المزود ورفض. راجع المفاتيح أو البيئة.';
                         }
                         if (result === 'UNTESTED') {
-                          return 'المفاتيح مضبوطة — ولا وصلة لهذا التكامل بعد لتجرب.';
+                          return 'المفاتيح مضبوطة، ولا وصلة لهذا التكامل بعد لتجرب.';
                         }
                         return 'لا مفاتيح مضبوطة لهذا التكامل بعد.';
                       })
@@ -391,8 +391,8 @@ export function IntegrationsList({
         {draft === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="text-2xs leading-relaxed opacity-70">
-              المفتاح الجديد يشفر قبل أن يخزن، ويستبدل القديم
-              قبل ذلك — <strong>فالطلب وحده ليس تدويرا</strong>.
+              المفتاح الجديد يشفر قبل أن يخزن، ويستبدل القديم عند التنفيذ. <strong>فالطلب
+              وحده ليس تدويرا</strong>.
             </p>
 
             {/*
@@ -425,8 +425,8 @@ export function IntegrationsList({
               </div>
               {draft.env !== 'LIVE' ? null : (
                 <p className="rounded-md border border-warn-200 bg-warn-100 p-2.5 text-3xs leading-loose text-warn-900">
-                  مفتاح إنتاج — يمس مالا حقيقيا فور اعتماده. تأكد أنه من لوحة المزود
-                  لا من بيئة الاختبار.
+                  مفتاح إنتاج يمس مالا حقيقيا فور اعتماده. تأكد أنه من لوحة المزود لا من بيئة
+                  الاختبار.
                 </p>
               )}
             </div>

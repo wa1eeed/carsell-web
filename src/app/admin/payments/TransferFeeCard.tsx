@@ -72,7 +72,7 @@ export function TransferFeeCard({
       if (response === null || !response.ok) {
         setToast(
           enabled && clean(adminFee) <= 0
-            ? 'رسم مفعل بصفر ليس تفعيلا — اكتب مبلغه أو أطفئه.'
+            ? 'رسم مفعل بصفر ليس تفعيلا. اكتب مبلغه أو أطفئه.'
             : 'تعذر الحفظ — راجع المبلغين.',
         );
         return;
@@ -92,11 +92,11 @@ export function TransferFeeCard({
     <>
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
         <h2 className="mb-1 text-3xs font-bold tracking-[0.14em] opacity-65">
-          رسم نقل الملكية — حكومي يمرر، وإداري فوقه
+          رسم نقل الملكية: حكومي يمرر، وإداري فوقه
         </h2>
         <p className="mb-4 text-2xs leading-loose opacity-70">
           الأول يصرف نيابة عن العميل فلا ضريبة علينا فيه، والثاني توريد منا فعليه
-          الضريبة. <strong>ولذلك سطران لا رقم واحد</strong> — دمجهما يجعل الضريبة
+          الضريبة. <strong>ولذلك سطران لا رقم واحد:</strong> دمجهما يجعل الضريبة
           تستحق على المبلغ كله.
         </p>
 
@@ -151,7 +151,7 @@ export function TransferFeeCard({
         {!canManage ? null : (
           <>
             <p className="mt-3 text-3xs leading-loose opacity-70">
-              الطلبات القائمة تبقى برسمها — الرسم لقطة وقت إنشاء الطلب.
+              الطلبات القائمة تبقى برسمها، فالرسم لقطة وقت إنشاء الطلب.
             </p>
             <Button size="sm" className="mt-4" onClick={save} disabled={pending}>
               حفظ الرسم

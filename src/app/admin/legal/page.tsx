@@ -49,8 +49,8 @@ export default async function AdminLegalPage() {
       admin={admin}
     >
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
-        النسخ السارية وتواريخ سريانها. <b>نسخ موقتة لا تحرير حي</b> — ومن قبل
-        الشروط قبل نسخة بعينها.
+        النسخ السارية وتواريخ سريانها. <b>نسخ موقتة لا تحرير حي</b>، ومن قبل الشروط
+        قبل نسخة بعينها.
       </p>
 
       {/*

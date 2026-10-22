@@ -161,8 +161,8 @@ function PlanEditor({
       <div className="w-full max-w-lg rounded-lg border border-line bg-bg p-6">
         <h3 className="mb-1 text-md font-bold">{plan.nameAr}</h3>
         <p className="mb-5 text-3xs opacity-70">
-          <Quantity unit="subscribers" count={plan.subscriberCount} /> — والتعديل لا يمس اشتراكا
-          قائما حتى تجديده.
+          <Quantity unit="subscribers" count={plan.subscriberCount} />. والتعديل لا
+          يمس اشتراكا قائما حتى تجديده.
         </p>
 
         <label className="mb-4 flex flex-col gap-1.5">

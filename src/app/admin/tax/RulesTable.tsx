@@ -300,7 +300,7 @@ export function RulesTable({
             */}
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
               التعديل يسري فور حفظه ويسجل باسمك. والفواتير الصادرة بهذه
-              القاعدة لا تتغير — لقطتها منسوخة فيها كاملة.
+              القاعدة لا تتغير، فلقطتها منسوخة فيها كاملة.
             </p>
 
             <Select
@@ -338,7 +338,7 @@ export function RulesTable({
               <span>
                 مفعلة
                 <span className="block text-2xs opacity-70">
-                  المعطلة تعرض ولا تطبق — وهي حال «ننتظر التصنيف» لا «قررنا الامتناع».
+                  المعطلة تعرض ولا تطبق. وهي حال «ننتظر التصنيف» لا «قررنا الامتناع».
                 </span>
               </span>
             </label>

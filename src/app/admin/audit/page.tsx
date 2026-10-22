@@ -109,7 +109,7 @@ export default async function AdminAuditPage({
         total={null}
         note="السجل مضاف فقط"
         can="القراءة والترشيح والبحث."
-        cannot="تعديل سطر أو حذفه — سجل ينقح ليس سجلا، وقيمته كلها في أنه لا ينقض."
+        cannot="تعديل سطر أو حذفه. سجل ينقح ليس سجلا، وقيمته كلها في أنه لا ينقض."
       />
     </AdminShell>
   );

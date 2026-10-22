@@ -57,8 +57,8 @@ export default async function AdminExportsPage() {
       */}
       {REPORT_SCHEDULING_RUNS ? null : (
         <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-75">
-          <b>التوليد المجدول لم يبدأ بعد.</b> عمود «الجدولة» يقول ما هو مقصود، والتنزيل
-          اليوم عند الطلب من هنا — ولا يصل ملف إلى أحد من تلقاء نفسه.
+          <b>التوليد المجدول لم يبدأ بعد.</b> عمود «الجدولة» يقول ما هو مقصود. والتنزيل اليوم عند الطلب من هنا، ولا يصل
+          ملف إلى أحد من تلقاء نفسه.
         </p>
       )}
 
@@ -141,8 +141,8 @@ export default async function AdminExportsPage() {
       <h2 className="mt-10 mb-3.5 text-sm font-bold">سجل التصديرات</h2>
       {log.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          لا تصدير مسجلا. والتقارير المجمعة لا تقيد — التقييد لما يحمل بيانات
-          شخصية وحده.
+          لا تصدير مسجلا. والتقارير المجمعة لا تقيد، فالتقييد لما يحمل بيانات شخصية
+          وحده.
         </p>
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -164,7 +164,7 @@ export default async function AdminExportsPage() {
         <div className="rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
           <p className="mb-2 font-bold">أي تصدير يحمل بيانات شخصية يسجل</p>
           <p>
-            اسم من صدر ووقته وعدد الصفوف — في سجل التدقيق. <b>والملف ينزل مباشرة
+            اسم من صدر ووقته وعدد الصفوف، في سجل التدقيق. <b>والملف ينزل مباشرة
             ولا يرسل بالبريد</b>، ولا يخزن نسخة على الخادم تنتظر من يجدها.
           </p>
         </div>
@@ -173,7 +173,7 @@ export default async function AdminExportsPage() {
           <p className="mb-2 font-bold">لا تبنى التقارير من الشاشات</p>
           <p>
             كل تقرير <b>استعلام مسمى على القراءة</b> بأعمدة ثابتة، وحده{' '}
-            <Quantity unit="rows" count={stats.rowLimit} /> — فلا يبطئ تقرير ثقيل مزادا
+            <Quantity unit="rows" count={stats.rowLimit} />، فلا يبطئ تقرير ثقيل مزادا
             جاريا.
           </p>
         </div>

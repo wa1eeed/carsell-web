@@ -208,7 +208,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
 
             <p className="mt-4 text-3xs leading-loose opacity-70">
               الشارة تظهر لمشتريه في صفحة المعرض وفي كل بطاقة إعلان. ولا يدار مخزونه من
-              هنا — العدد يقرأ ولا يلمس.
+              هنا، فالعدد يقرأ ولا يلمس.
             </p>
           </>
         )}

@@ -60,7 +60,7 @@ export function FinanceInputs({
         <h2 className="text-sm font-bold">مدخلات {monthLabel}</h2>
       </div>
       <p className="mb-4 text-3xs opacity-70">
-        ما لا تعرفه المنصة عن نفسها. وCAC والمدرج يحسبان من هذه — لا يدخلان.
+        ما لا تعرفه المنصة عن نفسها. وCAC والمدرج يحسبان من هذه، ولا يدخلان يدويا.
       </p>
 
       <div className="flex flex-col divide-y divide-line border-t border-line">

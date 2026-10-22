@@ -80,8 +80,8 @@ export default async function AdminAccountPage() {
             نفسه بنقرة.
           */}
           <p className="mt-4 text-3xs leading-loose opacity-70">
-            الاسم والدور والبريد تضبط من متغيرات النشر، لا من هنا — فمن سرق جلسة لا
-            يرفع دوره بنقرة.
+            الاسم والدور والبريد تضبط من متغيرات النشر لا من هنا، فمن سرق جلسة لا يرفع
+            دوره بنقرة.
           </p>
 
           <h2 className="mt-9 mb-3.5 text-sm font-bold">

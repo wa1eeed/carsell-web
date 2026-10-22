@@ -87,7 +87,7 @@ export function ProviderFeesCard({
       <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
         <div className="mb-1 flex flex-wrap items-baseline gap-2">
           <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">
-            رسوم بوابة المزودين — ما يخصم من الشريك
+            رسوم بوابة المزودين: ما يخصم من الشريك
           </h2>
           {initial.configured ? null : (
             <span className="rounded-full bg-warn-100 px-2 py-0.5 text-3xs font-bold text-warn-900">
@@ -96,9 +96,9 @@ export function ProviderFeesCard({
           )}
         </div>
         <p className="mb-4 text-2xs leading-loose opacity-70">
-          ترسل إلى البوابة <strong>لحظة فتح حساب الشريك</strong> وتبقى عندها، فما فتح يبقى
-          بشروطه. ولا يفتح حساب قبل ضبطها — فأصفار تعني «لا نأخذ من هذا الشريك شيئا»، وهو
-          قرار تجاري لا يقع بالنسيان.
+          ترسل إلى البوابة <strong>لحظة فتح حساب الشريك</strong> وتبقى عندها، فما
+          فتح يبقى بشروطه. ولا يفتح حساب قبل ضبطها: أصفار تعني «لا نأخذ من هذا
+          الشريك شيئا»، وهو قرار تجاري لا يقع بالنسيان.
         </p>
 
         <div className="flex flex-col gap-5 border-t border-line pt-4 lg:flex-row lg:gap-8">

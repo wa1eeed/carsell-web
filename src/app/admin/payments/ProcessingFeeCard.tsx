@@ -84,8 +84,8 @@ export function ProcessingFeeCard({
         </h2>
         <p className="mb-4 text-2xs leading-loose opacity-70">
           غير رسوم البوابات أعلاه: تلك ما تأخذه البوابة منا، وهذه سياسة تحميلها على
-          الطرفين. وهي <strong>توريد منا</strong> فتسري عليها الضريبة — بخلاف رسوم نقل
-          الملكية الحكومية التي تمرر كما هي.
+          الطرفين. وهي <strong>توريد منا</strong> فتسري عليها الضريبة، بخلاف رسوم
+          نقل الملكية الحكومية التي تمرر كما هي.
         </p>
 
         <label className="mb-4 flex cursor-pointer items-center gap-2.5 text-xs font-bold">
@@ -149,7 +149,7 @@ export function ProcessingFeeCard({
 
             {!canManage ? null : (
               <p className="text-3xs leading-loose opacity-70">
-                الطلبات القائمة تبقى بسياستها — الرسم لقطة وقت إنشاء الطلب.
+                الطلبات القائمة تبقى بسياستها، فالرسم لقطة وقت إنشاء الطلب.
               </p>
             )}
           </div>

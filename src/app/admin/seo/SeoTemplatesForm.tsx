@@ -252,7 +252,7 @@ export function SeoTemplatesForm({
                     disabled={!canEdit}
                     className="size-4 accent-[var(--color-accent)]"
                   />
-                  يعمل — وإطفاؤه يعيد الصفحة إلى نصها المدمج
+                  يعمل. وإطفاؤه يعيد الصفحة إلى نصها المدمج
                 </label>
                 {!canEdit ? null : (
                   <Button size="sm" disabled={busy === row.key} onClick={() => void save(row.key)}>

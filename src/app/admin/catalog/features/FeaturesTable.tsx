@@ -279,8 +279,8 @@ export function FeaturesTable({
             </div>
 
             <p className="rounded-md bg-surface p-3.5 text-xs leading-loose opacity-72">
-              المفتاح يستعمله الكود ولا يتغير أبدا. الاسمان محتوى يحرر متى شئت —
-              تعديلهما يظهر فورا في التطبيق والويب بلا نشر.
+              المفتاح يستعمله الكود ولا يتغير أبدا. والاسمان محتوى تحرره متى شئت، ويظهر
+              تعديلهما فورا في التطبيق والويب بلا نشر.
             </p>
 
             <fieldset className="flex flex-col gap-2.5">

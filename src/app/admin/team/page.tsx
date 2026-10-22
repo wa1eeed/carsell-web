@@ -95,7 +95,7 @@ export default async function AdminTeamPage() {
       */}
       {stats.emptyRoles.length === 0 ? null : (
         <p className="mt-3 flex flex-wrap items-center gap-2 text-3xs opacity-70">
-          <span>أدوار بلا عضو — صفوفها في المصفوفة أدناه نظرية:</span>
+          <span>أدوار بلا عضو، وصفوفها في المصفوفة أدناه نظرية:</span>
           {stats.emptyRoles.map((role) => (
             <span key={role} className="font-num rounded-md bg-ink/8 px-2 py-0.5" dir="ltr">
               {ROLE_HEAD[role]}
@@ -115,7 +115,7 @@ export default async function AdminTeamPage() {
       */}
       <h2 className="mt-10 mb-1.5 text-sm font-bold">مصفوفة الصلاحيات</h2>
       <p className="mb-3.5 text-3xs opacity-70">
-        قراءة لا تبديل — المصفوفة في الشيفرة تراجع في مراجعتها، لا صفوفا في قاعدة.
+        قراءة لا تبديل. المصفوفة في الشيفرة وتراجع في مراجعتها، لا صفوفا في قاعدة.
       </p>
       <PermissionMatrix />
 
@@ -152,8 +152,8 @@ export default async function AdminTeamPage() {
         <div className="min-w-2xs flex-1 rounded-xl border border-line bg-surface px-5 py-5">
           <h3 className="mb-2 text-xs font-bold">البنود تخفى لا تعطل</h3>
           <p className="text-2xs leading-loose opacity-75">
-            عرض بند لا يملكه الدور يكشف بنية اللوحة لمن لا يستطيع استعمالها. والفحص في
-            الخادم لا في الواجهة — الإخفاء تجربة، والمنع حماية.
+            عرض بند لا يملكه الدور يكشف بنية اللوحة لمن لا يستطيع استعمالها. والفحص يقع
+            في الخادم لا في الواجهة: الإخفاء تجربة، والمنع حماية.
           </p>
         </div>
         {/* والثانية مقيَّدة العرض كما في التصميم — والأولى تأخذ ما بقي */}

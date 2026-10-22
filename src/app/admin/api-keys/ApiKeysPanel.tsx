@@ -104,7 +104,7 @@ export function ApiKeysPanel({
           <h2 className="mb-2 text-sm font-bold">مفتاح «{minted.name}» — انسخه الآن</h2>
           <p className="mb-4 text-2xs leading-loose opacity-80">
             هذه المرة الوحيدة التي يظهر فيها. لا يخزن عندنا إلا مجزأ، فلا سبيل
-            لاسترجاعه — ومن أغلق هذه البطاقة بلا نسخ يصدر مفتاحا جديدا ويسحب هذا.
+            لاسترجاعه. ومن أغلق هذه البطاقة بلا نسخ يصدر مفتاحا جديدا ويسحب هذا.
           </p>
           <code
             dir="ltr"
@@ -204,7 +204,7 @@ export function ApiKeysPanel({
 
       {keys.length === 0 ? (
         <p className="rounded-xl border border-line bg-surface p-6 text-sm opacity-70">
-          لا مفتاح بعد — والواجهة العامة لا ترد على أحد حتى يصدر أول مفتاح.
+          لا مفتاح بعد. والواجهة العامة لا ترد على أحد حتى يصدر أول مفتاح.
         </p>
       ) : (
         <div className="flex flex-col gap-4">

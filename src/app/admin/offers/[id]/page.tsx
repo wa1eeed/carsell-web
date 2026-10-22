@@ -180,7 +180,7 @@ export default async function AdminOfferDetailPage({
                 للبائع، وكشفُه في شاشةٍ يجعل المفاوضة بلا معنى.
               */}
               <p className="mt-3 text-3xs opacity-65">
-                الحد الأدنى للقبول لا يعرض هنا — ولا في أي استجابة.
+                الحد الأدنى للقبول لا يعرض هنا ولا في أي استجابة.
               </p>
             </DetailCard>
 

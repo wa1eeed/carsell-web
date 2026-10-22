@@ -311,7 +311,7 @@ export function BrandsTable({
                 />
                 {uploadsReady ? null : (
                   <span className="text-3xs text-warn-700">
-                    تخزين الوسائط غير مضبوط في هذه البيئة — احفظ الماركة بلا شعار.
+                    تخزين الوسائط غير مضبوط في هذه البيئة. احفظ الماركة بلا شعار.
                   </span>
                 )}
               </label>
@@ -361,8 +361,7 @@ export function BrandsTable({
           </p>
         ) : (
           <p className="text-xs leading-loose">
-            تحذف <b className="bidi-isolate">{removing.name}</b> نهائيا ولا تسترجع — ولا طراز
-            لها ولا مركبة.
+            تحذف <b className="bidi-isolate">{removing.name}</b> نهائيا ولا تسترجع. ولا طراز لها ولا مركبة.
           </p>
         )}
       </Modal>

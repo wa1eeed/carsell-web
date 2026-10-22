@@ -173,7 +173,7 @@ export default async function AdminAuctionDetailPage({
                 يُستثنى منه شاشةٌ لأن قارئها أدمن.
               */}
               <p className="mt-3 text-3xs opacity-65">
-                السعر الاحتياطي لا يعرض هنا — ولا في أي شاشة.
+                السعر الاحتياطي لا يعرض هنا ولا في أي شاشة.
               </p>
             </DetailCard>
 
@@ -232,7 +232,7 @@ export default async function AdminAuctionDetailPage({
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            فتح المزاد ومزايداته وعرابينه وإغلاقه — ولا هوية مزايد هنا ولا في غيرها.
+            فتح المزاد ومزايداته وعرابينه وإغلاقه. ولا تعرض هوية مزايد هنا ولا في غيرها.
           </p>
           <Timeline events={events} />
         </section>

@@ -98,8 +98,8 @@ export function CommissionRules({
     <section className="mt-10">
       <h2 className="mb-1.5 text-sm font-bold">العمولة</h2>
       <p className="mb-5 max-w-xl text-2xs leading-loose opacity-70">
-        لكل طرف قاعدته. والتعديل يسري على ما ينشأ بعده — والطلبات القائمة تبقى
-        على نسبتها المخزنة، فلا تتغير فاتورة صدرت.
+        لكل طرف قاعدته. والتعديل يسري على ما ينشأ بعده، فالطلبات القائمة تبقى على
+        نسبتها المخزنة ولا تتغير فاتورة صدرت.
       </p>
 
       <div className="grid gap-4 md:grid-cols-2">

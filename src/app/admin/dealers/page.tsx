@@ -45,7 +45,7 @@ export default async function AdminDealersPage({
     <AdminShell title="التجار والمعارض"
       subtitle="المعارض وتوثيقها" activeHref="/admin/dealers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        التحقق والشارة والباقة. <b>ولا يدار مخزونهم من هنا</b> — التاجر حساب واحد
+        التحقق والشارة والباقة. <b>ولا يدار مخزونهم من هنا</b>، فالتاجر حساب واحد
         بواجهتين: التطبيق للميدان واللوحة للحجم.
       </p>
 
@@ -94,7 +94,7 @@ export default async function AdminDealersPage({
         total={null}
         note="المعارض وحالات توثيقها"
         can="توثيق المعرض أو إيقافه، وقراءة إعلاناته وصفقاته."
-        cannot="تعديل أسعار إعلانات المعرض أو بياناته التجارية — ذلك لصاحبه من لوحته."
+        cannot="تعديل أسعار إعلانات المعرض أو بياناته التجارية. ذلك لصاحبه من لوحته."
       />
     </AdminShell>
   );

@@ -70,7 +70,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
         </span>
         <span className="flex-1" />
         <p className="max-w-md text-3xs leading-loose opacity-70">
-          كل تغيير يرفع الإصدار — وبه يعرف أي نص رآه الفاحص يوم ملأ تقريره.
+          كل تغيير يرفع الإصدار، وبه يعرف أي نص رآه الفاحص يوم ملأ تقريره.
           <b> والتقارير الصادرة لا تتغير</b>: لقطتها محفوظة فيها.
         </p>
       </div>
@@ -277,7 +277,7 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
             </div>
           )}
           <p className="mt-2.5 text-3xs leading-loose opacity-65">
-            القسم يضاف فارغا ثم تضاف بنوده — ووزنه الافتراضي واحد، يعدل من رأسه.
+            القسم يضاف فارغا ثم تضاف بنوده. ووزنه الافتراضي واحد، يعدل من رأسه.
           </p>
         </section>
       </div>

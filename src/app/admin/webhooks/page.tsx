@@ -77,7 +77,7 @@ export default async function AdminWebhooksPage({
   return (
     <AdminShell
       title="ردود بوابة الدفع"
-      subtitle="ما قالته البوابة بنصه — وما ترتب عليه عندنا"
+      subtitle="ما قالته البوابة بنصه، وما ترتب عليه عندنا"
       activeHref="/admin/webhooks"
       admin={admin}
     >
@@ -114,7 +114,7 @@ export default async function AdminWebhooksPage({
       <MonitorList
         empty={{
           title: 'لا ردود',
-          description: 'البوابة لم تستدع المنصة بعد — أو البوابة التجريبية تؤكد فورا بلا رد.',
+          description: 'البوابة لم تستدع المنصة بعد، أو هي البوابة التجريبية التي تؤكد فورا بلا رد.',
         }}
         note="الاحتفاظ بالحمولة كما وصلت، ولا تعدل من هنا."
       >
@@ -136,7 +136,7 @@ export default async function AdminWebhooksPage({
         total={total}
         note="الأحدث أولا"
         can="القراءة والترشيح وفتح الحمولة كما وصلت."
-        cannot="إعادة إرسال رد أو تعديله — ما قالته البوابة ليس لنا أن نكتبه."
+        cannot="إعادة إرسال رد أو تعديله. ما قالته البوابة ليس لنا أن نكتبه."
       />
 
       <p className="mt-6 max-w-2xl text-2xs leading-loose opacity-65">

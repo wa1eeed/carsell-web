@@ -47,7 +47,7 @@ export default async function AdminLoginPage({
           </header>
           {changed ? (
             <p className="mb-6 rounded-lg border border-line bg-surface p-3.5 text-2xs leading-loose">
-              <b>غيرت كلمتك.</b> وأنهيت جلساتك كلها — ادخل بالكلمة الجديدة.
+              <b>غيرت كلمتك.</b> وأنهيت جلساتك كلها. ادخل بالكلمة الجديدة.
             </p>
           ) : null}
 

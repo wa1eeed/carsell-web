@@ -80,8 +80,8 @@ export default async function AdminAdsPage({
     <AdminShell title="مساحات الإعلانات والحملات"
       subtitle="المساحات وتسعيرها وحملاتها" activeHref="/admin/ads" admin={admin}>
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
-        المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يخفي المساحة ولا يلغي حملاتها</b>
-        — فمعلن دفع لأسبوع لا يفقد ماله بتعطيل إداري.
+        المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يخفي المساحة ولا يلغي
+        حملاتها</b>، فمعلن دفع لأسبوع لا يفقد ماله بتعطيل إداري.
       </p>
 
       {/*
@@ -91,9 +91,8 @@ export default async function AdminAdsPage({
       */}
       {stats.served ? null : (
         <p className="mb-7 max-w-2xl rounded-lg border border-line border-dashed p-4 text-2xs leading-loose opacity-75">
-          <b>لا يعرض إعلان في المنتج بعد.</b> المساحات مضبوطة ومسعرة هنا، ولا شاشة
-          في التطبيق تطلبها — فالأرقام أدناه إعداد لا أداء. والحملات تسجل ولا تظهر
-          لأحد حتى يبنى مسار العرض.
+          <b>لا يعرض إعلان في المنتج بعد.</b> المساحات مضبوطة ومسعرة هنا، ولا شاشة في التطبيق تعرضها بعد. فالأرقام أدناه
+          إعدادات لا نتائج، والحملات تسجل ولا يراها أحد حتى يبنى مسار العرض.
         </p>
       )}
 
@@ -131,7 +130,7 @@ export default async function AdminAdsPage({
         <AdSlotTable rows={slots} />
       ) : (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          صلاحيتك قراءة فقط — التفعيل والتعطيل لمن يملك الكتابة في المالية.
+          صلاحيتك قراءة فقط. التفعيل والتعطيل لمن يملك الكتابة في المالية.
         </p>
       )}
 
@@ -148,7 +147,7 @@ export default async function AdminAdsPage({
 
       {campaigns.length === 0 ? (
         <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
-          لا حملات بعد. و«حملة جديدة» أعلاه تنشئ واحدة — وتظهر في نتائج البحث بعد
+          لا حملات بعد. و«حملة جديدة» أعلاه تنشئ واحدة، تظهر في نتائج البحث بعد
           السادسة متى حل تاريخ بدئها.
         </p>
       ) : (
@@ -225,7 +224,7 @@ export default async function AdminAdsPage({
             <Quantity unit="ads" count={stats.sessionCap} /> كحد أقصى في جلسة الرئيسية
             {stats.homeServed
               ? '، والسقف يفرض في الخادم لا في التطبيق'
-              : ' — قاعدة لم يبلغها مسار بعد، فلا إعلان في الرئيسية'}
+              : '. وهي قاعدة لم يبلغها مسار بعد، فلا إعلان في الرئيسية'}
             .
           </p>
         </div>
@@ -246,7 +245,7 @@ export default async function AdminAdsPage({
         total={null}
         note="المساحات وحملاتها"
         can="تفعيل مساحة أو إيقافها وتعديل تسعيرها، وقراءة أداء الحملات."
-        cannot="تعديل حملة جارية — المعلن اشترى مساحة بشروط معلنة، وتغييرها تحته إخلال."
+        cannot="تعديل حملة جارية. المعلن اشترى مساحة بشروط معلنة، وتغييرها تحته إخلال."
       />
     </AdminShell>
   );

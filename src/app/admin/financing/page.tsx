@@ -38,7 +38,7 @@ export default async function AdminFinancingPage() {
         <Link href="/ar/cars" className="font-bold underline underline-offset-2" target="_blank">
           نتائج البحث
         </Link>{' '}
-        وصفحة السيارة. <b>والقسط تقدير لا عرض تمويل</b> — يحسب عندنا ولا يمر بممول،
+        وصفحة السيارة. <b>والقسط تقدير لا عرض تمويل:</b> يحسب عندنا ولا يمر بممول،
         ويقرب إلى أقرب عشرة. <b>وأقل سعر للتمويل</b> يقرر أي إعلان يظهر له القسط
         أصلا، فالأقل منه لا يعرض شيئا.
       </p>

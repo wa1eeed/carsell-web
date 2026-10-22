@@ -68,7 +68,7 @@ export function RoutesTable({
       }
       setToast(
         body?.data?.state === 'APPLIED'
-          ? 'طبق التبديل — والمعاملات الجارية تبقى على بوابتها.'
+          ? 'طبق التبديل. والمعاملات الجارية تبقى على بوابتها.'
           : 'طبق التبديل.',
       );
       router.refresh();
@@ -342,7 +342,7 @@ export function RoutesTable({
                 className="w-full rounded-sm border border-line bg-bg px-3 py-2 text-sm outline-none focus:border-ink/40"
               />
               <span className="text-3xs opacity-70">
-                إلزامي — بعد سنة لن يتذكر أحد لماذا، والقرار بلا سببه يعاد نقضه.
+                إلزامي. بعد سنة لن يتذكر أحد لماذا بدلت، فيعاد نقض قرارك.
               </span>
             </label>
 

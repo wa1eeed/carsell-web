@@ -41,7 +41,7 @@ export default async function AdminOffersPage({
   return (
     <AdminShell title="العروض والمفاوضات" activeHref="/admin/offers" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        ما يجري بين المشترين والبائعين. تقرأ ولا تغير — والمفاوضة بين طرفيها.
+        ما يجري بين المشترين والبائعين. تقرأ ولا تغير، فالمفاوضة بين طرفيها.
       </p>
 
       <MonitorCards
@@ -97,9 +97,10 @@ export default async function AdminOffersPage({
       <ListFooter
         shown={rows.length}
         total={null}
-        note="العروض النشطة — والمنتهية تسقط تلقائيا بعد مهلتها"
+        note="العروض النشطة. والمنتهية تسقط تلقائيا بعد مهلتها"
         can="قراءة سلسلة العرض والعرض المقابل، والانتقال إلى الإعلان أو طرفيه."
-        cannot="القبول أو الرفض بدلا عن البائع — العرض عقد بين طرفين، وقبوله منا ينشئ التزاما لم يقرره صاحبه."
+        cannot="القبول أو الرفض بدلا عن البائع. العرض عقد بين طرفين، وقبوله منا ينشئ التزاما
+        لم يقرره صاحبه."
       />
     </AdminShell>
   );

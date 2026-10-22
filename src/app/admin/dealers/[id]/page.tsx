@@ -106,7 +106,7 @@ export default async function AdminDealerDetailPage({
               {dealer.members.length === 0 ? (
                 // معرضٌ بلا أعضاء لا ينشر شيئًا — وهو حالٌ تُقال لا تُخفى
                 <p className="text-2xs opacity-70">
-                  لا أعضاء — ومعرض بلا عضو لا ينشر إعلانا.
+                  لا أعضاء. ومعرض بلا عضو لا ينشر إعلانا.
                 </p>
               ) : (
                 dealer.members.map((member) => (

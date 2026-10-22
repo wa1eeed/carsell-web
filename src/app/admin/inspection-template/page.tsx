@@ -28,7 +28,7 @@ export default async function InspectionTemplatePage() {
       {template === null ? (
         <EmptyState
           title="لا قالب فعال"
-          description="القالب يصل بترحيل — وبلا واحد فعال لا تفتح مسودة فحص."
+          description="القالب يصل بترحيل. وبلا واحد فعال لا تفتح مسودة فحص."
         />
       ) : (
         <TemplateEditor template={template} />

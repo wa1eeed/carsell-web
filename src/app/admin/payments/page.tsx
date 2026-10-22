@@ -86,7 +86,7 @@ export default async function PaymentsRoutingPage() {
         <section className="mb-5 rounded-lg border border-warn/35 bg-warn-100 p-4.5">
           <p className="mb-1.5 text-xs font-bold">أغراض لا يقبل فيها دفع الآن</p>
           <p className="mb-2.5 text-2xs leading-loose opacity-75">
-            بوابتها مربوطة في القاعدة ولا وصلة لها في المنتج بعد — فكل محاولة دفع
+            بوابتها مربوطة في القاعدة ولا وصلة لها في المنتج بعد، فكل محاولة دفع
             ترد. وجهها إلى بوابة تحصل، أو عطل الغرض حتى تصل الوصلة.
           </p>
           <ul className="flex flex-col gap-1 text-2xs">
@@ -202,8 +202,7 @@ export default async function PaymentsRoutingPage() {
       {runs.length === 0 ? (
         <p className="rounded-lg border border-line bg-surface p-5 text-2xs leading-loose opacity-70">
           لم تشغل المطابقة بعد. وهي تقرأ تسوية كل بوابة وتقارنها بدفترنا، وتكتب
-          <strong> جدول المعاملات المختلفة</strong> لا المجاميع — فالفرق حدث يعالج لا
-          رقم يتأمل.
+          <strong> جدول المعاملات المختلفة</strong> لا المجاميع، فكل فرق سطر تعالجه.
         </p>
       ) : (
         <ReconciliationTable runs={runs} />
@@ -215,16 +214,15 @@ export default async function PaymentsRoutingPage() {
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>المعاملات الجارية تبقى على بوابتها.</strong> الحجز القائم يفرج عنه من
-            حيث أنشئ — <strong>لا نقل أرصدة بين بوابتين</strong>. ولهذا يخزن مفتاح
-            البوابة في كل معاملة ويقرأ منها لا من الإعداد.
+            <strong>المعاملات الجارية تبقى على بوابتها.</strong> الحجز القائم يفرج
+            عنه من حيث أنشئ، <strong>ولا تنقل أرصدة بين بوابتين</strong>.
           </li>
           <li>التبديل يسري على المعاملات الجديدة وحدها، ابتداء من لحظة التنفيذ.</li>
-          <li>لا يمكن تعطيل غرض له معاملات جارية — يوقف الجديد ويبقى القائم حتى ينتهي.</li>
+          <li>لا يعطل غرض له معاملات جارية. التعطيل يوقف الجديد ويبقى القائم حتى ينتهي.</li>
           <li>كل تبديل يسجل في سجل التدقيق باسم من نفذه وبالبوابتين: من أي بوابة إلى أي بوابة.</li>
           <li>
-            <strong>البوابة التي تنقصها قدرة مطلوبة لا تظهر في القائمة أصلا</strong> — لا
-            تعرض ثم ترفض. أما قصر مدة الحجز فتحذير يشرح الأثر ولا يمنع.
+            <strong>البوابة التي تنقصها قدرة مطلوبة لا تظهر في القائمة أصلا</strong>،
+            فلا تختارها ثم ترفض. أما قصر مدة الحجز فتحذير يشرح الأثر ولا يمنع.
           </li>
         </ul>
       </section>
@@ -239,7 +237,7 @@ export default async function PaymentsRoutingPage() {
       <section className="mt-10">
         <h2 className="mb-1 text-sm font-bold">تاريخ التبديل</h2>
         <p className="mb-3.5 text-3xs opacity-70">
-          كل تبديل بسببه ومن اعتمده — والقرار بلا سببه يعاد نقضه.
+          كل تبديل بسببه ومن اعتمده.
         </p>
 
         {changes.length === 0 ? (

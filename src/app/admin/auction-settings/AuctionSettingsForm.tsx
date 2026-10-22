@@ -176,7 +176,7 @@ export function AuctionSettingsForm({
           <Readonly
             label="مهلة قرار البائع دون الاحتياطي"
             value={<Quantity unit="hours" count={settings.sellerDecisionHours} />}
-            note="بعدها يغلق وترد العرابين — من المهل الزمنية"
+            note="بعدها يغلق وترد العرابين. تضبط من المهل الزمنية"
           />
         </section>
       </div>
@@ -186,9 +186,9 @@ export function AuctionSettingsForm({
         مزادًا جاريًا، فيتردّد أو يفعلها ويخشى أثرها.
       */}
       <p className="mt-6 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        <b>التعديل لا يمس مزادا جاريا.</b> القواعد تنسخ لقطة في كل مزاد وقت إنشائه
-        — فمزايد بدأ على قاعدة لا تتغير عليه في منتصف المزاد. والتغيير يسري على
-        الجديد وحده، ويسجل في سجل التدقيق باسم من فعله.
+        <b>التعديل لا يمس مزادا جاريا.</b> القواعد تنسخ لقطة في كل مزاد وقت إنشائه، فمزايد بدأ على قاعدة لا تتغير عليه
+        في منتصف المزاد. والتغيير يسري على الجديد وحده، ويسجل في سجل التدقيق باسم من
+        فعله.
       </p>
 
       {canEdit ? (

@@ -41,7 +41,8 @@ export default async function AdminAuctionsPage({
   return (
     <AdminShell title="المزادات" activeHref="/admin/auctions" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        الجارية والقادمة وما لم يبلغ احتياطيه. والاحتياطي نفسه لا يعرض — يعرض بلوغه.
+        الجارية والقادمة وما لم يبلغ احتياطيه. والاحتياطي نفسه لا يعرض، إنما يعرض
+        بلوغه.
       </p>
 
       <MonitorCards
@@ -102,7 +103,7 @@ export default async function AdminAuctionsPage({
       )}
 
       <p className="mt-4 text-3xs leading-relaxed opacity-65">
-        الاحتياطي سر البائع — تعرض الشاشة بلوغه لا قيمته، فلا يمر في لقطة شاشة.
+        الاحتياطي سر البائع. تعرض الشاشة بلوغه لا قيمته، فلا يمر في لقطة شاشة.
       </p>
 
       <ListFooter
@@ -110,7 +111,8 @@ export default async function AdminAuctionsPage({
         total={null}
         note="الجارية والقادمة وما لم يبلغ احتياطيه"
         can="فتح المزاد لقراءة سجله، والانتقال إلى إعلانه أو بائعه."
-        cannot="المزايدة بدلا عن أحد، ولا تعديل سعر احتياطي بعد بدء المزاد — فالمزايدون بنوا عليه."
+        cannot="المزايدة بدلا عن أحد، ولا تعديل سعر احتياطي بعد بدء المزاد لأن المزايدين
+        بنوا عليه."
         automatic="مزاد في آخر دقائقه يمتد تلقائيا مع كل مزايدة."
       />
     </AdminShell>
