@@ -1930,14 +1930,67 @@ missing screen.
       impressions beside them did not («١٨٤٢٠»), because `displayDigits`
       substitutes digits without grouping. Both are `<ArabicNumber>` now.
 
+### 38i — The transfer fee nothing could change *(done)*
+
+Every settings model was measured the way `Service` was, but against **write
+paths only** — the zod schemas of the admin routes and the `data:` blocks of the
+domain — because a column named in a read shape is not a column an operator can
+set. Twenty-three config models, and the measurement came back almost clean:
+every one of `TaxRule`, `PaymentGateway`, `PaymentRoute`, `Plan`, `Entitlement`,
+`FinanceProvider`, `NotificationTemplate`, `PushChannel`, `SeoTemplate`,
+`TrustMark`, `LegalDocument`, `InspectionTemplate`, `AdSlot`, `FaqItem`,
+`Segment`, `BodyTypeDisplay` and `Brand` is fully reachable.
+
+`PlatformSetting` was not. **Three of its columns are read in the price of every
+single order and no screen or route writes any of them**: `transferFee` (the
+government ownership-transfer charge, frozen at the seeded 350) and
+`transferAdminFeeEnabled` / `transferAdminFee` (our own fee on top, switched off
+and unswitchable). The order page *displays* all three. The owner's rule that
+our margin stays a separate line from the pass-through — so VAT lands on our
+margin and not on the whole 350 — was built in the money path with no control
+to operate it.
+
+- [x] A transfer-fee card on `/admin/payments`, beside the processing fee and
+      the gateway fees, with a `PUT` route and an audited write.
+- [x] **The live example computes what the buyer pays** from what is typed:
+      «350 government + 60 ours + 9 VAT = 419». A rate written beside the form
+      would be a second source, so it is read server-side from
+      `supplyVatPct('ADMIN_FEE')` — the gate caught the hardcoded `0.15` on the
+      first try.
+- [x] **A fee enabled at zero is refused.** A flag saying «we charge» beside an
+      amount saying «nothing» reads to the operator as switched on.
+
+### What 38i caught on the way
+
+- **The finance summary read a second VAT source.** Orders compute VAT from
+  `TaxRule('COMMISSION')`, and `financeSummary` read `PlatformSetting.vatPct` —
+  a number `/admin/tax` does not touch. Set the rule to 5% and the finance
+  screen kept saying 15%. The same mistake was found and fixed in
+  `order-amounts.ts` months ago, and its sibling here was never looked for. Both
+  read the rule now, proved by moving the rule and watching the screen follow.
+- **Breaking a writer to prove a gate leaves the database in the broken
+  writer's state.** The probe that deleted the `transferAdminFee` write made the
+  test's own restore unable to undo itself, so a 60-riyal admin fee stayed
+  switched on in the dev database and **failed seven unrelated money tests** on
+  the next run. The restore now writes the row directly instead of calling the
+  function under test.
+
+### Open, and not mine to decide
+
+- [ ] **`CommissionRule.scope` is always `'global'`.** The schema allows
+      `plan | dealer | listing_type` and `scopeId` is never written or read, so
+      a per-dealer or per-plan commission cannot exist. Whether commission
+      should vary by dealer or plan is a business rule — asked, not assumed.
+- [ ] **`Integration.configPublic` has no writer and no seeded value**, so the
+      integrations screen's public-config section is always empty. Nothing
+      defines what keys belong in it; building an editor would be inventing the
+      feature rather than operating one.
+
 ### What stays open in this program
 
-- [ ] **Settings screens with missing fields** — measured per screen against the
-      model's columns, not guessed. (Services measured and closed in 38f;
-      ad slots, api-keys and webhooks measured clean in 38h.) (Payouts, provider payouts and campaigns are done;
-      settlements measured as not needing one.)
-- [ ] **Detail pages that do not give 360°** — measured one by one.
-- [ ] **The remaining copy**, screen by screen, in the plain register.
+- [ ] **The remaining copy** — 119 Arabic paragraphs over 90 characters across
+      75 admin files, measured 2026-10-22. The register is the owner's: plain
+      and operational, not the aphoristic one this repository uses in comments.
 
 ## 37 · The auction's bid log, finished — *owner's request 2026-10-20*
 

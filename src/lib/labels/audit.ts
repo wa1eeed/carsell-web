@@ -39,6 +39,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'tax.rule_change_requested': 'طلب تغيير قاعدة ضريبية',
   'tax.rule_changed': 'غير قاعدة ضريبية',
   'payments.processing_fee_changed': 'غير رسم المعالجة',
+  'payments.transfer_fee_changed': 'غير رسم نقل الملكية',
   'payments.gateway_fees_changed': 'غير رسوم بوابة الدفع',
   'payments.provider_fees_changed': 'غير رسوم حسابات المزودين',
   'service.price_changed': 'غير سعر خدمة',

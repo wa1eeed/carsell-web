@@ -6,6 +6,7 @@ import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import {
   getProcessingFee,
+  getTransferFee,
   listGateways,
   listRoutes,
   pendingSwitches,
@@ -17,7 +18,9 @@ import { PAYMENT_PURPOSE_LABEL } from '@/lib/labels/admin';
 import type { PaymentPurpose } from '@/generated/prisma/enums';
 import { getProviderFeePlan } from '@/lib/domain/provider-fees';
 import { GatewayFeesForm } from './GatewayFeesForm';
+import { supplyVatPct } from '@/lib/domain/tax';
 import { ProcessingFeeCard } from './ProcessingFeeCard';
+import { TransferFeeCard } from './TransferFeeCard';
 import { ProviderFeesCard } from './ProviderFeesCard';
 import { ReconciliationTable } from './ReconciliationTable';
 import { RoutesTable } from './RoutesTable';
@@ -36,12 +39,14 @@ export default async function PaymentsRoutingPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [routes, awaiting, gateways, processingFee, providerFees, runs, changes] =
+  const [routes, awaiting, gateways, processingFee, transferFee, adminFeeVatPct, providerFees, runs, changes] =
     await Promise.all([
       listRoutes(),
       pendingSwitches(),
       listGateways(),
       getProcessingFee(),
+      getTransferFee(),
+      supplyVatPct('ADMIN_FEE'),
       getProviderFeePlan(),
       listRuns(),
       routeChanges(),
@@ -158,6 +163,17 @@ export default async function PaymentsRoutingPage() {
 
       <ProcessingFeeCard
         initial={processingFee}
+        canManage={canWrite(admin.role, 'finance.view')}
+      />
+
+      {/*
+        **ورسمُ نقل الملكية رابعٌ لا يُشتقّ من الثلاثة**: حكوميٌّ يُمرَّر
+        كما هو، ورسمُنا فوقه. وثلاثةُ حقولٍ تقرؤها كلُّ صفقة ولم يكن
+        يكتبها شيء — فالرسمُ مجمَّدٌ ورسمُنا مُطفأٌ إلى الأبد.
+      */}
+      <TransferFeeCard
+        initial={transferFee}
+        vatPct={adminFeeVatPct}
         canManage={canWrite(admin.role, 'finance.view')}
       />
 

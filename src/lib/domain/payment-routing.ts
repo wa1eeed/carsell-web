@@ -629,6 +629,93 @@ export async function setProcessingFee(
 }
 
 /**
+ * ═══ رسمُ نقل الملكية — ثلاثةُ حقولٍ تقرؤها كلُّ صفقة ولا يكتبها شيء ═══
+ *
+ * `order-amounts.ts` تقرأ `transferFee` رسمًا حكوميًّا يُمرَّر كما هو،
+ * و`transferAdminFeeEnabled`/`transferAdminFee` رسمَنا الإداريَّ فوقه —
+ * **ولا شاشةَ ولا مسارَ يكتب واحدًا منها**. فالرسمُ مجمَّدٌ على ما
+ * زرعته البذرة، ورسمُنا الإداريُّ مُطفأٌ إلى الأبد.
+ *
+ * **والفصلُ بينهما مقصود**: دمجُ هامشنا داخل `transferFee` يُسقط وصف
+ * «الصرف نيابةً عن العميل» عن المبلغ كلِّه، فتُستحقّ الضريبة على كامله
+ * لا على هامشنا وحده.
+ */
+export type TransferFeeRow = {
+  /** الرسمُ الحكوميّ — صرفٌ نيابةً عن العميل، بلا ضريبةٍ علينا. */
+  fee: string;
+  /** رسمُنا فوقه — **توريدُنا**، وعليه الضريبة. */
+  adminFeeEnabled: boolean;
+  adminFee: string;
+};
+
+export async function getTransferFee(): Promise<TransferFeeRow> {
+  const row = await db.platformSetting.findUnique({ where: { id: 'default' } });
+  return {
+    fee: (row?.transferFee ?? new Prisma.Decimal(0)).toString(),
+    adminFeeEnabled: row?.transferAdminFeeEnabled ?? false,
+    adminFee: (row?.transferAdminFee ?? new Prisma.Decimal(0)).toString(),
+  };
+}
+
+export type TransferFeeResult =
+  | { ok: true; row: TransferFeeRow; openOrders: number }
+  | { ok: false; reason: 'INVALID' };
+
+/**
+ * الحفظ **لا يمسّ طلبًا قائمًا** — `Order.transferFee` لقطةٌ وقت
+ * الإنشاء، كما رسمُ المعالجة. والعدد المُعاد يُري المشغّل ما بقي على
+ * الرسم القديم قبل أن يسأل عنه.
+ */
+export async function setTransferFee(
+  admin: AdminUser,
+  input: { fee: number; adminFeeEnabled: boolean; adminFee: number },
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<TransferFeeResult> {
+  const sane =
+    Number.isFinite(input.fee) &&
+    Number.isFinite(input.adminFee) &&
+    input.fee >= 0 &&
+    input.adminFee >= 0;
+  if (!sane) return { ok: false, reason: 'INVALID' };
+
+  /**
+   * **ورسمٌ مفعَّلٌ بصفرٍ ليس تفعيلًا** — هو رايةٌ تقول «نأخذ» ورقمٌ
+   * يقول «لا شيء»، فيقرأ المشغّل أنه فعّله وهو لم يأخذ ريالًا.
+   */
+  if (input.adminFeeEnabled && input.adminFee <= 0) return { ok: false, reason: 'INVALID' };
+
+  const before = await getTransferFee();
+
+  await db.platformSetting.update({
+    where: { id: 'default' },
+    data: {
+      transferFee: new Prisma.Decimal(input.fee),
+      transferAdminFeeEnabled: input.adminFeeEnabled,
+      transferAdminFee: new Prisma.Decimal(input.adminFee),
+    },
+  });
+
+  const openOrders = await db.order.count({ where: { status: 'ACTIVE' } });
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorType: 'admin',
+      entity: 'PlatformSetting',
+      entityId: 'default',
+      action: 'payments.transfer_fee_changed',
+      before: { ...before },
+      after: { ...input, openOrders },
+      ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true, row: await getTransferFee(), openOrders };
+}
+
+/**
  * ═══ رسومُ البوّابة — ما تأخذه منّا، ويُضبط من اللوحة ═══
  *
  * `resolve.ts` يقول منذ بُني «القدرات من الصفّ لا من المُهايئ: المشغّل

@@ -1,8 +1,8 @@
 import { db } from '@/lib/db';
+import { supplyVatPct } from './tax';
 import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
 import { pct, sum } from './money';
-import { DEFAULT_VAT_PCT } from './tax';
 
 /**
  * A3 — المالية.
@@ -49,8 +49,15 @@ export async function financeSummary(
   from: Date,
   to: Date,
 ): Promise<FinanceSummary> {
-  const platform = await db.platformSetting.findUnique({ where: { id: 'default' } });
-  const vatPct = Number(platform?.vatPct ?? DEFAULT_VAT_PCT);
+  /**
+   * ═══ والنسبةُ من قاعدتها — لا من `PlatformSetting.vatPct` ═══
+   *
+   * كلُّ طلبٍ يحسب ضريبتَه من `TaxRule('COMMISSION')`، وكانت هذه الشاشة
+   * تقرأ رقمًا ثانيًا لا تلمسه شاشةُ الضرائب — **فيُعطَّل الحكمُ من
+   * `/admin/tax` فتبقى اللوحة تقول «١٥٪»**. وهو الخطأ نفسُه الذي أُصلح
+   * في `order-amounts.ts` ولم يُفتَّش عن أخيه هنا.
+   */
+  const vatPct = await supplyVatPct('COMMISSION', to);
   const window = { gte: from, lt: to };
 
   const [orders, serviceRevenue, services, campaigns, escrow, deposits, frozen, subs, plans] =
