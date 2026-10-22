@@ -103,6 +103,19 @@ export function OfferActions({
             <Button size="sm" variant="outline" onClick={() => setCountering(true)}>
               قابل
             </Button>
+            {/*
+              **ورفضٌ صريح** — وكان أمامه «اقبل» و«قابِل» وحدهما، فمن
+              لا يريد العرض يصمت: يبقى المرسِل ثماني وأربعين ساعة ينتظر
+              ردًّا لن يأتي، ويبقى العرض في الصندوق حتى ينقضي.
+            */}
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={pending}
+              onClick={() => send({ action: 'decline' }, 'رفضت العرض، ووصله الخبر.')}
+            >
+              ارفض
+            </Button>
           </>
         ) : (
           <Button

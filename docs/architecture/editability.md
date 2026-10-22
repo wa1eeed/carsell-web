@@ -1,6 +1,6 @@
 # Models the product never edits
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-10-22_
 
 **Generated-adjacent: the list is derived from the code, the reasons are not.**
 Gate 63 reads `scripts/model-writers.mjs`, classifies every model in the schema,
@@ -83,6 +83,16 @@ surely as one that omits a model without one.
   its numbers produce on three sample prices **before** the save — «نسبة الربح
   ٦٪» does not say what «٢٬١٤٠ شهريا» says, and the figure it publishes sits
   under every car on the platform.
+
+## Fields, not only models
+
+The register above is per model, because that is what the gate can check. Two
+**fields** were measured on 2026-10-22 and belong here for the same reason:
+
+| Field | Why it is not editable |
+|---|---|
+| `Integration.configPublic` | **No writer, and no seeded value either** — every row is `null`, so the integrations screen's public-config section renders empty in every environment. Nothing defines what keys belong in it; an editor would be inventing the feature rather than operating one. Recorded, not built. |
+| `CommissionRule.scope` / `scopeId` | The schema allows `plan \| dealer \| listing_type`, and every query filters `scope: 'global'`. Nothing writes or reads `scopeId`, so a per-dealer or per-plan commission cannot exist. **Whether commission should vary by dealer or plan is a business rule**, asked of the owner on 2026-10-22 and not assumed. |
 
 ## What this does not claim
 

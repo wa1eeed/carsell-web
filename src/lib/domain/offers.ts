@@ -234,6 +234,68 @@ export async function withdrawOffer(
   });
 }
 
+export type DeclineResult =
+  | { ok: true }
+  | { ok: false; reason: 'OFFER_NOT_FOUND' | 'NOT_RECIPIENT' | 'NOT_ACTIVE' };
+
+/**
+ * ═══ رفضٌ صريح — والسؤال سُئل ولم يُجَب ═══
+ *
+ * // DESIGN-Q: «أيَرفض البائعُ عرضًا صراحةً؟» (٢٠٢٦-١٠-١٦). كان أمامه
+ * «اقبل» و«قابِل» وحدهما، فمن لا يريد العرض يصمت — **فيبقى المشتري
+ * ثماني وأربعين ساعة ينتظر ردًّا لن يأتي**، ويبقى العرض في صندوق
+ * البائع حتى ينقضي. والقالب `offer.rejected` («رفض عرضك») مزروعٌ منذ
+ * بُني ولا كاتبَ له. نُفِّذ الاقتراح، ويُحذف هذا التعليق عند الجواب.
+ *
+ * **ويرفضه من لم يرسله** — كالقبول حرفًا بحرف: المقابل يحتفظ بـ
+ * `buyerId` الأصليّ، فاشتقاقُ المستقبِل من الدور يجعل البائع يرفض
+ * عرضَ نفسه.
+ *
+ * **والرفضُ لا يمسّ غيره**: عرضٌ واحد يُغلق، وبقيةُ عروض الإعلان
+ * تبقى نشطة — بخلاف القبول الذي يُغلق الباقي ويسحب الإعلان.
+ */
+export async function declineOffer(
+  input: { offerId: string; userId: string },
+  now: Date = new Date(),
+): Promise<DeclineResult> {
+  return db.$transaction(async (tx) => {
+    const offer = await tx.offer.findUnique({
+      where: { id: input.offerId },
+      include: { listing: { select: { sellerId: true } } },
+    });
+
+    if (offer === null) return { ok: false, reason: 'OFFER_NOT_FOUND' };
+
+    /**
+     * المستقبِلُ هو الطرفُ الآخر: إن أرسله المشتري فالبائع، وإن كان
+     * مقابلًا أرسله البائع فالمشتري. ولا يرفض المرسِلُ عرضَه — له
+     * `withdrawOffer`.
+     */
+    const sentBySeller = offer.parentOfferId !== null;
+    const recipient = sentBySeller ? offer.buyerId : offer.listing.sellerId;
+    if (input.userId !== recipient) return { ok: false, reason: 'NOT_RECIPIENT' };
+
+    if (!ACTIVE_STATUSES.includes(offer.status) || offer.expiresAt <= now) {
+      return { ok: false, reason: 'NOT_ACTIVE' };
+    }
+
+    /** **و`autoRejected: false`** — فيُفرَّق الرفضُ المقصود من الآليّ. */
+    await tx.offer.update({
+      where: { id: offer.id },
+      data: { status: 'REJECTED', autoRejected: false },
+    });
+
+    await notify(tx, {
+      userId: offer.buyerId === recipient ? offer.listing.sellerId : offer.buyerId,
+      templateKey: 'offer.rejected',
+      entityType: 'Offer',
+      entityId: offer.id,
+    });
+
+    return { ok: true };
+  });
+}
+
 export type AcceptResult =
   | { ok: true; orderRef: string; closedOffers: number }
   | { ok: false; reason: 'OFFER_NOT_FOUND' | 'NOT_SELLER' | 'NOT_ACTIVE' };

@@ -1,6 +1,6 @@
 # Open work — the owner's list, tracked
 
-_Last updated: 2026-10-20_
+_Last updated: 2026-10-22_
 
 Everything the owner has asked for that is not yet done, so nothing lives only
 in a conversation. Closed items stay here with their commit so the list reads as
@@ -454,7 +454,6 @@ cannot rot into a dumping ground.
 | `auth.otp` | Delivered by SMS, never through `notify`. |
 | `account.iban_required` | The completion banner says it on every account screen, continuously. |
 | `order.payment_overdue` | An overdue order does not survive one scheduler pass. |
-| `offer.rejected` | No manual reject in the design; auto-reject and lost-to-another each have their own key. |
 | `listing.expiring` | **Listings have no expiry in the schema** — no field, no job. A product decision, not a missing line. |
 | `auth.new_device` | Needs device fingerprinting, which the model does not have. |
 | `service.completed` | **Nothing in the product completes a service request** — see § I. |

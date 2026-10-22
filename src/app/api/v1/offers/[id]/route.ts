@@ -2,22 +2,23 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
-import { acceptOffer, counterOffer, withdrawOffer } from '@/lib/domain/offers';
+import { acceptOffer, counterOffer, declineOffer, withdrawOffer } from '@/lib/domain/offers';
 
 export const runtime = 'nodejs';
 
 const Body = z.discriminatedUnion('action', [
   z.object({ action: z.literal('accept') }),
   z.object({ action: z.literal('withdraw') }),
+  z.object({ action: z.literal('decline') }),
   z.object({ action: z.literal('counter'), amount: z.number().int().positive().max(100_000_000) }),
 ]);
 
 /**
- * `PATCH /api/v1/offers/{id}` — قبول أو مقابلة أو سحب.
+ * `PATCH /api/v1/offers/{id}` — قبول أو مقابلة أو رفض أو سحب.
  *
- * فعلٌ واحد لكل نداء، والصلاحية تُفحص في النطاق لا هنا: البائع يقبل
- * ويقابل، والمشتري يسحب. وفحصُها في المسار يعني إعادةَ كتابتها في كل
- * مسار يلمس العرض.
+ * فعلٌ واحد لكل نداء، والصلاحية تُفحص في النطاق لا هنا: من وصله
+ * العرضُ يقبله أو يقابله أو يرفضه، ومن أرسله يسحبه. وفحصُها في المسار
+ * يعني إعادةَ كتابتها في كل مسار يلمس العرض.
  */
 export async function PATCH(
   request: NextRequest,
@@ -43,6 +44,12 @@ export async function PATCH(
     return ok({ withdrawn: true });
   }
 
+  if (parsed.data.action === 'decline') {
+    const result = await declineOffer({ offerId: id, userId: user.id });
+    if (!result.ok) return fail(reasonToError(result.reason), statusFor(result.reason));
+    return ok({ declined: true });
+  }
+
   const result = await counterOffer({
     offerId: id,
     sellerId: user.id,
@@ -57,7 +64,13 @@ export async function PATCH(
   });
 }
 
-type Reason = 'OFFER_NOT_FOUND' | 'NOT_SELLER' | 'NOT_BUYER' | 'NOT_ACTIVE' | 'AMOUNT_INVALID';
+type Reason =
+  | 'OFFER_NOT_FOUND'
+  | 'NOT_SELLER'
+  | 'NOT_BUYER'
+  | 'NOT_RECIPIENT'
+  | 'NOT_ACTIVE'
+  | 'AMOUNT_INVALID';
 
 function reasonToError(reason: Reason) {
   if (reason === 'OFFER_NOT_FOUND') return ERRORS.NOT_FOUND;

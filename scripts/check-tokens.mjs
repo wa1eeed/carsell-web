@@ -2596,8 +2596,6 @@ function checkTemplatesWritten() {
       'بنر اكتمال الملف يطلبه في كل شاشة حساب باستمرار، وهو أبلغ من جرسٍ يمرّ مرّة.',
     'order.payment_overdue':
       'المتأخّر لا يعيش لحظةً: `timeoutUnpaidOrders` تُلغيه في أوّل مرور وترسل `order.payment_timeout`.',
-    'offer.rejected':
-      'لا رفضَ يدويّ في التصميم — والرفض التلقائيّ `offer.auto_rejected` والخسارة لقبول غيره `offer.lost`، ولكلٍّ مفتاحُه.',
     'listing.expiring': 'لا انتهاءَ للإعلان في المخطّط — لا حقل ولا وظيفة. قرارُ منتجٍ لا وصلُ سطر.',
     'auth.new_device': 'يحتاج بصمةَ جهازٍ لا توجد في النموذج.',
   };
