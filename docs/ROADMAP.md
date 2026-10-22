@@ -1867,12 +1867,38 @@ fixed fee could never be switched.
       from it. The API doc generator learned `nativeEnum` so the published
       schema carries the real values.
 
+### 38g — «What did this person do?» had no answer *(done)*
+
+The audit screen filters by **kind** — money, identity, permissions — and never
+by **actor**. So the first question of any investigation («ماذا فعل فلان؟»)
+could not be asked in the panel at all: you read a hundred and twenty rows
+looking for a name. And the team row gave a name, a role and a session count,
+but not where they signed in from or what their role actually grants.
+
+- [x] `/admin/team/{id}` — what they did, their sessions with IP and device and
+      whether each is live, the lock and password state, and **the permissions
+      their role grants, computed from the matrix the guard itself reads**
+      rather than a table written beside it.
+- [x] A session counts as live by **time and revocation together**, not by the
+      column alone — an expired-but-unrevoked session reads as live otherwise.
+- [x] Rows in the list link to it.
+
+### What 38g caught on the way
+
+- **76 of the 80 actions the product writes had no Arabic label.** The policy in
+  `labels/audit.ts` says the raw key stays for what has no label, because
+  `listing.review.approve` tells an investigator more than «إجراء» — a sound
+  rule that **had never been measured**. The exception had become the rule: the
+  audit screen and this new page read as English keys. All 76 are written now,
+  and a test derives the list from `src/` and fails on the first one that is
+  added without a label. It reads `src/` only, the same scope as the existing
+  dead-label gate, so the two cannot disagree about `seed.run`.
+
 ### What stays open in this program
 
 - [ ] **Settings screens with missing fields** — measured per screen against the
       model's columns, not guessed. (Services measured and closed in 38f.)
-- [ ] **Entities with no detail page**: ad slots, team, identity, api-keys,
-      webhooks. (Payouts, provider payouts and campaigns are done;
+- [ ] **Entities with no detail page**: ad slots, identity, api-keys, webhooks. (Payouts, provider payouts and campaigns are done;
       settlements measured as not needing one.)
 - [ ] **Detail pages that do not give 360°** — measured one by one.
 - [ ] **The remaining copy**, screen by screen, in the plain register.

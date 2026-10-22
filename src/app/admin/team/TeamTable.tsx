@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -63,7 +64,16 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
           >
             <div className="flex min-w-0 flex-col gap-1">
               <span className="flex items-center gap-2.5">
-                <span className="bidi-isolate truncate text-sm font-bold">{row.name}</span>
+                {/*
+                  **والصفُّ يُفتح**: «ماذا فعل هذا العضو؟» أوّلُ سؤالٍ في
+                  أيّ تحقيق، وشاشةُ التدقيق تصفّي بالصنف لا بالفاعل.
+                */}
+                <Link
+                  href={`/admin/team/${encodeURIComponent(row.id)}`}
+                  className="bidi-isolate -my-1 truncate py-1 text-sm font-bold underline underline-offset-4 hover:opacity-75"
+                >
+                  {row.name}
+                </Link>
                 {row.id === meId ? <Badge tone="neutral">أنت</Badge> : null}
               </span>
               {/* البريد يُقارن خانةً بخانة — لاتينيّ معزول */}

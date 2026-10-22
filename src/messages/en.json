@@ -437,6 +437,7 @@
     "legalDocs": "{count, plural, one{{n} document} other{{n} documents}}",
     "items": "{count, plural, one{{n} item} other{{n} items}}",
     "serviceRequests": "{count, plural, one{{n} request} other{{n} requests}}",
+    "auditActions": "{count, plural, one{{n} action} other{{n} actions}}",
     "ledgerLines": "{count, plural, one{{n} entry} other{{n} entries}}",
     "events": "{count, plural, one{{n} event} other{{n} events}}",
     "monthsRange": "{count, plural, one{{n} month} other{{n} months}}",

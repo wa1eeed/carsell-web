@@ -151,3 +151,111 @@ export async function revokeMemberSessions(
 
   return { ok: true, revoked: count };
 }
+
+export type MemberDetail = {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRole;
+  status: string;
+  lastSeenAt: string | null;
+  locked: boolean;
+  lockedUntil: string | null;
+  failedAttempts: number;
+  mustChangePassword: boolean;
+  passwordChangedAt: string;
+  /** جلساتُه — الحيّةُ أوّلًا، ولكلٍّ أينَ ومتى. */
+  sessions: {
+    id: string;
+    ip: string | null;
+    userAgent: string | null;
+    createdAt: string;
+    expiresAt: string;
+    revokedAt: string | null;
+    live: boolean;
+  }[];
+  activeSessions: number;
+  /**
+   * ═══ ما فعله هذا العضو ═══
+   *
+   * **ولم يكن يُسأل في موضع**: شاشةُ التدقيق تصفّي بالصنف (مال ·
+   * هوية · صلاحيات) ولا تصفّي بالفاعل، فسؤالُ «ماذا فعل فلان؟» —
+   * وهو أوّلُ ما يُسأل في أيّ تحقيق — لا جواب له في اللوحة.
+   */
+  actions: {
+    id: string;
+    action: string;
+    entity: string;
+    entityId: string;
+    ip: string | null;
+    createdAt: string;
+  }[];
+  actionCount: number;
+};
+
+/** سقفُ ما يُعرض من إجراءاتٍ وجلسات — والعدّادُ يقول العددَ كلَّه. */
+export const MEMBER_ROWS = 40;
+
+export async function memberDetail(
+  id: string,
+  now: Date = new Date(),
+): Promise<MemberDetail | null> {
+  const member = await db.adminUser.findUnique({ where: { id } });
+  if (member === null) return null;
+
+  const [sessions, actions, actionCount] = await Promise.all([
+    db.adminSession.findMany({
+      where: { adminUserId: id },
+      orderBy: { createdAt: 'desc' },
+      take: MEMBER_ROWS,
+      select: {
+        id: true, ip: true, userAgent: true,
+        createdAt: true, expiresAt: true, revokedAt: true,
+      },
+    }),
+    db.auditLog.findMany({
+      where: { actorId: id, actorType: 'admin' },
+      orderBy: { createdAt: 'desc' },
+      take: MEMBER_ROWS,
+      select: { id: true, action: true, entity: true, entityId: true, ip: true, createdAt: true },
+    }),
+    db.auditLog.count({ where: { actorId: id, actorType: 'admin' } }),
+  ]);
+
+  /** **والجلسةُ حيّةٌ بالوقت والإبطال معًا** — لا بالعمود وحده. */
+  const live = (session: { expiresAt: Date; revokedAt: Date | null }): boolean =>
+    session.revokedAt === null && session.expiresAt.getTime() > now.getTime();
+
+  return {
+    id: member.id,
+    name: member.name,
+    email: member.email,
+    role: member.role,
+    status: member.status,
+    lastSeenAt: member.lastSeenAt?.toISOString() ?? null,
+    locked: member.lockedUntil !== null && member.lockedUntil.getTime() > now.getTime(),
+    lockedUntil: member.lockedUntil?.toISOString() ?? null,
+    failedAttempts: member.failedAttempts,
+    mustChangePassword: member.mustChangePassword,
+    passwordChangedAt: member.passwordChangedAt.toISOString(),
+    sessions: sessions.map((session) => ({
+      id: session.id,
+      ip: session.ip,
+      userAgent: session.userAgent,
+      createdAt: session.createdAt.toISOString(),
+      expiresAt: session.expiresAt.toISOString(),
+      revokedAt: session.revokedAt?.toISOString() ?? null,
+      live: live(session),
+    })),
+    activeSessions: sessions.filter(live).length,
+    actions: actions.map((row) => ({
+      id: row.id,
+      action: row.action,
+      entity: row.entity,
+      entityId: row.entityId,
+      ip: row.ip,
+      createdAt: row.createdAt.toISOString(),
+    })),
+    actionCount,
+  };
+}
