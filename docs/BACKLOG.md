@@ -214,12 +214,20 @@ domain, audited, walked end to end).
   supply and the reason, and the empty state says «لا فاتورة صدرت» with a
   pointer rather than implying nothing settled.
 
-- [ ] **The platform charges zero.** `CommissionRule` is 0% + 0 fixed on the
-  seller side, the buyer side is disabled, and completed orders carry
-  `commissionAmount: 0`, `transferAdminFee: 0`, `processingFee: 0` — on a 70,810
-  SAR sale, CARZ earns nothing. The screen says «كلها مجانية اليوم · العمولة
-  صفر», so it is honest, not broken: the number is unset. Owner's decision
-  before launch.
+- [x] **The platform does charge — this entry was stale and said otherwise.**
+  Re-measured 2026-10-22 against the database, not the prose: the **buyer** rule
+  is **enabled at 2.5%**, the seller rule is enabled at 0%, and real orders
+  carry it. On a 94,575 SAR sale the buyer pays 2,364.38 commission plus 354.66
+  VAT on it; the seller has nothing deducted. The mechanism is exactly what the
+  owner described — the panel sets the rate per side, either side or both can
+  bear it, and VAT is computed **on our commission only** (`FEE_ONLY`), never on
+  the vehicle. What remains unset is `transferAdminFee` and `processingFee`,
+  both zero by configuration, and both now settable (§38i).
+
+  **The lesson is the entry itself.** It was written when both sides were zero
+  and read a month later as a description of today, and it was quoted back to
+  the owner as «the platform earns nothing». A sentence about a configured
+  number must be dated and measured, or not written in the present tense.
 - [ ] **No tax invoice can be issued for a vehicle sale.** Four rules sit in
   `AWAITING_MEMO` pending the «المورِّد المفترض» classification, so `VEHICLE`
   issuance is blocked by `RULE_AWAITING_APPROVAL`; with commission at zero there
