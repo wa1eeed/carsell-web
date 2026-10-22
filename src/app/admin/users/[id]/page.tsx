@@ -285,7 +285,7 @@ export default async function AdminUserDetailPage({
             >
               {user.ledger.length === 0 ? (
                 <p className="text-2xs opacity-70">
-                  لا قيود — ولم تمر عليه صفقة مدفوعة بعد.
+                  لا قيود عليه. لم تمر عليه صفقة مدفوعة بعد.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
@@ -478,7 +478,7 @@ export default async function AdminUserDetailPage({
                 </Link>
               ) : null}
               <p className="mt-2 text-3xs opacity-65">
-                رقم الهوية لا يعرض هنا — قراءته تمر بمسارها المقيد وتسجل.
+                رقم الهوية لا يعرض هنا. قراءته تمر بمسارها المقيد وتسجل.
               </p>
             </DetailCard>
           </>

@@ -200,8 +200,8 @@ export function ReportsQueue({
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        <b>البلاغ لا يحذف إعلانا.</b> يحيله إلى مراجعة بشرية — والحذف بمجرد بلاغ يجعله
-        سلاحا بيد منافس. وصاحب الإعلان لا يعرف من أبلغ.
+        <b>البلاغ لا يحذف إعلانا.</b> يحيله إلى مراجعة بشرية، وصاحب الإعلان لا
+        يعرف من أبلغ.
       </p>
 
       <Modal
@@ -246,7 +246,7 @@ export function ReportsQueue({
                 disabled={pending || note.trim().length < MIN_REPORT_NOTE}
                 onClick={() => decide(open, 'ACTIONED')}
               >
-                اتخذ إجراء — أغلق
+                اتخذ إجراء وأغلق
               </Button>
               <Button
                 variant="outline"

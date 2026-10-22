@@ -166,7 +166,7 @@ export default async function AdminServiceRequestDetailPage({
             <DetailCard title="المال">
               {request.payment === null ? (
                 <p className="text-2xs leading-loose opacity-70">
-                  لم يدفع بعد — ولا فاتورة قبل الدفع.
+                  لم يدفع بعد. ولا فاتورة قبل الدفع.
                 </p>
               ) : (
                 <>
@@ -258,7 +258,7 @@ export default async function AdminServiceRequestDetailPage({
             <DetailCard title="المزود">
               {request.provider === null ? (
                 <p className="text-2xs opacity-70">
-                  لم يسند بعد — والإسناد آلي لمزود مفعل في مدينة العميل بأقل حمل.
+                  لم يسند بعد. الإسناد آلي لمزود مفعل في مدينة العميل بأقل حمل.
                 </p>
               ) : (
                 <>

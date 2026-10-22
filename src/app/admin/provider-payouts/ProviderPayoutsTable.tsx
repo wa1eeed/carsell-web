@@ -28,11 +28,11 @@ import type { PayableProvider, ProviderPayoutRow } from '@/lib/domain/provider-p
  */
 
 const REASON: Record<string, string> = {
-  NO_IBAN: 'المزود بلا آيبان مسجل — يدخل من صفحته أولا.',
+  NO_IBAN: 'المزود بلا آيبان مسجل. أدخله من صفحته أولا.',
   EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة — يعتمد أو يلغى أولا.',
-  BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية — وبه تطابق بكشف البنك.',
+  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة. أقفله أو ألغه أولا.',
+  BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية. به تطابقها بكشف البنك.',
   NOT_PENDING: 'لم يبق الطلب منتظرا — أعتمد أو ألغي.',
   EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
   REASON_REQUIRED: 'اكتب سبب الإلغاء.',
@@ -109,7 +109,7 @@ export function ProviderPayoutsTable({
       }
       setApproving(null);
       setBankRef('');
-      setToast('سجلت الحوالة — وخصم دين المزود من الدفتر.');
+      setToast('سجلت الحوالة. خصم دين المزود من الدفتر.');
       router.refresh();
     });
   };
@@ -351,8 +351,8 @@ export function ProviderPayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح الطلب فقط. نفذ الحوالة من البنك،
-              ثم أدخل مرجعها هنا لتكتمل.
+              هذه الضغطة تفتح الطلب فقط و<b>لا تحرك المبلغ</b>. نفذ الحوالة من البنك،
+              ثم أدخل مرجعها هنا ليكتمل الطلب.
             </p>
             <Button className="w-full" disabled={pending} onClick={request}>
               {pending ? 'جاري…' : 'افتح الطلب'}
@@ -382,7 +382,7 @@ export function ProviderPayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              بهذا التسجيل <b>يخصم دين المزود</b> من دفتر الحسابات — فلا تسجلها قبل أن
+              بهذا التسجيل <b>يخصم دين المزود</b> من دفتر الحسابات. لا تسجلها قبل أن
               تخرج الحوالة فعلا من البنك.
             </p>
             <Button className="w-full" disabled={pending} onClick={approve}>

@@ -114,8 +114,8 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
       >
         <div className="flex flex-col gap-4">
           <p className="rounded-md border border-line p-3 text-3xs leading-loose opacity-75">
-            <b>الشريحة حية</b> — تعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل الرسالة
-            لمن خرج من شرطها بين اللحظتين.
+            <b>الشريحة حية:</b> تعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل
+            الرسالة لمن خرج من شرطها بين اللحظتين.
           </p>
 
           <label className="flex flex-col gap-1.5">

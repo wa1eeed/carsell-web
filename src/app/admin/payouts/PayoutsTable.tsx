@@ -26,11 +26,11 @@ import type { PayableSeller, PayoutRow } from '@/lib/domain/payouts';
 
 
 const REASON: Record<string, string> = {
-  NO_IBAN: 'البائع لم يدخل آيبانه بعد — ولا تحويل بلا آيبان.',
+  NO_IBAN: 'البائع لم يدخل آيبانه بعد. لا تحويل قبله.',
   EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة — يعتمد أو يلغى أولا.',
-  BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية — وبه تطابق بكشف البنك.',
+  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة. أقفله أو ألغه أولا.',
+  BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية. به تطابقها بكشف البنك.',
   NOT_PENDING: 'لم يبق الطلب منتظرا — أعتمد أو ألغي.',
   EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
 };
@@ -97,7 +97,7 @@ export function PayoutsTable({
       }
       setApproving(null);
       setBankRef('');
-      setToast('سجلت الحوالة — وصفر حق البائع في الدفتر.');
+      setToast('سجلت الحوالة. صفر حق البائع في الدفتر.');
       router.refresh();
     });
   };
@@ -322,8 +322,8 @@ export function PayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح الطلب فقط. نفذ الحوالة من البنك،
-              ثم أدخل مرجعها هنا لتكتمل.
+              هذه الضغطة تفتح الطلب فقط و<b>لا تحرك المبلغ</b>. نفذ الحوالة من البنك،
+              ثم أدخل مرجعها هنا ليكتمل الطلب.
             </p>
             <Button className="w-full" disabled={pending} onClick={request}>
               {pending ? 'جاري…' : 'افتح الطلب'}
@@ -353,7 +353,7 @@ export function PayoutsTable({
               />
             </label>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-              بهذا التسجيل <b>يصفر حق البائع</b> في دفتر الحسابات — فلا تسجلها قبل أن
+              بهذا التسجيل <b>يصفر حق البائع</b> في دفتر الحسابات. لا تسجلها قبل أن
               تخرج الحوالة فعلا من البنك.
             </p>
             <Button className="w-full" disabled={pending} onClick={approve}>

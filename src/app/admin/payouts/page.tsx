@@ -63,7 +63,7 @@ export default async function PayoutsPage() {
       <ListFooter
         shown={owed.length + history.length}
         total={null}
-        note="المستحق من دفتر الحسابات — لا من مجموع الطلبات"
+        note="المستحق محسوب من دفتر الحسابات، لا من مجموع الطلبات"
         can="طلب تحويل مستحقات بائع، واعتماد طلب غيرك بعد تنفيذ الحوالة."
         cannot="تحويل لبائع لم يدخل آيبانه، أو إقفال طلب بلا مرجع حوالة."
       />

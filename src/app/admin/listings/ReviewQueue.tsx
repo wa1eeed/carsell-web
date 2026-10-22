@@ -177,7 +177,7 @@ export function ReviewQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا شيء ينتظر المراجعة"
-          description="القائمة للمرشح آليا وحده — وأكثر الإعلانات تنشر بلا مروره."
+          description="لا تدخل القائمة إلا الإعلانات التي ترشحها القواعد. وأكثرها ينشر بلا مراجعة."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -233,8 +233,8 @@ export function ReviewQueue({
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
-        هذه القائمة <b>للإعلانات المرشحة تلقائيا فقط</b> — ولو مر به كل إعلان لتوقف السوق. راجع
-        قواعد الترشيح إذا تجاوزت القائمة خمسين إعلانا.
+        هذه القائمة <b>للإعلانات المرشحة تلقائيا فقط</b>. راجع قواعد الترشيح إذا
+        تجاوزت القائمة خمسين إعلانا.
       </p>
 
       <Modal

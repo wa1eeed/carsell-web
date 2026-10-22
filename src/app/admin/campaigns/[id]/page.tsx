@@ -170,7 +170,7 @@ export default async function AdminCampaignPage({
             >
               {campaign.subjectAr === null && campaign.bodyAr === null ? (
                 <p className="text-2xs leading-loose opacity-75">
-                  لا نص لهذه الحملة بعد — وإرسالها الآن يخرج بلا محتوى. اكتب عنوانها
+                  لا نص لهذه الحملة بعد، وإرسالها الآن يخرج بلا محتوى. اكتب عنوانها
                   ونصها قبل الإرسال.
                 </p>
               ) : (

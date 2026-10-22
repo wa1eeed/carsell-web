@@ -67,12 +67,12 @@ export default async function IntegrationsPage() {
         <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">حوكمة المفاتيح</h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>السر لا يعرض كاملا أبدا</strong> — ولا حتى لمن كتبه. ما تراه تلميح
-            مشتق وقت الحفظ ومخزن نصا عاديا، فالعرض لا يمر بالتشفير أصلا.
+            <strong>السر لا يعرض كاملا أبدا</strong>، ولا حتى لمن كتبه. ما تراه
+            تلميح مشتق وقت الحفظ.
           </li>
           <li>الأسرار مخزنة بـAES-256-GCM، والعبث بالنص المشفر يكشف ولا يفك إلى قمامة.</li>
           <li>
-            <strong>كل تدوير يسجل</strong> — باسم من نفذه ووقته. والمفتاح الجديد يشفر
+            <strong>كل تدوير يسجل</strong> باسم من نفذه ووقته. والمفتاح الجديد يشفر
             قبل أن يخزن، ولا يعرض بعدها.
           </li>
           <li>التدوير يسري فور تنفيذه، والمفتاح القديم يتوقف في حينه.</li>
@@ -83,8 +83,8 @@ export default async function IntegrationsPage() {
       <section className="mt-4 rounded-lg border border-line bg-surface p-5.5">
         <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">سلوك التعطل</h2>
         <p className="text-sm leading-loose opacity-72">
-          لكل تكامل مسار بديل معلن، مكتوب في صفه أعلاه ومخزن معه لا في هذه الفقرة —
-          <strong> لا شاشة خطأ بلا مخرج</strong>. وسطر في وثيقة لا ينفذ؛ الحقل يقرأ.
+          لكل تكامل مسار بديل معلن، مكتوب في صفه أعلاه. <strong>فلا شاشة خطأ بلا
+          مخرج</strong> حين يتعطل تكامل.
         </p>
       </section>
     </AdminShell>

@@ -87,11 +87,11 @@ const EVENT_LABEL: Record<string, string> = {
 
 /** سبب الحجب — ويُقرأ بعد شهورٍ في مطابقة، فيُكتب بلغةٍ تُفهم. */
 const BLOCKED_REASON: Record<string, string> = {
-  NO_MATCHING_RULE: 'لا قاعدة ضريبية تطابق البائع والمشتري — تكتب قاعدة',
-  RULE_AWAITING_APPROVAL: 'القاعدة المطابقة معطلة — تقر من شاشة الضريبة',
+  NO_MATCHING_RULE: 'لا قاعدة ضريبية تطابق البائع والمشتري. اكتب قاعدة لهما',
+  RULE_AWAITING_APPROVAL: 'القاعدة المطابقة معطلة. فعلها من شاشة الضريبة',
   INVOICED_WITH_ITS_OWN_PAYMENT: 'تفوتر مع دفعتها المستقلة',
   MARGIN_NOT_APPROVED: 'نظام الهامش غير معتمد لهذا التاجر',
-  OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة — لا فاتورة لها',
+  OUT_OF_SCOPE_NO_INVOICE: 'خارج نطاق الضريبة، فلا فاتورة لها',
   ALREADY_ISSUED: 'صدرت من قبل',
 };
 
@@ -339,8 +339,7 @@ export default async function AdminOrderDetailPage({
                 strong
               />
               <p className="mt-3 text-3xs leading-loose opacity-70">
-                صافي البائع من القاعدة نفسها التي يقرؤها كشف التسوية وصفحة أرباحه — ولا
-                يحسب هنا مرة ثانية.
+                هذا الرقم نفسه يظهر في كشف التسوية وفي صفحة أرباح البائع.
               </p>
             </DetailCard>
 
@@ -357,7 +356,7 @@ export default async function AdminOrderDetailPage({
               >
                 {order.ledger.length === 0 ? (
                   <p className="text-2xs opacity-70">
-                    لا قيد على هذا الطلب — والقيد يكتب عند حجز المبلغ لا عند إنشاء الطلب.
+                    لا قيد على هذا الطلب بعد. تكتب القيود عند حجز مبلغ الضمان.
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
@@ -443,8 +442,8 @@ export default async function AdminOrderDetailPage({
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1.5 text-sm font-bold">خط الزمن</h2>
           <p className="mb-5 max-w-xl text-3xs leading-loose opacity-70">
-            أحداث الطلب والدفعات والضمان والفواتير والنزاعات وأثر الفريق في تسلسل
-            واحد — والأقدم أولا، فالقصة تقرأ من بدايتها.
+            أحداث الطلب والدفعات والضمان والفواتير والنزاعات وما فعله الفريق، مرتبة
+            من الأقدم إلى الأحدث.
           </p>
           <Timeline events={events} />
         </section>

@@ -121,7 +121,7 @@ export function IdentityQueue({
       {rows.length === 0 ? (
         <EmptyState
           title="لا أحد ينتظر التوثيق"
-          description="ما يصل هنا هو الإدخال اليدوي والسجل التجاري — وكله يمر بمراجعة إنسان."
+          description="يصل هنا الإدخال اليدوي والسجل التجاري. وكله يراجعه إنسان."
         />
       ) : (
         <div className="flex flex-col divide-y divide-line border-y border-line">
@@ -242,7 +242,7 @@ export function IdentityQueue({
 
             <label className="flex flex-col gap-1.5">
               <span className="text-2xs font-bold opacity-70">
-                ما الذي ينقص أو يمنع؟ — يقرؤه صاحبه
+                ما الذي ينقص أو يمنع؟ يقرؤه صاحب الطلب
               </span>
               <textarea
                 rows={3}

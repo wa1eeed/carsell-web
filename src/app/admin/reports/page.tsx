@@ -41,8 +41,8 @@ export default async function AdminReportsPage({
     <AdminShell title="البلاغات"
       subtitle="البلاغات وما أحيل منها" activeHref="/admin/reports" admin={admin}>
       <p className="mb-7 max-w-xl text-sm leading-loose opacity-70">
-        ما أبلغ عنه المستخدمون — إعلانا أو حسابا. والبلاغ يحيل إلى مراجعة بشرية ولا
-        يحذف شيئا بنفسه.
+        ما أبلغ عنه المستخدمون من إعلانات وحسابات. والبلاغ يحيل إلى مراجعة بشرية
+        ولا يحذف شيئا بنفسه.
       </p>
 
       <ReportsQueue rows={rows} stats={stats} status={filter} />
@@ -52,7 +52,7 @@ export default async function AdminReportsPage({
         total={null}
         note="البلاغات ومآلها"
         can="إحالة البلاغ إلى مراجعة الإعلان، أو إغلاقه بإجراء، أو صرفه."
-        cannot="إيقاف حساب المبلغ عنه من هنا — ذلك من شاشة العملاء بصلاحيتها."
+        cannot="إيقاف حساب المبلغ عنه من هنا. موضعه شاشة العملاء بصلاحيتها."
       />
     </AdminShell>
   );

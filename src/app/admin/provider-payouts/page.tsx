@@ -62,7 +62,7 @@ export default async function ProviderPayoutsPage() {
       <ListFooter
         shown={owed.length + history.length}
         total={null}
-        note="المستحق من دفتر الحسابات — لا من مجموع الطلبات المنجزة"
+        note="المستحق محسوب من دفتر الحسابات، لا من مجموع الطلبات المنجزة"
         can="طلب تحويل مستحق مزود، واعتماد طلب غيرك بعد تنفيذ الحوالة."
         cannot="تحويل لمزود بلا آيبان مسجل، أو إقفال طلب بلا مرجع حوالة."
       />

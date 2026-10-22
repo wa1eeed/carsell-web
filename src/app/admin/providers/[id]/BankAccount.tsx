@@ -24,16 +24,16 @@ import type { PendingProviderPayout, ProviderPayoutLine } from '@/lib/domain/pro
  */
 
 const IBAN_REASON: Record<string, string> = {
-  INVALID_FORMAT: 'الصيغة غير صحيحة — آيبان سعودي من ٢٤ خانة يبدأ بـSA.',
+  INVALID_FORMAT: 'الصيغة غير صحيحة. الآيبان السعودي ٢٤ خانة تبدأ بـSA.',
   NOT_SAUDI: 'الآيبان ليس سعوديا.',
-  CHECKSUM: 'خانتا التحقق لا تطابقان الرقم — راجع خانة خانة.',
+  CHECKSUM: 'خانتا التحقق لا تطابقان الرقم. راجعه خانة خانة.',
 };
 
 const PAYOUT_REASON: Record<string, string> = {
   NO_IBAN: 'لا آيبان مسجل — يدخل أولا.',
   EXCEEDS_PAYABLE: 'المبلغ أكبر من حقه القائم.',
   BAD_AMOUNT: 'المبلغ غير صحيح.',
-  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة — يعتمد أو يلغى أولا.',
+  ALREADY_PENDING: 'له طلب مفتوح ينتظر مرجع الحوالة. أقفله أو ألغه أولا.',
   BANK_REF_REQUIRED: 'اكتب مرجع الحوالة البنكية.',
   NOT_PENDING: 'لم يبق الطلب منتظرا.',
   EXPIRED: 'انقضت مهلة الطلب — يفتح طلب جديد.',
@@ -188,7 +188,7 @@ export function BankAccount({
           <>
             <label className="flex flex-col gap-2">
               <span className="text-3xs opacity-70">
-                آيبان سعودي — يلصق بمسافاته كما هو من تطبيق المصرف
+                آيبان سعودي. الصقه بمسافاته كما هو من تطبيق المصرف
               </span>
               {/*
                 `dir="ltr"` — يُنسخ من مصدرٍ لاتينيّ ويُقارن خانةً بخانة.
@@ -224,7 +224,7 @@ export function BankAccount({
         <span className="text-3xs opacity-70">مستحق ولم يحول</span>
         <Money amount={owed} size="lg" decimals={2} />
         <p className="mt-1 text-3xs leading-loose opacity-70">
-          من دفتر الحسابات — ينمو بكل خدمة ينجزها، وينقص بما حول إليه.
+          من دفتر الحسابات. ينمو بكل خدمة ينجزها، وينقص بما حول إليه.
         </p>
       </div>
 
@@ -238,7 +238,7 @@ export function BankAccount({
           {pending.requestedBy === meId ? (
             <>
               <p className="text-3xs leading-loose opacity-70">
-                أنت الطالب — يعتمده غيرك. ولك إلغاؤه.
+                أنت الطالب، فيعتمده غيرك. ولك إلغاؤه.
               </p>
               <Button size="sm" variant="outline" disabled={busy} onClick={cancel}>
                 ألغ الطلب
@@ -258,7 +258,7 @@ export function BankAccount({
                 />
               </label>
               <p className="text-3xs leading-loose opacity-70">
-                بهذا التسجيل <b>يخصم الدين</b> — فلا تسجلها قبل أن تخرج الحوالة فعلا.
+                بهذا التسجيل <b>يخصم الدين</b>. لا تسجلها قبل أن تخرج الحوالة فعلا.
               </p>
               <Button size="sm" disabled={busy || bankRef.trim().length < 4} onClick={approve}>
                 {busy ? 'جاري…' : 'سجل الحوالة'}
@@ -269,7 +269,7 @@ export function BankAccount({
       ) : !canSend || owed <= 0 ? null : ibanMasked === null ? (
         <div className="border-b border-line py-4">
           <p className="text-3xs leading-loose opacity-70">
-            لا تحويل قبل الآيبان — أدخله أعلاه.
+            لا تحويل قبل الآيبان. أدخله أعلاه.
           </p>
         </div>
       ) : (
@@ -285,8 +285,8 @@ export function BankAccount({
             />
           </label>
           <p className="text-3xs leading-loose opacity-70">
-            هذه الضغطة <b>لا تحرك المبلغ</b> — تفتح الطلب فقط. نفذ الحوالة من البنك،
-            ثم أدخل مرجعها هنا لتكتمل.
+            هذه الضغطة تفتح الطلب فقط و<b>لا تحرك المبلغ</b>. نفذ الحوالة من البنك،
+            ثم أدخل مرجعها هنا ليكتمل الطلب.
           </p>
           <Button size="sm" disabled={busy} onClick={requestPayout}>
             {busy ? 'جاري…' : 'اطلب التحويل'}

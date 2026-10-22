@@ -171,8 +171,8 @@ export function DisputesQueue({
         {target === null ? null : (
           <div className="flex flex-col gap-4">
             <p className="rounded-md border border-warn-200 bg-warn-100 p-3 text-2xs leading-loose text-warn-900">
-              القرار ينفذ بضغطك: يتحرك الضمان بحسب ما اخترت، ويقيد
-              تلقائيا حين يكتمل النصاب — ولا تحويل يدوي بعده.
+              القرار ينفذ بضغطك: يتحرك الضمان بحسب ما اخترت ويقيد تلقائيا. ولا
+              تحويل يدوي بعده.
             </p>
 
             <p className="flex items-baseline gap-2 text-2xs">
@@ -201,7 +201,7 @@ export function DisputesQueue({
             {resolution !== 'PARTIAL_SETTLEMENT' ? null : (
               <label className="flex flex-col gap-1.5">
                 <span className="text-2xs font-bold opacity-70">
-                  مبلغ التسوية — دون الإجمالي
+                  مبلغ التسوية، دون الإجمالي
                 </span>
                 <input
                   dir="ltr"

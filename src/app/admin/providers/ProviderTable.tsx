@@ -342,7 +342,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                 />
               </Field>
 
-              <Field label="الالتزام بالساعات — فارغ يعني بلا التزام" error={errors.slaHours}>
+              <Field label="الالتزام بالساعات. اتركه فارغا لبلا التزام" error={errors.slaHours}>
                 <input
                   dir="ltr"
                   inputMode="numeric"
@@ -354,7 +354,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
               </Field>
             </div>
 
-            <Field label="المدن — افصلها بفاصلة. والفراغ يعني كل المدن" error={errors.cities}>
+            <Field label="المدن، افصلها بفاصلة. اتركه فارغا لكل المدن" error={errors.cities}>
               <input
                 value={draft.cities}
                 onChange={(e) => setDraft({ ...draft, cities: e.target.value })}
@@ -369,7 +369,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
               سيُكمله المزوّد — ودمجُهما يجعل حفظَ هاتفٍ يُعطّل شركةً سهوًا.
             */}
             <p className="text-3xs opacity-65">
-              التفعيل والتعطيل من زر الصف — فله أثر على الإسناد الجاري.
+              التفعيل والتعطيل من زر الصف، لأثرهما على الإسناد الجاري.
             </p>
           </div>
         )}

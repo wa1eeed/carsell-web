@@ -80,7 +80,7 @@ export function SendCampaignButton({
           تسترد، ويستهلك بها سقف الشهر لكل من وصلته.
         </p>
         <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
-          ومن تجاوز سقفه الشهري أو لم تمض تهدئته يحجب تلقائيا — ويقال عددهم
+          ومن تجاوز سقفه الشهري أو لم تمض تهدئته يحجب تلقائيا، ويقال عددهم
           بعد الإرسال.
         </p>
         <div className="flex gap-2.5">

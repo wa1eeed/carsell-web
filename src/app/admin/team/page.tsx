@@ -36,8 +36,8 @@ export default async function AdminTeamPage() {
       */}
       <div className="mb-7 max-w-xl text-sm leading-loose opacity-70">
         <p>
-          من في الفريق وبأي دور. <b>ولا ينشأ عضو ولا يرفع دور من هنا</b> — ذلك يمر
-          بمتغيرات النشر، فمن سرق جلسة لا يصنع لنفسه حسابا ثانيا.
+          من في الفريق وبأي دور. <b>ولا ينشأ عضو ولا يرفع دور من هنا</b>، بل من
+          متغيرات النشر. فمن سرق جلسة لا يصنع لنفسه حسابا ثانيا.
         </p>
         <p className="mt-1.5">
           والإضافة بـ<code className="font-num text-2xs opacity-80" dir="ltr">ADMIN_TEAM</code> في
@@ -160,8 +160,9 @@ export default async function AdminTeamPage() {
         <div className="min-w-2xs max-w-md flex-1 rounded-xl border border-line px-5 py-5">
           <h3 className="mb-3 text-3xs font-bold tracking-wider opacity-65">لا استثناء فيها</h3>
           <p className="text-2xs leading-loose opacity-75">
-            لا تسجيل ذاتي ولا استرجاع كلمة بالبريد · 5 محاولات فاشلة ⇒ قفل 15 دقيقة ·
-            تبديل الكلمة أو الدور يبطل جلسات العضو فورا · وكل تعيين يكتب في سجل التدقيق.
+            لا تسجيل ذاتي ولا استرجاع كلمة بالبريد. خمس محاولات فاشلة تقفل الحساب
+            ربع ساعة. وتبديل الكلمة أو الدور يبطل جلسات العضو فورا. وكل تعيين يكتب
+            في سجل التدقيق.
           </p>
         </div>
       </div>

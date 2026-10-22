@@ -27,8 +27,8 @@ import type { SettlementBlock, SettlementRow } from '@/lib/domain/settlement-que
 
 const BLOCK_LABEL: Record<SettlementBlock, string> = {
   NOT_TRANSFERRED: 'لم تؤكد ملكية المركبة بعد',
-  DISPUTED: 'نزاع قائم — المبلغ مجمد حتى يحسم',
-  GATEWAY_UNAVAILABLE: 'بوابة الحجز بلا وصلة — الإفراج يسقط ولو وافق عضوان',
+  DISPUTED: 'نزاع قائم، والمبلغ مجمد حتى يحسم',
+  GATEWAY_UNAVAILABLE: 'بوابة الحجز بلا وصلة، فالإفراج يسقط',
 };
 
 export function SettlementsTable({
@@ -70,7 +70,7 @@ export function SettlementsTable({
       setToast(
         requestId === undefined
           ? 'أفرج عن المبلغ إلى البائع.'
-          : 'اكتمل النصاب — أفرج عن المبلغ إلى البائع.',
+          : 'اكتمل النصاب، وأفرج عن المبلغ إلى البائع.',
       );
       router.refresh();
     });

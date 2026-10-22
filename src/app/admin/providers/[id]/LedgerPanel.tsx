@@ -119,7 +119,7 @@ export function LedgerPanel({
 
           {pending.requestedBy === meId ? (
             <p className="text-3xs opacity-70">
-              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
+              أنت طلبته، ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
             </p>
           ) : canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>

@@ -98,7 +98,7 @@ export function StaffActions({
         <div className="mb-4 rounded-lg border border-line bg-surface p-4">
           <p className="mb-2 text-2xs font-bold">كلمة الدخول المؤقتة</p>
           <p className="mb-2.5 text-3xs leading-loose opacity-75">
-            انسخها الآن وسلمها للمزود — <b>لا تظهر مرة أخرى</b>، ويجبر على
+            انسخها الآن وسلمها للمزود. <b>لا تظهر مرة أخرى</b>، ويجبر على
             تغييرها عند أول دخول.
           </p>
           <p dir="ltr" className="bidi-ltr mb-1 font-num text-2xs opacity-70">{shown.email}</p>

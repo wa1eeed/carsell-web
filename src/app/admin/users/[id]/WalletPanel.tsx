@@ -68,7 +68,7 @@ export function WalletPanel({
           field === 'INSUFFICIENT_BALANCE'
             ? 'الرصيد أقل من مبلغ الخصم.'
             : field === 'ALREADY_PENDING'
-              ? 'يوجد طلب معلق لهذا العميل — يبت فيه أولا.'
+              ? 'لهذا العميل طلب معلق. ابت فيه أولا.'
               : field === 'REASON_TOO_SHORT'
                 ? 'اكتب سببا أوضح.'
                 : 'تعذر إرسال الطلب.',
@@ -125,7 +125,7 @@ export function WalletPanel({
 
           {pending.requestedBy === meId ? (
             <p className="text-3xs opacity-70">
-              أنت طلبته — ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
+              أنت طلبته، ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
             </p>
           ) : canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>

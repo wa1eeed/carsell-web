@@ -100,7 +100,7 @@ export default async function AdminReportDetailPage({
             <DetailCard title="نص البلاغ">
               {report.details === null || report.details === '' ? (
                 <p className="text-2xs opacity-70">
-                  بلا تفصيل — والمبلغ اختار سببا ولم يكتب شيئا.
+                  بلا تفصيل. اختار المبلغ سببا ولم يكتب شيئا.
                 </p>
               ) : (
                 <p className="text-2xs leading-loose">{report.details}</p>
@@ -138,7 +138,7 @@ export default async function AdminReportDetailPage({
               <Field label="المرجع" value={report.targetRef ?? report.targetId} ltr />
               {targetHref === null ? (
                 <p className="mt-3 text-3xs opacity-65">
-                  لا شاشة لهذا النوع بعد — والمعرف أعلاه.
+                  لا شاشة لهذا النوع بعد. المعرف أعلاه.
                 </p>
               ) : (
                 <Link

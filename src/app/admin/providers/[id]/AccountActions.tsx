@@ -316,8 +316,8 @@ export function AccountActions({
         </div>
         {docsComplete ? null : (
           <p className="text-3xs leading-loose opacity-70">
-            المستندات ترفعها المنشأة في لوحة البوابة بالدعوة التي وصلت بريد مديرها — ثم يحدث
-            الحال من هنا.
+            ترفع المنشأة مستنداتها في لوحة البوابة بالدعوة التي وصلت بريد مديرها،
+            ثم تحدث الحال من هنا.
           </p>
         )}
         {documents === null || documents.length === 0 ? null : (

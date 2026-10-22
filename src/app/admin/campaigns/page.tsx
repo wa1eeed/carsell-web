@@ -101,7 +101,7 @@ export default async function CampaignsPage({
             {campaigns.length === 0 ? (
               <tr>
                 <td colSpan={9} className="p-6 text-center opacity-65">
-                  لا حملات بعد — الإرسال يفعل مع التطبيق.
+                  لا حملات بعد. الإرسال يفعل مع التطبيق.
                 </td>
               </tr>
             ) : (
@@ -172,7 +172,7 @@ export default async function CampaignsPage({
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {segments.length === 0 ? (
           <p className="text-2xs opacity-65">
-            لا شرائح معرفة بعد — وأول شريحة تعرف من «عرف شريحة».
+            لا شرائح معرفة بعد. عرف أول شريحة من الزر أعلاه.
           </p>
         ) : (
           segments.map((segment) => (
@@ -198,8 +198,8 @@ export default async function CampaignsPage({
         </h2>
         <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
           <li>
-            <strong>الشريحة حية</strong> — تعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا تصل
-            الرسالة لمن خرج من شرطها بين اللحظتين.
+            <strong>الشريحة حية:</strong> تعاد حوسبتها وقت الإرسال لا وقت الحفظ، فلا
+            تصل الرسالة لمن خرج من شرطها بين اللحظتين.
           </li>
           <li>
             حد أقصى <Quantity unit="messages" count={MARKETING_CAP_PER_MONTH} /> تسويقية شهريا
@@ -208,7 +208,7 @@ export default async function CampaignsPage({
           <li>
             تهدئة <Quantity unit="hours" count={COOLDOWN_HOURS} /> بين حملتين على المستخدم نفسه.
           </li>
-          <li>موافقة التسويق شرط لا يتجاوز — ومن لم يوافق لا يدخل أي شريحة إرسال.</li>
+          <li>موافقة التسويق شرط لا يتجاوز. من لم يوافق لا يدخل أي شريحة إرسال.</li>
           <li>
             <strong>التسويقي ≠ المعاملاتي</strong>: نطاق فرعي ومزود منفصلان، حتى لا تؤثر
             شكوى أو إلغاء اشتراك على وصول رمز التحقق وإشعارات الدفع.
@@ -219,9 +219,9 @@ export default async function CampaignsPage({
       <ListFooter
         shown={campaigns.length}
         total={null}
-        note="الحملات التسويقية — منفصلة عن المعاملاتية"
+        note="الحملات التسويقية، منفصلة عن المعاملاتية"
         can="إنشاء حملة وربطها بشريحة وإرسالها بعد مراجعتها."
-        cannot="إرسال حملة أرسلت أو ألغيت، ولا تجاوز السقف الشهري أو مهلة التهدئة — والمحجوب بهما يقال عدده."
+        cannot="إرسال حملة أرسلت أو ألغيت، ولا تجاوز السقف الشهري أو مهلة التهدئة. والمحجوب بهما يقال عدده."
         automatic="الجمهور يحوسب لحظة الإرسال، ومن تجاوز سقفه أو كان في تهدئته يستبعد."
       />
     </AdminShell>

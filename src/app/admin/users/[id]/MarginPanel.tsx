@@ -86,7 +86,7 @@ export function MarginPanel({
   if (!registered) {
     return (
       <p className="text-3xs leading-loose opacity-70">
-        الهامش يتبع التسجيل الضريبي — ولا رقم ضريبي لهذا الحساب.
+        الهامش يتبع التسجيل الضريبي، ولا رقم ضريبي لهذا الحساب.
       </p>
     );
   }
@@ -111,7 +111,7 @@ export function MarginPanel({
         {pending ? 'يحفظ…' : 'امنح هامش الربح'}
       </Button>
       <p className="text-3xs leading-loose opacity-70">
-        يحتسب على الفرق بين الشراء والبيع لا على كامل السعر — ولا يطبق تلقائيا أبدا.
+        يحتسب على الفرق بين الشراء والبيع لا على كامل السعر. ولا يطبق تلقائيا، بل تمنحه أنت.
       </p>
       {toast === null ? null : <Toast title={toast} />}
     </div>

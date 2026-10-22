@@ -176,7 +176,7 @@ export default async function AdminListingDetailPage({
         <section className="rounded-xl border border-line p-5">
           <h2 className="mb-1.5 text-sm font-bold">تاريخ الإعلان</h2>
           <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
-            كل حدث وقع عليه — من إنشائه إلى آخر خطوة، مرتبا من الأقدم.
+            كل حدث وقع عليه من إنشائه إلى آخر خطوة، مرتبا من الأقدم.
             <b> وما لا سجل له لا يعرض</b>: لا سطر لتغير سعر ما دام لا يسجل،
             وسطر مخترع في تحقيق أسوأ من سطر غائب.
           </p>
@@ -188,8 +188,8 @@ export default async function AdminListingDetailPage({
         <section className="rounded-xl border border-line p-5">
           <h2 className="mb-1.5 text-sm font-bold">الصور</h2>
           <p className="mb-5 max-w-2xl text-2xs leading-loose opacity-70">
-            <b>ونصف المراجعة بصري</b> — فالصورة هنا لا مفتاحها: لوحة ظاهرة أو
-            صورة ضبابية ترد قبل قراءة سطر. وكانت تعرض مفاتيح نصية.
+            <b>نصف المراجعة بصري.</b> تعرض الصور هنا كاملة لا بمفاتيحها، فلوحة
+            ظاهرة أو صورة ضبابية ترد الإعلان قبل قراءة سطر.
           </p>
 
           {listing.images.length === 0 ? (
@@ -469,7 +469,7 @@ export default async function AdminListingDetailPage({
                 />
                 {/* الاحتياطي لا يُعرض — ممنوعٌ في أي استجابة، والشاشة ليست استثناء */}
                 <p className="mt-3 text-3xs opacity-65">
-                  السعر الاحتياطي لا يعرض هنا — ولا في أي شاشة.
+                  السعر الاحتياطي لا يعرض هنا ولا في أي شاشة.
                 </p>
               </DetailCard>
             )}
