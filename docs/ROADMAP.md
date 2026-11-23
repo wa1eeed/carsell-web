@@ -2607,6 +2607,32 @@ never reach a reader, and this repository's comments are deliberately voweled).
 
 ## Also open, outside the four stages
 
+### Cloudflare CDN in front of carz.sa — *owner's decision 2026-11-23, deferred to before launch*
+
+> «راح نؤخر ربط كلاودفلير CDN للدومين … قبل الاطلاق النهائي نضبط ربط كلاودفلير cdn»
+
+The production ECS has **5 Mbps of bandwidth**, pay-by-traffic. That is roughly
+625 KB/s shared across every visitor, and one page load of JS bundles is about
+300 KB — so two concurrent visitors saturate the link. A CDN in front moves the
+static bytes to the edge and leaves the origin serving HTML and API only.
+
+It also brings, on the free plan: a TLS certificate with no renewal to watch,
+DDoS protection, a hidden origin IP, and a smaller bandwidth bill.
+
+**Do it before launch, not after.** The settings:
+
+- DNS for `carz.sa` on Cloudflare, proxied (orange cloud).
+- SSL mode **Full (Strict)** with a Cloudflare Origin Certificate installed on
+  the server. Never *Flexible* — it leaves Cloudflare→origin unencrypted while
+  the padlock tells the visitor otherwise.
+- Cache everything under `/_next/static/` and `/public/`; bypass `/api/`.
+- WebSockets on (the realtime service needs them).
+
+Until then the origin serves TLS itself and the 5 Mbps is the ceiling — which
+is fine while the only visitors are us.
+
+
+
 These were asked for or decided earlier and are not part of the sequence above.
 Each links to where it is specified.
 
