@@ -1,6 +1,6 @@
 # CarSell — documentation
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-23_
 
 A Saudi car marketplace: listings, negotiation, auctions, escrowed payment,
 ownership transfer, and ZATCA-compliant invoicing. Next.js App Router,
@@ -25,6 +25,14 @@ PostgreSQL via Prisma, Arabic-first with English alongside.
 - [`api/conventions.md`](api/conventions.md) — envelope, errors, pagination.
 - Per-area API notes live beside it: `orders.md`, `payments.md`, `auctions.md`,
   `offers.md`, and the rest.
+
+**2b · Where it runs**
+
+- [`ENVIRONMENTS.md`](ENVIRONMENTS.md) — staging and production, what differs
+  between them (variables, never code), the deploy cycle, and the three rules
+  that keep them from contaminating each other.
+- [`DEPLOY-PRODUCTION.md`](DEPLOY-PRODUCTION.md) · [`DEPLOY-STAGING.md`](DEPLOY-STAGING.md)
+  — how each one was built, and what is still missing.
 
 **3 · The money**
 
