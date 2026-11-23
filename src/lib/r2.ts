@@ -4,7 +4,9 @@ import { r2Key } from './env';
 import { devPut, devStoreAllowed } from './storage/dev-store';
 
 /**
- * Cloudflare R2 — كل وسائط المنتج.
+ * وسائطُ المنتج — على أيّ مخزنٍ متوافقٍ مع S3.
+ *
+ * الافتراضيّ Cloudflare R2، و`MEDIA_ENDPOINT` ينقلها إلى غيره بلا نشر.
  *
  * **لا ملف يُكتب على قرص الحاوية** (القسم ١٢): الحاوية تُستبدل في كل نشر،
  * فما عليها يضيع، والالتزام بهذا من اليوم الأول يجعل الانتقال إلى Google
@@ -41,41 +43,75 @@ const KIND_PATH: Record<UploadKind, string> = {
   'inspection-photo': 'inspections',
 };
 
-type R2Config = {
-  accountId: string;
+/**
+ * ═══ المخزن متغيّرُ بيئة لا مزوّدٌ مكتوب ═══
+ *
+ * كانت نقطةُ الاتّصال مبنيّةً من `accountId` على نطاق Cloudflare —
+ * **فالمزوّدُ مكتوبٌ في الشيفرة**، والانتقال إلى مخزنٍ متوافقٍ مع S3
+ * (OSS أو MinIO أو غيرهما) تعديلُ سطرٍ ونشرٌ لا ضبطُ لوحة. والتعليق
+ * فوق هذا الملفّ كان يَعِد بالعكس: «الالتزام بهذا يجعل الانتقال
+ * تغييرَ نشرٍ لا إعادة كتابة» — وعدٌ لم يكن له مقبض.
+ *
+ * فالنقطةُ والإقليم يُقرآن من البيئة، **ويُشتقّان من `R2_ACCOUNT_ID`
+ * حين لا يُذكران** — فنشرٌ قائم على R2 لا يتغيّر فيه شيء.
+ *
+ * **والأسماءُ تقبل الصيغتين**: `MEDIA_*` لمن يبدأ على غير R2 — فاسمٌ
+ * يقول `R2_ACCESS_KEY_ID` وهو يحمل مفتاح مزوّدٍ آخر اسمٌ يكذب.
+ */
+type MediaConfig = {
+  endpoint: string;
+  region: string;
   accessKeyId: string;
   secretAccessKey: string;
   bucket: string;
   publicUrl: string;
 };
 
-function readConfig(): R2Config | null {
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucket = process.env.R2_BUCKET;
-  const publicUrl = process.env.R2_PUBLIC_URL;
+/** أوّلُ قيمةٍ غير فارغة — والفراغُ كالغياب في متغيّرات البيئة. */
+function pick(...names: readonly string[]): string | null {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value !== undefined && value.trim() !== '') return value.trim();
+  }
+  return null;
+}
+
+function readConfig(): MediaConfig | null {
+  const accessKeyId = pick('MEDIA_ACCESS_KEY_ID', 'R2_ACCESS_KEY_ID');
+  const secretAccessKey = pick('MEDIA_SECRET_ACCESS_KEY', 'R2_SECRET_ACCESS_KEY');
+  const bucket = pick('MEDIA_BUCKET', 'R2_BUCKET');
+  const publicUrl = pick('MEDIA_PUBLIC_URL', 'R2_PUBLIC_URL');
+
+  /**
+   * النقطةُ صريحةً، أو مشتقّةً من حساب R2 — وبلا الاثنين لا مخزن.
+   * و`auto` إقليمُ R2، وغيرُه يطلب إقليمًا حقيقيًّا (`me-central-1`).
+   */
+  const accountId = pick('R2_ACCOUNT_ID');
+  const endpoint =
+    pick('MEDIA_ENDPOINT') ??
+    (accountId === null ? null : `https://${accountId}.r2.cloudflarestorage.com`);
+  const region = pick('MEDIA_REGION') ?? 'auto';
 
   if (
-    accountId === undefined || accountId === '' ||
-    accessKeyId === undefined || accessKeyId === '' ||
-    secretAccessKey === undefined || secretAccessKey === '' ||
-    bucket === undefined || bucket === '' ||
-    publicUrl === undefined || publicUrl === ''
+    endpoint === null ||
+    accessKeyId === null ||
+    secretAccessKey === null ||
+    bucket === null ||
+    publicUrl === null
   ) {
     return null;
   }
-  return { accountId, accessKeyId, secretAccessKey, bucket, publicUrl };
+  return { endpoint, region, accessKeyId, secretAccessKey, bucket, publicUrl };
 }
 
 export function isR2Configured(): boolean {
   return readConfig() !== null;
 }
 
-function client(config: R2Config): S3Client {
+function client(config: MediaConfig): S3Client {
   return new S3Client({
-    region: 'auto',
-    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    region: config.region,
+    endpoint: config.endpoint,
     credentials: {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,

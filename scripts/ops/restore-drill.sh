@@ -12,18 +12,25 @@ DRILL_DB="${DRILL_DB:-carsell_drill}"
 SOURCE="${1:-}"
 
 if [ -z "$SOURCE" ]; then
-  : "${R2_ACCOUNT_ID:?}"; : "${R2_BUCKET:?}"
-  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
-  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
-  export AWS_DEFAULT_REGION=auto
-  ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+  # **الوجهةُ نفسُها التي يكتب إليها `backup.sh`** — ولو تباعدتا لجرّب
+  # التدريبُ استعادةَ نسخةٍ من مخزنٍ لا يُنسخ إليه أحد، ومرّ أخضرَ أعمى.
+  BUCKET="${BACKUP_BUCKET:-${R2_BUCKET:?BACKUP_BUCKET أو R2_BUCKET غير مضبوط}}"
+  export AWS_ACCESS_KEY_ID="${BACKUP_ACCESS_KEY_ID:-${R2_ACCESS_KEY_ID:?}}"
+  export AWS_SECRET_ACCESS_KEY="${BACKUP_SECRET_ACCESS_KEY:-${R2_SECRET_ACCESS_KEY:?}}"
+  export AWS_DEFAULT_REGION="${BACKUP_REGION:-auto}"
+  if [ -n "${BACKUP_ENDPOINT:-}" ]; then
+    ENDPOINT="$BACKUP_ENDPOINT"
+  else
+    : "${R2_ACCOUNT_ID:?BACKUP_ENDPOINT أو R2_ACCOUNT_ID غير مضبوط}"
+    ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+  fi
   APP_ENV="${APP_ENV:-production}"
 
-  LATEST="$(aws s3 ls "s3://${R2_BUCKET}/backups/${APP_ENV}/" --endpoint-url "$ENDPOINT" \
+  LATEST="$(aws s3 ls "s3://${BUCKET}/backups/${APP_ENV}/" --endpoint-url "$ENDPOINT" \
             | sort | tail -1 | awk '{print $4}')"
   [ -z "$LATEST" ] && { echo "✗ لا نسخ في التخزين" >&2; exit 1; }
   SOURCE="/tmp/${LATEST}"
-  aws s3 cp "s3://${R2_BUCKET}/backups/${APP_ENV}/${LATEST}" "$SOURCE" --endpoint-url "$ENDPOINT"
+  aws s3 cp "s3://${BUCKET}/backups/${APP_ENV}/${LATEST}" "$SOURCE" --endpoint-url "$ENDPOINT"
 fi
 
 ADMIN_URL="${DATABASE_URL%/*}/postgres"

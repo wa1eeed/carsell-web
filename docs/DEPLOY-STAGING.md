@@ -1,6 +1,6 @@
 # Deploying staging to a VPS with Coolify
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-23_
 
 This is the checklist for putting `staging.carsell.one` on a VPS. It is written
 in English per the documentation rule; the reasoning behind each guard is in the
@@ -157,6 +157,9 @@ every stored secret unreadable**; rotating it requires re-entering them all.
 
 ### Storage — without this no listing can be published
 
+Any S3-compatible store works. On Cloudflare R2 the endpoint is derived from the
+account id:
+
 ```
 R2_ACCOUNT_ID=…
 R2_ACCESS_KEY_ID=…
@@ -165,9 +168,45 @@ R2_BUCKET=carsell-staging
 R2_PUBLIC_URL=https://media-staging.carsell.one
 ```
 
+On anything else — Alibaba/SCCC OSS, MinIO, S3 itself — name the endpoint and a
+real region instead. `MEDIA_*` takes precedence over `R2_*` wherever both exist,
+so a store that is not R2 need not carry a variable named after one:
+
+```
+MEDIA_ENDPOINT=https://oss-me-central-1.aliyuncs.com
+MEDIA_REGION=me-central-1
+MEDIA_ACCESS_KEY_ID=…
+MEDIA_SECRET_ACCESS_KEY=…
+MEDIA_BUCKET=carsell-staging
+MEDIA_PUBLIC_URL=https://media-staging.carsell.one
+```
+
+`MEDIA_REGION` defaults to `auto`, which is R2's convention; most other stores
+reject it and want their real region.
+
 Use a **separate bucket** from production. Media keys are prefixed by
 environment (`staging/…`) but a shared bucket still mixes billing and lifetime
 rules, and a wrong delete hits both.
+
+### Backups go where the database goes, not where the images go
+
+`scripts/ops/backup.sh` writes a full `pg_dump` — every customer row, the
+encrypted national IDs, the encrypted IBANs. It used to write into the media
+bucket because that was the only bucket configured, which means **a deployment
+moved in-Kingdom for data residency would still have shipped its whole database
+abroad every night**. The destination is now independent, and falls back to the
+media one only when it is not set:
+
+```
+BACKUP_ENDPOINT=…        # defaults to the R2 endpoint
+BACKUP_BUCKET=…          # defaults to R2_BUCKET
+BACKUP_ACCESS_KEY_ID=…
+BACKUP_SECRET_ACCESS_KEY=…
+BACKUP_REGION=…          # defaults to auto
+```
+
+`restore-drill.sh` reads the same four, so the drill can never rehearse against
+a store nothing backs up to.
 
 ### Application
 
