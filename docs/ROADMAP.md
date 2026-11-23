@@ -1736,6 +1736,35 @@ adjective moved into the plural forms and zero got its own sentence.
 - The admin panel on that database: 14 tax rules, 6 payment purposes over 4
   gateways, 3 plans, both commission handles with their live preview.
 
+### The production build had never been run without a `.env` *(found 2026-11-23)*
+
+The first `docker build` on the SCCC server failed:
+
+```
+Build error occurred
+[Error: Failed to collect page data for /api/cron/run]
+```
+
+`/api/cron/run` is fine. `src/lib/db.ts` checked `DATABASE_URL` **at module
+scope and threw** — and `next build` imports every route to collect its page
+data, so the first route that touches the database took the whole build down.
+Next names whichever route the collector reached first, and that name changes
+between runs: the Docker build blamed `/api/cron/run`, the local reproduction
+blamed `/api/public/v1/dealers`. **Both are innocent.**
+
+It had never shown because nothing ever built without the variable: Next loads
+`.env` locally, Coolify passes its runtime variables into the build, and CI sets
+`DATABASE_URL` because `npm run db:seed` needs it. `npm run build:check` inherits
+the same environment. **A clean build — inside a Dockerfile, with no orchestrator
+injecting anything — was the first one that didn't.**
+
+The guard was redundant anyway: `docker-entrypoint.sh` validates `DATABASE_URL`
+before the server starts and prints every missing variable at once. So the client
+is now built on first use behind a proxy, the message is unchanged, and
+`tests/db-import.test.ts` asserts both halves — the module imports with no
+environment, and the first use throws the same sentence. Measured by putting the
+eager check back: both halves fail.
+
 ### What this does not plant, and why
 
 `FinanceProvider` stays out. The eight rows in the seed carry **invented profit
