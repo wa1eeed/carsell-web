@@ -80,7 +80,7 @@ export default async function ActivityPage({
           اسمًا عربيًّا فرُسم بـArial.
         */
         cards={[
-          { title: 'أحداث آخر ٢٤ ساعة', value: total, note: 'من كل المصادر' },
+          { title: 'أحداث آخر 24 ساعة', value: total, note: 'من كل المصادر' },
           { title: 'حركة السوق', value: market, note: 'بلا أثر الفريق' },
           { title: 'نزاعات', value: counts.dispute, note: 'فتحت أو حسمت' },
         ]}

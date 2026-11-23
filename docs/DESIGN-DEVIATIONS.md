@@ -1,10 +1,32 @@
 # Design deviations
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-23_
 
 Screens or components built **without design markup**, and places where the
 build departs from the markup on purpose. Each entry states what was built, on
 what basis, and what the designer still has to review.
+
+## Three product-wide departures the design files predate
+
+**Status: decided, not pending.** Each is an owner decision taken after the
+design was drawn, so every screen differs from its markup in the same way. They
+are recorded here because a reader comparing a screen to its block will meet all
+three on the first line, and because a measuring tool that does not know them
+reports a decision as a defect — which is exactly what happened on 2026-11-23,
+when `design-audit.mjs` read `A10` at **13٪** against a screen that is largely
+built.
+
+| The design says | The product says | Decided |
+| --- | --- | --- |
+| `carsell.one` in every logo, footer and email | **CARZ / كارز** | the rebrand; the markup predates it |
+| «حرِجة» · «افتراضيًا» — with diacritics | «حرجة» · «افتراضيا» | 2026-10-18, roadmap §15 — stripped from every screen |
+| «٤٠ حرفًا» · «٣٬٤٥٦ كم» — Arabic-Indic | «40 حرفا» · «3,456 كم» | 2026-10-12, `task-140` — one switch, `DISPLAY_NUMERALS` |
+
+`scripts/design-audit.mjs` normalises all three on **both sides** before
+comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
+`Wc` 63→75٪, `Wa` 50→57٪, `A10` 13→25٪ — so an un-normalised comparison
+understates a screen by up to twelve points, and the whole-tree figure
+correspondingly.
 
 ## BodyTypeStrip — built without Wa markup · 2026-08-02
 

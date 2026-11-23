@@ -63,7 +63,7 @@ export const ACCIDENT_STATUS_LABEL = {
 export const PREVIOUS_OWNERS_LABEL = {
   FIRST: 'مالك أول',
   SECOND: 'مالك ثاني',
-  THREE: '٣ ملاك سابقين',
-  FOUR: '٤ ملاك سابقين',
-  MORE_THAN_FOUR: 'أكثر من ٤ ملاك',
+  THREE: '3 ملاك سابقين',
+  FOUR: '4 ملاك سابقين',
+  MORE_THAN_FOUR: 'أكثر من 4 ملاك',
 } as const satisfies Record<PreviousOwners, string>;

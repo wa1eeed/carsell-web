@@ -24,7 +24,7 @@ import type { PendingProviderPayout, ProviderPayoutLine } from '@/lib/domain/pro
  */
 
 const IBAN_REASON: Record<string, string> = {
-  INVALID_FORMAT: 'الصيغة غير صحيحة. الآيبان السعودي ٢٤ خانة تبدأ بـSA.',
+  INVALID_FORMAT: 'الصيغة غير صحيحة. الآيبان السعودي 24 خانة تبدأ بـSA.',
   NOT_SAUDI: 'الآيبان ليس سعوديا.',
   CHECKSUM: 'خانتا التحقق لا تطابقان الرقم. راجعه خانة خانة.',
 };

@@ -208,7 +208,7 @@ export function SeoTemplatesForm({
                       )}
                       {governed.length === 0 ? null : (
                         <span className="text-2xs font-semibold text-[var(--color-warn-ink)]">
-                          العدد يجاور معدوده، فتخرج «٣ سيارة» لا «٣ سيارات» — اجعل
+                          العدد يجاور معدوده، فتخرج «3 سيارة» لا «3 سيارات» — اجعل
                           الرقم آخر الجملة:{' '}
                           <code className="bidi-ltr">{governed.join(' · ')}</code>
                         </span>

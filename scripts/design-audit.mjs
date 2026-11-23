@@ -102,6 +102,98 @@ async function signIn() {
  * عليه.
  */
 const SESSION_FILE = join(tmpdir(), 'carsell-design-audit-session');
+const BUYER_FILE = join(tmpdir(), 'carsell-design-audit-buyer');
+
+/**
+ * ═══ ولا بائعَ في البذرة يشتري ═══
+ *
+ * قِيس: من ٢٠٠ حساب، **لا واحد** له إعلانٌ وطلبٌ معًا — البائعون
+ * يبيعون والمشترون يشترون. فجلسةٌ واحدة لا تبلغ `Wj` و`Wt` معًا مهما
+ * اختيرت، وليست علّة أداة بل حالُ البيانات.
+ *
+ * فجلستان: بائعٌ لشاشات الحساب، ومشترٍ لصفحة الطلب وحدها. و**الطلب
+ * يُكتشف من الشاشة** لا يُكتب ثابتًا — مرجعٌ مكتوبٌ في أداة قياس
+ * يتعفّن مع أوّل بذرة.
+ */
+let BUYER_COOKIE = '';
+/** شاشاتٌ تُقاس بجلسة المشتري — وما عداها بجلسة البائع. */
+const BUYER_SCREENS = new Set(['Wj']);
+
+/** دخولٌ برقمٍ واحد — يُعيد الكوكي أو `null`، ولا يبتلع سببًا. */
+async function signInPhone(phone) {
+  try {
+    const asked = await fetch(`${BASE}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ phone }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await asked.json();
+    const challengeId = body?.data?.challengeId;
+    const code = body?.data?.devCode;
+    if (typeof challengeId !== 'string' || typeof code !== 'string') return null;
+
+    const verified = await fetch(`${BASE}/api/v1/auth/otp/verify`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ challengeId, code }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    return (
+      (verified.headers.getSetCookie?.() ?? [])
+        .map((line) => /(?:^|;\s*)carsell_session=([^;]+)/.exec(line)?.[1])
+        .find((value) => value !== undefined) ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * **والشرط يُصنَع لا يُنتظَر.** حسابٌ بلا طلبٍ يُخرج `Wj` «لا مسار»
+ * وهي مبنيّة — فتُجرَّب حساباتُ المشترين حتى يُوجد من له طلب، ويُقال
+ * إن لم يوجد.
+ */
+async function findOrderRoute() {
+  const probe = async (cookie) => {
+    const res = await fetch(`${BASE}/ar/account/orders`, {
+      headers: { cookie: `carsell_session=${cookie}` },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) return null;
+    return /href="(\/ar\/account\/orders\/[A-Za-z0-9-]+)"/.exec(await res.text())?.[1] ?? null;
+  };
+
+  try {
+    const cached = readFileSync(BUYER_FILE, 'utf8').trim();
+    if (cached !== '') {
+      const route = await probe(cached);
+      if (route !== null) {
+        BUYER_COOKIE = cached;
+        return route;
+      }
+    }
+  } catch {
+    /* لا جلسة محفوظة */
+  }
+
+  for (let i = 0; i < 4; i += 1) {
+    const phone = process.env.AUDIT_BUYER_PHONE ?? `+9665${String(30000000 + i).padStart(8, '0')}`;
+    const cookie = await signInPhone(phone);
+    if (cookie === null) continue;
+    const route = await probe(cookie);
+    if (route === null) continue;
+    BUYER_COOKIE = cookie;
+    try {
+      writeFileSync(BUYER_FILE, cookie, 'utf8');
+    } catch {
+      /* الحفظ تحسينٌ لا شرط */
+    }
+    return route;
+  }
+  console.log('⬜ لا حسابَ مشترٍ له طلب — صفحة الطلب (Wj) لن تُقاس.');
+  return null;
+}
 
 async function signInUser() {
   if (USER_COOKIE !== '') return;
@@ -224,7 +316,39 @@ const ROUTES = {
   Wz: '/ar/browse/riyadh/toyota',
   /** خطوات معالج البيع — شاشةٌ واحدة بحالاتٍ ثلاث، ومسارُها واحد. */
   Wh3: '/ar/sell', Wh3a: '/ar/sell', Wh3b: '/ar/sell',
+
+  /** لوحة التاجر — §40b، لا مسار بعد. تُملأ شاشةً شاشةً وهي تُبنى. */
+  D1: null, D2: null, D3: null, D4: null, D5: null, D6: null,
+  D7: null, D8: null, D9: null, D10: null, D11: null,
 };
+
+/**
+ * ═══ المصمَّم الذي لم يُبنَ ═══
+ *
+ * يُفصل عن المؤجَّل: المؤجَّل قرارُ مالكٍ يخرج من الحساب كلّه، وهذا
+ * **دَينٌ معلوم** — يُعدّ ويُسمّى ولا يُخلط بنسبة المطابقة، فتبقى
+ * النسبة جوابَ سؤالٍ واحد.
+ */
+/**
+ * ═══ وما لا يصله الجلب لا يُقرأ صفرًا ═══
+ *
+ * `Wh` معالجُ البيع: خطواتُه تُصيَّر في العميل، فنصوصُها في الحمولة
+ * لا في الترميز — و`stripTags` تُسقط الحمولة بحقّ. فقُرئت **٠٪**
+ * وفيها «الغلاف» و«احفظ كمسودة» و«طريقة البيع» كلُّها مبنيّة
+ * (قِيست في `ar.json` وفي الحمولة).
+ *
+ * و`A14` محرّرُ الفئة: مسارُه `/admin/catalog/trims/<معرّف>`، ولا
+ * معرّفَ في صفحة الطرازات — الشجرة تُجلب بعد نقرة. فقُرئت **٤٠٤**.
+ *
+ * **والبحث في الحمولة الخام ليس علاجًا**: ظهورُ الاسم لا يعني أنّ
+ * أحدًا يراه، وهو الفخّ الذي أُغلق في البوابتين ٥٠ و٥٢. فتُعلَنان
+ * «تُمشى» وتخرجان من النسبة — والمشي بالمتصفّح هو قياسُهما.
+ */
+const WALK_ONLY = new Set(['Wh', 'A14']);
+
+const NOT_BUILT = new Set([
+  'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11',
+]);
 
 /** شاشاتٌ أُجّلت بقرار المالك — تُستثنى ولا تُحسب دَينًا. */
 const DEFERRED = new Set(['A24', 'Wq', 'Wr']);
@@ -272,6 +396,48 @@ function attributeText(html) {
     values.push(match[1]);
   }
   return values.join(' ');
+}
+
+/**
+ * ═══ ويُقارَن بعد التطبيع — وإلّا قِيس قرارٌ لا نقص ═══
+ *
+ * قُرئت `A10` **١٣٪** ففتحتُها، فإذا هي الشاشة كاملةً: جدولُ القنوات
+ * بأعمدته، ومعاينةُ الجهاز بحدودها، وقائمةُ القواعد. وإنما فشلت
+ * المطابقة على فروقٍ **كلُّها قرارٌ مسجَّل**:
+ *
+ *   · **التشكيل** — التصميم «حرِجة» والمنتج «حرجة» (القرار ١٥،
+ *     ٢٠٢٦-١٠-١٨: يُمسح من كل شاشة). و١٤٪ من نصوص التصميم مشكولة.
+ *   · **الأرقام** — التصميم «٤٠ حرفًا» والمنتج «40 حرفا»
+ *     (قرارُ ٢٠٢٦-١٠-١٢: تُوحَّد لاتينيّةً).
+ *   · **الاسم** — التصميم `carsell.one` والمنتج `CARZ`.
+ *
+ * فكان المقياس يعدّ قراراتِ المالك نقصًا في التنفيذ، **ويُرسل قارئَه
+ * ليعيد ما نُقض عمدًا**. والرقمُ الناتج لا يقيس مطابقةً فلا يُبنى عليه.
+ *
+ * والتطبيع على **الطرفين** — ولو طُبّع أحدهما لصار الفحص أعمى من جهة.
+ */
+export function normalizeText(value) {
+  return value
+    /* التشكيل — القرار ١٥ */
+    .replace(/[ً-ْٰ]/g, '')
+    /* الأرقام — قرار ٢٠٢٦-١٠-١٢، والفواصل معها */
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/٬/g, ',')
+    .replace(/٫/g, '.')
+    /* الاسم بعد تغيير العلامة */
+    .replace(/carsell\.one/gi, 'CARZ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * **وإشارةٌ كلُّها رقمٌ قيمةُ بياناتٍ لا بنية.** «٩٬٣٢٠ جهازًا مسجّلًا»
+ * رقمٌ في ترميز التصميم، ولا يُطابقه إلا أن تحمل قاعدتُنا العدد نفسَه.
+ * فعدُّه نقصًا يقيس البذرة لا الشاشة.
+ */
+export function isDataValue(signal) {
+  const bare = normalizeText(signal).replace(/[\d,.\s٪%]/g, '');
+  return bare.length <= 3;
 }
 
 function stripTags(html) {
@@ -389,11 +555,26 @@ async function main() {
   const files = [
     ['design/Admin.dc.html', /id="(A\d{1,2})"/g],
     ['design/Front-end Web.dc.html', /id="(W[a-z]\d?[a-z]?\d?)"/g],
+    /**
+     * ═══ وما لا يقرؤه المقياس لا يعدّه ═══
+     *
+     * لوحةُ التاجر إحدى عشرة شاشة مرسومة، وكان الملفّ خارج القائمة
+     * أصلًا — فالتقرير يقول «المجموع ٨٧٪» ولا يذكر أنّ **ربع ما
+     * صُمِّم ليس فيه**. وهو صنفُ البوابة ٦١ نفسُه: تحرس ما تقرؤه لا
+     * ما تظنّ أنها تحرسه.
+     *
+     * فتُقرأ، وتُعلَن في سطرها، وتخرج من نسبة المطابقة — السؤالان
+     * مختلفان: «أيطابق المبنيُّ تصميمَه؟» و«أبُني كلُّ ما صُمِّم؟».
+     */
+    ['design/Dealer.dc.html', /id="(D\d{1,2})"/g],
   ];
 
   const rows = [];
   /** مراجعُ حيّة من الموقع — تُغني عن ثابتٍ يتعفّن مع البيانات */
   const liveRoutes = await liveRefs(BASE, '');
+  /** وصفحةُ الطلب مرجعُها من حساب مشترٍ له طلب — يُكتشف لا يُكتب. */
+  const orderRoute = process.env.AUDIT_ORDER ?? (await findOrderRoute());
+  if (typeof orderRoute === 'string' && orderRoute !== '') liveRoutes.Wj = orderRoute;
 
   for (const [path, re] of files) {
     const html = readFileSync(join(ROOT, path), 'utf8');
@@ -470,9 +651,11 @@ async function main() {
       }
       const cookie = route.startsWith('/admin')
         ? `carsell_admin=${ADMIN_COOKIE}`
-        : needsUser
-          ? `carsell_session=${USER_COOKIE}`
-          : '';
+        : BUYER_SCREENS.has(tag) && BUYER_COOKIE !== ''
+          ? `carsell_session=${BUYER_COOKIE}`
+          : needsUser
+            ? `carsell_session=${USER_COOKIE}`
+            : '';
 
       /**
        * ═══ وجلبٌ فاشل ليس «صفر مطابقة» ═══
@@ -558,7 +741,10 @@ async function main() {
       const live = signals.filter(
         (signal) => !DEFERRED_SIGNALS.some((word) => signal.includes(word)),
       );
-      const missing = live.filter((s) => !text.includes(s));
+      const normalized = normalizeText(text);
+      const missing = live.filter(
+        (s) => !isDataValue(s) && !normalized.includes(normalizeText(s)),
+      );
 
       /**
        * ═══ والحالة الفارغة ليست نقصًا ═══
@@ -580,10 +766,11 @@ async function main() {
        */
       const empty = raw !== null && raw.includes('data-empty="true"');
 
+      const counted = live.filter((s) => !isDataValue(s));
       rows.push({
         tag, route,
-        total: live.length,
-        found: live.length - missing.length,
+        total: counted.length,
+        found: counted.length - missing.length,
         empty,
         missing: missing.slice(0, 6),
       });
@@ -595,10 +782,16 @@ async function main() {
   const skipped = [];
   const steps = [];
   const unreachable = [];
+  const notBuilt = [];
+  const walkOnly = [];
   console.log('الشاشة  المسار                          مطابق   الناقص');
   for (const row of rows) {
     /** ما لم يُقَس لا يدخل المقام — ولا يُقرأ صفرًا. */
-    if (row.failed !== undefined) {
+    if (NOT_BUILT.has(row.tag)) {
+      notBuilt.push(row.tag);
+    } else if (WALK_ONLY.has(row.tag)) {
+      walkOnly.push(row.tag);
+    } else if (row.failed !== undefined) {
       unreachable.push(`${row.tag} (${row.failed})`);
     } else if (row.step !== undefined) {
       // خطوةٌ خلف المسار نفسه — تُعلَن ولا تُحتسب
@@ -611,7 +804,11 @@ async function main() {
     }
     const pct = row.total === 0 ? 100 : Math.round((row.found / row.total) * 100);
     const mark =
-      row.failed !== undefined
+      NOT_BUILT.has(row.tag)
+        ? '⬜ مصمَّمة ولم تُبنَ'
+        : WALK_ONLY.has(row.tag)
+        ? '↪ تُمشى بالمتصفّح'
+        : row.failed !== undefined
         ? `✖ ${row.failed}`
         : row.route === '—'
           ? '⬜ لا مسار'
@@ -629,6 +826,16 @@ async function main() {
   if (skipped.length > 0) {
     console.log(
       `شاشاتٌ بلا بيانات (لا تُحتسب — حاصلُها يقيس بيانات لا مطابقة): ${skipped.join(' ')}`,
+    );
+  }
+  if (walkOnly.length > 0) {
+    console.log(
+      `تُقاس بالمشي لا بالجلب (محتواها خلف نقرة): ${walkOnly.join(' · ')}`,
+    );
+  }
+  if (notBuilt.length > 0) {
+    console.log(
+      `مصمَّمةٌ ولم تُبنَ بعد (§40b — دَينٌ لا نقصُ مطابقة): ${String(notBuilt.length)} شاشة · ${notBuilt.join(' ')}`,
     );
   }
   if (steps.length > 0) {

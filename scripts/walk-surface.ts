@@ -1,4 +1,5 @@
 import { isClippedNoun } from './clipped-nouns.mjs';
+import { DISPLAY_NUMERALS } from '../src/lib/arabic';
 /**
  * ═══ مشيُ السطح — كلُّ وجهةٍ وكلُّ رابطٍ فيها ═══
  *
@@ -413,6 +414,52 @@ function diacritics(html: string): string[] {
   return [...new Set(found)].slice(0, 5);
 }
 
+/**
+ * ═══ وصيغتان لرقمٍ واحد في شاشةٍ واحدة ═══
+ *
+ * **كِدتُ أقيس النقيض.** التصميم يكتب «كامري ٢٠٢٤» و«٣٬٤٥٦ كم»،
+ * وصفحةُ الحساب تطبع «2020» و«1,107» — فكتبتُ فحصًا يُنذر على اللاتينيّ،
+ * **وهو قرارُ المالك** (٢٠٢٦-١٠-١٢): تُوحَّد الأرقام المعروضة لاتينيّةً،
+ * والمفتاح `DISPLAY_NUMERALS`. فكان الفحصُ سيُنذر على كلّ صفحة.
+ *
+ * والمخالفةُ الحقيقية معكوسة: **رقمٌ لم يمرّ بالمفتاح** — عربيٌّ-هنديٌّ
+ * مكتوبٌ بيدٍ في رسالةٍ أو بيانات. فتصير في الشاشة صيغتان لرقمٍ واحد،
+ * وهو العطلُ نفسُه الذي سُجّل في أزرار المزايدة السريعة.
+ *
+ * فالفحص يقرأ المفتاح ويُنذر على **الصيغة الأخرى** — فيبقى صحيحًا لو
+ * قُلب غدًا.
+ *
+ * ═══ وما لا يمرّ بالمفتاح بحقّ ═══
+ *
+ * المراجع وهيكلُ المركبة والآيبان وأسماءُ الفئات (`K5` · `CX-9`)
+ * والهاتف: **تُنسخ وتُقارن خانةً بخانة** لا تُقرأ عددًا، ولاتينيّةٌ
+ * دائمًا بأيّ قيمةٍ للمفتاح (القرار ٧، القائمة الحصرية). وعلامتُها
+ * حرفٌ لاتينيٌّ في الكلمة أو `+` قبلها.
+ */
+function foreignNumerals(html: string): string[] {
+  const text = html
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<style[\s\S]*?<\/style>/g, ' ')
+    .replace(/<[^>]+>/g, ' ');
+
+  /** لا عربيَّ في الصفحة ⇒ ليست شاشةَ عرضٍ عربية. */
+  if (!/[\u0621-\u064A]/.test(text)) return [];
+
+  const wrong =
+    DISPLAY_NUMERALS === 'latin' ? /[\u0660-\u0669]/ : /[0-9]/;
+
+  const found: string[] = [];
+  for (const word of text.split(/\s+/)) {
+    if (!wrong.test(word)) continue;
+    /** رمزٌ أو فئةٌ أو بريدٌ أو آيبان — لاتينيٌّ دائمًا. */
+    if (/[A-Za-z]/.test(word)) continue;
+    /** هاتفٌ — والتصميم يكتبه لاتينيًّا بمسافاته. */
+    if (word.startsWith('+')) continue;
+    found.push(word);
+  }
+  return [...new Set(found)].slice(0, 6);
+}
+
 async function main(): Promise<void> {
   const cookies: Record<string, string> = {};
 
@@ -576,6 +623,7 @@ async function main(): Promise<void> {
   const nested = new Map<string, string[]>();
   const marked = new Map<string, string[]>();
   const clashing = new Map<string, string[]>();
+  const numeric = new Map<string, string[]>();
   for (const page of pages) {
     const html = await fetch(`${BASE}${page}`, { headers: { cookie } })
       .then((r) => r.text())
@@ -586,6 +634,8 @@ async function main(): Promise<void> {
     if (voweled.length > 0) marked.set(page, voweled);
     const clashes = classClashes(html);
     if (clashes.length > 0) clashing.set(page, clashes);
+    const foreign = foreignNumerals(html);
+    if (foreign.length > 0) numeric.set(page, foreign);
     for (const href of links(html)) await visit(href, page);
   }
 
@@ -621,6 +671,18 @@ async function main(): Promise<void> {
   } else {
     console.log(`تشكيلٌ في نصٍّ معروض — ${String(marked.size)} صفحة:`);
     for (const [page, words] of marked) console.log(`  ${page}  ${words.join(' · ')}`);
+    console.log('');
+  }
+
+  if (numeric.size === 0) {
+    console.log(`لا رقمَ خارجَ مفتاح العرض (${DISPLAY_NUMERALS}) في أيّ صفحة.\n`);
+  } else {
+    const total = [...numeric.values()].reduce((sum, rows) => sum + rows.length, 0);
+    console.log(
+      `أرقامٌ خارج مفتاح العرض (${DISPLAY_NUMERALS}) — ` +
+        `${String(total)} في ${String(numeric.size)} صفحة:`,
+    );
+    for (const [page, rows] of numeric) console.log(`  ${page}  ${rows.join(' · ')}`);
     console.log('');
   }
 

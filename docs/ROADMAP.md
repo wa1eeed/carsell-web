@@ -23,12 +23,17 @@ Updated: 2026-10-14.
 Services and the Moyasar work arrived after that sentence and are sequenced
 below against it, not instead of it.
 
+**Superseded 2026-11-23 by §40** — the owner re-set the order after the
+production deploy: design conformance first, then the remaining panels, then
+the mobile app. The table below is kept because the rows it names are still the
+work; only their sequence changed.
+
 | # | Stage | State |
 | --- | --- | --- |
-| 1 | The rest of the marketplace screens | **in progress** |
+| 1 | The rest of the marketplace screens | **in progress — now §40a** |
 | 2 | Settle the order stages | not started — **needs the owner** |
 | 3 | The services vertical and the two gateways | 1 of 8 steps done |
-| 4 | The dealer panel | deferred by the owner, fully specified |
+| 4 | The dealer panel | fully specified — **now §40b**, no longer deferred |
 | 5 | Drop the two-approval requirement in the admin panel | owner's decision, sequenced after the above |
 | 6 | **A provider's 360° profile — same context as a customer and a dealer** | requested 2026-10-17, see below |
 | 7 | **The provider panel: one panel, per-type completion fields** | requested 2026-10-17, see below |
@@ -1642,6 +1647,130 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 40 · The order from here: conformance, then the remaining panels, then the app — *owner's request 2026-11-23*
+
+> «ينقص المشروع الكثير من العمل و التطوير من ناحية اكمال التصميم و اكمال
+> الوظائف ليصبح جاهز تماماً بكامل لوحاته … يوجد لوحات تحكم تخص اطراف اخرى
+> تتعامل مع المنصه لم نكملها و يوجد ايضاً صفحات في لوحة الادمن و صفحة
+> المستخدم لم تكتمل وفق التصميم .. لذلك يجب ان نراجع التصميم وملفات التصميم
+> … كذلك ملفات التوثيق و نحرص ان يكون تصميم المنصه حالياً بجميع صفحاتها
+> مطابق بنسبة ١٠٠٪ للتصميم ثم نكمل لوحات التحكم التي يتطلبها المشروع ثم بعد
+> ذلك ننجز تطبيق الجوال للمستخدمين و الذي سأشاركك بتصميمه لاحقاً في حينه»
+
+This replaces the stage order at the top of this file. Three stages, in the
+owner's sequence:
+
+| # | Stage | What «done» means |
+| --- | --- | --- |
+| **40a** | Every existing page matches its design block | `node scripts/design-audit.mjs` reports no screen below its threshold, and each remaining gap is a recorded design decision rather than an omission. **Baseline 2026-11-23: 59٪ (305/515).** |
+| **40b** | The panels the platform's other parties need | measured below — the dealer panel is the whole of it |
+| **40c** | The mobile app | design to be supplied by the owner; `design/Supper App.dc.html` holds 124 screens already drawn |
+
+### What was measured before writing this
+
+The design folder holds four files, and their screens are countable:
+
+| File | Screens | Built |
+| --- | --- | --- |
+| `Admin.dc.html` | 36 (A1–A36) | 35 — `A24` طلبات التمويل deferred by the owner |
+| `Front-end Web.dc.html` | 28 (Wa–Wz) | 26 — `Wq` التمويل and `Wr` اللوحات المميّزة deferred by the owner |
+| `Dealer.dc.html` | 11 (D1–D11) | **0** |
+| `Supper App.dc.html` | 124 | 0 — stage 40c |
+
+So **40b is the dealer panel and nothing else**: the provider panel was
+finished in §7 (one shell, a field schema per type), the admin panel in §38,
+and no third party in the specification has a panel of its own. The dealer
+requirements are already written against the code in
+`docs/dealer/requirements.md`, and the gap named there is the one that decides
+the work — **no purchase price is recorded anywhere**, so margin VAT, the hook
+the owner called the showrooms' biggest accounting problem, cannot be computed
+because its first operand does not exist.
+
+### Why 40a is measured and not judged
+
+`scripts/design-audit.mjs` already extracts each screen's **signals** — section
+headings, button labels, table headers — from its design block and looks for
+them in the served page. It is an existence measure, not a pixel measure: it
+says «the section is missing», not «the padding is 12 instead of 14». The first
+loses the user something; the second is read off a screenshot by eye.
+
+Both are needed for «١٠٠٪», so 40a runs in two passes: the tool first, then a
+walk with the browser open on what it cannot see.
+
+### What the first pass fixed — in the measure, before the screens
+
+The tool was answering a different question than it appeared to. Five defects,
+each found by opening a screen the number called broken:
+
+1. **It counted the owner's own decisions as missing work.** The design is
+   drawn with diacritics, Arabic-Indic numerals and the `carsell.one` name;
+   the product strips diacritics (§15), prints numerals Latin (`task-140`) and
+   is called CARZ. So every signal carrying a diacritic or a digit could never
+   match. `A10` read **13٪** against a screen that is largely built. Both sides
+   are now normalised, and a signal that is nothing but a number — a seed value
+   like «٩٬٣٢٠ جهازًا» — leaves the denominator. Measured on four screens the
+   moment it landed: `A1` 85→92, `Wc` 63→75, `Wa` 50→57, `A10` 13→25.
+2. **It never read `Dealer.dc.html`.** Eleven designed screens were outside the
+   measure entirely, so the total said nothing about the quarter of the design
+   that is not built. They are read now and reported in their own line — debt,
+   not a conformance gap, because mixing the two makes the percentage answer
+   two questions at once.
+3. **`Wj` had no route**, so the order page counted zero. It is discovered live
+   now from a buyer's own orders page. Finding a buyer for it turned up
+   something about the seed worth keeping: **of 200 accounts, not one has both
+   a listing and an order.** Sellers sell and buyers buy, so no screen has ever
+   been seen in the state a real marketplace user is in.
+4. **`A14` and `Wh` were read as 404 and 0٪** because their content is behind a
+   click — the trim editor needs an id the tree loads lazily, and the sell
+   wizard renders its steps in the client. Searching the raw payload instead
+   would have been the «the name appears, therefore it is wired» trap that
+   gates 50 and 52 exist to close, so they are declared walk-only.
+5. **It let an incomplete run print a number.** Three crawlers against one dev
+   server produced eighteen 500s and a figure that looked fine. The tool
+   already refuses this — it names what it could not reach and exits 1 — and
+   that refusal is what caught the real cause: **the machine's disk was full**,
+   2.8 GiB free of 228, and `ENOSPC` was reaching Next as a 500.
+
+
+### Where the screens stand — measured 2026-11-23, after the normalisation
+
+**305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the
+run exits non-zero if a single screen could not be reached, and this one exited
+clean. Forty-eight screens carry a figure; `A14` and `Wh` are walk-only, five
+are empty of data, and the eleven dealer screens are debt rather than a
+conformance gap.
+
+**The number is a floor, not a verdict.** It counts whether a design signal
+appears in the served page, so a screen can read 80٪ and still look wrong, and
+one can read 25٪ because the design draws metrics we do not yet collect.
+
+| Band | Screens |
+| --- | --- |
+| **under 45٪** | `A10` push 25 · `A30` ad slots 25 · `Wj` order page 27 · `A11` integrations 31 · `A18` identity 38 · `Wf` **account home 40** · `Wp` dealer index 40 · `Wx` service checkout 40 · `A3` finance tab 41 · `A17` disputes 44 · `A2` ops tab 44 · `A34` legal 44 · `Wb` search 44 |
+| 45–65٪ | `Wg` 45 · `A13` `A16` `A25` `Wn` `Wv` `Wz` 50 · `A6` 53 · `A15` `A35` `A9` 56 · `A20` `Wa` 57 · `A8` 59 · `A36` `Wt` 60 · `A19` `A5` 64 |
+| 65–85٪ | `A12` `Wk` 67 · `A22` `A27` 73 · `A29` `Wc` 75 · `A4` 77 · `A23` `A26` `Wi` 80 · `We` 81 · `A32` `A33` 83 |
+| over 85٪ | `A28` providers 90 · `Wo` legal page 91 · `A1` dashboard 92 · `A7` services **100** |
+
+The owner's own words were «صفحات في لوحة الادمن و صفحة المستخدم لم تكتمل»,
+and the measure agrees with both halves: eight of the thirteen weakest screens
+are admin, and `Wf` — the account home, the screen every signed-in person lands
+on — is sixth from the bottom.
+
+**What the weakest ones have in common** is worth stating before any of them is
+touched: much of what they are missing is **numbers we do not collect**.
+`A10` wants a delivery rate and an open rate for push notifications that no app
+yet sends; `A3` wants CAC, LTV and contribution margin; `A2` wants queue ages.
+Building those panels without the data behind them would be the «شاشةٌ تقول
+شيئًا والنظام يفعل غيره» failure this repository stops for. So 40a splits in
+two, and the split belongs to the owner:
+
+- **Layout and controls that are simply missing** — buttons, filters, exports,
+  section headings. Build them.
+- **Metrics with no source** — decide per metric whether to collect it now,
+  defer the card, or replace it with something we can honestly show.
+
+---
+
 ## 39 · A fresh production database could not sell a car — *found while preparing the SCCC deploy, 2026-11-23*
 
 The owner moved to deploy on SCCC. Before writing the runbook I measured what a
@@ -2666,6 +2795,22 @@ never reach a reader, and this repository's comments are deliberately voweled).
   form, because behaviour alone would pass right up until the day it broke.
 
 ## Also open, outside the four stages
+
+### The production database has no backup — *owner's decision 2026-11-23, deferred to before launch*
+
+> «نؤجل اعدادات النسخ الاحتياطي و نسجلها ضمن المهام لاحقاً و قبل الاطلاق النهائي»
+
+`scripts/ops/backup.sh` is written, verifies its own dump before uploading, and
+prunes to a 30-day window. What it lacks is a destination: an OSS bucket in the
+same Riyadh region, a RAM key pair, the four `BACKUP_*` variables, a daily cron,
+and **one restore drill** — `scripts/ops/restore-drill.sh` exists for it, and a
+backup never restored is not a backup.
+
+Until that is wired, production holds the only copy of every row in it. Today
+that is the reference catalogue and one admin, which is why deferring it costs
+nothing yet. **It stops costing nothing the day a real seller publishes a real
+car**, so this is sequenced before launch, not merely before growth.
+
 
 ### Cloudflare CDN in front of carz.sa — *owner's decision 2026-11-23, deferred to before launch*
 
