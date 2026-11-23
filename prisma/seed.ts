@@ -23,16 +23,9 @@ import { mintKey } from '../src/lib/api/key-mint';
 import { checkIban, ibanLast4 } from '../src/lib/domain/iban';
 /** **ونقيّةٌ بلا `db`** — فالاستيرادُ الساكن لا يجرّ عميلًا قبل تحميل البيئة. */
 import { inspectorCodeFor } from '../src/lib/domain/inspector-code';
+import { BASE_FEATURES, FROM_2020_FEATURE, plantReference } from './reference';
 import { Prisma } from '../src/generated/prisma/client';
-import type {
-  BodyType,
-  Drivetrain,
-  FeatureGroup,
-  FuelType,
-  ProviderType,
-  ServiceCategory,
-  Transmission,
-} from '../src/generated/prisma/enums';
+import type { ProviderType } from '../src/generated/prisma/enums';
 
 try {
   process.loadEnvFile();
@@ -251,6 +244,15 @@ function seedIban(bank: string, account: string): string {
 const SEED_NOTE = 'seed';
 
 /**
+ * كلمةُ التطوير — **تُكتب مرّة**.
+ *
+ * كانت مكتوبةً في موضع التجزئة، والسطرُ الذي يطبعها يطبع `?? ''` —
+ * فيقول «كلمة المرور: » ولا شيء بعدها، والحساب له كلمةٌ تعمل. ومن
+ * قرأ السطرَ حسب الزرعَ ناقصًا وهو تامّ.
+ */
+const DEV_PASSWORD = 'CarSell!dev2026';
+
+/**
  * لوحاتٌ مزروعة — بحروفٍ عريضة وضيّقة وبعددٍ مختلف، فتُقاس اللوحة في
  * حالاتها لا في حالةٍ واحدة. والحروفُ من السبعة عشر المعتمدة وحدها.
  */
@@ -294,150 +296,6 @@ const load = <T,>(name: string): T =>
   JSON.parse(readFileSync(join(SEED_DIR, name), 'utf8')) as T;
 
 // ═══════════════════════════════════════════════════════════
-//  أنواع ملفات البيانات
-// ═══════════════════════════════════════════════════════════
-
-type FeatureRow = {
-  key: string;
-  nameAr: string;
-  nameEn: string;
-  group: FeatureGroup;
-  sort: number;
-  active: boolean;
-  placements: string[];
-};
-
-type TrimRow = {
-  nameAr: string;
-  nameEn: string;
-  bodyType: BodyType;
-  transmission: Transmission;
-  fuel: FuelType;
-  drivetrain: Drivetrain;
-  seats: number;
-  doors: number;
-  engineL: number | null;
-  cylinders: number | null;
-  horsepower: number | null;
-  /** اختيارية: الفئة القياسية تصف الطراز كلَّه لا جيلًا منه. */
-  yearFrom: number | null;
-  yearTo: number | null;
-};
-
-type ModelRow = {
-  nameAr: string;
-  nameEn: string;
-  yearFrom: number | null;
-  yearTo: number | null;
-  bodyType: BodyType;
-  visible: boolean;
-  trims: TrimRow[];
-};
-
-type BrandRow = {
-  slug: string;
-  nameAr: string;
-  nameEn: string;
-  sort: number;
-  visible: boolean;
-  models: ModelRow[];
-};
-
-type ServiceRow = {
-  key: string;
-  nameAr: string;
-  nameEn: string;
-  descAr: string;
-  descEn: string;
-  /** بنودُ ما تشمله الخدمة — تُعرض قبل الدفع (Wx). */
-  includesAr: string[];
-  includesEn: string[];
-  price: string;
-  category: ServiceCategory;
-  isAutomated: boolean;
-  slaHours: number | null;
-  placements: string[];
-  sort: number;
-  providerType: ProviderType | null;
-};
-
-type TaxRuleRow = {
-  sellerType: string | null;
-  buyerType: string | null;
-  supplyType: string;
-  taxableBase: string;
-  ratePct: string | null;
-  supplierIsPlatform: boolean;
-  invoiceIssuer: string;
-  active: boolean;
-  note: string;
-};
-
-type GatewayRow = {
-  key: string;
-  nameAr: string;
-  nameEn: string;
-  status: string;
-  sort: number;
-  capabilities: Prisma.InputJsonValue;
-};
-
-type PushChannelRow = {
-  key: string;
-  nameAr: string;
-  userControllable: boolean;
-  defaultOn: boolean;
-  sort: number;
-};
-
-type AdSlotRow = {
-  key: string;
-  nameAr: string;
-  width: number;
-  height: number;
-  pricingModel: string;
-  basePrice: string;
-  maxPerSession: number;
-};
-
-type FaqPlacementRow = {
-  surface: string;
-  listingType: 'DIRECT' | 'NEGOTIATION' | 'AUCTION' | null;
-  condition: Record<string, unknown> | null;
-};
-
-type FaqRow = {
-  /** هويّةٌ ثابتة لمن يحتاجها — والترشيحُ بالنصّ هشّ */
-  key?: string;
-  questionAr: string;
-  questionEn: string;
-  answerAr: string;
-  answerEn: string;
-  category: string;
-  sort: number;
-  placements: FaqPlacementRow[];
-};
-
-type TemplateRow = {
-  key: string;
-  subjectAr: string;
-  subjectEn: string;
-  bodyAr: string;
-  bodyEn: string;
-  smsAr: string | null;
-  smsEn: string | null;
-  priority: string;
-  channelEmail: boolean;
-  channelSms: boolean;
-  channelPush: boolean;
-  channelInApp: boolean;
-  variables: string[];
-  active: boolean;
-  /** موضوعُ الإشعار — وبه يُوصَل بمفتاح المستخدم. و`null` يصل دائمًا. */
-  pushChannelKey: string | null;
-};
-
-// ═══════════════════════════════════════════════════════════
 //  المسح — بترتيب يحترم المفاتيح الأجنبية
 // ═══════════════════════════════════════════════════════════
 
@@ -477,181 +335,6 @@ async function main(): Promise<void> {
   console.log(`زرع البيانات الأولية · APP_ENV=${APP_ENV}`);
   await reset();
 
-  // ————— إعدادات المنصة —————
-  /**
-   * ═══ وقنوات الدعم تُزرع ═══
-   *
-   * صفحة «تواصل معنا» تقرأ هذه الثلاثة، فبيئةٌ بلا قيمة فيها تعرض
-   * «غير مضبوطة بعد» — وهي الحال التي بقيت عليها منذ بُنيت الصفحة.
-   *
-   * **والبريد وحده قيمةٌ رسمية**: الجوال افتراضيٌّ يُضبط من
-   * `/admin/contact`، فرقمٌ في الشيفرة يبقى بعد أن يتغيّر.
-   */
-  await prisma.platformSetting.create({
-    data: {
-      id: 'default',
-      transferFee: new D('350.00'),
-      vatPct: new D('15.00'),
-      supportEmail: 'info@carz.sa',
-    },
-  });
-  await prisma.financeSetting.create({
-    data: {
-      id: 'default',
-      downPaymentPct: new D('20.00'),
-      months: 60,
-      profitRatePct: new D('4.75'),
-      minPrice: new D('30000.00'),
-    },
-  });
-
-  // ————— الخصائص والباقة المجانية بعمولة صفر —————
-  const ENTITLEMENTS = [
-    ['can_direct_sale', 'bool', 'true', 'إتاحة البيع المباشر'],
-    ['can_negotiate', 'bool', 'true', 'إتاحة التفاوض بالعروض'],
-    ['can_auction', 'bool', 'true', 'إتاحة إنشاء مزاد'],
-    /**
-     * **بلا حدّ — ‏`-1`‎ — لأن لا شيء يفرض حدًّا اليوم.**
-     *
-     * كانت `10`، ولا مسار يقرؤها: فالشاشة تقول «السقف عشرة» والمنتج
-     * يقبل المئة. والنصّ المعروض وعدٌ لا وصف — فإمّا يُفرَض السقف وإمّا
-     * يُقال إنه بلا حدّ. والتصميم (A29) يقول «بلا حد» في الباقات الثلاث.
-     */
-    ['max_active_listings', 'int', '-1', 'سقف الإعلانات النشطة'],
-    ['featured_slots', 'int', '0', 'عدد مرات التمييز المجانية'],
-    ['bulk_upload', 'bool', 'false', 'الرفع الجماعي — لوحة التاجر'],
-    ['team_seats', 'int', '0', 'مقاعد فريق المعرض'],
-    ['commission_pct', 'percent', '0', 'نسبة العمولة'],
-    ['deposit_required', 'bool', 'true', 'اشتراط العربون للمزايدة'],
-    ['priority_support', 'bool', 'false', 'دعم ذو أولوية'],
-  ] as const;
-
-  await prisma.entitlement.createMany({
-    data: ENTITLEMENTS.map(([key, type, defaultValue, description]) => ({
-      key,
-      type,
-      defaultValue,
-      description,
-    })),
-  });
-
-  const freePlan = await prisma.plan.create({
-    data: {
-      key: 'free',
-      nameAr: 'الأساسية',
-      nameEn: 'Basic',
-      price: new D('0.00'),
-      billingCycle: 'monthly',
-      visible: true,
-      entitlements: {
-        create: ENTITLEMENTS.map(([key, , defaultValue]) => ({
-          entitlementKey: key,
-          value: defaultValue,
-        })),
-      },
-    },
-  });
-
-  /**
-   * ═══ باقتا المعارض — **مجانيّتان اليوم** ═══
-   *
-   * التصميم (A29) يكتبها حرفيًّا: «٣ باقات · كلها مجانية اليوم».
-   * والسعر صفرٌ **قرارًا لا نسيانًا**: من يزرع منصّةً لا يعرف بعد كم
-   * يأخذ، ورقمٌ مزروع يُنتج اشتراكًا بسعرٍ لم يقرّره أحد.
-   *
-   * وما يفرّقها ليس السعر بل **قيَم خصائصها**: المقاعد والتمييز والرفع
-   * الجماعي — والكود يسأل عن الخاصّية لا عن الباقة.
-   */
-  const DEALER_PLANS = [
-    ['dealer', 'معرض', 'Dealer', { team_seats: '5', featured_slots: '2' }],
-    [
-      'dealer_pro',
-      'معرض احترافي',
-      'Dealer Pro',
-      { team_seats: '8', featured_slots: '6', bulk_upload: 'true', priority_support: 'true' },
-    ],
-  ] as const;
-
-  await Promise.all(
-    DEALER_PLANS.map(([key, nameAr, nameEn, overrides]) =>
-      prisma.plan.create({
-        data: {
-          key,
-          nameAr,
-          nameEn,
-          price: new D('0.00'),
-          billingCycle: 'monthly',
-          visible: true,
-          entitlements: {
-            create: ENTITLEMENTS.map(([entitlementKey, , defaultValue]) => ({
-              entitlementKey,
-              value:
-                (overrides as Record<string, string | undefined>)[entitlementKey] ?? defaultValue,
-            })),
-          },
-        },
-      }),
-    ),
-  );
-
-  /**
-   * ═══ قاعدةٌ لكل طرف — صفرٌ خارج التطوير ═══
-   *
-   * **الصفر افتراضٌ لا نسيان**: من يزرع منصّةً لا يعرف بعد كم يأخذ،
-   * ونسبةٌ مزروعة تُنتج فواتير برقمٍ لم يقرّره أحد. والصفّان يوجدان
-   * كي تجدهما شاشة الأدمن فتُعدَّلا بضغطة — لا لتُنشأ من عدم.
-   * وتأكّد (٢٠٢٦-١٠-١٧): «نسبة العمولة تُضبط من إعدادات الأدمن
-   * حيث يمكن تغييرها متى أردنا، وليست مزروعة داخل الكود».
-   *
-   * ═══ **وفي التطوير لا** ═══
-   *
-   * صفرٌ **يُخفي كلَّ عطبٍ في مسار العمولة**: صفرٌ من أيّ أساسٍ صفر،
-   * ومن أيّ طرفٍ صفر، وبأيّ قاعدةٍ صفر. فعاشت ثلاثُ فجوات شهورًا —
-   * نسخةٌ ثالثة من القاعدة، وأساسٌ هو السعر المطلوب لا المزايدة
-   * المعروضة، وقاعدةٌ تُنتقى بلا طرفٍ ولا `enabled` فتُقتبَس
-   * للمشتري عمولةُ البائع. **ولم يكشفها اختبار؛ كشفها ضبطُ نسبةٍ
-   * حقيقية من اللوحة.**
-   *
-   * فبيئةُ التطوير تُزرع بنسبةٍ عاملة — **وما لا يُزرع لا يُرى**.
-   * وما عداها صفرٌ حتى يقرّر المالك.
-   *
-   * وعمولة المشتري **معطَّلة** في الحالين، فالسلوك الافتراضيّ أن يدفع
-   * السعر ورسم النقل وحدهما.
-   */
-  /**
-   * ═══ **وعلى المشتري لا على البائع** ═══
-   *
-   * قرار المالك (٢٠٢٦-١٠-١٧): «يتحمّلها المشتري». وهو موافقٌ لوعد
-   * المنصّة المكتوب في أربعة مواضع — «صفر عمولة على كل عملية بيع» —
-   * **فعمولةُ بائعٍ مفعَّلة تُكذّبه**، والوعدُ يُرفع عندها (ترحيل
-   * `faq_key` وشرطُ `sellingIsFree`).
-   *
-   * وكانت البذرةُ تُفعّلها على البائع، فيُرفع الوعدُ في كل بيئة تطوير
-   * **وهو صادقٌ أصلًا** — والمشتري لا يدفع شيئًا فلا تُجرَّب عمولتُه.
-   */
-  const seedBuyerPct = APP_ENV === 'development' ? '2.50' : '0.00';
-
-  await prisma.commissionRule.createMany({
-    data: [
-      {
-        scope: 'global',
-        side: 'SELLER',
-        enabled: true,
-        pct: new D('0.00'),
-        fixedFee: new D('0.00'),
-        activeFrom: days(-180),
-      },
-      {
-        scope: 'global',
-        side: 'BUYER',
-        enabled: APP_ENV === 'development',
-        pct: new D(seedBuyerPct),
-        fixedFee: new D('0.00'),
-        activeFrom: days(-180),
-      },
-    ],
-  });
-
   // ————— ٣ حسابات أدمن بالأدوار —————
   //
   // كلمة مرور واحدة معروفة للتطوير — والدخول بها وحدها
@@ -673,7 +356,7 @@ async function main(): Promise<void> {
     );
     process.exit(1);
   }
-  const seedPasswordHash = await hashPassword(seedPassword ?? 'CarSell!dev2026');
+  const seedPasswordHash = await hashPassword(seedPassword ?? DEV_PASSWORD);
 
   /**
    * بريد السوبر أدمن من البيئة — فلا يُشحن نطاقٌ ثابت إلى كل نشر،
@@ -701,151 +384,56 @@ async function main(): Promise<void> {
       });
     }),
   );
-
-  // ————— ٣٩ ميزة —————
-  const features = load<FeatureRow[]>('features.json');
-  await prisma.feature.createMany({ data: features });
+  const superAdmin = admins[0] as (typeof admins)[number];
 
   /**
-   * ربط المميّزات بالفئات — الأساسيات وحدها.
-   * القاعدة في prisma/seed-data/README.md: ميزة خاطئة في الكتالوج
-   * تنتشر إلى كل إعلان يُنشر من تلك الفئة، ولا يراها البائع ليصحّحها.
-   */
-  const ALWAYS = ['abs', 'airbags_front', 'ac_auto', 'bluetooth'] as const;
-  const FROM_2020 = 'rear_camera';
-
-  // ————— الكتالوج: ٤٢ ماركة، عشر منها بشجرة كاملة —————
-  const brands = load<BrandRow[]>('brands.json');
-  const trimLinks: { trimId: string; featureKey: string; isDefault: boolean }[] = [];
-  type TrimRef = {
-    id: string;
-    row: TrimRow;
-    modelId: string;
-    modelNameAr: string;
-    brandId: string;
-    brandNameAr: string;
-  };
-  const allTrims: TrimRef[] = [];
-
-  for (const b of brands) {
-    const brand = await prisma.brand.create({
-      data: {
-        slug: b.slug,
-        nameAr: b.nameAr,
-        nameEn: b.nameEn,
-        sort: b.sort,
-        visible: b.visible,
-        /**
-         * ═══ شعارُ الماركة — مشتقٌّ من مقطعها ═══
-         *
-         * **والملفُّ باسم المقطع**، فمن أراد الشعار الحقيقيّ استبدل
-         * الملفّ ولا يلمس شيفرةً ولا قاعدة. وقِيس ٢٠٢٦-١٠-١٨ فكانت
-         * **الاثنتان والأربعون بلا شعار**: لوحةُ الأدمن ترفعه منذ
-         * بُنيت ولم يُرفع واحدٌ قطّ — فقائمةُ الماركات في نموذج
-         * البيع تعرض حرفًا أوّلَ في موضع كلِّ شعار.
-         *
-         * **ولا تُشتقّ في العرض بل تُخزَّن**: اشتقاقُها عند القراءة
-         * يُنتج مصدرين يتباعدان — ماركةٌ يرفع لها المشغّل شعارًا
-         * فلا يظهر، وأخرى تطلب ملفًّا غير موجود.
-         */
-        logoUrl: `/brand-logos/${b.slug}.svg`,
-      },
-    });
-
-    for (const m of b.models) {
-      const model = await prisma.model.create({
-        data: {
-          brandId: brand.id,
-          nameAr: m.nameAr,
-          nameEn: m.nameEn,
-          yearFrom: m.yearFrom,
-          yearTo: m.yearTo,
-          bodyType: m.bodyType,
-          visible: m.visible,
-        },
-      });
-
-      for (const t of m.trims) {
-        const trim = await prisma.trim.create({
-          data: {
-            modelId: model.id,
-            nameAr: t.nameAr,
-            nameEn: t.nameEn,
-            yearFrom: t.yearFrom,
-            yearTo: t.yearTo,
-            bodyType: t.bodyType,
-            transmission: t.transmission,
-            fuel: t.fuel,
-            drivetrain: t.drivetrain,
-            seats: t.seats,
-            doors: t.doors,
-            engineL: t.engineL === null ? null : new D(String(t.engineL)),
-            cylinders: t.cylinders,
-            horsepower: t.horsepower,
-          },
-        });
-
-        for (const key of ALWAYS) {
-          trimLinks.push({ trimId: trim.id, featureKey: key, isDefault: true });
-        }
-        /** والفارغُ لا يُقارن — فئةٌ بلا سنةٍ لا تدّعي كاميرا خلفية. */
-        if (t.yearFrom !== null && t.yearFrom >= 2020) {
-          trimLinks.push({
-            trimId: trim.id,
-            featureKey: FROM_2020,
-            isDefault: true,
-          });
-        }
-
-        allTrims.push({
-          id: trim.id,
-          row: t,
-          modelId: model.id,
-          modelNameAr: m.nameAr,
-          brandId: brand.id,
-          brandNameAr: b.nameAr,
-        });
-      }
-    }
-  }
-  await prisma.trimFeature.createMany({ data: trimLinks });
-
-  /**
-   * ═══ قواعدُ الضريبة قبل ما يحسب بها ═══
+   * ═══ المُمهِّد أوّلًا — ثم ما لا يصل الإنتاجَ ═══
    *
-   * كانت تُزرع بعد الطلبات بتسعِمئة سطر، **و`computeOrderAmounts` صارت
-   * تقرأ نسبتَها من قاعدتها** (قرار المالك: التعطيل والنسبة من
-   * اللوحة). فكلُّ طلبٍ مزروعٍ يُحسب قبل وجود قاعدة ⇒ `supplyVatPct`
-   * تردّ صفرًا ⇒ **ضريبةُ كلّ طلبٍ في البذرة صفر**، وشاشةُ الضرائب
-   * تقول «لا ضريبة مستحقّة» في كل بيئة.
+   * كلُّ ما تحتاجه قاعدةٌ لتعمل — الإعداداتُ والباقاتُ والكتالوج
+   * والخدماتُ وقواعدُ الضريبة والقوالبُ والبوّابات — في
+   * `prisma/reference.ts`، **يقرؤه هذا ويقرؤه الإقلاع**. ولو نُسخ
+   * هنا لتباعدت النسختان أوّلَ تغيير: صفٌّ يُضاف للبذرة فلا يصل
+   * نشرًا، أو العكس.
    *
-   * ولم يسقط شيءٌ من قبل: الترتيبُ لم يكن يعني شيئًا ما دامت النسبة
-   * تُقرأ من `PlatformSetting`. **فأوّلُ مصدرٍ واحد كشف ترتيبًا خاطئًا
-   * كان نائمًا.**
+   * **وأوّلًا لأن البذرةَ تبني عليه**: الفئاتُ تصنع المركبات، والخدماتُ
+   * تُطلب، وقاعدةُ الضريبة تُحسب بها أرقامُ كلّ طلب.
+   *
+   * و`activeFrom` يسبق «الآن» سنةً: الطلباتُ المزروعة مؤرَّخةٌ في
+   * الماضي، و`supplyVatPct` تنتقي القاعدةَ السارية في تاريخها.
    */
-  // ————— قواعد الضريبة (A21) — ثلاث منها تنتظر المذكرة —————
-  /** ومعرّفُ المحرِّر يُقرأ هنا — والكتلةُ سبقت تعريفَه في موضعها القديم */
-  const taxAdmin = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
-
-  await prisma.taxRule.createMany({
-    data: load<TaxRuleRow[]>('tax-rules.json').map((rule) => ({
-      sellerType: rule.sellerType as never,
-      buyerType: rule.buyerType as never,
-      supplyType: rule.supplyType as never,
-      taxableBase: rule.taxableBase as never,
-      ratePct: rule.ratePct === null ? null : new D(rule.ratePct),
-      supplierIsPlatform: rule.supplierIsPlatform,
-      invoiceIssuer: rule.invoiceIssuer as never,
-      active: rule.active,
-      note: rule.note,
-      activeFrom: days(-365),
-      updatedBy: taxAdmin,
-      updatedAt: NOW,
-    })),
+  const reference = await plantReference(prisma, {
+    adminId: superAdmin.id,
+    now: NOW,
+    activeFrom: days(-365),
   });
+  const allTrims = reference.trims;
+  type TrimRef = (typeof allTrims)[number];
+  const freePlan = await prisma.plan.findUniqueOrThrow({ where: { key: 'free' } });
+  const featureKeys = (await prisma.feature.findMany({ select: { key: true } })).map((f) => f.key);
 
+  /**
+   * ═══ وما تضعه البذرةُ فوق المُمهِّد ═══
+   *
+   * **العمولةُ في التطوير وحده.** المُمهِّد يزرع القاعدتين صفرًا
+   * معطَّلتين — قيمتُهما قرارُ المالك، والصفُّ مقبضُه. وصفرٌ في
+   * التطوير **يُخفي كلَّ عطبٍ في مسار العمولة**: صفرٌ من أيّ أساسٍ
+   * صفر، ومن أيّ طرفٍ صفر — فعاشت ثلاثُ فجوات شهورًا ولم يكشفها
+   * اختبار، كشفها ضبطُ نسبةٍ حقيقية من اللوحة.
+   *
+   * **وعلى المشتري لا على البائع** (قرار المالك ٢٠٢٦-١٠-١٧): عمولةُ
+   * بائعٍ مفعَّلة تُكذّب وعدَ «صفر عمولة على البيع» المكتوب في أربعة
+   * مواضع، فتُرفع الجملةُ في كل بيئة تطوير وهي صادقةٌ أصلًا.
+   */
+  if (APP_ENV === 'development') {
+    await prisma.commissionRule.updateMany({
+      where: { scope: 'global', side: 'BUYER' },
+      data: { enabled: true, pct: new D('2.50') },
+    });
+  }
 
-  // ————— المزوّدون والخدمات التسعة —————
+  /** **ومزوّدُ الخدمة يُربط بعد زرعه** — والمُمهِّد لا يعرف مزوّدًا. */
+
+  // ————— المزوّدون وربطُ خدماتهم —————
   const providerDefs = [
     ['مركز فحص المستقبل', 'Mustaqbal Inspection Centre', 'INSPECTION', 48],
     ['ناقل للشحن', 'Naqil Transport', 'SHIPPING', 96],
@@ -931,38 +519,29 @@ async function main(): Promise<void> {
     });
   }
 
-  const serviceRows = load<ServiceRow[]>('services.json');
+  /**
+   * ═══ وربطُ المزوّد — والمُمهِّد لا يعرف مزوّدًا ═══
+   *
+   * الخدماتُ التسع زرعها المُمهِّد بأسمائها وأسعارها وبنودها، و`providerId`
+   * **فارغةٌ عنده بحقّ**: المزوّدون كياناتٌ يُنشئها التشغيل لا بياناتٌ
+   * مرجعية، ومُمهِّدٌ يربط خدمةً بمزوّدٍ وهميّ يشحنه إلى الإنتاج.
+   *
+   * فالبذرةُ تربط ما زرعته من مزوّدين، والصنفُ يُقرأ من الصفّ نفسه —
+   * فطابورُ المدينة يُشتقّ من `providerType`، وفراغُها يردّ كلَّ طلبِ
+   * فحصٍ بـ«لا تغطية».
+   */
   const services = new Map<string, string>();
   /** سعرُ كلِّ خدمة — فطلبُ الخدمة لا يُسعَّر برقمٍ مكتوبٍ بيد. */
   const servicePrices = new Map<string, Prisma.Decimal>();
-  for (const s of serviceRows) {
-    const created = await prisma.service.create({
-      data: {
-        key: s.key,
-        nameAr: s.nameAr,
-        nameEn: s.nameEn,
-        descAr: s.descAr,
-        descEn: s.descEn,
-        includesAr: s.includesAr,
-        includesEn: s.includesEn,
-        price: new D(s.price),
-        category: s.category,
-        isAutomated: s.isAutomated,
-        slaHours: s.slaHours,
-        placements: s.placements,
-        sort: s.sort,
-        /**
-         * **والصنف يُكتب كما يُقرأ.** كان يُستعمل للبحث عن المزوّد ثمّ
-         * يُرمى، فتبقى `providerType` فارغةً — وطابورُ المدينة يُشتقّ
-         * منها، فيصير صفرًا دائمًا ويُردّ كلُّ طلبِ فحصٍ بـ«لا تغطية».
-         */
-        providerType: s.providerType,
-        providerId:
-          s.providerType === null ? null : (providers.get(s.providerType) ?? null),
-      },
-    });
-    services.set(s.key, created.id);
-    servicePrices.set(s.key, created.price);
+  for (const row of await prisma.service.findMany({
+    select: { id: true, key: true, price: true, providerType: true },
+  })) {
+    const provider = row.providerType === null ? null : (providers.get(row.providerType) ?? null);
+    if (provider !== null) {
+      await prisma.service.update({ where: { id: row.id }, data: { providerId: provider } });
+    }
+    services.set(row.key, row.id);
+    servicePrices.set(row.key, row.price);
   }
 
   // ————— المعارض (Wg مرحلة أولى) —————
@@ -1149,8 +728,6 @@ async function main(): Promise<void> {
     ...Array.from({ length: 10 }, () => 'AUCTION' as const),
   ];
 
-  const featureKeys = features.map((f) => f.key);
-
   /**
    * ═══ وثلاثةٌ من مدينةٍ وطرازٍ واحد — عمدًا ═══
    *
@@ -1322,8 +899,8 @@ async function main(): Promise<void> {
     });
 
     // لقطة المميّزات وقت النشر — لا قراءة حيّة من الفئة
-    const extra = new Set<string>(ALWAYS);
-    if (year >= 2020) extra.add(FROM_2020);
+    const extra = new Set<string>(BASE_FEATURES);
+    if (year >= 2020) extra.add(FROM_2020_FEATURE);
     for (let k = 0; k < between(2, 7); k += 1) extra.add(pick(featureKeys));
     await prisma.listingFeature.createMany({
       data: [...extra].map((featureKey) => ({ listingId: listing.id, featureKey })),
@@ -2571,64 +2148,6 @@ async function main(): Promise<void> {
     }
   }
 
-  // ————— مواضع الأسئلة الشائعة —————
-  for (const f of load<FaqRow[]>('faqs.json')) {
-    await prisma.faqItem.create({
-      data: {
-        key: f.key ?? null,
-        questionAr: f.questionAr,
-        questionEn: f.questionEn,
-        answerAr: f.answerAr,
-        answerEn: f.answerEn,
-        category: f.category,
-        sort: f.sort,
-        placements: {
-          create: f.placements.map((p, n) => ({
-            surface: p.surface,
-            listingType: p.listingType,
-            condition: (p.condition ?? Prisma.DbNull) as Prisma.InputJsonValue,
-            sort: n,
-          })),
-        },
-      },
-    });
-  }
-
-  // ————— القوالب والمساحات الإعلانية —————
-  /**
-   * **والقناة قبل القالب.** صار القالب يحمل `pushChannelKey` بمفتاحٍ
-   * أجنبيّ، فزرعُه قبل قنواته يسقط على قيدٍ مرجعيّ — والترتيب هنا
-   * يحترم المفاتيح كما يحترمه المسح.
-   */
-  await prisma.pushChannel.createMany({
-    data: load<PushChannelRow[]>('push-channels.json'),
-  });
-
-  await prisma.notificationTemplate.createMany({
-    data: load<TemplateRow[]>('notification-templates.json'),
-  });
-  // ————— بوابات الدفع وتوجيه الأغراض (A20) —————
-  await prisma.paymentGateway.createMany({
-    data: load<GatewayRow[]>('payment-gateways.json').map((g) => ({
-      ...g,
-      status: g.status as 'ACTIVE' | 'INACTIVE' | 'DEGRADED',
-    })),
-  });
-  const routingAdmin = (await prisma.adminUser.findFirstOrThrow({ where: { role: 'SUPER_ADMIN' } })).id;
-  await prisma.paymentRoute.createMany({
-    data: [
-      // الضمان يحتاج ٣٠ يومًا — والمصرفية وحدها تبلغها
-      { purpose: 'VEHICLE_ESCROW', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
-      { purpose: 'AUCTION_DEPOSIT', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
-      { purpose: 'TRANSFER_FEE', gatewayKey: 'bank_escrow', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
-      // تحصيل فوري بلا حجز
-      { purpose: 'WALLET_TOPUP', gatewayKey: 'moyasar', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
-      { purpose: 'SERVICE_PURCHASE', gatewayKey: 'tap', environment: 'TEST', enabled: true, updatedBy: routingAdmin, updatedAt: NOW },
-      // معطّل — كل الباقات مجانية
-      { purpose: 'SUBSCRIPTION', gatewayKey: 'moyasar', environment: 'TEST', enabled: false, updatedBy: routingAdmin, updatedAt: NOW },
-    ],
-  });
-
   // ————— مفضّلات وبحوث محفوظة — بلاها لا تُقاس شريحة ولا تُختبر —————
   const buyerPool = await prisma.user.findMany({
     where: { dealerId: null },
@@ -2749,13 +2268,6 @@ async function main(): Promise<void> {
       skipDuplicates: true,
     });
   }
-  await prisma.adSlot.createMany({
-    data: load<AdSlotRow[]>('ad-slots.json').map((s) => ({
-      ...s,
-      basePrice: new D(s.basePrice),
-    })),
-  });
-
   /**
    * ═══ حملةٌ إعلانية وأثرُها — وإلّا بقيت الشاشة على حالها الفارغ ═══
    *
@@ -3032,7 +2544,6 @@ async function main(): Promise<void> {
   }
 
   // ————— سجلّ التدقيق: كل إجراء أدمن يُكتب —————
-  const superAdmin = admins[0] as (typeof admins)[number];
   await prisma.auditLog.create({
     data: {
       actorId: superAdmin.id,
@@ -3043,45 +2554,6 @@ async function main(): Promise<void> {
       after: { appEnv: APP_ENV, at: NOW.toISOString() },
     },
   });
-
-  /**
-   * أنواع الهياكل — جدول **عرض** لا كيانات. المفاتيح من `BodyType`
-   * نفسه، فلا مرجع جديد يمكن أن ينحرف عن التعداد. الصور الظلّية
-   * يرفعها الأدمن في A12، والبطاقة تُعرض بالاسم وحده حتى ذلك الحين.
-   */
-  const BODY_TYPES = [
-    { key: 'SEDAN', nameAr: 'سيدان', nameEn: 'Sedan', sort: 1 },
-    { key: 'SUV', nameAr: 'دفع رباعي', nameEn: 'SUV', sort: 2 },
-    { key: 'PICKUP', nameAr: 'بيك أب', nameEn: 'Pickup', sort: 3 },
-    { key: 'HATCHBACK', nameAr: 'هاتشباك', nameEn: 'Hatchback', sort: 4 },
-    { key: 'COUPE', nameAr: 'كوبيه', nameEn: 'Coupe', sort: 5 },
-    { key: 'VAN', nameAr: 'فان', nameEn: 'Van', sort: 6 },
-  ] as const;
-
-  for (const body of BODY_TYPES) {
-    await prisma.bodyTypeDisplay.upsert({
-      where: { key: body.key },
-      update: { nameAr: body.nameAr, nameEn: body.nameEn, sort: body.sort },
-      create: { ...body },
-    });
-  }
-
-  /**
-   * المستندات القانونية — نسخة وتاريخ سريان لكل مستند. مستخدم قَبِل
-   * شروط مارس محكومٌ بنصّها لا بنصّ اليوم، فالنسخة جزء من البيانات.
-   */
-  const LEGAL = load<Record<string, {
-    titleAr: string; titleEn: string; version: string;
-    summaryAr: string; summaryEn: string; sort: number; sections: unknown;
-  }>>('legal.json');
-
-  for (const [key, doc] of Object.entries(LEGAL)) {
-    await prisma.legalDocument.upsert({
-      where: { key },
-      update: { ...doc, sections: doc.sections as never, effectiveAt: NOW },
-      create: { key, ...doc, sections: doc.sections as never, effectiveAt: NOW },
-    });
-  }
 
   // ————— التقرير —————
   /**
@@ -3339,7 +2811,7 @@ async function main(): Promise<void> {
    */
   console.log(
     process.env.ADMIN_PASSWORD === undefined
-      ? `  حسابات الأدمن — كلمة المرور: ${seedPassword ?? ''}`
+      ? `  حسابات الأدمن — كلمة المرور: ${seedPassword ?? DEV_PASSWORD}`
       : '  حسابات الأدمن — كلمة المرور: (من ADMIN_PASSWORD)',
   );
   console.log('');

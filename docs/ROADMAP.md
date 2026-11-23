@@ -1,6 +1,6 @@
 # The register — everything the owner asked for, in the order they set it
 
-_Last updated: 2026-10-22_
+_Last updated: 2026-11-23_
 
 This file exists because the owner asked for one thing above all others: that
 nothing they have asked for gets lost. A promise does not guarantee that; a
@@ -1641,6 +1641,109 @@ platform itself knows and the buyer most wants to read.
       repository's standing rule, followed rather than rediscovered.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
+
+## 39 · A fresh production database could not sell a car — *found while preparing the SCCC deploy, 2026-11-23*
+
+The owner moved to deploy on SCCC. Before writing the runbook I measured what a
+brand-new database actually contains after the two steps the container runs on
+boot — `prisma migrate deploy`, then `prisma/admin-sync.ts`:
+
+| Table | Rows on a virgin database |
+| --- | --- |
+| `NotificationTemplate` | 10 of 55 |
+| `PushChannel` | 7 |
+| `InspectionTemplate` | 1 |
+| `SeoTemplate` | 2 |
+| `Brand` · `Model` · `Trim` | **0 · 0 · 0** |
+| `Service` · `TaxRule` | **0 · 0** |
+| `PaymentGateway` · `PaymentRoute` | **0 · 0** |
+| `Plan` · `Entitlement` · `CommissionRule` | **0 · 0 · 0** |
+| `PlatformSetting` · `FinanceSetting` | **0 · 0** |
+| `Feature` · `BodyTypeDisplay` · `AdSlot` · `FaqItem` · `LegalDocument` | **0** |
+
+Of 109 migrations, twelve carry data; everything else lived in `prisma/seed.ts`,
+**which refuses to run outside development on purpose** — it writes fictional
+cars and users. So the first production deploy would have come up as a site that
+boots and cannot be used: nobody could publish a listing (no catalogue), no VAT
+could be computed (no rule), no payment could route (no gateway), no invoice
+could issue, the plans screen would be empty, and `setTransferFee` would throw
+on its first save because it updates a row that was never created.
+
+### The bootstrap
+
+`prisma/reference.ts` holds everything a database needs to work and nothing
+fictional. `prisma/plant-reference.ts` runs it, `docker-entrypoint.sh` calls it
+on every boot after `admin-sync`, and `npm run db:reference` runs it by hand.
+
+**It inserts and never updates.** The operator edits these rows from the panel —
+a service price, a tax rule switched off, a brand hidden. A bootstrap that
+upserted would erase that work on the next deploy, which is the damage the rule
+«reference data reaches a live database by migration» exists to prevent.
+
+**And for the catalogue the gate is on the group, not the row.** Measured: four
+delete functions in `catalog.ts` — brand, model, trim, feature — and none
+anywhere else in the reference data. A bootstrap that inserts a missing *row*
+would restore a brand the operator deleted, on the next restart, silently, with
+no way for them to make the deletion stick. So the catalogue and the feature
+list ask «is this empty?»: a virgin database is filled once, a live one is never
+touched. Templates and gateways, which no screen deletes, keep per-row
+insert-if-absent — a missing template is a real gap, and shows its raw key in
+the user's bell.
+
+### What the walk caught that no test did
+
+With the server pointed at the virgin database, the home page read:
+
+> «ونعرض لك السيارات التي تقدر تمولها **مع لا جهات تمويل معتمدة**.»
+
+Zero finance providers — true on day zero, and the sentence put the `Quantity`
+zero form behind a preposition. The adjective «معتمدة» also sat *outside* the
+plural, in a different message key, so it never agreed: two providers gave «مع
+جهتي تمويل معتمدة». Gate 44 guards that class but reads one key at a time. The
+adjective moved into the plural forms and zero got its own sentence.
+
+### Gates 67 and 68
+
+- **67 — every reference file reaches production.** A file in `seed-data/` that
+  `prisma/reference.ts` does not read reaches development and not a deploy, and
+  nothing says so until someone opens an empty screen on a real server. One
+  exception, named with its reason: `inspection-points.json`, planted by
+  migration.
+- **68 — a message that takes `count` is written as a plural.** «The number does
+  not govern the counted noun» was fixed in the SEO templates inside the
+  database and **left standing in the message file**, which is the fallback
+  printed when an operator switches a template off: `landing.meta` and
+  `landing.metaModel` both said «{count} سيارة {brand}» → «3 سيارة تويوتا».
+  The check reads the convention, not the prose: `count` is the plural selector
+  in this repository, so a message that takes it and does not branch on it is
+  the fault itself. Measured 2026-11-23: two per locale, **no false positives** —
+  fixed, then enabled. A word-based measurement had returned 23 hits of which
+  seven were real; «{price} ريال» and «{city} في» are correct, and a gate that
+  warns on those is a gate nobody reads.
+
+### Measured, not asserted
+
+- A virgin database, migrated and bootstrapped: **19 groups planted**, and a
+  second run plants nothing.
+- An operator's edits — a service at 7,777.77, a transfer fee of 611, a brand
+  renamed and hidden — all survived a bootstrap run.
+- A deleted trim and a deleted feature stayed deleted.
+- A deleted notification template came back.
+- Each of those is a test with a break-probe: the overwrite test fails when the
+  bootstrap upserts, the deletion test fails when the group gate is removed, the
+  boot-order test fails when the entrypoint line is deleted, and the no-copy
+  test fails when a reference write is added back to the seed.
+- The admin panel on that database: 14 tax rules, 6 payment purposes over 4
+  gateways, 3 plans, both commission handles with their live preview.
+
+### What this does not plant, and why
+
+`FinanceProvider` stays out. The eight rows in the seed carry **invented profit
+rates** (`4 + i × 0.25`) under the names of real Saudi banks. Publishing those
+to production would put figures nobody decided under a bank's name. It is
+already recorded as a real gap in `docs/architecture/editability.md`: adding a
+financing partner needs a deploy. The ladder itself works from `FinanceSetting`,
+and the home page now reads correctly with none.
 
 ## 38 · The admin panel: complete, controllable, plainly written — *owner's request 2026-10-20*
 

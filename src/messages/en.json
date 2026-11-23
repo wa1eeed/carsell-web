@@ -232,6 +232,7 @@
     "moreBrands": "more makes",
     "financeTitle": "Find the car that fits your monthly payment",
     "financeBody": "Pick a payment you are comfortable with and we show what you can actually finance with {n}.",
+    "financeBodyNone": "Pick a payment you are comfortable with and we show the cars whose instalment fits it.",
     "band": {
       "lt1000": "Under 1,000",
       "1000_1500": "1,000 – 1,500",
@@ -409,7 +410,7 @@
     "reviews": "{count, plural, one{{n} review} other{{n} reviews}}",
     "auctions": "{count, plural, one{{n} auction} other{{n} auctions}}",
     "months": "{count, plural, one{{n} month} other{{n} months}}",
-    "financeProviders": "{count, plural, one{{n} finance provider} other{{n} finance providers}}",
+    "financeProviders": "{count, plural, one{{n} approved finance provider} other{{n} approved finance providers}}",
     "points": "{count, plural, one{{n} point} other{{n} points}}",
     "services": "{count, plural, one{{n} service} other{{n} services}}",
     "articles": "{count, plural, one{{n} article} other{{n} articles}}",
@@ -1283,8 +1284,8 @@
   "landing": {
     "title": "{brand} cars in {city}",
     "titleModel": "{model} in {city}",
-    "meta": "{count} {brand} cars listed in {city} on CARZ — inspected, ownership verified.",
-    "metaModel": "{count} {model} listed in {city} on CARZ — inspected, ownership verified.",
+    "meta": "{count, plural, one{One {brand} car listed in {city} on CARZ — inspected, ownership verified.} other{{count} {brand} cars listed in {city} on CARZ — inspected, ownership verified.}}",
+    "metaModel": "{count, plural, one{One {model} listed in {city} on CARZ — inspected, ownership verified.} other{{count} {model} listed in {city} on CARZ — inspected, ownership verified.}}",
     "browse": "Browse {brand} cars in {city}",
     "browseModel": "Browse {model} in {city}",
     "inspected": "inspected",

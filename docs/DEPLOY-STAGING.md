@@ -349,6 +349,62 @@ that was seeded from the same file, so both paths end in the same state. See
 This applies to every catalogue the product reads at runtime — templates,
 payment gateways, services, tax rules, ad slots, legal documents, FAQs.
 
+---
+
+## 3f. And a *virgin* database is bootstrapped on boot
+
+§3e covers a database that is already running. A brand-new one has the opposite
+problem: the seed will not run on it at all outside development, so it used to
+come up with nothing but what the twelve data-carrying migrations plant.
+
+Measured on 2026-11-23, after `migrate deploy` and `admin-sync` on an empty
+database: 10 notification templates, 7 push channels, 1 inspection template, 2
+SEO templates — and **zero** brands, models, trims, features, body types,
+services, tax rules, payment gateways, payment routes, plans, entitlements,
+commission rules, ad slots, FAQs, legal documents, and no `PlatformSetting` or
+`FinanceSetting` row at all. The site boots and cannot be used.
+
+`docker-entrypoint.sh` now runs `prisma/plant-reference.ts` after `admin-sync`
+and before the server:
+
+```
+prisma migrate deploy      →  schema
+prisma/admin-sync.ts       →  the admin account (the bootstrap writes its id
+                              into tax rules and payment routes)
+prisma/plant-reference.ts  →  the reference data
+node server.js
+```
+
+**It inserts and never updates**, so running it on every boot is safe: it fills
+what is missing and leaves everything the operator has changed from the panel.
+For the catalogue and the feature list the condition is on the group — «is this
+empty?» — because those four are the only reference rows the panel can delete,
+and restoring a deleted brand on the next restart would make the deletion
+impossible to keep. Gate 67 fails the build when a `seed-data` file is not read
+by `prisma/reference.ts`.
+
+To run it by hand against any database:
+
+```
+npm run db:reference
+```
+
+and inside a container:
+
+```
+cd /opt/seed && ./node_modules/.bin/tsx prisma/plant-reference.ts
+```
+
+### What it still does not give a production database
+
+- **Finance providers.** The eight rows in the seed carry invented profit rates
+  under real bank names, so they are not planted. The instalment ladder works
+  from `FinanceSetting`; the provider count reads zero until a screen exists for
+  it (recorded in `docs/architecture/editability.md`).
+- **A working payment gateway.** Every purpose points at `bank_escrow`, which
+  has no adapter. `/admin/payments` says so on its own first card. Real Moyasar
+  keys and a routing change are a separate step — see §4.
+
 ## 4. Deployment steps
 
 1. **Postgres**: create a `carsell_staging` database. Coolify can host it, or

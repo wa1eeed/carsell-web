@@ -376,14 +376,28 @@ export default async function HomePage({
                 <div className="mb-6 flex flex-wrap items-end gap-5">
                   <div className="min-w-64 flex-1">
                     <h2 className="mb-2 text-2xl font-bold">{t('financeTitle')}</h2>
+                    {/*
+                      ═══ والصفرُ جملةٌ أخرى لا صيغةَ صفرٍ في جملةٍ واحدة ═══
+
+                      كان النصُّ «… تقدر تمولها مع {n} معتمدة»، فأعطى على
+                      قاعدةٍ جديدة (لا جهةَ تمويلٍ بعد) **«مع لا جهات تمويل
+                      معتمدة»** — وعلى اثنتين «مع جهتي تمويل معتمدة»، فالصفةُ
+                      خارج صيغة الجمع لا تطابق أبدًا. فالصفةُ دخلت الصيغة،
+                      والصفرُ له جملتُه التي لا تذكر جهةً أصلًا.
+                    */}
                     <p className="text-sm opacity-75">
-                      {t('financeBody', {
-                        // الرقم يُصاغ قبل دخوله السلسلة — `#` في ICU لاتيني
-                        n: tu('financeProviders', {
-                          count: home.stats.financeProviders,
-                          n: formatNumber(home.stats.financeProviders, locale as NumeralLocale),
-                        }),
-                      })}
+                      {home.stats.financeProviders === 0
+                        ? t('financeBodyNone')
+                        : t('financeBody', {
+                            // الرقم يُصاغ قبل دخوله السلسلة — `#` في ICU لاتيني
+                            n: tu('financeProviders', {
+                              count: home.stats.financeProviders,
+                              n: formatNumber(
+                                home.stats.financeProviders,
+                                locale as NumeralLocale,
+                              ),
+                            }),
+                          })}
                     </p>
                   </div>
                 </div>
