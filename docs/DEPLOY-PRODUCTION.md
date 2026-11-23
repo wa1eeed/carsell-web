@@ -103,27 +103,41 @@ work → commit on staging → Coolify deploys → check carsell.one
      → merge staging into main → deploy here
 ```
 
-On the server:
+On the server, one command:
 
 ```sh
-cd /opt/carz
-git fetch origin && git reset --hard origin/main
-sudo docker build -t carz:latest .
-sudo docker rm -f carz
-sudo docker run -d --name carz --restart unless-stopped \
-  --env-file .env.secrets --env-file .env.config \
-  --network carz-net -p 127.0.0.1:3000:3000 carz:latest
-sudo docker logs -f carz
+carz-deploy          # fetches main, builds, swaps, health-checks
+carz-deploy --force  # rebuild the same commit
 ```
+
+It is `scripts/ops/deploy-production.sh`, installed to `/usr/local/bin`. It:
+
+- refuses to do anything when `main` has not moved;
+- **tags the image with the commit** (`carz:4a0957f`), so a rollback is a
+  container swap in seconds instead of a twenty-minute rebuild with the site
+  down meanwhile;
+- leaves the running container untouched if the build fails;
+- polls `/api/health` for ninety seconds after the swap and **rolls back to the
+  previous image by itself** if nothing answers — a container that boots and
+  then dies on the first request would otherwise leave the script happy and the
+  site down.
 
 The build takes 20–35 minutes on two cores. **4 GB of swap is why it finishes**
 — `next build` does not fit in 3.5 GiB.
 
-### Rolling back
+### Rolling back by hand
 
-Images are tagged `latest` only, so a rollback is a rebuild at the previous
-commit. Tag releases before the public launch:
-`docker build -t carz:$(git rev-parse --short HEAD) .`
+```sh
+docker images carz                      # the tags are commits
+docker rm -f carz
+docker run -d --name carz --restart unless-stopped \
+  --env-file /opt/carz/.env.secrets --env-file /opt/carz/.env.config \
+  --network carz-net -p 127.0.0.1:3000:3000 carz:<commit>
+```
+
+A rollback does **not** undo a migration. Migrations run forward at boot and are
+written to be additive; a release that needs a schema reversal needs a new
+migration, not a rollback.
 
 ---
 
