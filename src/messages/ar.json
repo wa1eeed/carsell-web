@@ -1316,6 +1316,7 @@
     "ofListings": "{count, plural, zero{من لا إعلانات} one{من إعلان واحد} two{من إعلانين} few{من {n} إعلانات} many{من {n} إعلانا} other{من {n} إعلان}}",
     "openDisputes": "{count, plural, zero{لا نزاعات مفتوحة} one{نزاع واحد مفتوح} two{نزاعان مفتوحان} few{{n} نزاعات مفتوحة} many{{n} نزاعا مفتوحا} other{{n} نزاع مفتوح}}",
     "overdueDisputes": "{count, plural, zero{لا نزاعات فاتت مهلتها} one{نزاع واحد فاتت مهلته} two{نزاعان فاتت مهلتهما} few{{n} نزاعات فاتت مهلتها} many{{n} نزاعا فاتت مهلته} other{{n} نزاع فاتت مهلته}}",
+    "withinHours": "{count, plural, zero{خلال أقل من ساعة} one{خلال ساعة} two{خلال ساعتين} few{خلال {n} ساعات} many{خلال {n} ساعة} other{خلال {n} ساعة}}",
     "unseenSince": "{count, plural, zero{لم تر اليوم} one{لم تر منذ يوم} two{لم تر منذ يومين} few{لم تر منذ {n} أيام} many{لم تر منذ {n} يوما} other{لم تر منذ {n} يوم}}",
     "agoMinutes": "{count, plural, zero{الآن} one{قبل دقيقة} two{قبل دقيقتين} few{قبل {n} دقائق} many{قبل {n} دقيقة} other{قبل {n} دقيقة}}",
     "agoHours": "{count, plural, zero{الآن} one{قبل ساعة} two{قبل ساعتين} few{قبل {n} ساعات} many{قبل {n} ساعة} other{قبل {n} ساعة}}",

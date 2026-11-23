@@ -105,22 +105,57 @@ function data(input: NotifyInput): Prisma.NotificationUncheckedCreateInput {
  * **ولا تُقرأ داخل معاملة**: `tx` تعني أنّ النداء جزءٌ من كتابةٍ
  * أكبر، وقراءةٌ إضافية فيها تُطيل قفلها. فالتفضيل يُقرأ خارجها وحدها.
  */
-async function muted(input: NotifyInput, tx?: Writer): Promise<boolean> {
-  if (tx !== undefined) return false;
+async function pushRoute(
+  input: NotifyInput,
+  tx?: Writer,
+): Promise<{ muted: boolean; channel: string | null }> {
+  if (tx !== undefined) return { muted: false, channel: null };
 
   const template = await db.notificationTemplate.findUnique({
     where: { key: input.templateKey },
     select: { pushChannelKey: true },
   });
   const channel = template?.pushChannelKey ?? null;
-  if (channel === null) return false;
+  if (channel === null) return { muted: false, channel: null };
 
   const { isChannelEnabled } = await import('./push-channels');
-  return !(await isChannelEnabled(input.userId, channel));
+  return { muted: !(await isChannelEnabled(input.userId, channel)), channel };
+}
+
+/**
+ * ═══ وصفُّ الدفع يُفتح حيث يُستحقّ ═══
+ *
+ * بطاقاتُ A10 الثلاث — التسليمُ والفتح والإيقاف بعد إشعار — مقامُها
+ * **ما استُحقّ دفعُه**. ولا موضعَ يعرف ذلك إلا هنا: القالبُ يحمل
+ * قناته، والتفضيل قُرئ للتوّ، والمستلم معروف.
+ *
+ * **ولا يُفتح لمن لا جهازَ له**: صفٌّ لمستخدم ويبٍّ لا يصله شيء يضخّم
+ * كلَّ مقامٍ بلا أن يُضيف إرسالةً واحدة. فاليوم — ولا رمزَ جهازٍ في
+ * القاعدة — لا يُكتب صفٌّ واحد، وتقول الشاشة «لا قياس بعد» بحقّ.
+ * ويبدأ العدّ من أوّل جهازٍ يسجّله التطبيق، بلا تغييرِ سطر.
+ *
+ * **ولا يُسقط الإشعار إن تعذّر**: الجرسُ وصل، وفشلُ قيدٍ للقياس لا
+ * يُلغي ما وصل.
+ */
+async function queuePush(userId: string, channel: string, templateKey: string): Promise<void> {
+  try {
+    const device = await db.deviceToken.findFirst({
+      where: { userId },
+      select: { platform: true },
+      orderBy: { lastSeenAt: 'desc' },
+    });
+    if (device === null) return;
+
+    const { queueSend } = await import('./push-delivery');
+    await queueSend({ channelKey: channel, userId, templateKey, platform: device.platform });
+  } catch {
+    /* القياس لا يُسقط الإشعار */
+  }
 }
 
 export async function notify(input: NotifyInput, tx?: Writer): Promise<void> {
-  if (await muted(input, tx)) return;
+  const route = await pushRoute(input, tx);
+  if (route.muted) return;
 
   const row = await (tx ?? db).notification.create({
     data: data(input),
@@ -128,6 +163,10 @@ export async function notify(input: NotifyInput, tx?: Writer): Promise<void> {
   });
 
   await announce(input.userId, row.id, input.templateKey, input.priority ?? 'normal');
+
+  if (route.channel !== null) {
+    await queuePush(input.userId, route.channel, input.templateKey);
+  }
 }
 
 /**

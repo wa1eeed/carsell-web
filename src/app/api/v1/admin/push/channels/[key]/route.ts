@@ -13,6 +13,15 @@ export const runtime = 'nodejs';
  */
 const Body = z.object({
   defaultOn: z.boolean().optional(),
+  /**
+   * ═══ الصوتُ والشارة — إعدادُ تشغيلٍ لا قرارُ منتَج ═══
+   *
+   * بخلاف `userControllable`: إسكاتُ قناةٍ لا يمنع إشعارَها ولا يُبطل
+   * حقَّ صاحبه فيه، إنما يختار كيف يصل. فيُضبط من اللوحة بضغطة —
+   * **ويقرؤه التطبيق عند التسليم** (`/admin/push`).
+   */
+  sound: z.boolean().optional(),
+  badge: z.boolean().optional(),
   nameAr: z.string().min(1).max(60).optional(),
   sort: z.number().int().min(0).max(999).optional(),
 });

@@ -1,6 +1,6 @@
 # Who gets told, and when
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-23_
 
 A notification is a row in `Notification` keyed by `templateKey`; the text comes
 from `NotificationTemplate`, seeded from
@@ -260,3 +260,53 @@ are read, because "what reached me" and "what should reach me" are one question.
 Route: `PATCH /api/v1/me/notification-channels`, one switch per call so a refusal
 names itself. Tests: `tests/notification-channels.test.ts`.
 
+## Measuring the push, not counting it — 2026-11-23
+
+A10's markup puts four cards above the channel table — permissions granted,
+delivery rate, open rate, opt-out after a notification — and writes its own rule
+underneath: «قياس الأثر لا العدد». The screen showed **device counts only**, and
+a count does not say whether anything arrived, was opened, or made someone mute
+the channel. That is what put `A10` at **25٪** against its design block.
+
+### What was added, and why the table rather than the card
+
+The owner's ruling (`DESIGN-DECISIONS.md`, 2026-11-23) was «أبني جمع البيانات
+الآن» — build the collection rather than defer the card or substitute it. So:
+
+| Table | Written by | Feeds |
+|---|---|---|
+| `PushSend` | `notify`, when the template has a push channel the user has not muted **and the user has a device** | delivery rate · open rate · opt-out rate, and the per-channel columns |
+| `PushPermission` | `POST /api/v1/me/push/permission`, from the app | permissions granted |
+| `DeviceToken` | `POST /api/v1/me/push/token`, from the app | device counts — **it had no writer at all before this** |
+| `PushChannel.sound` · `.badge` | `/admin/push`, per channel | the design's «الصوت» and «شارة» columns; read by the app on delivery |
+
+### Three things the denominators get right
+
+**A queued row is in no denominator.** `notify` opens the row as `queued`; a
+dispatcher — when one exists — moves it to `sent` or `failed`. Counting queued
+rows as undelivered would read every backlog as a delivery collapse.
+
+**A failed row is in the delivery denominator.** Failure to deliver is precisely
+what the card measures.
+
+**No row is opened for a user with no device.** A row per web-only user inflates
+every denominator without representing a single push. Today there are no device
+tokens, so **not one row is written** and every card reads «لا قياس بعد» — which
+is true, and is not `0٪`. A card reading `0٪` accuses the sending of being
+broken when the truth is that nothing has been sent.
+
+### And `PushSend` cascades with its user
+
+`ON DELETE CASCADE`, not `SET NULL`. The row measures one person's experience,
+so without them it measures nothing — and an orphan escapes every cleanup keyed
+on the owner, then sits in every denominator forever. That is the ledger's own
+lesson: an entry written without an `orderId` leaked until platform revenue read
+six times its real size.
+
+### What is still missing from A10
+
+**The sender.** Nothing dispatches to FCM or APNs, so `sent` is a status no row
+reaches yet, and «اختبار على جهازي» and «سجل الإرسال» from the markup are not
+built. Both need a provider integration and a registered device — stage 40c.
+The collection is in place and starts measuring on the first token the app
+registers, with no further change.

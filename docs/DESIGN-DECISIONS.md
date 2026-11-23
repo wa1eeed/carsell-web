@@ -1807,6 +1807,34 @@ rate.
 
 ---
 
+## 2026-11-23 — The weakest screen first, and the missing metrics get a source
+
+Two answers, asked after the conformance baseline was measured (roadmap §40a,
+**59٪ across 48 screens**).
+
+**1 · Order of work: «الأضعف أوّلًا أيًّا كانت».** The ranking is walked from
+the bottom up with no separation between a customer screen and an operator
+screen. So the queue begins `A10` push 25٪ · `A30` ad slots 25٪ · `Wj` order
+page 27٪ · `A11` integrations 31٪ · `A18` identity 38٪ · `Wf` account home 40٪.
+
+**2 · Metrics with no source: «أبني جمع البيانات الآن».** Where a design card
+shows a number the product cannot compute, the collection is built rather than
+the card deferred or substituted.
+
+This binds more than it looks, so the boundary is written here rather than
+discovered later:
+
+- **A metric whose source exists but is unqueried** — queue ages, cancellation
+  counts, settlement differences — is built end to end now.
+- **A metric whose source is a client we have not shipped** — push delivery and
+  open rates need the mobile app — gets its **column, its write path and its
+  screen**, and the screen says «لا قياس بعد — يبدأ مع التطبيق» until a real
+  client writes a row. The decision is to build the collection, and a pipeline
+  with no producer yet is still collection; a card printing a fabricated or
+  zero rate is not.
+- **No card prints a number the product did not compute.** That is unchanged
+  and overrides both of the above.
+
 ## 2026-10-18 — The catalogue is wide, and its numbers are empty
 
 **Owner's question:** «ما رأيك لو نضيف جميع براندات السيارات بجميع فئاتها و

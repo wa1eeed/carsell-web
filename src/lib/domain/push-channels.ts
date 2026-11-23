@@ -17,6 +17,15 @@ export type ChannelRow = {
   /** `false` للحرِجة — والمستخدم لا يراها مفتاحًا أصلًا. */
   userControllable: boolean;
   defaultOn: boolean;
+  /**
+   * ═══ عمودا A10 ═══ الصوتُ والشارة لكل قناة.
+   *
+   * يقرؤهما التطبيق عند التسليم، ويضبطهما المشغّل هنا. وكانتا غير
+   * موجودتين، فقناةُ التسويق وقناةُ المزاد تُصدران الصوت نفسه —
+   * والتصميم يفرّق بينهما عمودًا في الجدول.
+   */
+  sound: boolean;
+  badge: boolean;
   sort: number;
   /** كم مستخدمًا أوقفها فعلًا — محسوب من التفضيلات لا مخزَّنًا. */
   disabledBy: number;
@@ -37,6 +46,8 @@ export async function listChannels(): Promise<ChannelRow[]> {
     nameAr: channel.nameAr,
     userControllable: channel.userControllable,
     defaultOn: channel.defaultOn,
+    sound: channel.sound,
+    badge: channel.badge,
     sort: channel.sort,
     disabledBy: disabled.find((row) => row.channelKey === channel.key)?._count._all ?? 0,
   }));
@@ -91,7 +102,13 @@ export async function isChannelEnabled(userId: string, channelKey: string): Prom
   return preference?.enabled ?? channel.defaultOn;
 }
 
-export type ChannelUpdate = { nameAr?: string; defaultOn?: boolean; sort?: number };
+export type ChannelUpdate = {
+  nameAr?: string;
+  defaultOn?: boolean;
+  sound?: boolean;
+  badge?: boolean;
+  sort?: number;
+};
 
 /**
  * ═══ القنوات التي لا تُفتح افتراضًا — معيار A10 ═══
@@ -137,7 +154,15 @@ export async function updateChannel(
       entity: 'PushChannel',
       entityId: key,
       action: 'push.channel_updated',
-      before: { nameAr: before.nameAr, defaultOn: before.defaultOn, sort: before.sort },
+      /** **والقَبل يحمل كلَّ ما يُعدَّل**: حقلٌ ناقصٌ منه يجعل التدقيق
+       *  يقول «تغيّر» ولا يقول من أيّ حال. */
+      before: {
+        nameAr: before.nameAr,
+        defaultOn: before.defaultOn,
+        sound: before.sound,
+        badge: before.badge,
+        sort: before.sort,
+      },
       after: { ...update },
       ip,
       createdAt: now,

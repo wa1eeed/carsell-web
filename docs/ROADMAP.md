@@ -1732,6 +1732,42 @@ each found by opening a screen the number called broken:
    2.8 GiB free of 228, and `ENOSPC` was reaching Next as a 500.
 
 
+### 40a · 1 — `A10` push notifications, 25٪ → the half that does not need the app
+
+The weakest screen in the ranking, taken first by the owner's ruling «الأضعف
+أوّلًا أيًّا كانت». Opening it showed the measure was right about the gap but
+not about its nature: the channel table and the device preview were built, and
+what was missing was **the measurement the screen's own rule demands** — A10
+writes «قياس الأثر لا العدد» and the screen counted devices.
+
+Built, per the ruling «أبني جمع البيانات الآن»:
+
+- **`PushSend`** — one row per push that becomes due, opened by `notify` when
+  the template carries a push channel, the user has not muted it, **and the
+  user has a device**. Source of the delivery, open and opt-out rates and the
+  two new table columns.
+- **`PushPermission`** — the app records what the OS answered. Without it the
+  «أذونات ممنوحة» card has no denominator: whoever refuses leaves no token, so
+  counting tokens reads 100٪ forever.
+- **`DeviceToken` gained a writer** — `POST /api/v1/me/push/token`. It had none
+  in the whole product: the screen counted the table, account closure deleted
+  from it, and nothing ever created a row. It leaves
+  `architecture/editability.md` accordingly.
+- **`PushChannel.sound` · `.badge`** — the markup's «الصوت» and «شارة» columns,
+  which had no field at all, so a marketing notification and an auction
+  notification made the same sound. Settable per channel from the panel,
+  audited, and read by the app on delivery.
+- **The two explanation panels** the markup draws and the screen never had.
+
+**Every card reads «لا قياس بعد» today, and that is the point.** There are no
+device tokens, so no row is written and no denominator exists. A card printing
+`0٪` would accuse the sending of being broken when nothing has been sent — and
+the screen says «يبدأ مع التطبيق» instead.
+
+**What stays open in `A10`:** the sender. Nothing dispatches to FCM or APNs, so
+«اختبار على جهازي» and «سجل الإرسال» wait on a provider integration and a real
+device — stage 40c. Detail in `workflows/notifications.md`.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the

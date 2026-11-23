@@ -151,6 +151,8 @@ model User {
   campaignSends   CampaignSend[]
   pushPreferences NotificationPreference[]
   deviceTokens    DeviceToken[]
+  pushPermission  PushPermission?
+  pushSends       PushSend[]
   wallet          Wallet?
   payouts         Payout[]
 
@@ -2821,9 +2823,20 @@ model PushChannel {
   userControllable Boolean @default(true)
   /// افتراضٌ مغلق للتسويقي — الموافقة تُطلب لا تُفترض.
   defaultOn        Boolean @default(true)
+  /// ═══ عمودا A10: الصوت والشارة ═══
+  ///
+  /// التصميم يضع لكل قناةٍ صوتَها وشارتَها بجوار افتراضها، **ويقرؤهما
+  /// التطبيق عند التسليم**. وكانتا غير موجودتين أصلًا، فقناةٌ تسويقية
+  /// وقناةُ مزادٍ تُصدران الصوت نفسه.
+  ///
+  /// وهما إعدادُ مشغّلٍ لا بيانات: تُضبطان من `/admin/push` اليوم،
+  /// ويقرؤهما التطبيق حين يصل — فلا تنتظران شيئًا لتصحّا.
+  sound            Boolean @default(true)
+  badge            Boolean @default(true)
   sort             Int     @default(0)
 
   preferences NotificationPreference[]
+  sends       PushSend[]
 }
 
 model NotificationPreference {
@@ -2836,6 +2849,64 @@ model NotificationPreference {
   channel PushChannel @relation(fields: [channelKey], references: [key], onDelete: Cascade)
 
   @@id([userId, channelKey])
+}
+
+/// ═══ إذنُ الإشعارات — والنسبة تحتاج مقامًا ═══
+///
+/// «أذونات ممنوحة ٧٢٪» في A10 نسبةٌ مقامُها **من سُئل** لا من سجّل
+/// جهازًا: من رفض لا يترك رمزًا، فعدُّ الرموز وحده يقول ١٠٠٪ دائمًا.
+///
+/// يكتبه التطبيق عند طلب الإذن وعند جوابه — ولا كاتبَ له في الويب،
+/// والسببُ مسجَّل في `docs/architecture/editability.md`.
+model PushPermission {
+  userId     String   @id
+  /// granted | denied | provisional — ما ردّ به النظام
+  status     String
+  askedAt    DateTime @default(now())
+  answeredAt DateTime?
+  platform   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+/// ═══ سجلّ الإرسال — مصدرُ ثلاث نسبٍ في A10 ═══
+///
+/// «معدّل التسليم» و«معدّل الفتح» و«إيقاف بعد إشعار» كلُّها تُحسب من
+/// هنا، ولا تُحسب من غيره: بلا صفٍّ لكل إرسالةٍ لا مقامَ لأيّها.
+///
+/// **والصفُّ يُكتب عند الإرسال ويُحدَّث بردّ المزوّد وبفتح المستخدم** —
+/// ثلاثُ لحظاتٍ لصفٍّ واحد، لا ثلاثةُ جداول.
+///
+/// ولا كاتبَ له حتى يُشحن التطبيق؛ والشاشة تقول «لا قياس بعد» ولا
+/// تطبع صفرًا يُقرأ فشلًا.
+model PushSend {
+  id          String    @id @default(cuid())
+  channelKey  String
+  userId      String?
+  /// مفتاحُ القالب — لربط الأثر بالنصّ الذي أحدثه
+  templateKey String?
+  platform    String?
+  /// queued | sent | delivered | failed
+  status      String    @default("queued")
+  failReason  String?
+  sentAt      DateTime  @default(now())
+  deliveredAt DateTime?
+  openedAt    DateTime?
+
+  channel PushChannel @relation(fields: [channelKey], references: [key], onDelete: Cascade)
+  /// ═══ Cascade لا SetNull ═══
+  ///
+  /// الصفُّ يقيس تجربةَ صاحبه، فبلا صاحبٍ لا يقيس شيئًا — **ويُفلت من
+  /// كل تنظيفٍ بصاحبه** فيبقى في كل مقامٍ إلى الأبد. وهو العطلُ الذي
+  /// سجّله الدفتر: قيدٌ بلا `orderId` تسرّب حتى صار الإيراد ستّةَ
+  /// أضعافه.
+  user    User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([channelKey, sentAt])
+  @@index([userId, sentAt])
+  @@index([status])
 }
 
 /// رمز جهاز — يُحذف عند أوّل رفض من المزوّد (قاعدة A10).
