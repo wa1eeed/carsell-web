@@ -1765,6 +1765,37 @@ is now built on first use behind a proxy, the message is unchanged, and
 environment, and the first use throws the same sentence. Measured by putting the
 eager check back: both halves fail.
 
+### `robots.txt` was baked at build time, so production was never crawlable *(found 2026-11-23)*
+
+Opening `https://carz.sa/robots.txt` on the first deployment returned:
+
+```
+User-Agent: *
+Disallow: /
+```
+
+The container's environment said `APP_ENV=production`, and `robots.ts` returns
+*allow* for production. The file disagreed because Next had prerendered it: the
+build output listed it as `○ /robots.txt`, and `.next/server/app/robots.txt.body`
+was a 27-byte file written at build time — when the Docker build had no
+environment at all. **The site would never have been indexed, and nothing would
+have said so.** `sitemap.xml` is dynamic, so the two files contradicted each
+other in the same deployment: one advertising the pages, the other forbidding
+the crawl.
+
+The other direction is worse. The function's own comment promised «الحدّ على
+`APP_ENV` لا على النطاق: من ينشر staging على نطاق الإنتاج يبقى محميًّا» — and
+an orchestrator that passes `APP_ENV=production` into a staging build (Coolify
+passes its variables into the build) would bake an *allow* file onto a staging
+site full of seeded listings. The comment described an intent the code could not
+keep, because the value was read at build and not at request.
+
+`export const dynamic = 'force-dynamic'` fixes it; the build now lists
+`ƒ /robots.txt` and writes no body file. Measured across every route file in
+`src/app`: three others read the environment without declaring dynamic, and all
+three export `POST` only — Next never prerenders a handler with no `GET`, so
+this was the only case.
+
 ### What this does not plant, and why
 
 `FinanceProvider` stays out. The eight rows in the seed carry **invented profit
