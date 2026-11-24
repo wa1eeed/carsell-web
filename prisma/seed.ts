@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { devPut, devStoreAllowed } from '../src/lib/storage/dev-store';
+import { publicUrl } from '../src/lib/r2';
 import { placeholderPng } from './placeholder-image';
 import { hashPassword } from '../src/lib/auth/password';
 import { encryptSecret } from '../src/lib/crypto/secrets';
@@ -2323,35 +2324,84 @@ async function main(): Promise<void> {
     });
   }
   /**
-   * ═══ حملةٌ إعلانية وأثرُها — وإلّا بقيت الشاشة على حالها الفارغ ═══
+   * ═══ حملاتٌ إعلانية وأثرُها — وإلّا بقيت الشاشة على حالها الفارغ ═══
    *
    * المساحاتُ السبع مزروعة و**لا حملةَ واحدة**، فجدولُ الحملات يقول
    * «لا حملات بعد» وأعمدةُ الظهور والنقر والـCTR لا تُرى — ومن فتح
    * الشاشة لا يعرف أتعمل الميزة أم لا. **وما لا يُزرع لا يُرى.**
+   *
+   * ═══ وكانت واحدةً من ستّ، وصورتُها ٤٠٤ ═══
+   *
+   * زُرعت `home_banner` وحدها بـ`creativeUrl: '/uploads/seed/ad-banner.png'`
+   * — **ولا ملفّ خلفه ولا مجلّد**. فالرئيسية تعرض **صندوقًا مكسورًا**
+   * تحت كلمة «إعلان» لكل زائر، وهو يُقرأ عطلًا لا إعلانًا. وهو الصنفُ
+   * المسجَّل نفسُه: صفٌّ يُكتب وملفُّه لا يُكتب معه، فالعطل في عين من
+   * ينظر وحده ولا اختبارَ يراه.
+   *
+   * وخمسُ مساحاتٍ لها موضعُ عرضٍ مبنيّ ولا حملةَ لها: بطاقةُ المموّل في
+   * نتائج البحث، وشريطُ صفحة المركبة، وخانةُ الماركة، وما بعد النشر،
+   * وصدرُ دليل الخدمات. **فستّةُ مواضعَ مبنيّة لم يرَ أحدٌ خمسةً منها.**
+   *
+   * والصورةُ تُولَّد كصور الإعلانات ولا تُنتحَل، وتُخزَّن بالمفتاح نفسه
+   * فيخدمها مسارُ التطوير — فالرابطُ يفتح.
    */
+  const adCreative = async (key: string, seed: number, w: number, h: number): Promise<string> => {
+    const full = `staging/ads/${key}.png`;
+    if (devStoreAllowed()) await devPut(full, placeholderPng(seed, w, h));
+    return publicUrl(full) ?? `/api/dev/media/${full}`;
+  };
+
+  /**
+   * حملةٌ لكل مساحةٍ لها موضعُ عرض — **بلا استهداف**، فتظهر لكل زائر.
+   * واستهدافُ مدينةٍ يجعلها تختفي عن أكثر الناس فتبقى غيرَ مرئية كما كانت.
+   */
+  const AD_CAMPAIGNS: readonly {
+    slot: string;
+    advertiser: string;
+    width: number;
+    height: number;
+    budget: string;
+    impressions: number;
+    clicks: number;
+  }[] = [
+    { slot: 'home_banner', advertiser: 'تأمين الراجحي', width: 1200, height: 300, budget: '3500', impressions: 18_420, clicks: 174 },
+    { slot: 'search_inline', advertiser: 'تويوتا عبداللطيف جميل', width: 480, height: 360, budget: '6200', impressions: 32_140, clicks: 611 },
+    { slot: 'vehicle_inline', advertiser: 'تمويل الإنماء', width: 960, height: 240, budget: '4800', impressions: 12_905, clicks: 142 },
+    { slot: 'brand_featured', advertiser: 'لكزس السعودية', width: 480, height: 360, budget: '9000', impressions: 7_410, clicks: 96 },
+    { slot: 'empty_state', advertiser: 'فحص موتور', width: 960, height: 300, budget: '2200', impressions: 3_180, clicks: 58 },
+    { slot: 'service_featured', advertiser: 'ورشة الخليج', width: 640, height: 400, budget: '2800', impressions: 5_640, clicks: 83 },
+  ];
+
+  for (const [index, row] of AD_CAMPAIGNS.entries()) {
+    const slot = await prisma.adSlot.findUnique({ where: { key: row.slot } });
+    if (slot === null) continue;
+
+    await prisma.adCampaign.create({
+      data: {
+        advertiserName: row.advertiser,
+        slotKey: slot.key,
+        creativeUrl: await adCreative(row.slot, index + 3, row.width, row.height),
+        targetUrl: 'https://example.sa/offer',
+        startsAt: days(-10),
+        endsAt: days(18),
+        budget: new D(row.budget),
+        status: 'LIVE',
+        priority: 10 - index,
+        /** أثرٌ واقعيّ: نسبةُ نقرٍ قريبةٌ من الواقع لا رقمٌ مستدير. */
+        impressions: row.impressions,
+        clicks: row.clicks,
+      },
+    });
+  }
+
+  /** وحملةٌ منتهية — فعمودُ «انتهت» في اللوحة لا يُفتح على فراغ. */
   const bannerSlot = await prisma.adSlot.findUnique({ where: { key: 'home_banner' } });
   if (bannerSlot !== null) {
     await prisma.adCampaign.create({
       data: {
-        advertiserName: 'تأمين الراجحي',
-        slotKey: bannerSlot.key,
-        creativeUrl: '/uploads/seed/ad-banner.png',
-        targetUrl: 'https://example.sa/offer',
-        startsAt: days(-10),
-        endsAt: days(18),
-        budget: new D('3500'),
-        status: 'LIVE',
-        priority: 10,
-        /** أثرٌ واقعيّ: نسبةُ نقرٍ قريبةٌ من ١٪ لا رقمٌ مستدير. */
-        impressions: 18_420,
-        clicks: 174,
-      },
-    });
-    await prisma.adCampaign.create({
-      data: {
         advertiserName: 'معرض النخبة',
         slotKey: bannerSlot.key,
-        creativeUrl: '/uploads/seed/ad-banner-2.png',
+        creativeUrl: await adCreative('home_banner_past', 2, 1200, 300),
         targetUrl: 'https://example.sa/elite',
         startsAt: days(-60),
         endsAt: days(-32),

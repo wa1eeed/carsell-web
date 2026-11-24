@@ -175,6 +175,12 @@ export async function getDealerPage(
         sellerIsDealer: true,
         /** **إعلانُ من يقرأ** — ومالكُ المعرض يرى بطاقاته موسومة. */
         isOwn: viewerId !== null && row.sellerId === viewerId,
+        /**
+         * **وصفحةُ المعرض لا تحمل القلب بعد** — والحقلُ مطلوبٌ في
+         * النوع، فيُقال `false` صراحةً لا يُسكَت عنه: البطاقةُ تُظهر
+         * القلب حين يكون لها قارئٌ معروف، وهذه الشاشة لا تجلبه.
+         */
+        isFavorite: false,
         badges: row.features.map((link) => link.feature),
         highestBid: null,
         bidderCount: row.auction?._count.bids ?? null,

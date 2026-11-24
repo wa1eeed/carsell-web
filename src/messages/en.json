@@ -438,6 +438,7 @@
     "legalDocs": "{count, plural, one{{n} document} other{{n} documents}}",
     "legalVersions": "{count, plural, one{{n} version} other{{n} versions}}",
     "accounts": "{count, plural, one{{n} account} other{{n} accounts}}",
+    "brands": "{count, plural, one{{n} brand} other{{n} brands}}",
     "items": "{count, plural, one{{n} item} other{{n} items}}",
     "serviceRequests": "{count, plural, one{{n} request} other{{n} requests}}",
     "auditActions": "{count, plural, one{{n} action} other{{n} actions}}",
@@ -479,6 +480,10 @@
     "monthsGenitive": "{count, plural, one{{n} month} other{{n} months}}"
   },
   "search": {
+    "editQuery": "Edit query",
+    "applyQuery": "Search",
+    "showAll": "Show",
+    "allBrands": "All brands",
     "title": "Browse cars",
     "intro": "Ownership-verified vehicles with an independent inspection report. Buy outright, finance, or bid at auction — funds sit in escrow until the title is in your name.",
     "filters": "Filters",

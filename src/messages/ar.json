@@ -438,6 +438,7 @@
     "legalDocs": "{count, plural, zero{لا مستندات} one{مستند واحد} two{مستندان} few{{n} مستندات} many{{n} مستندا} other{{n} مستند}}",
     "legalVersions": "{count, plural, zero{لا نسخ} one{نسخة واحدة} two{نسختان} few{{n} نسخ} many{{n} نسخة} other{{n} نسخة}}",
     "accounts": "{count, plural, zero{لا حسابات} one{حساب واحد} two{حسابان} few{{n} حسابات} many{{n} حسابا} other{{n} حساب}}",
+    "brands": "{count, plural, zero{لا ماركات} one{ماركة واحدة} two{ماركتان} few{{n} ماركات} many{{n} ماركة} other{{n} ماركة}}",
     "items": "{count, plural, zero{لا بنود} one{بند واحد} two{بندان} few{{n} بنود} many{{n} بندا} other{{n} بند}}",
     "serviceRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
     "auditActions": "{count, plural, zero{لا إجراءات} one{إجراء واحد} two{إجراءان} few{{n} إجراءات} many{{n} إجراء} other{{n} إجراء}}",
@@ -479,6 +480,10 @@
     "monthsGenitive": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهرين} few{{n} أشهر} many{{n} شهرا} other{{n} شهر}}"
   },
   "search": {
+    "editQuery": "عدل الجملة",
+    "applyQuery": "ابحث",
+    "showAll": "اعرض",
+    "allBrands": "كل الماركات",
     "title": "تصفح السيارات",
     "intro": "مركبات موثقة الملكية بتقرير فحص من مركز مستقل. اشتر كاش أو بالتقسيط أو زايد في المزاد — والمبلغ في حساب ضمان حتى تنتقل الملكية باسمك.",
     "filters": "الفلاتر",

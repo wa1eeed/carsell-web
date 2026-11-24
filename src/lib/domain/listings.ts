@@ -450,6 +450,15 @@ export type ListingCard = {
   sellerVerified: boolean;
   sellerIsDealer: boolean;
   /**
+   * ═══ **أمحفوظٌ لدى من يقرأ؟** ═══
+   *
+   * `false` لزائرٍ بلا جلسة. وترميز `Wb` يضع القلبَ على البطاقة نفسها،
+   * **وكان في المنتج موضعٌ واحد**: صفحة المركبة. فمن تصفّح عشرين نتيجة
+   * ليحفظ ثلاثًا فتح عشرين صفحة ورجع عشرين مرّة.
+   */
+  isFavorite: boolean;
+
+  /**
    * **إعلانُ من يقرأ** — و`false` لزائرٍ بلا جلسة.
    *
    * الشاشة كانت تعرضه كأيّ بطاقة، فيفتحه صاحبُه ويضغط «اشترِ»
@@ -547,6 +556,24 @@ export async function searchListings(
     db.listing.aggregate({ where, _min: { askPrice: true }, _max: { askPrice: true } }),
   ]);
 
+  /**
+   * ═══ المحفوظُ لدى القارئ — استعلامٌ واحد للصفحة ═══
+   *
+   * و`Favorite` بلا علاقةٍ إلى `Listing` في المخطّط (مفتاحٌ بلا
+   * مرجع)، فلا `include` يجلبها مع الصفوف — وتُقرأ بمفاتيح الصفحة
+   * وحدها، فلا تكبر مع القاعدة.
+   */
+  const favorites = new Set<string>(
+    viewerId === null || rows.length === 0
+      ? []
+      : (
+          await db.favorite.findMany({
+            where: { userId: viewerId, listingId: { in: rows.map((row) => row.id) } },
+            select: { listingId: true },
+          })
+        ).map((row) => row.listingId),
+  );
+
   const items: ListingCard[] = await Promise.all(
     rows.map(async (row) => {
       const report = row.vehicle.inspectionReports[0] ?? null;
@@ -597,6 +624,8 @@ export async function searchListings(
         sellerIsDealer: row.seller.dealer != null,
         /** **إعلانُ من يقرأ** — والمقارنة هنا فلا تُنسخ في أربع شاشات. */
         isOwn: viewerId !== null && row.sellerId === viewerId,
+        /** **ومجموعةٌ واحدة للصفحة كلّها** — لا استعلامَ لكلّ بطاقة. */
+        isFavorite: favorites.has(row.id),
         badges: row.features.map((link) => link.feature),
         highestBid: highest?._max.amount?.toString() ?? null,
         /**

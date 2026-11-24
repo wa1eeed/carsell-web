@@ -2090,6 +2090,87 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 10 — `Wb` search, and a measurement that was reading the wrong screen
+
+`Wb` read **44٪**. The screen turned out to be one of the most complete in the
+product, and most of the gap was in the instrument.
+
+#### The measure was reading a state the design does not depict
+
+`design-audit` pointed at `/ar/cars` — the bare index. The markup is titled
+«نتائج البحث — **فلاتر مرافقة**», and everything that distinguishes it exists
+only in a *search*: the active-filter chips, the «فُهم كالتالي» bar, the
+compound heading «سيارات تويوتا كامري مستعملة في الرياض», and the «عن أسعار…»
+block with its sibling searches. All built; none visible on an unfiltered index.
+
+- [x] The path now carries a sentence. Taking the markup's own
+      («كامري مستعملة في الرياض») returned **two** results on our data, which
+      hid the sponsored card (placed «بعد كل ٦ نتائج») and «أعلى مزايدة» — a
+      screen measured in a state it does not fit. The query is wider now, and
+      the reason is written where the path is set.
+
+#### And it was counting the designer's sample cars as structure
+
+«قبل يومين» passed the digit filter because Arabic names its dual in letters.
+«تويوتا أفالون الرياض» and «لكزس ES الرياض» are related-search chips built
+from *their* catalogue against *ours*.
+
+- [x] Relative-time phrases are data. Catalogue names are data, and **the list
+      is fetched from the product** rather than hand-written, so it cannot rot
+      as the catalogue grows (73 models → 230 in one session).
+- [x] **A thin denominator is now marked.** `Wb` reads on four signals; one
+      absence is a quarter of the screen, and «٢٥٪» reads like a measurement.
+      Any screen under eight signals carries ⚠ and is named in the footer.
+- [x] **One attempt was reverted for making the tool lie.** Harvesting trim
+      names from the page's own `<h3>` elements swallowed «حالة المركبة» ·
+      «السعر» · «الماركة والطراز» — *the very signals being measured* — and
+      would have raised the score by going blind. Reverted, with the reason in
+      place of the code.
+
+#### Six of seven ad slots had never been seen
+
+Measured: the seed creates a campaign for `home_banner` only. Its creative is
+`/uploads/seed/ad-banner.png` — **a path with no file and no folder** — so the
+home page showed a **broken image** under the word «إعلان» to every visitor,
+and five slots with built render sites had no campaign at all.
+
+- [x] A campaign per slot, with a generated creative stored the way listing
+      images are. The sponsored card in search results rendered for the first
+      time — built, correct, and never once looked at.
+
+#### The brand filter was cut at eight with no door
+
+Ten brands have published listings; the rail showed eight and offered nothing
+else. «جي إم سي» (3) and «مازدا» (2) were in the results and could not be
+filtered to. The markup draws the door in its place: «اعرض ٤٢ ماركة».
+
+- [x] A sheet with every brand that has a result — the count is of brands with
+      results, not of the catalogue, so the button cannot promise forty and
+      open on zeros.
+
+#### Two more the markup draws and the product lacked
+
+- [x] **The favourite heart on the card.** `FavoriteButton` existed in exactly
+      one place: the car page. Browsing twenty results to save three meant
+      opening twenty pages. It is rendered as a **sibling of the card's link**,
+      never inside it — a button in an anchor is interactive-inside-interactive,
+      and **gate 48 cannot see it** because the link is in one file and the
+      button in another. Verified in the browser: `a button, button a` → 0.
+- [x] **«عدّل الجملة».** The understanding bar quoted the sentence and offered
+      no way to change it — `HeroSearch` lives on the home page alone, so a
+      visitor arriving from a search engine found **no input anywhere on the
+      screen**. Editing keeps the manual filters and resets the page.
+
+#### And gate 41 let me write the bug it exists to prevent
+
+I wrote `(<ArabicNumber value={n} />)` — a count in parentheses to dodge the
+plural — and the gate passed: it knew `({displayDigits(` and a template form,
+not this one. Generalised to «Arabic word, then a parenthesis holding a rendered
+number», which **immediately raised three false alarms on correct code**:
+«المتاح (٨٬٥٠٠)» is a label with its value, not a counted noun. Narrowed to
+require a sound-plural ending, which separates «ماركات» from «المتاح»
+mechanically. Measured at zero, proven on both sides.
+
 ### 40a · 9 — `A34` legal, 44٪ → 100٪, and consent that was never recorded
 
 The screen was missing «سجل النسخ» · «مستند جديد» · «نسبة القبول» ·

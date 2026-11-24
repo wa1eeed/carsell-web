@@ -14,6 +14,7 @@ import { badgeLabel } from '@/lib/catalog/badges';
 import { Chip } from '@/components/ui/Chip';
 import { SaveSearchButton } from '@/components/site/SaveSearchButton';
 import { SponsoredCard, SponsoredRow } from '@/components/site/SponsoredCard';
+import { FavoriteButton } from '@/components/site/FavoriteButton';
 import { SearchAbout, type SearchSibling } from '@/components/site/SearchAbout';
 import { SPONSORED_AFTER } from '@/lib/domain/ad-rules';
 import type { ServedAd } from '@/lib/domain/ad-rules';
@@ -27,6 +28,12 @@ import { cn } from '@/lib/cn';
 
 type Option = { id: string; nameAr: string; nameEn: string };
 type FeatureOption = { key: string; nameAr: string; nameEn: string };
+
+/**
+ * كم ماركةً تُعرض في العمود قبل الباب — **والباقي خلف ورقة**، فصفُّ
+ * رقاقاتٍ بأربعين ماركة يدفن ما تحته في عمودٍ عرضُه ٢٦٠ بكسلًا.
+ */
+const BRANDS_SHOWN = 8;
 
 const TYPES = ['DIRECT', 'NEGOTIATION', 'AUCTION'] as const;
 const SORT_OPTIONS: readonly Sort[] = ['newest', 'price_asc', 'price_desc', 'closing_soon'];
@@ -103,6 +110,19 @@ export function SearchScreen({
   const [view, setView] = useState<'grid' | 'list'>('list');
   const [sheet, setSheet] = useState(false);
   const [featureSheet, setFeatureSheet] = useState(false);
+  const [brandSheet, setBrandSheet] = useState(false);
+
+  /**
+   * الماركاتُ التي لها نتيجةٌ في هذا البحث — **ومنها يُحسب العدّاد
+   * والباب**: زرٌّ يَعِد بأربعين وفيها نتيجةٌ لعشر يفتح على أصفار.
+   */
+  const withResults = useMemo(
+    () =>
+      brands.filter(
+        (b) => (result.facets.brandId[b.id] ?? 0) > 0 || filters.brandId === b.id,
+      ),
+    [brands, result.facets.brandId, filters.brandId],
+  );
 
   /** أي تعديل فلتر يعيد الصفحة إلى ١ — نتيجة الصفحة ٣ لفلتر آخر بلا معنى. */
   const apply = useCallback(
@@ -225,6 +245,9 @@ export function SearchScreen({
     ...(item.endsAt === null ? {} : { endsAt: item.endsAt }),
   });
 
+  /** **ومن لم يدخل يُؤخذ إلى الدخول ومعه موضعُه** فيعود إلى حيث كان. */
+  const signInHref = `/${locale}/auth?next=${encodeURIComponent(`/${locale}/cars`)}`;
+
   const facetLabel = (n: number | undefined): number => n ?? 0;
 
   const isNew = filters.condition === 'NEW';
@@ -317,20 +340,44 @@ export function SearchScreen({
           {t('brandAndModel')}
         </h3>
         <div className="flex flex-wrap gap-2">
-          {brands
-            .filter((b) => (result.facets.brandId[b.id] ?? 0) > 0 || filters.brandId === b.id)
-            .slice(0, 8)
-            .map((brand) => (
-              <Chip
-                key={brand.id}
-                active={filters.brandId === brand.id}
-                count={facetLabel(result.facets.brandId[brand.id])}
-                onClick={() => apply({ brandId: filters.brandId === brand.id ? null : brand.id, modelId: null, trimId: null })}
-              >
-                {named(brand)}
-              </Chip>
-            ))}
+          {withResults.slice(0, BRANDS_SHOWN).map((brand) => (
+            <Chip
+              key={brand.id}
+              active={filters.brandId === brand.id}
+              count={facetLabel(result.facets.brandId[brand.id])}
+              onClick={() => apply({ brandId: filters.brandId === brand.id ? null : brand.id, modelId: null, trimId: null })}
+            >
+              {named(brand)}
+            </Chip>
+          ))}
         </div>
+
+        {/*
+          ═══ والاقتطاعُ بلا بابٍ يُخفي ماركةً لها إعلانات ═══
+
+          كانت الثمانيةُ الأولى تُعرض و**لا سبيل إلى التاسعة**: قِيس
+          فكانت عشرُ ماركاتٍ لها إعلانٌ منشور، فـ«جي إم سي» و«مازدا»
+          معروضتان في النتائج ولا تُرشَّحان. والترميز يكتب الباب في
+          مكانه: «اعرض ٤٢ ماركة».
+
+          والعتبةُ على ما **يُرشَّح به** لا على طول الكتالوج: زرٌّ يقول
+          «اعرض ٤٢» وفيها أربعٌ وثلاثون بلا إعلانٍ واحد يفتح على رقاقاتٍ
+          كلُّها صفر.
+        */}
+        {withResults.length <= BRANDS_SHOWN ? null : (
+          <button
+            type="button"
+            onClick={() => setBrandSheet(true)}
+            className="mt-2.5 text-3xs font-bold underline underline-offset-4 hover:opacity-75"
+          >
+            {/*
+              **والعددُ يحكم المعدود** — و«اعرض كل الماركات (١٠)» قوسٌ
+              يفرّ من الجمع (البوابة ٤١). والترميز يكتبها جملةً:
+              «اعرض ٤٢ ماركة».
+            */}
+            {t('showAll')} <Quantity unit="brands" count={withResults.length} />
+          </button>
+        )}
         {models.length === 0 ? null : (
           <div className="mt-2.5 flex flex-wrap gap-2">
             {models.map((model) => (
@@ -593,9 +640,31 @@ export function SearchScreen({
             */}
             {result.items.map((item, index) => (
               <Fragment key={item.ref}>
-                <Link href={item.href}>
-                  <CarCard data={toCard(item)} />
-                </Link>
+                <div className="relative">
+                  <Link href={item.href}>
+                    <CarCard data={toCard(item)} />
+                  </Link>
+                  {/*
+                    ═══ والقلبُ شقيقُ الرابط لا ابنُه ═══
+
+                    زرٌّ داخل `<Link>` تفاعليٌّ داخل تفاعليّ: النقرُ
+                    عليه يفتح الصفحة، ولوحةُ المفاتيح تقف موقفين لفعلٍ
+                    واحد. فيُرسم فوق البطاقة بالموضع المطلق، والرابطُ
+                    يغطّي ما عداه.
+
+                    **ولا قلبَ على إعلانك** — حفظُ المرء إعلانَ نفسه
+                    لا معنى له، والزرُّ بلا معنًى يُقرأ عطلًا.
+                  */}
+                  {item.isOwn ? null : (
+                    <FavoriteButton
+                      listingRef={item.ref}
+                      initial={item.isFavorite}
+                      signedIn={signedIn}
+                      signInHref={signInHref}
+                      className="absolute top-2.5 end-2.5 z-10 size-8"
+                    />
+                  )}
+                </div>
                 {/*
                   **والمموّل بين البطاقات لا فوقها.** المساحة
                   `search_inline` موضعُها المكتوب «بعد كل ٦ نتائج»،
@@ -622,9 +691,31 @@ export function SearchScreen({
             */}
             {result.items.map((item, index) => (
               <Fragment key={item.ref}>
-                <Link href={item.href}>
-                  <CarRow data={toCard(item)} />
-                </Link>
+                <div className="relative">
+                  <Link href={item.href}>
+                    <CarRow data={toCard(item)} />
+                  </Link>
+                  {/*
+                    ═══ والقلبُ شقيقُ الرابط لا ابنُه ═══
+
+                    زرٌّ داخل `<Link>` تفاعليٌّ داخل تفاعليّ: النقرُ
+                    عليه يفتح الصفحة، ولوحةُ المفاتيح تقف موقفين لفعلٍ
+                    واحد. فيُرسم فوق البطاقة بالموضع المطلق، والرابطُ
+                    يغطّي ما عداه.
+
+                    **ولا قلبَ على إعلانك** — حفظُ المرء إعلانَ نفسه
+                    لا معنى له، والزرُّ بلا معنًى يُقرأ عطلًا.
+                  */}
+                  {item.isOwn ? null : (
+                    <FavoriteButton
+                      listingRef={item.ref}
+                      initial={item.isFavorite}
+                      signedIn={signedIn}
+                      signInHref={signInHref}
+                      className="absolute bottom-5 start-5 z-10 size-8"
+                    />
+                  )}
+                </div>
                 {index + 1 !== SPONSORED_AFTER || ads.length === 0 ? null : (
                   <SponsoredRow ad={ads[0] as ServedAd} label={tu('sponsored')} />
                 )}
@@ -675,6 +766,28 @@ export function SearchScreen({
 
       <Sheet open={sheet} onClose={() => setSheet(false)} title={t('filters')}>
         {panel}
+      </Sheet>
+
+      <Sheet open={brandSheet} onClose={() => setBrandSheet(false)} title={t('allBrands')}>
+        <div className="flex flex-wrap gap-2">
+          {withResults.map((brand) => (
+            <Chip
+              key={brand.id}
+              active={filters.brandId === brand.id}
+              count={facetLabel(result.facets.brandId[brand.id])}
+              onClick={() => {
+                setBrandSheet(false);
+                apply({
+                  brandId: filters.brandId === brand.id ? null : brand.id,
+                  modelId: null,
+                  trimId: null,
+                });
+              }}
+            >
+              {named(brand)}
+            </Chip>
+          ))}
+        </div>
       </Sheet>
 
       <Sheet

@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **172** components in **4** directories.
+Counted: **173** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -87,7 +87,7 @@ rather than found by chance.
 | `CancelOrder` | yes | `orderRef` | 1 |
 | `DealerMark` | no | `name` · `logoUrl` | 1 |
 | `DisputePanel` | yes | `orderRef` · `canOpen` · `hasOpen` | 1 |
-| `FavoriteButton` | yes | `listingRef` · `initial` · `signedIn` · `signInHref` · `className` | 1 |
+| `FavoriteButton` | yes | `listingRef` · `initial` · `signedIn` · `signInHref` · `className` | 2 |
 | `InspectionSummary` | yes | `score` · `sections` · `onOpen` · `className` | 1 |
 | `IntentChooser` | no | `locale` | 1 |
 | `ListingControls` | yes | `listingRef` · `status` · `price` · `negotiable` · `description` · `hasActiveOrder` | 1 |
@@ -101,6 +101,7 @@ rather than found by chance.
 | `OfferActions` | yes | `offerId` · `sentByMe` · `amount` · `askPrice` · `actionable` | 2 |
 | `PayPanel` | yes | `orderRef` · `total` · `locale` | 1 |
 | `PriceGuidance` | yes | `price` · `stat` · `segment` · `onUse` | 1 |
+| `QueryEdit` | yes | `text` · `label` · `apply` | 1 |
 | `ReportListing` | yes | `listingId` · `signedIn` · `locale` | 2 |
 | `RequestService` | yes | `serviceKey` · `serviceName` · `vehicles` · `initialVehicleId` · `cities` · `total` · `addVehicleHref` | 1 |
 | `RequestViewing` | yes | `listingRef` · `locale` · `label` · `className` · `variant` | 1 |
@@ -155,7 +156,7 @@ rather than found by chance.
 | `FieldNote` | no | `id` · `children` | 1 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
-| `HeroSearch` | yes | `cities` · `className` | 1 |
+| `HeroSearch` | yes | `cities` · `className` | 2 |
 | `HistoryList` | no | `entries` · `className` | 1 |
 | `BrandGrid` | no | `brands` · `remaining` · `locale` · `sponsored` | 1 |
 | `SectionHead` | no | `title` · `action` · `href` · `className` | 7 |

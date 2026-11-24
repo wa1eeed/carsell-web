@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { QueryEdit } from './QueryEdit';
 import { displayDigits } from '@/lib/arabic';
 import type { Chip } from '@/lib/domain/query-parse';
 
@@ -104,6 +105,12 @@ export async function QueryUnderstanding({
         <p className="min-w-0 flex-1 text-2xs font-semibold text-accent-900">
           <span className="bidi-isolate">«{text}»</span>
         </p>
+        {/*
+          **والجملةُ تُقتبس فتُعدَّل** — وكانت تُقتبس ولا باب: صندوقُ
+          البحث في الرئيسية وحدها، فمن وصل من محرّك بحثٍ لا يجد في
+          الشاشة كلِّها حقلًا يكتب فيه.
+        */}
+        <QueryEdit text={text} label={t('editQuery')} apply={t('applyQuery')} />
       </div>
 
       {shown.length === 0 && chips.length > 0 ? null : shown.length === 0 ? (
