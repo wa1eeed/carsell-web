@@ -155,42 +155,92 @@ async function signInPhone(phone) {
  * إن لم يوجد.
  */
 async function findOrderRoute() {
+  /**
+   * ═══ والشاشة تُقاس في الحال التي يرسمها التصميم ═══
+   *
+   * `Wj` مرسومٌ عند **مرحلة الدفع**: «قيد الدفع» و«المستحق الآن»
+   * و«ادفع الآن». وأوّلُ طلبٍ في القائمة قد يكون مكتملًا أو ملغًى —
+   * فتُقاس شاشةٌ تُخفي زرَّ الدفع بحقّ، ويُقرأ ذلك نقصًا فيها.
+   *
+   * فتُجرَّب طلباتُ الحساب ويُفضَّل ما يحمل زرَّ الدفع، ويُرجَع إلى
+   * الأوّل إن لم يوجد — ولا يُسكَت عن الفرق.
+   */
   const probe = async (cookie) => {
     const res = await fetch(`${BASE}/ar/account/orders`, {
       headers: { cookie: `carsell_session=${cookie}` },
       signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok) return null;
-    return /href="(\/ar\/account\/orders\/[A-Za-z0-9-]+)"/.exec(await res.text())?.[1] ?? null;
+    const refs = [
+      ...new Set(
+        [...(await res.text()).matchAll(/href="(\/ar\/account\/orders\/[A-Za-z0-9-]+)"/g)].map(
+          (match) => match[1],
+        ),
+      ),
+    ];
+    if (refs.length === 0) return null;
+
+    for (const path of refs.slice(0, 6)) {
+      const page = await fetch(`${BASE}${path}`, {
+        headers: { cookie: `carsell_session=${cookie}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!page.ok) continue;
+      if ((await page.text()).includes('ادفع الآن')) return { path, payable: true };
+    }
+    return { path: refs[0], payable: false };
   };
+
+  /** أفضلُ ما وُجد حتى الآن — ويُستبدَل بأوّل طلبٍ يحمل زرّ الدفع. */
+  let fallback = null;
 
   try {
     const cached = readFileSync(BUYER_FILE, 'utf8').trim();
     if (cached !== '') {
-      const route = await probe(cached);
-      if (route !== null) {
+      const found = await probe(cached);
+      if (found !== null) {
         BUYER_COOKIE = cached;
-        return route;
+        if (found.payable) return found.path;
+        fallback = { cookie: cached, path: found.path };
       }
     }
   } catch {
     /* لا جلسة محفوظة */
   }
 
-  for (let i = 0; i < 4; i += 1) {
-    const phone = process.env.AUDIT_BUYER_PHONE ?? `+9665${String(30000000 + i).padStart(8, '0')}`;
+  /**
+   * **ورقمٌ مُمرَّر يُجرَّب مرّةً لا أربعًا.** مهلةُ الرمز ثلاثون ثانية،
+   * فإعادةُ المحاولة على الرقم نفسِه تصطدم بها أربع مرّات ثمّ تُعلن
+   * «لا حساب له طلب» — وهو موجود.
+   */
+  const fixed = process.env.AUDIT_BUYER_PHONE;
+  const tries = fixed === undefined ? 4 : 1;
+  for (let i = 0; i < tries; i += 1) {
+    const phone = fixed ?? `+9665${String(30000000 + i).padStart(8, '0')}`;
     const cookie = await signInPhone(phone);
     if (cookie === null) continue;
-    const route = await probe(cookie);
-    if (route === null) continue;
-    BUYER_COOKIE = cookie;
-    try {
-      writeFileSync(BUYER_FILE, cookie, 'utf8');
-    } catch {
-      /* الحفظ تحسينٌ لا شرط */
+    const found = await probe(cookie);
+    if (found === null) continue;
+
+    if (found.payable) {
+      BUYER_COOKIE = cookie;
+      try {
+        writeFileSync(BUYER_FILE, cookie, 'utf8');
+      } catch {
+        /* الحفظ تحسينٌ لا شرط */
+      }
+      return found.path;
     }
-    return route;
+    fallback ??= { cookie, path: found.path };
   }
+
+  if (fallback !== null) {
+    BUYER_COOKIE = fallback.cookie;
+    /** **ويُقال إنّ الحال ليست المرسومة** — وإلّا قُرئ نقصُ حالٍ نقصَ بناء. */
+    console.log('⬜ لا طلبَ عند مرحلة الدفع — تُقاس Wj على حالٍ أخرى، وزرُّ الدفع غائبٌ بحقّ.');
+    return fallback.path;
+  }
+
   console.log('⬜ لا حسابَ مشترٍ له طلب — صفحة الطلب (Wj) لن تُقاس.');
   return null;
 }
@@ -572,8 +622,16 @@ async function main() {
   const rows = [];
   /** مراجعُ حيّة من الموقع — تُغني عن ثابتٍ يتعفّن مع البيانات */
   const liveRoutes = await liveRefs(BASE, '');
-  /** وصفحةُ الطلب مرجعُها من حساب مشترٍ له طلب — يُكتشف لا يُكتب. */
-  const orderRoute = process.env.AUDIT_ORDER ?? (await findOrderRoute());
+  /**
+   * وصفحةُ الطلب مرجعُها من حساب مشترٍ له طلب — يُكتشف لا يُكتب.
+   *
+   * **و`AUDIT_ORDER` يُبدّل المرجعَ لا الجلسة.** كتبتُها أوّلًا
+   * `AUDIT_ORDER ?? findOrderRoute()`، فتمريرُ مرجعٍ بيدٍ يتخطّى دخولَ
+   * المشتري — فتُطلب صفحةُ طلبٍ بجلسة بائع وتردّ ٤٠٤ بحقّ، ويُقرأ ذلك
+   * «الصفحة ساقطة». فالدخول يقع دائمًا، والمتغيّر يختار المرجع بعده.
+   */
+  const discovered = await findOrderRoute();
+  const orderRoute = process.env.AUDIT_ORDER ?? discovered;
   if (typeof orderRoute === 'string' && orderRoute !== '') liveRoutes.Wj = orderRoute;
 
   for (const [path, re] of files) {

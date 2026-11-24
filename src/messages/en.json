@@ -651,6 +651,14 @@
       "TRANSFER": "Transfer",
       "DONE": "Done"
     },
+    "orderStageWaiting": {
+      "REQUEST": "Awaiting request",
+      "APPROVED": "Awaiting approval",
+      "INSPECTION": "Under inspection",
+      "PAYMENT": "Awaiting payment",
+      "TRANSFER": "Transfer in progress",
+      "DONE": "Completed"
+    },
     "escrowStatus": {
       "PENDING": "Pending",
       "HELD": "Held",
@@ -1173,7 +1181,14 @@
       "OUT_OF_SCOPE_NO_INVOICE": "This deal is out of VAT scope, so no invoice is due.",
       "INVOICED_WITH_ITS_OWN_PAYMENT": "Invoiced with its own payment, not with the settlement.",
       "other": "It could not be issued; our team is following it up."
-    }
+    },
+    "contactSupport": "Contact support",
+    "stages": "Order stages",
+    "saleMethod": "Sale method",
+    "breadcrumb": "Breadcrumb",
+    "account": "My account",
+    "myOrders": "My orders",
+    "escrowAmount": "Held in escrow"
   },
   "auctions": {
     "title": "Auctions",

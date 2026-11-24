@@ -89,6 +89,28 @@ export function OrderScreen({
 
   return (
     <>
+      {/*
+        ═══ فتاتُ المسار — وأين «طلباتي» من هنا ═══
+
+        الترميز يضع «حسابي · طلباتي» فوق المرجع. ومن فتح طلبًا من
+        إشعارٍ أو رابطٍ مباشر يصل الصفحة بلا أن يمرّ بقائمته، فلا
+        يجد طريقًا إليها إلّا الرجوعَ بالمتصفّح.
+      */}
+      <nav aria-label={t('breadcrumb')} className="mb-3 flex items-center gap-2 text-2xs opacity-70">
+        <Link href={`/${locale}/account`} className="hover:underline">
+          {t('account')}
+        </Link>
+        <span aria-hidden className="opacity-40">·</span>
+        <Link href={`/${locale}/account/orders`} className="hover:underline">
+          {t('myOrders')}
+        </Link>
+        <span aria-hidden className="opacity-40">·</span>
+        {/** **وآخرُ الفتات الصفحةُ نفسُها** — فتاتٌ ينتهي بأبٍ لا يقول أين أنت. */}
+        <span aria-current="page" className="font-num">
+          {order.ref}
+        </span>
+      </nav>
+
       {/* النزاع يتصدّر: ما دام مفتوحًا فهو حال الطلب لا حاشيته */}
       {order.dispute === null ? null : (
         <section className="mb-7 rounded-xl border border-warn-200 bg-warn-100 p-5 text-warn-900">
@@ -108,15 +130,36 @@ export function OrderScreen({
         «دفع» ولا شيء يقول إنه أُلغي حتى يقرأ أسفل الصفحة. فالحال
         تتصدّر، والمسار تحتها يقول أين توقّف.
       */}
-      {live ? null : (
-        <p className="mb-5 flex flex-wrap items-center gap-2.5">
-          <OrderStatusBadge status={order.status} stage={order.stage} />
-          {order.cancelReason === null || order.cancelReason === '' ? null : (
-            <span className="text-2xs opacity-75">{order.cancelReason}</span>
-          )}
-        </p>
-      )}
+      {/*
+        ═══ والوسمُ للحيّ أيضًا ═══
 
+        كان للمغلق وحده، فطلبٌ حيّ لا يحمل حالَه — والترميز يضعها في
+        رأس الصفحة («قيد الدفع»). ومن فتح طلبَه يقرأ شريطَ مراحلَ
+        عليه أن يفكّ رموزه بنفسه ليعرف أين هو.
+      */}
+      <p className="mb-5 flex flex-wrap items-center gap-2.5">
+        <OrderStatusBadge status={order.status} stage={order.stage} />
+        {live || order.cancelReason === null || order.cancelReason === '' ? null : (
+          <span className="text-2xs opacity-75">{order.cancelReason}</span>
+        )}
+        {/*
+          **ورابطُ الدعم في رأس الصفحة** — الترميز يضعه بجوار المرجع.
+          وصاحبُ طلبٍ متعثّر يبحث عن مخرجٍ في الصفحة التي هو فيها، لا
+          في تذييلٍ يصل إليه بعد تمرير.
+        */}
+        <Link
+          href={`/${locale}/help/contact?order=${encodeURIComponent(order.ref)}`}
+          className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+        >
+          {t('contactSupport')}
+        </Link>
+      </p>
+
+      {/*
+        **وللشريط عنوان.** كان يقف بلا كلمة فوقه، والترميز يسمّيه —
+        وشريطٌ بلا اسمٍ يُقرأ زينةً لا حالةً.
+      */}
+      <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">{t('stages')}</h2>
       <StageTracker current={order.stage} stopped={!live} className="mb-8" />
 
       <div className="flex flex-col gap-8 lg:flex-row">
@@ -133,7 +176,10 @@ export function OrderScreen({
             <p className="mt-2 flex flex-wrap items-center gap-2.5 text-2xs opacity-70">
               <span className="font-num">{order.listing.ref}</span>
               <span aria-hidden className="opacity-40">·</span>
-              <span>{te(`orderSource.${order.source}`)}</span>
+              {/* **والقيمةُ باسمها**: «بيع مباشر» وحدها لا تقول أيَّ شيءٍ تصف. */}
+              <span>
+                {t('saleMethod')} <b className="font-bold">{te(`orderSource.${order.source}`)}</b>
+              </span>
               <span aria-hidden className="opacity-40">·</span>
               <span className="bidi-isolate">{formatted.createdAt}</span>
             </p>
@@ -282,15 +328,29 @@ export function OrderScreen({
                 وهو **لكلا الطرفين**: البائع قد يعتذر كما ينسحب
                 المشتري، وحصرُه في أحدهما يترك الآخر يتّصل بالدعم.
               */}
-              {order.escrow?.status === 'RELEASED' || order.stage === 'DONE' ? null : (
-                <p className="mt-1 text-center">
-                  <CancelOrder
-                    orderRef={order.ref}
-                    paid={order.escrow !== null && order.escrow.status === 'HELD'}
-                  />
-                </p>
-              )}
             </div>
+          )}
+
+          {/*
+            ═══ والإلغاء خارج شرط «يستطيع الدفع» ═══
+
+            كان داخله، فالزرّ يختفي **عند مرحلة الدفع بالضبط** — وهي
+            اللحظة التي يملك فيها المشتري أن يتراجع بلا رسوم، والترميز
+            يرسمه فيها ويكتب قاعدتَه: «الإلغاء قبل الدفع بلا رسوم غير
+            رسوم الفحص المنفَّذة».
+            **والخادم يجيزه**: `PAYMENT` في `CANCELLABLE` منذ كُتبت.
+            فبابٌ يفتحه الخادم أغلقته الشاشة — وهو وجهُ «حارسٌ في
+            العميل ليس حارسًا» معكوسًا.
+          */}
+          {isClosedOrder(order.status)
+          || order.escrow?.status === 'RELEASED'
+          || order.stage === 'DONE' ? null : (
+            <p className="mb-3.5 text-center">
+              <CancelOrder
+                orderRef={order.ref}
+                paid={order.escrow !== null && order.escrow.status === 'HELD'}
+              />
+            </p>
           )}
 
           {order.escrow === null ? null : (
@@ -310,7 +370,14 @@ export function OrderScreen({
           )}
 
           <section className="mb-3.5 rounded-xl border border-line p-5">
-            <h2 className="mb-3 text-xs font-bold">{t('amounts')}</h2>
+            {/*
+              **والعنوان يقول أين يذهب المال لا كم هو.** الترميز
+              يسمّيها «المبلغ في الضمان» قبل الدفع — فالمشتري يقرأ
+              وجهةَ مبلغه في العنوان نفسِه، لا في سطرٍ تحته.
+            */}
+            <h2 className="mb-3 text-xs font-bold">
+              {order.escrow === null ? t('escrowAmount') : t('amounts')}
+            </h2>
             {/*
               الرسمان **سطران دائمًا**: الأوّل حكوميّ يُمرَّر كما هو، والثاني
               إيرادٌ لنا تسري عليه الضريبة. ودمجُهما في سطر «رسوم النقل ٤٠٠»
