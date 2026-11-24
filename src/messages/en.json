@@ -934,7 +934,9 @@
     "identityClarification": "Needs clarification",
     "identityRejected": "Not complete",
     "identityNoteTitle": "What the reviewer asked for",
-    "identityResubmit": "Fix it and resubmit →"
+    "identityResubmit": "Fix it and resubmit →",
+    "listVehicle": "List a vehicle",
+    "details": "Details"
   },
   "sell": {
     "title": "Sell your car at a fair price",

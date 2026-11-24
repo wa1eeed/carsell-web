@@ -69,6 +69,19 @@ export type AccountOffer = {
   status: string;
   expiresAt: string;
   path: string;
+  /**
+   * ═══ من أرسله؟ — و«واردة» لا تكفي ═══
+   *
+   * العرضُ المقابل يحتفظ بـ`buyerId` الأصليّ، فيبقى على إعلاني وأنا
+   * من أرسله. وزرُّ «اقبل» فوقه يجعل البائع **يقبل عرضَ نفسه** —
+   * وهو العطلُ الذي أُصلح في صندوق العروض، ويعود هنا لو نُسخ الصفُّ
+   * بلا هذا الحقل.
+   */
+  sentByMe: boolean;
+  /** انقضى وقتُه ولو بقيت حالتُه المخزَّنة نشطة — فلا ردَّ عليه. */
+  lapsed: boolean;
+  /** عمرُه — والترميز يكتبه «قبل ساعة»: مهلةُ الردّ تُقاس منه. */
+  createdAt: string;
 };
 
 /**
@@ -320,9 +333,13 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       take: 10,
       select: {
         id: true, amount: true, status: true, expiresAt: true,
+        createdAt: true, buyerId: true, parentOfferId: true,
         // سعر البائع المعلن — والعرض بلا ما يُقارَن به لا يُقرَّر عليه
         listing: {
-          select: { ref: true, city: true, askPrice: true, vehicle: { select: vehicleSelect } },
+          select: {
+            ref: true, city: true, askPrice: true, sellerId: true,
+            vehicle: { select: vehicleSelect },
+          },
         },
       },
     }),
@@ -553,6 +570,13 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       status: offer.status,
       expiresAt: offer.expiresAt.toISOString(),
       path: canonicalPath(locale, offer.listing).path,
+      /** القاعدةُ نفسُها في `offer-inbox.ts` — ولا تُستنتج من الدور. */
+      sentByMe:
+        offer.parentOfferId === null
+          ? offer.buyerId === user.id
+          : offer.listing.sellerId === user.id,
+      lapsed: offer.expiresAt.getTime() <= Date.now(),
+      createdAt: offer.createdAt.toISOString(),
     })),
     listings: listings.map((listing) => ({
       ref: listing.ref,

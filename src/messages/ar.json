@@ -934,7 +934,9 @@
     "identityClarification": "يحتاج توضيحا",
     "identityRejected": "لم يكتمل",
     "identityNoteTitle": "ما طلبه المراجع",
-    "identityResubmit": "عدل وأعد الإرسال ←"
+    "identityResubmit": "عدل وأعد الإرسال ←",
+    "listVehicle": "اعرض مركبة للبيع",
+    "details": "تفاصيل"
   },
   "sell": {
     "title": "بع سيارتك بسعر عادل",

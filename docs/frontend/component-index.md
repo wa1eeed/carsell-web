@@ -98,7 +98,7 @@ rather than found by chance.
 | `MobileNav` | yes | `items` · `active` · `locale` · `otherLocale` · `otherLabel` · `menuLabel` · `closeLabel` · `actions` | 2 |
 | `MyAuctions` | no | `rows` | 1 |
 | `NotificationMenu` | yes | `initialItems` · `initialUnread` · `now` | 1 |
-| `OfferActions` | yes | `offerId` · `sentByMe` · `amount` · `askPrice` · `actionable` | 1 |
+| `OfferActions` | yes | `offerId` · `sentByMe` · `amount` · `askPrice` · `actionable` | 2 |
 | `PayPanel` | yes | `orderRef` · `total` · `locale` | 1 |
 | `PriceGuidance` | yes | `price` · `stat` · `segment` · `onUse` | 1 |
 | `ReportListing` | yes | `listingId` · `signedIn` · `locale` | 2 |
@@ -137,7 +137,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 108 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 109 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -196,7 +196,7 @@ rather than found by chance.
 | `Stepper` | no | `steps` · `active` · `onSelect` · `className` | 1 |
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
-| `TimeAgo` | yes | `at` · `now` · `className` | 3 |
+| `TimeAgo` | yes | `at` · `now` · `className` | 4 |
 | `Toast` | no | `tone` · `title` · `description` · `className` | 85 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
