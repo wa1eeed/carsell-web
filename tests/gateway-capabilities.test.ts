@@ -11,14 +11,17 @@ import {
 const BANK: GatewayCapabilities = {
   supportsHold: true, supportsPartialSettle: true, supportsRefund: true,
   maxHoldDays: 30, settlementDelayHours: 36, feePct: 0.8, feeFixed: 2,
+  methods: ['تحويل بنكي'],
 };
 const MOYASAR: GatewayCapabilities = {
   supportsHold: true, supportsPartialSettle: true, supportsRefund: true,
   maxHoldDays: 7, settlementDelayHours: 0, feePct: 2.75, feeFixed: 1,
+  methods: ['مدى', 'Apple Pay', 'بطاقات'],
 };
 const TAP: GatewayCapabilities = {
   supportsHold: true, supportsPartialSettle: true, supportsRefund: true,
   maxHoldDays: 6, settlementDelayHours: 0, feePct: 2.65, feeFixed: 1,
+  methods: ['مدى', 'بطاقات', 'تحويل'],
 };
 const NO_HOLD: GatewayCapabilities = { ...MOYASAR, supportsHold: false };
 const NO_PARTIAL: GatewayCapabilities = { ...MOYASAR, supportsPartialSettle: false };

@@ -70,6 +70,15 @@ export type GatewayCapabilities = {
   settlementDelayHours: number;
   feePct: number;
   feeFixed: number;
+  /**
+   * وسائلُ الدفع التي تقبلها — **وصفٌ للمشغّل لا شرطٌ للأهليّة**.
+   *
+   * ترميزُ `A20` يكتبها تحت اسم البوابة («مدى · بطاقات · تحويل»)، وهي
+   * ما يقرؤه من يوجّه غرضًا: بوابةُ حسابِ أمانةٍ تقبل التحويل وحده،
+   * فتوجيهُ شحنِ المحفظة إليها يعني أن يحوّل المستخدم يدويًّا.
+   * والأهليّةُ تبقى على `supports*` — فمفتاحٌ ناقصٌ لا يمنع توجيهًا.
+   */
+  methods: string[];
 };
 
 export type HoldInput = {
@@ -231,6 +240,10 @@ export function readCapabilities(value: unknown): GatewayCapabilities {
     settlementDelayHours: Number(raw.settlementDelayHours ?? 0),
     feePct: Number(raw.feePct ?? 0),
     feeFixed: Number(raw.feeFixed ?? 0),
+    // صفٌّ قديم بلا المفتاح يُقرأ فارغًا — فلا تُرسم قائمةٌ مخترَعة
+    methods: Array.isArray(raw.methods)
+      ? raw.methods.filter((entry): entry is string => typeof entry === 'string')
+      : [],
   };
 }
 

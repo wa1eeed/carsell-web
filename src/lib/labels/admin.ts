@@ -112,6 +112,26 @@ export const PAYMENT_PURPOSE_LABEL: Record<PaymentPurpose, string> = {
   SUBSCRIPTION: 'اشتراكات الباقات',
 };
 
+/**
+ * ═══ وما يفعله الغرضُ بالمال — سطرٌ تحت اسمه ═══
+ *
+ * ترميزُ `A20` يكتب تحت كلّ غرضٍ ما يقع به: «حجز ثمّ إفراج بعد نقل
+ * الملكية» · «تحصيل فوريّ بلا حجز». وهو ليس زينةً: من يبدّل بوابةَ غرضٍ
+ * يحتاج أن يعرف **أيحجز أم يحصّل** قبل أن يقرأ قدرات البوابة — فبوابةٌ
+ * بلا حجزٍ تصلح لشحن المحفظة ولا تصلح للضمان.
+ *
+ * و`SUBSCRIPTION` وحدها بلا سطرٍ هنا: سببُ تعطيلها حالُ الباقات، فيُقرأ
+ * من القاعدة ويُصاغ في الشاشة.
+ */
+export const PAYMENT_PURPOSE_NOTE: Record<string, string> = {
+  VEHICLE_ESCROW: 'حجز ثم إفراج بعد نقل الملكية',
+  AUCTION_DEPOSIT: 'حجز مؤقت يرد أو يخصم',
+  WALLET_TOPUP: 'تحصيل فوري بلا حجز',
+  SERVICE_PURCHASE: 'فحص · موجز · شحن · تصوير',
+  TRANSFER_FEE: 'تحصل مع مبلغ الطلب',
+  SUBSCRIPTION: '',
+} satisfies Record<PaymentPurpose, string>;
+
 export const NOTIFICATION_GROUP_LABEL: Record<string, string> = {
   auth: 'الدخول',
   account: 'الحساب',

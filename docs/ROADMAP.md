@@ -2090,6 +2090,43 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 26 — `A20` payment routing, and reference data that never reaches a live database
+
+`A20` read **57٪** and is one of the better-built screens in the panel: routes,
+gateways, switch requests and approvals all work. What it was missing was what
+an operator reads **before** switching a gateway.
+
+- [x] **What each purpose does with money**, under its name — «حجز ثم إفراج
+      بعد نقل الملكية» · «تحصيل فوري بلا حجز». Not decoration: a gateway with
+      no hold suits a wallet top-up and cannot carry an escrow, and that is the
+      first thing the person switching needs to know.
+- [x] **What each gateway accepts** — «مدى · بطاقات · تحويل». A bank-escrow
+      gateway takes transfers only, so routing wallet top-ups through it means
+      the user transfers by hand.
+- [x] The switch log was built, read by `routeChanges()`, and **rendered under
+      a different name**. It is «سجل التبديلات» now, the design's words.
+
+**The methods are reference data, so they reach a running database by
+migration.** `payment-gateways.json` is applied with `createMany` +
+`skipDuplicates` — an empty database, once. A key added to `capabilities` would
+reach a fresh environment and never reach production, leaving the line missing
+there and nowhere else. The migration merges with `||` so an operator's edit is
+not overwritten, and skips rows that already carry the key.
+
+*(Applying it by hand first split the file on `;` and skipped every statement
+that began with a comment — the first gateway silently got nothing. Comments
+are stripped by line now, not by the statement's first characters.)*
+
+### Two header buttons that cannot be built as drawn
+
+`اطلب الموافقة الثانية` asks for a quorum **the owner cancelled**; gate 19
+refuses the text and a migration set the stored requirement to one. `اربط
+بوابة` would insert a gateway row with no code adapter — which this very screen
+marks `بلا وصلة`; credentials belong to `A11`. Both are recorded in
+`DESIGN-DEVIATIONS` and subtracted from the denominator.
+
+Measured after: **57٪ → 100٪**.
+
 ### 40a · 25 — `A9` campaigns, where a campaign could not be created and a scheduled one never sent
 
 `A9` read **56٪**. Segments could be built and saved, sending was built with

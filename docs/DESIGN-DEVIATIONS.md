@@ -1003,6 +1003,22 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A20 — two header buttons that cannot be built as drawn · 2026-11-24
+
+| In A20 | Why not |
+|---|---|
+| `اطلب الموافقة الثانية` | The two-member quorum **was cancelled by the owner**. Gate 19 refuses any screen text promising a second approver, and a migration set the stored requirement to one. A button asking for a second approval would promise a review that does not happen. |
+| `اربط بوابة` | A gateway is a row **plus a code adapter**. Its credentials are entered in `A11` under the `payments` integration (`secretKey`, `webhookSecret`); a button here that inserts a row would manufacture a gateway with no adapter — which the screen already marks `بلا وصلة`. Connecting is A11's job; routing is this screen's. |
+
+`الحالية` — the current gateway in the switch dialog — **is** built, and was
+walked in the browser; it is listed under `BEHIND_CLICK`.
+
+The design's per-gateway method line (`مدى · بطاقات · تحويل`) and the
+per-purpose note (`تحصيل فوري بلا حجز`) **were** missing and are now built. The
+methods are reference data, so they reach a running database by migration
+(`20261124234500_gateway_methods`), not by the seed file — `createMany` +
+`skipDuplicates` only ever reaches an empty one.
+
 ## A9 segment builder — three states per field, where the design shows chips · 2026-11-24
 
 A9 draws the segment as a stack of rule chips with a `+ شرط` button to add

@@ -9,7 +9,12 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
-import { ENV_LABEL, PAYMENT_PURPOSE_LABEL, ROUTE_DISABLED_LABEL } from '@/lib/labels/admin';
+import {
+  ENV_LABEL,
+  PAYMENT_PURPOSE_LABEL,
+  PAYMENT_PURPOSE_NOTE,
+  ROUTE_DISABLED_LABEL,
+} from '@/lib/labels/admin';
 import type { GatewayChoice, PendingSwitch, RouteRow } from '@/lib/domain/payment-routing';
 import type { HoldShortfall } from '@/lib/payments/gateway';
 
@@ -203,6 +208,15 @@ export function RoutesTable({
               <tr key={route.purpose}>
                 <td className="p-3.5">
                   <span className="font-bold">{PAYMENT_PURPOSE_LABEL[route.purpose]}</span>
+                  {/*
+                    **وما يفعله الغرضُ بالمال تحت اسمه** — من يبدّل بوابةً
+                    يحتاج أن يعرف أيَحجز أم يحصّل قبل أن يقرأ قدراتها.
+                  */}
+                  {PAYMENT_PURPOSE_NOTE[route.purpose] === '' ? null : (
+                    <span className="block text-3xs opacity-65">
+                      {PAYMENT_PURPOSE_NOTE[route.purpose]}
+                    </span>
+                  )}
                   {!route.enabled ? (
                     <span className="block text-3xs opacity-65">معطل — لا معاملات جديدة</span>
                   ) : null}

@@ -125,6 +125,19 @@ export default async function PaymentsRoutingPage() {
               {gateway.implemented ? null : <Badge tone="warn">بلا وصلة</Badge>}
             </div>
 
+            {/*
+              **ووسائلُ الدفع سطرٌ تحت الاسم** — ترميز A20 يكتبها هناك
+              («مدى · بطاقات · تحويل»). ومن يوجّه غرضًا يقرؤها: بوابةُ
+              حسابِ أمانةٍ تقبل التحويل وحده، فشحنُ المحفظة عبرها يعني
+              تحويلًا يدويًّا من المستخدم. **وصفٌّ بلا وسائل يسكت** ولا
+              يُرسم له شَرْطٌ مخترَع.
+            */}
+            {gateway.capabilities.methods.length === 0 ? null : (
+              <p className="mb-3 text-3xs opacity-65">
+                {gateway.capabilities.methods.join(' · ')}
+              </p>
+            )}
+
             {/* القدرات معلَنة — والنطاق يقرأها ولا يفترض */}
             <div className="mb-3 flex flex-wrap gap-1.5">
               <Capability on={gateway.capabilities.supportsHold} label="حجز" />
@@ -235,7 +248,7 @@ export default async function PaymentsRoutingPage() {
         كاتبٌ ولا قارئ.
       */}
       <section className="mt-10">
-        <h2 className="mb-1 text-sm font-bold">تاريخ التبديل</h2>
+        <h2 className="mb-1 text-sm font-bold">سجل التبديلات</h2>
         <p className="mb-3.5 text-3xs opacity-70">
           كل تبديل بسببه ومن اعتمده.
         </p>

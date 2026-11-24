@@ -12,7 +12,10 @@
       "maxHoldDays": 30,
       "settlementDelayHours": 36,
       "feePct": 0.8,
-      "feeFixed": 2
+      "feeFixed": 2,
+      "methods": [
+        "تحويل بنكي"
+      ]
     }
   },
   {
@@ -28,7 +31,12 @@
       "maxHoldDays": 7,
       "settlementDelayHours": 0,
       "feePct": 2.75,
-      "feeFixed": 1
+      "feeFixed": 1,
+      "methods": [
+        "مدى",
+        "Apple Pay",
+        "بطاقات"
+      ]
     }
   },
   {
@@ -44,7 +52,12 @@
       "maxHoldDays": 6,
       "settlementDelayHours": 0,
       "feePct": 2.65,
-      "feeFixed": 1
+      "feeFixed": 1,
+      "methods": [
+        "مدى",
+        "بطاقات",
+        "تحويل"
+      ]
     }
   },
   {
@@ -60,7 +73,10 @@
       "maxHoldDays": 30,
       "settlementDelayHours": 0,
       "feePct": 0,
-      "feeFixed": 0
+      "feeFixed": 0,
+      "methods": [
+        "بطاقات"
+      ]
     }
   }
 ]
