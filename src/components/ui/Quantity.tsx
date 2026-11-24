@@ -32,6 +32,8 @@ export type Unit =
   | 'viewingsAwaiting'
   | 'weeks'
   | 'truncatedTemplates'
+  /** قوالبُ الدفع المقيسة بالحدّ في A10 — «٥١ قالب دفع». */
+  | 'pushTemplates'
   | 'orders'
   | 'taxRules'
   | 'activeRules'

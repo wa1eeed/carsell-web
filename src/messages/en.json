@@ -468,6 +468,7 @@
     "bids": "{count, plural, one{# bid} other{# bids}}",
     "weeks": "{count, plural, one{{n} week} other{{n} weeks}}",
     "truncatedTemplates": "{count, plural, one{{n} template truncated} other{{n} templates truncated}}",
+    "pushTemplates": "{count, plural, one{# push template} other{# push templates}}",
     "serviceConsents": "{count, plural, one{An inspection request awaits your consent} other{{n} inspection requests await your consent}}",
     "completedRequests": "{count, plural, one{one request} other{{n} requests}}",
     "viewingsAwaiting": "{count, plural, one{One viewing awaits your reply} other{{n} viewings await your reply}}",

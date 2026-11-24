@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Counted } from '@/components/ui/Counted';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ChannelDefault } from './ChannelDefault';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -15,7 +16,7 @@ import {
   listChannels,
   pushTemplateFit,
 } from '@/lib/domain/push-channels';
-import { PushPreview } from '@/components/admin/PushPreview';
+import { TemplatePicker } from './TemplatePicker';
 import { ChannelFlag } from './ChannelFlag';
 import {
   OPT_OUT_WINDOW_HOURS,
@@ -52,14 +53,31 @@ export default async function PushPage() {
   ]);
   const byChannel = new Map(perChannel.map((row) => [row.channelKey, row]));
 
-  /** المتجاوزون — وهم ما يحتاج عملًا، فيُعدّون في الصدر. */
-  const over = templates.filter((row) => row.titleOver || row.bodyOver);
-
   return (
     <AdminShell title="إشعارات الدفع" activeHref="/admin/push" admin={admin}>
-      <p className="mb-4 text-2xs opacity-70">
-        FCM لأندرويد و APNs لآيفون · التسجيل والإرسال يفعلان مع التطبيق
-      </p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-2xs opacity-70">
+          FCM لأندرويد و APNs لآيفون · التسجيل والإرسال يفعلان مع التطبيق
+        </p>
+        {/*
+          ═══ زرّا الترميز: «اختبار على جهازي» و«سجل الإرسال» ═══
+
+          الثاني مبنيّ. **والأوّل لا يمكن أن يعمل**: لا دافعَ إلى
+          FCM/APNs في المنتج، و`DeviceToken` معلَّقٌ بـ`User` لا
+          بـ`AdminUser` — فليس للمشغّل جهازٌ يُرسَل إليه أصلًا. وزرٌّ
+          يُرى عاملًا ويردّ خطأً بعد الضغط أسوأ من غيابه، والسببُ
+          مسجَّلٌ في `DESIGN-DEVIATIONS.md`.
+
+          والحاجةُ التي وُضع لها — «أرِني كيف يبدو قبل أن يخرج» —
+          يسدّها اختيارُ القالب في المعاينة أدناه.
+        */}
+        <AdminLink
+          href="/admin/push/log"
+          className="rounded-btn border border-line px-3.5 py-2.25 text-3xs font-bold hover:border-ink"
+        >
+          سجل الإرسال
+        </AdminLink>
+      </div>
 
       <div className="mb-5 grid gap-4 md:grid-cols-4">
         <Stat title="أجهزة مسجلة" value={devices.total} />
@@ -185,86 +203,69 @@ export default async function PushPage() {
         </table>
       </section>
 
+      <TemplatePicker
+        templates={templates}
+        titleLimit={PUSH_TITLE_LIMIT}
+        bodyLimit={PUSH_BODY_LIMIT}
+      />
+
       {/*
-        ═══ معاينة على الجهاز — والقاعدة تُقاس لا تُكتب ═══
+        ═══ «قواعد مفعلة» كانت تَعِد بأربعٍ لا يفرضها شيء ═══
 
-        التصميم يضع المعاينة ثمّ يكتب تحتها الحدّ الآمن. وكانت الشاشة
-        تكتب القاعدة **ولا تقيس عليها شيئًا** — ولا أحد يعدّ حروف
-        ثمانيةٍ وثلاثين قالبًا بيده.
+        العنوان يقول «مفعّلة» وتحته سبعٌ: ثلاثٌ يفرضها النطاق فعلًا
+        (`setPreference` و`isChannelEnabled` و`NEVER_DEFAULT_ON`
+        و`pushTemplateFit`)، **وأربعٌ لا موضع لها في المنتج كلّه** —
+        توقيتُ طلب الإذن وتجميعُ الإشعارات وحذفُ الرمز الميّت وكتمُ
+        الإشعار داخل التطبيق. وكلُّها تحتاج التطبيق أو دافعًا إلى
+        FCM/APNs، ولا وجود لأيّهما.
+
+        فمن قرأ العنوان حسبها كلَّها قائمة — **وهو نصٌّ يَعِد بحارسٍ لا
+        وجود له**، وهو الصنف الذي يقف عنده هذا المستودع. فالقائمتان
+        منفصلتان، ولكلِّ قاعدةٍ مؤجَّلة ما ينقصها مكتوبًا بجوارها.
       */}
-      <section className="mb-5 grid gap-5 rounded-lg border border-line bg-surface p-5.5 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <div>
+      <div className="grid gap-5 md:grid-cols-2">
+        <section className="rounded-lg border border-line bg-surface p-5.5">
           <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
-            معاينة على الجهاز
+            مفعلة الآن — يفرضها الخادم
           </h2>
-          <PushPreview
-            template={templates[0] ?? null}
-            titleLimit={PUSH_TITLE_LIMIT}
-            bodyLimit={PUSH_BODY_LIMIT}
-          />
-        </div>
+          <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
+            <li>
+              <strong>الحرجة لا تطفأ:</strong> المزاد الذي يشارك فيه، والطلبات والدفع.
+              المنع في المجال نفسه، فلا يستطيع المستخدم إطفاءها من إعداداته.
+            </li>
+            <li>التسويقي مغلق افتراضيا، ولا يفتح إلا بموافقة صريحة.</li>
+            <li>
+              الحد الآمن للنص: <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> للعنوان
+              و<Quantity unit="characters" count={PUSH_BODY_LIMIT} /> للمتن، ويقاس على كل قالب
+              في الجدول أعلاه. وما زاد يختصر على أندرويد.
+            </li>
+          </ul>
+        </section>
 
-        <div className="min-w-0">
-          <h2 className="mb-3 flex flex-wrap items-center gap-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">
-            قوالب الدفع مقيسة بالحد
-            {over.length === 0 ? null : (
-              <Badge tone="warn">
-                {/* **والعدد لا يحكم المعدود بيدٍ** — ستّ صيغ جمعٍ لا تُكتب نصًّا */}
-                <Quantity unit="truncatedTemplates" count={over.length} />
-              </Badge>
-            )}
+        <section className="rounded-lg border border-line bg-surface p-5.5">
+          <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">
+            تنتظر التطبيق والدافع
           </h2>
-
-          {templates.length === 0 ? (
-            <p className="text-2xs opacity-70">لا قوالب دفع مفعلة.</p>
-          ) : (
-            <ul className="flex flex-col divide-y divide-line border-y border-line">
-              {templates.slice(0, 8).map((row) => (
-                <li key={row.key} className="flex items-center gap-3 py-2.5 text-2xs">
-                  <span className="min-w-0 flex-1 truncate">{row.titleAr}</span>
-                  <span dir="ltr" className="font-num shrink-0 opacity-70">
-                    <ArabicNumber value={row.titleChars} grouped={false} />
-                    <span className="opacity-65"> · </span>
-                    <ArabicNumber value={row.bodyChars} grouped={false} />
-                  </span>
-                  {row.titleOver || row.bodyOver ? (
-                    <Badge tone="warn">سيختصر</Badge>
-                  ) : (
-                    <span aria-hidden className="shrink-0 text-accent-700">✓</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-2.5 text-3xs leading-loose opacity-65">
-            العنوان ثم المتن بالحروف — والحد{' '}
-            <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> و
-            <Quantity unit="characters" count={PUSH_BODY_LIMIT} />.
+          <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
+            <li>طلب الإذن بعد أول تفاعل ذي قيمة لا عند التشغيل — يقرره التطبيق.</li>
+            <li>
+              تجميع إشعارات المزاد الواحد في إشعار متحدث، واستبدال القديم بالمعرف نفسه —
+              يحتاج دافعا يبني الحمولة.
+            </li>
+            <li>
+              حذف رمز الجهاز عند أول رفض من المزود — يحتاج دافعا يستقبل الرفض؛ والرموز
+              الميتة اليوم تحسب بالزمن لا بالرفض.
+            </li>
+            <li>
+              كتم إشعار الدفع حين يكون المستخدم على الشاشة المعنية — يقرره التطبيق.
+            </li>
+          </ul>
+          <p className="mt-3 text-3xs leading-loose opacity-65">
+            مكتوبة هنا لأنها قواعد المنتج، لا لأنها قائمة. ولا دافع إلى FCM أو APNs في
+            المنتج بعد، فلا حمولة تبنى ولا رفض يصل.
           </p>
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-line bg-surface p-5.5">
-        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">قواعد مفعلة</h2>
-        <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
-          <li>
-            <strong>الحرجة لا تطفأ:</strong> المزاد الذي يشارك فيه، والطلبات والدفع.
-            المنع في المجال نفسه، فلا يستطيع المستخدم إطفاءها من إعداداته.
-          </li>
-          <li>التسويقي مغلق افتراضيا، ولا يفتح إلا بموافقة صريحة.</li>
-          <li>
-            الحد الآمن للنص: <Quantity unit="characters" count={PUSH_TITLE_LIMIT} /> للعنوان و
-            <Quantity unit="characters" count={PUSH_BODY_LIMIT} /> للمتن. وما زاد يختصر
-            على أندرويد.
-          </li>
-          <li>طلب الإذن بعد أول تفاعل ذي قيمة لا عند التشغيل.</li>
-          <li>تجميع إشعارات المزاد الواحد في إشعار متحدث، واستبدال القديم بالمعرف نفسه.</li>
-          <li>حذف رمز الجهاز عند أول رفض من المزود، فالرمز الميت لا يصل.</li>
-          <li>
-            إن كان المستخدم داخل التطبيق وعلى الشاشة المعنية فلا إشعار دفع، بل تحديث حي.
-          </li>
-        </ul>
-      </section>
+        </section>
+      </div>
 
       {/*
         ═══ لوحان في الترميز لم يكونا في الشاشة ═══

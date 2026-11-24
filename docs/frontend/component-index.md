@@ -25,7 +25,7 @@ rather than found by chance.
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
 | `ActivityRow` | no | `event` · `at` | 1 |
-| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 7 |
+| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 9 |
 | `AdminMobileNav` | yes | `groups` · `activeHref` · `title` | 1 |
 | `AuctionCard` | no | `row` | 1 |
 | `AutoRefresh` | yes | `seconds` | 1 |
@@ -40,13 +40,13 @@ rather than found by chance.
 | `ExportLink` | no | `reportKey` · `allowed` | 6 |
 | `IdentityPanel` | yes | `userId` · `allowed` | 1 |
 | `KpiCard` | no | `kpi` | 1 |
-| `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 23 |
+| `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 24 |
 | `ListingCard` | no | `row` | 7 |
 | `ListSearch` | no | `action` · `value` · `placeholder` · `keep` | 6 |
 | `MonitorCards` | no | `cards` | 15 |
 | `MonitorList` | no | `children` · `empty` · `note` | 4 |
 | `MonitorRow` | no | `title` · `subtitle` · `meta` · `children` | 4 |
-| `MonitorTabs` | no | `tabs` · `active` · `basePath` · `param` | 30 |
+| `MonitorTabs` | no | `tabs` · `active` · `basePath` · `param` | 31 |
 | `OfferCard` | no | `row` | 1 |
 | `OrderCard` | no | `row` | 3 |
 | `PartyLink` | no | `party` · `role` · `className` | 1 |
@@ -134,9 +134,9 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 127 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 128 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 113 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 115 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
@@ -152,7 +152,7 @@ rather than found by chance.
 | `Counted` | yes | `message` · `count` · `className` | 8 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `count` | 17 |
-| `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
+| `EmptyState` | no | `title` · `description` · `action` · `className` | 39 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 140 |
 | `FieldNote` | no | `id` · `children` | 1 |
@@ -181,7 +181,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 127 |
+| `Quantity` | no | `unit` · `count` · `className` | 128 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 11 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

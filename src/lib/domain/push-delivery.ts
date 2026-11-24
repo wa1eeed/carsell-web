@@ -284,3 +284,117 @@ export async function recordEvent(
   });
   return { ok: true };
 }
+
+/**
+ * ═══ سجلّ الإرسال (A10) ═══
+ *
+ * البطاقاتُ الأربع تقول **كم**، والجدولُ يقول **لأيّ قناةٍ ومتى**،
+ * ولا شيء يقول **لمن**. وسؤالُ المشغّل حين يكتب له مستخدم «لم يصلني
+ * إشعار» ليس نسبةً: أهو في الطابور، أم سُلّم ولم يُفتح، أم فشل وبأيّ
+ * سبب.
+ *
+ * و`PushSend` يحمل الجواب منذ بُني — **ولا شيء يقرأ صفوفَه**: القراءةُ
+ * كلُّها `count` و`groupBy` للنسب. فالصفُّ يُكتب ولا يُرى.
+ *
+ * **والمفتاحُ لا يُعرض خامًا**: القناةُ باسمها العربيّ والقالبُ بعنوانه،
+ * فمفتاحٌ كـ`viewing.requested` يُقرأ شيفرةً لا خبرًا.
+ */
+export type PushSendRow = {
+  id: string;
+  channelKey: string;
+  channelNameAr: string;
+  templateKey: string | null;
+  templateTitleAr: string | null;
+  /** صاحبُ الإشعار — واسمُه حين يكون له اسم، وإلّا جوّالُه. */
+  userId: string | null;
+  userName: string | null;
+  platform: string | null;
+  status: string;
+  failReason: string | null;
+  sentAt: string;
+  deliveredAt: string | null;
+  openedAt: string | null;
+};
+
+export type PushSendLog = {
+  rows: PushSendRow[];
+  /** المجموع في القاعدة كلّها — فالمعروض مقتطعٌ ويُقال مقامُه. */
+  total: number;
+  /** عددُ كلّ حال — وهو ما يُرشَّح به. */
+  byStatus: Record<string, number>;
+};
+
+/** ما يُعرض في صفحةٍ واحدة — والمقام مكتوبٌ تحتها. */
+export const SEND_LOG_PAGE = 100;
+
+export async function sendLog(
+  status: string | null = null,
+  take: number = SEND_LOG_PAGE,
+): Promise<PushSendLog> {
+  const where = status === null ? {} : { status };
+
+  const [rows, total, grouped] = await Promise.all([
+    db.pushSend.findMany({
+      where,
+      orderBy: { sentAt: 'desc' },
+      take,
+      select: {
+        id: true,
+        channelKey: true,
+        templateKey: true,
+        userId: true,
+        platform: true,
+        status: true,
+        failReason: true,
+        sentAt: true,
+        deliveredAt: true,
+        openedAt: true,
+        channel: { select: { nameAr: true } },
+      },
+    }),
+    db.pushSend.count({ where }),
+    db.pushSend.groupBy({ by: ['status'], _count: { _all: true } }),
+  ]);
+
+  /**
+   * **والقالبُ والصاحبُ يُجلبان دفعةً** — لا استعلامٌ لكل صفّ. ومئةُ
+   * صفٍّ تعني مئتي استعلامٍ لو جُلبا واحدًا واحدًا.
+   */
+  const templateKeys = [...new Set(rows.map((row) => row.templateKey).filter((key): key is string => key !== null))];
+  const userIds = [...new Set(rows.map((row) => row.userId).filter((id): id is string => id !== null))];
+
+  const [templates, users] = await Promise.all([
+    templateKeys.length === 0
+      ? []
+      : db.notificationTemplate.findMany({
+          where: { key: { in: templateKeys } },
+          select: { key: true, subjectAr: true },
+        }),
+    userIds.length === 0
+      ? []
+      : db.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, phone: true } }),
+  ]);
+
+  const titleOf = new Map(templates.map((row) => [row.key, row.subjectAr]));
+  const nameOf = new Map(users.map((row) => [row.id, row.name ?? row.phone]));
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id,
+      channelKey: row.channelKey,
+      channelNameAr: row.channel.nameAr,
+      templateKey: row.templateKey,
+      templateTitleAr: row.templateKey === null ? null : (titleOf.get(row.templateKey) ?? null),
+      userId: row.userId,
+      userName: row.userId === null ? null : (nameOf.get(row.userId) ?? null),
+      platform: row.platform,
+      status: row.status,
+      failReason: row.failReason,
+      sentAt: row.sentAt.toISOString(),
+      deliveredAt: row.deliveredAt?.toISOString() ?? null,
+      openedAt: row.openedAt?.toISOString() ?? null,
+    })),
+    total,
+    byStatus: Object.fromEntries(grouped.map((row) => [row.status, row._count._all])),
+  };
+}

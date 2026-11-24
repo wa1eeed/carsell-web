@@ -528,3 +528,19 @@ export const RECON_STATUS_LABEL = {
 
 /** ولم تُطابَق قطّ — حالٌ خارج التعداد، فلها لفظُها. */
 export const RECON_NEVER_LABEL = 'لم تطابق بعد';
+
+/**
+ * حالُ صفّ الإرسال في سجلّ A10.
+ *
+ * **و«في الطابور» ليست فشلًا**: صفٌّ لم يُحاوَل بعد، وهو حالُ كلّ صفٍّ
+ * اليوم إذ لا دافعَ إلى FCM/APNs في المنتج.
+ *
+ * والمفتاحُ نصٌّ في المخطّط لا تعداد (`queued | sent | delivered |
+ * failed`)، فالخريطة بقيمةٍ احتياطية في الشاشة لا بتعهّدٍ للمُصرِّف.
+ */
+export const PUSH_SEND_STATUS_LABEL: Readonly<Record<string, string>> = {
+  queued: 'في الانتظار',
+  sent: 'أرسل',
+  delivered: 'سلم',
+  failed: 'فشل',
+};

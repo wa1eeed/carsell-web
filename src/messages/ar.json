@@ -468,6 +468,7 @@
     "bids": "{count, plural, zero{لا مزايدات} one{مزايدة واحدة} two{مزايدتان} few{{n} مزايدات} many{{n} مزايدة} other{{n} مزايدة}}",
     "weeks": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعان} few{{n} أسابيع} many{{n} أسبوعا} other{{n} أسبوع}}",
     "truncatedTemplates": "{count, plural, zero{لا قوالب ستختصر} one{قالب سيختصر} two{قالبان سيختصران} few{{n} قوالب ستختصر} many{{n} قالبا سيختصر} other{{n} قالب سيختصر}}",
+    "pushTemplates": "{count, plural, zero{لا قوالب دفع} one{قالب دفع واحد} two{قالبا دفع} few{{n} قوالب دفع} many{{n} قالب دفع} other{{n} قالب دفع}}",
     "serviceConsents": "{count, plural, zero{لا طلبات فحص تنتظر إذنك} one{طلب فحص ينتظر إذنك} two{طلبا فحص ينتظران إذنك} few{{n} طلبات فحص تنتظر إذنك} many{{n} طلب فحص تنتظر إذنك} other{{n} طلب فحص ينتظر إذنك}}",
     "completedRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبين} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
     "viewingsAwaiting": "{count, plural, zero{لا مواعيد معاينة تنتظر ردك} one{موعد معاينة ينتظر ردك} two{موعدا معاينة ينتظران ردك} few{{n} مواعيد معاينة تنتظر ردك} many{{n} موعد معاينة تنتظر ردك} other{{n} موعد معاينة ينتظر ردك}}",

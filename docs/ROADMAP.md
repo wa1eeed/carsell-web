@@ -2090,6 +2090,75 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 17 — `A10` push, and a heading that turned four intentions into guarantees
+
+**The table in §40a said `A10` was 25٪. Measured live it was 75٪** — the table
+was taken once and rotted, and I quoted it to the owner. Re-measured
+2026-11-24; the score line at the end of §40a is the stale artefact, this entry
+is the measurement.
+
+Two signals were missing: «اختبار على جهازي» and «سجل الإرسال».
+
+### The rules block promised four guards that do not exist
+
+A panel headed **«قواعد مفعلة»** — *rules in force* — listed seven. Three are
+genuinely enforced in the domain: critical channels cannot be muted
+(`setPreference` returns `CRITICAL_CHANNEL`, and `isChannelEnabled` does not
+read the preference at all for them — reading and then ignoring leaves a
+one-line bug able to silence everyone), marketing is off by default
+(`NEVER_DEFAULT_ON`, which caught a real regression when I flipped it by hand in
+a manual walk), and the text limit is measured per template.
+
+The other four have no implementation anywhere: permission timing, auction
+grouping and collapse key, deleting a device token on provider rejection, and
+suppressing the push while the user is on the relevant screen. Each needs the
+app or a dispatcher to FCM/APNs, and **neither exists** — `queueSend` opens the
+row and `recordEvent` takes delivery back from the app, with nothing in between.
+
+One heading made four intentions read as four guarantees. Split into «مفعلة
+الآن — يفرضها الخادم» and «تنتظر التطبيق والدافع», each pending rule carrying
+what it is missing.
+
+### The preview was pinned to one template, and the list hid 43
+
+`PushPreview` was wired to `templates[0]`, and the sort puts over-limit first,
+then longest — so the operator saw whichever template was worst and could not
+preview the one they were about to edit. The list under it was
+`templates.slice(0, 8)` **of 51**, under a heading reading «قوالب الدفع مقيسة
+بالحد». None is over the limit today, and an over-limit one would sort to the
+top, so nothing was hidden — but the heading claimed coverage the list did not
+show, and a truncation with no door is the shape, not the instance.
+
+Now every template is listed in a scrolling panel and each row opens its own
+preview, with the count stated. The selection is derived, never seeded from the
+list — `useState(rows[0]?.key)` is exactly what gate 47 exists to stop.
+
+### `PushSend` was written and never read as rows
+
+Four rates read it with `count` and `groupBy`. Nothing listed the rows, so when
+a user writes "I got no notification" there was no way to answer whether it was
+queued, delivered and unopened, or failed and why. `/admin/push/log` is that
+screen: channel by name, template by title (a key reads as code, not news), the
+recipient by name or phone, status, failure reason, and the three timestamps.
+
+It opens empty today and says why — the writer exists (`notifications.ts` calls
+`queueSend` for every push-channel notification to a user with a device) and
+there are no devices before the app. **The empty state was not papered over by
+seeding devices**: a `DeviceToken` row means an app registered a token, and the
+four rate cards already chose «لا قياس بعد» over inventing delivery data. The
+table was walked with five temporary rows covering every status, screenshotted,
+and the rows deleted.
+
+### «اختبار على جهازي» cannot work, and is not hidden
+
+No dispatcher, and `DeviceToken` hangs off `User` not `AdminUser`, so the
+operator has no device to send to. Left counted as missing — the measure's own
+`DEFERRED_SIGNALS` list carries a written warning about becoming a hiding place,
+and a signal blocked by a missing capability is not an owner's deferral. The
+reason is in `DESIGN-DEVIATIONS.md`.
+
+**A10: 75٪ → 88٪**, the remaining 12٪ being that one signal.
+
 ### 40a · 16 — `A25` escrow, and a release that captured money without a ledger entry
 
 `A25` read **50٪**. Six signals missing: the daily reconciliation, the awaiting
@@ -2701,9 +2770,13 @@ conformance gap.
 appears in the served page, so a screen can read 80٪ and still look wrong, and
 one can read 25٪ because the design draws metrics we do not yet collect.
 
+> **هذا الجدول لقطةٌ لا وصف.** قِيس يوم كُتب، ويتقادم مع كلّ
+> مهمّة — قرأتُ منه «A10 ٢٥٪» وقلتُه للمالك، والقياس الحيّ ٧٥٪.
+> فالرقم النافذ ما يُخرجه `npm run design:audit` الآن، لا ما هنا.
+
 | Band | Screens |
 | --- | --- |
-| **under 45٪** | `A10` push 25 · `A30` ad slots 25 · `Wj` order page 27 · `A11` integrations 31 · `A18` identity 38 · `Wf` **account home 40** · `Wp` dealer index 40 · `Wx` service checkout 40 · `A3` finance tab 41 · `A17` disputes 44 · `A2` ops tab 44 · `A34` legal 44 · `Wb` search 44 |
+| **under 45٪** | `A30` ad slots 25 · `Wj` order page 27 · `A11` integrations 31 · `A18` identity 38 · `Wf` **account home 40** · `Wp` dealer index 40 · `Wx` service checkout 40 · `A3` finance tab 41 · `A17` disputes 44 · `A2` ops tab 44 · `A34` legal 44 · `Wb` search 44 |
 | 45–65٪ | `Wg` 45 · `A13` `A16` `Wn` `Wv` `Wz` 50 · `A6` 53 · `A15` `A35` `A9` 56 · `A20` `Wa` 57 · `A8` 59 · `A36` `Wt` 60 · `A19` `A5` 64 |
 | 65–85٪ | `A12` `Wk` 67 · `A22` `A27` 73 · `A29` `Wc` 75 · `A4` 77 · `A23` `A26` `Wi` 80 · `We` 81 · `A32` `A33` 83 |
 | over 85٪ | `A28` providers 90 · `Wo` legal page 91 · `A1` dashboard 92 · `A7` services **100** |
