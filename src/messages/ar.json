@@ -444,6 +444,7 @@
     "brands": "{count, plural, zero{لا ماركات} one{ماركة واحدة} two{ماركتان} few{{n} ماركات} many{{n} ماركة} other{{n} ماركة}}",
     "items": "{count, plural, zero{لا بنود} one{بند واحد} two{بندان} few{{n} بنود} many{{n} بندا} other{{n} بند}}",
     "serviceRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
+    "unassignedRequests": "{count, plural, zero{لا طلبات بلا مزود} one{طلب واحد بلا مزود} two{طلبان بلا مزود} few{{n} طلبات بلا مزود} many{{n} طلبا بلا مزود} other{{n} طلب بلا مزود}}",
     "auditActions": "{count, plural, zero{لا إجراءات} one{إجراء واحد} two{إجراءان} few{{n} إجراءات} many{{n} إجراء} other{{n} إجراء}}",
     "ledgerLines": "{count, plural, zero{لا قيود} one{قيد واحد} two{قيدان} few{{n} قيود} many{{n} قيدا} other{{n} قيد}}",
     "awaitingRelease": "{count, plural, zero{لا شيء ينتظر الإفراج} one{طلب واحد ينتظر الإفراج} two{طلبان ينتظران الإفراج} few{{n} طلبات تنتظر الإفراج} many{{n} طلبا ينتظر الإفراج} other{{n} طلب ينتظر الإفراج}}",

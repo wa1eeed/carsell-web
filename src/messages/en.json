@@ -444,6 +444,7 @@
     "brands": "{count, plural, one{{n} brand} other{{n} brands}}",
     "items": "{count, plural, one{{n} item} other{{n} items}}",
     "serviceRequests": "{count, plural, one{{n} request} other{{n} requests}}",
+    "unassignedRequests": "{count, plural, one{# request without a provider} other{# requests without a provider}}",
     "auditActions": "{count, plural, one{{n} action} other{{n} actions}}",
     "ledgerLines": "{count, plural, one{{n} entry} other{{n} entries}}",
     "awaitingRelease": "{count, plural, one{# order awaiting release} other{# orders awaiting release}}",

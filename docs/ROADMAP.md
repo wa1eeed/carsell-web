@@ -2090,6 +2090,82 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 22 — `A6` service requests: a queue with no action, and a metric with no timestamp
+
+`A6` read **53٪**. Its own subtitle is «تنفيذ وإسناد لمزوّد» — execution and
+assignment — and **the admin could do neither**.
+
+### The queue had no action at all
+
+`RequestsQueue` was read-only cards. A provider picks work out of *their own*
+queue; nothing in the admin panel assigns. So a request nobody picks up sits at
+«بلا مزوّد» until its deadline passes while the operator watches. The design's
+table has «أسنِد» per row and «إسناد جماعي» in the header; neither existed.
+
+Assignment now exists, single and bulk through one route — bulk is a list of
+one, so the two cannot drift apart in eligibility. **Eligibility is the
+provider-queue rule itself**: the provider's type matches the service and their
+cities cover the request's city, exactly what decides whether they can see it at
+all. A second copy would let the panel assign work the provider never sees.
+
+**The bulk path writes one request at a time.** The rule in this repository is
+explicit: a function that walks a set and touches work does not write in one
+statement. A single `updateMany` would assign a hundred requests on a bad line
+*and skip eligibility entirely*. One failure does not stop the rest, and the
+report names each refusal with its reference and reason — not «7 of 10».
+
+Walked end to end: a shipping provider on an inspection request is refused with
+nothing written; a mixed batch assigns the eligible one and names the missing
+reference and the already-assigned one. Audit row, notification and status all
+landed, and the walked seed row was put back.
+
+### Two of three metrics measured something that was never recorded
+
+The design's card row wants «إيراد الخدمات», «متوسط زمن التنفيذ» and «التزام
+المزوّدين». `ServiceRequest` carried *when requested* and *when due* and **no
+completion time at all** — so two of the three had no source. `completedAt` is
+added and written at `provider-queue`, the single door for provider
+transitions.
+
+The turnaround figure is a **median**, not a mean: one request stuck for a week
+drags the mean of twenty done in hours, and the number then describes nobody.
+SLA adherence counts completed-with-a-deadline as its denominator — an open
+request has not broken a promise yet, and counting it would drop the figure
+every time the queue fills.
+
+### And I nearly shipped a second money rule
+
+I wrote «إيراد الخدمات» as a sum of `adminFee`. It read **zero** — no service
+has a fee enabled — while the finance screen reads a real number from the same
+money, because the tax rule makes the platform the supplier, so the whole value
+is revenue and the provider's price is cost of sale. Two screens, two numbers,
+one amount. The rule now lives in one function both call, the way `adRevenue`
+already works for ads, and both read the same Riyadh month.
+
+**A6: 53٪ → 87٪** — the remainder is the service's own name («نقل الملكية» vs
+the markup's «نقل ملكية», operator-editable and better Arabic as it stands) and
+the service rating, which has no source anywhere and is the question already
+open for `Wx` and dealers.
+
+### Two production defects found while deploying this
+
+Neither is in the product, both hide themselves, and both are now fixed in
+`scripts/ops/deploy-production.sh`:
+
+- **The disk filled and the build died** with `failed to extract layer … write`
+  — a message that accuses a Docker layer, not the disk. Twenty superseded
+  images at 1.57 GB each had accumulated with nothing pruning them: 98% full,
+  1.4 GB free. The deploy's own guard held and the old container kept serving.
+  Cleaned to 53%, and the script now prunes after a successful health check,
+  keeping the running image and the previous one — the rollback target.
+- **A failed build made the next deploy report success.** `git reset --hard`
+  runs *before* the build, so a failed build leaves the checkout at the new
+  commit while the old container runs. The next run compared the **checkout** to
+  `origin/main`, found them equal, printed «لا جديد» and **exited zero**. I ran
+  it twice and read "nothing new" both times while production sat a task behind.
+  It now compares the **running container's tag** — the only thing that says
+  what visitors are served.
+
 ### 40a · 21 — `Wn` `Wu` `Wv` `Wz`, four thin screens and what a 2-signal denominator hides
 
 Four screens at **50٪**, each on 2–4 signals, all carrying ⚠ — the percentage is

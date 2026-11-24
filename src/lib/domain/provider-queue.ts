@@ -375,6 +375,12 @@ export async function applyStep(
     data: {
       status: step.to,
       ...(step.key === 'accept' ? { providerId: input.providerId } : {}),
+      /**
+       * **ولحظةُ الإنجاز تُسجَّل.** كان الصفُّ يحمل «متى طُلب» و«متى
+       * يجب» ولا يحمل «متى وقع» — فبطاقتا A6 «متوسط زمن التنفيذ»
+       * و«التزام المزوّدين» تقيسان ما لم يُسجَّل.
+       */
+      ...(step.to === 'DONE' ? { completedAt: now } : {}),
     },
   });
 

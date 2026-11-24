@@ -4,6 +4,7 @@ import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
 import { pct, sum } from './money';
 import { adRevenue } from './ads';
+import { serviceRevenueByService } from './admin-services';
 
 /**
  * A3 — المالية.
@@ -68,11 +69,12 @@ export async function financeSummary(
         where: { createdAt: window, status: { in: [...REALISED_STATUSES] } },
         _sum: { agreedPrice: true, commissionAmount: true, vatAmount: true },
       }),
-      db.serviceRequest.groupBy({
-        by: ['serviceId'],
-        where: { createdAt: window, status: 'DONE' },
-        _sum: { amount: true },
-      }),
+      /**
+       * **والقاعدة في `admin-services.ts` لا هنا** — كما `adRevenue`
+       * سواءً بسواء. احتاجتها بطاقةُ A6 «إيراد الخدمات»، وكتابتُها
+       * ثانيةً تُنتج رقمين لمالٍ واحد في شاشتين.
+       */
+      serviceRevenueByService(from, to),
       db.service.findMany({ select: { id: true, key: true, nameAr: true } }),
       /**
        * **والقاعدة في `ads.ts` لا هنا.** كان الترشيح على
@@ -111,7 +113,7 @@ export async function financeSummary(
       return {
         key: service?.key ?? row.serviceId,
         serviceName: service?.nameAr ?? null,
-        amount: new Prisma.Decimal(row._sum.amount ?? 0).toString(),
+        amount: new Prisma.Decimal(row.amount).toString(),
       };
     })
     .filter((line) => new Prisma.Decimal(line.amount).greaterThan(0));

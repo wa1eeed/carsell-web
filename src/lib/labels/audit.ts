@@ -42,6 +42,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'payments.transfer_fee_changed': 'غير رسم نقل الملكية',
   'payments.gateway_fees_changed': 'غير رسوم بوابة الدفع',
   'payments.provider_fees_changed': 'غير رسوم حسابات المزودين',
+  'service_request.assign': 'أسند طلب خدمة لمزود',
   'service.price_changed': 'غير سعر خدمة',
   'service.admin_fee_changed': 'غير الرسم الإداري لخدمة',
   'financing.update': 'عدل إعداد التمويل',

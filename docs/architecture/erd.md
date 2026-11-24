@@ -920,6 +920,7 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `adminFee` | `Decimal` |  |
 | `vatAmount` | `Decimal` |  |
 | `dueAt` | `DateTime?` |  |
+| `completedAt` | `DateTime?` |  |
 | `scheduledAt` | `DateTime?` |  |
 | `city` | `String?` |  |
 | `resultUrl` | `String?` |  |

@@ -874,3 +874,230 @@ export async function serviceDetail(key: string): Promise<ServiceDetail | null> 
     })),
   };
 }
+
+/**
+ * ═══ أثرُ طابور الخدمات — بطاقاتُ A6 الثلاث ═══
+ *
+ * الترميز يضع فوق الجدول: إيرادُ الخدمات · متوسطُ زمن التنفيذ ·
+ * التزامُ المزوّدين · تقييمُ الخدمة · تجاوزت المهلة. والمبنيُّ كان
+ * الأخيرةَ وحدها ومعها عدّادات.
+ *
+ * **والتقييمُ لا مصدر له** — لا حقلَ في `ServiceProvider` ولا شيء
+ * يسأل عميلًا عن رأيه (سؤالٌ معلَّق). فيُعرض ما يُقاس.
+ */
+export type ServiceOpsStats = {
+  /**
+   * إيرادُ الخدمات في المدى — **بالقاعدة التي تقرأها لوحةُ المالية**.
+   *
+   * المنصّةُ هي المورِّد، فكاملُ القيمة إيرادُها وسعرُ المزوّد تكلفةُ
+   * بيع. ورقمان لمالٍ واحد في شاشتين هو ما تمنعه قاعدةٌ واحدة.
+   */
+  revenue: string;
+  /**
+   * وسيطُ زمن التنفيذ بالساعات — **وسيطٌ لا متوسّط**.
+   *
+   * طلبٌ واحد تعثّر أسبوعًا يجرّ متوسّطَ عشرين طلبًا أُنجزت في ساعات،
+   * فيقول الرقمُ عن المزوّدين ما لا يلقاه أحد. والوسيطُ يصف ما يلقاه
+   * أكثرُ من يطلب.
+   *
+   * و`null` حين لا منجَزَ له لحظةُ إنجاز: العمودُ جديد، والصفوفُ
+   * السابقة لا تُفبرَك لها لحظة.
+   */
+  turnaroundHours: number | null;
+  /** عددُ ما دخل الوسيط — فالصفرُ يُصدَّق بعد إثبات أنّ هناك ما يُقاس. */
+  turnaroundSample: number;
+  /**
+   * التزامُ المزوّدين: ما أُنجز في مهلته من كلّ ما له مهلةٌ وأُنجز.
+   *
+   * **ومقامُه المنجَزُ ذو المهلة** لا كلُّ الطلبات: طلبٌ ما زال
+   * مفتوحًا لم يُخلف وعدًا بعد، وعدُّه في المقام يخفض الالتزام كلّما
+   * امتلأ الطابور.
+   */
+  slaPct: number | null;
+  slaSample: number;
+};
+
+/**
+ * ═══ إيرادُ الخدمات — قاعدةٌ واحدة يقرؤها الموضعان ═══
+ *
+ * لوحةُ المالية (A3) تجمع `amount` للمنجَز: **المنصّةُ هي المورِّد**
+ * (`supplierIsPlatform: true` في القاعدة الضريبية)، فكاملُ القيمة
+ * إيرادُها وسعرُ المزوّد تكلفةُ بيع.
+ *
+ * وكتبتُ هنا أوّلًا جمعَ `adminFee` — **قاعدةً ثانية**: فتقول A6 صفرًا
+ * (ولا رسمَ مفعَّل على خدمةٍ واحدة) وتقول A3 رقمًا حقيقيًّا، **ورقمان
+ * لمالٍ واحد في شاشتين**. فالقاعدة تُكتب مرّة ويقرؤها الاثنان — كما
+ * فعلت `adRevenue` حين احتاجتها A30 والمالية معًا.
+ */
+export async function serviceRevenueByService(
+  from: Date,
+  to: Date,
+): Promise<{ serviceId: string; amount: string }[]> {
+  const rows = await db.serviceRequest.groupBy({
+    by: ['serviceId'],
+    where: { createdAt: { gte: from, lt: to }, status: 'DONE' },
+    _sum: { amount: true },
+  });
+  return rows.map((row) => ({
+    serviceId: row.serviceId,
+    amount: (row._sum.amount ?? 0).toString(),
+  }));
+}
+
+export async function serviceOpsStats(
+  from: Date,
+  to: Date,
+): Promise<ServiceOpsStats> {
+  const [revenue, done] = await Promise.all([
+    serviceRevenueByService(from, to),
+    db.serviceRequest.findMany({
+      where: { status: 'DONE', completedAt: { not: null } },
+      select: { createdAt: true, completedAt: true, dueAt: true },
+    }),
+  ]);
+
+  const hours = done
+    .map((row) => ((row.completedAt?.getTime() ?? 0) - row.createdAt.getTime()) / 3_600_000)
+    .filter((value) => value >= 0)
+    .sort((a, b) => a - b);
+
+  /** الوسطى — والأدنى من الوسطَيْن عند الزوجيّ، كما في وسيط السعر. */
+  const middle = hours.length === 0 ? null : hours[Math.floor((hours.length - 1) / 2)] ?? null;
+
+  const withDue = done.filter((row) => row.dueAt !== null);
+  const onTime = withDue.filter(
+    (row) => (row.completedAt?.getTime() ?? 0) <= (row.dueAt?.getTime() ?? 0),
+  ).length;
+
+  return {
+    revenue: revenue
+      .reduce((total, row) => total + Number(row.amount), 0)
+      .toString(),
+    turnaroundHours: middle === null ? null : Math.round(middle * 10) / 10,
+    turnaroundSample: hours.length,
+    slaPct: withDue.length === 0 ? null : Math.round((onTime / withDue.length) * 100),
+    slaSample: withDue.length,
+  };
+}
+
+/**
+ * ═══ إسنادُ طلبٍ إلى مزوّد — من اللوحة ═══
+ *
+ * ترميزُ A6 عنوانُه «تنفيذ وإسناد لمزوّد»، وفي جدوله «أسنِد» لكلّ صفّ
+ * و«إسناد جماعي» في ترويسته. **ولم يكن في اللوحة إسنادٌ إطلاقًا**:
+ * الطابورُ بطاقاتٌ للقراءة، والمزوّدُ وحده يلتقط الطلب من طابوره هو.
+ *
+ * فطلبٌ لا يلتقطه أحد يبقى «بلا مزوّد» حتى تنقضي مهلتُه، والمشغّلُ
+ * يراه ولا يملك شيئًا. وهو شكلُ «طابورٌ بلا باب» المسجَّل.
+ *
+ * ═══ والأهليّةُ قاعدةُ طابور المزوّد نفسُها ═══
+ *
+ * نوعُ المزوّد يطابق نوعَ الخدمة، ومدينتُه تغطّي مدينةَ الطلب (أو لا
+ * مدنَ له فيغطّي الكلّ). ونسخةٌ ثانية منها تجعل اللوحة تُسنِد ما لا
+ * يراه المزوّد في طابوره.
+ */
+export type AssignFailure =
+  | 'NOT_FOUND'
+  | 'NOT_ASSIGNABLE'
+  | 'ALREADY_ASSIGNED'
+  | 'PROVIDER_NOT_FOUND'
+  | 'PROVIDER_INACTIVE'
+  | 'WRONG_TYPE'
+  | 'CITY_NOT_COVERED';
+
+export type AssignResult =
+  | { ok: true; ref: string }
+  | { ok: false; ref: string; reason: AssignFailure };
+
+export async function assignServiceRequest(
+  admin: AdminUser,
+  ref: string,
+  providerId: string,
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<AssignResult> {
+  const request = await db.serviceRequest.findUnique({
+    where: { ref },
+    select: {
+      id: true, ref: true, status: true, providerId: true, city: true, userId: true,
+      service: { select: { providerType: true, nameAr: true } },
+    },
+  });
+  if (request === null) return { ok: false, ref, reason: 'NOT_FOUND' };
+
+  /** **والمُسنَدُ لا يُسنَد ثانيةً من هنا** — نقلُ طلبٍ قائم قرارٌ آخر. */
+  if (request.providerId !== null) return { ok: false, ref, reason: 'ALREADY_ASSIGNED' };
+  if (request.status !== 'NEW') return { ok: false, ref, reason: 'NOT_ASSIGNABLE' };
+
+  const provider = await db.serviceProvider.findUnique({
+    where: { id: providerId },
+    select: { id: true, type: true, cities: true, active: true, nameAr: true },
+  });
+  if (provider === null) return { ok: false, ref, reason: 'PROVIDER_NOT_FOUND' };
+  if (!provider.active) return { ok: false, ref, reason: 'PROVIDER_INACTIVE' };
+  if (provider.type !== request.service.providerType) {
+    return { ok: false, ref, reason: 'WRONG_TYPE' };
+  }
+  if (
+    provider.cities.length > 0
+    && request.city !== null
+    && !provider.cities.includes(request.city)
+  ) {
+    return { ok: false, ref, reason: 'CITY_NOT_COVERED' };
+  }
+
+  /**
+   * **والإسنادُ يقع مرّةً** — `providerId: null` في الشرط، فإسنادان
+   * متزامنان يُنتجان فائزًا واحدًا والثاني يقرأ صفرَ صفوف.
+   */
+  const { count } = await db.serviceRequest.updateMany({
+    where: { id: request.id, providerId: null, status: 'NEW' },
+    data: { providerId, status: 'ASSIGNED' },
+  });
+  if (count === 0) return { ok: false, ref, reason: 'ALREADY_ASSIGNED' };
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id, actorType: 'admin', entity: 'ServiceRequest', entityId: request.ref,
+      action: 'service_request.assign',
+      after: { providerId, providerName: provider.nameAr },
+      ip, createdAt: now,
+    },
+  });
+
+  /** **ومن طلب الخدمة يُخبَر** — إسنادٌ صامت يُبقيه ينتظر بلا خبر. */
+  const { notifyServiceStep } = await import('./service-lifecycle');
+  await notifyServiceStep(request.ref, request.userId, 'ASSIGNED', request.service.nameAr);
+
+  return { ok: true, ref: request.ref };
+}
+
+/**
+ * ═══ الإسنادُ الجماعي — استدعاءٌ مفرد لكلّ طلب ═══
+ *
+ * **ولا `updateMany` واحدة على القائمة.** القاعدة المكتوبة في هذا
+ * المستودع: دالّةٌ تمرّ على مجموعةٍ تلمس عملًا لا تكتب جملةً — والكتابةُ
+ * استدعاءٌ مفرد صريح لكلّ عنصر. فجملةٌ واحدة تُسنِد مئةَ طلبٍ بخطأ سطر،
+ * **وتتخطّى الأهليّة**: مدينةٌ لا يغطّيها المزوّد ونوعٌ لا يؤدّيه.
+ *
+ * وفشلُ واحدٍ لا يوقف الباقين، والتقرير يقول **أيُّها لم يُسنَد ولماذا**
+ * — لا «أُسنِد ٧ من ١٠» بلا اسم.
+ */
+export async function bulkAssignServiceRequests(
+  admin: AdminUser,
+  refs: readonly string[],
+  providerId: string,
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<{ assigned: string[]; failed: { ref: string; reason: AssignFailure }[] }> {
+  const assigned: string[] = [];
+  const failed: { ref: string; reason: AssignFailure }[] = [];
+
+  for (const ref of refs) {
+    const result = await assignServiceRequest(admin, ref, providerId, ip, now);
+    if (result.ok) assigned.push(result.ref);
+    else failed.push({ ref: result.ref, reason: result.reason });
+  }
+
+  return { assigned, failed };
+}

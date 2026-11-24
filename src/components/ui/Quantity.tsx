@@ -110,6 +110,8 @@ export type Unit =
   | 'items'
   /** طلباتُ خدمةٍ بلا وصفِ حالها — «٨ طلبات». */
   | 'serviceRequests'
+  /** طلباتُ خدمةٍ تنتظر إسنادًا (A6) — «٥ طلبات بلا مزود». */
+  | 'unassignedRequests'
   /** إجراءاتٌ في سجلّ التدقيق — «٤٠ إجراء». */
   | 'auditActions'
   | 'ledgerLines'

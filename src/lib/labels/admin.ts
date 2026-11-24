@@ -2,6 +2,7 @@ import type { SegmentFieldKey } from '@/lib/campaigns/segments';
 import type { AuctionStatus, BuyerType, CampaignStatus, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
 import type { OrderCancelCategory, ReconciliationStatus } from '@/generated/prisma/enums';
 import type { RowProblem } from '@/lib/domain/catalog-import';
+import type { AssignFailure } from '@/lib/domain/admin-services';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -559,3 +560,19 @@ export const ROW_PROBLEM_LABEL = {
   BAD_NUMBER: 'رقم غير صالح',
   DUPLICATE_IN_FILE: 'مكرر داخل الملف نفسه',
 } satisfies Record<RowProblem, string>;
+
+/**
+ * سببُ تعذّر إسناد طلبِ خدمة (A6).
+ *
+ * **والسببُ يُقال بمرجعه** — «تعذّر إسناد ثلاثة» تترك المشغّل يبحث
+ * عمّا لا يعرفه.
+ */
+export const ASSIGN_FAILURE_LABEL = {
+  NOT_FOUND: 'لم يعد موجودا',
+  NOT_ASSIGNABLE: 'حاله لا يقبل الإسناد',
+  ALREADY_ASSIGNED: 'أسند قبل قليل',
+  PROVIDER_NOT_FOUND: 'المزود غير معروف',
+  PROVIDER_INACTIVE: 'المزود معطل',
+  WRONG_TYPE: 'المزود لا يؤدي هذا النوع',
+  CITY_NOT_COVERED: 'المزود لا يغطي مدينة الطلب',
+} satisfies Record<AssignFailure, string>;

@@ -2210,6 +2210,11 @@ async function main(): Promise<void> {
     /** ساعاتٌ من الآن — سالبٌ يعني أن المهلة فاتت. */
     dueInHours: number;
     scheduledInHours: number | null;
+    /**
+     * ساعاتٌ من المهلة إلى الإنجاز — موجبٌ تأخّرٌ وسالبٌ التزام.
+     * والافتراضيّ `-6`: أُنجز قبل مهلته بستّ ساعات.
+     */
+    lateHours?: number;
   }[] = [
     { service: 'inspection', status: 'NEW', provider: null, dueInHours: 20, scheduledInHours: 28 },
     { service: 'shipping', status: 'ASSIGNED', provider: 'SHIPPING', dueInHours: 44, scheduledInHours: 50 },
@@ -2239,8 +2244,22 @@ async function main(): Promise<void> {
      * نماذجُ إنجازٍ مختلفة، فيُرى الكشفُ بحركاتٍ من مصادر.
      */
     { service: 'shipping', status: 'DONE', provider: 'SHIPPING', dueInHours: -220, scheduledInHours: -240 },
-    { service: 'ownership_transfer', status: 'DONE', provider: 'TRANSFER', dueInHours: -190, scheduledInHours: -200 },
+    /** **وواحدٌ يتأخّر** — وإلّا قرأ التزامُ المزوّدين ١٠٠٪ أبدًا. */
+    { service: 'ownership_transfer', status: 'DONE', provider: 'TRANSFER', dueInHours: -190, scheduledInHours: -200, lateHours: 14 },
     { service: 'detailing', status: 'DONE', provider: 'DETAILING', dueInHours: -150, scheduledInHours: -160 },
+    /**
+     * ═══ وخدمةٌ آليّة — «موجز» ═══
+     *
+     * `mojaz` مزروعةٌ في الكتالوج `isAutomated` منذ اليوم الأوّل،
+     * **ولا طلبَ واحد عليها**. وترميز A6 يجعلها شريحةً ثانية بعد
+     * الفحص، ويكتب لها لوحةً كاملة («تقرير موجز يُجلب من النظام
+     * مباشرة بلا مزوّد بشري»).
+     *
+     * فالشريحةُ لا تظهر أصلًا — الشرائحُ تُشتقّ ممّا له طلبات —
+     * والمسارُ الآليُّ لم يُمشَ في أيّ بيئة. **وبلا مزوّد**: هذا
+     * معناها.
+     */
+    { service: 'mojaz', status: 'DONE', provider: null, dueInHours: -36, scheduledInHours: null },
   ];
 
   /**
@@ -2288,6 +2307,18 @@ async function main(): Promise<void> {
         city: l.city,
         dueAt: hours(plan.dueInHours),
         scheduledAt: plan.scheduledInHours === null ? null : hours(plan.scheduledInHours),
+        /**
+         * **ولحظةُ الإنجاز تُزرع مع الحال.** بطاقتا A6 «متوسط زمن
+         * التنفيذ» و«التزام المزوّدين» تُقاسان منها، وبلا زرعٍ تقرآن
+         * «لا منجَز مقيس» في كلّ بيئة — والعمودُ جديد فلا صفَّ قديمًا
+         * يحمله.
+         *
+         * **وبعضُها يتجاوز مهلتَه وبعضُها لا**، وإلّا قرأ التزامُ
+         * المزوّدين ١٠٠٪ أو ٠٪ — ورقمٌ لا يتحرّك لا يُقاس عليه.
+         */
+        ...(plan.status === 'DONE'
+          ? { completedAt: hours(plan.dueInHours + (plan.lateHours ?? -6)) }
+          : {}),
         createdAt: hours(plan.dueInHours - 48),
       },
     });

@@ -5,15 +5,18 @@ import { ExportLink } from '@/components/admin/ExportLink';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
-import { can } from '@/lib/domain/permissions';
+import { can, canWrite } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
+import { RIYADH_OFFSET_HOURS } from '@/lib/domain/viewing-rules';
 import {
   listServiceRequests,
   serviceRequestCounts,
+  serviceOpsStats,
   serviceQueueHealth,
 } from '@/lib/domain/admin-services';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { RequestsQueue } from './RequestsQueue';
+import { AssignQueue } from './AssignQueue';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,10 +93,42 @@ export default async function ServiceRequestsPage({
   const onlyOpen = search.open === '1';
   const scope = onlyOverdue ? 'overdue' : onlyUnassigned ? 'unassigned' : onlyOpen ? 'open' : null;
 
-  const [counts, services, health] = await Promise.all([
+  /**
+   * ═══ ومدى البطاقات شهرٌ — كما تقرؤه لوحةُ المالية ═══
+   *
+   * «إيراد الخدمات» بلا مدًى يُقرأ «منذ البداية»، ولوحةُ المالية تقول
+   * رقمَ الشهر — **فرقمان لمالٍ واحد**. والشهرُ بتوقيت الرياض كما
+   * تحسبه هي.
+   */
+  const now = new Date();
+  const shifted = new Date(now.getTime() + RIYADH_OFFSET_HOURS * 3_600_000);
+  const monthStart = new Date(
+    Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), 1) - RIYADH_OFFSET_HOURS * 3_600_000,
+  );
+  const monthEnd = new Date(
+    Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, 1) - RIYADH_OFFSET_HOURS * 3_600_000,
+  );
+
+  /** **والإسناد كتابة** — والقارئ يرى الطابور ولا يُسنِد. */
+  const writable = canWrite(admin.role, 'services.manage');
+
+  const [counts, services, health, ops, providers] = await Promise.all([
     serviceRequestCounts(),
     db.service.findMany({ where: { active: true }, orderBy: { sort: 'asc' }, select: { key: true, nameAr: true } }),
     serviceQueueHealth(),
+    serviceOpsStats(monthStart, monthEnd),
+    /**
+     * مزوّدو الإسناد — **المفعَّلون وحدهم**: قائمةٌ فيها معطَّلٌ تجعل
+     * المشغّل يختاره ثمّ يُردّ بـ«المزود معطل».
+     */
+    db.serviceProvider
+      .findMany({
+        where: { active: true },
+        select: { id: true, nameAr: true },
+        orderBy: { nameAr: 'asc' },
+      })
+      /** **ولا يعبر صفُّ Prisma إلى مكوّن** — يُسلسَل بما يخرج منه. */
+      .then((rows) => rows.map((row) => ({ id: row.id, nameAr: row.nameAr }))),
   ]);
 
   /**
@@ -198,6 +233,53 @@ export default async function ServiceRequestsPage({
       </div>
 
       {/*
+        ═══ وأثرُ الطابور لا حجمُه — بطاقاتُ A6 ═══
+
+        الصفُّ أعلاه يعدّ ما في الطابور، والترميز يضع فوقه ما يقوله
+        الطابورُ عن نفسه: إيرادًا وزمنَ تنفيذٍ والتزامًا. **والعددُ لا
+        يقول أيَّ هذا**: عشرون طلبًا مفتوحًا قد تكون يومًا عاديًّا أو
+        انهيارًا في التنفيذ.
+
+        **ولا تُطبع صفرًا حين لا بيانات**: «متوسط زمن التنفيذ ٠» يُقرأ
+        عطلًا، والحقيقةُ أنّ لحظةَ الإنجاز عمودٌ جديد ولم يُنجَز عليه
+        شيءٌ بعد. و**تقييمُ الخدمة** في الترميز بلا مصدرٍ أصلًا — لا
+        حقلَ له ولا شيء يسأل عميلًا (سؤالٌ معلَّق).
+      */}
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-3">
+        {/* **ورسمُنا لا ثمنُ الخدمة** — الثمنُ يمرّ إلى المزوّد. */}
+        <StatCard
+          label="إيراد الخدمات"
+          value={Number(ops.revenue)}
+          suffix="ريال"
+          breakdown={[{ label: 'هذا الشهر', value: '—' }]}
+        />
+        {/*
+          **و«—» لا «٠»**: «متوسط زمن التنفيذ ٠» يُقرأ عطلًا، والحقيقةُ
+          أنّ لحظةَ الإنجاز عمودٌ جديد ولم يُنجَز عليه شيءٌ بعد.
+        */}
+        <StatCard
+          label="متوسط زمن التنفيذ"
+          value={ops.turnaroundHours ?? '—'}
+          {...(ops.turnaroundHours === null ? {} : { suffix: 'ساعة' })}
+          breakdown={
+            ops.turnaroundSample === 0
+              ? [{ label: 'يبدأ مع أول إنجاز مسجل', value: '—' }]
+              : [{ label: 'منجزة مقيسة', value: ops.turnaroundSample }]
+          }
+        />
+        <StatCard
+          label="التزام المزودين"
+          value={ops.slaPct ?? '—'}
+          {...(ops.slaPct === null ? {} : { suffix: '٪' })}
+          breakdown={
+            ops.slaSample === 0
+              ? [{ label: 'لا منجز له مهلة بعد', value: '—' }]
+              : [{ label: 'منجزة لها مهلة', value: ops.slaSample }]
+          }
+        />
+      </div>
+
+      {/*
         **والمرشَّحُ يُقال ويُزال.** بطاقةٌ حِبريّة تقول «هناك مرشّح»
         ولا تقول كيف يُرفع — ونقرةٌ ثانيةٌ عليها ليست بابًا يُهتدى إليه.
       */}
@@ -210,7 +292,18 @@ export default async function ServiceRequestsPage({
         </p>
       )}
 
-      <RequestsQueue requests={requests} scoped={scope !== null} />
+      {/*
+        ═══ والإسناد لمن يكتب ═══
+
+        القارئ يرى الطابور ولا يُسنِد — وزرٌّ يردّ ٤٠٣ بعد الضغط أسوأ
+        من غيابه. و`RequestsQueue` تبقى للقراءة: الحالةُ الفارغة
+        وشرحُها فيها.
+      */}
+      {requests.length === 0 || !writable ? (
+        <RequestsQueue requests={requests} scoped={scope !== null} />
+      ) : (
+        <AssignQueue requests={requests} providers={providers} />
+      )}
 
       <ListFooter
         shown={requests.length}
