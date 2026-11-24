@@ -13,6 +13,7 @@ import { remindClosingAuctions, remindPaymentDue } from '@/lib/domain/reminders'
 import { settleableOrders } from '@/lib/domain/transfer-windows';
 import { settleOnTransferConfirmed } from '@/lib/domain/payments';
 import { reconcileYesterday } from '@/lib/domain/reconciliation';
+import { sendDueCampaigns } from '@/lib/domain/admin-campaigns';
 import { recomputePriceStats } from '@/lib/domain/price-stats';
 
 /**
@@ -115,6 +116,12 @@ const JOBS: readonly Job[] = [
    * وكان تعليقُ هذا السجلّ يذكرها قبل أن تُسجَّل فيه.
    */
   { name: 'reconcileYesterday', run: (now) => reconcileYesterday(now) },
+  /**
+   * **والمجدولة تُرسَل.** `SCHEDULED` في التعداد و`scheduledAt` في
+   * المخطّط ولا شيء يقرؤهما — فحملةٌ تُجدوَل تقف أبدًا، وتابُ «مجدولة»
+   * في `A9` يعدّ ما لن يقع. (ثاني عشرَ لنمط «قيمةٌ بلا كاتبٍ أو قارئ».)
+   */
+  { name: 'sendDueCampaigns', run: (now) => sendDueCampaigns(now) },
 
   /**
    * ═══ وإحصاءُ السعر بعد كلّ ما يُتمّ صفقة ═══

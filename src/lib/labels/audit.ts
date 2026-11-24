@@ -89,7 +89,10 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'inspection.item_removed': 'حذف بندا من قالب الفحص',
   'inspection.approved': 'اعتمد تقرير فحص',
   'inspection.returned': 'أعاد تقرير فحص للفاحص',
+  'campaign.created': 'أنشأ حملة تسويقية',
   'campaign.sent': 'أرسل حملة تسويقية',
+  /** جدولها حسابٌ لم يعد قائمًا — فتُلغى ولا تُرسَل بلا فاعلٍ في السجلّ */
+  'campaign.schedule_orphaned': 'ألغيت حملة مجدولة بلا صاحب',
   'segment.created': 'عرف شريحة جمهور',
   'notification.template_saved': 'حفظ قالب إشعار',
   'push.channel_updated': 'عدل قناة إشعار',

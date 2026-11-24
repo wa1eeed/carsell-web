@@ -17,6 +17,7 @@ import {
 } from '@/lib/domain/admin-campaigns';
 import { CAMPAIGN_STATUS_LABEL, NOTIFICATION_CHANNEL_LABEL } from '@/lib/labels/admin';
 import { SendCampaignButton } from './SendButton';
+import { NewCampaign } from './NewCampaign';
 import { NewSegment } from './NewSegment';
 
 export const dynamic = 'force-dynamic';
@@ -80,7 +81,18 @@ export default async function CampaignsPage({
         بريد ورسائل وإشعارات دفع · <strong>منفصلة تماما عن المعاملاتية</strong>
       </p>
 
-      <MonitorTabs tabs={tabs} active={active} basePath="/admin/campaigns" param="filter" />
+      {/*
+        **والفعلُ الأوّل في رأس الشاشة.** ترميزُ A9 يضع «+ حملة جديدة»
+        هناك، ولم يكن في المنتج مسارٌ ينشئ `Campaign` أصلًا.
+      */}
+      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+        <MonitorTabs tabs={tabs} active={active} basePath="/admin/campaigns" param="filter" />
+        {canSend ? (
+          <NewCampaign
+            segments={segments.map((segment) => ({ id: segment.id, nameAr: segment.nameAr }))}
+          />
+        ) : null}
+      </div>
 
       <section className="mb-5 overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[720px] text-2xs">
@@ -185,6 +197,12 @@ export default async function CampaignsPage({
               <div className="flex flex-col gap-1.5 border-t border-line pt-3">
                 <Line label="مطابقون" value={segment.counts.matched} />
                 <Line label="وافقوا على التسويق" value={segment.counts.consented} />
+                {/*
+                  **والسطرُ الثالث يقول السبب.** «سيصلهم فعلا ٠» تحت
+                  «وافقوا ٩» لا تقول أبسقفٍ شهريّ أم بتهدئة — والفرقُ
+                  بينهما قرارٌ مختلف: الأوّل ينتظر الشهر، والثاني يومين.
+                */}
+                <Line label="خارج فترة التهدئة" value={segment.counts.outsideCooldown} />
                 <Line label="سيصلهم فعلا" value={segment.counts.reachable} strong />
               </div>
             </section>

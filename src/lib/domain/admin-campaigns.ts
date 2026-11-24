@@ -111,7 +111,16 @@ export type SegmentCounts = {
   matched: number;
   /** ومنهم من وافق على التسويق. */
   consented: number;
-  /** ومنهم من خرج من التهدئة ولم يبلغ السقف — **من سيصله فعلًا**. */
+  /**
+   * ومنهم من خرج من فترة التهدئة — **والفرقُ عن `reachable` هو السقف**.
+   *
+   * ترميزُ `A9` يضع السطر الرابع لأنّ الفجوة تُشخَّص به: شريحةٌ «سيصلهم
+   * فعلًا ٠» لا تقول لماذا — أبسقفٍ شهريّ أم بتهدئةِ حملةٍ قبل يومين؟
+   * وقد وقع ذلك هنا: تشغيلُ اختبارٍ ساقط أرسل إلى تسعة مزروعين فقرأت
+   * كلُّ شريحةٍ صفرًا، **والشاشة لا تقول السبب**.
+   */
+  outsideCooldown: number;
+  /** ومنهم من لم يبلغ السقف أيضًا — **من سيصله فعلًا**. */
   reachable: number;
 };
 
@@ -137,14 +146,20 @@ export async function resolveSegment(
     blockedRecipients(now),
   ]);
 
-  const reachable =
+  const [outsideCooldown, reachable] = await Promise.all([
+    blocked.cooldown.size === 0
+      ? Promise.resolve(consented)
+      : db.user.count({
+          where: { ...where, marketingConsent: true, id: { notIn: [...blocked.cooldown] } },
+        }),
     blocked.all.size === 0
-      ? consented
-      : await db.user.count({
+      ? Promise.resolve(consented)
+      : db.user.count({
           where: { ...where, marketingConsent: true, id: { notIn: [...blocked.all] } },
-        });
+        }),
+  ]);
 
-  return { matched, consented, reachable };
+  return { matched, consented, outsideCooldown, reachable };
 }
 
 export type CampaignRow = {
@@ -274,7 +289,8 @@ export type SendResult =
  * المزوّد يُستبدل سطر الإرسال — لا المنطق (كما في الضمان الوهمي).
  */
 export async function sendCampaign(
-  admin: AdminUser,
+  /** المعرّف وحده — وهو ما يُكتب في السجلّ، فلا يُطلَب الصفُّ كلُّه */
+  admin: { id: string },
   campaignId: string,
   ip: string | null,
   now = new Date(),
@@ -495,4 +511,142 @@ export async function campaignDetail(
       })),
     },
   };
+}
+
+export type CreateCampaignResult =
+  | { ok: true; campaignId: string; status: 'DRAFT' | 'SCHEDULED' }
+  | {
+      ok: false;
+      reason: 'NAME_REQUIRED' | 'NO_CHANNEL' | 'SEGMENT_NOT_FOUND' | 'PAST_SCHEDULE' | 'NO_BODY';
+    };
+
+const CHANNELS: readonly string[] = ['email', 'sms', 'push'];
+
+/**
+ * ═══ حملةٌ جديدة — وكانت لا تُنشأ إلّا بالبذرة ═══
+ *
+ * ترميزُ `A9` يضع «+ حملة جديدة» في رأس الشاشة، **ولا مسارَ ينشئ
+ * `Campaign` في المنتج كلّه**: الشرائح تُبنى وتُحفظ، والإرسال مبنيٌّ
+ * بضوابطه كلّها (الموافقة · التهدئة · السقف الشهريّ) — ولا شيء بينهما.
+ * فمن فتح الشاشة وجد ما زرعته البذرة وحده.
+ *
+ * ═══ والمجدولة تُرسَل أو لا تُجدوَل ═══
+ *
+ * `scheduledAt` في المخطّط و`SCHEDULED` في التعداد، **ولا وظيفةَ دورية
+ * تُرسلها**: حملةٌ تُجدوَل تقف إلى الأبد، وتابُ «مجدولة» يعدّ ما لن يقع.
+ * فإمّا كاتبٌ وقارئ، وإمّا لا يُعرض الخيار.
+ */
+export async function createCampaign(
+  input: {
+    nameAr: string;
+    channels: readonly string[];
+    segmentId: string;
+    subjectAr: string | null;
+    bodyAr: string;
+    /** `null` ⇒ مسودّة تُرسَل بيد؛ وتاريخٌ ⇒ مجدولة */
+    scheduledAt: Date | null;
+    adminId: string;
+    ip: string | null;
+  },
+  now: Date = new Date(),
+): Promise<CreateCampaignResult> {
+  const nameAr = input.nameAr.trim();
+  const bodyAr = input.bodyAr.trim();
+  const channels = input.channels.filter((channel) => CHANNELS.includes(channel));
+
+  if (nameAr === '') return { ok: false, reason: 'NAME_REQUIRED' };
+  if (bodyAr === '') return { ok: false, reason: 'NO_BODY' };
+  if (channels.length === 0) return { ok: false, reason: 'NO_CHANNEL' };
+  if (input.scheduledAt !== null && input.scheduledAt.getTime() <= now.getTime()) {
+    return { ok: false, reason: 'PAST_SCHEDULE' };
+  }
+
+  const segment = await db.segment.findUnique({
+    where: { id: input.segmentId },
+    select: { id: true },
+  });
+  if (segment === null) return { ok: false, reason: 'SEGMENT_NOT_FOUND' };
+
+  const status = input.scheduledAt === null ? 'DRAFT' : 'SCHEDULED';
+
+  const created = await db.campaign.create({
+    data: {
+      nameAr,
+      channels,
+      segmentId: segment.id,
+      subjectAr: input.subjectAr?.trim() === '' ? null : (input.subjectAr?.trim() ?? null),
+      bodyAr,
+      status,
+      scheduledAt: input.scheduledAt,
+      createdBy: input.adminId,
+      createdAt: now,
+    },
+    select: { id: true },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorId: input.adminId,
+      actorType: 'admin',
+      entity: 'Campaign',
+      entityId: created.id,
+      action: 'campaign.created',
+      before: {},
+      after: { nameAr, channels, status, segmentId: segment.id },
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true, campaignId: created.id, status };
+}
+
+/**
+ * إرسالُ ما حلّ موعدُه — **بالمرسِل نفسِه الذي يضغطه المشغّل**.
+ *
+ * ولا نسخةَ ثانية من قواعد الإرسال: `sendCampaign` تحوسب الشريحة الآن
+ * وتفحص الموافقة والتهدئة والسقف. والفاعلُ في السجلّ **من جدولها** —
+ * فالجدولةُ قرارُه، والوظيفةُ تنفّذه؛ وحملةٌ جدولَها حسابٌ حُذف تُترك
+ * وتُعلَّم، فإرسالٌ بلا فاعلٍ في السجلّ لا يُراجَع.
+ */
+export async function sendDueCampaigns(now: Date = new Date()): Promise<number> {
+  const due = await db.campaign.findMany({
+    where: { status: 'SCHEDULED', scheduledAt: { lte: now } },
+    select: { id: true, createdBy: true },
+    orderBy: { scheduledAt: 'asc' },
+  });
+
+  let sent = 0;
+  for (const campaign of due) {
+    const actor = await db.adminUser.findUnique({
+      where: { id: campaign.createdBy },
+      select: { id: true },
+    });
+
+    if (actor === null) {
+      await db.campaign.update({
+        where: { id: campaign.id },
+        data: { status: 'CANCELLED' },
+      });
+      await db.auditLog.create({
+        data: {
+          actorId: 'system',
+          actorType: 'system',
+          entity: 'Campaign',
+          entityId: campaign.id,
+          action: 'campaign.schedule_orphaned',
+          before: { status: 'SCHEDULED' },
+          after: { createdBy: campaign.createdBy },
+          ip: null,
+          createdAt: now,
+        },
+      });
+      continue;
+    }
+
+    const result = await sendCampaign({ id: actor.id }, campaign.id, null, now);
+    if (result.ok) sent += 1;
+  }
+
+  return sent;
 }

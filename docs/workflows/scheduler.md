@@ -1,6 +1,6 @@
 # The scheduler
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-24_
 
 One entry point, one HTTP route. Until it was built, **every
 time-based rule in the product was dead code**: offers did not lapse, unpaid
@@ -30,7 +30,7 @@ The order is not alphabetical and not arbitrary. It is tested
 invisible in the code itself.
 
 <!-- generated:begin -->
-The registry holds **17** jobs, in this order.
+The registry holds **18** jobs, in this order.
 
 | # | Job | Why here |
 | --- | --- | --- |
@@ -50,7 +50,8 @@ The registry holds **17** jobs, in this order.
 | 14 | `releaseConfirmedOrders` | **A safety net, not a second path.** Release happens the moment transfer is confirmed; this catches what stalled — a gateway that did not answer, a container that died between the confirmation and the call. Without it a seller's money stays held with nothing saying the call never happened. |
 | 15 | `captureDoneServices` | **A second safety net — for services.** Capture happens the moment the provider completes; this catches what stalled. Without it an authorised hold lapses after seven days and the customer's card is released, while the service was delivered and a tax invoice issued in the platform's name. Reads the list with `capturableServices`, captures one reference at a time. |
 | 16 | `reconcileYesterday` | **Last.** It reads and writes no money, so its failure delays nothing. |
-| 17 | `recomputePriceStats` | **Last, with the closers behind it.** It reads completed orders, so running it after the jobs that complete and cancel them means today's deals are in today's figures. It writes no money and touches no deadline, so its failure delays nothing. |
+| 17 | `sendDueCampaigns` | **After everything that moves money.** Marketing is the only job here that reaches users with no transaction behind it; a send that fails or sends twice costs reputation, never a riyal, so it waits for the ones that do. It is also the slowest per row — the segment is recomputed at send time, by design. |
+| 18 | `recomputePriceStats` | **Last, with the closers behind it.** It reads completed orders, so running it after the jobs that complete and cancel them means today's deals are in today's figures. It writes no money and touches no deadline, so its failure delays nothing. |
 <!-- generated:end -->
 
 ## Reminders

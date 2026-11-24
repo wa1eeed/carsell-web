@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import {
   COOLDOWN_HOURS,
   MARKETING_CAP_PER_MONTH,
+  createCampaign,
+  sendDueCampaigns,
   resolveSegment,
   saveSegment,
   sendCampaign,
@@ -374,5 +376,184 @@ describe('A10 — واللوحة لا تفتح التسويقيّ افتراضً
     // الاختبار يعيد ما غيّره
     await db.pushChannel.update({ where: { key: other.key }, data: { defaultOn: was } });
     await db.auditLog.deleteMany({ where: { action: 'push.channel_updated' } });
+  });
+});
+
+/**
+ * ═══ A9 — الإنشاء والجدولة ═══
+ *
+ * «+ حملة جديدة» في رأس الترميز ولا مسارَ ينشئ `Campaign`، و`SCHEDULED`
+ * في التعداد و`scheduledAt` في المخطّط **ولا وظيفةَ تُرسلهما**: فحملةٌ
+ * تُجدوَل تقف أبدًا وتابُ «مجدولة» يعدّ ما لن يقع.
+ */
+describe('A9 — حملةٌ تُنشأ، ومجدولةٌ تُرسَل', () => {
+  it('المسودّة بلا موعد، والمجدولة بموعدها', async () => {
+    const operator = await admin();
+    const segment = await saveSegment(
+      operator,
+      { key: `seg${String(Date.now()).slice(-8)}`, nameAr: 'شريحة اختبار', rules: [{ field: 'hasFavorites' }] },
+      null,
+    );
+    if (!segment.ok) throw new Error('تعذّر حفظ الشريحة');
+
+    const draft = await createCampaign({
+      nameAr: 'حملة مسودّة', channels: ['push'], segmentId: segment.id,
+      subjectAr: null, bodyAr: 'نصّ', scheduledAt: null,
+      adminId: operator.id, ip: null,
+    });
+    const later = new Date(Date.now() + 3_600_000);
+    const planned = await createCampaign({
+      nameAr: 'حملة مجدولة', channels: ['email', 'push'], segmentId: segment.id,
+      subjectAr: 'عنوان', bodyAr: 'نصّ', scheduledAt: later,
+      adminId: operator.id, ip: null,
+    });
+
+    if (!draft.ok || !planned.ok) throw new Error('تعذّر الإنشاء');
+    expect(draft.status).toBe('DRAFT');
+    expect(planned.status).toBe('SCHEDULED');
+
+    // **ويُكتب الأثر** — كل إجراء أدمن في السجلّ
+    const logged = await db.auditLog.count({
+      where: { action: 'campaign.created', entityId: { in: [draft.campaignId, planned.campaignId] } },
+    });
+    expect(logged).toBe(2);
+
+    await db.auditLog.deleteMany({
+      where: { entityId: { in: [draft.campaignId, planned.campaignId] } },
+    });
+    await db.campaign.deleteMany({ where: { id: { in: [draft.campaignId, planned.campaignId] } } });
+    await db.segment.delete({ where: { id: segment.id } });
+    await db.adminUser.delete({ where: { id: operator.id } });
+  });
+
+  it('ويُرفض الموعد الماضي — جدولةٌ لا تقع', async () => {
+    const operator = await admin();
+    const segment = await saveSegment(
+      operator,
+      { key: `seg${String(Date.now()).slice(-8)}p`, nameAr: 'شريحة', rules: [{ field: 'hasFavorites' }] },
+      null,
+    );
+    if (!segment.ok) throw new Error('تعذّر حفظ الشريحة');
+
+    const result = await createCampaign({
+      nameAr: 'حملة', channels: ['push'], segmentId: segment.id,
+      subjectAr: null, bodyAr: 'نصّ', scheduledAt: new Date(Date.now() - 60_000),
+      adminId: operator.id, ip: null,
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('غير متوقع');
+    expect(result.reason).toBe('PAST_SCHEDULE');
+
+    await db.segment.delete({ where: { id: segment.id } });
+    await db.adminUser.delete({ where: { id: operator.id } });
+  });
+
+  /**
+   * **والحدُّ يُعبَر**: مجدولةٌ حلّ موعدُها تُرسَل، وأختُها بعد ساعةٍ
+   * تبقى — فاختبارٌ على واحدةٍ وحدها لا يقول إن كان الشرط يُقرأ أصلًا.
+   */
+  it('وتُرسَل ما حلّ موعدُها وحدها', async () => {
+    const operator = await admin();
+    const subject = await user(true);
+    const listing = await db.listing.findFirstOrThrow();
+    await db.favorite.create({ data: { userId: subject.id, listingId: listing.id } });
+
+    const segment = await saveSegment(
+      operator,
+      { key: `seg${String(Date.now()).slice(-8)}d`, nameAr: 'شريحة', rules: [{ field: 'hasFavorites' }] },
+      null,
+    );
+    if (!segment.ok) throw new Error('تعذّر حفظ الشريحة');
+
+    const now = new Date();
+    const notYet = await db.campaign.create({
+      data: {
+        nameAr: 'بعد ساعة', channels: ['push'], segmentId: segment.id,
+        bodyAr: 'نصّ', status: 'SCHEDULED',
+        scheduledAt: new Date(now.getTime() + 3_600_000), createdBy: operator.id,
+      },
+    });
+
+    /**
+     * **والجولتان تفصلان ما يخلطه التهدئة.** أوّلُ صياغةٍ أنشأت
+     * الاثنتين ثمّ أرسلت مرّة، فمرّت **حتى بعد حذف شرط الموعد**: جمهورُ
+     * المجدولة بعد ساعةٍ هو جمهورُ الأولى نفسُه، وقد صار في التهدئة —
+     * فتُردّ `NO_AUDIENCE` وتبقى `SCHEDULED` كأنّ الشرط قُرئ. فتُشغَّل
+     * جولةٌ **قبل** أن توجد المستحقّة: جمهورُها حينئذٍ طازج، فإن أُرسلت
+     * فالشرطُ لا يُقرأ.
+     */
+    expect(await sendDueCampaigns(now)).toBe(0);
+    expect((await db.campaign.findUniqueOrThrow({ where: { id: notYet.id } })).status).toBe(
+      'SCHEDULED',
+    );
+
+    const due = await db.campaign.create({
+      data: {
+        nameAr: 'حان موعدها', channels: ['push'], segmentId: segment.id,
+        bodyAr: 'نصّ', status: 'SCHEDULED',
+        scheduledAt: new Date(now.getTime() - 60_000), createdBy: operator.id,
+      },
+    });
+
+    expect(await sendDueCampaigns(now)).toBe(1);
+    expect((await db.campaign.findUniqueOrThrow({ where: { id: due.id } })).status).toBe('SENT');
+    expect((await db.campaign.findUniqueOrThrow({ where: { id: notYet.id } })).status).toBe(
+      'SCHEDULED',
+    );
+
+    await db.campaignSend.deleteMany({ where: { campaignId: { in: [due.id, notYet.id] } } });
+    await db.auditLog.deleteMany({ where: { entityId: { in: [due.id, notYet.id] } } });
+    await db.campaign.deleteMany({ where: { id: { in: [due.id, notYet.id] } } });
+    await db.favorite.deleteMany({ where: { userId: subject.id } });
+    await db.user.delete({ where: { id: subject.id } });
+    await db.segment.delete({ where: { id: segment.id } });
+    await db.adminUser.delete({ where: { id: operator.id } });
+  });
+});
+
+/**
+ * **والسطرُ الثالث يُقاس بصنعِ حاله.** «خارج فترة التهدئة» يساوي
+ * «وافقوا» ما لم يكن أحدٌ في تهدئة — فاختبارٌ على بياناتٍ هادئة يمرّ
+ * مهما كُتب. فتُصنع التهدئة بإرسالةٍ حقيقية، ويُقاس الفرق، ثمّ تُستعاد.
+ */
+describe('A9 — وفجوةُ التهدئة تُقال', () => {
+  it('ينقص «خارج فترة التهدئة» بمن أُرسل إليه للتوّ', async () => {
+    const operator = await admin();
+    const subject = await user(true);
+    const listing = await db.listing.findFirstOrThrow();
+    await db.favorite.create({ data: { userId: subject.id, listingId: listing.id } });
+
+    const rules = [{ field: 'hasFavorites' }];
+    const before = await resolveSegment(rules);
+
+    // تهدئةٌ حقيقية — صفُّ إرسالٍ للتوّ
+    const segment = await saveSegment(
+      operator,
+      { key: `seg${String(Date.now()).slice(-8)}c`, nameAr: 'شريحة', rules },
+      null,
+    );
+    if (!segment.ok) throw new Error('تعذّر حفظ الشريحة');
+    const campaign = await db.campaign.create({
+      data: {
+        nameAr: 'للتهدئة', channels: ['push'], segmentId: segment.id,
+        bodyAr: 'نصّ', status: 'SENT', createdBy: operator.id,
+      },
+    });
+    await db.campaignSend.create({
+      data: { campaignId: campaign.id, userId: subject.id, channel: 'push' },
+    });
+
+    const after = await resolveSegment(rules);
+    expect(after.consented).toBe(before.consented);
+    expect(after.outsideCooldown).toBe(before.outsideCooldown - 1);
+    expect(after.reachable).toBe(before.reachable - 1);
+
+    await db.campaignSend.deleteMany({ where: { campaignId: campaign.id } });
+    await db.auditLog.deleteMany({ where: { entityId: { in: [campaign.id, segment.id] } } });
+    await db.campaign.delete({ where: { id: campaign.id } });
+    await db.segment.delete({ where: { id: segment.id } });
+    await db.favorite.deleteMany({ where: { userId: subject.id } });
+    await db.user.delete({ where: { id: subject.id } });
+    await db.adminUser.delete({ where: { id: operator.id } });
   });
 });

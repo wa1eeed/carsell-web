@@ -1003,6 +1003,32 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A9 segment builder — three states per field, where the design shows chips · 2026-11-24
+
+A9 draws the segment as a stack of rule chips with a `+ شرط` button to add
+another: `النوع = مشترٍ` · `آخر نشاط خلال ٣٠ يومًا` · `المفضلة ≥ ١` ·
+`ليس: لديه طلب جارٍ`. Those four are **examples of what the builder can
+express**, not controls.
+
+The build lists all eight fields permanently, each with three states — off,
+require, **negate**. That expresses both of the design's examples (`النوع =
+مشترٍ` is `تاجر` negated; `ليس: لديه طلب جارٍ` is `لديه طلب جاري` negated) and
+needs no `+ شرط`, because no condition is ever absent from the list. A chip
+list would also need a second control for negation, which is the thing the
+design's own `ليس:` prefix shows it wanted.
+
+| In A9 | Why not |
+|---|---|
+| `النوع = مشترٍ` chip | An example rule. Expressed by negating `تاجر`. |
+| `ليس: لديه طلب جارٍ` chip | An example rule. Expressed by negating `لديه طلب جاري`. |
+| `+ شرط` button | Every field is always on screen, so there is nothing to add. |
+
+`أفضل وقت لكل مستخدم` — the per-user send time — **is** in the new-campaign
+dialog, as a stated reason it cannot be offered yet: it needs the hour each
+account opens the app, and no app sends that. `وقت محدّد` is offered and works:
+`scheduledAt` is written and `sendDueCampaigns` sends what is due. Both are
+listed under `BEHIND_CLICK`, having been walked in the browser.
+
 ## A35 permission matrix — three states where the design has two · 2026-10-11
 
 **Status: built; designer to review the third state.**

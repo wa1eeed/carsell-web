@@ -2696,6 +2696,30 @@ async function main(): Promise<void> {
     },
   });
 
+  /**
+   * **ومجدولةٌ تُزرع لأنّ لها الآن مُرسِلًا.** `SCHEDULED` كانت قيمةً في
+   * التعداد بلا كاتبٍ ولا قارئ: لا بذرةٌ تكتبها ولا وظيفةٌ تُرسلها، فتابُ
+   * «مجدولة» في `A9` صفرٌ أبدًا و`scheduledAt` عمودٌ لا يُقرأ. ومع
+   * `sendDueCampaigns` صار للطرفين كاتب — فتُزرع لتُرى.
+   *
+   * وموعدُها بعد يومين: قريبٌ يُقرأ في الشاشة، وبعيدٌ عن أوّل تشغيلٍ
+   * للمُجدوِل فلا تُرسَل قبل أن يراها أحد.
+   */
+  await prisma.campaign.create({
+    data: {
+      nameAr: 'مزاد الجمعة — لاندكروزر',
+      channels: ['push', 'email'],
+      segmentId: favouriteSegment.id,
+      status: 'SCHEDULED',
+      scheduledAt: days(2),
+      subjectAr: 'مزاد الجمعة يفتح على لاندكروزر ٢٠٢٣',
+      bodyAr:
+        'مزاد الجمعة يفتح على لاندكروزر ٢٠٢٣ بسعر افتتاح أقل من السوق. سجل تنبيهك قبل أن يبدأ.',
+      createdBy: superAdminId,
+      createdAt: days(-1),
+    },
+  });
+
   // موافقة التسويق — تُطلب ولا تُفترض، فثلث المستخدمين وافقوا
   const consenting = await prisma.user.findMany({ select: { id: true } });
   await prisma.user.updateMany({

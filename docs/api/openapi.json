@@ -1160,6 +1160,31 @@
         }
       }
     },
+    "/api/v1/admin/campaigns": {
+      "post": {
+        "summary": "POST /api/v1/admin/campaigns",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "notifications.manage",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/campaigns/{id}/send": {
       "post": {
         "summary": "POST /api/v1/admin/campaigns/{id}/send",

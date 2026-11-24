@@ -2090,6 +2090,51 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 25 — `A9` campaigns, where a campaign could not be created and a scheduled one never sent
+
+`A9` read **56٪**. Segments could be built and saved, sending was built with
+every guard it needs — consent, 72-hour cooldown, four-a-month cap — and
+**nothing between them created a campaign**. What the screen showed was what
+the seed had planted.
+
+Worse: `CampaignStatus.SCHEDULED` and `scheduledAt` have existed since the
+schema was written, and **no job ever sent them**. A campaign scheduled from
+anywhere would have waited forever while the «مجدولة» tab counted it. That is
+the twelfth time this repository has found a value with a writer and no reader,
+or the reverse.
+
+- [x] `createCampaign` — draft or scheduled, writing `AuditLog`, with a route
+      behind `notifications.manage` and a form in the header the design draws.
+- [x] `sendDueCampaigns` in the scheduler, using `sendCampaign` itself so the
+      rules cannot fork. The actor recorded is **whoever scheduled it**; a
+      campaign whose scheduler no longer exists is cancelled with an audit row
+      rather than sent unattributed.
+- [x] The seed plants a scheduled campaign, now that one can be sent.
+- [x] Walked: created a campaign from the form, saw it in the table as a draft
+      with its channel and segment, then deleted it.
+
+**The timing control says what it cannot do.** The design offers «أفضل وقت لكل
+مستخدم» beside «وقت محدّد». The first needs the hour each account opens the
+app and no app sends that, so the dialog states the reason instead of offering
+a control that does nothing. The second works end to end.
+
+### And a failing test was quietly putting real users in cooldown
+
+Walking the screen after a deliberately-broken test run showed every segment
+reading «سيصلهم فعلًا ٠». Nothing was wrong: the failed run had left a *sent*
+campaign behind, and its `CampaignSend` rows put nine seeded users into a
+72-hour marketing cooldown. `global-setup` cleaned ad campaigns but not
+marketing ones.
+
+- [x] Marketing campaigns, segments and their sends are cleaned in
+      `global-setup` like every other entity a test creates.
+- [x] The screen now carries the design's fourth line, «خارج فترة التهدئة» —
+      which is exactly what would have told me this in one glance, instead of a
+      zero with no reason. Tested by **creating** the cooldown and measuring
+      the gap, not by hoping one existed.
+
+Measured after: **56٪ → 100٪**, tree **80٪**.
+
 ### 40a · 24 — `A35` team, where every missing signal was a decision already taken
 
 `A35` read **56٪**, and I was two files into building «أضف عضوًا» when I read

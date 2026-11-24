@@ -51,6 +51,12 @@ const SEEDED_VIEWINGS = 7;
  */
 const TEST_ADVERTISER = /\d{9,}/;
 
+/**
+ * شريحةُ اختبار — مفتاحُها `seg` ثمّ رقمٌ من الساعة. والمزروعةُ أسماءٌ
+ * مقروءة (`has_favourites`)، فلا تتقاطعان.
+ */
+const TEST_SEGMENT_KEY = /^seg\d{6,}/;
+
 /** مزوّدٌ صنعه اختبار — الطابع في اسمه اللاتينيّ، كما في المعلن. */
 const TEST_PROVIDER = /\d{9,}/;
 
@@ -202,6 +208,38 @@ async function sweep(when: string): Promise<void> {
     }
     await db.serviceProvider.deleteMany({ where: { id: { in: ids } } });
     console.log(`  نُظّف ${String(staleProviders.length)} مزوّد اختبار ${when}`);
+  }
+
+  /**
+   * ═══ وحملةُ التسويق تُنظَّف — ومعها أثرُها على مستخدمين حقيقيّين ═══
+   *
+   * اختبارٌ يسقط قبل تنظيفه يترك `Campaign` و`Segment`، **وإن كان قد
+   * أُرسل فقد كتب `CampaignSend` لمستخدمين مزروعين**: فيدخلون تهدئةَ
+   * اثنتين وسبعين ساعة، وتقرأ شاشةُ `A9` «سيصلهم فعلًا ٠» لكلّ شريحة —
+   * رقمٌ صحيحٌ حسابًا عن حالٍ صنعها اختبار. وكشفَه فتحُ الشاشة بعد
+   * تشغيلٍ ساقط، لا اختبار.
+   */
+  const segments = await db.segment.findMany({ select: { id: true, key: true } });
+  const staleSegments = segments.filter((row) => TEST_SEGMENT_KEY.test(row.key));
+  if (staleSegments.length > 0) {
+    const ids = staleSegments.map((row) => row.id);
+    const linked = await db.campaign.findMany({
+      where: { segmentId: { in: ids } },
+      select: { id: true },
+    });
+    const campaignIds = linked.map((row) => row.id);
+    if (campaignIds.length > 0) {
+      await db.campaignSend.deleteMany({ where: { campaignId: { in: campaignIds } } });
+      await db.auditLog.deleteMany({ where: { entityId: { in: campaignIds } } });
+      await db.campaign.deleteMany({ where: { id: { in: campaignIds } } });
+    }
+    await db.auditLog.deleteMany({
+      where: { entityId: { in: staleSegments.map((row) => row.key) } },
+    });
+    await db.segment.deleteMany({ where: { id: { in: ids } } });
+    console.log(
+      `  نُظّفت ${String(staleSegments.length)} شريحة تسويق و${String(campaignIds.length)} حملة ${when}`,
+    );
   }
 
   const campaigns = await db.adCampaign.findMany({ select: { id: true, advertiserName: true } });
