@@ -2882,6 +2882,24 @@ never reach a reader, and this repository's comments are deliberately voweled).
 
 ## Also open, outside the four stages
 
+### A deploy button in GitHub — *owner's decision 2026-11-24, for after launch*
+
+> «سوف نضع زر نشر في قيت هب بحيث اذا انتهينا من كل تطويرات المنصه يكون النشر
+> للتحديثات بعد الاطلاق عبر ذلك الزر»
+
+Production is deployed over SSH today, by the assistant on the owner's behalf
+while the build is in progress. After launch it becomes a
+`workflow_dispatch` action the owner presses: it connects to the SCCC box and
+runs `carz-deploy`, which already does the whole job — tags the image by
+commit, leaves the running container alone on a failed build, polls
+`/api/health` for ninety seconds and rolls itself back.
+
+**Deliberately not `on: push`.** A merge should not be able to change `carz.sa`
+without someone meaning it. The button removes the SSH, not the decision.
+
+Needs: a deploy key in GitHub secrets, and the action restricted to `main`.
+
+
 ### The production database has no backup — *owner's decision 2026-11-23, deferred to before launch*
 
 > «نؤجل اعدادات النسخ الاحتياطي و نسجلها ضمن المهام لاحقاً و قبل الاطلاق النهائي»
