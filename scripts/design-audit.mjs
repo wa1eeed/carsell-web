@@ -330,7 +330,14 @@ async function signInUser() {
        * الثلاثة — فتُقرأ `Wf` ناقصةً والنقصُ في الحساب المختار. وبعد كلّ
        * زرعٍ جديد تتبدّل الحسابات، فيصير المحفوظُ أفقرَ بلا أن يقول.
        */
-      if (probe.status === 200 && (await accountRichness(cached)) >= 4) {
+      /**
+       * **وثلاثٌ كافية، وأربعٌ نادرة.** اشتراطُ الكمال يرفض كلَّ جلسةٍ
+       * محفوظة فيُعاد مسحُ اثني عشر حسابًا بـOTP في كلّ تشغيل — حتى
+       * يردّ حدُّ الطلبات، فتُقاس شاشاتُ الحساب «بلا جلسة» ويخرج
+       * القياسُ ناقصَ المقام. وثلاثٌ تعني كتلةَ العروض (نقطتان) وقسمًا
+       * آخر — وهي أغنى ما تبلغه البذرة.
+       */
+      if (probe.status === 200 && (await accountRichness(cached)) >= 3) {
         USER_COOKIE = cached;
         return;
       }
@@ -361,8 +368,8 @@ async function signInUser() {
       if (candidate === null) continue;
       const score = await accountRichness(candidate);
       if (score > best.score) best = { cookie: candidate, score };
-      /** الأقسامُ كلُّها (٢+١+١) ⇒ لا حاجة إلى المزيد. */
-      if (best.score >= 4) break;
+      /** كتلةُ العروض وقسمٌ آخر ⇒ لا حاجة إلى المزيد. */
+      if (best.score >= 3) break;
     }
     if (best.cookie !== '') {
       USER_COOKIE = best.cookie;
@@ -371,7 +378,7 @@ async function signInUser() {
       } catch {
         /* الحفظ تحسينٌ لا شرط */
       }
-      if (best.score < 4) {
+      if (best.score < 3) {
         console.log(
           `⬜ أغنى حساب يبلغ ${String(best.score)} من أربع (كتلة العروض بنقطتين) — وما لا يُزرع لا يُقاس.`,
         );
@@ -880,16 +887,39 @@ async function liveRefs(base, cookie) {
        * «محجوزة». فأوّلُ نتيجةٍ قد تكون محجوزة، وقياسُ صفحة الشراء
        * عليها يُخرج نقصًا ليس فيها.
        */
+      /**
+       * **وتُختار الحالُ التي يرسمها الترميز لا أوّلُ ما وُجد.** `Wc`
+       * يرسم مركبةً تُشترى **وتُفاوَض** معًا، وأوّلُ نتيجةٍ قد تكون
+       * `DIRECT` بلا تفاوض — فيُقرأ «قدّم عرضك» نقصًا وهو غائبٌ بحقّ
+       * عن إعلانٍ لا يقبل العروض. فتُجرَّب المرشّحات ويُؤخذ أغناها
+       * بما يرسمه التصميم، كما في اختيار حساب `Wf`.
+       */
+      let best = { path: '', score: -1 };
       for (const path of [...new Set(found)].slice(0, 8)) {
         const page = await fetch(`${base}${path}`, {
           headers: { cookie },
           signal: AbortSignal.timeout(30_000),
         });
         if (!page.ok) continue;
-        if (!(await page.text()).includes('طلبٌ قائم')) {
-          out[into] = path;
-          return;
-        }
+        /**
+         * **ويُطبَّع الطرفان هنا كما يُطبَّعان في المطابقة.** كُتب فحصُ
+         * «طلبٌ قائم» بالتشكيل الذي يكتبه التصميم، والمنتج يمسحه (قرار
+         * ١٥) فيعرض «طلب قائم» — **فما كان الفحص يُمسك مركبةً محجوزة
+         * قطّ** منذ نفاذ القرار، وتُقاس صفحةُ الشراء على مركبةٍ تُخفي
+         * زرَّيها بحقّ فتُقرأ ٥٠٪.
+         */
+        const seen = normalizeText(stripTags(await page.text()));
+        if (seen.includes(normalizeText('طلبٌ قائم'))) continue;
+
+        const score = ['اشترِ الآن عبر الضمان', 'قدّم عرضك', 'من البائع'].filter((mark) =>
+          seen.includes(normalizeText(mark)),
+        ).length;
+        if (score > best.score) best = { path, score };
+        if (best.score === 3) break;
+      }
+      if (best.path !== '') {
+        out[into] = best.path;
+        return;
       }
     } catch {
       // تعذّر الجلب — يبقى المرجع الثابت
