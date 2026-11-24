@@ -107,6 +107,19 @@ export type LandingContent = LandingKey & {
    */
   priceMid: string | null;
   inspectedCount: number;
+  /**
+   * ═══ فئاتُ الطراز التي لها إعلانٌ هنا ═══
+   *
+   * ترميز `Wz` يضع «كل الفئات» شريحةً أولى ثمّ فئاتِ الطراز. وهو
+   * **ما يكتبه الباحث حرفيًّا**: «كامري LE في الرياض» أخصُّ من
+   * «كامري في الرياض».
+   *
+   * **والمعروضُ ما له نتيجة لا طولُ الكتالوج**: مرشّحٌ يَعِد بفئةٍ
+   * يفتح على صفر — وهو الدرسُ المسجَّل في مرشّح الماركات. والعدُّ من
+   * `where` نفسِه الذي أخرج العدّ والمدى، فلا يصف شريحةً غير
+   * المعروضة.
+   */
+  trims: { id: string; name: string; count: number }[];
   /** مسار البحث المكافئ — الصفحة بوّابةٌ إليه لا بديلٌ عنه. */
   searchQuery: string;
   /**
@@ -207,6 +220,35 @@ export async function landingContent(
       : db.model.findFirst({ where: { nameAr: picked.model }, select: { id: true } }),
   ]);
 
+  /**
+   * **والفئاتُ تُجمع من الإعلانات لا من الكتالوج.** طرازٌ له اثنتا
+   * عشرة فئةً في الكتالوج وإعلانان في الرياض يُنتج عشر شرائح تفتح
+   * على أصفار.
+   *
+   * **والتجميعُ في الذاكرة** لأنّ الفئة على `Vehicle` لا على
+   * `Listing`، وPrisma لا تُجمّع بحقل علاقة. والصفحةُ لا تُولَّد إلّا
+   * لتركيبةٍ لها إعلانات، وعددُها عشراتٌ لا آلاف.
+   */
+  const trimRows =
+    modelId === null
+      ? []
+      : await db.listing.findMany({
+          where: { ...where, vehicle: { ...where.vehicle, trimId: { not: null } } },
+          select: { vehicle: { select: { trimId: true, trimName: true } } },
+          take: 500,
+        });
+
+  const byTrim = new Map<string, { id: string; name: string; count: number }>();
+  for (const row of trimRows) {
+    const id = row.vehicle.trimId;
+    const name = row.vehicle.trimName;
+    if (id === null || name === null || name.trim() === '') continue;
+    const found = byTrim.get(id);
+    if (found === undefined) byTrim.set(id, { id, name, count: 1 });
+    else found.count += 1;
+  }
+  const trims = [...byTrim.values()].sort((a, b) => b.count - a.count);
+
   const params = new URLSearchParams({ city: picked.city });
   if (brandId !== null) params.set('brandId', brandId.id);
   if (modelId !== null) params.set('modelId', modelId.id);
@@ -224,6 +266,7 @@ export async function landingContent(
     priceMax: bounds._max.askPrice?.toString() ?? null,
     priceMid: midRow?.askPrice.toString() ?? null,
     inspectedCount,
+    trims,
     searchQuery: params.toString(),
   };
 }

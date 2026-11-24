@@ -2090,6 +2090,57 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 21 — `Wn` `Wu` `Wv` `Wz`, four thin screens and what a 2-signal denominator hides
+
+Four screens at **50٪**, each on 2–4 signals, all carrying ⚠ — the percentage is
+read, not built on.
+
+### `Wz` 50٪ → 100٪: measured on the wrong page, and a feature with no data
+
+The audit pointed `Wz` at `/ar/browse/riyadh/toyota` — the **brand** page. Its
+markup draws the model: breadcrumb «… › تويوتا › **كامري** › الرياض», heading
+«سيارات تويوتا كامري مستعملة في الرياض», and the trim chips. Pointed at the
+model page, the only missing signal was «كل الفئات».
+
+The chips are now built from the listings on that page, not the model's
+catalogue — a model with twelve trims and two listings in Riyadh would otherwise
+produce ten chips opening on zero, which is the filter lesson already recorded.
+They are hidden below two trims: «كل الفئات» plus one trim is a division with
+nothing divided.
+
+**And the seed could never produce two.** The first three listings are pinned to
+one city and model on purpose — the landing page needs three to be generated at
+all — but they were also pinned to `buildableTrims[0]`, the same trim. So the
+chips were unreachable in every environment. Three Camrys in Riyadh all badged
+"LE" is not a realistic shape either; they now cycle through that model's trims.
+
+### `Wu` 50٪: built in three wordings, measured against one
+
+«في مزاد · ينتهي غدًا» is now built — and the guard is the recorded one: an
+auction still `LIVE` whose time has passed is not live, so no badge and no
+negative duration. The wording is chosen by **calendar days in Riyadh**, not by
+dividing a duration: twenty hours may or may not cross midnight, and «ينتهي بعد
+يوم واحد» is clumsy Arabic where the design writes «غدًا».
+
+The design's signal is one text node carrying that day word, so it matches only
+when the measured account's saved auction closes tomorrow exactly. **The seed
+was not bent to produce that** — seeding to satisfy a tool corrupts the data.
+What was seeded instead is representative: half the buyers who have favourites
+now have one on a live auction, so the badge is visible in any environment in
+whatever wording the dates produce.
+
+### `Wn` and `Wv`: two signals with no source
+
+- **`Wn`** wants a support ticket «مرفقة بطلبك تلقائيًا». There is no ticket
+  system at all — no model, no route, no admin queue; `/help/contact` is a list
+  of channels, not a form. Whether to build one alongside disputes is a product
+  decision, so it is a question. Disputes already cover anything with money
+  attached; a ticket would cover questions without.
+- **`Wv`** wants «أضف رصيدًا» and «سحب إلى الآيبان». `WALLET_TOPUP` is a routed
+  payment purpose with no screen, and there is **no withdrawal path anywhere**.
+  The screen says so in words rather than shipping two buttons that error after
+  the press. Already a recorded deviation; it stands until the gateway keys land.
+
 ### 40a · 20 — `A13` models and trims, and a catalogue maintained one row at a time
 
 `A13` read **50٪** on four signals (thin, ⚠). Missing: «الشجرة» and

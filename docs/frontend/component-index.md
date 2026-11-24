@@ -151,7 +151,7 @@ rather than found by chance.
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 8 |
 | `DataTable` | yes | — | 11 |
-| `Duration` | no | `count` | 17 |
+| `Duration` | no | `count` | 18 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 39 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 140 |

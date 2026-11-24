@@ -1,6 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
-import { readFileSync } from 'node:fs';
 import {
   MIN_LISTINGS,
   landingCombinations,
@@ -178,11 +177,44 @@ describe('العدُّ السريع للعتبة — `landingDepth`', () => {
  * **وما لا يُزرع لا يُرى** — فتُثبَّت الثلاثة الأولى على مدينةٍ وطراز.
  */
 describe('زرعُ تركيبةٍ للطراز', () => {
-  it('الإعلانات الأولى مثبّتةٌ على مدينةٍ وطرازٍ واحد', () => {
-    const seed = readFileSync(new URL('../prisma/seed.ts', import.meta.url), 'utf8');
-    expect(seed).toContain('const PLANTED = 3');
-    expect(seed).toContain('i < PLANTED ? (buildableTrims[0]');
-    expect(seed).toContain('i < PLANTED ? (CITIES[0]');
+  /**
+   * ═══ والفحصُ على الأثر لا على نصّ الملفّ ═══
+   *
+   * كان يبحث عن `i < PLANTED ? (buildableTrims[0]` في مصدر البذرة —
+   * **نصًّا لا سلوكًا**. فلمّا صارت الفئةُ تتنوّع بين فئات الطراز
+   * نفسِه (ليُرى شريطُ «كل الفئات») سقط الاختبار، **والقصدُ قائم**:
+   * المدينةُ والطراز مثبّتان كما كانا.
+   *
+   * واختبارٌ يقرأ شكلَ السطر يمنع كلَّ إعادة كتابةٍ تُبقي المعنى.
+   * فالمقيسُ أنّ في القاعدة تركيبةً تبلغ العتبة.
+   */
+  it('تبلغ تركيبةُ مدينة×ماركة×طراز عتبةَ الصفحة', async () => {
+    const rows = await db.listing.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { city: true, vehicle: { select: { brandName: true, modelName: true, trimName: true } } },
+    });
+
+    const byCombo = new Map<string, { count: number; trims: Set<string> }>();
+    for (const row of rows) {
+      const key = `${row.city}\u0000${row.vehicle.brandName}\u0000${row.vehicle.modelName}`;
+      const found = byCombo.get(key) ?? { count: 0, trims: new Set<string>() };
+      found.count += 1;
+      if (row.vehicle.trimName !== null) found.trims.add(row.vehicle.trimName);
+      byCombo.set(key, found);
+    }
+
+    const reached = [...byCombo.values()].filter((entry) => entry.count >= 3);
+    expect(reached.length, 'لا تركيبةَ تبلغ العتبة — فصفحةُ الطراز لا تُفتح').toBeGreaterThan(0);
+
+    /**
+     * **وأكثرُ من فئةٍ فيها** — وإلّا بقي شريطُ «كل الفئات» مبنيًّا لا
+     * يظهر في أيّ بيئة: لا يُعرض تحت اثنتين، فقسمةٌ بقاسمٍ واحد ليست
+     * قسمة.
+     */
+    expect(
+      reached.some((entry) => entry.trims.size >= 2),
+      'التركيبةُ البالغة بفئةٍ واحدة — فشرائحُ الفئات لا تُرى',
+    ).toBe(true);
   });
 });
 

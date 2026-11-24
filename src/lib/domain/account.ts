@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { ibanMasked } from './iban';
 import { db } from '@/lib/db';
+import { RIYADH_OFFSET_HOURS } from './viewing-rules';
 import { STAGES as ORDER_STAGES } from './orders';
 import { consentsAwaiting } from './service-lifecycle';
 import { viewingsAwaiting } from './viewings';
@@ -160,6 +161,32 @@ export type FavoriteListing = {
   /** `null` إن سُحب الإعلان — يبقى في المفضّلة ولا يُفتح */
   path: string | null;
   available: boolean;
+  /**
+   * ═══ وحالُ المزاد يُقال بوقته ═══
+   *
+   * ترميز `Wu` يضع تحت المركبة «في مزاد · ينتهي غدًا» — وهو ما يجعل
+   * المفضّلة شاشةً تُفتح لا قائمةً تُركن: مزادٌ يغلق غدًا أمرٌ عاجل،
+   * وسطرٌ لا يقوله يجعل من حفظ المركبة يفوته.
+   *
+   * **والدقائق لا الحال وحده** (درسٌ مسجَّل): مزادٌ `LIVE` انقضى وقتُه
+   * ولم تمرّ الوظيفة بعد يُقرأ «مباشر» ويردّ الخادم «انتهى». فتُحسب
+   * المدّة هنا، والسالبُ يعني أنّ الإغلاق يُحتسب الآن.
+   */
+  auctionMinutesLeft: number | null;
+  /**
+   * ═══ وبعدُ الإغلاق بالأيّام التقويمية ═══
+   *
+   * ترميز `Wu` يكتب «ينتهي **غدًا**» لا «بعد يوم واحد» — وهي أقرب إلى
+   * العربية وأدقُّ معنًى: مزادٌ يغلق بعد عشرين ساعة قد يكون غدًا أو
+   * اليومَ باختلاف الساعة التي يُقرأ فيها.
+   *
+   * فالفرقُ بالتقويم لا بالمدّة: `0` اليوم، `1` غدًا، وما فوقهما تقوله
+   * الشاشة بمدّته. **وبتوقيت الرياض** — «غدًا» بتوقيت UTC يصير اليومَ
+   * لمن يقرأ بعد التاسعة مساءً.
+   */
+  auctionEndsInDays: number | null;
+  /** أبيعت؟ — والمسحوبُ غيرُ المبيع، والشاشة تفرّقهما. */
+  sold: boolean;
 };
 
 /**
@@ -172,9 +199,22 @@ export type FavoriteListing = {
  * **والمسحوب يبقى معروضًا ولا يُفتح**: حذفُه من القائمة يجعل المستخدم
  * يظنّ أنه لم يحفظه قطّ، وهي معلومةٌ تخصّه لا تخصّ الإعلان.
  */
+/**
+ * فرقُ الأيّام التقويمية بتوقيت الرياض — `0` اليومَ و`1` غدًا.
+ *
+ * **ولا تُحسب بقسمة المدّة على يوم**: عشرون ساعةً قد تعبر منتصف الليل
+ * أو لا، فيُقرأ الشيءُ نفسُه «اليوم» و«غدًا» باختلاف ساعة القراءة.
+ */
+function riyadhDayGap(now: Date, then: Date): number {
+  const day = (at: Date): number =>
+    Math.floor((at.getTime() + RIYADH_OFFSET_HOURS * 3_600_000) / 86_400_000);
+  return day(then) - day(now);
+}
+
 export async function favoriteListings(
   userId: string,
   locale: string,
+  now: Date = new Date(),
 ): Promise<FavoriteListing[]> {
   const rows = await db.favorite.findMany({
     where: { userId },
@@ -187,6 +227,8 @@ export async function favoriteListings(
     where: { id: { in: rows.map((row) => row.listingId) } },
     select: {
       id: true, ref: true, askPrice: true, city: true, status: true,
+      /** **والمزادُ بموعده** — «في مزاد · ينتهي غدًا» في ترميز `Wu`. */
+      auction: { select: { status: true, endsAt: true } },
       vehicle: {
         select: {
           brandName: true, modelName: true, trimName: true, year: true,
@@ -201,6 +243,16 @@ export async function favoriteListings(
     const listing = listings.find((entry) => entry.id === row.listingId);
     if (listing === undefined) return [];
     const available = listing.status === 'PUBLISHED';
+    /**
+     * **والحالُ وانقضاءُ الوقت معًا.** مزادٌ `LIVE` مضى موعدُه ولم تمرّ
+     * عليه الوظيفة بعد ليس مباشرًا — ولا يُقال عنه «ينتهي» بمدّةٍ
+     * سالبة. فما انقضى يخرج، وما بقي يُقال بدقائقه.
+     */
+    const live =
+      listing.auction !== null
+      && listing.auction.status === 'LIVE'
+      && listing.auction.endsAt.getTime() > now.getTime();
+
     return [{
       ref: listing.ref,
       title: title(listing.vehicle),
@@ -209,6 +261,15 @@ export async function favoriteListings(
       city: listing.city,
       path: available ? canonicalPath(locale, listing).path : null,
       available,
+      auctionMinutesLeft: live
+        ? Math.max(
+            0,
+            Math.floor(((listing.auction?.endsAt.getTime() ?? 0) - now.getTime()) / 60_000),
+          )
+        : null,
+      auctionEndsInDays:
+        live && listing.auction !== null ? riyadhDayGap(now, listing.auction.endsAt) : null,
+      sold: listing.status === 'SOLD',
     }];
   });
 }

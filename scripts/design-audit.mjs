@@ -463,7 +463,14 @@ const ROUTES = {
   Wq: null, Wr: null,
   Ws: '/ar/account/offers', Wt: '/ar/account/listings', Wu: '/ar/account/favorites',
   Wv: '/ar/account/wallet', Wx: '/ar/services/inspection', Wy: '/ar/account/reports',
-  Wz: '/ar/browse/riyadh/toyota',
+  /**
+   * **ومسارُ `Wz` مسارُ الطراز لا الماركة.** ترميزُها يرسم المسار
+   * «الرئيسية › تصفّح السيارات › تويوتا › **كامري** › الرياض»
+   * وعنوانَها «سيارات تويوتا كامري مستعملة في الرياض»، وفيها شرائحُ
+   * فئاتِ الطراز. وصفحةُ الماركة أعمُّ منها ولا فئاتِ فيها — فقُرئت
+   * «كل الفئات» ناقصةً وهي على الصفحة التي تخصّها.
+   */
+  Wz: '/ar/browse/riyadh/toyota/camry',
   /** خطوات معالج البيع — شاشةٌ واحدة بحالاتٍ ثلاث، ومسارُها واحد. */
   Wh3: '/ar/sell', Wh3a: '/ar/sell', Wh3b: '/ar/sell',
 

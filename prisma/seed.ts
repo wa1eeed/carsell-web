@@ -748,12 +748,29 @@ async function main(): Promise<void> {
    * أُصلح في أختها (الشبكة الغائبة) حتى قِيست بالبحث عن الصفحة نفسها.
    *
    * فتُثبَّت الثلاثة الأولى على مدينةٍ وطرازٍ واحد.
+   *
+   * ═══ **والفئةُ تتنوّع بينها** ═══
+   *
+   * كانت الثلاثةُ على `buildableTrims[0]` نفسِها — فئةً واحدة. وصفحةُ
+   * الطراز تعرض شرائحَ فئاتِه («كل الفئات · LE · XLE»)، **ولا تُعرض
+   * عند فئةٍ واحدة** لأنّ قسمةً بقاسمٍ واحد ليست قسمة. فبقيت الشرائح
+   * مبنيّةً لا تظهر في أيّ بيئة.
+   *
+   * وثلاثُ كامري في الرياض كلُّها «LE» ليست حالًا واقعيًّا أصلًا —
+   * **والبيانات المزروعة تُحاكي شكل الحقيقيّ**.
    */
   const PLANTED = 3;
+  /** فئاتُ الطراز المثبَّت — تُدار عليها الثلاثة الأولى. */
+  const plantedTrims = buildableTrims.filter(
+    (entry) => entry.modelId === buildableTrims[0]?.modelId,
+  );
 
   for (let i = 0; i < plan.length; i += 1) {
     const type = plan[i] as 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
-    const t = i < PLANTED ? (buildableTrims[0] as (typeof buildableTrims)[number]) : pick(buildableTrims);
+    const t =
+      i < PLANTED
+        ? ((plantedTrims[i % plantedTrims.length] ?? buildableTrims[0]) as (typeof buildableTrims)[number])
+        : pick(buildableTrims);
     const year = between(Math.max(t.row.yearFrom ?? 2018, 2018), 2026);
     const age = 2026 - year;
     const mileageKm = age === 0 ? between(500, 8000) : between(8000, 45000) * age;
@@ -2388,12 +2405,34 @@ async function main(): Promise<void> {
     orderBy: { ref: 'asc' },
   });
 
+  /**
+   * ═══ ومزادٌ مباشر بين المفضّلات ═══
+   *
+   * ترميز `Wu` يضع تحت المركبة «في مزاد · ينتهي بعد …» — وهي أعجلُ ما
+   * في الشاشة: مزادٌ يغلق غدًا على مركبةٍ حفظها صاحبُها. **والتوزيعُ
+   * بالدوران قد لا يقع على إعلانِ مزادٍ حيّ أصلًا**، فتبقى الحالُ
+   * مبنيّةً بلا بياناتٍ تُظهرها في أيّ بيئةٍ مزروعة.
+   *
+   * فتُدسّ واحدةٌ في أوّل مفضّلةٍ لنصف من يُفضّلون — لا لحسابٍ بعينه:
+   * **زرعٌ يُرضي أداةَ قياسٍ يُفسد البيانات**، وزرعٌ يُحاكي الواقع
+   * تراه الأداةُ وغيرُها.
+   */
+  const liveAuctions = await prisma.listing.findMany({
+    where: { status: 'PUBLISHED', auction: { status: 'LIVE', endsAt: { gt: NOW } } },
+    select: { id: true },
+    orderBy: { ref: 'asc' },
+  });
+
   for (const [index, buyer] of buyerPool.entries()) {
     // ثلثا المشترين لهم مفضّلة — والباقي بلاها ليبقى للشريحة معنًى
     if (index % 3 === 2 || publishedListings.length === 0) continue;
     const count = between(1, 3);
     for (let n = 0; n < count; n += 1) {
-      const listing = publishedListings[(index * 3 + n) % publishedListings.length];
+      const auction = liveAuctions[(index / 2) % liveAuctions.length];
+      const listing =
+        n === 0 && index % 2 === 0 && auction !== undefined
+          ? auction
+          : publishedListings[(index * 3 + n) % publishedListings.length];
       if (listing === undefined) continue;
       await prisma.favorite.upsert({
         where: { userId_listingId: { userId: buyer.id, listingId: listing.id } },

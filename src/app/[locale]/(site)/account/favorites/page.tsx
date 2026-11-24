@@ -7,6 +7,7 @@ import { LinkButton } from '@/components/ui/Button';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies, favoriteListings } from '@/lib/domain/account';
 import { Badge } from '@/components/ui/Badge';
+import { Duration } from '@/components/ui/Duration';
 import { AccountList, AccountRow, Money } from '../AccountList';
 
 export const dynamic = 'force-dynamic';
@@ -50,8 +51,41 @@ export default async function FavoritesPage({
           title={item.title}
           year={item.year}
           badge={
-            /* المسحوب يبقى ويُقال — حذفه يوهم المستخدم أنه لم يحفظه */
-            item.available ? undefined : <Badge tone="warn">لم تعد معروضة</Badge>
+            /*
+              ═══ المزادُ أوّلًا — فهو ما يحتاج فعلًا الآن ═══
+
+              ترميز `Wu` يضع «في مزاد · ينتهي غدًا». ومن حفظ مركبةً
+              في مزادٍ يغلق غدًا يحتاج أن يعرف **قبل** أن يفوته، لا أن
+              يفتح الصفّ ليكتشف.
+
+              **والمسحوبُ يبقى ويُقال** — حذفُه يوهم المستخدم أنه لم
+              يحفظه. والمبيعُ غيرُ المسحوب: الأوّل انتهى بثمن، والثاني
+              أخفاه صاحبُه.
+            */
+            item.auctionMinutesLeft !== null ? (
+              <Badge tone="warn">
+                {/*
+                  **واليومُ وغدًا بكلمتيهما.** «ينتهي بعد يوم واحد»
+                  عربيّةٌ ثقيلة، والترميز يكتب «ينتهي غدًا». وما جاوزهما
+                  يُقال بمدّته — **والجارُّ مكتوب**: «ينتهي يومان» خطأ،
+                  و«بعد» تحكم ما يليها فيصير «يومين» (`genitive`).
+                */}
+                في مزاد · ينتهي{' '}
+                {item.auctionEndsInDays === 0 ? (
+                  'اليوم'
+                ) : item.auctionEndsInDays === 1 ? (
+                  'غدا'
+                ) : (
+                  <>
+                    بعد <Duration minutes={item.auctionMinutesLeft} genitive />
+                  </>
+                )}
+              </Badge>
+            ) : item.sold ? (
+              <Badge tone="neutral">بيعت</Badge>
+            ) : item.available ? undefined : (
+              <Badge tone="warn">لم تعد معروضة</Badge>
+            )
           }
           meta={<span>{item.city}</span>}
           value={<Money amount={item.price} />}

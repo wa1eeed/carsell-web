@@ -214,6 +214,35 @@ export default async function CityBrandModelLanding({
             **والترتيب يُطلب لا يُفرَض**، والعنوان يحمله فيُشارَك ويعمل
             بلا JS — كصفحة الماركة سواءً بسواء.
           */}
+          {/*
+            ═══ فئاتُ الطراز — «كل الفئات» ثمّ ما له نتيجة ═══
+
+            ترميز `Wz` يضعها فوق الشبكة. وهي **ما يكتبه الباحث
+            حرفيًّا**: «كامري LE في الرياض» أخصُّ من «كامري في الرياض».
+
+            **والمعروضُ ما له إعلانٌ هنا** — لا كلُّ فئات الكتالوج:
+            شريحةٌ تَعِد بفئةٍ تفتح على صفرٍ هي الدرسُ المسجَّل في
+            مرشّح الماركات. ولا تُعرض أصلًا متى كانت واحدةً: «كل
+            الفئات» و«LE» وحدهما تقسيمٌ بلا قسمة.
+          */}
+          {content.trims.length < 2 ? null : (
+            <nav className="mb-4 flex flex-wrap items-center gap-2.5">
+              <FilterChip href={base} active>
+                كل الفئات
+              </FilterChip>
+              {content.trims.map((trim) => (
+                <FilterChip
+                  key={trim.id}
+                  active={false}
+                  count={trim.count}
+                  href={`/${locale}/cars?${content.searchQuery}&trimId=${trim.id}`}
+                >
+                  {trim.name}
+                </FilterChip>
+              ))}
+            </nav>
+          )}
+
           <nav className="mb-6 flex flex-wrap items-center gap-2.5">
             <FilterChip href={base} active={sort === 'newest'}>
               الأحدث
