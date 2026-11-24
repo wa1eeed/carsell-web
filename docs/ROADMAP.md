@@ -1855,6 +1855,46 @@ the order reference, the breadcrumb, a name on the sale-method value, a heading
 over the stage tracker, and «المبلغ في الضمان» as the amounts heading before
 payment — where the title itself tells the buyer where the money goes.
 
+### 40a · 4 — `A11` integrations, 31٪ → 88٪, and a register that never reached production
+
+Fourth in the ranking, and the gap under it was not on the screen.
+
+**Eight of the fourteen integrations the markup lists had no row at all**, and
+the nine that did were seeded in `seed.ts` alone — which **refuses to run
+outside development on purpose**. `plantReference` seeds twenty tables and
+`Integration` was not among them, so the external-dependency register on
+`carz.sa` was **empty**: no provider, no state, no written fallback, nowhere to
+put a key. §39 built the bootstrap to close exactly this class; this table was
+not counted that day. `FinanceProvider` was the same — eight lenders in
+development, zero in production, read by the financing page, the calculator and
+every «أقساط من» card.
+
+Both now plant from `reference.ts` and reach existing databases by migration,
+and the missing eight are added as honest `INACTIVE` rows with their real
+fallback behaviour. A row saying «متصل» without an adapter would be a lie; a row
+saying «غير مفعّل» is an acknowledged dependency — and push notifications are
+the proof it was worth it: 40a·1 built their whole measurement pipeline while
+nothing recorded that FCM and APNs are an external dependency at all.
+
+**And the bootstrap was re-inserting lenders on every run.** `skipDuplicates`
+guards a unique key, and `FinanceProvider` has a `cuid` id and no unique name —
+so nothing conflicted and eight more appeared each time. Measured when the
+guard went in: **104 rows where there should be 8**. The reference-bootstrap
+test caught it, which is what it was written for.
+
+On the screen: the two markup cards that had no field behind them —
+**«تكلفة الشهر»** (a contract, not something a provider reports) and
+**«مفاتيح تنتهي قريبًا»** (thirty days' warning, because a key that expires
+unannounced stops an integration mid-working-day) — with one editor for both,
+audited, and no approval request: a number and a date open no door.
+Then the environment indicator the markup puts in the header, a **kind chip**
+per row («بنكي» · «مركبات» — finer than the four categories, and the
+difference between a bank rail and a card gateway inside `PAYMENT`), and Arabic
+names for the key fields, which were rendering as `secretKey` and `clientId`.
+
+**What the panel deliberately does not do** — «+ تكامل» and the publishable-key
+field — is in `DESIGN-DEVIATIONS.md` with the reasoning.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the
@@ -2918,6 +2958,42 @@ never reach a reader, and this repository's comments are deliberately voweled).
   form, because behaviour alone would pass right up until the day it broke.
 
 ## Also open, outside the four stages
+
+### The production build reaches out to Google at build time — *found 2026-11-24*
+
+A deploy of `28e5377` failed in the image build:
+
+```
+src/app/admin/layout.tsx
+An error occurred in `next/font`.
+TypeError: Cannot read properties of null (reading '1')
+  at .../@next/font/dist/google/loader.js:122
+```
+
+That is the Google Fonts loader failing to parse what it fetched — a null
+regex match on the CSS. Three layouts call `next/font/google` for `Figtree` and
+`Tajawal`, so **every production image depends on `fonts.googleapis.com`
+answering during `npm run build`**.
+
+**It was transient.** Measured right after: `curl` from the host returned 200,
+and a throwaway `node:22-alpine` container — the same base the build uses —
+fetched the CSS and got valid `@font-face` back. The deploy thirty minutes
+earlier had succeeded on the same code. Most likely rate-limiting on repeated
+fetches from one address. The retry went through.
+
+**`carz-deploy` behaved exactly as designed**: the build failed, the running
+container was never touched, and the site stayed up on the previous image.
+
+**And `build:check` would not have caught it** — it passes locally where the
+fetch succeeds. This is not the «verify does not build» gap; it is a build that
+depends on a third party being reachable at the moment it runs.
+
+**The durable fix is to stop fetching.** `next/font/local` with the two
+families committed as `woff2` removes the dependency, makes builds
+reproducible, and drops a request from every first page load. It is sequenced
+before launch: a build that can fail for reasons outside the repository is a
+deploy that can fail on the day it matters most.
+
 
 ### A deploy button in GitHub — *owner's decision 2026-11-24, for after launch*
 

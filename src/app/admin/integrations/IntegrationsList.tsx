@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import type { ConnectionState, IntegrationRow } from '@/lib/domain/admin-integrations';
-import { ENV_LABEL } from '@/lib/labels/admin';
+import { ENV_LABEL, INTEGRATION_FIELD_LABEL } from '@/lib/labels/admin';
+import { Money } from '@/components/ui/Money';
+import { IntegrationCost } from './IntegrationCost';
 import { secretFieldsFor } from '@/lib/domain/integration-fields';
 import { cn } from '@/lib/cn';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
@@ -121,9 +123,30 @@ export function IntegrationsList({
                   <div className="min-w-48 flex-1">
                     <p className="text-xs font-bold">{row.nameAr}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-2 text-3xs opacity-70">
+                      {/* **الصنفُ قبل المزوّد** — كلمةٌ تفرّق بين مسارٍ بنكيّ وبوابةِ بطاقة. */}
+                      {row.kindLabel === '' ? null : (
+                        <>
+                          <span className="rounded-sm bg-bg px-1.5 py-0.5 font-bold">
+                            {row.kindLabel}
+                          </span>
+                          <span aria-hidden className="opacity-40">·</span>
+                        </>
+                      )}
                       <span className="bidi-isolate">{row.provider}</span>
                       <span aria-hidden className="opacity-40">·</span>
                       <span className="font-num" dir="ltr">{row.key}</span>
+                      {/*
+                        **وكلفةُ الصفّ بجوار اسمه** — كالترميز. ومن
+                        يقرأ المجموع فوق القائمة يحتاج أن يرى ممّ
+                        تكوّن، وما الذي لم تُدخَل كلفتُه بعد.
+                      */}
+                      {row.monthlyCost === null ? null : (
+                        <>
+                          <span aria-hidden className="opacity-40">·</span>
+                          <Money amount={row.monthlyCost} size="sm" />
+                          <span>شهريا</span>
+                        </>
+                      )}
                     </p>
                     <p className="mt-1.5 text-3xs leading-relaxed opacity-70">
                       عند التعطل: {row.failureBehavior}
@@ -141,7 +164,7 @@ export function IntegrationsList({
                     */}
                     {row.webhookUrl === null ? null : (
                       <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5 text-3xs">
-                        <span className="opacity-70">ينادينا على</span>
+                        <span className="opacity-70">عنوان الويب هوك — ينادينا عليه</span>
                         <code
                           className="font-num select-all rounded bg-ink/8 px-1.5 py-0.5 opacity-80"
                           dir="ltr"
@@ -169,12 +192,17 @@ export function IntegrationsList({
                           {ENV_LABEL[credential.env]}
                         </span>
                         {!credential.configured ? (
-                          <span className="opacity-65">بلا مفاتيح</span>
+                          /* **و«غير مفعّل» يُقال بنصّه** — كالترميز. */
+                          <span className="opacity-65">
+                            {row.status === 'INACTIVE' ? 'لم يفعل بعد' : 'بلا مفاتيح'}
+                          </span>
                         ) : (
                           <span className="flex flex-col gap-0.5">
                             {Object.entries(credential.hints).map(([name, hint]) => (
                               <span key={name} className="flex items-baseline gap-2">
-                                <span className="opacity-70">{name}</span>
+                                <span className="opacity-70">
+                                  {INTEGRATION_FIELD_LABEL[name] ?? name}
+                                </span>
                                 {/* التلميح مخزَّن نصًّا — ولا فكّ تشفير في مسار العرض */}
                                 <span className="font-num truncate opacity-75" dir="ltr">
                                   {String(hint)}
@@ -300,6 +328,18 @@ export function IntegrationsList({
                   >
                     افحص الاتصال
                   </Button>
+
+                  {/* الكلفةُ والصلاحية — رقمٌ وتاريخ، فلا نصابَ لهما. */}
+                  {!canManage ? null : (
+                    <IntegrationCost
+                      integrationKey={row.key}
+                      monthlyCost={row.monthlyCost}
+                      expiresAt={{
+                        TEST: row.credentials.find((c) => c.env === 'TEST')?.expiresAt ?? null,
+                        LIVE: row.credentials.find((c) => c.env === 'LIVE')?.expiresAt ?? null,
+                      }}
+                    />
+                  )}
 
                   {!canManage ? null : row.pendingRotation === null ? (
                     <Button

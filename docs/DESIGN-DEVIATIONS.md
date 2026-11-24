@@ -28,6 +28,32 @@ comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
 understates a screen by up to twelve points, and the whole-tree figure
 correspondingly.
 
+## A11 — three things the markup draws that the panel deliberately does not · 2026-11-24
+
+**Status: decided.** All three keep reading as misses in `design-audit`; the
+measure stays honest rather than the screen stretching to match.
+
+**«+ تكامل» — no creator, on purpose.** An `AdSlot` with no code is still a
+sellable slot: the screen reads it generically. An `Integration` with no
+adapter is **inert** — nothing probes it, nothing reads its keys, nothing
+routes through it. A button that lets an operator declare one would produce
+rows that look like dependencies and are not, which is the «شاشةٌ تقول شيئًا
+والنظام يفعل غيره» failure wearing a different hat. Integrations arrive with
+the code that uses them, and the register now ships them as `INACTIVE` rows so
+the operator sees what exists before it is wired.
+
+**«المفتاح العام» — a field no integration declares.** `publicKey` is in the
+markup because Moyasar issues a publishable key for client-side tokenisation.
+Our checkout posts to our own API and the server talks to the gateway, so the
+publishable key is never needed — collecting it would mean storing a secret
+with no reader. The label exists in `INTEGRATION_FIELD_LABEL` so the day an
+integration declares the field it is named, and a test keeps that map honest in
+both directions.
+
+**«المفتاح السرّي» renders only once a key is stored.** No integration in
+development has credentials, so the labelled hints never render — a data state,
+not a missing screen.
+
 ## A30 — two labels the screen states more narrowly than the markup · 2026-11-24
 
 **Status: deliberate.** Both will keep reading as misses in `design-audit`, and

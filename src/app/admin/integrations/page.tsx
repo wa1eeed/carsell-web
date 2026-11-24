@@ -3,7 +3,15 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { integrationSummary, listIntegrations } from '@/lib/domain/admin-integrations';
+import {
+  KEY_EXPIRY_WARNING_DAYS,
+  integrationSummary,
+  listIntegrations,
+} from '@/lib/domain/admin-integrations';
+import { Money } from '@/components/ui/Money';
+import { Counted } from '@/components/ui/Counted';
+import { Badge } from '@/components/ui/Badge';
+import { isProduction } from '@/lib/env';
 import { INTEGRATION_CATEGORY_LABEL } from '@/lib/labels/admin';
 import { IntegrationsList } from './IntegrationsList';
 
@@ -39,6 +47,25 @@ export default async function IntegrationsPage() {
 
   return (
     <AdminShell title="التكاملات ومفاتيح الربط" activeHref="/admin/integrations" admin={admin}>
+      {/*
+        ═══ أيَّ بيئةٍ تنظر إليها؟ ═══
+
+        الترميز يضع البيئة في رأس الشاشة. وبدونها يقرأ المشغّل مفاتيحَ
+        «الإنتاج» في صفٍّ ويظنّ أنها العاملة — **وخارج الإنتاج لا
+        تُقرأ أصلًا** (قرار ٣٣: الحقل يُقرأ في الإنتاج وحده).
+        **ومؤشِّرٌ لا مفتاح**: بيئةُ المنصّة ليست ممّا يُبدَّل بضغطة.
+      */}
+      <p className="mb-4 flex flex-wrap items-center gap-2.5 text-2xs">
+        <Badge tone={isProduction ? 'accent' : 'warn'}>
+          {isProduction ? 'بيئة الإنتاج' : 'بيئة الاختبار'}
+        </Badge>
+        <span className="opacity-70">
+          {isProduction
+            ? 'المفاتيح العاملة هي المخزنة لكل تكامل'
+            : 'المفاتيح العاملة مفاتيح الاختبار مهما كان المخزن — ولا يقرأ الحقل خارج الإنتاج'}
+        </span>
+      </p>
+
       <div className="mb-4 grid gap-4 md:grid-cols-5">
         {/*
           **و«تحذير» صارت «بلا مفاتيح».** البطاقة كانت تعدّ `DEGRADED`
@@ -55,6 +82,44 @@ export default async function IntegrationsPage() {
           مفتاحًا ينتظر تدويرًا.
         */}
         <Stat title="تبديل بيئة لم يكتمل" value={summary.pendingEnvSwitches} />
+      </div>
+
+      {/*
+        ═══ بطاقتان في الترميز بلا حقلٍ يحملهما ═══
+
+        «تكلفة الشهر» و«مفاتيح تنتهي قريبًا». والأولى **ما نتعاقد
+        عليه** لا ما يقيسه مزوّد، فتُدخَل من الصفّ. والثانية تمنع
+        مفتاحًا ينتهي في منتصف يوم عمل — وتدويرُه يحتاج موافقة عضوين،
+        فساعةُ اكتشافه متأخّرةٌ بالضرورة.
+      */}
+      <div className="mb-7 grid gap-4 md:grid-cols-2">
+        <section className="rounded-lg border border-line bg-surface p-5">
+          <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">تكلفة الشهر</h2>
+          <p className="mt-2 text-2xl font-bold">
+            <Money amount={summary.monthlyCost} />
+          </p>
+          <p className="mt-1 text-3xs opacity-65">
+            {/*
+              **والمجموعُ يقول كم بُني عليه.** مجموعٌ على ثلاثةٍ من
+              سبعةَ عشرَ يُقرأ كلفةَ المنصّة كلِّها، وهو ثُلثُها.
+            */}
+            <Counted message="ofIntegrations" count={summary.costEntered} /> — وما لم
+            تدخل كلفته لا يدخل المجموع
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-line bg-surface p-5">
+          <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">
+            مفاتيح تنتهي قريبا
+          </h2>
+          <p className="mt-2 text-2xl font-bold">
+            <ArabicNumber value={summary.expiringSoon} />
+          </p>
+          <p className="mt-1 text-3xs opacity-65">
+            <Counted message="withinDays" count={KEY_EXPIRY_WARNING_DAYS} /> — ومفتاح
+            ينتهي بلا علم يوقف تكاملا في منتصف يوم عمل
+          </p>
+        </section>
       </div>
 
       <IntegrationsList

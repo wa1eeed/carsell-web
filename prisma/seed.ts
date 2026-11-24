@@ -2360,64 +2360,13 @@ async function main(): Promise<void> {
     },
   });
 
-  // ————— جهات التمويل (قرار ١٤: عرض وحساب فقط) —————
-  await prisma.financeProvider.createMany({
-    data: (
-      [
-        ['الراجحي', 'Al Rajhi Bank'],
-        ['البلاد', 'Bank Albilad'],
-        ['الرياض', 'Riyad Bank'],
-        ['الإنماء', 'Alinma Bank'],
-        ['الجزيرة', 'Bank Aljazira'],
-        ['الأهلي', 'SNB'],
-        ['عبداللطيف جميل', 'Abdul Latif Jameel'],
-        ['إمكان', 'Emkan Finance'],
-      ] as const
-    ).map(([nameAr, nameEn], i) => ({
-      nameAr,
-      nameEn,
-      downPaymentPct: new D('20.00'),
-      months: 60,
-      profitRatePct: new D(String(4 + i * 0.25)),
-      sort: i + 1,
-    })),
-  });
-
-  // ————— التكاملات (A11) —————
-  await prisma.integration.createMany({
-    data: [
-      ['otp_sms', 'رسائل التحقق', 'Unifonic', 'INFRASTRUCTURE', 'ACTIVE', 'التحويل للاحتياطي خلال ٣٠ ثانية'],
-      ['nafath', 'النفاذ الوطني', 'Nafath', 'IDENTITY', 'INACTIVE', 'المسار اليدوي دائما متاح'],
-      /**
-       * ═══ بوّابتان لا واحدة — قرار المالك ٢٠٢٦-١٠-١٤ ═══
-       *
-       * الأولى حسابُ تاجرٍ عاديّ لبيع المركبات: ضمانٌ وعمولةٌ ورسوم نقل.
-       * والثانية **منصّةٌ متعدّدة التجّار** لخدمات المزوّدين: تُسجَّل فيها
-       * حساباتُهم وتوزَّع عليها الدفعات، فيصل المال إليهم مباشرةً
-       * وحصّتُنا تُقتطع في الدفعة نفسها.
-       *
-       * وحسابان مختلفان بإمكاناتٍ مختلفة، فمدخلان لا مدخل.
-       */
-      ['payments', 'بوابة الدفع للمنصة', 'Moyasar', 'PAYMENT', 'INACTIVE', 'رسالة واضحة وإعادة محاولة'],
-      ['moyasar_platform', 'بوابة الدفع للمزودين', 'Moyasar Platform', 'PAYMENT', 'INACTIVE', 'الخدمة تبقى تطلب ويتأخر التحصيل'],
-      ['vin_lookup', 'بيانات المركبة', 'Tamm', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي'],
-      // سجلُّ المنشأة وعقدُ التأسيس والمفوَّضون — بالرقم الموحَّد
-      ['lean', 'سجل المنشأة', 'Lean', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي'],
-      ['mojaz', 'تقارير موجز', 'Mojaz', 'GOVERNMENT', 'INACTIVE', 'رد المبلغ تلقائيا'],
-      ['r2', 'الوسائط', 'Cloudflare R2', 'INFRASTRUCTURE', 'ACTIVE', 'عرض من الذاكرة المؤقتة'],
-      ['email', 'البريد المعاملاتي', 'Resend', 'INFRASTRUCTURE', 'INACTIVE', 'طابور إعادة إرسال'],
-    ].map(([key, nameAr, provider, category, status, failureBehavior]) => ({
-      key: key as string,
-      nameAr: nameAr as string,
-      provider: provider as string,
-      category: category as 'IDENTITY' | 'PAYMENT' | 'GOVERNMENT' | 'INFRASTRUCTURE',
-      status: status as 'ACTIVE' | 'INACTIVE' | 'DEGRADED',
-      failureBehavior: failureBehavior as string,
-      lastCheckAt: status === 'ACTIVE' ? hours(-1) : null,
-      lastCheckOk: status === 'ACTIVE' ? true : null,
-    })),
-  });
-
+  /**
+   * ═══ التكاملات وجهات التمويل — انتقلتا إلى `reference.ts` ═══
+   *
+   * كانتا تُزرعان هنا وحدَهما، **والبذرةُ ترفض الإنتاج عمدًا** —
+   * فسجلُّ التبعيّات الخارجية وقائمةُ المموّلين في قاعدةٍ جديدة
+   * فارغان. و`plantReference` يزرعهما الآن، فيصلان كلَّ بيئة.
+   */
   // ————— قوالب نصوص SEO (قرار ٢٦) —————
   /**
    * ثلاثةُ أسطح لأنّ الصفحات ثلاث — `SEO_SURFACES` تسمّيها، وسطحٌ بلا

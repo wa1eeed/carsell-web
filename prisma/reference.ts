@@ -484,6 +484,92 @@ export async function plantReference(
   });
   note('قالب إشعار', templates.count);
 
+  /**
+   * ═══ سجلُّ التكاملات — ولم يكن يصل الإنتاج ═══
+   *
+   * كان يُزرع في `seed.ts` وحده، **والبذرةُ ترفض الإنتاج عمدًا** —
+   * فسجلُّ التبعيّات الخارجية في قاعدةٍ جديدة فارغٌ تمامًا: لا حالَ
+   * لمزوّد ولا مسارَ بديلًا مكتوبًا ولا موضعَ لمفتاح. وهو صنفُ §39
+   * عاد في جدولٍ لم يُعدّ يومها.
+   *
+   * **وكلُّها `INACTIVE` إلّا ما يعمل بلا مفتاح**: صفٌّ يقول «متصل»
+   * بلا مُهايئ كذبةٌ على الشاشة، وصفٌّ يقول «غير مفعّل» إقرارٌ صادق
+   * بتبعيّةٍ نعرفها ولم نصلها بعد.
+   */
+  const integrations = await prisma.integration.createMany({
+    data: (
+      [
+        ['otp_sms', 'رسائل التحقق', 'Unifonic', 'INFRASTRUCTURE', 'ACTIVE', 'التحويل للاحتياطي خلال 30 ثانية', 'رسائل'],
+        ['nafath', 'النفاذ الوطني', 'NAFATH', 'IDENTITY', 'INACTIVE', 'المسار اليدوي دائما متاح', 'هوية'],
+        ['identity_manual', 'التحقق من الهوية يدويا', 'مراجعة داخلية', 'IDENTITY', 'ACTIVE', 'هو نفسه المسار البديل — طابور المراجعة في لوحة الأدمن', 'هوية'],
+        ['payments', 'بوابة الدفع للمنصة', 'Moyasar', 'PAYMENT', 'INACTIVE', 'رسالة واضحة وإعادة محاولة', 'مدفوعات'],
+        ['moyasar_platform', 'بوابة الدفع للمزودين', 'Moyasar Platform', 'PAYMENT', 'INACTIVE', 'الخدمة تبقى تطلب ويتأخر التحصيل', 'مدفوعات'],
+        ['bank_escrow', 'حساب الضمان', 'بنك شريك', 'PAYMENT', 'INACTIVE', 'لا شراء يبدأ — ورسالة تقول ان الخدمة متوقفة مؤقتا', 'بنكي'],
+        ['sarie_payout', 'التسوية والتحويل للبائعين', 'SARIE', 'PAYMENT', 'INACTIVE', 'التحويلات تبقى في الطابور ولا تسقط، وتنفذ عند عودة الخدمة', 'بنكي'],
+        ['vin_lookup', 'بيانات المركبة', 'Tamm', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي', 'مركبات'],
+        ['lean', 'سجل المنشأة', 'Lean', 'GOVERNMENT', 'INACTIVE', 'فتح الإدخال اليدوي', 'سجل تجاري'],
+        ['mojaz', 'تقارير موجز', 'موجز', 'GOVERNMENT', 'INACTIVE', 'رد المبلغ تلقائيا', 'تقارير'],
+        ['traffic_transfer', 'نقل الملكية', 'تكامل المرور', 'GOVERNMENT', 'INACTIVE', 'يحول الطلب الى موعد حضوري وتبقى المهلة موقوفة', 'مرور'],
+        ['r2', 'الوسائط', 'Cloudflare R2', 'INFRASTRUCTURE', 'ACTIVE', 'عرض من الذاكرة المؤقتة', 'تخزين'],
+        ['email', 'البريد المعاملاتي', 'Resend', 'INFRASTRUCTURE', 'INACTIVE', 'طابور إعادة إرسال', 'بريد'],
+        ['email_marketing', 'البريد التسويقي', 'Resend — نطاق فرعي', 'INFRASTRUCTURE', 'INACTIVE', 'الحملات تؤجل ولا ترسل ناقصة، والمعاملاتي لا يتأثر', 'بريد'],
+        ['push_mobile', 'إشعارات الجوال', 'FCM · APNs', 'INFRASTRUCTURE', 'INACTIVE', 'الاشعار يبقى في الجرس داخل التطبيق، ولا يضيع', 'دفع'],
+        ['error_monitoring', 'مراقبة الأخطاء والأداء', 'Sentry', 'INFRASTRUCTURE', 'INACTIVE', 'الاخطاء تبقى في سجل الخادم — ولا تنبيه فوري', 'مراقبة'],
+        ['product_analytics', 'التحليلات السلوكية', 'PostHog', 'INFRASTRUCTURE', 'INACTIVE', 'لا قياس للسلوك — ولا اثر على اي وظيفة', 'تحليلات'],
+      ] as const
+    ).map(([key, nameAr, provider, category, status, failureBehavior, kindLabel]) => ({
+      key,
+      nameAr,
+      provider,
+      category: category as 'IDENTITY' | 'PAYMENT' | 'GOVERNMENT' | 'INFRASTRUCTURE',
+      status: status as 'ACTIVE' | 'INACTIVE' | 'DEGRADED',
+      failureBehavior,
+      kindLabel,
+    })),
+    skipDuplicates: true,
+  });
+  note('تكامل', integrations.count);
+
+  /**
+   * **وجهاتُ التمويل مثلُها** — ثمانٍ في البذرة وصفرٌ في الإنتاج،
+   * وصفحةُ التمويل والحاسبة وبطاقةُ «أقساط من» كلُّها تقرؤها.
+   */
+  /**
+   * **و`skipDuplicates` لا تحرس جدولًا بلا مفتاحٍ فريد.** `FinanceProvider`
+   * معرّفُه `cuid` واسمُه غيرُ فريد، فلا تعارضَ يقع — وكلُّ تشغيلٍ
+   * يُضيف ثمانيةً أخرى. وكشفه اختبارُ «على قاعدةٍ مكتملة لا يزرع
+   * شيئًا»، وهو ما وُضع له.
+   *
+   * فالحارسُ عدٌّ كحارس الكتالوج: المجموعةُ كاملةٌ أو غائبة.
+   */
+  if ((await prisma.financeProvider.count()) > 0) {
+    note('جهة تمويل', 0);
+  } else {
+  const financiers = await prisma.financeProvider.createMany({
+    data: (
+      [
+        ['الراجحي', 'Al Rajhi Bank'],
+        ['البلاد', 'Bank Albilad'],
+        ['الرياض', 'Riyad Bank'],
+        ['الإنماء', 'Alinma Bank'],
+        ['الجزيرة', 'Bank Aljazira'],
+        ['الأهلي', 'SNB'],
+        ['عبداللطيف جميل', 'Abdul Latif Jameel'],
+        ['إمكان', 'Emkan Finance'],
+      ] as const
+    ).map(([nameAr, nameEn], i) => ({
+      nameAr,
+      nameEn,
+      downPaymentPct: new Prisma.Decimal('20.00'),
+      months: 60,
+      profitRatePct: new Prisma.Decimal(String(4 + i * 0.25)),
+      sort: i + 1,
+    })),
+    skipDuplicates: true,
+  });
+  note('جهة تمويل', financiers.count);
+  }
+
   // ═══ بوّابات الدفع وتوجيه الأغراض ═══
   const gateways = await prisma.paymentGateway.createMany({
     data: load<GatewayRow[]>('payment-gateways.json').map((row) => ({

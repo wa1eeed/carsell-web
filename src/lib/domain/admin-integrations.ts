@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { APP_URL } from '@/lib/env';
+import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
 import type { IntegrationEnv } from '@/generated/prisma/enums';
 import { encryptSecret, secretHint } from '@/lib/crypto/secrets';
@@ -25,6 +26,8 @@ export type CredentialView = {
   hints: Record<string, string>;
   configured: boolean;
   updatedAt: string | null;
+  /** `YYYY-MM-DD` لحقل التاريخ — و`null` «لا ينتهي أو لا نعلم». */
+  expiresAt: string | null;
 };
 
 export type IntegrationRow = {
@@ -54,6 +57,10 @@ export type IntegrationRow = {
   /** المخزَّنة `LIVE` والمستعملة `TEST` — تُقال للمحرّر لا تُخفى عنه. */
   envForced: boolean;
   credentials: CredentialView[];
+  /** كلفةُ الشهر كما أُدخلت — و`null` «لم تُدخَل» لا «صفر». */
+  monthlyCost: string | null;
+  /** صنفٌ أضيقُ من الفئة — «بنكي» و«مركبات» (ترميز A11). */
+  kindLabel: string;
   pendingRotation: {
     id: string;
     env: IntegrationEnv;
@@ -159,6 +166,8 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
         hints: readHints(stored?.hints ?? null),
         configured: stored?.secretsEncrypted != null && stored.secretsEncrypted !== '',
         updatedAt: stored?.updatedAt.toISOString() ?? null,
+        /** `YYYY-MM-DD` — صيغةُ حقل التاريخ، فلا تحويلَ في الشاشة. */
+        expiresAt: stored?.expiresAt?.toISOString().slice(0, 10) ?? null,
       };
     });
 
@@ -173,6 +182,8 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       lastCheckAt: row.lastCheckAt?.toISOString() ?? null,
       lastCheckOk: row.lastCheckOk,
       failureBehavior: row.failureBehavior,
+      monthlyCost: row.monthlyCost?.toString() ?? null,
+      kindLabel: row.kindLabel,
       publicConfig,
       storedEnv: row.activeEnv,
       activeEnv: effectiveEnvironment(row.activeEnv),
@@ -529,10 +540,22 @@ export type IntegrationSummary = {
   pendingEnvSwitches: number;
   /** مخزَّنة `LIVE` وتعمل على `TEST` — حالٌ تُقال لا تُخفى. */
   forcedToTest: number;
+  /**
+   * كلفةُ الشهر — مجموعُ ما أُدخل. و`null` في صفٍّ تعني «لم تُدخَل»
+   * لا «صفر»، فالمجموع ناقصٌ ما لم يُدخَل — والعدد بجواره يقول كم.
+   */
+  monthlyCost: string;
+  costEntered: number;
+  /** مفاتيح تنتهي خلال النافذة — والمنتهيةُ فعلًا تُعدّ معها. */
+  expiringSoon: number;
 };
 
+/** «قريبًا» ثلاثون يومًا — وتدويرٌ يحتاج موافقة عضوين يحتاج مهلةً. */
+export const KEY_EXPIRY_WARNING_DAYS = 30;
+
 export async function integrationSummary(): Promise<IntegrationSummary> {
-  const [rows, rotations, envSwitches, live] = await Promise.all([
+  const soon = new Date(Date.now() + KEY_EXPIRY_WARNING_DAYS * 86_400_000);
+  const [rows, rotations, envSwitches, live, cost, expiring] = await Promise.all([
     db.integration.findMany({
       select: { status: true, activeEnv: true, credentials: { select: { env: true, secretsEncrypted: true } } },
     }),
@@ -543,6 +566,18 @@ export async function integrationSummary(): Promise<IntegrationSummary> {
       where: { kind: 'INTEGRATION_ENV', status: 'PENDING', entityType: 'Integration' },
     }),
     db.integration.count({ where: { activeEnv: 'LIVE' } }),
+    db.integration.aggregate({ _sum: { monthlyCost: true }, _count: { monthlyCost: true } }),
+    /**
+     * **والمفتاحُ بلا سرٍّ لا يُعدّ منتهيًا**: صفٌّ فارغٌ بتاريخٍ
+     * قديم يرفع العدّاد بلا أن يكون هناك ما ينتهي.
+     */
+    db.integrationCredential.count({
+      where: {
+        expiresAt: { not: null, lte: soon },
+        NOT: { secretsEncrypted: null },
+        secretsEncrypted: { not: '' },
+      },
+    }),
   ]);
 
   // البطاقات من الدالّة نفسها التي تُعطي الشارة — فلا تتباعدان
@@ -566,5 +601,89 @@ export async function integrationSummary(): Promise<IntegrationSummary> {
     pendingRotations: rotations,
     pendingEnvSwitches: envSwitches,
     forcedToTest: effectiveEnvironmentIsStored() ? 0 : live,
+    monthlyCost: (cost._sum.monthlyCost ?? 0).toString(),
+    costEntered: cost._count.monthlyCost,
+    expiringSoon: expiring,
   };
+}
+
+export type CostResult = { ok: boolean; reason?: 'NOT_FOUND' | 'BAD_COST' | 'BAD_DATE' };
+
+/**
+ * ═══ كلفةُ الشهر وصلاحيةُ المفتاح — ما لا يُجلب يُكتب ═══
+ *
+ * بطاقتا A11 «تكلفة الشهر» و«مفاتيح تنتهي قريبًا» بلا مصدرٍ يُجلب:
+ * الكلفةُ عقدٌ مع مزوّد، وتاريخُ الانتهاء يقرؤه المشغّل في لوحة
+ * المزوّد. فيُكتبان من الصفّ.
+ *
+ * **ولا يمرّان بطلب موافقة**: لا يفتحان بابًا ولا يُبدّلان سرًّا —
+ * بخلاف التدوير وتبديل البيئة اللذين يمرّان بـ`ApprovalRequest`
+ * (ونصابُه واحدٌ منذ قرار ٢٠٢٦-١٠-١٤، والطلبُ يبقى أثرًا يُقرأ).
+ *
+ * وكلاهما يُسجَّل في التدقيق: من غيّر الكلفة غيّر رقمًا يُقرأ في
+ * الميزانية.
+ */
+export async function setIntegrationCost(
+  admin: AdminUser,
+  key: string,
+  input: { monthlyCost: string | null; expiresAt: Record<string, string | null> },
+  ip: string | null = null,
+  now: Date = new Date(),
+): Promise<CostResult> {
+  const row = await db.integration.findUnique({
+    where: { key },
+    select: { key: true, monthlyCost: true },
+  });
+  if (row === null) return { ok: false, reason: 'NOT_FOUND' };
+
+  let cost: Prisma.Decimal | null = null;
+  if (input.monthlyCost !== null && input.monthlyCost.trim() !== '') {
+    const value = Number(input.monthlyCost);
+    if (!Number.isFinite(value) || value < 0) return { ok: false, reason: 'BAD_COST' };
+    cost = new Prisma.Decimal(input.monthlyCost);
+  }
+
+  /** التواريخ تُفحص كلُّها قبل أن يُكتب شيء — ولا نصفُ حفظ. */
+  const dates: { env: 'TEST' | 'LIVE'; at: Date | null }[] = [];
+  for (const [env, raw] of Object.entries(input.expiresAt)) {
+    if (env !== 'TEST' && env !== 'LIVE') return { ok: false, reason: 'BAD_DATE' };
+    if (raw === null || raw.trim() === '') {
+      dates.push({ env, at: null });
+      continue;
+    }
+    const at = new Date(raw);
+    if (Number.isNaN(at.getTime())) return { ok: false, reason: 'BAD_DATE' };
+    dates.push({ env, at });
+  }
+
+  await db.integration.update({ where: { key }, data: { monthlyCost: cost } });
+  for (const entry of dates) {
+    /**
+     * **ولا يُنشأ صفُّ اعتماداتٍ لتاريخٍ وحده.** صفٌّ بلا سرٍّ
+     * وبتاريخٍ يرفع عدّاد «تنتهي قريبًا» عن مفتاحٍ لا وجود له.
+     */
+    await db.integrationCredential.updateMany({
+      where: { integrationKey: key, env: entry.env },
+      data: { expiresAt: entry.at },
+    });
+  }
+
+  await db.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorType: 'admin',
+      entity: 'Integration',
+      entityId: key,
+      action: 'integration.cost_updated',
+      before: { monthlyCost: row.monthlyCost?.toString() ?? null },
+      after: {
+        monthlyCost: cost?.toString() ?? null,
+        expiresAt: Object.fromEntries(dates.map((d) => [d.env, d.at?.toISOString() ?? null])),
+      },
+      ip,
+      createdAt: now,
+    },
+  });
+
+  return { ok: true };
 }
