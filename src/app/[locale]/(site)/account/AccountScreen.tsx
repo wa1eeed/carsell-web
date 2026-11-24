@@ -10,10 +10,11 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { displayDigits, formatNumber, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Badge } from '@/components/ui/Badge';
 import { SignOut } from '@/components/ui/SignOut';
-import { Button, LinkButton } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
+import { OfferActions } from '@/components/site/OfferActions';
+import { TimeAgo } from '@/components/ui/TimeAgo';
 import { ScoreRing } from '@/components/ui/ScoreRing';
 import { TaxStatusDialog } from '@/components/site/TaxStatusDialog';
 import { MyAuctions } from '@/components/site/MyAuctions';
@@ -156,9 +157,16 @@ export function AccountScreen({
   locale,
   taxProfile,
   garage,
+  now,
 }: {
   data: AccountData;
   locale: string;
+  /**
+   * لحظةٌ واحدة من الخادم — **ولا `Date.now()` في العميل**: الزمنُ
+   * النسبيّ يُحسب على الخادم أوّلًا، فاختلافُ الساعتين يُخرج نصًّا
+   * غيرَ الذي صُيِّر ويشكو React من الترطيب.
+   */
+  now: string;
   taxProfile: TaxProfile;
   /** عدّادات المرآب — «٢ معروضة · ١ مخفية» (التسمية قرارُ المالك). */
   garage: { total: number; listed: number; garage: number; sold: number };
@@ -340,15 +348,6 @@ export function AccountScreen({
           href={`/${locale}/account/listings`}
           all={data.listings.length}
         >
-          {false ? (
-          <EmptyState
-            title={t('noListings')}
-            description={t('noListingsBody')}
-            action={
-              <LinkButton href={`/${locale}/sell`}>{t('sellNow')}</LinkButton>
-            }
-          />
-        ) : (
           <ul className="flex flex-col gap-3">
             {data.listings.slice(0, HOME_ROWS).map((listing) => (
               <li
@@ -374,7 +373,6 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
-        )}
         </HomeSection>
       )}
 
@@ -384,9 +382,6 @@ export function AccountScreen({
           href={`/${locale}/account/offers`}
           all={data.offers.length}
         >
-          {false ? (
-          <EmptyState title={t('noOffers')} description={t('noOffersBody')} />
-        ) : (
           <ul className="flex flex-col gap-3">
             {data.offers.slice(0, HOME_ROWS).map((offer) => (
               <li
@@ -395,11 +390,25 @@ export function AccountScreen({
               >
                 <span className="min-w-40 flex-1">
                   <Title title={offer.title} year={offer.year} />
-                  <span className="mt-1 block text-2xs opacity-70">
-                    {t('expiresOn')} <span className="bidi-isolate">{date.format(new Date(offer.expiresAt))}</span>
+                  <span className="mt-1 flex flex-wrap items-center gap-2 text-2xs opacity-70">
+                    {/* **والعمرُ قبل الانتهاء**: مهلةُ الردّ تُقاس منه، والترميز يكتبه. */}
+                    <TimeAgo at={offer.createdAt} now={now} />
+                    <span aria-hidden className="opacity-40">·</span>
+                    <span>
+                      {t('expiresOn')}{' '}
+                      <span className="bidi-isolate">{date.format(new Date(offer.expiresAt))}</span>
+                    </span>
                   </span>
                 </span>
-                <Badge tone="warn">{te(`offerStatus.${offer.status}`)}</Badge>
+                {/*
+                  **والحالةُ المخزَّنة لا تكفي متى كان لها وقت.** عرضٌ
+                  انقضت مهلتُه يبقى `PENDING` في القاعدة، فكانت الشاشة
+                  تقول «بانتظار الرد» عن عرضٍ لا يُردّ عليه — والأزرار
+                  تختفي بحقّ، فيقرأ البائع تناقضًا.
+                */}
+                <Badge tone={offer.lapsed ? 'neutral' : 'warn'}>
+                  {offer.lapsed ? te('offerStatus.EXPIRED') : te(`offerStatus.${offer.status}`)}
+                </Badge>
                 <span className="flex shrink-0 flex-col items-end gap-0.5">
                   <Money amount={Number(offer.amount)} size="md" showCurrency={false} className="text-accent-700" />
                   {/*
@@ -412,11 +421,31 @@ export function AccountScreen({
                     <ArabicNumber value={Number(offer.askPrice)} />
                   </span>
                 </span>
+                {/*
+                  ═══ والردُّ حيث يُقرأ العرض ═══
+
+                  كان الصفُّ ينتهي بـ«عرض» — فمن رأى عرضًا على حسابه
+                  انتقل إلى صندوق العروض ليردّ. والعرضُ له مهلة، وأكثرُ
+                  ما يفعله البائع في يومه أن يقبل أو يقابل.
+
+                  **و`sentByMe` شرطٌ لا زينة**: المقابل يحتفظ
+                  بـ`buyerId` الأصليّ فيبقى على إعلاني وأنا مرسلُه —
+                  وزرُّ «اقبل» فوقه يجعلني أقبل عرضَ نفسي، وهو العطل
+                  الذي أُصلح في الصندوق.
+                */}
+                <OfferActions
+                  offerId={offer.id}
+                  sentByMe={offer.sentByMe}
+                  amount={offer.amount}
+                  askPrice={offer.askPrice}
+                  actionable={
+                    !offer.lapsed && (offer.status === 'PENDING' || offer.status === 'COUNTERED')
+                  }
+                />
                 <ActionLink href={offer.path}>{t('view')}</ActionLink>
               </li>
             ))}
           </ul>
-        )}
         </HomeSection>
       )}
 
@@ -426,9 +455,6 @@ export function AccountScreen({
           href={`/${locale}/account/orders`}
           all={data.orders.length}
         >
-          {false ? (
-          <EmptyState title={t('noOrders')} description={t('noOrdersBody')} />
-        ) : (
           <>
           <ul className="flex flex-col gap-3">
             {data.orders.slice(0, HOME_ROWS).map((order) => (
@@ -487,12 +513,14 @@ export function AccountScreen({
                   )}
                 </span>
                 <Money amount={Number(order.amount)} size="md" showCurrency={false} />
-                <ActionLink href={`/${locale}/account/orders/${order.ref}`}>{t('view')}</ActionLink>
+                {/* **و«تفاصيل» لا «عرض»** — الوجهةُ صفحةُ الطلب بمراحلها لا معاينةٌ له. */}
+                <ActionLink href={`/${locale}/account/orders/${order.ref}`}>
+                  {t('details')}
+                </ActionLink>
               </li>
             ))}
           </ul>
           </>
-        )}
         </HomeSection>
       )}
 
@@ -502,9 +530,6 @@ export function AccountScreen({
           href={`/${locale}/account/reports`}
           all={data.reports.length}
         >
-          {false ? (
-          <EmptyState title={t('noReports')} description={t('noReportsBody')} />
-        ) : (
           <ul className="flex flex-col gap-3">
             {data.reports.slice(0, HOME_ROWS).map((report) => (
               <li
@@ -529,7 +554,6 @@ export function AccountScreen({
               </li>
             ))}
           </ul>
-        )}
         </HomeSection>
       )}
 

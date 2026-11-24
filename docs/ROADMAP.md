@@ -1936,6 +1936,52 @@ labels are plural units now, carrying the noun alone in its six forms with the
 number above them. Scanned for the same shape across every definition list in
 `src/`: none left.
 
+### 40a · 6 — `Wf` the account home, 40٪ → 80٪, and a CTA that lived in dead code
+
+The screen every signed-in person lands on. Four of its sections were wrapped
+in `{false ? <EmptyState …/> : …}` — **dead branches**, because each section is
+already hidden when it has nothing to show, so the empty state could never
+render. Removing them left two imports unused, which is how dead code proves
+itself.
+
+**And one of those branches held the design's «اعرض مركبة للبيع».** It was
+written, styled, and unreachable: the listings section hides when you have no
+listings, so the person with nothing to sell — the one the button is for —
+could never see it. It is in the welcome block now, where the markup puts it.
+
+**Offers could be read but not answered.** The row showed the amount, the ask
+price and the expiry, and ended in «عرض» — so a seller went to the offers inbox
+to reply to something they were already looking at, on an offer that expires.
+`OfferActions` is inline now, and it carries `sentByMe` with it: a counter-offer
+keeps the original `buyerId`, so without that flag the seller sees «اقبل» above
+their own counter and accepts their own offer — the bug that was fixed in the
+inbox and would have been copied here by copying the row.
+
+Also: the offer's **age** beside its expiry (the reply window is measured from
+it), «تفاصيل» rather than «عرض» on an order row that opens the order's stages,
+and a lapsed offer now reads «منتهٍ» instead of «بانتظار الرد» — the stored
+status is not enough when the thing has a clock, and the buttons were already
+hiding correctly, so the row contradicted itself.
+
+### And the seed could not show the screen the design draws
+
+Two measurements, both zero:
+
+- **No live offer existed anywhere.** Offers were seeded `days(-between(2, 20))`
+  with a 96-hour window, so «ينتظر الرد» was born expired whenever the dice
+  rolled above four. Accept and counter could not be seen on any screen, and
+  the negotiation journey could not be walked.
+- **No account both sold and bought** — 200 accounts, sellers sell and buyers
+  buy. `Wf` draws «طلباتي» and «العروض الواردة على مركباتك» in one screen, so
+  every check of it covered half the page. This was recorded at `Wj` and is now
+  fixed: the first seeded order is bought by a seller, and the first pending
+  offer lands on that same seller's listing.
+
+The measure also picks the account to walk by **what its page actually renders**
+rather than a fixed phone number — and the first version of that probe counted
+«طلباتي» from the sidebar, which every account has, so it chose the poorest one.
+It reads section content now.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the

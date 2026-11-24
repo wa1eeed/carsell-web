@@ -245,6 +245,26 @@ async function findOrderRoute() {
   return null;
 }
 
+/** كم قسمًا من أقسام `Wf` يعرضه هذا الحساب؟ — صفرٌ إلى ثلاثة. */
+async function accountRichness(cookie) {
+  try {
+    const res = await fetch(`${BASE}/ar/account`, {
+      headers: { cookie: `carsell_session=${cookie}` },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) return 0;
+    const html = await res.text();
+    /**
+     * **والعلامةُ من محتوى القسم لا من اسمه.** «طلباتي» و«تقارير
+     * الفحص» أسماءٌ في قائمة «أقسام حسابي» تظهر لكلّ حساب، فعدُّها
+     * يُعطي ثلاثةً لحسابٍ فارغ — واخترتُ به أفقرَ الحسابات.
+     */
+    return ['سعرك المعلن', 'تفاصيل', 'INS-'].filter((mark) => html.includes(mark)).length;
+  } catch {
+    return 0;
+  }
+}
+
 async function signInUser() {
   if (USER_COOKIE !== '') return;
 
@@ -257,13 +277,48 @@ async function signInUser() {
         redirect: 'manual',
         signal: AbortSignal.timeout(30_000),
       });
-      if (probe.status === 200) {
+      if (probe.status === 200 && (await accountRichness(cached)) > 0) {
         USER_COOKIE = cached;
         return;
       }
     }
   } catch {
     /* لا جلسة محفوظة — يُطلب رمزٌ جديد */
+  }
+
+  /**
+   * ═══ والحسابُ يُختار بما يعرضه لا برقمه ═══
+   *
+   * `Wf` يرسم صفحةً فيها «طلباتي» و«العروض الواردة على مركباتك»
+   * و«تقارير الفحص». وحسابٌ ثابتٌ في الأداة قد لا يملك واحدًا منها،
+   * فتُقاس شاشةٌ تُخفي أقسامَها **بحقّ** ويُقرأ ذلك نقصَ بناء.
+   *
+   * فتُجرَّب حساباتُ البائعين ويُؤخذ أغناها بما يرسمه التصميم.
+   */
+  if (process.env.AUDIT_PHONE === undefined) {
+    let best = { cookie: '', score: 0 };
+    for (let i = 0; i < 5; i += 1) {
+      const candidate = await signInPhone(`+9665${String(10000000 + i).padStart(8, '0')}`);
+      if (candidate === null) continue;
+      const score = await accountRichness(candidate);
+      if (score > best.score) best = { cookie: candidate, score };
+      /** الثلاثةُ كلُّها ⇒ لا حاجة إلى المزيد. */
+      if (best.score >= 3) break;
+    }
+    if (best.cookie !== '') {
+      USER_COOKIE = best.cookie;
+      try {
+        writeFileSync(SESSION_FILE, best.cookie, 'utf8');
+      } catch {
+        /* الحفظ تحسينٌ لا شرط */
+      }
+      if (best.score < 3) {
+        console.log(
+          `⬜ أغنى حساب يعرض ${String(best.score)} من ثلاثة أقسام — وما لا يُزرع لا يُقاس.`,
+        );
+      }
+      return;
+    }
   }
 
   const phone = process.env.AUDIT_PHONE ?? '+966510000003';

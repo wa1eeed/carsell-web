@@ -1078,7 +1078,24 @@ async function main(): Promise<void> {
     const stage = cancelled
       ? ('PAYMENT' as const)
       : (STAGES[i % STAGES.length] as (typeof STAGES)[number]);
-    const buyer = buyers[i % buyers.length] as (typeof buyers)[number];
+    /**
+     * ═══ وواحدٌ يبيع ويشتري — وإلّا لم تُرَ شاشةٌ في حالها ═══
+     *
+     * قِيس: من مئتي حساب **لا واحد** له إعلانٌ وطلبٌ معًا — البائعون
+     * يبيعون والمشترون يشترون. وهي حالُ البذرة لا حالُ السوق: من باع
+     * سيارةً يشتري أخرى.
+     *
+     * وأثرُها أنّ صفحة الحساب لا تُفتح قطّ على ما يرسمه التصميم —
+     * «طلباتي» و«العروض الواردة على مركباتك» في شاشةٍ واحدة. وكلُّ
+     * فحصٍ لها يقع على نصفها.
+     *
+     * فأوّلُ طلبٍ يشتريه **بائع** — ولا يشتري إعلانَ نفسه.
+     */
+    const seller = sellers.find((person) => person.id !== l.sellerId);
+    const buyer =
+      i === 0 && seller !== undefined
+        ? seller
+        : (buyers[i % buyers.length] as (typeof buyers)[number]);
     const agreed = new D(String(Math.round(Number(l.askPrice) * 0.97)));
 
     /**
@@ -1471,13 +1488,35 @@ async function main(): Promise<void> {
     { status: 'EXPIRED' as const, autoRejected: false, ratio: 0.85 },
   ];
 
+  /**
+   * **وأوّلُ عرضٍ ينتظر الردّ يقع على إعلان البائع الذي يشتري أيضًا.**
+   *
+   * `Wf` يرسم صفحةً فيها «طلباتي» و«العروض الواردة على مركباتك»
+   * و«تقارير الفحص» معًا. ومن لا يجتمع له الثلاثة لا تُفتح شاشتُه
+   * على ما رُسم، فيُقاس نصفُها ويُقرأ الباقي نقصَ بناء.
+   */
+  const dualSeller = sellers[0];
+  const firstNegotiable =
+    negotiables.find((l) => l.sellerId === dualSeller?.id) ?? negotiables[0];
+
   for (const [n, plan] of offerPlan.entries()) {
-    const listing = negotiables[n % negotiables.length];
+    const listing = n === 0 ? firstNegotiable : negotiables[n % negotiables.length];
     if (listing === undefined) break;
     const offerBuyer = buyers[n % buyers.length];
     if (offerBuyer === undefined || offerBuyer.id === listing.sellerId) continue;
 
-    const madeAt = days(-between(2, 20));
+    /**
+     * ═══ والحيُّ يُزرع حيًّا لا بالحظّ ═══
+     *
+     * كان `days(-between(2, 20))` ومهلةُ العرض ٩٦ ساعة، **فعرضٌ
+     * «ينتظر الرد» يُولد منتهيًا متى وقع الرقم فوق أربعة**. وقِيس:
+     * صفرُ عروضٍ حيّة في القاعدة كلِّها — فزرُّ «اقبل» و«عرض مقابل»
+     * لا يُعرضان في أيّ شاشة، ورحلةُ التفاوض لا تُمشى.
+     *
+     * فالنشطُ يُولد داخل مهلته، والمغلقُ خارجها.
+     */
+    const active = plan.status === 'PENDING' || plan.status === 'COUNTERED';
+    const madeAt = active ? hours(-between(2, 40)) : days(-between(5, 20));
     await prisma.offer.create({
       data: {
         listingId: listing.id,

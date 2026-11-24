@@ -4,6 +4,7 @@ import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
 
 import { SiteHeader } from '@/components/site/SiteHeader';
+import { LinkButton } from '@/components/ui/Button';
 import { AccountBrief } from '@/components/site/AccountBrief';
 import { AccountSections } from '@/components/site/AccountSections';
 import { garageCounts, myVehicles } from '@/lib/domain/garage';
@@ -103,6 +104,21 @@ export default async function AccountPage({
 
           {/* خلاصةٌ تُنهي بفعل — والجملة العامّة لا تقول ما ينتظره */}
           <AccountBrief data={data} locale={locale} />
+
+          {/*
+            ═══ «اعرض مركبة للبيع» — كان مكتوبًا في شيفرةٍ ميّتة ═══
+
+            الترميز يضعه في كتلة الترحيب. وكان موجودًا في المنتج —
+            **داخل `EmptyState` خلف `{false ? …}`**، أي بابًا لا
+            يفتحه شيء: القسمُ نفسُه مخفيٌّ حين لا إعلان، فحالتُه
+            الفارغة لا تُصيَّر أبدًا.
+
+            وموضعُه هنا لا في القسم: من لا إعلان له لا يرى قسمَ
+            الإعلانات أصلًا، **وهو أحوجُ الناس إلى الزرّ**.
+          */}
+          <p className="mb-7">
+            <LinkButton href={`/${locale}/sell`}>{t('listVehicle')}</LinkButton>
+          </p>
 
           {listed === null ? null : (
             <section
@@ -228,6 +244,7 @@ export default async function AccountPage({
                 locale={locale}
                 taxProfile={taxProfileOf(user)}
                 garage={garage}
+                now={new Date().toISOString()}
               />
             </div>
           </div>
