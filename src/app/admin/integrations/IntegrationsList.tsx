@@ -286,7 +286,7 @@ export function IntegrationsList({
                           { requestId: row.pendingEnvSwitch?.id },
                           (data) =>
                             (data as { state?: string } | undefined)?.state === 'EXECUTED'
-                              ? 'اكتمل النصاب — بدلت البيئة.'
+                              ? 'بدلت البيئة.'
                               : 'سجلت موافقتك.',
                         )
                       }
@@ -397,7 +397,7 @@ export function IntegrationsList({
                             { requestId: row.pendingRotation?.id },
                             (data) =>
                               (data as { state?: string } | undefined)?.state === 'EXECUTED'
-                                ? 'اكتمل النصاب — دور المفتاح.'
+                                ? 'دور المفتاح.'
                                 : 'سجلت موافقتك.',
                           )
                         }

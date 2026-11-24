@@ -12,11 +12,16 @@ import { currentDeadlines } from './deadlines';
  * والتعديل هنا يسري على **المزادات الجديدة وحدها**، وكل مزادٍ قائم
  * يحمل لقطته في صفّه (`bidIncrement` · `depositAmount`).
  *
- * ═══ وأربعة منها بنصاب عضوين ═══
+ * ═══ ولا نصاب على شيءٍ منها ═══
  *
- * قيمة العربون · مهلة السداد · عقوبة عدم السداد · إخفاء الاحتياطي.
- * لأن كلًّا منها يمسّ مالًا محجوزًا لدى الناس أو سرًّا وعدنا بحفظه —
- * والباقي ضبطٌ تشغيليّ.
+ * كان أربعةٌ منها موسومةً بنصاب عضوين — قيمةُ العربون ومهلةُ السداد
+ * وعقوبةُ عدم السداد وإخفاءُ الاحتياطي — **وأُلغي النصاب بقرار
+ * المالك** (٢٠٢٦-١٠-١٤، وصنفًا ٢٠٢٦-١١-٢٤: ROADMAP §٣٥ · §٤١).
+ *
+ * وكانت `DUAL_APPROVAL_FIELDS` تسمّيها وتقول في تعليقها إنها «تُقرأ
+ * في الشاشة وفي الحارس معًا» — **ولا قارئ لها في المنتج كلّه**:
+ * قِيس فخرج صفرًا. فحُذفت ومعها دعواها، إذ تعليقٌ يصف قدرةً غيرَ
+ * موجودة أسوأ من غيابه.
  */
 
 export type AuctionSettings = {
@@ -32,12 +37,6 @@ export type AuctionSettings = {
   durationsDays: number[];
 };
 
-/** الحقول التي تحتاج نصابًا — تُقرأ في الشاشة وفي الحارس معًا. */
-export const DUAL_APPROVAL_FIELDS = [
-  'defaultDeposit',
-  'winnerPaymentHours',
-  'hideReserve',
-] as const;
 
 export async function auctionSettings(): Promise<AuctionSettings> {
   const [platform, deadlines] = await Promise.all([

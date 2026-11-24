@@ -89,7 +89,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
   FINANCE: {
     'dashboard.view': true, 'finance.view': true, 'orders.view': true,
     'escrow.release': true, 'services.manage': true, 'audit.view': 'read',
-    // المالية تطلب وتوافق — والنصاب اثنان من هذين الدورين
+    // المالية تطلب وتنفّذ — ولا نصابَ على شيءٍ منها (§٣٥ · §٤١)
     'wallet.adjust': true, 'payouts.send': true, 'providers.adjust': true,
   },
   SUPPORT: {

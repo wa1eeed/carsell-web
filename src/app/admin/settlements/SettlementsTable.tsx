@@ -67,11 +67,7 @@ export function SettlementsTable({
       }
 
       setConfirming(null);
-      setToast(
-        requestId === undefined
-          ? 'أفرج عن المبلغ إلى البائع.'
-          : 'اكتمل النصاب، وأفرج عن المبلغ إلى البائع.',
-      );
+      setToast('أفرج عن المبلغ إلى البائع.');
       router.refresh();
     });
   };
@@ -96,7 +92,6 @@ export function SettlementsTable({
           {awaitingApproval.map((row) => {
             const approval = row.approval;
             if (approval === null) return null;
-            const isRequester = approval.requestedById === adminId;
             const alreadyApproved = approval.approvedBy.includes(adminId);
 
             return (
@@ -113,9 +108,12 @@ export function SettlementsTable({
                     السبب يُقال ولا يُترك للتخمين: زرٌّ معطَّل بلا سببٍ
                     يُقرأ عطلًا، ومن طلب الإفراج يظنّ أنه نُسي.
                   */}
-                  {isRequester ? (
-                    <span className="text-3xs opacity-65">أنت الطالب — يعتمده غيرك</span>
-                  ) : alreadyApproved ? (
+                  {/*
+                    **وطالبُه يعتمده** — أُلغي النصاب (§٣٥ · §٤١). وكان
+                    الصفُّ يقول «أنت الطالب — يعتمده غيرك» على إفراجٍ
+                    يملكه صاحبُه.
+                  */}
+                  {alreadyApproved ? (
                     <span className="text-3xs opacity-65">طلبته — لم يكتمل</span>
                   ) : !canRelease ? (
                     <span className="text-3xs opacity-65">لا تملك صلاحية الإفراج</span>

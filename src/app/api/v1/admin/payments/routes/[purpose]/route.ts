@@ -17,7 +17,7 @@ const Body = z.object({
   reason: z.string().min(10).max(400),
 });
 
-/** `POST /api/v1/admin/payments/routes/{purpose}` — **طلب** تبديل بعضوين. */
+/** `POST /api/v1/admin/payments/routes/{purpose}` — تبديلُ بوّابة غرض. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ purpose: string }> },

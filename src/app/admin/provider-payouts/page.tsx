@@ -63,7 +63,7 @@ export default async function ProviderPayoutsPage() {
         shown={owed.length + history.length}
         total={null}
         note="المستحق محسوب من دفتر الحسابات، لا من مجموع الطلبات المنجزة"
-        can="طلب تحويل مستحق مزود، واعتماد طلب غيرك بعد تنفيذ الحوالة."
+        can="طلب تحويل مستحق مزود، واعتماده بعد تنفيذ الحوالة."
         cannot="تحويل لمزود بلا آيبان مسجل، أو إقفال طلب بلا مرجع حوالة."
       />
     </AdminShell>

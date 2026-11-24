@@ -271,7 +271,6 @@ export default async function AdminUserDetailPage({
                 lines={user.wallet?.lines ?? []}
                 pending={user.pendingAdjustment}
                 canAdjust={canWrite(admin.role, 'wallet.adjust')}
-                meId={admin.id}
               />
             </DetailCard>
 

@@ -283,7 +283,6 @@ export default async function AdminProviderPage({
                 lines={ledger.lines}
                 pending={pendingEntry}
                 canAdjust={canWrite(admin.role, 'providers.adjust')}
-                meId={admin.id}
               />
             </DetailCard>
 

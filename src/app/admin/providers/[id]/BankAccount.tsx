@@ -235,16 +235,12 @@ export function BankAccount({
             <span className="text-2xs opacity-70">طلب تحويل ينتظر مرجع الحوالة</span>
             <Money amount={Number(pending.amount)} decimals={2} />
           </div>
-          {pending.requestedBy === meId ? (
-            <>
-              <p className="text-3xs leading-loose opacity-70">
-                أنت الطالب، فيعتمده غيرك. ولك إلغاؤه.
-              </p>
-              <Button size="sm" variant="outline" disabled={busy} onClick={cancel}>
-                ألغ الطلب
-              </Button>
-            </>
-          ) : !canSend ? (
+          {/*
+            **وطالبُه يسجّل حوالتَه** — كان الفرعُ يقول «فيعتمده غيرك»
+            ويُخفي حقلَ المرجع عنه، والخادمُ يسمح له منذ أُلغي النصاب
+            (§٣٥ · §٤١). ويبقى «ألغ الطلب» لصاحبه وحده.
+          */}
+          {!canSend ? (
             <p className="text-3xs leading-loose opacity-70">لا تملك صلاحية التحويل.</p>
           ) : (
             <>
@@ -260,9 +256,16 @@ export function BankAccount({
               <p className="text-3xs leading-loose opacity-70">
                 بهذا التسجيل <b>يخصم الدين</b>. لا تسجلها قبل أن تخرج الحوالة فعلا.
               </p>
-              <Button size="sm" disabled={busy || bankRef.trim().length < 4} onClick={approve}>
-                {busy ? 'جاري…' : 'سجل الحوالة'}
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button size="sm" disabled={busy || bankRef.trim().length < 4} onClick={approve}>
+                  {busy ? 'جاري…' : 'سجل الحوالة'}
+                </Button>
+                {pending.requestedBy === meId ? (
+                  <Button size="sm" variant="outline" disabled={busy} onClick={cancel}>
+                    ألغ الطلب
+                  </Button>
+                ) : null}
+              </div>
             </>
           )}
         </div>

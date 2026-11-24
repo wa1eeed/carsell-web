@@ -29,14 +29,12 @@ export function WalletPanel({
   lines,
   pending,
   canAdjust,
-  meId,
 }: {
   userId: string;
   balance: string;
   lines: readonly WalletLine[];
   pending: PendingAdjustment | null;
   canAdjust: boolean;
-  meId: string;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -76,7 +74,7 @@ export function WalletPanel({
         return;
       }
 
-      setToast('أرسل الطلب — ينتظر موافقة شخص ثاني.');
+      setToast('نفذ التعديل وقيد في دفتر الحسابات.');
       setForm({ direction: 'CREDIT', amount: '', reason: '' });
       router.refresh();
     });
@@ -92,7 +90,7 @@ export function WalletPanel({
       if (response === null || !response.ok) {
         setToast(
           response?.status === 403
-            ? 'لا توافق على طلب أنت طلبته — يلزم شخص ثاني.'
+            ? 'لا تملك صلاحية الموافقة على تعديل الأرصدة.'
             : 'تعذرت الموافقة.',
         );
         return;
@@ -123,11 +121,16 @@ export function WalletPanel({
           </p>
           <p className="mb-3 text-3xs leading-loose opacity-75">{pending.reason}</p>
 
-          {pending.requestedBy === meId ? (
-            <p className="text-3xs opacity-70">
-              أنت طلبته، ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
-            </p>
-          ) : canAdjust ? (
+          {/*
+            ═══ وطالبُه يعتمده ═══
+
+            كان الفرعُ يقول لصاحب الطلب «لا يوافق طالبه على نفسه. يلزم
+            شخص ثاني» — **وقد أُلغي النصاب** (قرار المالك ٢٠٢٦-١٠-١٤،
+            وصنفًا في ٢٠٢٦-١١-٢٤؛ §٣٥ · §٤١)، فلا ثانيَ يُنتظر. وطلبٌ
+            يبقى معلّقًا هنا إنّما بقي لأنّ تطبيقه تعثّر، وصاحبُه أولى
+            من يعيد المحاولة.
+          */}
+          {canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>
               {busy ? 'جاري…' : 'أوافق وأنفذ'}
             </Button>
@@ -192,8 +195,8 @@ export function WalletPanel({
           </Button>
 
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            <b>لا يقع التعديل بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثاني، ثم
-            يقيد في دفتر الحسابات.
+            <b>يقع التعديل بهذه الضغطة</b> ويقيد في دفتر الحسابات فورا، ويسجل
+            باسمك في سجل التدقيق.
           </p>
         </div>
       ) : null}

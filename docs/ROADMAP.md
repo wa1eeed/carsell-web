@@ -1647,33 +1647,73 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
-## 41 · No action needs a second person — *owner's decision 2026-11-24*
+## 41 · No action needs a second person — *owner's decision 2026-11-24* — **done**
 
 > «انا ما اعجبني ان الأدمن يحتاج ثلاثةَ حسابات سلطةَ لتنفيذ بعض الاجراءات و
 > المفروض عنده سلطه كسوبر ادمن ... طبعاً كلامي عن كل القرارات اللي من هالنوع»
 
 §35 removed the two-approver quorum on 2026-10-14 and set `REQUIRED_APPROVALS`
-to one. This request restates it as a **class**, not a case: no action in the
-panel may require a second or third human. It is binding and it is retroactive
-over anything of the same shape, built since or missed then.
+to one. This request restates it as a **class**, not a case, and the measurement
+showed §35 had changed the constant and left its consequences in two places
+nobody had looked at.
 
-- [ ] **Measure first.** Where does the product still require more than one
-      person, and where does it merely *say* it does? The two are different
-      defects: the first blocks the owner, the second lies to them. §35 fixed
-      the constant in one file and left its prose in a dozen — the broken
-      promise outliving the rule it described.
-- [ ] A stored `ApprovalRequest` carries its own `requiredApprovals`, and
-      `selfApprovalBlocked` reads **the row, not the constant**. So a row
-      written before §35 still demands a second member, and lowering the
-      constant did not reach it. Rows, not just code.
-- [ ] Every «يلزم عضو ثاني» · «موافقة عضوين» · «بنصاب عضوين» in a screen, an
-      API error or a comment is re-read against what the code now does.
-- [ ] `RECORDED_ACTIONS` stays. The owner removed the **quorum**, not the
-      **record**: an action that moves money keeps a row naming who did it.
-      That is a log, not an authority gate, and it asks no one for permission.
-- [ ] Gate 19 keeps guarding the half-built-quorum class (a request kind with
-      no approver, an approver with no route, a check on a weaker permission) —
-      it is what caught §35's own leftovers twice.
+### Nothing required a second person. Thirteen screens said it did.
+
+Measured across `src/`: all ten flows that open an `ApprovalRequest` pass
+`REQUIRED_APPROVALS`, no stored row demanded more than one, and
+`selfApprovalBlocked` only engages above one. **The requirement was gone and
+the product had not been told.**
+
+- [x] Three lines in the wallet panel and three in the provider ledger said
+      «**لا يقع التعديل بهذه الضغطة** — يرسل طلب ويوافق عليه شخص ثاني» and
+      «لا يوافق طالبه على نفسه. يلزم شخص ثاني». At quorum one `requestAdjustment`
+      calls `approveWalletAdjustment` **in the same call**: the money moves on
+      that click. A screen that says a click does not move money, while it does,
+      is the worst form of the broken-promise class.
+- [x] Five screens hid the approve control from the requester — payouts,
+      provider payouts, the provider's bank card, and the settlements queue —
+      with «أنت الطالب · يعتمده غيرك». **The server allows it.** The block was
+      client-side only, so the panel invented a second person the system does
+      not need. That is also where «ثلاثة حسابات» comes from: the seed ships
+      three admin accounts and the panel kept pointing at the other two.
+- [x] `DUAL_APPROVAL_FIELDS` named four auction fields as needing a quorum and
+      its comment said it is «تُقرأ في الشاشة وفي الحارس معًا». Measured:
+      **no reader anywhere**. Deleted with its claim.
+- [x] Nineteen comments asserting a current two-person rule rewritten; the
+      historical ones («أُلغي نصابُ العضوين بقرار المالك») kept, because a
+      record of a decision is not a stale claim.
+
+### Two things §35 could not have known it left behind
+
+- [x] **The schema default was still `2`.** Every creation site passes the
+      constant, so nothing was broken today — but a new one that forgot the
+      field would have reinstated the quorum silently, and the request would
+      wait for somebody who is never coming. Now `1`, with a migration.
+- [x] **`selfApprovalBlocked` reads the row, not the constant.** A row written
+      before §35 keeps its own `requiredApprovals: 2` forever, so lowering the
+      constant never reached it. The migration lowers pending rows and leaves
+      executed and rejected ones alone — their history is what it was.
+
+### The gate stopped being a list of phrases
+
+Gate 19's deny-list let a wording through **twice**: «عضوان» in §40a·7, and now
+«شخص ثاني» across seven live lines plus «غيرك» across five more. The fault is
+the shape, not a missing entry — a phrase list enumerates what its author
+remembered.
+
+- [x] Rebuilt as **two conditions on the same line**: an approval word
+      (موافق · يوافق · اعتماد · يعتمد · نصاب) together with a second-person word
+      (عضو · شخص · غيرك · آخر · اثنان, in any form). It found the five that the
+      list had never seen, on its first run, and a probe confirmed it fires on
+      «زميل آخر» and «مسؤول ثاني» — wordings nobody enumerated — while staying
+      quiet on «أفرج عن المبلغ» and «اعتمد الطلب الآن».
+- [x] `tests/quorum-one.test.ts` guards the number rather than the prose: the
+      constant, the self-approval rule at both settings, the Prisma default, the
+      database column default, and that no pending row demands more than one.
+
+`RECORDED_ACTIONS` is untouched. The owner removed the **quorum**, not the
+**record**: an action that moves money still writes a row naming who did it,
+and a ledger asks nobody's permission.
 
 ## 40 · The order from here: conformance, then the remaining panels, then the app — *owner's request 2026-11-23*
 

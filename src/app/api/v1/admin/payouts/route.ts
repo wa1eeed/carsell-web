@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 /**
  * `POST /api/v1/admin/payouts` — طلبُ تحويل مستحقّات بائع.
  *
- * **ولا مال يخرج هنا**: يُنشأ طلبٌ بنصاب اثنين، والاعتماد في
+ * **ولا مال يخرج هنا**: يُنشأ طلبٌ بنصابٍ صار واحدًا، والاعتماد في
  * `/{id}/approve` بيد الثاني — وهو الذي يكتب قيد `payout.sent`.
  */
 export async function POST(request: NextRequest) {

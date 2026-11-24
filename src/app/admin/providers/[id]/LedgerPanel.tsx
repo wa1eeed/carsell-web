@@ -31,7 +31,6 @@ export function LedgerPanel({
   lines,
   pending,
   canAdjust,
-  meId,
 }: {
   providerId: string;
   balance: string;
@@ -40,7 +39,6 @@ export function LedgerPanel({
   lines: readonly ProviderLedgerLine[];
   pending: PendingProviderAdjustment | null;
   canAdjust: boolean;
-  meId: string;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -68,7 +66,7 @@ export function LedgerPanel({
         return;
       }
       setForm({ direction: 'CREDIT', amount: '', reason: '' });
-      setToast('أرسل الطلب — ينتظر موافقة شخص ثاني.');
+      setToast('قيد في دفتر الحسابات.');
       router.refresh();
     });
   };
@@ -117,11 +115,11 @@ export function LedgerPanel({
           </p>
           <p className="mb-3 text-3xs leading-loose opacity-75">{pending.reason}</p>
 
-          {pending.requestedBy === meId ? (
-            <p className="text-3xs opacity-70">
-              أنت طلبته، ولا يوافق طالبه على نفسه. يلزم شخص ثاني.
-            </p>
-          ) : canAdjust ? (
+          {/*
+            **وطالبُه يعتمده** — أُلغي النصاب (§٣٥ · §٤١)، فلا ثانيَ
+            يُنتظر. وطلبٌ باقٍ هنا إنّما بقي لتعثّر تطبيقه.
+          */}
+          {canAdjust ? (
             <Button size="sm" disabled={busy} onClick={approve}>
               {busy ? 'جاري…' : 'أوافق وأنفذ'}
             </Button>
@@ -188,8 +186,8 @@ export function LedgerPanel({
           </Button>
 
           <p className="mt-2.5 text-3xs leading-loose opacity-70">
-            <b>لا يقع القيد بهذه الضغطة.</b> يرسل طلب ويوافق عليه شخص ثاني، ثم
-            يكتب في دفتر الحسابات.
+            <b>يقع القيد بهذه الضغطة</b> ويكتب في دفتر الحسابات فورا، ويسجل
+            باسمك في سجل التدقيق.
           </p>
         </div>
       ) : null}

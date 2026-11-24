@@ -806,7 +806,7 @@ export type RouteChangeRow = {
   toEnvironment: string;
   reason: string;
   at: string;
-  /** عددُ من اعتمده — والنصاب عضوان. */
+  /** عددُ من اعتمده — والنصابُ واحدٌ منذ §٣٥. */
   approvals: number;
 };
 

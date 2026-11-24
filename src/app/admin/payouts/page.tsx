@@ -64,7 +64,7 @@ export default async function PayoutsPage() {
         shown={owed.length + history.length}
         total={null}
         note="المستحق محسوب من دفتر الحسابات، لا من مجموع الطلبات"
-        can="طلب تحويل مستحقات بائع، واعتماد طلب غيرك بعد تنفيذ الحوالة."
+        can="طلب تحويل مستحقات بائع، واعتماده بعد تنفيذ الحوالة."
         cannot="تحويل لبائع لم يدخل آيبانه، أو إقفال طلب بلا مرجع حوالة."
       />
     </AdminShell>

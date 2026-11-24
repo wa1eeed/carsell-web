@@ -193,24 +193,29 @@ export function ProviderPayoutsTable({
                 </div>
                 <div className="flex flex-wrap items-center gap-5">
                   <Money amount={Number(row.amount)} decimals={2} />
-                  {isRequester ? (
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xs opacity-65">أنت الطالب — يعتمده غيرك</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={pending}
-                        onClick={() => cancel(row)}
-                      >
-                        ألغ
-                      </Button>
-                    </div>
-                  ) : !canSend ? (
+                  {/*
+                    **وطالبُه يسجّل حوالتَه** — كان الفرع يُخفي الزرّ
+                    عنه ويقول «يعتمده غيرك»، والخادمُ يسمح له منذ أُلغي
+                    النصاب (§٣٥ · §٤١). فالمنعُ كان في الشاشة وحدها.
+                  */}
+                  {!canSend ? (
                     <span className="text-3xs opacity-65">لا تملك صلاحية التحويل</span>
                   ) : (
-                    <Button size="sm" disabled={pending} onClick={() => setApproving(row)}>
-                      سجل الحوالة
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <Button size="sm" disabled={pending} onClick={() => setApproving(row)}>
+                        سجل الحوالة
+                      </Button>
+                      {isRequester ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={pending}
+                          onClick={() => cancel(row)}
+                        >
+                          ألغ
+                        </Button>
+                      ) : null}
+                    </div>
                   )}
                 </div>
               </div>

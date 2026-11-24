@@ -2803,7 +2803,14 @@ model ApprovalRequest {
   payload           Json
   requestedBy       String
   approvedBy        String[]
-  requiredApprovals Int            @default(2)
+  /// ═══ والافتراضيُّ واحدٌ لا اثنان ═══
+  ///
+  /// أُلغي نصابُ العضوين بقرار المالك (٢٠٢٦-١٠-١٤، وصنفًا ٢٠٢٦-١١-٢٤:
+  /// ROADMAP §٣٥ · §٤١)، وتمرّره التدفّقاتُ العشرة كلُّها من
+  /// `REQUIRED_APPROVALS`. **وبقي افتراضيُّ المخطّط اثنين** — فمَن
+  /// أضاف مسار إنشاءٍ ونسي الحقل أعاد النصابَ صامتًا، وطلبٌ واحد
+  /// يُكتب به يبقى معلّقًا ينتظر شخصًا لن يأتي.
+  requiredApprovals Int            @default(1)
   status            ApprovalStatus @default(PENDING)
   expiresAt         DateTime
   executedAt        DateTime?
