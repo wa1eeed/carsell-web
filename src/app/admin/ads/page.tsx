@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Money } from '@/components/ui/Money';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards } from '@/components/admin/MonitorShell';
@@ -16,6 +17,7 @@ import {
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
 import { NewCampaign } from './NewCampaign';
+import { NewSlot } from './NewSlot';
 import { CampaignActions } from './CampaignActions';
 import { Quantity } from '@/components/ui/Quantity';
 
@@ -59,6 +61,11 @@ export default async function AdminAdsPage({
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
   const [slots, stats, allCampaigns] = await Promise.all([adSlots(), adStats(), adCampaigns()]);
+
+  /** النسبةُ من البسط والمقام — ولا قسمةَ على صفر. */
+  const occupancyPct = stats.occupancy.measured
+    ? Math.round((stats.occupancy.soldSlotDays / stats.occupancy.totalSlotDays) * 100)
+    : null;
 
   const search = await searchParams;
   const raw = typeof search.phase === 'string' ? search.phase : null;
@@ -125,7 +132,69 @@ export default async function AdminAdsPage({
         ]}
       />
 
-      <h2 className="mb-3.5 text-sm font-bold">المساحات</h2>
+      {/*
+        ═══ الإشغال والإيراد — بطاقتان في الترميز بلا مصدر ═══
+
+        «إشغال هذا الشهر ٧٨٪» و«إيراد الإعلانات ٤٨٬٢٠٠ · +١٤٪». وكان
+        إيرادُ الإعلانات في لوحة المالية **صفرًا أبدًا**: ترشيحٌ على
+        حالٍ (`running`) لا كاتبَ لها في المنتج كلِّه. والقاعدة الآن
+        في `ads.ts` يقرؤها الموضعان.
+      */}
+      <div className="mb-7 grid gap-4 md:grid-cols-2">
+        <section className="rounded-lg border border-line bg-surface p-5">
+          <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">إشغال هذا الشهر</h2>
+          {occupancyPct === null ? (
+            <p className="mt-2 text-sm font-bold opacity-65">لا مساحة مفعلة</p>
+          ) : (
+            <p className="mt-2 text-2xl font-bold">
+              <ArabicNumber value={occupancyPct} percent />
+            </p>
+          )}
+          <p className="mt-1 text-3xs opacity-65">
+            {occupancyPct === null ? (
+              'فعل مساحة ليبدأ القياس'
+            ) : (
+              <>
+                من أيام الشهر كلها على المساحات المفعلة · المتاح{' '}
+                <ArabicNumber value={100 - occupancyPct} percent />
+              </>
+            )}
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-line bg-surface p-5">
+          <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">إيراد الإعلانات</h2>
+          <p className="mt-2 text-2xl font-bold">
+            <Money amount={stats.revenue} />
+          </p>
+          <p className="mt-1 text-3xs opacity-65">
+            {/*
+              **ولا نسبةَ تغيّرٍ من صفر**: من لا شيءٍ إلى ألفٍ بدايةٌ
+              لا زيادةٌ مئوية، و«∞٪» ليست رقمًا يُقرأ.
+            */}
+            {stats.revenueChangePct === null ? (
+              'ولا شهر ماضي يقاس عليه'
+            ) : (
+              <>
+                عن الشهر الماضي{' '}
+                {stats.revenueChangePct >= 0 ? '+' : ''}
+                <ArabicNumber value={stats.revenueChangePct} percent />
+              </>
+            )}
+            {' · '}يعترف به عند بدء الحملة
+          </p>
+        </section>
+      </div>
+
+      <div className="mb-3.5 flex items-center justify-between gap-4">
+        <h2 className="text-sm font-bold">المساحات</h2>
+        {/*
+          **و«أضف مساحة» كانت في الترميز بلا باب.** `AdSlot` تُعدَّل
+          رايتُها من الجدول ولا يُنشئها شيء — فمساحةٌ جديدة تحتاج صفًّا
+          في القاعدة بيد، والشاشة تعرض سبعًا إلى الأبد.
+        */}
+        {writable ? <NewSlot /> : null}
+      </div>
       {writable ? (
         <AdSlotTable rows={slots} />
       ) : (

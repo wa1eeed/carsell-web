@@ -1,6 +1,6 @@
 # Design deviations
 
-_Last updated: 2026-11-23_
+_Last updated: 2026-11-24_
 
 Screens or components built **without design markup**, and places where the
 build departs from the markup on purpose. Each entry states what was built, on
@@ -27,6 +27,19 @@ comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
 `Wc` 63→75٪, `Wa` 50→57٪, `A10` 13→25٪ — so an un-normalised comparison
 understates a screen by up to twelve points, and the whole-tree figure
 correspondingly.
+
+## A30 — two labels the screen states more narrowly than the markup · 2026-11-24
+
+**Status: deliberate.** Both will keep reading as misses in `design-audit`, and
+that is the right trade: the measure stays honest and the screen stays true.
+
+| The markup says | The screen says | Why |
+|---|---|---|
+| «السقف في الجلسة» | «السقف في جلسة الرئيسية» | The cap is the home surface's. Written unqualified it promises a cap on every surface, and search results — the one surface that does serve ads — has none. |
+| «يُفرَض في الخادم» | «قاعدة — ولا إعلان في الرئيسية بعد» | It is only printed once home ads are actually served (`HOME_ADS_SERVED`). Saying a rule is enforced before anything enforces it is the «شاشةٌ تقول شيئًا والنظام يفعل غيره» failure, and this exact line was corrected once before when `ADS_SERVED` was flipped for search results and the home claim came along with it. |
+
+The third remaining miss, «معاينة في التطبيق», is not a deviation — it needs the
+mobile app, stage 40c.
 
 ## BodyTypeStrip — built without Wa markup · 2026-08-02
 

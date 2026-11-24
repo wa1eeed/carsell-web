@@ -62,7 +62,7 @@ describe('الإعلان — الإنشاء', () => {
     if (!result.ok) return;
 
     const row = await db.adCampaign.findUniqueOrThrow({ where: { id: result.id } });
-    expect(row.status).toBe('live');
+    expect(row.status).toBe('LIVE');
     expect(row.impressions).toBe(0);
 
     const audit = await db.auditLog.findFirst({
@@ -87,7 +87,7 @@ describe('الإعلان — الإنشاء', () => {
     if (!result.ok) return;
 
     const row = await db.adCampaign.findUniqueOrThrow({ where: { id: result.id } });
-    expect(row.status).toBe('scheduled');
+    expect(row.status).toBe('SCHEDULED');
   });
 
   it('ورابطٌ غير http يُرفض عند الكتابة', async () => {

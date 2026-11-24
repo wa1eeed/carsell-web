@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-100 models · 70 enums
+100 models · 71 enums
 
 ## Relationships
 
@@ -231,6 +231,7 @@ erDiagram
   Notification }o--|| User : "user"
   NotificationTemplate |o--|| PushChannel : "pushChannel"
   AdSlot ||--o{ AdCampaign : "campaigns"
+  AdCampaign }o--|| AdCampaignStatus : "status"
   AdCampaign }o--|| AdSlot : "slot"
   Report }o--|| User : "reporter"
   ServiceProvider }o--|| ProviderType : "type"
@@ -1442,11 +1443,10 @@ Relations: `campaigns` → `AdCampaign`
 | `budget` | `Decimal` |  |
 | `targeting` | `Json?` |  |
 | `priority` | `Int` |  |
-| `status` | `String` |  |
 | `impressions` | `Int` |  |
 | `clicks` | `Int` |  |
 
-Relations: `slot` → `AdSlot`
+Relations: `status` → `AdCampaignStatus` · `slot` → `AdSlot`
 
 ### `Report`
 
@@ -2008,6 +2008,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
 - `TrustMarkKind` — `REGULATORY`, `PAYMENT`
+- `AdCampaignStatus` — `SCHEDULED /// لم يحن بدؤها`, `LIVE /// بين تاريخيها`, `PAUSED /// أوقفها المشغّل — ولا تُستأنف بعد انقضاء نافذتها`, `ENDED /// مضت نافذتها`
 - `ServiceFeeMode` — `FIXED`, `PERCENT`
 - `ProviderAccountKind` — `FREELANCER`, `ESTABLISHMENT`, `COMPANY`, `GOVERNMENT`, `CHARITY`
 - `AccountSignatory` — `OWNER`, `COMMERCIAL_CONTRACT`, `POWER_OF_ATTORNEY`

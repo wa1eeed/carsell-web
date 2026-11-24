@@ -1,6 +1,6 @@
 # The register — everything the owner asked for, in the order they set it
 
-_Last updated: 2026-11-23_
+_Last updated: 2026-11-24_
 
 This file exists because the owner asked for one thing above all others: that
 nothing they have asked for gets lost. A promise does not guarantee that; a
@@ -1767,6 +1767,56 @@ the screen says «يبدأ مع التطبيق» instead.
 **What stays open in `A10`:** the sender. Nothing dispatches to FCM or APNs, so
 «اختبار على جهازي» and «سجل الإرسال» wait on a provider integration and a real
 device — stage 40c. Detail in `workflows/notifications.md`.
+
+### 40a · 2 — `A30` ad slots, 25٪ → and a revenue line that read zero
+
+Second in the ranking. The markup wants four cards, an «أضف مساحة» button and a
+«معاينة في التطبيق»; the screen had the slot table, the campaign list and two of
+the cards. Measuring the missing two found something worse than a layout gap.
+
+**`AdCampaign.status` was a free string with four vocabularies.** The seed wrote
+`active`, `createCampaign` wrote `live`, the screen's tabs read `live`, and
+`admin-finance` filtered `status in ('running','ended')` — **a value nothing in
+the product writes**. So the finance dashboard's ad-revenue line read **zero no
+matter how many slots were sold**, and `adsFor` — the serving query — filtered
+`live`, so the seeded banner campaign was never served either. Two silent
+failures from one undeclared vocabulary.
+
+It is an enum now (`AdCampaignStatus`), and the compiler found every drifted
+site the moment it existed. A migration normalises the rows that were already
+written, mapping each old spelling and falling back to the campaign's own window
+for anything unrecognised — a row with an unknown state is better read from its
+dates than deleted.
+
+**And the money rule is written once.** `adRevenue(from, to)` lives in `ads.ts`;
+the finance dashboard and the new A30 card both call it, so they cannot drift.
+It keeps the existing treatment — the whole budget recognised in the month the
+campaign *starts* — and the accrual question is now asked rather than decided
+silently: `OPEN-QUESTIONS.md`, with the answer costing one line in one file.
+
+Also built: **`adOccupancy`** (slot-days sold over slot-days available on active
+slots, counting a day once however many campaigns bought it), and **«أضف مساحة»** —
+`AdSlot` had its flag toggled from the table and **nothing ever created one**, so
+seven seeded slots were all the operator would ever have. New slots are born
+**inactive**: an active slot enters the occupancy denominator immediately and
+appears in the campaign picker before any surface reads it.
+
+**What stays open in `A30`:** «معاينة في التطبيق» — stage 40c.
+
+### And the numerals leak reference data carries
+
+Gate 70 reads `src/`, and the ad slot sizes come from `prisma/seed-data/`. So the
+table printed «٤٨px سطر» beside a price of «3,500» — two numeral systems in one
+row, through a door the gate did not look at. Measured across the reference
+files: **91 occurrences in six files**. Fifty-five were converted (slots, FAQs,
+features, inspection points, services) with a migration for the rows already in
+live databases, since reference data reaches them by migration and not by seed.
+
+The remaining 36 are all in `brands.json` — «راف٤» · «أيونيك ٥» · «زد٧١» — and
+they are **not numbers**. A mechanical sweep yields «راف4», which nobody types
+and nobody searches for; the right form is a naming question, asked in
+`OPEN-QUESTIONS.md`. The file is excluded from the gate with that reason written
+beside it.
 
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 

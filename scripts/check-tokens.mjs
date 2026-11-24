@@ -4300,6 +4300,14 @@ function checkOneNumeralSystem() {
     'src/app/api/v1/me/profile/route.ts',
     /** جدولُ تطبيعِ اللوحة — يحوّل المُدخَل ولا يعرضه. */
     'src/lib/plate.ts',
+    /**
+     * **وأسماءُ الطرازات ليست أعدادًا.** «راف٤» و«أيونيك ٥» و«زد٧١»
+     * أسماءٌ تُنطق لا أرقامٌ تُقرأ، وصيغتُها الصحيحة سؤالُ تسمية
+     * (أهي «راف 4» أم `RAV4`؟) لا قرارُ أرقام — ومسحٌ آليٌّ عليها
+     * يُنتج «راف4» التي لا يكتبها أحد ولا يبحث بها.
+     * مطروحٌ في `docs/OPEN-QUESTIONS.md`، وقِيس: ٣٦ موضعًا.
+     */
+    'prisma/seed-data/brands.json',
   ]);
 
   /**
@@ -4326,6 +4334,25 @@ function checkOneNumeralSystem() {
   };
   collect(join(ROOT, 'src'));
   files.push(join(ROOT, 'src', 'messages', 'ar.json'));
+
+  /**
+   * ═══ والبياناتُ المرجعية موضعٌ كالشيفرة ═══
+   *
+   * `ad-slots.json` كان يكتب «٤٨px سطر»، فيعرض الجدولُ مقاسًا
+   * بأرقامٍ عربية-هندية وسعرَه لاتينيًّا **في صفٍّ واحد**. والبوابة
+   * كانت تقرأ `src/` وحدها فمرّت — وهو صنفُ البوابة ٦١ نفسُه: تحرس
+   * ما تقرؤه لا ما تظنّ أنها تحرسه.
+   *
+   * **وما لا تبلغه**: الترحيلات. تاريخٌ لا يُعاد كتابته، فحراستُه
+   * تُنذر على ما لا يُصلَح. وصفٌّ مرجعيّ جديد يصل القاعدةَ بترحيل،
+   * فيُقرأ عند المراجعة لا هنا — وهذا حدٌّ معلَن لا تغطيةٌ مُدّعاة.
+   */
+  const referenceDir = join(ROOT, 'prisma', 'seed-data');
+  if (existsSync(referenceDir)) {
+    for (const entry of readdirSync(referenceDir)) {
+      if (entry.endsWith('.json')) files.push(join(referenceDir, entry));
+    }
+  }
 
   for (const file of files) {
     const rel = relative(ROOT, file).split(sep).join('/');

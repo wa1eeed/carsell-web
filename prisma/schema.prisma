@@ -2364,6 +2364,22 @@ model AdSlot {
   campaigns AdCampaign[]
 }
 
+/// ═══ حالُ الحملة — تعدادٌ لا نصّ حرّ ═══
+///
+/// كان `String`، فتباعدت **أربعُ مفرداتٍ لحقلٍ واحد**: البذرة تكتب
+/// `active`، و`createCampaign` تكتب `live`، ولوحةُ المالية ترشّح
+/// `running` — **ولا كاتبَ لها فإيرادُ الإعلانات صفرٌ أبدًا** —
+/// وشرائحُ الشاشة تقول `live`. وخدمةُ الإعلان ترشّح `live` فالحملةُ
+/// المزروعة لا تُعرض أصلًا.
+///
+/// والمُصرِّف يمنع الخامسة.
+enum AdCampaignStatus {
+  SCHEDULED /// لم يحن بدؤها
+  LIVE /// بين تاريخيها
+  PAUSED /// أوقفها المشغّل — ولا تُستأنف بعد انقضاء نافذتها
+  ENDED /// مضت نافذتها
+}
+
 model AdCampaign {
   id             String   @id @default(cuid())
   advertiserName String
@@ -2375,7 +2391,7 @@ model AdCampaign {
   budget         Decimal  @db.Decimal(10, 2)
   targeting      Json? // city | brand | userType
   priority       Int      @default(0)
-  status         String   @default("scheduled")
+  status         AdCampaignStatus @default(SCHEDULED)
   impressions    Int      @default(0)
   clicks         Int      @default(0)
 

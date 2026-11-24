@@ -41,8 +41,8 @@ describe('الشاشات التي كانت تفتح على فراغها', () => 
     });
     expect(campaigns.length).toBeGreaterThanOrEqual(2);
     /** حملةٌ جارية وأخرى منتهية — فالشريحتان تُفتحان على صفوف. */
-    expect(campaigns.some((row) => row.status === 'active')).toBe(true);
-    expect(campaigns.some((row) => row.status === 'ended')).toBe(true);
+    expect(campaigns.some((row) => row.status === 'LIVE')).toBe(true);
+    expect(campaigns.some((row) => row.status === 'ENDED')).toBe(true);
 
     /**
      * **والأثرُ يُحاكي الحقيقيّ**: نقرٌ بلا ظهورٍ مستحيل، ونسبةُ نقرٍ

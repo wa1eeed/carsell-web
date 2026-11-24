@@ -472,6 +472,84 @@
         }
       }
     },
+    "/api/v1/admin/ads/slots": {
+      "post": {
+        "summary": "POST /api/v1/admin/ads/slots",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 40
+                  },
+                  "nameAr": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "sizeLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "placement": {
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "pricingModel": {
+                    "type": "string",
+                    "enum": []
+                  },
+                  "basePrice": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 12
+                  },
+                  "maxPerSession": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
+                  }
+                },
+                "required": [
+                  "key",
+                  "nameAr",
+                  "sizeLabel",
+                  "placement",
+                  "pricingModel",
+                  "basePrice",
+                  "maxPerSession"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/api-keys": {
       "post": {
         "summary": "POST /api/v1/admin/api-keys",
