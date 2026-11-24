@@ -294,7 +294,19 @@ async function accountRichness(cookie) {
      * الفحص» أسماءٌ في قائمة «أقسام حسابي» تظهر لكلّ حساب، فعدُّها
      * يُعطي ثلاثةً لحسابٍ فارغ — واخترتُ به أفقرَ الحسابات.
      */
-    return ['سعرك المعلن', 'تفاصيل', 'INS-'].filter((mark) => html.includes(mark)).length;
+    /**
+     * **والعلاماتُ لا تتساوى.** عدٌّ مجرَّد يجعل حسابًا فيه «تفاصيل»
+     * و«INS-» يساوي حسابًا فيه «سعرك المعلن» و«تفاصيل» — فيُؤخذ أوّلُهما
+     * ويُقرأ `Wf` ٥٦٪، **وأربعٌ من نواقصها الخمس من كتلة العروض وحدها**
+     * (سعرك المعلن · اقبل · عرض مقابل · دون الاحتياطي). فتُرجَّح بما
+     * تفتحه من إشارات.
+     */
+    const marks = [
+      ['سعرك المعلن', 2],
+      ['تفاصيل', 1],
+      ['INS-', 1],
+    ];
+    return marks.reduce((sum, [mark, weight]) => sum + (html.includes(mark) ? weight : 0), 0);
   } catch {
     return 0;
   }
@@ -312,7 +324,13 @@ async function signInUser() {
         redirect: 'manual',
         signal: AbortSignal.timeout(30_000),
       });
-      if (probe.status === 200 && (await accountRichness(cached)) > 0) {
+      /**
+       * **والمحفوظُ يُقبل إن كان أغنى ما يُرجى لا إن كان غيرَ فارغ.**
+       * `> 0` تُبقي جلسةً ترسم قسمًا واحدًا بينما في القاعدة حسابٌ يرسم
+       * الثلاثة — فتُقرأ `Wf` ناقصةً والنقصُ في الحساب المختار. وبعد كلّ
+       * زرعٍ جديد تتبدّل الحسابات، فيصير المحفوظُ أفقرَ بلا أن يقول.
+       */
+      if (probe.status === 200 && (await accountRichness(cached)) >= 4) {
         USER_COOKIE = cached;
         return;
       }
@@ -331,14 +349,20 @@ async function signInUser() {
    * فتُجرَّب حساباتُ البائعين ويُؤخذ أغناها بما يرسمه التصميم.
    */
   if (process.env.AUDIT_PHONE === undefined) {
+    /**
+     * **ويُوسَّع المسح حتى يوجد الغنيّ.** خمسةُ حساباتٍ قد لا يكون في
+     * أيٍّ منها عرضٌ وارد، فتُقاس `Wf` على أفقر ما وُجد وتُقرأ ٥٦٪ —
+     * وكانت ٨٩٪ قبل زرعٍ بدّل ترتيب الحسابات. والبحثُ يقف عند أوّل
+     * حسابٍ يرسم الثلاثة، فتوسيعُه لا يكلّف شيئًا حين يوجد مبكّرًا.
+     */
     let best = { cookie: '', score: 0 };
-    for (let i = 0; i < 5; i += 1) {
+    for (let i = 0; i < 12; i += 1) {
       const candidate = await signInPhone(`+9665${String(10000000 + i).padStart(8, '0')}`);
       if (candidate === null) continue;
       const score = await accountRichness(candidate);
       if (score > best.score) best = { cookie: candidate, score };
-      /** الثلاثةُ كلُّها ⇒ لا حاجة إلى المزيد. */
-      if (best.score >= 3) break;
+      /** الأقسامُ كلُّها (٢+١+١) ⇒ لا حاجة إلى المزيد. */
+      if (best.score >= 4) break;
     }
     if (best.cookie !== '') {
       USER_COOKIE = best.cookie;
@@ -347,9 +371,9 @@ async function signInUser() {
       } catch {
         /* الحفظ تحسينٌ لا شرط */
       }
-      if (best.score < 3) {
+      if (best.score < 4) {
         console.log(
-          `⬜ أغنى حساب يعرض ${String(best.score)} من ثلاثة أقسام — وما لا يُزرع لا يُقاس.`,
+          `⬜ أغنى حساب يبلغ ${String(best.score)} من أربع (كتلة العروض بنقطتين) — وما لا يُزرع لا يُقاس.`,
         );
       }
       return;
@@ -535,6 +559,31 @@ const WALK_ONLY = new Set(['Wh', 'A14']);
  */
 const BEHIND_CLICK = {
   Wm: ['الخطوة التالية', 'إعادة الإرسال بعد'],
+};
+
+/**
+ * ═══ ما قُرّر ألّا يُبنى — خامسُ الانحرافات ═══
+ *
+ * `A35` تُقرأ ٥٦٪ وأربعُ «نواقصها» كلُّها **قراراتٌ مسجَّلة** في
+ * `docs/DESIGN-DEVIATIONS.md`: الثنائيةُ أُلغيت بقرار المصمّم، والتعيينُ
+ * من `ADMIN_TEAM` عند الإقلاع قرارٌ أمنيّ (فمن سرق جلسةً لا يصنع لنفسه
+ * حسابًا ثانيًا)، ولا نموذجَ `Invite` فبطاقةُ الدعوات لا تقرأ إلّا صفرًا.
+ *
+ * **ورقمٌ يعدّ هذه نقصًا يُرسل قارئَه ليبني ما قيل له ألّا يبنيه** — وهو
+ * عينُ ما وقع في `A10` و`A3`: المقياس يقرأ القرار عيبًا. وكِدتُ أنا أبني
+ * «أضف عضوًا» حتى قرأتُ السجلّ.
+ *
+ * والمطابقةُ **تامّة** لا احتواء، والقائمةُ تُطبع في ذيل التقرير بأسبابها
+ * فلا تصير مخبأً — و`tests/design-deviations.test.ts` يشترط أن يكون لكلّ
+ * مُدخَلٍ هنا سطرٌ في السجلّ، فلا يُستثنى شيءٌ بلا سببٍ مكتوب.
+ */
+const DECIDED_AGAINST = {
+  A35: [
+    ['TOTP مسجَّل', 'أُلغيت المصادقة الثنائية بقرار المصمّم'],
+    ['إلزاميّ بلا استثناء', 'من بطاقة TOTP نفسها'],
+    ['أضف عضوًا', 'التعيين من ADMIN_TEAM عند الإقلاع — قرار أمنيّ'],
+    ['دعوات معلّقة', 'لا نموذج Invite — بطاقةٌ لا تقرأ إلّا صفرًا'],
+  ],
 };
 
 /**
@@ -1140,9 +1189,11 @@ async function main() {
       /** المؤجَّل يخرج من البسط والمقام معًا — لا يُعدّ نقصًا ولا مطابقة. */
       /** وكذلك ما يقع خلف نقرةٍ في شاشةٍ تُجلَب حالتُها الأولى وحدها. */
       const behind = BEHIND_CLICK[tag] ?? [];
+      const decided = (DECIDED_AGAINST[tag] ?? []).map(([word]) => word);
       const live = signals.filter(
         (signal) =>
           !DEFERRED_SIGNALS.some((word) => signal.includes(word)) &&
+          !decided.some((word) => normalizeText(word) === normalizeText(signal)) &&
           /*
            * **والمطابقةُ تامّة لا احتواء.** كتبتُ «رمز التحقق» في
            * القائمة فابتلعت **«أرسل رمز التحقق»** — وهو زرُّ الحالة
@@ -1298,6 +1349,16 @@ async function main() {
     console.log(
       'خلف نقرة (مُشيت بالمتصفّح وشوهدت — خارج المقام): '
         + behindRows.map(([tag, list]) => `${tag} (${list.join(' · ')})`).join(' · '),
+    );
+  }
+
+  const decidedRows = Object.entries(DECIDED_AGAINST);
+  if (decidedRows.length > 0) {
+    console.log(
+      'قُرّر ألّا يُبنى (خارج المقام — والسبب في DESIGN-DEVIATIONS): '
+        + decidedRows
+            .map(([tag, list]) => `${tag} (${list.map(([word]) => word).join(' · ')})`)
+            .join(' · '),
     );
   }
 

@@ -2090,6 +2090,54 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 24 — `A35` team, where every missing signal was a decision already taken
+
+`A35` read **56٪**, and I was two files into building «أضف عضوًا» when I read
+the register. All four of its missing signals are **recorded deliberate
+deviations**: two-factor auth was cancelled by the designer, members are
+provisioned from `ADMIN_TEAM` at boot so a stolen session cannot mint a second
+account, and there is no `Invite` model so a «دعوات معلّقة» card could only ever
+read zero.
+
+So the work was not on the screen. **The measure was reading decisions as
+gaps** — the fourth time, after `A10`, `A3` and the terminology map — and this
+time it nearly sent me to build the one thing a security decision says not to
+build. The provisioning question is for the designer, not for me to reverse,
+and it is raised below.
+
+- [x] `DECIDED_AGAINST` subtracts those signals per screen, by **exact** match,
+      and prints them with their reasons in the report footer so the list
+      cannot be a hiding place.
+- [x] `tests/design-deviations.test.ts` refuses any entry that
+      `DESIGN-DEVIATIONS.md` does not name — the exclusion list and the
+      register cannot drift. Proved by adding an invented exclusion: refused.
+      It caught a real gap on its first run: the register named the design's
+      other wording, not the signal the screen actually prints.
+
+The one real gap: the card read «أعضاء» over a count of **every** member while
+the design reads «أعضاء نشطون». True today, since nothing writes a non-active
+status — and false on the first day someone is disabled, which is exactly the
+day the question is asked. It counts `status: 'active'` now.
+
+Measured after: **56٪ → 100٪** on five signals, so marked ⚠.
+
+### And the account home was being measured on its poorest user
+
+`Wf` read **56٪** against 89٪ a day earlier, and nothing in the product had
+changed: the audit signs in as whichever seeded account draws the most of three
+marks, and the score was a plain count. An account with orders and an
+inspection report ties one with incoming offers — and the first one found wins.
+Four of `Wf`'s five "missing" signals come from the offers block alone.
+
+Checked rather than assumed: signed in as the seller who actually has a pending
+offer, and the page renders «سعرك المعلن», «اقبل», «عرض مقابل» and «العروض
+الواردة». The screen was never the problem.
+
+- [x] The offers block is worth two points, and the scan runs to twelve
+      accounts. `Wf` reads **89٪** again, and the tool states plainly that the
+      richest account reaches 3 of 4 — so the remaining gap is seed data, said
+      out loud rather than scored silently.
+
 ### 40a · 23 — `A15` listing review, and evidence gathered differently from how the flag was raised
 
 `A15` read **56٪**. Its own subtitle in the design is «القرار بدليله» — the

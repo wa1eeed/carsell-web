@@ -1042,9 +1042,11 @@ code review and into a session. Not taken unilaterally.
 
 | In A35 | Why not |
 |---|---|
-| `TOTP مسجَّل ٩/٩` stat card, `TOTP` member column, "TOTP إلزاميّ للجميع" in the rules card | Two-factor auth was **cancelled by the designer**. Showing it would promise a protection that is not there — the worst class of false copy. |
+| `TOTP مسجَّل` stat card (`٩/٩`, noted `إلزاميّ بلا استثناء`), the `TOTP` member column, and "TOTP إلزاميّ للجميع" in the rules card | Two-factor auth was **cancelled by the designer**. Showing it would promise a protection that is not there — the worst class of false copy. |
 | `أضف عضوًا` button | Members are provisioned from `ADMIN_TEAM` at boot, so that whoever steals a session cannot mint a second account. The screen states the rule and now **names the variable and its format**, so the door is reachable. |
 | `دعوات معلّقة` stat card | There is no `Invite` model. A card that can only ever read zero is noise. |
+
+These four signals are subtracted from `A35`'s denominator by `DECIDED_AGAINST` in `scripts/design-audit.mjs`, which prints them in the report footer; `tests/design-deviations.test.ts` refuses any entry there that this register does not name, so the exclusion list cannot become a hiding place.
 
 ### Measured against the design
 

@@ -52,7 +52,7 @@ export default async function AdminTeamPage() {
       <MonitorCards
         cards={[
           {
-            title: 'أعضاء',
+            title: 'أعضاء نشطون',
             value: stats.members,
             /**
              * **والعدد المعروض هو المعرَّف لا المشغول.** كانت تقول

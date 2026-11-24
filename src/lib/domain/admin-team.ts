@@ -83,7 +83,13 @@ export async function teamMembers(now: Date = new Date()): Promise<TeamMember[]>
 
 export async function teamStats(now: Date = new Date()): Promise<TeamStats> {
   const [members, roles, sessions, locked] = await Promise.all([
-    db.adminUser.count(),
+    /**
+     * **النشطون لا الجميع.** يكتب التصميم «أعضاء نشطون»، وعدٌّ شاملٌ
+     * تحته يصدق اليوم (`status` افتراضُها `active`) ويكذب أوّلَ يوم
+     * يُعطَّل فيه حساب — واللحظةُ التي يُسأل فيها «كم عضوًا يدخل
+     * اللوحة؟» هي لحظةُ مغادرة أحدهم بالضبط.
+     */
+    db.adminUser.count({ where: { status: 'active' } }),
     db.adminUser.groupBy({ by: ['role'] }),
     db.adminSession.count({ where: { expiresAt: { gt: now }, revokedAt: null } }),
     db.adminUser.count({ where: { lockedUntil: { gt: now } } }),
