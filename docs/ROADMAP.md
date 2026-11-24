@@ -2090,6 +2090,61 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 15 — `A3` finance, and a measure that read an owner decision as a gap
+
+`A3` read **41٪**. Opening it: GMV with its split, net revenue with five
+streams, escrow cash, subscriptions, a twelve-month chart, a revenue-mix donut,
+six composite indicators, a commission simulator, **and an input panel for the
+costs the platform does not know about itself**. Almost all of it built.
+
+#### Most of the gap was the owner's own wording
+
+The owner decided on 2026-10-11: «بعض العبارات والكلمات غير مفهوم المقصد منها
+مثلًا مدرج» — the markup's investor vocabulary becomes plain Arabic, and the
+table of renamings lives in `NOTES.md`. The measure knew nothing of it, so it
+reported **«تكلفة الاكتساب CAC»** and **«القيمة الدائمة LTV»** as missing from
+a screen that shows both under the owner's own names.
+
+- [x] The renaming table is applied to the **design side** before comparing —
+      the fourth product-wide departure, beside the rebrand, the diacritics and
+      the numerals. It cannot hide an absence: the map rewrites the design's
+      term to ours and then looks for ours, so a deleted card stays missing.
+
+#### And the owner's own rule was half-applied
+
+That decision says **«الرمز يُزاح ولا يُحذف»** — the acronym moves into the
+explanation rather than disappearing, so whoever reads an English financial
+report can still connect the two. It was applied to «قيمة المبيعات … (GMV)»
+and to nothing else.
+
+- [x] `(CAC)`, `(LTV)`, `(take rate)` and `(payback)` restored to their notes.
+
+#### Two cards the markup draws and the screen lacked
+
+- [x] **«المصروف الشهري».** The inputs were already collected and burn already
+      computed — nothing summed them into one figure, so whoever wanted to know
+      what the platform spends read six fields and added them up. **And a month
+      with nothing entered now says so** instead of printing «٠»: the gap
+      between «we spend nothing» and «nobody entered anything» is the whole
+      gap, and one of them is an alarm.
+- [x] **«هامش المساهمة»** — what is left of a customer after their direct cost
+      and their acquisition. It sits before profit, carrying no payroll: a
+      negative one means we pay customers to buy, and that is news long before
+      it reaches any profit line. The direct cost comes from our own chart of
+      accounts — `PROVIDER_COST` and `GOODWILL_EXPENSE` — and **gateway fees
+      are not in it**: their account is named «عبور», money passing through to
+      somebody else. A cost is debit **minus credit**, or a refund counts as
+      spending.
+
+#### And a record whose reason had expired
+
+`A36`'s deviation said the investor report needs «data we do not collect».
+`FinanceInput` collects it now. The record is updated rather than left standing
+— **a record kept after its reason is gone lies the same way a missing one
+does** — and the report remains unbuilt for a different reason.
+
+Measured after: **41٪ → 82٪**. Whole tree **72٪ → 73٪**.
+
 ### 40a · 14 — `Wp` the dealer index, and six mock addresses read as structure
 
 `Wp` read **40٪**. Opening it against the markup: the title, the intro, the city

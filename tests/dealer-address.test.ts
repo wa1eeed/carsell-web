@@ -36,9 +36,14 @@ describe('عنوانُ بطاقة المعرض', () => {
    * مدينة، فحذفُ الاسم أينما وقع يشوّه عناوينَ صحيحة.
    */
   it('ولا يمسّ اسمَ المدينة حين يقع وسط العنوان', async () => {
+    /**
+     * **والصفُّ يُعرَف بهويّته لا بمدينته.** أخذتُه بـ`city` فوجد
+     * معرضًا آخر في الرياض — ثلاثةٌ فيها — فسقط الاختبارُ على صفٍّ
+     * لم يُغيَّر، وبدا الإصلاحُ مكسورًا وهو سليم.
+     */
     const dealer = await db.dealer.findFirstOrThrow({
       where: { status: 'ACTIVE' },
-      select: { id: true, city: true, address: true },
+      select: { id: true, slug: true, city: true, address: true },
     });
 
     const original = dealer.address;
@@ -49,7 +54,7 @@ describe('عنوانُ بطاقة المعرض', () => {
 
     try {
       const rows = await listPublicDealers('ar');
-      const row = rows.find((item) => item.city === dealer.city);
+      const row = rows.find((item) => item.slug === dealer.slug);
       expect(row?.address).toContain(`شارع ${dealer.city} التجاري`);
     } finally {
       /** **والاختبار يعيد ما غيّره.** */

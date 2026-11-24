@@ -299,6 +299,9 @@ export type Indicators = {
   /** أشهر المدرج — `null` حين لا حرق (الربح لا مدرج له). */
   runwayMonths: number | null;
   cashBalance: string;
+  /** ما يبقى من العميل بعد تكلفته المباشرة واكتسابه — و`null` بلا مشترين. */
+  contributionMargin: string | null;
+  directCostPerCustomer: string;
 };
 
 /**
@@ -311,7 +314,8 @@ export type Indicators = {
 export async function indicators(month: string): Promise<Indicators> {
   const { from, to } = monthBounds(month);
 
-  const [inputs, summary, newCustomers, payingCustomers, lifetimeRevenue] = await Promise.all([
+  const [inputs, summary, newCustomers, payingCustomers, lifetimeRevenue, directCostRows] =
+    await Promise.all([
     db.financeInput.findMany({ where: { month } }),
     financeSummary(from, to),
     db.user.count({ where: { createdAt: { gte: from, lt: to } } }),
@@ -326,6 +330,25 @@ export async function indicators(month: string): Promise<Indicators> {
       where: { status: { in: [...REALISED_STATUSES] } },
       _sum: { commissionAmount: true },
     }),
+    /**
+     * ═══ التكلفةُ المباشرة — من دفترنا لا من تقدير ═══
+     *
+     * ترميز `A3` يرسم «هامش المساهمة» بثلاثة أجزاء: إيرادُ الصفقة،
+     * وتكلفةٌ مباشرة، واكتسابٌ موزَّع. والأوّلُ والثالثُ محسوبان
+     * أصلًا، **والثاني لم يكن له مصدر**.
+     *
+     * وهو في شجرة حساباتنا حسابان: ما نؤدّيه لمزوّدي الخدمات التي
+     * بعناها، وما نعوّض به. **ورسومُ البوّابة ليست منه**: حسابُها
+     * «عبور» بنصّه — تمرّ إلى غيرنا ولا تدخل جيبنا ولا تخرج منه.
+     */
+    db.ledgerEntry.groupBy({
+      by: ['direction'],
+      where: {
+        account: { in: ['PROVIDER_COST', 'GOODWILL_EXPENSE'] },
+        createdAt: { gte: from, lt: to },
+      },
+      _sum: { amount: true },
+    }),
   ]);
 
   const valueOf = (key: string): Prisma.Decimal =>
@@ -339,6 +362,16 @@ export async function indicators(month: string): Promise<Indicators> {
       valueOf(entry.key),
     ),
   );
+  /**
+   * **والمصروفُ مدينٌ ناقص دائن.** حسابُ تكلفةٍ يُقيَّد مدينًا حين
+   * تقع، ودائنًا حين تُردّ — فأخذُ المدين وحده يحسب المردودَ تكلفةً.
+   */
+  const directCost = sum(
+    directCostRows.map((row) =>
+      new Prisma.Decimal(row._sum.amount ?? 0).times(row.direction === 'DEBIT' ? 1 : -1),
+    ),
+  );
+
   const monthlyRevenue = new Prisma.Decimal(summary.revenue.total);
   const netBurn = monthlyBurn.minus(monthlyRevenue);
   const cashBalance = valueOf('cash_balance');
@@ -357,6 +390,9 @@ export async function indicators(month: string): Promise<Indicators> {
           .dividedBy(payingCustomers)
           .toDecimalPlaces(2);
 
+  const directCostPerCustomer =
+    payingCustomers === 0 ? new Prisma.Decimal(0) : directCost.dividedBy(payingCustomers);
+
   const monthlyMarginPerCustomer =
     payingCustomers === 0 ? new Prisma.Decimal(0) : monthlyRevenue.dividedBy(payingCustomers);
 
@@ -371,6 +407,18 @@ export async function indicators(month: string): Promise<Indicators> {
     paybackMonths: monthlyMarginPerCustomer.isZero()
       ? null
       : Number(cac.dividedBy(monthlyMarginPerCustomer).toDecimalPlaces(1)),
+    /**
+     * ═══ هامشُ المساهمة — ما يبقى من الصفقة بعد كلفتها ═══
+     *
+     * إيرادُ العميل ناقصَ تكلفةٍ مباشرة ناقصَ اكتسابٍ موزَّع. وهو
+     * الرقمُ الذي يقول أتكسب المنصّةُ من كلّ عميلٍ أم تدفع ليشتري —
+     * ويسبق الربحَ، إذ لا يحمل رواتبَ ولا بنيةً تحتية.
+     *
+     * و`null` بلا مشترين: قسمةٌ على صفر، والصفرُ يُقرأ «لا هامش» وهو
+     * «لا نعرف».
+     */
+    contributionMargin: payingCustomers === 0 ? null : ltv.minus(directCostPerCustomer).minus(cac).toString(),
+    directCostPerCustomer: directCostPerCustomer.toString(),
     monthlyBurn: monthlyBurn.toString(),
     monthlyRevenue: monthlyRevenue.toString(),
     netBurn: netBurn.toString(),

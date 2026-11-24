@@ -1,6 +1,6 @@
 # Notes — things to do before a specific task
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-24_
 
 Short-lived reminders that would otherwise be lost between sessions. Delete an
 entry once its task lands. Permanent decisions belong in `DESIGN-DECISIONS.md`,
@@ -605,6 +605,8 @@ npm run verify && git add -A && git commit …   # لا أسطرٌ منفصلة
 | تدويرات تنتظر موافقة | مفاتيح تنتظر الاستبدال |
 | استعلامات مسمّاة على القراءة | تقارير جاهزة تُنزَّل — ولا تمسّ البيانات |
 | رسوم عبور | رسوم تمرّ إلى غيرنا |
+| هامش المساهمة | ما يبقى من العميل بعد كلفته |
+| المصروف الشهري | المصروف الشهري (كما هو — عبارةٌ دارجة أصلًا) |
 
 **والرمز لا يُحذف بل يُزاح**: «قيمة المبيعات … (GMV)» تُبقي الكلمة لمن
 يعرفها ولا تفرضها على من لا يعرفها.

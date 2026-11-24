@@ -17,7 +17,11 @@ import {
   monthKey,
   simulateCommission,
 } from '@/lib/domain/admin-finance';
-import { ORDER_SOURCE_LABEL, REVENUE_STREAM_LABEL } from '@/lib/labels/admin';
+import {
+  FINANCE_INPUT_LABEL,
+  ORDER_SOURCE_LABEL,
+  REVENUE_STREAM_LABEL,
+} from '@/lib/labels/admin';
 import { FinanceInputs } from './finance/FinanceInputs';
 import { Simulator } from './finance/Simulator';
 
@@ -47,6 +51,16 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
     financeInputs(month),
     monthlyGmv(GMV_MONTHS),
   ]);
+
+  /**
+   * **والرصيدُ النقديّ ليس مصروفًا.** هو ما في الحساب، لا ما خرج منه —
+   * وجمعُه مع الرواتب يضاعف الرقم ويُسقط المدرجَ معه. و`monthlyBurn`
+   * في النطاق يستثنيه أصلًا، فالعرضُ يتبعه.
+   */
+  const spendLines = inputs.filter(
+    (row) => row.key !== 'cash_balance' && row.updatedAt !== null,
+  );
+  const spendEntered = spendLines.length > 0;
 
   const scenarios = simulateCommission(
     summary.gmv.total,
@@ -127,6 +141,39 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
             </p>
           ))}
         </Card>
+
+        {/*
+          ═══ «المصروف الشهري» — بطاقةُ الترميز الثامنة ═══
+
+          المدخلاتُ مكتوبةٌ أسفل الشاشة ويُحسب منها الحرقُ والمدرج،
+          **ولا شيء يجمعها في رقمٍ واحد**: فمن يفتح اللوحة ليعرف كم
+          تُنفق المنصّة شهريًّا يقرأ ستّةَ حقولٍ ويجمعها في رأسه.
+
+          **ولا يُعرض صفرٌ كأنّه خبر**: شهرٌ لم تُدخَل أرقامُه يقول
+          ذلك، لا «٠ ريال» — والفرقُ بين «لا ننفق شيئًا» و«لم يُدخل
+          أحدٌ شيئًا» هو الفرقُ كلُّه.
+        */}
+        <Card
+          title="المصروف الشهري"
+          subtitle={`شهر ${monthName(month)} — ما أدخلته أنت`}
+          {...(spendEntered
+            ? { amount: figures.monthlyBurn }
+            : { blank: 'لم يدخل بعد' })}
+        >
+          {spendEntered ? (
+            spendLines.map((line) => (
+              <Line
+                key={line.key}
+                label={FINANCE_INPUT_LABEL[line.key] ?? line.key}
+                amount={line.value}
+              />
+            ))
+          ) : (
+            <p className="text-2xs leading-loose opacity-70">
+              لم تدخل مصروف هذا الشهر بعد — والمدخلات أسفل الشاشة.
+            </p>
+          )}
+        </Card>
       </div>
 
       {/*
@@ -170,15 +217,26 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
       </p>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {/*
+          ═══ الرمزُ يُزاح ولا يُحذف — قرار المالك ٢٠٢٦-١٠-١١ ═══
+
+          «بعض العبارات والكلمات غير مفهوم المقصد منها مثلًا مدرج».
+          فالعنوانُ عبارةٌ دارجة، **والرمزُ يبقى في الشرح بين قوسين**
+          لمن يقرأ تقريرًا ماليًّا بالإنجليزية فيربط.
+
+          وكان مطبَّقًا على «قيمة المبيعات … (GMV)» وحدها، وسقط عن
+          CAC وLTV ونسبة الأخذ — فالقاعدةُ نصفُ مطبَّقة.
+        */}
         <Indicator
           title="تكلفة جلب العميل"
           value={<Money amount={figures.cac} />}
           note={
             figures.newCustomers === 0 ? (
-              'لا عملاء جدد هذا الشهر — فلا تكلفة تقسم عليهم.'
+              'لا عملاء جدد هذا الشهر — فلا تكلفة تقسم عليهم. (CAC)'
             ) : (
               <>
-                ما صرف على التسويق ÷ <Quantity unit="newCustomers" count={figures.newCustomers} />
+                ما صرف على التسويق ÷ <Quantity unit="newCustomers" count={figures.newCustomers} />{' '}
+                (CAC)
               </>
             )
           }
@@ -188,8 +246,12 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
           value={<Money amount={figures.ltv} />}
           note={
             figures.payingCustomers === 0
-              ? 'لا مشترين بعد.'
-              : <>إيراد المنصة ÷ <Quantity unit="buyers" count={figures.payingCustomers} /></>
+              ? 'لا مشترين بعد. (LTV)'
+              : (
+                  <>
+                    إيراد المنصة ÷ <Quantity unit="buyers" count={figures.payingCustomers} /> (LTV)
+                  </>
+                )
           }
         />
         <Indicator
@@ -199,7 +261,7 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
               <ArabicNumber value={figures.takeRatePct} decimals={2} grouped={false} />٪
             </span>
           }
-          note={<>من كل ريال مبيعات يبقى للمنصة هذا القدر.</>}
+          note={<>من كل ريال مبيعات يبقى للمنصة هذا القدر. (take rate)</>}
         />
         <Indicator
           title="ما يدره العميل مقابل تكلفته"
@@ -224,7 +286,38 @@ export async function FinanceTab({ admin }: { admin: AdminUser }) {
               <ArabicNumber value={figures.paybackMonths} decimals={1} grouped={false} />
             )
           }
-          note="حتى يعيد العميل ما كلف جلبه."
+          note="حتى يعيد العميل ما كلف جلبه. (payback)"
+        />
+        {/*
+          ═══ «هامش المساهمة» — بطاقةُ الترميز السابعة ═══
+
+          ما يبقى من العميل بعد تكلفته المباشرة واكتسابه. **ويسبق
+          الربحَ**: لا يحمل رواتبَ ولا بنيةً تحتية — فسالبُه يعني أنّنا
+          ندفع ليشتري العميل، وذلك خبرٌ قبل أن يظهر في أيّ ربح.
+
+          والتكلفةُ المباشرة من الدفتر (ما نؤدّيه لمزوّدي الخدمات
+          وتعويضاتُنا)، **ورسومُ البوّابة ليست منها**: حسابُها «عبور»
+          بنصّه، تمرّ إلى غيرنا.
+        */}
+        <Indicator
+          title="ما يبقى من العميل بعد كلفته"
+          value={
+            figures.contributionMargin === null ? (
+              <span className="text-base opacity-70">لا مشترين بعد</span>
+            ) : (
+              <Money amount={figures.contributionMargin} />
+            )
+          }
+          note={
+            figures.contributionMargin === null
+              ? 'لا مشترين بعد. (contribution margin)'
+              : (
+                  <>
+                    ما يدره العميل ناقص <Money amount={figures.directCostPerCustomer} /> تكلفة
+                    مباشرة وناقص تكلفة جلبه. (contribution margin)
+                  </>
+                )
+          }
         />
         <Indicator
           title="النقد يكفي"
@@ -282,19 +375,28 @@ function Card({
   subtitle,
   amount,
   count,
+  blank,
   children,
 }: {
   title: string;
   subtitle: string;
   amount?: string;
   count?: number;
+  /**
+   * **ورقمٌ لم يُدخَل ليس صفرًا.** بطاقةُ المصروف على شهرٍ لم تُكتب
+   * أرقامُه كانت تطبع «٠» — والفرقُ بين «لا ننفق شيئًا» و«لم يُدخل
+   * أحدٌ شيئًا» هو الفرقُ كلُّه، وأحدُهما إنذار.
+   */
+  blank?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">{title}</h2>
       <p className="mt-2 text-2xl font-bold">
-        {amount === undefined ? (
+        {blank !== undefined ? (
+          <span className="text-base opacity-70">{blank}</span>
+        ) : amount === undefined ? (
           <ArabicNumber value={count ?? 0} />
         ) : (
           <Money amount={amount} />

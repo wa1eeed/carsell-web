@@ -520,9 +520,18 @@ sales/commissions, ledger, inventory aging, auction performance, service request
 and SLA, and customers. Each carries its own permission, and the route enforces
 it (OPS gets 403 on the customer export, verified).
 
-**Six, not the markup's twelve:** the rest need data we do not collect. The
+**Six, not the markup's twelve:** the rest needed data we did not collect. The
 investor report wants CAC, LTV and burn; a report that downloads with empty
 columns is worse than one that does not exist.
+
+> **Updated 2026-11-24 (40a·15).** That premise has changed: `FinanceInput`
+> collects payroll, marketing spend, infrastructure and cash balance, and `A3`
+> computes CAC, LTV, contribution margin, runway and take rate from them. The
+> investor report is now buildable — and would be empty only for a month whose
+> costs nobody entered, which the dashboard already says out loud rather than
+> printing a zero. **A record kept after its reason is gone lies the same way a
+> missing one does**, so this is the reason, not the conclusion: the report is
+> still unbuilt, but no longer because the data is missing.
 
 **CSV, not XLSX + PDF.** CSV opens in every tool and adds no dependency to the
 bundle. Two things the markup does not mention are enforced: a UTF-8 BOM, without
