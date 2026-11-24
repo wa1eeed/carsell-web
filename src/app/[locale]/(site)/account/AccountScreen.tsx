@@ -773,9 +773,22 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
 
       <Link
         href={`/${locale}/account/profile`}
-        className="flex items-center justify-between gap-2 bg-surface p-4 text-2xs font-bold transition-colors hover:bg-ink/4"
+        className="flex items-center justify-between gap-2 border-b border-line bg-surface p-4 text-2xs font-bold transition-colors hover:bg-ink/4"
       >
         <span>{t('editProfile')}</span>
+        <span aria-hidden className="opacity-40">←</span>
+      </Link>
+
+      {/*
+        **وموافقاتُه تُفتح من حسابه.** الشروطُ تُقبل عند التسجيل ويُسجَّل
+        القبول بنسخته — ومن أراد أن يعرف **متى وافق ومِمّ** لا موضعَ له
+        غير هذا السطر.
+      */}
+      <Link
+        href={`/${locale}/account/legal`}
+        className="flex items-center justify-between gap-2 bg-surface p-4 text-2xs font-bold transition-colors hover:bg-ink/4"
+      >
+        <span>الشروط والموافقات</span>
         <span aria-hidden className="opacity-40">←</span>
       </Link>
     </section>

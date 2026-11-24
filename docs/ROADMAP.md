@@ -1647,6 +1647,34 @@ platform itself knows and the buyer most wants to read.
 - [x] Walked end to end: a seeded order driven through all five stages writes
       exactly one `owner` line, and severing the call fails the test.
 
+## 41 · No action needs a second person — *owner's decision 2026-11-24*
+
+> «انا ما اعجبني ان الأدمن يحتاج ثلاثةَ حسابات سلطةَ لتنفيذ بعض الاجراءات و
+> المفروض عنده سلطه كسوبر ادمن ... طبعاً كلامي عن كل القرارات اللي من هالنوع»
+
+§35 removed the two-approver quorum on 2026-10-14 and set `REQUIRED_APPROVALS`
+to one. This request restates it as a **class**, not a case: no action in the
+panel may require a second or third human. It is binding and it is retroactive
+over anything of the same shape, built since or missed then.
+
+- [ ] **Measure first.** Where does the product still require more than one
+      person, and where does it merely *say* it does? The two are different
+      defects: the first blocks the owner, the second lies to them. §35 fixed
+      the constant in one file and left its prose in a dozen — the broken
+      promise outliving the rule it described.
+- [ ] A stored `ApprovalRequest` carries its own `requiredApprovals`, and
+      `selfApprovalBlocked` reads **the row, not the constant**. So a row
+      written before §35 still demands a second member, and lowering the
+      constant did not reach it. Rows, not just code.
+- [ ] Every «يلزم عضو ثاني» · «موافقة عضوين» · «بنصاب عضوين» in a screen, an
+      API error or a comment is re-read against what the code now does.
+- [ ] `RECORDED_ACTIONS` stays. The owner removed the **quorum**, not the
+      **record**: an action that moves money keeps a row naming who did it.
+      That is a log, not an authority gate, and it asks no one for permission.
+- [ ] Gate 19 keeps guarding the half-built-quorum class (a request kind with
+      no approver, an approver with no route, a check on a weaker permission) —
+      it is what caught §35's own leftovers twice.
+
 ## 40 · The order from here: conformance, then the remaining panels, then the app — *owner's request 2026-11-23*
 
 > «ينقص المشروع الكثير من العمل و التطوير من ناحية اكمال التصميم و اكمال
@@ -2021,6 +2049,77 @@ competitor's listing down; the second writes the admin's name where the
 record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
+
+### 40a · 9 — `A34` legal, 44٪ → 100٪, and consent that was never recorded
+
+The screen was missing «سجل النسخ» · «مستند جديد» · «نسبة القبول» ·
+«إلزاميّ للتسجيل». Three of those four turned out to be symptoms of one thing:
+**the product had no concept of a legal version, and no record of consent.**
+
+#### The sign-in screen asked for a consent nothing stored
+
+`AuthForm` renders a required checkbox — «أوافق على الشروط والأحكام وسياسة
+الخصوصية» — and refuses to submit without it. `agreed` is `useState(false)` in
+the browser and it dies with the tab. Grepped the schema for
+`termsAccepted|acceptedAt|LegalAcceptance|consent`: **nothing**. So the platform
+required an agreement and held no evidence of it; one dispute asking «على أي
+نص وافق؟» finds us with no answer.
+
+This is the displayed-condition-never-enforced class in its worst form. The
+usual case costs the user a click. This one costs the platform its case.
+
+- [x] `LegalAcceptance` — one row per user per document **per version**, written
+      in `completeRegistration`. A version string, not a reference: whoever
+      agreed in August agreed to August's text, and a reference would move with
+      every later typo fix.
+- [x] `/account/legal` and a strip under the header, because **a condition
+      enforced with no door to satisfy it is a lock with no key**: the 26
+      accounts that predate the record cannot prove a consent they gave. No row
+      is fabricated for them — a consent date we write ourselves is a forged
+      record, worse than an honest shortfall. They are asked, and the figure
+      rises by what happens.
+- [x] «نسبة القبول» reads 4٪ today and that is the true number. **Its value is
+      in falling**: at 100 it says nothing, and below it says either a material
+      version took effect unaccepted, or accounts hold no record at all.
+
+#### «نسخ موقّتة لا تحرير حيّ» had a policy and no mechanism
+
+The screen's own footnote explained why there was no edit button. The markup
+puts «تعديل» on every row — its rule is that **editing creates a version**, not
+that editing is forbidden. The register of uneditable models said as much:
+`LegalDocument`'s entry ended «the publishing path does not exist either».
+
+- [x] `LegalVersion` — drafts, the published one, and the superseded ones that
+      stay because somebody's consent points at them. Migration backfills one
+      `PUBLISHED` row per existing document, so the history starts from what is
+      there rather than from nothing.
+- [x] `/admin/legal/[key]` edits a draft born from the published text,
+      `/admin/legal/history` is «سجل النسخ» with an acceptance count per
+      version, `/admin/legal/new` is «مستند جديد» and creates it unpublished.
+- [x] Publishing takes **one** person (§35, §41) and writes an `AuditLog` row.
+      The markup's «والنشر يحتاج موافقة عضوين» is recorded in
+      `DESIGN-DEVIATIONS` as superseded, not quietly dropped.
+- [x] A material version cannot be published with less than fourteen days'
+      notice — the markup's own figure, now a validation rather than a sentence.
+
+#### A 500 that no test could have caught
+
+`toDraft` was exported from `DraftEditor.tsx`, a `'use client'` module, and the
+server page called it: **the whole screen returned 500**. Types passed, lint
+passed, 1496 tests passed. Clicking the row found it in one second.
+
+It is the third shape of one boundary error — `checkClientDbImports` guards a
+client module importing `db`, gate 22 guards a function prop crossing to the
+client, and this is the reverse crossing. Measured after the fix: **zero** in
+the tree, so **gate 72** shipped enabled the same day, and was proven by putting
+the bug back and watching it fire on the value while ignoring the component.
+
+#### And the measure was pointing at an empty port
+
+`design-audit.mjs` defaults to `localhost:3002`; the dev server runs on 3000. It
+printed «تعذّر دخول الأدمن (TypeError)» and then **0/0 — 0٪**, which reads like
+a measurement. A zero is only believable once the tool is shown to have run: the
+failure line now names the base URL and the real error, not just the class.
 
 ### 40a · 8 — `A2` operations, 44٪ → 89٪, **and the first visual pass**
 

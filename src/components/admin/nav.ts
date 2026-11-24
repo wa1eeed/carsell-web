@@ -193,7 +193,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        * لا مع المفاتيح والبيئات.
        */
       { label: 'قنوات الدعم', href: '/admin/contact', permission: 'notifications.manage', description: 'الهاتف والواتساب والبريد الظاهرة في «تواصل معنا».' },
-      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية ونسخها المنشورة.' },
+      { label: 'الصفحات القانونية', href: '/admin/legal', permission: 'notifications.manage', description: 'الشروط والخصوصية، ونسخها وسجل قبولها.' },
       /**
        * **وعلاماتُ الموثوقية محتوًى كالقانونيّة**: ما يراه الزائر في
        * التذييل. وكانت صفوفُها بلا كاتبٍ إطلاقًا — تُعرض أربعُ جهاتٍ

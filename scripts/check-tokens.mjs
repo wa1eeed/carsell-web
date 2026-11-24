@@ -36,7 +36,7 @@ import {
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { basename, join, relative, sep } from 'node:path';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const TOKENS_FILE = join('src', 'app', 'globals.css');
@@ -631,6 +631,81 @@ function pathToDb(entry, seen = new Set()) {
   }
 
   return null;
+}
+
+/**
+ * ═══ البوابة ٧٢ — لا قيمةَ تُستورَد من وحدة `'use client'` إلى الخادم ═══
+ *
+ * **ثالثُ شكلٍ لخطأ الحدّ نفسِه.** الأوّل `checkClientDbImports`: مكوّنُ
+ * عميلٍ يجرّ `db` فيسقط البناء. والثاني البوابة ٢٢: خاصّيةٌ دالّة تعبر
+ * إلى العميل فتردّ الشاشة ٥٠٠. وهذا عكسُهما: **مكوّنُ خادمٍ ينادي دالّةً
+ * مُصدَّرة من ملفٍّ `'use client'`**.
+ *
+ * ووقع في A34: `toDraft` كانت في `DraftEditor.tsx`، فنادتها صفحةُ المستند
+ * — **وردّت الشاشة ٥٠٠ كاملة**: «Attempted to call toDraft() from the
+ * server but toDraft is on the client». ولم يكشفه مُصرِّفٌ ولا لينت ولا
+ * اختبار؛ كشفه فتحُ الشاشة بالنقر، **وهو ما لا يفعله أحدٌ بعد كل تعديل**.
+ *
+ * والمكوّنُ يُستثنى لأنه ما وُضع الحدّ لعبوره: اسمُه يبدأ بحرفٍ كبير،
+ * والقيمةُ لا. و`import type` يعبر بلا أثرٍ وقت التشغيل.
+ *
+ * قِيس يوم بُنيت: **صفر** بعد إصلاح الحالة التي ولّدته، فشُحنت مفعَّلة.
+ */
+function checkClientValueImports() {
+  const files = [];
+  for (const dir of SCAN_DIRS) {
+    for (const file of walk(join(ROOT, dir))) {
+      if (/\.tsx?$/.test(file) && !file.includes('generated')) files.push(file);
+    }
+  }
+
+  const client = new Map();
+  const values = new Map();
+  for (const file of files) {
+    const source = readFileSync(file, 'utf8');
+    const isClient = /^\s*['"]use client['"]/m.test(source.slice(0, 400));
+    client.set(file, isClient);
+    if (!isClient) continue;
+    const names = [];
+    for (const m of source.matchAll(/^export\s+(?:async\s+)?function\s+([A-Za-z0-9_]+)/gm)) {
+      names.push(m[1]);
+    }
+    for (const m of source.matchAll(/^export\s+const\s+([A-Za-z0-9_]+)/gm)) names.push(m[1]);
+    /* المكوّنُ يبدأ بحرفٍ كبير، والقيمةُ لا — وهو الفرق الذي يهمّ هنا */
+    values.set(file, names.filter((name) => !/^[A-Z]/.test(name)));
+  }
+
+  for (const file of files) {
+    if (client.get(file) === true) continue;
+    const source = stripComments(readFileSync(file, 'utf8'));
+    for (const m of source.matchAll(
+      /^import\s+(?!type\b)\{([^}]*)\}\s+from\s+['"]([^'"]+)['"]/gm,
+    )) {
+      const spec = m[2];
+      if (!spec.startsWith('.') && !spec.startsWith('@/')) continue;
+      const base = spec.startsWith('@/')
+        ? join(ROOT, 'src', spec.slice(2))
+        : resolve(dirname(file), spec);
+      const target = [`${base}.tsx`, `${base}.ts`, join(base, 'index.tsx'), join(base, 'index.ts')]
+        .find((candidate) => files.includes(candidate));
+      if (target === undefined || client.get(target) !== true) continue;
+
+      const imported = m[1]
+        .split(',')
+        .map((part) => part.trim())
+        .filter((part) => part !== '' && !part.startsWith('type '))
+        .map((part) => part.split(/\s+as\s+/)[0].trim());
+      const crossing = imported.filter((name) => (values.get(target) ?? []).includes(name));
+      if (crossing.length === 0) continue;
+
+      const line = source.slice(0, m.index).split('\n').length;
+      problems.push(
+        `${relative(ROOT, file)}:${String(line)}  «${crossing.join('، ')}» قيمةٌ من وحدة `
+          + `'use client' (${relative(ROOT, target)}) يستوردها الخادم — نداؤها يردّ ٥٠٠. `
+          + 'انقلها إلى وحدةٍ مشتركة، أو استوردها بـ`import type` إن كانت نوعًا.',
+      );
+    }
+  }
 }
 
 function checkClientDbImports() {
@@ -1914,6 +1989,16 @@ function checkQuantityAdjacency() {
       const fromMessages = viaKey === null ? '' : lastWordOfMessage(viaKey[1] ?? '');
       const words = before.match(/[ء-ي]+/g) ?? [];
       const last = fromMessages !== '' ? fromMessages : (words[words.length - 1] ?? '');
+      /*
+       * **والوحدةُ المجرورة هي الاستيفاء لا المخالفة.**
+       *
+       * `daysGenitive` تصوغ المثنّى «يومين»، فـ«قبل ١٤ يومًا» و«قبل
+       * يومين» صحيحتان بها — وهي الصيغةُ التي بُنيت لهذا الموضع
+       * بعينه. وكانت البوابة تُنذر عليها، **فصارت تطلب ما لا يُستوفى**
+       * ولا سبيلَ لكاتب الشاشة إلى إسكاتها إلّا بإعادة صياغةٍ أسوأ.
+       * وإنذارٌ كاذب متكرّر يُعطّل القياس أشدَّ من غيابه.
+       */
+      if (/\bunit=["'][A-Za-z]*Genitive["']/.test(hit[0])) continue;
       if (BEFORE.includes(last)) {
         problems.push(
           `${rel}:${String(line)}  «${last}» قبل <Quantity> — الجارّ يُدخَل في صيغة `
@@ -2486,6 +2571,7 @@ checkColourUtilities();
 checkMoneyMigrations();
 checkPrismaBoundary();
 checkClientDbImports();
+checkClientValueImports();
 checkGatewayVocabulary();
 checkTaxRate();
   checkInterpolatedNumbers();
@@ -4437,5 +4523,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  '✓ بوابة الجودة: لا لون مكتوب · لا تسلسل رقميّ بمحايدٍ في نصّ عربيّ · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار · الضمان يُنشأ مع قيده · والسنة لا تُجمَّع · وكل سلّمٍ جانبيّ يتراكب على الهاتف · وكل مفتاح إشعارٍ له قالبٌ يُعرض · ولغة الشاشة لغة السوق · ولا عددَ بين قوسين فرارًا من الجمع · والحالةُ وانقضاءُ الوقت معًا · ولا مرحلةَ طلبٍ تُعرض وحدها · وكلُّ مساحةٍ مبيعة لها موضع · وكلُّ قالبِ إشعارٍ له كاتبٌ أو صمتٌ معلَن · ولا رسمٌ مكتوبٌ في الشيفرة · ولا حالةٌ تُبذَر من قائمة · ولا عنصرَ تفاعليّ داخل تفاعليّ · ولا تقريرَ فحصٍ بلا شرط النشر · ولا دالّةَ نطاقٍ تكتب بلا باب · وكلُّ حسابٍ في الدفتر له تسمية · ولا تسويةَ بلا مرجعها · وكلُّ رابطٍ يحمل لغته · ولا نصَّ دون حدّ القراءة · وعلامةُ النسبة لغةٌ لا زينة · وكلُّ مسارٍ له منادٍ أو سببٌ معلَن · ولا كتلتَي مراجعَ تتقاطعان في البذرة · ولا مسارَ يُصدِّر غير معالجاته · ولا خريطةَ تسميةٍ بلا تعهّدِ تعدادها · ولا حقلَ مركبةٍ يُملأ ولا يُرسَل · ولا تشكيلَ في نصٍّ معروض ولا اسمَ منقوصٍ مبتورًا · ولا نموذجَ بلا قارئٍ ولا سببٍ معلَن · وكلُّ وثيقةٍ تقول متى حُدِّثت · وكلامُ الشاشة يطابق رقمَ القاعدة · وكلُّ ملفٍّ مرجعيٍّ يصل قاعدةَ الإنتاج · ورسالةٌ تأخذ count تُصاغ صيغةَ جمع · وقرارُ الأرقام يطابق مفتاحَه · ولا صيغتين لرقمٍ في شاشة · والجارُّ يحكم المثنّى.',
+  '✓ بوابة الجودة: لا لون مكتوب · لا تسلسل رقميّ بمحايدٍ في نصّ عربيّ · لا سطر بيانات كنصّ واحد · لا # في جمع ICU · الوحدات مصرَّح بها · لا رقم في سلسلة نصّ · كل لون له توكن · كل ترحيل ماليّ له نقض · لا صفّ Prisma يعبر الحدّ · لا نقطة في مفتاح ترجمة · لا db في حزمة المتصفّح · لا مفردة مزوّد خارج المُهايئ · الضريبة تُحسب في tax.ts وحده · لا نصّ عربي في النطاق · لا رقم مُقحَم قبل كلمة عربية · لا نصاب عضوين بنصفه · حالة الإعلان من مدخلها الوحيد · لا دالّة تعبر حدّ الخادم · لا مفتاح تسمية ميّت · لا idVerified بلا identityStatus · لا حقل En نصُّه عربيّ · لا ترميز غير مُصيَّر في بيانات البذرة · كل مفتاح ترجمة يُفضي إلى نصّ · لا وعدَ قاعدةٍ أُلغيت · لا حقل flex بلا min-w-0 · لا قصّ لحقلٍ مشفَّر · لا حالة تُنسخ من خاصّية · لا جارَّ ولا صفةَ خارج صيغة الجمع · كل صلاحيةٍ معروضةٌ وممنوحة · كل وجهةٍ لها مسار · الضمان يُنشأ مع قيده · والسنة لا تُجمَّع · وكل سلّمٍ جانبيّ يتراكب على الهاتف · وكل مفتاح إشعارٍ له قالبٌ يُعرض · ولغة الشاشة لغة السوق · ولا عددَ بين قوسين فرارًا من الجمع · والحالةُ وانقضاءُ الوقت معًا · ولا مرحلةَ طلبٍ تُعرض وحدها · وكلُّ مساحةٍ مبيعة لها موضع · وكلُّ قالبِ إشعارٍ له كاتبٌ أو صمتٌ معلَن · ولا رسمٌ مكتوبٌ في الشيفرة · ولا حالةٌ تُبذَر من قائمة · ولا عنصرَ تفاعليّ داخل تفاعليّ · ولا تقريرَ فحصٍ بلا شرط النشر · ولا دالّةَ نطاقٍ تكتب بلا باب · وكلُّ حسابٍ في الدفتر له تسمية · ولا تسويةَ بلا مرجعها · وكلُّ رابطٍ يحمل لغته · ولا نصَّ دون حدّ القراءة · وعلامةُ النسبة لغةٌ لا زينة · وكلُّ مسارٍ له منادٍ أو سببٌ معلَن · ولا كتلتَي مراجعَ تتقاطعان في البذرة · ولا مسارَ يُصدِّر غير معالجاته · ولا خريطةَ تسميةٍ بلا تعهّدِ تعدادها · ولا حقلَ مركبةٍ يُملأ ولا يُرسَل · ولا تشكيلَ في نصٍّ معروض ولا اسمَ منقوصٍ مبتورًا · ولا نموذجَ بلا قارئٍ ولا سببٍ معلَن · وكلُّ وثيقةٍ تقول متى حُدِّثت · وكلامُ الشاشة يطابق رقمَ القاعدة · وكلُّ ملفٍّ مرجعيٍّ يصل قاعدةَ الإنتاج · ورسالةٌ تأخذ count تُصاغ صيغةَ جمع · وقرارُ الأرقام يطابق مفتاحَه · ولا صيغتين لرقمٍ في شاشة · والجارُّ يحكم المثنّى · ولا قيمةَ عميلٍ يستوردها خادم.',
 );

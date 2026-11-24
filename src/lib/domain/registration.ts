@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/auth/password';
+import { recordAcceptance } from './legal';
 
 /**
  * ═══ التسجيل — فردٌ أو حساب معرض ═══
@@ -106,6 +107,18 @@ export async function completeRegistration(
       passwordHash: await hashPassword(clean(input.password)),
     },
   });
+
+  /**
+   * ═══ والقبولُ يُكتب هنا ═══
+   *
+   * الشاشةُ تشترط تأشير «أوافق على الشروط والأحكام وسياسة الخصوصية»
+   * ولا تمضي بدونه — **وكان ذلك كلَّ ما يقع**: رايةٌ في المتصفّح تموت
+   * بإغلاق التبويب، ولا صفَّ في القاعدة يقول إنّ أحدًا قبِل شيئًا.
+   *
+   * وموضعُه بعد `update` لا قبله: صفُّ قبولٍ لحسابٍ ردَّ تحقّقُه
+   * الطلبَ كلَّه قبولٌ بلا حساب.
+   */
+  await recordAcceptance(userId, 'signup');
 
   return { ok: true };
 }

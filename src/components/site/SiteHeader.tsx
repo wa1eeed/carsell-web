@@ -9,6 +9,7 @@ import { Link } from '@/i18n/navigation';
 import { AccountNav } from './AccountNav';
 import { MobileNav } from './MobileNav';
 import { NotificationBell } from './NotificationBell';
+import { LegalNotice } from './LegalNotice';
 import type { Locale } from '@/i18n/routing';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/cn';
@@ -110,6 +111,7 @@ export function SiteHeader({
       تُمرَّر داخل حدّها — **وكلّ رابطٍ يبقى مبلوغًا**. وصفٌّ واحد من
       `sm` فصاعدًا كالتصميم.
     */
+    <>
     <header className="flex flex-col gap-3 border-b border-line bg-surface px-3 py-3.5 sm:flex-row sm:items-center sm:gap-6 sm:px-10 sm:py-4">
       <div className="flex items-center justify-between gap-2 sm:contents">
         {/*
@@ -205,6 +207,16 @@ export function SiteHeader({
 
       {actions}
     </header>
+
+      {/*
+        ═══ وطلبُ القبول يعلو الصفحةَ لا صفحةَ الحساب ═══
+
+        ترميز A34 يقول «وطلب قبول جديد عند أوّل فتح بعده» — ومن لا
+        يفتح حسابَه لا يعلم، وهو أكثرُ الناس. ولا تُصيَّر لزائرٍ بلا
+        جلسة ولا لمن لا ينتظره شيء.
+      */}
+      <LegalNotice />
+    </>
   );
 }
 

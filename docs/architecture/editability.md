@@ -1,6 +1,6 @@
 # Models the product never edits
 
-_Last updated: 2026-11-23_
+_Last updated: 2026-11-24_
 
 **Generated-adjacent: the list is derived from the code, the reasons are not.**
 Gate 63 reads `scripts/model-writers.mjs`, classifies every model in the schema,
@@ -25,11 +25,25 @@ gate on words would have raised an alarm on all of them.
 So the register does not check the prose. It checks the thing the prose is
 about: **can anybody change this row without a deploy?**
 
+## What left this register
+
+`LegalDocument` was here, and its reason was sound: «نسخ موقّتة لا تحرير حيّ» —
+whoever accepted the terms accepted a *specific version*, so editing in place
+would make their consent apply to text they never read. But the entry ended
+«**the publishing path does not exist either**: a new version still needs a
+deploy», and that was the actual defect, not the policy.
+
+A34 built the path on 2026-11-24: `LegalVersion` holds drafts and the archive,
+`/admin/legal/[key]` edits a draft, publishing supersedes the previous version
+and keeps it. The policy is unchanged — the published text still cannot be
+edited in place — and the register is the wrong place to record a policy whose
+mechanism now exists. **A register kept after its reason is gone lies the same
+way a missing row does**, so the row left and this paragraph took its place.
+
 ## The register
 
 | Model | Why it is not editable |
 |---|---|
-| `LegalDocument` | **Deliberate** — «نسخ موقّتة لا تحرير حيّ». Whoever accepted the terms accepted a *specific version*, so editing in place would make their consent apply to text they never read. Each change is a new version with an effective date. **But the publishing path does not exist either**: a new version still needs a deploy. ROADMAP «Also open». |
 | `Invoice` | **Legacy, superseded.** The real one is `TaxInvoice`, written by `issueInvoice` in `tax.ts` with ZATCA numbering, a rule snapshot and a QR. This table keeps six seeded rows and nothing reads it for tax. Removing it is a destructive migration on a table with `User` and `Order` relations, so it waits for a deliberate cleanup. |
 | `FinanceProvider` | **A real gap.** Financing partners are seeded. Adding or removing one needs a deploy. |
 | `Entitlement` | Plan entitlements are seeded with their plan. `Plan` itself is editable from `/admin/plans`; what each plan *grants* is not. Six entitlements already have no reader at all — recorded in `docs/NOTES.md`. |

@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-100 models · 72 enums
+102 models · 73 enums
 
 ## Relationships
 
@@ -39,6 +39,7 @@ erDiagram
   User ||--o{ DeviceToken : "deviceTokens"
   User |o--|| PushPermission : "pushPermission"
   User ||--o{ PushSend : "pushSends"
+  User ||--o{ LegalAcceptance : "legalAcceptances"
   User |o--|| Wallet : "wallet"
   User ||--o{ Payout : "payouts"
   AdminUser }o--|| AdminRole : "role"
@@ -229,6 +230,12 @@ erDiagram
   FaqPlacement }o--|| FaqItem : "faq"
   BodyTypeDisplay }o--|| BodyType : "key"
   TrustMark }o--|| TrustMarkKind : "kind"
+  LegalAcceptance }o--|| User : "user"
+  LegalAcceptance }o--|| LegalDocument : "document"
+  LegalDocument ||--o{ LegalAcceptance : "acceptances"
+  LegalDocument ||--o{ LegalVersion : "versions"
+  LegalVersion }o--|| LegalVersionStatus : "status"
+  LegalVersion }o--|| LegalDocument : "document"
   Notification }o--|| User : "user"
   NotificationTemplate |o--|| PushChannel : "pushChannel"
   AdSlot ||--o{ AdCampaign : "campaigns"
@@ -357,7 +364,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -1345,6 +1352,19 @@ Relations: `key` → `BodyType`
 
 Relations: `kind` → `TrustMarkKind`
 
+### `LegalAcceptance`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `userId` | `String` |  |
+| `documentKey` | `String` |  |
+| `version` | `String` |  |
+| `acceptedAt` | `DateTime` |  |
+| `context` | `String` |  |
+
+Relations: `user` → `User` · `document` → `LegalDocument`
+
 ### `LegalDocument`
 
 | Field | Type | Key |
@@ -1358,8 +1378,33 @@ Relations: `kind` → `TrustMarkKind`
 | `summaryEn` | `String?` |  |
 | `sections` | `Json` |  |
 | `active` | `Boolean` |  |
+| `requiredAtSignup` | `Boolean` |  |
 | `sort` | `Int` |  |
 | `updatedAt` | `DateTime` |  |
+
+Relations: `acceptances` → `LegalAcceptance` · `versions` → `LegalVersion`
+
+### `LegalVersion`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `documentKey` | `String` |  |
+| `version` | `String` |  |
+| `titleAr` | `String` |  |
+| `titleEn` | `String` |  |
+| `summaryAr` | `String?` |  |
+| `summaryEn` | `String?` |  |
+| `sections` | `Json` |  |
+| `material` | `Boolean` |  |
+| `effectiveAt` | `DateTime?` |  |
+| `createdBy` | `String?` |  |
+| `publishedBy` | `String?` |  |
+| `publishedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+| `updatedAt` | `DateTime` |  |
+
+Relations: `status` → `LegalVersionStatus` · `document` → `LegalDocument`
 
 ### `SeoTemplate`
 
@@ -2013,6 +2058,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
 - `TrustMarkKind` — `REGULATORY`, `PAYMENT`
+- `LegalVersionStatus` — `DRAFT /// تُحرَّر ولا يراها زائر`, `PUBLISHED /// السارية — وواحدةٌ لكل مستند`, `SUPERSEDED /// نُشرت ثمّ حلّت محلَّها، وتبقى لمن قبِلها`
 - `AdCampaignStatus` — `SCHEDULED /// لم يحن بدؤها`, `LIVE /// بين تاريخيها`, `PAUSED /// أوقفها المشغّل — ولا تُستأنف بعد انقضاء نافذتها`, `ENDED /// مضت نافذتها`
 - `ServiceFeeMode` — `FIXED`, `PERCENT`
 - `ProviderAccountKind` — `FREELANCER`, `ESTABLISHMENT`, `COMPANY`, `GOVERNMENT`, `CHARITY`

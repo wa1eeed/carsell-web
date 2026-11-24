@@ -100,69 +100,6 @@ export async function faqStats(): Promise<FaqStats> {
   };
 }
 
-export type LegalRow = {
-  key: string;
-  titleAr: string;
-  version: string;
-  effectiveAt: string;
-  active: boolean;
-  sectionCount: number;
-  hasSummary: boolean;
-  updatedAt: string;
-};
-
-export type LegalSummary = {
-  total: number;
-  unpublished: number;
-  sections: number;
-  /** آخر مستندٍ مُسّ — والتاريخ وحده لا يقول أيّه. */
-  latest: { titleAr: string; updatedAt: string } | null;
-};
-
-/**
- * عدّادات الشاشة — **من الصفوف لا من طول القائمة المعروضة**.
- *
- * الشاشة تعرض المستندات كلَّها اليوم، فالعدّ من القائمة يتفق معها
- * صدفةً. وأوّلُ ترشيحٍ يُضاف (حالة أو بحث) يجعل «٨ مستندات» تعني
- * «٨ معروضة» — وهو عدّادٌ يكذب بلا أن يتغيّر سطرُه.
- */
-export async function legalSummary(): Promise<LegalSummary> {
-  const docs = await db.legalDocument.findMany({
-    select: { titleAr: true, active: true, sections: true, updatedAt: true },
-    orderBy: { updatedAt: 'desc' },
-  });
-
-  const newest = docs[0];
-
-  return {
-    total: docs.length,
-    unpublished: docs.filter((doc) => !doc.active).length,
-    sections: docs.reduce(
-      (sum, doc) => sum + (Array.isArray(doc.sections) ? doc.sections.length : 0),
-      0,
-    ),
-    latest:
-      newest === undefined
-        ? null
-        : { titleAr: newest.titleAr, updatedAt: newest.updatedAt.toISOString() },
-  };
-}
-
-export async function legalDocuments(): Promise<LegalRow[]> {
-  const docs = await db.legalDocument.findMany({ orderBy: { sort: 'asc' } });
-
-  return docs.map((doc) => ({
-    key: doc.key,
-    titleAr: doc.titleAr,
-    version: doc.version,
-    effectiveAt: doc.effectiveAt.toISOString(),
-    active: doc.active,
-    sectionCount: Array.isArray(doc.sections) ? doc.sections.length : 0,
-    hasSummary: doc.summaryAr !== null && doc.summaryAr.trim() !== '',
-    updatedAt: doc.updatedAt.toISOString(),
-  }));
-}
-
 export type ToggleFailure = 'NOT_FOUND';
 export type ToggleResult = { ok: true; active: boolean } | { ok: false; reason: ToggleFailure };
 

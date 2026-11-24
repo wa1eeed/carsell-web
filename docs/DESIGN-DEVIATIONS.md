@@ -28,6 +28,56 @@ comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
 understates a screen by up to twelve points, and the whole-tree figure
 correspondingly.
 
+## A34 — publishing needs one person, and «يظهر في» is derived · 2026-11-24
+
+**Status: decided.** Two departures, one of them an owner decision and one a
+choice about what a column is allowed to claim.
+
+### «والنشر يحتاج موافقة عضوين» — superseded
+
+The markup's note under the table reads «التعديل ينشئ نسخة جديدة بمسودة،
+**والنشر يحتاج موافقة عضوين**». The second half no longer holds anywhere in the
+panel: the owner removed the two-approver quorum on 2026-10-14 (§35) and
+restated it as a class on 2026-11-24 (§41) — «المفروض عنده سلطه كسوبر ادمن».
+
+So publishing a legal version takes one click by whoever holds
+`notifications.manage`, and the screen says so. **What survives is the record,
+not the gate**: every publish writes an `AuditLog` row naming the actor, which
+is a ledger and asks nobody's permission. The first half of the markup's note —
+a new version, as a draft, with the published one kept — is built exactly as
+drawn, because its reason is the one that matters: somebody accepted that text.
+
+### «يظهر في» shows two surfaces, not five
+
+The markup's column carries «التسجيل · الإعدادات» · «صفحة الطلب» · «قبل أوّل
+مزايدة» · «تسجيل المعرض». The product shows «التسجيل» and «الصفحات القانونية».
+
+It is not a shortfall in the column — it is the column refusing to claim what
+the product does not do. **A stored field that an operator types would lie the
+first time the code changed around it**: it would keep saying «قبل أوّل مزايدة»
+with nothing rendering it there, and whoever read it would believe it. That is
+the same shape as the trust-mark number that said «يُضبط من اللوحة» with no
+panel behind it.
+
+So both values are **derived from fields the product actually reads**:
+`SIGNUP` from `requiredAtSignup` — the very field `recordAcceptance` consults
+when deciding what consent to write — and `LEGAL` from `active`, since every
+published document is reachable from the footer and from the sidebar on any
+legal page. The two cannot drift from what the product does, because they are
+what the product does. An empty cell therefore means something: a document
+nothing links to.
+
+The contextual placements the markup draws (the order page, the first bid, the
+dealer sign-up) are real product work, not column work. When one is built, its
+surface becomes derivable and the column gains it.
+
+### What the markup draws and the screen keeps as rows
+
+The markup draws a table with a header row. The screen uses `MonitorRow`, as
+`A2`, `A11`, `A17` and `A18` do, with each value carrying its own label. This
+is the panel's own convention and changing it for one screen would make `A34`
+the odd one; the information is identical.
+
 ## A17 — reports and disputes stay two screens · 2026-11-24
 
 **Status: decided.** The markup makes `A17` one queue with tabs

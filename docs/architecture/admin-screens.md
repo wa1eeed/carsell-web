@@ -1,6 +1,6 @@
 # Admin screens
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-24_
 
 Generated from `src/components/admin/nav.ts`. Nothing listed the panel's screens
 before 2026-10-19: 45 folders under `src/app/admin` against 39 sidebar entries,
@@ -87,7 +87,7 @@ are written here by hand, and a new row with an empty reason fails the check.
 | قواعد المزادات | `/admin/auction-settings` | `finance.view` | الحد الأدنى للمزايدة والتمديد التلقائي والعربون. |
 | الأسئلة الشائعة | `/admin/faq` | `notifications.manage` | الأسئلة الشائعة ومواضع ظهورها. |
 | قنوات الدعم | `/admin/contact` | `notifications.manage` | الهاتف والواتساب والبريد الظاهرة في «تواصل معنا». |
-| الصفحات القانونية | `/admin/legal` | `notifications.manage` | الشروط والخصوصية ونسخها المنشورة. |
+| الصفحات القانونية | `/admin/legal` | `notifications.manage` | الشروط والخصوصية، ونسخها وسجل قبولها. |
 | علامات الموثوقية | `/admin/trust-marks` | `notifications.manage` | شعارات الجهات في التذييل وأرقام تسجيلها. |
 | نصوص صفحات البحث | `/admin/seo` | `notifications.manage` | عنوان صفحات الهبوط ووصفها وفقراتها. |
 

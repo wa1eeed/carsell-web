@@ -77,7 +77,9 @@ async function signIn() {
     }
     ADMIN_COOKIE = found;
   } catch (error) {
-    console.log(`⬜ تعذّر دخول الأدمن (${error instanceof Error ? error.name : 'fetch'}).`);
+    console.log(
+      `⬜ تعذّر دخول الأدمن على ${BASE} (${error instanceof Error ? error.message : 'fetch'}) — شاشاته لن تُقاس.`,
+    );
   }
 
   await signInUser();
@@ -367,7 +369,9 @@ async function signInUser() {
       /* الحفظ تحسينٌ لا شرط — والقياس يمضي بلا ملفّ */
     }
   } catch (error) {
-    console.log(`⬜ تعذّر دخول المستخدم (${error instanceof Error ? error.name : 'fetch'}).`);
+    console.log(
+      `⬜ تعذّر دخول المستخدم على ${BASE} (${error instanceof Error ? error.message : 'fetch'}) — شاشاته لن تُقاس.`,
+    );
   }
 }
 

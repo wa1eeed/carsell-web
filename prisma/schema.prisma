@@ -153,6 +153,7 @@ model User {
   deviceTokens    DeviceToken[]
   pushPermission  PushPermission?
   pushSends       PushSend[]
+  legalAcceptances LegalAcceptance[]
   wallet          Wallet?
   payouts         Payout[]
 
@@ -2272,6 +2273,35 @@ enum TrustMarkKind {
   PAYMENT
 }
 
+/// ═══ قَبِل فلانٌ هذا النصّ في هذا اليوم ═══
+///
+/// **شاشةُ الدخول تطلب الموافقة ولا تحفظها.** مربّعٌ إلزاميّ يُعلن
+/// «أوافق على الشروط والأحكام وسياسة الخصوصية»، ولا صفَّ في القاعدة
+/// يقول إنّ أحدًا وافق — فمن سُئل يظنّ أنّ موافقته سُجّلت وهي لم تُسجَّل.
+///
+/// **والقبولُ يُثبَّت بالنسخة لا بالمستند** (ترميز A34): من قَبِل `v3`
+/// لم يقبل `v4`. فالنسخة في الصفّ، وتعديلٌ لاحق لا يمسّ ما مضى.
+///
+/// ولا يُحذف بحذف المستند (`Restrict`): سجلُّ موافقةٍ بلا مستندٍ أهونُ
+/// من مستندٍ بلا سجلِّ موافقة — والثاني يُفقد الإثبات.
+model LegalAcceptance {
+  id         String   @id @default(cuid())
+  userId     String
+  documentKey String
+  /// نسخةُ المستند لحظة القبول — لا مرجعًا يتغيّر بعدها.
+  version    String
+  acceptedAt DateTime @default(now())
+  /// سياقُ القبول: `signup` اليوم، و`reaccept` عند تعديلٍ جوهريّ.
+  context    String   @default("signup")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document LegalDocument @relation(fields: [documentKey], references: [key], onDelete: Restrict)
+
+  /** **ومرّةٌ واحدة لكلّ نسخة** — ولا يتضخّم السجلُّ بإعادة فتحٍ. */
+  @@unique([userId, documentKey, version])
+  @@index([documentKey, version])
+}
+
 model LegalDocument {
   key         String   @id // terms | privacy | refund | cookies
   titleAr     String
@@ -2282,10 +2312,73 @@ model LegalDocument {
   summaryEn   String?
   sections    Json // [{ n, titleAr, titleEn, bodyAr, bodyEn }]
   active      Boolean  @default(true)
+  /**
+   * ═══ يُشترط قبولُه للتسجيل ═══
+   *
+   * شاشةُ الدخول تطلب الموافقة على «الشروط والأحكام» و«سياسة
+   * الخصوصية» — والباقي يُقرأ ولا يُشترط. وترميز A34 يكتبها عمودًا
+   * («يظهر في: التسجيل»)، فلا تبقى في رأس من كتب الشاشة.
+   */
+  requiredAtSignup Boolean @default(false)
   sort        Int      @default(0)
   updatedAt   DateTime @updatedAt
 
+  acceptances LegalAcceptance[]
+  versions    LegalVersion[]
+
   @@index([active, sort])
+}
+
+/// حالُ نسخةٍ من مستند — **والثلاثُ لا رايةُ «منشور» وحدها**.
+///
+/// `SUPERSEDED` هي الفرق: نسخةٌ نُشرت ثمّ حلّت محلَّها أخرى **لا
+/// تُحذف**، لأن مستخدمًا قبِلها بنصّها وسجلُّ قبوله يشير إليها. ورايةٌ
+/// منطقية تقول «منشور أو لا» تجعل القديمةَ والمسوّدةَ سواءً.
+enum LegalVersionStatus {
+  DRAFT /// تُحرَّر ولا يراها زائر
+  PUBLISHED /// السارية — وواحدةٌ لكل مستند
+  SUPERSEDED /// نُشرت ثمّ حلّت محلَّها، وتبقى لمن قبِلها
+}
+
+/// نسخةٌ من مستند قانونيّ — **والمنشورُ لا يُحرَّر فوق نفسه**.
+///
+/// ترميز A34 عنوانُه «نسخ موقّتة لا تحرير حيّ»: من قبِل الشروط قبِل
+/// **نصًّا بعينه**، فتحريرُه في مكانه يجعل موافقته على ما لم يقرأه.
+/// فكلُّ تعديلٍ مسوّدةٌ جديدة، ونشرُها يُسلّم السابقةَ إلى `SUPERSEDED`.
+///
+/// **و`LegalDocument` يحتفظ بنصِّ المنشور** ليقرأه الزائر في استعلامٍ
+/// واحد؛ وهذه هي الأرشيف: تُكتب عند النشر ولا تُقرأ للعرض. فليستا
+/// نسختين تتباعدان — واحدةٌ حيّة وأخرى تاريخ، والتطابقُ مُختبَر.
+model LegalVersion {
+  id          String @id @default(cuid())
+  documentKey String
+  version     String
+
+  titleAr   String
+  titleEn   String
+  summaryAr String?
+  summaryEn String?
+  sections  Json
+
+  status LegalVersionStatus @default(DRAFT)
+
+  /// تعديلٌ جوهريّ — يُخطَر قبل ١٤ يومًا ويُطلب قبولٌ جديد بعد نفاذه.
+  material Boolean @default(false)
+
+  /// يسري من — ويبقى فارغًا في المسوّدة.
+  effectiveAt DateTime?
+
+  createdBy   String?
+  publishedBy String?
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  document LegalDocument @relation(fields: [documentKey], references: [key], onDelete: Cascade)
+
+  @@unique([documentKey, version])
+  @@index([documentKey, status])
+  @@index([status, effectiveAt])
 }
 
 /// قالبُ النصّ التحريريّ لسطحٍ واحد (القرار ٢٦).

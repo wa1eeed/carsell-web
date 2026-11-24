@@ -436,6 +436,8 @@
     "docSections": "{count, plural, one{{n} section} other{{n} sections}}",
     "reports": "{count, plural, one{{n} report} other{{n} reports}}",
     "legalDocs": "{count, plural, one{{n} document} other{{n} documents}}",
+    "legalVersions": "{count, plural, one{{n} version} other{{n} versions}}",
+    "accounts": "{count, plural, one{{n} account} other{{n} accounts}}",
     "items": "{count, plural, one{{n} item} other{{n} items}}",
     "serviceRequests": "{count, plural, one{{n} request} other{{n} requests}}",
     "auditActions": "{count, plural, one{{n} action} other{{n} actions}}",

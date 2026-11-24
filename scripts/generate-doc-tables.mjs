@@ -49,8 +49,21 @@ function replaceBlock(path, body, label) {
     return;
   }
 
-  const next =
+  let next =
     current.slice(0, start + OPEN.length) + '\n' + body.trimEnd() + '\n' + current.slice(end);
+
+  /*
+   * ═══ والوثيقةُ المولَّدة تختم نفسَها ═══
+   *
+   * الجدولُ يُولَّد والتاريخُ فوقه يُكتب بيد، **فبوّابةُ «وثيقةٌ عُدِّلت
+   * ولم يُحدَّث تاريخُها» تُنذر بعد كلِّ توليد** — إنذارٌ صحيحٌ على
+   * سطرٍ ليس لأحدٍ أن يحرّره. فيُختم مع الجدول، ولا يُمَسّ حين لا
+   * يتغيّر شيء.
+   */
+  if (next !== current) {
+    const today = new Date().toISOString().slice(0, 10);
+    next = next.replace(/^_Last updated: \d{4}-\d{2}-\d{2}_$/m, `_Last updated: ${today}_`);
+  }
 
   if (check) {
     if (next !== current) problems.push(`${path} قديم — شغّل npm run docs:generate`);
