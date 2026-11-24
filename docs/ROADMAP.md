@@ -2090,6 +2090,42 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 27 — `A8` notifications, and 55 templates where not one named the car
+
+`A8` read **59٪**, and measuring its missing copy turned up something larger
+than the screen: **not one of the 55 notification templates names the
+vehicle.** All 55 use `ref` — an opaque code. A buyer with offers on two cars
+received «قبل عرضك» and could not tell which, and that is the one notification
+followed by a payment deadline: whoever waits to find out can lose the car.
+
+- [x] `offer.accepted` carries `{vehicle}` — the design's own copy — in
+      subject, body and SMS, with the title snapshotted into the payload at
+      accept time. Brand, model and year do not change after publication, so a
+      snapshot is safe where the duplicate-image evidence was not.
+- [x] By **migration**, because templates are reference data: the seed file is
+      applied to an empty database once, so an edit there reaches a fresh
+      environment and never production. Guarded on the old text, so a template
+      an operator has edited is left alone.
+- [ ] The other 54 still name no car. Listed here rather than swept: the
+      payload must be filled at each writer, and the entity key is not uniform
+      (`Listing` carries an id, `Order` a ref). Worth doing as its own pass.
+
+### And the send log says who, where the cards say how many
+
+`سجل الإرسال` reads `Notification` rows with the recipient, the time, and
+whether they read it. It is **not** the push log: that one records what left
+for a device and is empty without the app, while this records what reached the
+bell and is written for real users today. «قرأه» is as close to *delivered* as
+we can honestly print, since no provider returns a receipt.
+
+**Three signals stay counted as missing**, with reasons in
+`DESIGN-DEVIATIONS`: both delivery rates need a provider that is not connected,
+and «اختبار إرسال» needs a recipient an admin does not have — an `AdminUser`
+has no bell and no device. A fourth, `+ إشعار جديد`, is not built on purpose: a
+template keyed to an event nothing emits is a row that can never be sent.
+
+Measured after: **59٪ → 75٪**, and the remainder is capability, not conformance.
+
 ### 40a · 26 — `A20` payment routing, and reference data that never reaches a live database
 
 `A20` read **57٪** and is one of the better-built screens in the panel: routes,

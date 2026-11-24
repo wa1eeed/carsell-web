@@ -1003,6 +1003,39 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A8 — three signals that need a provider we do not have · 2026-11-24
+
+These stay **counted as missing**. They are not decisions and not deferrals by
+the owner: they are capabilities the product lacks, and a percentage raised by
+removing them from the denominator would say the screen is finished when it is
+not. The same judgement was made for `A10`'s «اختبار على جهازي».
+
+| In A8 | What it needs |
+|---|---|
+| `وصول البريد ٩٨٫٤٪` | Delivery receipts from an email provider. None is connected; `email` has a credentials slot in A11 and no adapter. Until then the figure has no source, and inventing one would put a number on screen nobody can check. |
+| `وصول الرسائل ٩٦٫١٪` | The same, for SMS. `otp_sms` likewise. |
+| `اختبار إرسال` | A recipient. In-app notifications are written to `User` rows; an admin is an `AdminUser` and has no bell. Pushing to a device needs the app. Same blocker as `A10`. |
+
+`+ إشعار جديد` is **not** in that list and is not built either: a template is
+keyed to an event the code emits, so a template for a key nothing emits is a
+row that can never be sent. Adding one would create the dead-end this
+repository has found eleven times. If an event needs a template, the event
+comes first.
+
+### What was built
+
+`سجل الإرسال` — `Notification` rows with the recipient's name, the time, and
+whether they read it. **Not** the push log (`A10`): that one records what left
+for a device and is empty without the app; this one records what reached the
+bell, and is written for real users today. «قرأه» is as close to "delivered" as
+we can honestly say, since no provider returns a receipt.
+
+`قُبل عرضك على {vehicle}` — and the finding behind it: **not one of the 55
+templates named the car**. All 55 use `ref`, an opaque code. A buyer with
+offers on two cars read «قبل عرضك» and could not tell which, on the one
+notification followed by a payment deadline. `offer.accepted` now carries the
+vehicle, by migration so it reaches a running database.
+
 ## A20 — two header buttons that cannot be built as drawn · 2026-11-24
 
 | In A20 | Why not |

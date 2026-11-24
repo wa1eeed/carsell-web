@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { LinkButton } from '@/components/ui/Button';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Money } from '@/components/ui/Money';
@@ -34,6 +35,16 @@ export default async function NotificationsPage() {
 
   return (
     <AdminShell title="الإشعارات والقوالب" activeHref="/admin/notifications" admin={admin}>
+      {/*
+        **والنِّسَب تقول كم، والسجلّ يقول لمن.** حين يكتب مستخدم «لم
+        يصلني إشعار» لا يُجاب بنسبة — يُفتح صفُّه باسمه ووقته.
+      */}
+      <div className="mb-4 flex justify-end">
+        <LinkButton href="/admin/notifications/log" size="sm" variant="outline">
+          سجل الإرسال
+        </LinkButton>
+      </div>
+
       <div className="mb-4 grid gap-4 md:grid-cols-3">
         <Stat
           title="أرسل هذا الشهر"

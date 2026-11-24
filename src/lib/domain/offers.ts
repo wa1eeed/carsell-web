@@ -1,3 +1,4 @@
+import { vehicleTitle } from './vehicle-title';
 import { db } from '@/lib/db';
 import { notify as notifyOne, type NotifyInput } from './notifications';
 import { nextOrderRef } from './refs';
@@ -330,7 +331,19 @@ export async function acceptOffer(
   return db.$transaction(async (tx) => {
     const offer = await tx.offer.findUnique({
       where: { id: input.offerId },
-      include: { listing: { select: { id: true, ref: true, sellerId: true, status: true } } },
+      include: {
+        listing: {
+          select: {
+            id: true, ref: true, sellerId: true, status: true,
+            /**
+             * **والإشعارُ يسمّي السيارة.** كان نصُّه «قبل عرضك» وحدها،
+             * ومن له عرضان على سيارتين لا يعرف أيَّهما قُبل — وهو إشعارٌ
+             * حرج: بعده مهلةُ دفعٍ يفوتها من انتظر ليعرف.
+             */
+            vehicle: { select: { brandName: true, modelName: true, year: true } },
+          },
+        },
+      },
     });
 
     if (offer === null) return { ok: false, reason: 'OFFER_NOT_FOUND' };
@@ -413,7 +426,16 @@ export async function acceptOffer(
       templateKey: 'offer.accepted',
       // مهلة الدفع حرجة: فواتها يُلغي الصفقة (قاعدة ١٧)
       priority: 'critical',
-      payload: { ref, amount: Number(offer.amount) },
+      payload: {
+        /**
+         * **لقطةٌ بالعربية مع السنة** — كما يكتبها الترميز («تويوتا كامري
+         * ٢٠٢٤»). واللقطةُ لا تتقادم: الماركةُ والطراز والسنة لا تتبدّل
+         * بعد النشر، بخلاف السعر والحال.
+         */
+        vehicle: `${vehicleTitle(offer.listing.vehicle, 'ar')} ${String(offer.listing.vehicle.year)}`,
+        ref,
+        amount: Number(offer.amount),
+      },
       entityType: 'Order',
       entityId: ref,
     });

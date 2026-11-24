@@ -525,11 +525,11 @@
   },
   {
     "key": "offer.accepted",
-    "subjectAr": "قبل عرضك",
-    "subjectEn": "Your offer was accepted",
-    "bodyAr": "قبل البائع عرضك، وأنشئ لك طلب بانتظار الدفع ضمن المهلة المعروضة فيه.",
-    "bodyEn": "The seller accepted your offer. An order is waiting for payment within the window shown on it.",
-    "smsAr": "قبل عرضك على {ref}",
+    "subjectAr": "قبل عرضك على {vehicle}",
+    "subjectEn": "Your offer on {vehicle} was accepted",
+    "bodyAr": "قبل البائع عرضك على {vehicle} بمبلغ {amount} ريال، وأنشئ لك طلب بانتظار الدفع ضمن المهلة المعروضة فيه.",
+    "bodyEn": "The seller accepted your offer on {vehicle} for {amount} SAR. An order is waiting for payment within the window shown on it.",
+    "smsAr": "قبل عرضك على {vehicle} — أتمم الدفع من حسابك",
     "smsEn": null,
     "priority": "critical",
     "channelEmail": false,
@@ -537,6 +537,7 @@
     "channelPush": true,
     "channelInApp": true,
     "variables": [
+      "vehicle",
       "ref",
       "amount"
     ],

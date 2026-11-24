@@ -209,3 +209,73 @@ export async function channelStats(since: Date): Promise<ChannelStats> {
     ],
   };
 }
+
+export type NotificationLogRow = {
+  id: string;
+  templateKey: string;
+  /** العنوان العربيّ للقالب — و`null` لمفتاحٍ لا قالبَ له (البوابة ٣٤). */
+  subjectAr: string | null;
+  priority: string;
+  recipientName: string;
+  recipientPhone: string;
+  entityType: string | null;
+  entityId: string | null;
+  at: string;
+  /** أقرأه صاحبُه — وهو أقربُ ما عندنا إلى «وصل». */
+  readAt: string | null;
+};
+
+export const NOTIFICATION_LOG_ROWS = 60;
+
+/**
+ * ═══ سجلّ الإرسال — A8 ═══
+ *
+ * النِّسَب تقول **كم**، ولا شيء يقول **لمن**. وسؤالُ المشغّل حين يكتب
+ * له مستخدم «لم يصلني إشعار» ليس نسبةً: هو صفٌّ باسمه ووقته.
+ *
+ * وهذا السجلّ غيرُ سجلّ A10: ذاك `PushSend` — ما خرج إلى جهاز، وصفوفُه
+ * صفرٌ بلا تطبيق. وهذا `Notification` — ما كُتب في جرس المستخدم، وهو
+ * يُكتب اليوم لمستخدمين حقيقيّين.
+ *
+ * **و«أقرأه» أقربُ ما عندنا إلى «وصل»**: لا مزوّدَ يردّ إيصالًا، فلا
+ * يُقال «سُلّم» عمّا لا نعرفه.
+ */
+export async function notificationLog(
+  filter: { templateKey?: string } = {},
+): Promise<NotificationLogRow[]> {
+  const rows = await db.notification.findMany({
+    where: filter.templateKey === undefined ? {} : { templateKey: filter.templateKey },
+    orderBy: { createdAt: 'desc' },
+    take: NOTIFICATION_LOG_ROWS,
+    select: {
+      id: true,
+      templateKey: true,
+      priority: true,
+      entityType: true,
+      entityId: true,
+      createdAt: true,
+      readAt: true,
+      user: { select: { name: true, phone: true } },
+    },
+  });
+
+  const keys = [...new Set(rows.map((row) => row.templateKey))];
+  const templates = await db.notificationTemplate.findMany({
+    where: { key: { in: keys } },
+    select: { key: true, subjectAr: true },
+  });
+  const subject = new Map(templates.map((row) => [row.key, row.subjectAr]));
+
+  return rows.map((row) => ({
+    id: row.id,
+    templateKey: row.templateKey,
+    subjectAr: subject.get(row.templateKey) ?? null,
+    priority: row.priority,
+    recipientName: row.user.name ?? row.user.phone,
+    recipientPhone: row.user.phone,
+    entityType: row.entityType,
+    entityId: row.entityId,
+    at: row.createdAt.toISOString(),
+    readAt: row.readAt?.toISOString() ?? null,
+  }));
+}

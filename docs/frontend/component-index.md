@@ -25,7 +25,7 @@ rather than found by chance.
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
 | `ActivityRow` | no | `event` · `at` | 1 |
-| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 9 |
+| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 10 |
 | `AdminMobileNav` | yes | `groups` · `activeHref` · `title` | 1 |
 | `AuctionCard` | no | `row` | 1 |
 | `AutoRefresh` | yes | `seconds` | 1 |
@@ -40,7 +40,7 @@ rather than found by chance.
 | `ExportLink` | no | `reportKey` · `allowed` | 6 |
 | `IdentityPanel` | yes | `userId` · `allowed` | 1 |
 | `KpiCard` | no | `kpi` | 1 |
-| `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 24 |
+| `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 25 |
 | `ListingCard` | no | `row` | 7 |
 | `ListSearch` | no | `action` · `value` · `placeholder` · `keep` | 6 |
 | `MonitorCards` | no | `cards` | 15 |
@@ -136,12 +136,12 @@ rather than found by chance.
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
 | `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 130 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 115 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 116 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 119 |
-| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 19 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 120 |
+| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 20 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
 | `CarRow` | no | `data` · `className` | 3 |
@@ -152,7 +152,7 @@ rather than found by chance.
 | `Counted` | yes | `message` · `count` · `className` | 8 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `count` | 18 |
-| `EmptyState` | no | `title` · `description` · `action` · `className` | 39 |
+| `EmptyState` | no | `title` · `description` · `action` · `className` | 40 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 140 |
 | `FieldNote` | no | `id` · `children` | 1 |
@@ -200,7 +200,7 @@ rather than found by chance.
 | `Stepper` | no | `steps` · `active` · `onSelect` · `className` | 1 |
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
-| `TimeAgo` | yes | `at` · `now` · `className` | 4 |
+| `TimeAgo` | yes | `at` · `now` · `className` | 5 |
 | `Toast` | no | `tone` · `title` · `description` · `className` | 91 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
