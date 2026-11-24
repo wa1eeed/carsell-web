@@ -28,6 +28,26 @@ comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
 understates a screen by up to twelve points, and the whole-tree figure
 correspondingly.
 
+## A18 — the review panel shows less than the markup, on purpose · 2026-11-24
+
+**«البيانات المُدخَلة» — the markup lists the national ID number, date of
+birth, bank-account name and IBAN inside the review panel. The product shows
+none of them there.** Reading a national ID is a separate action taken from the
+customers screen with a written reason, and every view is audited by itself. If
+the number sat in the review panel, **every reviewer would read every ID as a
+side effect of deciding** — and the audit trail would record an access that
+carried no intent. The markup's own footnote asks for the opposite
+(«كل فتح لصورة الهوية يُسجَّل … حتى لو لم تتّخذ قرارًا»), and the panel honours
+it by not showing what was not asked for.
+
+What the reviewer needs to decide is the name, the phone, the method and the
+automatic note — which is what the panel shows.
+
+**«وثّق المحدَّد» — bulk verify is asked, not built.** The question and three
+possible shapes are in `OPEN-QUESTIONS.md`; verification opens publishing,
+buying, bidding and receiving money, so approving several accounts in one press
+is a business decision, not a layout one.
+
 ## A11 — three things the markup draws that the panel deliberately does not · 2026-11-24
 
 **Status: decided.** All three keep reading as misses in `design-audit`; the
