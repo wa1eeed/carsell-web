@@ -1,6 +1,7 @@
 import type { SegmentFieldKey } from '@/lib/campaigns/segments';
 import type { AuctionStatus, BuyerType, CampaignStatus, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
 import type { OrderCancelCategory, ReconciliationStatus } from '@/generated/prisma/enums';
+import type { RowProblem } from '@/lib/domain/catalog-import';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -544,3 +545,17 @@ export const PUSH_SEND_STATUS_LABEL: Readonly<Record<string, string>> = {
   delivered: 'سلم',
   failed: 'فشل',
 };
+
+/**
+ * سببُ رفض صفٍّ في استيراد الكتالوج (A13).
+ *
+ * **والسببُ يُقال بعمودِه** — «صفّ مرفوض» وحدها تجعل المشغّل يفتح
+ * الملفّ يبحث عمّا لا يعرفه.
+ */
+export const ROW_PROBLEM_LABEL = {
+  BRAND_NOT_FOUND: 'ماركة غير معروفة — أضفها من شاشة البراندات أولا',
+  MISSING_FIELD: 'حقل مطلوب فارغ',
+  BAD_ENUM: 'قيمة غير مقبولة — راجع القالب',
+  BAD_NUMBER: 'رقم غير صالح',
+  DUPLICATE_IN_FILE: 'مكرر داخل الملف نفسه',
+} satisfies Record<RowProblem, string>;

@@ -5,6 +5,7 @@ import { can, canWrite } from '@/lib/domain/permissions';
 import { listAdminBrandOptions } from '@/lib/domain/catalog-options';
 import { listModels, listTrims } from '@/lib/domain/catalog';
 import { CatalogTree } from './CatalogTree';
+import { ImportCatalog } from './ImportCatalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +47,18 @@ export default async function ModelsPage({
       activeHref="/admin/catalog/brands"
       admin={admin}
     >
+      {/*
+        ═══ «استيراد CSV» في الترويسة — كالترميز ═══
+
+        والقالبُ بجواره: ملفٌّ يُملأ بالتخمين يُرفض نصفُه.
+        ولا يُعرض لقارئٍ لا يكتب — وزرٌّ يردّ ٤٠٣ بعد الضغط أسوأ من غيابه.
+      */}
+      {canWrite(admin.role, 'catalog.manage') ? (
+        <div className="mb-5">
+          <ImportCatalog />
+        </div>
+      ) : null}
+
       <CatalogTree
         brands={brands}
         brandId={brand.id}

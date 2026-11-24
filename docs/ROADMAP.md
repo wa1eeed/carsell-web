@@ -2090,6 +2090,60 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 20 — `A13` models and trims, and a catalogue maintained one row at a time
+
+`A13` read **50٪** on four signals (thin, ⚠). Missing: «الشجرة» and
+«استيراد CSV».
+
+### The tree column had no name
+
+The design labels the left column «الشجرة». Built, it was a brand picker with a
+list of names and a number beside each and no heading — nothing said the names
+were that brand's models, or that the number was its trim count.
+
+### The catalogue is 42 brands, 303 models, 360 trims — all added one at a time
+
+There is no import anywhere in the product; CSV existed only for export.
+Onboarding a brand's thirty models is a day of clicking.
+
+`POST /api/v1/admin/catalog/import` takes the file in two phases through the
+same reader, so what the preview showed is exactly what gets written:
+
+- **preview** reports what `D3`'s own vocabulary names — rows read, new models,
+  new trims, «مكررة (موجودة)», the columns matched, the columns ignored, and
+  every rejected row with its line, column and value.
+- **commit** writes only what is missing, through `createModel`/`createTrim`, so
+  validation is the one the screen uses and every created row lands in
+  `AuditLog` with who imported it.
+
+**It never updates and never deletes.** A trim's specs fill in every listing
+published against it, so an import that updates would change the specs of three
+hundred models from one file without saying so. Existing rows are counted and
+left alone.
+
+Details that decide whether this is usable or a trap:
+
+- The parser is quote-aware, not `split(',')` — «مرسيدس-بنز، الفئة S» is a real
+  trim name. It strips the BOM Excel writes, or the first column arrives as
+  `﻿brand` and the error says "unknown column" about a correctly spelled one.
+- Accepted enum values are `Object.values(Enum)`, never a hand-written list —
+  `ALL_SPECS` already shipped with two values that did not exist and missing two
+  that did.
+- The downloadable template is built from `IMPORT_COLUMNS`, so it cannot drift
+  from what the reader accepts. It lives in the route, not the domain: its
+  example row is Arabic by nature («كامري»), and the domain writes no Arabic.
+- Writing requires `canWrite`, not merely the permission to open the screen — a
+  reader who imports three hundred trims is not a reader.
+
+Walked, not only unit-tested: a file carrying all five rejection shapes plus a
+quoted comma, an existing row and a new one. Preview read 8 rows, named `notes`
+as ignored, and listed each rejection with its line. Commit created 1 model and
+2 trims and skipped the existing one; **re-running the same file created nothing
+and skipped all three.** The rows it made were then deleted — a manual walk is a
+run without an `afterAll`.
+
+**A13: 50٪ → 100٪** (thin denominator, ⚠).
+
 ### 40a · 19 — `Wx` service checkout, and a screen measured signed-out that is drawn signed-in
 
 `Wx` read **40٪** — the weakest screen in the tree. Three of its five signals

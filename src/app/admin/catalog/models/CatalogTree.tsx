@@ -200,6 +200,12 @@ export function CatalogTree({
     <div className="flex flex-col gap-4 lg:flex-row">
       {/* الشجرة — ٢٥٠px على الحاسوب، وعرضُ الشاشة على الهاتف */}
       <aside className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface p-3 lg:w-[250px] lg:shrink-0">
+        {/*
+          **والعمودُ يُسمّى.** الترميز يكتب فوقه «الشجرة»، وكان بلا
+          عنوان — فقائمةُ أسماءٍ تحت منتقي ماركةٍ لا تقول إنها طرازاتُها
+          ولا إنّ الرقم بجوارها عددُ فئاتها.
+        */}
+        <h2 className="px-1 text-3xs font-bold tracking-[0.16em] opacity-65">الشجرة</h2>
         <label className={label}>
           الماركة
           <select
