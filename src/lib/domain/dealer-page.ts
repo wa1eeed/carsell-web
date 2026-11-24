@@ -306,6 +306,21 @@ export type PublicDealerCard = {
  * يبحث عن معرضٍ قريبٍ منه يرتّب بغيره. و`verified` أوّلًا يبقى
  * افتراضًا، لأن الموثَّق هو ما تَعِد به المنصّة.
  */
+/**
+ * ينزع اسمَ المدينة من طرفَي العنوان — **ولا يمسّ وسطَه**.
+ *
+ * «حي الرياض» في جدةَ حيٌّ لا مدينة، فحذفُ الاسم أينما وقع يشوّه
+ * عناوينَ صحيحة. والتكرارُ الذي يُقرأ خطأً إنّما يقع في الطرف.
+ */
+function stripCity(address: string | null, city: string): string | null {
+  if (address === null) return null;
+  const edge = '[\u060c,\u00b7-]';
+  let out = address.trim();
+  out = out.replace(new RegExp(`^${city}\\s*${edge}\\s*`), '').trim();
+  out = out.replace(new RegExp(`\\s*${edge}\\s*${city}$`), '').trim();
+  return out === '' ? null : out;
+}
+
 export async function listPublicDealers(
   locale: string,
   options: { city?: string | null; sort?: 'rating' | 'listings' | null } = {},
@@ -347,7 +362,17 @@ export async function listPublicDealers(
        */
       logoUrl: dealer.logoUrl,
       city: dealer.city,
-      address: dealer.address,
+      /**
+       * ═══ والعنوانُ بلا مدينته — فالمدينةُ بجواره ═══
+       *
+       * البطاقةُ تطبع «المدينة · العنوان»، والعنوانُ الذي يكتبه
+       * المعرضُ ينتهي بمدينته عادةً — **فيُقرأ السطر «الرياض ·
+       * طريق الملك عبدالعزيز، حي الملقا، الرياض»** — والمدينةُ
+       * مرّتين في سطرٍ واحد.
+       *
+       * وترميز `Wp` يكتبه «الرياض · حي الملقا».
+       */
+      address: stripCity(dealer.address, dealer.city),
       verified: dealer.verified,
       // التقييم نصًّا — والقسمة تُترك للعرض فلا تُفقد الكسور
       rating: dealer.ratingAvg?.toString() ?? null,

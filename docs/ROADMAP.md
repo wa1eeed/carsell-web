@@ -2090,6 +2090,43 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 14 — `Wp` the dealer index, and six mock addresses read as structure
+
+`Wp` read **40٪**. Opening it against the markup: the title, the intro, the city
+chips with counts, the sort, the cards with logo · name · verified badge ·
+location · stock · rating, and the «عندك معرض؟» band — **all built**. The forty
+per cent was six signals, and every one of them was a mock address.
+
+#### The measure counted «الرياض · حي الملقا» as a heading
+
+The data filter tested the **start** of a signal and the city name **alone**, so
+a compound «city · district» passed both: it does not start with «حي», and it is
+not a bare city name. Six of `Wp`'s ten signals were the designer's invented
+dealer addresses.
+
+- [x] A signal whose **every** part is a place is a place.
+- [x] And bare district names — «الكورنيش» · «العزيزية» · «قربان» — have no
+      pattern and must not be a hand-written list that rots. **The city anchors
+      them**: a known city followed by one more part is a location, because that
+      is the shape the card prints.
+- [x] Measured tree-wide before enabling: **7 signals of 508 removed**, six of
+      them `Wp`'s. Narrow and proportionate — not the self-blinding that was
+      reverted on `Wb`.
+
+#### And one real defect the measure could not see
+
+The card prints «المدينة · العنوان», and an address a dealer types ends with
+their own city. So every card read **«الرياض · طريق الملك عبدالعزيز، حي الملقا،
+الرياض»** — the city twice in one line, on the index of every dealer.
+
+- [x] The city is stripped from the **edges** of the address only. «حي الرياض»
+      in Jeddah is a district, not a city, so removing the name wherever it
+      appears would mangle correct addresses — and `tests/dealer-address.test.ts`
+      asserts both directions.
+
+Measured after: **40٪ → 100٪** on three signals, so marked ⚠ — the judgement
+was reading the markup, and the work was one line of real product.
+
 ### 40a · 13 — `Wm` sign-in, and a condition the product enforces without warning
 
 `Wm` read **33٪** on three signals. Its first state was already built and
