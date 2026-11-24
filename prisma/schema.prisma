@@ -996,6 +996,18 @@ enum DepositStatus {
 //  الطلب والضمان والفوترة
 // ═══════════════════════════════════════════════════════════
 
+/// أصنافُ إلغاء الطلب — خمسةٌ كما في ترميز A2.
+///
+/// **والنظامُ يكتب أوّلَها**: انقضاءُ مهلة الدفع إلغاءٌ لا يختاره أحد.
+/// والأربعةُ الباقية يختارها من ألغى.
+enum OrderCancelCategory {
+  PAYMENT_TIMEOUT /// لم يكتمل الدفع — يكتبه المُجدوِل
+  NOT_AS_DESCRIBED /// لا تطابق الوصف
+  CHANGED_MIND /// غيّر رأيه
+  SELLER_DELAY /// تأخّر البائع
+  OTHER /// أخرى — وافتراضُ من لم يختر
+}
+
 model Order {
   id               String      @id @default(cuid())
   ref              String      @unique // ORD-2026-1184
@@ -1068,7 +1080,19 @@ model Order {
   /// **لا إفراج للبائع قبل انقضائها** — وهي جزء من عمر الحجز لا ملحق به.
   returnWindowEndsAt      DateTime?
   cancelledBy           String?
+  /// نصُّ من ألغى بكلماته — يقرؤه الطرف الآخر، ولا يُجمَع عليه.
   cancelReason          String?
+  /**
+   * ═══ صنفُ الإلغاء — وبه وحده يُعرف لماذا تموت الصفقات ═══
+   *
+   * `cancelReason` نصٌّ حرّ، **وفيه نوعان مختلطان**: مفتاحٌ يكتبه
+   * النظام (`payment.timeout`) وكلامٌ يكتبه إنسان. فلوحةُ A2 تطلب
+   * «الإلغاءات» مقسومةً على خمسة أصناف، ولا سبيل إلى قسمةِ نصٍّ حرّ.
+   *
+   * واختياريّ: من ألغى قبل أن يوجد الحقل لا صنفَ له، ومن لا يختار
+   * يقع في «أخرى» — ولا يُجبَر أحدٌ على تصنيفٍ ليمضي.
+   */
+  cancelCategory        OrderCancelCategory?
 
   listing  Listing      @relation(fields: [listingId], references: [id], onDelete: Restrict)
   buyer    User         @relation("OrderBuyer", fields: [buyerId], references: [id], onDelete: Restrict)

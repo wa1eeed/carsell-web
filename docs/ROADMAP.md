@@ -2022,6 +2022,59 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 8 — `A2` operations, 44٪ → 89٪, **and the first visual pass**
+
+The owner asked mid-task whether this work was matching the design files or
+only improving the screens. The honest answer was: the design folder is the
+reference for every change, **but the measure reads content, not form** — it
+checks that «المبلغ في الضمان» appears, not that the padding is 18px. That
+limit is written in the tool's own header and in §40a, which says «١٠٠٪» needs
+two passes. The second had not started.
+
+It starts here, and the order is now: measure the screen, then compare it to
+its markup with the browser open, before moving on. Taking the measurement
+once and returning weeks later is how a measurement rots — the font scale
+changed once and the home page began overflowing with nothing to say so.
+
+**What the signal pass built.** The tab jumped straight to per-stage cards,
+which answer «how many are in payment?» but never «where is work piling up?» —
+and the four queues it would answer with live on four separate screens. So the
+markup's four roll-ups are built from their own sources: live orders by stage,
+the four review queues, open risks, and cancellations. Plus the month's orders
+as its own band, because the markup reads it as a sentence («١٨٠ طلبًا هذا
+الشهر»), not a fifth card in a row about what is waiting now.
+
+**And cancellations needed a field.** `cancelReason` carried two different
+things — a key the scheduler writes (`payment.timeout`) and a person's own
+words — and you cannot group free text. `OrderCancelCategory` is the five the
+markup names; the scheduler sets `PAYMENT_TIMEOUT`, a person may pick one, and
+whoever does not falls to `OTHER`. **It is optional on purpose**: requiring a
+category before someone may withdraw makes them click the first option to get
+out, which collects data worse than none.
+
+**What the visual pass found**, which no signal could:
+
+| | markup | built |
+|---|---|---|
+| card radius · padding · border | 14px · 18/20px · 1px | ✓ exact |
+| bar height · radius | 7px · 999px | ✓ exact |
+| swatch | 7×7 · 2px | ✓ exact |
+| grid | 4 columns, **14px** gap | 4 columns, 16px gap |
+| bar margin | **11px** | 10px |
+
+Two differences of one and two pixels, now aligned — and more importantly the
+card's **stacked bar with a matching swatch legend** was absent entirely. Four
+numbers in a column are read one at a time; a bar says in a glance that three
+quarters of the queue sits in one place, which is the question the screen is
+opened for. `StackedShare` is that, and it is not `ShareBars`: that one is
+parts of a common base («٥٫٦٪ of photos rejected»), this one is a whole split
+into its parts.
+
+**Still missing: the deltas** («−٤» · «+٧» beside each total). They need either
+a stored snapshot to compare against or a definition of the period, and
+inventing one would put a number on the screen whose meaning nobody agreed.
+Recorded rather than guessed.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the

@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **171** components in **4** directories.
+Counted: **172** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -131,7 +131,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 123 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 124 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 110 |
 | `InspectedBadge` | no | `className` | 3 |
@@ -146,7 +146,7 @@ rather than found by chance.
 | `ChoiceGroup` | yes | `label` · `hint` · `value` · `options` · `onChange` · `className` | 1 |
 | `CompletionRecord` | no | `title` · `rows` | 2 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
-| `Counted` | yes | `message` · `count` · `className` | 7 |
+| `Counted` | yes | `message` · `count` · `className` | 8 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `count` | 15 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
@@ -182,7 +182,7 @@ rather than found by chance.
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |
-| `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
+| `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 3 |
 | `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 32 |
 | `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 46 |
 | `SignOut` | yes | `path` · `next` · `label` · `className` | 3 |
@@ -190,6 +190,7 @@ rather than found by chance.
 | `Since` | no | `iso` · `className` | 1 |
 | `Sparkline` | no | `points` · `height` · `className` | 3 |
 | `SpecTable` | no | `entries` · `columns` · `className` | 1 |
+| `StackedShare` | no | `parts` · `className` | 1 |
 | `StageTracker` | no | `current` · `stopped` · `orientation` · `className` | 2 |
 | `SpecRow` | no | `label` · `children` · `className` | 3 |
 | `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 18 |

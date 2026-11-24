@@ -1,5 +1,6 @@
 import type { SegmentFieldKey } from '@/lib/campaigns/segments';
 import type { AuctionStatus, BuyerType, CampaignStatus, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
+import type { OrderCancelCategory } from '@/generated/prisma/enums';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -475,3 +476,34 @@ export const INTEGRATION_FIELD_LABEL: Readonly<Record<string, string>> = {
   secretAccessKey: 'مفتاح الوصول السري',
   bucket: 'الحاوية',
 };
+
+/**
+ * تسمياتُ مجموعات اللوحة التشغيلية (A2).
+ *
+ * **والنطاق يعيد مفاتيح** (البوابة ١٧): لا يعرف اللغة ولا يملك
+ * `Quantity`، فجملةٌ يبنيها تُخرج «6 يومًا».
+ */
+export const OPS_GROUP_LABEL: Readonly<Record<string, string>> = {
+  listings: 'إعلانات',
+  identity: 'توثيق هوية',
+  reports: 'بلاغات',
+  services: 'طلبات خدمات',
+  disputes: 'نزاعات',
+  stalled: 'طلبات متعثرة',
+  forfeited: 'انسحاب من مزاد',
+};
+
+/**
+ * أصنافُ إلغاء الطلب (A2).
+ *
+ * **بتعهّدٍ للمُصرِّف** (البوابة ٥٩): قيمةٌ تُضاف إلى التعداد بلا
+ * تسميةٍ تُعرض خامًا في البطاقة، والفهرسةُ بنصٍّ تُعيد `undefined`
+ * بلا شكوى.
+ */
+export const CANCEL_CATEGORY_LABEL = {
+  PAYMENT_TIMEOUT: 'لم يكتمل الدفع',
+  NOT_AS_DESCRIBED: 'لا تطابق الوصف',
+  CHANGED_MIND: 'غير رأيه',
+  SELLER_DELAY: 'تأخر البائع',
+  OTHER: 'أخرى',
+} satisfies Record<OrderCancelCategory, string>;

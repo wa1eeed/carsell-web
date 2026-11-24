@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
+import { OrderCancelCategory } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
 import { currentDeadlines } from './deadlines';
 
@@ -249,3 +250,124 @@ export async function auctionQuality(): Promise<AuctionQuality> {
     withdrawnAfterWin: withdrawn,
   };
 }
+
+/* ───────── لوحاتُ A2 الأربع: ما يتراكم وأين ───────── */
+
+export type OpsGroup = {
+  total: number;
+  /** مفاتيحُ لا جُمل — والتسميةُ في `src/lib/labels/` (البوابة ١٧). */
+  parts: { key: string; count: number }[];
+};
+
+export type OpsOverview = {
+  /** طلباتٌ حيّة موزّعةً على مراحلها */
+  live: OpsGroup;
+  /** ما ينتظر إنسانًا — في أربع شاشات */
+  queues: OpsGroup;
+  /** ما يحتجز مالًا أو يُنذر */
+  risks: OpsGroup;
+  /** طلباتُ الشهر وحالها */
+  month: OpsGroup;
+  /** الإلغاءاتُ بأصنافها — وبها وحدها يُعرف لماذا تموت الصفقات. */
+  cancellations: OpsGroup;
+};
+
+/**
+ * ═══ أربعُ لوحاتٍ فوق بطاقات المراحل — وما تقوله البطاقاتُ لا تقوله ═══
+ *
+ * ترميز A2 يضع فوق التفصيل أربعَ مجموعات: «طلبات جارية» و«طوابير
+ * المراجعة» و«مخاطر مفتوحة» و«الإلغاءات». وبطاقاتُ المراحل تقول عن
+ * كلّ مرحلةٍ على حدة، **ولا تقول أين يتراكم العمل**: طابورُ الإعلانات
+ * وطابورُ الهوية وطابورُ البلاغات في ثلاث شاشات، ومن يفتح اللوحة
+ * التشغيلية يسأل «أين أبدأ اليوم؟» لا «كم في مرحلة الفحص؟».
+ *
+ * **والأجزاء تُجمع من مصادرها لا تُقدَّر**: كلُّ رقمٍ هنا استعلامٌ على
+ * الجدول الذي تقرؤه شاشتُه، فلا يختلف عمّا تراه حين تفتحها.
+ */
+export async function opsOverview(now: Date = new Date()): Promise<OpsOverview> {
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 3 * 3_600_000,
+  );
+
+  const [
+    byStage, listings, identity, reports, services,
+    disputes, stalled, forfeited, byStatus, byCancel,
+  ] = await Promise.all([
+      db.order.groupBy({
+        by: ['stage'],
+        where: { status: 'ACTIVE' },
+        _count: { _all: true },
+      }),
+      db.listing.count({ where: { status: 'PENDING_REVIEW' } }),
+      db.user.count({ where: { identityStatus: { in: ['PENDING', 'CLARIFICATION'] } } }),
+      db.report.count({ where: { status: { in: ['open', 'reviewing'] } } }),
+      db.serviceRequest.count({ where: { status: { in: ['NEW', 'ASSIGNED'] } } }),
+      db.dispute.count({ where: { status: { in: ['OPEN', 'INVESTIGATING'] } } }),
+      db.order.count({ where: { status: 'STALLED' } }),
+      /** انسحابُ فائزٍ من مزاد — والعربونُ المصادَر أثرُه الوحيد. */
+      db.deposit.count({ where: { status: 'FORFEITED' } }),
+      db.order.groupBy({
+        by: ['status'],
+        where: { createdAt: { gte: monthStart } },
+        _count: { _all: true },
+      }),
+      db.order.groupBy({
+        by: ['cancelCategory'],
+        where: { status: 'CANCELLED' },
+        _count: { _all: true },
+      }),
+    ]);
+
+  const countOf = <T extends { _count: { _all: number } }>(rows: T[]): number =>
+    rows.reduce((sum, row) => sum + row._count._all, 0);
+
+  const STAGES = ['REQUEST', 'APPROVED', 'INSPECTION', 'PAYMENT', 'TRANSFER', 'DONE'] as const;
+  const STATUSES = ['COMPLETED', 'ACTIVE', 'CANCELLED', 'STALLED'] as const;
+
+  return {
+    live: {
+      total: countOf(byStage),
+      parts: STAGES.map((stage) => ({
+        key: stage,
+        count: byStage.find((row) => row.stage === stage)?._count._all ?? 0,
+      })),
+    },
+    queues: {
+      total: listings + identity + reports + services,
+      parts: [
+        { key: 'listings', count: listings },
+        { key: 'identity', count: identity },
+        { key: 'reports', count: reports },
+        { key: 'services', count: services },
+      ],
+    },
+    risks: {
+      total: disputes + stalled + forfeited,
+      parts: [
+        { key: 'disputes', count: disputes },
+        { key: 'stalled', count: stalled },
+        { key: 'forfeited', count: forfeited },
+      ],
+    },
+    month: {
+      total: countOf(byStatus),
+      parts: STATUSES.map((status) => ({
+        key: status,
+        count: byStatus.find((row) => row.status === status)?._count._all ?? 0,
+      })),
+    },
+    cancellations: {
+      total: countOf(byCancel),
+      parts: CANCEL_CATEGORIES.map((category) => ({
+        key: category,
+        count: byCancel.find((row) => row.cancelCategory === category)?._count._all ?? 0,
+      })),
+    },
+  };
+}
+
+/**
+ * **والقائمةُ تُشتقّ من التعداد لا تُكتب بجواره** — فقيمةٌ تُضاف إلى
+ * المخطّط تظهر في البطاقة بلا تعديلٍ هنا، ولا تبقى صامتةً خارجها.
+ */
+const CANCEL_CATEGORIES = Object.values(OrderCancelCategory);
