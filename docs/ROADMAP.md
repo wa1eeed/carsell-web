@@ -2090,6 +2090,54 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 19 — `Wx` service checkout, and a screen measured signed-out that is drawn signed-in
+
+`Wx` read **40٪** — the weakest screen in the tree. Three of its five signals
+missing: «ادفع واطلب الفحص», «ما يشمله الفحص», «الموقع والموعد».
+
+**All three exist.** `RequestService` has the vehicle picker, the location and
+time block, and the pay button carrying the total. Fetched with a session they
+are all in the markup. The audit sends the user cookie only to paths under
+`account|sell|orders|inbox|checkout`, and `Wx` lives at `/ar/services/{key}` —
+public by path, **drawn inside the account**: the design shows a signed-in name,
+a chosen vehicle, a location and a time.
+
+The prefix rule itself is right and was written from a real failure (sending the
+cookie everywhere hid «تسجيل الدخول» on the home page). It errs in the other
+direction here, so screens whose designed state is signed-in are named
+explicitly — and the list prints in the report footer, like `BEHIND_CLICK`, so
+it cannot become a hiding place.
+
+### What the thin denominator could not see
+
+Five signals is below the floor, so the percentage carries ⚠ and is not
+something to build on. Reading the design against the screen instead:
+
+- **The breadcrumb skipped the category.** Design: «الخدمات › قبل الشراء ›
+  فحص فنّي معتمد». Built: two levels. `service.category` was already loaded and
+  labelled; the middle level is now a link to the filtered index, and the filter
+  was walked to confirm it returns that category and not everything.
+- **The provider line had no record.** Design: «٤٫٦ من ٥ · ١٬٢٤٠ فحصًا · التزام
+  ٤٨ ساعة» — only the commitment was built. The count has a real source
+  (requests completed under that provider) and is now shown, counting `DONE`
+  only: an in-flight or failed request is not a record that reassures someone
+  about to pay 517 riyals. Zero is omitted rather than printed — «٠ خدمة منجزة»
+  under a provider's name reads as an accusation when they simply have not
+  started.
+- **The rating has no source at all** — no column, and nothing anywhere asks a
+  customer what they thought. It is the same question already open for dealer
+  ratings (`ratingAvg` read on four screens, written by nothing), so both go to
+  the owner as one decision.
+- **«الإلغاء مجاني حتى ٦ ساعات قبل الموعد» was not written.** There is no
+  customer cancellation in the product: `ServiceRequestStatus` has no
+  `CANCELLED`, no route, no screen; the only refund path is for a request the
+  *provider* failed. Cancellation terms are a business rule, so it is a question,
+  not an implementation — and the line stays off the screen until it is answered.
+  A promise of free cancellation with no button is worse than its absence.
+
+**Wx: 40٪ → 60٪**, the remaining two being the template's generic headings
+against the design's inspection-specific wording.
+
 ### 40a · 18 — `A30` ad slots, a cap nobody enforced, and a flag that denied live ads
 
 `A30` read **63٪** (not the 25 the stale table said). Three signals missing:

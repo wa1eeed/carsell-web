@@ -17,6 +17,7 @@ import { serviceTotal } from '@/lib/domain/money';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { formatNumber } from '@/lib/arabic';
 import { RequestService } from '@/components/site/RequestService';
+import { SERVICE_CATEGORY } from '@/lib/labels/services';
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -141,6 +142,18 @@ export default async function ServiceDetailPage({
               {t('title')}
             </Link>
             <span aria-hidden className="opacity-40">›</span>
+            {/*
+              **والفئةُ درجةٌ في المسار لا زينة**: الترميز يكتب «الخدمات ›
+              قبل الشراء › فحص فنّي معتمد»، ومن وصل من بطاقةٍ في الفهرس
+              يحتاج العودة إلى فئتها لا إلى الفهرس كلِّه.
+            */}
+            <Link
+              href={`/${locale}/services?category=${service.category}`}
+              className="-my-1.5 py-1.5 hover:underline"
+            >
+              {SERVICE_CATEGORY[service.category] ?? service.category}
+            </Link>
+            <span aria-hidden className="opacity-40">›</span>
             <span>{isArabic ? service.nameAr : service.nameEn}</span>
           </p>
 
@@ -190,6 +203,25 @@ export default async function ServiceDetailPage({
                   <span className="bidi-isolate font-bold">
                     {service.providerName ?? t('byCarz')}
                   </span>
+                  {/*
+                    ═══ وسجلُّ المزوّد يسبق التزامَه ═══
+
+                    الترميز يكتب «٤٫٦ من ٥ · ١٬٢٤٠ فحصًا · التزام ٤٨ ساعة».
+                    والتقييمُ بلا مصدر — `ServiceProvider` بلا حقلٍ له، ولا
+                    شيء يجمع رأي عميل (سؤالٌ معلَّق). **والعددُ له مصدر**:
+                    طلباتٌ أُنجزت باسمه، فيُعرض ما يُقاس.
+
+                    **والصفرُ لا يُعرض**: «٠ خدمة» تحت اسم مزوّدٍ تُقرأ
+                    اتّهامًا، وهو لم يبدأ بعد.
+                  */}
+                  {service.providerCompleted === 0 ? null : (
+                    <>
+                      <span aria-hidden className="opacity-40">·</span>
+                      <span className="opacity-70">
+                        <Quantity unit="completedServices" count={service.providerCompleted} />
+                      </span>
+                    </>
+                  )}
                   {service.providerSlaHours === null ? null : (
                     <>
                       <span aria-hidden className="opacity-40">·</span>

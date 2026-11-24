@@ -28,6 +28,8 @@ export type Unit =
   | 'heroDealers'
   | 'heroFinance'
   | 'completedRequests'
+  /** ما أنجزه مزوّدٌ من طلبات — سجلُّه في `Wx`. */
+  | 'completedServices'
   | 'serviceConsents'
   | 'viewingsAwaiting'
   | 'weeks'

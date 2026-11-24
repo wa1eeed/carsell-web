@@ -473,6 +473,7 @@
     "pushTemplates": "{count, plural, one{# push template} other{# push templates}}",
     "serviceConsents": "{count, plural, one{An inspection request awaits your consent} other{{n} inspection requests await your consent}}",
     "completedRequests": "{count, plural, one{one request} other{{n} requests}}",
+    "completedServices": "{count, plural, one{# completed service} other{# completed services}}",
     "viewingsAwaiting": "{count, plural, one{One viewing awaits your reply} other{{n} viewings await your reply}}",
     "cylinders": "{count, plural, one{{n} cylinder} other{{n} cylinders}}",
     "heroListings": "{count, plural, one{car listed} other{cars listed}}",

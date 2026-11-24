@@ -224,10 +224,28 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
       price: true, category: true, isAutomated: true, slaHours: true,
       adminFeeEnabled: true, adminFee: true, adminFeeMode: true,
       includesAr: true, includesEn: true,
-      provider: { select: { nameAr: true, slaHours: true, cities: true } },
+      provider: { select: { id: true, nameAr: true, slaHours: true, cities: true } },
     },
   });
   if (row === null) return null;
+
+  /**
+   * ═══ كم خدمةً أدّاها هذا المزوّد ═══
+   *
+   * ترميز `Wx` يكتب في سطر المزوّد «٤٫٦ من ٥ · ١٬٢٤٠ فحصًا». والثاني
+   * **له مصدر**: طلباتٌ أُنجزت باسمه. والأوّل لا — `ServiceProvider`
+   * بلا حقل تقييم أصلًا، ولا شيء يجمع رأي عميل. فيُعرض ما يُقاس،
+   * ويُسأل عن الباقي (`OPEN-QUESTIONS.md`).
+   *
+   * **والعدُّ على المُنجَز وحده**: طلبٌ جارٍ أو فاشل ليس سجلًّا يُطمئن
+   * من يوشك أن يدفع.
+   */
+  const completed =
+    row.provider === null
+      ? 0
+      : await db.serviceRequest.count({
+          where: { providerId: row.provider.id, status: 'DONE' },
+        });
 
   return {
     key: row.key,
@@ -241,6 +259,7 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
     slaHours: row.slaHours,
     providerName: row.provider?.nameAr ?? null,
     providerSlaHours: row.provider?.slaHours ?? null,
+    providerCompleted: completed,
     /** مدن التغطية — وخدمةٌ لا تغطّي مدينتك تُقال قبل أن تُطلب. */
     providerCities: row.provider?.cities ?? [],
     includesAr: row.includesAr,
@@ -257,6 +276,12 @@ export async function serviceByKey(key: string): Promise<PublicServiceDetail | n
 
 export type PublicServiceDetail = PublicService & {
   providerSlaHours: number | null;
+  /**
+   * ما أنجزه المزوّد من طلبات — **وصفرٌ يُقال نفيًا لا رقمًا**.
+   *
+   * «٠ فحصًا» تحت اسم مزوّدٍ تقرأ اتّهامًا، والحقيقةُ أنه لم يبدأ بعد.
+   */
+  providerCompleted: number;
   providerCities: string[];
   /**
    * بنودُ ما تشمله الخدمة — **تُعرض قبل الدفع**.

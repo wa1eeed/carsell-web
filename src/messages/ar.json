@@ -473,6 +473,7 @@
     "pushTemplates": "{count, plural, zero{لا قوالب دفع} one{قالب دفع واحد} two{قالبا دفع} few{{n} قوالب دفع} many{{n} قالب دفع} other{{n} قالب دفع}}",
     "serviceConsents": "{count, plural, zero{لا طلبات فحص تنتظر إذنك} one{طلب فحص ينتظر إذنك} two{طلبا فحص ينتظران إذنك} few{{n} طلبات فحص تنتظر إذنك} many{{n} طلب فحص تنتظر إذنك} other{{n} طلب فحص ينتظر إذنك}}",
     "completedRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبين} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
+    "completedServices": "{count, plural, zero{لا خدمات منجزة} one{خدمة واحدة منجزة} two{خدمتان منجزتان} few{{n} خدمات منجزة} many{{n} خدمة منجزة} other{{n} خدمة منجزة}}",
     "viewingsAwaiting": "{count, plural, zero{لا مواعيد معاينة تنتظر ردك} one{موعد معاينة ينتظر ردك} two{موعدا معاينة ينتظران ردك} few{{n} مواعيد معاينة تنتظر ردك} many{{n} موعد معاينة تنتظر ردك} other{{n} موعد معاينة ينتظر ردك}}",
     "cylinders": "{count, plural, zero{لا سلندرات} one{سلندر واحد} two{سلندران} few{{n} سلندرات} many{{n} سلندرا} other{{n} سلندر}}",
     "heroListings": "{count, plural, zero{مركبة معروضة} one{مركبة معروضة} two{مركبتان معروضتان} few{مركبات معروضة} many{مركبة معروضة} other{مركبة معروضة}}",
