@@ -1818,6 +1818,43 @@ and nobody searches for; the right form is a naming question, asked in
 `OPEN-QUESTIONS.md`. The file is excluded from the gate with that reason written
 beside it.
 
+### 40a · 3 — `Wj` the order page, 27٪ → 100٪, and a cancel button that hid when it mattered
+
+Third in the ranking, and the first screen the measure was reading in the wrong
+state. `Wj` is drawn at the **payment** stage — «قيد الدفع», «المستحق الآن»,
+«ادفع الآن» — and the tool was taking whatever order it found first, which was
+complete. It now prefers an order that shows the pay button, and says so when
+there is none, because a missing state must not read as a missing screen.
+
+**With the right order, the first finding was the seed.** It gave an escrow to
+orders **at** `PAYMENT` as well as after it (`>=` where `>` was meant), and that
+is a state the product cannot produce: `startHold` writes `HELD` through
+`applyState`, which advances the stage in the same move. Two consequences, both
+silent:
+
+- `canPay` requires `escrow === null`, correctly — so **«ادفع الآن» had never
+  rendered for any order at the payment stage**. The buyer arrived and found
+  nothing to press.
+- The escrow card told that buyer «المبلغ محجوز ولم يصل البائع» when they had
+  not paid a riyal.
+
+What is wrongly seeded is wrongly seen, and the screen was built on what it saw.
+Two invariants now hold it: no order at `PAYMENT` has an escrow, and at least
+one payable order exists so the state is reachable at all.
+
+**And the cancel button was hidden exactly when cancelling is free.** It sat
+inside the `canPay ? null : …` block, so at the payment stage it disappeared —
+while `CANCELLABLE` in `order-cancel.ts` has listed `PAYMENT` since it was
+written, and the markup draws the button there with its fee rule beside it. A
+door the server opens and the screen closed.
+
+The rest was labelling the markup already implies: the live status badge
+(«قيد الدفع» — `orderStage` names *steps* for the tracker, so the badge reads a
+second map of *states*, both held complete by gate 59), a support link carrying
+the order reference, the breadcrumb, a name on the sale-method value, a heading
+over the stage tracker, and «المبلغ في الضمان» as the amounts heading before
+payment — where the title itself tells the buyer where the money goes.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the
@@ -2881,6 +2918,24 @@ never reach a reader, and this repository's comments are deliberately voweled).
   form, because behaviour alone would pass right up until the day it broke.
 
 ## Also open, outside the four stages
+
+### A deploy button in GitHub — *owner's decision 2026-11-24, for after launch*
+
+> «سوف نضع زر نشر في قيت هب بحيث اذا انتهينا من كل تطويرات المنصه يكون النشر
+> للتحديثات بعد الاطلاق عبر ذلك الزر»
+
+Production is deployed over SSH today, by the assistant on the owner's behalf
+while the build is in progress. After launch it becomes a
+`workflow_dispatch` action the owner presses: it connects to the SCCC box and
+runs `carz-deploy`, which already does the whole job — tags the image by
+commit, leaves the running container alone on a failed build, polls
+`/api/health` for ninety seconds and rolls itself back.
+
+**Deliberately not `on: push`.** A merge should not be able to change `carz.sa`
+without someone meaning it. The button removes the SSH, not the decision.
+
+Needs: a deploy key in GitHub secrets, and the action restricted to `main`.
+
 
 ### The production database has no backup — *owner's decision 2026-11-23, deferred to before launch*
 

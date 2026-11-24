@@ -15,6 +15,33 @@ _Last updated: 2026-11-24_
 | Indexed by search engines | no | yes |
 | Secrets | its own | **different ones, generated separately** |
 
+## Until launch, the order is reversed — *owner's decision 2026-11-24*
+
+> «بحكم اننا نكمل التطويرات ولم ننته من المشروع فالافضل ان تنشر في sccc
+> وتستمر في نشر تعديلاتك … اما staging … متى ما اردت انا استطيع عمل ديبلوي»
+
+While the platform is being built:
+
+- **Production is deployed by the assistant on the owner's behalf**, straight
+  after each piece of work: merge `staging` into `main`, then `carz-deploy`.
+- **Staging is an on-demand snapshot.** The branch always carries the latest;
+  the owner presses Deploy in Coolify when they want to look at it.
+- **After launch** the order returns, and production moves behind a **button in
+  GitHub** — an action the owner triggers, which runs `carz-deploy` remotely.
+  No SSH, and still a deliberate press.
+
+**What this suspends, and why it is affordable today.** Rule 2 below says
+nothing reaches `main` that has not run on staging; it is suspended on purpose.
+The guard it provides is a rehearsal of the **migrations** on data someone else
+seeded, and today production holds the reference catalogue and one admin
+account — no listing, no order, no user. A migration that goes wrong there
+costs a re-seed.
+
+**It stops being affordable the day a real seller publishes a real car**, and
+two things must be in place before that: the rule comes back, and the database
+gets the backup it still does not have («Also open» in the roadmap). Both are
+sequenced before launch, not after.
+
 ## How a change reaches each one
 
 **Both are deliberate button presses. Neither follows a push on its own** —
@@ -84,6 +111,12 @@ rules, notification templates — through `prisma/plant-reference.ts`, which run
 on every boot and inserts only what is missing. See roadmap §39.
 
 ### 2 · Nothing reaches `main` that has not run on staging
+
+> ⏸ **Suspended until launch** by the owner's decision of 2026-11-24 — see
+> «Until launch, the order is reversed» above. The reason it is affordable now,
+> and the two things that must be true before it stops being, are written
+> there. This rule comes back on.
+
 
 Migrations apply automatically at boot, in both environments. That is safe
 because of the order, not in spite of it: a migration lands on `carsell.one`

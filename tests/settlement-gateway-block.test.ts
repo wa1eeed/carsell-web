@@ -29,10 +29,19 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
-/** طلبٌ محجوزٌ ماله — ونُعيد مرحلتَه وحالةَ دفعته بعد كل حالة. */
+/**
+ * طلبٌ محجوزٌ ماله — ونُعيد مرحلتَه وحالةَ دفعته بعد كل حالة.
+ *
+ * ═══ والطقمُ يشترط ما يفترضه ═══
+ *
+ * كان الشرط «له دفعةٌ محجوزة» وحده، والحالاتُ تحته تفترضه **قابلًا
+ * للتسوية**. فلمّا تغيّرت البذرة صار أوّلُ المطابقين طلبًا متنازَعًا
+ * عليه، فردّت التسوية `DISPUTED` بحقّ — وسقط الاختبار على ما لا
+ * يقيسه، وبدا تقطّعًا وهو شرطٌ ناقص.
+ */
 async function heldOrder() {
   return db.order.findFirstOrThrow({
-    where: { payments: { some: { status: 'HELD' } } },
+    where: { payments: { some: { status: 'HELD' } }, status: 'ACTIVE', disputes: { none: {} } },
     select: {
       id: true, ref: true, stage: true, status: true,
       payments: { where: { status: 'HELD' }, select: { id: true, gatewayKey: true } },

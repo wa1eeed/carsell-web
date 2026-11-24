@@ -649,7 +649,15 @@
       "INSPECTION": "فحص",
       "PAYMENT": "دفع",
       "TRANSFER": "نقل ملكية",
-      "DONE": "إتمام"
+      "DONE": "الإنهاء"
+    },
+    "orderStageWaiting": {
+      "REQUEST": "قيد الطلب",
+      "APPROVED": "قيد الموافقة",
+      "INSPECTION": "قيد الفحص",
+      "PAYMENT": "قيد الدفع",
+      "TRANSFER": "قيد نقل الملكية",
+      "DONE": "مكتمل"
     },
     "escrowStatus": {
       "PENDING": "بانتظار الحجز",
@@ -1173,7 +1181,14 @@
       "OUT_OF_SCOPE_NO_INVOICE": "هذه الصفقة خارج نطاق الضريبة، فلا فاتورة تستحق عليها.",
       "INVOICED_WITH_ITS_OWN_PAYMENT": "فوترت مع دفعتها لا مع التسوية.",
       "other": "تعذر إصدارها، وفريقنا يتابعها."
-    }
+    },
+    "contactSupport": "تواصل مع الدعم",
+    "stages": "مراحل الطلب",
+    "saleMethod": "طريقة البيع",
+    "breadcrumb": "مسار التنقل",
+    "account": "حسابي",
+    "myOrders": "طلباتي",
+    "escrowAmount": "المبلغ في الضمان"
   },
   "auctions": {
     "title": "المزادات",

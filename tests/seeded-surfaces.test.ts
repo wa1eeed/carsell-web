@@ -59,4 +59,34 @@ describe('الشاشات التي كانت تفتح على فراغها', () => 
     const keys = new Set(slots.map((slot) => slot.key));
     for (const row of campaigns) expect(keys.has(row.slotKey), row.slotKey).toBe(true);
   });
+
+  /**
+   * ═══ ولا ضمانَ لطلبٍ **عند** مرحلة الدفع ═══
+   *
+   * حالٌ **لا يُنتجها المنتج**: `startHold` تحجز بـ`applyState` التي
+   * تُقدّم المرحلة معها، فالمحجوزُ قد تجاوز الدفع بالضرورة.
+   *
+   * وكانت البذرة تزرعها (`>=` بدل `>`)، **فاختفى «ادفع الآن» من كل
+   * طلبٍ عند الدفع**: `canPay` تشترط `escrow === null` بحقّ. وقرأت
+   * بطاقةُ الضمان للمشتري «المبلغ محجوز ولم يصل البائع» وهو لم يدفع
+   * ريالًا — فما يُزرع خطأً يُرى خطأً، والشاشة تُبنى على ما تراه.
+   */
+  it('ولا ضمان لطلب عند مرحلة الدفع — وإلا اختفى زر الدفع', async () => {
+    const held = await db.order.findMany({
+      where: { stage: 'PAYMENT', escrow: { isNot: null } },
+      select: { ref: true, status: true, escrow: { select: { status: true } } },
+    });
+    expect(held.map((row) => `${row.ref}:${row.escrow?.status ?? ''}`)).toEqual([]);
+  });
+
+  /**
+   * **وطلبٌ واحدٌ على الأقلّ قابلٌ للدفع** — وإلّا لم تُفتح شاشةُ
+   * الدفع قطّ ولا قِيست. وما لا يُزرع لا يُرى.
+   */
+  it('وفي البذرة طلب عند الدفع بلا ضمان — فشاشة الدفع تُفتح', async () => {
+    const payable = await db.order.count({
+      where: { stage: 'PAYMENT', status: 'ACTIVE', escrow: null },
+    });
+    expect(payable).toBeGreaterThan(0);
+  });
 });
