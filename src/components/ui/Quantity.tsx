@@ -20,6 +20,9 @@ export type Unit =
   | 'daysGenitive'
   | 'weeksGenitive'
   | 'monthsGenitive'
+  /** سنواتُ العضوية على المنصّة — «٥ سنوات في كارز». */
+  | 'years'
+  | 'yearsGenitive'
   /** بطاقاتُ الرئيسية — الاسمُ وحده، والرقمُ فوقه في عنصرٍ آخر. */
   | 'heroListings'
   | 'heroDealers'

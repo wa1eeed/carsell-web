@@ -410,6 +410,7 @@
     "reviews": "{count, plural, zero{لا تقييمات} one{تقييم واحد} two{تقييمان} few{{n} تقييمات} many{{n} تقييما} other{{n} تقييم}}",
     "auctions": "{count, plural, zero{لا مزادات} one{مزاد واحد} two{مزادان} few{{n} مزادات} many{{n} مزادا} other{{n} مزاد}}",
     "months": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهران} few{{n} أشهر} many{{n} شهرا} other{{n} شهر}}",
+    "years": "{count, plural, zero{لا سنوات} one{سنة واحدة} two{سنتان} few{{n} سنوات} many{{n} سنة} other{{n} سنة}}",
     "financeProviders": "{count, plural, zero{لا جهات تمويل معتمدة} one{جهة تمويل معتمدة} two{جهتي تمويل معتمدتين} few{{n} جهات تمويل معتمدة} many{{n} جهة تمويل معتمدة} other{{n} جهة تمويل معتمدة}}",
     "points": "{count, plural, zero{لا نقاط} one{نقطة واحدة} two{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}",
     "services": "{count, plural, zero{لا خدمات} one{خدمة واحدة} two{خدمتان} few{{n} خدمات} many{{n} خدمة} other{{n} خدمة}}",
@@ -477,7 +478,8 @@
     "hoursGenitive": "{count, plural, zero{لا ساعات} one{ساعة واحدة} two{ساعتين} few{{n} ساعات} many{{n} ساعة} other{{n} ساعة}}",
     "daysGenitive": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومين} few{{n} أيام} many{{n} يوما} other{{n} يوم}}",
     "weeksGenitive": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعين} few{{n} أسابيع} many{{n} أسبوعا} other{{n} أسبوع}}",
-    "monthsGenitive": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهرين} few{{n} أشهر} many{{n} شهرا} other{{n} شهر}}"
+    "monthsGenitive": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهرين} few{{n} أشهر} many{{n} شهرا} other{{n} شهر}}",
+    "yearsGenitive": "{count, plural, zero{لا سنوات} one{سنة واحدة} two{سنتين} few{{n} سنوات} many{{n} سنة} other{{n} سنة}}"
   },
   "search": {
     "editQuery": "عدل الجملة",
@@ -1298,6 +1300,13 @@
     "joined": "على المنصة منذ",
     "listed": "معروضة الآن",
     "sold": "مبيعة مكتملة",
+    "responseRate": "معدل الرد",
+    "responseTime": "متوسط زمن الرد",
+    "onPlatform": "في كارز",
+    "sortNewest": "الأحدث",
+    "sortPriceAsc": "الأقل سعرا",
+    "sortPriceDesc": "الأعلى سعرا",
+    "sortLabel": "ترتيب المخزون",
     "vehicles": "مركبات المعرض",
     "emptyTitle": "لا مركبات معروضة الآن",
     "emptyBody": "لا توجد إعلانات منشورة لهذا المعرض حاليا.",

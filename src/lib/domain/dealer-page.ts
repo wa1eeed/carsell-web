@@ -32,6 +32,22 @@ export type PublicDealer = {
   joinedAt: string;
   listingCount: number;
   soldCount: number;
+
+  /**
+   * ═══ كيف يردّ هذا المعرض — **و`null` دون عتبة الثقة** ═══
+   *
+   * ترميز `Wg` يعرض «معدل الرد ٩٨٪» و«متوسط زمن الرد ٢٢ د». وهما
+   * يُحسبان من العروض الواردة على إعلاناته: ما رُدّ عليه بقبولٍ أو
+   * مقابلٍ أو رفضٍ **مقصود**، مقابل ما انقضت مهلتُه بلا ردّ.
+   *
+   * **والرفضُ الآليّ ليس ردًّا**: النظامُ ردّ لا البائع، وعدُّه يرفع
+   * معدَّلَ من وضع أرضيّةً عاليةً ولم يفتح الصندوق قطّ.
+   *
+   * **ورقمٌ من عرضين ليس معدَّلًا**: معرضٌ ردّ على واحدٍ من اثنين يُقرأ
+   * «٥٠٪» كأنها سجلُّ سنة. فدون العتبة `null`، ولا تُعرض البطاقة —
+   * وهو مسلك `RangeBar` نفسه.
+   */
+  responses: { ratePct: number; medianMinutes: number; sample: number } | null;
   // اسمٌ واحد للمسار في كل الشاشات — `href` كما في البحث والرئيسية
   listings: ListingCard[];
   /** عدد المعروض بكل طريقة بيع — لشريط الترشيح. */
@@ -52,12 +68,87 @@ export type PublicDealer = {
  */
 export type DealerStockFilter = 'DIRECT' | 'NEGOTIATION' | 'AUCTION' | null;
 
+/**
+ * ترتيبُ مخزون المعرض — **وترميز `Wg` يضع «الأحدث» بجوار المرشّحات**.
+ *
+ * وكان المخزونُ يُرتَّب بالأحدث دائمًا ولا سبيلَ إلى غيره: من يفتح
+ * صفحةَ معرضٍ ليبحث عن أرخص ما عنده يُقلّب الصفحات بعينه.
+ */
+export type DealerStockSort = 'newest' | 'priceAsc' | 'priceDesc';
+
+const STOCK_ORDER = {
+  newest: { publishedAt: 'desc' },
+  priceAsc: { askPrice: 'asc' },
+  priceDesc: { askPrice: 'desc' },
+} as const satisfies Record<DealerStockSort, Record<string, 'asc' | 'desc'>>;
+
+/**
+ * ═══ عتبةُ الثقة — وثمانيةٌ كأختها في `RangeBar` ═══
+ *
+ * رقمٌ من عرضين ليس معدَّلًا: «٥٠٪» من اثنين تُقرأ كأنها سجلُّ سنة.
+ */
+const RESPONSE_MIN_SAMPLE = 8;
+
+/** نافذةُ القياس — فمعدَّلُ العام الماضي لا يصف معرضًا تبدّل. */
+const RESPONSE_WINDOW_DAYS = 180;
+
+/**
+ * معدَّلُ ردّ المعرض وزمنُه — **والوسيطُ لا المتوسّط**.
+ *
+ * ردٌّ واحد بعد سبعة أيّام يرفع المتوسّطَ على عشرين ردًّا في دقائق،
+ * فيقول الرقم عن المعرض ما لا يصفه. والوسيطُ يصف ما يلقاه أكثرُ من
+ * يراسله.
+ */
+async function dealerResponses(
+  memberIds: readonly string[],
+  now: Date = new Date(),
+): Promise<PublicDealer['responses']> {
+  if (memberIds.length === 0) return null;
+
+  const since = new Date(now.getTime() - RESPONSE_WINDOW_DAYS * 86_400_000);
+
+  const offers = await db.offer.findMany({
+    where: {
+      listing: { sellerId: { in: [...memberIds] } },
+      createdAt: { gte: since },
+      /** **والمقابلُ ليس واردًا** — هو ردُّ البائع نفسِه. */
+      parentOfferId: null,
+      /** **والرفضُ الآليّ ليس ردًّا ولا تقصيرًا**، فيخرج من الطرفين. */
+      autoRejected: false,
+    },
+    select: { createdAt: true, respondedAt: true, expiresAt: true },
+  });
+
+  /**
+   * **وعرضٌ لم يُردّ ولم تنقضِ مهلتُه بعد لا يُحتسب**: البائع ما زال
+   * في وقته، وعدُّه تقصيرًا يحكم عليه قبل أن يتأخّر.
+   */
+  const decided = offers.filter(
+    (offer) => offer.respondedAt !== null || offer.expiresAt <= now,
+  );
+  if (decided.length < RESPONSE_MIN_SAMPLE) return null;
+
+  const answered = decided.filter((offer) => offer.respondedAt !== null);
+  const minutes = answered
+    .map((offer) => (offer.respondedAt as Date).getTime() - offer.createdAt.getTime())
+    .map((ms) => Math.max(0, Math.round(ms / 60_000)))
+    .sort((a, b) => a - b);
+
+  return {
+    ratePct: Math.round((answered.length / decided.length) * 100),
+    /** صفرٌ حين لا ردَّ واحد — والمعدَّلُ حينها صفرٌ أيضًا، فلا يُعرض زمنٌ كاذب. */
+    medianMinutes: minutes.length === 0 ? 0 : (minutes[Math.floor(minutes.length / 2)] ?? 0),
+    sample: decided.length,
+  };
+}
+
 export async function getDealerPage(
   slug: string,
   locale: string,
   filter: DealerStockFilter = null,
   /** صاحبُ الجلسة — ومنه تُعرف بطاقاتُه. و`null` للزائر. */
   viewerId: string | null = null,
+  sort: DealerStockSort = 'newest',
 ): Promise<PublicDealer | null> {
   const dealer = await db.dealer.findUnique({
     where: { slug },
@@ -74,6 +165,8 @@ export async function getDealerPage(
   const memberIds = (
     await db.user.findMany({ where: { dealerId: dealer.id }, select: { id: true } })
   ).map((member) => member.id);
+
+  const responses = await dealerResponses(memberIds);
 
   const [rows, listingCount, soldCount, typeCounts] = await Promise.all([
     db.listing.findMany({
@@ -107,7 +200,7 @@ export async function getDealerPage(
         images: { orderBy: { sort: 'asc' } },
         auction: { include: { _count: { select: { bids: true } } } },
       },
-      orderBy: { publishedAt: 'desc' },
+      orderBy: STOCK_ORDER[sort],
       take: 24,
     }),
     db.listing.count({ where: { sellerId: { in: memberIds }, status: 'PUBLISHED' } }),
@@ -141,6 +234,7 @@ export async function getDealerPage(
     joinedAt: dealer.createdAt.toISOString(),
     listingCount,
     soldCount,
+    responses,
     /**
      * **وعدّاد كل طريقةٍ من الكلّ لا من المرشَّح.** عدٌّ من المعروض
      * يجعل الشريحة المختارة وحدها تحمل رقمًا والبقيّة أصفارًا.

@@ -1526,10 +1526,102 @@ async function main(): Promise<void> {
         status: plan.status,
         autoRejected: plan.autoRejected,
         createdAt: madeAt,
+        /**
+         * ═══ ومتى رُدّ — وإلّا بقيت بطاقتا المعرض غائبتين ═══
+         *
+         * `Wg` يعرض «معدل الرد» و«متوسط زمن الرد» من `respondedAt`،
+         * ولا يعرضهما دون عتبة الثقة. فبلا زرعٍ لها **لا تُفتح
+         * البطاقتان في أيّ شاشة** ولا يعرف أحدٌ أتعملان أم لا.
+         *
+         * والردُّ لمن رُدّ عليه وحده: المقبولُ والمقابَلُ والمرفوضُ
+         * بيد. و`PENDING` و`EXPIRED` و`WITHDRAWN` بلا ردّ — والأخيران
+         * هما ما يجعل المعدَّل دون المئة، فيُقرأ رقمًا لا زينة.
+         */
+        ...(plan.status === 'ACCEPTED' ||
+        plan.status === 'COUNTERED' ||
+        (plan.status === 'REJECTED' && !plan.autoRejected)
+          ? { respondedAt: new Date(madeAt.getTime() + between(12, 300) * 60_000) }
+          : {}),
         /* **والمنتهي مهلتُه في الماضي** — وإلّا قُرئ نشطًا رغم حالته */
         expiresAt: new Date(madeAt.getTime() + (plan.status === 'EXPIRED' ? 1 : 96) * 3600 * 1000),
       },
     });
+  }
+
+  /**
+   * ═══ تاريخُ ردٍّ لمعرضٍ واحد — وإلّا بقيت بطاقتا `Wg` غائبتين ═══
+   *
+   * صفحةُ المعرض تعرض «معدل الرد» و«متوسط زمن الرد» **فوق عتبة ثقةٍ
+   * قدرُها ثماني عروضٍ محسومة**. وخطّةُ العروض أعلاه سبعةٌ موزّعةٌ على
+   * بائعين مختلفين، فلا معرضَ يبلغ العتبة — **والبطاقتان لا تُفتحان
+   * في أيّ شاشة**، ولا يعرف أحدٌ أتعملان أم لا.
+   *
+   * فيُزرع لكلّ معرضٍ تاريخٌ محسوم: **كلُّه مغلقٌ وفي الماضي**، فلا
+   * يُضاف إلى صندوق عروضٍ ينتظر أحدٌ الردَّ فيه، ولا يُحسب عملًا
+   * قائمًا في اللوحة.
+   *
+   * **وفيه ما لم يُردّ عليه** (منتهٍ بلا ردّ) — وإلّا خرج المعدَّل
+   * مئةً في المئة دائمًا، وهو رقمٌ لا يُقرأ قياسًا.
+   */
+  /**
+   * **ولكلّ معرضٍ تاريخُه** — ومعدَّلٌ لواحدٍ من أربعة يجعل ثلاثَ صفحاتٍ
+   * من أربع تُفتح بلا البطاقتين، فيُقرأ غيابُهما عطلًا. وأربعةُ
+   * معدَّلاتٍ مختلفة أصدقُ من واحد: المعارض تتفاوت.
+   */
+  const RESPONSE_PROFILE = [
+    { answered: 11, missed: 2 },
+    { answered: 13, missed: 1 },
+    { answered: 8, missed: 5 },
+    { answered: 12, missed: 0 },
+  ];
+
+  for (const [d, manager] of dealerUsers.entries()) {
+    const profile = RESPONSE_PROFILE[d % RESPONSE_PROFILE.length];
+    if (profile === undefined) continue;
+
+    /**
+     * **ولا احتياطيَّ من مخزون غيره.** كان يسقط إلى أيّ إعلانٍ
+     * تفاوضيّ حين لا يملك المعرضُ واحدًا — فتُكتب العروضُ على إعلانات
+     * بائعٍ آخر **وتُحسب له هو**، والمعرضُ يبقى بلا بطاقة. فظهر
+     * «معرض الشرق» بلا ردٍّ وأنا أحسب أنّي زرعتُ له ثلاثةَ عشر.
+     *
+     * ومعرضٌ بلا مخزونٍ تفاوضيّ **لا تاريخَ ردٍّ له حقًّا** — وصفحتُه
+     * بلا البطاقتين هي الحال الصحيحة، وفيها فائدةٌ أخرى: واحدةٌ من
+     * أربع تُري كيف تبدو الشاشة قبل أن يصل المعرضَ عرضٌ واحد.
+     */
+    const stock = listings.filter(
+      (l) => l.sellerId === manager.id && l.type === 'NEGOTIATION',
+    );
+    if (stock.length === 0) continue;
+
+    const history = [
+      ...Array.from({ length: profile.answered }, () => true),
+      ...Array.from({ length: profile.missed }, () => false),
+    ];
+
+    for (const [n, answered] of history.entries()) {
+      const listing = stock[n % stock.length];
+      const historyBuyer = buyers[(n + d) % buyers.length];
+      if (listing === undefined || historyBuyer === undefined) continue;
+      if (historyBuyer.id === listing.sellerId) continue;
+
+      const madeAt = days(-between(10, 150));
+      await prisma.offer.create({
+        data: {
+          listingId: listing.id,
+          buyerId: historyBuyer.id,
+          amount: new Prisma.Decimal(Math.round(Number(listing.askPrice) * 0.9)),
+          status: answered ? 'REJECTED' : 'EXPIRED',
+          autoRejected: false,
+          createdAt: madeAt,
+          /** **والوسيطُ يقع في الدقائق** — ومعرضٌ يردّ بعد يومين يُقرأ بطيئًا. */
+          ...(answered
+            ? { respondedAt: new Date(madeAt.getTime() + between(8, 90 + d * 40) * 60_000) }
+            : {}),
+          expiresAt: new Date(madeAt.getTime() + 96 * 3600 * 1000),
+        },
+      });
+    }
   }
 
   /** نزاعان: واحدٌ مفتوحٌ ينتظر، وواحدٌ حُسم — فالشاشة تُظهر الطرفين. */

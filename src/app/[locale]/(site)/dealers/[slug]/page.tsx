@@ -9,13 +9,19 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Duration } from '@/components/ui/Duration';
 import { Badge } from '@/components/ui/Badge';
 import { CarCard } from '@/components/ui/CarCard';
 import { badgeLabel } from '@/lib/catalog/badges';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
-import { type DealerStockFilter, getDealerPage } from '@/lib/domain/dealer-page';
+import {
+  type DealerStockFilter,
+  type DealerStockSort,
+  getDealerPage,
+} from '@/lib/domain/dealer-page';
+import { StockSort } from '@/components/site/StockSort';
 import { FilterChip } from '@/components/ui/FilterChip';
 
 export const dynamic = 'force-dynamic';
@@ -70,11 +76,16 @@ export default async function DealerPage({
   const rawType = typeof query.type === 'string' ? query.type : null;
   const filter = (STOCK_TABS.find((row) => row.key === rawType)?.key ?? null) as DealerStockFilter;
 
+  /** **وترتيبٌ مجهولٌ يسقط إلى الأحدث** — ولا يردّ الصفحة بخطأ. */
+  const rawSort = typeof query.sort === 'string' ? query.sort : null;
+  const sort: DealerStockSort =
+    rawSort === 'priceAsc' || rawSort === 'priceDesc' ? rawSort : 'newest';
+
   /** صاحبُ الجلسة — ومنه تُوسَم بطاقاتُه «إعلانك». */
   const viewer = await currentUserFromCookies();
 
   const [dealer, t, te, nav, ui] = await Promise.all([
-    getDealerPage(slug, locale, filter, viewer?.id ?? null),
+    getDealerPage(slug, locale, filter, viewer?.id ?? null, sort),
     getTranslations('dealer'),
     getTranslations('enums'),
     getTranslations('site.nav'),
@@ -135,10 +146,20 @@ export default async function DealerPage({
               </div>
 
               {/*
-                عدّادان محسوبان من صفوفهما لا من عمودٍ مخزَّن — وعمودٌ
-                كهذا يكذب أوّل مرّة يُلغى فيها طلب.
+                ═══ صفُّ الأرقام — محسوبٌ من صفوفه لا من عمودٍ مخزَّن ═══
+
+                وعمودٌ كهذا يكذب أوّل مرّة يُلغى فيها طلب.
+
+                ═══ وما لا مصدرَ له لا يُعرض ═══
+
+                ترميز `Wg` يرسم خمسَ بطاقات، منها «معدل الرد» و«متوسط
+                زمن الرد» — **ولم يكن لهما في المخطّط مصدر**: العرضُ
+                يحمل `createdAt` وحده. فأُضيف `respondedAt` ويُكتب عند
+                الردّ المقصود، والبطاقتان تظهران حين تبلغ العيّنةُ
+                عتبةَ الثقة ولا تُعرضان قبلها — **فبطاقةٌ تقول «٥٠٪»
+                عن عرضين أسوأ من غيابها**.
               */}
-              <dl className="flex gap-7">
+              <dl className="flex flex-wrap gap-x-7 gap-y-4">
                 <div>
                   <dd className="text-2xl font-bold">
                     <ArabicNumber value={dealer.listingCount} />
@@ -150,6 +171,33 @@ export default async function DealerPage({
                     <ArabicNumber value={dealer.soldCount} />
                   </dd>
                   <dt className="text-2xs opacity-70">{t('sold')}</dt>
+                </div>
+                {dealer.responses === null ? null : (
+                  <>
+                    <div>
+                      <dd className="text-2xl font-bold">
+                        <ArabicNumber value={dealer.responses.ratePct} percent />
+                      </dd>
+                      <dt className="text-2xs opacity-70">{t('responseRate')}</dt>
+                    </div>
+                    <div>
+                      <dd className="text-2xl font-bold">
+                        <Duration minutes={dealer.responses.medianMinutes} />
+                      </dd>
+                      <dt className="text-2xs opacity-70">{t('responseTime')}</dt>
+                    </div>
+                  </>
+                )}
+                {/*
+                  **و«في carsell.one» بطاقةٌ لا سطرٌ في المِلاحة**:
+                  الترميز يضعها خامسةً، والمدّةُ أبلغُ من تاريخٍ يُطرح
+                  في الرأس.
+                */}
+                <div>
+                  <dd className="text-2xl font-bold">
+                    <Duration hours={Math.max(0, Math.round((Date.now() - new Date(dealer.joinedAt).getTime()) / 3_600_000))} />
+                  </dd>
+                  <dt className="text-2xs opacity-70">{t('onPlatform')}</dt>
                 </div>
               </dl>
             </div>
@@ -213,6 +261,20 @@ export default async function DealerPage({
                 </FilterChip>
               ))}
             </nav>
+
+            {/*
+              **والترتيبُ بجوار المرشّحات** كما في الترميز — وكان
+              المخزون بالأحدث دائمًا بلا بابٍ إلى غيره.
+            */}
+            <StockSort
+              value={sort}
+              label={t('sortLabel')}
+              options={[
+                { key: 'newest', label: t('sortNewest') },
+                { key: 'priceAsc', label: t('sortPriceAsc') },
+                { key: 'priceDesc', label: t('sortPriceDesc') },
+              ]}
+            />
           </div>
           {dealer.listings.length === 0 ? (
             <EmptyState title={t('emptyTitle')} description={t('emptyBody')} />

@@ -410,6 +410,7 @@
     "reviews": "{count, plural, one{{n} review} other{{n} reviews}}",
     "auctions": "{count, plural, one{{n} auction} other{{n} auctions}}",
     "months": "{count, plural, one{{n} month} other{{n} months}}",
+    "years": "{count, plural, one{{n} year} other{{n} years}}",
     "financeProviders": "{count, plural, one{{n} approved finance provider} other{{n} approved finance providers}}",
     "points": "{count, plural, one{{n} point} other{{n} points}}",
     "services": "{count, plural, one{{n} service} other{{n} services}}",
@@ -477,7 +478,8 @@
     "hoursGenitive": "{count, plural, one{{n} hour} other{{n} hours}}",
     "daysGenitive": "{count, plural, one{{n} day} other{{n} days}}",
     "weeksGenitive": "{count, plural, one{{n} week} other{{n} weeks}}",
-    "monthsGenitive": "{count, plural, one{{n} month} other{{n} months}}"
+    "monthsGenitive": "{count, plural, one{{n} month} other{{n} months}}",
+    "yearsGenitive": "{count, plural, one{{n} year} other{{n} years}}"
   },
   "search": {
     "editQuery": "Edit query",
@@ -1298,6 +1300,13 @@
     "joined": "On the platform since",
     "listed": "Listed now",
     "sold": "Completed sales",
+    "responseRate": "Response rate",
+    "responseTime": "Median reply time",
+    "onPlatform": "On CARZ",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Lowest price",
+    "sortPriceDesc": "Highest price",
+    "sortLabel": "Sort stock",
     "vehicles": "Vehicles",
     "emptyTitle": "No vehicles listed right now",
     "emptyBody": "This dealer has no published listings at the moment — check back later.",

@@ -171,9 +171,10 @@ export async function counterOffer(
       return { ok: false, reason: 'NOT_ACTIVE' };
     }
 
+    /** **والمقابلُ ردٌّ** — فيُسجَّل وقتُه لمعدّل ردّ المعرض (`Wg`). */
     await tx.offer.update({
       where: { id: original.id },
-      data: { status: 'COUNTERED' },
+      data: { status: 'COUNTERED', respondedAt: now },
     });
 
     const counter = await tx.offer.create({
@@ -279,10 +280,13 @@ export async function declineOffer(
       return { ok: false, reason: 'NOT_ACTIVE' };
     }
 
-    /** **و`autoRejected: false`** — فيُفرَّق الرفضُ المقصود من الآليّ. */
+    /**
+     * **و`autoRejected: false`** — فيُفرَّق الرفضُ المقصود من الآليّ.
+     * والمقصودُ وحده ردٌّ يُسجَّل وقتُه: الآليُّ ردُّ النظام لا البائع.
+     */
     await tx.offer.update({
       where: { id: offer.id },
-      data: { status: 'REJECTED', autoRejected: false },
+      data: { status: 'REJECTED', autoRejected: false, respondedAt: now },
     });
 
     await notify(tx, {
@@ -346,7 +350,10 @@ export async function acceptOffer(
       return { ok: false, reason: 'NOT_ACTIVE' };
     }
 
-    await tx.offer.update({ where: { id: offer.id }, data: { status: 'ACCEPTED' } });
+    await tx.offer.update({
+      where: { id: offer.id },
+      data: { status: 'ACCEPTED', respondedAt: now },
+    });
 
     // بقيّة العروض تُغلق — لا سيارة تُباع مرّتين
     const others = await tx.offer.findMany({

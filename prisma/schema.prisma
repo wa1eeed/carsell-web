@@ -876,6 +876,19 @@ model Offer {
   expiresAt     DateTime // ٤٨ ساعة
   createdAt     DateTime    @default(now())
 
+  /// ═══ متى ردّ صاحبُ الإعلان — ولم يكن يُسجَّل ═══
+  ///
+  /// ترميز `Wg` يعرض للمعرض «معدل الرد ٩٨٪» و«متوسط زمن الرد ٢٢ د»،
+  /// **ولا مصدرَ لهما في المخطّط**: العرضُ يحمل `createdAt` وحده، فلا
+  /// يُعرف متى رُدّ ولا أرُدّ أصلًا.
+  ///
+  /// ويُكتب عند الردّ المقصود وحده — قبولًا أو مقابلًا أو رفضًا بيد.
+  /// **والرفضُ الآليّ ليس ردًّا**: النظامُ ردّ لا البائع، وعدُّه يرفع
+  /// معدَّلَ من وضع أرضيّةً عالية ولم يفتح الصندوق قطّ.
+  respondedAt   DateTime?
+
+  @@index([listingId, respondedAt])
+
   listing     Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
   buyer       User    @relation(fields: [buyerId], references: [id], onDelete: Restrict)
   parentOffer Offer?  @relation("OfferCounter", fields: [parentOfferId], references: [id], onDelete: SetNull)

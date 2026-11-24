@@ -2090,6 +2090,81 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 12 — `Wg` the dealer page, and two numbers with no source
+
+`Wg` read **33٪**. Its header is a reputation panel of five figures; the product
+had two of them, and the markup's other three each needed something built.
+
+#### «معدل الرد» and «متوسط زمن الرد» had no source at all
+
+`Offer` carries `createdAt` and nothing else about the seller's reply — so
+there was no way to know **when** a dealer answered, or **whether** they did.
+
+- [x] `Offer.respondedAt`, written at the three deliberate replies: accept,
+      counter, decline. **An auto-rejection is not a reply** — the system
+      answered, not the dealer, and counting it would reward whoever set a high
+      floor and never opened their inbox.
+- [x] An offer still inside its window counts for neither side: the seller is
+      not late yet, and judging them before the deadline is judging them early.
+- [x] **The median, not the mean.** One reply after seven days drags a mean
+      across twenty replies in minutes, and the figure then describes an
+      outlier rather than the dealer.
+- [x] **Below eight decided offers the cards do not render.** «٥٠٪» from two is
+      read as a year's record. Same shape as `RangeBar`'s confidence floor.
+- [x] Seeded for every dealer with four different profiles, since a card that
+      renders on one page of four reads as broken on the other three — and the
+      dealer with no negotiable stock still shows none, which is the honest
+      empty state.
+
+#### The seed's fallback credited one dealer's offers to another
+
+The history block fell back to «any negotiable listing» when a dealer had none
+of their own, so the offers were written against **another seller's** listings
+and counted for them. «معرض الشرق» showed no response card while I believed I
+had seeded it thirteen offers. Removed: a dealer with no negotiable stock has
+no response history, and that is the truth.
+
+#### `Duration` stopped at months
+
+Five years read «٦٠ شهرًا» — a number needing division in the reader's head,
+which is the whole reason this component exists. It scales to years now, and
+the threshold is **24** months, not 18: the division floors, so «سنة واحدة»
+for eighteen months silently drops half the span.
+
+#### And the stock could only ever be newest-first
+
+- [x] «الأحدث» with lowest/highest price beside it, as the markup draws. Whoever
+      opens a dealer page looking for their cheapest car was scrolling.
+- [x] The type filter survives a sort change — choosing «مزاد» then sorting by
+      price does not mean «show me everything again».
+
+#### Two the measure still reports, and neither is built on purpose
+
+- **«مركبة معروضة»** — a singular noun under a count. Rendered with real data
+  that is «142 مركبة معروضة», the exact bug closed on the home page («8 جهة
+  تمويل»). The product's «معروضة الآن» is a state, true under any number.
+- **«تابع»** — there is no follow model and **nothing for it to deliver**:
+  `Filters` has no dealer dimension, so the saved-search notifier cannot carry
+  it. A button that stores a row and sends nothing is the dead-button class.
+  Recorded as a question with a proposal instead.
+
+#### And one the measure cannot see
+
+`Dealer.ratingAvg` and `ratingCount` are read on **four** screens and written
+by the seed alone — no review model, no submission, no moderation. Production
+holds no dealers yet, so nothing false is published, but the first real dealer
+would carry a reputation nobody gave them. A question, not a build: who may
+review whom, and after what.
+
+#### The measure learned the brand's other spelling
+
+It normalised `carsell.one` → `CARZ` and did not know «كارز», which is what the
+product writes inside Arabic prose — Latin letters mid-sentence cut it. So «في
+كارز» was read as a miss against «في carsell.one»: **the same name in its own
+alphabet.**
+
+Measured after: **33٪ → 78٪**, the remaining two being the deviations above.
+
 ### 40a · 11 — `Wl` the offers inbox, and a number the seller could never see
 
 `Wl` read **20٪** on five signals. Behind four of them was one finding: the

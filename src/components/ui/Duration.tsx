@@ -15,14 +15,24 @@ import { Quantity, type Unit } from '@/components/ui/Quantity';
  */
 
 /** وحداتُ الزمن التي لها صيغةُ مجرور. */
-type TimeUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
+type TimeUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years';
 
-/** الوحدةُ التي تُقرأ بلا قسمة — والعدد معها. */
+/**
+ * الوحدةُ التي تُقرأ بلا قسمة — والعدد معها.
+ *
+ * **والسُّلَّمُ كان يقف عند الشهر**، فعضويّةُ خمس سنوات تُقرأ «٦٠
+ * شهرًا» — ورقمٌ يحتاج قسمةً في الرأس هو ما وُضع هذا المكوّن ليمنعه.
+ * (وترميز `Wg` يكتبها «٥ سنوات».) والسنةُ تبدأ عند أربعةٍ وعشرين
+ * شهرًا لا دونها: **«سنة واحدة» عن ثمانيةَ عشرَ شهرًا تُنقص نصفَ
+ * المدّة** — والقسمةُ تهبط، فكلُّ ما بين السنة والسنتين يُقرأ سنة.
+ */
 function scale(hours: number): { unit: TimeUnit; count: number } {
   if (hours < 24) return { unit: 'hours', count: hours };
   const days = Math.floor(hours / 24);
   if (days < 60) return { unit: 'days', count: days };
-  return { unit: 'months', count: Math.floor(days / 30) };
+  const months = Math.floor(days / 30);
+  if (months < 24) return { unit: 'months', count: months };
+  return { unit: 'years', count: Math.floor(days / 365) };
 }
 
 /**
@@ -54,6 +64,7 @@ const GENITIVE = {
   days: 'daysGenitive',
   weeks: 'weeksGenitive',
   months: 'monthsGenitive',
+  years: 'yearsGenitive',
 } as const satisfies Record<TimeUnit, Unit>;
 
 const form = (unit: TimeUnit, genitive: boolean): Unit => (genitive ? GENITIVE[unit] : unit);

@@ -28,6 +28,43 @@ comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
 understates a screen by up to twelve points, and the whole-tree figure
 correspondingly.
 
+## Wg — «تابع» is not built, and one label is deliberately not the markup's · 2026-11-24
+
+**Status: one decided, one open.**
+
+### «مركبة معروضة» stays «معروضة الآن»
+
+The markup's stat tile reads «١٤٢» above «مركبة معروضة» — a singular noun under
+a count. Rendered with any real number that is **«142 مركبة معروضة»**, and the
+correct Arabic is «مركبات». This is exactly the defect found on the home page
+on 2026-11-23 — «8 جهة تمويل» — which had been live for months because it
+happens to read correctly for 11–99.
+
+The product's label is a **state, not a counted noun**: «معروضة الآن» is true
+under any number. Reproducing the markup here would reintroduce a bug we closed
+with a lint rule, so the label stays.
+
+### «تابع» — not built, on purpose
+
+The markup puts a follow button beside «تواصل مع المعرض». There is no follow
+model, and **nothing for it to deliver**: a follow means «tell me when this
+dealer lists a car», and the only machinery that could carry it is
+`SavedSearch` + its notifier — which has no dealer dimension (`Filters` has no
+dealer or seller field).
+
+So building the button today means shipping a control that stores a row and
+sends nothing. That is the dead-button class this repository has closed four
+times. It is recorded as a question instead — see `docs/OPEN-QUESTIONS.md`.
+
+### And one that is not a deviation: dealer ratings have no writer
+
+`Dealer.ratingAvg` and `ratingCount` are read on four screens and **written by
+the seed alone** — there is no review model, no submission path, no moderation.
+Production is empty of dealers today, so nothing false is live, but the first
+real dealer will carry an invented reputation unless the writer is built or the
+display is removed. Also a question, not a deviation: who may review whom, and
+after what.
+
 ## A34 — publishing needs one person, and «يظهر في» is derived · 2026-11-24
 
 **Status: decided.** Two departures, one of them an owner decision and one a

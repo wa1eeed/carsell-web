@@ -657,6 +657,7 @@ Relations: `listing` → `Listing` · `feature` → `Feature`
 | `autoRejected` | `Boolean` |  |
 | `expiresAt` | `DateTime` |  |
 | `createdAt` | `DateTime` |  |
+| `respondedAt` | `DateTime?` |  |
 
 Relations: `status` → `OfferStatus` · `listing` → `Listing` · `buyer` → `User` · `parentOffer` → `Offer` · `counters` → `Offer`
 

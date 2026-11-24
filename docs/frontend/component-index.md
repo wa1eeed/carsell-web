@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **174** components in **4** directories.
+Counted: **175** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -119,6 +119,7 @@ rather than found by chance.
 | `SponsoredRow` | yes | `ad` · `label` | 1 |
 | `SponsoredTile` | yes | `ad` · `label` | 1 |
 | `StagePanel` | yes | `orderRef` · `stage` · `viewerIsBuyer` · `frozen` | 1 |
+| `StockSort` | yes | `value` · `label` · `options` | 1 |
 | `TaxStatusDialog` | yes | `open` · `onClose` · `onSaved` · `initial` | 3 |
 | `VehicleControls` | yes | `vehicleId` · `mileageKm` · `colorExterior` · `city` · `cities` · `canRemove` | 1 |
 | `VehicleFeatureFields` | yes | `catalog` · `features` · `locale` · `step` | 1 |
@@ -150,7 +151,7 @@ rather than found by chance.
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 8 |
 | `DataTable` | yes | — | 11 |
-| `Duration` | no | `count` | 15 |
+| `Duration` | no | `count` | 16 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 140 |
@@ -181,7 +182,7 @@ rather than found by chance.
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
 | `Quantity` | no | `unit` · `count` · `className` | 126 |
-| `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
+| `RangeBar` | no | `price` · `stats` · `segment` · `className` | 11 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 3 |
