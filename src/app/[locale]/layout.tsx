@@ -1,30 +1,17 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
-import { Figtree, Tajawal } from 'next/font/google';
+import { figtree, tajawal } from '../fonts';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getDirection, locales, routing } from '@/i18n/routing';
 import '../globals.css';
 
 /**
- * الخطوط مستضافة ذاتيًا وقت البناء — لا طلب إلى Google في وقت التشغيل
- * ولا اعتماد على خطوط الجهاز (HANDOFF §١٦).
+ * الخطوط من المستودع — لا طلبَ إلى Google **لا وقت التشغيل ولا وقت
+ * البناء**. وكان الثاني يجلبها، فسقط النشر مرّتين على عطلٍ في مُحمِّل
+ * `next/font`. التعريف في `src/app/fonts.ts` (HANDOFF §١٦).
  */
-const tajawal = Tajawal({
-  subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '700', '800'],
-  variable: '--font-tajawal',
-  display: 'swap',
-});
-
-const figtree = Figtree({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-  variable: '--font-figtree',
-  display: 'swap',
-});
-
 type LocaleParams = { locale: string };
 
 export function generateStaticParams(): LocaleParams[] {

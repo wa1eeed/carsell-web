@@ -2959,7 +2959,7 @@ never reach a reader, and this repository's comments are deliberately voweled).
 
 ## Also open, outside the four stages
 
-### The production build reaches out to Google at build time — *found 2026-11-24*
+### The production build reached out to Google at build time — *found and fixed 2026-11-24*
 
 A deploy of `28e5377` failed in the image build:
 
@@ -2975,11 +2975,16 @@ regex match on the CSS. Three layouts call `next/font/google` for `Figtree` and
 `Tajawal`, so **every production image depends on `fonts.googleapis.com`
 answering during `npm run build`**.
 
-**It was transient.** Measured right after: `curl` from the host returned 200,
-and a throwaway `node:22-alpine` container — the same base the build uses —
-fetched the CSS and got valid `@font-face` back. The deploy thirty minutes
-earlier had succeeded on the same code. Most likely rate-limiting on repeated
-fetches from one address. The retry went through.
+**I called it transient, and I was wrong.** The first measurement said so:
+`curl` from the host returned 200, a throwaway `node:22-alpine` container —
+the same base the build uses — fetched valid `@font-face`, and the deploy
+thirty minutes earlier had succeeded on the same code. The retry went through.
+
+**Then it failed again on the next deploy, in the same place.** A fault that
+repeats is not a fault that passed; the probe proved only that a *single* fetch
+from a shell succeeds, which is a different thing from a build's fetch
+succeeding on every deploy. Rate-limiting fits both observations and is not
+something the retry disproved.
 
 **`carz-deploy` behaved exactly as designed**: the build failed, the running
 container was never touched, and the site stayed up on the previous image.
@@ -2988,11 +2993,19 @@ container was never touched, and the site stayed up on the previous image.
 fetch succeeds. This is not the «verify does not build» gap; it is a build that
 depends on a third party being reachable at the moment it runs.
 
-**The durable fix is to stop fetching.** `next/font/local` with the two
-families committed as `woff2` removes the dependency, makes builds
-reproducible, and drops a request from every first page load. It is sequenced
-before launch: a build that can fail for reasons outside the repository is a
-deploy that can fail on the day it matters most.
+**Fixed by not fetching.** Both families are committed as `woff2` under
+`src/app/fonts/` (128 KB, SIL OFL, licence beside them) and declared once in
+`src/app/fonts.ts` with `next/font/local` — the three layouts had carried
+identical copies of the declaration, which is three copies that drift on the
+first weight change. `Figtree` is a variable font and Google serves the same
+file for every weight requested (measured: one checksum across three), so it
+is one file per subset with a weight range rather than three copies of one
+file.
+
+`npm run build:check` passes on it. **And running `build:check` before a deploy
+is the discipline this cost**: `verify` does not build, so a production-only
+failure stays invisible until the deploy — which is written in `CLAUDE.md` and
+which I had not been doing.
 
 
 ### A deploy button in GitHub — *owner's decision 2026-11-24, for after launch*

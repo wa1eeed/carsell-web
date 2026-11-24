@@ -1,23 +1,9 @@
 import { BRAND_AR } from '@/lib/brand';
 import type { ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
-import { Figtree, Tajawal } from 'next/font/google';
+import { figtree, tajawal } from '../fonts';
 import messages from '@/messages/ar.json';
 import '../globals.css';
-
-const tajawal = Tajawal({
-  subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '700', '800'],
-  variable: '--font-tajawal',
-  display: 'swap',
-});
-
-const figtree = Figtree({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-  variable: '--font-figtree',
-  display: 'swap',
-});
 
 export const metadata = {
   title: `${BRAND_AR} — لوحة الأدمن`,

@@ -2,6 +2,7 @@ import type { IdentityStatus } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
 import { IDENTITY_QUEUE, holdIdentity, verifyIdentity } from './identity-state';
 import { MIN_IDENTITY_NOTE } from './identity-rules';
+import { RIYADH_OFFSET_HOURS } from './viewing-rules';
 
 /**
  * ═══ A18 — طابور توثيق الهوية ═══
@@ -53,7 +54,32 @@ export type IdentityStats = {
   clarification: number;
   /** نصيب النفاذ من الموثَّقين — وارتفاعُه يُقصّر الطابور */
   nafathSharePct: number;
+  /**
+   * ═══ اليومُ لا العمر كلُّه ═══
+   *
+   * «موثّق ١٬٤٢٨» عددٌ لا يتغيّر بعمل اليوم، فلا يقول للمراجع شيئًا
+   * عن يومه. والترميز يضع «وُثّق اليوم» و«رُفض اليوم» — وهما ما
+   * يُقاس عليه الطابور.
+   */
+  verifiedToday: number;
+  /** منها بالنفاذ — والباقي بيدِ مراجع. */
+  verifiedTodayNafath: number;
+  rejectedToday: number;
+  /**
+   * آخرُ سببِ رفضٍ اليوم — **«آخرها» لا «أكثرها»**: الأسباب نصٌّ حرّ،
+   * واستخراجُ الأشيع منه تصنيفٌ لا عدّ. والنصّ يقول أيَّهما يعرض.
+   */
+  lastRejectionNote: string | null;
 };
+
+/** بدايةُ اليوم بتوقيت الرياض — واليومُ الإداريّ ليس يومَ UTC. */
+function riyadhDayStart(now: Date): Date {
+  const shifted = new Date(now.getTime() + RIYADH_OFFSET_HOURS * 3_600_000);
+  return new Date(
+    Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate())
+      - RIYADH_OFFSET_HOURS * 3_600_000,
+  );
+}
 
 const minutesSince = (from: Date, now: Date): number =>
   Math.max(0, Math.floor((now.getTime() - from.getTime()) / 60_000));
@@ -107,7 +133,9 @@ export async function identityQueue(
 }
 
 export async function identityStats(now: Date = new Date()): Promise<IdentityStats> {
-  const [waiting, oldest, verified, rejected, clarification, viaNafath] = await Promise.all([
+  const dayStart = riyadhDayStart(now);
+  const [waiting, oldest, verified, rejected, clarification, viaNafath, todayVerified, todayRejected] =
+    await Promise.all([
     db.user.count({ where: { identityStatus: 'PENDING' } }),
     db.user.findFirst({
       where: { identityStatus: 'PENDING', identitySubmittedAt: { not: null } },
@@ -118,6 +146,24 @@ export async function identityStats(now: Date = new Date()): Promise<IdentitySta
     db.user.count({ where: { identityStatus: 'REJECTED' } }),
     db.user.count({ where: { identityStatus: 'CLARIFICATION' } }),
     db.user.count({ where: { identityStatus: 'VERIFIED', identityMethod: 'nafath' } }),
+    /**
+     * **ويُعدّ الموثَّقون اليومَ من `idVerifiedAt`** — يُكتب لحظةَ
+     * التوثيق، فلا يحتاج سجلَّ تدقيقٍ ليُقرأ.
+     */
+    db.user.groupBy({
+      by: ['identityMethod'],
+      where: { identityStatus: 'VERIFIED', idVerifiedAt: { gte: dayStart } },
+      _count: { _all: true },
+    }),
+    /**
+     * **والمرفوضُ لا تاريخَ له على الصفّ** — فمن سجلّ التدقيق، وهو
+     * المصدرُ الموثوق للقرار على كل حال: فيه من قرّر ومتى.
+     */
+    db.auditLog.findMany({
+      where: { action: 'identity.reject', createdAt: { gte: dayStart } },
+      orderBy: { createdAt: 'desc' },
+      select: { after: true },
+    }),
   ]);
 
   return {
@@ -130,7 +176,19 @@ export async function identityStats(now: Date = new Date()): Promise<IdentitySta
     rejectedTotal: rejected,
     clarification,
     nafathSharePct: verified === 0 ? 0 : Math.round((viaNafath / verified) * 100),
+    verifiedToday: todayVerified.reduce((sum, row) => sum + row._count._all, 0),
+    verifiedTodayNafath:
+      todayVerified.find((row) => row.identityMethod === 'nafath')?._count._all ?? 0,
+    rejectedToday: todayRejected.length,
+    lastRejectionNote: readNote(todayRejected[0]?.after),
   };
+}
+
+/** السببُ من حمولة التدقيق — و`null` لما لا نصَّ فيه. */
+function readNote(after: unknown): string | null {
+  if (after === null || typeof after !== 'object') return null;
+  const note = (after as Record<string, unknown>).note;
+  return typeof note === 'string' && note.trim() !== '' ? note.trim() : null;
 }
 
 export type IdentityDecision = 'VERIFY' | 'CLARIFY' | 'REJECT';
