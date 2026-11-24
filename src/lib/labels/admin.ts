@@ -448,3 +448,30 @@ export const PAYOUT_STATUS_LABEL: Record<
   FAILED: { label: 'تعذر', tone: 'danger' },
   CANCELLED: { label: 'ملغى', tone: 'neutral' },
 };
+
+/**
+ * ═══ أسماءُ حقول المفاتيح بالعربية ═══
+ *
+ * كانت تُعرض بمفاتيحها اللاتينية (`secretKey` · `clientId`)، والترميز
+ * يكتبها «المفتاح السرّي» و«المفتاح العام». ومن يضبط تكاملًا لأوّل
+ * مرّة يقرأ اسمًا لا يعرف أيَّ حقلٍ يقابله في لوحة المزوّد.
+ *
+ * **ولا سقوطَ صامت إلى الاسم الخام**: `tests/integration-fields.test.ts`
+ * يفحص أنّ لكلّ حقلٍ في `INTEGRATION_SECRET_FIELDS` تسميةً هنا —
+ * فالفهرسةُ بنصٍّ تُعيد `undefined` بلا شكوى، وحقلٌ جديد بلا تسمية
+ * يُعرض خامًا ولا يشكو أحد.
+ */
+export const INTEGRATION_FIELD_LABEL: Readonly<Record<string, string>> = {
+  secretKey: 'المفتاح السري',
+  publicKey: 'المفتاح العام',
+  webhookSecret: 'سر الويب هوك',
+  platformKey: 'مفتاح المنصة',
+  clientId: 'معرف العميل',
+  clientSecret: 'سر العميل',
+  apiKey: 'مفتاح الواجهة',
+  senderId: 'اسم المرسل',
+  accountId: 'معرف الحساب',
+  accessKeyId: 'معرف مفتاح الوصول',
+  secretAccessKey: 'مفتاح الوصول السري',
+  bucket: 'الحاوية',
+};

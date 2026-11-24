@@ -133,11 +133,11 @@ rather than found by chance.
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
 | `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 122 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 109 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 110 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 107 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 108 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 15 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -146,7 +146,7 @@ rather than found by chance.
 | `ChoiceGroup` | yes | `label` · `hint` · `value` · `options` · `onChange` · `className` | 1 |
 | `CompletionRecord` | no | `title` · `rows` | 2 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
-| `Counted` | yes | `message` · `count` · `className` | 6 |
+| `Counted` | yes | `message` · `count` · `className` | 7 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `count` | 13 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
@@ -169,7 +169,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 9 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 87 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 89 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
@@ -184,7 +184,7 @@ rather than found by chance.
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 2 |
 | `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 32 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 45 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 46 |
 | `SignOut` | yes | `path` · `next` · `label` · `className` | 3 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
@@ -197,7 +197,7 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 3 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 84 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 85 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
 

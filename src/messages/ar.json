@@ -1336,7 +1336,9 @@
     "agoMinutes": "{count, plural, zero{الآن} one{قبل دقيقة} two{قبل دقيقتين} few{قبل {n} دقائق} many{قبل {n} دقيقة} other{قبل {n} دقيقة}}",
     "agoHours": "{count, plural, zero{الآن} one{قبل ساعة} two{قبل ساعتين} few{قبل {n} ساعات} many{قبل {n} ساعة} other{قبل {n} ساعة}}",
     "resendIn": "{count, plural, zero{أعد الإرسال الآن} one{إعادة الإرسال بعد ثانية} two{إعادة الإرسال بعد ثانيتين} few{إعادة الإرسال بعد {n} ثواني} many{إعادة الإرسال بعد {n} ثانية} other{إعادة الإرسال بعد {n} ثانية}}",
-    "basedOnDeals": "{count, plural, zero{بلا صفقات} one{مبني على صفقة واحدة} two{مبني على صفقتين} few{مبني على {n} صفقات} many{مبني على {n} صفقة} other{مبني على {n} صفقة}}"
+    "basedOnDeals": "{count, plural, zero{بلا صفقات} one{مبني على صفقة واحدة} two{مبني على صفقتين} few{مبني على {n} صفقات} many{مبني على {n} صفقة} other{مبني على {n} صفقة}}",
+    "ofIntegrations": "{count, plural, zero{لا تكامل أدخلت كلفته} one{تكامل واحد أدخلت كلفته} two{تكاملان أدخلت كلفتهما} few{{n} تكاملات أدخلت كلفتها} many{{n} تكاملا أدخلت كلفته} other{{n} تكامل أدخلت كلفته}}",
+    "withinDays": "{count, plural, zero{اليوم} one{خلال يوم} two{خلال يومين} few{خلال {n} أيام} many{خلال {n} يوما} other{خلال {n} يوم}}"
   },
   "notificationCenter": {
     "title": "الإشعارات",

@@ -1524,6 +1524,8 @@ Relations: `user` → `User`
 | `lastCheckAt` | `DateTime?` |  |
 | `lastCheckOk` | `Boolean?` |  |
 | `failureBehavior` | `String` |  |
+| `monthlyCost` | `Decimal?` |  |
+| `kindLabel` | `String` |  |
 
 Relations: `category` → `IntegrationCategory` · `status` → `IntegrationStatus` · `activeEnv` → `IntegrationEnv` · `credentials` → `IntegrationCredential`
 
@@ -1534,6 +1536,7 @@ Relations: `category` → `IntegrationCategory` · `status` → `IntegrationStat
 | `integrationKey` | `String` |  |
 | `secretsEncrypted` | `String?` |  |
 | `hints` | `Json?` |  |
+| `expiresAt` | `DateTime?` |  |
 | `updatedAt` | `DateTime` |  |
 
 Relations: `env` → `IntegrationEnv` · `integration` → `Integration`
