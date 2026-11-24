@@ -1,5 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
+import { type AdOccupancy, adOccupancy, adRevenue } from './ads';
+import { RIYADH_OFFSET_HOURS } from './viewing-rules';
 import { ADS_SERVED, HOME_ADS_SERVED, HOME_SESSION_AD_CAP } from './ad-rules';
 import { commissionFrom } from './order-amounts';
 
@@ -285,6 +287,12 @@ export type AdStats = {
   served: boolean;
   /** والرئيسية سطحٌ آخر — سقفُها لا يفرضه شيء بعد */
   homeServed: boolean;
+  /** إشغالُ الشهر — أيامُ مساحةٍ مبيعة من أيامِ المفعَّلة كلِّها */
+  occupancy: AdOccupancy;
+  /** إيرادُ الشهر — القاعدة في `ads.ts` يقرؤها هذا ولوحةُ المالية */
+  revenue: string;
+  /** تغيّرُه عن الشهر الماضي — و`null` حين لا ماضيَ يُقاس عليه */
+  revenueChangePct: number | null;
 };
 
 export async function adSlots(now: Date = new Date()): Promise<AdSlotRow[]> {
@@ -315,12 +323,44 @@ export async function adSlots(now: Date = new Date()): Promise<AdSlotRow[]> {
   }));
 }
 
+/**
+ * ═══ حدودُ الشهر بتوقيت الرياض لا بـUTC ═══
+ *
+ * التخزين UTC والعرض بالرياض، وشهرٌ يبدأ منتصفَ ليل UTC يبدأ الثالثةَ
+ * فجرًا في الرياض — فحملةٌ بدأت أوّلَ الشهر محلّيًّا تُحسب على الشهر
+ * الماضي. والفرقُ ثلاثُ ساعاتٍ في شهرين من اثني عشر.
+ */
+function riyadhMonth(now: Date, back = 0): { from: Date; to: Date } {
+  const shifted = new Date(now.getTime() + RIYADH_OFFSET_HOURS * 3_600_000);
+  const year = shifted.getUTCFullYear();
+  const month = shifted.getUTCMonth() - back;
+  const at = (m: number): Date =>
+    new Date(Date.UTC(year, m, 1) - RIYADH_OFFSET_HOURS * 3_600_000);
+  return { from: at(month), to: at(month + 1) };
+}
+
 export async function adStats(now: Date = new Date()): Promise<AdStats> {
-  const [slots, active, live] = await Promise.all([
+  const month = riyadhMonth(now);
+  const previous = riyadhMonth(now, 1);
+
+  const [slots, active, live, occupancy, earned, earnedBefore] = await Promise.all([
     db.adSlot.count(),
     db.adSlot.count({ where: { active: true } }),
     db.adCampaign.count({ where: { startsAt: { lte: now }, endsAt: { gte: now } } }),
+    adOccupancy(month.from, month.to),
+    adRevenue(month.from, month.to),
+    adRevenue(previous.from, previous.to),
   ]);
+
+  /**
+   * **ولا نسبةَ تغيّرٍ من صفر.** «+١٤٪» تحتاج شهرًا ماضيًا فيه رقم؛
+   * ومن صفرٍ إلى ألفٍ ليست زيادةً مئويةً بل بدايةٌ — و`Infinity`
+   * تُطبع «∞٪».
+   */
+  const before = Number(earnedBefore);
+  const nowEarned = Number(earned);
+  const changePct =
+    before > 0 ? Math.round(((nowEarned - before) / before) * 100) : null;
 
   return {
     slots,
@@ -334,6 +374,9 @@ export async function adStats(now: Date = new Date()): Promise<AdStats> {
     liveCampaigns: live,
     served: ADS_SERVED,
     homeServed: HOME_ADS_SERVED,
+    occupancy,
+    revenue: earned.toString(),
+    revenueChangePct: changePct,
   };
 }
 
@@ -368,7 +411,7 @@ export async function adCampaigns(now: Date = new Date()): Promise<CampaignRow[]
       endsAt: row.endsAt.toISOString(),
       live: row.startsAt <= now && row.endsAt >= now,
       phase:
-        row.status === 'paused'
+        row.status === 'PAUSED'
           ? 'paused'
           : row.startsAt > now
             ? 'scheduled'

@@ -1,9 +1,9 @@
 [
   {
     "key": "inspection",
-    "nameAr": "فحص فني ٢١٠ نقطة",
+    "nameAr": "فحص فني 210 نقطة",
     "nameEn": "210-point inspection",
-    "descAr": "فحص شامل في مركز مستقل يغطي الهيكل والمحرك والكهرباء، بتقرير مفصل ودرجة من ١٠٠.",
+    "descAr": "فحص شامل في مركز مستقل يغطي الهيكل والمحرك والكهرباء، بتقرير مفصل ودرجة من 100.",
     "descEn": "Full independent inspection covering body, engine and electrics, with a detailed report and a score out of 100.",
     "price": "450.00",
     "category": "PRE_PURCHASE",
@@ -17,12 +17,12 @@
     "sort": 1,
     "providerType": "INSPECTION",
     "includesAr": [
-      "المحرك وناقل الحركة — ٤٢ بندا",
+      "المحرك وناقل الحركة — 42 بندا",
       "الهيكل والصبغ — مخطط كامل",
-      "المكابح والتعليق — ٣١ بندا",
-      "الكهرباء والإلكترونيات — ٢٨ بندا",
+      "المكابح والتعليق — 31 بندا",
+      "الكهرباء والإلكترونيات — 28 بندا",
       "قراءة كمبيوتر المركبة (OBD)",
-      "تجربة قيادة ٥ كم"
+      "تجربة قيادة 5 كم"
     ],
     "includesEn": [
       "Engine and transmission — 42 points",

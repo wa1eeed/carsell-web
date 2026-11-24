@@ -3,6 +3,7 @@ import { supplyVatPct } from './tax';
 import { Prisma } from '@/generated/prisma/client';
 import type { AdminUser } from '@/generated/prisma/client';
 import { pct, sum } from './money';
+import { adRevenue } from './ads';
 
 /**
  * A3 — المالية.
@@ -73,10 +74,13 @@ export async function financeSummary(
         _sum: { amount: true },
       }),
       db.service.findMany({ select: { id: true, key: true, nameAr: true } }),
-      db.adCampaign.aggregate({
-        where: { startsAt: window, status: { in: ['running', 'ended'] } },
-        _sum: { budget: true },
-      }),
+      /**
+       * **والقاعدة في `ads.ts` لا هنا.** كان الترشيح على
+       * `status in ('running','ended')` — ولا كاتبَ لـ`running`،
+       * فإيرادُ الإعلانات صفرٌ أبدًا مهما بيعت مساحة. وبطاقةُ A30
+       * تقرأ القاعدة نفسَها، فلا تتباعد عنها.
+       */
+      adRevenue(from, to),
       db.escrow.aggregate({ where: { status: 'HELD' }, _sum: { amount: true } }),
       db.deposit.aggregate({ where: { status: 'HELD' }, _sum: { amount: true } }),
       /**
@@ -113,11 +117,11 @@ export async function financeSummary(
     .filter((line) => new Prisma.Decimal(line.amount).greaterThan(0));
 
   const commission = sum(orders.map((row) => row._sum.commissionAmount));
-  const adRevenue = new Prisma.Decimal(campaigns._sum.budget ?? 0);
+  const adsEarned = campaigns;
 
   const revenueStreams: MoneyLine[] = [
     ...serviceLines,
-    { key: 'ads', amount: adRevenue.toString() },
+    { key: 'ads', amount: adsEarned.toString() },
     { key: 'commission', amount: commission.toString() },
   ].filter((line) => new Prisma.Decimal(line.amount).greaterThan(0));
 

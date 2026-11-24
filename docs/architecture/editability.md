@@ -1,6 +1,6 @@
 # Models the product never edits
 
-_Last updated: 2026-10-22_
+_Last updated: 2026-11-23_
 
 **Generated-adjacent: the list is derived from the code, the reasons are not.**
 Gate 63 reads `scripts/model-writers.mjs`, classifies every model in the schema,
@@ -34,7 +34,6 @@ about: **can anybody change this row without a deploy?**
 | `FinanceProvider` | **A real gap.** Financing partners are seeded. Adding or removing one needs a deploy. |
 | `Entitlement` | Plan entitlements are seeded with their plan. `Plan` itself is editable from `/admin/plans`; what each plan *grants* is not. Six entitlements already have no reader at all — recorded in `docs/NOTES.md`. |
 | `Subscription` | Nothing subscribes: there is one free plan at zero commission and no paid tier yet. The table waits for the dealer panel, which the owner deferred. |
-| `DeviceToken` | **Not seeded either** — nothing creates one. Push tokens come from a mobile app that does not exist; the only code touching the table deletes rows on account closure. |
 
 ## The second register: models nothing reads
 

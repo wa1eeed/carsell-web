@@ -2286,7 +2286,7 @@ async function main(): Promise<void> {
         startsAt: days(-10),
         endsAt: days(18),
         budget: new D('3500'),
-        status: 'active',
+        status: 'LIVE',
         priority: 10,
         /** أثرٌ واقعيّ: نسبةُ نقرٍ قريبةٌ من ١٪ لا رقمٌ مستدير. */
         impressions: 18_420,
@@ -2302,7 +2302,7 @@ async function main(): Promise<void> {
         startsAt: days(-60),
         endsAt: days(-32),
         budget: new D('3500'),
-        status: 'ended',
+        status: 'ENDED',
         impressions: 41_902,
         clicks: 388,
       },

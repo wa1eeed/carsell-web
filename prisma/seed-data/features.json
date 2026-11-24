@@ -85,7 +85,7 @@
   },
   {
     "key": "camera_360",
-    "nameAr": "كاميرا محيطية ٣٦٠°",
+    "nameAr": "كاميرا محيطية 360°",
     "nameEn": "360° Camera",
     "group": "SAFETY",
     "sort": 7,
@@ -383,7 +383,7 @@
   },
   {
     "key": "screen_8",
-    "nameAr": "شاشة ٨ بوصة",
+    "nameAr": "شاشة 8 بوصة",
     "nameEn": "8-inch Display",
     "group": "TECH",
     "sort": 28,
@@ -397,7 +397,7 @@
   },
   {
     "key": "screen_10",
-    "nameAr": "شاشة ١٠ بوصة فأكثر",
+    "nameAr": "شاشة 10 بوصة فأكثر",
     "nameEn": "10-inch Display or Larger",
     "group": "TECH",
     "sort": 29,

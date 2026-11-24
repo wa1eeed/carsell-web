@@ -1,10 +1,45 @@
 # Design deviations
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-24_
 
 Screens or components built **without design markup**, and places where the
 build departs from the markup on purpose. Each entry states what was built, on
 what basis, and what the designer still has to review.
+
+## Three product-wide departures the design files predate
+
+**Status: decided, not pending.** Each is an owner decision taken after the
+design was drawn, so every screen differs from its markup in the same way. They
+are recorded here because a reader comparing a screen to its block will meet all
+three on the first line, and because a measuring tool that does not know them
+reports a decision as a defect — which is exactly what happened on 2026-11-23,
+when `design-audit.mjs` read `A10` at **13٪** against a screen that is largely
+built.
+
+| The design says | The product says | Decided |
+| --- | --- | --- |
+| `carsell.one` in every logo, footer and email | **CARZ / كارز** | the rebrand; the markup predates it |
+| «حرِجة» · «افتراضيًا» — with diacritics | «حرجة» · «افتراضيا» | 2026-10-18, roadmap §15 — stripped from every screen |
+| «٤٠ حرفًا» · «٣٬٤٥٦ كم» — Arabic-Indic | «40 حرفا» · «3,456 كم» | 2026-10-12, `task-140` — one switch, `DISPLAY_NUMERALS` |
+
+`scripts/design-audit.mjs` normalises all three on **both sides** before
+comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
+`Wc` 63→75٪, `Wa` 50→57٪, `A10` 13→25٪ — so an un-normalised comparison
+understates a screen by up to twelve points, and the whole-tree figure
+correspondingly.
+
+## A30 — two labels the screen states more narrowly than the markup · 2026-11-24
+
+**Status: deliberate.** Both will keep reading as misses in `design-audit`, and
+that is the right trade: the measure stays honest and the screen stays true.
+
+| The markup says | The screen says | Why |
+|---|---|---|
+| «السقف في الجلسة» | «السقف في جلسة الرئيسية» | The cap is the home surface's. Written unqualified it promises a cap on every surface, and search results — the one surface that does serve ads — has none. |
+| «يُفرَض في الخادم» | «قاعدة — ولا إعلان في الرئيسية بعد» | It is only printed once home ads are actually served (`HOME_ADS_SERVED`). Saying a rule is enforced before anything enforces it is the «شاشةٌ تقول شيئًا والنظام يفعل غيره» failure, and this exact line was corrected once before when `ADS_SERVED` was flipped for search results and the home claim came along with it. |
+
+The third remaining miss, «معاينة في التطبيق», is not a deviation — it needs the
+mobile app, stage 40c.
 
 ## BodyTypeStrip — built without Wa markup · 2026-08-02
 

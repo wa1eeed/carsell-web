@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-98 models · 70 enums
+100 models · 71 enums
 
 ## Relationships
 
@@ -37,6 +37,8 @@ erDiagram
   User ||--o{ CampaignSend : "campaignSends"
   User ||--o{ NotificationPreference : "pushPreferences"
   User ||--o{ DeviceToken : "deviceTokens"
+  User |o--|| PushPermission : "pushPermission"
+  User ||--o{ PushSend : "pushSends"
   User |o--|| Wallet : "wallet"
   User ||--o{ Payout : "payouts"
   AdminUser }o--|| AdminRole : "role"
@@ -229,6 +231,7 @@ erDiagram
   Notification }o--|| User : "user"
   NotificationTemplate |o--|| PushChannel : "pushChannel"
   AdSlot ||--o{ AdCampaign : "campaigns"
+  AdCampaign }o--|| AdCampaignStatus : "status"
   AdCampaign }o--|| AdSlot : "slot"
   Report }o--|| User : "reporter"
   ServiceProvider }o--|| ProviderType : "type"
@@ -257,8 +260,12 @@ erDiagram
   CampaignSend }o--|| User : "user"
   PushChannel ||--o{ NotificationTemplate : "templates"
   PushChannel ||--o{ NotificationPreference : "preferences"
+  PushChannel ||--o{ PushSend : "sends"
   NotificationPreference }o--|| User : "user"
   NotificationPreference }o--|| PushChannel : "channel"
+  PushPermission }o--|| User : "user"
+  PushSend }o--|| PushChannel : "channel"
+  PushSend |o--|| User : "user"
   DeviceToken }o--|| User : "user"
   PaymentGateway }o--|| IntegrationStatus : "status"
   PaymentGateway ||--o{ PaymentRoute : "routes"
@@ -349,7 +356,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -1436,11 +1443,10 @@ Relations: `campaigns` → `AdCampaign`
 | `budget` | `Decimal` |  |
 | `targeting` | `Json?` |  |
 | `priority` | `Int` |  |
-| `status` | `String` |  |
 | `impressions` | `Int` |  |
 | `clicks` | `Int` |  |
 
-Relations: `slot` → `AdSlot`
+Relations: `status` → `AdCampaignStatus` · `slot` → `AdSlot`
 
 ### `Report`
 
@@ -1637,9 +1643,11 @@ Relations: `campaign` → `Campaign` · `user` → `User`
 | `nameAr` | `String` |  |
 | `userControllable` | `Boolean` |  |
 | `defaultOn` | `Boolean` |  |
+| `sound` | `Boolean` |  |
+| `badge` | `Boolean` |  |
 | `sort` | `Int` |  |
 
-Relations: `templates` → `NotificationTemplate` · `preferences` → `NotificationPreference`
+Relations: `templates` → `NotificationTemplate` · `preferences` → `NotificationPreference` · `sends` → `PushSend`
 
 ### `NotificationPreference`
 
@@ -1651,6 +1659,35 @@ Relations: `templates` → `NotificationTemplate` · `preferences` → `Notifica
 | `updatedAt` | `DateTime` |  |
 
 Relations: `user` → `User` · `channel` → `PushChannel`
+
+### `PushPermission`
+
+| Field | Type | Key |
+|---|---|---|
+| `userId` | `String` | PK |
+| `status` | `String` |  |
+| `askedAt` | `DateTime` |  |
+| `answeredAt` | `DateTime?` |  |
+| `platform` | `String?` |  |
+
+Relations: `user` → `User`
+
+### `PushSend`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `channelKey` | `String` |  |
+| `userId` | `String?` |  |
+| `templateKey` | `String?` |  |
+| `platform` | `String?` |  |
+| `status` | `String` |  |
+| `failReason` | `String?` |  |
+| `sentAt` | `DateTime` |  |
+| `deliveredAt` | `DateTime?` |  |
+| `openedAt` | `DateTime?` |  |
+
+Relations: `channel` → `PushChannel` · `user` → `User`
 
 ### `DeviceToken`
 
@@ -1971,6 +2008,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReconciliationStatus` — `MATCHED`, `DIFFERS`, `UNAVAILABLE`
 - `FeeBearer` — `SELLER`, `BUYER`
 - `TrustMarkKind` — `REGULATORY`, `PAYMENT`
+- `AdCampaignStatus` — `SCHEDULED /// لم يحن بدؤها`, `LIVE /// بين تاريخيها`, `PAUSED /// أوقفها المشغّل — ولا تُستأنف بعد انقضاء نافذتها`, `ENDED /// مضت نافذتها`
 - `ServiceFeeMode` — `FIXED`, `PERCENT`
 - `ProviderAccountKind` — `FREELANCER`, `ESTABLISHMENT`, `COMPANY`, `GOVERNMENT`, `CHARITY`
 - `AccountSignatory` — `OWNER`, `COMMERCIAL_CONTRACT`, `POWER_OF_ATTORNEY`

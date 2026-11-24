@@ -87,6 +87,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'notification.template_saved': 'حفظ قالب إشعار',
   'push.channel_updated': 'عدل قناة إشعار',
   'ad.campaign.created': 'أنشأ حملة إعلانية',
+  'ad.slot.created': 'أنشأ مساحة إعلانية',
   'integration.checked': 'فحص اتصال تكامل',
   'integration.rotation_requested': 'طلب تدوير مفتاح تكامل',
   'integration.env_switch_requested': 'طلب تبديل بيئة تكامل',

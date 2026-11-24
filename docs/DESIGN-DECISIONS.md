@@ -1,6 +1,6 @@
 # سجلّ قرارات التصميم
 
-_Last updated: 2026-10-20_
+_Last updated: 2026-11-23_
 
 كل سؤال طُرح على المصمّم وجوابه. هذا الملف **مرجع مُلزِم** — عند التعارض بينه وبين نصّ أقدم في `BUILD-WEB-ADMIN.md`، هذا الملف هو الأحدث.
 
@@ -55,14 +55,29 @@ _Last updated: 2026-10-20_
 
 ### ب — الأرقام والاتجاه
 
-**٧ · الأرقام** — القاعدة تبقى، والتصميم هو المخطئ. **صحّح التصميم لا القاعدة.**
-كل رقم معروض بالأرقام العربية-الهندية، **إلا** هذه القائمة الحصرية (اضبط فحص الـCI عليها):
-1. العدّادات `HH:MM:SS`
-2. المعرّفات: `ADS2026A0005` · `ORD-…` · VIN · IBAN · رقم الجوال · البريد
-3. اللوحة (أرقامها وحروفها) — Arial وLTR
-4. رموز فنية: `⌘K`، أكواد الأخطاء
+<!-- DISPLAY_NUMERALS: latin -->
 
-جدول المواصفات وعدّادات الفلاتر وترقيم الصفحات وعدّاد الصور: **عربية-هندية**.
+**٧ · الأرقام** — ⚠️ **نُقض بقرارٍ لاحق في ٢٠٢٦-١٠-١٢ (`task-140`): تُوحَّد
+الأرقام المعروضة لاتينيّةً.** والمفتاح `DISPLAY_NUMERALS` في
+`src/lib/arabic.ts` — `'arabic'` يُعيد ما تحته في سطرٍ واحد. **والبوابة ٦٩
+تمنع هذه الفقرة أن تكذب**: تقرأ قيمة المفتاح وتفرض أن تذكرها هذه السطور.
+
+والقائمةُ الحصرية أدناه تبقى على حالها **قاعدةَ استثناءٍ معكوسة**: ما فيها
+لاتينيٌّ دائمًا بأيّ قيمةٍ للمفتاح، فتبديلُ المفتاح إلى `'arabic'` لا يمسّه.
+و**القرار ٨ يبقى نافذًا** على كل حال: العدّادات لاتينية بما فيها مؤقّت
+إعادة الإرسال.
+
+والنصّ الأصليّ، وقد كان صحيحًا يوم كُتب:
+
+> القاعدة تبقى، والتصميم هو المخطئ. **صحّح التصميم لا القاعدة.**
+> كل رقم معروض بالأرقام العربية-الهندية، **إلا** هذه القائمة الحصرية (اضبط فحص الـCI عليها):
+>
+> 1. العدّادات `HH:MM:SS`
+> 2. المعرّفات: `ADS2026A0005` · `ORD-…` · VIN · IBAN · رقم الجوال · البريد
+> 3. اللوحة (أرقامها وحروفها) — Arial وLTR
+> 4. رموز فنية: `⌘K`، أكواد الأخطاء
+>
+> جدول المواصفات وعدّادات الفلاتر وترقيم الصفحات وعدّاد الصور: **عربية-هندية**.
 
 **٨ · العدّادات** — Latin دائمًا، بما فيه مؤقّت إعادة الإرسال. صحّح Wm.
 
@@ -1791,6 +1806,34 @@ false promise is withdrawn, and they write the answer when they set their
 rate.
 
 ---
+
+## 2026-11-23 — The weakest screen first, and the missing metrics get a source
+
+Two answers, asked after the conformance baseline was measured (roadmap §40a,
+**59٪ across 48 screens**).
+
+**1 · Order of work: «الأضعف أوّلًا أيًّا كانت».** The ranking is walked from
+the bottom up with no separation between a customer screen and an operator
+screen. So the queue begins `A10` push 25٪ · `A30` ad slots 25٪ · `Wj` order
+page 27٪ · `A11` integrations 31٪ · `A18` identity 38٪ · `Wf` account home 40٪.
+
+**2 · Metrics with no source: «أبني جمع البيانات الآن».** Where a design card
+shows a number the product cannot compute, the collection is built rather than
+the card deferred or substituted.
+
+This binds more than it looks, so the boundary is written here rather than
+discovered later:
+
+- **A metric whose source exists but is unqueried** — queue ages, cancellation
+  counts, settlement differences — is built end to end now.
+- **A metric whose source is a client we have not shipped** — push delivery and
+  open rates need the mobile app — gets its **column, its write path and its
+  screen**, and the screen says «لا قياس بعد — يبدأ مع التطبيق» until a real
+  client writes a row. The decision is to build the collection, and a pipeline
+  with no producer yet is still collection; a card printing a fabricated or
+  zero rate is not.
+- **No card prints a number the product did not compute.** That is unchanged
+  and overrides both of the above.
 
 ## 2026-10-18 — The catalogue is wide, and its numbers are empty
 

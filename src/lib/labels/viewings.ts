@@ -19,10 +19,10 @@ export const VIEWING_PERIOD: Record<string, string> = {
 
 /** ومداها بالساعة — تُعرض تحت الاسم لا بدلًا منه */
 export const VIEWING_PERIOD_HINT: Record<string, string> = {
-  MORNING: 'من ٨ إلى ١٢',
-  NOON: 'من ١٢ إلى ٤',
-  AFTERNOON: 'من ٤ إلى ٦',
-  EVENING: 'من ٦ إلى ١٠',
+  MORNING: 'من 8 إلى 12',
+  NOON: 'من 12 إلى 4',
+  AFTERNOON: 'من 4 إلى 6',
+  EVENING: 'من 6 إلى 10',
 } satisfies Record<ViewingPeriod, string>;
 
 export const VIEWING_STATUS: Record<string, string> = {

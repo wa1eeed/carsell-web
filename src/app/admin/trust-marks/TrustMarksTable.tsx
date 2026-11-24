@@ -138,7 +138,7 @@ export function TrustMarksTable({
                     onChange={(e) => set({ registrationNo: e.target.value })}
                     disabled={!canEdit}
                     dir="ltr"
-                    placeholder="٣٠١٢٣٤٥٦٧٨٩٠٠٠٣"
+                    placeholder="301234567890003"
                     className={cn(field, 'font-num bidi-ltr')}
                   />
                 </label>

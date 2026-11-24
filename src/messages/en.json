@@ -1316,6 +1316,7 @@
     "ofListings": "{count, plural, one{of {n} listing} other{of {n} listings}}",
     "openDisputes": "{count, plural, one{{n} open dispute} other{{n} open disputes}}",
     "overdueDisputes": "{count, plural, one{{n} dispute past its SLA} other{{n} disputes past their SLA}}",
+    "withinHours": "{count, plural, one{within {n} hour} other{within {n} hours}}",
     "unseenSince": "{count, plural, one{not seen for {n} day} other{not seen for {n} days}}",
     "agoMinutes": "{count, plural, zero{Just now} one{{n} minute ago} other{{n} minutes ago}}",
     "agoHours": "{count, plural, zero{Just now} one{{n} hour ago} other{{n} hours ago}}",

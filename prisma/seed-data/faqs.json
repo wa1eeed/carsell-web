@@ -2,7 +2,7 @@
   {
     "questionAr": "كيف أقدم عرضا وما الحد الأدنى المقبول؟",
     "questionEn": "How do I make an offer, and what is the minimum accepted?",
-    "answerAr": "تكتب مبلغك في بطاقة العرض ويصل البائع فورا. البائع يحدد حدا أدنى مخفيا — أي عرض تحته يرفض تلقائيا مع إشعارك، وما فوقه ينتظر رده أو عرضا مقابلا خلال ٤٨ ساعة.",
+    "answerAr": "تكتب مبلغك في بطاقة العرض ويصل البائع فورا. البائع يحدد حدا أدنى مخفيا — أي عرض تحته يرفض تلقائيا مع إشعارك، وما فوقه ينتظر رده أو عرضا مقابلا خلال 48 ساعة.",
     "answerEn": "You enter your amount on the offer card and the seller is notified at once. The seller sets a hidden floor: anything below it is auto-declined with a notice to you, and anything above waits for their reply or counter-offer within 48 hours.",
     "category": "negotiation",
     "placements": [
@@ -42,7 +42,7 @@
   {
     "questionAr": "ماذا يحدث لو قبل البائع عرض شخص آخر؟",
     "questionEn": "What if the seller accepts someone else's offer?",
-    "answerAr": "يغلق عرضك تلقائيا ويصلك إشعار، ويسحب الإعلان من العرض. وإن لم يدفع المشتري خلال ٢٤ ساعة يعاد نشر الإعلان ونخطر المتقدمين.",
+    "answerAr": "يغلق عرضك تلقائيا ويصلك إشعار، ويسحب الإعلان من العرض. وإن لم يدفع المشتري خلال 24 ساعة يعاد نشر الإعلان ونخطر المتقدمين.",
     "answerEn": "Your offer closes automatically and you are notified, and the listing is withdrawn. If that buyer does not pay within 24 hours the listing is republished and previous bidders are told.",
     "category": "negotiation",
     "placements": [
@@ -57,7 +57,7 @@
   {
     "questionAr": "كم تبقى صلاحية العرض؟",
     "questionEn": "How long does an offer stay valid?",
-    "answerAr": "٤٨ ساعة من إرساله. بعدها يسقط تلقائيا ويمكنك تقديم عرض جديد.",
+    "answerAr": "48 ساعة من إرساله. بعدها يسقط تلقائيا ويمكنك تقديم عرض جديد.",
     "answerEn": "48 hours from submission. After that it lapses automatically and you may submit a new one.",
     "category": "negotiation",
     "placements": [
@@ -293,7 +293,7 @@
   {
     "questionAr": "ماذا يغطي تقرير الفحص؟",
     "questionEn": "What does the inspection report cover?",
-    "answerAr": "٢١٠ نقطة في الهيكل والمحرك والناقل والإطارات والفرامل والكهرباء والمقصورة، مع مخطط صبغ ودرجة من ١٠٠.",
+    "answerAr": "210 نقطة في الهيكل والمحرك والناقل والإطارات والفرامل والكهرباء والمقصورة، مع مخطط صبغ ودرجة من 100.",
     "answerEn": "210 points across body, engine, transmission, tyres, brakes, electrics and cabin, with a paint map and a score out of 100.",
     "category": "inspection",
     "placements": [

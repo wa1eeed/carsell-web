@@ -77,17 +77,31 @@ describe('سجل ما لا يُعدَّل', () => {
       }
     };
 
+    /**
+     * ═══ والمرساة تُفحص قبل أن يُبنى عليها ═══
+     *
+     * `String.replace` لنصٍّ لا يطابق **لا يرمي شيئًا**: يُعيد الأصل،
+     * فتُكتب الوثيقة كما هي وتمرّ البوابة ويُقرأ ذلك «البوابة لا
+     * تحرس». وقد وقع: كان المرساة `DeviceToken`، فلمّا صار له كاتبٌ
+     * ورُفع من السجلّ سقط الاختبار بما لا يقيسه.
+     *
+     * فالمرساة أيُّ صفٍّ قائم، وتُؤخذ من الملفّ لا تُكتب بيد.
+     */
+    const anchor = /^\| `([A-Za-z]+)` \|/m.exec(original)?.[0];
+    expect(anchor, 'لا صفَّ في السجلّ — الفحص بلا مرساة').toBeDefined();
+    if (anchor === undefined) return;
+
     try {
       /** حذفُ مذكور ⇒ «لا يُنشئه المنتج ولا يعدّله». */
-      writeFileSync(REGISTER, original.replace('| `LegalDocument` |', '| `LegalDocumentX` |'), 'utf8');
-      expect(run()).toContain('LegalDocument');
+      const removed = original.replace(anchor, `${anchor.slice(0, -1)}X |`);
+      expect(removed).not.toBe(original);
+      writeFileSync(REGISTER, removed, 'utf8');
+      expect(run()).toContain(anchor.replaceAll('`', '').replaceAll('|', '').trim());
 
       /** وإعلانُ ما له محرّرٌ ⇒ «يُرفع من السجلّ». */
-      writeFileSync(
-        REGISTER,
-        original.replace('| `DeviceToken` |', '| `Listing` | سببٌ للقياس وحده |\n| `DeviceToken` |'),
-        'utf8',
-      );
+      const added = original.replace(anchor, `| \`Listing\` | سببٌ للقياس وحده |\n${anchor}`);
+      expect(added).not.toBe(original);
+      writeFileSync(REGISTER, added, 'utf8');
       expect(run()).toContain('Listing');
     } finally {
       writeFileSync(REGISTER, original, 'utf8');

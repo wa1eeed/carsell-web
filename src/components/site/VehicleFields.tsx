@@ -1077,9 +1077,9 @@ export function VehiclePlateField({
             htmlFor="veh-vin"
             note="لا يظهر لأحد غيرك. نحفظه لتطلب به الخدمات لاحقا: إصدار التأمين أو تجديده، وتقرير موجز، وخدمات الفحص."
             {...(vin === '' || vin.length === VIN_LENGTH
-              ? { hint: '١٧ خانة — حروف وأرقام، كما في الرخصة أو خلف الزجاج الأمامي.' }
+              ? { hint: '17 خانة — حروف وأرقام، كما في الرخصة أو خلف الزجاج الأمامي.' }
               /** والعددُ بين قوسين فلا يحكم المعدود (البوابة ١٨). */
-              : { error: `الخانات المكتوبة (${displayDigits(String(vin.length))}) والمطلوب ١٧.` })}
+              : { error: `الخانات المكتوبة (${displayDigits(String(vin.length))}) والمطلوب 17.` })}
           >
             <input
               id="veh-vin"
@@ -1232,8 +1232,8 @@ export function VehiclePlateField({
                   htmlFor="veh-customs"
                   note="لا يظهر لأحد غيرك. عليه يصدر تأمين السيارة الجديدة قبل اللوحة، ويربط بنجم والمرور."
                   {...(customs === '' || customs.length === CUSTOMS_LENGTH
-                    ? { hint: '١٠ أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
-                    : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب ١٠.` })}
+                    ? { hint: '10 أرقام — غير رقم الهيكل، ولا تكتب أحدهما مكان الآخر.' }
+                    : { error: `الأرقام المكتوبة (${displayDigits(String(customs.length))}) والمطلوب 10.` })}
                 >
                   <input
                     id="veh-customs"
