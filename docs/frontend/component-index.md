@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **173** components in **4** directories.
+Counted: **174** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -88,6 +88,7 @@ rather than found by chance.
 | `DealerMark` | no | `name` · `logoUrl` | 1 |
 | `DisputePanel` | yes | `orderRef` · `canOpen` · `hasOpen` | 1 |
 | `FavoriteButton` | yes | `listingRef` · `initial` · `signedIn` · `signInHref` · `className` | 2 |
+| `FloorEditor` | yes | `listingRef` · `askPrice` · `floor` | 1 |
 | `InspectionSummary` | yes | `score` · `sections` · `onOpen` · `className` | 1 |
 | `IntentChooser` | no | `locale` | 1 |
 | `ListingControls` | yes | `listingRef` · `status` · `price` · `negotiable` · `description` · `hasActiveOrder` | 1 |
@@ -138,7 +139,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 115 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 116 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 19 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -170,7 +171,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 9 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 90 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 91 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
@@ -179,7 +180,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 125 |
+| `Quantity` | no | `unit` · `count` · `className` | 126 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 10 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |
@@ -199,7 +200,7 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 4 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 87 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 88 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
 | `Year` | no | `value` · `className` | 5 |
 

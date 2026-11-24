@@ -14,7 +14,15 @@ import { Money } from '@/components/ui/Money';
 import { routing } from '@/i18n/routing';
 import { FilterChip } from '@/components/ui/FilterChip';
 import { currentUserFromCookies } from '@/lib/domain/account';
-import { getOfferInbox, type InboxOffer, type InboxTab } from '@/lib/domain/offer-inbox';
+import {
+  getOfferedVehicles,
+  getOfferInbox,
+  type InboxOffer,
+  type InboxTab,
+} from '@/lib/domain/offer-inbox';
+import { FloorEditor } from '@/components/site/FloorEditor';
+import { Quantity } from '@/components/ui/Quantity';
+import { OFFER_STANDING } from '@/lib/labels/offers';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,8 +65,9 @@ export default async function OffersInboxPage({
   const raw = typeof search.tab === 'string' ? search.tab : undefined;
   const tab = TABS.find((key) => key === raw) ?? 'active';
 
-  const [inbox, t, te] = await Promise.all([
+  const [inbox, vehicles, t, te] = await Promise.all([
     getOfferInbox(user.id, locale),
+    getOfferedVehicles(user.id, locale),
     getTranslations('inbox'),
     getTranslations('enums'),
   ]);
@@ -105,7 +114,34 @@ export default async function OffersInboxPage({
           : te(`offerStatus.${offer.status}`)}
       </Badge>
 
-      <Money amount={Number(offer.amount)} size="md" showCurrency={false} className="text-accent-700" />
+      {/*
+        ═══ وموضعُ العرض يُقال بجوار مبلغه ═══
+
+        ترميز `Wl` يكتبه تحت كل عرض: «أعلى من سعرك بـ ١٬٠٠٠» · «فوق
+        الحد الأدنى». **والبائع كان يقرأ رقمًا وحده** ويقارنه في رأسه
+        بسعرٍ في عمودٍ آخر وبأرضيّةٍ لا تُعرض له أصلًا.
+
+        ولا يُعرض لمن ليس بائعَ الإعلان — موضعٌ من أرضيّةٍ لا يملكها.
+      */}
+      <span className="flex flex-col items-end gap-1">
+        <Money amount={Number(offer.amount)} size="md" showCurrency={false} className="text-accent-700" />
+        {offer.standing === null ? null : (
+          <span
+            className={
+              offer.standing === 'below_floor' ? 'text-3xs text-danger' : 'text-3xs opacity-70'
+            }
+          >
+            {offer.standing === 'above_ask' && offer.vsAsk !== null && offer.vsAsk > 0 ? (
+              <>
+                {OFFER_STANDING.above_ask}{' '}
+                <Money amount={offer.vsAsk} showCurrency={false} />
+              </>
+            ) : (
+              OFFER_STANDING[offer.standing]
+            )}
+          </span>
+        )}
+      </span>
 
       {/*
         الردّ — **وكان غائبًا كلّه**. والعرض المنتهي أو المغلق لا يُردّ
@@ -162,15 +198,110 @@ export default async function OffersInboxPage({
             })}
           </nav>
 
-          {rows.length === 0 ? (
-            <EmptyState title={t(`empty.${tab}`)} description={t('emptyBody')} />
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {rows.map((offer) => (
-                <Row key={offer.id} offer={offer} />
-              ))}
-            </ul>
-          )}
+          <div className="flex flex-col gap-7 lg:flex-row-reverse lg:items-start">
+            {/*
+              ═══ «مركباتك المعروضة» — وما لم يصلك عرضٌ عليه ═══
+
+              عمودُ الترميز الأيمن. والصندوقُ يعرض ما وصل، وهذا يقول
+              **ما لم يصل**: فيعرف البائع أيَّ سياراته لا يسأل عنها
+              أحد — وهو ما يُفتح الصندوقُ لأجله بعد أوّل أسبوع.
+
+              **وهنا وحده يُعرض الحدُّ الأدنى ويُعدَّل**: رقمٌ يرفض
+              العروض تلقائيًّا، فموضعُه حيث تُقرأ العروض لا في استمارةِ
+              نشرٍ انتهت.
+            */}
+            {vehicles.length === 0 ? null : (
+              <aside className="flex w-full shrink-0 flex-col gap-2.5 lg:w-80">
+                <h2 className="text-3xs font-bold tracking-[0.14em] opacity-65">
+                  مركباتك المعروضة
+                </h2>
+                {vehicles.map((vehicle) => (
+                  <div
+                    key={vehicle.ref}
+                    className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="washed size-12 shrink-0 rounded-lg" />
+                      <span className="min-w-0 flex-1">
+                        <Link
+                          href={vehicle.path}
+                          className="flex flex-wrap items-baseline gap-1.5 text-2xs font-bold hover:underline"
+                        >
+                          <span className="bidi-isolate">{vehicle.title}</span>
+                          <ArabicNumber value={vehicle.year} grouped={false} />
+                        </Link>
+                        <span className="mt-0.5 block text-3xs opacity-70">
+                          {t('asking')}{' '}
+                          <Money amount={Number(vehicle.askPrice)} showCurrency={false} />
+                        </span>
+                      </span>
+                      {/*
+                        **والصفرُ يُقال ولا يُترك فارغًا**: «لا عروض
+                        بعد» نصُّ الترميز، وغيابُ الشارة يُقرأ عطلًا.
+                      */}
+                      {vehicle.liveOffers === 0 ? (
+                        <span className="shrink-0 text-3xs opacity-65">لا عروض بعد</span>
+                      ) : (
+                        <Badge tone="warn">
+                          <Quantity unit="offers" count={vehicle.liveOffers} />
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-line pt-2.5">
+                      <span className="text-3xs opacity-70">
+                        {vehicle.minAcceptPrice === null ? (
+                          'لا حد أدنى — كل عرض يصلك'
+                        ) : (
+                          <>
+                            الحد الأدنى المخفي{' '}
+                            <Money
+                              amount={Number(vehicle.minAcceptPrice)}
+                              showCurrency={false}
+                            />
+                          </>
+                        )}
+                      </span>
+                      <FloorEditor
+                        listingRef={vehicle.ref}
+                        askPrice={Number(vehicle.askPrice)}
+                        floor={
+                          vehicle.minAcceptPrice === null ? null : Number(vehicle.minAcceptPrice)
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
+              </aside>
+            )}
+
+            <div className="min-w-0 flex-1">
+              {rows.length === 0 ? (
+                <EmptyState title={t(`empty.${tab}`)} description={t('emptyBody')} />
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {rows.map((offer) => (
+                    <Row key={offer.id} offer={offer} />
+                  ))}
+                </ul>
+              )}
+
+              {/*
+                ═══ وما يقع عند القبول يُقال قبله ═══
+
+                نصُّ الترميز حرفيًّا. **وقبولُ عرضٍ فعلٌ لا رجعةَ فيه**:
+                يُغلق بقيّةَ العروض ويسحب الإعلان — ومن ضغط «اقبل» وهو
+                لا يعرف ذلك اكتشفه بعد وقوعه.
+              */}
+              {rows.length === 0 ? null : (
+                <p className="mt-5 rounded-xl border border-line bg-surface p-4.5 text-3xs leading-loose opacity-72">
+                  قبول عرض يغلق بقية العروض تلقائيا مع إشعار أصحابها، ويسحب الإعلان من
+                  التصفح. وللمشتري مهلة لإتمام الدفع، وإن لم يدفع عاد الإعلان وأخطر بقية
+                  المتقدمين.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </>

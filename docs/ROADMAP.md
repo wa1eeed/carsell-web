@@ -2090,6 +2090,68 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 11 — `Wl` the offers inbox, and a number the seller could never see
+
+`Wl` read **20٪** on five signals. Behind four of them was one finding: the
+seller's hidden floor is written once and then disappears from the product.
+
+#### `minAcceptPrice` had no door after the wizard
+
+It is the floor below which offers are auto-rejected. `SellWizard` writes it,
+and after that **nothing in the product shows it or changes it**. Measured:
+`updateSellerListing` accepts it, `PATCH /api/v1/listings/{ref}` accepts it, and
+**no screen calls that route at all** — the inline editor on `/account/listings`
+sends `askPrice` and `description` only.
+
+So a seller who set an optimistic floor in a hopeful week negotiates for months
+without offers and cannot find out why: **the reason is a number they wrote and
+nobody can see, including them.**
+
+- [x] The floor is shown and editable where offers are read — not in a
+      publishing form that ended weeks ago. «ارفع الحد» is its own button,
+      because an empty field in a form reads as «don't touch this», not «none».
+- [x] The ceiling is stated before it is enforced: a floor above the asking
+      price rejects every offer including one at the full asking price.
+
+#### An amount with nothing to judge it against
+
+The inbox showed «٢٨٬٣٦٥» and, in a separate column, the asking price. The
+seller did the comparison in their head — against a floor they could not see.
+
+- [x] Each incoming offer now carries its standing: «فوق الحد الأدنى» ·
+      «دون الحد الأدنى» (in red) · «أعلى من سعرك بـ …». Keys from the domain,
+      wording in `src/lib/labels/offers.ts` (gate 17), and `no_floor` is said
+      out loud — silence about a floor that does not exist reads as «below it».
+- [x] **The floor never enters a buyer's object.** Not hidden at render —
+      `null` in the object, because what is fetched is serialised whether or not
+      it is drawn. `tests/offer-floor.test.ts` asserts both directions, and
+      tests the three standings by crossing the boundary rather than hoping the
+      seed sits on both sides of it.
+
+#### «مركباتك المعروضة» — and the vehicles nobody asked about
+
+The markup's right rail lists the seller's negotiable listings with an offer
+count, **including the ones with none** («لا عروض بعد»). That is its point: the
+inbox shows what arrived, the rail shows what did not.
+
+- [x] Built from the listings, not from the offers — a list derived from the
+      inbox drops every vehicle with no offer, which is the row the column
+      exists for.
+- [x] The count excludes the seller's own counters. A counter keeps the
+      original `buyerId`, so «buyer is not me» counts **my own counter** as a
+      decision waiting on me. Same shape as the bug fixed in the inbox tabs.
+
+#### And two texts
+
+- [x] «عرض مقابل» instead of «قابل». The markup writes it in full, and «قابِل»
+      alone reads as an order to meet the person.
+- [x] What accepting does, said before it is done: it closes the other offers
+      with notice and pulls the listing. It cannot be undone, and it was
+      discovered after the click.
+
+Measured after: **20٪ → 100٪**, still on a thin denominator (five signals), so
+the number is marked ⚠ and the work was judged by reading the markup.
+
 ### 40a · 10 — `Wb` search, and a measurement that was reading the wrong screen
 
 `Wb` read **44٪**. The screen turned out to be one of the most complete in the

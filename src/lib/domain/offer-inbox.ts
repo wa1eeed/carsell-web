@@ -4,6 +4,7 @@ import { nextReportRef } from './refs';
 import { ACTIVE_STATUSES } from './offers';
 import { canonicalPath } from './listing-detail';
 import type { OfferStatus } from '@/generated/prisma/enums';
+import type { Prisma } from '@/generated/prisma/client';
 
 /**
  * صندوق العروض — Wl.
@@ -37,13 +38,40 @@ export type InboxOffer = {
     askPrice: string;
     city: string;
     path: string;
+    /**
+     * ═══ الحدُّ الأدنى المخفيّ — **لصاحبه وحده** ═══
+     *
+     * ترميز `Wl` يعرضه للبائع فوق عروضه («الحد الأدنى المخفي
+     * ١٣٥٬٠٠٠»)، وهو الرقمُ الذي يقرّر به. وكان **لا يُعرض له قطّ**:
+     * يكتبه مرّةً في معالج البيع ثمّ يفاوض وهو لا يرى أرضيّته.
+     *
+     * **ولا يدخل كائنَ المشتري أصلًا** — لا يُخفى في التصيير: ما
+     * يُجلَب يُسلسَل ولو لم يُرسَم، وحمولةُ RSC تحمله إلى المتصفّح.
+     * فهو `null` لكلّ صفٍّ لستُ بائعَه.
+     */
+    minAcceptPrice: string | null;
   };
+
+  /**
+   * ═══ موضعُ العرض من سعر البائع وأرضيّته ═══
+   *
+   * الترميز يكتبه بجوار كل عرض: «أعلى من سعرك بـ ١٬٠٠٠» · «فوق الحد
+   * الأدنى» — فالبائع يقرّر بلا حساب في رأسه.
+   *
+   * **ويُحسب هنا لا في الشاشة**: `above_ask` · `above_floor` ·
+   * `below_floor` · `no_floor` مفاتيح، والصياغةُ في الشاشة (البوابة ١٧).
+   * و`null` لعرضٍ لستُ بائعَه — الموضعُ من أرضيّةٍ لا أملكها لا معنى له.
+   */
+  standing: 'above_ask' | 'above_floor' | 'below_floor' | 'no_floor' | null;
+
+  /** الفرق عن السعر المطلوب بالريال — موجبٌ فوقه، وسالبٌ دونه. */
+  vsAsk: number | null;
 };
 
 const OFFER_INCLUDE = {
   listing: {
     select: {
-      ref: true, city: true, askPrice: true, sellerId: true,
+      ref: true, city: true, askPrice: true, sellerId: true, minAcceptPrice: true,
       vehicle: {
         select: {
           brandName: true, modelName: true, trimName: true, year: true,
@@ -54,6 +82,33 @@ const OFFER_INCLUDE = {
     },
   },
 } as const;
+
+/**
+ * موضعُ العرض من سعر البائع وأرضيّته — **مفاتيح لا جُملًا** (البوابة ١٧).
+ *
+ * و`no_floor` حالةٌ تُقال: بائعٌ لم يضع حدًّا أدنى لا يُقال عنه «فوق
+ * الحد الأدنى»، فالسكوتُ عنه يُقرأ أنّ العرض دونه.
+ */
+function standingOf(
+  offer: {
+    amount: Prisma.Decimal;
+    listing: { sellerId: string; askPrice: Prisma.Decimal; minAcceptPrice: Prisma.Decimal | null };
+  },
+  userId: string,
+): { standing: InboxOffer['standing']; vsAsk: number | null } {
+  if (offer.listing.sellerId !== userId) return { standing: null, vsAsk: null };
+
+  const amount = Number(offer.amount);
+  const ask = Number(offer.listing.askPrice);
+  const vsAsk = Math.round(amount - ask);
+
+  if (amount >= ask) return { standing: 'above_ask', vsAsk };
+  if (offer.listing.minAcceptPrice === null) return { standing: 'no_floor', vsAsk };
+  return {
+    standing: amount >= Number(offer.listing.minAcceptPrice) ? 'above_floor' : 'below_floor',
+    vsAsk,
+  };
+}
 
 export async function getOfferInbox(
   userId: string,
@@ -98,7 +153,13 @@ export async function getOfferInbox(
       askPrice: offer.listing.askPrice.toString(),
       city: offer.listing.city,
       path: canonicalPath(locale, offer.listing).path,
+      /** **لصاحبه وحده** — ولا يدخل كائنَ المشتري. */
+      minAcceptPrice:
+        offer.listing.sellerId === userId
+          ? (offer.listing.minAcceptPrice?.toString() ?? null)
+          : null,
     },
+    ...standingOf(offer, userId),
   }));
 
   /**
@@ -115,6 +176,84 @@ export async function getOfferInbox(
     sent: mapped.filter((offer) => isActive(offer) && offer.sentByMe),
     closed: mapped.filter((offer) => !isActive(offer)),
   };
+}
+
+/**
+ * ═══ «مركباتك المعروضة» — عمودُ الترميز الأيمن ═══
+ *
+ * الترميز يسرد مركباتِ البائع القابلة للتفاوض وعدَّ العروض على كلٍّ،
+ * **ومنها ما لا عرضَ عليه** («لا عروض بعد»). وذلك هو موضعُ الفائدة:
+ * صندوقُ العروض يعرض ما وصل، وهذا يقول **ما لم يصل** — فيعرف البائع
+ * أيُّ سياراته لا يسأل عنها أحد.
+ *
+ * **ولا يُبنى من العروض وحدها**: قائمةٌ مشتقّةٌ من الصندوق تُسقط كلَّ
+ * مركبةٍ بلا عرض، وهي الصفوف التي من أجلها وُضع العمود.
+ */
+export type OfferedVehicle = {
+  ref: string;
+  title: string;
+  year: number;
+  askPrice: string;
+  minAcceptPrice: string | null;
+  path: string;
+  /** عددُ العروض النشطة الواردة — صفرٌ يُقال «لا عروض بعد». */
+  liveOffers: number;
+};
+
+export async function getOfferedVehicles(
+  userId: string,
+  locale: string,
+  now: Date = new Date(),
+): Promise<OfferedVehicle[]> {
+  const rows = await db.listing.findMany({
+    where: {
+      sellerId: userId,
+      status: 'PUBLISHED',
+      /** **والتفاوضُ وحده**: إعلانٌ بسعرٍ ثابت لا يُنتظر له عرض. */
+      type: 'NEGOTIATION',
+    },
+    orderBy: { publishedAt: 'desc' },
+    select: {
+      ref: true,
+      city: true,
+      askPrice: true,
+      minAcceptPrice: true,
+      vehicle: {
+        select: {
+          brandName: true, modelName: true, trimName: true, year: true,
+          brand: { select: { slug: true } },
+          model: { select: { nameEn: true } },
+        },
+      },
+      offers: {
+        where: { status: { in: [...ACTIVE_STATUSES] }, expiresAt: { gt: now } },
+        select: { id: true, buyerId: true, parentOfferId: true },
+      },
+    },
+  });
+
+  return rows.map((row) => ({
+    ref: row.ref,
+    title: [row.vehicle.brandName, row.vehicle.modelName, row.vehicle.trimName]
+      .filter((part) => part !== null && part !== '')
+      .join(' '),
+    year: row.vehicle.year,
+    askPrice: row.askPrice.toString(),
+    /** **وهذه شاشةُ البائع** — والاستعلام مقصورٌ على إعلاناته. */
+    minAcceptPrice: row.minAcceptPrice?.toString() ?? null,
+    path: canonicalPath(locale, { ref: row.ref, city: row.city, vehicle: row.vehicle }).path,
+    /**
+     * ═══ والواردُ وحده يُعَدّ — **والمُرسِل لا يُشتقّ من الدور** ═══
+     *
+     * العرضُ المقابل يحتفظ بـ`buyerId` الأصليّ (الطرفان لم يتغيّرا)،
+     * فشرطُ «المشتري غيري» يَعُدّ **مقابلي أنا** عرضًا عليّ — فيقول
+     * الرقم إنّ عليّ قرارًا وأنا من ينتظر. والمقابل يرسله البائع
+     * دائمًا، فيُستثنى كلُّ ما له أبٌ.
+     */
+    liveOffers: row.offers.filter(
+      (offer) => offer.parentOfferId === null && offer.buyerId !== userId,
+    ).length,
+  }));
 }
 
 export type ReportInput = {
