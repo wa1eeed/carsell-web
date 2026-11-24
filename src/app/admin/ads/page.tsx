@@ -16,6 +16,7 @@ import {
 } from '@/lib/domain/ad-rules';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { AdSlotTable } from './AdSlotTable';
+import { SlotPreview } from './SlotPreview';
 import { NewCampaign } from './NewCampaign';
 import { NewSlot } from './NewSlot';
 import { CampaignActions } from './CampaignActions';
@@ -84,8 +85,18 @@ export default async function AdminAdsPage({
   const writable = canWrite(admin.role, 'finance.view');
 
   return (
-    <AdminShell title="مساحات الإعلانات والحملات"
-      subtitle="المساحات وتسعيرها وحملاتها" activeHref="/admin/ads" admin={admin}>
+    <AdminShell
+      title="مساحات الإعلانات والحملات"
+      subtitle={
+        <>
+          {/* الترميز يكتبها بعددها: «٧ مساحات · ٤ إعلانات كحدّ أقصى في الجلسة» */}
+          <Quantity unit="adSlots" count={stats.slots} /> ·{' '}
+          <Quantity unit="sessionAdCap" count={stats.sessionCap} />
+        </>
+      }
+      activeHref="/admin/ads"
+      admin={admin}
+    >
       <p className="mb-5 max-w-xl text-sm leading-loose opacity-70">
         المساحات وتسعيرها، والحملات عليها. <b>والتعطيل يخفي المساحة ولا يلغي
         حملاتها</b>، فمعلن دفع لأسبوع لا يفقد ماله بتعطيل إداري.
@@ -113,16 +124,22 @@ export default async function AdminAdsPage({
           },
           { title: 'حملات جارية', value: stats.liveCampaigns, note: 'بين تاريخي البدء والانتهاء' },
           {
-            title: 'السقف في جلسة الرئيسية',
+            title: 'السقف في الجلسة',
             value: stats.sessionCap,
-            // **ولا يُقال «يُفرَض في الخادم» قبل أن يوجد خادمٌ يفرضه.**
             /**
-             * **والسقف سقفُ الرئيسية وحدها.** قُلبت `ADS_SERVED`
-             * حين بُني عرضُ نتائج البحث، فصارت هذه تقول «يُفرَض في
-             * الخادم» — ولا إعلان في الرئيسية أصلًا. ورايةٌ واحدة
-             * لسطوحٍ متعدّدة تجعل أوّل سطحٍ يُبنى يَعِد عن البقيّة.
+             * ═══ والآن يُفرَض فعلًا ═══
+             *
+             * كان الثابت لا يقرؤه أحد، والبطاقة تقول «قاعدة — ولا
+             * إعلان في الرئيسية بعد» **والرئيسيةُ تعرض إعلانين**.
+             * فصار الوسيط يحسب الباقي من كوكي الجلسة ويمرّره إلى
+             * الصفحة، ومسارُ الظهور يكتب العدّاد — وكلاهما خادم.
+             *
+             * و`homeServed` مقيسٌ لا ثابت: أثمّ حملةٌ حيّةٌ على مساحةٍ
+             * مفعَّلة من مساحات الرئيسية؟
              */
-            note: stats.homeServed ? 'يفرض في الخادم' : 'قاعدة — ولا إعلان في الرئيسية بعد',
+            note: stats.homeServed
+              ? 'في الرئيسية · يفرض في الخادم'
+              : 'في الرئيسية · ولا حملة جارية عليها الآن',
           },
           {
             title: 'إجمالي الحملات',
@@ -195,6 +212,14 @@ export default async function AdminAdsPage({
         */}
         {writable ? <NewSlot /> : null}
       </div>
+      {/*
+        ═══ والمعاينة للقراءة، فتسبق حارسَ الكتابة ═══
+
+        من يملك القراءة وحدها يبيع هذه المساحات ويُري المعلن ما
+        اشتراه — وإخفاؤها عنه يجعل الصلاحية تمنع نظرًا لا كتابة.
+      */}
+      <SlotPreview slots={slots} />
+
       {writable ? (
         <AdSlotTable rows={slots} />
       ) : (

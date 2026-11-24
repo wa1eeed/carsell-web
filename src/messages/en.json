@@ -429,6 +429,8 @@
     "rounds": "{count, plural, one{{n} round} other{{n} rounds}}",
     "approvals": "{count, plural, one{{n} approval} other{{n} approvals}}",
     "ads": "{count, plural, one{{n} ad} other{{n} ads}}",
+    "adSlots": "{count, plural, one{# slot} other{# slots}}",
+    "sessionAdCap": "{count, plural, one{# ad per session at most} other{# ads per session at most}}",
     "cities": "{count, plural, one{{n} city} other{{n} cities}}",
     "steps": "{count, plural, one{{n} step} other{{n} steps}}",
     "deposits": "{count, plural, one{{n} deposit} other{{n} deposits}}",

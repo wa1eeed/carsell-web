@@ -85,6 +85,10 @@ export type Unit =
   | 'rounds'
   | 'approvals'
   | 'ads'
+  /** مساحاتُ الإعلانات في A30 — «٧ مساحات». */
+  | 'adSlots'
+  /** سقفُ إعلانات الجلسة — «٤ إعلانات كحد أقصى في الجلسة». */
+  | 'sessionAdCap'
   | 'cities'
   | 'steps'
   | 'deposits'

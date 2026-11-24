@@ -2090,6 +2090,61 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 18 — `A30` ad slots, a cap nobody enforced, and a flag that denied live ads
+
+`A30` read **63٪** (not the 25 the stale table said). Three signals missing:
+«معاينة في التطبيق», «السقف في الجلسة», «يُفرَض في الخادم».
+
+### The screen said there were no ads on the home page. There were two.
+
+`HOME_ADS_SERVED` was a hand-maintained `false`, and the cap card read it to
+tell the operator «قاعدة — ولا إعلان في الرئيسية بعد». Measured: the home page
+renders `home_banner` and `brand_featured`, both with live campaigns, both with
+click routes in the markup. The flag was written when the home surface did not
+exist and was never flipped when it was built.
+
+Deleted, not corrected. It is now a query — is there a live campaign on an
+active home slot — so there is no copy to drift. **ما يحتاج حراسةً يُبنى
+محروسًا.** The test that guarded it was
+`expect(stats.homeServed).toBe(HOME_ADS_SERVED)`: a flag checked against itself,
+green while it lied. It now crosses the condition in both directions.
+
+### The cap was a constant nothing read
+
+`HOME_SESSION_AD_CAP = 4` existed with its own comment saying the screen would
+read it «وسيقرؤه مسار العرض حين يُبنى». The serving path was built; the cap was
+not wired. The design is explicit about where it must live: «٤ إعلانات كحدّ
+أقصى في جلسة الرئيسية، **والسقف يُفرَض في الخادم لا في التطبيق**» — because a
+client-side cap is bypassed by a reload.
+
+A Server Component can read a cookie and cannot write one, so the enforcement
+is split across two server points and the client touches neither:
+
+- **Middleware** reads `carz_ads` and passes the remaining allowance to the page
+  in a request header; the page asks `adsFor` for no more than that.
+- **The impression route** increments the counter — and the count is on what was
+  *seen*, not what was rendered, which is the same rule the route was built on
+  (`cpm` sells impressions, not renders).
+
+Only home slots count against it; `search_inline` and `vehicle_inline` have
+their own `maxPerSession`, and folding them in would silence an ad sold under
+other terms.
+
+Walked with a cookie jar, not only unit tests: fresh session 2 ads → after three
+impressions 1 → after four 0, and the counter stops at 4 rather than running
+negative. A forged cookie (`-5`, `abc`, `9999999999`) cannot widen the
+allowance.
+
+### And the preview
+
+The slot preview is real: the frame carries the slot's own aspect ratio, the
+creative is the campaign the visitor actually sees (ordered by `priority` then
+earliest start), and a vacant slot says so. Named «معاينة المساحة», not «في
+التطبيق» — there is no app, and a phone frame drawn around it to match the
+wording would be decoration that lies. Recorded in `DESIGN-DEVIATIONS.md`.
+
+**A30: 63٪ → 88٪.**
+
 ### 40a · 17 — `A10` push, and a heading that turned four intentions into guarantees
 
 **The table in §40a said `A10` was 25٪. Measured live it was 75٪** — the table

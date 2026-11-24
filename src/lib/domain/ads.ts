@@ -3,6 +3,7 @@ import type { AdCampaignStatus } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { MAX_BANNERS_PER_SCREEN, type ServedAd } from './ad-rules';
+import { HOME_SLOTS } from './ad-session';
 
 export type { ServedAd };
 
@@ -241,6 +242,43 @@ export async function recordImpression(id: string): Promise<void> {
   await db.adCampaign
     .update({ where: { id }, data: { impressions: { increment: 1 } } })
     .catch(() => undefined);
+}
+
+/**
+ * أمساحةُ هذه الحملة من مساحات الرئيسية؟ — فسقفُ الجلسة لها وحدها.
+ *
+ * ويُقرأ من الصفّ لا من قائمةٍ في المسار: المسارُ يعرف معرّف الحملة
+ * وحده، وسقفٌ يُحسب بغير مساحتها يُسكت بطاقةَ مموّلٍ في النتائج بيعت
+ * بشروطٍ أخرى.
+ */
+export async function isHomeCampaign(id: string): Promise<boolean> {
+  const row = await db.adCampaign.findUnique({ where: { id }, select: { slotKey: true } });
+  return row !== null && HOME_SLOTS.includes(row.slotKey);
+}
+
+/**
+ * ═══ أتعرض الرئيسيةُ إعلانًا؟ — **يُقاس ولا يُكتب** ═══
+ *
+ * كان `HOME_ADS_SERVED` ثابتًا بيد، وبطاقةُ A30 تقرؤه فتقول «ولا
+ * إعلان في الرئيسية بعد» — **والرئيسيةُ تعرض اثنين**: `home_banner`
+ * و`brand_featured` مبنيّان ويُصيَّران، والحملاتُ حيّة. فالثابت تقادم
+ * يوم بُني السطح ولم يُقلَب معه.
+ *
+ * وعلاجُه ألّا تكون هناك نسخة: السؤال استعلامٌ عن حملةٍ حيّة على
+ * مساحةٍ مفعَّلة من مساحات الرئيسية. **فما يحتاج حراسةً يُبنى
+ * محروسًا.**
+ */
+export async function homeAdsServed(now: Date = new Date()): Promise<boolean> {
+  const live = await db.adCampaign.count({
+    where: {
+      slotKey: { in: [...HOME_SLOTS] },
+      status: 'LIVE',
+      startsAt: { lte: now },
+      endsAt: { gte: now },
+      slot: { active: true },
+    },
+  });
+  return live > 0;
 }
 
 export async function recordClick(id: string): Promise<string | null> {

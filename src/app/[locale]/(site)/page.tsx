@@ -10,7 +10,9 @@ import { popularSearches, type PopularSearch } from '@/lib/domain/popular-search
 import { ActionLink } from '@/components/ui/ActionLink';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { SponsoredBanner } from '@/components/site/SponsoredCard';
+import { headers } from 'next/headers';
 import { adsFor } from '@/lib/domain/ads';
+import { AD_ALLOWANCE_HEADER, allowanceFromHeader } from '@/lib/domain/ad-session';
 import type { ServedAd } from '@/lib/domain/ad-rules';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { BodyTypeStrip } from '@/components/ui/BodyTypeStrip';
@@ -114,6 +116,15 @@ export default async function HomePage({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
+  /**
+   * ═══ سقفُ إعلانات الجلسة — يحسبه الوسيط ═══
+   *
+   * الصفحةُ تقرأ ولا تكتب كوكيًّا، فالوسيطُ يحسب الباقي ويمرّره رأسًا،
+   * ومسارُ الظهور يكتب العدّاد. والسقفُ بذلك مفروضٌ في الخادم في
+   * موضعين لا في الشاشة — وسقفٌ في العميل يُتجاوَز بإعادة تحميل.
+   */
+  const allowance = allowanceFromHeader((await headers()).get(AD_ALLOWANCE_HEADER));
+
   const search = await searchParams;
   const rawBand = typeof search.band === 'string' ? search.band : undefined;
   const band = PAYMENT_BANDS.find((b) => b.key === rawBand)?.key as PaymentBandKey | undefined;
@@ -134,9 +145,9 @@ export default async function HomePage({
      * والتصميم يرسمها صفًّا بين كتلة المزاد و«أُضيفت حديثًا»: وسمُ
      * «إعلان» ثم مساحةٌ ١٦:٦ بارتفاع ٨٨px.
      */
-    adsFor('home_banner', { city: null }),
+    adsFor('home_banner', { city: null }, new Date(), Math.min(1, allowance)),
     /** `brand_featured` — «أول خانة» في شبكة الماركات، ١:١، ٦٠٠٠ للشهر. */
-    adsFor('brand_featured', { city: null }),
+    adsFor('brand_featured', { city: null }, new Date(), Math.max(0, allowance - 1)),
     getTranslations('site'),
     getTranslations('units'),
     getTranslations('enums'),

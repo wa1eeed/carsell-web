@@ -10,7 +10,8 @@ import {
   toggleAdSlot,
   updatePlan,
 } from '@/lib/domain/admin-plans';
-import { ADS_SERVED, HOME_ADS_SERVED, HOME_SESSION_AD_CAP } from '@/lib/domain/ad-rules';
+import { ADS_SERVED } from '@/lib/domain/ad-rules';
+import { HOME_SESSION_AD_CAP, HOME_SLOTS } from '@/lib/domain/ad-session';
 import { adsFor } from '@/lib/domain/ads';
 
 /**
@@ -204,15 +205,52 @@ describe('A30 — مساحات الإعلانات', () => {
     expect(stats.served).toBe(ADS_SERVED);
   });
 
-  it('وسقفُ الرئيسية لا يُقال إنه مفروضٌ وما مِن إعلانٍ فيها', async () => {
-    /**
-     * **ورايةٌ واحدة لسطوحٍ متعدّدة تجعل أوّل سطحٍ يُبنى يَعِد عن
-     * البقيّة.** قُلبت `ADS_SERVED` حين بُني عرضُ نتائج البحث،
-     * فصارت بطاقةُ السقف تقول «يُفرَض في الخادم» — وسقفُ الرئيسية
-     * لا يفرضه شيء، فلا إعلان في الرئيسية أصلًا.
-     */
-    const stats = await adStats(T0);
-    expect(stats.homeServed).toBe(HOME_ADS_SERVED);
+  /**
+   * ═══ و«أتعرض الرئيسيةُ إعلانًا؟» يُقاس لا يُكتب ═══
+   *
+   * كان هنا `expect(stats.homeServed).toBe(HOME_ADS_SERVED)` — فحصُ
+   * رايةٍ بيد براية، **يمرّ وهي تكذب**. وقد كذبت: قالت `false`
+   * والرئيسيةُ تعرض `home_banner` و`brand_featured`، فقرأ المشغّل في
+   * A30 «ولا إعلان في الرئيسية بعد».
+   *
+   * والفحصُ الآن على الواقع، **ويُعبَر الحدُّ في الاتّجاهين**: بحملةٍ
+   * حيّة على مساحة رئيسية، وبلا واحدة.
+   */
+  it('والرئيسيةُ تُقال عارضةً حين تكون لها حملةٌ حيّة — لا بثابت', async () => {
+    const live = await db.adCampaign.findFirst({
+      where: {
+        slotKey: { in: [...HOME_SLOTS] },
+        status: 'LIVE',
+        startsAt: { lte: T0 },
+        endsAt: { gte: T0 },
+        slot: { active: true },
+      },
+      select: { id: true, status: true },
+    });
+
+    if (live === null) {
+      expect((await adStats(T0)).homeServed).toBe(false);
+      return;
+    }
+
+    expect((await adStats(T0)).homeServed).toBe(true);
+
+    /** ويُعبَر الحدُّ: بلا حملةٍ حيّة تُقال الرئيسيةُ غيرَ عارضة. */
+    await db.adCampaign.update({ where: { id: live.id }, data: { status: 'PAUSED' } });
+    try {
+      const others = await db.adCampaign.count({
+        where: {
+          slotKey: { in: [...HOME_SLOTS] },
+          status: 'LIVE',
+          startsAt: { lte: T0 },
+          endsAt: { gte: T0 },
+          slot: { active: true },
+        },
+      });
+      if (others === 0) expect((await adStats(T0)).homeServed).toBe(false);
+    } finally {
+      await db.adCampaign.update({ where: { id: live.id }, data: { status: live.status } });
+    }
   });
 
   it('ومسار العرض قائمٌ متى قالت إنه قائم', async () => {

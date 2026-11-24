@@ -2,6 +2,11 @@ import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { LOCALE_COOKIE, isLocale, routing } from '@/i18n/routing';
 import { contentSecurityPolicy } from '@/lib/security/headers';
+import {
+  AD_ALLOWANCE_HEADER,
+  AD_SESSION_COOKIE,
+  remainingHomeAds,
+} from '@/lib/domain/ad-session';
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -22,6 +27,19 @@ function forwardedHeaders(request: NextRequest, policy: string, nonce: string): 
   const headers = new Headers(request.headers);
   headers.set('x-nonce', nonce);
   headers.set('Content-Security-Policy', policy);
+
+  /**
+   * ═══ وسقفُ إعلانات الجلسة يُحسب هنا ═══
+   *
+   * الصفحةُ لا تستطيع قراءة الكوكي وكتابتَه معًا: مكوّنُ خادمٍ يقرأ
+   * ولا يكتب. فالوسيطُ يقرأ ويحسب ويمرّر الباقي في رأس، ومسارُ الظهور
+   * يكتب العدّاد — وكلاهما خادم، **فالسقف مفروضٌ في الخادم** كما يقول
+   * الترميز، لا في التطبيق حيث يُتجاوَز بإعادة تحميل.
+   */
+  headers.set(
+    AD_ALLOWANCE_HEADER,
+    String(remainingHomeAds(request.cookies.get(AD_SESSION_COOKIE)?.value)),
+  );
   return headers;
 }
 

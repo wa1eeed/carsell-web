@@ -2,7 +2,9 @@ import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { type AdOccupancy, adOccupancy, adRevenue } from './ads';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
-import { ADS_SERVED, HOME_ADS_SERVED, HOME_SESSION_AD_CAP } from './ad-rules';
+import { ADS_SERVED } from './ad-rules';
+import { HOME_SESSION_AD_CAP } from './ad-session';
+import { homeAdsServed } from './ads';
 import { commissionFrom } from './order-amounts';
 
 /**
@@ -275,6 +277,17 @@ export type AdSlotRow = {
   active: boolean;
   campaignCount: number;
   liveCampaigns: number;
+  /**
+   * صورةُ الحملة الجارية — **ومعاينةُ A30 تُرى بها لا بإطارٍ فارغ**.
+   *
+   * ترميز A30 يضع «معاينة في التطبيق» زرًّا في الترويسة. والمعاينةُ
+   * بلا صورةٍ حقيقية إطارٌ رماديّ يقول المقاس ولا يقول كيف يبدو —
+   * ومن يبيع المساحة يحتاج أن يُري المعلن ما اشتراه.
+   *
+   * و`null` حين لا حملةَ جارية: الإطارُ يُعرض بمقاسه وموضعه، ويُقال
+   * إنه شاغر.
+   */
+  creativeUrl: string | null;
 };
 
 export type AdStats = {
@@ -285,7 +298,13 @@ export type AdStats = {
   liveCampaigns: number;
   /** هل يعرض المنتجُ إعلانًا أصلًا — والجواب اليوم لا */
   served: boolean;
-  /** والرئيسية سطحٌ آخر — سقفُها لا يفرضه شيء بعد */
+  /**
+   * أتعرض الرئيسيةُ إعلانًا؟ — **مقيسٌ لا ثابت**.
+   *
+   * كان `HOME_ADS_SERVED` ثابتًا بيد، فتقادم يوم بُني سطحُ الرئيسية
+   * ولم يُقلَب معه: البطاقة تقول «ولا إعلان في الرئيسية بعد**»
+   * والرئيسيةُ تعرض اثنين. وصار استعلامًا عن حملةٍ حيّة.
+   */
   homeServed: boolean;
   /** إشغالُ الشهر — أيامُ مساحةٍ مبيعة من أيامِ المفعَّلة كلِّها */
   occupancy: AdOccupancy;
@@ -307,6 +326,21 @@ export async function adSlots(now: Date = new Date()): Promise<AdSlotRow[]> {
     _count: true,
   });
 
+  /**
+   * صورةُ أعلى حملةٍ جاريةٍ لكلّ مساحة — **بالترتيب الذي يُعرض به**
+   * (`priority` ثمّ الأقدم بدءًا)، فالمعاينة تُري ما يراه الزائر لا
+   * صورةً أخرى اشتُريت للمساحة نفسها.
+   */
+  const creatives = await db.adCampaign.findMany({
+    where: { status: 'LIVE', startsAt: { lte: now }, endsAt: { gte: now } },
+    orderBy: [{ priority: 'desc' }, { startsAt: 'asc' }],
+    select: { slotKey: true, creativeUrl: true },
+  });
+  const shownOn = new Map<string, string>();
+  for (const row of creatives) {
+    if (!shownOn.has(row.slotKey)) shownOn.set(row.slotKey, row.creativeUrl);
+  }
+
   return slots.map((slot) => ({
     key: slot.key,
     nameAr: slot.nameAr,
@@ -320,6 +354,7 @@ export async function adSlots(now: Date = new Date()): Promise<AdSlotRow[]> {
     active: slot.active,
     campaignCount: slot._count.campaigns,
     liveCampaigns: live.find((row) => row.slotKey === slot.key)?._count ?? 0,
+    creativeUrl: shownOn.get(slot.key) ?? null,
   }));
 }
 
@@ -373,7 +408,7 @@ export async function adStats(now: Date = new Date()): Promise<AdStats> {
     sessionCap: HOME_SESSION_AD_CAP,
     liveCampaigns: live,
     served: ADS_SERVED,
-    homeServed: HOME_ADS_SERVED,
+    homeServed: await homeAdsServed(now),
     occupancy,
     revenue: earned.toString(),
     revenueChangePct: changePct,
