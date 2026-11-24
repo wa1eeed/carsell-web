@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { BUY_REQUIRES, SELL_REQUIRES } from '@/lib/domain/profile-requirements';
 import { cityLabel } from '@/lib/labels/cities';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -477,6 +478,44 @@ export function AuthForm({
           {t('resend')}
         </button>
       )}
+
+      {/*
+        ═══ «يُكمل قبل أول شراء أو بيع» — والتذكيرُ يسبق لحظة الحاجة ═══
+
+        ترميز `Wm` يضع هذه اللوحة تحت رمز التحقق. وفي المنتج حارسٌ
+        يمنع الشراء بلا بريدٍ وهوية، والبيعَ بلا آيبان — **ولا يُقال
+        ذلك لأحدٍ حتى يُضغط «اشترِ»**، وهو أسوأ توقيتٍ ممكن: المشتري
+        اختار سيارةً وفتح محفظته.
+
+        **والقائمةُ من الحارس نفسِه** (`BUY_REQUIRES` · `SELL_REQUIRES`)
+        لا مكتوبةً بيد — فلا تَعِد الشاشةُ بغير ما يُفرض.
+      */}
+      <div className="mt-6 rounded-xl border border-line bg-surface p-4.5">
+        <p className="mb-2.5 text-3xs font-bold tracking-[0.12em] opacity-65">
+          {t('beforeFirst')}
+        </p>
+        <ul className="flex flex-col gap-2">
+          {BUY_REQUIRES.map((field) => (
+            <li key={field} className="flex items-center gap-2.5 text-2xs">
+              <span aria-hidden className="size-1.25 shrink-0 rounded-full bg-ink/35" />
+              {t(`requirement.${field}`)}
+            </li>
+          ))}
+          {/*
+            **والآيبانُ للبائعين وحدهم** — وقولُه لكلّ من يسجّل يجعل
+            المشتري يظنّ أنّ عليه حسابًا بنكيًّا ليشتري.
+          */}
+          {SELL_REQUIRES.filter((field) => !BUY_REQUIRES.includes(field as never)).map(
+            (field) => (
+              <li key={field} className="flex items-center gap-2.5 text-2xs">
+                <span aria-hidden className="size-1.25 shrink-0 rounded-full bg-ink/35" />
+                {t(`requirement.${field}`)}
+                <span className="opacity-65">{t('sellersOnly')}</span>
+              </li>
+            ),
+          )}
+        </ul>
+      </div>
     </div>
   );
 }

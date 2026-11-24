@@ -874,7 +874,14 @@
     "back": "رجوع",
     "crNumber": "رقم السجل التجاري",
     "address": "عنوان المنشأة",
-    "dealerLink": "سجل معرضك بتهيئة كاملة"
+    "dealerLink": "سجل معرضك بتهيئة كاملة",
+    "beforeFirst": "يكمل قبل أول شراء أو بيع",
+    "sellersOnly": "(للبائعين)",
+    "requirement": {
+      "email": "البريد الإلكتروني",
+      "idVerification": "توثيق الهوية",
+      "iban": "رقم الآيبان"
+    }
   },
   "account": {
     "title": "حسابي",

@@ -1,4 +1,9 @@
 import type { User } from '@/generated/prisma/client';
+import {
+  BUY_REQUIRES,
+  SELL_REQUIRES,
+  type MissingField,
+} from './profile-requirements';
 
 /**
  * الحقول الناقصة قبل أول معاملة.
@@ -9,16 +14,7 @@ import type { User } from '@/generated/prisma/client';
  *
  * الترتيب هو ترتيب العرض في Wm وWf.
  */
-export type MissingField =
-  | 'email'
-  | 'idVerification'
-  | 'iban'
-  | 'city'
-  | 'bankName'
-  | 'taxStatus'
-  /** للمنشأة وحدها — السجلّ التجاريّ وعنوانها. */
-  | 'crNumber'
-  | 'address';
+export type { MissingField } from './profile-requirements';
 
 /**
  * ═══ ومتطلّباتُ المنشأة غيرُ متطلّبات الفرد ═══
@@ -107,8 +103,8 @@ export function profileCompletion(
      * **والحارس على ما كان يحرسه.** الشراء يحتاج بريدًا وهوية، والبيع
      * يزيد الآيبان — ولا يُمنع أحدٌ لأن مدينتَه ناقصة.
      */
-    canBuy: has.email && has.idVerification,
-    canSell: has.email && has.idVerification && has.iban,
+    canBuy: BUY_REQUIRES.every((field) => has[field]),
+    canSell: SELL_REQUIRES.every((field) => has[field]),
   };
 }
 

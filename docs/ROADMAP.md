@@ -2090,6 +2090,51 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 13 — `Wm` sign-in, and a condition the product enforces without warning
+
+`Wm` read **33٪** on three signals. Its first state was already built and
+matching; two of the three signals live in the **second** state, which appears
+only after «أرسل رمز التحقق» and which a fetch can never see.
+
+#### The markup's third block was the real gap
+
+Under the code field the markup draws «يُكمل قبل أول شراء أو بيع» listing
+البريد الإلكتروني · توثيق الهوية · رقم الآيبان (للبائعين).
+
+The product **enforces exactly those**: `canBuy` needs email and identity,
+`canSell` adds the IBAN. And it said so nowhere — the buyer learns it when they
+press «اشترِ», having chosen a car and opened their wallet. This repository's
+own rule covers it: **التذكير يسبق لحظة الحاجة**.
+
+- [x] The panel is built from `BUY_REQUIRES` and `SELL_REQUIRES`, **the same
+      constants the guard reads** — a hand-written list beside a guard is a
+      second copy that drifts, and then the screen promises something other
+      than what is enforced.
+- [x] The IBAN line is marked «للبائعين»; telling every new account they need
+      a bank account to buy is a different lie.
+- [x] The constants moved to a module with no Prisma import. `AuthForm` is a
+      client component and `profile.ts` imports a generated type —
+      `checkClientDbImports` caught it on the first run, which is what it is for.
+
+#### And the measure learned two things about itself
+
+- [x] **A screen can have part of its markup behind a click.** `WALK_ONLY`
+      removes a whole screen from the denominator, which would have thrown away
+      `Wm`'s measured first state. `BEHIND_CLICK` names the specific signals,
+      excludes those only, and **prints them in the footer every run** so the
+      list cannot become a hiding place.
+- [x] **Its first entry became exactly that hiding place.** I listed «رمز
+      التحقق», and substring matching swallowed **«أرسل رمز التحقق»** — the
+      button on the *first* state, and the only signal `Wm` had that was being
+      measured. The denominator fell to zero. Matching is exact now: a short
+      entry must not be a trap for every longer signal that contains it.
+- [x] **And a zero denominator read as 100٪.** `total === 0 ? 100` meant a
+      screen the tool could extract nothing from was reported as a perfect
+      match. It now reads «لا إشارات تُقاس» and stays out of the total — the
+      zero says «I did not measure», and the report must not say «perfect».
+
+Whole tree after: **69٪ → 71٪**.
+
 ### 40a · 12 — `Wg` the dealer page, and two numbers with no source
 
 `Wg` read **33٪**. Its header is a reputation panel of five figures; the product

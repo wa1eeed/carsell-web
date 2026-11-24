@@ -874,7 +874,14 @@
     "back": "Back",
     "crNumber": "Commercial register number",
     "address": "Business address",
-    "dealerLink": "Register a showroom with full onboarding"
+    "dealerLink": "Register a showroom with full onboarding",
+    "beforeFirst": "Needed before your first purchase or sale",
+    "sellersOnly": "(sellers only)",
+    "requirement": {
+      "email": "Email address",
+      "idVerification": "Identity verification",
+      "iban": "IBAN"
+    }
   },
   "account": {
     "title": "My account",

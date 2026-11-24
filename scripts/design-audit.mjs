@@ -496,6 +496,25 @@ const ROUTES = {
  */
 const WALK_ONLY = new Set(['Wh', 'A14']);
 
+/**
+ * ═══ إشاراتٌ خلف نقرةٍ في شاشةٍ تُجلَب ═══
+ *
+ * بعضُ الشاشات تُجلَب حالتُها الأولى ويبقى بعضُ ترميزها خلف فعل:
+ * `Wm` يرسم حقلَ الجوال **وحالةَ رمز التحقّق معًا** في كتلةٍ واحدة،
+ * والثانيةُ لا تظهر إلّا بعد «أرسل رمز التحقق». فجلبُ المسار يقرؤها
+ * ناقصةً إلى الأبد مهما بُنيت.
+ *
+ * و`WALK_ONLY` لا تصلح لها: تُخرج الشاشةَ كلَّها من المقام، فتذهب
+ * حالتُها الأولى المقيسة معها.
+ *
+ * **والخطرُ أن تصير هذه القائمةُ مخبأً** — فكلُّ ما فيها يُطبع في ذيل
+ * التقرير بصاحبه، ولا يُسكَت عنه. ولا يدخلها إلّا ما **مُشي بالمتصفّح
+ * وشوهد**: هذه الثلاثُ قِيست في ٢٠٢٦-١١-٢٤ بطلب رمزٍ وقراءة الشاشة.
+ */
+const BEHIND_CLICK = {
+  Wm: ['الخطوة التالية', 'إعادة الإرسال بعد'],
+};
+
 const NOT_BUILT = new Set([
   'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11',
 ]);
@@ -1013,8 +1032,21 @@ async function main() {
       }
 
       /** المؤجَّل يخرج من البسط والمقام معًا — لا يُعدّ نقصًا ولا مطابقة. */
+      /** وكذلك ما يقع خلف نقرةٍ في شاشةٍ تُجلَب حالتُها الأولى وحدها. */
+      const behind = BEHIND_CLICK[tag] ?? [];
       const live = signals.filter(
-        (signal) => !DEFERRED_SIGNALS.some((word) => signal.includes(word)),
+        (signal) =>
+          !DEFERRED_SIGNALS.some((word) => signal.includes(word)) &&
+          /*
+           * **والمطابقةُ تامّة لا احتواء.** كتبتُ «رمز التحقق» في
+           * القائمة فابتلعت **«أرسل رمز التحقق»** — وهو زرُّ الحالة
+           * **الأولى**، أي الإشارةُ الوحيدة التي كانت تُقاس في هذه
+           * الشاشة. فصار المقامُ صفرًا و«لا إشارات تُقاس»، والآليّةُ
+           * التي وُضعت لتصحيح القياس أخفت ما كانت تقيسه.
+           *
+           * فالاحتواءُ يجعل كلَّ مُدخَلٍ قصيرٍ مِصْيَدةً لما يطوله.
+           */
+          !behind.some((word) => normalizeText(word) === normalizeText(signal)),
       );
       const normalized = normalizeText(text);
       const missing = live.filter(
@@ -1055,6 +1087,7 @@ async function main() {
   let totalSignals = 0;
   let totalFound = 0;
   const skipped = [];
+  const unmeasured = [];
   const steps = [];
   const unreachable = [];
   const notBuilt = [];
@@ -1073,6 +1106,19 @@ async function main() {
       steps.push(`${row.tag} ↪ ${row.step}`);
     } else if (row.empty === true) {
       skipped.push(row.tag);
+    } else if (row.total === 0) {
+      /*
+       * ═══ ومقامٌ صفرٌ ليس مطابقةً تامّة ═══
+       *
+       * كان `total === 0` يُقرأ **١٠٠٪**: شاشةٌ لا يستخرج منها المقياسُ
+       * إشارةً — أو خرجت كلُّها مؤجَّلةً أو خلف نقرة — تُعلَن مطابقةً
+       * كاملة. وهو أسوأ من رقمٍ ناقص: **الصفرُ في المقام يقول «لم
+       * أقِس»، والتقريرُ كان يقول «تمام»**.
+       *
+       * ووقعت على `Wm` فورَ إعلان «خلف نقرة»: ثلاثُ إشاراتٍ كلُّها
+       * خلفها، فبقي المقامُ صفرًا وقُرئ مئةً.
+       */
+      unmeasured.push(row.tag);
     } else {
       totalSignals += row.total;
       totalFound += row.found;
@@ -1091,6 +1137,8 @@ async function main() {
             ? `↪ خطوة في ${row.step}`
             : row.empty === true
               ? '— فارغة'
+              : row.total === 0
+                ? '⬜ لا إشارات تُقاس'
               : /*
                    ═══ ونسبةٌ من مقامٍ ضيّق ليست نسبة ═══
 
@@ -1121,6 +1169,25 @@ async function main() {
 
   const overall = totalSignals === 0 ? 0 : Math.round((totalFound / totalSignals) * 100);
   console.log(`\nالمجموع: ${totalFound}/${totalSignals} إشارة — ${overall}٪`);
+  /**
+   * **وما خرج خلف نقرةٍ يُقال بصاحبه** — وإلّا صارت القائمةُ مخبأً
+   * يُنقص المقامَ بلا أن يعلم القارئ.
+   */
+  if (unmeasured.length > 0) {
+    console.log(
+      'لم تُقَس (لا إشارةَ يستخرجها المقياس من ترميزها — تُحكَم بقراءة الترميز): '
+        + unmeasured.join(' '),
+    );
+  }
+
+  const behindRows = Object.entries(BEHIND_CLICK);
+  if (behindRows.length > 0) {
+    console.log(
+      'خلف نقرة (مُشيت بالمتصفّح وشوهدت — خارج المقام): '
+        + behindRows.map(([tag, list]) => `${tag} (${list.join(' · ')})`).join(' · '),
+    );
+  }
+
   if (thin.length > 0) {
     console.log(
       `⚠ مقامٌ ضيّق (دون ${String(SIGNAL_FLOOR)} إشارات — النسبة تُقرأ ولا يُبنى عليها): `
