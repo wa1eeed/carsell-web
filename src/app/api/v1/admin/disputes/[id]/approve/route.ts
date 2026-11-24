@@ -40,7 +40,7 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'SELF_APPROVAL'
-            ? 'مقترح القرار لا يوافق على اقتراحه — يلزم عضو ثاني.'
+            ? 'هذا القرار اعتمد باسمك فعلا.'
             : result.reason === 'ALREADY_APPROVED'
               ? 'وافقت على هذا الطلب من قبل.'
               : result.reason === 'EXPIRED'
@@ -48,7 +48,7 @@ export async function POST(
                 : 'الطلب لم يعد قابلا للاعتماد.',
         messageEn:
           result.reason === 'SELF_APPROVAL'
-            ? 'The proposer cannot approve their own resolution.'
+            ? 'This resolution was already approved under your name.'
             : result.reason === 'ALREADY_APPROVED'
               ? 'You have already approved this request.'
               : result.reason === 'EXPIRED'

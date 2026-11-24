@@ -40,7 +40,7 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'SELF_APPROVAL'
-            ? 'طالب التبديل لا يوافق على طلبه — يلزم عضو ثاني.'
+            ? 'هذا التبديل اعتمد باسمك فعلا.'
             : result.reason === 'GATEWAY_NOT_FOUND'
               ? 'البوابة لم تعد صالحة لهذا الغرض — ألغي التطبيق.'
               : result.reason === 'EXPIRED'
@@ -48,7 +48,7 @@ export async function POST(
                 : 'الطلب لم يعد قابلا للاعتماد.',
         messageEn:
           result.reason === 'SELF_APPROVAL'
-            ? 'The requester cannot approve their own switch.'
+            ? 'This switch was already approved under your name.'
             : result.reason === 'GATEWAY_NOT_FOUND'
               ? 'The gateway is no longer eligible for this purpose.'
               : result.reason === 'EXPIRED'

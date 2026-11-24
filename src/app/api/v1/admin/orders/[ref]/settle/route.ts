@@ -43,16 +43,25 @@ export async function POST(
     return fail(
       {
         code: result.reason,
+        /*
+          **ورسائلُ المسار نصُّ شاشةٍ أيضًا.** كانت `SELF_APPROVAL` تقول
+          «يلزم عضو ثاني» بعد إلغاء النصاب بأربعين يومًا (§٣٥ · §٤١) —
+          والبوابة ١٩ لا تقرأ `src/app/api`، فأفلتت. وهي تقرؤها الآن.
+        */
         messageAr:
           result.reason === 'SELF_APPROVAL'
-            ? 'طالب الإفراج لا يوافق على طلبه — يلزم عضو ثاني.'
+            ? 'هذا الطلب اعتمد باسمك فعلا.'
             : result.reason === 'NOT_TRANSFERRED'
               ? 'لم تؤكد ملكية المركبة بعد — لا إفراج قبلها.'
-              : 'تعذر الإفراج.',
+              : result.reason === 'ESCROW_NOT_HELD'
+                ? 'الضمان لم يبق محجوزا — رد أو رد جزء منه. راجع التسوية قبل الإفراج.'
+                : 'تعذر الإفراج.',
         messageEn:
           result.reason === 'SELF_APPROVAL'
-            ? 'The requester cannot approve their own release.'
-            : 'Could not release the funds.',
+            ? 'This request was already approved under your name.'
+            : result.reason === 'ESCROW_NOT_HELD'
+              ? 'The escrow is no longer held — review the settlement first.'
+              : 'Could not release the funds.',
       },
       status,
     );

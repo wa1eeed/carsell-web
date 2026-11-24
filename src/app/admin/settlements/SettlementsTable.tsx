@@ -15,20 +15,28 @@ import type { SettlementBlock, SettlementRow } from '@/lib/domain/settlement-que
 /**
  * ═══ الإفراج عن الضمان — الشاشة التي لم تكن ═══
  *
- * النطاق والمسار والنصاب والاختبار كلّها قائمة، **ولا زرّ يبلغها**.
+ * النطاق والمسار والصلاحية والاختبار كلّها قائمة، **ولا زرّ يبلغها**.
  * فالمال يدخل الضمان ولا يخرج.
  *
  * ═══ والزرّ يقول ما يفعله ═══
  *
- * «اطلب الإفراج» لا «إفراج»: الضغطة الأولى **لا تُحرّك ريالًا** — تفتح
- * طلبًا ينتظر عضوًا ثانيًا. ومن قرأ «إفراج» وضغط ثم لم يجد المال قد
- * خرج يظنّ العطل في النظام، وهو في النصّ.
+ * وكان يقول **«اطلب الإفراج»** وتحته نافذةٌ عنوانُها «طلب تحويل» وزرُّ
+ * تأكيدها «افتح الطلب» — على أنّ الضغطة الأولى لا تُحرّك ريالًا. ثمّ
+ * أُلغي النصاب (§٣٥ · §٤١) فصارت تُفرج فورًا، **وبقي النصّ يَعِد
+ * بطلب**: ومن قرأ «اطلب» وضغط يحسب أنّ له مراجعةً بعدها، والمالُ قد
+ * خرج إلى البائع ولا يعود.
+ *
+ * وأطرفُها أنّ جسدَ النافذة كان قد صُحِّح («تفرج عن المبلغ فورا»)
+ * وعنوانُها وزرُّها لا — **فجملتان متناقضتان في نافذةٍ واحدة تتحرّك
+ * بها مئةُ ألف**. فالقرارُ يُنفَّذ في النصّ كلّه أو لا يُنفَّذ.
  */
 
 const BLOCK_LABEL: Record<SettlementBlock, string> = {
   NOT_TRANSFERRED: 'لم تؤكد ملكية المركبة بعد',
   DISPUTED: 'نزاع قائم، والمبلغ مجمد حتى يحسم',
   GATEWAY_UNAVAILABLE: 'بوابة الحجز بلا وصلة، فالإفراج يسقط',
+  ESCROW_NOT_HELD: 'الضمان لم يبق محجوزا — رد أو رد جزء منه',
+  NOTHING_HELD: 'لا ضمان لهذا المبلغ — راجع الدفعة',
 };
 
 export function SettlementsTable({
@@ -97,12 +105,14 @@ export function SettlementsTable({
             return (
               <Row key={row.orderRef} row={row}>
                 <div className="flex flex-col items-start gap-2 sm:items-end">
+                  {/*
+                    **و«النصاب ١/١» لا يقول شيئًا.** كان يُعرض بسطًا
+                    للموافقات، والنصابُ واحدٌ منذ §٤١ — فصفٌّ باقٍ
+                    هنا سببُه أنّ نداء البوّابة سقط بعد فتح الطلب
+                    (`GATEWAY_FAILED`)، لا أنّ أحدًا لم يوافق.
+                  */}
                   <span className="text-3xs opacity-70">
-                    طلبه {approval.requestedByName} · النصاب{' '}
-                    <span dir="ltr" className="font-num">
-                      {displayDigits(String(approval.approvals))}/
-                      {displayDigits(String(approval.required))}
-                    </span>
+                    طلبه {approval.requestedByName} · سقط نداء البوابة
                   </span>
                   {/*
                     السبب يُقال ولا يُترك للتخمين: زرٌّ معطَّل بلا سببٍ
@@ -134,12 +144,12 @@ export function SettlementsTable({
       )}
 
       {ready.length === 0 ? null : (
-        <Section title="جاهز للإفراج" count={ready.length} tone="ok">
+        <Section title="تنتظر الإفراج" count={ready.length} tone="ok">
           {ready.map((row) => (
             <Row key={row.orderRef} row={row}>
               {canRelease ? (
                 <Button size="sm" disabled={pending} onClick={() => setConfirming(row)}>
-                  اطلب الإفراج
+                  أفرج للبائع
                 </Button>
               ) : (
                 <span className="text-3xs opacity-65">لا تملك صلاحية الإفراج</span>
@@ -171,7 +181,7 @@ export function SettlementsTable({
       <Modal
         open={confirming !== null}
         onClose={() => setConfirming(null)}
-        title="طلب تحويل المبلغ للبائع"
+        title="تحويل المبلغ للبائع"
       >
         {confirming === null ? null : (
           <>
@@ -185,10 +195,11 @@ export function SettlementsTable({
             </div>
             <p className="mb-4 rounded-md border border-line bg-surface p-3 text-2xs leading-loose opacity-75">
               هذه الضغطة <b>تفرج عن المبلغ فورا</b> إلى البائع: ينادى مزود الدفع في
-              حينها، ويسجل الإجراء باسمك.
+              حينها، ويسجل الإجراء باسمك. وهذا الطلب كان الإفراج عنه تلقائيا فلم
+              يكتمل، فالضغطة إعادة محاولة.
             </p>
             <Button className="w-full" disabled={pending} onClick={() => call(confirming)}>
-              {pending ? 'جاري…' : 'افتح الطلب'}
+              {pending ? 'جاري…' : 'أفرج الآن'}
             </Button>
           </>
         )}

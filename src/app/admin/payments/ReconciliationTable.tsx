@@ -7,12 +7,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Money } from '@/components/ui/Money';
 import { Sheet } from '@/components/ui/Sheet';
 import type { Mismatch, ReconciliationRow } from '@/lib/domain/reconciliation';
-
-const STATUS_LABEL: Record<string, string> = {
-  MATCHED: 'طوبقت',
-  DIFFERS: 'فرق',
-  UNAVAILABLE: 'تعذرت القراءة',
-};
+import { RECON_STATUS_LABEL } from '@/lib/labels/admin';
 
 const KIND_LABEL: Record<Mismatch['kind'], string> = {
   MISSING_HERE: 'عند البوابة ولا أثر لها عندنا',
@@ -96,7 +91,7 @@ export function ReconciliationTable({ runs }: { runs: readonly ReconciliationRow
                   run.status === 'MATCHED' ? 'accent' : run.status === 'DIFFERS' ? 'warn' : 'neutral'
                 }
               >
-                {STATUS_LABEL[run.status] ?? run.status}
+                {RECON_STATUS_LABEL[run.status]}
               </Badge>
             ),
           },

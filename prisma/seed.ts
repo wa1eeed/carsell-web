@@ -323,7 +323,16 @@ async function reset(): Promise<void> {
       -- فكان يتراكم عبر كل تشغيل اختبار ولا يمسح أبدا: قرأت فيه
       -- ٢٠٧٬٧٥٠ «لدى مزود الدفع» والمال الفعلي ٣٤٤٬٥٧٠ — ورقم في
       -- دفتر لا يطابق ما في الصناديق ليس خطأ عرض بل دفتر غير موثوق.
-      "LedgerEntry"
+      "LedgerEntry",
+      -- **ودفتر التجريبية مثله**: مرجع الحجز فيه فريد، وصف باق من
+      -- تشغيل سابق يسقط البذرة بـ"Unique constraint failed on ref"
+      -- والرسالة تتهم الإنشاء لا البقية.
+      "SandboxTransaction",
+      -- **و ReconciliationRun مثله**: مفتاح البوابة فيه نص لا علاقة،
+      -- فلا يفرغ بالتعاقب ولا يمسحه شيء. وقيس: ثلاثة صفوف لكل بوابة
+      -- و"اثنا عشر" للمصرفية — تسعة من تشغيلات سابقة، تقرأها اللوحة
+      -- فتقول "طوبقت" عن يوم لا بيانات له في هذه البيئة.
+      "ReconciliationRun"
     RESTART IDENTITY CASCADE;
   `);
 }
@@ -1072,6 +1081,15 @@ async function main(): Promise<void> {
    * ولا يشكو.
    */
   let rareHooksPlanted = false;
+  /**
+   * **وواحدٌ يكفي**: شريحةُ «تنتظر الإفراج» تُفتح بصفٍّ، وزرُّها يُضغط.
+   *
+   * ويُحفظ مرجعُه لا رايةٌ وحدها: **زرعُ النزاع يأخذ أوّلَ طلبين عند
+   * `TRANSFER` أو `DONE`** فأخذ هذا الطلبَ نفسَه وجعل ضمانَه
+   * `PARTIAL_REFUND` — فصفٌّ يقول «تنتظر الإفراج» وضمانُه مردودٌ
+   * جزئيًّا. **والطقمُ يشترط ما يفترضه**، فيُستثنى بمرجعه.
+   */
+  let releaseRef: string | null = null;
 
   for (let i = 0; i < orderListings.length; i += 1) {
     const l = orderListings[i] as ListingRef;
@@ -1213,13 +1231,38 @@ async function main(): Promise<void> {
        * **ثلاث شاشات وثلاثة أرقام عن المال نفسه**، وطابورُ الإفراج
        * الذي بُني بنصاب عضوين لا يُرى عاملًا في أيّ بيئة.
        */
-      const settled = stage === 'DONE';
-      const holdRef = `hold_seed_${String(1000 + i)}`;
+      /**
+       * ═══ وطلبٌ واحد ينتظر الإفراج فعلًا ═══
+       *
+       * كلُّ دفعةٍ مزروعة على `bank_escrow` **ولا مُهايئ لها**، فكلُّ
+       * طلبٍ عند `DONE` إمّا سُوّي أو يُحجب بـ`GATEWAY_UNAVAILABLE`:
+       * فشريحةُ «تنتظر الإفراج» في A25 صفرٌ في كلّ بيئةٍ مزروعة،
+       * **وزرُّ «اعتمد» — الفعلُ الوحيد في الشاشة — لم يُضغط قطّ**.
+       * وهو الشكلُ الذي أُصلح في غيره مرّاتٍ: ميزةٌ مبنيّةٌ لا تصلها
+       * بيانات.
+       *
+       * فأوّلُ طلبٍ مكتمل يُزرع في الحال الذي يُنتجه المنتج بين تأكيد
+       * النقل والإفراج: الدفعةُ `HELD` والضمانُ `HELD` وعقدُ البيع
+       * صادر (`advanceStage` تُصدره عند `DONE`)، **ولا كشفَ تسويةٍ ولا
+       * اعترافَ بإيراد** — فهما في مسار `SETTLED` وحده.
+       *
+       * **وعلى التجريبية لأنّ لها مُهايئًا**: ودفترُها المستقلّ يحمل
+       * صفَّ الحجز، فالضغطةُ تُنادي `settle` فعلًا ولا تردّ
+       * `HOLD_NOT_FOUND`.
+       */
+      const awaitingRelease = stage === 'DONE' && releaseRef === null;
+      if (awaitingRelease) releaseRef = order.ref;
+
+      const settled = stage === 'DONE' && !awaitingRelease;
+      const gatewayKey = awaitingRelease ? 'sandbox' : 'bank_escrow';
+      const holdRef = awaitingRelease
+        ? `sbx_hold_seed_${String(1000 + i)}`
+        : `hold_seed_${String(1000 + i)}`;
       const payment = await prisma.payment.create({
         data: {
           orderId: order.id,
           purpose: 'VEHICLE_ESCROW',
-          gatewayKey: 'bank_escrow',
+          gatewayKey,
           amount: total,
           method: 'mada',
           status: settled ? 'SETTLED' : 'HELD',
@@ -1247,6 +1290,24 @@ async function main(): Promise<void> {
           createdAt: heldAt,
         },
       });
+      if (awaitingRelease) {
+        /**
+         * **ودفترُ التجريبية مستقلّ** — `settle` تقرأ `holdRef` منه،
+         * فحجزٌ بلا صفٍّ فيه يردّ `HOLD_NOT_FOUND` عند الضغط: زرٌّ
+         * يُرى عاملًا ويفشل، وهو أسوأ من زرٍّ غائب.
+         */
+        await prisma.sandboxTransaction.create({
+          data: {
+            ref: holdRef,
+            kind: 'HOLD',
+            state: 'HELD',
+            amount: total,
+            method: 'mada',
+            createdAt: heldAt,
+          },
+        });
+      }
+
       if (settled) {
         await prisma.paymentEvent.create({
           data: {
@@ -1281,7 +1342,7 @@ async function main(): Promise<void> {
         prisma.webhookEvent.create({
           data: {
             id: `evt_seed_${String(1000 + i)}_${suffix}`,
-            provider: 'bank_escrow',
+            provider: gatewayKey,
             type,
             signatureOk: true,
             paymentId: payment.id,
@@ -1325,7 +1386,7 @@ async function main(): Promise<void> {
           status: settled ? 'RELEASED' : 'HELD',
           heldAt,
           releasedAt: settled ? days(-1) : null,
-          gatewayRef: 'bank_escrow',
+          gatewayRef: gatewayKey,
         },
       });
       /**
@@ -1343,9 +1404,20 @@ async function main(): Promise<void> {
 
       await recordOrderPaid(
         prisma,
-        { orderId: order.id, paymentId: null, buyerId: buyer.id, total },
+        { orderId: order.id, paymentId: payment.id, buyerId: buyer.id, total },
         heldAt,
       );
+
+      if (awaitingRelease) {
+        /**
+         * **وعقدُ البيع عند تأكيد النقل لا عند الإفراج** —
+         * `advanceStage` تُصدره عند `DONE` (`orders.ts`)، وكشفُ
+         * التسوية والفاتورة في مسار `SETTLED`. فالمنتظِرُ له عقدُه
+         * وحده، وزرعُ الثلاثة له يصف حالًا لا يُنتجها المنتج.
+         */
+        const { issueSaleAgreement } = await documents();
+        await issueSaleAgreement(order.id, enteredAt);
+      }
 
       if (settled) {
         /**
@@ -1369,7 +1441,7 @@ async function main(): Promise<void> {
           prisma,
           {
             orderId: order.id,
-            paymentId: null,
+            paymentId: payment.id,
             buyerId: buyer.id,
             sellerId: l.sellerId,
             total,
@@ -1393,7 +1465,7 @@ async function main(): Promise<void> {
          */
         await recordOrderCaptured(
           prisma,
-          { orderId: order.id, paymentId: null, amount: total },
+          { orderId: order.id, paymentId: payment.id, amount: total },
           days(-1),
         );
       }
@@ -1626,7 +1698,16 @@ async function main(): Promise<void> {
 
   /** نزاعان: واحدٌ مفتوحٌ ينتظر، وواحدٌ حُسم — فالشاشة تُظهر الطرفين. */
   const disputable = await prisma.order.findMany({
-    where: { stage: { in: ['TRANSFER', 'DONE'] } },
+    where: {
+      stage: { in: ['TRANSFER', 'DONE'] },
+      /**
+       * **وليس الطلبَ المزروع للإفراج.** النزاعُ المحسوم يردّ جزءًا
+       * فيصير ضمانُه `PARTIAL_REFUND`، فلو وقع عليه لقال الطابور
+       * «تنتظر الإفراج» وضمانُه مردود — وهو الحال الذي يحجبه
+       * `canSettle` الآن، فتخلو الشريحةُ ويبقى الزرُّ بلا بيانات.
+       */
+      ...(releaseRef === null ? {} : { ref: { not: releaseRef } }),
+    },
     select: { id: true, buyerId: true, createdAt: true },
     take: 2,
   });
@@ -2908,6 +2989,25 @@ async function main(): Promise<void> {
     }
   }
 
+  /**
+   * ═══ المطابقة اليومية — وما لا يُزرع لا يُرى ═══
+   *
+   * `reconcileYesterday` مسجَّلةٌ في المُجدوِل ولا تُطابق إلّا بوّابةً
+   * مرّت بها دفعةٌ في يومها — ودفعاتُ البذرة أقدمُ من أمسِ، فكلُّ بيئةٍ
+   * مزروعة تفتح لوحةَ A25 على **«لم تطابق بعد» في كلّ سطر**، ولا يعرف
+   * أحدٌ أتعمل المطابقة أم لا.
+   *
+   * **والصفوف تُنتَج بدالّة المنتج لا تُكتب بيد**: `reconcileGateway`
+   * تقرأ دفترَنا وتسأل البوّابةَ كشفَها، فيخرج ما يخرج — `UNAVAILABLE`
+   * لمن لا مُهايئ لها («بانتظار ملف التسوية»)، و`MATCHED` للتجريبية
+   * التي تردّ كشفًا حقيقيًّا من `SandboxTransaction`. وصفٌّ مكتوبٌ بيدي
+   * يقول «مطابق» عن مقارنةٍ لم تقع.
+   */
+  const { reconcileAll } = await import('../src/lib/domain/reconciliation');
+  for (const back of [1, 2, 3]) {
+    await reconcileAll(days(-back), hours(-back * 2));
+  }
+
   const counts = {
     ماركة: await prisma.brand.count(),
     'نوع هيكل': await prisma.bodyTypeDisplay.count(),
@@ -2941,6 +3041,8 @@ async function main(): Promise<void> {
     /** **والتسرّب الصامت يُقاس لا يُلاحَظ** — فكلُّ كيانٍ يُزرع يُعدّ. */
     'قيد دفتر': await prisma.ledgerEntry.count(),
     'تحويل مزود': await prisma.providerPayout.count(),
+    'مطابقة بوابة': await prisma.reconciliationRun.count(),
+    'حجز تجريبي': await prisma.sandboxTransaction.count(),
   };
 
   console.log('');

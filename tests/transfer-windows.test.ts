@@ -114,19 +114,53 @@ describe('═══ القاعدة ٢ ═══ الإفراج يتبع تأكي
    * كانت نافذة استرجاعٍ سبعة أيام بين التأكيد والإفراج — أُلغيت بقرار
    * المصمّم: حين تصير المركبة باسم المشتري في المرور فقد وقع البيع.
    */
+  const HELD = { status: 'HELD' } as const;
+
   it('لا إفراج قبل تأكيد النقل', () => {
-    const guard = canSettle({ stage: 'TRANSFER', status: 'ACTIVE' });
+    const guard = canSettle({ stage: 'TRANSFER', status: 'ACTIVE', escrow: HELD });
     expect(guard.allowed).toBe(false);
     if (!guard.allowed) expect(guard.reason).toBe('NOT_TRANSFERRED');
   });
 
   it('وبلوغ DONE يكفي — بلا انتظار', () => {
-    const guard = canSettle({ stage: 'DONE', status: 'COMPLETED' });
+    const guard = canSettle({ stage: 'DONE', status: 'COMPLETED', escrow: HELD });
     expect(guard.allowed).toBe(true);
   });
 
+  /**
+   * ═══ والضمانُ شرطٌ ثالث — ويُختبَر بكسره ═══
+   *
+   * ردٌّ جزئيّ يُبقي الدفعة `HELD` بحقّ (الباقي للبائع) ويجعل الضمان
+   * `PARTIAL_REFUND`، ثمّ يعود الطلب إلى `DONE`. فالمرحلةُ والحالُ
+   * يقولان «أفرج»، **والمال لم يبقَ محجوزًا**: الإفراجُ يُحصّل عند
+   * البوّابة و`applyState` لا تجد صفًّا `HELD` تُفرجه — فلا إيرادَ ولا
+   * تحصيلَ ولا خبرَ للبائع، وكشفُ تسويةٍ يصدر على ما لم يُقيَّد.
+   */
+  it('ولا إفراج على ضمانٍ لم يبق محجوزًا', () => {
+    for (const status of ['PARTIAL_REFUND', 'REFUNDED', 'PENDING'] as const) {
+      const guard = canSettle({ stage: 'DONE', status: 'COMPLETED', escrow: { status } });
+      expect(guard.allowed, `الضمان ${status} يجب أن يُحجب`).toBe(false);
+      if (!guard.allowed) expect(guard.reason).toBe('ESCROW_NOT_HELD');
+    }
+  });
+
+  /**
+   * **والمتوقَّع يُفرَّق عن الخطر.** «لا ضمانَ أصلًا» و«أُفرج سلفًا»
+   * حالان تقعان في كلّ طلبٍ بلا مال وفي كلّ طلبٍ اكتمل — فلو حملتا
+   * سببَ الخطر لأبلغ `advanceStage` عن خطأٍ في كلّ انتقالٍ عاديّ،
+   * **فيُدرَّب القارئ على تجاهل السجلّ** ويضيع فيه ما يعني أنّ مال
+   * بائعٍ لم يخرج.
+   */
+  it('ولا شيءَ يُفرَج ليست عطلًا', () => {
+    for (const escrow of [null, { status: 'RELEASED' }] as const) {
+      const guard = canSettle({ stage: 'DONE', status: 'COMPLETED', escrow });
+      expect(guard.allowed).toBe(false);
+      if (!guard.allowed) expect(guard.reason).toBe('NOTHING_HELD');
+    }
+  });
+
   it('والنزاع يجمّد ولو نُقلت الملكية', () => {
-    const guard = canSettle({ stage: 'DONE', status: 'DISPUTED' });
+    const guard = canSettle({ stage: 'DONE', status: 'DISPUTED', escrow: HELD });
     expect(guard.allowed).toBe(false);
     if (!guard.allowed) expect(guard.reason).toBe('DISPUTED');
   });
@@ -141,6 +175,15 @@ describe('═══ القاعدة ٢ ═══ الإفراج يتبع تأكي
           environment: 'TEST', amount: 1000, method: 'mada', status: 'HELD',
           holdRef: `tw_${order.id}`, heldAt: now,
         },
+      });
+      /**
+       * **ولا دفعةً محجوزةً بلا ضمانها** — `applyState` تكتبهما معًا،
+       * و`settleableOrders` صارت تشترط الضمان كما يشترطه `canSettle`.
+       * واللقطةُ تستعيده (`snapshotOrder` تحمله).
+       */
+      await db.escrow.deleteMany({ where: { orderId: order.id } });
+      await db.escrow.create({
+        data: { orderId: order.id, amount: 1000, status: 'HELD', heldAt: now, gatewayRef: 'sandbox' },
       });
       await db.order.update({
         where: { id: order.id },

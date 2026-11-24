@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
-import { listRuns, reconcileGateway, runMismatches } from '@/lib/domain/reconciliation';
+import { latestRuns, listRuns, reconcileGateway, runMismatches } from '@/lib/domain/reconciliation';
 
 afterAll(async () => {
   await db.$disconnect();
@@ -182,5 +182,100 @@ describe('المطابقة اليومية — ومرجعُ التحصيل يُح
      */
     const { WEBHOOK_STATUS } = await import('@/lib/domain/webhooks');
     expect(WEBHOOK_STATUS['payment_captured']).toBe('SETTLED');
+  });
+});
+
+/**
+ * ═══ لوحةُ A25 — آخرُ مطابقةٍ لكلّ بوّابة ═══
+ *
+ * والمقيسُ ثلاثةٌ، كلُّها حدٌّ **يُعبَر لا يُنتظَر**: بوّابةٌ بلا صفٍّ
+ * أصلًا، وبوّابةٌ أحدثُ صفَّيها هو المقروء، ومجموعُ الفروق على المعاملات
+ * لا على المجاميع.
+ *
+ * **والبوّابةُ تُصنَع لتُقاس**: البذرة تُطابق كلَّ بوّابةٍ ثلاثةَ أيّام،
+ * فلا خاليةَ في بيئةٍ مزروعة — والحالُ الذي وُضعت له `null` لا يقع إلّا
+ * بزرعِه. ولوحةٌ تُسقط البوّابةَ التي لم تُطابَق قطّ تُخفي أوّلَ ما يجب
+ * أن يُرى، فتُفحص بوجودها في القائمة لا بحالها وحده.
+ */
+describe('لوحةُ المطابقة في A25', () => {
+  const KEY = 'probe-latest';
+
+  async function gateway() {
+    await db.paymentGateway.upsert({
+      where: { key: KEY },
+      update: {},
+      create: {
+        key: KEY,
+        nameAr: 'بوابة قياس',
+        nameEn: 'Probe gateway',
+        capabilities: {},
+        status: 'INACTIVE',
+        sort: 99,
+      },
+    });
+  }
+
+  async function drop() {
+    await db.reconciliationRun.deleteMany({ where: { gatewayKey: KEY } });
+    await db.paymentGateway.deleteMany({ where: { key: KEY } });
+  }
+
+  async function plant(day: string, status: 'MATCHED' | 'DIFFERS', mismatches: unknown[]) {
+    await db.reconciliationRun.create({
+      data: {
+        gatewayKey: KEY,
+        date: new Date(`${day}T00:00:00.000Z`),
+        ourTotal: 1000,
+        gatewayTotal: status === 'MATCHED' ? 1000 : 580,
+        diff: status === 'MATCHED' ? 0 : 420,
+        status,
+        mismatches: mismatches as never,
+        ranAt: new Date(`${day}T03:00:00.000Z`),
+      },
+    });
+  }
+
+  it('بوّابةٌ بلا مطابقةٍ تُدرَج بـ null — ولا تُسقَط ولا تُقال «مطابقة»', async () => {
+    await drop();
+    try {
+      await gateway();
+      const summary = await latestRuns();
+      const row = summary.gateways.find((entry) => entry.gatewayKey === KEY);
+
+      expect(row, 'بوّابةٌ بلا مطابقةٍ يجب أن تبقى في القائمة').toBeDefined();
+      expect(row?.status).toBeNull();
+      expect(row?.ranAt).toBeNull();
+      expect(row?.mismatchCount).toBe(0);
+    } finally {
+      await drop();
+    }
+  });
+
+  /**
+   * **وأحدثُ الصفَّين هو المقروء.** ولوحةٌ تقرأ الأقدم تطمئن المشغّل إلى
+   * مطابقةٍ نُقضت أمس — وهو خطأٌ لا يُرى، إذ الرقمان كلاهما حقيقيّ.
+   */
+  it('الأحدث يغلب الأقدم، والفروق تُجمع على المعاملات', async () => {
+    await drop();
+    try {
+      await gateway();
+      await plant('2026-07-10', 'MATCHED', []);
+      await plant('2026-07-12', 'DIFFERS', [
+        { ref: 'pay_a', ours: '420', theirs: null, kind: 'MISSING_THERE' },
+        { ref: 'pay_b', ours: '100', theirs: '90', kind: 'AMOUNT_DIFFERS' },
+      ]);
+
+      const summary = await latestRuns();
+      const row = summary.gateways.find((entry) => entry.gatewayKey === KEY);
+
+      expect(row?.status).toBe('DIFFERS');
+      expect(row?.date).toBe('2026-07-12');
+      expect(row?.mismatchCount).toBe(2);
+      expect(summary.mismatches).toBeGreaterThanOrEqual(2);
+      /** **والمجموعُ على المعاملات لا على المجاميع** — الفرقُ ٤٢٠ ومعاملتان. */
+      expect(row?.diff).toBe('420');
+    } finally {
+      await drop();
+    }
   });
 });

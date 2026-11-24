@@ -444,6 +444,7 @@
     "serviceRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
     "auditActions": "{count, plural, zero{لا إجراءات} one{إجراء واحد} two{إجراءان} few{{n} إجراءات} many{{n} إجراء} other{{n} إجراء}}",
     "ledgerLines": "{count, plural, zero{لا قيود} one{قيد واحد} two{قيدان} few{{n} قيود} many{{n} قيدا} other{{n} قيد}}",
+    "awaitingRelease": "{count, plural, zero{لا شيء ينتظر الإفراج} one{طلب واحد ينتظر الإفراج} two{طلبان ينتظران الإفراج} few{{n} طلبات تنتظر الإفراج} many{{n} طلبا ينتظر الإفراج} other{{n} طلب ينتظر الإفراج}}",
     "events": "{count, plural, zero{لا أحداث} one{حدث واحد} two{حدثان} few{{n} أحداث} many{{n} حدثا} other{{n} حدث}}",
     "monthsRange": "{count, plural, zero{لا شهور} one{شهر واحد} two{شهران} few{{n} شهور} many{{n} شهرا} other{{n} شهر}}",
     "seats": "{count, plural, zero{لا مقاعد} one{مقعد واحد} two{مقعدان} few{{n} مقاعد} many{{n} مقعدا} other{{n} مقعد}}",

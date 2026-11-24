@@ -161,3 +161,24 @@ export async function resolveForPayment(
   }
   return pendingGateway(gatewayKey, environment);
 }
+
+/**
+ * ═══ أنستطيع أن نسأل هذه البوّابة شيئًا؟ ═══
+ *
+ * `gatewayImplemented` تقول «للمنتج وصلةٌ إلى هذه البوّابة» — وهي
+ * شرطٌ لا يكفي: مُهايئٌ بلا مفتاحٍ لا يُنادى. والفرق يظهر في المطابقة:
+ * بوّابةٌ لا نملك مفتاحَها **لا ملفَّ تسويةٍ منها**، فلا تُقال
+ * «مطابِقة» مهما اتّسق دفترُنا — إذ لم نقارنه بشيءٍ خارجيّ.
+ *
+ * **والتجريبية مضبوطةٌ بلا أسرار** — كما في `resolveGateway` سواءً.
+ */
+export async function gatewayReachable(key: string): Promise<boolean> {
+  if (!gatewayImplemented(key)) return false;
+  if (key === SANDBOX_KEY) return true;
+
+  const credential = await db.integrationCredential.findUnique({
+    where: { integrationKey_env: { integrationKey: key, env: effectiveEnvironment('LIVE') } },
+  });
+  const secrets = readSecrets(credential?.secretsEncrypted ?? null);
+  return secrets.secretKey !== undefined && secrets.webhookSecret !== undefined;
+}

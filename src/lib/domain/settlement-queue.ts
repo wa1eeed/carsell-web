@@ -31,7 +31,23 @@ import { gatewayImplemented } from '@/lib/payments/resolve';
  * وصلة لها — فالصفّ كان يُعرض «جاهز للإفراج»، ويطلب موافقة شخصين،
  * **ثمّ يفشل النداء**. وموافقتان تُنفَقان على ما لا يقع.
  */
-export type SettlementBlock = 'NOT_TRANSFERRED' | 'DISPUTED' | 'GATEWAY_UNAVAILABLE';
+export type SettlementBlock =
+  | 'NOT_TRANSFERRED'
+  | 'DISPUTED'
+  | 'GATEWAY_UNAVAILABLE'
+  /**
+   * **والضمانُ غيرُ محجوزٍ سببُ حجبٍ رابع.** الطابور يُجمع بدفعةٍ
+   * `HELD`، وردٌّ جزئيّ يُبقي الدفعة محجوزةً بحقّ ويجعل الضمان
+   * `PARTIAL_REFUND` — فيُقرأ الصفُّ «جاهزًا» ويُحصّل عند البوّابة بلا
+   * قيدٍ عندنا.
+   */
+  | 'ESCROW_NOT_HELD'
+  /**
+   * **ولا ضمانَ أصلًا سببٌ خامس.** الطابور يُجمع بدفعةٍ `HELD`،
+   * فدفعةٌ محجوزةٌ بلا صفِّ ضمان حالٌ لا يُنتجها `applyState` — إذ
+   * تكتبهما معًا. فإن وقعت فالصفُّ يُراجَع لا يُفرَج.
+   */
+  | 'NOTHING_HELD';
 
 export type PendingApproval = {
   id: string;
@@ -91,6 +107,8 @@ export async function settlementQueue(now: Date = new Date()): Promise<Settlemen
       seller: { select: { name: true, phone: true } },
       payments: { where: { status: 'HELD' }, select: { amount: true, gatewayKey: true } },
       settlement: { select: { gatewayFee: true } },
+      /** **والضمانُ شرطٌ في `canSettle`** — لا يُستدلّ عليه بالدفعة. */
+      escrow: { select: { status: true } },
       disputes: { where: { status: { in: ['OPEN', 'INVESTIGATING'] } }, select: { id: true } },
     },
     orderBy: { ref: 'asc' },
@@ -230,6 +248,12 @@ export type SettlementHistory = {
   deposits: DepositRow[];
   /** مجموع ما أُفرج عنه منذ أوّل الشهر — «مُسوّى هذا الشهر» في A25 */
   settledThisMonth: string;
+  /**
+   * وعددُ طلباته — **والبطاقة تقول المبلغَ والعدد**، كما في الترميز
+   * («٣٫٨٢ م · ٢٩ طلبًا»). ومبلغٌ بلا عددٍ لا يُقال عنه إن كان صفقةً
+   * واحدة كبيرة أو ثلاثين صغيرة، والفرقُ هو ما يُقرأ من البطاقة.
+   */
+  settledThisMonthCount: number;
 };
 
 /**
@@ -293,6 +317,7 @@ export async function settlementHistory(now: Date = new Date()): Promise<Settlem
     db.escrow.aggregate({
       where: { status: 'RELEASED', releasedAt: { gte: monthStart } },
       _sum: { amount: true },
+      _count: true,
     }),
   ]);
 
@@ -322,5 +347,6 @@ export async function settlementHistory(now: Date = new Date()): Promise<Settlem
       hasPayment: row.paymentId !== null,
     })),
     settledThisMonth: (monthly._sum.amount ?? new Prisma.Decimal(0)).toFixed(2),
+    settledThisMonthCount: monthly._count,
   };
 }

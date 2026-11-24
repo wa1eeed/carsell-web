@@ -25,7 +25,7 @@ rather than found by chance.
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
 | `ActivityRow` | no | `event` · `at` | 1 |
-| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 6 |
+| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 7 |
 | `AdminMobileNav` | yes | `groups` · `activeHref` · `title` | 1 |
 | `AuctionCard` | no | `row` | 1 |
 | `AutoRefresh` | yes | `seconds` | 1 |
@@ -37,13 +37,13 @@ rather than found by chance.
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
-| `ExportLink` | no | `reportKey` · `allowed` | 5 |
+| `ExportLink` | no | `reportKey` · `allowed` | 6 |
 | `IdentityPanel` | yes | `userId` · `allowed` | 1 |
 | `KpiCard` | no | `kpi` | 1 |
 | `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 23 |
 | `ListingCard` | no | `row` | 7 |
 | `ListSearch` | no | `action` · `value` · `placeholder` · `keep` | 6 |
-| `MonitorCards` | no | `cards` | 14 |
+| `MonitorCards` | no | `cards` | 15 |
 | `MonitorList` | no | `children` · `empty` · `note` | 4 |
 | `MonitorRow` | no | `title` · `subtitle` · `meta` · `children` | 4 |
 | `MonitorTabs` | no | `tabs` · `active` · `basePath` · `param` | 30 |
@@ -54,7 +54,7 @@ rather than found by chance.
 | `SectionHead` | no | `title` · `note` | 7 |
 | `ServiceRequestCard` | no | `row` | 1 |
 | `Sla` | no | `hours` | 5 |
-| `StatCard` | no | `title` · `value` · `note` · `className` | 18 |
+| `StatCard` | no | `title` · `value` · `money` · `note` · `className` | 18 |
 | `StatGrid` | no | `children` · `className` | 5 |
 | `Timeline` | no | `events` | 11 |
 | `UserCard` | no | `row` | 2 |
@@ -134,7 +134,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 126 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 127 |
 | `AuctionRail` | no | `auctions` · `className` | 2 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 113 |
 | `InspectedBadge` | no | `className` | 3 |
@@ -151,7 +151,7 @@ rather than found by chance.
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 8 |
 | `DataTable` | yes | — | 11 |
-| `Duration` | no | `count` | 16 |
+| `Duration` | no | `count` | 17 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 140 |
@@ -172,7 +172,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 9 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 91 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 93 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
@@ -181,7 +181,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 126 |
+| `Quantity` | no | `unit` · `count` · `className` | 127 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 11 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

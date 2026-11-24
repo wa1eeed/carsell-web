@@ -1,4 +1,5 @@
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Money } from '@/components/ui/Money';
 import { cn } from '@/lib/cn';
 import type { ReactNode } from 'react';
 
@@ -26,11 +27,21 @@ import type { ReactNode } from 'react';
 export function StatCard({
   title,
   value,
+  money,
   note,
   className,
 }: {
   title: string;
-  value: number | string;
+  value?: number | string;
+  /**
+   * مبلغٌ بالريال — **وبهللاته**.
+   *
+   * وكان المبلغ يُمرَّر نصًّا في `value`، فيُطبع رقمًا بلا عملة: بطاقةٌ
+   * تقول «١٤٣٬٨٩٦٫٨٧» وجارتُها تقول «٣» ولا شيء يفرّق المالَ من العدد.
+   * **وكلُّ رقمٍ يُطابَق بجهةٍ خارجية يُعرض بهللاته** — ورسومُ البوّابة
+   * ١٫٧٠٪ + ريال، فالهللات قاعدةٌ لا شاذّ.
+   */
+  money?: string;
   /**
    * **والملاحظة عنصرٌ لا نصّ.** كانت نصًّا، فالمدّة تُكتب «ساعات (٣)»
    * — التفافًا على بوابة الجمع لا صياغةً. و`ReactNode` تُدخل
@@ -42,10 +53,12 @@ export function StatCard({
   return (
     <div className={cn('rounded-md border border-line bg-surface px-4.5 py-4', className)}>
       <p className="mb-1.5 text-2xs opacity-70">{title}</p>
-      {typeof value === 'number' ? (
+      {money !== undefined ? (
+        <Money amount={money} size="xl" decimals={2} className="font-bold" />
+      ) : typeof value === 'number' ? (
         <ArabicNumber value={value} className="text-3xl font-bold" />
       ) : (
-        <span className="font-num text-3xl font-bold">{value}</span>
+        <span className="font-num text-3xl font-bold">{value ?? '—'}</span>
       )}
       <p className="mt-1.5 text-3xs opacity-70">{note}</p>
     </div>

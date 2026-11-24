@@ -17,37 +17,85 @@ import { IMPLEMENTED_GATEWAYS } from '@/lib/payments/resolve';
  * ما عداه صالحًا.
  */
 
-const touched: string[] = [];
+/**
+ * ═══ والطقمُ يصنع طلبَه ولا يستعيره ═══
+ *
+ * كان يأخذ «أوّلَ طلبٍ محجوزٍ ماله» من البذرة، فمرّ على ثلاث مِحَن:
+ * أوّلًا صار أوّلُ المطابقين متنازَعًا عليه، ثمّ صار ضمانُه مردودًا
+ * جزئيًّا، ثمّ **استهلكه طقمٌ آخر في التشغيل نفسِه** — أفرج عنه فصار
+ * `SETTLED`، فسقط هذا بعده وبدا تقطّعًا.
+ *
+ * وكلُّ مرّةٍ كان العلاج شرطًا يُضاف إلى الاستعلام. **والعلّةُ في
+ * الشكل**: صفٌّ مزروع موردٌ مشترك، ومن يشترط فيه حالًا يشترط ألّا
+ * يلمسه أحد. فيُصنع هنا ويُحذف هنا.
+ */
+const made: string[] = [];
 
 afterAll(async () => {
-  if (touched.length > 0) {
-    await db.payment.updateMany({
-      where: { id: { in: touched } },
-      data: { gatewayKey: 'bank_escrow' },
-    });
+  for (const id of made) {
+    await db.escrow.deleteMany({ where: { orderId: id } });
+    await db.payment.deleteMany({ where: { orderId: id } });
+    await db.order.deleteMany({ where: { id } });
   }
   await db.$disconnect();
 });
 
+/** بوّابةٌ لا وصلةَ لها — تُشتقّ ولا تُكتب، فالقائمة تتبدّل. */
+const UNSERVABLE = ['bank_escrow', 'tap'].find((key) => !IMPLEMENTED_GATEWAYS.includes(key));
+
+const TAG = `GWB${String(Date.now()).slice(-9)}`;
+
 /**
- * طلبٌ محجوزٌ ماله — ونُعيد مرحلتَه وحالةَ دفعته بعد كل حالة.
- *
- * ═══ والطقمُ يشترط ما يفترضه ═══
- *
- * كان الشرط «له دفعةٌ محجوزة» وحده، والحالاتُ تحته تفترضه **قابلًا
- * للتسوية**. فلمّا تغيّرت البذرة صار أوّلُ المطابقين طلبًا متنازَعًا
- * عليه، فردّت التسوية `DISPUTED` بحقّ — وسقط الاختبار على ما لا
- * يقيسه، وبدا تقطّعًا وهو شرطٌ ناقص.
+ * طلبٌ جاهزٌ للإفراج بكلّ شروطه: مرحلةُ `DONE`، ولا نزاع، ودفعةٌ
+ * محجوزة، **وضمانٌ محجوز** — فما يُقاس بعدها هو البوّابة وحدها.
  */
-async function heldOrder() {
-  return db.order.findFirstOrThrow({
-    where: { payments: { some: { status: 'HELD' } }, status: 'ACTIVE', disputes: { none: {} } },
-    select: {
-      id: true, ref: true, stage: true, status: true,
-      payments: { where: { status: 'HELD' }, select: { id: true, gatewayKey: true } },
-    },
+async function heldOrder(gatewayKey: string) {
+  const seed = await db.order.findFirstOrThrow({
     orderBy: { ref: 'asc' },
+    select: { listingId: true, buyerId: true, sellerId: true },
   });
+
+  const order = await db.order.create({
+    data: {
+      ref: `${TAG}-${String(made.length)}`,
+      listingId: seed.listingId,
+      buyerId: seed.buyerId,
+      sellerId: seed.sellerId,
+      source: 'DIRECT',
+      stage: 'DONE',
+      status: 'COMPLETED',
+      agreedPrice: 80_000,
+      commissionPct: 2.5,
+      commissionAmount: 2_000,
+      sellerCommission: 2_000,
+      buyerCommission: 0,
+      transferFee: 350,
+      vatAmount: 300,
+      totalAmount: 80_650,
+    },
+  });
+  made.push(order.id);
+
+  const payment = await db.payment.create({
+    data: {
+      orderId: order.id,
+      purpose: 'VEHICLE_ESCROW',
+      gatewayKey,
+      environment: 'TEST',
+      amount: 80_650,
+      method: 'mada',
+      status: 'HELD',
+      holdRef: `${TAG}_h${String(made.length)}`,
+      heldAt: new Date(),
+    },
+  });
+
+  /** **ولا دفعةً محجوزةً بلا ضمانها** — `applyState` تكتبهما معًا. */
+  await db.escrow.create({
+    data: { orderId: order.id, amount: 80_650, status: 'HELD', heldAt: new Date(), gatewayRef: gatewayKey },
+  });
+
+  return { ...order, payments: [payment] };
 }
 
 describe('الإفراج والبوابة بلا وصلة', () => {
@@ -63,62 +111,34 @@ describe('الإفراج والبوابة بلا وصلة', () => {
   });
 
   it('وبوابةٌ بلا وصلة تحجب طلبًا صار جاهزًا', async () => {
-    const order = await heldOrder();
-    const before = { stage: order.stage, status: order.status };
+    expect(UNSERVABLE, 'لا بوّابةَ بلا وصلة — فلا شيء يُقاس').toBeDefined();
+    if (UNSERVABLE === undefined) return;
 
-    await db.order.update({
-      where: { id: order.id },
-      data: { stage: 'DONE', status: 'ACTIVE' },
-    });
-    try {
-      const queue = await settlementQueue();
-      const row = queue.blocked.find((entry) => entry.orderRef === order.ref);
-      expect(row?.blockedBy).toBe('GATEWAY_UNAVAILABLE');
-      expect(queue.ready.some((entry) => entry.orderRef === order.ref)).toBe(false);
-    } finally {
-      await db.order.update({ where: { id: order.id }, data: before });
-    }
+    const order = await heldOrder(UNSERVABLE);
+    const queue = await settlementQueue();
+    const row = queue.blocked.find((entry) => entry.orderRef === order.ref);
+    expect(row?.blockedBy).toBe('GATEWAY_UNAVAILABLE');
+    expect(queue.ready.some((entry) => entry.orderRef === order.ref)).toBe(false);
   });
 
   /** **وحارسٌ في العميل ليس حارسًا** — النداء المباشر يُردّ كذلك. */
   it('والخادم يردّ الطلب لا الشاشة وحدها', async () => {
-    const order = await heldOrder();
-    const before = { stage: order.stage, status: order.status };
+    if (UNSERVABLE === undefined) return;
 
-    await db.order.update({
-      where: { id: order.id },
-      data: { stage: 'DONE', status: 'ACTIVE' },
-    });
-    try {
-      const result = await requestSettle('adm-probe', order.ref);
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.reason).toBe('GATEWAY_UNAVAILABLE');
-    } finally {
-      await db.order.update({ where: { id: order.id }, data: before });
-    }
+    const order = await heldOrder(UNSERVABLE);
+    const result = await requestSettle('adm-probe', order.ref);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('GATEWAY_UNAVAILABLE');
   });
 
   it('وبوابةٌ لها وصلة لا تحجب', async () => {
-    const order = await heldOrder();
-    const payment = order.payments[0];
-    expect(payment).toBeDefined();
-    if (payment === undefined) return;
-
-    const before = { stage: order.stage, status: order.status };
     const servable = IMPLEMENTED_GATEWAYS[0];
     expect(servable).toBeDefined();
+    if (servable === undefined) return;
 
-    touched.push(payment.id);
-    await db.payment.update({ where: { id: payment.id }, data: { gatewayKey: servable } });
-    await db.order.update({ where: { id: order.id }, data: { stage: 'DONE', status: 'ACTIVE' } });
-    try {
-      const queue = await settlementQueue();
-      expect(queue.ready.some((entry) => entry.orderRef === order.ref)).toBe(true);
-    } finally {
-      await db.order.update({ where: { id: order.id }, data: before });
-      await db.payment.update({ where: { id: payment.id }, data: { gatewayKey: payment.gatewayKey } });
-      touched.pop();
-    }
+    const order = await heldOrder(servable);
+    const queue = await settlementQueue();
+    expect(queue.ready.some((entry) => entry.orderRef === order.ref)).toBe(true);
   });
 });

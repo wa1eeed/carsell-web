@@ -35,11 +35,11 @@ export async function POST(
         code: result.reason,
         messageAr:
           result.reason === 'SELF_APPROVAL'
-            ? 'طالب التدوير لا يوافق على طلبه — يلزم عضو ثاني.'
+            ? 'هذا التدوير اعتمد باسمك فعلا.'
             : 'الطلب لم يعد قابلا للاعتماد.',
         messageEn:
           result.reason === 'SELF_APPROVAL'
-            ? 'The requester cannot approve their own rotation.'
+            ? 'This rotation was already approved under your name.'
             : 'This request can no longer be approved.',
       },
       result.reason === 'SELF_APPROVAL' ? 403 : 409,

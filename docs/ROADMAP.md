@@ -2090,6 +2090,126 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 16 — `A25` escrow, and a release that captured money without a ledger entry
+
+`A25` read **50٪**. Six signals missing: the daily reconciliation, the awaiting
+-release tab, settled-this-month, the reconciliation difference, the per-gateway
+panel, and "awaiting the settlement file".
+
+**The reconciliation already existed and was already wired.** `reconcileGateway`,
+`reconcileAll`, `reconcileYesterday` (registered in the scheduler),
+`listRuns`, `runMismatches`, the `ReconciliationRun` model, `ReconciliationTable`
+in `A20`, an API route and a test file — all of it built. `A25` needed one
+reading function (`latestRuns`: the newest run per gateway, because `listRuns`
+answers "how was the week" and this panel answers "where are we now") and the
+panel to show it. The status labels moved out of `A20`'s local
+`Record<string, string>` into `src/lib/labels/admin.ts` with a `satisfies`
+pledge, because a second copy diverges on the first change — and the designer's
+word «بانتظار ملف التسوية» replaced «تعذّرت القراءة» in both.
+
+**I destroyed that module before finding it.** The opening `git status` said
+` M src/lib/domain/reconciliation.ts` and I wrote over it, assuming the file was
+new because a grep had looked unconvincing. Gate 63/64 caught it within the
+minute — `ReconciliationRun` suddenly had no writer and no reader — and `git
+checkout` restored the committed version. The uncommitted change it carried is
+gone and I cannot say what it was. **The ` M` in the status block is the whole
+warning, and reading a file before writing it is the whole fix.**
+
+### The release captured money and recorded nothing
+
+Walking the screen, not a test, found it. `canSettle` had two conditions —
+transfer confirmed, no open dispute — while the queue is assembled from orders
+carrying a `HELD` **payment**. A dispute resolved by partial refund leaves the
+payment held *by design* (the remainder is the seller's) and sets the escrow to
+`PARTIAL_REFUND`, returning the order to `TRANSFER`. When that order reaches
+`DONE` again it read as releasable.
+
+Pressing release captured at the gateway; `applyState` then released with
+`updateMany({ status: 'HELD' })`, which matched no row. So: no revenue
+recognised, no capture entry, no notification to the seller — **and a settlement
+statement and a tax invoice issued against revenue the ledger never recorded.**
+That is the `startHold` class inverted: money leaves and the book does not know.
+
+Closed in the three places that must agree, because a guard at one entrance is
+not a guard:
+
+- `canSettle` takes the escrow row as a **required** argument, so the compiler
+  names every caller; it found four, one of which I had not seen.
+- `settleableOrders()` — the scheduled job's list, a hand-written twin of the
+  same conditions — gained the same clause. Without it the job would retry an
+  unreleasable order every hour forever.
+- `applyState` reads the escrow before updating and separates two cases the old
+  `count === 0` conflated: a duplicate settlement (`RELEASED`, benign, skip) and
+  an escrow that was never held (reported, order event `settle.escrow_not_held`,
+  **and documents withheld** — a paper attesting to a settlement the ledger has
+  no record of is worse than no paper).
+
+### Seven tests failed, and the tests were what was wrong
+
+All seven came from fixtures writing a `HELD` payment with no `Escrow` row — a
+state `applyState` cannot produce, since it writes both in one transaction. The
+shared fixtures gained the escrow; `documents.test.ts` now walks
+`CREATED → PENDING → HELD → SETTLED` instead of skipping the hold.
+
+`settlement-gateway-block.test.ts` had been patched three times for borrowing
+"the first seeded order with held money" — first it became disputed, then
+partially refunded, then **another test in the same run consumed it**
+(`releaseConfirmedOrders` released it, correctly). Each fix added a clause to the
+query. The shape was the fault: a seeded row is a shared resource, and a test
+that needs it in a particular state needs nobody else to touch it. It now
+creates its own order and deletes it.
+
+### §41 leftovers, round two
+
+Gate 19's wording list let a third form through: «واعتماد طلب **غيره**» in the
+settlements footer — «غيرك» was listed, «غيره» was not. The list is now «غير»
+plus its pronoun family. Then the gate was measured by breaking what it guards,
+which showed its scope was `src/app/admin/**/*.tsx`: **API route messages are
+`.ts`**. Widening the extension turned up three more live ones — disputes,
+integrations and payment routes all telling the operator «يلزم عضو ثاني» forty
+days after the quorum was removed.
+
+Four more in `SettlementsTable` that no gate can see, because they promise a
+*request* rather than a second person: the trigger button «اطلب الإفراج», the
+dialog title «طلب تحويل المبلغ للبائع», the confirm button «افتح الطلب» — and
+the file header comment explaining that the first press moves no money. The
+dialog **body** had been corrected in §41 and its title and button had not, so
+one dialog that moves a hundred thousand riyals carried two contradictory
+sentences.
+
+### And the screen was describing the wrong actor
+
+The header said «الإفراج يقع بضغطة واحدة». True of this screen, false of the
+product: `settleOnTransferConfirmed` releases automatically the moment transfer
+is confirmed, and the scheduled job is a safety net. So what sits in this queue
+is money whose **automatic** release did not complete, and the button is a retry.
+An operator reading the old text would think they were the gate.
+
+### Seeded so the button can be pressed
+
+Every seeded payment was on `bank_escrow`, which has no adapter — so every
+completed order was either settled or blocked as `GATEWAY_UNAVAILABLE`, and
+«تنتظر الإفراج» was zero in every environment: **the screen's only action had
+never been exercised.** One order is now seeded in the state the product
+produces between transfer confirmation and release — payment `HELD` on the
+sandbox gateway with a matching row in its own ledger (so `settle` does not
+answer `HOLD_NOT_FOUND`), escrow `HELD`, sale agreement issued, no settlement
+statement and no revenue recognised, since those belong to the release. Pressed
+it in the browser: held fell from 241,540.91 to 143,896.87.
+
+Reconciliation runs are seeded the same way — by calling `reconcileAll` for three
+past days rather than writing rows by hand, so `sandbox` reads «مطابق» because it
+really was compared, and the three gateways without adapters read «بانتظار ملف
+التسوية» because they really could not be.
+
+Two tables were leaking across runs for want of a foreign key, the same shape as
+`LedgerEntry` before them: `ReconciliationRun` (twelve rows had become
+twenty-one) and `SandboxTransaction`, whose surviving row failed the next seed
+with a unique-constraint error that blamed the insert rather than the leftover.
+Both are in the truncate list now.
+
+**A25: 50٪ → 100٪.**
+
 ### 40a · 15 — `A3` finance, and a measure that read an owner decision as a gap
 
 `A3` read **41٪**. Opening it: GMV with its split, net revenue with five
@@ -2584,7 +2704,7 @@ one can read 25٪ because the design draws metrics we do not yet collect.
 | Band | Screens |
 | --- | --- |
 | **under 45٪** | `A10` push 25 · `A30` ad slots 25 · `Wj` order page 27 · `A11` integrations 31 · `A18` identity 38 · `Wf` **account home 40** · `Wp` dealer index 40 · `Wx` service checkout 40 · `A3` finance tab 41 · `A17` disputes 44 · `A2` ops tab 44 · `A34` legal 44 · `Wb` search 44 |
-| 45–65٪ | `Wg` 45 · `A13` `A16` `A25` `Wn` `Wv` `Wz` 50 · `A6` 53 · `A15` `A35` `A9` 56 · `A20` `Wa` 57 · `A8` 59 · `A36` `Wt` 60 · `A19` `A5` 64 |
+| 45–65٪ | `Wg` 45 · `A13` `A16` `Wn` `Wv` `Wz` 50 · `A6` 53 · `A15` `A35` `A9` 56 · `A20` `Wa` 57 · `A8` 59 · `A36` `Wt` 60 · `A19` `A5` 64 |
 | 65–85٪ | `A12` `Wk` 67 · `A22` `A27` 73 · `A29` `Wc` 75 · `A4` 77 · `A23` `A26` `Wi` 80 · `We` 81 · `A32` `A33` 83 |
 | over 85٪ | `A28` providers 90 · `Wo` legal page 91 · `A1` dashboard 92 · `A7` services **100** |
 

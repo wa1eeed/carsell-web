@@ -44,7 +44,25 @@ export function transferDeadlineFrom(paidAt: Date): Date {
 
 export type SettleGuard =
   | { allowed: true }
-  | { allowed: false; reason: 'NOT_TRANSFERRED' | 'DISPUTED' };
+  | {
+      allowed: false;
+      reason:
+        | 'NOT_TRANSFERRED'
+        | 'DISPUTED'
+        /**
+         * لا شيءَ يُفرَج: لا صفَّ ضمانٍ أصلًا، أو أُفرج سلفًا.
+         *
+         * **وهي حالٌ متوقَّعة لا عطل** — كـ`NO_HELD_PAYMENT` سواءً:
+         * طلبٌ بلا مالٍ يكتمل كما يكتمل غيرُه. وتحويلُها إلى خطأ
+         * يُغرق السجلّ بضجيجٍ يضيع فيه ما يعني أنّ مال بائعٍ لم يخرج.
+         */
+        | 'NOTHING_HELD'
+        /**
+         * ضمانٌ رُدّ أو رُدّ جزءٌ منه — **وهذه تُبلَّغ**: الدفعةُ ما
+         * زالت محجوزة، فالإفراج يُحصّل عند البوّابة ولا يُقيَّد عندنا.
+         */
+        | 'ESCROW_NOT_HELD';
+    };
 
 /**
  * ═══ الإفراج يتبع تأكيد نقل الملكية ═══
@@ -61,9 +79,43 @@ export type SettleGuard =
  * والفحص هنا لا في الشاشة: زرٌّ معطَّل يُلتفّ عليه بطلب واحد، ومبلغٌ
  * أُفرج عنه قبل أوانه لا يعود.
  */
-export function canSettle(order: { stage: string; status: string }): SettleGuard {
+/**
+ * ═══ والضمانُ شرطٌ ثالث — ولا يُستدلّ عليه بالدفعة ═══
+ *
+ * المرحلةُ والحالُ يصفان الطلب، و`Escrow` يصف **المال**: فهو سجلُّ ما
+ * هو محجوزٌ لهذا الطلب. وكان الفحص عليهما وحدهما، والطابورُ يُجمع
+ * بدفعةٍ `HELD` — فطلبٌ حُسم نزاعُه بردٍّ جزئيّ (`PARTIAL_REFUND`)
+ * **تبقى دفعتُه محجوزةً بحقّ** (الباقي للبائع) ثمّ يعود إلى `DONE`،
+ * فيُقرأ «جاهزًا للإفراج».
+ *
+ * وعند الضغط: البوّابةُ تُحصّل، و`applyState` تُفرج بـ
+ * `updateMany({ status: 'HELD' })` **فلا تُطابق صفًّا** — فلا إيرادَ
+ * يُعترف، ولا تحصيلَ يُقيَّد، ولا خبرَ يبلغ البائع، **وكشفُ تسويةٍ
+ * وفاتورةٌ ضريبية يصدران على إيرادٍ لم يُقيَّد**. وهو صنفُ `startHold`
+ * نفسُه مقلوبًا: المالُ يخرج ودفترُنا لا يعرف.
+ *
+ * فالشرط يُفحص هنا — في الحارس الذي تقرؤه الشاشةُ والمسارُ معًا — لا
+ * في أحدهما.
+ */
+export function canSettle(order: {
+  stage: string;
+  status: string;
+  /**
+   * صفُّ الضمان، و`null` تعني «لا ضمانَ لهذا الطلب».
+   *
+   * **ومطلوبةٌ لا اختيارية**: خاصّيةٌ اختيارية تجعل مستدعيًا ينساها
+   * فيمرّ بلا فحص — وهو ما كان. والمُصرِّف يفرضها على الثلاثة.
+   */
+  escrow: { status: string } | null;
+}): SettleGuard {
   if (order.status === 'DISPUTED') return { allowed: false, reason: 'DISPUTED' };
   if (order.stage !== 'DONE') return { allowed: false, reason: 'NOT_TRANSFERRED' };
+  if (order.escrow === null || order.escrow.status === 'RELEASED') {
+    return { allowed: false, reason: 'NOTHING_HELD' };
+  }
+  if (order.escrow.status !== 'HELD') {
+    return { allowed: false, reason: 'ESCROW_NOT_HELD' };
+  }
   return { allowed: true };
 }
 
@@ -180,6 +232,14 @@ export async function settleableOrders(): Promise<string[]> {
       // النزاع يجمّد — ولو نُقلت الملكية
       status: { not: 'DISPUTED' },
       payments: { some: { status: 'HELD' } },
+      /**
+       * **والشرطُ الثالث هنا أيضًا.** هذا الاستعلامُ توأمٌ مكتوبٌ بيدٍ
+       * لشروط `canSettle`، فحين أُضيف إليها «الضمانُ محجوز» بقي هو
+       * على شرطين — فتُسلّم القائمة إلى `settleOnTransferConfirmed`
+       * طلبًا يردّه حارسُها، **فتعيد الوظيفةُ محاولتَه كلَّ ساعة إلى
+       * الأبد**. والتوأمُ يُتبَع أو يُحذف.
+       */
+      escrow: { status: 'HELD' },
     },
     select: { ref: true },
   });

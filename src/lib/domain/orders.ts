@@ -188,7 +188,7 @@ export async function advanceStage(
        * على تجاهله — فيضيع فيه `GATEWAY_FAILED` وحده الذي يعني أن مال
        * بائعٍ لم يخرج.
        */
-      const EXPECTED: readonly string[] = ['NO_HELD_PAYMENT', 'DISPUTED'];
+      const EXPECTED: readonly string[] = ['NO_HELD_PAYMENT', 'DISPUTED', 'NOTHING_HELD'];
       if (!released.ok && !EXPECTED.includes(released.reason)) {
         const { reportError } = await import('@/lib/observability/report');
         reportError(new Error(`escrow.autoRelease:${released.reason}`), {

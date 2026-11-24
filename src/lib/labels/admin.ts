@@ -1,6 +1,6 @@
 import type { SegmentFieldKey } from '@/lib/campaigns/segments';
 import type { AuctionStatus, BuyerType, CampaignStatus, DisputeStatus, IdentityStatus, IntegrationCategory, IntegrationEnv, InvoiceIssuer, InvoiceStatus, LedgerAccount, ListingType, OrderSource, OrderStatus, PaymentPurpose, PayoutStatus, SellerType, SupplyType, TaxableBase, UserStatus } from '@/generated/prisma/enums';
-import type { OrderCancelCategory } from '@/generated/prisma/enums';
+import type { OrderCancelCategory, ReconciliationStatus } from '@/generated/prisma/enums';
 
 /**
  * تسميات لوحة الأدمن — **هنا لا في النطاق**.
@@ -507,3 +507,24 @@ export const CANCEL_CATEGORY_LABEL = {
   SELLER_DELAY: 'تأخر البائع',
   OTHER: 'أخرى',
 } satisfies Record<OrderCancelCategory, string>;
+
+/**
+ * ═══ حالُ مطابقةِ بوّابةٍ ليوم ═══
+ *
+ * كانت مكتوبةً في `ReconciliationTable` وحدها (A20) بـ
+ * `Record<string, string>` — بلا تعهّدٍ للمُصرِّف. ثمّ احتاجتها لوحةُ
+ * A25، **والنسخةُ الثانية تتباعد أوّل تغيير**: فتقول شاشةٌ «تعذّرت
+ * القراءة» وأختُها «بانتظار ملف التسوية» عن الحال نفسِه.
+ *
+ * **و«بانتظار ملف التسوية» لفظُ المصمّم**، وهو أصدقُ من «تعذّرت
+ * القراءة»: يقول ما ننتظره لا أنّ شيئًا تعطّل. و`UNAVAILABLE` ليست
+ * تطابقًا — فلونُها محايدٌ لا أخضر في الموضعين.
+ */
+export const RECON_STATUS_LABEL = {
+  MATCHED: 'مطابق',
+  DIFFERS: 'فرق',
+  UNAVAILABLE: 'بانتظار ملف التسوية',
+} satisfies Record<ReconciliationStatus, string>;
+
+/** ولم تُطابَق قطّ — حالٌ خارج التعداد، فلها لفظُها. */
+export const RECON_NEVER_LABEL = 'لم تطابق بعد';

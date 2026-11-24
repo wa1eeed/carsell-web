@@ -444,6 +444,7 @@
     "serviceRequests": "{count, plural, one{{n} request} other{{n} requests}}",
     "auditActions": "{count, plural, one{{n} action} other{{n} actions}}",
     "ledgerLines": "{count, plural, one{{n} entry} other{{n} entries}}",
+    "awaitingRelease": "{count, plural, one{# order awaiting release} other{# orders awaiting release}}",
     "events": "{count, plural, one{{n} event} other{{n} events}}",
     "monthsRange": "{count, plural, one{{n} month} other{{n} months}}",
     "seats": "{count, plural, one{{n} seat} other{{n} seats}}",

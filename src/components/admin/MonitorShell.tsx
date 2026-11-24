@@ -13,7 +13,13 @@ import { displayDigits } from '@/lib/arabic';
  * فالتخطيط هنا مرّةً واحدة، ولكل شاشة صفوفها وبطاقاتها.
  */
 
-export type MonitorCard = { title: string; value: number | string; note: ReactNode };
+export type MonitorCard = {
+  title: string;
+  value?: number | string;
+  /** مبلغٌ بالريال — يُرسَم بـ`Money` بهللاته، لا نصًّا في `value`. */
+  money?: string;
+  note: ReactNode;
+};
 export type MonitorTab = {
   key: string | null;
   label: string;
@@ -52,7 +58,7 @@ export function MonitorCards({ cards }: { cards: readonly MonitorCard[] }) {
   return (
     <StatGrid>
       {cards.map((card) => (
-        <StatCard key={card.title} title={card.title} value={card.value} note={card.note} />
+        <StatCard key={card.title} {...card} />
       ))}
     </StatGrid>
   );

@@ -33,6 +33,8 @@ type Case = {
   status: 'ACTIVE' | 'COMPLETED' | 'DISPUTED';
   dispute?: boolean;
   held?: boolean;
+  /** حالُ الضمان — و`HELD` هي الافتراضيّ، فالشرطُ يُعبَر بتبديلها. */
+  escrowStatus?: 'HELD' | 'PARTIAL_REFUND' | 'REFUNDED';
 };
 
 async function make(cases: readonly Case[]): Promise<void> {
@@ -79,6 +81,25 @@ async function make(cases: readonly Case[]): Promise<void> {
           holdRef: `${TAG}_h_${c.key}`, heldAt: days(-10),
         },
       });
+      /**
+       * ═══ ولا دفعةً محجوزةً بلا ضمانها ═══
+       *
+       * `applyState` تُنشئ الصفَّين في معاملةٍ واحدة، **فدفعةٌ `HELD`
+       * بلا `Escrow` حالٌ لا يُنتجها المنتج**. والطقم كان يكتبها، فلمّا
+       * صار `canSettle` يشترط ضمانًا محجوزًا سقط — **والخطأ كان في
+       * الطقم**: كان يقيس طابورًا على بياناتٍ لا تقع.
+       *
+       * و`escrowStatus` يُبدّلها الطقمُ ليعبر الشرط بنفسه.
+       */
+      await db.escrow.create({
+        data: {
+          orderId: order.id,
+          amount: 80_650,
+          status: c.escrowStatus ?? 'HELD',
+          heldAt: days(-10),
+          gatewayRef: 'sandbox',
+        },
+      });
     }
 
     if (c.dispute === true) {
@@ -114,6 +135,8 @@ afterEach(async () => {
   await db.approvalRequest.deleteMany({ where: { entityId: { startsWith: TAG } } });
   await db.dispute.deleteMany({ where: { orderId: { in: orderIds } } });
   await db.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+  /** **والأثرُ الجديد يُتبَع في الاستعادة** — وإلّا سقط حذفُ الطلب. */
+  await db.escrow.deleteMany({ where: { orderId: { in: orderIds } } });
   await db.order.deleteMany({ where: { id: { in: orderIds } } });
   await db.listing.deleteMany({ where: { id: { in: listingIds } } });
   await db.vehicle.deleteMany({ where: { id: { in: vehicleIds } } });

@@ -43,7 +43,15 @@ export type BookLine = {
    * الدفع، ولا ملكيةَ تُنقل قبله. فالوسم يسمّي المانع الحقيقيّ،
    * وإلّا انتظر البائع المرورَ وهو ينتظر مشتريًا.
    */
-  blockedBy: 'AWAITING_PAYMENT' | 'NOT_TRANSFERRED' | 'DISPUTED' | null;
+  blockedBy:
+    | 'AWAITING_PAYMENT'
+    | 'NOT_TRANSFERRED'
+    | 'DISPUTED'
+    /** رُدّ ضمانُه أو رُدّ جزءٌ منه — فلا إفراجَ على ما لم يبقَ محجوزًا. */
+    | 'ESCROW_NOT_HELD'
+    /** لا شيءَ محجوزٌ يُفرَج — وهي تقع قبل القبض وبعد الإفراج معًا. */
+    | 'NOTHING_HELD'
+    | null;
   /**
    * أُفرج عن ضمانه — **فلا يُقال «جاهز للصرف» بعد أن صُرف**.
    *
@@ -188,7 +196,7 @@ export async function sellerBook(sellerId: string, locale = 'ar'): Promise<Selle
       ? ({ allowed: false, reason: 'DISPUTED' } as const)
       : !collected
         ? ({ allowed: false, reason: 'AWAITING_PAYMENT' } as const)
-        : canSettle({ stage: order.stage, status: order.status });
+        : canSettle({ stage: order.stage, status: order.status, escrow: order.escrow });
 
     if (!guard.allowed && order.escrow?.status === 'HELD') held = held.plus(net);
     if (collected) earned = earned.plus(net);

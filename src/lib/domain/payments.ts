@@ -249,6 +249,11 @@ export async function applyState(
   refs?: PaymentRefs,
 ): Promise<AdvanceResult> {
   let orderId: string | null = null;
+  /**
+   * حالُ الضمان حين يُسوَّى على غير `HELD` — تُقرأ بعد المعاملة
+   * فيُبلَّغ، ويُمنع إصدارُ مستندٍ على تسويةٍ لم تُقيَّد.
+   */
+  let escrowNotHeld: string | null = null;
 
   /**
    * ═══ عربون الفائز يُحصَّل قبل أن يُقفل الاستحقاق ═══
@@ -411,10 +416,52 @@ export async function applyState(
     }
 
     if (to === 'SETTLED' && payment.orderId !== null) {
-      const released = await tx.escrow.updateMany({
-        where: { orderId: payment.orderId, status: 'HELD' },
-        data: { status: 'RELEASED', releasedAt: now },
+      /**
+       * ═══ ولِمَ لم يُفرَج؟ سؤالٌ لجوابين لا جواب ═══
+       *
+       * `updateMany({ status: 'HELD' })` تعيد صفرًا في حالين لا يجمعهما
+       * شيء: **تسويةٌ تكرّرت** (ويبهوكٌ يُعاد، أو إفراجٌ ضُغط مرّتين)
+       * وهي حالٌ سليمة يُتخطّى فيها القيد؛ **وضمانٌ لم يبقَ محجوزًا**
+       * (رُدّ أو رُدّ جزءٌ منه) وهي حالٌ **المالُ فيها قد خرج من
+       * البوّابة ولن يُقيَّد عندنا**.
+       *
+       * وكان الفرعان واحدًا والصفرُ يُتخطّى صامتًا: فطلبٌ حُسم نزاعُه
+       * بردٍّ جزئيّ ثمّ عاد إلى `DONE` يُحصَّل عند البوّابة بلا إيرادٍ
+       * ولا تحصيلٍ ولا خبرٍ للبائع، **وكشفُ تسويةٍ وفاتورةٌ ضريبية
+       * يصدران عليه**. و`canSettle` تمنعه الآن — لكنّ هذا المدخل يبلغه
+       * الويبهوك أيضًا، **وحارسٌ في مدخلٍ واحد ليس حارسًا**.
+       *
+       * فتُقرأ حالُ الصفّ قبل تبديله، ويُفرَّق الجوابان.
+       */
+      const before = await tx.escrow.findUnique({
+        where: { orderId: payment.orderId },
+        select: { status: true },
       });
+
+      const released =
+        before?.status === 'HELD'
+          ? await tx.escrow.updateMany({
+              where: { orderId: payment.orderId, status: 'HELD' },
+              data: { status: 'RELEASED', releasedAt: now },
+            })
+          : { count: 0 };
+
+      /**
+       * **والخروجُ بلا قيدٍ يُكتب حدثًا ويُبلَّغ.** وتسويةٌ مكرّرة
+       * (`RELEASED`) ليست منه: تلك وقعت وقُيّدت مرّة.
+       */
+      if (before === null || (before.status !== 'HELD' && before.status !== 'RELEASED')) {
+        escrowNotHeld = before?.status ?? 'MISSING';
+        await tx.orderEvent.create({
+          data: {
+            orderId: payment.orderId,
+            type: 'settle.escrow_not_held',
+            actorType: 'system',
+            createdAt: now,
+            payload: { escrowStatus: escrowNotHeld, paymentId: payment.id },
+          },
+        });
+      }
 
       /**
        * **وهنا وحده يُعترف بالإيراد** — لا عند القبض.
@@ -512,7 +559,24 @@ export async function applyState(
    * // DESIGN-Q: `PARTIALLY_SETTLED` لا تُصدر — والمال تحرّك فيها جزئيًّا.
    * انظر docs/tax-model.md § 9.
    */
-  if (result.ok && to === 'SETTLED' && orderId !== null) {
+  /**
+   * **ولا مستندَ على تسويةٍ لم تُقيَّد.** كشفُ التسوية والفاتورة
+   * الضريبية يشهدان بواقعةٍ ماليّة — وإصدارُهما على إفراجٍ لم يُكتب
+   * له قيدٌ يُنتج ورقةً تشهد بما لا أثرَ له في الدفتر، وهي أسوأ من
+   * غياب الورقة: أوّلُ مطابقةٍ ضريبية تجد فاتورةً بلا إيراد.
+   *
+   * فيُبلَّغ ولا يُصدَر، والطلبُ يحمل حدثَه — و`orderDocuments` تُظهر
+   * المستند «ينتظر»، فهي طابورُ إعادة المحاولة بعد تصحيح الضمان.
+   */
+  if (escrowNotHeld !== null && orderId !== null) {
+    const { reportError } = await import('@/lib/observability/report');
+    reportError(new Error('settled while escrow was not held'), {
+      where: 'payments.applyState.escrowNotHeld',
+      extra: { orderId, paymentId, escrowStatus: escrowNotHeld },
+    });
+  }
+
+  if (result.ok && to === 'SETTLED' && orderId !== null && escrowNotHeld === null) {
     /**
      * **الفشل هنا لا يُبطل التسوية.** المعاملة أُغلقت، والمال تحرّك —
      * ورميُ الخطأ يجعل المستدعي يرى فشلًا وقد نجح، فيعيد المحاولة على
@@ -598,6 +662,8 @@ export async function settleOnTransferConfirmed(
         where: { status: 'HELD' },
         select: { id: true, holdRef: true, gatewayKey: true, environment: true, amount: true },
       },
+      /** **والضمانُ شرطٌ في `canSettle`** — فيُجلب معه لا بعده. */
+      escrow: { select: { status: true } },
       disputes: { where: { status: { in: ['OPEN', 'INVESTIGATING'] } }, select: { id: true } },
     },
   });
@@ -661,8 +727,18 @@ export type SettleFailure =
   | 'NOT_PENDING'
   | 'EXPIRED'
   | 'GATEWAY_FAILED'
-  /** بوابةُ الحجز بلا وصلة — فالإفراج يسقط ولو وافق عضوان. */
-  | 'GATEWAY_UNAVAILABLE';
+  /** بوابةُ الحجز بلا وصلة — فالإفراج يسقط عند النداء. */
+  | 'GATEWAY_UNAVAILABLE'
+  /**
+   * الضمانُ ليس محجوزًا — رُدّ أو رُدّ جزءٌ منه أو لا صفَّ له.
+   *
+   * والدفعةُ قد تبقى `HELD` بحقّ بعد ردٍّ جزئيّ، فالدفعةُ وحدها لا
+   * تكفي شرطًا: إفراجٌ على ضمانٍ غير محجوز يُحصّل عند البوّابة ولا
+   * يُقيَّد عندنا.
+   */
+  | 'ESCROW_NOT_HELD'
+  /** لا شيءَ محجوزٌ يُفرَج — لا ضمانَ أصلًا أو أُفرج سلفًا. */
+  | 'NOTHING_HELD';
 
 export type SettleResult =
   | { ok: true; state: 'PENDING'; approvals: number; required: number }
@@ -692,6 +768,7 @@ export async function requestSettle(
     where: { ref: orderRef },
     select: {
       id: true, stage: true, status: true,
+      escrow: { select: { status: true } },
       payments: { where: { status: 'HELD' }, select: { id: true, gatewayKey: true } },
     },
   });
@@ -776,6 +853,7 @@ export async function approveSettle(
     where: { ref: request.entityId },
     select: {
       stage: true, status: true,
+      escrow: { select: { status: true } },
       payments: { where: { status: 'HELD' }, select: { id: true, holdRef: true, gatewayKey: true, environment: true, amount: true } },
     },
   });

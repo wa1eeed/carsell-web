@@ -4192,7 +4192,12 @@ function checkQuorumWording() {
   const declared = /REQUIRED_APPROVALS\s*=\s*(\d+)/.exec(readFileSync(approvals, 'utf8'));
   if (declared === null || Number(declared[1]) > 1) return;
 
-  const screens = join(ROOT, 'src', 'app', 'admin');
+  /**
+   * **ومسارُ الـAPI نصُّ شاشةٍ أيضًا.** كان المدى `src/app/admin`
+   * وحده، فأفلتت رسالةُ `settle` التي تقول «يلزم عضو ثاني» — يقرؤها
+   * المشغّل في Toast كأيّ نصّ. فالمدى `src/app` كلُّه.
+   */
+  const screens = join(ROOT, 'src', 'app');
   if (!existsSync(screens)) return;
 
   /**
@@ -4225,11 +4230,40 @@ function checkQuorumWording() {
   const APPROVAL =
     /\u0645\u0648\u0627\u0641\u0642|\u064A\u0648\u0627\u0641\u0642|\u062A\u0648\u0627\u0641\u0642|\u0627\u0639\u062A\u0645\u0627\u062F|\u064A\u0639\u062A\u0645\u062F|\u062A\u0639\u062A\u0645\u062F|\u0646\u0635\u0627\u0628/;
 
-  /** ② وشخصٌ ثانٍ، أيًّا كان اسمُه: عضو · شخص · غيرك · آخر · اثنان. */
-  const SECOND =
-    /\u0639\u0636\u0648\u064A\u0646|\u0639\u0636\u0648\u0627\u0646|\u0634\u062E\u0635\u064A\u0646|\u0634\u062E\u0635\u0627\u0646|\u0627\u062B\u0646\u064A\u0646|\u0627\u062B\u0646\u0627\u0646|\u063A\u064A\u0631\u0643|\u062B\u0627\u0646\u064D|\u062B\u0627\u0646\u064A|\u062B\u0627\u0646\u064A\u0629|\u0622\u062E\u0631|\u0623\u062E\u0631\u0649/;
+  /**
+   * ② وشخصٌ ثانٍ، أيًّا كان اسمُه: عضو · شخص · غيرك · آخر · اثنان.
+   *
+   * **وأفلتت «غيره» ثالثةً.** كانت «غيرك» مكتوبةً بضميرها وحده، فمرّ
+   * «طلب الإفراج عن مبلغ محجوز، واعتماد طلب **غيره**» في ذيل شاشة
+   * الضمان — أخطرِ شاشةٍ في اللوحة. فصار «غير» يُفحص **بأسرة ضمائره**
+   * لا بواحدٍ منها: ك · ه · ها · هم · هن · كم · ي. وهو الدرسُ نفسُه
+   * مرّةً ثالثة — **ما يُعدّ يدويًّا يُنسى بعضُه**، فيُبنى الشكلُ لا
+   * القائمة.
+   */
+  const SECOND = new RegExp(
+    [
+      '\u0639\u0636\u0648\u064A\u0646', // عضوين
+      '\u0639\u0636\u0648\u0627\u0646', // عضوان
+      '\u0634\u062E\u0635\u064A\u0646', // شخصين
+      '\u0634\u062E\u0635\u0627\u0646', // شخصان
+      '\u0627\u062B\u0646\u064A\u0646', // اثنين
+      '\u0627\u062B\u0646\u0627\u0646', // اثنان
+      // غير + ضمير: غيرك · غيره · غيرها · غيرهم · غيرهن · غيركم · غيري
+      '\u063A\u064A\u0631(?:\u0643\u0645|\u0647\u0645|\u0647\u0646|\u0647\u0627|\u0643|\u0647|\u064A)',
+      '\u062B\u0627\u0646\u064D', // ثانٍ
+      '\u062B\u0627\u0646\u064A', // ثاني · ثانية
+      '\u0622\u062E\u0631', // آخر
+      '\u0623\u062E\u0631\u0649', // أخرى
+    ].join('|'),
+  );
 
-  for (const file of walk(screens).filter((entry) => entry.endsWith('.tsx'))) {
+  /**
+   * **والمِصفاةُ `.tsx` كانت تُسقط المسارات.** وُسِّع المدى إلى
+   * `src/app` كلِّه فظُنّ الأمرُ تمّ — **وقياسُه بكسرِ ما يحرسه كشف
+   * أنّ شيئًا لم يتغيّر**: مسارُ الـAPI ملفُّ `.ts`. فالبوابةُ تحرس ما
+   * تقرؤه لا ما تظنّ أنها تحرسه، والامتدادان معًا.
+   */
+  for (const file of walk(screens).filter((entry) => /\.tsx?$/.test(entry))) {
     const lines = stripComments(readFileSync(file, 'utf8')).split('\n');
     lines.forEach((line, index) => {
       if (!APPROVAL.test(line) || !SECOND.test(line)) return;
@@ -4542,13 +4576,21 @@ function checkGenitiveAfterPreposition() {
   const screens = join(ROOT, 'src', 'app');
   if (!existsSync(screens)) return;
 
-  /** حروفُ جرٍّ تحكم إعرابَ ما بعدها — والمثنّى وحده يُظهر الفرق. */
+  /**
+   * حروفُ جرٍّ تحكم إعرابَ ما بعدها — والمثنّى وحده يُظهر الفرق.
+   *
+   * **والشرطُ وجودُ الخاصّية لا موضعُها.** كان الفحص `<Duration
+   * (?!genitive)` — أي يشترطها **أوّلَ خاصّية**، فأنذر على
+   * `<Duration minutes={n} genitive />` وهي صحيحة. **وبوابةٌ تُنذر
+   * على الصواب تُعطَّل في يومها**، فيُقرأ جسدُ الوسم كلُّه.
+   */
   const AFTER =
-    /(منذ|من|قبل|بعد|خلال|إلى|حتى)(\s*\{?'?\s*'?\}?\s*\n?\s*)<Duration (?!genitive)/g;
+    /(منذ|من|قبل|بعد|خلال|إلى|حتى)(\s*\{?'?\s*'?\}?\s*\n?\s*)<Duration\b([^>]*)>/g;
 
   for (const file of walk(screens).filter((entry) => entry.endsWith('.tsx'))) {
     const source = stripComments(readFileSync(file, 'utf8'));
     for (const match of source.matchAll(AFTER)) {
+      if (/\bgenitive\b/.test(match[3] ?? '')) continue;
       const line = source.slice(0, match.index).split('\n').length;
       problems.push(
         `${relative(ROOT, file)}:${String(line)}  «${match[1]}» قبل <Duration> بلا ` +

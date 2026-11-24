@@ -340,3 +340,92 @@ export async function reconcileYesterday(now: Date = new Date()): Promise<number
 
   return done;
 }
+
+export type GatewayLatest = {
+  gatewayKey: string;
+  /**
+   * آخرُ حالٍ طُوبقت به — **و`null` تعني «لم تُطابَق قطّ»**.
+   *
+   * و`reconcileYesterday` لا تُطابق إلّا بوّابةً مرّت بها دفعةٌ في ذلك
+   * اليوم، فبوّابةٌ بلا حركةٍ لا صفَّ لها. وإسقاطُ الغياب في `MATCHED`
+   * هو عينُ ما يحرسه `UNAVAILABLE`: **بوّابةٌ لم تُقرأ لم تُطابَق**.
+   */
+  status: ReconciliationStatus | null;
+  /** يومُ التسوية المُطابَق — لا لحظة التشغيل. */
+  date: string | null;
+  diff: string;
+  mismatchCount: number;
+  ranAt: string | null;
+};
+
+export type ReconciliationSummary = {
+  gateways: GatewayLatest[];
+  /**
+   * مجموعُ المعاملات المختلفة في آخر مطابقةٍ لكلّ بوّابة — وهو رقم
+   * بطاقة «فرق المطابقة» في A25.
+   *
+   * **والعدُّ على المعاملات لا على المجاميع**: مجموعان متساويان مع
+   * فرقين متعاكسين تطابقٌ في الحساب وخطأٌ في الدفتر.
+   */
+  mismatches: number;
+  /** آخرُ لحظةٍ طُوبق فيها شيء — `null` حين لا مطابقةَ بعد. */
+  ranAt: string | null;
+};
+
+/**
+ * ═══ آخرُ مطابقةٍ لكلّ بوّابة — لوحةُ A25 ═══
+ *
+ * الترميز يضع في شاشة الضمان لوحةً بسطرٍ لكلّ بوّابة وحالها، وبطاقةً
+ * بعدد الفروق. و`listRuns` تعيد **سجلَّ أربعة عشر يومًا** لجدول A20،
+ * وهو جوابُ سؤالٍ آخر: «كيف كانت المطابقة هذا الأسبوع؟». وسؤالُ هذه
+ * اللوحة «أين نحن الآن؟» — فصفٌّ واحد لكلّ بوّابة، أحدثُها.
+ *
+ * **والبوّابات من جدولها لا من المطابقات**: اشتقاقُ القائمة من الصفوف
+ * يُسقط كلَّ بوّابةٍ لم تُطابَق قطّ — وهي أوّلُ ما يجب أن يُرى.
+ */
+export async function latestRuns(): Promise<ReconciliationSummary> {
+  const [gateways, runs] = await Promise.all([
+    db.paymentGateway.findMany({
+      select: { key: true },
+      orderBy: [{ sort: 'asc' }, { key: 'asc' }],
+    }),
+    db.reconciliationRun.findMany({
+      distinct: ['gatewayKey'],
+      orderBy: [{ gatewayKey: 'asc' }, { date: 'desc' }],
+      select: { gatewayKey: true, date: true, diff: true, mismatches: true, status: true, ranAt: true },
+    }),
+  ]);
+
+  const rows: GatewayLatest[] = gateways.map((gateway) => {
+    const run = runs.find((entry) => entry.gatewayKey === gateway.key);
+    if (run === undefined) {
+      return {
+        gatewayKey: gateway.key,
+        status: null,
+        date: null,
+        diff: '0',
+        mismatchCount: 0,
+        ranAt: null,
+      };
+    }
+    return {
+      gatewayKey: gateway.key,
+      status: run.status,
+      date: run.date.toISOString().slice(0, 10),
+      diff: run.diff.toString(),
+      mismatchCount: Array.isArray(run.mismatches) ? run.mismatches.length : 0,
+      ranAt: run.ranAt.toISOString(),
+    };
+  });
+
+  const stamps = rows
+    .map((row) => row.ranAt)
+    .filter((value): value is string => value !== null)
+    .sort();
+
+  return {
+    gateways: rows,
+    mismatches: rows.reduce((total, row) => total + row.mismatchCount, 0),
+    ranAt: stamps.at(-1) ?? null,
+  };
+}

@@ -1,6 +1,6 @@
 # State machines
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-11-24_
 
 The five paths a transaction can take. Each diagram is the shape the code
 actually enforces — the transition tables are cited beside each one, so a reader
@@ -213,7 +213,7 @@ stateDiagram-v2
     REQUIRES_ACTION --> PENDING
     REQUIRES_ACTION --> HELD
     PENDING --> HELD
-    HELD --> SETTLED : transfer confirmed, or two approvers
+    HELD --> SETTLED : transfer confirmed (auto), or an operator retry
     HELD --> PARTIALLY_SETTLED
     HELD --> CANCELLED
     PARTIALLY_SETTLED --> SETTLED
@@ -232,9 +232,12 @@ The vocabulary is **escrow, not card**: hold, settle, cancel, partialReturn.
 arrived and executed; calling it a failure makes the domain retry and the card is
 charged twice. `PENDING` leaves the decision to the webhook or to `status()`.
 
-**Release to the seller happens on transfer confirmation** (§1). The manual
-path — for exceptions — needs two approvers, `SETTLE_WINDOW_HOURS = 72`, and the
-requester cannot approve their own request.
+**Release to the seller happens on transfer confirmation** (§1), automatically:
+`advanceStage` calls `settleOnTransferConfirmed`, and the scheduled
+`releaseConfirmedOrders` is a safety net for calls that stumbled, not a second
+path. The manual button in `/admin/settlements` is a retry for what the
+automatic release did not complete; it takes one press (quorum is 1 since §41)
+and is recorded against the operator who pressed it.
 
 ### The release had no door until now
 
@@ -253,21 +256,45 @@ a held payment into three groups:
 
 | Group | Meaning |
 | --- | --- |
-| Awaiting approval | A request is open — shown first, because it is what needs a person now |
-| Ready | `canSettle` allows it and no request is open |
-| Blocked | Not transferred, return window open, or disputed — with the reason named |
+| Incomplete | A request is open but the gateway call did not complete — shown first |
+| Awaiting release | `canSettle` allows it and no request is open |
+| Blocked | A named reason: not transferred, disputed, gateway unreachable, or escrow no longer held |
 
 Blocked rows are shown rather than hidden. A queue that lists only what is
 actionable answers "what do I do now" and not "where is this seller's money",
 and the second question is the one the seller is asking.
 
-Two details the screen gets right on purpose:
+One detail the screen gets right on purpose: the eligibility shown is
+`canSettle` itself, not a copy. A screen that says "ready" while the server
+refuses is worse than a screen that says nothing.
 
-- The button says **"request release"**, not "release". The first press moves no
-  money; it opens a request. A button labelled with the outcome makes an operator
-  who presses it and sees nothing happen believe the system is broken.
-- The eligibility shown is `canSettle` itself, not a copy. A screen that says
-  "ready" while the server refuses is worse than a screen that says nothing.
+One it got wrong for forty days: the button said **"request release"** and the
+confirm dialog said **"open the request"**, on the reasoning that the first press
+moved no money. §41 removed the quorum, so the first press releases — and the
+dialog body had been corrected while its title and button had not. Two
+contradictory sentences in one dialog that moves a hundred thousand riyals.
+Measured 2026-11-24, fixed in the same commit.
+
+### `canSettle` has three conditions, not two
+
+Transfer confirmed, no open dispute, **and the escrow still held**. The third was
+missing until 2026-11-24. The queue is assembled from orders carrying a `HELD`
+*payment*, and a dispute resolved by partial refund leaves the payment held by
+design — the remainder is the seller's — while setting the escrow to
+`PARTIAL_REFUND` and returning the order to `TRANSFER`. Once that order reaches
+`DONE` again it read as releasable.
+
+Pressing release then captured at the gateway, and `applyState` released with
+`updateMany({ status: 'HELD' })`, which matched nothing: no revenue recognised,
+no capture entry, no notification to the seller — **and a settlement statement
+and tax invoice issued against revenue the ledger never recorded**.
+
+So the condition is enforced in three places that must agree: `canSettle`
+(screen and route read the same guard), `settleableOrders()` (the scheduled job's
+list, a hand-written twin of the same conditions), and `applyState` itself, which
+now reads the escrow row before updating and distinguishes a duplicate settlement
+(`RELEASED` — benign, skip) from an escrow that was never held (reported, order
+event `settle.escrow_not_held`, and documents withheld).
 
 ## 7 · Listing (follows the order)
 

@@ -91,6 +91,14 @@ describe('الفاتورة تشهد بواقعة', () => {
         expect(await db.taxInvoice.count({ where: { orderId: order.id } })).toBe(0);
         expect(await db.settlementStatement.count({ where: { orderId: order.id } })).toBe(0);
 
+        /**
+         * **والتسوية تمرّ بالحجز.** `CREATED → PENDING → SETTLED` تتخطّى
+         * `HELD`، فلا `Escrow` يُنشأ — وصار `applyState` يمنع إصدار
+         * مستندٍ على تسويةٍ ضمانُها غير محجوز، إذ وثيقةٌ تشهد بتسويةٍ لا
+         * قيدَ لها أسوأ من غيابها. فالطقمُ يمشي الطريقَ الذي يمشيه
+         * المنتج: **الخطأ كان في الطقم لا في الحارس**.
+         */
+        await applyState(payment.id, 'HELD', 'test');
         await applyState(payment.id, 'SETTLED', 'test');
         expect(await db.settlementStatement.count({ where: { orderId: order.id } })).toBe(1);
 
