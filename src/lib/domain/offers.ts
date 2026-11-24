@@ -567,6 +567,8 @@ export async function timeoutUnpaidOrders(now: Date = new Date()): Promise<numbe
           status: 'CANCELLED',
           cancelledBy: 'system',
           cancelReason: 'payment.timeout',
+          /** والصنفُ يُكتب معه — فلوحةُ A2 تقسم الإلغاءات ولا تُخمّن. */
+          cancelCategory: 'PAYMENT_TIMEOUT',
         },
       });
 

@@ -1348,7 +1348,8 @@
     "resendIn": "{count, plural, zero{Resend now} one{Resend in {n} second} other{Resend in {n} seconds}}",
     "basedOnDeals": "{count, plural, one{Based on {n} deal} other{Based on {n} deals}}",
     "ofIntegrations": "{count, plural, one{{n} integration has a cost} other{{n} integrations have costs}}",
-    "withinDays": "{count, plural, one{within {n} day} other{within {n} days}}"
+    "withinDays": "{count, plural, one{within {n} day} other{within {n} days}}",
+    "ordersThisMonth": "{count, plural, one{{n} order this month} other{{n} orders this month}}"
   },
   "notificationCenter": {
     "title": "Notifications",

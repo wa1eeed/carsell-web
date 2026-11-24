@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-100 models · 71 enums
+100 models · 72 enums
 
 ## Relationships
 
@@ -138,6 +138,7 @@ erDiagram
   Order }o--|| OrderStage : "stage"
   Order }o--|| OrderStatus : "status"
   Order }o--|| FeeBearer : "processingFeeBearer"
+  Order |o--|| OrderCancelCategory : "cancelCategory"
   Order }o--|| Listing : "listing"
   Order }o--|| User : "buyer"
   Order }o--|| User : "seller"
@@ -744,7 +745,7 @@ Relations: `status` → `DepositStatus` · `auction` → `Auction` · `user` →
 | `cancelledBy` | `String?` |  |
 | `cancelReason` | `String?` |  |
 
-Relations: `source` → `OrderSource` · `stage` → `OrderStage` · `status` → `OrderStatus` · `processingFeeBearer` → `FeeBearer` · `listing` → `Listing` · `buyer` → `User` · `seller` → `User` · `events` → `OrderEvent` · `escrow` → `Escrow` · `payments` → `Payment` · `taxInvoices` → `TaxInvoice` · `settlement` → `SettlementStatement` · `agreement` → `VehicleSaleAgreement` · `disputes` → `Dispute` · `invoices` → `Invoice`
+Relations: `source` → `OrderSource` · `stage` → `OrderStage` · `status` → `OrderStatus` · `processingFeeBearer` → `FeeBearer` · `cancelCategory` → `OrderCancelCategory` · `listing` → `Listing` · `buyer` → `User` · `seller` → `User` · `events` → `OrderEvent` · `escrow` → `Escrow` · `payments` → `Payment` · `taxInvoices` → `TaxInvoice` · `settlement` → `SettlementStatement` · `agreement` → `VehicleSaleAgreement` · `disputes` → `Dispute` · `invoices` → `Invoice`
 
 ### `OrderEvent`
 
@@ -1992,6 +1993,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `AuctionStatus` — `SCHEDULED`, `LIVE`, `ENDED_MET`, `ENDED_UNMET`, `CANCELLED`
 - `AuctionEventKind` — `EXTENDED`
 - `DepositStatus` — `HELD`, `RELEASED`, `FORFEITED`, `APPLIED`
+- `OrderCancelCategory` — `PAYMENT_TIMEOUT /// لم يكتمل الدفع — يكتبه المُجدوِل`, `NOT_AS_DESCRIBED /// لا تطابق الوصف`, `CHANGED_MIND /// غيّر رأيه`, `SELLER_DELAY /// تأخّر البائع`, `OTHER /// أخرى — وافتراضُ من لم يختر`
 - `OrderSource` — `DIRECT`, `OFFER`, `AUCTION`, `BUY_NOW`
 - `OrderStage` — `REQUEST`, `APPROVED`, `INSPECTION`, `PAYMENT`, `TRANSFER`, `DONE`
 - `OrderStatus` — `ACTIVE`, `COMPLETED`, `CANCELLED`, `STALLED`, `DISPUTED`

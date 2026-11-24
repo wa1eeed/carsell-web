@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import type { OrderCancelCategory } from '@/generated/prisma/enums';
 import { Prisma } from '@/generated/prisma/client';
 import { resolveForPayment } from '@/lib/payments/resolve';
 import { recordRefund } from './ledger-events';
@@ -51,6 +52,12 @@ export async function cancelOrder(
     /** المشتري أو البائع — ولا ثالث لهما من غير الأدمن. */
     actorId: string;
     reason: string;
+    /**
+     * صنفُ الإلغاء — خمسةٌ كما في ترميز A2، و«أخرى» لمن لم يختر.
+     * **ولا يُشترط**: شرطُ تصنيفٍ قبل الانسحاب يجعل من يريد الخروج
+     * يختار أوّلَ خيارٍ ليمضي، فتُجمَع بياناتٌ أسوأ من لا شيء.
+     */
+    category?: OrderCancelCategory;
   },
   now: Date = new Date(),
 ): Promise<CancelResult> {
@@ -155,6 +162,8 @@ export async function cancelOrder(
       data: {
         status: 'CANCELLED',
         cancelReason: input.reason.trim().slice(0, 500),
+        /** **واختياريّ**: من لا يختار يقع في «أخرى» ولا يُمنع من الإلغاء. */
+        cancelCategory: input.category ?? 'OTHER',
         /** **ومن ألغى يُكتب**: «المشتري انسحب» غير «البائع اعتذر». */
         cancelledBy: input.actorId,
       },

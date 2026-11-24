@@ -1,18 +1,24 @@
 import Link from 'next/link';
+import { Counted } from '@/components/ui/Counted';
 import { SectionHead } from '@/components/admin/SectionHead';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { Quantity } from '@/components/ui/Quantity';
 import { ShareBars } from '@/components/ui/ShareBars';
+import { StackedShare } from '@/components/ui/StackedShare';
+import { cn } from '@/lib/cn';
 import { Sparkline } from '@/components/ui/Sparkline';
 import { TargetBars } from '@/components/ui/TargetBar';
 import { stageMetrics } from '@/lib/domain/admin-orders';
 import {
+  type OpsGroup,
   auctionQuality,
   contentQuality,
   dailyOrders,
+  opsOverview,
   stageTimes,
 } from '@/lib/domain/admin-charts';
+import { CANCEL_CATEGORY_LABEL, OPS_GROUP_LABEL, ORDER_STATUS_LABEL } from '@/lib/labels/admin';
 import { displayDigits } from '@/lib/arabic';
 import { STAGE_LABEL, STAGE_TIME_LABEL, dayTick } from '@/lib/labels/charts';
 
@@ -33,12 +39,13 @@ const RANGE_DAYS = 30;
  */
 export async function OpsTab() {
 
-  const [metrics, times, daily, content, auctions] = await Promise.all([
+  const [metrics, times, daily, content, auctions, overview] = await Promise.all([
     stageMetrics(),
     stageTimes(),
     dailyOrders(RANGE_DAYS),
     contentQuality(),
     auctionQuality(),
+    opsOverview(),
   ]);
 
   /**
@@ -55,6 +62,53 @@ export async function OpsTab() {
 
   return (
     <>
+      {/*
+        ═══ أين يتراكم العمل؟ — أربعُ مجموعاتٍ فوق التفصيل ═══
+
+        بطاقاتُ المراحل تقول عن كلّ مرحلةٍ على حدة، **ولا تقول أين
+        يتراكم العمل**: طابورُ الإعلانات والهوية والبلاغات والخدمات في
+        أربع شاشات، ومن يفتح التشغيلية يسأل «أين أبدأ اليوم؟» لا «كم
+        في الفحص؟». والترميزُ يضعها فوق كلّ شيء.
+
+        وكلُّ جزءٍ استعلامٌ على الجدول الذي تقرؤه شاشتُه — فلا يختلف
+        الرقمُ هنا عمّا يراه من يفتحها.
+      */}
+      <div className="mb-6 grid gap-3.5 md:grid-cols-2 xl:grid-cols-4">
+        <OpsCard title="طلبات جارية" group={overview.live} labelOf={(key) => STAGE_LABEL[key] ?? key} />
+        <OpsCard title="طوابير المراجعة" group={overview.queues} labelOf={(key) => OPS_GROUP_LABEL[key] ?? key} />
+        <OpsCard
+          title="مخاطر مفتوحة"
+          group={overview.risks}
+          labelOf={(key) => OPS_GROUP_LABEL[key] ?? key}
+          tone={overview.risks.total > 0 ? 'warn' : undefined}
+        />
+        <OpsCard
+          title="الإلغاءات"
+          group={overview.cancellations}
+          labelOf={(key) => CANCEL_CATEGORY_LABEL[key as keyof typeof CANCEL_CATEGORY_LABEL] ?? key}
+        />
+      </div>
+
+      {/*
+        **والشهرُ بندٌ على حدة** — كالترميز: «١٨٠ طلبًا هذا الشهر»
+        جملةٌ تُقرأ، لا بطاقةً خامسة في صفّ الطوابير. وما فوقها يقول
+        «ما ينتظر الآن»، وهذه تقول «ما جرى».
+      */}
+      <section className="mb-6 rounded-xl border border-line bg-surface px-5 py-4.5">
+        <p className="mb-2 text-2xs opacity-70">
+          <Counted message="ordersThisMonth" count={overview.month.total} />
+        </p>
+        <div className="grid gap-x-7 md:grid-cols-2 xl:grid-cols-4">
+          <StackedShare
+            className="xl:col-span-4"
+            parts={overview.month.parts.map((part) => ({
+              ...part,
+              label: ORDER_STATUS_LABEL[part.key] ?? part.key,
+            }))}
+          />
+        </div>
+      </section>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {metrics.map((metric) => {
           const ratio = metric.targetHours === 0 ? 0 : metric.averageHours / metric.targetHours;
@@ -216,5 +270,43 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span className="text-2xs opacity-72">{label}</span>
       <span className="font-num text-sm font-bold">{value}</span>
     </div>
+  );
+}
+
+/**
+ * مجموعةٌ واحدة: مجموعُها كبيرًا، وأجزاؤها تحته.
+ *
+ * **والمجموعُ فوق الأجزاء لا بجوارها**: من يقرأ «٣٩» يعرف حجم ما
+ * ينتظره قبل أن يقرأ من أين جاء.
+ */
+function OpsCard({
+  title,
+  group,
+  labelOf,
+  tone,
+}: {
+  title: string;
+  group: OpsGroup;
+  labelOf?: (key: string) => string;
+  tone?: 'warn';
+}) {
+  return (
+    <section
+      className={cn(
+        'rounded-xl border bg-surface px-5 py-4.5',
+        tone === 'warn' && group.total > 0 ? 'border-warn-400' : 'border-line',
+      )}
+    >
+      <p className="mb-2 flex items-baseline gap-2.5">
+        <span className="flex-1 text-2xs opacity-70">{title}</span>
+        <ArabicNumber value={group.total} className="text-2xl font-bold" />
+      </p>
+      <StackedShare
+        parts={group.parts.map((part) => ({
+          ...part,
+          label: labelOf === undefined ? part.key : labelOf(part.key),
+        }))}
+      />
+    </section>
   );
 }
