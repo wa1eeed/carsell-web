@@ -5,7 +5,17 @@ import { ListFooter } from '@/components/admin/ListFooter';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { type DisputeFilter, disputeCounts, listDisputes } from '@/lib/domain/disputes';
+import Link from 'next/link';
+import { Money } from '@/components/ui/Money';
+import { Duration } from '@/components/ui/Duration';
+import { StatCard, StatGrid } from '@/components/admin/StatCard';
+import { reportStats } from '@/lib/domain/admin-reports';
+import {
+  type DisputeFilter,
+  disputeCounts,
+  disputeStats,
+  listDisputes,
+} from '@/lib/domain/disputes';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { DisputesQueue } from './DisputesQueue';
 
@@ -42,7 +52,12 @@ export default async function DisputesPage({
   const raw = typeof search.filter === 'string' ? search.filter : null;
   const filter = (SEGMENTS.find((row) => row.key === raw)?.key ?? null) as DisputeFilter;
 
-  const [disputes, counts] = await Promise.all([listDisputes(new Date(), filter), disputeCounts()]);
+  const [disputes, counts, stats, reports] = await Promise.all([
+    listDisputes(new Date(), filter),
+    disputeCounts(),
+    disputeStats(),
+    reportStats(),
+  ]);
 
   const tabs: MonitorTab[] = SEGMENTS.map((row) => ({
     key: row.key,
@@ -65,12 +80,78 @@ export default async function DisputesPage({
         <span>كل قرار يسجل باسم من حسمه</span>
       </p>
 
+      {/*
+        ═══ أربعةُ أرقامٍ فوق الطابور — وأهمُّها المحتجز ═══
+
+        طابورٌ بثلاثة نزاعات لا يقول شيئًا، وثلاثمئة ألفٍ مجمَّدة بين
+        طرفين تقول كلَّ شيء. والترميز يكتبها فوق القائمة.
+
+        **والبلاغاتُ بطاقةٌ هنا وإن كانت شاشةً أخرى**: الترميز يجمع
+        البلاغَ والنزاع في طابورٍ واحد، ومن يحسم هذا يحسم ذاك. ودمجُ
+        الشاشتين تغييرُ تنقّلٍ أوسع من هذه المهمّة، فالبطاقةُ تصل
+        بينهما وتقول ما ينتظر هناك.
+      */}
+      <StatGrid className="mb-5">
+        <StatCard
+          title="نزاع تجاوز المهلة"
+          value={stats.overdueCount}
+          className={stats.overdueCount > 0 ? 'border-warn-400' : undefined}
+          note={
+            <>
+              <Money amount={stats.overdueHeld} size="sm" /> محتجزة
+            </>
+          }
+        />
+        <StatCard
+          title="نزاعات مفتوحة"
+          value={stats.openCount}
+          note={
+            <>
+              <Money amount={stats.openHeld} size="sm" /> محتجزة إجمالا
+            </>
+          }
+        />
+        <StatCard
+          title="بلاغات تنتظر"
+          value={reports.open}
+          note={
+            <>
+              {reports.oldestMinutes === null ? (
+                'لا بلاغات'
+              ) : (
+                <>
+                  أقدمها منذ <Duration genitive hours={reports.oldestMinutes / 60} />
+                </>
+              )}{' '}
+              ·{' '}
+              <Link href="/admin/reports" className="underline underline-offset-4">
+                افتحها
+              </Link>
+            </>
+          }
+        />
+        <StatCard
+          title="متوسط الحل"
+          /** **ولا متوسّطَ من لا شيء** — صفرٌ هنا يُقرأ «نحسم فورًا». */
+          value={stats.avgResolutionHours === null ? '—' : stats.avgResolutionHours}
+          note={
+            stats.avgResolutionHours === null ? (
+              'لا نزاع محسوم بعد'
+            ) : (
+              <>
+                بالساعات · الهدف أقل من <Duration genitive hours={stats.slaHours} />
+              </>
+            )
+          }
+        />
+      </StatGrid>
+
       <MonitorTabs tabs={tabs} active={filter} basePath="/admin/disputes" param="filter" />
 
       {disputes.length === 0 ? (
         <EmptyState
           title="لا نزاعات"
-          description="حين يفتح مشتري نزاعا على طلب يظهر هنا بمهلته، ويحسم بقرار يعتمده عضوان."
+          description="حين يفتح مشتري نزاعا على طلب يظهر هنا بمهلته، ويحسم بقرار يسجل باسم من حسمه."
         />
       ) : (
         <DisputesQueue

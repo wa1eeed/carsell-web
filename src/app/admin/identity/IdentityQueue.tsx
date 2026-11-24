@@ -99,7 +99,7 @@ export function IdentityQueue({
               ? 'لا توجد طلبات توثيق'
               : (
                   <>
-                    أقدمها منذ <Duration hours={stats.oldestMinutes / 60} />
+                    أقدمها منذ <Duration genitive hours={stats.oldestMinutes / 60} />
                   </>
                 )
           }
@@ -235,7 +235,7 @@ export function IdentityQueue({
                   <span className="text-2xs opacity-75">
                     <Quantity unit="listings" count={row.listingCount} />
                   </span>
-                  <span className="text-3xs opacity-65">منذ <Duration hours={row.waitingMinutes / 60} /></span>
+                  <span className="text-3xs opacity-65">منذ <Duration genitive hours={row.waitingMinutes / 60} /></span>
                 </div>
 
                 <Button

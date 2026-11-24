@@ -145,7 +145,7 @@ export function ReviewQueue({
               ? 'لا توجد إعلانات للمراجعة'
               : (
                   <>
-                    أقدمها منذ <Duration hours={stats.oldestMinutes / 60} />
+                    أقدمها منذ <Duration genitive hours={stats.oldestMinutes / 60} />
                   </>
                 )
           }
@@ -207,7 +207,7 @@ export function ReviewQueue({
 
                 <div className="flex flex-col items-start gap-0.5">
                   <Money amount={Number(row.askPrice)} />
-                  <span className="text-3xs opacity-65">منذ <Duration hours={row.waitingMinutes / 60} /></span>
+                  <span className="text-3xs opacity-65">منذ <Duration genitive hours={row.waitingMinutes / 60} /></span>
                 </div>
 
                 <div className="flex items-center gap-2">

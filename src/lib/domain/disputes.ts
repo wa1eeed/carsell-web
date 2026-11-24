@@ -711,3 +711,70 @@ export async function listDisputes(
     };
   });
 }
+
+export type DisputeStats = {
+  /** مفتوحٌ أو قيد التحقيق — وكلاهما مالٌ محتجز وطرفان ينتظران. */
+  openCount: number;
+  openHeld: string;
+  overdueCount: number;
+  overdueHeld: string;
+  /**
+   * متوسّطُ الحلّ بالساعات — من الفتح إلى الحسم.
+   * و`null` حين لا نزاعَ محسوم: متوسّطٌ من لا شيءٍ ليس صفرًا.
+   */
+  avgResolutionHours: number | null;
+  slaHours: number;
+};
+
+/**
+ * ═══ أربعةُ أرقامٍ فوق الطابور — وأهمُّها ما هو محتجز ═══
+ *
+ * ترميز A17 يضع «١٤١٬٢٠٠ محتجزة» فوق النزاع المتجاوز و«٢٩٨٬٧٠٠
+ * إجمالًا» فوق المفتوحة. **والمبلغ هو ما يجعل التأخير مكلفًا**:
+ * طابورٌ بثلاثة نزاعات لا يقول شيئًا، وثلاثمئة ألفٍ مجمَّدة بين
+ * طرفين تقول كلَّ شيء.
+ *
+ * والمحتجزُ من الضمان لا من سعر الطلب: ما وصل البوّابة فعلًا.
+ */
+export async function disputeStats(now: Date = new Date()): Promise<DisputeStats> {
+  const live: DisputeStatus[] = ['OPEN', 'INVESTIGATING'];
+  const [open, resolved] = await Promise.all([
+    db.dispute.findMany({
+      where: { status: { in: live } },
+      select: {
+        slaDueAt: true,
+        order: { select: { escrow: { select: { amount: true, status: true } } } },
+      },
+    }),
+    db.dispute.findMany({
+      where: { resolvedAt: { not: null } },
+      select: { openedAt: true, resolvedAt: true },
+    }),
+  ]);
+
+  /** **المحجوزُ وحده يُجمع** — ضمانٌ أُفرج عنه ليس مالًا مجمَّدًا. */
+  const held = (rows: typeof open): Prisma.Decimal =>
+    rows.reduce((sum, row) => {
+      const escrow = row.order.escrow;
+      return escrow !== null && escrow.status === 'HELD' ? sum.add(escrow.amount) : sum;
+    }, new Prisma.Decimal(0));
+
+  const overdue = open.filter((row) => row.slaDueAt.getTime() < now.getTime());
+
+  const spans = resolved
+    .filter((row) => row.resolvedAt !== null)
+    .map((row) => (row.resolvedAt as Date).getTime() - row.openedAt.getTime())
+    .filter((ms) => ms >= 0);
+
+  return {
+    openCount: open.length,
+    openHeld: held(open).toString(),
+    overdueCount: overdue.length,
+    overdueHeld: held(overdue).toString(),
+    avgResolutionHours:
+      spans.length === 0
+        ? null
+        : Math.round(spans.reduce((a, b) => a + b, 0) / spans.length / 3_600_000),
+    slaHours: await deadline('disputeSlaHours'),
+  };
+}

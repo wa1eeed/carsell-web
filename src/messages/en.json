@@ -469,7 +469,12 @@
     "cylinders": "{count, plural, one{{n} cylinder} other{{n} cylinders}}",
     "heroListings": "{count, plural, one{car listed} other{cars listed}}",
     "heroDealers": "{count, plural, one{verified showroom} other{verified showrooms}}",
-    "heroFinance": "{count, plural, one{financing partner} other{financing partners}}"
+    "heroFinance": "{count, plural, one{financing partner} other{financing partners}}",
+    "minutesGenitive": "{count, plural, one{{n} minute} other{{n} minutes}}",
+    "hoursGenitive": "{count, plural, one{{n} hour} other{{n} hours}}",
+    "daysGenitive": "{count, plural, one{{n} day} other{{n} days}}",
+    "weeksGenitive": "{count, plural, one{{n} week} other{{n} weeks}}",
+    "monthsGenitive": "{count, plural, one{{n} month} other{{n} months}}"
   },
   "search": {
     "title": "Browse cars",

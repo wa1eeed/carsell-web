@@ -54,8 +54,8 @@ rather than found by chance.
 | `SectionHead` | no | `title` · `note` | 7 |
 | `ServiceRequestCard` | no | `row` | 1 |
 | `Sla` | no | `hours` | 5 |
-| `StatCard` | no | `title` · `value` · `note` · `className` | 17 |
-| `StatGrid` | no | `children` · `className` | 4 |
+| `StatCard` | no | `title` · `value` · `note` · `className` | 18 |
+| `StatGrid` | no | `children` · `className` | 5 |
 | `Timeline` | no | `events` | 11 |
 | `UserCard` | no | `row` | 2 |
 
@@ -148,7 +148,7 @@ rather than found by chance.
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
 | `Counted` | yes | `message` · `count` · `className` | 7 |
 | `DataTable` | yes | — | 11 |
-| `Duration` | no | `count` | 13 |
+| `Duration` | no | `count` | 15 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 38 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
 | `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 138 |
@@ -169,7 +169,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 9 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 89 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 90 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
@@ -192,7 +192,7 @@ rather than found by chance.
 | `SpecTable` | no | `entries` · `columns` · `className` | 1 |
 | `StageTracker` | no | `current` · `stopped` · `orientation` · `className` | 2 |
 | `SpecRow` | no | `label` · `children` · `className` | 3 |
-| `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 17 |
+| `StatCard` | no | `label` · `value` · `suffix` · `delta` · `tone` · `breakdown` · `className` | 18 |
 | `Stepper` | no | `steps` · `active` · `onSelect` · `className` | 1 |
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
