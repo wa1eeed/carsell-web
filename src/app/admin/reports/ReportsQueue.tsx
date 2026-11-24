@@ -108,7 +108,7 @@ export function ReportsQueue({
           note={
             stats.oldestMinutes === null
               ? 'لا شيء ينتظر'
-              : <>أقدمها منذ <Duration minutes={stats.oldestMinutes} /></>
+              : <>أقدمها منذ <Duration genitive minutes={stats.oldestMinutes} /></>
           }
         />
         <Card title="قيد التحقيق" value={stats.reviewing} note="أحيلت إلى مراجعة الإعلان" />
@@ -179,7 +179,7 @@ export function ReportsQueue({
                 <div className="flex flex-col items-start gap-0.5">
                   <span className="bidi-isolate text-2xs opacity-75">{row.reporterName}</span>
                   <span className="text-3xs opacity-65">
-                    منذ <Duration minutes={row.waitingMinutes} />
+                    منذ <Duration genitive minutes={row.waitingMinutes} />
                   </span>
                 </div>
 

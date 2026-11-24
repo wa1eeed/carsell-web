@@ -28,6 +28,25 @@ comparing. Measured on four screens the moment it was added: `A1` 85→92٪,
 understates a screen by up to twelve points, and the whole-tree figure
 correspondingly.
 
+## A17 — reports and disputes stay two screens · 2026-11-24
+
+**Status: decided.** The markup makes `A17` one queue with tabs
+«الكل · النزاعات · البلاغات», deadline-ordered. The product keeps
+`/admin/disputes` and `/admin/reports` apart, and the «البلاغات» tab will keep
+reading as a miss.
+
+**The reason is the permission matrix, which the markup predates.** Handling a
+report needs `reports.handle`; resolving a dispute needs `orders.view` and
+`escrow.release`. They are different grants because they are different powers —
+a report takes a listing out of the results, a dispute moves money that is
+already held. Merging the queues puts rows in front of people who cannot act on
+them, and the one screen would have to grey out half of itself per role.
+
+What the markup is right about is that **both are deadlines on the same desk**,
+and that is now carried across: the disputes screen shows «بلاغات تنتظر» with
+the age of the oldest and a link that opens them, so neither queue is invisible
+from the other.
+
 ## A18 — the review panel shows less than the markup, on purpose · 2026-11-24
 
 **«البيانات المُدخَلة» — the markup lists the national ID number, date of

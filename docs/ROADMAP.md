@@ -1982,6 +1982,46 @@ rather than a fixed phone number — and the first version of that probe counted
 «طلباتي» from the sidebar, which every account has, so it chose the poorest one.
 It reads section content now.
 
+### 40a · 7 — `A17` disputes, 44٪ → 67٪, and two gates that were letting things through
+
+The queue had no figures above it, and the markup's four say the thing that
+matters: **what is frozen.** Three disputes is a number; three hundred thousand
+riyals held between two waiting parties is a reason to work today. They are
+built from the escrow — what actually reached the gateway, counting only what
+is still `HELD` — plus «متوسط الحل» from `openedAt → resolvedAt`, and
+«بلاغات تنتظر» with the age of the oldest and a link that opens them.
+
+### Gate 19 was green on a promise the product had dropped
+
+The disputes empty state read «يحسم بقرار يعتمده **عضوان**» — forty days after
+the two-approver rule was removed (§35). Gate 19 exists for exactly this, and
+it matched `عضوين` and missed `عضوان`: **the Arabic dual has two forms, and the
+list had one.** A phrase missing from a deny-list lets through what the list
+was built to stop. Extended, and it caught the live one on its first run.
+
+### And a grammatical class the lint rule cannot see by design
+
+`منذ يومان` is wrong — a preposition governs what follows, so the dual becomes
+`يومين`. Every other plural form is unchanged, so **the error appears only at
+two** and passes unnoticed at every other count.
+
+The lint rule did not catch it and should not have: its scope is text *after*
+the number, because a label before it («السنوات ٣») is correct and banning that
+would be noise. A preposition is not a label.
+
+`<Duration genitive>` selects the genitive forms, five units now carry them,
+and **gate 71** requires the flag after a preposition. Measured first: eight
+places across four screens, all moved, then the gate switched on and proved by
+breaking one.
+
+**Two things the markup asks for are questions, not code** — auto-suspending a
+listing on report count, and letting an admin open a dispute for someone who
+phoned in. The first hands anyone with three accounts the power to take a
+competitor's listing down; the second writes the admin's name where the
+record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
+Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
+and the reason is the permission matrix the markup predates.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the
