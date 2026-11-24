@@ -1,6 +1,5 @@
-import { db } from '@/lib/db';
 import { blurPlates, blurRegion, type PlateRegion } from '@/lib/images/plate';
-import { DUPLICATE_MAX_DISTANCE, hammingDistance, perceptualHash } from '@/lib/images/phash';
+import { perceptualHash } from '@/lib/images/phash';
 import { MAX_UPLOAD_BYTES, storeObject } from '@/lib/r2';
 import sharp from 'sharp';
 
@@ -110,43 +109,4 @@ export async function processListingImage(
       bytes: buffer.byteLength,
     },
   };
-}
-
-/**
- * صورة مكرّرة من إعلان آخر.
- *
- * القرار ٣٣ يُدخل الإعلان المراجعةَ عند التكرار — **ولا يرفضه**: صاحب
- * إعلانين لسيارة واحدة قد يعيد نفس الصورة بحسن نيّة، والرفض يعاقبه
- * بينما المراجعة تكشف الناسخ.
- */
-export async function findDuplicate(
-  phash: string,
-  except?: { listingId?: string; sellerId?: string },
-): Promise<{ listingRef: string; distance: number } | null> {
-  /**
-   * **التكرار يُقاس مع إعلان مستخدمٍ آخر.**
-   *
-   * وبائعٌ يعيد صورة سيارته في إعلانٍ ثانٍ له ليس ناسخًا — وإدخالُه
-   * المراجعة يعاقب سلوكًا مشروعًا ويُغرق طابور A15 بما لا يستحقّه.
-   * وهذا نصّ القرار ٣٣ على `ReviewReason.DUPLICATE_IMAGE`.
-   */
-  const candidates = await db.listingImage.findMany({
-    where: {
-      phash: { not: null },
-      ...(except?.listingId === undefined ? {} : { listingId: { not: except.listingId } }),
-      ...(except?.sellerId === undefined
-        ? {}
-        : { listing: { sellerId: { not: except.sellerId } } }),
-    },
-    select: { phash: true, listing: { select: { ref: true } } },
-  });
-
-  for (const candidate of candidates) {
-    if (candidate.phash === null) continue;
-    const distance = hammingDistance(phash, candidate.phash);
-    if (distance <= DUPLICATE_MAX_DISTANCE) {
-      return { listingRef: candidate.listing.ref, distance };
-    }
-  }
-  return null;
 }

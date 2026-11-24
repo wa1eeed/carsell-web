@@ -58,11 +58,33 @@ describe('السرّ لا يخرج — قرار ٢٩', () => {
 
     expect(secrets.length, 'لا أسرار في القاعدة — الاختبار بلا معنى').toBeGreaterThan(0);
 
+    /**
+     * **والترتيب يُفرض** — `take` بلا `orderBy` يأخذ عشرين صفًّا بترتيب
+     * فيزيائيّ يتبدّل مع كلّ تحديث، فيقيس كلُّ تشغيلٍ شيئًا آخر ويبدو
+     * السقوط تقطّعًا.
+     */
+    /**
+     * **والمفحوصُ من يملك سرًّا.** عشرون إعلانًا بترتيب المرجع كانت
+     * **كلُّها بلا سرّ** (`minAcceptPrice` للتفاوض وحده، والاحتياطيُّ
+     * للمزاد) — ففحصُ تسريبٍ على صفوفٍ لا سرَّ لها أخضرُ أعمى، ولم
+     * يظهر ذلك حتى عُدّ المقام.
+     */
     const refs = await db.listing.findMany({
-      where: { status: 'PUBLISHED' },
+      where: {
+        status: 'PUBLISHED',
+        OR: [{ minAcceptPrice: { not: null } }, { auction: { reservePrice: { not: null } } }],
+      },
       select: { ref: true },
+      orderBy: { ref: 'asc' },
       take: 20,
     });
+
+    /**
+     * **ومقامٌ صفرٌ ليس نجاحًا.** فحصٌ مقصورٌ على سرّ الصفّ نفسه يمرّ
+     * بلا معنًى إن لم يكن لأيٍّ من العشرين سرٌّ أصلًا — فيُعَدّ ما فُحص
+     * ويُشترط ألّا يكون صفرًا.
+     */
+    let withSecret = 0;
 
     for (const { ref } of refs) {
       const row = await findPublishedListing(ref);
@@ -84,8 +106,35 @@ describe('السرّ لا يخرج — قرار ٢٩', () => {
        * المبلغ في حقلٍ ما، والمسار يسمّيه. (القاعدة مسجَّلة في هذا
        * المستودع، وهذه ثانيتُها.)
        */
+      /**
+       * ═══ وسرُّ هذا الإعلان لا سرُّ غيره ═══
+       *
+       * كان الفحص يقارن كلَّ قيمةٍ عامّة بأسرار **القاعدة كلِّها**،
+       * و`minAcceptPrice` تساوي ٩٢٪ من المطلوب — فإعلانٌ سعرُه ٦٧٬٥٠٠
+       * يساوي حدَّ إعلانٍ آخر مطلوبُه ٧٣٬٣٧٠، فيُتّهم `askPrice` بتسريب
+       * سرٍّ لا يملكه. وهو عينُ ما عُولج قبله في `priceStat`: البحث لا
+       * يفرّق بين تسريبٍ ومصادفة.
+       *
+       * والتسريبُ أن يخرج سرُّ **الصفّ المقروء**، فيُقاس عليه وحده —
+       * ومعه أسرارُ المزاد المرتبط به.
+       */
+      /**
+       * **ومن القاعدة لا من الكائن المقروء**: `findPublishedListing` لا
+       * تجلب `minAcceptPrice` أصلًا (وذاك صوابها)، فأخذُ السرّ منه يُعطي
+       * `undefined` — فيمرّ الاختبار على تسريبٍ حقيقيّ **بلا شكوى**.
+       * وقِيس بجعل `askPrice` تُرجع الحدَّ الأدنى: مرّ أخضرَ حتى صُحّح.
+       */
+      const ownRow = await db.listing.findUnique({
+        where: { ref },
+        select: { minAcceptPrice: true, auction: { select: { reservePrice: true } } },
+      });
+      const own = [ownRow?.minAcceptPrice, ownRow?.auction?.reservePrice]
+        .filter((value) => value !== null && value !== undefined)
+        .map(String);
+      if (own.length > 0) withSecret += 1;
+
       for (const [path, value] of leaves(await toPublicDetail(row))) {
-        if (!secrets.includes(String(value))) continue;
+        if (!own.includes(String(value))) continue;
         /**
          * وإحصاءُ السوق مئيناتٌ من وسيط السعر — ومساواتُها رقمًا
          * سرّيًّا مصادفةٌ حسابية لا تسريب. وما عداه يسقط.
@@ -93,6 +142,8 @@ describe('السرّ لا يخرج — قرار ٢٩', () => {
         expect(path.startsWith('priceStat.'), `${ref} سرّب ${String(value)} في ${path}`).toBe(true);
       }
     }
+
+    expect(withSecret, 'لا سرّ في العشرين المفحوصة — الفحص بلا مقام').toBeGreaterThan(0);
   });
 
   it('راية `reserveMet` تخرج والمبلغ لا — والحدّ الأدنى للمزايدة آمن', async () => {

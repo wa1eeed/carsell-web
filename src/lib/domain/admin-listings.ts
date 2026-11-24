@@ -1,5 +1,7 @@
 import type { ReviewReason } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
+import { publicUrl } from '@/lib/r2';
+import { duplicateEvidence } from './duplicate-images';
 import {
   approveReviewedListing,
   returnListingToSeller,
@@ -30,7 +32,17 @@ export { MIN_REVIEW_NOTE } from './review-rules';
  */
 
 export type ReviewEvidence =
-  | { kind: 'DUPLICATE_IMAGE'; matchPct: number; otherRef: string | null }
+  | {
+      kind: 'DUPLICATE_IMAGE';
+      matchPct: number;
+      otherRef: string | null;
+      /** **الصورتان معًا** — فحكمٌ على «٩٤٪» بلا أن تُرى الصورة تخمينٌ على رقم */
+      selfUrl: string | null;
+      otherUrl: string | null;
+      /** أالإعلانُ الآخر معروضٌ الآن، وإن أُغلق فمنذ كم يومًا */
+      otherLive: boolean;
+      otherClosedDays: number | null;
+    }
   | { kind: 'PRICE_OUTLIER'; belowPct: number; marketP25: string | null }
   | { kind: 'NEW_ACCOUNT_BURST'; accountAgeDays: number; listingCount: number }
   | { kind: 'USER_REPORT'; reportCount: number };
@@ -59,6 +71,16 @@ export type ReviewStats = {
   directSharePct: number;
   reviewedSharePct: number;
   byReason: Record<ReviewReason, number>;
+  /**
+   * ═══ أغلبُ أسباب الإعادة اليوم ═══
+   *
+   * ترميز A15 يكتب تحت «أُعيد للبائع ٣» سطرَ **«صور مكرّرة غالبًا»**
+   * — وهو ما يجعل الرقمَ قابلًا للتصرّف: ثلاثةٌ أُعيدت لصورٍ مكرّرة
+   * تعني قاعدةً تحتاج ضبطًا، وثلاثةٌ لأسبابٍ شتّى تعني يومًا عاديًّا.
+   *
+   * و`null` حين لا إعادةَ اليوم — ولا يُخترع سببٌ لصفر.
+   */
+  topReturnReason: ReviewReason | null;
 };
 
 const minutesSince = (from: Date, now: Date): number =>
@@ -97,7 +119,7 @@ export async function reviewQueue(
       vehicle: {
         select: { brandName: true, modelName: true, trimName: true, year: true, modelId: true },
       },
-      images: { select: { phash: true }, take: 1 },
+      id: true,
     },
   });
 
@@ -138,7 +160,7 @@ async function evidenceFor(
     askPrice: { toFixed: (n: number) => string };
     sellerId: string;
     seller: { createdAt: Date };
-    images: { phash: string | null }[];
+    id: string;
     vehicle: { modelId: string; year: number };
   },
   now: Date,
@@ -155,9 +177,19 @@ async function evidenceFor(
   }
 
   if (reason === 'USER_REPORT') {
+    /**
+     * **والمفتاحُ مفتاحُ الكاتب** — `targetId` هو **مُعرّف** الإعلان لا
+     * مرجعُه: `reportListing` في `offer-inbox.ts` يبحث عن الهدف بـ`id`
+     * ويكتبه، وهو نفسُه الذي ينادي `sendListingToReview(…,'USER_REPORT')`.
+     * فقراءةٌ بالمرجع تُعيد صفرًا **دائمًا** — فيُعرض للمراجع «بلغ عنه
+     * مستخدمون: لا بلاغات» عن إعلانٍ أدخله البلاغُ إلى طابوره، وشاشةٌ
+     * بنيَت ليقرأ فيها الحجّة قبل أن يحكم تقول له إنّ لا حجّة.
+     *
+     * وكشفَه فتحُ الشاشة لا اختبار: العدد صحيحٌ حسابًا وخاطئٌ مفتاحًا.
+     */
     const reportCount = await db.report.count({
       // الحالة كما يكتبها المُنشئ — و`'DISMISSED'` لا وجود لها فتطابق الكلّ
-      where: { targetType: 'listing', targetId: listing.ref, status: { not: 'dismissed' } },
+      where: { targetType: 'listing', targetId: listing.id, status: { not: 'dismissed' } },
     });
     return { kind: 'USER_REPORT', reportCount };
   }
@@ -176,20 +208,29 @@ async function evidenceFor(
     };
   }
 
-  const phash = listing.images[0]?.phash ?? null;
-  const other =
-    phash === null
-      ? null
-      : await db.listingImage.findFirst({
-          where: { phash, listing: { ref: { not: listing.ref } } },
-          select: { listing: { select: { ref: true } } },
-        });
+  /**
+   * **والدليلُ يُجمع كما رُفعت الراية** (`duplicateEvidence`).
+   *
+   * كان هذا الموضع يقارن بصمةَ الصورة الأولى تطابقًا تامًّا، والراية تُرفع
+   * بمسافة هامينغ على كل الصور — فإعلانٌ رُشّح بمسافة ٣ يُعرض «صورة مكرّرة
+   * ١٠٠٪» ولا مرجعَ معه ولا صورة. والقاعدةُ الآن واحدة لمن يرفع ومن يجمع.
+   */
+  const match = await duplicateEvidence({
+    listingId: listing.id,
+    sellerId: listing.sellerId,
+  });
 
   return {
     kind: 'DUPLICATE_IMAGE',
-    // البصمة تُقارَن بمسافة هامينغ في الرفع؛ والمعروض هنا التطابق التامّ
-    matchPct: other === null ? 0 : 100,
-    otherRef: other?.listing.ref ?? null,
+    matchPct: match?.matchPct ?? 0,
+    otherRef: match?.otherRef ?? null,
+    selfUrl: publicUrl(match?.selfKey ?? null),
+    otherUrl: publicUrl(match?.otherKey ?? null),
+    otherLive: match?.otherLive ?? false,
+    otherClosedDays:
+      match?.otherClosedAt == null
+        ? null
+        : Math.floor((now.getTime() - match.otherClosedAt.getTime()) / 86_400_000),
   };
 }
 
@@ -197,7 +238,8 @@ async function evidenceFor(
 export async function reviewStats(now: Date = new Date()): Promise<ReviewStats> {
   const today = startOfDay(now);
 
-  const [queued, oldest, perReason, approvedToday, returnedToday, directToday] = await Promise.all([
+  const [queued, oldest, perReason, approvedToday, returnedToday, directToday, returnReasons] =
+    await Promise.all([
     db.listing.count({ where: { status: 'PENDING_REVIEW' } }),
     db.listing.findFirst({
       where: { status: 'PENDING_REVIEW', reviewQueuedAt: { not: null } },
@@ -215,6 +257,12 @@ export async function reviewStats(now: Date = new Date()): Promise<ReviewStats> 
     db.listing.count({ where: { reviewedAt: { gte: today }, status: 'DRAFT' } }),
     db.listing.count({
       where: { publishedAt: { gte: today }, reviewReason: null },
+    }),
+    /** **وسببُ الإعادة من المُعاد اليوم** لا من الطابور: ذاك ما ينتظر، وهذا ما وقع. */
+    db.listing.groupBy({
+      by: ['reviewReason'],
+      where: { reviewedAt: { gte: today }, status: 'DRAFT' },
+      _count: { _all: true },
     }),
   ]);
 
@@ -238,6 +286,10 @@ export async function reviewStats(now: Date = new Date()): Promise<ReviewStats> 
     publishedDirectToday: directToday,
     directSharePct: total === 0 ? 0 : Math.round((directToday / total) * 100),
     reviewedSharePct: reviewed === 0 ? 0 : Math.round((approvedToday / reviewed) * 100),
+    topReturnReason:
+      [...returnReasons]
+        .filter((row) => row.reviewReason !== null)
+        .sort((a, b) => b._count._all - a._count._all)[0]?.reviewReason ?? null,
     byReason,
   };
 }
@@ -342,4 +394,42 @@ export async function decideReview(
   }
 
   return { ok: true, status };
+}
+
+/**
+ * ═══ اعتمادٌ جماعيّ — استدعاءٌ مفرد لكلّ إعلان ═══
+ *
+ * ترميز A15 يضع «اعتمد المحدَّد» في الترويسة: طابورُ ثمانيةَ عشرَ
+ * إعلانًا أكثرُها مرشَّحٌ بقاعدةٍ واسعة، واعتمادُها واحدًا واحدًا
+ * ثمانيةَ عشرَ نقرًا ونافذةً.
+ *
+ * **ولا `updateMany` على القائمة.** الاعتمادُ **ينشر** الإعلان: جملةٌ
+ * واحدة تنشر ثمانيةَ عشرَ إعلانًا بخطأ سطر، وتتخطّى `decideReview`
+ * بفحوصها (أفي الطابور أصلًا؟ أمِن حقّ هذا المراجع؟). والكتابةُ
+ * استدعاءٌ مفرد صريح لكلّ عنصر — كإسناد الخدمات سواءً بسواء.
+ *
+ * وفشلُ واحدٍ لا يوقف الباقين، والتقرير يسمّي ما تعذّر وسببَه.
+ */
+export async function bulkApproveReviews(
+  input: {
+    refs: readonly string[];
+    adminId: string;
+    ip: string | null;
+    canSuspend: boolean;
+  },
+  now: Date = new Date(),
+): Promise<{ approved: string[]; failed: { ref: string; reason: string }[] }> {
+  const approved: string[] = [];
+  const failed: { ref: string; reason: string }[] = [];
+
+  for (const ref of input.refs) {
+    const result = await decideReview(
+      { ref, decision: 'APPROVE', note: null, adminId: input.adminId, ip: input.ip, canSuspend: input.canSuspend },
+      now,
+    );
+    if (result.ok) approved.push(ref);
+    else failed.push({ ref, reason: result.reason });
+  }
+
+  return { approved, failed };
 }

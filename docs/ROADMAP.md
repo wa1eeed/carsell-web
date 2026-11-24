@@ -2090,6 +2090,84 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 23 — `A15` listing review, and evidence gathered differently from how the flag was raised
+
+`A15` read **56٪**. Its own subtitle in the design is «القرار بدليله» — the
+decision with its evidence — and the screen had the decisions and none of the
+evidence.
+
+### The evidence was searched differently from the way the flag is raised
+
+A listing enters the queue when `findDuplicate` finds another seller's image
+within **Hamming distance 6** of **any** of its images. The admin screen built
+its evidence by comparing the **first** image's fingerprint for an **exact**
+match. Two divergences from one rule, and both fail in the same direction: a
+listing flagged at distance 3, or flagged by its third photo, showed the
+reviewer a tag reading «صورة مكررة» with **no match, no reference and no
+image** — a decision asked for on the name of a flag rather than on what
+raised it.
+
+- [x] One module owns the rule now (`src/lib/domain/duplicate-images.ts`), free
+      of `sharp` so the admin can import it, and the **nearest** match is
+      returned rather than the first — the reviewer judges the strongest
+      evidence standing.
+- [x] Proved by breaking it back: restoring exact-match-on-first-image fails
+      three of the six new tests. The threshold is tested **by crossing it** —
+      distance 6 accepted, 7 refused.
+
+### The report count was read with a key the writer never uses
+
+`reportListing` resolves its target by **id** and stores that id; the review
+evidence counted reports `where targetId = listing.ref`. So the count was
+**zero for every user-reported listing in production**, and the panel told the
+reviewer «بلغ عنه مستخدمون: لا بلاغات» about a listing a report had put in
+front of them. Found by opening the screen — every number was arithmetically
+right and every sentence contradicted itself.
+
+### And the seed wrote flags with nothing behind them
+
+All four queued rows said «رُشّح لكذا» and their evidence said «ولا كذا»: no
+report row, no market statistic, no matching image, and a «حساب جديد» aged 128
+days. The product only ever writes `reviewReason` *because* the cause exists,
+so a seed that writes it by hand produces a state the product cannot reach. The
+seed now creates the cause for each — and seeds **all four** reasons, where it
+had written `DUPLICATE_IMAGE` for every row, leaving three of the four tabs at
+zero and three of the four evidence shapes unopened in any environment.
+
+The fourth queued row is taken from the suspended ones, not the published ones:
+reducing the published count moves the landing-page threshold and every market
+counter.
+
+### Smaller, in the same screen
+
+- [x] Wait times were divided by 60 and passed to `<Duration hours>`, which
+      says «أقل من ساعة» below one — so a queue entirely in minutes read as
+      four identical rows. The component escalates from minutes by itself.
+- [x] «ارفض وأوقف الحساب» opened a dialog titled «إعادة الإعلان»: two
+      contradictory sentences in a window that suspends an account. The intent
+      is carried now, and the title and primary button follow it.
+- [x] `Button` gained `dangerOutline` — the design draws the heaviest action as
+      a red **edge**, not a red block. `A18` draws «ارفض بسبب مكتوب» the same
+      way.
+
+Measured after: **56٪ → 100٪**, tree 75٪ → 77٪.
+
+### Two measuring instruments repaired on the way
+
+**The audit knocked on the wrong door.** Its default was port 3002 while this
+project's own `.claude/launch.json` starts the server on 3000, so it printed
+«٠/٠ — ٠٪» — a line that reads as a result and is the absence of one. It reads
+the port from the project's configuration now.
+
+**And the decision-29 leak test was green and blind.** It compared every public
+value against **every** listing's secrets, so one listing's public `askPrice`
+matching another's `minAcceptPrice` (which is 92٪ of ask) raised a false alarm.
+Scoping it to the row's own secret then made it **vacuous**: all twenty rows it
+examined had no secret at all — `minAcceptPrice` belongs to negotiation
+listings and a reserve to auctions. It now selects rows that hold a secret,
+counts them, and refuses to pass on a zero denominator. Proved by leaking a
+reserve price into `highestBid`: it names the field and the reference.
+
 ### 40a · 22 — `A6` service requests: a queue with no action, and a metric with no timestamp
 
 `A6` read **53٪**. Its own subtitle is «تنفيذ وإسناد لمزوّد» — execution and

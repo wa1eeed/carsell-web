@@ -10,6 +10,13 @@ export type ButtonVariant =
   | 'outline'
   | 'ghost'
   | 'danger'
+  /**
+   * الأثقلُ أثرًا لا الأعلى صوتًا — محدَّدٌ بالخطر لا مملوءٌ به.
+   *
+   * ترميزُ A15 وA18 يرسم «ارفض وأوقف الحساب» و«ارفض بسبب مكتوب» حدًّا
+   * أحمر لا كتلةً حمراء: زرٌّ مملوء يسحب العين إلى أخطر فعلٍ في الشاشة.
+   */
+  | 'dangerOutline'
   | 'icon';
 export type ButtonSize = 'sm' | 'md';
 
@@ -18,6 +25,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   outline: 'border border-ink text-ink hover:bg-ink/5',
   ghost: 'text-ink hover:bg-ink/6',
   danger: 'bg-danger text-bg hover:opacity-90',
+  dangerOutline: 'border border-danger/50 text-danger hover:bg-danger/6',
   icon: 'border border-line bg-bg text-ink hover:bg-ink/5',
 };
 

@@ -20,7 +20,7 @@ import type {
   VehicleCondition,
   VehicleSpec,
 } from '@/generated/prisma/enums';
-import { findDuplicate } from './listing-images';
+import { findDuplicate } from './duplicate-images';
 import { auctionSettings } from './admin-auction-settings';
 import { SEAT_TAKING_STATUSES, sellingAllowance } from './entitlements';
 import { LIVE_LISTING_STATUSES } from './garage';

@@ -62,3 +62,13 @@ export const DUPLICATE_MAX_DISTANCE = 6;
 export function isDuplicate(a: string, b: string): boolean {
   return hammingDistance(a, b) <= DUPLICATE_MAX_DISTANCE;
 }
+
+/**
+ * نسبةُ التطابق من المسافة — للعرض وحده.
+ *
+ * ٦٤ بتًّا، فالمسافة ٦ تساوي ٩١٪ وهي حدُّ قرار ٣٣ («> ٩٠٪»). والقرارُ
+ * يُتَّخذ على المسافة لا على النسبة: النسبةُ صياغةٌ للمراجع.
+ */
+export function matchPercent(distance: number): number {
+  return Math.round((1 - distance / 64) * 100);
+}

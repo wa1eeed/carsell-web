@@ -48,7 +48,22 @@ const CATALOGUE_NAMES = new Set();
  */
 const SIGNAL_FLOOR = 8;
 
-const BASE = process.env.AUDIT_BASE ?? 'http://localhost:3002';
+/**
+ * **والبابُ بابُ المشروع.** كان الافتراضيّ ٣٠٠٢ و`.claude/launch.json`
+ * يُشغّل الخادم على ٣٠٠٠، فتطرق الأداةُ بابًا مغلقًا وتطبع «٠/٠ — ٠٪»
+ * — سطرٌ يُقرأ نتيجةً وهو غيابُ نتيجة. فيُقرأ المنفذ من إعداد المشروع،
+ * و`AUDIT_BASE` تبقى تتقدّم عليه لمن يقيس بناءً آخر.
+ */
+const LAUNCH_PORT = (() => {
+  try {
+    const launch = JSON.parse(readFileSync('.claude/launch.json', 'utf8'));
+    const port = launch.configurations?.find((entry) => entry.port != null)?.port;
+    return typeof port === 'number' ? port : 3000;
+  } catch {
+    return 3000;
+  }
+})();
+const BASE = process.env.AUDIT_BASE ?? `http://localhost:${String(LAUNCH_PORT)}`;
 let ADMIN_COOKIE = process.env.AUDIT_ADMIN ?? '';
 let USER_COOKIE = process.env.AUDIT_USER ?? '';
 

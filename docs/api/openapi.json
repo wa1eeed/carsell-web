@@ -2905,6 +2905,31 @@
         }
       }
     },
+    "/api/v1/admin/listings/review-bulk": {
+      "post": {
+        "summary": "POST /api/v1/admin/listings/review-bulk",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "listings.review",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/models": {
       "get": {
         "summary": "GET /api/v1/admin/models",

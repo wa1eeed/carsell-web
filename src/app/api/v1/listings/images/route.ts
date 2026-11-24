@@ -2,7 +2,8 @@ import type { NextRequest } from 'next/server';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { currentUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
-import { findDuplicate, processListingImage } from '@/lib/domain/listing-images';
+import { findDuplicate } from '@/lib/domain/duplicate-images';
+import { processListingImage } from '@/lib/domain/listing-images';
 import { MAX_UPLOAD_BYTES } from '@/lib/r2';
 
 export const runtime = 'nodejs';

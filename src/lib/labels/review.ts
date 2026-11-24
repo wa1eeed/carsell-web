@@ -15,3 +15,16 @@ export const REVIEW_REASON_LABEL: Record<string, string> = {
   NEW_ACCOUNT_BURST: 'حساب جديد',
   USER_REPORT: 'بلاغ',
 } satisfies Record<ReviewReason, string>;
+
+/**
+ * السببُ **مجموعًا** — لبطاقة «أُعيد للبائع · صور مكرّرة غالبًا».
+ *
+ * وليست تسميةَ الصفّ: الصفُّ واحدٌ («صورة مكررة») والبطاقةُ تصف عدّةً
+ * أُعيدت لسببٍ واحد، فجمعُها مفردًا يُقرأ «صورة مكررة غالبا» عن ثلاثة.
+ */
+export const REVIEW_REASON_AGGREGATE: Record<string, string> = {
+  DUPLICATE_IMAGE: 'صور مكررة',
+  PRICE_OUTLIER: 'أسعار شاذة',
+  NEW_ACCOUNT_BURST: 'حسابات جديدة',
+  USER_REPORT: 'بلاغات مستخدمين',
+} satisfies Record<ReviewReason, string>;

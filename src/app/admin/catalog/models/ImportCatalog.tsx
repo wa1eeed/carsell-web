@@ -95,7 +95,6 @@ export function ImportCatalog() {
           `attachment` — فالعنصرُ الصحيح `<a download>`. والقاعدة تقرأ
           المسار حرفيًّا فتحسبه صفحة.
         */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- تنزيل ملفّ لا تنقّل */}
         <a
           href="/api/v1/admin/catalog/import"
           download

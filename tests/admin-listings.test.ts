@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { decideReview, reviewQueue, reviewStats } from '@/lib/domain/admin-listings';
+import { duplicateEvidence } from '@/lib/domain/duplicate-images';
 import { MIN_REVIEW_NOTE } from '@/lib/domain/review-rules';
 import { allListings } from '@/lib/domain/admin-monitors';
 
@@ -17,8 +18,10 @@ const T0 = new Date('2026-08-01T10:00:00Z');
 const ADMIN = { adminId: `adm${stamp}`, ip: null, canSuspend: true };
 
 let sellerId: string;
+let otherSellerId: string;
 const listingIds: string[] = [];
 const vehicleIds: string[] = [];
+const imageIds: string[] = [];
 
 async function queued(
   key: string,
@@ -49,6 +52,43 @@ async function queued(
   return listing.ref;
 }
 
+/**
+ * صورةٌ ببصمةٍ مُعطاة — ٦٤ بتًّا في ١٦ خانة سادس عشرية.
+ *
+ * والمسافة تُصنَع لا تُنتظَر: `'7'` = ٠١١١ فثلاثةُ بتّات مختلفة عن `'0'`.
+ */
+async function image(listingId: string, phash: string, sort = 0): Promise<string> {
+  const row = await db.listingImage.create({
+    data: { listingId, r2Key: `rev/${phash}-${sort}.jpg`, sort, phash },
+  });
+  imageIds.push(row.id);
+  return row.r2Key;
+}
+
+/** إعلانٌ لبائعٍ **آخر** — فالتكرار لا يُرشَّح من إعلانَي صاحبٍ واحد (قرار ٣٣). */
+async function otherSellerListing(key: string): Promise<string> {
+  const model = await db.model.findFirstOrThrow({ include: { brand: true } });
+  const vehicle = await db.vehicle.create({
+    data: {
+      ownerId: otherSellerId, brandId: model.brandId, modelId: model.id,
+      brandName: model.brand.nameAr, modelName: model.nameAr, year: 2019,
+      bodyType: 'SEDAN', transmission: 'AUTOMATIC', fuel: 'PETROL', drivetrain: 'FWD',
+      seats: 5, mileageKm: 90_000, colorExterior: 'أسود', spec: 'SAUDI',
+      condition: 'USED', city: 'جدة', entryMode: 'MANUAL',
+    },
+  });
+  vehicleIds.push(vehicle.id);
+
+  const listing = await db.listing.create({
+    data: {
+      ref: `${TAG}-${key}`, vehicleId: vehicle.id, sellerId: otherSellerId, type: 'DIRECT',
+      status: 'PUBLISHED', askPrice: 38_000, city: 'جدة', publishedAt: T0,
+    },
+  });
+  listingIds.push(listing.id);
+  return listing.id;
+}
+
 function mine<T extends { ref: string }>(rows: readonly T[]): T[] {
   return rows.filter((row) => row.ref.startsWith(TAG));
 }
@@ -56,15 +96,19 @@ function mine<T extends { ref: string }>(rows: readonly T[]): T[] {
 beforeEach(async () => {
   const seller = await db.user.create({ data: { phone: `+96656${stamp}` } });
   sellerId = seller.id;
+  const other = await db.user.create({ data: { phone: `+96657${stamp}` } });
+  otherSellerId = other.id;
 });
 
 afterEach(async () => {
   await db.auditLog.deleteMany({ where: { entityId: { startsWith: TAG } } });
+  await db.listingImage.deleteMany({ where: { id: { in: imageIds } } });
   await db.listing.deleteMany({ where: { id: { in: listingIds } } });
   await db.vehicle.deleteMany({ where: { id: { in: vehicleIds } } });
-  await db.user.deleteMany({ where: { id: sellerId } });
+  await db.user.deleteMany({ where: { id: { in: [sellerId, otherSellerId] } } });
   listingIds.length = 0;
   vehicleIds.length = 0;
+  imageIds.length = 0;
 });
 
 afterAll(async () => {
@@ -222,5 +266,111 @@ describe('═══ بحث القوائم ═══', () => {
     // المرجع نفسه تحت شريحةٍ أخرى لا يظهر — فالشرطان يُجمعان
     const underWrongStatus = await allListings('PENDING_REVIEW', 100, ref);
     expect(underWrongStatus).toHaveLength(0);
+  });
+});
+
+/**
+ * ═══ دليلُ التكرار — يُجمع كما تُرفع الراية ═══
+ *
+ * الراية تُرفع بمسافة هامينغ على **كل** صور الإعلان (`findDuplicate`)،
+ * وكانت الشاشة تجمع دليلَها بتطابقٍ **تامّ** على **أوّل** صورة — فإعلانٌ
+ * رُشّح بمسافة ٣، أو بصورته الثانية، يُعرض للمراجع بلا دليلٍ أصلًا:
+ * وسمٌ يقول «صورة مكرّرة» ولا صورة يراها ولا مرجعَ يفتحه.
+ *
+ * **والحدُّ يُختبَر بتجاوزه**: مسافة ٦ تُقبل و٧ تُردّ.
+ */
+describe('duplicateEvidence — الدليل بمسافته', () => {
+  const ZERO = '0000000000000000';
+  /** `7` = ٠١١١ ⇒ ثلاثةُ بتّات */
+  const DIST_3 = '7000000000000000';
+  const DIST_1 = '1000000000000000';
+  /** `f`+`7` = ٤+٣ ⇒ سبعةٌ، فوق الحدّ (٦) */
+  const DIST_7 = 'f700000000000000';
+  /** `f`+`3` = ٤+٢ ⇒ ستّةٌ، الحدُّ نفسه */
+  const DIST_6 = 'f300000000000000';
+
+  it('يجد المطابق على مسافةٍ دون الحدّ — لا بالتطابق التامّ وحده', async () => {
+    const ref = await queued('DUP', 'DUPLICATE_IMAGE');
+    const self = await db.listing.findFirstOrThrow({ where: { ref } });
+    await image(self.id, ZERO);
+
+    const other = await otherSellerListing('SRC');
+    await image(other, DIST_3);
+
+    const match = await duplicateEvidence({ listingId: self.id, sellerId });
+    expect(match?.otherRef).toBe(`${TAG}-SRC`);
+    expect(match?.distance).toBe(3);
+    // ٣ من ٦٤ ⇒ ٩٥٪ — والعرض يقرأ هذه النسبة لا مئةً مكتوبة بيد
+    expect(match?.matchPct).toBe(95);
+  });
+
+  it('ولا يقف على الصورة الأولى — المطابقة قد تكون الثانية', async () => {
+    const ref = await queued('SECOND', 'DUPLICATE_IMAGE');
+    const self = await db.listing.findFirstOrThrow({ where: { ref } });
+    await image(self.id, 'abcdef0123456789', 0);
+    const key = await image(self.id, ZERO, 1);
+
+    const other = await otherSellerListing('SRC2');
+    await image(other, DIST_1);
+
+    const match = await duplicateEvidence({ listingId: self.id, sellerId });
+    expect(match?.selfKey).toBe(key);
+    expect(match?.distance).toBe(1);
+  });
+
+  it('ويعيد أقربَ مطابقٍ لا أوّلَه', async () => {
+    const ref = await queued('NEAREST', 'DUPLICATE_IMAGE');
+    const self = await db.listing.findFirstOrThrow({ where: { ref } });
+    await image(self.id, ZERO);
+
+    const far = await otherSellerListing('FAR');
+    await image(far, DIST_6);
+    const near = await otherSellerListing('NEAR');
+    await image(near, DIST_1);
+
+    const match = await duplicateEvidence({ listingId: self.id, sellerId });
+    expect(match?.otherRef).toBe(`${TAG}-NEAR`);
+    expect(match?.distance).toBe(1);
+  });
+
+  it('والحدُّ يُتجاوَز فلا دليل — ٧ فوق ٦', async () => {
+    const ref = await queued('OVER', 'DUPLICATE_IMAGE');
+    const self = await db.listing.findFirstOrThrow({ where: { ref } });
+    await image(self.id, ZERO);
+
+    const other = await otherSellerListing('OVERSRC');
+    await image(other, DIST_7);
+
+    expect(await duplicateEvidence({ listingId: self.id, sellerId })).toBeNull();
+  });
+
+  it('وصورةُ البائع نفسِه ليست تكرارًا (قرار ٣٣)', async () => {
+    const ref = await queued('MINE', 'DUPLICATE_IMAGE');
+    const self = await db.listing.findFirstOrThrow({ where: { ref } });
+    await image(self.id, ZERO);
+
+    // إعلانٌ ثانٍ **للبائع نفسه** بالصورة نفسها
+    const twinRef = await queued('TWIN', 'DUPLICATE_IMAGE');
+    const twin = await db.listing.findFirstOrThrow({ where: { ref: twinRef } });
+    await image(twin.id, ZERO);
+
+    expect(await duplicateEvidence({ listingId: self.id, sellerId })).toBeNull();
+  });
+
+  it('والطابور يحمل حال الإعلان الآخر — معروضٌ أثقل من مغلق', async () => {
+    const ref = await queued('LIVE', 'DUPLICATE_IMAGE');
+    const self = await db.listing.findFirstOrThrow({ where: { ref } });
+    await image(self.id, ZERO);
+
+    const other = await otherSellerListing('LIVESRC');
+    await image(other, ZERO);
+
+    const rows = mine(await reviewQueue('DUPLICATE_IMAGE', T0));
+    const row = rows.find((entry) => entry.ref === ref);
+    expect(row?.evidence.kind).toBe('DUPLICATE_IMAGE');
+    if (row?.evidence.kind !== 'DUPLICATE_IMAGE') throw new Error('غير متوقع');
+    expect(row.evidence.otherRef).toBe(`${TAG}-LIVESRC`);
+    expect(row.evidence.matchPct).toBe(100);
+    expect(row.evidence.otherLive).toBe(true);
   });
 });

@@ -765,6 +765,38 @@ async function main(): Promise<void> {
     (entry) => entry.modelId === buildableTrims[0]?.modelId,
   );
 
+  /**
+   * ═══ وطابورُ المراجعة يُزرع بأسبابه الأربعة ═══
+   *
+   * كانت البذرة تكتب `DUPLICATE_IMAGE` لكلّ مرشَّح، **وللتعداد أربعُ
+   * قيم**: فتابا «سعر شاذّ» و«حساب جديد» و«بلاغ» في A15 أصفارٌ أبدًا،
+   * وثلاثةٌ من أربعة أشكالِ الدليل لا تُفتح في أيّ بيئة. وهو نمطُ «ما
+   * لا يُزرع لا يُرى» في موضعٍ يقرؤه المشغّل كلَّ يوم.
+   *
+   * و`reviewQueuedAt` لم تُكتب أصلًا — فالترتيب «الأقدم أوّلًا» بلا
+   * مفتاح، وبطاقةُ «أقدمها منذ ٥١ دقيقة» تقرأ `null`.
+   */
+  /** بترتيب جدول الترميز: مكرّرة ثمّ حساب جديد ثمّ سعر ثمّ بلاغ */
+  const QUEUE_REASONS = [
+    'DUPLICATE_IMAGE',
+    'NEW_ACCOUNT_BURST',
+    'PRICE_OUTLIER',
+    'USER_REPORT',
+  ] as const;
+  let queuedSoFar = 0;
+
+  /**
+   * لحظةٌ **داخل اليوم الجاري** — فعدّادات «اليوم» تُقاس بالساعة
+   * الحقيقية، ومرساةُ `NOW` عند التاسعة قد تسبق لحظةَ القراءة فتُنتج
+   * «منذ ‎-٣٠‎ دقيقة».
+   */
+  const earlierToday = (hoursBack: number): Date => {
+    const start = new Date(REAL_NOW);
+    start.setHours(0, 5, 0, 0);
+    const back = realHours(-hoursBack);
+    return back.getTime() < start.getTime() ? start : back;
+  };
+
   for (let i = 0; i < plan.length; i += 1) {
     const type = plan[i] as 'DIRECT' | 'NEGOTIATION' | 'AUCTION';
     const t =
@@ -852,9 +884,40 @@ async function main(): Promise<void> {
         ? 'DRAFT'
         : i % 20 === 9
           ? 'PENDING_REVIEW'
-          : i % 20 === 17
-            ? 'SUSPENDED'
-            : 'PUBLISHED';
+          : /*
+               رابعُ الأسباب يحتاج صفًّا رابعًا — **ويُؤخذ من الموقوفة لا
+               من المنشورة**: إنقاصُ المنشور يحرّك عتبةَ صفحات الهبوط
+               (ثلاثةٌ لكل مدينة·طراز) وكلَّ عدّاد سوق.
+            */
+            i % 40 === 37
+            ? 'PENDING_REVIEW'
+            : i % 20 === 17
+              ? 'SUSPENDED'
+              : 'PUBLISHED';
+
+    /** قرارُ اليوم — ليقرأ المشغّل بطاقاته غيرَ صفرية */
+    const decidedToday = status === 'PUBLISHED' && i % 20 === 11;
+    const returnedToday = status === 'DRAFT';
+    const queueReason =
+      status === 'PENDING_REVIEW'
+        ? (QUEUE_REASONS[queuedSoFar % QUEUE_REASONS.length] ?? 'DUPLICATE_IMAGE')
+        : null;
+    /** **وصورٌ مكرّرة غالبًا** — فسببُ الإعادة يُحسب من المُعاد اليوم */
+    const returnReason: 'PRICE_OUTLIER' | 'DUPLICATE_IMAGE' | null = !returnedToday
+      ? null
+      : i % 40 === 25
+        ? 'PRICE_OUTLIER'
+        : 'DUPLICATE_IMAGE';
+    /**
+     * ٥١ · ٣٩ · ٢٦ · ١٤ دقيقة — مدى الترميز، وكلُّها دون الساعة فتُقرأ
+     * بالدقائق. **والأقدمُ أوّلُ الأسباب**: الطابور يُرتَّب بالانتظار،
+     * ولوحةُ «لماذا رُشّح» تفتح على أقدمِ صفّ — فترميزُ A15 يضع الصورة
+     * المكرّرة في رأس الجدول وفي اللوحة معًا. وتصاعديًّا كانت المكرّرة
+     * آخرَ الصفوف، فلا تُفتح لوحتُها إلّا بنقرة.
+     */
+    const waitingHours =
+      status === 'PENDING_REVIEW' ? Math.max(4, 51 - queuedSoFar * 12.4) / 60 : 0;
+    if (status === 'PENDING_REVIEW') queuedSoFar += 1;
 
     const ref = `ADS2026A${String(i + 1).padStart(4, '0')}`;
     const listing = await prisma.listing.create({
@@ -884,11 +947,26 @@ async function main(): Promise<void> {
          */
         description: DESCRIPTIONS[i % DESCRIPTIONS.length] ?? null,
         viewCount: between(12, 2400),
-        publishedAt: status === 'DRAFT' ? null : days(-between(1, 90)),
+        publishedAt:
+          status === 'DRAFT' ? null : decidedToday ? earlierToday(3) : days(-between(1, 90)),
         /* الإغلاق يُكتب مع البيعة، بعد الطلبات — لا هنا بعدّاد */
         closedAt: null,
         closeReason: null,
-        reviewReason: status === 'PENDING_REVIEW' ? 'DUPLICATE_IMAGE' : null,
+        reviewReason: queueReason ?? returnReason,
+        reviewQueuedAt: status === 'PENDING_REVIEW' ? realHours(-waitingHours) : null,
+        /**
+         * **والمعتمَد اليوم والمُعاد اليوم كلاهما مُراجَع** — وبطاقاتُ
+         * A15 الثلاث تُحسب من `reviewedAt`: بلا صفٍّ واحد تقرأ أصفارًا
+         * ونسبةً من لا شيء.
+         */
+        reviewedAt: decidedToday
+          ? earlierToday(3)
+          : returnedToday
+            ? earlierToday(5)
+            : null,
+        reviewNote: returnedToday
+          ? 'الصور لا تُظهر المقدمة ولا لوحة العدّاد — ارفع صورًا أوضح للمركبة نفسها.'
+          : null,
         featuredUntil: i % 12 === 0 ? days(between(1, 7)) : null,
       },
     });
@@ -943,6 +1021,112 @@ async function main(): Promise<void> {
         sellerId: seller.id,
         city,
       });
+    }
+  }
+
+  /**
+   * ═══ ولكلِّ رايةٍ سببُها — لا رايةٌ بلا دليل ═══
+   *
+   * كانت البذرة تكتب `reviewReason` وحدَه، **ولا شيء يُنشئ ما رفعه**:
+   * فطابور A15 أربعةُ صفوفٍ كلٌّ منها يقول «رُشّح لكذا» ودليلُه يقول
+   * «ولا كذا» — «بلغ عنه مستخدمون: لا بلاغات»، و«سعر شاذّ ولا إحصاء
+   * سوق»، و«صورة مكرّرة والمطابق لم يعد قائمًا»، و«حساب جديد» عمره
+   * مئةٌ وثمانيةٌ وعشرون يومًا. والمنتج لا يكتب الراية إلّا من سببها
+   * (`publish.ts`)، فبذرةٌ تكتبها بيدها تُنتج حالًا لا يبلغها.
+   *
+   * وكشفَه فتحُ الشاشة لا اختبار: الأرقام كلُّها صحيحة والجُمل متناقضة.
+   */
+  const queuedRows = await prisma.listing.findMany({
+    where: { status: 'PENDING_REVIEW' },
+    select: { id: true, ref: true, sellerId: true, askPrice: true, reviewReason: true,
+      vehicle: { select: { modelId: true, year: true } } },
+  });
+
+  for (const row of queuedRows) {
+    if (row.reviewReason === 'USER_REPORT') {
+      const reporter = buyers[0];
+      if (reporter !== undefined) {
+        await prisma.report.create({
+          data: {
+            ref: `RPT-2026-${row.ref.slice(-4)}`,
+            // **المفتاح `id` لا `ref`** — كما يكتبه `reportListing`
+            targetType: 'listing',
+            targetId: row.id,
+            reporterId: reporter.id,
+            reason: 'صور لا تخص المركبة',
+            details: 'المقاعد في الوصف جلد وفي الصور قماش، والصور لسيارة أخرى.',
+            status: 'open',
+          },
+        });
+      }
+    }
+
+    if (row.reviewReason === 'PRICE_OUTLIER') {
+      /**
+       * إحصاءُ سوقٍ **فوق** المطلوب — فالنسبة تُحسب ولا تُقال «لا إحصاء
+       * لهذا الطراز». و`upsert` لأنّ الطراز·السنة قد يكون مزروعًا أصلًا.
+       */
+      const ask = Number(row.askPrice);
+      const at = (factor: number) => new D(String(Math.round(ask * factor)));
+      await prisma.priceStat.upsert({
+        where: {
+          modelId_year_trimId_mileageBucket_city: {
+            modelId: row.vehicle.modelId,
+            year: row.vehicle.year,
+            trimId: '*',
+            mileageBucket: 80,
+            city: '*',
+          },
+        },
+        update: { p25: at(1.85), p50: at(2.1), p75: at(2.4) },
+        create: {
+          modelId: row.vehicle.modelId,
+          year: row.vehicle.year,
+          mileageBucket: 80,
+          p10: at(1.6),
+          p25: at(1.85),
+          p50: at(2.1),
+          p75: at(2.4),
+          p90: at(2.7),
+          sampleSize: 17,
+          computedAt: NOW,
+        },
+      });
+    }
+
+    if (row.reviewReason === 'NEW_ACCOUNT_BURST') {
+      // الحساب يصير جديدًا فعلًا — وإلّا فالوسم يكذب على عمرٍ يعرضه بجواره
+      await prisma.user.update({
+        where: { id: row.sellerId },
+        data: { createdAt: days(-3) },
+      });
+    }
+
+    if (row.reviewReason === 'DUPLICATE_IMAGE') {
+      /**
+       * بصمةٌ من إعلان **بائعٍ آخر** — وهو شرطُ القرار ٣٣: صورةُ البائع
+       * في إعلانه الثاني ليست تكرارًا. وتُنسخ كما هي (مسافة صفر) فيقرأ
+       * المراجع «١٠٠٪» ويرى الصورتين.
+       */
+      const source = await prisma.listingImage.findFirst({
+        where: {
+          phash: { not: null },
+          listing: { sellerId: { not: row.sellerId }, status: 'PUBLISHED' },
+        },
+        select: { phash: true },
+        orderBy: { id: 'asc' },
+      });
+      const cover = await prisma.listingImage.findFirst({
+        where: { listingId: row.id },
+        orderBy: { sort: 'asc' },
+        select: { id: true },
+      });
+      if (source?.phash != null && cover !== null) {
+        await prisma.listingImage.update({
+          where: { id: cover.id },
+          data: { phash: source.phash },
+        });
+      }
     }
   }
 
