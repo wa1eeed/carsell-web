@@ -1895,6 +1895,47 @@ names for the key fields, which were rendering as `secretKey` and `clientId`.
 **What the panel deliberately does not do** — «+ تكامل» and the publishable-key
 field — is in `DESIGN-DEVIATIONS.md` with the reasoning.
 
+### 40a · 5 — `A18` identity, 38٪ → 75٪, and «8 جهة تمويل» on the home page
+
+Fifth in the ranking. Most of what the measure called missing was **behind the
+«راجع» click** — the whole decision panel, which has had its three buttons
+since it was built. What was genuinely absent were the two cards that tell a
+reviewer about **today**: the screen showed «موثّق ١٬٤٢٨» across all time,
+which does not move with a day's work.
+
+Today's verifications come from `idVerifiedAt`, split by method; today's
+rejections come from the **audit log**, which is the authoritative record of a
+decision and already carries who and when — no new column for a timestamp that
+exists. The rejection sub-line says «آخرها» and not «أكثرها»: the reasons are
+free text, and picking the commonest would be classification, not counting.
+
+**«سياسة الرفض»** is now a panel, and its value is the line it draws:
+*what is missing gets a clarification request; what conflicts gets a
+rejection.* Two reviewers reading the same blurred photo should not reach
+different answers, and rejecting something that was merely incomplete starts
+the loop between the two sides that `decideIdentity` already guards against by
+demanding a reason.
+
+**Two things the panel deliberately does not do** — show the national ID in the
+review panel, and verify in bulk — are in `DESIGN-DEVIATIONS.md` and
+`OPEN-QUESTIONS.md` respectively. Bulk verification opens publishing, buying,
+bidding and receiving money in one press; that is the owner's call, with three
+possible shapes offered.
+
+### And the home page was printing «8 جهة تمويل»
+
+Found while confirming the integrations fix reached production. The hero
+statistics put the number in `<dd>` and a **fixed** noun in `<dt>`, so the
+plural never agreed: «8 جهة تمويل» for eight, «3 معرض موثق» for three. It had
+been right by accident for 11–99 — the commonest range — which is why it
+survived on the most-visited screen until financing partners reached eight.
+
+The lint rule did not see it: it checks Arabic text **adjacent to**
+`<ArabicNumber>` in the same expression, and these are sibling elements. The
+labels are plural units now, carrying the noun alone in its six forms with the
+number above them. Scanned for the same shape across every definition list in
+`src/`: none left.
+
 ### Where the screens stand — measured 2026-11-23, after the normalisation
 
 **305 of 515 signals · 59٪**, on a quiet server with nothing unmeasured — the

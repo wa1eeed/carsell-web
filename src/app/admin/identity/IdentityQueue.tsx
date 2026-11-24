@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Sheet';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Toast } from '@/components/ui/Toast';
 import { displayDigits } from '@/lib/arabic';
 import type { IdentityRow, IdentityStats } from '@/lib/domain/admin-identity';
@@ -104,7 +105,43 @@ export function IdentityQueue({
           }
         />
         <Card title="معلق للتوضيح" value={stats.clarification} note="ينتظر رد صاحبه" />
-        <Card title="موثق" value={stats.verifiedTotal} note="عبر التاريخ" />
+        {/*
+          ═══ واليومُ لا العمر كلُّه ═══
+
+          «موثّق ١٬٤٢٨» عددٌ لا يتحرّك بعمل اليوم، فلا يقول للمراجع
+          شيئًا عن يومه — والترميز يضع «وُثّق اليوم» و«رُفض اليوم».
+          والعمرُ كلُّه يبقى سطرًا تحتهما لا بطاقةً فوقهما.
+        */}
+        <Card
+          title="وثق اليوم"
+          value={stats.verifiedToday}
+          note={
+            stats.verifiedToday === 0 ? (
+              <>الإجمالي <ArabicNumber value={stats.verifiedTotal} /></>
+            ) : (
+              <>
+                <span>
+                  بالنفاذ <ArabicNumber value={stats.verifiedTodayNafath} />
+                </span>
+                <span aria-hidden className="opacity-40"> · </span>
+                <span>
+                  يدويا{' '}
+                  <ArabicNumber value={stats.verifiedToday - stats.verifiedTodayNafath} />
+                </span>
+              </>
+            )
+          }
+        />
+        <Card
+          title="رفض اليوم"
+          value={stats.rejectedToday}
+          note={
+            stats.lastRejectionNote === null
+              ? 'لا رفض اليوم'
+              : /* **«آخرها» لا «أكثرها»** — الأسباب نصٌّ حرّ، والأشيعُ تصنيفٌ لا عدّ. */
+                `آخرها: ${stats.lastRejectionNote.slice(0, 60)}`
+          }
+        />
         {/*
           **النسبة مقياسٌ لطول الطابور لا زينة**: كلّما ارتفعت قلّ ما
           ينتظر إنسانًا — والتصميم يقولها في العنوان.
@@ -124,7 +161,14 @@ export function IdentityQueue({
           description="يصل هنا الإدخال اليدوي والسجل التجاري. وكله يراجعه إنسان."
         />
       ) : (
-        <div className="flex flex-col divide-y divide-line border-y border-line">
+        <>
+          {/*
+            **والترتيبُ يُقال.** الطابور `identitySubmittedAt: 'asc'`
+            منذ كُتب، ولا سطر يقوله — فمن يفتحه لا يعرف أيُراجع من
+            أعلى القائمة أم يبحث عن الأقدم بنفسه. والترميز يسمّيه.
+          */}
+          <p className="mb-2.5 text-3xs font-bold tracking-[0.14em] opacity-65">الأقدم أولا</p>
+          <div className="flex flex-col divide-y divide-line border-y border-line">
           {rows.map((row) => (
             <div
               key={row.userId}
@@ -207,13 +251,53 @@ export function IdentityQueue({
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </>
       )}
 
       <p className="mt-7 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <b>ما يفتحه التوثيق:</b> نشر إعلان · تقديم عرض · المزايدة · استلام مبالغ. والتصفح
         والمفضلة متاحان بلا توثيق.
       </p>
+
+      {/*
+        ═══ سياسةُ الرفض — والخطُّ بين «وضّح» و«ارفض» ═══
+
+        الترميز يضعها في رأس الشاشة. وقيمتُها اتّساقُ القرار: مراجعان
+        يقرآن الصورةَ نفسها ويقرّران غيرَ ذلك، فصاحبُ الطلب يُرفض عند
+        أحدهما ويُوثَّق عند الآخر.
+
+        **والخطّ الفاصل هو النقصُ مقابل التعارض**: ما ينقص يُستكمَل،
+        وما يتعارض يُرفض. ورفضُ ناقصٍ يُطيل الدورة بين الطرفين — وهي
+        الدورة التي يحرسها اشتراطُ السبب في `decideIdentity`.
+      */}
+      <section className="mt-5 rounded-lg border border-line bg-surface p-5.5">
+        <h2 className="mb-3 text-3xs font-bold tracking-[0.14em] opacity-65">سياسة الرفض</h2>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <p className="mb-2 text-2xs font-bold">اطلب توضيحا — النقص يستكمل</p>
+            <ul className="flex flex-col gap-1.5 text-2xs leading-loose opacity-72">
+              <li>صورة غير واضحة أو منخفضة الدقة أو مقصوصة الأطراف.</li>
+              <li>الهوية منتهية، أو سجل تجاري قارب انتهاءه.</li>
+              <li>اختلاف الاسم اختصارا: «عبدالله م. الحربي» مقابل «عبدالله محمد الحربي» مقبول.</li>
+              <li>نقص مستند يكمل الملف.</li>
+            </ul>
+          </div>
+          <div>
+            <p className="mb-2 text-2xs font-bold">ارفض بسبب مكتوب — التعارض لا يستكمل</p>
+            <ul className="flex flex-col gap-1.5 text-2xs leading-loose opacity-72">
+              <li>اختلاف الاسم الأول أو العائلة — لا الاختصار.</li>
+              <li>صورة لهوية شخص آخر، أو مستند معدل.</li>
+              <li>بيانات لا تطابق المدخل: رقم هوية أو تاريخ ميلاد مختلف.</li>
+              <li>تكرار الرفض على التوضيح نفسه ثلاث مرات.</li>
+            </ul>
+          </div>
+        </div>
+        <p className="mt-4 border-t border-line pt-3 text-3xs leading-loose opacity-65">
+          والسبب يقرؤه صاحب الطلب بنصه — فاكتبه له لا لنفسك. ورفض بلا سبب يجعله يرفع
+          الصورة نفسها فيرفض ثانية، ودورة لا تنتهي بين الطرفين.
+        </p>
+      </section>
 
       <Modal
         open={open !== null}
@@ -253,7 +337,9 @@ export function IdentityQueue({
               />
             </label>
 
-            <div className="mt-4 flex flex-col gap-2">
+            {/* **وللأزرار عنوان** — كالترميز: ثلاثةُ مساراتٍ تُقرأ قرارًا واحدًا. */}
+            <h3 className="mt-4 text-3xs font-bold tracking-[0.14em] opacity-65">القرار</h3>
+            <div className="mt-2 flex flex-col gap-2">
               <Button className="w-full" disabled={pending} onClick={() => decide(open, 'VERIFY')}>
                 وثق الحساب
               </Button>

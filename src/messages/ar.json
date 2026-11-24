@@ -466,7 +466,10 @@
     "serviceConsents": "{count, plural, zero{لا طلبات فحص تنتظر إذنك} one{طلب فحص ينتظر إذنك} two{طلبا فحص ينتظران إذنك} few{{n} طلبات فحص تنتظر إذنك} many{{n} طلب فحص تنتظر إذنك} other{{n} طلب فحص ينتظر إذنك}}",
     "completedRequests": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبين} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
     "viewingsAwaiting": "{count, plural, zero{لا مواعيد معاينة تنتظر ردك} one{موعد معاينة ينتظر ردك} two{موعدا معاينة ينتظران ردك} few{{n} مواعيد معاينة تنتظر ردك} many{{n} موعد معاينة تنتظر ردك} other{{n} موعد معاينة ينتظر ردك}}",
-    "cylinders": "{count, plural, zero{لا سلندرات} one{سلندر واحد} two{سلندران} few{{n} سلندرات} many{{n} سلندرا} other{{n} سلندر}}"
+    "cylinders": "{count, plural, zero{لا سلندرات} one{سلندر واحد} two{سلندران} few{{n} سلندرات} many{{n} سلندرا} other{{n} سلندر}}",
+    "heroListings": "{count, plural, zero{مركبة معروضة} one{مركبة معروضة} two{مركبتان معروضتان} few{مركبات معروضة} many{مركبة معروضة} other{مركبة معروضة}}",
+    "heroDealers": "{count, plural, zero{معرض موثق} one{معرض موثق} two{معرضان موثقان} few{معارض موثقة} many{معرضا موثقا} other{معرض موثق}}",
+    "heroFinance": "{count, plural, zero{جهة تمويل} one{جهة تمويل} two{جهتا تمويل} few{جهات تمويل} many{جهة تمويل} other{جهة تمويل}}"
   },
   "search": {
     "title": "تصفح السيارات",

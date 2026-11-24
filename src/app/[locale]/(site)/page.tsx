@@ -201,17 +201,34 @@ export default async function HomePage({
                 <p className="mb-7 max-w-lg text-base leading-loose opacity-72">
                   {t('heroBody')}
                 </p>
+                {/*
+                  ═══ والعددُ يحكم المعدود — ولو في عنصرٍ آخر ═══
+
+                  كان الرقمُ في `<dd>` والاسمُ في `<dt>` نصًّا ثابتًا:
+                  «جهة تمويل» و«معرض موثق». **فثمانٍ تُقرأ «8 جهة
+                  تمويل»** وصوابُها «8 جهات» — والعربيةُ ستُّ صيغ.
+                  وصحّت صدفةً على ١١–٩٩ وحدها، فمرّت ما دام العددُ
+                  كبيرًا. ولم يرَها اللينت: قاعدتُه على نصٍّ يجاور
+                  `<ArabicNumber>` في الموضع نفسه، وهذان شقيقان.
+
+                  والوحدةُ الآن تحمل العددَ والاسم معًا، والرقمُ في
+                  `<ArabicNumber>` داخلها.
+                */}
                 <dl className="flex flex-wrap gap-9">
-                  {[
-                    { key: 'listings', value: home.stats.listings },
-                    { key: 'dealers', value: home.stats.dealers },
-                    { key: 'finance', value: home.stats.financeProviders },
-                  ].map((stat) => (
-                    <div key={stat.key}>
+                  {(
+                    [
+                      ['heroListings', home.stats.listings],
+                      ['heroDealers', home.stats.dealers],
+                      ['heroFinance', home.stats.financeProviders],
+                    ] as const
+                  ).map(([unit, value]) => (
+                    <div key={unit}>
                       <dd className="text-3xl leading-none font-bold">
-                        <ArabicNumber value={stat.value} />
+                        <ArabicNumber value={value} />
                       </dd>
-                      <dt className="mt-1.5 text-2xs opacity-70">{t(`heroStat.${stat.key}`)}</dt>
+                      <dt className="mt-1.5 text-2xs opacity-70">
+                        <Quantity unit={unit} count={value} />
+                      </dt>
                     </div>
                   ))}
                 </dl>

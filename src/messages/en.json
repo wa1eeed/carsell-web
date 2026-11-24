@@ -466,7 +466,10 @@
     "serviceConsents": "{count, plural, one{An inspection request awaits your consent} other{{n} inspection requests await your consent}}",
     "completedRequests": "{count, plural, one{one request} other{{n} requests}}",
     "viewingsAwaiting": "{count, plural, one{One viewing awaits your reply} other{{n} viewings await your reply}}",
-    "cylinders": "{count, plural, one{{n} cylinder} other{{n} cylinders}}"
+    "cylinders": "{count, plural, one{{n} cylinder} other{{n} cylinders}}",
+    "heroListings": "{count, plural, one{car listed} other{cars listed}}",
+    "heroDealers": "{count, plural, one{verified showroom} other{verified showrooms}}",
+    "heroFinance": "{count, plural, one{financing partner} other{financing partners}}"
   },
   "search": {
     "title": "Browse cars",

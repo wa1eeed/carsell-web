@@ -5,6 +5,10 @@ import { cn } from '@/lib/cn';
 
 /** الوحدات المعدودة — تُضاف هنا لا تُكتب في شاشة. */
 export type Unit =
+  /** بطاقاتُ الرئيسية — الاسمُ وحده، والرقمُ فوقه في عنصرٍ آخر. */
+  | 'heroListings'
+  | 'heroDealers'
+  | 'heroFinance'
   | 'completedRequests'
   | 'serviceConsents'
   | 'viewingsAwaiting'
