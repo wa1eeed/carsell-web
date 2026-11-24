@@ -1,19 +1,44 @@
 # The two environments
 
-_Last updated: 2026-11-23_
+_Last updated: 2026-11-24_
 
 | | staging | production |
 |---|---|---|
 | URL | `carsell.one` | `carz.sa` |
 | Host | VPS, Coolify | SCCC ECS, Riyadh |
 | Branch | `staging` | `main` |
-| Deploy | automatic on push | `carz-deploy` on the server |
+| Deploy | **Deploy button in the Coolify panel** | `carz-deploy` over SSH on the server |
 | Database | Coolify Postgres | ApsaraDB RDS, private VPC |
 | Data | **seeded and fictional** — 62 listings, invented prices and VINs | real |
 | Media prefix on R2 | `staging/` | `production/` |
 | Payment gateway | forced `TEST` | live keys (pending) |
 | Indexed by search engines | no | yes |
 | Secrets | its own | **different ones, generated separately** |
+
+## How a change reaches each one
+
+**Both are deliberate button presses. Neither follows a push on its own** —
+measured 2026-11-24, when three commits had sat on `staging` for over an hour
+and `carsell.one` was still serving the previous build. This table said
+«automatic on push» until that measurement; it was written from intention, not
+from the panel.
+
+```
+commit → push to `staging`
+       → Coolify: press Deploy        → check carsell.one
+       → merge `staging` into `main`
+       → on the SCCC box: carz-deploy → check carz.sa
+```
+
+**What a deploy does in both:** pulls the branch, builds the image, and the
+container's entrypoint runs `prisma migrate deploy` **before** the server
+starts. So migrations land with the code that needs them, and a failed
+migration stops the boot instead of serving a half-migrated schema.
+
+**Coolify can be made to deploy on push** — a webhook in its panel — and the
+owner has not asked for it. The production side stays a deliberate command
+either way: a push should not be able to change `carz.sa` without someone
+meaning it.
 
 **The code is identical.** Everything above except the branch is an environment
 variable. There is no staging copy of anything: a second copy of the code is two
