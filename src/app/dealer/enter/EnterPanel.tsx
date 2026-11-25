@@ -1,0 +1,93 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { Button, LinkButton } from '@/components/ui/Button';
+
+import { Toast } from '@/components/ui/Toast';
+
+/**
+ * **والحالُ الثلاثُ تُقال صراحةً**: عضوٌ في معرضٍ معتمد يدخل، وعضوٌ
+ * في معرضٍ ينتظر المراجعة يُخبَر بذلك، ومن ليس عضوًا يُدَلّ على
+ * التسجيل. وزرٌّ واحدٌ يردّ خطأً في الحالات الثلاث يجعل كلَّ واحدٍ
+ * منهم يظنّ العطلَ في النظام.
+ */
+export function EnterPanel({
+  name,
+  dealerName,
+  dealerStatus,
+  isMember,
+}: {
+  name: string | null;
+  dealerName: string | null;
+  dealerStatus: string | null;
+  isMember: boolean;
+}) {
+  const router = useRouter();
+  const [toast, setToast] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  const enter = (): void => {
+    start(async () => {
+      const response = await fetch('/api/v1/dealer/auth/session', { method: 'POST' }).catch(() => null);
+      const payload = (await response?.json().catch(() => null)) as
+        | { error?: { messageAr?: string } }
+        | null;
+      if (response === null || !response.ok) {
+        setToast(payload?.error?.messageAr ?? 'تعذر فتح اللوحة.');
+        return;
+      }
+      router.replace('/dealer');
+    });
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg p-6 text-ink">
+      <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-7">
+        <p className="text-3xs font-bold tracking-widest opacity-65">DEALER DASHBOARD</p>
+        <h1 className="mt-2.5 text-2xl font-bold">لوحة المعرض</h1>
+
+        {!isMember ? (
+          <>
+            <p className="mt-3.5 text-2xs leading-loose opacity-75">
+              حسابك {name === null ? '' : `(${name}) `}ليس عضوا في أي معرض. سجل معرضك
+              بسجله التجاري، وبعد اعتماده تفتح لك اللوحة.
+            </p>
+            <LinkButton href="/ar/auth/dealer" className="mt-5 w-full">
+              سجل معرضك
+            </LinkButton>
+          </>
+        ) : dealerStatus !== 'ACTIVE' ? (
+          <>
+            <p className="mt-3.5 text-2xs leading-loose opacity-75">
+              معرضك <b>{dealerName}</b> ينتظر اعتماد سجله التجاري. تصلك رسالة فور
+              اعتماده، وتفتح اللوحة عندها.
+            </p>
+            <LinkButton href="/ar/account" variant="outline" className="mt-5 w-full">
+              إلى حسابي
+            </LinkButton>
+          </>
+        ) : (
+          <>
+            <p className="mt-3.5 text-2xs leading-loose opacity-75">
+              تدخل لوحة <b>{dealerName}</b> باسم {name ?? 'حسابك'}.
+            </p>
+            {/*
+              **وجلسةُ اللوحة غيرُ جلسة المتجر.** يُقال ذلك هنا لا بعد
+              أن يخرج فيجد نفسه ما زال داخلا في المتجر فيظنّ الخروج لم
+              يقع.
+            */}
+            <p className="mt-2 text-3xs leading-loose opacity-65">
+              جلسة اللوحة مستقلة عن جلسة المتجر ومدتها ١٢ ساعة — فخروجك منها لا
+              يخرجك من حسابك الشخصي.
+            </p>
+            <Button className="mt-5 w-full" disabled={pending} onClick={enter}>
+              {pending ? 'يفتح…' : 'افتح اللوحة'}
+            </Button>
+          </>
+        )}
+      </div>
+      {toast === null ? null : <Toast title={toast} />}
+    </div>
+  );
+}

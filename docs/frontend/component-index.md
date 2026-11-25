@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **176** components in **4** directories.
+Counted: **177** components in **5** directories.
 
 ## Referenced nowhere else
 
@@ -33,7 +33,7 @@ rather than found by chance.
 | `DetailColumns` | no | `main` · `side` | 15 |
 | `DetailHeader` | no | `backHref` · `backLabel` · `title` · `badges` · `actions` | 15 |
 | `DetailStats` | no | `items` | 17 |
-| `Field` | no | `label` · `value` · `ltr` · `strong` | 142 |
+| `Field` | no | `label` · `value` · `ltr` · `strong` | 145 |
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
@@ -59,6 +59,12 @@ rather than found by chance.
 | `Timeline` | no | `events` | 11 |
 | `UserCard` | no | `row` | 2 |
 
+## `src/components/dealer`
+
+| Component | Client | Props | Referenced in |
+| --- | --- | --- | --- |
+| `DealerShell` | no | `actor` · `activeHref` · `title` · `subtitle` · `actions` · `children` | 3 |
+
 ## `src/components/site`
 
 | Component | Client | Props | Referenced in |
@@ -76,11 +82,11 @@ rather than found by chance.
 | `SellerCard` | no | `name` · `isDealer` · `dealerPath` · `listingCount` · `ratingAvg` · `ratingCount` | 1 |
 | `SpecStrip` | no | `items` | 1 |
 | `Choice` | yes | `options` · `active` · `onSelect` | 3 |
-| `Note` | yes | `children` | 107 |
+| `Note` | yes | `children` | 110 |
 | `PriceField` | yes | `label` · `hint` · `value` · `onChange` | 2 |
 | `Readout` | yes | `label` · `value` · `hint` | 2 |
 | `SettingsBlock` | yes | `title` · `children` | 2 |
-| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 7 |
+| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` | 8 |
 | `BidLogTable` | yes | `bids` · `events` · `locale` · `listingRef` | 1 |
 | `BidPanel` | yes | `listingRef` · `live` · `minimumNext` · `increment` · `depositAmount` · `buyNowPrice` · `signedIn` · `isOwn` · `locale` · `onPlaced` | 2 |
 | `BuyActions` | yes | `listingRef` · `price` · `type` · `isOwn` · `reserved` · `signedIn` · `locale` · `taxProfile` | 1 |
@@ -135,14 +141,14 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 2 |
 | `ActionLink` | no | `href` · `children` · `className` | 6 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 129 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 132 |
 | `AuctionRail` | no | `auctions` · `className` | 3 |
-| `Badge` | no | `tone` · `size` · `children` · `className` | 116 |
+| `Badge` | no | `tone` · `size` · `children` · `className` | 118 |
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 123 |
-| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 22 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 126 |
+| `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 23 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
 | `CarRow` | no | `data` · `className` | 3 |
@@ -150,12 +156,12 @@ rather than found by chance.
 | `ChoiceGroup` | yes | `label` · `hint` · `value` · `options` · `onChange` · `className` | 1 |
 | `CompletionRecord` | no | `title` · `rows` | 2 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
-| `Counted` | yes | `message` · `count` · `className` | 9 |
+| `Counted` | yes | `message` · `count` · `className` | 10 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `count` | 18 |
-| `EmptyState` | no | `title` · `description` · `action` · `className` | 40 |
+| `EmptyState` | no | `title` · `description` · `action` · `className` | 42 |
 | `FaqAccordion` | yes | `rows` · `columns` · `className` · `openId` · `baseHref` | 3 |
-| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 142 |
+| `Field` | no | `label` · `hint` · `note` · `error` · `required` · `unit` · `htmlFor` · `children` | 145 |
 | `FieldNote` | no | `id` · `children` | 1 |
 | `FilterChip` | no | `href` · `active` · `count` · `children` | 10 |
 | `Gallery` | yes | `images` · `alt` · `className` | 3 |
@@ -173,7 +179,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 9 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 95 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 98 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
@@ -182,13 +188,13 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 1 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 131 |
+| `Quantity` | no | `unit` · `count` · `className` | 133 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 11 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |
 | `ShareBars` | no | `shares` · `baseNote` · `decimals` · `className` | 3 |
-| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 34 |
-| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 49 |
+| `Modal` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 36 |
+| `Sheet` | yes | `open` · `onClose` · `title` · `children` · `footer` · `className` | 51 |
 | `SignOut` | yes | `path` · `next` · `label` · `className` | 3 |
 | `SimilarGrid` | no | `items` · `className` | 1 |
 | `Since` | no | `iso` · `className` | 1 |
@@ -202,8 +208,8 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 5 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 92 |
-| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 7 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 95 |
+| `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 8 |
 | `Year` | no | `value` · `className` | 5 |
 
 ## `src/components/ui/plate`

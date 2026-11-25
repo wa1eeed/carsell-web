@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-104 models · 73 enums
+107 models · 75 enums
 
 ## Relationships
 
@@ -15,7 +15,12 @@ erDiagram
   User }o--|| IdentityStatus : "identityStatus"
   User }o--|| AccountType : "accountType"
   User |o--|| TaxStatus : "taxStatus"
+  User |o--|| DealerRole : "dealerRole"
   User |o--|| Dealer : "dealer"
+  User |o--|| Branch : "branch"
+  User ||--o{ Branch : "managedBranches"
+  User ||--o{ VehicleCost : "recordedCosts"
+  User ||--o{ DealerSession : "dealerSessions"
   User ||--o{ Vehicle : "vehicles"
   User ||--o{ Listing : "listings"
   User ||--o{ Offer : "offers"
@@ -55,6 +60,17 @@ erDiagram
   Dealer ||--o{ User : "members"
   Dealer ||--o{ Vehicle : "vehicles"
   Dealer ||--o{ Subscription : "subscriptions"
+  Dealer ||--o{ Branch : "branches"
+  Dealer ||--o{ DealerSession : "sessions"
+  Branch }o--|| Dealer : "dealer"
+  Branch |o--|| User : "manager"
+  Branch ||--o{ User : "members"
+  Branch ||--o{ Vehicle : "vehicles"
+  VehicleCost }o--|| VehicleCostKind : "kind"
+  VehicleCost }o--|| Vehicle : "vehicle"
+  VehicleCost }o--|| User : "recordedBy"
+  DealerSession }o--|| User : "user"
+  DealerSession }o--|| Dealer : "dealer"
   Brand ||--o{ Model : "models"
   Brand ||--o{ Vehicle : "vehicles"
   Model |o--|| BodyType : "bodyType"
@@ -100,6 +116,8 @@ erDiagram
   Vehicle ||--o{ VehicleHistoryItem : "history"
   Vehicle ||--o{ InspectionReport : "inspectionReports"
   Vehicle ||--o{ ServiceRequest : "serviceRequests"
+  Vehicle |o--|| Branch : "branch"
+  Vehicle ||--o{ VehicleCost : "costs"
   VehicleHistoryItem }o--|| VehicleHistorySource : "source"
   VehicleHistoryItem }o--|| Vehicle : "vehicle"
   Listing }o--|| ListingType : "type"
@@ -371,8 +389,9 @@ erDiagram
 | `marketingConsentAt` | `DateTime?` |  |
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
+| `branchId` | `String?` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -464,7 +483,53 @@ Relations: `adminUser` → `AdminUser`
 | `ratingCount` | `Int` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `subscriptions` → `Subscription`
+Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession`
+
+### `Branch`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `dealerId` | `String` |  |
+| `name` | `String` |  |
+| `city` | `String` |  |
+| `address` | `String?` |  |
+| `phone` | `String?` |  |
+| `managerId` | `String?` |  |
+| `active` | `Boolean` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `dealer` → `Dealer` · `manager` → `User` · `members` → `User` · `vehicles` → `Vehicle`
+
+### `VehicleCost`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `vehicleId` | `String` |  |
+| `amount` | `Decimal` |  |
+| `note` | `String?` |  |
+| `incurredAt` | `DateTime` |  |
+| `recordedById` | `String` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `kind` → `VehicleCostKind` · `vehicle` → `Vehicle` · `recordedBy` → `User`
+
+### `DealerSession`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `userId` | `String` |  |
+| `dealerId` | `String` |  |
+| `tokenHash` | `String` | unique |
+| `ip` | `String?` |  |
+| `userAgent` | `String?` |  |
+| `expiresAt` | `DateTime` |  |
+| `revokedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `user` → `User` · `dealer` → `Dealer`
 
 ### `OtpChallenge`
 
@@ -554,6 +619,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `id` | `String` | PK |
 | `ownerId` | `String` |  |
 | `dealerId` | `String?` |  |
+| `branchId` | `String?` |  |
 | `vin` | `String?` |  |
 | `plateLetters` | `String?` |  |
 | `plateNumbers` | `String?` |  |
@@ -575,7 +641,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `city` | `String` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `features` → `VehicleFeature` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest`
+Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `features` → `VehicleFeature` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest` · `branch` → `Branch` · `costs` → `VehicleCost`
 
 ### `VehicleHistoryItem`
 
@@ -2053,6 +2119,8 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `UserStatus` — `ACTIVE`, `SUSPENDED`, `BANNED`, `CLOSED`
 - `AdminRole` — `SUPER_ADMIN`, `OPS`, `FINANCE`, `SUPPORT`, `CONTENT`, `READONLY`
 - `DealerStatus` — `PENDING`, `ACTIVE`, `SUSPENDED`
+- `DealerRole` — `OWNER`, `MANAGER`, `SALES`, `ACCOUNTANT`
+- `VehicleCostKind` — `PURCHASE`, `TRANSPORT`, `INSPECTION`, `MAINTENANCE`, `DETAILING`, `CUSTOMS`, `OTHER`
 - `BodyType` — `SEDAN`, `SUV`, `/**`, `* كروس أوفر — **وكان معالجُ البيع يعرضه ولا وجودَ له هنا**.`, `* قائمتُه الاحتياطية تحمل `WAGON` و`CONVERTIBLE` منذ كُتبت،`, `* والتعدادُ لا يعرفهما: من اختار أحدَهما أرسل قيمةً يردّها الخادم.`, `* (طلب المالك ٢٠٢٦-١٠-١٨، ووُجد الخللُ في قياسه.)`, `*/`, `CROSSOVER`, `PICKUP`, `HATCHBACK`, `COUPE`, `CONVERTIBLE`, `VAN`
 - `RegistrationType` — `PRIVATE // خصوصي`, `PRIVATE_TRANSPORT // نقل خاص`, `PUBLIC_TRANSPORT // نقل عام`, `MINIBUS // حافلة صغيرة`, `TAXI // أجرة`, `MOTORCYCLE // دراجة نارية`, `HEAVY_EQUIPMENT // أشغال عامة`
 - `AccidentStatus` — `NONE // بدون حوادث`, `REPORTED // حوادث مسجلة`, `UNREPORTED // حوادث غير مسجلة`

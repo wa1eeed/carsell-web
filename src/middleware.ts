@@ -69,8 +69,15 @@ export default function middleware(request: NextRequest) {
    * يحوّلها الوسيط إلى `/ar/provider` — **فيردّ ٣٠٧ إلى مسارٍ لا
    * وجود له**، وهو ما قِيس بالنقر قبل إصلاحه.
    */
+  /**
+   * **ولوحة المعرض ثالثتُها** (قرار ٢٠٢٦-١١-٢٥: «المعرض ليس كمثل
+   * المستخدم العادي»). وبلا هذا السطر يحوّلها الوسيط إلى
+   * `/ar/dealer` — مسارٌ لا وجود له، ويردّ ٣٠٧ إلى لا شيء. وقِيس
+   * بالنقر: وقع، كما وقع لـ`/provider` قبلها.
+   */
   if (
     pathname.startsWith('/admin') ||
+    pathname.startsWith('/dealer') ||
     pathname.startsWith('/provider') ||
     pathname.startsWith('/api')
   ) {

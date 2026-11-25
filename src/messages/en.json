@@ -1405,7 +1405,9 @@
     "ofIntegrations": "{count, plural, one{{n} integration has a cost} other{{n} integrations have costs}}",
     "withinDays": "{count, plural, one{within {n} day} other{within {n} days}}",
     "ordersThisMonth": "{count, plural, one{{n} order this month} other{{n} orders this month}}",
-    "openServices": "{count, plural, one{1 open service} other{{n} open services}}"
+    "openServices": "{count, plural, one{1 open service} other{{n} open services}}",
+    "dealsWithCost": "{count, plural, one{1 deal with a recorded cost} other{{n} deals with a recorded cost}}",
+    "ofDeals": "{count, plural, one{of 1 deal} other{of {n} deals}}"
   },
   "notificationCenter": {
     "title": "Notifications",

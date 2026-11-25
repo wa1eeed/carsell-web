@@ -1405,7 +1405,9 @@
     "ofIntegrations": "{count, plural, zero{لا تكامل أدخلت كلفته} one{تكامل واحد أدخلت كلفته} two{تكاملان أدخلت كلفتهما} few{{n} تكاملات أدخلت كلفتها} many{{n} تكاملا أدخلت كلفته} other{{n} تكامل أدخلت كلفته}}",
     "withinDays": "{count, plural, zero{اليوم} one{خلال يوم} two{خلال يومين} few{خلال {n} أيام} many{خلال {n} يوما} other{خلال {n} يوم}}",
     "ordersThisMonth": "{count, plural, zero{لا طلبات هذا الشهر} one{طلب واحد هذا الشهر} two{طلبان هذا الشهر} few{{n} طلبات هذا الشهر} many{{n} طلبا هذا الشهر} other{{n} طلب هذا الشهر}}",
-    "openServices": "{count, plural, zero{لا خدمات قائمة} one{خدمة قائمة} two{خدمتان قائمتان} few{{n} خدمات قائمة} many{{n} خدمة قائمة} other{{n} خدمة قائمة}}"
+    "openServices": "{count, plural, zero{لا خدمات قائمة} one{خدمة قائمة} two{خدمتان قائمتان} few{{n} خدمات قائمة} many{{n} خدمة قائمة} other{{n} خدمة قائمة}}",
+    "dealsWithCost": "{count, plural, zero{لا صفقة سجلت كلفتها} one{صفقة واحدة سجلت كلفتها} two{صفقتان سجلت كلفتهما} few{{n} صفقات سجلت كلفتها} many{{n} صفقة سجلت كلفتها} other{{n} صفقة سجلت كلفتها}}",
+    "ofDeals": "{count, plural, zero{من لا صفقات} one{من صفقة واحدة} two{من صفقتين} few{من {n} صفقات} many{من {n} صفقة} other{من {n} صفقة}}"
   },
   "notificationCenter": {
     "title": "الإشعارات",

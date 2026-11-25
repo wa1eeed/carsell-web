@@ -316,8 +316,8 @@ async function reset(): Promise<void> {
       "Subscription","PlanEntitlement","Entitlement","Plan","EntitlementOverride",
       "FinanceSetting","FinanceProvider","InspectionReport","ServiceRequest","Service",
       "ServiceProvider","Invoice","Dispute","Escrow","OrderEvent","Order",
-      "Deposit","CancelledBid","Bid","Auction","Offer","ListingFeature","ListingImage","Listing",
-      "VehicleHistoryItem","Vehicle","TrimFeature","Feature","Trim","Model","Brand",
+      "DealerSession","VehicleCost","Deposit","CancelledBid","Bid","Auction","Offer","ListingFeature","ListingImage","Listing",
+      "VehicleHistoryItem","Vehicle","Branch","TrimFeature","Feature","Trim","Model","Brand",
       "OtpChallenge","AdminUser","User","Dealer",
       -- **والدفتر ليس له مفتاح خارجي إلى الطلب، فلا يفرغ بالتعاقب.**
       -- فكان يتراكم عبر كل تشغيل اختبار ولا يمسح أبدا: قرأت فيه
@@ -663,6 +663,13 @@ async function main(): Promise<void> {
           email: `dealer${i + 1}@example.com`,
           role: 'DEALER',
           dealerId: d.id,
+          /**
+           * **ومن سجّل المعرض مالكُه.** دورٌ داخل المعرض غيرُ دور
+           * المنصّة: `role: 'DEALER'` يقول «حسابٌ تجاريّ»،
+           * و`dealerRole: 'OWNER'` يقول «صاحبُ هذا المعرض» — ولوحةُ
+           * المعرض تقرأ الثاني، فبلا زرعِه لا يدخلها أحدٌ في أيّ بيئة.
+           */
+          dealerRole: 'OWNER',
           identityStatus: 'VERIFIED',
           idVerified: true,
           idVerifiedAt: days(-300),
@@ -671,6 +678,70 @@ async function main(): Promise<void> {
       }),
     ),
   );
+
+  /**
+   * ═══ فروعٌ وفريقٌ لمعرضٍ واحد — `D9` ═══
+   *
+   * **وواحدٌ يكفي**: ثلاثةُ فروعٍ لكل معرضٍ تجعل الشاذَّ قاعدةً،
+   * ومعرضٌ بفرعٍ واحد هو الحالُ الشائع. فأوّلُ معرضٍ له ثلاثة —
+   * فتُرى مصفوفةُ الأدوار وحصرُ البائع بفرعه — والباقي بلا فروع.
+   */
+  const leadDealer = dealers[0] as (typeof dealers)[number];
+  const leadOwner = dealerUsers[0] as (typeof dealerUsers)[number];
+  const branches = await Promise.all(
+    [
+      ['الملقا', 'الرياض'],
+      ['العليا', 'الرياض'],
+      ['الخرج', 'الخرج'],
+    ].map(([name, city], i) =>
+      prisma.branch.create({
+        data: {
+          dealerId: leadDealer.id,
+          name: name as string,
+          city: city as string,
+          address: `شارع ${name as string}`,
+          phone: '+966112345678',
+          createdAt: days(-between(100, 400) - i),
+        },
+      }),
+    ),
+  );
+
+  /** فريقُ المعرض — مديرٌ ومبيعاتٌ ومحاسب، ولكلٍّ موضعُه من المصفوفة. */
+  const dealerTeam = await Promise.all(
+    (
+      [
+        { name: 'خالد مدير الفرع', dealerRole: 'MANAGER', branchId: null },
+        { name: 'نورة المبيعات', dealerRole: 'SALES', branchId: branches[0]?.id ?? null },
+        { name: 'سعد المبيعات', dealerRole: 'SALES', branchId: branches[1]?.id ?? null },
+        { name: 'ريم المحاسبة', dealerRole: 'ACCOUNTANT', branchId: null },
+      ] as const
+    ).map(({ name, dealerRole, branchId }, i) =>
+      prisma.user.create({
+        data: {
+          phone: `+9665${String(21000000 + i).padStart(8, '0')}`,
+          name,
+          email: `team${i + 1}@example.com`,
+          role: 'DEALER',
+          dealerId: leadDealer.id,
+          dealerRole,
+          branchId,
+          identityStatus: 'VERIFIED',
+          idVerified: true,
+          idVerifiedAt: days(-200),
+          createdAt: days(-between(50, 180)),
+        },
+      }),
+    ),
+  );
+  /** ومديرُ الفرع يُسنَد إليه — فعمودُ «المدير» لا يبقى فارغًا كلَّه. */
+  if (branches[0] !== undefined && dealerTeam[1] !== undefined) {
+    await prisma.branch.update({
+      where: { id: branches[0].id },
+      data: { managerId: dealerTeam[1].id },
+    });
+  }
+  void leadOwner;
 
   const buyers = await Promise.all(
     Array.from({ length: 14 }, (_, i) =>
