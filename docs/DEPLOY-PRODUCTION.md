@@ -136,6 +136,20 @@ The script survives it because it compares the **running container's tag**, not
 the tree — so the next run says "tree on X, container on Y, rebuilding" instead
 of "nothing to do". Read the tag, never the tree.
 
+### And the checkout must belong to the user who deploys
+
+The same root-run history left **1,346 paths under `/opt/carz` owned by root**,
+including subdirectories of `.git/objects`. A fetch as `ecs-user` then succeeds
+or fails **depending on which two-character prefix directory a new object lands
+in** — an intermittent failure that looks like a network problem and is not.
+
+```sh
+sudo chown -R ecs-user:ecs-user /opt/carz
+```
+
+`carz-deploy` is meant to run as `ecs-user`; running it under `sudo` is what
+created both faults. Don't.
+
 The build takes 20–35 minutes on two cores. **4 GB of swap is why it finishes**
 — `next build` does not fit in 3.5 GiB.
 
