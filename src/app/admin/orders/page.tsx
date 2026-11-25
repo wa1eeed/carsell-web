@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
 import { ListSearch } from '@/components/admin/ListSearch';
+import { ExportLink } from '@/components/admin/ExportLink';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { StatCard } from '@/components/ui/StatCard';
 import { currentAdmin } from '@/lib/auth/admin-session';
@@ -91,6 +93,19 @@ export default async function AdminOrdersPage({
   const onlyLate = search.late === '1';
   const onlyCritical = search.critical === '1';
 
+  /** **والتاريخ يُفحص قبل أن يُبنى منه `Date`** — و«إلى» تُدفَع إلى آخر اليوم. */
+  const dateOf = (value: unknown, endOfDay = false): Date | undefined => {
+    if (typeof value !== 'string' || value === '') return undefined;
+    const date = new Date(endOfDay ? `${value}T23:59:59.999Z` : `${value}T00:00:00.000Z`);
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  };
+  const from = typeof search.from === 'string' ? search.from : undefined;
+  const to = typeof search.to === 'string' ? search.to : undefined;
+  const city = typeof search.city === 'string' && search.city.trim() !== ''
+    ? search.city.trim()
+    : null;
+  const filtered2 = from !== undefined || to !== undefined || city !== null;
+
   const stage = STAGES.find((key) => key === raw);
   const closed = CLOSED.find((key) => key === raw);
   const active: string | null = stage ?? closed ?? null;
@@ -117,6 +132,9 @@ export default async function AdminOrdersPage({
           : {}),
       q,
       ...(onlyLate ? { onlyLate: true } : {}),
+      ...(dateOf(from) === undefined ? {} : { from: dateOf(from) }),
+      ...(dateOf(to, true) === undefined ? {} : { to: dateOf(to, true) }),
+      city,
     }),
     orderTabCounts(),
   ]);
@@ -154,12 +172,74 @@ export default async function AdminOrdersPage({
   return (
     <AdminShell title="الطلبات"
       subtitle="تابز لكل مرحلة وإجراء مباشر" activeHref="/admin/orders" admin={admin}>
+      {/*
+        **والتصديرُ بصلاحية من يقرأ الطابور.** `sales_commissions` قائمٌ
+        بصلاحية المالية، ومن يقف على الطلبات لا يملكها — وهما تقريران
+        مختلفان: ذاك إيرادٌ وعمولة، وهذا الطلبُ بمرحلته ومهلته وطرفيه.
+      */}
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2.5">
+        <ExportLink reportKey="orders" allowed={can(admin.role, 'orders.view')} />
+      </div>
+
       <ListSearch
         action="/admin/orders"
         value={q}
         placeholder="رقم الطلب · مرجع الإعلان · اسم المشتري أو البائع"
         keep={{ tab: active }}
       />
+
+      {/*
+        ═══ فلاتر — نافذةُ إنشاءٍ ومدينة ═══
+
+        التابزُ تسأل «أيّ مرحلة»، والمشغّلُ يسأل أيضًا «ماذا دخل هذا
+        الأسبوع» و«ما في جدة». واستمارةُ GET تُبقي الشاشة خادمًا خالصًا،
+        ورابطُها يُنسخ ويُرسَل.
+      */}
+      <details className="mb-4 rounded-lg border border-line bg-surface" open={filtered2}>
+        <summary className="cursor-pointer px-4 py-3 text-2xs font-bold">فلاتر</summary>
+        <form method="get" className="flex flex-wrap items-end gap-3 border-t border-line p-4">
+          {active === null ? null : <input type="hidden" name="tab" value={active} />}
+          {q === null ? null : <input type="hidden" name="q" value={q} />}
+          <label className="flex flex-col gap-1.5">
+            <span className="text-3xs font-bold opacity-70">أنشئ من</span>
+            <input
+              type="date"
+              name="from"
+              defaultValue={from ?? ''}
+              dir="ltr"
+              className="rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-2xs"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-3xs font-bold opacity-70">إلى</span>
+            <input
+              type="date"
+              name="to"
+              defaultValue={to ?? ''}
+              dir="ltr"
+              className="rounded-md border border-line bg-bg px-3 py-2 text-start font-num text-2xs"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-3xs font-bold opacity-70">المدينة</span>
+            <input
+              type="text"
+              name="city"
+              defaultValue={city ?? ''}
+              placeholder="الرياض"
+              className="rounded-md border border-line bg-bg px-3 py-2 text-2xs"
+            />
+          </label>
+          <button type="submit" className="rounded-md bg-accent px-4 py-2 text-2xs font-bold text-bg">
+            صف
+          </button>
+          {filtered2 ? (
+            <AdminLink href={active === null ? '/admin/orders' : `/admin/orders?tab=${active}`}>
+              امسح الفلاتر
+            </AdminLink>
+          ) : null}
+        </form>
+      </details>
 
       <MonitorTabs tabs={tabs} active={active} basePath="/admin/orders" param="tab" />
 

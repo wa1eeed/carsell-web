@@ -25,7 +25,7 @@ rather than found by chance.
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
 | `ActivityRow` | no | `event` · `at` | 1 |
-| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 11 |
+| `AdminLink` | no | `href` · `ltr` · `children` · `className` | 12 |
 | `AdminMobileNav` | yes | `groups` · `activeHref` · `title` | 1 |
 | `AuctionCard` | no | `row` | 1 |
 | `AutoRefresh` | yes | `seconds` | 1 |
@@ -37,7 +37,7 @@ rather than found by chance.
 | `TimelineRow` | no | `title` · `note` · `at` · `tone` | 1 |
 | `DisputeCard` | no | `row` · `children` | 1 |
 | `Dwell` | no | `hours` · `targetHours` · `className` | 3 |
-| `ExportLink` | no | `reportKey` · `allowed` | 6 |
+| `ExportLink` | no | `reportKey` · `allowed` | 7 |
 | `IdentityPanel` | yes | `userId` · `allowed` | 1 |
 | `KpiCard` | no | `kpi` | 1 |
 | `ListFooter` | no | `shown` · `total` · `note` · `can` · `cannot` · `automatic` | 25 |

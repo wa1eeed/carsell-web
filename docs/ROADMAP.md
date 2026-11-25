@@ -2090,6 +2090,35 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 36 — `A4` orders: an export behind the wrong permission, and a stage that did not say whose
+
+`A4` read **77٪**.
+
+**«تصدير CSV» existed — for someone else.** `sales_commissions` sits behind
+`finance.view`, so the person standing on the orders queue cannot download it.
+They are two different reports anyway: that one is revenue, commission and VAT;
+this one is the order with its stage, its deadline and both parties. `orders`
+is a catalogue report now, behind `orders.view`, **not personal** — it carries
+ids, not names, because operations are followed by reference.
+
+*(Its money columns first came out as a thrice-quoted string: `cell` serializes an
+object with `JSON.stringify`, and a Prisma `Decimal` is an object. Every other
+report writes `.toFixed(2)`; this one does now. Caught by downloading the file,
+not by a type.)*
+
+**«موافقة البائع» was «الموافقة».** The stage is the seller's approval — the
+order is created and waits for them — and a bare «الموافقة» does not say **who**
+is being waited on, which is the first question asked about an order stuck
+there.
+
+**And «فلاتر».** The tabs ask "which stage"; the operator also asks "what came
+in this week" and "what is in Jeddah". A GET disclosure, like `A16`'s, filtering
+**in the query** — filtering after the fetch would let `take` cut before the
+filter and show a slice that looks smaller than it is, which is a rule already
+written in that file. Walked: all cities 11 orders, Jeddah 2.
+
+Measured after: **77٪ → 100٪**.
+
 ### 40a · 35 — `A27` and `A22`: numbers we had, and an order nobody stated
 
 `A27` read **73٪** and `A22` **73٪**.

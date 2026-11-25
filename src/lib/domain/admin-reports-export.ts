@@ -247,6 +247,52 @@ const QUERIES: Record<ReportKey, Query> = {
    * **والقبلُ والبعدُ عمودان** — سطرٌ يقول «عدّل رسوم النقل» بلا قيمتين
    * لا يُراجَع. وهما `Json`، فيُسلسَلان كما خُزّنا.
    */
+  orders: async () => {
+    const rows = await db.order.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: EXPORT_ROW_LIMIT,
+      select: {
+        ref: true, stage: true, status: true, source: true,
+        agreedPrice: true, commissionAmount: true, transferFee: true,
+        buyerId: true, sellerId: true,
+        createdAt: true, paymentDueAt: true, stageEnteredAt: true,
+        transferDeadlineAt: true,
+        listing: { select: { ref: true, city: true } },
+      },
+    });
+
+    return {
+      headers: [
+        'ref', 'listing_ref', 'city', 'stage', 'status', 'source',
+        'agreed_price', 'commission', 'transfer_fee',
+        'buyer_id', 'seller_id', 'created_at', 'payment_due_at', 'stage_entered_at',
+        'transfer_deadline_at',
+      ],
+      rows: rows.map((row) => [
+        row.ref,
+        row.listing.ref,
+        row.listing.city,
+        row.stage,
+        row.status,
+        row.source,
+        /**
+         * **والمبلغُ نصًّا بهللاته** — `cell` تُسلسِل الكائنَ بـJSON،
+         * و`Decimal` كائن: فيخرج مقتبسًا ثلاثَ مرّات في خانةٍ يقرؤها
+         * Excel نصًّا لا رقمًا. وسائرُ التقارير تكتبها `toFixed(2)`.
+         */
+        row.agreedPrice.toFixed(2),
+        row.commissionAmount.toFixed(2),
+        row.transferFee.toFixed(2),
+        row.buyerId,
+        row.sellerId,
+        row.createdAt,
+        row.paymentDueAt ?? '',
+        row.stageEnteredAt,
+        row.transferDeadlineAt ?? '',
+      ]),
+    };
+  },
+
   audit_log: async () => {
     const entries = await db.auditLog.findMany({
       orderBy: { createdAt: 'desc' },

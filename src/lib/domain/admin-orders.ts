@@ -189,6 +189,20 @@ export async function listAdminOrders(
      * ثالثُ وقوعٍ لـ«شريحةٍ تَعُدّ غيرَ ما تُرشّح». (البوابة ٤٠.)
      */
     status?: OrderStatus;
+    /**
+     * ═══ نافذةُ الإنشاء ومدينةُ المركبة — فلاترُ `A4` ═══
+     *
+     * التابزُ تسأل «أيّ مرحلة»، والمشغّلُ يسأل أيضًا «ماذا دخل هذا
+     * الأسبوع» و«ما في جدة». **والترشيحُ في الاستعلام لا في الذاكرة**:
+     * بعد الجلب يقصّ `take` قبل أن يُرشَّح، فتُعرض شريحةٌ ناقصة وتبدو
+     * أصغر ممّا هي — وهي قاعدةٌ مكتوبةٌ في هذا الملفّ أصلًا.
+     *
+     * والمدينةُ مدينةُ الإعلان: الطلبُ لا مدينةَ له، ونقلُ الملكية يقع
+     * حيث المركبة.
+     */
+    from?: Date;
+    to?: Date;
+    city?: string | null;
   } = {},
   now: Date = new Date(),
 ): Promise<OrderRow[]> {
@@ -196,6 +210,17 @@ export async function listAdminOrders(
     where: {
       ...(filters.stage === undefined ? {} : { stage: filters.stage }),
       ...orderSearch(filters.q ?? null),
+      ...(filters.from === undefined && filters.to === undefined
+        ? {}
+        : {
+            createdAt: {
+              ...(filters.from === undefined ? {} : { gte: filters.from }),
+              ...(filters.to === undefined ? {} : { lte: filters.to }),
+            },
+          }),
+      ...(filters.city === undefined || filters.city === null || filters.city === ''
+        ? {}
+        : { listing: { city: filters.city } }),
       status:
         filters.status === undefined ? { in: [...LIVE_STATUSES] } : filters.status,
     },

@@ -21,7 +21,8 @@ export type ReportKey =
   | 'auction_performance'
   | 'service_requests'
   | 'customers'
-  | 'audit_log';
+  | 'audit_log'
+  | 'orders';
 
 /** الجدولة المقصودة — مفتاحٌ تصوغه طبقة العرض */
 export type ReportSchedule = 'weekly_sunday' | 'weekly' | 'monthly' | 'on_demand';
@@ -96,6 +97,23 @@ export const REPORTS: readonly ReportDef[] = [
     schedule: 'on_demand',
     permission: 'audit.view',
     personal: true,
+  },
+  {
+    /**
+     * ═══ الطلبات — وتصديرُها بصلاحية من يقرؤها ═══
+     *
+     * ترميزُ `A4` يضع «تصدير CSV» في ترويسته، و`sales_commissions` قائمٌ
+     * **بصلاحية المالية**: فمن يقف على طابور الطلبات ويريد تصديره لا
+     * يملكها. وهما تقريران مختلفان أصلًا — ذاك إيرادٌ وعمولةٌ وضريبة،
+     * وهذا الطلبُ بمرحلته ومهلته وطرفيه.
+     *
+     * **وليس شخصيًّا**: أسماءُ الطرفين لا تخرج فيه، إنّما معرّفاتهما —
+     * فالعملياتُ تُتابَع بالمرجع لا بالاسم.
+     */
+    key: 'orders',
+    schedule: 'on_demand',
+    permission: 'orders.view',
+    personal: false,
   },
 ];
 
