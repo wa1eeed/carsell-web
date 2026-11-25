@@ -2090,6 +2090,37 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 37 — `A29` and `Wg`: a trail written and never read
+
+`A29` read **75٪**. **«سجل التغييرات» was built into the trail and out of the
+screen**: `commission.changed` and `entitlement.override_granted` have been
+written to `AuditLog` since the screen existed, and answering "when did
+commission change, and who changed it" meant opening the whole audit log and
+searching four thousand rows. The log is on the screen that holds the question
+now — the same shape as `A20`'s switch log.
+
+**And «على كل الباقات» appeared only while commission was switched on.** With it
+off the card read «معطلة على البائع», which says the state and not the scope —
+and the plan table underneath has a commission column per row, so the reader
+could reasonably think it differs by plan. Both are said now.
+
+`أنشئ باقة` stays asked: a plan is a bundle of entitlement values and the code
+asks for the entitlement, never the plan, so creating one means defining the
+whole matrix — and one created without it grants nothing while looking as
+though it does.
+
+### `Wg`: the design reproduces a bug we closed with a lint rule
+
+«١٤٢ مركبة معروضة» — a singular noun under a count, which is exactly the defect
+found on the home page («8 جهة تمويل») that had been live for months because it
+reads correctly for 11–99. The product's label is a **state** («معروضة الآن»),
+true under any number. Reproducing the markup would reintroduce what a lint rule
+now forbids, so it is recorded as decided and subtracted.
+
+«تابع» stays counted: there is no follow model and nothing for it to deliver.
+
+Measured after: **A29 75٪ → 92٪ · Wg 78٪ → 88٪**.
+
 ### 40a · 36 — `A4` orders: an export behind the wrong permission, and a stage that did not say whose
 
 `A4` read **77٪**.

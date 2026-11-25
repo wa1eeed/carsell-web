@@ -577,3 +577,53 @@ export async function grantOverride(
 
   return { ok: true, id: row.id };
 }
+
+export type PlanChangeRow = {
+  id: string;
+  action: string;
+  entityId: string;
+  actorId: string;
+  at: string;
+  before: unknown;
+  after: unknown;
+};
+
+/** الإجراءات التي تمسّ الباقات والعمولة — بأعيانها لا ببادئة. */
+const PLAN_ACTIONS: readonly string[] = [
+  'commission.changed',
+  'entitlement.override_granted',
+  'plan.updated',
+  'plan.created',
+];
+
+/**
+ * ═══ سجلّ التغييرات — ومن يسأل بعد سنة «لماذا رُفعت العمولة في مارس» ═══
+ *
+ * ترميزُ `A29` يضع «سجل التغييرات» في رأسه، والأثرُ مكتوبٌ في `AuditLog`
+ * منذ بُنيت الشاشة — **ولا شيء يقرؤه هنا**. فمن أراد أن يعرف متى تغيّرت
+ * عمولةٌ ومن غيّرها يفتح سجلَّ التدقيق كلَّه (أربعةَ آلاف سطر) ويبحث.
+ *
+ * وهو مسلكُ `routeChanges` في `A20` نفسُه: الأثرُ عامّ، والقراءةُ عند
+ * الشاشة التي تملك السؤال.
+ */
+export async function planChanges(limit = 20): Promise<PlanChangeRow[]> {
+  const rows = await db.auditLog.findMany({
+    where: { action: { in: [...PLAN_ACTIONS] } },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    select: {
+      id: true, action: true, entityId: true, actorId: true,
+      createdAt: true, before: true, after: true,
+    },
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    action: row.action,
+    entityId: row.entityId,
+    actorId: row.actorId,
+    at: row.createdAt.toISOString(),
+    before: row.before,
+    after: row.after,
+  }));
+}

@@ -1021,6 +1021,24 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A29 — «أنشئ باقة» is asked, not built · 2026-11-25
+
+A plan is a **bundle of entitlement values**, and the code asks for the
+entitlement, never for the plan. Creating one therefore means defining its whole
+matrix — which sale options, how many listings, how many seats, what commission
+— and a plan created without it grants nothing while appearing in the table as
+though it does.
+
+Today's three (individual, dealer, pro) cover the model the owner described, all
+free with zero commission, and the editor changes any of them. A fourth is a
+pricing decision, not a layout one. Counted as missing rather than hidden.
+
+`سجل التغييرات` **was** missing and is now built: the trail has been written to
+`AuditLog` since the screen existed and nothing read it here, so answering "when
+did commission change and who changed it" meant opening the whole audit log and
+searching. Same shape as `A20`'s switch log — the trail is general, the reading
+belongs to the screen that holds the question.
+
 ## A22 — «أنشئ مزادًا» is an on-behalf action, asked not built · 2026-11-25
 
 A seller creates an auction through the sell wizard, which writes the `Auction`

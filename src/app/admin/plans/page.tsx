@@ -4,12 +4,28 @@ import { MonitorCards } from '@/components/admin/MonitorShell';
 import { Badge } from '@/components/ui/Badge';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
-import { entitlementList, overrideList, planList, planStats } from '@/lib/domain/admin-plans';
+import {
+  entitlementList,
+  overrideList,
+  planChanges,
+  planList,
+  planStats,
+} from '@/lib/domain/admin-plans';
 import { listCommissionRules } from '@/lib/domain/admin-commission';
 import { CommissionRules } from './CommissionRules';
 import { GrantOverride } from './GrantOverride';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
+
+/** لحظةٌ تُقرأ بتوقيت الرياض — ومرّةً واحدة للصفحة. */
+const riyadh = new Intl.DateTimeFormat(AR_DATE_LOCALE, {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Asia/Riyadh',
+});
 import { CommissionSimulator } from './CommissionSimulator';
+import { AUDIT_ACTION_LABEL } from '@/lib/labels/audit';
 import { PlanTable } from './PlanTable';
 import { ENTITLEMENT_LABEL, TYPE_LABEL, pctLabel } from './labels';
 import { Quantity } from '@/components/ui/Quantity';
@@ -40,12 +56,13 @@ export default async function AdminPlansPage() {
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'finance.view')) redirect('/admin');
 
-  const [plans, stats, overrides, commission, entitlements] = await Promise.all([
+  const [plans, stats, overrides, commission, entitlements, changes] = await Promise.all([
     planList(),
     planStats(),
     overrideList(),
     listCommissionRules(),
     entitlementList(),
+    planChanges(),
   ]);
 
   const seller = commission.find((rule) => rule.side === 'SELLER');
@@ -83,7 +100,16 @@ export default async function AdminPlansPage() {
             // والتحرير أسفل الصفحة — والبطاقة تقول النافذة الآن.
             title: 'العمولة النافذة',
             value: `${displayDigits(pctLabel(seller?.enabled === true ? seller.pct : '0'))}٪`,
-            note: seller?.enabled === true ? 'على كل الباقات' : 'معطلة على البائع',
+            /**
+             * **والنطاقُ يُقال في الحالين.** كانت «على كل الباقات» تظهر
+             * عند التفعيل وحده، فحين تُعطَّل يقرأ المشغّل «معطلة على
+             * البائع» ولا يعرف أعلى باقةٍ بعينها أم على الكلّ — وجدولُ
+             * الباقات تحته فيه عمودُ عمولةٍ لكلّ صفّ، فيُظنّ أنها تختلف.
+             */
+            note:
+              seller?.enabled === true
+                ? 'على كل الباقات'
+                : 'على كل الباقات — ومعطلة على البائع',
           },
         ]}
       />
@@ -211,6 +237,42 @@ export default async function AdminPlansPage() {
           ))}
         </div>
       )}
+
+      {/*
+        ═══ سجلّ التغييرات — ومن يسأل بعد سنة «لماذا رُفعت العمولة؟» ═══
+
+        الأثرُ مكتوبٌ في `AuditLog` منذ بُنيت الشاشة ولا شيء يقرؤه هنا،
+        فمن أراد متى تغيّرت عمولةٌ ومن غيّرها يفتح سجلّ التدقيق كلَّه
+        ويبحث. وهو مسلكُ «سجل التبديلات» في `A20` نفسُه.
+      */}
+      <section className="mt-10">
+        <h2 className="mb-1 text-sm font-bold">سجل التغييرات</h2>
+        <p className="mb-3.5 text-3xs opacity-70">كل تغيير في عمولة أو تجاوز، بمن غيره ومتى.</p>
+
+        {changes.length === 0 ? (
+          <p className="rounded-lg border border-line border-dashed p-5 text-2xs opacity-70">
+            لم يتغير شيء بعد. وأول تغيير يسجل هنا باسم من غيره ووقته.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2.5">
+            {changes.map((change) => (
+              <li key={change.id} className="rounded-lg border border-line bg-surface p-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                  <span className="text-2xs font-bold">
+                    {AUDIT_ACTION_LABEL[change.action] ?? change.action}
+                  </span>
+                  <span className="font-num text-3xs opacity-65">
+                    {riyadh.format(new Date(change.at))}
+                  </span>
+                </div>
+                <span className="font-num mt-1 block text-3xs opacity-65" dir="ltr">
+                  {change.entityId}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <div className="mt-10 max-w-2xl rounded-lg border border-line bg-surface p-4 text-2xs leading-loose opacity-75">
         <p className="mb-2 font-bold">قاعدتان لا تخترقان</p>
