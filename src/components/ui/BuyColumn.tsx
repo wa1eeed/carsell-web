@@ -33,7 +33,6 @@ export type BuyColumnData = {
     dealerPath: string | null;
     ratingAvg: number | null;
     ratingCount: number;
-    listingCount: number;
   };
   auction: {
     startPrice: number;
@@ -178,9 +177,31 @@ export function BuyColumn({
                 <span className="text-2xs font-bold opacity-70">انتهى المزاد</span>
               )}
             </div>
-            <Money amount={auction.highestBid ?? auction.startPrice} size="xl" />
+            {/**
+              * ═══ بطاقتان لا سطرٌ وهامشُه ═══
+              *
+              * ترميزُ `We` يضع «المزايدون» بطاقةً بجوار «أعلى مزايدة»،
+              * بالوزن نفسه. وكانت عندنا في سطرٍ جارٍ بـ٧٠٪ عتمة بجوار
+              * الحدّ الأدنى — **فيستوي عددُ المنافسين مع رقمٍ إجرائيّ**،
+              * وهو في المزاد أهمُّ ما يقرؤه الداخل: سعرٌ واحد وعشرون
+              * مزايدًا مزادٌ آخرُ غيرَ السعر نفسِه ومزايدٍ واحد.
+              *
+              * **ولا تُعرض البطاقة على صفر**: «المزايدون ٠» تحت مزادٍ
+              * مباشر تُقرأ كسادًا، وغيابُها يقول «لم يبدأ أحد» — وهو
+              * الصحيح. والسطرُ الأوّل يعرض وقتَها **سعرَ الافتتاح**.
+              */}
+            <div className="flex items-end justify-between gap-4">
+              <Money amount={auction.highestBid ?? auction.startPrice} size="xl" />
+              {auction.bidderCount === 0 ? null : (
+                <div className="shrink-0 text-end">
+                  <p className="text-3xs opacity-65">
+                    <Quantity unit="biddersLabel" count={auction.bidderCount} />
+                  </p>
+                  <ArabicNumber value={auction.bidderCount} className="text-lg font-bold" />
+                </div>
+              )}
+            </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs opacity-70">
-              <Quantity unit="bidders" count={auction.bidderCount} />
               <span className="flex items-center gap-1">
                 {t('minimumBid')} <ArabicNumber value={auction.minimumBid} />
               </span>
@@ -307,7 +328,7 @@ export function BuyColumn({
             href={data.seller.dealerPath ?? '#'}
             className="flex items-center justify-center rounded-md border border-line py-2.5 text-xs font-bold hover:bg-ink/5"
           >
-            <Quantity unit="cars" count={data.seller.listingCount} />
+            {t('dealerPage')}
           </Link>
         )}
       </Card>

@@ -99,6 +99,7 @@
       "USER_VERIFIED": "Verified seller"
     },
     "outOf": "of",
+    "dealerPage": "Dealer page",
     "similarCars": "Similar cars",
     "specs": "Specifications",
     "inspectionReport": "Inspection report",
@@ -399,6 +400,7 @@
     "buyers": "{count, plural, one{{n} buyer} other{{n} buyers}}",
     "openRequests": "{count, plural, one{{n} open} other{{n} open}}",
     "bidders": "{count, plural, one{{n} bidder} other{{n} bidders}}",
+    "biddersLabel": "{count, plural, one{Bidder} other{Bidders}}",
     "watchers": "{count, plural, one{# watcher} other{# watchers}}",
     "deals": "{count, plural, one{{n} deal} other{{n} deals}}",
     "days": "{count, plural, one{{n} day} other{{n} days}}",

@@ -170,8 +170,19 @@ describe('A36 — التقارير والتصدير', () => {
 
     const aggregate = await runReport({ key: 'sales_commissions', ...ADMIN }, T0);
     expect(aggregate.ok).toBe(true);
+    /**
+     * **والصفُّ يُطلب بمفتاحه لا بـ«آخرِ ما كُتب».** تصديران في
+     * المللي‌ثانية نفسِها يتعادلان في `createdAt`، و`orderBy` عليه
+     * وحدَه ليس ترتيبًا تامًّا — فقرأ الاختبارُ صفَّ التقرير المجمَّع
+     * (٢٩ صفًّا) وحكم به على تصدير العملاء (٩). والحمولةُ تحمل
+     * `report`، فيُسأل عنه.
+     */
     const afterAggregate = await db.auditLog.findFirst({
-      where: { actorId: ADMIN.adminId, action: 'report.exported' },
+      where: {
+        actorId: ADMIN.adminId,
+        action: 'report.exported',
+        after: { path: ['report'], equals: 'sales_commissions' },
+      },
       orderBy: { createdAt: 'desc' },
     });
     expect(
@@ -186,7 +197,11 @@ describe('A36 — التقارير والتصدير', () => {
     if (!personal.ok) return;
 
     const entry = await db.auditLog.findFirstOrThrow({
-      where: { actorId: ADMIN.adminId, action: 'report.exported' },
+      where: {
+        actorId: ADMIN.adminId,
+        action: 'report.exported',
+        after: { path: ['report'], equals: 'customers' },
+      },
       orderBy: { createdAt: 'desc' },
     });
     // العدد يفرّق بين «صدّر عميلًا» و«صدّر أربعمئة»

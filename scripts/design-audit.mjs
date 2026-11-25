@@ -922,7 +922,20 @@ async function liveRefs(base, cookie) {
    * فقُرئت `Wc` ٥٦٪ و«قدّم عرضك» غائبةً عن كلّ مرشَّح — وهي تُعرض
    * لزائرٍ على أيّ إعلانٍ تفاوضيّ. فمرشَّحاتُ السيارات تُجلب بلا جلسة.
    */
-  const grab = async (listPath, into, withSession = true) => {
+  /**
+   * **وعلاماتُ المرشِّح من ترميز الشاشة المقيسة لا من شاشةٍ أخرى.**
+   * كان `We` يُرشَّح بعلامات `Wc` («اشترِ الآن» · «قدّم عرضك» ·
+   * «التقسيط») — **ولا واحدةَ منها تقع على صفحة مزاد**، فتساوى كلُّ
+   * المرشّحات على صفر وفاز أوّلُها. وأوّلُها بائعُه فرد، وترميزُ `We`
+   * يرسم معرضًا — فقُرئت «صفحة المعرض» نقصًا وهي مبنيّة، غائبةٌ بحقّ
+   * عن بائعٍ لا معرضَ له.
+   *
+   * و`skip` تُخرج حالًا لا يرسمها الترميز (كـ«محجوزة بطلب قائم»)،
+   * وهي **ليست** إعماءً للمقياس: النصُّ المتخطَّى لا يُقاس في تلك
+   * الشاشة أصلًا. ولو تخطّينا بـ«صفحة المعرض» نفسِها لضمنّا نجاحها —
+   * وذلك مقياسٌ يُعمي نفسَه، وهو مكتوبٌ في NOTES صنفًا.
+   */
+  const grab = async (listPath, into, withSession = true, marks = null, skip = []) => {
     const headers = withSession ? { cookie } : {};
     try {
       const res = await fetch(`${base}${listPath}`, {
@@ -984,6 +997,7 @@ async function liveRefs(base, cookie) {
          * صاحب الإعلان لا حالُ المشتري الذي يرسمه الترميز.
          */
         if (seen.includes(normalizeText('إعلانك'))) continue;
+        if (skip.some((mark) => seen.includes(normalizeText(mark)))) continue;
 
         /**
          * **والتفاوضُ يرجح**: «قدّم عرضك» لا يظهر إلّا على إعلانٍ من نوع
@@ -991,17 +1005,18 @@ async function liveRefs(base, cookie) {
          * مباشرًا ممولًا يساوي إعلانًا تفاوضيًّا دون حدّ التمويل، ويفوز
          * أوّلُهما. والترميزُ يرسم مركبةً تجمع الثلاثة.
          */
-        const marks = [
+        const weights = marks ?? [
           ['اشترِ الآن عبر الضمان', 1],
           ['قدّم عرضك', 2],
           ['التقسيط', 1],
         ];
-        const score = marks.reduce(
+        const score = weights.reduce(
           (sum, [mark, weight]) => sum + (seen.includes(normalizeText(String(mark))) ? Number(weight) : 0),
           0,
         );
         if (score > best.score) best = { path, score };
-        if (best.score === 4) break;
+        /** السقفُ مجموعُ الأوزان — ورقمٌ مكتوب بيد يتقادم مع العلامات. */
+        if (best.score === weights.reduce((sum, [, w]) => sum + Number(w), 0)) break;
       }
       if (best.path !== '') {
         out[into] = best.path;
@@ -1019,7 +1034,21 @@ async function liveRefs(base, cookie) {
    * والبحثُ يقبل `type` و`financing`، فيُسأل عمّا يُقاس.
    */
   await grab('/ar/cars?type=NEGOTIATION&financing=true', 'Wc', false);
-  await grab('/ar/auctions', 'We');
+  /**
+   * ترميزُ `We` يرسم مزادًا **حيًّا لمعرض** عليه مزايداتٌ وتمديد. فيُتخطّى
+   * «بائع فرد» (حالٌ لا يرسمها الترميز، ولا يُقاس نصُّها في `We`)،
+   * ويُرجَّح ما عليه سجلُّ مزايداتٍ وتمديدُ وقت.
+   */
+  await grab(
+    '/ar/auctions',
+    'We',
+    true,
+    [
+      ['سجل المزايدات', 2],
+      ['مرات تمديد الوقت', 1],
+    ],
+    ['بائع فرد'],
+  );
   return out;
 }
 

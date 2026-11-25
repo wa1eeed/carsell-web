@@ -99,6 +99,7 @@
       "USER_VERIFIED": "بائع موثق"
     },
     "outOf": "من",
+    "dealerPage": "صفحة المعرض",
     "similarCars": "سيارات مشابهة",
     "specs": "المواصفات",
     "inspectionReport": "تقرير الفحص",
@@ -399,6 +400,7 @@
     "buyers": "{count, plural, zero{لا مشترين} one{مشتري واحد} two{مشتريان} few{{n} مشترين} many{{n} مشتريا} other{{n} مشتري}}",
     "openRequests": "{count, plural, zero{لا قائم} one{قائم واحد} two{قائمان} few{{n} قائمة} many{{n} قائما} other{{n} قائم}}",
     "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدا} other{{n} مزايد}}",
+    "biddersLabel": "{count, plural, zero{المزايدون} one{المزايد} two{المزايدان} few{المزايدون} many{المزايدون} other{المزايدون}}",
     "watchers": "{count, plural, zero{لا أحد يتابعه} one{يتابعه واحد} two{يتابعه اثنان} few{{n} يتابعون} many{{n} يتابعون} other{{n} يتابعون}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
     "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يوما} other{{n} يوم}}",
