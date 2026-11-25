@@ -607,6 +607,19 @@ async function main(): Promise<void> {
           aboutAr: `${nameAr} — بيع وشراء السيارات المستعملة والجديدة في ${city}.`,
           aboutEn: `${nameEn} — buying and selling used and new cars in ${city}.`,
           crNumber: `10${between(10000000, 99999999)}`,
+          /**
+           * ═══ والمعرضُ المعتمَد مسجَّلٌ ضريبيًّا ═══
+           *
+           * **وبلا رقمٍ ضريبيّ لا تصدر له فاتورة بيعٍ واحدة.**
+           * `sellerTypeFor` تقرأ `DEALER_NO_VAT` لمن لا تسجيلَ له،
+           * وقاعدتُها تنتظر إقرارَ المشغّل — فكلُّ بيعٍ في البيئة
+           * المزروعة يُحجب بـ`RULE_AWAITING_APPROVAL` بلا أن يشكو
+           * أحد: المالُ يُسوَّى والوثيقةُ لا تخرج.
+           *
+           * وهو «البذرة تُنتج بيئةً لا تبيع» في موضعٍ ثانٍ. والرقم
+           * السعوديّ خمسةَ عشرَ رقمًا يبدأ بـ٣ وينتهي بـ٣.
+           */
+          vatNumber: verified ? `3${between(10000000, 99999999)}${between(100000, 999999)}3`.slice(0, 15) : null,
           createdAt: days(-between(200, 900)),
         },
       }),
@@ -670,9 +683,25 @@ async function main(): Promise<void> {
            * المعرض تقرأ الثاني، فبلا زرعِه لا يدخلها أحدٌ في أيّ بيئة.
            */
           dealerRole: 'OWNER',
+          /**
+           * **والوضعُ الضريبيّ للمالك من رقمِ معرضه.** الفاتورة تُصدَر
+           * باسم المنشأة ورقمِها، و`sellerTypeFor` تقرؤهما **من
+           * المستخدم البائع** لا من صفّ المعرض — فمالكٌ بلا تسجيل
+           * يجعل كلَّ بيعٍ `DEALER_NO_VAT` فتُحجب فاتورتُه.
+           */
+          ...(d.vatNumber === null
+            ? {}
+            : { taxStatus: 'VAT_REGISTERED' as const, vatNumber: d.vatNumber, taxStatusSetAt: days(-300) }),
           identityStatus: 'VERIFIED',
           idVerified: true,
           idVerifiedAt: days(-300),
+          /**
+           * **وبلا آيبانٍ لا يُحوَّل إلى المعرض ريال.** البذرةُ تكتبه
+           * لكلّ بائعٍ فرد وتنساه لمالكي المعارض، فتُنتج معرضًا يبيع
+           * ولا يُقبض — وشاشةُ تسوياته تقول «لا آيبان» عن كلّ معرضٍ
+           * في البيئة.
+           */
+          iban: encryptSecret(seedIban(String(between(10, 99)), seedAccountDigits())),
           createdAt: days(-between(200, 900)),
         },
       }),
@@ -2156,6 +2185,27 @@ async function main(): Promise<void> {
       await prisma.escrow.updateMany({
         where: { orderId: order.id },
         data: { status: 'PARTIAL_REFUND' },
+      });
+
+      /**
+       * **وما وقع فعلًا يُكتب في `settlementAmount`.** البذرةُ كانت
+       * تردّ ألفًا وخمسَ مئة في الدفتر وتترك الحقلَ فارغًا — و
+       * `netToSeller` تقرأ `settlementAmount ?? agreedPrice`، فيقرأ
+       * **السعرَ كاملًا** كلُّ من يحسب: دفترُ البائع، وبطاقةُ المستحقّ
+       * في لوحة المعرض، وكشفُ التسوية، والفاتورة. فالمنصّة تَعِد
+       * البائع بما ردّت نصفَه للمشتري.
+       *
+       * و`resolvePartial` في `disputes.ts` تكتبه منذ بُنيت
+       * (`totalAmount − refund`) — **فالبذرةُ تُنتج حالًا لا يبلغها
+       * المنتج**، وهو الصنف الذي يذكره التعليق فوقه عن الضمان نفسِه.
+       */
+      const paid = await prisma.order.findUniqueOrThrow({
+        where: { id: order.id },
+        select: { totalAmount: true },
+      });
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { settlementAmount: paid.totalAmount.minus(new D('1500.00')) },
       });
 
       /**

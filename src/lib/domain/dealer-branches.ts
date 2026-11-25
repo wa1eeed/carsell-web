@@ -86,3 +86,21 @@ export async function setBranchActive(
   await db.branch.update({ where: { id: branch.id }, data: { active: input.active } });
   return { ok: true };
 }
+
+/**
+ * ما يُعرض عن المعرض في رأس لوحته — الشارةُ وعددُ الفروع.
+ *
+ * **والشارةُ تُقرأ من الصفّ لا تُفترض**: `verified` يمنحها الأدمن،
+ * وشريطٌ يقول «تاجر موثّق» لمن لم يُوثَّق دعوى يقرؤها صاحبُها ثمّ
+ * يحتجّ حين لا يراها الزائر.
+ */
+export async function dealerIdentity(
+  dealerId: string,
+): Promise<{ verified: boolean; branches: number }> {
+  const [dealer, branches] = await Promise.all([
+    db.dealer.findUnique({ where: { id: dealerId }, select: { verified: true } }),
+    db.branch.count({ where: { dealerId, active: true } }),
+  ]);
+
+  return { verified: dealer?.verified ?? false, branches };
+}

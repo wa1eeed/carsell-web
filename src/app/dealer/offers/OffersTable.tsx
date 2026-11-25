@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -10,8 +11,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Sheet';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
-import { toLatinDigits } from '@/lib/arabic';
+import { formatNumber, toLatinDigits, type NumeralLocale } from '@/lib/arabic';
 import type { DeskOffer } from '@/lib/domain/dealer-desk';
+import type { DealerReplyRow } from '@/lib/domain/dealer-replies';
 
 /**
  * **والمبلغُ وحده لا يُقرَّر عليه.** الصندوق يعرض الرقم وفي عمودٍ آخر
@@ -19,12 +21,47 @@ import type { DeskOffer } from '@/lib/domain/dealer-desk';
  * العرض من الأرضيّة يُقال بجواره، **والحالةُ الخالية تُقال صراحةً**:
  * السكوتُ عن أرضيّةٍ غير موضوعة يُقرأ «العرضُ دونها».
  */
-export function OffersTable({ rows }: { rows: readonly DeskOffer[] }) {
+/**
+ * **والقالبُ يُملأ لحظةَ الاستعمال لا لحظةَ الحفظ** — فسعرٌ تغيّر بعد
+ * الحفظ يُنتج وعدًا بما لم يعد قائمًا. و`{price}` تأخذ مقابلَ هذا
+ * الصندوق، و`{branch}` فرعَ من يكتب.
+ */
+function fill(
+  body: string,
+  values: { price: string; branch: string | null; locale: NumeralLocale },
+): string {
+  /**
+   * **ورقمٌ يُرسَل إلى مشترٍ يُصاغ كما يُصاغ في كلّ شاشة.** كان
+   * يُدرَج خامًا («74000») والمنصّةُ كلُّها تكتب «74,000» —
+   * فصيغتان لرقمٍ واحد، والمشتري يقارنهما.
+   */
+  const digits = toLatinDigits(values.price).replace(/\D/g, '');
+  const amount = digits === '' ? '…' : formatNumber(Number(digits), values.locale);
+
+  return body
+    .replaceAll('{price}', amount)
+    .replaceAll('{branch}', values.branch ?? 'المعرض')
+    /** **و`{score}` بلا تقرير فحصٍ تُحذف لا تُترك** — قوسان في رسالةٍ تصل مشتريًا. */
+    .replaceAll('{score}', '…');
+}
+
+export function OffersTable({
+  rows,
+  replies,
+  branchName,
+}: {
+  rows: readonly DeskOffer[];
+  replies: readonly DealerReplyRow[];
+  branchName: string | null;
+}) {
   const router = useRouter();
   const [counter, setCounter] = useState<DeskOffer | null>(null);
   const [amount, setAmount] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  /** الردُّ المختار — يُعرض ليراه قبل أن يُرسل. */
+  const [note, setNote] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const locale = useLocale() as NumeralLocale;
 
   /**
    * **والعقدُ يُقرأ من المسار لا يُتخيَّل.** كتبتُ أوّلًا
@@ -48,6 +85,7 @@ export function OffersTable({ rows }: { rows: readonly DeskOffer[] }) {
       }
       setCounter(null);
       setAmount('');
+      setNote(null);
       setToast(
         action === 'accept'
           ? 'قبلت العرض — وأنشئ الطلب.'
@@ -162,6 +200,31 @@ export function OffersTable({ rows }: { rows: readonly DeskOffer[] }) {
               onChange={(event) => setAmount(event.target.value)}
               className="font-num w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-lg font-bold"
             />
+            {replies.length === 0 ? null : (
+              <div className="mt-4">
+                <p className="mb-2 text-3xs font-bold opacity-70">ردودك الجاهزة</p>
+                <ul className="flex flex-col gap-1.5">
+                  {replies.map((reply) => (
+                    <li key={reply.id}>
+                      <button
+                        type="button"
+                        onClick={() => setNote(fill(reply.body, { price: amount, branch: branchName, locale }))}
+                        className="w-full rounded-lg border border-line p-2.5 text-start text-3xs leading-loose hover:border-ink"
+                      >
+                        {fill(reply.body, { price: amount, branch: branchName, locale })}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {note === null ? null : (
+              <p className="mt-3 rounded-lg border border-accent-700/40 bg-accent-100 p-3 text-3xs leading-loose">
+                {note}
+              </p>
+            )}
+
             <Button
               className="mt-4 w-full"
               disabled={pending || amount.trim() === ''}

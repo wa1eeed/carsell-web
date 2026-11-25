@@ -121,3 +121,38 @@ describe('سجل المزايدات', () => {
     expect(bidLogCsv(auction as NonNullable<typeof auction>)).toContain('extended');
   });
 });
+
+/**
+ * ═══ وقبولُ البائع يقول ما وقع للطلب ═══
+ *
+ * كان `createAuctionOrderStandalone(...).catch(() => undefined)`
+ * **ونتيجتُه تُرمى**: فيقبل البائع، ويصير المزاد `ENDED_MET`، ويُخصم
+ * عربونُ الفائز، **ولا طلبَ ولا سطرَ يقول لماذا**. والشاشةُ تقول
+ * «قبلتُ وأُنشئ الطلب» والمالُ تحرّك ولا شيء يُستلَم.
+ */
+describe('قرار البائع يعيد أثره', () => {
+  it('ونتيجةُ إنشاء الطلب تُقرأ لا تُبتلع', async () => {
+    const source = await import('node:fs').then((fs) =>
+      fs.readFileSync(new URL('../src/lib/domain/auctions.ts', import.meta.url), 'utf8'),
+    );
+
+    /** **والابتلاعُ شكلٌ يُمنع**: `catch` لا يعيد شيئًا بعد نداء الإنشاء. */
+    expect(source).not.toContain('createAuctionOrderStandalone(auctionId, now).catch(() => undefined)');
+
+    const { resolveSellerDecision } = await import('@/lib/domain/auctions');
+    /** ومزادٌ لا وجود له يردّ الشكل كاملًا — فالحقول موجودة دائمًا. */
+    const result = await resolveSellerDecision('لا-وجود-له', true);
+    expect(result).toEqual({ ok: false, orderRef: null, orderFailed: null });
+  });
+
+  it('وORDER_FAILED لا يُعرض للمزايدين', async () => {
+    const source = await import('node:fs').then((fs) =>
+      fs.readFileSync(new URL('../src/lib/domain/auctions.ts', import.meta.url), 'utf8'),
+    );
+    /**
+     * **وقائمةُ الأحداث تُعرض في صفحة المزاد** — وعطلٌ داخليّ بعد
+     * قرار البائع لا يُقال لمن زايد.
+     */
+    expect(source).toContain("event.kind === 'EXTENDED' || event.kind === 'BID_CANCELLED'");
+  });
+});

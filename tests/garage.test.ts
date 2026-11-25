@@ -1,4 +1,11 @@
 import { describe, expect, it } from 'vitest';
+
+/**
+ * **وكلُّ طقمٍ هنا يشترط `dealerId: null`.** قرار المالك ٢٠٢٦-١١-٢٥
+ * أخرج مخزونَ المعرض من الكراج الشخصيّ، فمركبةٌ لمعرضٍ لا تردّها
+ * `myVehicles` ولا تقبل `editVehicle` — وطقمٌ يأخذ «أوّلَ مركبة» قد
+ * يقع عليها فيسقط على شرطٍ لم يشترطه.
+ */
 import { db } from '@/lib/db';
 import { garageCounts, myVehicles, LIVE_LISTING_STATUSES } from '@/lib/domain/garage';
 
@@ -28,7 +35,7 @@ describe('المرآب يُنتَج فعلًا', () => {
 
   it('وعدّادات المالك تُجمع فتساوي مركباته', async () => {
     const owner = await db.vehicle.findFirst({
-      where: { listings: { none: {} } },
+      where: { listings: { none: {} }, dealerId: null },
       select: { ownerId: true },
     });
     expect(owner).not.toBeNull();
@@ -46,7 +53,7 @@ describe('المرآب يُنتَج فعلًا', () => {
   /** ومركبةٌ بلا إعلانٍ تُقرأ `garage` لا شيئًا آخر. */
   it('وحالُ المركبة بلا إعلان هي garage', async () => {
     const row = await db.vehicle.findFirst({
-      where: { listings: { none: {} } },
+      where: { listings: { none: {} }, dealerId: null },
       select: { id: true, ownerId: true },
     });
     if (row === null) return;
@@ -65,7 +72,10 @@ describe('تعديل المركبة وحذفها', () => {
    */
   it('لا يعدّل من لا يملك', async () => {
     const { editVehicle } = await import('@/lib/domain/garage');
-    const mine = await db.vehicle.findFirst({ select: { id: true, ownerId: true } });
+    const mine = await db.vehicle.findFirst({
+      where: { dealerId: null },
+      select: { id: true, ownerId: true },
+    });
     if (mine === null) return;
 
     const other = await db.user.findFirst({
@@ -86,7 +96,10 @@ describe('تعديل المركبة وحذفها', () => {
 
   it('وممشًى خارج المدى يُردّ قبل الكتابة', async () => {
     const { editVehicle } = await import('@/lib/domain/garage');
-    const row = await db.vehicle.findFirst({ select: { id: true, ownerId: true } });
+    const row = await db.vehicle.findFirst({
+      where: { dealerId: null },
+      select: { id: true, ownerId: true },
+    });
     if (row === null) return;
 
     for (const mileageKm of [-1, 3_000_000, 1.5]) {
@@ -112,7 +125,7 @@ describe('تعديل المركبة وحذفها', () => {
   it('ومعروضةٌ لا تُحذف — ويُسمّى السبب', async () => {
     const { removeVehicle } = await import('@/lib/domain/garage');
     const listed = await db.vehicle.findFirst({
-      where: { listings: { some: {} } },
+      where: { listings: { some: {} }, dealerId: null },
       select: { id: true, ownerId: true },
     });
     if (listed === null) return;
@@ -124,7 +137,7 @@ describe('تعديل المركبة وحذفها', () => {
   it('ومفحوصةٌ لا تُحذف', async () => {
     const { removeVehicle } = await import('@/lib/domain/garage');
     const inspected = await db.vehicle.findFirst({
-      where: { listings: { none: {} }, inspectionReports: { some: {} } },
+      where: { listings: { none: {} }, inspectionReports: { some: {} }, dealerId: null },
       select: { id: true, ownerId: true },
     });
     if (inspected === null) return;
@@ -136,7 +149,7 @@ describe('تعديل المركبة وحذفها', () => {
   /** و`canRemove` تقول للشاشة قبل أن تعرض زرًّا — وزرٌّ يُرفض دائمًا أسوأ من غيابه. */
   it('و`canRemove` تطابق ما يقبله النطاق', async () => {
     const owner = await db.vehicle.findFirst({
-      where: { listings: { some: {} } },
+      where: { listings: { some: {} }, dealerId: null },
       select: { ownerId: true },
     });
     if (owner === null) return;
@@ -160,7 +173,7 @@ describe('تعديل المركبة وحذفها', () => {
    */
   it('ومسارُ الإعلان يُبنى متى كان له مرجع', async () => {
     const owner = await db.vehicle.findFirst({
-      where: { listings: { some: {} } },
+      where: { listings: { some: {} }, dealerId: null },
       select: { ownerId: true },
     });
     if (owner === null) return;

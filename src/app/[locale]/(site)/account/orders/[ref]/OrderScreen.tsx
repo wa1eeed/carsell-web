@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { PayPanel } from '@/components/site/PayPanel';
 import { DisputePanel } from '@/components/site/DisputePanel';
@@ -39,9 +40,23 @@ export function OrderScreen({
   order,
   formatted,
   locale,
+  trail,
+  mayCancel = true,
 }: {
   order: PublicOrder;
   locale: string;
+  /**
+   * فتاتُ المسار — **تضعه الشاشةُ التي تركّب هذه**، فالشاشةُ نفسُها
+   * تُعرض في المتجر وفي لوحة المعرض. وفتاتٌ ثابتٌ إلى «حسابي» يخرج
+   * بصاحب المعرض من لوحته وهو يظنّ أنه يتنقّل فيها.
+   */
+  trail?: ReactNode;
+  /**
+   * **وزرٌّ يردّه الخادمُ لبعض من يراه ليس زرًّا.** الإلغاء لطرفَي
+   * الطلب (`cancelOrder` تفحص `actorId`)، وعضوُ فريق المعرض ليس
+   * طرفًا — فيضغط ويُردّ، وهو وجهُ «الشرط المعروض يُفرَض أو يُحذف».
+   */
+  mayCancel?: boolean;
   formatted: {
     createdAt: string;
     stageEnteredAt: string;
@@ -97,6 +112,8 @@ export function OrderScreen({
         يجد طريقًا إليها إلّا الرجوعَ بالمتصفّح.
       */}
       <nav aria-label={t('breadcrumb')} className="mb-3 flex items-center gap-2 text-2xs opacity-70">
+        {trail ?? (
+          <>
         <Link href={`/${locale}/account`} className="hover:underline">
           {t('account')}
         </Link>
@@ -104,6 +121,8 @@ export function OrderScreen({
         <Link href={`/${locale}/account/orders`} className="hover:underline">
           {t('myOrders')}
         </Link>
+          </>
+        )}
         <span aria-hidden className="opacity-40">·</span>
         {/** **وآخرُ الفتات الصفحةُ نفسُها** — فتاتٌ ينتهي بأبٍ لا يقول أين أنت. */}
         <span aria-current="page" className="font-num">
@@ -111,8 +130,18 @@ export function OrderScreen({
         </span>
       </nav>
 
-      {/* النزاع يتصدّر: ما دام مفتوحًا فهو حال الطلب لا حاشيته */}
-      {order.dispute === null ? null : (
+      {/*
+        ═══ النزاع يتصدّر ما دام مفتوحًا — والمحسومُ سجلٌّ لا إنذار ═══
+
+        كان الشرطُ وجودَ الصفّ وحده، و`getOrder` تأخذ **آخر** نزاعٍ
+        مهما كانت حالُه — فطلبٌ حُسم نزاعُه **يقول «نزاع مفتوح ·
+        الطلب متوقف مؤقتا» إلى الأبد** لصاحبيه معًا، والطلب يتقدّم
+        أمام أعينهما. وكشفَه النقرُ لا اختبار.
+
+        والمحسومُ لا يُخفى: ردٌّ جزئيٌّ في الضمان لا يفسّره شيءٌ
+        غيرُه، فيبقى بحسمه ونتيجته بلا لونِ إنذار.
+      */}
+      {order.dispute === null ? null : order.dispute.open ? (
         <section className="mb-7 rounded-xl border border-warn-200 bg-warn-100 p-5 text-warn-900">
           <h2 className="mb-1.5 text-base font-bold">{t('disputeOpen')}</h2>
           <p className="mb-2.5 text-xs leading-loose opacity-85">{t('disputeFrozen')}</p>
@@ -121,6 +150,17 @@ export function OrderScreen({
             <span className="flex items-center gap-1.5">
               {t('slaDue')} <span className="bidi-isolate font-bold">{formatted.slaDueAt}</span>
             </span>
+          </p>
+        </section>
+      ) : (
+        <section className="mb-7 rounded-xl border border-line bg-surface p-5">
+          <h2 className="mb-1.5 text-base font-bold">{t('disputeSettled')}</h2>
+          <p className="mb-2.5 text-xs leading-loose opacity-75">{t('disputeSettledNote')}</p>
+          <p className="flex flex-wrap items-center gap-2 text-2xs">
+            <Badge>{te(`disputeStatus.${order.dispute.status}`)}</Badge>
+            {order.dispute.resolution === null ? null : (
+              <Badge>{te(`disputeResolution.${order.dispute.resolution}`)}</Badge>
+            )}
           </p>
         </section>
       )}
@@ -342,7 +382,8 @@ export function OrderScreen({
             فبابٌ يفتحه الخادم أغلقته الشاشة — وهو وجهُ «حارسٌ في
             العميل ليس حارسًا» معكوسًا.
           */}
-          {isClosedOrder(order.status)
+          {!mayCancel
+          || isClosedOrder(order.status)
           || order.escrow?.status === 'RELEASED'
           || order.stage === 'DONE' ? null : (
             <p className="mb-3.5 text-center">

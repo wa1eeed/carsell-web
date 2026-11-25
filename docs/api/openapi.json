@@ -6800,6 +6800,35 @@
         }
       }
     },
+    "/api/v1/dealer/auctions/{ref}/decision": {
+      "post": {
+        "summary": "POST /api/v1/dealer/auctions/{ref}/decision",
+        "tags": [
+          "dealer"
+        ],
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/dealer/auth/session": {
       "post": {
         "summary": "POST /api/v1/dealer/auth/session",
@@ -6883,6 +6912,216 @@
       },
       "patch": {
         "summary": "PATCH /api/v1/dealer/branches",
+        "tags": [
+          "dealer"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/dealer/import": {
+      "post": {
+        "summary": "POST /api/v1/dealer/import",
+        "tags": [
+          "dealer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "apply": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "text",
+                  "apply"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/dealer/import/template": {
+      "get": {
+        "summary": "GET /api/v1/dealer/import/template",
+        "tags": [
+          "dealer"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/dealer/invoices/export": {
+      "get": {
+        "summary": "GET /api/v1/dealer/invoices/export",
+        "tags": [
+          "dealer"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/dealer/orders/export": {
+      "get": {
+        "summary": "GET /api/v1/dealer/orders/export",
+        "tags": [
+          "dealer"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/dealer/profile": {
+      "patch": {
+        "summary": "PATCH /api/v1/dealer/profile",
+        "tags": [
+          "dealer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nameAr": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "nameEn": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "aboutAr": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "address": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 20
+                  }
+                },
+                "required": [
+                  "nameAr",
+                  "nameEn",
+                  "aboutAr",
+                  "address",
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
+    "/api/v1/dealer/replies": {
+      "get": {
+        "summary": "GET /api/v1/dealer/replies",
+        "tags": [
+          "dealer"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/dealer/replies",
+        "tags": [
+          "dealer"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/dealer/replies",
         "tags": [
           "dealer"
         ],

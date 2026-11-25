@@ -2,6 +2,11 @@
 
 _Last updated: 2026-11-25_
 
+> The screens built on this foundation are documented in
+> [`desk.md`](./desk.md) (`D5`, `D6`), [`money.md`](./money.md) (`D7`, `D8`),
+> [`team.md`](./team.md) (`D9`) and [`operations.md`](./operations.md)
+> (`D3`, `D4`, `D10`, `D11`, customers, subscription, replies).
+
 The owner's instruction on 2026-11-25 was «**ابدأ بالأساس**». This page
 records what the foundation is, why these three pieces and not screens, and
 what each one refuses to do.

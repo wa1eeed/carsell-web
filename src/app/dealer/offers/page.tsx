@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
 import { deskCounts, deskOffers } from '@/lib/domain/dealer-desk';
+import { dealerReplies } from '@/lib/domain/dealer-replies';
+import { dealerBranches } from '@/lib/domain/dealer-branches';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { Quantity } from '@/components/ui/Quantity';
 import { OffersTable } from './OffersTable';
@@ -20,10 +22,21 @@ export default async function DealerOffers() {
   if (actor === null) redirect('/dealer/enter');
   if (actor.role === 'ACCOUNTANT') redirect('/dealer');
 
-  const [rows, counts] = await Promise.all([
+  const [rows, counts, replies, branches] = await Promise.all([
     deskOffers(actor.dealerId, actor.branchId),
     deskCounts(actor.dealerId, actor.branchId),
+    /**
+     * **والردودُ تُقرأ حيث تُستعمل.** بُنيت شاشتُها ثمّ كاد يبقى
+     * جدولُها بلا قارئ — وهو الصنف الذي تحرسه البوابة ٦٤.
+     */
+    dealerReplies(actor.dealerId),
+    dealerBranches(actor.dealerId),
   ]);
+
+  const branchName =
+    actor.branchId === null
+      ? null
+      : (branches.find((branch) => branch.id === actor.branchId)?.name ?? null);
 
   return (
     <DealerShell
@@ -39,7 +52,7 @@ export default async function DealerOffers() {
           <Quantity unit="awaitingYou" count={counts.offersWaiting} />
         </span>
       </p>
-      <OffersTable rows={rows} />
+      <OffersTable rows={rows} replies={replies} branchName={branchName} />
     </DealerShell>
   );
 }

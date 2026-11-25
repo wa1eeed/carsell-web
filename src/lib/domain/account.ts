@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { ibanMasked } from './iban';
 import { db } from '@/lib/db';
+import { PERSONAL_VEHICLE, personalListingOf } from './ownership';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
 import { viewsThisWeek } from './listing-views';
 import { STAGES as ORDER_STAGES } from './orders';
@@ -325,6 +326,18 @@ export type AccountData = {
     vatNumber: string | null;
     memberSince: string;
   };
+  /**
+   * ═══ لوحةُ معرضه — إن كان عضوًا في معرضٍ معتمد ═══
+   *
+   * **ولم يكن في المتجر كلِّه رابطٌ إليها**: قِيس فخرج صفرًا. فصاحبُ
+   * المعرض يسجّل دخولَه بجواله كأيّ مستخدم، ويصل صفحةَ حسابٍ عادية،
+   * **ولا بابَ يصل لوحتَه** إلّا أن يكتب العنوان بيده — ولوحةٌ لا
+   * يبلغها أحدٌ كالتي لم تُبنَ.
+   *
+   * و`null` لمن ليس عضوًا، أو لمعرضٍ لم يُعتمد بعد: بابٌ يُفتح ثمّ
+   * يردّ «معرضك قيد المراجعة» يجعل صاحبَه يظنّ العطل في النظام.
+   */
+  dealerPanel: { name: string } | null;
   /** رصيد محفظته — والمجموع من القيود لا من عمود */
   walletBalance: string;
   /**
@@ -398,7 +411,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     }),
     // العروض الواردة على مركبات المستخدم — لا عروضه هو
     db.offer.findMany({
-      where: { listing: { sellerId: user.id }, status: { in: ['PENDING', 'COUNTERED'] } },
+      where: { listing: personalListingOf(user.id), status: { in: ['PENDING', 'COUNTERED'] } },
       orderBy: { createdAt: 'desc' },
       take: 10,
       select: {
@@ -414,7 +427,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       },
     }),
     db.listing.findMany({
-      where: { sellerId: user.id },
+      where: personalListingOf(user.id),
       orderBy: { publishedAt: 'desc' },
       select: {
         ref: true, city: true, askPrice: true, status: true, type: true, viewCount: true,
@@ -445,7 +458,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       where: {
         OR: [
           { serviceRequest: { userId: user.id } },
-          { vehicle: { ownerId: user.id }, publishedAt: { not: null } },
+          { vehicle: { ownerId: user.id, ...PERSONAL_VEHICLE }, publishedAt: { not: null } },
         ],
       },
       orderBy: { inspectedAt: 'desc' },
@@ -514,7 +527,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
    * يُنقص من بائعٍ عنده عشرون.
    */
   const myListings = await db.listing.findMany({
-    where: { sellerId: user.id },
+    where: personalListingOf(user.id),
     select: { id: true, viewCount: true, publishedAt: true, closedAt: true },
   });
 
@@ -524,7 +537,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       ? Promise.resolve(0)
       : db.favorite.count({ where: { listingId: { in: myListings.map((row) => row.id) } } }),
     db.offer.count({
-      where: { listing: { sellerId: user.id }, status: { in: ['PENDING', 'COUNTERED'] } },
+      where: { listing: personalListingOf(user.id), status: { in: ['PENDING', 'COUNTERED'] } },
     }),
     viewsThisWeek(myListings.map((row) => row.id)),
   ]);
@@ -556,7 +569,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
    */
   const [mine, participated] = await Promise.all([
     db.auction.findMany({
-      where: { listing: { sellerId: user.id } },
+      where: { listing: personalListingOf(user.id) },
       orderBy: { endsAt: 'desc' },
       take: 10,
       select: AUCTION_SELECT,
@@ -604,6 +617,20 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       vatNumber: user.vatNumber,
       memberSince: user.createdAt.toISOString(),
     },
+    /**
+     * **والشرطُ هنا هو شرطُ `openDealerSession` نفسُه**: عضويّةٌ في
+     * معرضٍ `ACTIVE`. ونسخةٌ تتساهل تعرض بابًا يردّ، ونسخةٌ تتشدّد
+     * تخفي بابًا يفتح.
+     */
+    dealerPanel:
+      user.dealerId === null
+        ? null
+        : await db.dealer
+            .findFirst({
+              where: { id: user.dealerId, status: 'ACTIVE' },
+              select: { nameAr: true },
+            })
+            .then((dealer) => (dealer === null ? null : { name: dealer.nameAr })),
     walletBalance,
     depositsOnCard,
     auctions,

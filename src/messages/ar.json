@@ -513,8 +513,16 @@
     "yearsGenitive": "{count, plural, zero{لا سنوات} one{سنة واحدة} two{سنتين} few{{n} سنوات} many{{n} سنة} other{{n} سنة}}",
     "activeOffers": "{count, plural, zero{لا عروض نشطة} one{عرض نشط واحد} two{عرضان نشطان} few{{n} عروض نشطة} many{{n} عرضا نشطا} other{{n} عرض نشط}}",
     "awaitingYou": "{count, plural, zero{لا شيء ينتظر ردك} one{واحد ينتظر ردك} two{اثنان ينتظران ردك} few{{n} تنتظر ردك} many{{n} ينتظر ردك} other{{n} ينتظر ردك}}",
-    "liveOrders": "{count, plural, zero{لا طلبات جارية} one{طلب جار واحد} two{طلبان جاريان} few{{n} طلبات جارية} many{{n} طلبا جاريا} other{{n} طلب جار}}",
-    "doneThisMonth": "{count, plural, zero{لا مكتمل هذا الشهر} one{مكتمل واحد هذا الشهر} two{مكتملان هذا الشهر} few{{n} مكتملة هذا الشهر} many{{n} مكتملا هذا الشهر} other{{n} مكتمل هذا الشهر}}"
+    "liveOrders": "{count, plural, zero{لا طلبات جارية} one{طلب جاري واحد} two{طلبان جاريان} few{{n} طلبات جارية} many{{n} طلبا جاريا} other{{n} طلب جاري}}",
+    "doneThisMonth": "{count, plural, zero{لا مكتمل هذا الشهر} one{مكتمل واحد هذا الشهر} two{مكتملان هذا الشهر} few{{n} مكتملة هذا الشهر} many{{n} مكتملا هذا الشهر} other{{n} مكتمل هذا الشهر}}",
+    "orderRows": "{count, plural, zero{لا صفوف} one{صف واحد} two{صفين} few{{n} صفوف} many{{n} صفا} other{{n} صف}}",
+    "heldOrders": "{count, plural, zero{لا طلبات} one{طلب واحد} two{طلبان} few{{n} طلبات} many{{n} طلبا} other{{n} طلب}}",
+    "transferAppointments": "{count, plural, zero{لا مواعيد} one{موعد واحد} two{موعدان} few{{n} مواعيد} many{{n} موعدا} other{{n} موعد}}",
+    "branches": "{count, plural, zero{لا فروع} one{فرع واحد} two{فرعان} few{{n} فروع} many{{n} فرعا} other{{n} فرع}}",
+    "invoices": "{count, plural, zero{لا فواتير} one{فاتورة واحدة} two{فاتورتان} few{{n} فواتير} many{{n} فاتورة} other{{n} فاتورة}}",
+    "payouts": "{count, plural, zero{لا تحويلات} one{تحويل واحد} two{تحويلان} few{{n} تحويلات} many{{n} تحويلا} other{{n} تحويل}}",
+    "customers": "{count, plural, zero{لا عملاء} one{عميل واحد} two{عميلان} few{{n} عملاء} many{{n} عميلا} other{{n} عميل}}",
+    "liveAuctions": "{count, plural, zero{لا مزادات جارية} one{مزاد جاري واحد} two{مزادان جاريان} few{{n} مزادات جارية} many{{n} مزادا جاريا} other{{n} مزاد جاري}}"
   },
   "search": {
     "editQuery": "عدل الجملة",
@@ -793,6 +801,11 @@
       "THREE": "3 ملاك سابقين",
       "FOUR": "4 ملاك سابقين",
       "MORE_THAN_FOUR": "أكثر من 4 ملاك"
+    },
+    "disputeResolution": {
+      "FULL_REFUND": "رد كامل للمشتري",
+      "PARTIAL_SETTLEMENT": "تسوية جزئية",
+      "RELEASE_TO_SELLER": "إفراج للبائع"
     }
   },
   "services": {
@@ -993,6 +1006,7 @@
     "identityNoteTitle": "ما طلبه المراجع",
     "identityResubmit": "عدل وأعد الإرسال ←",
     "listVehicle": "اعرض مركبة للبيع",
+    "dealerPanel": "لوحة {name}",
     "details": "تفاصيل"
   },
   "sell": {
@@ -1177,6 +1191,8 @@
     "disputeOpen": "نزاع مفتوح على هذا الطلب",
     "disputeFrozen": "الطلب متوقف مؤقتا. لن يتقدم ولن يلغى حتى يتم حل النزاع.",
     "slaDue": "مهلة الرد حتى",
+    "disputeSettled": "حسم النزاع على هذا الطلب",
+    "disputeSettledNote": "لا شيء معلق — هذا سجل لما جرى، ويفسر أي رد جزئي في الضمان.",
     "event": {
       "stage": {
         "advanced": "انتقال مرحلة"
@@ -1411,7 +1427,10 @@
     "ordersThisMonth": "{count, plural, zero{لا طلبات هذا الشهر} one{طلب واحد هذا الشهر} two{طلبان هذا الشهر} few{{n} طلبات هذا الشهر} many{{n} طلبا هذا الشهر} other{{n} طلب هذا الشهر}}",
     "openServices": "{count, plural, zero{لا خدمات قائمة} one{خدمة قائمة} two{خدمتان قائمتان} few{{n} خدمات قائمة} many{{n} خدمة قائمة} other{{n} خدمة قائمة}}",
     "dealsWithCost": "{count, plural, zero{لا صفقة سجلت كلفتها} one{صفقة واحدة سجلت كلفتها} two{صفقتان سجلت كلفتهما} few{{n} صفقات سجلت كلفتها} many{{n} صفقة سجلت كلفتها} other{{n} صفقة سجلت كلفتها}}",
-    "ofDeals": "{count, plural, zero{من لا صفقات} one{من صفقة واحدة} two{من صفقتين} few{من {n} صفقات} many{من {n} صفقة} other{من {n} صفقة}}"
+    "ofDeals": "{count, plural, zero{من لا صفقات} one{من صفقة واحدة} two{من صفقتين} few{من {n} صفقات} many{من {n} صفقة} other{من {n} صفقة}}",
+    "importCreated": "{count, plural, zero{لم تضف مركبة} one{أضيفت مركبة واحدة} two{أضيفت مركبتان} few{أضيفت {n} مركبات} many{أضيفت {n} مركبة} other{أضيفت {n} مركبة}}",
+    "importUpdated": "{count, plural, zero{لم تحدث مركبة} one{حدثت مركبة واحدة} two{حدثت مركبتان} few{حدثت {n} مركبات} many{حدثت {n} مركبة} other{حدثت {n} مركبة}}",
+    "importSkipped": "{count, plural, zero{ولم يترك صف} one{وترك صف واحد} two{وترك صفان} few{وتركت {n} صفوف} many{وترك {n} صفا} other{وترك {n} صف}}"
   },
   "notificationCenter": {
     "title": "الإشعارات",

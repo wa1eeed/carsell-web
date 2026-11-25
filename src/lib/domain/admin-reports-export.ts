@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { toCsv } from '@/lib/csv';
 import { EXPORT_ROW_LIMIT, REPORTS, type ReportKey } from './report-catalog';
 
 /**
@@ -23,36 +24,6 @@ import { EXPORT_ROW_LIMIT, REPORTS, type ReportKey } from './report-catalog';
 export type ExportResult =
   | { ok: true; filename: string; csv: string; rows: number; personal: boolean }
   | { ok: false; reason: 'UNKNOWN_REPORT' };
-
-/**
- * تهريب خليّة CSV.
- *
- * **والصيغة `=` و`+` و`-` و`@` في أوّل خليّة تُنفَّذ صيغةً** في Excel:
- * اسمٌ يبدأ بـ`=` يصير أمرًا. فتُسبق بفاصلة عليا — وهي حقنُ الصيغ
- * الذي يجعل ملفًّا مُصدَّرًا سلاحًا على من يفتحه.
- */
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return '';
-
-  const text =
-    value instanceof Date
-      ? value.toISOString()
-      : typeof value === 'object'
-        ? JSON.stringify(value)
-        : String(value);
-
-  const guarded = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
-  return /[",\n\r]/.test(guarded) ? `"${guarded.replaceAll('"', '""')}"` : guarded;
-}
-
-function toCsv(headers: readonly string[], rows: readonly (readonly unknown[])[]): string {
-  /**
-   * **BOM في أوّل الملف.** ‏Excel على ويندوز يقرأ CSV بترميز النظام،
-   * فتُعرض العربية حروفًا مشوّشة — والمستلم يظنّ التصدير معطوبًا.
-   */
-  const lines = [headers.map(cell).join(','), ...rows.map((row) => row.map(cell).join(','))];
-  return `﻿${lines.join('\r\n')}\r\n`;
-}
 
 type Query = () => Promise<{ headers: readonly string[]; rows: (readonly unknown[])[] }>;
 

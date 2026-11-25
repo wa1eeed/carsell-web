@@ -319,6 +319,7 @@ model Dealer {
 
   members       User[]
   vehicles      Vehicle[]
+  replies       DealerReply[]
   subscriptions Subscription[]
   branches      Branch[]
   sessions      DealerSession[]
@@ -365,6 +366,28 @@ enum DealerRole {
 /// **والمركبةُ تُنسَب إليه لا إلى الإعلان**: مخزونُ المعرض `Vehicle`،
 /// والعرضُ على كارز حالٌ اختيارية منها (قاعدةُ `ADR 0003`). فبائعُ
 /// فرعٍ يرى مركباتِ فرعه سواءٌ أعُرضت أم لا.
+/// ═══ ردٌّ جاهز للمعرض — `D5` ═══
+///
+/// نصٌّ يحفظه المعرض ليُرسله في التفاوض بلا إعادة كتابة.
+/// **ومتغيّراتُه تُستبدل وقت الإرسال** — `{price}` و`{branch}`
+/// و`{score}` — فالقالبُ واحدٌ والرسالةُ تخصّ مركبتَها.
+///
+/// والنصُّ يُخزَّن بقالبه لا بناتجه: قالبٌ استُبدل وقت الحفظ يجمّد
+/// سعرًا تغيّر بعده، فيَعِد المعرضُ بسعرٍ لم يعد قائمًا.
+model DealerReply {
+  id        String   @id @default(cuid())
+  dealerId  String
+  body      String
+  /// ترتيبُ العرض — والمعرضُ يرتّب ما يستعمله أكثر أوّلًا
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  createdBy String
+
+  dealer Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+
+  @@index([dealerId, sortOrder])
+}
+
 model Branch {
   id        String   @id @default(cuid())
   dealerId  String
@@ -1162,6 +1185,14 @@ enum AuctionEventKind {
   /// أُلغيت مزايدة — قرار المالك ٢٠٢٦-١١-٢٥: للأدمن وحده وبسببٍ مكتوب.
   /// (كُتب هنا قبلها «لا قيمةَ بلا كاتب»، فصار لها كاتب.)
   BID_CANCELLED
+
+  /// قَبِل البائعُ أعلى مزايدةٍ دون احتياطيه **ولم يُنشَأ الطلب**.
+  ///
+  /// وكان النداءُ `.catch(() => undefined)` ونتيجتُه تُرمى: فيصير
+  /// المزادُ `ENDED_MET` ويُخصم عربونُ الفائز **ولا طلبَ ولا سطرَ
+  /// يقول لماذا** — مالٌ تحرّك ولا شيء يُستلَم. والحدثُ يبقى في
+  /// سجلّ المزاد ليراه المشغّل.
+  ORDER_FAILED
 }
 
 model Bid {

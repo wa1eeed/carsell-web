@@ -116,8 +116,32 @@ export default async function AccountPage({
             وموضعُه هنا لا في القسم: من لا إعلان له لا يرى قسمَ
             الإعلانات أصلًا، **وهو أحوجُ الناس إلى الزرّ**.
           */}
-          <p className="mb-7">
-            <LinkButton href={`/${locale}/sell`}>{t('listVehicle')}</LinkButton>
+          <p className="mb-7 flex flex-wrap gap-2.5">
+            {/*
+              **وبيعُ عضوِ المعرض بيعُ معرضه** (قرار المالك
+              ٢٠٢٦-١١-٢٥): فالفعلُ الأوّل هنا لوحتُه لا معالجُ البيع
+              الشخصيّ — وزرّان متجاوران يصنعان البابين اللذين وُضعت
+              القاعدة لإلغائهما. و`/sell` يبقى مفتوحًا لمن يصله
+              بعنوانه، فمركبةٌ بلا معرضٍ شخصيّةٌ بحقّ.
+            */}
+            {data.dealerPanel === null ? (
+              <LinkButton href={`/${locale}/sell`}>{t('listVehicle')}</LinkButton>
+            ) : null}
+            {/*
+              ═══ بابُ لوحة المعرض — ولم يكن له بابٌ أصلًا ═══
+
+              قِيس المتجرُ كلُّه فلم يُوجد فيه مرجعٌ واحد إلى `/dealer`:
+              صاحبُ المعرض يسجّل دخولَه كأيّ مستخدم، فيصل صفحةَ حسابٍ
+              عادية **ولا يجد لوحتَه**. ولوحةٌ لا يبلغها أحد كالتي لم
+              تُبنَ — وهو الصنف المسجَّل في هذا المستودع مرارًا.
+
+              **وبلا بادئة لغة**: اللوحة جذرٌ ثالث خارج `[locale]`.
+            */}
+            {data.dealerPanel === null ? null : (
+              <LinkButton href="/dealer">
+                {t('dealerPanel', { name: data.dealerPanel.name })}
+              </LinkButton>
+            )}
           </p>
 
           {listed === null ? null : (

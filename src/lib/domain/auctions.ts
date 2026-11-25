@@ -630,11 +630,29 @@ export async function settleDeposits(
  * فورًا. وانقضاء المهلة **ردٌّ لا مصادرة**: المزايد أوفى بمزايدته،
  * والذي لم يقرّر هو البائع.
  */
+export type SellerDecisionResult = {
+  ok: boolean;
+  /**
+   * مرجعُ الطلب الذي أُنشئ عن القبول — و`null` حين لم يُنشأ.
+   *
+   * ═══ ولم يكن يُقرأ ═══
+   *
+   * كان النداء `createAuctionOrderStandalone(...).catch(() => undefined)`
+   * **ونتيجتُه تُرمى**: فيقبل البائع، ويصير المزادُ `ENDED_MET`،
+   * **ويُخصم عربونُ الفائز**، ولا طلبَ يُنشأ — ولا سطرَ في مكان يقول
+   * لماذا. فالشاشةُ تقول «قبلتُ أعلى مزايدة» والمالُ تحرّك ولا شيء
+   * يُستلَم. وهو عينُ «ما لا يُسجَّل من نتائج الفعل لا يُرى أبدًا».
+   */
+  orderRef: string | null;
+  /** سببُ تعذّر الطلب — يُعرض للبائع ويُكتب حدثًا. */
+  orderFailed: string | null;
+};
+
 export async function resolveSellerDecision(
   auctionId: string,
   accepted: boolean,
   now: Date = new Date(),
-): Promise<{ ok: boolean }> {
+): Promise<SellerDecisionResult> {
   const auction = await db.auction.findUnique({
     where: { id: auctionId },
     select: {
@@ -642,10 +660,12 @@ export async function resolveSellerDecision(
       bids: { orderBy: { amount: 'desc' }, take: 1, select: { bidderId: true } },
     },
   });
-  if (auction === null || auction.status !== 'ENDED_UNMET') return { ok: false };
+  if (auction === null || auction.status !== 'ENDED_UNMET') {
+    return { ok: false, orderRef: null, orderFailed: null };
+  }
 
   const topBidder = auction.bids[0]?.bidderId ?? null;
-  if (topBidder === null) return { ok: false };
+  if (topBidder === null) return { ok: false, orderRef: null, orderFailed: null };
 
   const expired =
     auction.sellerDecisionDueAt !== null && auction.sellerDecisionDueAt <= now;
@@ -668,11 +688,40 @@ export async function resolveSellerDecision(
    * تغييرَ حالةٍ لا بيعًا: يوافق البائع، ويُخصم عربون الفائز، ولا يجد
    * أحدهما ما يدفع أو يستلم.
    */
-  if (accepted && !expired) {
-    await createAuctionOrderStandalone(auctionId, now).catch(() => undefined);
-  }
+  if (!accepted || expired) return { ok: true, orderRef: null, orderFailed: null };
 
-  return { ok: true };
+  /**
+   * **ونتيجةُ الإنشاء تُقرأ وتُسجَّل.** وفشلُه بعد خصم العربون حالٌ
+   * يجب أن يراها أحد: الشاشةُ تقوله لصاحبه، والحدثُ يبقى في سجلّ
+   * المزاد ليراه المشغّل.
+   */
+  const order = await createAuctionOrderStandalone(auctionId, now).catch(
+    (error: unknown) => ({
+      ok: false as const,
+      reason: error instanceof Error ? error.message : 'THREW',
+    }),
+  );
+
+  if (order.ok) return { ok: true, orderRef: order.orderRef, orderFailed: null };
+
+  /**
+   * **والسببُ في `AuditLog` لا في حدث المزاد**: قائمةُ الأحداث
+   * تُعرض **للمزايدين** في صفحة المزاد، وعطلٌ داخليّ لا يُقال لهم.
+   * والحدثُ يسِم المزادَ، والسجلُّ يحمل السبب لمن يحقّق.
+   */
+  await db.auctionEvent.create({ data: { auctionId, kind: 'ORDER_FAILED' } });
+  await db.auditLog.create({
+    data: {
+      actorId: 'system',
+      actorType: 'system',
+      action: 'auction.order.failed',
+      entity: 'auction',
+      entityId: auctionId,
+      after: { reason: order.reason },
+    },
+  });
+
+  return { ok: true, orderRef: null, orderFailed: order.reason };
 }
 
 /**
@@ -1117,11 +1166,16 @@ export async function getAuction(
         cancelled: bid.reason,
       })),
     ].sort((a, b) => b.at.localeCompare(a.at)),
-    events: auction.events.map((event) => ({
-      kind: event.kind,
-      seconds: event.seconds,
-      at: event.createdAt.toISOString(),
-    })),
+    /**
+     * **وقائمةُ الأحداث تُعرض للمزايدين** — فما يُدرَج فيها يُقرأ
+     * منهم. و`ORDER_FAILED` عطلٌ داخليّ بعد قرار البائع: يسِم
+     * المزادَ في سجلّنا ولا يُقال لمن زايد.
+     */
+    events: auction.events.flatMap((event) =>
+      event.kind === 'EXTENDED' || event.kind === 'BID_CANCELLED'
+        ? [{ kind: event.kind, seconds: event.seconds, at: event.createdAt.toISOString() }]
+        : [],
+    ),
     cancelledCount: auction._count.cancelledBids,
     openedAt: auction.startsAt.toISOString(),
     averageStep:

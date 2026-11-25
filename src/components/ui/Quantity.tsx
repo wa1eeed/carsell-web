@@ -68,6 +68,23 @@ export type Unit =
   | 'awaitingYou'
   | 'liveOrders'
   | 'doneThisMonth'
+  /** صفوفُ جدولٍ مقتطع — «أحدث ٢٠٠ صف». */
+  | 'orderRows'
+  /** طلباتٌ يحمل مالَها سطرٌ واحد — «محتجز في الضمان (٦ طلبات)». */
+  | 'heldOrders'
+  | 'transferAppointments'
+  /** فروعُ المعرض في رأس لوحته. */
+  | 'branches'
+  /** فواتيرُ المعرض — `D7`. */
+  | 'invoices'
+  /** تحويلاتٌ خرجت إلى آيبانه — `D8`. */
+  | 'payouts'
+  /** عملاءُ المعرض — من تعامل لا من تصفّح. */
+  | 'customers'
+  /** مزاداتُ المعرض الجارية — `D4`. */
+  | 'liveAuctions'
+  /** صفقاتٌ مكتملة في تقرير الماركات — `D11`. */
+  | 'deals'
   | 'watchers'
   | 'bids'
   | 'deals'

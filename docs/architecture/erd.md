@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-108 models · 75 enums
+109 models · 75 enums
 
 ## Relationships
 
@@ -60,10 +60,12 @@ erDiagram
   Dealer }o--|| DealerStatus : "status"
   Dealer ||--o{ User : "members"
   Dealer ||--o{ Vehicle : "vehicles"
+  Dealer ||--o{ DealerReply : "replies"
   Dealer ||--o{ Subscription : "subscriptions"
   Dealer ||--o{ Branch : "branches"
   Dealer ||--o{ DealerSession : "sessions"
   Dealer ||--o{ DealerInvite : "invites"
+  DealerReply }o--|| Dealer : "dealer"
   Branch }o--|| Dealer : "dealer"
   Branch |o--|| User : "manager"
   Branch ||--o{ User : "members"
@@ -490,7 +492,20 @@ Relations: `adminUser` → `AdminUser`
 | `ratingCount` | `Int` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite`
+Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `replies` → `DealerReply` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite`
+
+### `DealerReply`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `dealerId` | `String` |  |
+| `body` | `String` |  |
+| `sortOrder` | `Int` |  |
+| `createdAt` | `DateTime` |  |
+| `createdBy` | `String` |  |
+
+Relations: `dealer` → `Dealer`
 
 ### `Branch`
 
@@ -2164,7 +2179,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReviewReason` — `DUPLICATE_IMAGE /// تكرار صورة > ٩٠٪ مع إعلان مستخدم آخر`, `PRICE_OUTLIER /// سعر أقل من ٤٠٪ من PriceStat.p25`, `NEW_ACCOUNT_BURST /// حساب عمره < ٧ أيام وله أكثر من ٣ إعلانات`, `USER_REPORT /// بلاغ وارد`
 - `OfferStatus` — `PENDING`, `COUNTERED`, `ACCEPTED`, `REJECTED`, `WITHDRAWN`, `EXPIRED`
 - `AuctionStatus` — `SCHEDULED`, `LIVE`, `ENDED_MET`, `ENDED_UNMET`, `CANCELLED`
-- `AuctionEventKind` — `EXTENDED`, `BID_CANCELLED`
+- `AuctionEventKind` — `EXTENDED`, `BID_CANCELLED`, `ORDER_FAILED`
 - `DepositStatus` — `HELD`, `RELEASED`, `FORFEITED`, `APPLIED`
 - `OrderCancelCategory` — `PAYMENT_TIMEOUT /// لم يكتمل الدفع — يكتبه المُجدوِل`, `NOT_AS_DESCRIBED /// لا تطابق الوصف`, `CHANGED_MIND /// غيّر رأيه`, `SELLER_DELAY /// تأخّر البائع`, `OTHER /// أخرى — وافتراضُ من لم يختر`
 - `OrderSource` — `DIRECT`, `OFFER`, `AUCTION`, `BUY_NOW`

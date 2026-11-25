@@ -26,6 +26,11 @@ import { toLatinDigits } from '@/lib/arabic';
 const DENIED: Record<string, string> = {
   HAS_LISTING: 'هذه السيارة معروضة — اسحب إعلانها أولا ثم احذفها.',
   HAS_INSPECTION: 'لها تقرير فحص يقرؤه المشترون — لا تحذف وتقريرها قائم.',
+  /**
+   * **والسببُ يسمّي البابَ الصحيح.** هي مركبتُه بحقّ، لكنها مخزونُ
+   * معرضه — و«ليست لك» ترسله يبحث عن عطل في حسابه.
+   */
+  BELONGS_TO_DEALER: 'هذه المركبة في مخزون معرضك — تعدل وتحذف من لوحة المعرض.',
 };
 
 export function VehicleControls({

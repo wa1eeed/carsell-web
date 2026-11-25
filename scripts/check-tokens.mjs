@@ -2105,7 +2105,13 @@ function checkNavTargets() {
     return route.every((seg, i) => seg.startsWith('[') || parts[i] === '*' || seg === parts[i]);
   });
 
-  const NAV = /(?:href=|router\.(?:push|replace)\(|location\.href\s*=\s*|redirect\(|permanentRedirect\(|next:\s*)[`'"]([^`'"]*)[`'"]/g;
+  /**
+   * **و`href:` في مصفوفة مِلاحة وجهةٌ كـ`href=` في وسم.** كانت
+   * البوابة تقرأ الوسمَ وحده، فمرّت سبعةُ بنودٍ في شريط لوحة المعرض
+   * كلُّها ٤٠٤ — ومن يفتحها لا يعرف أبُنيت الشاشة أم عُطّلت لوحتُه.
+   * وقِيس الامتدادُ على الشجرة قبل تفعيله.
+   */
+  const NAV = /(?:href=|href:\s*|router\.(?:push|replace)\(|location\.href\s*=\s*|redirect\(|permanentRedirect\(|next:\s*)[`'"]([^`'"]*)[`'"]/g;
 
   const files = walk(join(ROOT, 'src'))
     .filter((file) => /\.tsx?$/.test(file) && !file.includes(`${sep}generated${sep}`));
@@ -2116,6 +2122,13 @@ function checkNavTargets() {
       const raw = match[1].replace(/\$\{[^}]*\}/g, '*').split('?')[0].split('#')[0];
       if (!raw.startsWith('/') || raw.startsWith('/*')) continue;
       if (/^\/(api|_next|diagrams)\b/.test(raw)) continue;
+      /**
+       * **وملفٌّ في `public/` وجهةٌ قائمة.** الامتدادُ إلى `href:`
+       * أخرج ثلاثةَ إنذاراتٍ على صورِ شعارات اللوحات — **وبوابةٌ
+       * تُنذر على الصواب تُعطَّل في يومها**. فالوجودُ يُفحص على
+       * القرص لا بقائمةِ امتداداتٍ تُكتب بيد.
+       */
+      if (existsSync(join(ROOT, 'public', raw.replace(/^\//, '')))) continue;
 
       const parts = raw.replace(/\/$/, '').split('/')
         .filter(Boolean)
@@ -3188,6 +3201,22 @@ function checkLocaleInLinks() {
   /** الوسوم التي تعرف لغتها بنفسها. */
   const LOCALE_AWARE = new Set(['Link', 'NavLink', 'LocaleLink']);
 
+  /**
+   * ═══ الجذورُ التي لا لغةَ لها — **تُقرأ من الوسيط لا تُكتب هنا** ═══
+   *
+   * `/admin` و`/dealer` و`/provider` جذورٌ يستثنيها `middleware.ts`
+   * صراحةً، فرابطٌ إليها بلا بادئةٍ **صحيح** — والبوابةُ كانت تُنذر
+   * عليه. ونسخةٌ مكتوبةٌ بيد هنا تتباعد عن الوسيط أوّلَ جذرٍ رابع:
+   * فإمّا تُنذر البوابةُ على صوابٍ فتُعطَّل، أو تسكت عن خطأٍ فتُصدَّق.
+   */
+  const middleware = readFileSync(join(ROOT, 'src', 'middleware.ts'), 'utf8');
+  const localeFree = [...middleware.matchAll(/pathname\.startsWith\('(\/[a-z-]+)'\)/g)].map(
+    (match) => match[1] ?? '',
+  );
+  if (localeFree.length === 0) {
+    problems.push('src/middleware.ts  لم تُقرأ الجذور بلا لغة — تغيّر شكلُ الاستثناء في الوسيط');
+  }
+
   const trees = [join(ROOT, 'src', 'app', '[locale]'), join(ROOT, 'src', 'components', 'site')];
 
   for (const tree of trees) {
@@ -3199,6 +3228,7 @@ function checkLocaleInLinks() {
       for (const match of text.matchAll(/href="(\/[^"]*)"/g)) {
         const href = match[1] ?? '';
         if (href === '' || NOT_A_PAGE.test(href)) continue;
+        if (localeFree.some((root) => href === root || href.startsWith(`${root}/`))) continue;
 
         /** الوسم الحاوي: أقربُ `<Word` قبل الخاصّية. */
         const before = text.slice(0, match.index ?? 0);

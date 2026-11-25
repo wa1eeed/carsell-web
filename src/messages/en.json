@@ -514,7 +514,15 @@
     "activeOffers": "{count, plural, one{1 active offer} other{{n} active offers}}",
     "awaitingYou": "{count, plural, one{1 awaiting your reply} other{{n} awaiting your reply}}",
     "liveOrders": "{count, plural, one{1 live order} other{{n} live orders}}",
-    "doneThisMonth": "{count, plural, one{1 completed this month} other{{n} completed this month}}"
+    "doneThisMonth": "{count, plural, one{1 completed this month} other{{n} completed this month}}",
+    "orderRows": "{count, plural, one{{n} row} other{{n} rows}}",
+    "heldOrders": "{count, plural, one{{n} order} other{{n} orders}}",
+    "transferAppointments": "{count, plural, one{{n} appointment} other{{n} appointments}}",
+    "branches": "{count, plural, one{{n} branch} other{{n} branches}}",
+    "invoices": "{count, plural, one{{n} invoice} other{{n} invoices}}",
+    "payouts": "{count, plural, one{{n} payout} other{{n} payouts}}",
+    "customers": "{count, plural, one{{n} customer} other{{n} customers}}",
+    "liveAuctions": "{count, plural, one{{n} live auction} other{{n} live auctions}}"
   },
   "search": {
     "editQuery": "Edit query",
@@ -793,6 +801,11 @@
       "THREE": "Three previous owners",
       "FOUR": "Four previous owners",
       "MORE_THAN_FOUR": "More than four owners"
+    },
+    "disputeResolution": {
+      "FULL_REFUND": "Full refund to buyer",
+      "PARTIAL_SETTLEMENT": "Partial settlement",
+      "RELEASE_TO_SELLER": "Released to seller"
     }
   },
   "services": {
@@ -993,6 +1006,7 @@
     "identityNoteTitle": "What the reviewer asked for",
     "identityResubmit": "Fix it and resubmit →",
     "listVehicle": "List a vehicle",
+    "dealerPanel": "{name} dashboard",
     "details": "Details"
   },
   "sell": {
@@ -1177,6 +1191,8 @@
     "disputeOpen": "A dispute is open on this order",
     "disputeFrozen": "The order is frozen at its stage: it neither advances nor lapses until the dispute is resolved.",
     "slaDue": "Response due by",
+    "disputeSettled": "The dispute on this order was resolved",
+    "disputeSettledNote": "Nothing is pending — this records what happened, and explains any partial refund.",
     "event": {
       "stage": {
         "advanced": "Stage advanced"
@@ -1411,7 +1427,10 @@
     "ordersThisMonth": "{count, plural, one{{n} order this month} other{{n} orders this month}}",
     "openServices": "{count, plural, one{1 open service} other{{n} open services}}",
     "dealsWithCost": "{count, plural, one{1 deal with a recorded cost} other{{n} deals with a recorded cost}}",
-    "ofDeals": "{count, plural, one{of 1 deal} other{of {n} deals}}"
+    "ofDeals": "{count, plural, one{of 1 deal} other{of {n} deals}}",
+    "importCreated": "{count, plural, one{{n} vehicle added} other{{n} vehicles added}}",
+    "importUpdated": "{count, plural, one{{n} vehicle updated} other{{n} vehicles updated}}",
+    "importSkipped": "{count, plural, one{{n} row skipped} other{{n} rows skipped}}"
   },
   "notificationCenter": {
     "title": "Notifications",

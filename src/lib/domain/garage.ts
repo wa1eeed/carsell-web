@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { PERSONAL_VEHICLE } from './ownership';
 import { canonicalPath } from './listing-detail';
 import { vehicleFields, type PublishInput } from './publish';
 import { vehicleTitle } from './vehicle-title';
@@ -145,7 +146,12 @@ const LIVE = LIVE_LISTING_STATUSES;
 
 export async function myVehicles(userId: string, locale: string): Promise<GarageVehicle[]> {
   const rows = await db.vehicle.findMany({
-    where: { ownerId: userId },
+    /**
+     * **ومركبةُ المعرض ليست في كراج مديره.** قرار المالك: الحساب
+     * للأفراد، والمعارضُ لها لوحتها — والصفوفُ كانت واحدة في
+     * الشاشتين بقاعدتين، إحداهما لا تعرف الفروع.
+     */
+    where: { ownerId: userId, ...PERSONAL_VEHICLE },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, year: true, city: true, mileageKm: true, colorExterior: true,
@@ -234,7 +240,21 @@ export function garageCounts(vehicles: readonly GarageVehicle[]): {
  * ويضيف غيرها. والذي يتغيّر حقًّا: الممشى (يزيد كل يوم) واللون (يُصبغ)
  * والمدينة (ينتقل صاحبها).
  */
-export type EditVehicleFailure = 'NOT_YOURS' | 'BAD_MILEAGE';
+export type EditVehicleFailure = 'NOT_YOURS' | 'BAD_MILEAGE' | 'BELONGS_TO_DEALER';
+
+/**
+ * يفرّق «ليست لك» عن «هي لمعرضك».
+ *
+ * **ويُسأل بعد الفشل لا قبله**: الاستعلامُ الأوّل يفحص الملكيةَ
+ * والكتابةَ معًا فلا نافذةَ بينهما، وهذا سؤالٌ عن **سببِ** فشلٍ وقع.
+ */
+async function whyNot(input: { userId: string; vehicleId: string }): Promise<'NOT_YOURS' | 'BELONGS_TO_DEALER'> {
+  const mine = await db.vehicle.findFirst({
+    where: { id: input.vehicleId, ownerId: input.userId },
+    select: { dealerId: true },
+  });
+  return mine !== null && mine.dealerId !== null ? 'BELONGS_TO_DEALER' : 'NOT_YOURS';
+}
 
 export async function editVehicle(input: {
   userId: string;
@@ -249,7 +269,7 @@ export async function editVehicle(input: {
 
   /** **والملكية تُفحص في الاستعلام لا بعده** — فلا نافذةَ بين الفحص والكتابة. */
   const updated = await db.vehicle.updateMany({
-    where: { id: input.vehicleId, ownerId: input.userId },
+    where: { id: input.vehicleId, ownerId: input.userId, ...PERSONAL_VEHICLE },
     data: {
       mileageKm: input.mileageKm,
       colorExterior: input.colorExterior.trim().slice(0, 40),
@@ -257,7 +277,7 @@ export async function editVehicle(input: {
     },
   });
 
-  if (updated.count === 0) return { ok: false, reason: 'NOT_YOURS' };
+  if (updated.count === 0) return { ok: false, reason: await whyNot(input) };
   return { ok: true };
 }
 
@@ -273,20 +293,30 @@ export async function editVehicle(input: {
  * **ويُفحص الشرط قبل المحاولة لا بعدها**: تركُ القاعدة ترمي يُخرج
  * رسالةً عن قيدٍ أجنبيّ لا يفهمها صاحب الحساب.
  */
-export type RemoveVehicleFailure = 'NOT_YOURS' | 'HAS_LISTING' | 'HAS_INSPECTION';
+/**
+ * **و«ليست لك» سببٌ خاطئ لمركبة معرضه.** هي له بحقّ، لكنّها مخزونُ
+ * منشأته لا كراجَه الشخصيّ (قرار المالك ٢٠٢٦-١١-٢٥) — وسببٌ يقول
+ * «ليست لك» يرسل صاحبَها يبحث عن عطلٍ في حسابه، والبابُ مفتوحٌ في
+ * لوحته. والسببُ يسمّي الباب الصحيح.
+ */
+export type RemoveVehicleFailure =
+  | 'NOT_YOURS'
+  | 'BELONGS_TO_DEALER'
+  | 'HAS_LISTING'
+  | 'HAS_INSPECTION';
 
 export async function removeVehicle(input: {
   userId: string;
   vehicleId: string;
 }): Promise<{ ok: true } | { ok: false; reason: RemoveVehicleFailure }> {
   const vehicle = await db.vehicle.findFirst({
-    where: { id: input.vehicleId, ownerId: input.userId },
+    where: { id: input.vehicleId, ownerId: input.userId, ...PERSONAL_VEHICLE },
     select: {
       id: true,
       _count: { select: { listings: true, inspectionReports: true } },
     },
   });
-  if (vehicle === null) return { ok: false, reason: 'NOT_YOURS' };
+  if (vehicle === null) return { ok: false, reason: await whyNot(input) };
   if (vehicle._count.listings > 0) return { ok: false, reason: 'HAS_LISTING' };
   if (vehicle._count.inspectionReports > 0) return { ok: false, reason: 'HAS_INSPECTION' };
 

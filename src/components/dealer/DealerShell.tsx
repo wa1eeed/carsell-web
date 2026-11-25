@@ -1,8 +1,13 @@
 import Link from 'next/link';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Quantity } from '@/components/ui/Quantity';
+import { Logo } from '@/components/ui/Logo';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import type { DealerActor } from '@/lib/domain/dealer-auth';
 import { DEALER_ROLE_AR } from '@/lib/labels/dealer';
+import { dealerNavCounts, type DealerNavCounts } from '@/lib/domain/dealer-desk';
+import { dealerIdentity } from '@/lib/domain/dealer-branches';
 
 /**
  * ═══ هيكلُ لوحة المعرض ═══
@@ -15,7 +20,13 @@ import { DEALER_ROLE_AR } from '@/lib/labels/dealer';
  * **والاشتراكُ للمالك وحده**. وبندٌ يُعرض ثمّ يردّ «ليس لك» يجعل
  * العاملَ يحسب النظام معطّلًا.
  */
-type Item = { href: string; label: string; roles?: readonly DealerActor['role'][] };
+type Item = {
+  href: string;
+  label: string;
+  roles?: readonly DealerActor['role'][];
+  /** مفتاحُ الشارة — وبنودٌ بلا شارةٍ في الترميز تبقى بلا رقم. */
+  badge?: keyof DealerNavCounts;
+};
 type Group = { title: string; items: readonly Item[] };
 
 const NAV: readonly Group[] = [
@@ -23,16 +34,16 @@ const NAV: readonly Group[] = [
     title: 'المخزون والبيع',
     items: [
       { href: '/dealer', label: 'لوحة القيادة' },
-      { href: '/dealer/inventory', label: 'المخزون' },
+      { href: '/dealer/inventory', label: 'المخزون', badge: 'inventory' },
       { href: '/dealer/import', label: 'الإضافة الجماعية', roles: ['OWNER', 'MANAGER'] },
-      { href: '/dealer/auctions', label: 'المزادات', roles: ['OWNER', 'MANAGER', 'SALES'] },
+      { href: '/dealer/auctions', label: 'المزادات', roles: ['OWNER', 'MANAGER', 'SALES'], badge: 'auctions' },
     ],
   },
   {
     title: 'الطلب والعميل',
     items: [
-      { href: '/dealer/offers', label: 'العروض والمفاوضات', roles: ['OWNER', 'MANAGER', 'SALES'] },
-      { href: '/dealer/orders', label: 'الطلبات' },
+      { href: '/dealer/offers', label: 'العروض والمفاوضات', roles: ['OWNER', 'MANAGER', 'SALES'], badge: 'offers' },
+      { href: '/dealer/orders', label: 'الطلبات', badge: 'orders' },
       { href: '/dealer/customers', label: 'العملاء', roles: ['OWNER', 'MANAGER', 'SALES'] },
     ],
   },
@@ -62,7 +73,7 @@ export function visibleNav(role: DealerActor['role']): readonly Group[] {
   })).filter((group) => group.items.length > 0);
 }
 
-export function DealerShell({
+export async function DealerShell({
   actor,
   activeHref,
   title,
@@ -73,32 +84,36 @@ export function DealerShell({
   actor: DealerActor;
   activeHref: string;
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
 }) {
   const groups = visibleNav(actor.role);
+  const [counts, badge] = await Promise.all([
+    dealerNavCounts(actor.dealerId, actor.branchId),
+    dealerIdentity(actor.dealerId),
+  ]);
 
   return (
     <div className="flex min-h-screen bg-bg text-ink">
-      <aside className="hidden w-60 shrink-0 border-e border-line bg-surface lg:block">
-        <div className="border-b border-line p-5">
-          <p className="text-3xs font-bold tracking-widest opacity-65">DEALER DASHBOARD</p>
-          <p className="mt-2 text-sm font-bold">{actor.dealerName}</p>
-          {/*
-            **واسمُ من يعمل ودورُه على رأس اللوحة.** في معرضٍ له فريق،
-            من يجلس أمام الشاشة ليس واحدًا دائمًا — ومن لا يرى دورَه
-            لا يعرف لِمَ غاب بندٌ عن ملاحته.
-          */}
-          <p className="mt-1 text-3xs opacity-70">
-            {actor.name ?? '—'} · {DEALER_ROLE_AR[actor.role]}
+      {/*
+        **والشريطُ داكنٌ كما يرسمه `Dealer.dc.html`** — `var(--carz-ink)`
+        بنصٍّ فاتح، وهو شريطُ لوحة الأدمن نفسُه: أداةُ عملٍ لا صفحةُ
+        تسوّق. وكنتُ بنيتُه فاتحًا فخرج عن الترميز بلا سبب.
+      */}
+      <aside className="hidden w-[238px] shrink-0 flex-col bg-ink py-5 text-bg lg:flex">
+        <div className="border-b border-bg/13 px-5 pb-4">
+          {/* **والعلامةُ أصلٌ لا نصٌّ يُكتب** — `Logo` كما في شريط الأدمن. */}
+          <Logo variant="white" priority className="h-7" />
+          <p className="mt-1.5 text-3xs font-semibold tracking-widest opacity-70">
+            DEALER DASHBOARD
           </p>
         </div>
 
-        <nav className="flex flex-col gap-5 p-4">
+        <nav className="flex flex-1 flex-col gap-5 p-4">
           {groups.map((group) => (
             <div key={group.title}>
-              <p className="mb-2 px-2 text-3xs font-bold tracking-wide opacity-65">{group.title}</p>
+              <p className="mb-2 px-2 text-3xs font-bold tracking-wide opacity-70">{group.title}</p>
               <ul className="flex flex-col gap-0.5">
                 {group.items.map((item) => (
                   <li key={item.href}>
@@ -107,11 +122,23 @@ export function DealerShell({
                       className={cn(
                         'block rounded-md px-2.5 py-2 text-2xs transition-colors',
                         item.href === activeHref
-                          ? 'bg-ink font-bold text-bg'
-                          : 'opacity-80 hover:bg-ink/6 hover:opacity-100',
+                          ? 'bg-bg/12 font-bold'
+                          : 'opacity-65 hover:bg-bg/7 hover:opacity-100',
                       )}
                     >
-                      {item.label}
+                      <span className="flex items-center gap-2">
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge === undefined || counts[item.badge] === 0 ? null : (
+                          /**
+                            **والشارةُ على الصفر تُحذف لا تُصفَّر**:
+                            «المزادات ٠» تُقرأ عطلًا، وغيابُها يُقرأ
+                            «لا شيء هناك» — وهو الصواب.
+                          */
+                          <span className="rounded-md bg-accent-400 px-1.5 font-num text-3xs font-bold text-ink">
+                            <ArabicNumber value={counts[item.badge]} />
+                          </span>
+                        )}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -119,6 +146,27 @@ export function DealerShell({
             </div>
           ))}
         </nav>
+
+        {/*
+          **واسمُ من يعمل ودورُه في أسفل الشريط** كما يرسمه الترميز.
+          في معرضٍ له فريق، من يجلس أمام الشاشة ليس واحدًا دائمًا —
+          ومن لا يرى دورَه لا يعرف لِمَ غاب بندٌ عن ملاحته.
+        */}
+        <div className="mx-4 rounded-lg bg-bg/7 p-3.5">
+          <p className="text-2xs font-bold">{actor.dealerName}</p>
+          <p className="mt-1 text-3xs opacity-70">
+            {badge.verified ? 'تاجر موثق' : 'قيد التوثيق'}
+            {badge.branches === 0 ? null : (
+              <>
+                <span aria-hidden> · </span>
+                <Quantity unit="branches" count={badge.branches} />
+              </>
+            )}
+          </p>
+          <p className="mt-2.5 text-3xs font-semibold opacity-70">
+            {actor.name ?? '—'} · {DEALER_ROLE_AR[actor.role]}
+          </p>
+        </div>
       </aside>
 
       <main className="min-w-0 flex-1 p-6 lg:p-9">

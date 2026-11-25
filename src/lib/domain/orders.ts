@@ -270,7 +270,22 @@ export type PublicOrder = {
    * أنها تقديرٌ قبل التسوية لا كشفٌ صادر.
    */
   settlement: SettlementFigures | null;
-  dispute: { id: string; status: string; slaDueAt: string; openedAt: string } | null;
+  /**
+   * آخرُ نزاعٍ على الطلب — **مفتوحًا كان أو محسومًا**.
+   *
+   * و`open` تفرّقهما: كانت الشاشة تقرأ وجودَ الصفّ وحده فتعرض «نزاع
+   * مفتوح · الطلب متوقف» على نزاعٍ **حُسم** — فيقرأ البائع والمشتري
+   * أنّ طلبهما مجمَّدٌ إلى الأبد. و`resolution` تقول بم حُسم، وهو ما
+   * يفسّر ردًّا جزئيًّا في الضمان.
+   */
+  dispute: {
+    id: string;
+    status: string;
+    open: boolean;
+    resolution: string | null;
+    slaDueAt: string;
+    openedAt: string;
+  } | null;
   listing: { ref: string; title: string; year: number; path: string };
   /**
    * الطرف الآخر — **ولم يكن يُعرض قطّ**.
@@ -387,6 +402,8 @@ export async function getOrder(
         : {
             id: dispute.id,
             status: dispute.status,
+            open: dispute.status === 'OPEN' || dispute.status === 'INVESTIGATING',
+            resolution: dispute.resolution,
             slaDueAt: dispute.slaDueAt.toISOString(),
             openedAt: dispute.openedAt.toISOString(),
           },
