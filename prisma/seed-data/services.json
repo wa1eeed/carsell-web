@@ -1,8 +1,8 @@
 [
   {
     "key": "inspection",
-    "nameAr": "فحص فني 210 نقطة",
-    "nameEn": "210-point inspection",
+    "nameAr": "فحص فني معتمد",
+    "nameEn": "Certified inspection",
     "descAr": "فحص شامل في مركز مستقل يغطي الهيكل والمحرك والكهرباء، بتقرير مفصل ودرجة من 100.",
     "descEn": "Full independent inspection covering body, engine and electrics, with a detailed report and a score out of 100.",
     "price": "450.00",
@@ -66,8 +66,8 @@
   },
   {
     "key": "shipping",
-    "nameAr": "شحن ونقل",
-    "nameEn": "Shipping and transport",
+    "nameAr": "شحن بين المدن",
+    "nameEn": "Intercity shipping",
     "descAr": "نقل المركبة بين المدن على شاحنة مغلقة مع تأمين أثناء النقل.",
     "descEn": "Inter-city vehicle transport on a covered truck, insured in transit.",
     "price": "900.00",
@@ -95,8 +95,8 @@
   },
   {
     "key": "ownership_transfer",
-    "nameAr": "نقل الملكية",
-    "nameEn": "Ownership transfer",
+    "nameAr": "نقل الملكية بالإنابة",
+    "nameEn": "Ownership transfer by proxy",
     "descAr": "إنهاء إجراءات نقل الملكية في المرور نيابة عن الطرفين.",
     "descEn": "Completing the traffic-department ownership transfer on behalf of both parties.",
     "price": "350.00",
@@ -211,8 +211,8 @@
   },
   {
     "key": "featured_listing",
-    "nameAr": "تمييز الإعلان",
-    "nameEn": "Featured listing",
+    "nameAr": "ترويج الإعلان",
+    "nameEn": "Listing promotion",
     "descAr": "رفع الإعلان إلى أعلى نتائج البحث لمدة سبعة أيام.",
     "descEn": "Promote the listing to the top of search results for seven days.",
     "price": "150.00",
