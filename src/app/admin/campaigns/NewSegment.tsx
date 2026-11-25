@@ -32,7 +32,25 @@ import type { SegmentFieldKey } from '@/lib/campaigns/segments';
 type Field = { key: SegmentFieldKey; kind: 'bool' | 'number' };
 type State = 'off' | 'on' | 'not';
 
-export function NewSegment({ fields }: { fields: readonly Field[] }) {
+/**
+ * ═══ ويُفتح من شاشة العملاء أيضًا ═══
+ *
+ * ترميزُ `A5` يضع «شريحة جديدة» في ترويسته ويقول «يمكن حفظ أيّ فلتر
+ * كشريحة». **وأكثرُ فلاتره لا يقابله شرط**: «متكرّرون» و«موقوفون»
+ * ليست من مفردات الشرائح. فيُفتح المحرّر بما يقابل الفلتر حين يقابله
+ * (معارض · موثّقون · غير موثّقين · بائعون)، ويُقال في الشاشة إن ما
+ * عداها يُبنى بيد — ووعدٌ بحفظ فلترٍ لا يُحفظ أسوأ من غياب الزرّ.
+ */
+export function NewSegment({
+  fields,
+  label,
+  initial,
+}: {
+  fields: readonly Field[];
+  label?: string;
+  /** حالةٌ ابتدائية للشروط — من فلتر الشاشة التي فتحته */
+  initial?: Readonly<Record<string, State>>;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
@@ -40,7 +58,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
 
   const [key, setKey] = useState('');
   const [nameAr, setNameAr] = useState('');
-  const [states, setStates] = useState<Record<string, State>>({});
+  const [states, setStates] = useState<Record<string, State>>({ ...initial });
   const [values, setValues] = useState<Record<string, string>>({});
 
   const chosen = fields.filter((field) => (states[field.key] ?? 'off') !== 'off');
@@ -89,7 +107,7 @@ export function NewSegment({ fields }: { fields: readonly Field[] }) {
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-        عرف شريحة
+        {label ?? 'عرف شريحة'}
       </Button>
 
       <Sheet

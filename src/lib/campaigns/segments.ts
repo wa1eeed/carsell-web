@@ -15,6 +15,12 @@ export const SEGMENT_FIELDS = [
   { key: 'hasVehicle', kind: 'bool' },
   { key: 'hasBid', kind: 'bool' },
   { key: 'isDealer', kind: 'bool' },
+  /**
+   * **موثَّقُ الهوية** — وهي أنفعُ شريحةٍ تسويقية في سوقٍ يشترط التوثيق
+   * للشراء: «أكمل توثيقك» تُرسَل إلى نفيها. وكانت المفردةُ ناقصةً، فشاشةُ
+   * العملاء تُرشّح «غير موثّقين» ولا سبيل إلى مخاطبتهم.
+   */
+  { key: 'isVerified', kind: 'bool' },
   { key: 'activeWithinDays', kind: 'number' },
 ] as const;
 

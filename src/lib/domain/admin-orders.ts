@@ -647,3 +647,59 @@ export async function alertOnAccessSpike(
 
   return { alerted: true };
 }
+
+export type CustomerValue = {
+  /**
+   * **ما كسبته المنصّة منه** لا ثمنُ ما اشتراه.
+   *
+   * ترميزُ `A5` يكتب «متوسط قيمة العميل ٩٨٠ ر.س» و«قيمته ٢٬٤٦٠» لمشترٍ
+   * له ثلاث صفقات — وهي أرقامُ عمولةٍ لا أرقامُ سيارات. ومجموعُ ما
+   * دفعه يُقرأ «قيمة» وهو حجمُ تداول: مشترٍ اشترى سيارةً بمئةِ ألفٍ
+   * ومشترٍ اشترى عشرًا بعشرةِ آلافٍ سواءٌ في الحجم ومختلفان لنا.
+   */
+  averageValue: string;
+  /** الصفقات المكتملة ÷ من اشترى، بخانةٍ عشرية (الترميز «١٫٣») */
+  dealsPerBuyer: number;
+  /** الموثّقون ÷ المسجَّلين — نسبةٌ مئوية مقرَّبة */
+  verifiedPct: number;
+  /** من اشترى مرّةً على الأقلّ — مقام المؤشّرين الأوّلين، ويُعرض */
+  buyers: number;
+};
+
+/**
+ * ═══ قيمةُ العميل — والمقامُ من اشترى لا من سجّل ═══
+ *
+ * «متوسط قيمة العميل» على كلّ مسجَّل يقيس نسبةَ التحويل لا القيمة:
+ * ألفُ حسابٍ جديد تُنصّف الرقم بلا أن يتغيّر سلوكُ من يشتري. والترميز
+ * يضعه بجوار «متوسط الصفقات للعميل» — وهما معًا يصفان **المشتري**.
+ *
+ * فالمقام من له طلبٌ مكتمل، ويُعرض معهما فلا يُقرأ الرقم على جمهورٍ
+ * غير الذي حُسب عليه.
+ */
+export async function customerValue(): Promise<CustomerValue> {
+  const [agg, buyerGroups, total, verified] = await Promise.all([
+    db.order.aggregate({
+      where: { stage: 'DONE', status: { not: 'CANCELLED' } },
+      _sum: { commissionAmount: true },
+      _count: { _all: true },
+    }),
+    db.order.groupBy({
+      by: ['buyerId'],
+      where: { stage: 'DONE', status: { not: 'CANCELLED' } },
+    }),
+    db.user.count(),
+    db.user.count({ where: { identityStatus: 'VERIFIED' } }),
+  ]);
+
+  const buyers = buyerGroups.length;
+  const sum = Number(agg._sum.commissionAmount ?? 0);
+  const deals = agg._count._all;
+
+  return {
+    averageValue: buyers === 0 ? '0.00' : (sum / buyers).toFixed(2),
+    // خانةٌ عشرية واحدة — «١٫٣» كما يكتبها الترميز
+    dealsPerBuyer: buyers === 0 ? 0 : Math.round((deals / buyers) * 10) / 10,
+    verifiedPct: total === 0 ? 0 : Math.round((verified / total) * 100),
+    buyers,
+  };
+}

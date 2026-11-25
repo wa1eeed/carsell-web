@@ -25,6 +25,7 @@ export function ExportLink({ reportKey, allowed }: { reportKey: string; allowed:
   return (
     <a
       href={`/api/v1/admin/exports/${reportKey}`}
+      title={REPORT_NAME[reportKey as keyof typeof REPORT_NAME] ?? reportKey}
       className="flex items-center gap-1.75 rounded-btn border border-line px-3.5 py-2.25 text-3xs font-bold hover:border-ink"
     >
       <svg
@@ -41,7 +42,13 @@ export function ExportLink({ reportKey, allowed }: { reportKey: string; allowed:
         <path d="m7 11 5 5 5-5" />
         <path d="M4 20h16" />
       </svg>
-      تصدير {REPORT_NAME[reportKey as keyof typeof REPORT_NAME] ?? reportKey}
+      {/*
+        **ولفظُه لفظُ الترميز**: «تصدير CSV» في ترويسة كلّ قائمة — A4
+        وA5 وA16 — واسمُ التقرير في `title` لمن يحوم. ولفظٌ يطول باسم
+        التقرير يختلف من شاشةٍ إلى شاشة، والمشغّل يتعلّم موضع الزرّ
+        بلفظه.
+      */}
+      تصدير CSV
     </a>
   );
 }

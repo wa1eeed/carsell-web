@@ -49,6 +49,9 @@ function conditionOf(rule: SegmentRule, now: Date): Prisma.UserWhereInput {
         return { bids: { some: {} } };
       case 'isDealer':
         return { dealerId: { not: null } };
+      /** الحالةُ لا الراية — `idVerified` منطقيٌّ لا يقول «ينتظر» (قرار A18) */
+      case 'isVerified':
+        return { identityStatus: 'VERIFIED' };
       case 'activeWithinDays': {
         const days = rule.value ?? 30;
         return { createdAt: { gte: new Date(now.getTime() - days * 86_400_000) } };

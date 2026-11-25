@@ -1,11 +1,17 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ExportLink } from '@/components/admin/ExportLink';
+import { NewSegment } from '@/app/admin/campaigns/NewSegment';
+import { SEGMENT_FIELDS } from '@/lib/campaigns/segments';
 import { StatCard } from '@/components/ui/StatCard';
+import { StatCard as ValueCard } from '@/components/admin/StatCard';
+import { Quantity } from '@/components/ui/Quantity';
+import { displayDigits } from '@/lib/arabic';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 import { db } from '@/lib/db';
 import {
+  customerValue,
   listAdminUsers,
   userSegmentCounts,
   type UserSegment,
@@ -44,6 +50,21 @@ const SEGMENTS: readonly { key: UserSegment; label: string }[] = [
   { key: 'banned', label: 'محظورون' },
 ];
 
+/**
+ * ما يقابل فلترَ الشاشة من شروط الشريحة — **وما لا يقابله ليس هنا**.
+ *
+ * «متكرّرون» تحتاج عدّ الصفقات، و«موقوفون» و«محظورون» حالةُ حساب لا
+ * سلوك — ولا تُرسَل إليهم حملةٌ أصلًا (موافقةُ التسويق تُسقطهم).
+ */
+const SEGMENT_RULE_OF: Readonly<Record<string, Readonly<Record<string, 'on' | 'not'>>>> = {
+  dealers: { isDealer: 'on' },
+  individuals: { isDealer: 'not' },
+  verified: { isVerified: 'on' },
+  unverified: { isVerified: 'not' },
+  sellers: { hasListing: 'on' },
+  buyers: { hasCompletedOrder: 'on' },
+};
+
 export default async function AdminUsersPage({
   searchParams,
 }: {
@@ -58,10 +79,11 @@ export default async function AdminUsersPage({
   const segment: UserSegment = SEGMENTS.find((row) => row.key === raw)?.key ?? 'all';
   const term = typeof search.q === 'string' && search.q.trim() !== '' ? search.q.trim() : null;
 
-  const [users, counts, segments] = await Promise.all([
+  const [users, counts, segments, value] = await Promise.all([
     listAdminUsers(segment, term),
     db.user.groupBy({ by: ['status'], _count: { _all: true } }),
     userSegmentCounts(),
+    customerValue(),
   ]);
 
   const tabs: MonitorTab[] = SEGMENTS.map((row) => ({
@@ -82,6 +104,19 @@ export default async function AdminUsersPage({
         الدورية، لكن من يقف على طابورٍ مرشَّح يريد تصديره الآن.
       */}
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2.5">
+        {/*
+          **و«شريحة جديدة» تفتح بما يقابل الفلتر — حين يقابله.** الترميز
+          يقول «يمكن حفظ أيّ فلتر كشريحة»، وأكثرُ فلاتر هذه الشاشة ليس من
+          مفردات الشرائح («متكرّرون» · «موقوفون»). فما يقابله يُفتح
+          مضبوطًا، وما لا يقابله يُفتح فارغًا — ولا يُوعَد بحفظٍ لا يقع.
+        */}
+        {can(admin.role, 'notifications.manage') ? (
+          <NewSegment
+            fields={SEGMENT_FIELDS}
+            label="شريحة جديدة"
+            initial={SEGMENT_RULE_OF[segment] ?? {}}
+          />
+        ) : null}
         <ExportLink reportKey="customers" allowed={can(admin.role, 'users.viewIdentity')} />
       </div>
 
@@ -108,6 +143,36 @@ export default async function AdminUsersPage({
           موثّقون.
         */}
         <StatCard label="موثق" value={segments.verified} />
+      </div>
+
+      {/*
+        ═══ ثلاثةُ مؤشّرات يرسمها الترميز — ومقامُها معلَن ═══
+
+        «متوسط قيمة العميل» و«متوسط الصفقات للعميل» يصفان **المشتري** لا
+        كلَّ مسجَّل: قسمتُهما على المسجَّلين تجعل ألفَ حسابٍ جديد تنصّف
+        الرقمين بلا أن يتغيّر سلوكُ من يشتري. فالمقام مكتوبٌ تحتهما.
+      */}
+      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-3">
+        <ValueCard
+          title="متوسط قيمة العميل"
+          money={value.averageValue}
+          note={
+            /* الجارُّ لا يسبق العدد — الصيغةُ تحمله أو يُزاح (البوابة ٥٨) */
+            <>
+              <Quantity unit="buyers" count={value.buyers} /> اشتروا — وعليهم قسمت
+            </>
+          }
+        />
+        <ValueCard
+          title="متوسط الصفقات للعميل"
+          value={value.dealsPerBuyer}
+          note="الطلبات المكتملة على من اشترى"
+        />
+        <ValueCard
+          title="نسبة التوثيق"
+          value={`${displayDigits(String(value.verifiedPct))}٪`}
+          note="الموثقون من كل مسجل"
+        />
       </div>
 
       {/*

@@ -1,6 +1,6 @@
 # The register — everything the owner asked for, in the order they set it
 
-_Last updated: 2026-11-24_
+_Last updated: 2026-11-25_
 
 This file exists because the owner asked for one thing above all others: that
 nothing they have asked for gets lost. A promise does not guarantee that; a
@@ -2089,6 +2089,43 @@ competitor's listing down; the second writes the admin's name where the
 record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
+
+### 40a · 29 — `A5` customers: three metrics, and a denominator that would have lied
+
+`A5` read **64٪**, missing three figures the design puts above the table:
+average customer value, average deals per customer, and the verification rate.
+All three are computable from what we already store — the screen simply never
+asked.
+
+**The denominator is the whole decision.** «متوسط قيمة العميل» divided by
+*registered users* measures conversion, not value: a thousand new signups halve
+the number without anyone's buying behaviour changing. It is divided by people
+who have **completed a purchase**, and the count of them is printed underneath,
+so the figure is never read against an audience it was not computed on.
+`tests/customer-value.test.ts` proves it by creating a user with no orders —
+the verification rate moves and the average does not. Switching the
+denominator back to all users fails it.
+
+**And «قيمته» is our commission, not the car's price.** The design's own
+figures give it away — «٩٨٠ ر.س» average, «٢٬٤٦٠» for a buyer with three deals
+— those are commission numbers. Summing what a buyer paid would measure volume:
+someone who bought one car at 100,000 and someone who bought ten at 10,000 are
+identical by volume and very different to us.
+
+- [x] `تصدير CSV` existed but read «تصدير العملاء وسلوكهم». The design puts
+      the same words in every list header, and the operator learns the button
+      by its label; the report name moved to `title`.
+- [x] `شريحة جديدة` opens the segment builder **pre-set from the current
+      filter** where one maps — dealers, individuals, verified, unverified,
+      sellers, buyers. Where none maps («متكرّرون» · «موقوفون») it opens empty,
+      because the design's «يمكن حفظ أي فلتر» cannot be honoured for filters
+      that are not in the rule vocabulary.
+- [x] `isVerified` is now a segment rule — the missing vocabulary word, and the
+      most useful marketing audience in a market where buying requires
+      verification: «أكمل توثيقك» goes to its negation. The screen could filter
+      them and nothing could address them.
+
+Measured after: **64٪ → 100٪**.
 
 ### 40a · 28 — `A16` the audit log: a sensitive lens, an export, and a window
 

@@ -169,6 +169,7 @@ export const SEGMENT_FIELD_LABEL: Record<SegmentFieldKey, string> = {
   hasVehicle: 'أضاف مركبة',
   hasBid: 'زايد سابقا',
   isDealer: 'تاجر',
+  isVerified: 'موثق الهوية',
   activeWithinDays: 'سجل خلال (يوما)',
 };
 
