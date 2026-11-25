@@ -17,6 +17,18 @@ import type { ViewingPeriod } from '@/generated/prisma/enums';
 /** حدودُ الفترة بتوقيت الرياض — والمملكة بلا توقيتٍ صيفيّ، فالفرق ثابت +٣ */
 export const RIYADH_OFFSET_HOURS = 3;
 
+
+/**
+ * آخرُ لحظةٍ في يوم الرياض — **لا «بعد أربعٍ وعشرين ساعة»**.
+ *
+ * «يغلق اليوم» تقويمٌ لا مدّة: مزادٌ يغلق بعد عشرين ساعةً قد يعبر منتصف
+ * الليل أو لا، فيُقرأ الشيءُ نفسُه «اليوم» و«غدًا» باختلاف ساعة القراءة.
+ */
+export function endOfRiyadhDay(now: Date): Date {
+  const shifted = now.getTime() + RIYADH_OFFSET_HOURS * 3_600_000;
+  const dayStart = Math.floor(shifted / 86_400_000) * 86_400_000;
+  return new Date(dayStart + 86_400_000 - 1 - RIYADH_OFFSET_HOURS * 3_600_000);
+}
 export const PERIOD_HOURS: Readonly<Record<ViewingPeriod, { from: number; to: number }>> = {
   MORNING: { from: 8, to: 12 },
   NOON: { from: 12, to: 16 },

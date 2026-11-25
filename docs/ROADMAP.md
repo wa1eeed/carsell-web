@@ -2090,6 +2090,59 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 30 — `Wa` the home page, and an electric car that could never be seeded
+
+`Wa` read **62٪** — the screen every visitor lands on first.
+
+### Not one electric car could exist in any environment
+
+The popular-search chips are derived from stock, and the fuel chip read
+«هجين». The catalogue holds **24 electric trims**; none could ever be seeded,
+because the seed's filter for "a trim with enough data" required an engine
+displacement — and an electric car correctly has none. A condition written to
+exclude incomplete rows was excluding **a whole category whose data is
+complete**.
+
+Its reach is wider than the chip: the fuel filter on search could never return
+an electric car either, in dev or staging. One clause, and the segment appears:
+8 electric listings, and the chip row now reads exactly as the design does —
+«كامري · باترول · أقل من ٥٠ ألف · كهربائية · مزادات اليوم».
+
+### «مزادات اليوم» now opens auctions that close today
+
+The chip linked to all auctions and was labelled «المزادات». Naming it "today"
+without filtering would promise what it does not show, so the auctions page
+takes `closing=today` — a **calendar** day in Riyadh, not twenty-four hours,
+because twenty hours may or may not cross midnight and the same auction would
+read «اليوم» or «غدًا» depending on the hour you asked. Walked: 13 cards
+without it, 7 with.
+
+### And every auction card said «سعر الافتتاح» over seventeen bids
+
+`AuctionRail` renders the top bid and falls back to the opening price when
+there is none. The bids are in the database — ten to seventeen per live auction
+— and the home query wrote **`highestBid: null` by hand**. So the number that
+says an auction is alive never appeared on the busiest screen in the product.
+Four cards now carry it.
+
+- [x] `عندك استفسار؟` — the support block the design ends the page with. A
+      visitor who finds no channel on the first page they see leaves; they do
+      not hunt the footer. Channels come from `/admin/contact`, and what is
+      unset is not drawn — a WhatsApp link with no number opens an error.
+- [ ] **The opening hours are not written.** The design states them («السبت
+      إلى الخميس ٩ص–١١م»); there is no settings field, and a fixed sentence
+      about support hours promises staffing nobody can change without a
+      deploy.
+- [x] The support numbers are seeded in `seed.ts`, **not** in `reference.ts`:
+      reference data reaches production, and an invented support line on a live
+      site is worse than none — someone calls it. The owner sets the real ones
+      before launch.
+
+Measured after: **62٪ → 100٪**. And `Wk`, the auctions index, 67٪ → 100٪: the
+list has been ordered by soonest-closing since it was built and never said so,
+so the reader saw an order without its rule and took the first card for the
+most important rather than the most urgent.
+
 ### 40a · 29 — `A5` customers: three metrics, and a denominator that would have lied
 
 `A5` read **64٪**, missing three figures the design puts above the table:

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { endOfRiyadhDay } from './viewing-rules';
 
 /**
  * ═══ «شائع» — خمسةُ مداخل بنقرة واحدة ═══
@@ -39,7 +40,7 @@ const PRICE_BANDS = [50_000, 100_000, 150_000] as const;
 export async function popularSearches(limit = 5): Promise<PopularSearch[]> {
   const published = { status: 'PUBLISHED' as const };
 
-  const [models, fuels, bands, liveAuctions] = await Promise.all([
+  const [models, fuels, bands, liveAuctions, closingToday] = await Promise.all([
     /**
      * أكثر طرازين عرضًا — **بالاسم الذي يبحث به الناس**. و`modelName`
      * لقطةٌ في المركبة لا علاقة، فلا استعلام ثانٍ للكتالوج.
@@ -73,6 +74,17 @@ export async function popularSearches(limit = 5): Promise<PopularSearch[]> {
      * «مزادات اليوم» وتفتح على لا شيء.
      */
     db.auction.count({ where: { status: 'LIVE', endsAt: { gt: new Date() } } }),
+
+    /**
+     * **وما يغلق اليوم وحده** — الترميز يكتب «مزادات اليوم»، وشريحةٌ
+     * تقول «اليوم» وتفتح على ما يغلق بعد أسبوع تَعِد بما لا تُري.
+     */
+    db.auction.count({
+      where: {
+        status: 'LIVE',
+        endsAt: { gt: new Date(), lte: endOfRiyadhDay(new Date()) },
+      },
+    }),
   ]);
 
   const chips: PopularSearch[] = [];
@@ -109,7 +121,9 @@ export async function popularSearches(limit = 5): Promise<PopularSearch[]> {
     chips.push({ label: `fuel:${fuel.fuel}`, query: `fuel=${fuel.fuel}` });
   }
 
-  if (liveAuctions > 0) {
+  if (closingToday > 0) {
+    chips.push({ label: 'auctionsToday', query: 'closing=today', path: '/auctions' });
+  } else if (liveAuctions > 0) {
     chips.push({ label: 'auctions', query: '', path: '/auctions' });
   }
 

@@ -15,6 +15,7 @@ import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { SectionHead } from '@/components/ui/HomeSections';
 import { db } from '@/lib/db';
 import { routing } from '@/i18n/routing';
+import { endOfRiyadhDay } from '@/lib/domain/viewing-rules';
 import type { Prisma } from '@/generated/prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -67,9 +68,17 @@ export default async function AuctionsPage({
    * اختفى من الفهرس كلّه: لا هو مباشر ولا منتهٍ.
    */
   const now = new Date();
+  /**
+   * **«يغلق اليوم» تقويمٌ لا مدّة** — وشريحةُ «مزادات اليوم» في الرئيسية
+   * تفتح هذا المرشّح بعينه: ما يُسمّى يُفتح، وإلّا كانت الشريحة تَعِد
+   * بما لا تُريه.
+   */
+  const closingToday = search.closing === 'today';
+  const dayEnd = endOfRiyadhDay(now);
+
   const status: Prisma.AuctionWhereInput =
     tab === 'live'
-      ? { status: 'LIVE', endsAt: { gt: now } }
+      ? { status: 'LIVE', endsAt: closingToday ? { gt: now, lte: dayEnd } : { gt: now } }
       : tab === 'soon'
         ? { status: 'SCHEDULED', startsAt: { gt: now } }
         : {
@@ -195,6 +204,23 @@ export default async function AuctionsPage({
             الملكية بعده كلاهما يقع في مدينة المركبة. وفهرسٌ بلا مدينة
             يُري الرياضيَّ مزادًا في جازان ويطلب منه أن يقرّر.
           */}
+          {/*
+            ═══ والترتيبُ يُقال ولا يُترك مفهومًا ═══
+
+            القائمةُ مرتَّبةٌ بالأقرب إغلاقًا منذ بُنيت (`endsAt asc`)
+            **ولا شيء يقوله** — فالزائر يقرأ ترتيبًا لا يعرف قاعدته،
+            ويحسب الأوّل أهمَّها لا أعجلَها. والترميزُ يكتبه بجوار
+            المدن. ورفُّ الرئيسية يكتبه أصلًا.
+
+            وهو وصفٌ لا زرّ: ترتيبٌ ثانٍ (الأغلى · الأحدث) قرارُ منتَج
+            لا يُخترع هنا، وزرٌّ بخيارٍ واحد زرٌّ ميّت.
+          */}
+          {auctions.length === 0 ? null : (
+            <p className="mb-3 text-3xs opacity-70">
+              {tab === 'soon' ? 'الأقرب بدءا' : tab === 'ended' ? 'الأحدث انتهاء' : 'الأقرب إغلاقا'}
+            </p>
+          )}
+
           {cities.length <= 1 ? null : (
             <nav className="mb-7 flex flex-wrap gap-2.5">
               <FilterChip href={`/${locale}/auctions?tab=${tab}`} active={city === null}>

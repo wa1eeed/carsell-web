@@ -147,7 +147,22 @@ const CARD_INCLUDE = {
     select: { feature: { select: { key: true, nameAr: true, nameEn: true } } },
   },
   images: { select: { id: true }, orderBy: { sort: 'asc' } },
-  auction: { select: { id: true, endsAt: true, status: true, _count: { select: { bids: true } } } },
+  auction: {
+    select: {
+      id: true, endsAt: true, status: true,
+      _count: { select: { bids: true } },
+      /**
+       * **أعلى مزايدة — وكانت تُكتب `null` بيد.** `AuctionRail` مبنيٌّ
+       * يعرضها («أعلى مزايدة ٢٠٨٬٥٠٠») ويسقط إلى سعر الافتتاح حين لا
+       * مزايدة، والمزايداتُ في القاعدة — فكلُّ بطاقةٍ في الرئيسية كانت
+       * تقول «سعر الافتتاح» ولو كان عليها سبعَ عشرةَ مزايدة. والرقمُ هو
+       * ما يقول إنّ المزاد حيّ.
+       *
+       * وصفٌّ واحدٌ لكلّ مزاد — لا عدّ ولا جمع: `orderBy` على المبلغ.
+       */
+      bids: { orderBy: { amount: 'desc' as const }, take: 1, select: { amount: true } },
+    },
+  },
 } as const;
 
 type CardRow = {
@@ -174,7 +189,13 @@ type CardRow = {
   };
   features: { feature: CardBadge }[];
   images: { id: string }[];
-  auction: { id: string; endsAt: Date; status: string; _count: { bids: number } } | null;
+  auction: {
+    id: string;
+    endsAt: Date;
+    status: string;
+    _count: { bids: number };
+    bids: { amount: unknown }[];
+  } | null;
 };
 
 /**
@@ -453,7 +474,7 @@ export async function getHomeData(
       return {
         ...base,
         endsAt: auction?.endsAt.toISOString() ?? '',
-        highestBid: null,
+        highestBid: auction?.bids[0] === undefined ? null : String(auction.bids[0].amount),
         bidCount: auction?._count.bids ?? 0,
       };
     }),

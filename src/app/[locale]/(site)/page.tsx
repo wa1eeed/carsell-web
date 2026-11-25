@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 
 import { LiveBar, SiteHeader } from '@/components/site/SiteHeader';
 import { popularSearches, type PopularSearch } from '@/lib/domain/popular-searches';
+import { contactChannels } from '@/lib/domain/admin-contact';
 import { ActionLink } from '@/components/ui/ActionLink';
 import { AuctionRail } from '@/components/ui/AuctionRail';
 import { SponsoredBanner } from '@/components/site/SponsoredCard';
@@ -87,7 +88,13 @@ function popularLabel(
   dict: { t: (key: string) => string; tu: (key: string) => string; te: (key: string) => string },
   locale: string,
 ): string {
-  if (chip.path !== undefined) return dict.t('nav.auctions');
+  /**
+   * **واللفظُ يصف ما يفتحه**: شريحةٌ مرشَّحةٌ بما يغلق اليوم تُسمّى
+   * «مزادات اليوم» (كالترميز)، وشريحةٌ بلا مرشّح تُسمّى «المزادات».
+   */
+  if (chip.path !== undefined) {
+    return chip.label === 'auctionsToday' ? dict.t('auctionsToday') : dict.t('nav.auctions');
+  }
 
   const price = /^priceMax:(\d+)$/.exec(chip.label);
   if (price !== null) {
@@ -129,7 +136,7 @@ export default async function HomePage({
   const rawBand = typeof search.band === 'string' ? search.band : undefined;
   const band = PAYMENT_BANDS.find((b) => b.key === rawBand)?.key as PaymentBandKey | undefined;
 
-  const [home, cities, popular, banner, brandAd, t, tu, te, tui] = await Promise.all([
+  const [home, cities, popular, banner, brandAd, contact, t, tu, te, tui] = await Promise.all([
     getHomeData(locale, band === undefined ? {} : { band }),
     db.listing
       .groupBy({ by: ['city'], where: { status: 'PUBLISHED' }, _count: { _all: true } })
@@ -148,6 +155,7 @@ export default async function HomePage({
     adsFor('home_banner', { city: null }, new Date(), Math.min(1, allowance)),
     /** `brand_featured` — «أول خانة» في شبكة الماركات، ١:١، ٦٠٠٠ للشهر. */
     adsFor('brand_featured', { city: null }, new Date(), Math.max(0, allowance - 1)),
+    contactChannels(),
     getTranslations('site'),
     getTranslations('units'),
     getTranslations('enums'),
@@ -576,6 +584,58 @@ export default async function HomePage({
                   answer: isArabic ? entry.answerAr : entry.answerEn,
                 }))}
               />
+            </div>
+          </section>
+        )}
+        {/*
+          ═══ «عندك استفسار؟» — وكانت الرئيسية بلا قناةِ تواصلٍ واحدة ═══
+
+          ترميزُ `Wa` يُنهي الصفحة بكتلةِ دعمٍ فيها الهاتف وواتساب
+          و«راسلنا». والزائرُ الذي لا يجد قناةً في الصفحة التي يصلها
+          أوّلًا يغادر، ولا يبحث في التذييل عن صفحةِ تواصل.
+
+          **والقنواتُ من الإعدادات لا من الشيفرة**: `contactChannels`
+          يكتبها المشغّل في `/admin/contact`، وما لم يُضبط لا يُرسَم —
+          فرابطُ واتساب بلا رقمٍ يفتح على خطأ.
+
+          **ولا تُكتب ساعاتُ العمل**: يكتبها الترميز («السبت إلى الخميس
+          ٩ص–١١م»)، ولا حقلَ لها في الإعدادات — وجملةٌ ثابتة عن ساعات
+          الدعم وعدٌ بطاقمٍ لا يملك أحدٌ تغييرَ نصّه بلا نشر.
+        */}
+        {contact.supportPhone === null && contact.supportWhatsapp === null ? null : (
+          <section>
+            <div className="page-frame">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-line bg-surface px-6 py-5">
+                <h2 className="flex-1 text-sm font-bold">{t('supportTitle')}</h2>
+
+                {contact.supportPhone === null ? null : (
+                  <a
+                    href={`tel:${contact.supportPhone.replace(/\s/g, '')}`}
+                    dir="ltr"
+                    className="font-num text-sm font-bold underline-offset-4 hover:underline"
+                  >
+                    {displayDigits(contact.supportPhone)}
+                  </a>
+                )}
+
+                {contact.supportWhatsapp === null ? null : (
+                  <a
+                    href={`https://wa.me/${contact.supportWhatsapp.replace(/\D/g, '')}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    className="rounded-md border border-line px-3.5 py-2 text-2xs hover:border-ink"
+                  >
+                    {t('supportWhatsapp')}
+                  </a>
+                )}
+
+                <Link
+                  href={`/${locale}/help/contact`}
+                  className="rounded-md border border-line px-3.5 py-2 text-2xs hover:border-ink"
+                >
+                  {t('supportWrite')}
+                </Link>
+              </div>
             </div>
           </section>
         )}
