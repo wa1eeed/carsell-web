@@ -2090,6 +2090,39 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 31 — `Wc` the car page, where the measure kept landing on the wrong car
+
+`Wc` read **56٪** and the screen was essentially complete. Every missing signal
+was the measure looking at a car in a state the design does not draw.
+
+- `الأمان · الراحة · التقنية` are the feature groups, behind the «المميزات»
+  tab — **and the design has that same tab bar** (المواصفات · تقرير الفحص ·
+  المميزات · تاريخ المركبة · وصف البائع), showing all their contents stacked
+  the way mocks do. Walked and listed under `BEHIND_CLICK`, as is `· من
+  البائع` in the history tab.
+- `قدّم عرضك` appears only on a negotiable listing, and `التقسيط` only above
+  the financing floor. The audit was taking the first unreserved car out of an
+  **unordered** result set — so one run met twenty direct listings and another
+  met a negotiable one, and the figure moved between runs without the build
+  changing. It now asks the search for the state it measures:
+  `?type=NEGOTIATION&financing=true`.
+
+### And the reserved-detector was matching every page
+
+Normalising «طلبٌ قائم» (this morning's fix, so the tashkeel decision would
+stop hiding reserved cars) made it match **every** car page — because an FAQ
+answer on each one reads «بعد القبول يصير الطلب قائمًا», and the normalised
+needle sits inside it. Every candidate was skipped as reserved and the tool
+fell back to a hard-coded reference, which is why `Wc` was being measured on a
+28,000-riyal direct listing.
+
+The marker is the reserved banner's own sentence now — «محجوزة بطلب قائم». The
+rule was already written in this repository: **a short needle is a trap for
+everything that contains it**, and it had already cost a measurement once
+(«رمز التحقق» swallowing «أرسل رمز التحقق»).
+
+Measured after: **56٪ → 100٪**, tree **85٪**.
+
 ### 40a · 30 — `Wa` the home page, and an electric car that could never be seeded
 
 `Wa` read **62٪** — the screen every visitor lands on first.
