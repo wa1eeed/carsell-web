@@ -183,7 +183,7 @@ export default async function MyVehiclesPage({
         سيارةً إلى حسابه قد لا يبيعها: يطلب عليها فحصًا أو تأمينًا.
       */
       action={
-        <LinkButton href={`/${locale}/account/vehicles/new`} size="sm">أضف سيارة</LinkButton>
+        <LinkButton href={`/${locale}/account/vehicles/new`} size="sm">أضف مركبة</LinkButton>
       }
     >
       {shown.map((vehicle) => {

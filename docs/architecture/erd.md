@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-102 models · 73 enums
+103 models · 73 enums
 
 ## Relationships
 
@@ -106,12 +106,14 @@ erDiagram
   Listing }o--|| Vehicle : "vehicle"
   Listing }o--|| User : "seller"
   Listing ||--o{ ListingImage : "images"
+  Listing ||--o{ ListingViewDay : "viewDays"
   Listing ||--o{ ListingFeature : "features"
   Listing ||--o{ Offer : "offers"
   Listing |o--|| Auction : "auction"
   Listing ||--o{ Order : "orders"
   Listing ||--o{ ServiceRequest : "serviceRequests"
   Listing ||--o{ Viewing : "viewings"
+  ListingViewDay }o--|| Listing : "listing"
   ListingImage }o--|| Listing : "listing"
   VehicleFeature }o--|| Vehicle : "vehicle"
   VehicleFeature }o--|| Feature : "feature"
@@ -610,7 +612,17 @@ Relations: `source` → `VehicleHistorySource` · `vehicle` → `Vehicle`
 | `createdAt` | `DateTime?` |  |
 | `reviewedBy` | `String?` |  |
 
-Relations: `type` → `ListingType` · `status` → `ListingStatus` · `reviewReason` → `ReviewReason` · `vehicle` → `Vehicle` · `seller` → `User` · `images` → `ListingImage` · `features` → `ListingFeature` · `offers` → `Offer` · `auction` → `Auction` · `orders` → `Order` · `serviceRequests` → `ServiceRequest` · `viewings` → `Viewing`
+Relations: `type` → `ListingType` · `status` → `ListingStatus` · `reviewReason` → `ReviewReason` · `vehicle` → `Vehicle` · `seller` → `User` · `images` → `ListingImage` · `viewDays` → `ListingViewDay` · `features` → `ListingFeature` · `offers` → `Offer` · `auction` → `Auction` · `orders` → `Order` · `serviceRequests` → `ServiceRequest` · `viewings` → `Viewing`
+
+### `ListingViewDay`
+
+| Field | Type | Key |
+|---|---|---|
+| `listingId` | `String` |  |
+| `day` | `DateTime` |  |
+| `count` | `Int` |  |
+
+Relations: `listing` → `Listing`
 
 ### `ListingImage`
 

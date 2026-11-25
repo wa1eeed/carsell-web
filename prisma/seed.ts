@@ -1158,6 +1158,37 @@ async function main(): Promise<void> {
     }
   }
 
+  /**
+   * ═══ ومشاهداتُ الأسبوع تُزرع بأيّامها ═══
+   *
+   * `viewCount` تراكميّ مزروع، و`ListingViewDay` جديد — فبلا زرعٍ تقرأ
+   * بطاقةُ «مشاهدات هذا الأسبوع» صفرًا لكلّ بائع فوق مجموعٍ بالمئات،
+   * وهو تناقضٌ في صفٍّ واحد يقرؤه صاحبُ الإعلان.
+   *
+   * والتوزيعُ يُحاكي الحال: **ثلثُ التراكميّ في آخر سبعة أيّام**،
+   * موزَّعًا تنازليًّا — الأحدثُ أكثر، كما يُرى الإعلانُ بعد نشره.
+   */
+  const viewDayRows: { listingId: string; day: Date; count: number }[] = [];
+  for (const listing of listings) {
+    const total = await prisma.listing
+      .findUnique({ where: { id: listing.id }, select: { viewCount: true } })
+      .then((row) => row?.viewCount ?? 0);
+    const week = Math.round(total / 3);
+    if (week === 0) continue;
+
+    for (let back = 0; back < 7; back += 1) {
+      const day = new Date(REAL_NOW.getTime() + 3 * 3_600_000);
+      day.setUTCHours(0, 0, 0, 0);
+      day.setUTCDate(day.getUTCDate() - back);
+      // تنازليًّا: اليومُ أكثرُ من أمس
+      const share = Math.round((week * (7 - back)) / 28);
+      if (share > 0) viewDayRows.push({ listingId: listing.id, day, count: share });
+    }
+  }
+  if (viewDayRows.length > 0) {
+    await prisma.listingViewDay.createMany({ data: viewDayRows, skipDuplicates: true });
+  }
+
   // ————— تاريخ المركبة: ما تملكه المنصة فقط (قرار ١٥) —————
   await prisma.vehicleHistoryItem.createMany({
     data: vehicleIds.slice(0, 24).flatMap((vehicleId, i) => [

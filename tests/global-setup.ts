@@ -219,6 +219,10 @@ async function sweep(when: string): Promise<void> {
    * رقمٌ صحيحٌ حسابًا عن حالٍ صنعها اختبار. وكشفَه فتحُ الشاشة بعد
    * تشغيلٍ ساقط، لا اختبار.
    */
+  /**
+   * **ومشاهداتُ اليوم تتبع إعلانَها** — `onDelete: Cascade` على
+   * `ListingViewDay` يكفي، فلا سطرَ هنا. وتُذكَر لئلّا يُبحث عنها.
+   */
   const segments = await db.segment.findMany({ select: { id: true, key: true } });
   const staleSegments = segments.filter((row) => TEST_SEGMENT_KEY.test(row.key));
   if (staleSegments.length > 0) {

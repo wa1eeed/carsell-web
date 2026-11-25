@@ -4,17 +4,23 @@ import type { ListingStats } from '@/lib/domain/account';
 /**
  * ═══ أرقامُ «إعلاناتي» — صفُّ التصميم فوق الجدول ═══
  *
- * والتصميم يكتب «مشاهدات **هذا الأسبوع**»، و`Listing.viewCount` عدّادٌ
- * تراكميّ بلا سجلّ زمنيّ — لا جدول مشاهداتٍ بطوابعها، فلا سبيل إلى
- * نافذة أسبوع. **فالعنوان يقول ما يُحسب**: «المشاهدات» لا «هذا
- * الأسبوع»، ووسمٌ يَعِد بنافذةٍ لا تُحسب أسوأ من رقمٍ أعمّ.
- *
  * **والرقم كان جامدًا أصلًا**: لا شيء يزيد `viewCount` — صار يُعَدّ
  * في المهمّة ١٣٢.
+ *
+ * ═══ ثمّ صارت النافذةُ تُحسب ═══
+ *
+ * كان العنوان «المشاهدات» لأنّ `viewCount` تراكميٌّ بلا زمن، والترميز
+ * يكتب «مشاهدات **هذا الأسبوع**». و`ListingViewDay` يكتب صفًّا لكلّ
+ * يومٍ شوهد فيه الإعلان، فصارت النافذةُ محسوبةً لا موعودة.
+ *
+ * **والرقمان معًا جواب**: مجموعٌ كبيرٌ فوق أسبوعٍ ساكن يعني إعلانًا
+ * مات، وأسبوعٌ قويّ فوق مجموعٍ صغير يعني إعلانًا بدأ يُرى. وأحدُهما
+ * وحده يُقرأ خطأً في الاتّجاهين.
  */
 export function ListingStatsRow({ stats }: { stats: ListingStats }) {
   const cards: { label: string; value: number | null; note?: string }[] = [
-    { label: 'المشاهدات', value: stats.views },
+    { label: 'مشاهدات هذا الأسبوع', value: stats.viewsThisWeek },
+    { label: 'المشاهدات منذ النشر', value: stats.views },
     { label: 'إضافات للمفضلة', value: stats.favorites },
     { label: 'عروض تنتظر ردك', value: stats.pendingOffers },
     {
@@ -32,7 +38,8 @@ export function ListingStatsRow({ stats }: { stats: ListingStats }) {
     الأربعة في لمحة.
   */
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    // خمسُ بطاقاتٍ الآن: عمودان على الهاتف وخمسةٌ على الشاشة الواسعة
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {cards.map((card) => (
         <div key={card.label} className="rounded-xl border border-line p-4">
           <p className="mb-1.5 text-2xs opacity-70">{card.label}</p>

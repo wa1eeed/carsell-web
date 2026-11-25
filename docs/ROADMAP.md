@@ -2090,6 +2090,45 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 32 — `Wt` and `Wi`: views that had no week, and a garage nothing pointed at
+
+`Wt` read **60٪** and `Wi` **67٪**, and both were missing the same button.
+
+### «مشاهدات هذا الأسبوع» is computed now, not renamed
+
+The card read «المشاهدات» with a comment explaining why: `Listing.viewCount` is
+cumulative with no time series, so the design's weekly window could not be
+computed, and a label promising a window that is not measured is worse than a
+broader number. That reasoning was right — and the answer was to build the
+window, not keep renaming the card.
+
+`ListingViewDay` holds one row per listing per day it was seen, written beside
+the cumulative counter, and keyed on the **Riyadh calendar day**: two views
+either side of midnight are two days, and dividing elapsed hours would make them
+one day that shifts with the hour you ask.
+
+**Both numbers are shown, because either alone misleads.** A large total over a
+quiet week means a listing that died; a strong week over a small total means one
+that has just started being seen. The seller prices and times on the second, and
+the screen had only the first.
+
+- [x] Tested by **crossing** the window — a row eight days back must not count,
+      a row today must. Removing the date filter fails it.
+- [x] The seller's own views are still not counted, and that is tested too.
+- [x] Seeded with the week's share spread over seven days, heaviest today:
+      otherwise every seller reads «مشاهدات هذا الأسبوع ٠» above a total in the
+      hundreds — a contradiction in one row, read by the person it is about.
+
+### «أضف مركبة»
+
+`Wi` ends with it in the design — register your vehicle and a service reaches
+it without re-entering the brand, model and year every time. **The garage was
+built** (`/account/vehicles/new`) and nothing on the services page pointed at
+it. `Wt` gets the design's own word for its action, and the garage screen's
+«أضف سيارة» becomes «أضف مركبة» so the product says one thing.
+
+Measured after: **Wt 60٪ → 100٪ ⚠ · Wi 67٪ → 100٪ ⚠**.
+
 ### 40a · 31 — `Wc` the car page, where the measure kept landing on the wrong car
 
 `Wc` read **56٪** and the screen was essentially complete. Every missing signal

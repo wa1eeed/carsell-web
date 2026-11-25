@@ -766,6 +766,7 @@ model Listing {
   vehicle  Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
   seller   User             @relation(fields: [sellerId], references: [id], onDelete: Restrict)
   images   ListingImage[]
+  viewDays     ListingViewDay[]
   features ListingFeature[]
   offers   Offer[]
   auction  Auction?
@@ -803,6 +804,27 @@ enum ReviewReason {
   PRICE_OUTLIER /// سعر أقل من ٤٠٪ من PriceStat.p25
   NEW_ACCOUNT_BURST /// حساب عمره < ٧ أيام وله أكثر من ٣ إعلانات
   USER_REPORT /// بلاغ وارد
+}
+
+/// مشاهداتُ الإعلان **بيومها** — صفٌّ لكلّ إعلانٍ في كل يوم شوهد فيه.
+///
+/// `Listing.viewCount` تراكميٌّ بلا زمن، وترميزُ `Wt` يكتب «مشاهدات **هذا
+/// الأسبوع**»: والبائع يقيس سعرَه وتوقيتَه على الحركة الأخيرة لا على مجموعٍ
+/// منذ النشر — مجموعٌ كبيرٌ وأسبوعٌ ساكن يعني إعلانًا مات، ولا يقوله الرقمان
+/// مفترقين.
+///
+/// وصفٌّ باليوم لا صفٌّ بالمشاهدة: جدولٌ بسطرٍ لكلّ فتحةٍ ينمو بلا حدّ ولا
+/// يُسأل عنه إلّا مجموعًا. والاحتفاظ يُقصّ بوظيفةٍ دورية حين يلزم.
+model ListingViewDay {
+  listingId String
+  /// منتصفُ ليل الرياض — فـ«اليوم» تقويمٌ لا نافذةُ أربعٍ وعشرين ساعة
+  day       DateTime @db.Date
+  count     Int      @default(0)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([listingId, day])
+  @@index([day])
 }
 
 model ListingImage {

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { ibanMasked } from './iban';
 import { db } from '@/lib/db';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
+import { viewsThisWeek } from './listing-views';
 import { STAGES as ORDER_STAGES } from './orders';
 import { consentsAwaiting } from './service-lifecycle';
 import { viewingsAwaiting } from './viewings';
@@ -94,7 +95,15 @@ export type AccountOffer = {
  * «هذا الأسبوع» — ووسمٌ يَعِد بنافذةٍ لا تُحسب أسوأ من رقمٍ أعمّ.
  */
 export type ListingStats = {
+  /** التراكميّ منذ النشر — تقرؤه شاشتا الأدمن */
   views: number;
+  /**
+   * **وسبعةُ أيّامٍ تقويمية** — وهي ما يرسمه الترميز.
+   *
+   * ومجموعٌ كبيرٌ فوق أسبوعٍ ساكن يعني إعلانًا مات: الرقمان معًا جوابٌ،
+   * وأحدُهما وحده يُقرأ خطأً في الاتّجاهين.
+   */
+  viewsThisWeek: number;
   favorites: number;
   /** عروضٌ تنتظر ردَّك — القائمة وحدها، لا ما انتهى */
   pendingOffers: number;
@@ -509,7 +518,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     select: { id: true, viewCount: true, publishedAt: true, closedAt: true },
   });
 
-  const [favouriteCount, pendingOfferCount] = await Promise.all([
+  const [favouriteCount, pendingOfferCount, weekViews] = await Promise.all([
     /** و`Favorite` بلا علاقةٍ إلى `Listing` — فالعدّ بالمعرّفات. */
     myListings.length === 0
       ? Promise.resolve(0)
@@ -517,6 +526,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     db.offer.count({
       where: { listing: { sellerId: user.id }, status: { in: ['PENDING', 'COUNTERED'] } },
     }),
+    viewsThisWeek(myListings.map((row) => row.id)),
   ]);
 
   /**
@@ -657,6 +667,7 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
     })),
     listingStats: {
       views: myListings.reduce((total, row) => total + row.viewCount, 0),
+      viewsThisWeek: weekViews,
       favorites: favouriteCount,
       pendingOffers: pendingOfferCount,
       avgDaysListed:

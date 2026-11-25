@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Money } from '@/components/ui/Money';
 import { Badge } from '@/components/ui/Badge';
+import { LinkButton } from '@/components/ui/Button';
 import { SectionHead } from '@/components/ui/HomeSections';
 import { Quantity } from '@/components/ui/Quantity';
 import { routing } from '@/i18n/routing';
@@ -164,6 +165,29 @@ export default async function ServicesPage({
               </section>
             );
           })}
+        </div>
+
+        {/*
+          ═══ «أضف مركبة» — وتصل الخدمةُ إلى مركبةٍ مسجَّلة ═══
+
+          ترميزُ `Wi` يُنهي الصفحة بذلك: من سجّل مركبتَه يطلب عليها
+          فحصًا أو خدمةً بلا أن يُدخل بياناتها في كل مرّة. والمرآب
+          مبنيٌّ (`/account/vehicles/new`) ولا شيء في صفحة الخدمات
+          يدلّ عليه — فيُعيد الطالبُ كتابةَ الماركة والطراز والسنة في
+          كل طلب.
+        */}
+        <div className="page-frame pb-14">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-xl border border-line bg-surface px-6 py-5">
+            <div className="flex-1">
+              <h2 className="mb-1 text-sm font-bold">أضف مركبتك لسهولة الاستفادة من الخدمات</h2>
+              <p className="text-2xs leading-loose opacity-70">
+                تصل الخدمة إلى مركبتك المسجلة بلا إدخال بياناتها في كل مرة.
+              </p>
+            </div>
+            <LinkButton href={`/${locale}/account/vehicles/new`} size="sm" variant="outline">
+              أضف مركبة
+            </LinkButton>
+          </div>
         </div>
       </main>
     </>

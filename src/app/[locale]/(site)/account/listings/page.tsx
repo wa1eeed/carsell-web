@@ -61,10 +61,9 @@ export default async function ListingsPage({
   if (user === null) redirect(`/${locale}/auth`);
 
   // التسمية من `enums` نفسها التي تقرؤها بطاقة الحساب — لا نسخة ثانية
-  const [data, te, tui, query] = await Promise.all([
+  const [data, te, query] = await Promise.all([
     getAccountData(user, locale),
     getTranslations('enums'),
-    getTranslations('site'),
     searchParams,
   ]);
 
@@ -138,7 +137,12 @@ export default async function ListingsPage({
                 }
       }
       action={
-        <LinkButton href={`/${locale}/sell`} size="sm">{tui('sellYourCar')}</LinkButton>
+        /*
+          **ولفظُه لفظُ الترميز**: «أضف مركبة» — والمعالِجُ يضيف المركبة
+          وينشرها معًا، فهو ما يقصده من يقف على «إعلاناتي» بلا إعلان.
+          و«بع سيارتك» نداءُ الموقع للزائر، وهذه شاشةُ صاحب الإعلان.
+        */
+        <LinkButton href={`/${locale}/sell`} size="sm">أضف مركبة</LinkButton>
       }
     >
       {shown.map((listing) => (
