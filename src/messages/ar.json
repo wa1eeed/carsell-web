@@ -510,7 +510,11 @@
     "daysGenitive": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومين} few{{n} أيام} many{{n} يوما} other{{n} يوم}}",
     "weeksGenitive": "{count, plural, zero{لا أسابيع} one{أسبوع واحد} two{أسبوعين} few{{n} أسابيع} many{{n} أسبوعا} other{{n} أسبوع}}",
     "monthsGenitive": "{count, plural, zero{لا أشهر} one{شهر واحد} two{شهرين} few{{n} أشهر} many{{n} شهرا} other{{n} شهر}}",
-    "yearsGenitive": "{count, plural, zero{لا سنوات} one{سنة واحدة} two{سنتين} few{{n} سنوات} many{{n} سنة} other{{n} سنة}}"
+    "yearsGenitive": "{count, plural, zero{لا سنوات} one{سنة واحدة} two{سنتين} few{{n} سنوات} many{{n} سنة} other{{n} سنة}}",
+    "activeOffers": "{count, plural, zero{لا عروض نشطة} one{عرض نشط واحد} two{عرضان نشطان} few{{n} عروض نشطة} many{{n} عرضا نشطا} other{{n} عرض نشط}}",
+    "awaitingYou": "{count, plural, zero{لا شيء ينتظر ردك} one{واحد ينتظر ردك} two{اثنان ينتظران ردك} few{{n} تنتظر ردك} many{{n} ينتظر ردك} other{{n} ينتظر ردك}}",
+    "liveOrders": "{count, plural, zero{لا طلبات جارية} one{طلب جار واحد} two{طلبان جاريان} few{{n} طلبات جارية} many{{n} طلبا جاريا} other{{n} طلب جار}}",
+    "doneThisMonth": "{count, plural, zero{لا مكتمل هذا الشهر} one{مكتمل واحد هذا الشهر} two{مكتملان هذا الشهر} few{{n} مكتملة هذا الشهر} many{{n} مكتملا هذا الشهر} other{{n} مكتمل هذا الشهر}}"
   },
   "search": {
     "editQuery": "عدل الجملة",

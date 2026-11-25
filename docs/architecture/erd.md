@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-107 models · 75 enums
+108 models · 75 enums
 
 ## Relationships
 
@@ -21,6 +21,7 @@ erDiagram
   User ||--o{ Branch : "managedBranches"
   User ||--o{ VehicleCost : "recordedCosts"
   User ||--o{ DealerSession : "dealerSessions"
+  User ||--o{ DealerInvite : "sentInvites"
   User ||--o{ Vehicle : "vehicles"
   User ||--o{ Listing : "listings"
   User ||--o{ Offer : "offers"
@@ -62,15 +63,21 @@ erDiagram
   Dealer ||--o{ Subscription : "subscriptions"
   Dealer ||--o{ Branch : "branches"
   Dealer ||--o{ DealerSession : "sessions"
+  Dealer ||--o{ DealerInvite : "invites"
   Branch }o--|| Dealer : "dealer"
   Branch |o--|| User : "manager"
   Branch ||--o{ User : "members"
   Branch ||--o{ Vehicle : "vehicles"
+  Branch ||--o{ DealerInvite : "invites"
   VehicleCost }o--|| VehicleCostKind : "kind"
   VehicleCost }o--|| Vehicle : "vehicle"
   VehicleCost }o--|| User : "recordedBy"
   DealerSession }o--|| User : "user"
   DealerSession }o--|| Dealer : "dealer"
+  DealerInvite }o--|| DealerRole : "role"
+  DealerInvite }o--|| Dealer : "dealer"
+  DealerInvite |o--|| Branch : "branch"
+  DealerInvite }o--|| User : "invitedBy"
   Brand ||--o{ Model : "models"
   Brand ||--o{ Vehicle : "vehicles"
   Model |o--|| BodyType : "bodyType"
@@ -391,7 +398,7 @@ erDiagram
 | `createdAt` | `DateTime` |  |
 | `branchId` | `String?` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `sentInvites` → `DealerInvite` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -483,7 +490,7 @@ Relations: `adminUser` → `AdminUser`
 | `ratingCount` | `Int` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession`
+Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite`
 
 ### `Branch`
 
@@ -499,7 +506,7 @@ Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` →
 | `active` | `Boolean` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `dealer` → `Dealer` · `manager` → `User` · `members` → `User` · `vehicles` → `Vehicle`
+Relations: `dealer` → `Dealer` · `manager` → `User` · `members` → `User` · `vehicles` → `Vehicle` · `invites` → `DealerInvite`
 
 ### `VehicleCost`
 
@@ -530,6 +537,22 @@ Relations: `kind` → `VehicleCostKind` · `vehicle` → `Vehicle` · `recordedB
 | `createdAt` | `DateTime` |  |
 
 Relations: `user` → `User` · `dealer` → `Dealer`
+
+### `DealerInvite`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `dealerId` | `String` |  |
+| `phone` | `String` |  |
+| `branchId` | `String?` |  |
+| `invitedById` | `String` |  |
+| `expiresAt` | `DateTime` |  |
+| `acceptedAt` | `DateTime?` |  |
+| `revokedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `role` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `invitedBy` → `User`
 
 ### `OtpChallenge`
 

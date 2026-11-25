@@ -755,7 +755,7 @@ export function ProfileCard({ data, locale }: { data: AccountData; locale: strin
 
         شاشةُ المراجعة تطلب الملاحظة بنصّها — **«ما الذي ينقص أو يمنع؟
         — يقرؤه صاحبه»** — وتُحفظ في `identityNote` ولا شاشة تعرضها.
-        فيُكتب «صورة الهوية غير واضحة، أعِد رفعها بإضاءة أفضل» ولا يصل
+        فيُكتب «اسم صاحب الآيبان يخالف اسم الهوية» ولا يصل
         من يستطيع أن يفعل ذلك: دورةٌ يسأل فيها المراجع ولا يُسمَع.
       */}
       {user.identityNote === null || user.identityNote === '' || user.idVerified ? null : (

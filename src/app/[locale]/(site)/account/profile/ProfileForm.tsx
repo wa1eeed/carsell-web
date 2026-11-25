@@ -1,5 +1,6 @@
 'use client';
 
+import { NafathVerify } from './NafathVerify';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -24,7 +25,10 @@ export function ProfileForm({
   initial,
   missing,
   cities,
+  nafathAvailable,
 }: {
+  /** أمضبوطةٌ نفاذ؟ — يُقرَّر في الخادم فلا ومضةَ بعد الرسم. */
+  nafathAvailable: boolean;
   initial: {
     email: string | null;
     name: string | null;
@@ -176,6 +180,14 @@ export function ProfileForm({
           <p className="text-2xs opacity-70">موثقة — لا تعدل من هنا.</p>
         ) : (
           <div className="flex flex-col gap-3">
+            {/*
+              **ونفاذُ أوّلًا لأنها تُلغي الانتظار.** النموذجُ اليدويّ
+              يُرسَل ثمّ ينتظر مراجعًا ساعاتٍ لا يشتري فيها صاحبُه ولا
+              يبيع. وهي تُخفي نفسَها متى لم تكن موصولة، فلا يرى أحدٌ
+              بابًا لا يُفتح.
+            */}
+            <NafathVerify available={nafathAvailable} />
+
             {/*
               **والسؤال أوّلًا لأنه يغيّر ما بعده.** من يختار «منشأة»
               يُسأل عن سجلّها، ومن يختار «فرد» لا يرى الحقول أصلًا —

@@ -142,6 +142,38 @@ export async function verifyIdentity(
 }
 
 /**
+ * ═══ ويُوثَّق بنفاذ بلا مراجعٍ ولا طابور ═══
+ *
+ * قرار المالك ٢٠٢٦-١١-٢٥. والمصدرُ حكوميّ، **فلا عينَ تُقابل اسمًا
+ * بصورة** — ولا صورةَ تُجمع أصلًا («حقول فقط»).
+ *
+ * **و`identityReviewedBy` يبقى `null`**: لا مراجعَ هنا، وكتابةُ معرّف
+ * نظامٍ فيه تجعل سجلَّ المراجعة يقول إنّ إنسانًا نظر وهو لم ينظر.
+ * و`identityMethod` يقول «نفاذ»، فيُعرف من أين جاء التوثيق.
+ */
+export async function verifyByNafath(
+  writer: Writer,
+  userId: string,
+  identity: { name: string; nationalIdEncrypted: string },
+  now: Date = new Date(),
+): Promise<void> {
+  await writer.user.update({
+    where: { id: userId },
+    data: {
+      identityStatus: 'VERIFIED',
+      identityMethod: 'nafath',
+      identitySubmittedAt: now,
+      identityReviewedBy: null,
+      identityNote: null,
+      idVerified: true,
+      idVerifiedAt: now,
+      name: identity.name,
+      nationalIdEncrypted: identity.nationalIdEncrypted,
+    },
+  });
+}
+
+/**
  * طُلب توضيح أو رُفض — **بسببٍ يقرؤه صاحبه**.
  *
  * ورفضٌ بلا سبب يجعله يعيد رفع الصورة نفسها فيُرفض ثانيةً، ودورةٌ لا

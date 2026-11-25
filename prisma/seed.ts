@@ -795,10 +795,22 @@ async function main(): Promise<void> {
     ),
   );
 
+  /**
+   * ═══ وباقةُ المعرض الأوّل غيرُ المجّانية ═══
+   *
+   * `team_seats` في المجّانية **صفر** — فمعرضٌ عليها لا يدعو أحدًا،
+   * وشاشةُ `D9` تُفتح على «لا مقاعد شاغرة» في كلّ بيئة. والترميز يرسم
+   * «٦ من ٨ مقاعد»، وهي باقةُ `dealer_pro`.
+   *
+   * **وواحدٌ يكفي**: ترقيةُ كلّ المعارض تجعل الشاذَّ قاعدةً، ومعرضٌ
+   * على المجّانية هو الحالُ الأوّل لكلّ من يسجّل.
+   */
+  const proPlan = await prisma.plan.findUnique({ where: { key: 'dealer_pro' } });
   await prisma.subscription.createMany({
     data: [...sellers, ...dealerUsers].map((u) => ({
       userId: u.id,
-      planId: freePlan.id,
+      planId:
+        proPlan !== null && u.id === (dealerUsers[0]?.id ?? '') ? proPlan.id : freePlan.id,
       startsAt: u.createdAt,
       status: 'active',
     })),

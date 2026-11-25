@@ -63,6 +63,11 @@ export type Unit =
   | 'inspectedNone'
   | 'stageOrders'
   | 'dealerSales'
+  /** مكتبُ المعرض — `D5` و`D6`: الاسمُ والعددُ في عبارةٍ واحدة. */
+  | 'activeOffers'
+  | 'awaitingYou'
+  | 'liveOrders'
+  | 'doneThisMonth'
   | 'watchers'
   | 'bids'
   | 'deals'

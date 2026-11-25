@@ -82,6 +82,8 @@ export function r2Key(...segments: readonly string[]): string {
  * والشاشة يجب أن تكون كاملة بدون كل ميزةٍ خلف راية — وإلا صارت الراية
  * وهمًا لا يمكن إطفاؤه.
  */
-export function isFeatureOn(name: 'AI_PRICING' | 'NL_SEARCH' | 'ADS' | 'VIN_LOOKUP'): boolean {
+export function isFeatureOn(
+  name: 'AI_PRICING' | 'NL_SEARCH' | 'ADS' | 'VIN_LOOKUP' | 'NAFATH',
+): boolean {
   return process.env[`FEATURE_${name}`] === 'true';
 }

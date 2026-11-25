@@ -1,4 +1,5 @@
 import { setRequestLocale } from 'next-intl/server';
+import { nafathReady } from '@/lib/identity/nafath';
 import { notFound, redirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -40,6 +41,17 @@ export default async function ProfilePage({
 
   const completion = profileCompletion(user);
 
+  /**
+
+   * **ويُسأل مرّةً في الخادم.** `nafathReady` تقرأ الراية والمفتاح
+
+   * معًا — ورايةٌ بلا مفتاحٍ تعرض بابًا يردّ خطأً.
+
+   */
+
+  const nafathAvailable = await nafathReady();
+
+
   return (
     <>
       <SiteHeader />
@@ -71,6 +83,7 @@ export default async function ProfilePage({
           </p>
 
           <ProfileForm
+            nafathAvailable={nafathAvailable}
             initial={{
               email: user.email,
               name: user.name,

@@ -510,7 +510,11 @@
     "daysGenitive": "{count, plural, one{{n} day} other{{n} days}}",
     "weeksGenitive": "{count, plural, one{{n} week} other{{n} weeks}}",
     "monthsGenitive": "{count, plural, one{{n} month} other{{n} months}}",
-    "yearsGenitive": "{count, plural, one{{n} year} other{{n} years}}"
+    "yearsGenitive": "{count, plural, one{{n} year} other{{n} years}}",
+    "activeOffers": "{count, plural, one{1 active offer} other{{n} active offers}}",
+    "awaitingYou": "{count, plural, one{1 awaiting your reply} other{{n} awaiting your reply}}",
+    "liveOrders": "{count, plural, one{1 live order} other{{n} live orders}}",
+    "doneThisMonth": "{count, plural, one{1 completed this month} other{{n} completed this month}}"
   },
   "search": {
     "editQuery": "Edit query",

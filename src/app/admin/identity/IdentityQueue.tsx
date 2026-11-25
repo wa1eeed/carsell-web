@@ -368,7 +368,7 @@ export function IdentityQueue({
                 rows={3}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="مثال: صورة الهوية غير واضحة — أعد رفعها بإضاءة أفضل."
+                placeholder="مثال: اسم صاحب الآيبان يخالف اسم الهوية — راجعه وأعد التقديم."
                 className="rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm leading-loose"
               />
             </label>

@@ -127,7 +127,17 @@ model User {
   dealerId     String?
   createdAt    DateTime   @default(now())
 
+  /// دورُه **داخل معرضه** — و`null` لمن ليس في فريق معرض. (`D9`)
+  dealerRole      DealerRole?
+  /// فرعُه — و`null` تعني «كل الفروع» للمالك والمدير، ولا فرعَ للمحاسب.
+  branchId        String?
+
   dealer          Dealer?          @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  branch          Branch?          @relation("BranchMembers", fields: [branchId], references: [id], onDelete: SetNull)
+  managedBranches Branch[]         @relation("BranchManager")
+  recordedCosts   VehicleCost[]    @relation("CostRecorder")
+  dealerSessions  DealerSession[]  @relation("DealerSessions")
+  sentInvites     DealerInvite[]   @relation("DealerInviter")
   vehicles        Vehicle[]
   listings        Listing[]
   offers          Offer[]
@@ -310,6 +320,9 @@ model Dealer {
   members       User[]
   vehicles      Vehicle[]
   subscriptions Subscription[]
+  branches      Branch[]
+  sessions      DealerSession[]
+  invites       DealerInvite[]
 
   @@index([status, city])
 }
@@ -318,6 +331,160 @@ enum DealerStatus {
   PENDING
   ACTIVE
   SUSPENDED
+}
+
+/// ═══ أساسُ لوحة التاجر — قرار المالك ٢٠٢٦-١١-٢٥: «ابدأ بالأساس» ═══
+///
+/// ثلاثةُ أشياء يرسمها `Dealer.dc.html` ولا وجود لها: **سعرُ الشراء**
+/// و**الفروع** و**أدوارُ الفريق**. وبدونها لا تُحسب بطاقةُ «الهامش»
+/// في `D1`، ولا تُرسَم «٣ فروع»، ولا يُكتب «وليد · مدير».
+///
+/// وأثقلُها سعرُ الشراء: `TaxableBase.MARGIN` و`computeTax` مبنيّتان
+/// منذ المرحلة الأولى، و`taxFor` تردّ `MARGIN_AMOUNT_MISSING` لأنّ
+/// **المُدخَل غيرُ موجود** — وهي «أكبرُ مشكلةٍ محاسبية» بوصف المالك.
+
+/// أدوارُ فريق المعرض — والمصفوفةُ في `D9` تحسمها:
+/// المخزون (الكل · فرعه · قراءة) · الأسعار · العروض · الفواتير ·
+/// الفريق · والاشتراك **للمالك وحده**.
+///
+/// **وهي غيرُ `AdminRole`**: ذاك فريقُ المنصّة، وهذا فريقُ معرضٍ
+/// واحد. وخلطُهما يجعل مديرَ معرضٍ يرث صلاحيةً في لوحة المنصّة.
+enum DealerRole {
+  /// صاحبُ السجل — كلُّ شيء، والاشتراكُ له وحده.
+  OWNER
+  /// كلُّ الفروع، ويعدّل الفريق — ولا يمسّ الاشتراك.
+  MANAGER
+  /// **فرعُه وحده**: مخزونُه وعروضُه، ويعدّل الأسعار فيه.
+  SALES
+  /// الفواتيرُ كلُّها، والمخزونُ قراءةً — ولا فرعَ له.
+  ACCOUNTANT
+}
+
+/// فرعُ المعرض — «الملقا · الرياض · ١٨ مركبة · خالد م.».
+///
+/// **والمركبةُ تُنسَب إليه لا إلى الإعلان**: مخزونُ المعرض `Vehicle`،
+/// والعرضُ على كارز حالٌ اختيارية منها (قاعدةُ `ADR 0003`). فبائعُ
+/// فرعٍ يرى مركباتِ فرعه سواءٌ أعُرضت أم لا.
+model Branch {
+  id        String   @id @default(cuid())
+  dealerId  String
+  name      String
+  city      String
+  address   String?
+  phone     String?
+  /// مديرُ الفرع — يُعرض في جدول الفروع، و`null` لفرعٍ بلا مدير بعد.
+  managerId String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  dealer   Dealer    @relation(fields: [dealerId], references: [id], onDelete: Restrict)
+  manager  User?     @relation("BranchManager", fields: [managerId], references: [id], onDelete: SetNull)
+  members  User[]    @relation("BranchMembers")
+  vehicles Vehicle[]
+  invites  DealerInvite[]
+
+  @@index([dealerId, active])
+}
+
+/// صنفُ التكلفة — الشراءُ أوّلُها، وما بعده يحوّل السعر إلى كلفةٍ حقيقية.
+enum VehicleCostKind {
+  /// سعرُ الشراء — **واحدٌ للمركبة لا أكثر** (فهرسٌ جزئيّ يفرضه).
+  PURCHASE
+  TRANSPORT
+  INSPECTION
+  MAINTENANCE
+  DETAILING
+  CUSTOMS
+  OTHER
+}
+
+/// ═══ دفترُ كلفة المركبة ═══
+///
+/// **وهو جدولٌ واحد يقرؤه الهامشُ والتقارير معًا.** وضعُ سعر الشراء
+/// عمودًا في `Vehicle` وتكاليفِ ما بعده في جدولٍ آخر يُنتج مصدرين
+/// لرقمٍ واحد — والهامشُ يُحسب من أحدهما فيكذب.
+///
+/// **ولا يعتمد على `Listing`** (قاعدةٌ في `ADR 0003`): مخزونُ المعرض
+/// مركباتٌ، وعرضُها على كارز حالٌ اختيارية. فمركبةٌ اشتُريت ولم تُعرض
+/// لها كلفةٌ ومكانٌ وتاريخُ شراء.
+model VehicleCost {
+  id        String          @id @default(cuid())
+  vehicleId String
+  kind      VehicleCostKind
+  amount    Decimal         @db.Decimal(12, 2)
+  note      String?
+  /// تاريخُ وقوع الكلفة لا تاريخُ تسجيلها — الشراءُ في مارس يُسجَّل في أبريل.
+  incurredAt DateTime
+  /// من سجّلها — فسطرُ مالٍ بلا كاتبٍ لا يُراجَع.
+  recordedById String
+  createdAt    DateTime @default(now())
+
+  vehicle    Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  recordedBy User    @relation("CostRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([vehicleId, incurredAt])
+}
+
+/// ═══ جلسةُ لوحة المعرض — مستقلّةٌ عن جلسة المتجر ═══
+///
+/// قرار المالك ٢٠٢٦-١١-٢٥: «**المعرض ليس كمثل المستخدم العادي**».
+/// والاعتمادُ واحد (جوالُ الشخص ورمزُه)، **والجلسةُ ثلاثٌ لا واحدة**:
+///
+/// · `carsell_session` للمتجر · `carsell_dealer` للّوحة ·
+///   `carsell_admin` لفريق المنصّة.
+///
+/// **ولِمَ لا تكفي واحدة؟** إيقافُ عضوٍ من فريق المعرض يجب ألّا
+/// يُخرجه من حسابه الشخصيّ، وإيقافُ المعرض يجب ألّا يمنع صاحبَه من
+/// الشراء كفرد. وجهازٌ يُترك مفتوحًا في صالة العرض لا يكشف محفظةَ
+/// صاحبه. ومهلةُ لوحةٍ يتحرّك فيها مالٌ ومخزونٌ أقصرُ من مهلة متجر.
+model DealerSession {
+  id        String    @id @default(cuid())
+  userId    String
+  dealerId  String
+  tokenHash String    @unique
+  ip        String?
+  userAgent String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user   User   @relation("DealerSessions", fields: [userId], references: [id], onDelete: Cascade)
+  dealer Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([dealerId])
+}
+
+/// ═══ دعوةُ عضوٍ إلى فريق معرض — `D9` ═══
+///
+/// **والدعوةُ حالٌ قبل أن يكون عضوًا.** الترميز يرسم «دعوة معلّقة»
+/// في عمود الحالة، ولا يمكن كتابةُ `dealerRole` على `User` قبل أن
+/// يدخل المدعوُّ برمزه هو: قد لا يكون له حسابٌ أصلًا، **وكتابةُ
+/// الدور على حسابٍ لم يُنشأ بعد تعني إنشاءَ حسابٍ نيابةً عن إنسان**.
+///
+/// والدعوةُ بالجوال لا بالبريد: هو الاعتمادُ في هذه المنصّة، فدعوةٌ
+/// ببريدٍ تنتهي إلى «أيُّ جوالٍ هذا؟» عند أوّل دخول.
+model DealerInvite {
+  id        String     @id @default(cuid())
+  dealerId  String
+  /// E.164 — ويُطبَّع قبل الحفظ فلا تتكرّر الدعوةُ بصيغتين لرقمٍ واحد.
+  phone     String
+  role      DealerRole
+  branchId  String?
+  invitedById String
+  /// تنتهي الدعوةُ بمهلة — ودعوةٌ مفتوحةٌ أبدًا بابٌ يبقى مفتوحًا.
+  expiresAt DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  dealer    Dealer  @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  branch    Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  invitedBy User    @relation("DealerInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+
+  /// **ولا دعوتان معلّقتان لرقمٍ واحد في معرضٍ واحد.**
+  @@unique([dealerId, phone])
+  @@index([phone, acceptedAt])
 }
 
 model OtpChallenge {
@@ -573,6 +740,7 @@ model Vehicle {
   id       String  @id @default(cuid())
   ownerId  String
   dealerId String?
+  branchId String?
   vin      String? // فريد إن وُجد
   plateLetters String? // ٣ أحرف
   plateNumbers String? // ٤ أرقام
@@ -653,6 +821,9 @@ model Vehicle {
   history            VehicleHistoryItem[]
   inspectionReports  InspectionReport[]
   serviceRequests    ServiceRequest[]
+  /// فرعُ المعرض الذي تقف فيه — و`null` لمركبةِ فردٍ أو معرضٍ بلا فروع.
+  branch             Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  costs              VehicleCost[]
 
   @@unique([vin])
   @@index([ownerId])

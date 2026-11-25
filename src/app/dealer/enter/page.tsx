@@ -26,6 +26,16 @@ export default async function DealerEnterPage() {
   const user = await currentUserFromCookies();
   if (user === null) redirect('/ar/auth?next=/dealer/enter');
 
+  /**
+   * ═══ والدعوةُ تُقبَل عند أوّل دخولٍ لا بزرّ ═══
+   *
+   * من دُعي ثمّ فتح البابَ يجد نفسَه عضوًا. وزرُّ «اقبل الدعوة»
+   * يحتاج شاشةً يصلها — **وهي شاشةٌ لا يعرف وجودَها**، فتبقى الدعوةُ
+   * معلّقةً إلى أن تنتهي مهلتُها ويُقال له «لست عضوًا في أي معرض».
+   */
+  const { acceptPendingInvite } = await import('@/lib/domain/dealer-team');
+  await acceptPendingInvite(user.id);
+
   const member = await db.user.findUnique({
     where: { id: user.id },
     select: {
