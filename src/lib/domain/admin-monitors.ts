@@ -79,6 +79,17 @@ export type ListingCounts = {
   draft: number;
   /** نصيب المنشور من الإجمالي — والانخفاض يعني طابورًا أو إيقافات */
   activeSharePct: number;
+  /** نصيبُ المباع من الجرد كلِّه — وهو ما يقيس السوق لا العدد وحده */
+  soldSharePct: number;
+  /**
+   * ═══ متوسّطُ أيّام البيع — **إلى الإغلاق لا إلى اليوم** ═══
+   *
+   * إعلانٌ بِيع بعد شهرٍ يبقى عمرُه شهرًا، وقياسُه إلى اليوم يرفع
+   * المتوسّطَ كلَّما مرّ وقتٌ على ما بيع — فيبدو السوقُ يتباطأ وهو ساكن.
+   *
+   * و`null` حين لا مبيعَ له تاريخان: صفرٌ هنا يُقرأ «يُباع في يومه».
+   */
+  avgDaysToSell: number | null;
 };
 
 /**
@@ -181,7 +192,13 @@ export async function allListings(
 }
 
 export async function listingCounts(): Promise<ListingCounts> {
-  const grouped = await db.listing.groupBy({ by: ['status'], _count: true });
+  const [grouped, soldRows] = await Promise.all([
+    db.listing.groupBy({ by: ['status'], _count: true }),
+    db.listing.findMany({
+      where: { status: 'SOLD', publishedAt: { not: null }, closedAt: { not: null } },
+      select: { publishedAt: true, closedAt: true },
+    }),
+  ]);
   const at = (status: ListingStatus): number =>
     grouped.find((row) => row.status === status)?._count ?? 0;
 
@@ -197,6 +214,18 @@ export async function listingCounts(): Promise<ListingCounts> {
     suspended: at('SUSPENDED'),
     draft: at('DRAFT'),
     activeSharePct: total === 0 ? 0 : Math.round((published / total) * 100),
+    soldSharePct: total === 0 ? 0 : Math.round((at('SOLD') / total) * 100),
+    avgDaysToSell:
+      soldRows.length === 0
+        ? null
+        : Math.round(
+            soldRows.reduce(
+              (sum, row) =>
+                sum +
+                ((row.closedAt?.getTime() ?? 0) - (row.publishedAt?.getTime() ?? 0)) / 86_400_000,
+              0,
+            ) / soldRows.length,
+          ),
   };
 }
 
@@ -228,6 +257,16 @@ export type AuctionRow = {
   reserveMet: boolean;
   bidderCount: number;
   bidCount: number;
+  /**
+   * ═══ «يتابعون» — ومن يُخطَر بالإغلاق هم من حفظوه ═══
+   *
+   * ترميزُ `A22` يكتب «٤٢ يتابعون» على المزاد **القادم**: لا مزايدةَ قبل
+   * البدء، فالعددُ الوحيد الذي يقول إن كان مرتقَبًا هو من حفظه.
+   *
+   * وليس حقلًا جديدًا: `remindClosingAuctions` تُخطر **أصحابَ المفضّلة**
+   * على الإعلان — فهم «المتابعون» في المنتج، والشاشةُ تعدّ ما يُخطَر.
+   */
+  watcherCount: number;
   status: AuctionStatus;
   /** ثوانٍ حتى الإغلاق — وسالبٌ يعني انقضى ولم تمرّ الوظيفة بعد */
   secondsLeft: number;
@@ -289,6 +328,7 @@ export async function auctionMonitor(
       },
       bids: { orderBy: { amount: 'desc' }, take: 1, select: { amount: true } },
       _count: { select: { bids: true } },
+      listingId: true,
     },
   });
 
@@ -314,6 +354,22 @@ export async function auctionMonitor(
     bidderCounts.set(pair.auctionId, (bidderCounts.get(pair.auctionId) ?? 0) + 1);
   }
 
+  /**
+   * المتابعون — **أصحابُ المفضّلة على الإعلان**، وهم من تُخطرهم
+   * `remindClosingAuctions`. و`Favorite` بلا علاقةٍ إلى `Listing`،
+   * فالتجميعُ بالمعرّفات في استعلامٍ واحد لا استعلامٍ لكل صفّ.
+   */
+  const listingIds = rows.map((row) => row.listingId);
+  const watchPairs =
+    listingIds.length === 0
+      ? []
+      : await db.favorite.groupBy({
+          by: ['listingId'],
+          where: { listingId: { in: listingIds } },
+          _count: { _all: true },
+        });
+  const watchers = new Map(watchPairs.map((row) => [row.listingId, row._count._all]));
+
   return rows.map((row) => {
     const top = row.bids[0]?.amount ?? null;
     return {
@@ -337,6 +393,7 @@ export async function auctionMonitor(
        */
       reserveMet: top !== null && row.reservePrice !== null && top.greaterThanOrEqualTo(row.reservePrice),
       bidderCount: bidderCounts.get(row.id) ?? 0,
+      watcherCount: watchers.get(row.listingId) ?? 0,
       bidCount: row._count.bids,
       status: row.status,
       secondsLeft: Math.floor((row.endsAt.getTime() - now.getTime()) / 1000),

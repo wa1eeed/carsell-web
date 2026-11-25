@@ -399,6 +399,7 @@
     "buyers": "{count, plural, one{{n} buyer} other{{n} buyers}}",
     "openRequests": "{count, plural, one{{n} open} other{{n} open}}",
     "bidders": "{count, plural, one{{n} bidder} other{{n} bidders}}",
+    "watchers": "{count, plural, one{# watcher} other{# watchers}}",
     "deals": "{count, plural, one{{n} deal} other{{n} deals}}",
     "days": "{count, plural, one{{n} day} other{{n} days}}",
     "hours": "{count, plural, one{{n} hour} other{{n} hours}}",

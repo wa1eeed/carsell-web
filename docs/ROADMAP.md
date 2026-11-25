@@ -2090,6 +2090,35 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 35 — `A27` and `A22`: numbers we had, and an order nobody stated
+
+`A27` read **73٪** and `A22` **73٪**.
+
+- [x] **«مبيعة — إجمالي» and «متوسط أيام البيع».** Both were computable from
+      what is stored and neither was asked for. The average is measured **to
+      the close, not to today**: a listing sold after a month stays a month
+      old, and measuring to today raises the average as time passes over what
+      has already sold — so the market looks like it is slowing while it sits
+      still. `null` when nothing sold has both dates, because a zero here reads
+      as "sells the same day".
+- [x] **«يتابعون».** An upcoming auction has no bids, so a row reading «لا
+      مزايدين · لا مزايدات» says nothing about whether it is awaited. Watchers
+      are the people who favourited the listing — **the ones
+      `remindClosingAuctions` already notifies** — so the screen counts exactly
+      who will be told. Written as the design writes it, a verb not a noun
+      («٤٢ يتابعون»), with the singular and dual inflected properly.
+- [x] **The sort order is stated on both.** `A27` has been newest-first and
+      `A22` soonest-closing since they were built, and neither said so — the
+      reader takes the first row for the most important rather than the newest
+      or the most urgent. It is a description, not a control: a second ordering
+      is a product decision, and a control with one option is a dead button.
+
+`أنشئ مزادًا` is left asked: a seller creates an auction in the wizard, and an
+admin creating one is publishing on someone's behalf — the same question as
+A17's `نزاع جديد`.
+
+Measured after: **A27 73٪ → 100٪ · A22 73٪ → 91٪**.
+
 ### 40a · 34 — `A18` identity, where the reviewer decided with nothing to compare
 
 `A18` read **75٪**. Three of its four signals are the review dialog's own

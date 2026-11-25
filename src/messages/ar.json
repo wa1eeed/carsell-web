@@ -399,6 +399,7 @@
     "buyers": "{count, plural, zero{لا مشترين} one{مشتري واحد} two{مشتريان} few{{n} مشترين} many{{n} مشتريا} other{{n} مشتري}}",
     "openRequests": "{count, plural, zero{لا قائم} one{قائم واحد} two{قائمان} few{{n} قائمة} many{{n} قائما} other{{n} قائم}}",
     "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدا} other{{n} مزايد}}",
+    "watchers": "{count, plural, zero{لا أحد يتابعه} one{يتابعه واحد} two{يتابعه اثنان} few{{n} يتابعون} many{{n} يتابعون} other{{n} يتابعون}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
     "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يوما} other{{n} يوم}}",
     "hours": "{count, plural, zero{لا ساعات} one{ساعة واحدة} two{ساعتان} few{{n} ساعات} many{{n} ساعة} other{{n} ساعة}}",

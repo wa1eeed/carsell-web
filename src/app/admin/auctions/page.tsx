@@ -89,6 +89,13 @@ export default async function AdminAuctionsPage({
         ]}
       />
 
+      {/*
+        **والترتيبُ يُقال** — القائمةُ بالأقرب إغلاقًا منذ بُنيت
+        (`endsAt asc`) ولا شيء يقوله، فيُقرأ الأوّلُ أهمَّها لا أعجلَها.
+        وهو ما يحتاجه مراقبُ المهل بالضبط.
+      */}
+      {rows.length === 0 ? null : <p className="mb-3 text-3xs opacity-70">الأقرب إغلاقا</p>}
+
       {rows.length === 0 ? (
         <EmptyState
           title="لا مزادات هنا"

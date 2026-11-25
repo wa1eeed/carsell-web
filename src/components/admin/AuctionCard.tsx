@@ -131,6 +131,19 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
             ·
           </span>
           <Quantity unit="bids" count={row.bidCount} />
+          {/*
+            **والقادمُ يُقاس بمن يتابعه** — لا مزايدةَ قبل البدء، فصفٌّ
+            يقول «لا مزايدين · لا مزايدات» لا يقول إن كان مرتقَبًا.
+            والمتابعون أصحابُ المفضّلة، وهم من تُخطرهم الوظيفة الدورية.
+          */}
+          {row.watcherCount === 0 ? null : (
+            <>
+              <span aria-hidden className="opacity-40">
+                ·
+              </span>
+              <Quantity unit="watchers" count={row.watcherCount} />
+            </>
+          )}
         </span>
       </div>
 

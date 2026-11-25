@@ -1021,6 +1021,23 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A22 — «أنشئ مزادًا» is an on-behalf action, asked not built · 2026-11-25
+
+A seller creates an auction through the sell wizard, which writes the `Auction`
+row (fixed in an earlier task — before it, choosing «مزاد» wrote `type: AUCTION`
+on the listing and created no auction at all). An **admin** creating one means
+publishing on a seller's behalf: it needs their listing, their reserve and their
+consent to the deposit and extension rules. That is the same question as A17's
+`نزاع جديد` — who may act for whom — and belongs to the designer.
+
+The design's row also shows a **plate** auction («لوحة أ ب د ١٢٣٤»), and plates
+are deferred by the owner (`Wr`, after launch).
+
+`يتابعون` and `الأقرب إغلاقًا` **were** missing and are now built: watchers are
+the people who favourited the listing — the ones `remindClosingAuctions`
+notifies, so the screen counts exactly who gets told — and the list has been
+ordered by soonest-closing since it was built without saying so.
+
 ## A17 — one queue in the design, two screens in the build · 2026-11-25
 
 The design titles it «البلاغات والنزاعات» and puts both in one table with tabs

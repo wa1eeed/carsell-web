@@ -91,7 +91,21 @@ export default async function AdminAllListingsPage({
             note: `${displayDigits(String(counts.activeSharePct))}٪ من الإجمالي`,
           },
           { title: 'في المراجعة', value: counts.pendingReview, note: 'طابور A15' },
-          { title: 'مبيعة', value: counts.sold, note: 'اكتمل نقل ملكيتها' },
+          {
+            /* «إجمالي» في عنوانها كالترميز — تمييزًا عن شريحة «مبيعة» في التابز */
+            title: 'مبيعة — إجمالي',
+            value: counts.sold,
+            note: `${displayDigits(String(counts.soldSharePct))}٪ من الإعلانات`,
+          },
+          {
+            /**
+             * **ولا متوسّطَ من لا شيء**: `null` حين لا مبيعَ له تاريخان،
+             * وصفرٌ هنا يُقرأ «يُباع في يومه».
+             */
+            title: 'متوسط أيام البيع',
+            value: counts.avgDaysToSell ?? '—',
+            note: counts.avgDaysToSell === null ? 'لا مبيع بتاريخين بعد' : 'من النشر إلى الإغلاق',
+          },
           { title: 'محجوزة', value: counts.reserved, note: 'عليها طلب قائم' },
         ]}
       />
@@ -124,6 +138,13 @@ export default async function AdminAllListingsPage({
           })),
         ]}
       />
+
+      {/*
+        **والترتيبُ يُقال** — القائمةُ بالأحدث نشرًا منذ بُنيت
+        (`publishedAt desc`) ولا شيء يقوله، فيحسب القارئ الأوّلَ أهمَّها
+        لا أحدثَها. وهو وصفٌ لا زرّ: ترتيبٌ ثانٍ قرارُ منتَج.
+      */}
+      {rows.length === 0 ? null : <p className="mb-3 text-3xs opacity-70">الأحدث</p>}
 
       {/*
         ═══ كروتٌ لا أسطر ═══
