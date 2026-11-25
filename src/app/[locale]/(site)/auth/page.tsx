@@ -1,5 +1,6 @@
+import { cityNames } from '@/lib/domain/cities';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { CITY_NAMES } from '@/lib/labels/cities';
+
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import type { Metadata } from 'next';
@@ -95,7 +96,7 @@ export default async function AuthPage({
             الهاتف ١٦ كما في بقية الشاشات.
           */}
           <div className="order-1 flex flex-1 items-center justify-center border-s border-line px-4 py-9 sm:p-12 lg:order-2">
-            <AuthForm locale={locale} cities={CITY_NAMES} />
+            <AuthForm locale={locale} cities={await cityNames()} />
           </div>
         </div>
       </main>

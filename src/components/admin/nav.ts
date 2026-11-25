@@ -179,6 +179,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage', description: 'الماركات والموديلات والفئات التي تبنى منها الإعلانات.' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage', description: 'أنواع الهياكل وصورها وترتيب عرضها.' },
       { label: 'المميزات', href: '/admin/catalog/features', permission: 'catalog.manage', description: 'المميزات التي يختارها البائع ويرشح بها المشتري.' },
+      { label: 'المدن', href: '/admin/catalog/cities', permission: 'catalog.manage', description: 'المدن المعروضة في المرشحات ومعالج البيع ومناطقها.' },
       /**
        * **و«مساحات الإعلانات» حُذفت من هنا**: مسارُها `/admin/ads`
        * نفسُه الذي تحته «الإعلانات المموّلة» في «التسويق» — بندان

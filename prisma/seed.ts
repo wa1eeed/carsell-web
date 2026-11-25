@@ -271,15 +271,39 @@ const PLATES = [
   'د', // حرفٌ واحد — الحدّ الأدنى
 ] as const;
 
+/**
+ * ═══ مدنُ البيانات المزروعة ═══
+ *
+ * **وتُحاكي توزيعَ السوق لا تُقسَّم بالتساوي**: ثلثُ مبيعات السيارات
+ * في المملكة في الرياض، ولا يُشبه سوقًا أن تتساوى عرعرُ بها. فالأوائلُ
+ * تتكرّر في المصفوفة — والاختيارُ العشوائيّ منها يرجّحها بلا وزنٍ
+ * يُكتب.
+ *
+ * وأربعَ عشرةَ مدينةً لا ثماني: مرشِّحُ المدن يعرض ما له نتيجة (وهو
+ * الصواب)، فمدنٌ لا إعلانَ فيها تختفي منه — **وبيئةٌ بثمانٍ تجعل
+ * صفحاتِ الهبوط المدنيّةَ كلَّها فارغةً إلّا ثماني**.
+ */
 const CITIES = [
   'الرياض',
+  'الرياض',
+  'الرياض',
+  'جدة',
   'جدة',
   'الدمام',
+  'الدمام',
+  'الخبر',
   'مكة المكرمة',
   'المدينة المنورة',
-  'الخبر',
+  'الطائف',
   'أبها',
   'تبوك',
+  'بريدة',
+  'الأحساء',
+  'خميس مشيط',
+  'حائل',
+  'الجبيل',
+  'ينبع',
+  'نجران',
 ] as const;
 
 const COLORS = [
@@ -755,6 +779,22 @@ async function main(): Promise<void> {
           dealerId: leadDealer.id,
           dealerRole,
           branchId,
+          /**
+           * ═══ وعضوُ المعرض يرث وضعَه الضريبيّ ═══
+           *
+           * `sellerTypeFor` تقرأ الوضعَ **من المستخدم البائع**، وكنتُ
+           * أكتبه للمالك وحده — فإعلانٌ نشره بائعٌ في المعرض يُقرأ
+           * `DEALER_NO_VAT`، وقاعدتُه تنتظر الإقرار، **فتُسوّى صفقتُه
+           * ولا تخرج فاتورة**. والفاتورةُ باسم المنشأة ورقمِها أيًّا
+           * كان من أدخل المركبة.
+           */
+          ...(leadDealer.vatNumber === null
+            ? {}
+            : {
+                taxStatus: 'VAT_REGISTERED' as const,
+                vatNumber: leadDealer.vatNumber,
+                taxStatusSetAt: days(-200),
+              }),
           identityStatus: 'VERIFIED',
           idVerified: true,
           idVerifiedAt: days(-200),
@@ -1510,7 +1550,30 @@ async function main(): Promise<void> {
    * ينتجه `cancelOrder` حين يُلغى الطلب في مرحلة الدفع.
    */
   const CANCELLED_INDEX = 12;
-  const orderListings = listings.slice(0, CANCELLED_INDEX + 1);
+  /**
+   * ═══ والطلباتُ على أنواعِ الإعلانات الثلاثة ═══
+   *
+   * كان المأخوذُ أوّلَ ثلاثةَ عشرَ إعلانًا، **والقائمةُ مرتَّبةٌ
+   * بالنوع** — فكلُّها `DIRECT`، و`OrderSource.OFFER` و`AUCTION`
+   * بلا صفّ. وشريحةُ «مصدر الطلب» في `A14` و`D11` تقول «مباشر
+   * ١٠٠٪» عن سوقٍ أكثرُ بيعه بالتفاوض.
+   *
+   * فتُؤخذ بالتناوب على الأنواع: ما يصفه الشكلُ يُزرع بشكله.
+   */
+  const byType = (want: string): ListingRef[] => listings.filter((row) => row.type === want);
+  const pools = [byType('DIRECT'), byType('NEGOTIATION'), byType('AUCTION')];
+  const orderListings: ListingRef[] = [];
+  for (let round = 0; orderListings.length <= CANCELLED_INDEX; round += 1) {
+    let added = false;
+    for (const pool of pools) {
+      const pick = pool[round];
+      if (pick === undefined) continue;
+      orderListings.push(pick);
+      added = true;
+      if (orderListings.length > CANCELLED_INDEX) break;
+    }
+    if (!added) break;
+  }
   /**
    * **والأشكالُ النادرة تُعلَّق على أوّل دفعةٍ توجد، لا على أوّل دورة.**
    * علّقتُها أوّلًا على `i === 0` فلم تُزرع واحدةٌ منها: المرحلة عند
@@ -3304,6 +3367,496 @@ async function main(): Promise<void> {
     });
   }
 
+  // ————— حالاتٌ لم تكن تُزرع — وما لا يُزرع لا يُرى —————
+  /**
+   * ═══ كلُّ قيمةِ تعدادٍ يكتبها المنتج تُزرع ═══
+   *
+   * قاعدةٌ مكتوبة في هذا المستودع، وُلدت من تسع عللٍ سكنت حالًا لم
+   * تفتحها شاشةٌ قطّ: **لم يكن في البذرة طلبٌ ملغى واحد**، فبقيت
+   * تسعةُ مواضع تقرأ مرحلتَه بلا حاله.
+   *
+   * وقِيس بـ`npm run seed:coverage` فخرجت **تسعٌ وعشرون قيمة** بلا
+   * صفّ: إعلانٌ موقوف مؤقّتًا، ومزادٌ لم يبلغ احتياطيَه، ونزاعٌ قيد
+   * النظر، وحسابٌ موقوف، وهويّةٌ تنتظر توضيحًا… كلُّها شاشاتٌ في
+   * اللوحة تُفتح على فراغٍ لا يكشف عطلًا فيها.
+   */
+  const spare = await prisma.listing.findMany({
+    where: { status: 'PUBLISHED', orders: { none: {} }, auction: null },
+    orderBy: { createdAt: 'desc' },
+    take: 4,
+    select: { id: true, vehicleId: true },
+  });
+
+  if (spare.length >= 3) {
+    /** **موقوفٌ مؤقّتًا بيد صاحبه** — يعود بضغطة، ولا يظهر في البحث. */
+    await prisma.listing.update({ where: { id: spare[0]!.id }, data: { status: 'PAUSED' } });
+    /**
+     * **و`ListingStatus.EXPIRED` لا تُزرع — ولا كاتبَ لها.**
+     *
+     * زرعتُها أوّلًا فأسقطت «مجموعُ الشرائح يساوي الكلّ»: حالٌ بلا
+     * شريحةٍ لا تُرى. ثمّ قِيس المنتج فإذا **لا شيء يكتبها** — لا
+     * وظيفةٌ دورية تُنهي مدّةَ إعلان ولا مسار. فزرعُها اختراعُ حالٍ،
+     * وشريحةٌ لها تبقى صفرًا إلى الأبد.
+     */
+    /** **ومركبةٌ واردةٌ من أمريكا وأخرى من كوريا** — المواصفةُ تُرشَّح بها. */
+    await prisma.vehicle.update({ where: { id: spare[0]!.vehicleId }, data: { spec: 'AMERICAN' } });
+    await prisma.vehicle.update({ where: { id: spare[1]!.vehicleId }, data: { spec: 'KOREAN' } });
+  }
+
+  /**
+   * **ومزادٌ انتهى دون احتياطيه ينتظر قرارَ بائعه** — وهو ثلثُ شاشة
+   * `D4` في لوحة المعرض، وفرعُ القبول فيها لم يكن يبلغه نادٍ قطّ.
+   */
+  const closable = await prisma.auction.findMany({
+    where: { status: 'LIVE' },
+    orderBy: { endsAt: 'asc' },
+    take: 2,
+    select: { id: true, reservePrice: true },
+  });
+
+  if (closable.length >= 2) {
+    const unmet = closable[0]!;
+    const bidder = buyers[0];
+    if (bidder !== undefined && unmet.reservePrice !== null) {
+      await prisma.auction.update({
+        where: { id: unmet.id },
+        data: {
+          status: 'ENDED_UNMET',
+          endsAt: hours(-2),
+          /** **والمهلةُ قائمةٌ** — فالشاشة تعرض القرار لا سجلًّا منتهيًا. */
+          sellerDecisionDueAt: hours(22),
+        },
+      });
+      await prisma.bid.create({
+        data: {
+          auctionId: unmet.id,
+          bidderId: bidder.id,
+          amount: unmet.reservePrice.minus(new D('8500')),
+          createdAt: hours(-3),
+        },
+      });
+    }
+
+    /** **ومزادٌ أُلغي قبل إغلاقه** — يسحبه المشغّل أو صاحبه. */
+    await prisma.auction.update({
+      where: { id: closable[1]!.id },
+      data: { status: 'CANCELLED', endsAt: hours(-6) },
+    });
+  }
+
+  /**
+   * **والنزاعُ المفتوح يبقى مفتوحًا.**
+   *
+   * حوّلتُ أوّلَ مرّةٍ الوحيدَ المفتوح إلى «قيد النظر» — فأُغلقت
+   * حالٌ لأفتح أخرى، وخرج الطابورُ فارغًا. **والتغطيةُ تُضيف ولا
+   * تُبدّل**: صفٌّ لكلّ حال.
+   */
+  const disputedOrders = await prisma.order.findMany({
+    /** **والمرشِّحُ يتّسع لعدد الحالات** — ضيّقتُه على مرحلتين فوجد اثنين. */
+    where: { disputes: { none: {} } },
+    orderBy: { createdAt: 'desc' },
+    take: 3,
+    select: { id: true, buyerId: true },
+  });
+
+  const DISPUTE_STATES = [
+    { status: 'INVESTIGATING' as const, resolution: null, reason: 'الممشى في الإعلان أقل من العداد.' },
+    { status: 'RESOLVED_SELLER' as const, resolution: 'RELEASE_TO_SELLER', reason: 'تأخر الاستلام عن الموعد.' },
+    { status: 'CLOSED' as const, resolution: null, reason: 'سحب المشتري بلاغه.' },
+  ];
+
+  for (const [index, order] of disputedOrders.entries()) {
+    const state = DISPUTE_STATES[index];
+    if (state === undefined) break;
+    await prisma.dispute.create({
+      data: {
+        orderId: order.id,
+        openedBy: order.buyerId,
+        reason: state.reason,
+        status: state.status,
+        ...(state.resolution === null ? {} : { resolution: state.resolution }),
+        openedAt: days(-between(3, 12)),
+        slaDueAt: days(between(1, 4)),
+      },
+    });
+
+    /**
+     * **وحالُ الطلب تتبع حالَ نزاعه.** `openDispute` تكتب
+     * `status: 'DISPUTED'` في المعاملة نفسِها، و`resolveDispute`
+     * تعيده. وبذرةٌ تكتب النزاعَ وحده تُنتج طلبًا «نشطًا» عليه نزاعٌ
+     * قائم — **ولوحةُ المالية تقرأ «المجمَّد بنزاع» من الحالين
+     * معًا**، فتقول صفرًا والمالُ مجمَّد.
+     */
+    if (state.status === 'INVESTIGATING') {
+      await prisma.order.update({ where: { id: order.id }, data: { status: 'DISPUTED' } });
+    }
+
+    /**
+     * **وقرارُ النزاع يتبعه مالُه.** `resolveDispute` بـ
+     * `RELEASE_TO_SELLER` تُفرج الضمان — ونزاعٌ «حُسم للبائع» وضمانُه
+     * ما زال محجوزًا يجعل شاشةَ التسويات تقول «ينتظر» عن مالٍ حُسم
+     * أمرُه، فينتظر البائعُ ما وصله.
+     */
+    if (state.resolution === 'RELEASE_TO_SELLER') {
+      await prisma.escrow.updateMany({
+        where: { orderId: order.id, status: 'HELD' },
+        data: { status: 'RELEASED', releasedAt: days(-1) },
+      });
+    }
+  }
+
+  /**
+   * **وحساباتٌ في حالاتها الثلاث غير النشطة.**
+   *
+   * وكلُّها تُعرض في `A18`، وتُغيّر ما يراه صاحبُها: الموقوفُ يدخل
+   * ولا يعامل، والمحظورُ لا يدخل، والمغلقُ أغلقه هو.
+   */
+  /**
+   * **والمختارُ من لا أثرَ له** — فحسابٌ موقوفٌ عليه إعلاناتٌ منشورة
+   * يُنتج حالًا متناقضة: اللوحةُ تقول «موقوف» والسوقُ يعرض بضاعتَه.
+   * ويُؤخذ ما وُجد، ولا يُشترط عددٌ بعينه: شرطٌ لا يتحقّق يُسقط
+   * التغطيةَ كلَّها صامتًا — وهو ما وقع في أوّل تشغيل.
+   */
+  /**
+   * **وتُصنع لها حساباتُها** — ولا تُنتقى من القائمين.
+   *
+   * انتقيتُ أوّلًا «من لا إعلانَ له ولا طلب» فوجدتُ ثلاثةً حيث أحتاج
+   * خمسة، **فسقطت حالان صامتتين**: شرطٌ لا يتحقّق يُسقط التغطيةَ ولا
+   * يقول. وحسابٌ مخصَّصٌ لحالٍ أصدقُ أيضًا: الموقوفُ له إعلاناتٌ
+   * منشورة يُنتج تناقضًا — اللوحةُ تقول «موقوف» والسوقُ يعرض بضاعتَه.
+   */
+  const STATE_ACCOUNTS = [
+    ['موقوف · بلاغات متكررة', 'suspended', { status: 'SUSPENDED' as const }],
+    ['محظور · احتيال مثبت', 'banned', { status: 'BANNED' as const }],
+    ['أغلق حسابه', 'closed', { status: 'CLOSED' as const, closedAt: days(-20) }],
+    [
+      'هوية تنتظر توضيحا',
+      'clarify',
+      {
+        identityStatus: 'CLARIFICATION' as const,
+        idVerified: false,
+        identityNote: 'الاسم في الهوية لا يطابق الاسم المسجل — صححه ثم أعد الإرسال.',
+      },
+    ],
+    [
+      'هوية مرفوضة',
+      'rejected',
+      {
+        identityStatus: 'REJECTED' as const,
+        idVerified: false,
+        identityNote: 'رقم الهوية غير صالح.',
+      },
+    ],
+  ] as const;
+
+  for (const [index, [name, tag, data]] of STATE_ACCOUNTS.entries()) {
+    await prisma.user.create({
+      data: {
+        phone: `+9665399000${String(index).padStart(2, '0')}`,
+        name,
+        email: `${tag}@example.com`,
+        role: 'USER',
+        createdAt: days(-between(40, 200)),
+        ...data,
+      },
+    });
+  }
+
+
+
+  /**
+   * **ومعرضٌ موقوف** — يظهر في `A20` ولا تُعرض إعلاناتُه.
+   *
+   * واشترطتُ أوّلًا «بلا مركبات» فلم يوجد واحد، فسقطت الحال. والشرطُ
+   * الصحيح **ألّا يكون الذي تُفتح به اللوحة**: معرضٌ موقوفٌ له مخزون
+   * حالٌ حقيقية — بضاعتُه تختفي من السوق وتبقى في لوحته.
+   */
+  const toSuspend = await prisma.dealer.findFirst({
+    /**
+     * **ولا يكون المعرضَ الذي تُفتح به اللوحة.**
+     *
+     * أخذتُ أوّلًا «أحدثَ معرضٍ نشط» فوقع على المعرض القياديّ —
+     * صاحبِ الفروع والفريق والباقة — **فأسقط ستّةَ اختبارات** تبحث
+     * عن معرضٍ فيه مقعدٌ شاغر. والمعرضُ ذو الفروع هو مسرحُ `D1`–`D11`
+     * كلِّها، وتعطيلُه يُفرغ اللوحة من بياناتها.
+     */
+    where: { status: 'ACTIVE', branches: { none: {} } },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true },
+  });
+  if (toSuspend !== null) {
+    await prisma.dealer.update({ where: { id: toSuspend.id }, data: { status: 'SUSPENDED' } });
+  }
+
+  /**
+   * **وضمانٌ لم يُقبض بعد، وآخرُ رُدّ كاملًا.**
+   *
+   * `PENDING` حالُ من بدأ الدفع ولم تؤكّد البوّابة، و`REFUNDED` حالُ
+   * نزاعٍ حُسم للمشتري — وكلتاهما تغيّران بطاقةَ المال في كلّ شاشة.
+   */
+  /**
+   * ═══ و`EscrowStatus.PENDING` لا تُزرع — ولا كاتبَ لها ═══
+   *
+   * زرعتُها أوّلًا على طلبٍ عند مرحلة الدفع، **فأسقطت اختبارين**
+   * كلاهما محقّ: طلبٌ عند الدفع بضمانٍ **يُخفي زرَّ الدفع**، وضمانٌ
+   * بلا دفعةٍ يُفرغ شاشةَ التسويات.
+   *
+   * وقِيس المنتج: `applyState` **تُنشئ الضمانَ `HELD` دائمًا**، ولا
+   * شيء يكتب `PENDING` — وفي `payments.ts` فرعٌ يقرؤها
+   * (`existing.status === 'PENDING'`) **لا ينتجه أحد**. فهي قيمةٌ
+   * بلا كاتب، وزرعُها اختراعُ حالٍ لا يبلغها المنتج.
+   */
+
+  /**
+   * **وضمانٌ رُدَّ كاملًا — بدفعته.** `Escrow` لا يُكتب بلا `Payment`:
+   * الشاشةُ تقرأ الدفعةَ والدفترَ والضمان، وثلاثتُها عن مالٍ واحد.
+   */
+  const refundedOrder = await prisma.order.findFirst({
+    where: { status: 'CANCELLED', escrow: null },
+    select: { id: true, totalAmount: true },
+  });
+  if (refundedOrder !== null) {
+    await prisma.payment.create({
+      data: {
+        orderId: refundedOrder.id,
+        purpose: 'VEHICLE_ESCROW',
+        gatewayKey: 'bank_escrow',
+        amount: refundedOrder.totalAmount,
+        method: 'mada',
+        /** **و«رُجّع» لا «رُدّ»**:  ما خرج من حسابنا بعد دخوله. */
+        status: 'RETURNED',
+        holdRef: 'hold_seed_refund',
+        heldAt: days(-9),
+        createdAt: days(-9),
+      },
+    });
+    await prisma.escrow.create({
+      data: {
+        orderId: refundedOrder.id,
+        amount: refundedOrder.totalAmount,
+        status: 'REFUNDED',
+        heldAt: days(-9),
+        releasedAt: days(-6),
+      },
+    });
+  }
+
+  /**
+   * **وطلباتُ خدمةٍ في حالاتها التي لم تُزرع.**
+   *
+   * `AWAITING_SELLER` فحصٌ طلبه **مشترٍ** على مركبةِ غيره فينتظر إذن
+   * صاحبها، و`AWAITING_PAYMENT` أذِن ولم يُدفع، و`DECLINED` رفض.
+   * وثلاثتُها دورةُ «اطلب فحصًا لسيارةٍ تريد شراءها» — وهي الدورة
+   * التي بُني الإذنُ لأجلها، ولم يكن في البيئة صفٌّ واحد منها.
+   */
+  const serviceTargets = await prisma.listing.findMany({
+    where: { status: 'PUBLISHED', serviceRequests: { none: {} } },
+    take: 3,
+    select: { id: true, vehicleId: true, sellerId: true },
+  });
+  const inspection = await prisma.service.findFirst({
+    where: { category: 'PRE_PURCHASE' },
+    select: { id: true, price: true },
+  });
+
+  if (inspection !== null) {
+    const PENDING_STATES = ['AWAITING_SELLER', 'AWAITING_PAYMENT', 'DECLINED'] as const;
+    for (const [index, target] of serviceTargets.entries()) {
+      const state = PENDING_STATES[index];
+      const asker = buyers[index % buyers.length];
+      if (state === undefined || asker === undefined) break;
+      await prisma.serviceRequest.create({
+        data: {
+          ref: `SRV-SEED-${String(index + 1)}`,
+          serviceId: inspection.id,
+          userId: asker.id,
+          vehicleId: target.vehicleId,
+          listingId: target.id,
+          status: state,
+          amount: inspection.price,
+          city: 'الرياض',
+          createdAt: days(-between(1, 6)),
+          ...(state === 'DECLINED' ? { declineReason: 'المركبة محجوزة لمشترٍ آخر.' } : {}),
+        },
+      });
+    }
+  }
+
+  /** **وإعلانٌ محجوزٌ بطلبٍ قائم** — البنرُ عليه يمنع عرضًا جديدًا. */
+  const reservable = await prisma.order.findFirst({
+    where: { status: 'ACTIVE', stage: { in: ['APPROVED', 'INSPECTION', 'PAYMENT'] } },
+    select: { listingId: true },
+  });
+  if (reservable !== null) {
+    await prisma.listing.update({
+      where: { id: reservable.listingId },
+      data: { status: 'RESERVED' },
+    });
+  }
+
+  /**
+   * ═══ وصفقةٌ مكتملة لمعرضٍ مسجَّلٍ ضريبيًّا ═══
+   *
+   * **وبدونها لا تخرج فاتورةٌ واحدة في البيئة.** الطلباتُ المكتملة
+   * تقع حيث يقع ترتيبُ الإعلانات، فوقعت على معرضٍ **قيد الاعتماد**
+   * بلا رقمٍ ضريبيّ — وبائعٌ غيرُ مسجَّل لا تُصدر له فاتورة بحقّ.
+   * فجدولُ الضريبة و`A25` و`D7` تفتح على فراغ، **ولا يكشف الفراغُ
+   * أنّ السببَ بياناتٌ لا شيفرة**.
+   *
+   * فتُزرع صفقةٌ واحدة على بائعٍ مسجَّل: هي الحالُ الأكثر في سوقٍ
+   * أكثرُ بيعه من المعارض.
+   */
+  /**
+   * **وثلاثُ صفقاتٍ لا واحدة**: حالاتُ الفاتورة لدى الهيئة ثلاث
+   * (صدرت · أُبلغت · تعذّر إبلاغها)، وفاتورةٌ واحدةٌ تُبدَّل حالُها
+   * تترك اثنتين بلا صفّ — فتُقرأ الشاشةُ ناقصةً وهي سليمة.
+   *
+   * **والبحثُ عبر كلّ البائعين المسجَّلين لا أوّلِهم**: قصرتُه على
+   * الأوّل فوجد إعلانًا واحدًا بلا طلب، فخرجت فاتورةٌ واحدة وبقيت
+   * حالتان بلا صفّ. **وشرطٌ يضيق عن عدد الحالات يُسقطها صامتًا** —
+   * وهو ثالثُ موضعٍ يقع فيه هذا في الجلسة.
+   */
+  const vatListings = await prisma.listing.findMany({
+    where: {
+      status: 'PUBLISHED',
+      orders: { none: {} },
+      seller: { taxStatus: 'VAT_REGISTERED' },
+    },
+    take: 3,
+    select: { id: true, askPrice: true, sellerId: true },
+  });
+  const vatBuyer = buyers[0];
+
+  for (const [vatIndex, vatListing] of vatListings.entries()) {
+    const vatSeller = { id: vatListing.sellerId };
+    if (vatBuyer === undefined) break;
+    const agreed = new D(String(Math.round(Number(vatListing.askPrice) * 0.96)));
+    const amounts = await computeOrderAmounts(prisma, Number(agreed));
+    const soldAt = days(-between(8, 20));
+
+    const vatOrder = await prisma.order.create({
+      data: {
+        ref: `ORD-2026-11${String(vatIndex).padStart(2, '0')}`,
+        listingId: vatListing.id,
+        buyerId: vatBuyer.id,
+        sellerId: vatSeller.id,
+        /**
+         * **و«اشترِ الآن» مصدرٌ له كاتب** (`buyNow`) ولا صفَّ له —
+         * فشريحةُ المصدر في `A14` تقول صفرًا عن بابٍ مفتوح.
+         */
+        source: vatIndex === 0 ? 'OFFER' : vatIndex === 1 ? 'BUY_NOW' : 'DIRECT',
+        stage: 'DONE',
+        status: 'COMPLETED',
+        agreedPrice: agreed,
+        commissionPct: amounts.commissionPct,
+        commissionAmount: amounts.commissionAmount,
+        buyerCommission: amounts.buyerCommission,
+        sellerCommission: amounts.sellerCommission,
+        buyerVat: amounts.buyerVat,
+        sellerVat: amounts.sellerVat,
+        vatAmount: amounts.vatAmount,
+        transferFee: amounts.transferFee,
+        transferAdminFee: amounts.transferAdminFee,
+        processingFee: amounts.processingFee,
+        totalAmount: amounts.totalAmount,
+        createdAt: soldAt,
+        stageEnteredAt: days(-between(1, 5)),
+      },
+      select: { id: true },
+    });
+
+    /**
+     * **والدفعةُ تُكتب مع الضمان** — `applyState` تُنشئ `Escrow` **من
+     * دفعةٍ محجوزة**، وضمانٌ بلا دفعة يُفرغ `/admin/settlements`:
+     * تقول «لا مبالغ محجوزة» والدفترُ يقول مئتي ألفٍ لدى المزوّد.
+     */
+    await prisma.payment.create({
+      data: {
+        orderId: vatOrder.id,
+        purpose: 'VEHICLE_ESCROW',
+        gatewayKey: 'bank_escrow',
+        amount: amounts.totalAmount,
+        method: 'mada',
+        status: 'SETTLED',
+        holdRef: `hold_seed_vat_${String(vatIndex)}`,
+        settleRef: `stl_seed_vat_${String(vatIndex)}`,
+        settledAmount: amounts.totalAmount,
+        settledAt: days(-1),
+        heldAt: soldAt,
+        createdAt: soldAt,
+      },
+    });
+
+    /** **والضمانُ يُفرَج معها** — فالتسويةُ لا تُصدَر على مالٍ لم يُقبض. */
+    await prisma.escrow.create({
+      data: {
+        orderId: vatOrder.id,
+        amount: amounts.totalAmount,
+        status: 'RELEASED',
+        heldAt: soldAt,
+        releasedAt: days(-1),
+      },
+    });
+    await prisma.listing.update({ where: { id: vatListing.id }, data: { status: 'SOLD' } });
+  }
+
+  /**
+   * ═══ ووثائقُ الطلبات المكتملة تُصدَر بالكاتب نفسِه ═══
+   *
+   * كانت البذرةُ تُنهي طلباتٍ **ولا تُصدر لها وثيقة**: لا كشفَ تسويةٍ
+   * ولا فاتورةَ ضريبية. فتفتح شاشةُ الفواتير (`A25`) ولوحةُ المعرض
+   * (`D7`) على فراغٍ لا يكشف عطلًا فيهما، **وجدولُ الضريبة كلُّه بلا
+   * صفّ** — وهو أهمّ ما يُراجَع قبل الإقرار.
+   *
+   * و`issueSettlementDocuments` هي الكاتبُ الذي يناديه `applyState`
+   * عند الإفراج — لا نسخةٌ منه. فما يخرج هنا هو ما يخرج في الإنتاج،
+   * **بما في ذلك ما يُحجب وسببُه**.
+   */
+  const { issueSettlementDocuments } = await import('../src/lib/domain/documents');
+  const completed = await prisma.order.findMany({
+    where: { status: 'COMPLETED', stage: 'DONE' },
+    select: { id: true, ref: true },
+  });
+
+  /**
+   * **والمحجوبُ يُطبع كما يُطبع المُصدَر.** أحصيتُه أوّلًا ولم أطبعه،
+   * فأمسكه اللينت — وهو محقّ: **عددٌ يُحسب ولا يُقرأ ليس قياسًا**.
+   * والمحجوبُ هنا ليس عطلًا دائمًا: بائعٌ فردٌ غيرُ مسجَّل لا تُصدر
+   * له فاتورةُ قيمةٍ مضافة بحقّ — والرقمُ يقول كم مرّةً وقع ذلك.
+   */
+  const docs = { issued: 0, blocked: 0 };
+  for (const order of completed) {
+    const result = await issueSettlementDocuments(order.id, NOW);
+    docs.issued += result.invoices.length;
+    docs.blocked += result.blocked.length;
+  }
+
+  /**
+   * **وفاتورةٌ أُبلغت وأخرى أُلغيت** — حالتان تُعرضان في `A25` ولم
+   * يكن لهما صفّ. والإلغاءُ **بإشعارٍ دائن** في المنتج، وهنا حالٌ
+   * تُعرض لا دورةٌ تُحاكى.
+   */
+  const invoices = await prisma.taxInvoice.findMany({
+    orderBy: { sequence: 'asc' },
+    select: { id: true },
+  });
+  /**
+   * **والأولى تبقى «صدرت»** — وهي الحالُ التي تفتح عليها كلُّ فاتورةٍ
+   * جديدة. وتبديلُ الجميع يترك الحالَ الأشيع بلا صفّ.
+   */
+  if (invoices[1] !== undefined) {
+    await prisma.taxInvoice.update({
+      where: { id: invoices[1].id },
+      data: { status: 'REPORTED', reportedAt: days(-1) },
+    });
+  }
+  if (invoices[2] !== undefined) {
+    await prisma.taxInvoice.update({
+      where: { id: invoices[2].id },
+      data: { status: 'REPORT_FAILED', reportError: 'تعذر الاتصال ببوابة فاتورة — يعاد الإرسال.' },
+    });
+  }
+
   // ————— سجلّ التدقيق: كل إجراء أدمن يُكتب —————
   await prisma.auditLog.create({
     data: {
@@ -3579,6 +4132,9 @@ async function main(): Promise<void> {
     'تحويل مزود': await prisma.providerPayout.count(),
     'مطابقة بوابة': await prisma.reconciliationRun.count(),
     'حجز تجريبي': await prisma.sandboxTransaction.count(),
+    'فاتورة ضريبية': await prisma.taxInvoice.count(),
+    'توريد محجوب عن الفوترة': docs.blocked,
+    مدينة: await prisma.city.count(),
   };
 
   console.log('');

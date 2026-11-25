@@ -20,6 +20,9 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'dealer.vehicle.import': 'استورد مركبة بالإضافة الجماعية',
   /** يكتبه النظام حين يُقبل أعلى عرضٍ ولا يُنشأ الطلب — والسبب في الحمولة. */
   'auction.order.failed': 'تعذر إنشاء الطلب بعد قبول البائع',
+  'city.create': 'أضاف مدينة',
+  'city.update': 'عدل مدينة',
+  'city.delete': 'حذف مدينة',
   'listing.review.return': 'أعاد إعلانا لصاحبه بملاحظة',
   'listing.review.reject': 'رفض إعلانا وأوقف الحساب',
   'report.review_listing': 'أحال إعلانا إلى المراجعة ببلاغ',

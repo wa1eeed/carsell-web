@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-109 models · 75 enums
+110 models · 75 enums
 
 ## Relationships
 
@@ -579,6 +579,18 @@ Relations: `role` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Bra
 | `attempts` | `Int` |  |
 | `expiresAt` | `DateTime` |  |
 | `consumedAt` | `DateTime?` |  |
+
+### `City`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `nameAr` | `String` | unique |
+| `nameEn` | `String` |  |
+| `slug` | `String` | unique |
+| `region` | `String` |  |
+| `sort` | `Int` |  |
+| `visible` | `Boolean` |  |
 
 ### `Brand`
 

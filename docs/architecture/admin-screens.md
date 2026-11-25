@@ -1,6 +1,6 @@
 # Admin screens
 
-_Last updated: 2026-11-24_
+_Last updated: 2026-11-25_
 
 Generated from `src/components/admin/nav.ts`. Nothing listed the panel's screens
 before 2026-10-19: 45 folders under `src/app/admin` against 39 sidebar entries,
@@ -13,7 +13,7 @@ of a job's position, and how a screen with no sidebar entry is reached. Those
 are written here by hand, and a new row with an empty reason fails the check.
 
 <!-- generated:begin -->
-**45** entries in the sidebar, across 8 groups, against
+**46** entries in the sidebar, across 8 groups, against
 **46** folders under `src/app/admin`.
 
 ### المتابعة
@@ -84,6 +84,7 @@ are written here by hand, and a new row with an empty reason fails the check.
 | الماركات والموديلات | `/admin/catalog/brands` | `catalog.manage` | الماركات والموديلات والفئات التي تبنى منها الإعلانات. |
 | أنواع الهياكل | `/admin/catalog/body-types` | `catalog.manage` | أنواع الهياكل وصورها وترتيب عرضها. |
 | المميزات | `/admin/catalog/features` | `catalog.manage` | المميزات التي يختارها البائع ويرشح بها المشتري. |
+| المدن | `/admin/catalog/cities` | `catalog.manage` | المدن المعروضة في المرشحات ومعالج البيع ومناطقها. |
 | قواعد المزادات | `/admin/auction-settings` | `finance.view` | الحد الأدنى للمزايدة والتمديد التلقائي والعربون. |
 | الأسئلة الشائعة | `/admin/faq` | `notifications.manage` | الأسئلة الشائعة ومواضع ظهورها. |
 | قنوات الدعم | `/admin/contact` | `notifications.manage` | الهاتف والواتساب والبريد الظاهرة في «تواصل معنا». |

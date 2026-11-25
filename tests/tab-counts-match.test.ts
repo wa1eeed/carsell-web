@@ -153,6 +153,8 @@ async function allListingsScreen(): Promise<Screen> {
     ['SOLD', counts.sold],
     ['SUSPENDED', counts.suspended],
     ['DRAFT', counts.draft],
+    /** **وأوقفه بائعُه** — حالٌ لها كاتب (`pauseListing`) ولم تكن لها شريحة. */
+    ['PAUSED', counts.paused],
   ] as const;
 
   const tabs = await Promise.all(

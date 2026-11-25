@@ -1,3 +1,4 @@
+import { cityNames } from '@/lib/domain/cities';
 import { setRequestLocale } from 'next-intl/server';
 import { nafathReady } from '@/lib/identity/nafath';
 import { notFound, redirect } from 'next/navigation';
@@ -7,7 +8,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { routing } from '@/i18n/routing';
-import { CITY_NAMES } from '@/lib/labels/cities';
+
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { profileCompletion } from '@/lib/domain/profile';
 import { ProfileForm } from './ProfileForm';
@@ -98,7 +99,7 @@ export default async function ProfilePage({
               vatNumber: user.vatNumber,
             }}
             missing={completion.missing}
-            cities={CITY_NAMES}
+            cities={await cityNames()}
           />
 
           {/*

@@ -1,3 +1,4 @@
+import { cityNames } from '@/lib/domain/cities';
 import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
@@ -14,7 +15,7 @@ import { currentUserFromCookies } from '@/lib/domain/account';
 import { myVehicles, garageCounts, type VehicleState } from '@/lib/domain/garage';
 import { cityLabel } from '@/lib/labels/cities';
 import { VehicleControls } from '@/components/site/VehicleControls';
-import { CITY_NAMES } from '@/lib/labels/cities';
+
 import { AccountList, AccountRow } from '../AccountList';
 
 export const dynamic = 'force-dynamic';
@@ -81,7 +82,12 @@ export default async function MyVehiclesPage({
   const user = await currentUserFromCookies();
   if (user === null) redirect(`/${locale}/auth`);
 
-  const [vehicles, query] = await Promise.all([myVehicles(user.id, locale), searchParams]);
+  const [vehicles, query, cities] = await Promise.all([
+    myVehicles(user.id, locale),
+    searchParams,
+    /** **وتُجلب مرّةً للصفحة** — لا نداءً لكلّ صفٍّ في القائمة. */
+    cityNames(),
+  ]);
   const counts = garageCounts(vehicles);
 
   /**
@@ -277,7 +283,7 @@ export default async function MyVehiclesPage({
                   mileageKm={vehicle.mileageKm}
                   colorExterior={vehicle.colorExterior}
                   city={vehicle.city}
-                  cities={CITY_NAMES}
+                  cities={cities}
                   canRemove={vehicle.canRemove}
                 />
               </span>

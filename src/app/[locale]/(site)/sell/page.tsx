@@ -1,3 +1,4 @@
+import { cityNames } from '@/lib/domain/cities';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { deadline } from '@/lib/domain/deadlines';
 import { notFound, redirect } from 'next/navigation';
@@ -8,7 +9,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { db } from '@/lib/db';
 import { listSellableBrandOptions, listSellFormFeatures } from '@/lib/domain/catalog-options';
-import { CITY_NAMES } from '@/lib/labels/cities';
+
 import { isFeatureOn } from '@/lib/env';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
@@ -102,7 +103,7 @@ export default async function SellPage({
    *
    * وهي القائمة نفسها التي تقرؤها شاشاتُ الحساب والتسجيل.
    */
-  const cities = CITY_NAMES;
+  const cities = await cityNames();
 
   const medianDays = Math.round(stats._avg.daysToSellMedian ?? 0);
 

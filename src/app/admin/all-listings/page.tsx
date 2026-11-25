@@ -33,6 +33,7 @@ const SEGMENTS = [
   { key: 'SOLD', label: 'مبيعة' },
   { key: 'SUSPENDED', label: 'موقوفة' },
   { key: 'DRAFT', label: 'مسودة' },
+  { key: 'PAUSED', label: 'أوقفها بائعها' },
 ] as const;
 
 const FILTERS: readonly string[] = SEGMENTS.map((row) => row.key);
@@ -45,6 +46,7 @@ const COUNT_OF = {
   SOLD: 'sold',
   SUSPENDED: 'suspended',
   DRAFT: 'draft',
+  PAUSED: 'paused',
 } as const;
 
 

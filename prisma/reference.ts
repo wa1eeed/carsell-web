@@ -238,13 +238,26 @@ export const FROM_2020_FEATURE = 'rear_camera';
  * أنواعُ الهياكل — جدولُ **عرض** لا كيانات. المفاتيحُ من `BodyType`
  * نفسِه، فلا مرجعَ جديد ينحرف عن التعداد.
  */
+/**
+ * ═══ وصفٌّ لكلّ قيمةٍ في `BodyType` — لا لستٍّ من ثمانٍ ═══
+ *
+ * كانت ستًّا، **و`CROSSOVER` و`CONVERTIBLE` بلا صفّ**. والجدولُ جدولُ
+ * عرضٍ لا كيانات: ما لا صفَّ له **لا يظهر في صفّ الهياكل بالرئيسية
+ * ولا يُرشَّح به** — فمركبةٌ كروس أوفر معروضةٌ ولا بابَ يصلها، وهي
+ * من أكثر الأشكال بيعًا.
+ *
+ * ولم يظهر حتى اتّسع الكتالوج فدخلت مركباتٌ بهما: **ما لا يُزرع لا
+ * يُرى**، وهنا ما لم يُزرع كان القيمةَ نفسَها.
+ */
 const BODY_TYPES = [
   { key: 'SEDAN', nameAr: 'سيدان', nameEn: 'Sedan', sort: 1 },
   { key: 'SUV', nameAr: 'دفع رباعي', nameEn: 'SUV', sort: 2 },
-  { key: 'PICKUP', nameAr: 'بيك أب', nameEn: 'Pickup', sort: 3 },
-  { key: 'HATCHBACK', nameAr: 'هاتشباك', nameEn: 'Hatchback', sort: 4 },
-  { key: 'COUPE', nameAr: 'كوبيه', nameEn: 'Coupe', sort: 5 },
-  { key: 'VAN', nameAr: 'فان', nameEn: 'Van', sort: 6 },
+  { key: 'CROSSOVER', nameAr: 'كروس أوفر', nameEn: 'Crossover', sort: 3 },
+  { key: 'PICKUP', nameAr: 'بيك أب', nameEn: 'Pickup', sort: 4 },
+  { key: 'HATCHBACK', nameAr: 'هاتشباك', nameEn: 'Hatchback', sort: 5 },
+  { key: 'COUPE', nameAr: 'كوبيه', nameEn: 'Coupe', sort: 6 },
+  { key: 'CONVERTIBLE', nameAr: 'مكشوفة', nameEn: 'Convertible', sort: 7 },
+  { key: 'VAN', nameAr: 'فان', nameEn: 'Van', sort: 8 },
 ] as const;
 
 /** الخصائصُ التي تقرؤها الشيفرة بالاسم — والباقةُ تحمل قيمتَها. */
@@ -419,6 +432,7 @@ export async function plantReference(
   });
   note('نوع هيكل', bodyTypes.count);
 
+  await plantCities(prisma, note);
   const trims = await plantCatalogue(prisma, note);
 
   // ═══ الضريبة — وبلا قاعدةٍ لا فاتورة تصدر ═══
@@ -688,6 +702,38 @@ export async function plantReference(
  * فالغائبُ منها نقصٌ حقيقيّ يُزرع — وقالبٌ ناقص يعرض مفتاحه الخام
  * في جرس المستخدم.
  */
+/**
+ * ═══ المدن — قائمةُ اختيارٍ لا علاقةٌ مرجعية ═══
+ *
+ * `Vehicle.city` و`Listing.city` نصّان، وهذه قائمةُ ما يُعرض في
+ * المرشّحات ومعالج البيع ومنه يُشتقّ مقطعُ العنوان.
+ *
+ * **ويُدرج ولا يُحدِّث** كسائر المرجعيّ: المشغّل يُخفي مدينةً أو
+ * يُصحّح اسمَها الإنجليزيّ من اللوحة، ومُمهِّدٌ يكتب فوقه يمحو عملَه
+ * في أوّل نشر.
+ */
+async function plantCities(
+  prisma: PrismaClient,
+  note: (key: string, n: number) => void,
+): Promise<void> {
+  const cities = load<{
+    nameAr: string;
+    nameEn: string;
+    slug: string;
+    region: string;
+    sort: number;
+  }[]>('cities.json');
+
+  const existing = new Set(
+    (await prisma.city.findMany({ select: { nameAr: true } })).map((row) => row.nameAr),
+  );
+  const fresh = cities.filter((city) => !existing.has(city.nameAr));
+  if (fresh.length === 0) return;
+
+  const written = await prisma.city.createMany({ data: fresh, skipDuplicates: true });
+  note('مدينة', written.count);
+}
+
 async function plantCatalogue(
   prisma: PrismaClient,
   note: (key: string, n: number) => void,

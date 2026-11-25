@@ -1380,6 +1380,42 @@
         }
       }
     },
+    "/api/v1/admin/cities": {
+      "post": {
+        "summary": "POST /api/v1/admin/cities",
+        "tags": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/admin/cities",
+        "tags": [
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/commission": {
       "put": {
         "summary": "PUT /api/v1/admin/commission",

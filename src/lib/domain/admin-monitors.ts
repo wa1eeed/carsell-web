@@ -77,6 +77,8 @@ export type ListingCounts = {
    * من «الكل». والصنف نفسه أُصلح في `REFUNDED` بطلبات الخدمة.
    */
   draft: number;
+  /** أوقفه بائعُه مؤقّتًا — ويعود بضغطة. */
+  paused: number;
   /** نصيب المنشور من الإجمالي — والانخفاض يعني طابورًا أو إيقافات */
   activeSharePct: number;
   /** نصيبُ المباع من الجرد كلِّه — وهو ما يقيس السوق لا العدد وحده */
@@ -213,6 +215,13 @@ export async function listingCounts(): Promise<ListingCounts> {
     sold: at('SOLD'),
     suspended: at('SUSPENDED'),
     draft: at('DRAFT'),
+    /**
+     * **وأوقفه صاحبُه** — غيرُ `SUSPENDED` التي يوقعها الأدمن.
+     * والزائرُ لا يرى الإعلان في الحالين، **والمشغّل لم يكن يراه في
+     * واحدةٍ منهما**: لا شريحةَ له في «كل الإعلانات»، فيسقط من
+     * المجموع ولا يُفتح من مكان. وكشفَه زرعُ الحال.
+     */
+    paused: at('PAUSED'),
     activeSharePct: total === 0 ? 0 : Math.round((published / total) * 100),
     soldSharePct: total === 0 ? 0 : Math.round((at('SOLD') / total) * 100),
     avgDaysToSell:
