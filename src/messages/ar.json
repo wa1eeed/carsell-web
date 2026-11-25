@@ -401,6 +401,11 @@
     "openRequests": "{count, plural, zero{لا قائم} one{قائم واحد} two{قائمان} few{{n} قائمة} many{{n} قائما} other{{n} قائم}}",
     "bidders": "{count, plural, zero{لا مزايدين} one{مزايد واحد} two{مزايدان} few{{n} مزايدين} many{{n} مزايدا} other{{n} مزايد}}",
     "biddersLabel": "{count, plural, zero{المزايدون} one{المزايد} two{المزايدان} few{المزايدون} many{المزايدون} other{المزايدون}}",
+    "inspectedOk": "{count, plural, zero{بنود سليمة} one{بند سليم} two{بندان سليمان} few{بنود سليمة} many{بندا سليما} other{بند سليم}}",
+    "inspectedFlagged": "{count, plural, zero{بنود عليها ملاحظات} one{بند عليه ملاحظة} two{بندان عليهما ملاحظات} few{بنود عليها ملاحظات} many{بندا عليه ملاحظة} other{بند عليه ملاحظة}}",
+    "inspectedNone": "{count, plural, zero{بنود غير مفحوصة} one{بند غير مفحوص} two{بندان غير مفحوصين} few{بنود غير مفحوصة} many{بندا غير مفحوص} other{بند غير مفحوص}}",
+    "stageOrders": "{count, plural, zero{طلبات في المرحلة} one{طلب في المرحلة} two{طلبان في المرحلة} few{طلبات في المرحلة} many{طلبا في المرحلة} other{طلب في المرحلة}}",
+    "dealerSales": "{count, plural, zero{مبيعات مكتملة} one{مبيعة مكتملة} two{مبيعتان مكتملتان} few{مبيعات مكتملة} many{مبيعة مكتملة} other{مبيعة مكتملة}}",
     "watchers": "{count, plural, zero{لا أحد يتابعه} one{يتابعه واحد} two{يتابعه اثنان} few{{n} يتابعون} many{{n} يتابعون} other{{n} يتابعون}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
     "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يوما} other{{n} يوم}}",
@@ -1319,7 +1324,6 @@
     "verified": "معرض موثق",
     "joined": "على المنصة منذ",
     "listed": "معروضة الآن",
-    "sold": "مبيعة مكتملة",
     "responseRate": "معدل الرد",
     "responseTime": "متوسط زمن الرد",
     "onPlatform": "في كارز",
@@ -1385,7 +1389,8 @@
     "basedOnDeals": "{count, plural, zero{بلا صفقات} one{مبني على صفقة واحدة} two{مبني على صفقتين} few{مبني على {n} صفقات} many{مبني على {n} صفقة} other{مبني على {n} صفقة}}",
     "ofIntegrations": "{count, plural, zero{لا تكامل أدخلت كلفته} one{تكامل واحد أدخلت كلفته} two{تكاملان أدخلت كلفتهما} few{{n} تكاملات أدخلت كلفتها} many{{n} تكاملا أدخلت كلفته} other{{n} تكامل أدخلت كلفته}}",
     "withinDays": "{count, plural, zero{اليوم} one{خلال يوم} two{خلال يومين} few{خلال {n} أيام} many{خلال {n} يوما} other{خلال {n} يوم}}",
-    "ordersThisMonth": "{count, plural, zero{لا طلبات هذا الشهر} one{طلب واحد هذا الشهر} two{طلبان هذا الشهر} few{{n} طلبات هذا الشهر} many{{n} طلبا هذا الشهر} other{{n} طلب هذا الشهر}}"
+    "ordersThisMonth": "{count, plural, zero{لا طلبات هذا الشهر} one{طلب واحد هذا الشهر} two{طلبان هذا الشهر} few{{n} طلبات هذا الشهر} many{{n} طلبا هذا الشهر} other{{n} طلب هذا الشهر}}",
+    "openServices": "{count, plural, zero{لا خدمات قائمة} one{خدمة قائمة} two{خدمتان قائمتان} few{{n} خدمات قائمة} many{{n} خدمة قائمة} other{{n} خدمة قائمة}}"
   },
   "notificationCenter": {
     "title": "الإشعارات",

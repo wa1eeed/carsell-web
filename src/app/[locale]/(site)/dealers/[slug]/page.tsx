@@ -170,7 +170,9 @@ export default async function DealerPage({
                   <dd className="text-2xl font-bold">
                     <ArabicNumber value={dealer.soldCount} />
                   </dd>
-                  <dt className="text-2xs opacity-70">{t('sold')}</dt>
+                  <dt className="text-2xs opacity-70">
+                    <Quantity unit="dealerSales" count={dealer.soldCount} />
+                  </dt>
                 </div>
                 {dealer.responses === null ? null : (
                   <>

@@ -16,6 +16,8 @@ import {
 
 const ROOT = process.cwd();
 const REGISTER = join(ROOT, 'docs/architecture/editability.md');
+/** نسخةُ القياس — تُكسر هي، والمتعقَّب لا يُمسّ. */
+const SCRATCH = join(mkdtempSync(join(tmpdir(), 'editability-')), 'editability.md');
 
 /**
  * **والاختبارُ يقرأ قائمةَ البوابة لا نسخةً منها.** صار للسجلّ
@@ -66,10 +68,14 @@ describe('سجل ما لا يُعدَّل', () => {
    */
   it('والبوابة ٦٣ ترد الحذف والزيادة معا', () => {
     const original = readFileSync(REGISTER, 'utf8');
-    const run = (): string => {
+    const run = (text: string): string => {
+      writeFileSync(SCRATCH, text, 'utf8');
       try {
         execFileSync('node', ['scripts/check-tokens.mjs'], {
-          cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+          cwd: ROOT,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...process.env, EDITABILITY_REGISTER: SCRATCH },
         });
         return '';
       } catch (error) {
@@ -91,21 +97,18 @@ describe('سجل ما لا يُعدَّل', () => {
     expect(anchor, 'لا صفَّ في السجلّ — الفحص بلا مرساة').toBeDefined();
     if (anchor === undefined) return;
 
-    try {
-      /** حذفُ مذكور ⇒ «لا يُنشئه المنتج ولا يعدّله». */
-      const removed = original.replace(anchor, `${anchor.slice(0, -1)}X |`);
-      expect(removed).not.toBe(original);
-      writeFileSync(REGISTER, removed, 'utf8');
-      expect(run()).toContain(anchor.replaceAll('`', '').replaceAll('|', '').trim());
+    /** حذفُ مذكور ⇒ «لا يُنشئه المنتج ولا يعدّله». */
+    const removed = original.replace(anchor, `${anchor.slice(0, -1)}X |`);
+    expect(removed).not.toBe(original);
+    expect(run(removed)).toContain(anchor.replaceAll('`', '').replaceAll('|', '').trim());
 
-      /** وإعلانُ ما له محرّرٌ ⇒ «يُرفع من السجلّ». */
-      const added = original.replace(anchor, `| \`Listing\` | سببٌ للقياس وحده |\n${anchor}`);
-      expect(added).not.toBe(original);
-      writeFileSync(REGISTER, added, 'utf8');
-      expect(run()).toContain('Listing');
-    } finally {
-      writeFileSync(REGISTER, original, 'utf8');
-    }
+    /** وإعلانُ ما له محرّرٌ ⇒ «يُرفع من السجلّ». */
+    const added = original.replace(anchor, `| \`Listing\` | سببٌ للقياس وحده |\n${anchor}`);
+    expect(added).not.toBe(original);
+    expect(run(added)).toContain('Listing');
+
+    /** وسلامةُ المتعقَّب شرطٌ لا أثرٌ جانبيّ. */
+    expect(readFileSync(REGISTER, 'utf8')).toBe(original);
   }, 90_000);
 
   /**
@@ -144,10 +147,14 @@ describe('سجل ما لا يُعدَّل', () => {
    */
   it('والبوابة ٦٤ ترد إعلان ما له قارئ', () => {
     const original = readFileSync(REGISTER, 'utf8');
-    const run = (): string => {
+    const run = (text: string): string => {
+      writeFileSync(SCRATCH, text, 'utf8');
       try {
         execFileSync('node', ['scripts/check-tokens.mjs'], {
-          cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+          cwd: ROOT,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...process.env, EDITABILITY_REGISTER: SCRATCH },
         });
         return '';
       } catch (error) {
@@ -155,16 +162,13 @@ describe('سجل ما لا يُعدَّل', () => {
       }
     };
 
-    try {
-      writeFileSync(
-        REGISTER,
-        original.replace(READER_SECTION, `${READER_SECTION}\n\n| Model | Why |\n|---|---|\n| \`Listing\` | سببٌ للقياس وحده |`),
-        'utf8',
-      );
-      expect(run()).toContain('Listing');
-    } finally {
-      writeFileSync(REGISTER, original, 'utf8');
-    }
+    const added = original.replace(
+      READER_SECTION,
+      `${READER_SECTION}\n\n| Model | Why |\n|---|---|\n| \`Listing\` | سببٌ للقياس وحده |`,
+    );
+    expect(added).not.toBe(original);
+    expect(run(added)).toContain('Listing');
+    expect(readFileSync(REGISTER, 'utf8')).toBe(original);
   }, 90_000);
 
   /**

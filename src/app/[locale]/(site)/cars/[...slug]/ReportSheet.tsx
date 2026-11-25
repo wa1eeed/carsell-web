@@ -222,21 +222,27 @@ export function ReportSheet({
             <span className="n">
               <ArabicNumber value={counts.ok} />
             </span>
-            <span className="t">بندا سليما</span>
+            <span className="t">
+                  <Quantity unit="inspectedOk" count={counts.ok} />
+                </span>
           </li>
           <li>
             <span className={`mark note`}>!</span>
             <span className="n">
               <ArabicNumber value={counts.flagged} />
             </span>
-            <span className="t">عليه ملاحظة</span>
+            <span className="t">
+                  <Quantity unit="inspectedFlagged" count={counts.flagged} />
+                </span>
           </li>
           <li>
             <span className={`mark none`}>–</span>
             <span className="n">
               <ArabicNumber value={counts.none} />
             </span>
-            <span className="t">لم يفحص</span>
+            <span className="t">
+                  <Quantity unit="inspectedNone" count={counts.none} />
+                </span>
           </li>
           <li className="total">
             <span className="n">

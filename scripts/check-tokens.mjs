@@ -3959,8 +3959,26 @@ function checkDocPathsExist() {
  * **والسجلُّ يُفحص في الاتّجاهين**: نموذجٌ فقد محرّرَه يجب أن يُضاف،
  * ونموذجٌ كسبه يجب أن يُحذف — وإلّا صار السجلُّ نفسُه وثيقةً تكذب.
  */
+/**
+ * ═══ ومسارُ السجلّ يُستبدَل في الفحص وحده ═══
+ *
+ * اختبارُ البوابتين يقيسهما **بكسرِ ما تحرسانه**، فكان يكتب في الملفّ
+ * المتعقَّب ويستعيده في `finally` — و`finally` لا يقع إن قُتل التشغيل.
+ * فبقي في السجلّ صفُّ «`Listing` — سببٌ للقياس وحده» بعد تشغيلٍ
+ * مقطوع، و`Listing` يكتبه المنتج في عشرة مواضع: **سجلٌّ يكذب تقرؤه
+ * بوابةٌ أخرى**، وكِدتُ ألتزم به مع `git add -A`.
+ *
+ * فالمسار من البيئة، ويكتب الاختبارُ نسخةً مؤقّتة — ولا يُمسّ المتعقَّب.
+ */
+function editabilityRegisterPath() {
+  const override = process.env.EDITABILITY_REGISTER;
+  return override === undefined || override === ''
+    ? join(ROOT, 'docs', 'architecture', 'editability.md')
+    : override;
+}
+
 function checkEditabilityRegister() {
-  const register = join(ROOT, 'docs', 'architecture', 'editability.md');
+  const register = editabilityRegisterPath();
   if (!existsSync(register)) {
     problems.push('docs/architecture/editability.md  مفقود — والبوابة ٦٣ تقرؤه');
     return;
@@ -4016,7 +4034,7 @@ checkEditabilityRegister();
  * **ويُفحص في الاتّجاهين** كأخته: نموذجٌ كسب قارئًا يُرفع من السجلّ.
  */
 function checkReaderRegister() {
-  const register = join(ROOT, 'docs', 'architecture', 'editability.md');
+  const register = editabilityRegisterPath();
   if (!existsSync(register)) return; // البوابة ٦٣ أبلغت عنه
 
   const text = readFileSync(register, 'utf8');

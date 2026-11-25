@@ -123,7 +123,9 @@ export async function OpsTab() {
               <p className="mb-1 text-3xl font-bold">
                 <ArabicNumber value={metric.count} />
               </p>
-              <p className="mb-3.5 text-3xs opacity-65">طلبا في المرحلة</p>
+              <p className="mb-3.5 text-3xs opacity-65">
+                  <Quantity unit="stageOrders" count={metric.count} />
+                </p>
 
               {/* المتوسّط مقابل الهدف — الشريط يتجاوز حدّه فيُقرأ التجاوز */}
               <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-ink/10">

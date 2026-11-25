@@ -134,7 +134,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 1 |
 | `ActionLink` | no | `href` · `children` · `className` | 5 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 130 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 129 |
 | `AuctionRail` | no | `auctions` · `className` | 3 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 116 |
 | `InspectedBadge` | no | `className` | 3 |
@@ -149,7 +149,7 @@ rather than found by chance.
 | `ChoiceGroup` | yes | `label` · `hint` · `value` · `options` · `onChange` · `className` | 1 |
 | `CompletionRecord` | no | `title` · `rows` | 2 |
 | `Countdown` | yes | `endsAt` · `tone` · `format` · `onEnd` · `className` | 11 |
-| `Counted` | yes | `message` · `count` · `className` | 8 |
+| `Counted` | yes | `message` · `count` · `className` | 9 |
 | `DataTable` | yes | — | 11 |
 | `Duration` | no | `count` | 18 |
 | `EmptyState` | no | `title` · `description` · `action` · `className` | 40 |

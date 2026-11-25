@@ -7,8 +7,8 @@ import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/Badge';
 import { FilterChip } from '@/components/ui/FilterChip';
 import { LinkButton } from '@/components/ui/Button';
+import { Counted } from '@/components/ui/Counted';
 import { Quantity } from '@/components/ui/Quantity';
-import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { routing } from '@/i18n/routing';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { myVehicles, garageCounts, type VehicleState } from '@/lib/domain/garage';
@@ -233,8 +233,7 @@ export default async function MyVehiclesPage({
                   <>
                     <span aria-hidden className="opacity-40">·</span>
                     <span className="flex items-center gap-1.5 text-warn-900">
-                      <ArabicNumber value={vehicle.openServices} />
-                      <span>خدمة قائمة</span>
+                      <Counted message="openServices" count={vehicle.openServices} />
                     </span>
                   </>
                 )}
