@@ -166,6 +166,28 @@ export function FindingsTable({
   const isOpen = (section: InspectionSection): boolean =>
     toggled[section.key] ?? hasFindings(section);
 
+  /**
+   * ═══ وما عليه ملاحظةٌ يُقدَّم جدولًا ═══
+   *
+   * ترميزُ `Wd` يقود بجدولٍ من ثلاثة بنود — «البند · الحالة · ملاحظة
+   * الفاحص» — وتحته «اعرض ٢٠٧ بنود سليمة». وكانت شاشتُنا تعرض الشيء
+   * نفسَه **مدفونًا في ثماني طيّات**: من أراد العيوب الثلاثة فتَح
+   * الأقسام وبحث.
+   *
+   * **ومن يفتح هذه الصفحة يسأل «ما العيب؟»** لا «أرِني مئتي بندٍ
+   * سليم». فالجدولُ أوّلًا، والطيّاتُ خلف زرّها — وهي تفصيلُنا الذي
+   * لا يرسمه الترميز، فلا يُحذف بل يُؤخَّر.
+   *
+   * ويحمل كلُّ صفٍّ اسمَ قسمه: «مساعد أمامي أيسر» وحدَه لا يقول أين
+   * هو من المركبة، والجدولُ المسطَّح يفقد ما تقوله الطيّة بموضعها.
+   */
+  const findings = sections.flatMap((section) =>
+    section.points
+      .filter((point) => point.state !== 'OK' && point.state !== 'NOT_INSPECTED')
+      .map((point) => ({ point, section: section.name })),
+  );
+  const [showSound, setShowSound] = useState(false);
+
   const allOpen = sections.every((section) => isOpen(section));
   const toggleAll = (): void => {
     const next: Record<string, boolean> = {};
@@ -191,9 +213,11 @@ export function FindingsTable({
           </span>
         </h2>
         <span className="h-px flex-1 bg-line" />
-        <ActionButton onClick={toggleAll}>
-          {allOpen ? t('collapseAll') : t('expandAll')}
-        </ActionButton>
+        {findings.length === 0 || showSound ? (
+          <ActionButton onClick={toggleAll}>
+            {allOpen ? t('collapseAll') : t('expandAll')}
+          </ActionButton>
+        ) : null}
       </header>
 
       {/*
@@ -213,7 +237,69 @@ export function FindingsTable({
         />
       </ul>
 
-      <ul className="flex flex-col gap-2.5">
+      {findings.length === 0 ? null : (
+        <div className="mb-6">
+          <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h3 className="text-sm font-bold">{t('flaggedPoints')}</h3>
+            {/*
+              **والنسبةُ تُقرأ بلا قسمة**: «٤» وحدَها لا تقول أكثيرٌ هي
+              أم قليل، و«٤ من ٢١٠» تقولها في نظرة.
+            */}
+            <span className="flex items-center gap-1.5 text-3xs opacity-70">
+              <ArabicNumber value={findings.length} />
+              <span>{t('ofPointsTotal', { total: '' })}</span>
+              <ArabicNumber value={points.length} />
+            </span>
+          </div>
+
+          <div className="no-scrollbar overflow-x-auto rounded-xl border border-line">
+            <table className="w-full min-w-md border-collapse text-2xs">
+              <thead>
+                <tr className="border-b border-line bg-surface text-3xs opacity-70">
+                  <th className="p-3 text-start font-bold">{t('colPoint')}</th>
+                  <th className="p-3 text-start font-bold">{t('colState')}</th>
+                  <th className="p-3 text-start font-bold">{t('colNote')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {findings.map(({ point, section }) => (
+                  <tr key={`${section}-${point.label}`} className="border-b border-line-2 last:border-b-0">
+                    <td className="p-3">
+                      <span className="block font-bold">{point.label}</span>
+                      <span className="block text-3xs opacity-65">{section}</span>
+                    </td>
+                    <td className="p-3">
+                      <span className="flex items-center gap-1.5">
+                        <StateMark state={point.state} />
+                        <span>{t(`state.${point.state}`)}</span>
+                      </span>
+                    </td>
+                    {/*
+                      **والخانةُ الفارغة تُقال شَرطةً.** بندٌ عليه ملاحظة
+                      بلا نصٍّ يترك فراغًا يُقرأ «لم يُحمَّل بعد».
+                    */}
+                    <td className="p-3 leading-loose opacity-80">
+                      {point.note === null || point.note === '' ? (
+                        <span aria-hidden className="opacity-50">—</span>
+                      ) : (
+                        point.note
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3">
+            <ActionButton onClick={() => setShowSound((current) => !current)}>
+              {showSound ? t('hideSoundPoints') : t('showSoundPoints')}
+            </ActionButton>
+          </div>
+        </div>
+      )}
+
+      <ul className={cn('flex flex-col gap-2.5', findings.length > 0 && !showSound && 'hidden')}>
         {sections.map((section) => {
           const open = isOpen(section);
           const sound = section.points.filter((point) => point.state === 'OK').length;

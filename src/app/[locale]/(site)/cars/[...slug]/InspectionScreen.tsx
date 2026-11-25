@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { ShareListing } from '@/components/site/ShareListing';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
 import { LinkButton } from '@/components/ui/Button';
@@ -29,6 +30,7 @@ export function InspectionScreen({
   expired,
   diagram,
   formatted,
+  shareUrl,
 }: {
   report: PublicInspectionReport;
   expired: boolean;
@@ -36,6 +38,12 @@ export function InspectionScreen({
   diagram: string | null;
   /** التواريخ تُصاغ على الخادم — لا اختلاف بين ما يُقدَّم وما يُروى. */
   formatted: { inspectedAt: string; validUntil: string };
+  /**
+   * عنوانُ التقرير **مطلقًا من الخادم** — وبناؤه من `window.location`
+   * يُرسل عنوان بيئةٍ لا عنوان المنصّة، فيصل الرابطُ إلى من لا يملك
+   * الدخول إليها. (قاعدةٌ مكتوبةٌ في `ShareListing`.)
+   */
+  shareUrl: string;
 }) {
   const t = useTranslations('ui');
 
@@ -133,6 +141,18 @@ export function InspectionScreen({
               {t('downloadPdf')}
             </LinkButton>
           )}
+          {/*
+            **ومشاركةُ التقرير غيرُ تحميله.** الترميز يضعهما معًا:
+            المشتري يُري التقريرَ ميكانيكيًّا يثق به قبل أن يدفع، وملفٌّ
+            يُنزَّل ثمّ يُرسَل يدويًّا ثلاثُ خطواتٍ بدل واحدة.
+          */}
+          <ShareListing
+            title={report.vehicle.title}
+            year={report.vehicle.year}
+            url={shareUrl}
+            label={t('shareReport')}
+            className="justify-center"
+          />
           {report.listing === null ? null : (
             <LinkButton href={report.listing.path} variant="outline" className="w-full">
               {t('backToListing')}

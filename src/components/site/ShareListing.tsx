@@ -29,6 +29,7 @@ export function ShareListing({
   title,
   year,
   url,
+  label,
   className,
 }: {
   /** عنوانُ المركبة — يُرسَل مع الرابط فيُقرأ قبل أن يُفتح. */
@@ -47,6 +48,12 @@ export function ShareListing({
    * نسخةٍ تجريبية — فيصل الرابط إلى من لا يملك الدخول إليها.
    */
   url: string;
+  /**
+   * اسمُ ما يُشارَك — «مشاركة» افتراضًا، و«مشاركة التقرير» في `Wd`.
+   * **وزرٌّ اسمُه «مشاركة» في صفحة تقرير يُقرأ «شارك الإعلان»**، فمن
+   * ضغطه أرسل ما لم يقصد.
+   */
+  label?: string;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -81,7 +88,7 @@ export function ShareListing({
       <button
         type="button"
         onClick={share}
-        aria-label="شارك الإعلان"
+        aria-label={label ?? 'شارك الإعلان'}
         className="flex h-11 items-center gap-2 rounded-btn border border-line px-3.5 text-3xs font-bold transition-colors hover:border-ink"
       >
         <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -90,7 +97,7 @@ export function ShareListing({
           <circle cx="18" cy="19" r="3" />
           <path d="M8.6 10.6 15.4 6.4M8.6 13.4l6.8 4.2" />
         </svg>
-        {copied ? 'نسخ الرابط' : 'مشاركة'}
+        {copied ? 'نسخ الرابط' : (label ?? 'مشاركة')}
       </button>
 
       {/*

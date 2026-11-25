@@ -285,6 +285,7 @@ async function inspectionView(resolved: Awaited<ReturnType<typeof resolve>>) {
         report={report}
         expired={expired}
         diagram={diagram}
+        shareUrl={`${SITE_URL.replace(/\/$/, '')}${resolved.canonical.path}/inspection`}
         formatted={{
           inspectedAt: dateFormat.format(inspected),
           validUntil: dateFormat.format(new Date(report.validUntil)),
