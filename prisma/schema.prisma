@@ -132,6 +132,7 @@ model User {
   listings        Listing[]
   offers          Offer[]
   bids            Bid[]
+  cancelledBids   CancelledBid[]
   deposits        Deposit[]
   ordersAsBuyer   Order[]          @relation("OrderBuyer")
   ordersAsSeller  Order[]          @relation("OrderSeller")
@@ -197,6 +198,7 @@ model AdminUser {
 
   sessions      AdminSession[]
   financeInputs FinanceInput[]
+  cancelledBids CancelledBid[]
 }
 
 /// جلسات الأدمن — تُبطَل بتغيير الكلمة أو الدور، ولا تُشارك جلسة المستخدم.
@@ -949,6 +951,7 @@ model Auction {
 
   listing  Listing   @relation(fields: [listingId], references: [id], onDelete: Restrict)
   bids     Bid[]
+  cancelledBids CancelledBid[]
   events   AuctionEvent[]
   deposits Deposit[]
 
@@ -981,11 +984,13 @@ model AuctionEvent {
   @@index([auctionId, createdAt])
 }
 
-/// ولا قيمةَ هنا بلا كاتب — والإلغاء قاعدةُ عملٍ لم تُقرَّر بعد،
-/// فلا تُعرَّف قيمتُه قبل أن يُعرَف من يملكه وبأيّ سبب.
 enum AuctionEventKind {
   /// مُدّد وقت الإغلاق لأنّ مزايدةً وقعت داخل نافذة الإغلاق.
   EXTENDED
+
+  /// أُلغيت مزايدة — قرار المالك ٢٠٢٦-١١-٢٥: للأدمن وحده وبسببٍ مكتوب.
+  /// (كُتب هنا قبلها «لا قيمةَ بلا كاتب»، فصار لها كاتب.)
+  BID_CANCELLED
 }
 
 model Bid {
@@ -996,10 +1001,49 @@ model Bid {
   isAuto    Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  /// سقفُ النيابة — «زايد عنّي حتى كذا». **سرّيٌّ كالاحتياطي**
+  /// (قرار ٢٩): لا يخرج في استجابة عامّة ولا يراه غيرُ صاحبه، وإلّا
+  /// زايد خصمُه إلى ما دونه بريال.
+  ///
+  /// و`isAuto` ترفعها المزايدةُ التي ينوب بها النظام، لا التي يكتب
+  /// فيها صاحبُها سقفًا.
+  maxAmount Decimal? @db.Decimal(12, 2)
+
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Restrict)
   bidder  User    @relation(fields: [bidderId], references: [id], onDelete: Restrict)
 
   @@index([auctionId, amount])
+}
+
+/// ═══ المزايدةُ المُلغاة تخرج من `Bid` ولا تحمل عَلَمًا ═══
+///
+/// ثمانيةٌ وثلاثون موضعًا في `src/` تقرأ المزايدات: أعلى سعر، وعدد
+/// المزايدين، وحدُّ المزايدة التالية، ولوحةُ الأدمن، والتقارير.
+/// **وعَلَمٌ على `Bid` يُلزم ثمانيةً وثلاثين قارئًا بتذكّر مرشّحه** —
+/// ومنسيٌّ واحد يعرض سعرًا أُلغي على أنه السعر. وهو صنفٌ وقع في هذا
+/// المستودع مرارًا.
+///
+/// فالصفُّ **ينتقل**: كلُّ قارئٍ قائمٍ يبقى صحيحًا بلا تعديل، ومن
+/// أراد المُلغاة طلبها صراحةً — وهي شاشةُ السجلّ وحدها، إذ يرسمها
+/// الترميز «ملغاة · إخلال بالشروط» بسببها.
+model CancelledBid {
+  id            String   @id @default(cuid())
+  auctionId     String
+  bidderId      String
+  amount        Decimal  @db.Decimal(12, 2)
+  isAuto        Boolean  @default(false)
+  /// وقتُ المزايدة الأصليّ — فالسجلّ يرتّبها في موضعها لا في موضع إلغائها.
+  placedAt      DateTime
+  cancelledAt   DateTime @default(now())
+  cancelledById String
+  /// السببُ مكتوبٌ لا مختار: الترميز يعرضه للزائر («إخلال بالشروط»).
+  reason        String
+
+  auction     Auction   @relation(fields: [auctionId], references: [id], onDelete: Restrict)
+  bidder      User      @relation(fields: [bidderId], references: [id], onDelete: Restrict)
+  cancelledBy AdminUser @relation(fields: [cancelledById], references: [id], onDelete: Restrict)
+
+  @@index([auctionId, placedAt])
 }
 
 model Deposit {

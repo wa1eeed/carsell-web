@@ -24,7 +24,7 @@ export const PERMISSION_MODULES: readonly {
 }[] = [
   {
     title: 'التشغيل',
-    permissions: ['dashboard.view', 'orders.view', 'orders.changeStage', 'listings.review', 'reports.handle'],
+    permissions: ['dashboard.view', 'orders.view', 'orders.changeStage', 'listings.review', 'reports.handle', 'bids.cancel'],
   },
   {
     title: 'المال والضمان',
@@ -56,6 +56,7 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   'orders.view': 'الطلبات',
   'orders.changeStage': 'تغيير مرحلة الطلب',
   'listings.review': 'مراجعة الإعلانات',
+  'bids.cancel': 'إلغاء مزايدة',
   'reports.handle': 'معالجة البلاغات',
 
   'finance.view': 'المدفوعات والضمان',

@@ -13,13 +13,24 @@ const Body = z.object({
    * ومن حُجز عربونُه سلفًا لا يُطالَب بها ثانيةً.
    */
   method: z.string().min(2).max(24).optional(),
-  returnUrl: z.string().url().max(500).optional(), amount: z.number().int().positive().max(100_000_000) });
+  returnUrl: z.string().url().max(500).optional(),
+  amount: z.number().int().positive().max(100_000_000),
+  /**
+   * سقفُ النيابة (القاعدة ١١) — «زايد عنّي حتى كذا». اختياريّ:
+   * غيابُه مزايدةٌ يدويّةٌ كما كانت.
+   */
+  maxAmount: z.number().int().positive().max(100_000_000).optional(),
+});
 
 const MESSAGES: Record<string, { ar: string; en: string }> = {
   NOT_LIVE: { ar: 'المزاد لم يبدأ بعد.', en: 'This auction is not live yet.' },
   ENDED: { ar: 'انتهى المزاد.', en: 'This auction has ended.' },
   OWN_AUCTION: { ar: 'لا تزايد على مركبتك.', en: 'You cannot bid on your own vehicle.' },
   BELOW_MINIMUM: { ar: 'المبلغ دون أقل مزايدة مقبولة.', en: 'Below the minimum next bid.' },
+  CAP_BELOW_BID: {
+    ar: 'السقف لا يكون دون مزايدتك.',
+    en: 'Your cap cannot be below your bid.',
+  },
   NO_DEPOSIT: { ar: 'يلزم حجز العربون قبل المزايدة.', en: 'A deposit is required before bidding.' },
   PROFILE_INCOMPLETE: {
     ar: 'أكمل بريدك وتوثيق هويتك قبل المزايدة.',
@@ -130,6 +141,7 @@ export async function POST(
     auctionId: auction.id,
     bidderId: user.id,
     amount: parsed.data.amount,
+    maxAmount: parsed.data.maxAmount ?? null,
   });
 
   if (!result.ok) {

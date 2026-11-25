@@ -4919,3 +4919,16 @@ no row here reaches is an item on its way to being forgotten.
 - A finished item keeps its row, marked, so the list reads as a record.
 - When a row's detail outgrows one line, it moves to its own file and the row
   becomes a pointer. The index never shrinks.
+
+## ٢٠٢٦-١١-٢٥ — المزايدة التلقائية وإلغاء المزايدة
+
+طلبُ المالك في جلسة 40a: جوابًا على ثلاثة أسئلة مرفوعة، قال «اعمل
+الأفضل» في المزايدة التلقائية حتى سقف وفي إلغاء المزايدة، و«ارشاد» في
+تقييم سعر السوق (أي يبقى مجّانًا بلا خدمةٍ مدفوعة).
+
+- [x] القاعدة ١١ — النيابة حتى سقف: حقلُ `Bid.maxAmount` سرّيّ، ومحرّكٌ
+      يحسم في خطوة، وزرٌّ في نافذة المزايدة.
+- [x] إلغاء مزايدة — صلاحية `bids.cancel`، وجدول `CancelledBid`، وحدث
+      `AuctionEventKind.BID_CANCELLED`، وقالبا إشعار، وزرٌّ في
+      `/admin/auctions/{ref}`.
+- [x] «تقييم سعر السوق» — قرارٌ بعدم البناء، مسجَّلٌ في الانحرافات.

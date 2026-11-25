@@ -316,7 +316,7 @@ async function reset(): Promise<void> {
       "Subscription","PlanEntitlement","Entitlement","Plan","EntitlementOverride",
       "FinanceSetting","FinanceProvider","InspectionReport","ServiceRequest","Service",
       "ServiceProvider","Invoice","Dispute","Escrow","OrderEvent","Order",
-      "Deposit","Bid","Auction","Offer","ListingFeature","ListingImage","Listing",
+      "Deposit","CancelledBid","Bid","Auction","Offer","ListingFeature","ListingImage","Listing",
       "VehicleHistoryItem","Vehicle","TrimFeature","Feature","Trim","Model","Brand",
       "OtpChallenge","AdminUser","User","Dealer",
       -- **والدفتر ليس له مفتاح خارجي إلى الطلب، فلا يفرغ بالتعاقب.**
@@ -1256,6 +1256,9 @@ async function main(): Promise<void> {
    * فثلاثةُ أيّام لمن يُراد تصفّحه، **وساعتان لواحدٍ** — فالعدّاد
    * يُرى في حالته العاجلة أيضًا، وشريطُ «تُغلق قريبًا» يجد ما يعرضه.
    */
+  /** إلغاءٌ واحد في الشجرة كلّها — والشاذُّ لا يُزرع في كل صفّ. */
+  let cancelledSeeded = false;
+
   const auctionSpecs = [
     { status: 'LIVE' as const, startsAt: realHours(-6), endsAt: days(3) },
     { status: 'SCHEDULED' as const, startsAt: days(2), endsAt: days(4) },
@@ -1306,15 +1309,59 @@ async function main(): Promise<void> {
           amount = reserve + Number(increment);
         }
         const bidder = bidderPool[n % bidderPool.length] as (typeof buyers)[number];
+        /**
+         * ═══ والآليّةُ تُزرع بسببها لا بنتيجتها ═══
+         *
+         * كان الزرعُ يكتب `isAuto` بلا سقف — **ومزايدةٌ آليةٌ بلا سقف
+         * لا يبلغها المنتج**: النظام لا ينوب عن أحد إلّا بسقفٍ كتبه.
+         * فصفٌّ يقول «تلقائية» ولا شيء وراءه، والشاشة تعرض وسمًا
+         * لحالةٍ مستحيلة. (قاعدةٌ مسجَّلة: ما يُشتقّ في المنتج يُزرع
+         * بمصدره.)
+         */
+        const auto = n % 5 === 0;
         await prisma.bid.create({
           data: {
             auctionId: auction.id,
             bidderId: bidder.id,
             amount: new D(String(amount)),
-            isAuto: n % 5 === 0,
+            isAuto: auto,
+            maxAmount: auto ? new D(String(amount + Number(increment) * between(2, 6))) : null,
             createdAt: new Date(spec.startsAt.getTime() + n * 900_000),
           },
         });
+      }
+
+      /**
+       * ═══ ومزايدةٌ ملغاة في مزادٍ واحد ═══
+       *
+       * الترميزُ يرسم بطاقةَ «مزايدات ملغاة» وسطرًا مشطوبًا بسببه،
+       * **وما لا يُزرع لا يُرى**: لا شاشةَ تفتح الحال فلا يكشف أحدٌ
+       * عطلًا فيها. وواحدةٌ تكفي — إلغاءٌ في كلّ مزاد يجعل الشاذَّ
+       * قاعدةً ويُربك قارئ البيانات.
+       */
+      if (spec.status === 'LIVE' && cancelledSeeded === false) {
+        const victim = bidderPool[1] as (typeof buyers)[number];
+        const at = new Date(spec.startsAt.getTime() + 3 * 900_000 + 60_000);
+        await prisma.cancelledBid.create({
+          data: {
+            auctionId: auction.id,
+            bidderId: victim.id,
+            amount: new D(String(Number(start) + Number(increment) * 3)),
+            isAuto: false,
+            placedAt: at,
+            cancelledAt: new Date(at.getTime() + 180_000),
+            cancelledById: superAdmin.id,
+            reason: 'إخلال بشروط المزاد',
+          },
+        });
+        await prisma.auctionEvent.create({
+          data: {
+            auctionId: auction.id,
+            kind: 'BID_CANCELLED',
+            createdAt: new Date(at.getTime() + 180_000),
+          },
+        });
+        cancelledSeeded = true;
       }
       await prisma.deposit.createMany({
         data: bidderPool.map((b) => ({
@@ -3379,6 +3426,7 @@ async function main(): Promise<void> {
     صورة: await prisma.listingImage.count(),
     مزاد: await prisma.auction.count(),
     مزايدة: await prisma.bid.count(),
+    "مزايدة ملغاة": await prisma.cancelledBid.count(),
     طلب: await prisma.order.count(),
     فاتورة: await prisma.invoice.count(),
     'تقرير فحص': await prisma.inspectionReport.count(),

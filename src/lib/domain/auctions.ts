@@ -32,12 +32,17 @@ export type BidFailure =
   | 'ENDED'
   | 'OWN_AUCTION'
   | 'BELOW_MINIMUM'
-  | 'NO_DEPOSIT';
+  | 'NO_DEPOSIT'
+  /** سقفُ النيابة دون المزايدة — جملةٌ تناقض نفسَها. */
+  | 'CAP_BELOW_BID';
 
 export type BidResult =
   | {
       ok: true;
+      /** ما استقرّ عليه السعر بعد النيابة — لا ما أُرسل. */
       amount: string;
+      /** أبقي المُرسِل في الصدارة؟ تنوب عن منافسه سقفٌ أعلى فيخسر فورًا. */
+      leading: boolean;
       minimumNext: string;
       extended: boolean;
       endsAt: Date;
@@ -98,13 +103,122 @@ export function isReserveMet(reservePrice: Prisma.Decimal | null, highest: numbe
 }
 
 /**
+ * ═══ القاعدة ١١ ═══ النيابةُ عن المزايد حتى سقفه.
+ *
+ * قرار المالك ٢٠٢٦-١١-٢٥. والترميزُ يضع تحت «زايد الآن» زرًّا ثانيًا
+ * «مزايدة تلقائية حتى سقف»، و`isAuto` موجودةٌ في المخطّط تقرؤها ثلاثُ
+ * شاشات — **ولا منادٍ كان يمرّرها `true`**: نصفُ العرض بلا نصف الإدخال.
+ *
+ * ═══ والفارقُ خطوةُ المزاد نفسُها ═══
+ *
+ * ينوب النظام بما كان يدفعه صاحبُه بيده — `bidIncrement` لا خطوةً
+ * تُخترع للنيابة. وخطوةٌ أكبر تجعل النائب يدفع أكثر من موكّله،
+ * وأصغرُ تجعل النيابة أرخص من المزايدة فيُعاقَب من يزايد بيده.
+ *
+ * ═══ والسقفُ سرّيّ ═══
+ *
+ * لو ظهر لزايد خصمُه إلى ما دونه بريال، فصار السقفُ سلاحًا على صاحبه.
+ * فهو كالاحتياطي (قرار ٢٩): لا يخرج في استجابة عامّة.
+ *
+ * ═══ ويُحسم في خطوةٍ واحدة لا في حلقة ═══
+ *
+ * حلقةٌ «ما دام أحدُهما يستطيع الرفع» تنتهي رياضيًّا (كلُّ دورةٍ ترفع
+ * السعر خطوةً)، لكنّها تكتب عشرات الصفوف على سقفين متباعدين — وسجلٌّ
+ * فيه أربعون مزايدةً آليةً بين اثنين لا يُقرأ. والنتيجةُ تُحسب مباشرةً.
+ *
+ * وعند تساوي السقفين يفوز **الأسبق**: سقفُ المنافس قائمٌ قبل هذه
+ * المزايدة، فلا يُنتزع منه بمساواةٍ متأخّرة.
+ */
+async function resolveProxy(
+  tx: Prisma.TransactionClient,
+  input: {
+    auctionId: string;
+    increment: number;
+    bidder: string;
+    amount: number;
+    cap: number | null;
+  },
+  now: Date,
+): Promise<{ amount: number; leader: string }> {
+  const standing = { amount: input.amount, leader: input.bidder };
+
+  /**
+   * سقفُ كلّ منافس = أعلى سقفٍ كتبه في هذا المزاد. ومن بدّله بمزايدةٍ
+   * يدويّةٍ فوقه فسقفُه القديم دون السعر، فلا يُفعِّل شيئًا.
+   */
+  const caps = await tx.bid.groupBy({
+    by: ['bidderId'],
+    where: { auctionId: input.auctionId, bidderId: { not: input.bidder }, maxAmount: { not: null } },
+    _max: { maxAmount: true },
+  });
+
+  let rival: { bidder: string; cap: number } | null = null;
+  for (const row of caps) {
+    const cap = row._max.maxAmount === null ? 0 : Number(row._max.maxAmount);
+    if (cap <= input.amount) continue;
+    if (rival === null || cap > rival.cap) rival = { bidder: row.bidderId, cap };
+  }
+  if (rival === null) return standing;
+
+  const mine = input.cap ?? input.amount;
+  const place = async (bidder: string, amount: number, cap: number): Promise<void> => {
+    await tx.bid.create({
+      data: {
+        auctionId: input.auctionId,
+        bidderId: bidder,
+        amount: new Prisma.Decimal(amount),
+        maxAmount: new Prisma.Decimal(cap),
+        isAuto: true,
+        createdAt: now,
+      },
+    });
+  };
+
+  if (rival.cap > mine) {
+    const settled = Math.min(rival.cap, mine + input.increment);
+    await place(rival.bidder, settled, rival.cap);
+    return { amount: settled, leader: rival.bidder };
+  }
+
+  if (mine > rival.cap) {
+    /**
+     * **ولا يُرفَع من يقود أصلًا.** مزايدةٌ يدويّةٌ فوق سقف المنافس
+     * بأكثر من خطوة تقود بلا نيابة — ورفعُها يجعل صاحبَها يزايد على
+     * نفسه. فالنيابةُ تقع متى تجاوز الحاصلُ ما أرسله وحدَه.
+     *
+     * (وكُتبت أوّلًا `Math.max(input.amount, …)` بتعليقٍ يقول إنها
+     * تمنع مزايدةً آليةً أقلَّ من التي قبلها — **وقِيست بكسرها فلم
+     * يسقط شيء**: الشرطُ تحتها يمنع ذلك وحدَه، فكانت حارسًا ميّتًا
+     * وتعليقًا يَعِد بما لا يفعله.)
+     */
+    const settled = Math.min(mine, rival.cap + input.increment);
+    if (settled > input.amount) {
+      await place(input.bidder, settled, mine);
+      return { amount: settled, leader: input.bidder };
+    }
+    return standing;
+  }
+
+  // تساويا — والأسبقُ قائمٌ قبلها
+  await place(rival.bidder, rival.cap, rival.cap);
+  return { amount: rival.cap, leader: rival.bidder };
+}
+
+/**
  * تقديم مزايدة.
  *
  * **العربون شرط مسبق** (القاعدة ٩): مزايدةٌ بلا عربون تعني مزايدًا بلا
  * كلفة انسحاب، وهو ما يُفرغ المزاد من معناه. والفحص هنا لا في الشاشة.
  */
 export async function placeBid(
-  input: { auctionId: string; bidderId: string; amount: number; isAuto?: boolean },
+  input: {
+    auctionId: string;
+    bidderId: string;
+    amount: number;
+    isAuto?: boolean;
+    /** سقفُ النيابة — القاعدة ١١. و`null` مزايدةٌ يدويّة بلا نيابة. */
+    maxAmount?: number | null;
+  },
   now: Date = new Date(),
 ): Promise<BidResult> {
   return db.$transaction(async (tx) => {
@@ -153,15 +267,48 @@ export async function placeBid(
       return { ok: false, reason: 'BELOW_MINIMUM', minimumNext: String(minimum) };
     }
 
+    /**
+     * **وسقفٌ دون المزايدة ليس سقفًا.** «زايد ٢٠٠ ألف ولا تتجاوز ١٩٠»
+     * جملةٌ تناقض نفسَها، وقبولُها صامتًا يجعل النظام ينوب بما دون ما
+     * دفعه صاحبُه — فيُردّ بسببه لا يُطبَّع.
+     */
+    const cap = input.maxAmount ?? null;
+    if (cap !== null && cap < input.amount) {
+      return { ok: false, reason: 'CAP_BELOW_BID', minimumNext: String(input.amount) };
+    }
+
     await tx.bid.create({
       data: {
         auctionId: auction.id,
         bidderId: input.bidderId,
         amount: new Prisma.Decimal(input.amount),
+        maxAmount: cap === null ? null : new Prisma.Decimal(cap),
         isAuto: input.isAuto ?? false,
         createdAt: now,
       },
     });
+
+    /**
+     * ═══ والنيابةُ تقع قبل الجرس والتمديد ═══
+     *
+     * فالجرسُ يُخبر **من فقد موقعه فعلًا** لا من فقده لحظةً ثمّ
+     * استعاده: مزايدٌ ينوب عنه سقفُه يبقى في الصدارة، وإشعارُه
+     * «تُجوِزت» ثمّ لا شيء يجعله يفتح الشاشة ليجد نفسه متصدّرًا.
+     *
+     * والتمديدُ مرّةً واحدة للتبادل كلِّه — فالآليّةُ نتيجةُ اليدويّة
+     * في اللحظة نفسها، لا مزايدةٌ ثانية تستحقّ تمديدًا ثانيًا.
+     */
+    const settled = await resolveProxy(
+      tx,
+      {
+        auctionId: auction.id,
+        increment: Number(auction.bidIncrement),
+        bidder: input.bidderId,
+        amount: input.amount,
+        cap,
+      },
+      now,
+    );
 
     /**
      * ═══ القاعدة ٧ ═══ مزايدة في آخر دقيقة تمدّد خمس دقائق.
@@ -210,7 +357,13 @@ export async function placeBid(
     const { notifyOutbid, notifyExtended } = await import('./auction-notify');
     const bell = { id: auction.id, listingRef: auction.listing.ref };
 
-    await notifyOutbid(tx, bell, leader?.bidderId ?? null, input.bidderId, input.amount);
+    /**
+     * ومن خسر التبادل قد يكون **المزايدَ نفسَه**: نابَ عن منافسه سقفٌ
+     * أعلى فتجاوزه في اللحظة ذاتها. فالمُخطَرُ من كان متصدّرًا قبل
+     * التبادل، أو هذا المزايدُ إن لم يبقَ في الصدارة.
+     */
+    const lost = settled.leader === input.bidderId ? (leader?.bidderId ?? null) : input.bidderId;
+    await notifyOutbid(tx, bell, lost, settled.leader, settled.amount);
 
     if (shouldExtend) {
       /** ومن ضبط منبّهًا على وقتٍ لم يعد الوقت يُخبَر. */
@@ -228,13 +381,20 @@ export async function placeBid(
       );
     }
 
+    /**
+     * **والردّ يصف ما استقرّ لا ما أُرسل.** مزايدٌ ينوب عن منافسه
+     * سقفٌ أعلى يصله «تمّت مزايدتُك بـ١٩٠ ألفًا» والسعرُ ١٩٥ — فيقرأ
+     * نجاحًا ويرى شكلَ الفشل بعد ثانية.
+     */
+    const autoBids = settled.amount === input.amount ? 0 : 1;
     return {
       ok: true,
-      amount: String(input.amount),
-      minimumNext: String(input.amount + Number(auction.bidIncrement)),
+      amount: String(settled.amount),
+      leading: settled.leader === input.bidderId,
+      minimumNext: String(settled.amount + Number(auction.bidIncrement)),
       extended: shouldExtend,
       endsAt,
-      bidCount: bidCount + 1,
+      bidCount: bidCount + 1 + autoBids,
     };
   });
 }
@@ -810,6 +970,12 @@ export type PublicAuction = {
     /** الفرق عن المزايدة التي تحتها — و`null` لأوّل مزايدة. */
     step: string | null;
     top: boolean;
+    /**
+     * سببُ الإلغاء، و`null` للقائمة. **والمُلغاة تبقى معروضةً**:
+     * الترميز يرسمها مشطوبةً بسببها، وحذفُها من السجلّ يجعل من رأى
+     * السعر يرتفع ثمّ ينخفض لا يجد ما يفسّره.
+     */
+    cancelled: string | null;
   }[];
   /**
    * ما وقع للمزاد خارج المزايدات — ويُطبع بينها بوقته.
@@ -817,7 +983,9 @@ export type PublicAuction = {
    * **والتمديد كان يُعَدّ ولا يُسجَّل**: يقرأ الزائرُ مزايدةً عند
    * ٢١:٥٩ وإغلاقًا عند ٢٢:٠٥ ولا شيء يفسّر الفارق.
    */
-  events: { kind: 'EXTENDED'; seconds: number | null; at: string }[];
+  events: { kind: 'EXTENDED' | 'BID_CANCELLED'; seconds: number | null; at: string }[];
+  /** عددُ المُلغاة — بطاقةٌ في صفّ إحصاء السجلّ. */
+  cancelledCount: number;
   /** سعر الافتتاح ووقتُه — قاع السجلّ في التصميم. */
   openedAt: string;
   /** إحصاءات السجلّ: متوسّط الفرق · آخر مزايدة · مرّات التمديد. */
@@ -873,15 +1041,16 @@ export async function getAuction(
     include: {
       listing: { select: { ref: true } },
       bids: { orderBy: { createdAt: 'desc' }, take: 50 },
+      cancelledBids: { orderBy: { placedAt: 'desc' }, take: 20 },
       events: { orderBy: { createdAt: 'desc' }, take: 20 },
-      _count: { select: { bids: true } },
+      _count: { select: { bids: true, cancelledBids: true } },
     },
   });
   if (auction === null) return null;
 
   const highest = auction.bids[0] === undefined ? null : Number(auction.bids[0].amount);
   const reserveMet = isReserveMet(auction.reservePrice, highest);
-  const aliases = aliasMap(auction.id, auction.bids);
+  const aliases = aliasMap(auction.id, [...auction.bids, ...auction.cancelledBids]);
 
   void now;
 
@@ -917,24 +1086,43 @@ export async function getAuction(
      * الافتتاح لا على `null`، فأوّل صفٍّ في السجلّ يقول كم رفع صاحبه
      * عن المعلن.
      */
-    bids: auction.bids.map((bid, index) => {
-      const under = auction.bids[index + 1];
-      const base = under === undefined ? Number(auction.startPrice) : Number(under.amount);
-      const step = Number(bid.amount) - base;
-      return {
+    /**
+     * **والخطوةُ والصدارةُ من القائمة وحدها.** المُلغاة لا تُرسي قاعًا
+     * ولا تتصدّر — وحسابُ الفرق عليها يجعل السطر الذي تحتها يقول
+     * «+٤٬٠٠٠» عن مبلغٍ لم يَعُدّ له وجود. ثمّ تُدسّ في موضعها الزمنيّ
+     * ليبقى السجلّ مقروءًا بترتيبه.
+     */
+    bids: [
+      ...auction.bids.map((bid, index) => {
+        const under = auction.bids[index + 1];
+        const base = under === undefined ? Number(auction.startPrice) : Number(under.amount);
+        const step = Number(bid.amount) - base;
+        return {
+          alias: String(aliases.get(bid.bidderId) ?? 0),
+          amount: bid.amount.toString(),
+          at: bid.createdAt.toISOString(),
+          isAuto: bid.isAuto,
+          step: step > 0 ? String(step) : null,
+          top: index === 0,
+          cancelled: null,
+        };
+      }),
+      ...auction.cancelledBids.map((bid) => ({
         alias: String(aliases.get(bid.bidderId) ?? 0),
         amount: bid.amount.toString(),
-        at: bid.createdAt.toISOString(),
+        at: bid.placedAt.toISOString(),
         isAuto: bid.isAuto,
-        step: step > 0 ? String(step) : null,
-        top: index === 0,
-      };
-    }),
+        step: null,
+        top: false,
+        cancelled: bid.reason,
+      })),
+    ].sort((a, b) => b.at.localeCompare(a.at)),
     events: auction.events.map((event) => ({
       kind: event.kind,
       seconds: event.seconds,
       at: event.createdAt.toISOString(),
     })),
+    cancelledCount: auction._count.cancelledBids,
     openedAt: auction.startsAt.toISOString(),
     averageStep:
       auction.bids.length < 2 || highest === null

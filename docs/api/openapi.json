@@ -865,6 +865,35 @@
         }
       }
     },
+    "/api/v1/admin/bids/{id}/cancel": {
+      "post": {
+        "summary": "POST /api/v1/admin/bids/{id}/cancel",
+        "tags": [
+          "admin"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/body-types/{key}": {
       "patch": {
         "summary": "PATCH /api/v1/admin/body-types/{key}",
@@ -6441,6 +6470,38 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 24
+                  },
+                  "returnUrl": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "maximum": 100000000
+                  },
+                  "maxAmount": {
+                    "type": "integer",
+                    "maximum": 100000000
+                  }
+                },
+                "required": [
+                  "amount"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"

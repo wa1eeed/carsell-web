@@ -88,6 +88,18 @@ export function BidLogStats({ auction }: { auction: PublicAuction }) {
           <ArabicNumber value={auction.extendedCount} grouped={false} />
         </span>
       </Stat>
+      {/*
+        **ولا تُعرض البطاقة على صفر.** «مزايدات ملغاة ٠» تحت كلّ مزادٍ
+        سليم تزرع في القارئ سؤالًا عن إلغاءٍ لم يقع — والغيابُ يقول
+        «لم يُلغَ شيء»، وهو الصحيح. والترميزُ يرسمها حيث وقع إلغاء.
+      */}
+      {auction.cancelledCount === 0 ? null : (
+        <Stat label="مزايدات ملغاة">
+          <span className="font-num text-2xs font-bold">
+            <ArabicNumber value={auction.cancelledCount} grouped={false} />
+          </span>
+        </Stat>
+      )}
     </dl>
   );
 }

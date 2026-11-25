@@ -170,6 +170,47 @@
     "pushChannelKey": "auction_mine"
   },
   {
+    "key": "auction.bid_cancelled",
+    "subjectAr": "ألغيت مزايدتك",
+    "subjectEn": "Your bid was cancelled",
+    "bodyAr": "ألغى فريق المنصة مزايدتك على {ref} — السبب: {reason}. عربونك باقي ولك أن تزايد من جديد.",
+    "bodyEn": "The platform team cancelled your bid on {ref} — reason: {reason}. Your deposit stands and you may bid again.",
+    "smsAr": "ألغيت مزايدتك على {ref}",
+    "smsEn": null,
+    "priority": "critical",
+    "channelEmail": false,
+    "channelSms": true,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "reason",
+      "amount"
+    ],
+    "active": true,
+    "pushChannelKey": "auction_mine"
+  },
+  {
+    "key": "auction.lead_restored",
+    "subjectAr": "عدت إلى صدارة المزاد",
+    "subjectEn": "You lead the auction again",
+    "bodyAr": "ألغيت مزايدة كانت فوق مزايدتك على {ref}، فصرت الأعلى بـ{amount} ريال.",
+    "bodyEn": "A bid above yours on {ref} was cancelled, so you are the highest at {amount} SAR.",
+    "smsAr": null,
+    "smsEn": null,
+    "priority": "high",
+    "channelEmail": false,
+    "channelSms": false,
+    "channelPush": true,
+    "channelInApp": true,
+    "variables": [
+      "ref",
+      "amount"
+    ],
+    "active": true,
+    "pushChannelKey": "auction_mine"
+  },
+  {
     "key": "auction.reserve_not_met",
     "subjectAr": "أغلق المزاد دون السعر الاحتياطي",
     "subjectEn": "The auction closed below reserve",

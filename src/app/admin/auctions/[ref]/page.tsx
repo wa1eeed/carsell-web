@@ -14,6 +14,7 @@ import { adminAuctionDetail } from '@/lib/domain/admin-detail-readers';
 import { auctionTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
+import { CancelBid } from './CancelBid';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,8 @@ export default async function AdminAuctionDetailPage({
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'orders.view')) redirect('/admin');
+  /** والزرّ يُخفى عمّن لا يملكه — والخادم يفحصه ثانيةً (حارسٌ في الشاشة اقتراح). */
+  const canCancel = can(admin.role, 'bids.cancel') === true;
 
   const { ref } = await params;
   const auction = await adminAuctionDetail(decodeURIComponent(ref));
@@ -125,6 +128,14 @@ export default async function AdminAuctionDetailPage({
                       <span className="font-num text-3xs opacity-65">
                         {riyadh.format(new Date(bid.at))}
                       </span>
+                      {/*
+                        **والزرّ لا يُشحن ميّتًا**: الإلغاء للمزاد الحيّ
+                        وحده — بعد الإغلاق للمزايدة أثرٌ في العالم
+                        (فائزٌ وعرابينُ سُوّيت)، وطريقُها النزاع.
+                      */}
+                      {!canCancel || auction.status !== 'LIVE' ? null : (
+                        <CancelBid bidId={bid.id} amount={bid.amount} bidderName={bid.bidderName} />
+                      )}
                     </span>
                   </div>
                 ))

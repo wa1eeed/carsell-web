@@ -23,15 +23,33 @@ afterAll(async () => {
 describe('سجل المزايدات', () => {
   it('والتمديد له جدولٌ وكاتبٌ في المنتج', () => {
     const source = stripComments(readFileSync(join(ROOT, 'src/lib/domain/auctions.ts'), 'utf8'));
-    /** **وكلُّ قيمة تعدادٍ لها كاتب** — والإلغاء لم يُعرَّف لأنّه قاعدةُ عمل. */
     expect(source).toContain("kind: 'EXTENDED'");
     expect(source).toMatch(/auctionEvent\.create/);
 
+    /**
+     * ═══ وكلُّ قيمة تعدادٍ لها كاتب ═══
+     *
+     * كان الفحصُ `toEqual(['EXTENDED'])` — **قائمةً تُحاكي التعداد**،
+     * فلمّا بُني الإلغاء (قرار المالك ٢٠٢٦-١١-٢٥) سقط الاختبارُ على
+     * قيمةٍ صارت لها كاتب. وإضافةُ الاسم إلى القائمة تُعيد الكرّة عند
+     * القيمة التالية.
+     *
+     * فالقاعدةُ تُفحص كما هي: **لكلّ قيمةٍ في المخطّط كاتبٌ في
+     * `src/`** — وهي نفسُها «قيمةٌ في المخطّط بلا كاتب» التي وقعت في
+     * هذا المستودع إحدى عشرة مرّة. والمصدرُ التعدادُ لا نسخةٌ منه.
+     */
     const schema = readFileSync(join(ROOT, 'prisma/schema.prisma'), 'utf8');
-    const block = /enum AuctionEventKind \{([\s\S]*?)\}/.exec(schema);
+    const block = /enum AuctionEventKind \{([\s\S]*?)\n\}/.exec(schema);
     expect(block).not.toBeNull();
-    const values = [...(block?.[1] ?? '').matchAll(/^\s*([A-Z_]+)$/gm)].map((m) => m[1]);
-    expect(values).toEqual(['EXTENDED']);
+    const values = [...(block?.[1] ?? '').matchAll(/^\s*([A-Z_]+)\s*$/gm)].map((m) => m[1]);
+    expect(values.length).toBeGreaterThan(0);
+
+    const src = stripComments(
+      readFileSync(join(ROOT, 'src/lib/domain/auctions.ts'), 'utf8')
+        + readFileSync(join(ROOT, 'src/lib/domain/bid-cancellation.ts'), 'utf8'),
+    );
+    const orphans = values.filter((value) => !src.includes(`kind: '${String(value)}'`));
+    expect(orphans, 'قيمةُ حدثٍ بلا كاتب').toEqual([]);
   });
 
   /** **ويُطوى الأقدم** — سجلٌّ بستّين صفًّا يدفن ما يحسم المزاد. */

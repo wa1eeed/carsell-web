@@ -14,6 +14,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'deadline.changed': 'عدل مهلة زمنية',
   'commission.changed': 'عدل قاعدة عمولة',
   'listing.review.approve': 'اعتمد إعلانا بعد المراجعة',
+  'bid.cancel': 'ألغى مزايدة في مزاد جاري',
   'listing.review.return': 'أعاد إعلانا لصاحبه بملاحظة',
   'listing.review.reject': 'رفض إعلانا وأوقف الحساب',
   'report.review_listing': 'أحال إعلانا إلى المراجعة ببلاغ',

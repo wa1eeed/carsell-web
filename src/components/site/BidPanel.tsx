@@ -84,6 +84,9 @@ export function BidPanel({
   const [method, setMethod] = useState<string | null>(null);
   const [needsCard, setNeedsCard] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  /** النيابةُ مطويّةٌ حتى تُطلب — القاعدة ١١، وأكثرُ المزايدين يزايد بيده. */
+  const [proxy, setProxy] = useState(false);
+  const [cap, setCap] = useState('');
 
   /** بلا جلسة: إلى الدخول ومعه وجهة العودة — لا رسالة ثم طريق مسدود. */
   const requireSession = (): boolean => {
@@ -130,12 +133,21 @@ export function BidPanel({
     const value = Number(toLatinDigits(amount).replace(/\D/g, ''));
     if (!Number.isFinite(value) || value <= 0) return;
 
+    /**
+     * **والسقفُ لا يُرسَل إن لم يُفتح بابُه.** من أغلق النيابة ثمّ
+     * بقي رقمٌ في حقلها يُرسله وهو لا يريده — فالحقل يُقرأ متى كان
+     * مفتوحًا وحده.
+     */
+    const capValue = Number(toLatinDigits(cap).replace(/\D/g, ''));
+    const sendCap = proxy && Number.isFinite(capValue) && capValue >= value ? capValue : null;
+
     start(async () => {
       const response = await fetch(`/api/v1/auctions/${listingRef}/bids`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           amount: value,
+          ...(sendCap === null ? {} : { maxAmount: sendCap }),
           ...(method === null
             ? {}
             : { method, returnUrl: `${window.location.origin}${window.location.pathname}` }),
@@ -171,7 +183,19 @@ export function BidPanel({
 
       setNeedsCard(false);
 
-      setToast('سجلت مزايدتك.');
+      /**
+       * **والردّ يصف ما استقرّ لا ما أُرسل.** تنوب عن منافسٍ سقفٌ أعلى
+       * فيتجاوزك في اللحظة نفسها — و«سجلت مزايدتك» وحدَها تجعلك تغلق
+       * الشاشة وأنت خاسر.
+       */
+      const settled = (payload as { data?: { amount?: string; leading?: boolean } } | null)?.data;
+      setToast(
+        settled?.leading === false
+          ? 'سجلت مزايدتك — وتجاوزها سقف مزايد آخر فورا. ارفع سقفك لتعود.'
+          : sendCap === null
+            ? 'سجلت مزايدتك.'
+            : 'سجلت مزايدتك، ونزايد عنك حتى سقفك.',
+      );
       setOpen(false);
       setAmount('');
       if (onPlaced === undefined) router.refresh();
@@ -287,6 +311,44 @@ export function BidPanel({
             );
           })}
         </div>
+        {/*
+          ═══ النيابة حتى سقف — القاعدة ١١ ═══
+
+          الترميزُ يضع «مزايدة تلقائية حتى سقف» زرًّا ثانيًا تحت «زايد
+          الآن». وهي **مطويّةٌ حتى تُطلب**: أكثرُ المزايدين يزايد بيده،
+          وحقلٌ ثانٍ مفتوحٌ دائمًا يجعل كلَّ مزايدةٍ قرارين.
+
+          **والسقفُ لا يُعرض لأحد** (كالاحتياطي، قرار ٢٩): لو ظهر
+          لزايد خصمُه إلى ما دونه بريال.
+        */}
+        <div className="mt-3.5 rounded-lg border border-line p-3.5">
+          <label className="flex items-center gap-2.5">
+            <input
+              type="checkbox"
+              checked={proxy}
+              onChange={(event) => setProxy(event.target.checked)}
+              className="size-4 accent-ink"
+            />
+            <span className="text-2xs font-bold">مزايدة تلقائية حتى سقف</span>
+          </label>
+          {!proxy ? null : (
+            <div className="mt-3 flex flex-col gap-1.5">
+              <input
+                dir="ltr"
+                inputMode="numeric"
+                value={cap}
+                onChange={(event) => setCap(event.target.value)}
+                placeholder="سقفك"
+                className="font-num rounded-lg border border-line bg-surface px-3.5 py-2.5 text-base font-bold"
+              />
+              <p className="text-3xs leading-loose opacity-70">
+                نزايد عنك بخطوة المزاد كلما تجاوزك أحد، ولا نتجاوز سقفك. ولا يراه
+                أحد — ولو ظهر لزايد خصمك إلى ما دونه بريال.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/*
           ═══ وسيلة العربون — تظهر عند أوّل مزايدة وحدها ═══
 

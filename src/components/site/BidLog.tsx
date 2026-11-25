@@ -97,21 +97,35 @@ export function BidLogTable({
            */
           ...eventsBefore(bid.at, index).map((event) => (
             <li key={`me-${event.at}`} className="flex flex-wrap items-center gap-2 bg-bg p-3 text-3xs opacity-70">
-              <span>مدد وقت الإغلاق</span>
-              <Quantity unit="minutes" count={Math.round((event.seconds ?? 0) / 60)} />
+              {event.kind === 'BID_CANCELLED' ? (
+                <span>ألغيت مزايدة</span>
+              ) : (
+                <>
+                  <span>مدد وقت الإغلاق</span>
+                  <Quantity unit="minutes" count={Math.round((event.seconds ?? 0) / 60)} />
+                </>
+              )}
               <span aria-hidden className="opacity-40">·</span>
               <span className="bidi-isolate">{time.format(new Date(event.at))}</span>
             </li>
           )),
           <li
             key={`m-${bid.alias}-${bid.at}`}
-            className={cn('flex flex-col gap-1.5 p-3.5', bid.top ? 'bg-accent-100' : 'bg-surface')}
+            className={cn(
+              'flex flex-col gap-1.5 p-3.5',
+              bid.cancelled !== null ? 'bg-bg' : bid.top ? 'bg-accent-100' : 'bg-surface',
+            )}
           >
             <span className="flex items-baseline justify-between gap-3">
               <span dir="ltr" className="font-num text-2xs font-bold">
                 #U-{displayDigits(bid.alias)}
               </span>
-              <span className="font-num text-sm font-bold">
+              <span
+                className={cn(
+                  'font-num text-sm font-bold',
+                  bid.cancelled !== null && 'line-through opacity-65',
+                )}
+              >
                 <ArabicNumber value={Number(bid.amount)} />
               </span>
             </span>
@@ -119,7 +133,14 @@ export function BidLogTable({
               <span className="bidi-isolate opacity-70">{time.format(new Date(bid.at))}</span>
               <BidStep step={bid.step} />
               {bid.isAuto ? <Badge tone="neutral" size="sm">تلقائية</Badge> : null}
-              {bid.top ? (
+              {/*
+                **والمُلغاة تُقال بسببها لا بوسمها وحده.** «ملغاة»
+                مجرّدةً تجعل من رآها يسأل: أسحبها صاحبُها؟ أعطلٌ في
+                النظام؟ والترميزُ يكتب السبب بجوارها.
+              */}
+              {bid.cancelled !== null ? (
+                <Badge tone="danger" size="sm">ملغاة · {bid.cancelled}</Badge>
+              ) : bid.top ? (
                 <Badge tone="accent" size="sm">الأعلى</Badge>
               ) : (
                 <Badge tone="neutral" size="sm">تم تجاوزها</Badge>
@@ -147,13 +168,19 @@ export function BidLogTable({
               <tr key={`e-${event.at}`} className="border-b border-line bg-bg">
                 <td colSpan={6} className="p-3">
                   <span className="flex flex-wrap items-center gap-2 text-3xs opacity-70">
-                    <span>مدد وقت الإغلاق</span>
-                    {/*
-                      **والمدّة بوحدةٍ تُقرأ بلا قسمة**: التمديدُ ثوانٍ
-                      في القاعدة ودقائقُ في القراءة — «٣٠٠ ثانية» يحتاج
-                      قسمةً في الرأس. والجمعُ من `Quantity` لا من يد.
-                    */}
-                    <Quantity unit="minutes" count={Math.round((event.seconds ?? 0) / 60)} />
+                    {event.kind === 'BID_CANCELLED' ? (
+                      <span>ألغيت مزايدة</span>
+                    ) : (
+                      <>
+                        <span>مدد وقت الإغلاق</span>
+                        {/*
+                          **والمدّة بوحدةٍ تُقرأ بلا قسمة**: التمديدُ ثوانٍ
+                          في القاعدة ودقائقُ في القراءة — «٣٠٠ ثانية» يحتاج
+                          قسمةً في الرأس. والجمعُ من `Quantity` لا من يد.
+                        */}
+                        <Quantity unit="minutes" count={Math.round((event.seconds ?? 0) / 60)} />
+                      </>
+                    )}
                     <span aria-hidden className="opacity-40">·</span>
                     <span className="bidi-isolate">{time.format(new Date(event.at))}</span>
                   </span>
@@ -163,7 +190,10 @@ export function BidLogTable({
             <tr
               key={`${bid.alias}-${bid.at}`}
               /** **والأعلى يُميَّز بخلفيّته** — هو ما تبحث عنه العين أوّلًا. */
-              className={cn('border-b border-line last:border-b-0', bid.top && 'bg-accent-100')}
+              className={cn(
+                'border-b border-line last:border-b-0',
+                bid.cancelled !== null ? 'bg-bg' : bid.top && 'bg-accent-100',
+              )}
             >
               <td className="p-3">
                 {/* الرقم لاتينيٌّ يُقارَن خانةً بخانة — ومعزول */}
@@ -181,14 +211,18 @@ export function BidLogTable({
                 )}
               </td>
               <td className="p-3">
-                {bid.top ? (
+                {bid.cancelled !== null ? (
+                  <Badge tone="danger" size="sm">ملغاة · {bid.cancelled}</Badge>
+                ) : bid.top ? (
                   <Badge tone="accent" size="sm">الأعلى</Badge>
                 ) : (
                   <Badge tone="neutral" size="sm">تم تجاوزها</Badge>
                 )}
               </td>
               <td className="p-3 text-end">
-                <span className="font-num font-bold">
+                <span
+                  className={cn('font-num font-bold', bid.cancelled !== null && 'line-through opacity-65')}
+                >
                   <ArabicNumber value={Number(bid.amount)} />
                 </span>
               </td>

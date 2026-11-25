@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-103 models · 73 enums
+104 models · 73 enums
 
 ## Relationships
 
@@ -20,6 +20,7 @@ erDiagram
   User ||--o{ Listing : "listings"
   User ||--o{ Offer : "offers"
   User ||--o{ Bid : "bids"
+  User ||--o{ CancelledBid : "cancelledBids"
   User ||--o{ Deposit : "deposits"
   User ||--o{ Order : "ordersAsBuyer"
   User ||--o{ Order : "ordersAsSeller"
@@ -45,6 +46,7 @@ erDiagram
   AdminUser }o--|| AdminRole : "role"
   AdminUser ||--o{ AdminSession : "sessions"
   AdminUser ||--o{ FinanceInput : "financeInputs"
+  AdminUser ||--o{ CancelledBid : "cancelledBids"
   ProviderUser }o--|| ServiceProvider : "provider"
   ProviderUser ||--o{ ProviderSession : "sessions"
   ProviderSession }o--|| ProviderUser : "user"
@@ -127,12 +129,16 @@ erDiagram
   Auction }o--|| AuctionStatus : "status"
   Auction }o--|| Listing : "listing"
   Auction ||--o{ Bid : "bids"
+  Auction ||--o{ CancelledBid : "cancelledBids"
   Auction ||--o{ AuctionEvent : "events"
   Auction ||--o{ Deposit : "deposits"
   AuctionEvent }o--|| AuctionEventKind : "kind"
   AuctionEvent }o--|| Auction : "auction"
   Bid }o--|| Auction : "auction"
   Bid }o--|| User : "bidder"
+  CancelledBid }o--|| Auction : "auction"
+  CancelledBid }o--|| User : "bidder"
+  CancelledBid }o--|| AdminUser : "cancelledBy"
   Deposit }o--|| DepositStatus : "status"
   Deposit }o--|| Auction : "auction"
   Deposit }o--|| User : "user"
@@ -366,7 +372,7 @@ erDiagram
 | `dealerId` | `String?` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealer` → `Dealer` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout`
 
 ### `AdminUser`
 
@@ -383,7 +389,7 @@ Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus
 | `passwordChangedAt` | `DateTime` |  |
 | `mustChangePassword` | `Boolean` |  |
 
-Relations: `role` → `AdminRole` · `sessions` → `AdminSession` · `financeInputs` → `FinanceInput`
+Relations: `role` → `AdminRole` · `sessions` → `AdminSession` · `financeInputs` → `FinanceInput` · `cancelledBids` → `CancelledBid`
 
 ### `ProviderUser`
 
@@ -691,7 +697,7 @@ Relations: `status` → `OfferStatus` · `listing` → `Listing` · `buyer` → 
 | `viewingAddress` | `String?` |  |
 | `sellerDecisionDueAt` | `DateTime?` |  |
 
-Relations: `status` → `AuctionStatus` · `listing` → `Listing` · `bids` → `Bid` · `events` → `AuctionEvent` · `deposits` → `Deposit`
+Relations: `status` → `AuctionStatus` · `listing` → `Listing` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `events` → `AuctionEvent` · `deposits` → `Deposit`
 
 ### `AuctionEvent`
 
@@ -714,8 +720,25 @@ Relations: `kind` → `AuctionEventKind` · `auction` → `Auction`
 | `amount` | `Decimal` |  |
 | `isAuto` | `Boolean` |  |
 | `createdAt` | `DateTime` |  |
+| `maxAmount` | `Decimal?` |  |
 
 Relations: `auction` → `Auction` · `bidder` → `User`
+
+### `CancelledBid`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `auctionId` | `String` |  |
+| `bidderId` | `String` |  |
+| `amount` | `Decimal` |  |
+| `isAuto` | `Boolean` |  |
+| `placedAt` | `DateTime` |  |
+| `cancelledAt` | `DateTime` |  |
+| `cancelledById` | `String` |  |
+| `reason` | `String` |  |
+
+Relations: `auction` → `Auction` · `bidder` → `User` · `cancelledBy` → `AdminUser`
 
 ### `Deposit`
 
@@ -2050,7 +2073,7 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `ReviewReason` — `DUPLICATE_IMAGE /// تكرار صورة > ٩٠٪ مع إعلان مستخدم آخر`, `PRICE_OUTLIER /// سعر أقل من ٤٠٪ من PriceStat.p25`, `NEW_ACCOUNT_BURST /// حساب عمره < ٧ أيام وله أكثر من ٣ إعلانات`, `USER_REPORT /// بلاغ وارد`
 - `OfferStatus` — `PENDING`, `COUNTERED`, `ACCEPTED`, `REJECTED`, `WITHDRAWN`, `EXPIRED`
 - `AuctionStatus` — `SCHEDULED`, `LIVE`, `ENDED_MET`, `ENDED_UNMET`, `CANCELLED`
-- `AuctionEventKind` — `EXTENDED`
+- `AuctionEventKind` — `EXTENDED`, `BID_CANCELLED`
 - `DepositStatus` — `HELD`, `RELEASED`, `FORFEITED`, `APPLIED`
 - `OrderCancelCategory` — `PAYMENT_TIMEOUT /// لم يكتمل الدفع — يكتبه المُجدوِل`, `NOT_AS_DESCRIBED /// لا تطابق الوصف`, `CHANGED_MIND /// غيّر رأيه`, `SELLER_DELAY /// تأخّر البائع`, `OTHER /// أخرى — وافتراضُ من لم يختر`
 - `OrderSource` — `DIRECT`, `OFFER`, `AUCTION`, `BUY_NOW`

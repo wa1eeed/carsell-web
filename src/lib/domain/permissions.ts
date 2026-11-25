@@ -32,6 +32,14 @@ export type Permission =
   | 'providers.adjust'
   /// تحويل مستحقّات بائعٍ إلى آيبانه — مالٌ يخرج ولا يُستردّ
   | 'payouts.send'
+  /**
+   * إلغاء مزايدة (قرار المالك ٢٠٢٦-١١-٢٥). **وهي تحرّك السعر
+   * المعروض**: تخرج المُلغاة من كلّ حساب فيعود السعر إلى ما دونها،
+   * ويتبدّل من يقود المزاد. فليست مراجعةَ محتوى (`listings.review`)
+   * ولا إيقافَ حساب (`users.suspend`) — ولا يُستعار لها مفتاحُ
+   * غيرِها، إذ المستعارُ يمنحها لمن لم يُمنح إيّاها.
+   */
+  | 'bids.cancel'
   | 'team.manage';
 
 /** `true` كامل · `'read'` عرض بلا تعديل · غياب المفتاح = ممنوع. */
@@ -78,6 +86,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'audit.view': true, 'team.manage': true, 'wallet.adjust': true,
     'providers.adjust': true,
     'payouts.send': true,
+  'bids.cancel': true,
   },
   OPS: {
     'dashboard.view': true, 'orders.view': true, 'orders.changeStage': true,
@@ -85,6 +94,7 @@ const MATRIX: Readonly<Record<AdminRole, Partial<Record<Permission, Grant>>>> = 
     'listings.review': true, 'reports.handle': true, 'services.manage': true,
     'serviceRequests.handle': true, 'integrations.view': true,
     'audit.view': 'read',
+  'bids.cancel': true,
   },
   FINANCE: {
     'dashboard.view': true, 'finance.view': true, 'orders.view': true,
@@ -136,7 +146,7 @@ export const ADMIN_ROLES: readonly AdminRole[] = [
 export const PERMISSION_LIST: readonly Permission[] = [
   'dashboard.view', 'finance.view', 'orders.view', 'orders.changeStage', 'escrow.release',
   'users.view', 'users.viewIdentity', 'users.suspend', 'identity.review', 'listings.review',
-  'reports.handle', 'catalog.manage', 'catalog.uploadLogo', 'services.manage',
+  'reports.handle', 'bids.cancel', 'catalog.manage', 'catalog.uploadLogo', 'services.manage',
   'serviceRequests.handle', 'notifications.manage', 'integrations.view',
   'integrations.rotateKeys', 'team.manage', 'audit.view', 'wallet.adjust',
   'providers.adjust',
