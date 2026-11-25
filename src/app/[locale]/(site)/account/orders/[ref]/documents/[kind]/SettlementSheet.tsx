@@ -44,7 +44,7 @@ export function SettlementSheet({
           ← عودة إلى الطلب
         </Link>
         <Button size="sm" onClick={() => window.print()}>
-          تحميل PDF
+          تنزيل PDF
         </Button>
       </div>
 

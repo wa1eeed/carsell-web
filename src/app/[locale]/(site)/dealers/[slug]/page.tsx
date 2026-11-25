@@ -140,8 +140,16 @@ export default async function DealerPage({
                   )}
                 </p>
 
+                {/*
+                  **وفقرةٌ بلا عنوان تُقرأ سطرًا ثانيًا من الترويسة.**
+                  الترميزُ يضع «عن المعرض» فوقها، فيعرف القارئ أنّ ما
+                  تحتها كلامُ المعرض عن نفسه لا وصفُنا له.
+                */}
                 {dealer.about === null ? null : (
-                  <p className="mt-3.5 max-w-2xl text-sm leading-loose opacity-75">{dealer.about}</p>
+                  <div className="mt-4 max-w-2xl">
+                    <h2 className="text-2xs font-bold opacity-70">{t('aboutDealer')}</h2>
+                    <p className="mt-1.5 text-sm leading-loose opacity-75">{dealer.about}</p>
+                  </div>
                 )}
               </div>
 

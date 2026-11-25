@@ -92,6 +92,29 @@ export default async function AdminFaqPage({
         <FaqTable rows={rows} />
       )}
     
+      {/*
+        ═══ قواعد العرض — والترميز يضعها ذيلًا للشاشة ═══
+
+        **والقاعدةُ هنا تمنع سوء فهمٍ يقع فعلًا**: من يبحث عن نصّ سؤالٍ
+        في `src/messages` لا يجده، فيظنّ الشاشةَ معطّلةً أو النصَّ
+        ضائعًا. والأسئلةُ صفوفٌ في القاعدة يحرّرها المشغّل — فتُقال
+        حيث يحرّرها، لا في وثيقةٍ يقرؤها مطوّر.
+      */}
+      <section className="mt-9 max-w-xl rounded-xl border border-line p-5">
+        <h2 className="mb-2.5 text-sm font-bold">قواعد العرض</h2>
+        <ul className="flex flex-col gap-2 text-2xs leading-loose opacity-75">
+          <li>
+            <b className="font-bold opacity-100">النصوص محتوى لا ترجمة.</b> السؤال
+            والجواب صفان في القاعدة تحررهما من هنا، ولا يوجدان في ملفات اللغة —
+            فتغييرهما لا يحتاج نشرا.
+          </li>
+          <li>
+            الموضع يحدد أين يظهر السؤال: بنك واحد، ومواضع حسب طريقة البيع. والسؤال
+            بلا موضع محفوظ ولا يراه زائر.
+          </li>
+        </ul>
+      </section>
+
       <ListFooter
         shown={rows.length}
         total={null}

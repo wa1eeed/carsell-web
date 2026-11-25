@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import {
   contactChannels,
@@ -15,12 +15,33 @@ import {
  */
 
 /**
- * **والاختبار يعيد ما غيّره.** صفُّ `platformSetting` مزروع تقرؤه
- * شاشاتٌ كثيرة، فتبديلُه بلا استعادة يُسقط جيرانه في التشغيل التالي.
+ * **والاختبار يعيد ما غيّره — إلى ما وجده لا إلى نسخةٍ منه.**
+ *
+ * كانت الاستعادةُ إلى ثلاث قيمٍ مكتوبةٍ بيد (`supportPhone: null`)،
+ * والبذرةُ تزرع `920001234` و`+966500000000` — **فكلُّ تشغيلٍ
+ * للاختبارات يمحو أرقامَ الدعم**، وتختفي كتلةُ «عندك استفسار؟» من
+ * الرئيسية. فقُرئت نقصًا في الشاشة التي يصلها الزائر أوّلًا، وهي
+ * مبنيّةٌ منذ بُنيت.
+ *
+ * ونسخةٌ تُكتب بيدٍ تتباعد عن مصدرها أوّلَ تغييرٍ فيه — وهي القاعدةُ
+ * نفسُها التي تُكتب هنا في كلّ قائمةٍ تُحاكي مصدرَها.
  */
-const seeded = { supportEmail: 'info@carz.sa', supportPhone: null, supportWhatsapp: null };
+let seeded: {
+  supportEmail: string | null;
+  supportPhone: string | null;
+  supportWhatsapp: string | null;
+} | null = null;
+
+beforeAll(async () => {
+  const row = await db.platformSetting.findUniqueOrThrow({
+    where: { id: 'default' },
+    select: { supportEmail: true, supportPhone: true, supportWhatsapp: true },
+  });
+  seeded = row;
+});
 
 afterEach(async () => {
+  if (seeded === null) return;
   await db.platformSetting.update({ where: { id: 'default' }, data: seeded });
 });
 

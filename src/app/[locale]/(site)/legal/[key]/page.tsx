@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { PrintDocument } from '@/components/site/PrintDocument';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import Link from 'next/link';
@@ -124,11 +125,18 @@ export default async function LegalPage({ params }: { params: Promise<Params> })
                   </span>
                 </>
               )}
+              {/*
+                **ووثيقةٌ تُوقَّع عليها تُحفظ.** من يقبل شروطًا يريد
+                نسخةً منها بتاريخها ونسختها — وما يُقرأ على شاشةٍ
+                اليوم يتبدّل غدًا بنسخةٍ جديدة.
+              */}
+              <span aria-hidden className="opacity-40 print:hidden">·</span>
+              <PrintDocument className="print:hidden" />
             </p>
           </header>
 
           <div className="flex flex-col gap-14 lg:flex-row-reverse">
-            <nav className="w-full shrink-0 lg:w-64" aria-label={t('documents')}>
+            <nav className="w-full shrink-0 lg:w-64 print:hidden" aria-label={t('documents')}>
               <div className="sticky top-4">
                 {/*
                   ═══ والمستندات تسبق البنود ═══

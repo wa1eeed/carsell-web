@@ -103,7 +103,7 @@
     "similarCars": "Similar cars",
     "specs": "Specifications",
     "inspectionReport": "Inspection report",
-    "featuresTab": "Features",
+    "featuresTab": "Features and extras",
     "vehicleHistory": "Vehicle history",
     "sellerNotes": "Seller notes",
     "questions": "Questions",
@@ -148,7 +148,7 @@
     "bodyAndPaintMap": "Body and paint map",
     "inspectionTitle": "Full technical inspection",
     "downloadPdf": "Download PDF",
-    "shareReport": "Share report",
+    "shareReport": "Share the report",
     "inspectionCentre": "Inspection centre",
     "inspectionDate": "Inspection date",
     "reportNumber": "Report number",
@@ -183,13 +183,17 @@
     "colNote": "Inspector's note",
     "showSoundPoints": "Show the clear points",
     "hideSoundPoints": "Hide the clear points",
-    "shareReport": "Share the report",
     "reportLinkCopied": "Report link copied",
     "allSound": "All sound",
     "expandAll": "Expand all sections",
     "collapseAll": "Collapse all sections",
     "stateFlagged": "Flagged",
-    "inspectorCode": "Inspector code"
+    "inspectorCode": "Inspector code",
+    "faqTitleByType": {
+      "DIRECT": "Common questions about buying directly",
+      "NEGOTIATION": "Common questions about buying by negotiation",
+      "AUCTION": "Common questions about buying at auction"
+    }
   },
   "site": {
     "liveAuctions": "live auctions",
@@ -203,11 +207,11 @@
       "services": "Services"
     },
     "metaTitle": "CARZ — the Saudi car marketplace",
-    "metaDescription": "Vehicles with verified ownership and an independent inspection report. Buy outright, by instalments, or bid at auction — funds held in escrow until ownership transfers to you.",
+    "metaDescription": "Cars from identity-verified sellers, with inspection reports from independent centres. Pay cash, finance, or bid at auction — the money sits in escrow until ownership is in your name.",
     "sellYourCar": "Sell your car",
     "signIn": "Sign in",
     "heroTitle": "Cars for sale in Saudi Arabia",
-    "heroBody": "Vehicles with verified ownership and an independent inspection report. Buy outright, by instalments, or bid at auction — funds held in escrow until ownership transfers to you.",
+    "heroBody": "Cars from identity-verified sellers, with inspection reports from independent centres. Pay cash, finance, or bid at auction — the money sits in escrow until ownership is in your name.",
     "heroStat": {
       "listings": "listed vehicles",
       "dealers": "verified dealers",
@@ -227,7 +231,7 @@
     "search": "Search",
     "summary": {
       "usedTitle": "Used cars",
-      "usedBody": "210-point inspected, ownership verified",
+      "usedBody": "From verified sellers, many with a 210-point inspection report",
       "newTitle": "New cars",
       "newBody": "From dealers with factory warranty",
       "auctionsTitle": "Auctions",
@@ -262,7 +266,7 @@
     "step": {
       "1": {
         "title": "Choose your car",
-        "body": "Browse ownership-verified vehicles and compare them by inspection report and market price."
+        "body": "Browse the cars and compare them by inspection report and market price."
       },
       "2": {
         "title": "Buy, negotiate or bid",
@@ -293,8 +297,8 @@
         "body": "If the vehicle contradicts its inspection report, it goes back and you are refunded in full."
       },
       "4": {
-        "title": "Verified ownership",
-        "body": "Every vehicle is matched against the ownership record before it is published."
+        "title": "Identity-verified seller",
+        "body": "Only a seller whose national ID we verified can publish, and ownership transfers into your name at the traffic department."
       }
     },
     "servicesTitle": "Services you may need",
@@ -514,7 +518,7 @@
     "showAll": "Show",
     "allBrands": "All brands",
     "title": "Browse cars",
-    "intro": "Ownership-verified vehicles with an independent inspection report. Buy outright, finance, or bid at auction — funds sit in escrow until the title is in your name.",
+    "intro": "Cars from identity-verified sellers, with inspection reports from independent centres. Pay cash, finance, or bid at auction — the money sits in escrow until ownership is in your name.",
     "filters": "Filters",
     "clear": "Clear",
     "offerType": "Offer type",
@@ -557,7 +561,7 @@
     "h1All": "Cars for sale in Saudi Arabia",
     "h1Prefix": "",
     "h1In": "in",
-    "introRange": "{n} listed{where}, priced from {min} to {max} SAR — all with verified ownership, a technical inspection report, and the option to buy by instalments or through escrow.",
+    "introRange": "{n} listed{where}, priced from {min} to {max} SAR — all from identity-verified sellers, with the option to buy by instalments or through escrow.",
     "introEmpty": "No results match this search. Widen the range or clear some filters.",
     "introWhere": " in {city}",
     "conditionHint": "determines the rest",
@@ -828,6 +832,7 @@
     "searchSubmit": "Search"
   },
   "legal": {
+    "downloadPdf": "Download PDF",
     "version": "Version",
     "effectiveFrom": "Effective from",
     "contents": "On this page",
@@ -944,9 +949,9 @@
       "listings": "My vehicles",
       "offers": "Offers received",
       "orders": "My orders",
-      "reports": "Inspection reports"
+      "reports": "Inspection and Mojaz reports"
     },
-    "view": "View",
+    "view": "Details",
     "expiresOn": "Expires",
     "listingWithdrawn": "Listing withdrawn",
     "sellNow": "Sell your car",
@@ -1245,7 +1250,7 @@
   },
   "auctions": {
     "title": "Auctions",
-    "intro": "Live bidding on ownership-verified vehicles, with a refundable deposit and escrow.",
+    "intro": "Live bidding on cars from verified sellers, with a refundable deposit and escrow.",
     "tab": {
       "live": "Live now",
       "soon": "Upcoming",
@@ -1332,6 +1337,7 @@
   "dealer": {
     "verified": "Verified dealer",
     "joined": "On the platform since",
+    "aboutDealer": "About the dealer",
     "listed": "Listed now",
     "responseRate": "Response rate",
     "responseTime": "Median reply time",
@@ -1358,8 +1364,8 @@
   "landing": {
     "title": "{brand} cars in {city}",
     "titleModel": "{model} in {city}",
-    "meta": "{count, plural, one{One {brand} car listed in {city} on CARZ — inspected, ownership verified.} other{{count} {brand} cars listed in {city} on CARZ — inspected, ownership verified.}}",
-    "metaModel": "{count, plural, one{One {model} listed in {city} on CARZ — inspected, ownership verified.} other{{count} {model} listed in {city} on CARZ — inspected, ownership verified.}}",
+    "meta": "{count, plural, one{One {brand} car listed in {city} on CARZ — from an identity-verified seller.} other{{count} {brand} cars listed in {city} on CARZ — from an identity-verified seller.}}",
+    "metaModel": "{count, plural, one{One {model} listed in {city} on CARZ — from an identity-verified seller.} other{{count} {model} listed in {city} on CARZ — from an identity-verified seller.}}",
     "browse": "Browse {brand} cars in {city}",
     "browseModel": "Browse {model} in {city}",
     "inspected": "inspected",

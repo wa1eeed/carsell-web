@@ -214,7 +214,7 @@ export default async function AccountPage({
                 urgent: fresh > 0,
               },
               { key: 'favorites', label: 'المفضلة', hint: 'ما حفظته للرجوع إليه', count: favorites },
-              { key: 'reports', label: 'تقارير الفحص', hint: 'فحوص مركباتك', count: data.reports.length },
+              { key: 'reports', label: 'تقارير الفحص وموجز', hint: 'فحوص مركباتك', count: data.reports.length },
               /**
                * **والمعاينةُ لقاءٌ بين طرفي الصفقة** لا خدمةَ مزوّد
                * (قرار المالك ٢٠٢٦-١٠-١٧). وما ينتظر ردًّا يُعلَّم

@@ -39,7 +39,7 @@ export function AgreementSheet({
           ← عودة إلى الطلب
         </Link>
         <Button size="sm" onClick={() => window.print()}>
-          تحميل PDF
+          تنزيل PDF
         </Button>
       </div>
 

@@ -759,7 +759,12 @@ export function CarPage({
 
       <section className="mt-12 border-t border-line pt-9">
         <header className="mb-1.5 flex items-baseline gap-3.5">
-          <h2 className="text-2xl font-bold">{t('faqTitle')}</h2>
+          {/*
+            **والعنوان يسمّي ما تحته.** الأسئلةُ مختلفةٌ بنوع البيع
+            أصلًا (`faq` تُبنى منه)، وعنوانٌ عامّ يجعل القارئ يقرأ
+            ستّة أسئلةٍ ليعرف أهي تخصّ حالته. والترميز يسمّيه.
+          */}
+          <h2 className="text-2xl font-bold">{t(`faqTitleByType.${detail.type}`)}</h2>
           <span className="h-px flex-1 bg-line" />
         </header>
         <p className="mb-4.5 text-xs opacity-70">{t('faqByType')}</p>

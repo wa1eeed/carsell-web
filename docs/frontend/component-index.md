@@ -9,7 +9,7 @@ files mention it.
 The narrative — *why* each one exists and what states it must cover — is in
 [`components.md`](./components.md). This file only answers "what exists".
 
-Counted: **175** components in **4** directories.
+Counted: **176** components in **4** directories.
 
 ## Referenced nowhere else
 
@@ -102,6 +102,7 @@ rather than found by chance.
 | `OfferActions` | yes | `offerId` · `sentByMe` · `amount` · `askPrice` · `actionable` | 2 |
 | `PayPanel` | yes | `orderRef` · `total` · `locale` | 1 |
 | `PriceGuidance` | yes | `price` · `stat` · `segment` · `onUse` | 1 |
+| `PrintDocument` | yes | `className` | 1 |
 | `QueryEdit` | yes | `text` · `label` · `apply` | 1 |
 | `ReportListing` | yes | `listingId` · `signedIn` · `locale` | 2 |
 | `RequestService` | yes | `serviceKey` · `serviceName` · `vehicles` · `initialVehicleId` · `cities` · `total` · `addVehicleHref` | 1 |
@@ -110,7 +111,7 @@ rather than found by chance.
 | `SearchAbout` | no | `total` · `priceRange` · `scope` · `siblings` | 1 |
 | `SellerDecisionPanel` | yes | `listingRef` · `decision` | 2 |
 | `SeoProse` | no | `text` · `variant` | 2 |
-| `ShareListing` | yes | `title` · `year` · `url` · `className` | 1 |
+| `ShareListing` | yes | `title` · `year` · `url` · `label` · `className` | 2 |
 | `LiveBar` | no | `liveAuctions` · `closingTitle` · `closingAt` · `city` | 2 |
 | `SiteHeader` | no | `active` · `actions` | 29 |
 | `SponsoredBanner` | yes | `ad` · `label` · `ratio` | 2 |
@@ -132,8 +133,8 @@ rather than found by chance.
 
 | Component | Client | Props | Referenced in |
 | --- | --- | --- | --- |
-| `ActionButton` | no | `onClick` · `children` · `className` | 1 |
-| `ActionLink` | no | `href` · `children` · `className` | 5 |
+| `ActionButton` | no | `onClick` · `children` · `className` | 2 |
+| `ActionLink` | no | `href` · `children` · `className` | 6 |
 | `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 129 |
 | `AuctionRail` | no | `auctions` · `className` | 3 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 116 |
