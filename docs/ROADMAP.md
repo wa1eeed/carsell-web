@@ -2090,6 +2090,35 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 39 — `Wx`, `A23`, `A26`: numbers whose value is the gap between them
+
+**`Wx` 60٪ → 80٪.** The pay button read «ادفع واطلب **فحص فني 210 نقطة**» —
+the marketing name inside an action that takes money. Services have a short
+label now, and a key without one falls back to its full name rather than being
+given an invented one. The heading stays generic: «ما يشمله الفحص» needs the
+verb to agree with the service noun, and all eight services happen to be
+masculine today — it would read correctly now and break on the first «الصيانة».
+
+**`A23` 80٪ → 100٪.** Two measures, and each is only useful beside the other:
+
+- **«وسيط ردّ البائع», not an average** — one reply after a week drags the mean
+  of twenty given in minutes, so the mean describes an outlier rather than what
+  anyone meets. The same decision was already recorded for the dealer card.
+- **«من العروض فوق الحد»** sits beside the acceptance rate it explains: an offer
+  under the seller's floor is auto-rejected, so a low acceptance rate can mean
+  low offers rather than a reluctant seller — and the numbers apart do not say
+  which.
+
+**`A26` 80٪ → 90٪.** The dealers' **share of GMV** beside their share of
+listings: a third of the listings and half the volume means pricier,
+faster-turning stock; the reverse means listings that sit. Measured from
+completed orders, not listing prices — a million-riyal listing that never sold
+is not volume.
+
+`أضف معرضًا` joins the on-behalf questions (`A17` · `A22` · `A29` · `A35`):
+opening an account for someone with **their** commercial register, and deciding
+for them that it is valid. They are one decision.
+
 ### 40a · 38 — `A36` exports: a duration nothing measured
 
 `A36` read **60٪**, wanting «أطول تقرير ١٤ ثانية» beside «حدّ المهلة ٦٠». The

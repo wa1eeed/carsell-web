@@ -51,6 +51,17 @@ export type DealerStats = {
   averageInventory: number;
   /** نصيب المعارض من الإعلانات المنشورة */
   listingSharePct: number;
+  /**
+   * ═══ حصّةُ المعارض من حجم التداول — غيرُ حصّتها من الإعلانات ═══
+   *
+   * ترميزُ `A26` يضع الاثنتين، والفرقُ بينهما هو المعلومة: معارضُ تحمل
+   * ثلث الإعلانات وتبيع نصف الحجم تعني **مخزونًا أغلى وأسرع دورانًا**،
+   * والعكسُ يعني إعلاناتٍ تقف. ورقمٌ واحدٌ منهما لا يقول أيَّهما.
+   *
+   * والحجمُ من الطلبات المكتملة — لا من أسعار الإعلانات: إعلانٌ بمليون
+   * لم يُبَع ليس حجمًا.
+   */
+  gmvSharePct: number | null;
 };
 
 /**
@@ -137,11 +148,21 @@ export async function dealerList(
 }
 
 export async function dealerStats(): Promise<DealerStats> {
-  const [grouped, dealerListings, allListings] = await Promise.all([
+  const [grouped, dealerListings, allListings, dealerGmv, allGmv] = await Promise.all([
     db.dealer.groupBy({ by: ['status'], _count: true }),
     db.listing.count({ where: { status: 'PUBLISHED', seller: { dealerId: { not: null } } } }),
     db.listing.count({ where: { status: 'PUBLISHED' } }),
+    db.order.aggregate({
+      where: { stage: 'DONE', status: { not: 'CANCELLED' }, seller: { dealerId: { not: null } } },
+      _sum: { agreedPrice: true },
+    }),
+    db.order.aggregate({
+      where: { stage: 'DONE', status: { not: 'CANCELLED' } },
+      _sum: { agreedPrice: true },
+    }),
   ]);
+
+  const gmvAll = Number(allGmv._sum.agreedPrice ?? 0);
 
   const at = (status: DealerStatus): number =>
     grouped.find((row) => row.status === status)?._count ?? 0;
@@ -155,6 +176,11 @@ export async function dealerStats(): Promise<DealerStats> {
     suspended: at('SUSPENDED'),
     averageInventory: active === 0 ? 0 : Math.round(dealerListings / active),
     listingSharePct: allListings === 0 ? 0 : Math.round((dealerListings / allListings) * 100),
+    /** و`null` حين لا بيعَ بعد — صفرٌ هنا يُقرأ «لا تبيع المعارض». */
+    gmvSharePct:
+      gmvAll === 0
+        ? null
+        : Math.round((Number(dealerGmv._sum.agreedPrice ?? 0) / gmvAll) * 100),
   };
 }
 

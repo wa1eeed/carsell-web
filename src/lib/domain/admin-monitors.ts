@@ -487,6 +487,23 @@ export type OfferCounts = {
   /** بلا ردّ أكثر من يوم — وهي التي تسقط تلقائيًّا */
   stale: number;
   acceptancePct: number;
+  /**
+   * ═══ وسيطُ ردّ البائع بالساعات — **لا متوسّطُه** ═══
+   *
+   * ردٌّ واحدٌ بعد أسبوعٍ يجرّ متوسّطَ عشرين ردًّا في دقائق، فيقول الرقمُ
+   * عن السوق ما لا يلقاه أحد. والوسيطُ يصف ما يلقاه أكثرُ من يفاوض.
+   * (القاعدةُ مكتوبةٌ في هذا المستودع من بطاقة ردّ المعرض.)
+   *
+   * و`null` حين لا ردَّ بعد — صفرٌ هنا يُقرأ «يردّون فورًا».
+   */
+  medianResponseHours: number | null;
+  /**
+   * نصيبُ ما جاء **فوق الحدّ الأدنى** من العروض التي لصاحبها حدّ.
+   *
+   * وترميزُ `A23` يضعها تحت «نسبة القبول» تفسيرًا لها: عرضٌ دون الأرضيّة
+   * يُرفض آليًّا، فنسبةُ القبول تُقرأ على ضوء كم عرضًا بلغها أصلًا.
+   */
+  aboveFloorPct: number | null;
 };
 
 export async function offerMonitor(
@@ -586,7 +603,8 @@ export async function offerMonitor(
 export async function offerCounts(now: Date = new Date()): Promise<OfferCounts> {
   const dayAgo = new Date(now.getTime() - 86_400_000);
 
-  const [all, active, countered, accepted, autoRejected, stale, decided] = await Promise.all([
+  const [all, active, countered, accepted, autoRejected, stale, decided, responded, withFloor] =
+    await Promise.all([
     /**
      * ═══ «الكل» تُعَدّ ولا تُجمَع ═══
      *
@@ -604,7 +622,38 @@ export async function offerCounts(now: Date = new Date()): Promise<OfferCounts> 
       where: { status: 'PENDING', expiresAt: { gt: now }, createdAt: { lt: dayAgo } },
     }),
     db.offer.count({ where: { status: { in: ['ACCEPTED', 'REJECTED'] }, autoRejected: false } }),
+
+    /** أزواجُ الإنشاء والردّ — والوسيطُ يُحسب في الشيفرة لا في SQL. */
+    db.offer.findMany({
+      where: { respondedAt: { not: null } },
+      select: { createdAt: true, respondedAt: true },
+      take: 500,
+      orderBy: { respondedAt: 'desc' },
+    }),
+
+    /**
+     * العروضُ على إعلانٍ له أرضيّة — ومنها ما بلغها.
+     * و`minAcceptPrice` سرُّ البائع: يُعَدّ ولا يخرج.
+     */
+    db.offer.findMany({
+      where: { listing: { minAcceptPrice: { not: null } } },
+      select: { amount: true, listing: { select: { minAcceptPrice: true } } },
+      take: 1000,
+      orderBy: { createdAt: 'desc' },
+    }),
   ]);
+
+  /** الوسيطُ — والقائمةُ تُرتَّب ثمّ يُؤخذ وسطُها. */
+  const hours = responded
+    .map((row) => ((row.respondedAt?.getTime() ?? 0) - row.createdAt.getTime()) / 3_600_000)
+    .filter((value) => value >= 0)
+    .sort((a, b) => a - b);
+  const medianResponseHours =
+    hours.length === 0 ? null : Math.round(hours[Math.floor(hours.length / 2)] ?? 0);
+
+  const aboveFloor = withFloor.filter(
+    (row) => Number(row.amount) >= Number(row.listing.minAcceptPrice ?? 0),
+  ).length;
 
   return {
     all,
@@ -615,6 +664,9 @@ export async function offerCounts(now: Date = new Date()): Promise<OfferCounts> 
     stale,
     // النسبة من العروض التي نظر فيها البائع — والمرفوض آليًّا لم ينظر فيه
     acceptancePct: decided === 0 ? 0 : Math.round((accepted / decided) * 100),
+    medianResponseHours,
+    aboveFloorPct:
+      withFloor.length === 0 ? null : Math.round((aboveFloor / withFloor.length) * 100),
   };
 }
 

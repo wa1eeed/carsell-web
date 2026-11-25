@@ -1021,6 +1021,53 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A26 — «أضف معرضًا» is asked, not built · 2026-11-25
+
+A dealer exists because a user registered as a business and submitted a
+commercial register, which `A18` then verifies. An admin creating one means
+opening an account for someone else with **their** CR number and tax number,
+and deciding on their behalf that the register is valid — the same on-behalf
+question as `A17`'s `نزاع جديد`, `A22`'s `أنشئ مزادًا` and `A35`'s `أضف عضوًا`.
+They are one decision, and it belongs to the designer.
+
+`حصّتها من GMV` **was** missing and is now built beside the listing share,
+because the gap between them is the information: dealers holding a third of the
+listings and selling half the volume means pricier, faster-turning stock, and
+the reverse means listings that sit. Volume is measured from **completed
+orders**, not listing prices — a million-riyal listing that never sold is not
+volume.
+
+## A23 — «متوسط ردّ البائع» is a median · 2026-11-25
+
+The markup says *average*. One reply after a week drags the mean of twenty
+replies given in minutes, so the number describes an outlier rather than what
+anyone meets. The same decision was already taken for the dealer card
+(`NOTES.md`, «المتوسّطُ يصف الشاذَّ والوسيطُ يصف الحال»), and the label says
+which it is: «وسيط ردّ البائع».
+
+`من العروض فوق الحد` **was** missing and is now built, beside the acceptance
+rate it explains: an offer under the seller's floor is auto-rejected, so a low
+acceptance rate can mean low offers rather than a reluctant seller — and the
+two numbers apart do not say which.
+
+## Wx — «ما يشمله الفحص» stays «ما تشمله الخدمة» · 2026-11-25
+
+The markup names the service in the heading. Building that means «ما يشمله»
+agreeing with the service noun — and the agreement is **masculine or feminine
+depending on the word**. All eight services today happen to be masculine
+(«الفحص» · «الشحن» · «التصوير» · «نقل الملكية»…), so it would read correctly
+now and break the first time someone adds «الصيانة» — rendering «ما يشمله
+الصيانة».
+
+That is the same shape as the defects this repository closed with lint rules:
+a construction that is correct for today's data and wrong for tomorrow's, with
+nothing to catch it. The generic heading is true under every service.
+
+`ادفع واطلب الفحص` **was** built: the button read «ادفع واطلب فحص فني 210
+نقطة» — the marketing name inside an action that takes money. Services have a
+short label now, and a key without one falls back to its full name rather than
+being given an invented one.
+
 ## A36 — «تقرير مخصّص» is asked, not built · 2026-11-25
 
 A custom report means choosing columns, filters and a date range and running

@@ -88,3 +88,24 @@ export const PAYMENT_STATE: Record<string, string> = {
   PARTIALLY_RETURNED: 'رد جزء منه',
   FAILED: 'تعذر السداد',
 } satisfies Record<PaymentStatus, string>;
+
+/**
+ * ═══ اسمٌ قصيرٌ للفعل — لا اسمُ التسويق ═══
+ *
+ * زرُّ الدفع كان يقرأ «ادفع واطلب **فحص فني 210 نقطة**»: اسمُ الخدمة
+ * كاملًا داخل فعلٍ يُضغط عليه مال. وترميزُ `Wx` يكتبه «ادفع واطلب
+ * الفحص» — فالفعلُ يقول ما يقع بأقصر ما يصحّ.
+ *
+ * **ومفتاحٌ بلا اسمٍ قصير يسقط إلى اسمه الكامل** — فخدمةٌ يضيفها المشغّل
+ * تبقى مفهومةً، ولا يُرسَم لها اسمٌ مخترَع.
+ */
+export const SERVICE_SHORT: Record<string, string> = {
+  inspection: 'الفحص',
+  mojaz: 'التقرير',
+  shipping: 'الشحن',
+  photography: 'التصوير',
+  detailing: 'التلميع',
+  insurance: 'التأمين',
+  ownership_transfer: 'نقل الملكية',
+  featured_listing: 'التمييز',
+};

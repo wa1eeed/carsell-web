@@ -55,9 +55,17 @@ export default async function AdminDealersPage({
           { title: 'تنتظر التحقق', value: stats.pending, note: 'سجل تجاري' },
           { title: 'متوسط المخزون', value: stats.averageInventory, note: 'مركبة لكل معرض' },
           {
+            /**
+             * **والحصّتان معًا** — معارضُ تحمل ثلثَ الإعلانات وتبيع نصفَ
+             * الحجم تعني مخزونًا أغلى وأسرعَ دورانًا، والعكسُ إعلاناتٍ
+             * تقف. ورقمٌ واحدٌ لا يقول أيَّهما.
+             */
             title: 'حصتها من الإعلانات',
             value: `${displayDigits(String(stats.listingSharePct))}٪`,
-            note: 'من المنشور',
+            note:
+              stats.gmvSharePct === null
+                ? 'من المنشور · ولا بيع بعد'
+                : `من المنشور · ${displayDigits(String(stats.gmvSharePct))}٪ حصتها من GMV`,
           },
         ]}
       />

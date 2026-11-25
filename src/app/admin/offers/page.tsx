@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ListSearch } from '@/components/admin/ListSearch';
+import { Quantity } from '@/components/ui/Quantity';
+import { deadline } from '@/lib/domain/deadlines';
 import { ListFooter } from '@/components/admin/ListFooter';
 import { MonitorCards, MonitorTabs } from '@/components/admin/MonitorShell';
 import { OfferCard } from '@/components/admin/OfferCard';
@@ -36,7 +38,12 @@ export default async function AdminOffersPage({
   const term = (q ?? '').trim() === '' ? null : (q ?? '').trim();
   const active = FILTERS.includes(filter as Filter) ? (filter as Filter) : null;
 
-  const [rows, counts] = await Promise.all([offerMonitor(active, new Date(), term), offerCounts()]);
+  const [rows, counts, offerTtl] = await Promise.all([
+    offerMonitor(active, new Date(), term),
+    offerCounts(),
+    // المهلةُ من الإعدادات لا ثابتًا — فما يُعرض هو ما يُطبَّق
+    deadline('offerTtlHours'),
+  ]);
 
   return (
     <AdminShell title="العروض والمفاوضات" activeHref="/admin/offers" admin={admin}>
@@ -47,12 +54,40 @@ export default async function AdminOffersPage({
       <MonitorCards
         cards={[
           { title: 'عروض نشطة', value: counts.active, note: 'حالتها نشطة ومهلتها قائمة' },
-          { title: 'عروض مقابلة', value: counts.countered, note: 'رد البائع بسعر' },
+          {
+            /**
+             * **وسيطٌ لا متوسّط** — ردٌّ واحدٌ بعد أسبوعٍ يجرّ متوسّطَ
+             * عشرين ردًّا في دقائق، فيقول الرقمُ عن السوق ما لا يلقاه أحد.
+             */
+            title: 'وسيط رد البائع',
+            value: counts.medianResponseHours ?? '—',
+            note:
+              counts.medianResponseHours === null ? (
+                'لا رد بعد'
+              ) : (
+                <>
+                  بالساعات · المهلة <Quantity unit="hours" count={offerTtl} />
+                </>
+              ),
+          },
           { title: 'بلا رد أكثر من يوم', value: counts.stale, note: 'تسقط تلقائيا بانقضاء المهلة' },
           {
             title: 'نسبة القبول',
             value: `${displayDigits(String(counts.acceptancePct))}٪`,
-            note: 'مما نظر فيه البائع',
+            /**
+             * **والنسبةُ تُقرأ على ضوء كم عرضًا بلغ الأرضيّة**: ما دونها
+             * يُرفض آليًّا، فنسبةُ قبولٍ منخفضة قد تعني عروضًا متدنّية لا
+             * بائعًا متمنّعًا — والرقمان مفترقين لا يقولانها.
+             */
+            note:
+              counts.aboveFloorPct === null ? (
+                'مما نظر فيه البائع'
+              ) : (
+                <>
+                  مما نظر فيه البائع ·{' '}
+                  {displayDigits(String(counts.aboveFloorPct))}٪ من العروض فوق الحد
+                </>
+              ),
           },
         ]}
       />

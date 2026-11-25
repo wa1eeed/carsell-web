@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button, LinkButton } from '@/components/ui/Button';
+import { SERVICE_SHORT } from '@/lib/labels/services';
 import { Toast } from '@/components/ui/Toast';
 
 /**
@@ -210,7 +211,8 @@ export function RequestService({
       */}
       <Button className="w-full" disabled={pending} onClick={submit}>
         <span className="flex flex-col items-center gap-0.5 leading-tight">
-          <span>{pending ? 'جاري…' : `ادفع واطلب ${serviceName}`}</span>
+          {/* والاسمُ القصير — لا اسمُ التسويق داخل فعلٍ يُضغط عليه مال */}
+          <span>{pending ? 'جاري…' : `ادفع واطلب ${SERVICE_SHORT[serviceKey] ?? serviceName}`}</span>
           {pending ? null : <span className="font-num text-3xs opacity-75">{total} ر.س</span>}
         </span>
       </Button>
