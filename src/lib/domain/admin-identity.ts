@@ -1,5 +1,6 @@
 import type { IdentityStatus } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
+import { ibanMasked } from './iban';
 import { IDENTITY_QUEUE, holdIdentity, verifyIdentity } from './identity-state';
 import { MIN_IDENTITY_NOTE } from './identity-rules';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
@@ -44,6 +45,23 @@ export type IdentityRow = {
    * طلبٍ ليعرف ما يطلبه — وهو ما يُبطئ الطابور الذي يُقاس زمنُه.
    */
   business: { name: string; crNumber: string; crExpiresAt: string | null; vatNumber: string | null } | null;
+
+  /**
+   * ═══ البياناتُ المُدخَلة — ما يُقارَن، لا ما يُكشَف ═══
+   *
+   * ترميزُ `A18` يضع تحت المستندات «البيانات المُدخَلة»، وملاحظتُه كلُّها
+   * عن **مقابلةِ اسم حساب البنك باسم الهوية**: «الاختلاف اختصارٌ لا
+   * تعارض — والتعارضُ الحقيقيّ اختلافُ الاسم الأوّل أو العائلة».
+   *
+   * **وكان المراجعُ يقرّر بلا أن يرى الاسمَ الذي يقابله**: النافذة تعرض
+   * الاسمَ والجوالَ والطريقة وحدها، فيفتح شاشةَ العملاء ليقارن — أو
+   * يوثّق بلا مقارنة، وهي المقارنةُ التي بُني الطابورُ لأجلها.
+   *
+   * **ورقمُ الهوية لا يدخل هنا** (ولا تجزئتُه): كشفُه فعلٌ مستقلّ بسببٍ
+   * مكتوب، والآيبان بأربع خاناتٍ تكفي للمطابقة ولا تكفي للتحويل.
+   */
+  bankName: string | null;
+  ibanMasked: string | null;
 };
 
 export type IdentityStats = {
@@ -106,6 +124,8 @@ export async function identityQueue(
       crNumber: true,
       crExpiresAt: true,
       vatNumber: true,
+      bankName: true,
+      iban: true,
       _count: { select: { listings: true } },
     },
   });
@@ -129,6 +149,8 @@ export async function identityQueue(
             vatNumber: user.vatNumber,
           }
         : null,
+    bankName: user.bankName,
+    ibanMasked: ibanMasked(user.iban),
   }));
 }
 

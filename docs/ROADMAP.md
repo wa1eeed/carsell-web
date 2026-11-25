@@ -2090,6 +2090,35 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 34 — `A18` identity, where the reviewer decided with nothing to compare
+
+`A18` read **75٪**. Three of its four signals are the review dialog's own
+contents, behind «راجع» — walked, seen, listed.
+
+The real finding is inside that dialog: it showed the name, the phone and the
+method, and **nothing to compare them against**. The design's note under
+«البيانات المُدخَلة» is entirely about matching the bank account against the
+identity, and the reviewer had to open the customers screen to do it — or
+verify without doing it, which is the comparison the queue exists for.
+
+- [x] The bank and the IBAN's **last four** are shown (enough to match, not
+      enough to transfer). The ID number stays out: revealing it is a separate
+      act with a written reason, and every look is logged.
+- [x] Pending accounts are seeded with a bank and an IBAN. They had neither, so
+      the block could not render in any environment — «ما لا يُزرع لا يُرى».
+- [ ] **One field the design's note needs does not exist.** It explains
+      comparing the *account holder's name* at the bank with the name on the ID;
+      `User` holds the bank and the IBAN and no holder name. The note is not
+      written on the screen — a sentence explaining a comparison whose other
+      half the screen does not hold sends the reviewer hunting for data that is
+      not there. Collecting it is a question for the designer; it is the core
+      name-mismatch check in KYC.
+
+*(The first draft labelled the bank's name «اسم حساب البنك» — a label promising
+the holder's name over «البلاد». Caught by opening the dialog, not by a test.)*
+
+Measured after: **75٪ → 92٪**; `وثّق المحدَّد` stays asked, not built.
+
 ### 40a · 33 — `A19` and `A12`: a parameter the route accepted and nothing sent
 
 `A19` read **64٪**. Three of its four signals are the feature editor's own

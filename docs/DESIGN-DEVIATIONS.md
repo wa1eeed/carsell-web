@@ -154,6 +154,24 @@ possible shapes are in `OPEN-QUESTIONS.md`; verification opens publishing,
 buying, bidding and receiving money, so approving several accounts in one press
 is a business decision, not a layout one.
 
+### «البيانات المُدخَلة» — built, and one field short · 2026-11-25
+
+The review dialog showed the name, the phone and the method, and the reviewer
+decided **without seeing anything to compare against** — so they opened the
+customers screen to compare, or verified without comparing, which is the
+comparison the queue exists for. It now shows the bank and the IBAN's last four
+(enough to match, not enough to transfer); the ID number stays out, since
+revealing it is a separate act with a written reason.
+
+**And one field is missing that the design's own note is about.** The note
+explains comparing the *account holder's name* at the bank with the name on the
+ID («عبدالله م. الحربي» against «عبدالله محمد الحربي»), and `User` has no such
+field — only the bank and the IBAN. The note is **not** written on the screen,
+because a sentence explaining a comparison whose other half the screen does not
+hold sends the reviewer looking for data that does not exist. Collecting the
+account holder's name is a question for the designer: it is the core
+name-mismatch check in KYC, and today nothing holds it.
+
 ## A11 — three things the markup draws that the panel deliberately does not · 2026-11-24
 
 **Status: decided.** All three keep reading as misses in `design-audit`; the
