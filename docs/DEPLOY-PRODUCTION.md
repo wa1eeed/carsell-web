@@ -1,10 +1,10 @@
 # Production on SCCC — `carz.sa`
 
-_Last updated: 2026-11-23_
+_Last updated: 2026-11-25_
 
 Staging is `carsell.one` on Coolify. **Production is `carz.sa` on an SCCC
 (Alibaba Cloud, Riyadh) ECS**, with a managed PostgreSQL instance beside it.
-This file is what was actually built on 2026-11-23, measured as it was built.
+This file is what was actually built on 2026-11-25, measured as it was built.
 
 ---
 
@@ -120,7 +120,21 @@ It is `scripts/ops/deploy-production.sh`, installed to `/usr/local/bin`. It:
 - polls `/api/health` for ninety seconds after the swap and **rolls back to the
   previous image by itself** if nothing answers — a container that boots and
   then dies on the first request would otherwise leave the script happy and the
-  site down.
+  site down;
+- writes its build log to a path **named after the user running it**, and fails
+  loudly if it cannot open it.
+
+That last line was bought. The log path was a fixed `/tmp/deploy-build.log`; an
+earlier deploy run as `root` left the file owned by root, and the next run as
+`ecs-user` **failed at the redirect before the build started**. `||` caught
+that, printed "build failed", and then `tail`-ed *yesterday's* log — a
+**successful** build of a **different commit**, under a failure heading. The
+command's own output said `naming to carz:12d14ab` while nothing had been
+built at all, and the tree had already been reset to the new commit.
+
+The script survives it because it compares the **running container's tag**, not
+the tree — so the next run says "tree on X, container on Y, rebuilding" instead
+of "nothing to do". Read the tag, never the tree.
 
 The build takes 20–35 minutes on two cores. **4 GB of swap is why it finishes**
 — `next build` does not fit in 3.5 GiB.

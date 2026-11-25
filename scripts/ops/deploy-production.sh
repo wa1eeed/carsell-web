@@ -18,6 +18,25 @@ NAME=carz
 NET=carz-net
 HEALTH=http://127.0.0.1:3000/api/health
 
+# ═══ وسجلُّ البناء لا يُكتب في مسارٍ يملكه غيرُك ═══
+#
+# كان `/tmp/deploy-build.log` ثابتًا، فنشرةٌ قديمةٌ شُغّلت بـ`root`
+# تركت الملفَّ له. ثمّ شغّلها `ecs-user` **فسقط التحويلُ قبل أن
+# يبدأ البناء** — و`||` التقطته فطبع «سقط البناء» ثمّ `tail` على
+# **سجلّ الأمس**: بناءٌ ناجحٌ لالتزامٍ آخر تحت عنوان «سقط».
+#
+# فخرج الأمرُ يقول «بُني `carz:12d14ab`» وما بُني شيء، **والشجرةُ قد
+# أُعيد ضبطُها على الجديد** — فالتشغيل التالي يراهما سواءً.
+# (ولذلك يفحص السكربت الحاويةَ لا الشجرة؛ وهذه علّةٌ ثانية فوقها.)
+#
+# والمسارُ باسم صاحبه، والفشلُ يُسمّى سببَه قبل أن يُقرأ أيُّ سجلّ.
+BUILD_LOG="${TMPDIR:-/tmp}/carz-deploy-$(id -un).log"
+: >"$BUILD_LOG" || {
+  echo "✗ تعذّر فتح سجلّ البناء: $BUILD_LOG" >&2
+  echo "  (مملوكٌ لمستخدمٍ آخر؟ احذفه أو صحّح ملكيّته.)" >&2
+  exit 1
+}
+
 cd "$APP_DIR"
 
 PREVIOUS="$(docker inspect --format '{{.Config.Image}}' "$NAME" 2>/dev/null || echo '')"
@@ -51,9 +70,9 @@ echo "→ $BEFORE ⟶ $AFTER"
 git reset --hard "origin/main" --quiet
 
 echo "→ البناء (يأخذ ٢٠–٣٥ دقيقة على نواتين)…"
-docker build -t "${NAME}:${AFTER}" -t "${NAME}:latest" . >/tmp/deploy-build.log 2>&1 || {
-  echo "✗ سقط البناء — آخر السجلّ:" >&2
-  tail -25 /tmp/deploy-build.log >&2
+docker build -t "${NAME}:${AFTER}" -t "${NAME}:latest" . >"$BUILD_LOG" 2>&1 || {
+  echo "✗ سقط البناء — آخر السجلّ ($BUILD_LOG):" >&2
+  tail -25 "$BUILD_LOG" >&2
   echo "  والحاوية القديمة ما زالت تعمل: لم يُلمَس شيء." >&2
   exit 1
 }
