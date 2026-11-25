@@ -14,6 +14,7 @@ export const REPORT_NAME: Record<ReportKey, string> = {
   auction_performance: 'أداء المزادات',
   service_requests: 'طلبات الخدمات والمزودين',
   customers: 'العملاء وسلوكهم',
+  audit_log: 'سجل التدقيق',
 };
 
 /** عمود «المحتوى» في التصميم. */
@@ -24,6 +25,7 @@ export const REPORT_CONTENT: Record<ReportKey, string> = {
   auction_performance: 'الرسو · العرابين · التمديد',
   service_requests: 'الإسناد والالتزام',
   customers: 'يحتوي بيانات شخصية',
+  audit_log: 'كل إجراء بفاعله وعنوانه — يحتوي بيانات شخصية',
 };
 
 export const REPORT_SCHEDULE_LABEL: Record<ReportSchedule, string> = {

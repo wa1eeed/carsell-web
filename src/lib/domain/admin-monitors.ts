@@ -579,24 +579,114 @@ export type AuditRow = {
   createdAt: string;
 };
 
-/** أصناف الإجراءات الحسّاسة — والتصفية بها لا بالبحث النصّيّ. */
+/** أصناف الإجراءات — والتصفية بها لا بالبحث النصّيّ. */
 export const AUDIT_LENSES = {
   money: ['escrow.', 'payout.', 'commission.', 'deadline.', 'finance.'],
   identity: ['identity.', 'user.identity'],
   permissions: ['admin.', 'team.', 'role.'],
 } as const;
 
-export type AuditLens = keyof typeof AUDIT_LENSES;
+/**
+ * ═══ الحسّاسة — قائمةٌ بأعيانها لا ببادئة ═══
+ *
+ * العدساتُ الثلاث ببادئاتٍ واسعة، و«حسّاسة» في الترميز **أضيقُ منها
+ * كلِّها** (٣١ من ٤٢٨٠، ودون «مالية ١٤٦» و«بيانات شخصية ٨٩»). فليست
+ * اتّحادًا ولا بادئة: هي ما يفتحه المدقّق أوّلًا.
+ *
+ * والمعيار: **ما لا رجعةَ فيه على إنسان، أو مالٌ يخرج من المنصّة، أو
+ * تبديلُ من يملك ماذا.** فـ`escrow.settled` فيها و`deadline.changed`
+ * ليست (مالٌ لا يتحرّك)، و`identity.view` فيها و`identity.verified`
+ * ليست (قرارٌ يُراجَع، والاطّلاعُ على الوثيقة لا يُستعاد).
+ *
+ * **والقائمةُ تُحرَس**: `tests/audit-lenses.test.ts` يشترط لكلّ مفتاحٍ
+ * هنا تسميةً في `AUDIT_ACTION_LABEL` — فإجراءٌ يُعاد تسميتُه يُسقط
+ * الاختبار بدل أن يسقط صامتًا من العدسة.
+ */
+export const AUDIT_SENSITIVE: readonly string[] = [
+  // وثيقةٌ شخصية تُفتح — ولا يُستعاد اطّلاع
+  'identity.view',
+  'identity.access_spike',
+  // مالٌ يخرج
+  'escrow.settled',
+  'payout.sent',
+  'provider_payout.sent',
+  'wallet.adjustment_requested',
+  'provider.iban_set',
+  // من يملك ماذا
+  'admin.provisioned',
+  'admin.password_set',
+  'admin.sessions_revoked',
+  'apikey.issue',
+  'apikey.revoke',
+  // حسابٌ يُغلق على صاحبه
+  'account.closed',
+];
+
+export type AuditLens = keyof typeof AUDIT_LENSES | 'sensitive';
+
+/**
+ * المفاتيحُ المقبولة في `?lens=` — **مشتقّةٌ لا منسوخة**: كانت الشاشة
+ * تحمل قائمتَها بيدٍ، فعدسةٌ تُضاف هنا لا تُقبل هناك وتُقرأ «الكل».
+ */
+export const AUDIT_LENS_KEYS: readonly AuditLens[] = [
+  'sensitive',
+  ...(Object.keys(AUDIT_LENSES) as (keyof typeof AUDIT_LENSES)[]),
+];
+
+/**
+ * شرطُ العدسة — **مكتوبٌ مرّة**: كان `auditTrail` و`auditCounts` يترجمان
+ * العدسة كلٌّ بيده، فعدسةٌ تُضاف إلى إحداهما تُنتج عدّادًا لا يطابق قائمته.
+ */
+function lensWhere(lens: AuditLens): { OR: { action: object }[] } {
+  if (lens === 'sensitive') {
+    return { OR: AUDIT_SENSITIVE.map((action) => ({ action: { equals: action } })) };
+  }
+  return { OR: AUDIT_LENSES[lens].map((prefix) => ({ action: { startsWith: prefix } })) };
+}
+
+/**
+ * ═══ التصفية المتقدّمة — نافذةٌ وفاعلٌ وإجراء ═══
+ *
+ * العدسةُ تسأل «أيّ صنف»، والمدقّق يسأل «ماذا وقع بين الاثنين والخميس»
+ * و«ماذا فعل فلان». وثلاثتها تُجمع بـ`AND` لا بـ`OR`: من يحدّد نافذةً
+ * ثمّ فاعلًا يقصد الاثنين معًا.
+ */
+export type AuditFilter = {
+  /** من — شاملٌ لليوم نفسه */
+  from?: Date;
+  /** إلى — **وتُدفَع إلى آخر اليوم**: «إلى الخميس» تعني بنهايته */
+  to?: Date;
+  /** جزءٌ من اسم الإجراء — `escrow` يطابق `escrow.settled` */
+  action?: string;
+  actorId?: string;
+};
 
 export async function auditTrail(
   lens: AuditLens | null = null,
   take = 120,
+  filter: AuditFilter = {},
 ): Promise<AuditRow[]> {
+  const range =
+    filter.from === undefined && filter.to === undefined
+      ? {}
+      : {
+          createdAt: {
+            ...(filter.from === undefined ? {} : { gte: filter.from }),
+            ...(filter.to === undefined ? {} : { lte: filter.to }),
+          },
+        };
+
   const rows = await db.auditLog.findMany({
-    where:
-      lens === null
+    where: {
+      ...(lens === null ? {} : lensWhere(lens)),
+      ...range,
+      ...(filter.action === undefined || filter.action === ''
         ? {}
-        : { OR: AUDIT_LENSES[lens].map((prefix) => ({ action: { startsWith: prefix } })) },
+        : { action: { contains: filter.action, mode: 'insensitive' as const } }),
+      ...(filter.actorId === undefined || filter.actorId === ''
+        ? {}
+        : { actorId: filter.actorId }),
+    },
     orderBy: { createdAt: 'desc' },
     take,
   });
@@ -632,18 +722,13 @@ export async function auditTrail(
 }
 
 export async function auditCounts(): Promise<Record<string, number>> {
-  const [total, money, identity, permissions] = await Promise.all([
+  const [total, sensitive, money, identity, permissions] = await Promise.all([
     db.auditLog.count(),
-    db.auditLog.count({
-      where: { OR: AUDIT_LENSES.money.map((p) => ({ action: { startsWith: p } })) },
-    }),
-    db.auditLog.count({
-      where: { OR: AUDIT_LENSES.identity.map((p) => ({ action: { startsWith: p } })) },
-    }),
-    db.auditLog.count({
-      where: { OR: AUDIT_LENSES.permissions.map((p) => ({ action: { startsWith: p } })) },
-    }),
+    db.auditLog.count({ where: lensWhere('sensitive') }),
+    db.auditLog.count({ where: lensWhere('money') }),
+    db.auditLog.count({ where: lensWhere('identity') }),
+    db.auditLog.count({ where: lensWhere('permissions') }),
   ]);
 
-  return { total, money, identity, permissions };
+  return { total, sensitive, money, identity, permissions };
 }

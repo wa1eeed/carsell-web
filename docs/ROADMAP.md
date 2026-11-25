@@ -2090,6 +2090,51 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 28 — `A16` the audit log: a sensitive lens, an export, and a window
+
+`A16` read **57٪** with three lenses — money, identity, permissions — all
+defined by action **prefix**. The design's fourth, «حسّاسة», is the narrowest
+of all: 31 of 4,280, below both money (146) and identity (89). So it is not a
+union and not a prefix. It is what an auditor opens first.
+
+The criterion written into the code: **irreversible against a person, money
+leaving the platform, or a change to who can do what.** `escrow.settled` is in
+and `deadline.changed` is not (no money moves); `identity.view` is in and
+`identity.verified` is not (a decision can be reviewed, a look at someone's
+document cannot be taken back).
+
+- [x] A list of exact action names, not a prefix — and
+      `tests/audit-lenses.test.ts` requires every one to have a label, so a
+      renamed action breaks the test instead of silently dropping out of the
+      lens. Proved by renaming one: it fails.
+- [x] The lens condition is written **once** and read by both the list and the
+      counters, which were translating it separately.
+- [x] The page's own hand-written list of accepted `?lens=` values is derived
+      from the domain now; a lens added there was previously rejected here and
+      silently read as «الكل».
+
+### The export goes through the report catalogue, not beside it
+
+`تصدير CSV` is an `audit_log` report with `audit.view` and `personal: true` —
+so the same guard, the same row limit, and the same rule that **records who
+exported how many rows**. The file carries actor names and IP addresses; that
+is an export of people's trail, which is exactly why the customers report sits
+behind `users.viewIdentity`. Downloaded and checked: 180 rows, before/after
+columns serialized.
+
+### And «تصفية متقدّمة» is a GET form
+
+A date window and an action fragment, combined with `AND` — a URL that can be
+copied and sent, which is what someone handing a reviewer a specific window
+needs. Walked: `action=escrow` with August returns the one release; moving the
+window to September returns nothing.
+
+**«تمس بيانات شخصية» reads 0, and that is left alone.** Nothing in the seed
+writes `identity.view`, and planting a fake record of someone opening an ID
+document is the one place a fabricated row is worst.
+
+Measured after: **57٪ → 100٪** ⚠ (7 signals).
+
 ### 40a · 27 — `A8` notifications, and 55 templates where not one named the car
 
 `A8` read **59٪**, and measuring its missing copy turned up something larger

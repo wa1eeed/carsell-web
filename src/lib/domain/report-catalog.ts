@@ -20,7 +20,8 @@ export type ReportKey =
   | 'inventory_aging'
   | 'auction_performance'
   | 'service_requests'
-  | 'customers';
+  | 'customers'
+  | 'audit_log';
 
 /** الجدولة المقصودة — مفتاحٌ تصوغه طبقة العرض */
 export type ReportSchedule = 'weekly_sunday' | 'weekly' | 'monthly' | 'on_demand';
@@ -78,6 +79,22 @@ export const REPORTS: readonly ReportDef[] = [
     key: 'customers',
     schedule: 'on_demand',
     permission: 'users.viewIdentity',
+    personal: true,
+  },
+  {
+    /**
+     * ═══ سجلّ التدقيق — يُصدَّر ولا يُنسخ من الشاشة ═══
+     *
+     * ترميزُ `A16` يضع «تصدير CSV» في رأسه، ومن يطلبه جهةٌ تنظيمية أو
+     * مراجعٌ خارجيّ — ولا يُقرأ ذلك من شاشةٍ تعرض مئةً وعشرين سطرًا.
+     *
+     * **ويُقيَّد بأنه شخصيّ**: الصفوف تحمل أسماءَ المنفِّذين وعناوينَ
+     * الآيبي، فتصديرُه إخراجُ أثرِ أشخاصٍ من المنصّة. وهو المسلك نفسُه
+     * الذي جعل تقرير العملاء خلف `users.viewIdentity`.
+     */
+    key: 'audit_log',
+    schedule: 'on_demand',
+    permission: 'audit.view',
     personal: true,
   },
 ];

@@ -242,6 +242,54 @@ const QUERIES: Record<ReportKey, Query> = {
       ]),
     };
   },
+
+  /**
+   * **والقبلُ والبعدُ عمودان** — سطرٌ يقول «عدّل رسوم النقل» بلا قيمتين
+   * لا يُراجَع. وهما `Json`، فيُسلسَلان كما خُزّنا.
+   */
+  audit_log: async () => {
+    const entries = await db.auditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: EXPORT_ROW_LIMIT,
+      select: {
+        id: true, createdAt: true, actorId: true, actorType: true,
+        action: true, entity: true, entityId: true, ip: true,
+        before: true, after: true,
+      },
+    });
+
+    const adminIds = [
+      ...new Set(entries.filter((row) => row.actorType === 'admin').map((row) => row.actorId)),
+    ];
+    const admins =
+      adminIds.length === 0
+        ? []
+        : await db.adminUser.findMany({
+            where: { id: { in: adminIds } },
+            select: { id: true, name: true, role: true },
+          });
+    const byId = new Map(admins.map((row) => [row.id, row]));
+
+    return {
+      headers: [
+        'at', 'actor_id', 'actor_name', 'actor_role', 'actor_type',
+        'action', 'entity', 'entity_id', 'ip', 'before', 'after',
+      ],
+      rows: entries.map((row) => [
+        row.createdAt,
+        row.actorId,
+        byId.get(row.actorId)?.name ?? '',
+        byId.get(row.actorId)?.role ?? row.actorType.toUpperCase(),
+        row.actorType,
+        row.action,
+        row.entity,
+        row.entityId,
+        row.ip ?? '',
+        JSON.stringify(row.before ?? {}),
+        JSON.stringify(row.after ?? {}),
+      ]),
+    };
+  },
 };
 
 /**
