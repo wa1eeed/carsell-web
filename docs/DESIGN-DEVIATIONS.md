@@ -1021,6 +1021,28 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
 
+## A36 — «تقرير مخصّص» is asked, not built · 2026-11-25
+
+A custom report means choosing columns, filters and a date range and running
+arbitrary SQL against the read replica. Every report in the catalogue is a
+**named query** with its own permission, its own row limit and its own audit
+row; a builder is a different thing — it needs its own guard on what may be
+selected, since "pick any column" over `User` is an export of personal data by
+another name.
+
+`أطول تقرير` **was** missing and is now built: the duration of every export is
+measured and written with its trail, and the card reads the slowest run this
+month beside the timeout. It is a warning, not decoration — a report nearing
+the limit will fail one day on larger data, and the operator should know before
+it does.
+
+**And a recorded decision was reversed to get it.** Exports were audited only
+when they carried personal data, on the reasoning that logging every one would
+flood the log. That reasoning has lapsed: the audit log now has a «حسّاسة» lens
+separating what gets reviewed from routine, and the heaviest report is the
+ledger — which is not personal, so its duration was invisible. Every export is
+logged now, with `personal` kept in the payload so the distinction survives.
+
 ## A29 — «أنشئ باقة» is asked, not built · 2026-11-25
 
 A plan is a **bundle of entitlement values**, and the code asks for the

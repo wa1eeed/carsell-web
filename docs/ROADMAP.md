@@ -2090,6 +2090,32 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 38 — `A36` exports: a duration nothing measured
+
+`A36` read **60٪**, wanting «أطول تقرير ١٤ ثانية» beside «حدّ المهلة ٦٠». The
+figure is a **warning, not decoration**: a report nearing the limit will fail
+one day on larger data, and the operator should know before it does — and
+**nothing measured it**.
+
+Every export now records how long its query took, alongside its row count, and
+the card reads the slowest run this month with the report's name.
+
+**Getting it reversed a recorded decision.** Exports were audited only when they
+carried personal data — reasoned at the time as "logging every one floods the
+log". That reasoning has lapsed on two counts: this repository's first rule is
+that **every admin action writes `AuditLog`**, and the log now has a «حسّاسة»
+lens (task 28) separating what gets reviewed from the routine. The deciding
+fact: **the heaviest report is the ledger, which is not personal** — so the
+duration that mattered most was the one never written. The old test asserted
+the old rule; its replacement carries why it changed, so the next reader is not
+left guessing.
+
+`تقرير مخصّص` stays asked: a builder running arbitrary selections over `User`
+is an export of personal data by another name, and needs its own guard on what
+may be chosen.
+
+Measured after: **60٪ → 80٪ ⚠**.
+
 ### 40a · 37 — `A29` and `Wg`: a trail written and never read
 
 `A29` read **75٪**. **«سجل التغييرات» was built into the trail and out of the

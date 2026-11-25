@@ -351,25 +351,43 @@ export async function runReport(
   const definition = REPORTS.find((report) => report.key === input.key);
   if (definition === undefined) return { ok: false, reason: 'UNKNOWN_REPORT' };
 
+  /**
+   * ═══ وزمنُ التنفيذ يُقاس ويُكتب ═══
+   *
+   * ترميزُ `A36` يعرض «أطول تقرير ١٤ ثانية · حدّ المهلة ٦٠»: والرقمُ
+   * إنذارٌ لا زينة — تقريرٌ يقترب من الحدّ سيسقط يومًا على بياناتٍ أكبر،
+   * **ولا شيء كان يقيسه**. فيُكتب مع الأثر، ويُقرأ منه أطولُ ما جرى.
+   */
+  const startedAt = Date.now();
   const { headers, rows } = await QUERIES[definition.key]();
   const csv = toCsv(headers, rows);
+  const ms = Date.now() - startedAt;
   const day = now.toISOString().slice(0, 10);
 
-  if (definition.personal) {
-    await db.auditLog.create({
-      data: {
-        actorId: input.adminId,
-        actorType: 'admin',
-        entity: 'Report',
-        entityId: definition.key,
-        action: 'report.exported',
-        before: {},
-        after: { report: definition.key, rows: rows.length, personal: true },
-        ip: input.ip,
-        createdAt: now,
-      },
-    });
-  }
+  /**
+   * ═══ وكلُّ تصديرٍ يُقيَّد، لا الشخصيُّ وحده ═══
+   *
+   * كان القيدُ مشروطًا بـ`personal` — وقاعدةُ هذا المستودع أنّ **كلَّ
+   * إجراء أدمن يكتب `AuditLog`**. وأثرُه عمليّ أيضًا: الزمنُ لا يُقاس
+   * إلّا ممّا كُتب، فبطاقةُ «أطول تقرير» كانت تقرأ الشخصيَّ وحده —
+   * وأثقلُ التقارير هو الدفتر، وهو غيرُ شخصيّ.
+   *
+   * و`personal` تبقى في الحمولة: الفرقُ بين «صدّر مجمَّعًا» و«صدّر
+   * قائمةَ ناس» يبقى مقروءًا في السجلّ.
+   */
+  await db.auditLog.create({
+    data: {
+      actorId: input.adminId,
+      actorType: 'admin',
+      entity: 'Report',
+      entityId: definition.key,
+      action: 'report.exported',
+      before: {},
+      after: { report: definition.key, rows: rows.length, personal: definition.personal, ms },
+      ip: input.ip,
+      createdAt: now,
+    },
+  });
 
   return {
     ok: true,
@@ -385,20 +403,55 @@ export type ExportStats = {
   personalReports: number;
   exportsThisMonth: number;
   rowLimit: number;
+  /**
+   * ═══ أطولُ تقريرٍ جرى هذا الشهر — بالثواني ═══
+   *
+   * ترميزُ `A36` يعرضه بجوار «حدّ المهلة ٦٠»، وهو **إنذارٌ لا زينة**:
+   * تقريرٌ يقترب من الحدّ سيسقط يومًا على بياناتٍ أكبر، والمشغّلُ يعرف
+   * ذلك قبل أن يسقط لا بعده.
+   *
+   * و`null` حين لا تصديرَ هذا الشهر — صفرٌ هنا يُقرأ «فوريّ».
+   */
+  slowestSeconds: number | null;
+  slowestReport: string | null;
 };
 
 export async function exportStats(now: Date = new Date()): Promise<ExportStats> {
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-  const exports = await db.auditLog.count({
-    where: { action: 'report.exported', createdAt: { gte: monthStart } },
-  });
+  const [exports, runs] = await Promise.all([
+    db.auditLog.count({
+      where: { action: 'report.exported', createdAt: { gte: monthStart } },
+    }),
+    /**
+     * **والزمنُ في الحمولة لا في عمود** — فيُقرأ بالمرور على الصفوف.
+     * وهي عشراتٌ في الشهر لا آلاف، فلا فهرسَ يُحتاج.
+     */
+    db.auditLog.findMany({
+      where: { action: 'report.exported', createdAt: { gte: monthStart } },
+      select: { after: true },
+    }),
+  ]);
+
+  let slowestMs = 0;
+  let slowestKey: string | null = null;
+  for (const run of runs) {
+    const payload = run.after as { ms?: unknown; report?: unknown } | null;
+    const ms = typeof payload?.ms === 'number' ? payload.ms : 0;
+    if (ms > slowestMs) {
+      slowestMs = ms;
+      slowestKey = typeof payload?.report === 'string' ? payload.report : null;
+    }
+  }
 
   return {
     reports: REPORTS.length,
     personalReports: REPORTS.filter((report) => report.personal).length,
     exportsThisMonth: exports,
     rowLimit: EXPORT_ROW_LIMIT,
+    // ثانيةٌ واحدة على الأقلّ لما جرى — «٠ ثانية» تُقرأ «لم يُقَس»
+    slowestSeconds: slowestKey === null ? null : Math.max(1, Math.round(slowestMs / 1000)),
+    slowestReport: slowestKey,
   };
 }
 

@@ -149,19 +149,37 @@ describe('A36 — التقارير والتصدير', () => {
   });
 
   /**
-   * **ما يحمل بيانات شخصية يُقيَّد، وما لا يحملها لا يُقيَّد.** وتقييد
-   * كل تصدير يُغرق السجلّ فيضيع فيه ما يهمّ.
+   * ═══ كلُّ تصديرٍ يُقيَّد — ونُقض ما كان هنا ═══
+   *
+   * كان هذا الاختبار يشترط العكس: «الشخصيُّ وحده يُقيَّد، وتقييدُ كلِّ
+   * تصديرٍ يُغرق السجلّ». والعلّةُ كانت وجيهةً يومها، **وزالت**:
+   *
+   *   · قاعدةُ المستودع الأولى أنّ **كلَّ إجراء أدمن يكتب `AuditLog`**.
+   *   · ولسجلّ التدقيق الآن عدسةُ «حسّاسة» (المهمّة ٢٨) تفصل ما يُراجَع
+   *     عن الروتين — فلم يعد الغرقُ قائمًا: `report.exported` خارجها.
+   *   · والزمنُ لا يُقاس إلّا ممّا كُتب، وبطاقةُ «أطول تقرير» في `A36`
+   *     تقرأ أثقلَ التقارير — **وأثقلُها الدفتر، وهو غيرُ شخصيّ**.
+   *
+   * و`personal` تبقى في الحمولة: الفرقُ بين «صدّر مجمَّعًا» و«صدّر قائمةَ
+   * ناس» يبقى مقروءًا بلا أن يُمحى أحدُهما.
    */
-  it('يُقيّد تصدير البيانات الشخصية وحده — بعدد صفوفه', async () => {
+  it('يُقيّد كل تصدير — بعدد صفوفه وزمنه، ويُميّز الشخصيّ', async () => {
     const before = await db.auditLog.count({
       where: { actorId: ADMIN.adminId, action: 'report.exported' },
     });
 
     const aggregate = await runReport({ key: 'sales_commissions', ...ADMIN }, T0);
     expect(aggregate.ok).toBe(true);
+    const afterAggregate = await db.auditLog.findFirst({
+      where: { actorId: ADMIN.adminId, action: 'report.exported' },
+      orderBy: { createdAt: 'desc' },
+    });
     expect(
       await db.auditLog.count({ where: { actorId: ADMIN.adminId, action: 'report.exported' } }),
-    ).toBe(before);
+    ).toBe(before + 1);
+    expect((afterAggregate?.after as { personal?: boolean }).personal).toBe(false);
+    // الزمنُ مكتوبٌ ولو كان صفرًا — وغيابُه يجعل بطاقة «أطول تقرير» عمياء
+    expect(typeof (afterAggregate?.after as { ms?: unknown }).ms).toBe('number');
 
     const personal = await runReport({ key: 'customers', ...ADMIN }, T0);
     expect(personal.ok).toBe(true);
@@ -173,6 +191,7 @@ describe('A36 — التقارير والتصدير', () => {
     });
     // العدد يفرّق بين «صدّر عميلًا» و«صدّر أربعمئة»
     expect((entry.after as { rows?: number }).rows).toBe(personal.rows);
+    expect((entry.after as { personal?: boolean }).personal).toBe(true);
   });
 
   /**

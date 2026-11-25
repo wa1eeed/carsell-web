@@ -69,7 +69,41 @@ export default async function AdminExportsPage() {
             value: stats.reports,
             note: <>يفتحها دورك: <Quantity unit="reportsReady" count={mine.length} /></>,
           },
-          { title: 'تصديرات هذا الشهر', value: stats.exportsThisMonth, note: 'المسجلة منها' },
+          {
+            /**
+             * **وكلُّها تُقيَّد الآن لا الشخصيُّ وحده** — فالعدّادُ كان
+             * يقرأ ما حمل بياناتٍ شخصية، أي ثلاثةً من ثمانية.
+             */
+            title: 'تصديرات هذا الشهر',
+            value: stats.exportsThisMonth,
+            note: 'كلها مقيدة',
+          },
+          {
+            /**
+             * ═══ أطولُ تقرير — إنذارٌ لا زينة ═══
+             *
+             * الترميزُ يضعه بجوار حدّ المهلة: تقريرٌ يقترب منه سيسقط يومًا
+             * على بياناتٍ أكبر، والمشغّل يعرف ذلك **قبل** أن يسقط. والزمنُ
+             * لم يكن يُقاس أصلًا، فصار يُكتب مع كلّ تصدير.
+             *
+             * و«—» حين لا تصديرَ هذا الشهر: «٠ ثانية» تُقرأ «فوريّ».
+             */
+            title: 'أطول تقرير',
+            /* الرقمُ وحده في القيمة، والوحدةُ تحته — فلا عددٌ مُقحَمٌ يحكم معدودًا */
+            value: stats.slowestSeconds ?? '—',
+            note:
+              stats.slowestReport === null ? (
+                'لا تصدير هذا الشهر'
+              ) : (
+                /* الوحدةُ مقياسٌ لا تكرار — «١ ثانية واحدة» يقرأ العددَ مرّتين */
+                <>
+                  بالثواني ·{' '}
+                  {REPORT_NAME[stats.slowestReport as keyof typeof REPORT_NAME] ??
+                    stats.slowestReport}{' '}
+                  · حد المهلة 60
+                </>
+              ),
+          },
           {
             title: 'تحتوي بيانات شخصية',
             value: stats.personalReports,
