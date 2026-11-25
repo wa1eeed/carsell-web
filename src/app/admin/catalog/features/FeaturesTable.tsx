@@ -32,6 +32,16 @@ type Draft = {
   group: keyof typeof GROUP;
   active: boolean;
   placements: string[];
+  /**
+   * **ترتيبُ العرض** — `Feature.sort` موجودٌ منذ المخطّط، والمسارُ
+   * يقبله (`sort` في `PATCH`) **ولا شيء يرسله**: فترتيبُ المميّزات
+   * داخل مجموعتها هو ما زرعتْه البذرة، ولا سبيل إلى تغييره.
+   *
+   * وهو يُقرأ في ثلاثة مواضع — فلتر البحث وصفحة السيارة ومحرّر الفئة —
+   * فالأهمّ أوّلًا قرارُ محتوى لا ترفٌ: «كاميرا خلفية» قبل «مرايا
+   * كهربائية».
+   */
+  sort: number;
 };
 
 type Tab = 'ALL' | 'ORPHANS' | keyof typeof GROUP;
@@ -120,6 +130,7 @@ export function FeaturesTable({
                 setDraft({
                   key: f.key, isNew: false, nameAr: f.nameAr, nameEn: f.nameEn,
                   group: f.group, active: f.active, placements: [...f.placements],
+                  sort: f.sort,
                 })
               }
             >
@@ -170,7 +181,7 @@ export function FeaturesTable({
           <Button
             onClick={() =>
               setDraft({
-                key: '', isNew: true, nameAr: '', nameEn: '',
+                key: '', isNew: true, nameAr: '', nameEn: '', sort: 0,
                 group: 'SAFETY', active: true,
                 placements: ['trim_editor', 'sell_form', 'listing_page'],
               })
@@ -262,6 +273,21 @@ export function FeaturesTable({
                     !draft.isNew && 'cursor-not-allowed opacity-55',
                     errors.key !== undefined && 'border-danger',
                   )}
+                />
+              </label>
+              <label className={label}>
+                ترتيب العرض
+                {/* الأصغرُ أوّلًا داخل المجموعة — ومتساويان يُرتَّبان بالاسم */}
+                <input
+                  type="number"
+                  min={0}
+                  max={9999}
+                  dir="ltr"
+                  value={draft.sort}
+                  onChange={(e) =>
+                    setDraft({ ...draft, sort: Number(e.target.value.replace(/\D/g, '')) || 0 })
+                  }
+                  className={cn(field, 'bidi-ltr font-num')}
                 />
               </label>
               <label className={label}>

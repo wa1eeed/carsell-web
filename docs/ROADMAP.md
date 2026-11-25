@@ -2090,6 +2090,38 @@ record needs the party's. Both are in `OPEN-QUESTIONS.md` with options.
 Keeping reports and disputes on separate screens is in `DESIGN-DEVIATIONS.md`,
 and the reason is the permission matrix the markup predates.
 
+### 40a · 33 — `A19` and `A12`: a parameter the route accepted and nothing sent
+
+`A19` read **64٪**. Three of its four signals are the feature editor's own
+fields, behind «تعديل» — the design stacks the editor under the table the way
+mocks do. Walked, seen, listed.
+
+The fourth was real: **`ترتيب العرض`**. `Feature.sort` has existed since the
+schema, indexed `[group, sort]`, and the `PATCH` route **accepts `sort`** — and
+nothing ever sent it. So the order of features inside their group was whatever
+the seed wrote, with no way to change it; and that order is read in three
+places (the search filter, the car page, the trim editor), where "the important
+one first" is a content decision, not decoration.
+
+The editor has the field now, and saving it reorders the list — walked in the
+browser and put back afterwards, since a seeded row is shared data.
+
+### `A12`: the import lives where the import happens
+
+`A12` read **67٪**, wanting `استيراد CSV` in the brands header. **The importer
+creates models and trims, not brands** — a brand is curated with its logo, slug
+and ordering, and a file that invents one produces a brand with no logo in the
+search filter, which is why the importer answers `BRAND_NOT_FOUND`. So the
+button points at the door that exists (`/admin/catalog/models`) rather than
+promising a second one.
+
+`الفئات (Trims)` got its parenthetical back: the rule in this repository is
+that the Latin term **moves, it is not deleted** — and it had been applied to
+one card and dropped from this one, which reads as an oversight rather than a
+decision.
+
+Measured after: **A19 64٪ → 100٪ ⚠ · A12 67٪ → 100٪ ⚠**.
+
 ### 40a · 32 — `Wt` and `Wi`: views that had no week, and a garage nothing pointed at
 
 `Wt` read **60٪** and `Wi` **67٪**, and both were missing the same button.

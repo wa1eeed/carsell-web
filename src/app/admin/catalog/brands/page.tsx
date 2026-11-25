@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { StatCard } from '@/components/ui/StatCard';
+import { LinkButton } from '@/components/ui/Button';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { catalogCounts, listBrands } from '@/lib/domain/catalog';
@@ -26,10 +27,26 @@ export default async function BrandsPage() {
       activeHref="/admin/catalog/brands"
       admin={admin}
     >
+      {/*
+        ═══ ومدخلُ الاستيراد حيث يقع الاستيراد ═══
+
+        ترميزُ `A12` يضع «استيراد CSV» في ترويسة الماركات، **والاستيراد
+        يُنشئ طرازاتٍ وفئات لا ماركات**: الماركةُ مُنتقاةٌ بشعارها
+        وسبيكتها وترتيبها، وملفٌّ يخترعها يُنتج ماركةً بلا شعارٍ في
+        فلتر البحث — ولذلك يردّ المستورِدُ `BRAND_NOT_FOUND`.
+        فالزرُّ يدلّ على البابَ القائم بدل أن يَعِد ببابٍ ثانٍ.
+      */}
+      <div className="mb-4 flex justify-end">
+        <LinkButton href="/admin/catalog/models" size="sm" variant="outline">
+          استيراد CSV
+        </LinkButton>
+      </div>
+
       <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="الماركات" value={counts.brands} />
         <StatCard label="الطرازات" value={counts.models} />
-        <StatCard label="الفئات" value={counts.trims} />
+        {/* الرمزُ يُزاح ولا يُحذف — «الفئات (Trims)» كما يكتبها الترميز */}
+        <StatCard label="الفئات (Trims)" value={counts.trims} />
         {/* الماركات بلا شعار تظهر بالحرف الأول — تحذير لا خطأ */}
         <StatCard
           label="بلا شعار"

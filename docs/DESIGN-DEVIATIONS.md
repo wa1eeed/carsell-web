@@ -1,6 +1,6 @@
 # Design deviations
 
-_Last updated: 2026-11-24_
+_Last updated: 2026-11-25_
 
 Screens or components built **without design markup**, and places where the
 build departs from the markup on purpose. Each entry states what was built, on
@@ -1002,6 +1002,48 @@ npm run design:audit A4 Wc      # شاشاتٌ بعينها
 و«لا مسار» في عمود النتيجة أكبر فرقٍ ممكن: شاشةٌ في التصميم بلا مسارٍ
 مبنيّ. وأكثرها شاشاتٌ فرعية تحت مسارٍ قائم (`Wc` و`Wd` و`We` تحت
 `/cars/[...slug]` و`/auctions/[ref]`) — فالخريطة تُصحَّح لها، لا الشيفرة.
+
+## A17 — one queue in the design, two screens in the build · 2026-11-25
+
+The design titles it «البلاغات والنزاعات» and puts both in one table with tabs
+«النزاعات ٣ · البلاغات ٥». The build keeps reports on their own screen
+(`/admin/reports`, in the sidebar with its own count) and links to it from the
+disputes card: «بلاغات تنتظر ٥ · أقدمها منذ ٦ ساعات · افتحها».
+
+They are different entities with different columns and different actions — a
+dispute has money held and a deadline, a report has a target and a verdict —
+and merging them into one table means a row whose half the columns are empty.
+Counted as missing rather than hidden, since the design's judgement may be that
+one deadline-ordered queue beats two correct tables.
+
+`نزاع جديد` and `قواعد الإيقاف التلقائي` are **business rules, not UI**, and are
+asked rather than built:
+
+- Only a buyer may open a dispute (`openDispute` enforces it, and the code
+  explains why: a seller opening one early freezes a listing at no cost, which
+  makes it a tool for disabling rather than redress). An admin opening one on a
+  caller's behalf is a reasonable operational need and a change to who may act.
+- There are no auto-suspend rules anywhere in the product. When a seller should
+  be suspended automatically — how many disputes, lost in what span — is a
+  decision with money and reputation behind it.
+
+## Wv and Wu — counted gaps, with their reasons · 2026-11-25
+
+Neither is hidden from the denominator. Both are **counted as missing**, as
+`A8`'s delivery rates are, because a percentage raised by removing them would
+say a screen is finished when it is not.
+
+| In Wv | Why not |
+|---|---|
+| `أضف رصيدًا` | Topping up is a payment on `WALLET_TOPUP`, routed to Moyasar — **which has no adapter**. A button here would return `GATEWAY_NOT_CONFIGURED` after the press, and the screen says so in words instead: «الشحن والسحب يصلان مع ربط المحفظة بالبوابة». |
+| `سحب إلى الآيبان` | A withdrawal is a bank transfer out. Seller payouts exist as a flow, but moving a user's wallet balance to their IBAN needs the same gateway that is not connected. |
+
+`Wu`'s «ينتهي غدًا» needs a favourite whose auction closes **tomorrow** for the
+measured account. The seed plants what the real thing looks like — half of the
+people with favourites have one on a live auction — and does not plant an
+auction that closes tomorrow for one account to satisfy the tool. That is
+seeding for the measure, not for the product. Recorded in `NOTES.md`; the
+percentage stays short on purpose.
 
 ## A8 — three signals that need a provider we do not have · 2026-11-24
 
