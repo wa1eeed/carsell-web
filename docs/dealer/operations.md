@@ -1,6 +1,6 @@
 # Dealer panel — the remaining seven screens
 
-_Last updated: 2026-11-25_
+_Last updated: 2026-11-26_
 
 `D3` bulk import, `D4` auctions, `D10` public profile, `D11` reports, plus
 customers, subscription and canned replies. With these the eleven screens the
@@ -95,3 +95,36 @@ the box being typed into and `{branch}` from the member's branch.
 | **أنشئ مزادًا** (`D4`) | No auction-creation flow exists anywhere in the product, panel or admin. A button opening onto nothing. |
 | **جدول تقريرًا دوريًا** (`D11`) | No scheduled email report. The screen says so instead of offering it. |
 | **اقبل تلقائيًا فوق / ارفض تلقائيًا دون** (`D5`) | Auto-response rules are a negotiation engine of their own; nothing in the domain evaluates them. |
+
+## D2b — adding a vehicle to stock
+
+Measured 2026-11-26, before this was built: `createListing`'s only caller was
+the *personal* sell wizard, the stock table had no add button (its empty state
+said "أضف مركبة" with nothing to press), and the bulk import writes vehicles but
+never listings. **A showroom could not put a car into its own stock from its own
+panel**, let alone on the market.
+
+`/dealer/inventory/new` now does it, and it reuses `VehicleFields` — the same
+form an individual fills. Not a second copy: the brand→model→trim cascade, the
+specs inherited from the trim, plate normalisation and the catalogue-derived
+spec options are one implementation. Two copies of one form drift at the first
+field added to either, which this repository has paid for more than once.
+
+What the dealer screen adds on top: **branch** (its own branches only; a
+salesperson's branch is fixed, not chosen) and **purchase price**, because
+whoever receives a car knows what was paid for it, and a separate accounting
+screen gets filled late or never.
+
+It ends at "أضفها للمخزون", not at publishing: stock precedes display
+(`ADR 0003`). A car is bought, prepared, and *then* shown — or never shown.
+
+**The accountant reads and does not enter**, the same boundary as the cost
+drawer.
+
+### What the first same-day car exposed
+
+The age column renders `<Quantity unit="days">`, which words a zero as a
+negation — "لا أيام". Correct for counting, false for an age: a car that arrived
+today is a day old, not no days old. No seeded row had an age of zero, so the
+first vehicle added from the panel was the first to show it. The rule was
+already written in `CLAUDE.md` for "منذ" and "قبل"; this is its third site.

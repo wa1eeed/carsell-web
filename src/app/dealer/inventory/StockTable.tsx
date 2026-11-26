@@ -1,5 +1,7 @@
 'use client';
 
+import { LinkButton } from '@/components/ui/Button';
+
 import { useState } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -28,6 +30,7 @@ export function StockTable({ rows, canEdit }: { rows: readonly StockRow[]; canEd
       <EmptyState
         title="لا مركبات في مخزونك"
         description="أضف مركبة ليبدأ حساب الكلفة والهامش وأيام البيع."
+        action={<LinkButton href="/dealer/inventory/new" size="sm">أضف مركبة</LinkButton>}
       />
     );
   }
@@ -103,7 +106,15 @@ export function StockTable({ rows, canEdit }: { rows: readonly StockRow[]; canEd
                   )}
                 </td>
                 <td className="p-3 text-end">
-                  <Quantity unit="days" count={row.ageDays} />
+                  {/*
+                    **وصفرٌ في الزمن جملةٌ خاصّة.** `Quantity` تصوغ الصفرَ
+                    نفيًا — «لا أيام» — وهي صحيحةٌ في العدّ وكاذبةٌ في
+                    العمر: مركبةٌ دخلت اليوم عمرُها يومُها لا «لا شيء».
+                    وكشفَته أوّلُ مركبةٍ تُضاف من اللوحة، إذ لم يكن في
+                    المخزون صفٌّ عمرُه صفر. (القاعدةُ مكتوبةٌ في
+                    `CLAUDE.md` عن «منذ» و«قبل»، وهذا موضعُها الثالث.)
+                  */}
+                  {row.ageDays === 0 ? 'اليوم' : <Quantity unit="days" count={row.ageDays} />}
                 </td>
                 <td className="p-3 text-end">
                   <button

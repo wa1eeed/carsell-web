@@ -18,6 +18,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   /** إجراءاتُ لوحة المعرض — تُقرأ في سجلّ عضو الفريق كغيرها. */
   'dealer.register': 'سجل معرضه وفتح لوحته',
   'dealer.profile.update': 'عدل الملف العام للمعرض',
+  'dealer.vehicle.add': 'أدخل مركبة إلى المخزون',
   'dealer.vehicle.import': 'استورد مركبة بالإضافة الجماعية',
   /** يكتبه النظام حين يُقبل أعلى عرضٍ ولا يُنشأ الطلب — والسبب في الحمولة. */
   'auction.order.failed': 'تعذر إنشاء الطلب بعد قبول البائع',

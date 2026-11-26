@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
 import { dealerStock } from '@/lib/domain/dealer-dashboard';
 import { DealerShell } from '@/components/dealer/DealerShell';
+import { LinkButton } from '@/components/ui/Button';
 import { StockTable } from './StockTable';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,17 @@ export default async function DealerInventory() {
       activeHref="/dealer/inventory"
       title="المخزون"
       subtitle={actor.branchId === null ? 'كل الفروع' : 'فرعك'}
+      /**
+       * **والمحاسبُ يقرأ ولا يُدخل** — كما لا يعدّل الكلفة. ومن يستقبل
+       * سيارةً في الصالة هو من يسجّلها، فالبائعُ والمديرُ والمالك.
+       */
+      actions={
+        actor.role === 'ACCOUNTANT' ? undefined : (
+          <LinkButton href="/dealer/inventory/new" size="sm">
+            أضف مركبة
+          </LinkButton>
+        )
+      }
     >
       <StockTable rows={rows} canEdit={actor.role !== 'ACCOUNTANT'} />
     </DealerShell>
