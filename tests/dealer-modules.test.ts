@@ -134,6 +134,7 @@ describe('بنية شريط اللوحة', () => {
       [
         '/dealer',
         '/dealer/inventory',
+        '/dealer/pos',
         '/dealer/offers',
         '/dealer/orders',
         '/dealer/auctions',

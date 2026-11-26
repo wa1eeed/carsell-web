@@ -77,6 +77,16 @@ const NAV: readonly Group[] = [
   {
     title: 'البيع',
     items: [
+      /**
+       * **والمنضدةُ أوّلُ البيع لا آخرُه** — عميلُ الصالة أمامك الآن،
+       * وعرضٌ على الإنترنت ينتظر. والموديولُ يُخفيها لمن لا باقةَ له.
+       */
+      {
+        href: '/dealer/pos',
+        label: 'نقطة البيع',
+        roles: ['OWNER', 'MANAGER', 'SALES'],
+        module: 'dealer_pos',
+      },
       {
         href: '/dealer/offers',
         label: 'العروض والمفاوضات',

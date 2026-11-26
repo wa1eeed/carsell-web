@@ -213,3 +213,55 @@ saved link is not a reorder: `/dealer/import` still answers, it is simply
 presented as part of stock, with the sidebar highlighting "المركبات" and the tab
 marking itself current. The test asserts the full set of destinations rather
 than the shape, so the next reorder cannot quietly drop one.
+
+## 8 · Step 4, done 2026-11-26: the counter (`D14`)
+
+> «توفير POS بحيث يقدر يتعامل مع العملاء اللي يحضرون لمعرضه الواقعي و الـPOS
+> يستعرض نفس السيارات المضافه في مخزونه»
+
+`/dealer/pos`, gated by `dealer_pos`. The car list **is** `dealerStock` — the
+same rows the showroom sees under "المركبات", so there is no second price table
+to drift. One screen, no wizard: a customer is standing there.
+
+### It is not a marketplace order, and that is deliberate
+
+`Order` is an escrow order with stages, commission and settlement — our money
+passes through it. A counter sale never touched us: cash, card or a transfer
+between the showroom and its buyer. Forcing it into `Order` would inflate GMV,
+credit us a commission we never took, and open an escrow with no money in it. So
+a counter sale is **an invoice plus a change in a vehicle's state**, and nothing
+more — which is also what keeps GMV and take-rate honest.
+
+### The danger it exists to remove
+
+**The car leaves the market inside the same transaction.** A showroom that sells
+in its hall while its CARZ listing stays live keeps receiving offers on a car
+that left through the front door. That alone is why the counter belongs in our
+panel rather than in a separate system, and the state change goes through
+`listing-state` like every other (gate 21). A vehicle reserved by a live
+marketplace order is refused outright: a buyer's money is already with us.
+
+### Two defects the walkthrough exposed
+
+1. **The close reason lied.** `markListingSold` hard-coded
+   `closeReason: 'order.completed'`, so a counter sale closed the listing with a
+   reason that never happened — and the vehicle timeline shows that field to a
+   reviewer, who would go looking for an order that does not exist. The function
+   now takes a reason, defaulting to the old value so no existing caller changes.
+2. **"VAT is computed on it" read as "added on top".** The price is
+   **VAT-inclusive**: 99,500 issues as 86,521.74 plus 12,978.26. An owner typing
+   the figure expecting +15% would be out by thirteen thousand and would not know
+   until the paper printed. The field now says "شامل الضريبة" and the hint says
+   to type what the customer actually pays.
+
+### Boundaries kept
+
+- The accountant reads invoices and does not create them, the same line as stock.
+- No tax arithmetic here: `tax.ts` matches the rule, reads the margin from the
+  vehicle's cost book, and numbers the invoice. The VAT number is validated by
+  `checkVatNumber`, which separates "fifteen digits" from "starts and ends with
+  3" — a second pattern here would be a second rule. (Gate 53 flagged the first
+  attempt, reading `{15}` as a tax rate written outside `tax.ts`: a false alarm
+  on a length check, but the fix it pushed toward was the right one.)
+- The buyer is captured on the invoice, not as a platform account. A showroom's
+  own customer book is the `dealer_customers` module's job.

@@ -75,14 +75,28 @@ export async function reserveListing(
  * والفرق ليس تفصيلًا: بين الدفع والنقل مهلةٌ يُلغى فيها الطلب ويعود
  * الإعلان، فإعلانُ البيع عند الدفع يقول «بِيعت» لمركبةٍ قد ترجع.
  */
+/**
+ * ═══ وسببُ الخروج يُقال كما وقع ═══
+ *
+ * كان `'order.completed'` مكتوبًا في الدالّة، **فبيعةُ الصالة تُغلق
+ * الإعلانَ بسببٍ لا وجود له**: لا طلبَ اكتمل، ولا شيءَ مرّ بالضمان.
+ * وسجلُّ المركبة وخطُّ زمنها في اللوحة يقرآن الحقلَ ويقولانه للمراجع —
+ * فيبحث عن طلبٍ ليس هناك.
+ *
+ * والافتراضيُّ يبقى `order.completed` فلا يتغيّر نداءٌ قائم، ومن له
+ * سببٌ آخر يمرّره.
+ */
+export type SoldReason = 'order.completed' | 'dealer.pos.sale';
+
 export async function markListingSold(
   writer: Writer,
   listingId: string,
   now: Date = new Date(),
+  reason: SoldReason = 'order.completed',
 ): Promise<void> {
   await writer.listing.update({
     where: { id: listingId },
-    data: { status: 'SOLD', closedAt: now, closeReason: 'order.completed' },
+    data: { status: 'SOLD', closedAt: now, closeReason: reason },
   });
 }
 
