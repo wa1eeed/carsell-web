@@ -25,7 +25,7 @@ export default async function DealerImport() {
   if (actor === null) redirect('/dealer/enter');
   if (actor.role !== 'OWNER' && actor.role !== 'MANAGER') redirect('/dealer');
 
-  const grants = await resolveEntitlements(actor.userId);
+  const grants = await resolveEntitlements({ userId: actor.userId, dealerId: actor.dealerId });
   const allowed = grants['bulk_upload'] === true;
 
   return (

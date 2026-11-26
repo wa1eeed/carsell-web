@@ -688,7 +688,7 @@ export async function createListing(
    * **والمسودّة خرجت قبلهما**: حدُّ المعروض لا يمنع أحدًا من أن
    * يحفظ ما كتب.
    */
-  const allowance = await sellingAllowance(input.sellerId, now);
+  const allowance = await sellingAllowance({ userId: seller.id, dealerId: seller.dealerId }, now);
   if (!allowance.types[input.type]) return { ok: false, reason: 'SALE_METHOD_NOT_ALLOWED' };
 
   if (allowance.maxActiveListings >= 0) {

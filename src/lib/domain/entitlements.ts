@@ -1,4 +1,4 @@
-import type { ListingType } from '@/generated/prisma/client';
+import type { ListingType, Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 
 /**
@@ -9,8 +9,26 @@ import { db } from '@/lib/db';
  *
  * ترتيب القراءة، والأخير يفوز:
  *   ١. القيمة الافتراضية من `Entitlement`
- *   ٢. قيمة الباقة من `PlanEntitlement` عبر الاشتراك النشط
- *   ٣. تجاوز المستخدم من `EntitlementOverride` غير المنتهي
+ *   ٢. قيمة الباقة من `PlanEntitlement` عبر اشتراك **الشخص**
+ *   ٣. قيمة الباقة من اشتراك **المعرض** — فهي سياقُ العمل
+ *   ٤. تجاوز المستخدم من `EntitlementOverride` غير المنتهي
+ *
+ * ═══ ولمَ المعرضُ طبقةٌ مستقلّة ═══
+ *
+ * قِيس ٢٠٢٦-١١-٢٦: `Subscription` يحمل `userId` **و`dealerId`** وفهرسًا
+ * لكلٍّ منهما، وهذه الدالّة كانت تستعلم بـ`userId` وحده — **فاشتراكُ
+ * المعرض لا يصل المحرّكَ أبدًا**، وكلُّ عضوٍ في معرضٍ مشترك يُحلّ إلى
+ * الافتراضيّات.
+ *
+ * وأثرُه ليس نظريًّا: `sellingAllowance` تُستدعى **بالعضو الناشر**، فمعرضٌ
+ * باقتُه تُجيز المزاد يُردّ في اللحظة التي يضغط فيها بائعٌ — لا مالكٌ —
+ * زرَّ النشر. وهو عمودٌ له كاتبٌ بلا قارئ، وهو الصنفُ المسجَّل هنا
+ * مرارًا. وكان `dealer-team` يلتفّ عليه بيده: يقرأ استحقاقاتِ **المالك**
+ * ليعرف مقاعدَ الفريق — والالتفافُ بيدٍ في موضعٍ واحد دليلُ الثغرة لا
+ * علاجُها.
+ *
+ * **والمعرضُ يغلب الشخص** لأنّ الشاشةَ شاشةُ عمله: من اشترك بباقةٍ
+ * شخصية ثمّ انضمّ إلى معرضٍ بباقةٍ أعلى يعمل بباقة معرضه.
  */
 
 export type EntitlementValue = boolean | number | string;
@@ -25,22 +43,43 @@ function parse(type: string, raw: string): EntitlementValue {
   return raw;
 }
 
+/**
+ * من تُحلّ استحقاقاتُه — **كائنٌ لا معرّفٌ وحده**.
+ *
+ * ومعرّفٌ نصّيٌّ يعني ضمنًا «بلا معرض»، وهو بالضبط الخطأ الذي أنتج
+ * الثغرة: من نسي تمريرَ المعرض لم يكن شيءٌ يذكّره.
+ */
+export type EntitlementSubject = {
+  userId: string;
+  /** معرضُه — و`null` لفردٍ لا ينتمي إلى معرض. */
+  dealerId?: string | null;
+};
+
 export async function resolveEntitlements(
-  userId: string,
+  subject: EntitlementSubject,
   now: Date = new Date(),
 ): Promise<Entitlements> {
-  const [definitions, subscription, overrides] = await Promise.all([
+  const { userId, dealerId } = subject;
+  const active: Prisma.SubscriptionWhereInput = {
+    status: 'active',
+    startsAt: { lte: now },
+    OR: [{ endsAt: null }, { endsAt: { gte: now } }],
+  };
+
+  const [definitions, subscription, dealerSubscription, overrides] = await Promise.all([
     db.entitlement.findMany(),
     db.subscription.findFirst({
-      where: {
-        userId,
-        status: 'active',
-        startsAt: { lte: now },
-        OR: [{ endsAt: null }, { endsAt: { gte: now } }],
-      },
+      where: { userId, ...active },
       orderBy: { startsAt: 'desc' },
       include: { plan: { include: { entitlements: true } } },
     }),
+    dealerId == null
+      ? null
+      : db.subscription.findFirst({
+          where: { dealerId, ...active },
+          orderBy: { startsAt: 'desc' },
+          include: { plan: { include: { entitlements: true } } },
+        }),
     db.entitlementOverride.findMany({
       where: {
         userId,
@@ -57,6 +96,12 @@ export async function resolveEntitlements(
   }
 
   for (const row of subscription?.plan.entitlements ?? []) {
+    const type = types.get(row.entitlementKey);
+    if (type !== undefined) result[row.entitlementKey] = parse(type, row.value);
+  }
+
+  /** وباقةُ المعرض بعد الشخصية — سياقُ العمل يغلب. */
+  for (const row of dealerSubscription?.plan.entitlements ?? []) {
     const type = types.get(row.entitlementKey);
     if (type !== undefined) result[row.entitlementKey] = parse(type, row.value);
   }
@@ -103,10 +148,10 @@ function bool(value: EntitlementValue | undefined): boolean {
 }
 
 export async function sellingAllowance(
-  userId: string,
+  subject: EntitlementSubject,
   now: Date = new Date(),
 ): Promise<SellingAllowance> {
-  const entitlements = await resolveEntitlements(userId, now);
+  const entitlements = await resolveEntitlements(subject, now);
   const limit = entitlements['max_active_listings'];
 
   return {

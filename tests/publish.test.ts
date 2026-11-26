@@ -499,12 +499,12 @@ describe('خصائصُ الباقة تحكم النشر', () => {
     const input = await base();
 
     /** **والافتراضيّ أوّلًا** — وإلّا لم نعرف أالمنعُ من التجاوز أم من سواه. */
-    const allowed = await sellingAllowance(input.sellerId);
+    const allowed = await sellingAllowance({ userId: input.sellerId });
     expect(allowed.types.AUCTION).toBe(true);
 
     await deny(input.sellerId, 'can_auction', 'false');
 
-    const after = await sellingAllowance(input.sellerId);
+    const after = await sellingAllowance({ userId: input.sellerId });
     expect(after.types.AUCTION).toBe(false);
     expect(after.types.DIRECT).toBe(true);
 
@@ -528,7 +528,7 @@ describe('خصائصُ الباقة تحكم النشر', () => {
     /** حدٌّ صفرٌ: أوّلُ نشرٍ يبلغه، فلا يعتمد الاختبار على ما زُرع. */
     await deny(input.sellerId, 'max_active_listings', '0');
 
-    expect((await sellingAllowance(input.sellerId)).maxActiveListings).toBe(0);
+    expect((await sellingAllowance({ userId: input.sellerId })).maxActiveListings).toBe(0);
 
     const result = await createListing(input);
     expect(result.ok).toBe(false);

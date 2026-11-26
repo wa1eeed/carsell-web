@@ -14,5 +14,5 @@ export async function GET(request: NextRequest) {
   const user = await currentUser(request);
   if (user === null) return fail(ERRORS.UNAUTHORIZED, 401);
 
-  return ok(await resolveEntitlements(user.id));
+  return ok(await resolveEntitlements({ userId: user.id, dealerId: user.dealerId }));
 }

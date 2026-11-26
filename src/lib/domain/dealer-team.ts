@@ -69,7 +69,9 @@ export async function dealerTeam(dealerId: string, now: Date = new Date()): Prom
 
   /** والمقاعدُ من اشتراك المالك — الباقةُ للمنشأة لا لكلّ موظّف. */
   const seats =
-    owner === null ? null : Number((await resolveEntitlements(owner.id, now)).team_seats ?? 0);
+    owner === null
+      ? null
+      : Number((await resolveEntitlements({ userId: owner.id, dealerId }, now)).team_seats ?? 0);
 
   return {
     members: [

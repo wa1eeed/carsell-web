@@ -36,7 +36,7 @@ export default async function DealerSubscription() {
       orderBy: { startsAt: 'desc' },
       include: { plan: true },
     }),
-    resolveEntitlements(actor.userId),
+    resolveEntitlements({ userId: actor.userId, dealerId: actor.dealerId }),
     dealerTeam(actor.dealerId),
   ]);
 

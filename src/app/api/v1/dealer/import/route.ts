@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   if (actor === null) return fail(ERRORS.UNAUTHORIZED, 401);
   if (actor.role !== 'OWNER' && actor.role !== 'MANAGER') return fail(ERRORS.FORBIDDEN, 403);
 
-  const grants = await resolveEntitlements(actor.userId);
+  const grants = await resolveEntitlements({ userId: actor.userId, dealerId: actor.dealerId });
   if (grants['bulk_upload'] !== true) {
     return fail(
       {

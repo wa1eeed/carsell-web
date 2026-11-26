@@ -229,7 +229,7 @@ export default async function SellPage({
               أيضًا في `createListing`: حارسٌ في العميل ليس حارسًا. وهذا
               لئلّا يكتشف البائع المنع **بعد سبع خطوات ورفعِ صور**.
             */
-            allowedMethods={(await sellingAllowance(user.id)).types}
+            allowedMethods={(await sellingAllowance({ userId: user.id, dealerId: user.dealerId })).types}
             taxProfile={taxProfileOf(user)}
             brands={brands}
             cities={cities}
