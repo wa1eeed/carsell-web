@@ -7526,6 +7526,64 @@
         }
       }
     },
+    "/api/v1/dealer/site": {
+      "post": {
+        "summary": "POST /api/v1/dealer/site",
+        "tags": [
+          "dealer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slug": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "tagline": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "nullable": true
+                  },
+                  "accent": {
+                    "type": "string",
+                    "maxLength": 7,
+                    "nullable": true
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  },
+                  "customDomain": {
+                    "type": "string",
+                    "maxLength": 253,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "slug",
+                  "visible"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/dealer/team": {
       "get": {
         "summary": "GET /api/v1/dealer/team",

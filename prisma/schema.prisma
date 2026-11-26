@@ -331,6 +331,7 @@ model Dealer {
   @@index([status, city])
   expenses      DealerExpense[]
   installmentPlans InstallmentPlan[]
+  site             DealerSite?
 }
 
 enum DealerStatus {
@@ -622,6 +623,43 @@ model InstallmentReceipt {
   recordedBy User            @relation("InstallmentRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
 
   @@index([planId, receivedAt])
+}
+
+/// ═══ الصفحةُ الرسمية للمعرض — قرار المالك ٢٠٢٦-١١-٢٦ ═══
+///
+/// «راح نوفر لصاحب المعرض حسب باقته امكانية تخصيص لاندنق بيج كموقع رسمي
+/// له يعرض سياراته فقط … بهويته و يمكن تركيب شعاره و دومينه».
+///
+/// **وهي غيرُ صفحته في سوقنا.** `/ar/dealers/{slug}` صفحةٌ داخل كارز
+/// بهويّة كارز وشريطها، وهذه موقعُه هو: شعارُه ولونُه ومركباتُه وحدها،
+/// بلا شريطِ تصفّحٍ يأخذ زائرَه إلى سيارةِ جاره.
+///
+/// **والدومينُ خطوتان**: صفٌّ هنا يحفظه ويُثبت ملكيّتَه، وشهادةُ TLS
+/// يُصدرها الوسيط — وتلك خطوةُ تشغيلٍ خارج التطبيق. فالصفحةُ تعمل على
+/// مسارنا من يومها، والدومينُ يُضاف فوقها.
+model DealerSite {
+  id       String @id @default(cuid())
+  dealerId String @unique
+
+  /// عنوانُ الصفحة على مسارنا — `/showroom/{slug}`.
+  slug String @unique
+  /// سطرٌ تحت الاسم — ومن تركه تُعرض مدينتُه.
+  tagline String?
+  /// لونُ هويّته — سادسُ عشريٍّ واحد، والباقي مشتقٌّ منه.
+  accent String?
+  /// **ومخفيّةٌ حتى يقرّر نشرَها** — فلا تُفتح صفحةٌ نصفُ معدّة للناس.
+  visible Boolean @default(false)
+
+  /// دومينُه هو — ويبقى بلا أثرٍ حتى يُثبَت ويُصدَّر له شهادة.
+  customDomain String? @unique
+  /// رمزُ الإثبات — يُنشر في `TXT` فنقرؤه.
+  domainToken String?
+  domainVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dealer Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
 }
 
 model DealerSession {

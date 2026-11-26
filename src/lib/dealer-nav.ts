@@ -162,6 +162,13 @@ const NAV: readonly Group[] = [
         module: 'dealer_branches',
       },
       { href: '/dealer/profile', label: 'الملف العام', roles: ['OWNER', 'MANAGER'] },
+      /** **وموقعُه غيرُ ملفّه عندنا** — ذاك صفحةٌ في سوقنا، وهذا موقعُه. */
+      {
+        href: '/dealer/site',
+        label: 'موقع المعرض',
+        roles: ['OWNER'],
+        module: 'dealer_landing',
+      },
       /** **ولمالكه وحده** — من يملك تغييرَ الآيبان يملك تحويلَ المستحقّات. */
       { href: '/dealer/owner', label: 'بيانات صاحب المعرض', roles: ['OWNER'] },
       { href: '/dealer/subscription', label: 'الاشتراك والباقة', roles: ['OWNER'] },

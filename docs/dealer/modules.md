@@ -265,3 +265,60 @@ marketplace order is refused outright: a buyer's money is already with us.
   on a length check, but the fix it pushed toward was the right one.)
 - The buyer is captured on the invoice, not as a platform account. A showroom's
   own customer book is the `dealer_customers` module's job.
+
+## 9 · Step 6, done 2026-11-26: the showroom's own site (`D16`)
+
+> «راح نوفر لصاحب المعرض حسب باقته امكانية تخصيص لاندنق بيج كموقع رسمي له يعرض
+> سياراته فقط … بهويته و يمكن تركيب شعاره و دومينه»
+
+`/showroom/{slug}`, a **fourth root** beside `[locale]`, `/admin` and `/dealer`,
+gated by `dealer_landing`, configured at `/dealer/site` by the owner alone.
+
+**It is not the dealer's page in our market.** `/ar/dealers/{slug}` is a page
+*inside* CARZ, with our nav and our identity. This is the showroom's own site:
+its logo, its colour, its cars — and no browse bar taking its visitor to a
+neighbour's car. That is the whole promise, so there is no "similar cars" strip
+either.
+
+**But the car opens in CARZ.** The escrow, the contract and the transfer are
+there; a second purchase path here would mean two purchase flows drifting apart.
+The footer says so rather than hiding it — a site that goes silent about where
+the sale happens looks like a shopfront with no back room.
+
+### The domain is two steps, and the second is said plainly
+
+The app owns the first: it stores the hostname, refuses one already taken, and
+issues a `TXT` token to prove ownership. **Changing the domain voids the
+proof** — whoever verified `a.com` and then typed `b.com` has not verified the
+second, and leaving `domainVerifiedAt` set would serve the page on a name they
+do not own.
+
+The second step is the TLS certificate, issued by the proxy (Caddy, which is
+configured on the server and not in this repository). **That is an operations
+step, and the screen says so**: the site works on our address from day one, and
+nobody is told their domain is ready before it is. Someone told "ready" who then
+opens their domain to a security warning blames us.
+
+### Three defects the walkthrough exposed, and none of them by a test
+
+1. **307 to nowhere.** The middleware rewrote `/showroom/...` to
+   `/ar/showroom/...`, a path that does not exist. This is the third time a new
+   root was forgotten in that condition, after `/provider` and `/dealer` — the
+   test now asserts the exclusion.
+2. **500 on the first auction card.** `CarCard` contains `Countdown`, a client
+   component calling `useTranslations('ui')`, and the new root had no
+   `NextIntlClientProvider`. The build passed, the compiler passed, 1,700 tests
+   passed; opening the page found it in one request.
+3. **"سيارتان معروضة"** — a dual noun with a singular adjective, on the headline
+   of the showroom's own site. `Quantity` handles the noun; the adjective beside
+   it was written by hand. It now reads "سيارتان للبيع", which is invariant
+   across all six forms. This is the recorded "the number governs the counted
+   even in a sibling element" rule, in a new place.
+
+### One deliberate copy, with its guard
+
+`<input type="color">` cannot take `var(--color-accent)` — its value is a hex or
+nothing. So the brand accent exists once as `BRAND_ACCENT_HEX` in
+`src/lib/brand.ts`, **with a test comparing it to the token in `globals.css`**:
+two copies without a guard drift, and a showroom choosing "CARZ green" would get
+last year's green.

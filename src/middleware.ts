@@ -75,10 +75,18 @@ export default function middleware(request: NextRequest) {
    * `/ar/dealer` — مسارٌ لا وجود له، ويردّ ٣٠٧ إلى لا شيء. وقِيس
    * بالنقر: وقع، كما وقع لـ`/provider` قبلها.
    */
+  /**
+   * **وموقعُ المعرض رابعتُها** (قرار ٢٠٢٦-١١-٢٦: موقعٌ رسميّ بهويّته).
+   * وبلا هذا السطر يحوّله الوسيط إلى `/ar/showroom/…` — مسارٌ لا وجود
+   * له، فيردّ ٣٠٧ إلى لا شيء. **وقِيس بالنقر فوقع**، للمرّة الثالثة بعد
+   * `/provider` و`/dealer` — والصنفُ واحد: جذرٌ جديد خارج توجيه اللغة
+   * يُنسى في هذا الشرط.
+   */
   if (
     pathname.startsWith('/admin') ||
     pathname.startsWith('/dealer') ||
     pathname.startsWith('/provider') ||
+    pathname.startsWith('/showroom') ||
     pathname.startsWith('/api')
   ) {
     return sealed(NextResponse.next({ request: { headers } }));

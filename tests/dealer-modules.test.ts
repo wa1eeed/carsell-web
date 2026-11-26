@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { db } from '@/lib/db';
+import { BRAND_ACCENT_HEX } from '@/lib/brand';
 import { DEALER_MODULE, dealerHasModule, hasModule } from '@/lib/domain/dealer-modules';
 import { visibleNav, type Group } from '@/lib/dealer-nav';
 import { ENTITLEMENTS } from '../prisma/reference';
@@ -147,6 +148,7 @@ describe('بنية شريط اللوحة', () => {
         '/dealer/reports',
         '/dealer/team',
         '/dealer/profile',
+        '/dealer/site',
         '/dealer/owner',
         '/dealer/subscription',
       ].sort(),
@@ -177,5 +179,21 @@ describe('بنية شريط اللوحة', () => {
   /** والإعداداتُ آخرًا — تُضبط مرّةً وتُنسى. */
   it('والإعدادات آخر مجموعة', () => {
     expect(owner.at(-1)?.title).toBe('الإعدادات');
+  });
+});
+
+/**
+ * ═══ ولونُ العلامة نسخةٌ واحدة بحارسها ═══
+ *
+ * التوكنُ في `globals.css`، و`<input type="color">` لا يقبل `var(--…)`
+ * — فالرقمُ في `brand.ts` وحده. **ونسختان بلا حارسٍ تتباعدان**: يختار
+ * المعرضُ «لون كارز» فيحصل على لونٍ قديم.
+ */
+describe('لون العلامة', () => {
+  it('الرقم يطابق التوكن', () => {
+    const css = readFileSync('src/app/globals.css', 'utf8');
+    const token = /--color-accent:\s*(#[0-9a-fA-F]{6})/.exec(css)?.[1];
+    expect(token).toBeDefined();
+    expect(BRAND_ACCENT_HEX.toLowerCase()).toBe((token ?? '').toLowerCase());
   });
 });

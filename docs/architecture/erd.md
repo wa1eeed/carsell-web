@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-114 models · 78 enums
+115 models · 78 enums
 
 ## Relationships
 
@@ -70,6 +70,7 @@ erDiagram
   Dealer ||--o{ DealerInvite : "invites"
   Dealer ||--o{ DealerExpense : "expenses"
   Dealer ||--o{ InstallmentPlan : "installmentPlans"
+  Dealer |o--|| DealerSite : "site"
   DealerReply }o--|| Dealer : "dealer"
   Branch }o--|| Dealer : "dealer"
   Branch |o--|| User : "manager"
@@ -99,6 +100,7 @@ erDiagram
   InstallmentReceipt }o--|| InstallmentPlan : "plan"
   InstallmentReceipt |o--|| InstallmentDue : "due"
   InstallmentReceipt }o--|| User : "recordedBy"
+  DealerSite }o--|| Dealer : "dealer"
   DealerSession }o--|| User : "user"
   DealerSession }o--|| Dealer : "dealer"
   DealerInvite }o--|| DealerRole : "role"
@@ -519,7 +521,7 @@ Relations: `adminUser` → `AdminUser`
 | `ratingCount` | `Int` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `replies` → `DealerReply` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite` · `expenses` → `DealerExpense` · `installmentPlans` → `InstallmentPlan`
+Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `replies` → `DealerReply` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite` · `expenses` → `DealerExpense` · `installmentPlans` → `InstallmentPlan` · `site` → `DealerSite`
 
 ### `DealerReply`
 
@@ -630,6 +632,24 @@ Relations: `plan` → `InstallmentPlan` · `receipts` → `InstallmentReceipt`
 | `createdAt` | `DateTime` |  |
 
 Relations: `method` → `InstallmentMethod` · `plan` → `InstallmentPlan` · `due` → `InstallmentDue` · `recordedBy` → `User`
+
+### `DealerSite`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `dealerId` | `String` | unique |
+| `slug` | `String` | unique |
+| `tagline` | `String?` |  |
+| `accent` | `String?` |  |
+| `visible` | `Boolean` |  |
+| `customDomain` | `String?` | unique |
+| `domainToken` | `String?` |  |
+| `domainVerifiedAt` | `DateTime?` |  |
+| `createdAt` | `DateTime` |  |
+| `updatedAt` | `DateTime` |  |
+
+Relations: `dealer` → `Dealer`
 
 ### `DealerSession`
 
