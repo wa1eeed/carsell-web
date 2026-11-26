@@ -60,6 +60,18 @@ export async function submitIdentity(
             crNumber: business.crNumber,
             crExpiresAt: business.crExpiresAt,
             ...(business.vatNumber === null ? {} : { vatNumber: business.vatNumber }),
+            /**
+             * ═══ والوضعُ الضريبيّ من الرقم لا من سؤالٍ ثانٍ ═══
+             *
+             * `createListing` تشترط `taxStatus` ولم يكن هذا المسارُ
+             * يكتبه — فمنشأةٌ **موثَّقةٌ** تُردّ عند النشر بـ
+             * `TAX_STATUS_REQUIRED`، وبابُه الوحيد نافذةٌ في معالج
+             * البيع الشخصيّ لا يمرّ بها المعرض. والرقمُ الضريبيّ جوابُ
+             * السؤال نفسِه: من قدّمه مسجَّل، ومن تركه فارغًا ليس
+             * مسجَّلًا — فسؤالُه ثانيةً سؤالٌ عمّا قيل.
+             */
+            taxStatus: business.vatNumber === null ? 'INDIVIDUAL' : 'VAT_REGISTERED',
+            taxStatusSetAt: now,
           }),
       identityStatus: auto ? 'VERIFIED' : 'PENDING',
       identitySubmittedAt: now,
@@ -110,6 +122,18 @@ export async function recordTrialVerification(
             crNumber: business.crNumber,
             crExpiresAt: business.crExpiresAt,
             ...(business.vatNumber === null ? {} : { vatNumber: business.vatNumber }),
+            /**
+             * ═══ والوضعُ الضريبيّ من الرقم لا من سؤالٍ ثانٍ ═══
+             *
+             * `createListing` تشترط `taxStatus` ولم يكن هذا المسارُ
+             * يكتبه — فمنشأةٌ **موثَّقةٌ** تُردّ عند النشر بـ
+             * `TAX_STATUS_REQUIRED`، وبابُه الوحيد نافذةٌ في معالج
+             * البيع الشخصيّ لا يمرّ بها المعرض. والرقمُ الضريبيّ جوابُ
+             * السؤال نفسِه: من قدّمه مسجَّل، ومن تركه فارغًا ليس
+             * مسجَّلًا — فسؤالُه ثانيةً سؤالٌ عمّا قيل.
+             */
+            taxStatus: business.vatNumber === null ? 'INDIVIDUAL' : 'VAT_REGISTERED',
+            taxStatusSetAt: now,
           }),
       identityStatus: 'VERIFIED',
       // والطريقة تتبع ما قُدّم: سجلٌّ تجاريّ لا هويةُ فرد

@@ -182,3 +182,29 @@ market until an admin verifies the register**.
 
 `DealerActor.verified` and `dealerMembership().verified` read the same column,
 so the screen and the guard cannot drift.
+
+### D12 — the owner's own data, inside the panel
+
+Closing the account pages to dealer members (the owner's rule) left the three
+things publishing and payout require with **no door at all**: email, business
+verification (KYB) and the IBAN were written only in `/ar/account/profile`. A
+newly registered dealership could enter its panel, build stock, and then never
+publish — a condition enforced with nothing to satisfy it from.
+
+`/dealer/owner` ("بيانات صاحب المعرض") now carries them, `OWNER` only, posting
+to the same `PATCH /api/v1/me/profile` so the rules stay single. The
+settlements screen's "register it in the owner's profile" is now a link to it
+rather than a description of a screen the reader must hunt for.
+
+Business verification also writes `taxStatus` from the VAT number it was given
+— registered if a number was supplied, not registered if it was left blank.
+Before, a **verified** business was still refused at publish with
+`TAX_STATUS_REQUIRED`, and that field's only writer was a dialog in the
+personal sell wizard, which a dealer never passes through.
+
+### Sign-in lands on the panel
+
+`account/layout.tsx` redirects, but a server redirect behind a client push
+flashes the account page first. Both sign-in routes (OTP and password) now
+return `panel: '/dealer'` for a member, computed by `dealerMembership` — not
+inferred in the browser from `dealerId`, which is one column of the two.

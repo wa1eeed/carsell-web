@@ -60,6 +60,11 @@ const NAV: readonly Group[] = [
     items: [
       { href: '/dealer/team', label: 'الفريق والفروع', roles: ['OWNER', 'MANAGER'] },
       { href: '/dealer/profile', label: 'الملف العام', roles: ['OWNER', 'MANAGER'] },
+      /**
+       * **ولمالكه وحده** — توثيقُ المنشأة وحسابُ التحويل قرارُ صاحب
+       * السجلّ، ومن يملك تغييرَ الآيبان يملك تحويلَ المستحقّات.
+       */
+      { href: '/dealer/owner', label: 'بيانات صاحب المعرض', roles: ['OWNER'] },
       { href: '/dealer/replies', label: 'الردود الجاهزة', roles: ['OWNER', 'MANAGER', 'SALES'] },
       { href: '/dealer/reports', label: 'التقارير', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
     ],

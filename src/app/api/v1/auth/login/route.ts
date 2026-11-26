@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { verifyPassword } from '@/lib/auth/password';
 import { normalizeSaudiPhone } from '@/lib/domain/phone';
 import { profileCompletion, toPublicUser } from '@/lib/domain/profile';
+import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from '@/lib/domain/dealer-membership';
 import { SESSION_COOKIE, SESSION_DAYS, signSession } from '@/lib/auth/token';
 import { isDevelopment } from '@/lib/env';
 
@@ -46,11 +47,17 @@ export async function POST(request: NextRequest) {
   if (user.status !== 'ACTIVE') return fail(ERRORS.ACCOUNT_BLOCKED, 403);
 
   const token = await signSession({ userId: user.id });
+  /** **والكلمةُ كالرمز**: من دخل بها عضوًا في معرضٍ يصل لوحته لا «حسابي». */
+  const membership = dealerMembership(
+    await db.user.findUnique({ where: { id: user.id }, select: DEALER_MEMBERSHIP_SELECT }),
+  );
+
   const response = ok({
     token,
     user: toPublicUser(user),
     isNew: false,
     completion: profileCompletion(user),
+    ...(membership.state === 'MEMBER' ? { panel: '/dealer' } : {}),
   });
 
   response.cookies.set(SESSION_COOKIE, token, {

@@ -223,3 +223,64 @@ describe('المعرض غير الموثق يجهز ولا ينشر', () => {
     if (after.ok) refs.push(after.ref);
   });
 });
+
+/**
+ * ═══ وبابُ ما يفتح النشر — داخل اللوحة ═══
+ *
+ * أُغلقت صفحةُ الحساب على عضو المعرض (قرار المالك)، **وكانت الحقولُ
+ * التي يشترطها النشر لا تُكتب إلّا فيها**. وهذه تفحص أنّ ما كان
+ * يُستوفى هناك يُستوفى الآن من اللوحة، وأنّ شاشتَها موجودةٌ وللمالك
+ * وحده.
+ */
+describe('بيانات صاحب المعرض تفتح النشر من اللوحة', () => {
+  it('توثيق المنشأة يكتب الوضع الضريبي — فلا يبقى النشر مردودا به', async () => {
+    const user = await db.user.findFirstOrThrow({
+      where: { phone: PHONE },
+      select: { id: true },
+    });
+    await db.user.update({
+      where: { id: user.id },
+      data: { taxStatus: null, taxStatusSetAt: null, idVerified: false, identityStatus: 'NONE' },
+    });
+
+    const { submitBusinessIdentity } = await import('@/lib/domain/business-identity');
+    const saved = await submitBusinessIdentity(user.id, {
+      signatoryName: 'صاحب معرض الاختبار',
+      signatoryNationalId: '1098765432',
+      businessName: 'معرض اختبار التسجيل',
+      crNumber: '1010999888',
+      crExpiresAt: '2030-01-01',
+      vatNumber: '300000000000003',
+    });
+    expect(saved.ok).toBe(true);
+
+    const after = await db.user.findUniqueOrThrow({
+      where: { id: user.id },
+      select: { taxStatus: true, vatNumber: true, accountType: true },
+    });
+    expect(after.taxStatus).toBe('VAT_REGISTERED');
+    expect(after.accountType).toBe('BUSINESS');
+  });
+
+  /** **وبلا رقمٍ ضريبيّ منشأةٌ غيرُ مسجَّلة** — لا «بلا وضع». */
+  it('وبلا رقم ضريبي يكتب غير مسجل', async () => {
+    const user = await db.user.create({
+      data: { phone: '+966597700002', name: 'صاحب معرض ثان' },
+    });
+    const { submitBusinessIdentity } = await import('@/lib/domain/business-identity');
+    await submitBusinessIdentity(user.id, {
+      signatoryName: 'صاحب معرض ثان',
+      signatoryNationalId: '1098765433',
+      businessName: 'معرض بلا ضريبة',
+      crNumber: '1010999777',
+      crExpiresAt: '2030-01-01',
+      vatNumber: '',
+    });
+    const after = await db.user.findUniqueOrThrow({
+      where: { id: user.id },
+      select: { taxStatus: true, vatNumber: true },
+    });
+    expect(after.taxStatus).toBe('INDIVIDUAL');
+    expect(after.vatNumber).toBeNull();
+  });
+});

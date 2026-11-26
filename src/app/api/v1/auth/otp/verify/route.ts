@@ -8,6 +8,7 @@ import { isDevelopment } from '@/lib/env';
 import { toLatinDigits } from '@/lib/arabic';
 import { db } from '@/lib/db';
 import { completeRegistration } from '@/lib/domain/registration';
+import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from '@/lib/domain/dealer-membership';
 
 export const runtime = 'nodejs';
 
@@ -86,11 +87,28 @@ export async function POST(request: NextRequest) {
   const fresh = await db.user.findUniqueOrThrow({ where: { id: result.user.id } });
   const token = await signSession({ userId: fresh.id });
 
+  /**
+   * ═══ وعضوُ المعرض يُوجَّه إلى لوحته من هنا ═══
+   *
+   * قرار المالك ٢٠٢٦-١١-٢٦: «المعارض فصفحته هي لوحة تحكمه». و
+   * `account/layout.tsx` يحوّله — لكنّ التحويلَ خادميّ، والشاشةُ تدفع
+   * إلى «حسابي» ثمّ تُحدّث: **فتومض صفحةُ حسابٍ لا ينبغي أن يراها**.
+   *
+   * **والجواب من الخادم لا من `dealerId` في المتصفّح**: العضويّةُ
+   * عمودان لا عمود (`dealer-membership.ts`)، وحسابٌ له معرضٌ بلا دورٍ
+   * ليس عضوًا — وقد كلّف ذلك زرًّا كاذبًا من قبل.
+   */
+  const membership = dealerMembership(
+    await db.user.findUnique({ where: { id: fresh.id }, select: DEALER_MEMBERSHIP_SELECT }),
+  );
+
   const response = ok({
     token,
     user: toPublicUser(fresh),
     isNew: result.isNew,
     completion: profileCompletion(fresh),
+    /** وجهتُه بعد الدخول — واللوحةُ جذرٌ خارج `[locale]` فبلا بادئة. */
+    ...(membership.state === 'MEMBER' ? { panel: '/dealer' } : {}),
   });
 
   response.cookies.set(SESSION_COOKIE, token, {

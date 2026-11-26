@@ -102,7 +102,10 @@ export function AuthForm({
         setError(t('wrongCredentials'));
         return;
       }
-      router.push(`/${locale}/account`);
+      const body = (await response.json().catch(() => null)) as { data?: { panel?: string } } | null;
+      /** **والكلمةُ كالرمز**: من دخل بها عضوًا في معرضٍ يصل لوحته. */
+      const panel = body?.data?.panel;
+      router.replace(typeof panel === 'string' && panel !== '' ? panel : `/${locale}/account`);
       router.refresh();
     } finally {
       setBusy(false);
@@ -178,7 +181,7 @@ export function AuthForm({
         }),
       });
       const body = (await response.json()) as {
-        data?: { isNew: boolean };
+        data?: { isNew: boolean; panel?: string };
         error?: { messageAr: string; messageEn: string };
       };
 
@@ -192,8 +195,16 @@ export function AuthForm({
         return;
       }
 
-      // الفرق بين الجديد والعائد يظهر **بعد** التحقّق لا قبله
-      router.push(`/${locale}/account`);
+      /*
+        ═══ وعضوُ المعرض إلى لوحته لا إلى «حسابي» ═══
+
+        قرار المالك ٢٠٢٦-١١-٢٦. و`account/layout.tsx` يحوّله على كل
+        حال، **لكنّ التحويلَ خادميّ والدفعَ عميليّ**: فتومض صفحةُ حسابٍ
+        لا ينبغي أن يراها قبل أن يصل التحديث. والوجهةُ تأتي من الخادم
+        (`panel`) لا تُستنتَج هنا — العضويّةُ عمودان لا عمود.
+      */
+      const panel = body.data?.panel;
+      router.replace(typeof panel === 'string' && panel !== '' ? panel : `/${locale}/account`);
       router.refresh();
     } finally {
       setBusy(false);

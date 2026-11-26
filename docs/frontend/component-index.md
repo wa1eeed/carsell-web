@@ -141,7 +141,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 140 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 141 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 29 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 8 |
@@ -202,7 +202,7 @@ rather than found by chance.
 | `Tabs` | yes | `items` · `active` · `onChange` · `className` | 4 |
 | `TargetBars` | no | `rows` · `scaleMax` · `scaleNote` · `className` | 1 |
 | `TimeAgo` | yes | `at` · `now` · `className` | 5 |
-| `Toast` | no | `tone` · `title` · `description` · `className` | 102 |
+| `Toast` | no | `tone` · `title` · `description` · `className` | 103 |
 | `Toggle` | yes | `label` · `hint` · `on` · `onToggle` · `disabled` · `disabledReason` · `icon` · `children` · `className` | 8 |
 | `Year` | no | `value` · `className` | 5 |
 

@@ -54,3 +54,26 @@ describe('كوكي اللوحات', () => {
     }
   });
 });
+
+/**
+ * ═══ ووجهةُ الدخول من الخادم ═══
+ *
+ * `account/layout.tsx` يحوّل عضوَ المعرض — **لكنّ التحويل خادميّ
+ * والدفعَ عميليّ**، فتومض «حسابي» قبل أن يصل التحديث. فالوجهةُ تُعاد
+ * في ردّ الدخول (`panel`)، ولا تُستنتَج في المتصفّح من `dealerId`:
+ * العضويّةُ عمودان لا عمود، وحسابٌ له معرضٌ بلا دورٍ ليس عضوًا.
+ */
+describe('وجهة الدخول', () => {
+  it('ردّا الدخول يعيدان المسار من دالّة العضوية نفسها', () => {
+    const otp = readFileSync('src/app/api/v1/auth/otp/verify/route.ts', 'utf8');
+    const login = readFileSync('src/app/api/v1/auth/login/route.ts', 'utf8');
+    for (const source of [otp, login]) {
+      expect(source).toContain('dealerMembership');
+      expect(source).toContain("panel: '/dealer'");
+    }
+    /** ولا تُستنتَج من `dealerId` في الشاشة. */
+    const form = readFileSync('src/app/[locale]/(site)/auth/AuthForm.tsx', 'utf8');
+    expect(form).toContain('body.data?.panel');
+    expect(form).not.toContain('dealerId');
+  });
+});
