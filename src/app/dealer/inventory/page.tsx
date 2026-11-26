@@ -4,6 +4,7 @@ import { dealerStock } from '@/lib/domain/dealer-dashboard';
 import { stockAging } from '@/lib/domain/dealer-stock';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { LinkButton } from '@/components/ui/Button';
+import { InventoryTabs } from './InventoryTabs';
 import { StockFilters } from './StockFilters';
 import { StockTable } from './StockTable';
 
@@ -70,6 +71,8 @@ export default async function DealerInventory({
         )
       }
     >
+      <InventoryTabs active="stock" />
+
       <StockFilters
         q={q ?? ''}
         agedOnly={agedOnly}

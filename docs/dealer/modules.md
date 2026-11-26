@@ -168,3 +168,48 @@ showroom whose plan includes stock still does not edit stock.
 
 **And a guard in the sidebar is not a guard.** Hiding an item is a suggestion;
 whoever types the URL arrives. Every module screen asks the server too.
+
+## 7 · Step 3, done 2026-11-26: the sidebar reads as a showroom's day
+
+Sixteen items in four groups had grown by accretion: the dashboard sat inside
+"stock and selling", bulk import stood beside daily work, canned replies lived
+under company settings, and reports hid at the bottom of a group about the
+business entity.
+
+The test applied was one question — **what does a showroom owner do in a day,
+and in what order?** Open the panel to see what is waiting, work on the cars,
+then on who is buying them, then on the customers, then on the money. Settings
+last, because they are set once and forgotten.
+
+| Group | Items |
+|---|---|
+| اليوم | لوحة القيادة |
+| المخزون | المركبات *(tabs: المركبات · الإضافة الجماعية)* |
+| البيع | العروض والمفاوضات · الطلبات · المزادات |
+| العملاء | العملاء · الردود الجاهزة |
+| المال | الفواتير والضريبة · التسويات والعمولة · المصروفات · التقارير |
+| الإعدادات | الفريق والفروع · الملف العام · بيانات صاحب المعرض · الاشتراك والباقة |
+
+What moved, and why:
+
+1. **The dashboard left "stock and selling."** A dashboard is not stock, and
+   putting the first thing anyone opens *inside* a group makes it subordinate to
+   what follows it.
+2. **Bulk import became a tab inside stock**, the owner's own instruction. It is
+   a third way in, after "add a vehicle" and the single-car form — and a
+   standalone sidebar item for a door used once a month crowds out the doors used
+   every day.
+3. **Canned replies moved to Customers.** They are words sent to a buyer, not a
+   company setting; filed under "the showroom" they sent salespeople hunting
+   through settings.
+4. **Reports moved to Money**, where its questions are asked.
+5. **Auctions moved to Selling** — an auction is a sale method, not a class of
+   stock.
+6. **Team, public profile, owner data and subscription became Settings** — four
+   screens configured once, lengthening a daily sidebar for no gain.
+
+**No destination was removed and no route changed.** A reorder that breaks a
+saved link is not a reorder: `/dealer/import` still answers, it is simply
+presented as part of stock, with the sidebar highlighting "المركبات" and the tab
+marking itself current. The test asserts the full set of destinations rather
+than the shape, so the next reorder cannot quietly drop one.

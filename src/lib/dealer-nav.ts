@@ -32,34 +32,95 @@ export type Item = {
 };
 export type Group = { title: string; items: readonly Item[] };
 
+/**
+ * ═══ الترتيبُ على يوم المعرض لا على ما تراكم ═══
+ *
+ * قرار المالك ٢٠٢٦-١١-٢٦: «ترتيب و تنسيق الاقسام في القائمه الجانبيه …
+ * مثلاً الاضافه الجماعيه تخص المخزون لذلك اعتقد لو تكون زر او قسم فرعي
+ * داخل المخزون».
+ *
+ * **والمقياسُ سؤالٌ واحد**: ماذا يفعل صاحبُ المعرض في يومه، وبأيّ
+ * ترتيب؟ يفتح اللوحةَ ليرى ما ينتظره، ثمّ يعمل في سيّاراته، ثمّ فيمن
+ * يشتريها، ثمّ في عملائه، ثمّ في ماله. والإعداداتُ آخرًا لأنّها تُضبط
+ * مرّةً وتُنسى.
+ *
+ * وما تغيّر عن الترتيب السابق، وسببُه:
+ *
+ * ١. **لوحةُ القيادة خرجت من «المخزون والبيع»** — لوحةٌ ليست مخزونًا،
+ *    ووجودُها داخل مجموعةٍ يجعل أوّلَ ما يُفتح تابعًا لما بعده.
+ * ٢. **الإضافةُ الجماعية دخلت المخزون** كلسانٍ في الشاشة لا بندًا في
+ *    الشريط: هي بابُ إدخالٍ ثالث بعد «أضف مركبة» و«استورد» — وبندٌ
+ *    مستقلٌّ لبابٍ يُستعمل مرّةً كلَّ شهرٍ يزاحم ما يُستعمل كلَّ يوم.
+ * ٣. **الردودُ الجاهزة انتقلت إلى «العملاء»** — هي كلامٌ يُرسَل إلى
+ *    مشترٍ، لا إعدادًا للمنشأة. وموضعُها في «المعرض» كان يجعل البائعَ
+ *    يبحث عنها في الإعدادات.
+ * ٤. **الاشتراكُ وبياناتُ المالك والملفُّ العامّ والفريق** صارت
+ *    «الإعدادات»: أربعةٌ تُضبط مرّةً، وخلطُها بما يُفتح يوميًّا يطيل
+ *    الشريطَ بلا فائدة.
+ * ٥. **المزاداتُ انتقلت إلى «البيع»** — المزادُ طريقةُ بيعٍ لا صنفَ
+ *    مخزون.
+ *
+ * **ولا يُحذف بندٌ ولا يُغيَّر مسار**: إعادةُ ترتيبٍ تكسر روابطَ
+ * المستخدم ليست إعادةَ ترتيب.
+ */
 const NAV: readonly Group[] = [
   {
-    title: 'المخزون والبيع',
+    title: 'اليوم',
+    items: [{ href: '/dealer', label: 'لوحة القيادة' }],
+  },
+  {
+    title: 'المخزون',
     items: [
-      { href: '/dealer', label: 'لوحة القيادة' },
-      { href: '/dealer/inventory', label: 'المخزون', badge: 'inventory' },
-      { href: '/dealer/import', label: 'الإضافة الجماعية', roles: ['OWNER', 'MANAGER'] },
-      { href: '/dealer/auctions', label: 'المزادات', roles: ['OWNER', 'MANAGER', 'SALES'], badge: 'auctions' },
+      { href: '/dealer/inventory', label: 'المركبات', badge: 'inventory' },
     ],
   },
   {
-    title: 'الطلب والعميل',
+    title: 'البيع',
     items: [
-      { href: '/dealer/offers', label: 'العروض والمفاوضات', roles: ['OWNER', 'MANAGER', 'SALES'], badge: 'offers' },
+      {
+        href: '/dealer/offers',
+        label: 'العروض والمفاوضات',
+        roles: ['OWNER', 'MANAGER', 'SALES'],
+        badge: 'offers',
+      },
       { href: '/dealer/orders', label: 'الطلبات', badge: 'orders' },
+      {
+        href: '/dealer/auctions',
+        label: 'المزادات',
+        roles: ['OWNER', 'MANAGER', 'SALES'],
+        badge: 'auctions',
+      },
+    ],
+  },
+  {
+    title: 'العملاء',
+    items: [
       {
         href: '/dealer/customers',
         label: 'العملاء',
         roles: ['OWNER', 'MANAGER', 'SALES'],
         module: 'dealer_customers',
       },
+      {
+        href: '/dealer/replies',
+        label: 'الردود الجاهزة',
+        roles: ['OWNER', 'MANAGER', 'SALES'],
+      },
     ],
   },
   {
     title: 'المال',
     items: [
-      { href: '/dealer/invoices', label: 'الفواتير والضريبة', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
-      { href: '/dealer/settlements', label: 'التسويات والعمولة', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
+      {
+        href: '/dealer/invoices',
+        label: 'الفواتير والضريبة',
+        roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
+      },
+      {
+        href: '/dealer/settlements',
+        label: 'التسويات والعمولة',
+        roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
+      },
       /** **والمصروفُ من المال لا من المخزون** — وهو نصفُ نتيجة المعرض. */
       {
         href: '/dealer/expenses',
@@ -67,11 +128,15 @@ const NAV: readonly Group[] = [
         roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
         module: 'dealer_expenses',
       },
-      { href: '/dealer/subscription', label: 'الاشتراك والباقة', roles: ['OWNER'] },
+      {
+        href: '/dealer/reports',
+        label: 'التقارير',
+        roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
+      },
     ],
   },
   {
-    title: 'المعرض',
+    title: 'الإعدادات',
     items: [
       {
         href: '/dealer/team',
@@ -80,22 +145,13 @@ const NAV: readonly Group[] = [
         module: 'dealer_branches',
       },
       { href: '/dealer/profile', label: 'الملف العام', roles: ['OWNER', 'MANAGER'] },
-      /**
-       * **ولمالكه وحده** — توثيقُ المنشأة وحسابُ التحويل قرارُ صاحب
-       * السجلّ، ومن يملك تغييرَ الآيبان يملك تحويلَ المستحقّات.
-       */
+      /** **ولمالكه وحده** — من يملك تغييرَ الآيبان يملك تحويلَ المستحقّات. */
       { href: '/dealer/owner', label: 'بيانات صاحب المعرض', roles: ['OWNER'] },
-      { href: '/dealer/replies', label: 'الردود الجاهزة', roles: ['OWNER', 'MANAGER', 'SALES'] },
-      { href: '/dealer/reports', label: 'التقارير', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
+      { href: '/dealer/subscription', label: 'الاشتراك والباقة', roles: ['OWNER'] },
     ],
   },
 ];
 
-/**
- * **والمفتاحُ الغائبُ مسموح** — كما في `entitlements.ts`: خاصّيةٌ لم
- * تُعرَّف لا تمنع أحدًا. فبيئةٌ لم يصلها ترحيلُ المفاتيح تعمل كما كانت،
- * ولا يختفي قسمٌ لأنّ صفًّا مرجعيًّا تأخّر.
- */
 /** والسؤالُ يُفوَّض إلى `dealer-modules` — فقاعدةُ «الغائبُ مسموح» تُكتب مرّة. */
 const granted = (grants: Entitlements, key: string | undefined): boolean =>
   hasModule(grants, key);

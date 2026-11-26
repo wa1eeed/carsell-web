@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { db } from '@/lib/db';
 import { DEALER_MODULE, dealerHasModule, hasModule } from '@/lib/domain/dealer-modules';
 import { visibleNav, type Group } from '@/lib/dealer-nav';
@@ -105,5 +105,75 @@ describe('والشاشة تسأل الخادم أيضا', () => {
     /** المبنيُّ مسموحٌ بالافتراضيّ، وما لم يُبنَ ممنوع. */
     expect(await dealerHasModule(actor, DEALER_MODULE.expenses)).toBe(true);
     expect(await dealerHasModule(actor, DEALER_MODULE.pos)).toBe(false);
+  });
+});
+
+/**
+ * ═══ ترتيبُ الأقسام — قرار المالك ٢٠٢٦-١١-٢٦ ═══
+ *
+ * «ترتيب و تنسيق الاقسام في القائمه الجانبيه … الاضافه الجماعيه تخص
+ * المخزون». **وإعادةُ ترتيبٍ تكسر روابطَ المستخدم ليست إعادةَ ترتيب**
+ * — فيُفحص أنّ كلَّ وجهةٍ باقية، لا أنّ الشكل تغيّر.
+ */
+describe('بنية شريط اللوحة', () => {
+  const owner = visibleNav('OWNER', {});
+  const hrefs = owner.flatMap((group) => group.items.map((item) => item.href));
+
+  it('كل وجهة في الشريط لها شاشة', () => {
+    for (const href of hrefs) {
+      const path = href.replace(/^\/dealer\/?/, '');
+      const file =
+        path === '' ? 'src/app/dealer/page.tsx' : `src/app/dealer/${path}/page.tsx`;
+      expect(existsSync(file), `${href} بلا شاشة`).toBe(true);
+    }
+  });
+
+  /** **ولا وجهةَ ضاعت في الترتيب** — والقائمةُ مكتوبةٌ هنا فتُقارَن. */
+  it('ولا بند فقد مكانه', () => {
+    expect([...hrefs].sort()).toEqual(
+      [
+        '/dealer',
+        '/dealer/inventory',
+        '/dealer/offers',
+        '/dealer/orders',
+        '/dealer/auctions',
+        '/dealer/customers',
+        '/dealer/replies',
+        '/dealer/invoices',
+        '/dealer/settlements',
+        '/dealer/expenses',
+        '/dealer/reports',
+        '/dealer/team',
+        '/dealer/profile',
+        '/dealer/owner',
+        '/dealer/subscription',
+      ].sort(),
+    );
+  });
+
+  /**
+   * **والإضافةُ الجماعية لسانٌ لا بند** — ومسارُها باقٍ، فمن حفظ
+   * الرابطَ يصل. وبابٌ يُستعمل مرّةً في الشهر لا يزاحم ما يُفتح يوميًّا.
+   */
+  it('والإضافة الجماعية خرجت من الشريط وبقي مسارها', () => {
+    expect(hrefs).not.toContain('/dealer/import');
+    expect(existsSync('src/app/dealer/import/page.tsx')).toBe(true);
+
+    const tabs = readFileSync('src/app/dealer/inventory/InventoryTabs.tsx', 'utf8');
+    expect(tabs).toContain('/dealer/import');
+    /** واللسانُ يُضيء في الشاشتين — والبندُ المضيءُ في الشريط «المركبات». */
+    const importPage = readFileSync('src/app/dealer/import/page.tsx', 'utf8');
+    expect(importPage).toContain('activeHref="/dealer/inventory"');
+    expect(importPage).toContain('<InventoryTabs active="import" />');
+  });
+
+  /** **ولوحةُ القيادة أوّلًا وحدها** — لوحةٌ ليست مخزونًا. */
+  it('واللوحة أول مجموعة', () => {
+    expect(owner[0]?.items.map((item) => item.href)).toEqual(['/dealer']);
+  });
+
+  /** والإعداداتُ آخرًا — تُضبط مرّةً وتُنسى. */
+  it('والإعدادات آخر مجموعة', () => {
+    expect(owner.at(-1)?.title).toBe('الإعدادات');
   });
 });

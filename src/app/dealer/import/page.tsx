@@ -6,6 +6,7 @@ import { IMPORT_COLUMN_AR } from '@/lib/labels/dealer';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LinkButton } from '@/components/ui/Button';
+import { InventoryTabs } from '../inventory/InventoryTabs';
 import { ImportPanel } from './ImportPanel';
 
 export const dynamic = 'force-dynamic';
@@ -31,10 +32,16 @@ export default async function DealerImport() {
   return (
     <DealerShell
       actor={actor}
-      activeHref="/dealer/import"
-      title="الإضافة الجماعية"
+      activeHref="/dealer/inventory"
+      title="المخزون"
       subtitle="ملف واحد بمطابقة أعمدة — والصفوف السليمة تستورد ولو تعطب غيرها"
     >
+      {/*
+        **واللسانُ يقول أين هو** — والشاشةُ صارت قسمًا من المخزون لا
+        بندًا بجواره، فيبقى البندُ المضيءُ في الشريط «المركبات».
+      */}
+      <InventoryTabs active="import" />
+
       {!allowed ? (
         <EmptyState
           title="الرفع الجماعي غير مشمول في باقتك"
