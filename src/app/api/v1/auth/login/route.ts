@@ -8,6 +8,7 @@ import { profileCompletion, toPublicUser } from '@/lib/domain/profile';
 import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from '@/lib/domain/dealer-membership';
 import { SESSION_COOKIE, SESSION_DAYS, signSession } from '@/lib/auth/token';
 import { isDevelopment } from '@/lib/env';
+import { attachPanel, openPanel, PANEL_PATH } from '@/lib/auth/panel-handoff';
 
 export const runtime = 'nodejs';
 
@@ -52,12 +53,15 @@ export async function POST(request: NextRequest) {
     await db.user.findUnique({ where: { id: user.id }, select: DEALER_MEMBERSHIP_SELECT }),
   );
 
+  const handoff = await openPanel(user.id, membership);
+
   const response = ok({
     token,
     user: toPublicUser(user),
     isNew: false,
     completion: profileCompletion(user),
-    ...(membership.state === 'MEMBER' ? { panel: '/dealer' } : {}),
+    /** **ولا يُعلَن إلّا بعد أن تُفتح** — فلا تَعِد الشاشةُ بلوحةٍ تردّه. */
+    ...(handoff === null ? {} : { panel: PANEL_PATH }),
   });
 
   response.cookies.set(SESSION_COOKIE, token, {
@@ -67,6 +71,9 @@ export async function POST(request: NextRequest) {
     path: '/',
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
+
+  /** **وكوكي اللوحة يُكتب أو يُمحى هنا** — ولا ينجو واحدٌ من قبله. */
+  attachPanel(response, handoff);
 
   return response;
 }

@@ -208,3 +208,27 @@ personal sell wizard, which a dealer never passes through.
 flashes the account page first. Both sign-in routes (OTP and password) now
 return `panel: '/dealer'` for a member, computed by `dealerMembership` — not
 inferred in the browser from `dealerId`, which is one column of the two.
+
+## The panel session is handed over at sign-in, and an older one does not survive it
+
+Measured by clicking on 2026-11-26: signing in as a **different** user in the
+same browser left `carsell_dealer` untouched, so `/dealer` opened with the
+previous person's session. A salesperson saw the owner's whole panel —
+invoices, settlements, reports, team — and no new `DealerSession` row existed
+at all: the old cookie served the request. On a showroom's shared computer that
+is one employee working with another's role, and the audit trail naming the
+wrong person.
+
+`src/lib/auth/panel-handoff.ts` is the fix, and both sign-in routes call it:
+
+- **the cookie is cleared unconditionally**, even for an account that is not a
+  member, or whose dealership is suspended — nobody keeps the key to someone
+  else's panel;
+- for an approved member the panel session is opened **there**, because the
+  identity was proved one line earlier by code or password. `POST
+  /api/v1/dealer/auth/session` opens it from an *older* shop session, so doing
+  it here rests on stronger ground and saves the person a page that says "enter
+  your panel" right after they signed in;
+- `panel` is only returned once the session actually opened. It used to be a
+  hand-written `panel: '/dealer'` — a reply promising a panel nothing had
+  unlocked.

@@ -45,6 +45,24 @@ export type DeskOffer = {
    * مسجَّلة في هذا المستودع.
    */
   aboveFloor: boolean | null;
+  /**
+   * ═══ من ردّ عليه من الفريق — و`null` لمن لم يُردّ عليه بعد ═══
+   *
+   * معرضٌ بثلاثة بائعين يردّ اثنان منهم على مشترٍ واحد برقمين، فيختار
+   * هو الأدنى ويحسب الآخرُ أنّ مفاوضتَه قائمة. والصفُّ يقول من حمل
+   * الردّ، فلا يُقابِل أحدٌ عرضًا قابله زميلُه.
+   */
+  respondedByName: string | null;
+  /**
+   * ═══ أيملك المعرضُ ردًّا على هذا الصفّ؟ ═══
+   *
+   * **والمُرسِلُ لا يردّ على نفسه**: صفٌّ `COUNTERED` معناه أنّ المعرض
+   * ردّ والدورُ للمشتري، وصفٌّ `PENDING` له أبٌ هو **مقابلُ المعرض**
+   * نفسُه ينتظر المشتري. وكان الجدولُ يعرض «اقبل» و«مقابل» و«ارفض» على
+   * الحالين، والخادمُ يردّها بـ«لست الطرف» — وهو زرٌّ معروضٌ لمن لا
+   * يستطيع. وقِيس بالنقر بعد مقابلةٍ واحدة: صفّان بأزرارٍ ميّتة.
+   */
+  canAnswer: boolean;
 };
 
 export async function deskOffers(
@@ -60,8 +78,9 @@ export async function deskOffers(
     orderBy: { createdAt: 'asc' },
     take: 200,
     select: {
-      id: true, amount: true, status: true, createdAt: true,
+      id: true, amount: true, status: true, createdAt: true, parentOfferId: true,
       buyer: { select: { name: true } },
+      respondedBy: { select: { name: true } },
       listing: {
         select: {
           ref: true, minAcceptPrice: true,
@@ -91,6 +110,8 @@ export async function deskOffers(
         row.listing.minAcceptPrice === null
           ? null
           : row.amount.greaterThanOrEqualTo(row.listing.minAcceptPrice),
+      respondedByName: row.respondedBy?.name ?? null,
+      canAnswer: row.status === 'PENDING' && row.parentOfferId === null,
     };
   });
 }
@@ -196,6 +217,19 @@ export async function deskOrders(
   });
 }
 
+/**
+ * ═══ ما ينتظر ردَّ المعرض — مِصفاةٌ واحدة يقرؤها العدّ والجدول ═══
+ *
+ * **والمُرسِلُ لا ينتظر ردَّ نفسه**: مقابلُ المعرض صفٌّ `PENDING` له
+ * أبٌ، فعدُّ كلِّ `PENDING` يجعل الشاشة تقول «واحد ينتظر ردك» عن عرضٍ
+ * هو أرسله ويُنتظَر فيه المشتري. وقِيس بالنقر بعد مقابلةٍ واحدة: قال
+ * العدّادُ واحدًا والجدولُ كلُّه «بانتظار رد المشتري».
+ *
+ * وهي قاعدةُ «العدّادُ يُحسب بمرشّح القائمة التي يفتحها» — فالمِصفاةُ
+ * هنا، ويقرؤها `deskCounts` و`dealerDashboard` معًا.
+ */
+export const AWAITING_SELLER = { status: 'PENDING', parentOfferId: null } as const;
+
 export type DeskCounts = {
   offersWaiting: number;
   offersActive: number;
@@ -212,7 +246,7 @@ export async function deskCounts(
   const where = { listing: { vehicle: scope(dealerId, branchId) } };
 
   const [waiting, active, live, done] = await Promise.all([
-    db.offer.count({ where: { ...where, status: 'PENDING' } }),
+    db.offer.count({ where: { ...where, ...AWAITING_SELLER } }),
     db.offer.count({ where: { ...where, status: { in: ['PENDING', 'COUNTERED'] } } }),
     db.order.count({
       where: { ...where, status: { in: ['ACTIVE', 'STALLED', 'DISPUTED'] }, stage: { not: 'DONE' } },

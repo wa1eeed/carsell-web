@@ -1,6 +1,6 @@
 # Dealer panel — the desk: offers (`D5`), orders (`D6`)
 
-_Last updated: 2026-11-25_
+_Last updated: 2026-11-26_
 
 These two screens are, by design, **readers**. Offers and orders already exist
 in CARZ with their own rules; what did not exist was a way to see them **as a
@@ -98,3 +98,48 @@ the existence of an order is itself information.
   month" to a showroom that had closed ten.
 - The shop had **no link to `/dealer` anywhere** (measured: zero). A dealer
   signed in and found no door to their own panel.
+
+## 7 · Who may answer an offer is a **side**, not a person (2026-11-26)
+
+CARZ's negotiation rules were built for an individual seller: `Listing.sellerId`
+is one column, and `acceptOffer` compared it to the actor id. Then a showroom
+got a team — and the comparison stayed personal. `deskOffers` gathers the
+**dealership's** offers, the sidebar shows this screen to `SALES` and `MANAGER`,
+and the server answered every one of them `NOT_SELLER`.
+
+So the button was shown to people who could not press it: measured by clicking,
+as a `SALES` member, after the panel session fix below.
+
+`src/lib/domain/offer-authority.ts` answers it once — a pure function, no `db`,
+read by accept, counter and decline alike:
+
+- the **buyer side** is one person, matched by id;
+- the **seller side** is `sellerId` **or** an `OWNER`/`MANAGER`/`SALES` member
+  of the dealership that owns the listing's vehicle. `ACCOUNTANT` is excluded,
+  which is the same role list the screen itself redirects — if the two lists
+  drifted, one of them would show a button the other refuses.
+
+`PATCH /api/v1/offers/{id}` now reads **both** identities. The panel's session
+cookie is `carsell_dealer`; the route authenticated only with `carsell_session`.
+A membership is attached **only when the panel session belongs to the acting
+user** — two sessions for two people in one browser is the ordinary case on a
+showroom's shared computer, and attaching without that check would let one
+employee act with another's role.
+
+`Offer.respondedById` is written beside `respondedAt`, for three reasons: the
+row says who carried the reply (so two salespeople do not counter the same buyer
+with two numbers), per-salesperson sales have a source at last, and an automatic
+rejection stays authorless — the system replied, not a person.
+
+## 8 · The sender does not answer their own offer (2026-11-26)
+
+A counter is an offer awaiting the **buyer**. Two rows therefore carry no reply
+for the dealer: the parent now marked `COUNTERED`, and the dealer's own counter
+sitting `PENDING` with a parent. The table showed اقبل / مقابل / ارفض on both,
+and the server refused all six presses. `DeskOffer.canAnswer` decides it, and
+those rows read «بانتظار رد المشتري» instead.
+
+The same mistake was in the count: «واحد ينتظر ردك» over an offer the dealer
+had itself sent. `AWAITING_SELLER` is now one filter — `PENDING` with no parent
+— read by `deskCounts` and by the dashboard card «عروض تحتاج ردا», which is the
+recorded rule that *a count equals the length of what it opens*.

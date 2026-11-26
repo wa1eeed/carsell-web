@@ -151,8 +151,26 @@ export function OffersTable({
                       {row.status === 'COUNTERED' ? 'رد المشتري' : 'بانتظار ردك'}
                     </Badge>
                   )}
+                  {/*
+                    **ومن ردّ من الفريق يُقال** — فلا يقابل بائعٌ عرضًا
+                    قابله زميلُه برقمٍ آخر، ولا يحسب المشتري أنّ لديه
+                    مفاوضتين.
+                  */}
+                  {row.respondedByName === null ? null : (
+                    <span className="mt-1 block text-3xs opacity-70">
+                      قابله {row.respondedByName}
+                    </span>
+                  )}
                 </td>
                 <td className="p-3">
+                  {/*
+                    **والزرُّ لمن يملك الردّ** — ومن ردّ فالدورُ لمحاوره:
+                    صفٌّ ينتظر المشتري يقول ذلك ولا يعرض ثلاثة أزرارٍ
+                    يردّها الخادم.
+                  */}
+                  {!row.canAnswer ? (
+                    <span className="block text-end text-3xs opacity-70">بانتظار رد المشتري</span>
+                  ) : (
                   <span className="flex justify-end gap-1.5">
                     <button
                       type="button"
@@ -179,6 +197,7 @@ export function OffersTable({
                       ارفض
                     </button>
                   </span>
+                  )}
                 </td>
               </tr>
             ))}

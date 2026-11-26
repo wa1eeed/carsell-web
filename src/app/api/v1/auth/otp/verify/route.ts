@@ -9,6 +9,7 @@ import { toLatinDigits } from '@/lib/arabic';
 import { db } from '@/lib/db';
 import { completeRegistration } from '@/lib/domain/registration';
 import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from '@/lib/domain/dealer-membership';
+import { attachPanel, openPanel, PANEL_PATH } from '@/lib/auth/panel-handoff';
 
 export const runtime = 'nodejs';
 
@@ -102,13 +103,16 @@ export async function POST(request: NextRequest) {
     await db.user.findUnique({ where: { id: fresh.id }, select: DEALER_MEMBERSHIP_SELECT }),
   );
 
+  const handoff = await openPanel(fresh.id, membership);
+
   const response = ok({
     token,
     user: toPublicUser(fresh),
     isNew: result.isNew,
     completion: profileCompletion(fresh),
     /** وجهتُه بعد الدخول — واللوحةُ جذرٌ خارج `[locale]` فبلا بادئة. */
-    ...(membership.state === 'MEMBER' ? { panel: '/dealer' } : {}),
+    /** **ولا يُعلَن إلّا بعد أن تُفتح** — فلا تَعِد الشاشةُ بلوحةٍ تردّه. */
+    ...(handoff === null ? {} : { panel: PANEL_PATH }),
   });
 
   response.cookies.set(SESSION_COOKIE, token, {
@@ -118,6 +122,9 @@ export async function POST(request: NextRequest) {
     path: '/',
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
+
+  /** **وكوكي اللوحة يُكتب أو يُمحى هنا** — ولا ينجو واحدٌ من قبله. */
+  attachPanel(response, handoff);
 
   return response;
 }

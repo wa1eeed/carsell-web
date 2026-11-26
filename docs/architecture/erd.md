@@ -25,6 +25,7 @@ erDiagram
   User ||--o{ Vehicle : "vehicles"
   User ||--o{ Listing : "listings"
   User ||--o{ Offer : "offers"
+  User ||--o{ Offer : "offerResponses"
   User ||--o{ Bid : "bids"
   User ||--o{ CancelledBid : "cancelledBids"
   User ||--o{ Deposit : "deposits"
@@ -177,6 +178,7 @@ erDiagram
   ListingFeature }o--|| Listing : "listing"
   ListingFeature }o--|| Feature : "feature"
   Offer }o--|| OfferStatus : "status"
+  Offer |o--|| User : "respondedBy"
   Offer }o--|| Listing : "listing"
   Offer }o--|| User : "buyer"
   Offer |o--|| Offer : "parentOffer"
@@ -429,7 +431,7 @@ erDiagram
 | `createdAt` | `DateTime` |  |
 | `branchId` | `String?` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `sentInvites` → `DealerInvite` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout` · `expensesRecorded` → `DealerExpense` · `installmentPlans` → `InstallmentPlan` · `installmentReceipts` → `InstallmentReceipt`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `sentInvites` → `DealerInvite` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `offerResponses` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout` · `expensesRecorded` → `DealerExpense` · `installmentPlans` → `InstallmentPlan` · `installmentReceipts` → `InstallmentReceipt`
 
 ### `AdminUser`
 
@@ -906,8 +908,9 @@ Relations: `listing` → `Listing` · `feature` → `Feature`
 | `expiresAt` | `DateTime` |  |
 | `createdAt` | `DateTime` |  |
 | `respondedAt` | `DateTime?` |  |
+| `respondedById` | `String?` |  |
 
-Relations: `status` → `OfferStatus` · `listing` → `Listing` · `buyer` → `User` · `parentOffer` → `Offer` · `counters` → `Offer`
+Relations: `status` → `OfferStatus` · `respondedBy` → `User` · `listing` → `Listing` · `buyer` → `User` · `parentOffer` → `Offer` · `counters` → `Offer`
 
 ### `Auction`
 

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
 import { toLatinDigits } from '@/lib/arabic';
 import { normalizeArabicLetters } from '@/lib/plate';
+import { AWAITING_SELLER } from './dealer-desk';
 
 /**
  * ═══ `D1` — صحّةُ المعرض في شاشة ═══
@@ -80,7 +81,7 @@ export async function dealerKpis(
       select: { askPrice: true },
     }),
     db.offer.findMany({
-      where: { listing: { vehicleId: { in: vehicleIds } }, status: 'PENDING' },
+      where: { listing: { vehicleId: { in: vehicleIds } }, ...AWAITING_SELLER },
       select: { createdAt: true },
       orderBy: { createdAt: 'asc' },
     }),

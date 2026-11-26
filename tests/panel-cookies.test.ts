@@ -69,7 +69,15 @@ describe('وجهة الدخول', () => {
     const login = readFileSync('src/app/api/v1/auth/login/route.ts', 'utf8');
     for (const source of [otp, login]) {
       expect(source).toContain('dealerMembership');
-      expect(source).toContain("panel: '/dealer'");
+      /**
+       * **والوجهةُ تُعلَن بعد أن تُفتح**: كان السطرُ هنا
+       * `panel: '/dealer'` مكتوبًا بيد، فكان الجوابُ يَعِد باللوحة
+       * **ولا جلسةَ لوحةٍ تُفتح** — فيخدم الطلبَ كوكي من سبق على
+       * الجهاز. فالآن يُفتح ثمّ يُعلَن، والاسمُ ثابتٌ واحد.
+       */
+      expect(source).toContain('openPanel');
+      expect(source).toContain('attachPanel');
+      expect(source).toContain('panel: PANEL_PATH');
     }
     /** ولا تُستنتَج من `dealerId` في الشاشة. */
     const form = readFileSync('src/app/[locale]/(site)/auth/AuthForm.tsx', 'utf8');

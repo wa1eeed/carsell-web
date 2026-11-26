@@ -141,6 +141,8 @@ model User {
   vehicles        Vehicle[]
   listings        Listing[]
   offers          Offer[]
+  /// العروضُ التي ردّ عليها بنفسه — مصدرُ «مبيعات كل مندوب».
+  offerResponses  Offer[]          @relation("OfferResponder")
   bids            Bid[]
   cancelledBids   CancelledBid[]
   deposits        Deposit[]
@@ -1348,7 +1350,19 @@ model Offer {
   /// معدَّلَ من وضع أرضيّةً عالية ولم يفتح الصندوق قطّ.
   respondedAt   DateTime?
 
+  /// ═══ ومن ردّ — ولم يكن يُسجَّل ═══
+  ///
+  /// `respondedAt` يقول **متى** رُدّ ولا يقول **مَن**، وقد صار للمعرض
+  /// فريقٌ يردّ: فمبيعاتُ كلّ مندوب (وعمولتُه) لا مصدرَ لها، ومعدَّلُ
+  /// الردّ يُحسب للمعرض كلِّه ولا يُعرف من حمله.
+  ///
+  /// ويُكتب مع `respondedAt` في الموضع نفسِه — قبولًا أو مقابلًا أو
+  /// رفضًا بيد. **والرفضُ الآليّ بلا رادّ**: النظامُ ردّ لا أحد.
+  respondedById String?
+  respondedBy   User?   @relation("OfferResponder", fields: [respondedById], references: [id], onDelete: SetNull)
+
   @@index([listingId, respondedAt])
+  @@index([respondedById, respondedAt])
 
   listing     Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
   buyer       User    @relation(fields: [buyerId], references: [id], onDelete: Restrict)

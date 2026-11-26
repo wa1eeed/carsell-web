@@ -7,6 +7,7 @@ import { DEADLINE_DEFAULTS, deadline } from './deadlines';
 import { Prisma } from '@/generated/prisma/client';
 import type { Offer, OfferStatus } from '@/generated/prisma/client';
 import { computeOrderAmounts } from './order-amounts';
+import { mayAnswerOffer, mayCounterOffer, type OfferActor } from './offer-authority';
 
 /**
  * العروض — القواعد ١–٥ من القسم ٧.
@@ -153,7 +154,11 @@ export type CounterResult =
  * دقيقة.
  */
 export async function counterOffer(
-  input: { offerId: string; sellerId: string; amount: number },
+  /**
+   * **والفاعلُ طرفٌ لا شخص**: `sellerId` بقي اسمَ المعامل لمن ينادي
+   * بفردٍ، و`actor` يحمل عضويّةَ المعرض لمن ينادي من اللوحة.
+   */
+  input: { offerId: string; sellerId: string; amount: number; actor?: OfferActor },
   now: Date = new Date(),
 ): Promise<CounterResult> {
   if (!Number.isFinite(input.amount) || input.amount <= 0) {
@@ -163,11 +168,28 @@ export async function counterOffer(
   return db.$transaction(async (tx) => {
     const original = await tx.offer.findUnique({
       where: { id: input.offerId },
-      include: { listing: { select: { id: true, sellerId: true } } },
+      include: {
+        listing: {
+          select: { id: true, sellerId: true, vehicle: { select: { dealerId: true } } },
+        },
+      },
     });
 
     if (original === null) return { ok: false, reason: 'OFFER_NOT_FOUND' };
-    if (original.listing.sellerId !== input.sellerId) return { ok: false, reason: 'NOT_SELLER' };
+    const actor: OfferActor = input.actor ?? { userId: input.sellerId };
+    if (
+      !mayCounterOffer(
+        {
+          parentOfferId: original.parentOfferId,
+          buyerId: original.buyerId,
+          sellerId: original.listing.sellerId,
+          listingDealerId: original.listing.vehicle.dealerId,
+        },
+        actor,
+      )
+    ) {
+      return { ok: false, reason: 'NOT_SELLER' };
+    }
     if (!ACTIVE_STATUSES.includes(original.status) || original.expiresAt <= now) {
       return { ok: false, reason: 'NOT_ACTIVE' };
     }
@@ -175,7 +197,7 @@ export async function counterOffer(
     /** **والمقابلُ ردٌّ** — فيُسجَّل وقتُه لمعدّل ردّ المعرض (`Wg`). */
     await tx.offer.update({
       where: { id: original.id },
-      data: { status: 'COUNTERED', respondedAt: now },
+      data: { status: 'COUNTERED', respondedAt: now, respondedById: actor.userId },
     });
 
     const counter = await tx.offer.create({
@@ -257,13 +279,15 @@ export type DeclineResult =
  * تبقى نشطة — بخلاف القبول الذي يُغلق الباقي ويسحب الإعلان.
  */
 export async function declineOffer(
-  input: { offerId: string; userId: string },
+  input: { offerId: string; userId: string; actor?: OfferActor },
   now: Date = new Date(),
 ): Promise<DeclineResult> {
   return db.$transaction(async (tx) => {
     const offer = await tx.offer.findUnique({
       where: { id: input.offerId },
-      include: { listing: { select: { sellerId: true } } },
+      include: {
+        listing: { select: { sellerId: true, vehicle: { select: { dealerId: true } } } },
+      },
     });
 
     if (offer === null) return { ok: false, reason: 'OFFER_NOT_FOUND' };
@@ -273,9 +297,15 @@ export async function declineOffer(
      * مقابلًا أرسله البائع فالمشتري. ولا يرفض المرسِلُ عرضَه — له
      * `withdrawOffer`.
      */
-    const sentBySeller = offer.parentOfferId !== null;
-    const recipient = sentBySeller ? offer.buyerId : offer.listing.sellerId;
-    if (input.userId !== recipient) return { ok: false, reason: 'NOT_RECIPIENT' };
+    const actor: OfferActor = input.actor ?? { userId: input.userId };
+    const sides = {
+      parentOfferId: offer.parentOfferId,
+      buyerId: offer.buyerId,
+      sellerId: offer.listing.sellerId,
+      listingDealerId: offer.listing.vehicle.dealerId,
+    };
+    if (!mayAnswerOffer(sides, actor)) return { ok: false, reason: 'NOT_RECIPIENT' };
+    const recipient = offer.parentOfferId !== null ? offer.buyerId : offer.listing.sellerId;
 
     if (!ACTIVE_STATUSES.includes(offer.status) || offer.expiresAt <= now) {
       return { ok: false, reason: 'NOT_ACTIVE' };
@@ -287,7 +317,12 @@ export async function declineOffer(
      */
     await tx.offer.update({
       where: { id: offer.id },
-      data: { status: 'REJECTED', autoRejected: false, respondedAt: now },
+      data: {
+        status: 'REJECTED',
+        autoRejected: false,
+        respondedAt: now,
+        respondedById: actor.userId,
+      },
     });
 
     await notify(tx, {
@@ -325,7 +360,7 @@ export type AcceptResult =
  * عرضًا بالمبلغ نفسه ليقبله البائع، وهو التفافٌ يراه المستخدم عطلًا.
  */
 export async function acceptOffer(
-  input: { offerId: string; actorId: string },
+  input: { offerId: string; actorId: string; actor?: OfferActor },
   now: Date = new Date(),
 ): Promise<AcceptResult> {
   return db.$transaction(async (tx) => {
@@ -340,7 +375,13 @@ export async function acceptOffer(
              * ومن له عرضان على سيارتين لا يعرف أيَّهما قُبل — وهو إشعارٌ
              * حرج: بعده مهلةُ دفعٍ يفوتها من انتظر ليعرف.
              */
-            vehicle: { select: { brandName: true, modelName: true, year: true } },
+            vehicle: {
+              select: {
+                brandName: true, modelName: true, year: true,
+                /** معرضُ المركبة — فالردُّ لفريقه لا لصاحب العمود وحده. */
+                dealerId: true,
+              },
+            },
           },
         },
       },
@@ -352,9 +393,20 @@ export async function acceptOffer(
      * المُرسِل لا يقبل عرضه: العرض الأصليّ من المشتري فيقبله البائع،
      * والمقابل من البائع فيقبله المشتري.
      */
-    const sentBySeller = offer.parentOfferId !== null;
-    const accepter = sentBySeller ? offer.buyerId : offer.listing.sellerId;
-    if (accepter !== input.actorId) return { ok: false, reason: 'NOT_SELLER' };
+    const actor: OfferActor = input.actor ?? { userId: input.actorId };
+    if (
+      !mayAnswerOffer(
+        {
+          parentOfferId: offer.parentOfferId,
+          buyerId: offer.buyerId,
+          sellerId: offer.listing.sellerId,
+          listingDealerId: offer.listing.vehicle.dealerId,
+        },
+        actor,
+      )
+    ) {
+      return { ok: false, reason: 'NOT_SELLER' };
+    }
     if (
       !ACTIVE_STATUSES.includes(offer.status) ||
       offer.expiresAt <= now ||
@@ -365,7 +417,7 @@ export async function acceptOffer(
 
     await tx.offer.update({
       where: { id: offer.id },
-      data: { status: 'ACCEPTED', respondedAt: now },
+      data: { status: 'ACCEPTED', respondedAt: now, respondedById: actor.userId },
     });
 
     // بقيّة العروض تُغلق — لا سيارة تُباع مرّتين
