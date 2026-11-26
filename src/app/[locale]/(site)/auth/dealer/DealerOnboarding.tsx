@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { OtpInput } from '@/components/ui/OtpInput';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import { Picker } from '@/components/ui/Picker';
 import { cn } from '@/lib/cn';
 
 const field =
@@ -33,10 +34,12 @@ type Manager = { name: string; role: string | null };
 export function DealerOnboarding({
   locale,
   registryLive,
+  cities,
 }: {
   locale: string;
   /** للتكامل وصلة؟ — وزرٌّ لا وصلة خلفه يُشعر الضاغط أنه أخطأ. */
   registryLive: boolean;
+  cities: readonly string[];
 }) {
   const t = useTranslations('auth');
   const router = useRouter();
@@ -46,6 +49,8 @@ export function DealerOnboarding({
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,7 +72,18 @@ export function DealerOnboarding({
 
   const phoneValid = phone.length === 9 && phone.startsWith('5');
   const accountReady =
-    name.trim().length >= 2 && phoneValid && email.trim() !== '' && password.trim().length >= 8;
+    name.trim().length >= 2 &&
+    nameEn.trim().length >= 2 &&
+    phoneValid &&
+    email.trim() !== '' &&
+    password.trim().length >= 8;
+
+  /**
+   * **والسجلُّ والمدينةُ شرطُ إنشاء المعرض لا زينة.** بلا رقم سجلٍّ لا
+   * يستطيع مراجعُ اللوحة توثيقَه أبدًا، وبلا مدينةٍ لا يجده دليلُ
+   * المعارض — فيُشترطان قبل الخطوة الأخيرة لا بعد أن يُضغط «أنه».
+   */
+  const registryReady = crNumber.trim() !== '' && city.trim() !== '';
 
   async function sendCode(): Promise<void> {
     setBusy(true);
@@ -180,12 +196,47 @@ export function DealerOnboarding({
     return response !== null && response.ok;
   }
 
+  /**
+   * ═══ وهنا يُنشأ المعرضُ وتُفتح لوحته ═══
+   *
+   * قرار المالك ٢٠٢٦-١١-٢٦: «المعرض يسجل و يدخل للوحة تحكمه مباشره».
+   *
+   * **وكانت الرحلةُ تجمع أربعَ خطواتٍ ثمّ ترميها**: تحفظ المصرفَ
+   * والآيبان في ملفّ المستخدم وتذهب إلى «حسابي» — ولا معرضَ يُنشأ،
+   * ولا يصير أحدٌ عضوًا، ويعود الزرُّ إلى «سجل معرضك» أبدًا. قِيس
+   * فكان نموذجُ `Dealer` **بلا كاتبٍ في المنتج كلِّه**.
+   */
   async function finish(): Promise<void> {
     setBusy(true);
+    setError(null);
     try {
       if (bankName.trim() !== '') await saveField({ field: 'bankName', bankName });
       if (iban.trim() !== '') await saveField({ field: 'iban', iban });
-      router.push(`/${locale}/account`);
+
+      const response = await fetch('/api/v1/dealer/register', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          nameAr: name,
+          nameEn,
+          city,
+          crNumber,
+          address: address.trim() === '' ? null : address,
+          phone: `+966${phone}`,
+        }),
+      }).catch(() => null);
+
+      const body = (await response?.json().catch(() => null)) as
+        | { error?: { messageAr?: string } }
+        | null;
+
+      if (response === null || !response.ok) {
+        setError(body?.error?.messageAr ?? t('registerFailed'));
+        return;
+      }
+
+      /** **وبلا بادئة لغة**: اللوحة جذرٌ ثالث خارج `[locale]`. */
+      router.push('/dealer');
       router.refresh();
     } finally {
       setBusy(false);
@@ -228,6 +279,27 @@ export function DealerOnboarding({
         <section key="account" className="step-in flex flex-col gap-4">
           <Labelled label={t('showroomName')}>
             <input value={name} onChange={(e) => setName(e.target.value)} className={field} />
+          </Labelled>
+
+          {/*
+            ═══ الاسمُ الإنجليزيّ — ومنه يُبنى الرابط ═══
+
+            `Dealer.nameEn` إلزاميٌّ في المخطّط ولم تكن الرحلةُ تسأله،
+            ورابطُ صفحة المعرض يُشتقّ منه: بلا لاتينيٍّ يصير العنوانُ
+            عربيًّا مُرمَّزًا فيُقارَن مُرمَّزًا بمفكوك ويردّ ٤٠٤
+            صامتًا — وهو الصنف المسجَّل ثلاثًا. و`dir="ltr"` لأنّه
+            يُنسخ من مصدرٍ لاتينيّ.
+
+            // DESIGN-Q: الترميز لا يرسم هذا الحقل ولا حقل المدينة،
+            // والمخطّط يفرضهما. أُضيفا هنا وفي السجلّ على الترتيب.
+          */}
+          <Labelled label={t('showroomNameEn')} hint={t('showroomNameEnHint')}>
+            <input
+              dir="ltr"
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
+              className={cn(field, 'bidi-ltr')}
+            />
           </Labelled>
 
           <PhoneInput value={phone} onChange={setPhone} disabled={busy} label={t('phone')} />
@@ -327,6 +399,17 @@ export function DealerOnboarding({
             />
           </Labelled>
 
+          <Labelled label={t('city')} hint={t('cityHint')}>
+            <Picker
+              id="dealer-city"
+              value={city}
+              onChange={setCity}
+              placeholder={t('cityPlaceholder')}
+              options={cities.map((entry) => ({ value: entry, label: entry }))}
+              disabled={busy}
+            />
+          </Labelled>
+
           <Labelled label={t('address')}>
             <input value={address} onChange={(e) => setAddress(e.target.value)} className={field} />
           </Labelled>
@@ -346,7 +429,7 @@ export function DealerOnboarding({
           )}
 
           <Button
-            disabled={busy}
+            disabled={busy || !registryReady}
             onClick={() => {
               void (async () => {
                 if (crNumber.trim() !== '') await saveField({ field: 'crNumber', crNumber });

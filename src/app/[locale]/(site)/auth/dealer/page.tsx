@@ -8,6 +8,7 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { routing } from '@/i18n/routing';
 import { db } from '@/lib/db';
+import { cityNames } from '@/lib/domain/cities';
 import { DealerOnboarding } from './DealerOnboarding';
 
 export const dynamic = 'force-dynamic';
@@ -48,7 +49,7 @@ export default async function DealerJoinPage({
    * «٠٪ عمولة» تحت عنوانٍ يَعِد بها صارت خطأً أوّلَ نسبةٍ يضبطها
    * الأدمن — وهو ما وقع في صدر «بِع سيارتك» قبل أن تُقرأ من قاعدتها.
    */
-  const [rule, buyers, registry] = await Promise.all([
+  const [rule, buyers, registry, cities] = await Promise.all([
     db.commissionRule.findFirst({
       where: { scope: 'global', side: 'SELLER' },
       orderBy: { activeFrom: 'desc' },
@@ -56,6 +57,8 @@ export default async function DealerJoinPage({
     }),
     db.user.count({ where: { status: 'ACTIVE' } }),
     db.integration.findUnique({ where: { key: 'lean' }, select: { status: true } }),
+    /** مدنُ الجدول — والمعرضُ يُصفّى بها في دليل المعارض. */
+    cityNames(),
   ]);
 
   const commissionPct = rule === null || !rule.enabled ? 0 : Number(rule.pct);
@@ -94,7 +97,11 @@ export default async function DealerJoinPage({
             تعرض زرّ الجلب متى كان له مصدر — ومن يضغط زرًّا لا وصلة
             خلفه يظنّ أنه أخطأ وهو لم يخطئ.
           */}
-          <DealerOnboarding locale={locale} registryLive={registry?.status === 'ACTIVE'} />
+          <DealerOnboarding
+            locale={locale}
+            registryLive={registry?.status === 'ACTIVE'}
+            cities={cities}
+          />
         </div>
       </main>
     </>

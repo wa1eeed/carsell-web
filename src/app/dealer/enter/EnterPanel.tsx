@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { Button, LinkButton } from '@/components/ui/Button';
 import type { DealerMembership } from '@/lib/domain/dealer-membership';
 
@@ -24,6 +24,20 @@ export function EnterPanel({
   const [toast, setToast] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
+  /**
+   * ═══ ويدخل بلا ضغطة — قرار المالك ٢٠٢٦-١١-٢٦ ═══
+   *
+   * «المفترض المعرض يسجل و يدخل للوحة تحكمه مباشره». وعضوٌ في معرضٍ
+   * معتمد لا يُسأل «أتريد الدخول؟»: جوابُه معلومٌ قبل السؤال.
+   *
+   * **والزرُّ يبقى** لمن فشل عنده الطلب — فشاشةٌ تقول «يفتح…» أبدًا
+   * بلا ما يُضغط أسوأ من ضغطة.
+   *
+   * **والكوكي لا يُكتب من مكوّن خادم**، فالفتحُ نداءٌ من العميل:
+   * و`useRef` يمنع تكرارَه في التركيب المزدوج لوضع التطوير.
+   */
+  const tried = useRef(false);
+
   const enter = (): void => {
     start(async () => {
       const response = await fetch('/api/v1/dealer/auth/session', { method: 'POST' }).catch(() => null);
@@ -37,6 +51,13 @@ export function EnterPanel({
       router.replace('/dealer');
     });
   };
+
+  useEffect(() => {
+    if (membership.state !== 'MEMBER' || tried.current) return;
+    tried.current = true;
+    enter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [membership.state]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg p-6 text-ink">

@@ -16,6 +16,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'listing.review.approve': 'اعتمد إعلانا بعد المراجعة',
   'bid.cancel': 'ألغى مزايدة في مزاد جاري',
   /** إجراءاتُ لوحة المعرض — تُقرأ في سجلّ عضو الفريق كغيرها. */
+  'dealer.register': 'سجل معرضه وفتح لوحته',
   'dealer.profile.update': 'عدل الملف العام للمعرض',
   'dealer.vehicle.import': 'استورد مركبة بالإضافة الجماعية',
   /** يكتبه النظام حين يُقبل أعلى عرضٍ ولا يُنشأ الطلب — والسبب في الحمولة. */

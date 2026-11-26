@@ -143,11 +143,22 @@ only where that dealership has no member with any role at all. Any further
 legacy row keeps NULL and gets the honest answer — a migration must not grant a
 role to a row nobody reviewed.
 
-### Still missing: nothing creates a `Dealer`
+### Registration — built 2026-11-26
 
-Measured 2026-11-26: `src/` contains **no writer for the `Dealer` model**. The
-onboarding screen at `/ar/auth/dealer` verifies the phone, fetches the
-commercial register, and PATCHes the user's profile — it never creates the
-dealership. So "register your showroom", the button `/dealer/enter` offers a
-non-member, leads to a flow that cannot make them a member. Recorded in
-`ROADMAP.md`; the panel itself is complete for members who already exist.
+Measured that day: `src/` contained **no writer for the `Dealer` model**. The
+onboarding screen verified the phone, fetched the commercial register, and
+PATCHed the *user's* profile — it never created the dealership, so nobody could
+become a dealer except by a row written by hand.
+
+`registerDealer` (`src/lib/domain/dealer-register.ts`) now creates it and makes
+the applicant its `OWNER` in one transaction, with an `AuditLog` row. The route
+`POST /api/v1/dealer/register` sets the panel cookie in the same response, so
+the owner's instruction — «المعرض يسجل و يدخل للوحة تحكمه مباشره» — holds with
+no intermediate screen. `/dealer/enter` remains for a returning member whose
+12-hour panel session has lapsed, and it opens the panel without a click.
+
+The dealership is created `ACTIVE` with `verified: false`: `status` answers "can
+it operate?", `verified` answers "have we checked its register?", and the
+"تاجر موثّق" badge reads the second. A CR number is required at creation, since
+`decideDealer` refuses to verify without one — a dealership created without it
+could never leave the queue.
