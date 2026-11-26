@@ -128,3 +128,43 @@ negation — "لا أيام". Correct for counting, false for an age: a car that
 today is a day old, not no days old. No seeded row had an age of zero, so the
 first vehicle added from the panel was the first to show it. The rule was
 already written in `CLAUDE.md` for "منذ" and "قبل"; this is its third site.
+
+## D2c — publishing from the vehicle's own options
+
+The owner's wording was precise: «ضمن خيارات السياره يمكن نشرها». Publishing is
+a decision taken on a row that already exists, not a journey started from
+scratch — the vehicle's data is in stock already, so the drawer asks only for
+what a listing needs and stock does not: photos, sale method, price.
+
+`POST /api/v1/dealer/vehicles/{id}/publish` **translates, it does not decide**.
+`createListing` remains the product's single publish entry, holding the profile,
+tax-status, register-verification, plan-entitlement, listing-cap, duplicate-image
+and price-guidance guards. The route checks one thing of its own: that the
+vehicle belongs to this dealership — and to this salesperson's branch, since
+someone scoped to a branch should not publish another branch's stock.
+
+Its failure messages come from `src/lib/api/listing-failures.ts`, extracted from
+the listings route so a dealer and an individual read the same sentence for the
+same cause. A second copy would have drifted at the first edit.
+
+- **No auction from the drawer.** An auction has dates, a reserve and a deposit,
+  and lives on `D4`. Putting it behind the same quick button would make the
+  most consequential choice the fastest one.
+- **The negotiation floor is shown where it is decided.** `minAcceptPrice`
+  auto-rejects anything below it; a dealer who sets it high negotiates for
+  months with no offers and no reason given. The drawer says so in the field.
+- **The publish button disappears once a vehicle is listed.** `createListing`
+  refuses `VEHICLE_ALREADY_LISTED`, and a button that promises what the server
+  refuses is worse than no button.
+
+### Images
+
+Per the owner's standing storage policy (2026-11-26): all images and files go to
+R2, **one bucket for staging and another for production**. The code already
+supports that — `r2Key()` builds every key and the bucket comes from the
+environment, so separate buckets are a matter of each environment carrying its
+own `R2_BUCKET`; the `staging/`-`production/` prefix is then a second layer, not
+the isolation itself. Measured on 2026-11-26: production carries no R2
+variables yet, so uploads there are refused explicitly, and development falls
+back to local disk. The drawer uses the same `ImageUploader` as the sell wizard,
+so the day the buckets are configured both paths work at once.

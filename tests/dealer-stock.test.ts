@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { db } from '@/lib/db';
 import { addDealerVehicle, validateAddVehicle } from '@/lib/domain/dealer-stock';
 import { dealerStock } from '@/lib/domain/dealer-dashboard';
@@ -115,5 +116,45 @@ describe('addDealerVehicle', () => {
     );
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe('BRANCH_NOT_YOURS');
+  });
+});
+
+/**
+ * ═══ `D2c` — والنشرُ من خيارات المركبة ═══
+ *
+ * طلبُ المالك: «ضمن خيارات السياره يمكن نشرها». والمسارُ **يترجم لا
+ * يقرّر**: `createListing` مدخلُ النشر الوحيد، وفيه حُرّاسُ الملفّ
+ * والباقةِ وتوثيقِ السجلّ والصور. فيُفحص هنا أنّه لا ينسخ شرطًا، وأنّ
+ * المركبة تصير معروضةً في مخزونه.
+ */
+describe('نشر مركبة من المخزون', () => {
+  it('المسار لا ينسخ حارسا — ينادي مدخل النشر الوحيد', () => {
+    const source = readFileSync('src/app/api/v1/dealer/vehicles/[id]/publish/route.ts', 'utf8');
+    expect(source).toContain('createListing');
+    /** ولا يفحص ما تفحصه هي: نسختان من حارسٍ تتباعدان. */
+    expect(source).not.toContain('profileCompletion');
+    expect(source).not.toContain('sellingAllowance');
+    expect(source).not.toContain('verified');
+    /** **والرسائلُ من الوحدة المشتركة** — لا نسخةٌ ثانية للمعرض. */
+    expect(source).toContain('LISTING_FAILURE');
+    /** **ومركبةُ معرضٍ آخر لا تُعرض** — والفرعُ يحدّ بائعَه. */
+    expect(source).toContain('dealerId: actor.dealerId');
+    expect(source).toContain('actor.branchId');
+  });
+
+  /** **ولا مزادَ من الدرج** — له إعداداتُه وشاشتُه. */
+  it('الدرج يعرض البيع المباشر والتفاوض، ويقول أين المزاد', () => {
+    const drawer = readFileSync('src/app/dealer/inventory/PublishDrawer.tsx', 'utf8');
+    expect(drawer).toContain('ListingType.DIRECT');
+    expect(drawer).toContain('ListingType.NEGOTIATION');
+    expect(drawer).toContain('شاشة المزادات');
+    /** **والأرضيّةُ تُعرض لصاحبها حيث يقرّرها** — وإلّا فاوض بلا علم. */
+    expect(drawer).toContain('لا يراه المشتري');
+  });
+
+  /** ومركبةٌ معروضةٌ لا يُعرض عليها زرُّ عرضٍ ثانٍ — ولا يُنشر لها إعلانان. */
+  it('زر العرض يختفي عن المعروضة', () => {
+    const table = readFileSync('src/app/dealer/inventory/StockTable.tsx', 'utf8');
+    expect(table).toContain("row.listingRef !== null ? null");
   });
 });

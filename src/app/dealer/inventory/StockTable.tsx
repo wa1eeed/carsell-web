@@ -10,6 +10,7 @@ import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
 import type { StockRow } from '@/lib/domain/dealer-dashboard';
 import { CostDrawer } from './CostDrawer';
+import { PublishDrawer } from './PublishDrawer';
 
 const LISTING_AR: Record<string, string> = {
   PUBLISHED: 'معروضة',
@@ -24,6 +25,7 @@ const LISTING_AR: Record<string, string> = {
  */
 export function StockTable({ rows, canEdit }: { rows: readonly StockRow[]; canEdit: boolean }) {
   const [open, setOpen] = useState<StockRow | null>(null);
+  const [publishing, setPublishing] = useState<StockRow | null>(null);
 
   if (rows.length === 0) {
     return (
@@ -117,6 +119,22 @@ export function StockTable({ rows, canEdit }: { rows: readonly StockRow[]; canEd
                   {row.ageDays === 0 ? 'اليوم' : <Quantity unit="days" count={row.ageDays} />}
                 </td>
                 <td className="p-3 text-end">
+                  {/*
+                    ═══ والعرضُ من خيارات المركبة — طلبُ المالك ═══
+
+                    ومركبةٌ معروضةٌ لا تُعرض ثانيةً: `createListing` ترفض
+                    `VEHICLE_ALREADY_LISTED`، وزرٌّ يَعِد بما يُردّ أسوأ
+                    من غيابه.
+                  */}
+                  {!canEdit || row.listingRef !== null ? null : (
+                    <button
+                      type="button"
+                      onClick={() => setPublishing(row)}
+                      className="me-1.5 rounded-btn border border-ink bg-ink px-2.5 py-1 text-3xs font-bold text-bg"
+                    >
+                      اعرضها
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setOpen(row)}
@@ -133,6 +151,10 @@ export function StockTable({ rows, canEdit }: { rows: readonly StockRow[]; canEd
 
       {open === null ? null : (
         <CostDrawer row={open} canEdit={canEdit} onClose={() => setOpen(null)} />
+      )}
+
+      {publishing === null ? null : (
+        <PublishDrawer row={publishing} onClose={() => setPublishing(null)} />
       )}
     </>
   );
