@@ -1,6 +1,6 @@
 # Dealer panel — invoices (`D7`) and settlements (`D8`)
 
-_Last updated: 2026-11-25_
+_Last updated: 2026-11-26_
 
 Both screens read what the system already writes. The invoice is issued by
 `issueInvoice` at settlement with a snapshot of its tax rule and a gapless
@@ -55,3 +55,41 @@ platform promised the seller money it had already returned to the buyer.
 Arabic table. The screen now composes the Arabic supply type plus the vehicle;
 **the document's own descriptions remain English and are a separate question**
 — a ZATCA invoice is an Arabic document.
+
+## D13 — the showroom's own expenses
+
+Plugin-soft sells "تابع مصروفات المعرض اليومية والشهرية" by name; Optivize ties
+expenses to a car only, which leaves rent and salaries nowhere. We already had
+`VehicleCost` for what attaches to a car, and nothing for what does not.
+
+**The boundary is the point of the table.** What belongs to one vehicle —
+purchase, transport, inspection, detailing — goes to `VehicleCost` and enters
+*that car's margin*. What belongs to no single vehicle — rent, salaries,
+marketing, utilities, government fees, facility upkeep — goes to `DealerExpense`
+and enters *the showroom's result*, touching no car's margin. Mixing them
+corrupts both numbers: a general cost loaded onto a car makes its margin a lie,
+and a car's cost counted as general removes it from its own reckoning. The
+screen says this above the form, not only here.
+
+**It does not touch `LedgerEntry`.** That is the platform's book; this is the
+showroom's book about itself. Joining them would mix two monies that never meet.
+
+Decisions worth keeping:
+
+- **The spend date, not the entry date.** Whoever records last month's rent
+  late records it at its date, or the figure moves to a month it does not
+  belong to and two totals lie at once. A future date is refused outright.
+- **A zero that was never entered is not a zero** — the month card says "لم يدخل
+  بعد". And today's zero is two zeros: with no entries at all it is unmeasured;
+  with entries this month and none today it is a measured zero, worded as a
+  negation. This is the `A30` expense-card rule, now in its second place.
+- **The largest categories, not the list.** Seven categories get read at month's
+  end; the top two get read now.
+- **A branchless expense is a real state**, not a missing field: rent for the
+  whole showroom belongs to no branch, and a per-branch result needs its share,
+  not everything.
+- **A book that cannot be corrected gets abandoned**, so a row can be deleted —
+  scoped by dealership, so an id from another showroom deletes nothing.
+- **Sales staff do not see it**, the same line as the cost drawer. The
+  accountant does enter here, unlike stock: this is their work, and restricting
+  it to the owner gets the book filled from memory at month's end.

@@ -170,6 +170,7 @@ model User {
 
   @@index([status, createdAt])
   @@index([dealerId])
+  expensesRecorded   DealerExpense[]    @relation("ExpenseRecorder")
 }
 
 enum UserRole {
@@ -326,6 +327,7 @@ model Dealer {
   invites       DealerInvite[]
 
   @@index([status, city])
+  expenses      DealerExpense[]
 }
 
 enum DealerStatus {
@@ -407,6 +409,7 @@ model Branch {
   invites  DealerInvite[]
 
   @@index([dealerId, active])
+  expenses   DealerExpense[]
 }
 
 /// صنفُ التكلفة — الشراءُ أوّلُها، وما بعده يحوّل السعر إلى كلفةٍ حقيقية.
@@ -460,6 +463,55 @@ model VehicleCost {
 /// يُخرجه من حسابه الشخصيّ، وإيقافُ المعرض يجب ألّا يمنع صاحبَه من
 /// الشراء كفرد. وجهازٌ يُترك مفتوحًا في صالة العرض لا يكشف محفظةَ
 /// صاحبه. ومهلةُ لوحةٍ يتحرّك فيها مالٌ ومخزونٌ أقصرُ من مهلة متجر.
+/// ═══ مصروفُ المعرض — ما لا يُنسب إلى سيارة ═══
+///
+/// **والحدُّ الفاصل هو جوهرُ هذا الجدول.** `VehicleCost` ما يلتصق
+/// بمركبةٍ بعينها فيدخل هامشَها: شراؤها ونقلُها وفحصُها وتلميعُها.
+/// وهذا ما **لا** يلتصق بواحدة: الإيجارُ والرواتبُ والتسويقُ والكهرباء.
+/// وخلطُهما يُفسد الرقمين معًا — مصروفٌ عامّ يُحمَّل على سيارةٍ يجعل
+/// هامشَها كاذبًا، وكلفةُ سيارةٍ تُعَدّ مصروفًا عامًّا تُخرجها من
+/// حسابها.
+///
+/// ولا يمسّ هذا `LedgerEntry`: ذاك دفترُ **المنصّة**، وهذا دفترُ
+/// المعرض عن نفسه — ومن جمعهما خلط مالَين لا يلتقيان.
+enum DealerExpenseKind {
+  /// إيجارُ المعرض أو المستودع
+  RENT
+  /// رواتبُ الفريق
+  SALARIES
+  /// تسويقٌ وإعلان
+  MARKETING
+  /// كهرباءُ وماءٌ واتّصالات
+  UTILITIES
+  /// رسومٌ حكومية واشتراكاتٌ نظامية
+  GOVERNMENT
+  /// صيانةُ المبنى والمعدّات — لا صيانةُ مركبة
+  FACILITY
+  OTHER
+}
+
+model DealerExpense {
+  id       String            @id @default(cuid())
+  dealerId String
+  /// الفرعُ الذي يحمله — و`null` لمصروفٍ على المعرض كلِّه.
+  branchId String?
+  kind     DealerExpenseKind
+  amount   Decimal           @db.Decimal(12, 2)
+  note     String?
+  /// تاريخُ الصرف لا تاريخُ الإدخال — فمن يسجّل إيجارَ الشهر الماضي
+  /// متأخّرًا يسجّله بتاريخه، وإلّا انتقل الرقمُ إلى شهرٍ لا يخصّه.
+  spentAt      DateTime
+  recordedById String
+  createdAt    DateTime @default(now())
+
+  dealer     Dealer  @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  branch     Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  recordedBy User    @relation("ExpenseRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([dealerId, spentAt])
+  @@index([branchId, spentAt])
+}
+
 model DealerSession {
   id        String    @id @default(cuid())
   userId    String

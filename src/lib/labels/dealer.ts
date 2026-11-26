@@ -1,4 +1,4 @@
-import type { DealerRole, EscrowStatus, InvoiceStatus, SupplyType } from '@/generated/prisma/enums';
+import type { DealerExpenseKind, DealerRole, EscrowStatus, InvoiceStatus, SupplyType } from '@/generated/prisma/enums';
 import type { OrderBucket } from '@/lib/domain/dealer-desk';
 import type { DealerLedgerKind, InvoiceBucket } from '@/lib/domain/dealer-money';
 import type { AuctionBucket } from '@/lib/domain/dealer-auctions';
@@ -187,3 +187,17 @@ export function importColumnOf(header: string): ImportColumn | null {
 
 /** **واللونُ مطلوبٌ في `Vehicle`** — وغيابُه يُملأ بقولٍ لا بفراغ. */
 export const COLOUR_UNSPECIFIED = 'غير محدد';
+
+/**
+ * أصنافُ مصروف المعرض — **بتعهّدٍ للمُصرِّف** (البوابة ٥٩): قيمةٌ
+ * تُضاف إلى التعداد بلا تسميةٍ تُعرض خامًا في البطاقة.
+ */
+export const DEALER_EXPENSE_KIND_AR = {
+  RENT: 'إيجار',
+  SALARIES: 'رواتب',
+  MARKETING: 'تسويق وإعلان',
+  UTILITIES: 'كهرباء وماء واتصالات',
+  GOVERNMENT: 'رسوم حكومية',
+  FACILITY: 'صيانة المبنى والمعدات',
+  OTHER: 'أخرى',
+} satisfies Record<DealerExpenseKind, string>;

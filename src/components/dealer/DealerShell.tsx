@@ -52,6 +52,8 @@ const NAV: readonly Group[] = [
     items: [
       { href: '/dealer/invoices', label: 'الفواتير والضريبة', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
       { href: '/dealer/settlements', label: 'التسويات والعمولة', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
+      /** **والمصروفُ من المال لا من المخزون** — وهو نصفُ نتيجة المعرض. */
+      { href: '/dealer/expenses', label: 'المصروفات', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
       { href: '/dealer/subscription', label: 'الاشتراك والباقة', roles: ['OWNER'] },
     ],
   },
