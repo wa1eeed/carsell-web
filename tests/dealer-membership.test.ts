@@ -28,7 +28,7 @@ describe('dealerMembership', () => {
   it('يرفض `dealerId` بلا دور — وهو الصفّ الذي كان يُنتج الزرَّ الكاذب', () => {
     const row = {
       dealerRole: null,
-      dealer: { id: 'd1', nameAr: 'معرض', status: 'ACTIVE' },
+      dealer: { id: 'd1', nameAr: 'معرض', status: 'ACTIVE', verified: true },
     };
     expect(dealerMembership(row).state).toBe('NOT_A_MEMBER');
   });
@@ -37,7 +37,7 @@ describe('dealerMembership', () => {
     expect(
       dealerMembership({
         dealerRole: 'OWNER',
-        dealer: { id: 'd1', nameAr: 'معرض', status: 'PENDING' },
+        dealer: { id: 'd1', nameAr: 'معرض', status: 'PENDING', verified: false },
       }).state,
     ).toBe('DEALER_NOT_ACTIVE');
     expect(dealerMembership(null).state).toBe('NOT_A_MEMBER');

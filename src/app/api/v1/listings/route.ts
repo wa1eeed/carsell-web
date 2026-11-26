@@ -156,6 +156,15 @@ const PUBLISH_ERROR: Record<
     en: 'This sale method is not included in your plan — review your options or contact us.',
     status: 403,
   },
+  /**
+   * **ويُقال ما ينقص ومن يفعله** — لا «غير مسموح». فالمعرضُ لم يُخطئ
+   * في شيء: سجلُّه عندنا ننتظر مراجعتَه.
+   */
+  DEALER_NOT_VERIFIED: {
+    ar: 'سجلك التجاري قيد المراجعة — جهز مخزونك الآن، ويفتح النشر فور اعتماده.',
+    en: 'Your commercial register is under review — prepare your stock now; publishing opens once it is approved.',
+    status: 403,
+  },
   LISTING_LIMIT_REACHED: {
     ar: 'بلغت حد الإعلانات المعروضة في باقتك — اسحب إعلانا أو أوقفه لتنشر غيره.',
     en: 'You have reached your plan’s limit of live listings — withdraw or pause one to publish another.',

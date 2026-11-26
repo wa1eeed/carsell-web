@@ -29,6 +29,8 @@ export type DealerActor = {
   dealerId: string;
   dealerName: string;
   role: DealerRole;
+  /** أفُحص سجلُّه التجاريّ؟ — تقرؤه كلُّ شاشةٍ في اللوحة. */
+  verified: boolean;
   /** فرعُه — و`null` تعني «كل الفروع» (المالك والمدير) أو لا فرعَ له. */
   branchId: string | null;
 };
@@ -88,6 +90,7 @@ export async function openDealerSession(
       dealerId: membership.dealerId,
       dealerName: membership.dealerName,
       role: membership.role,
+      verified: membership.verified,
       branchId: user.branchId,
     },
   };
@@ -136,6 +139,7 @@ export async function resolveDealerSession(
     dealerId: membership.dealerId,
     dealerName: membership.dealerName,
     role: membership.role,
+    verified: membership.verified,
     branchId: user.branchId,
   };
 }

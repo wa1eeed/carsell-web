@@ -170,6 +170,24 @@ export async function DealerShell({
       </aside>
 
       <main className="min-w-0 flex-1 p-6 lg:p-9">
+        {/*
+          ═══ والتذكيرُ يسبق لحظةَ الحاجة ═══
+
+          قرار المالك ٢٠٢٦-١١-٢٦: المعرضُ يدخل لوحتَه من أوّل دقيقة،
+          **ولا يصل السوقَ منه إعلانٌ حتى يُراجَع سجلُّه**. فمن يصوّر
+          عشرَ مركباتٍ ويكتب أسعارَها ثمّ يُردّ عند «انشر» يحسب العطلَ
+          في النظام — واكتشافُ «عليك عمل» عند الضغط أسوأُ توقيتٍ ممكن.
+
+          وهو في الغلاف لا في شاشةٍ واحدة: الطريقُ إلى النشر يمرّ
+          بالمخزون وبصفحة المركبة وبالإضافة الجماعية.
+        */}
+        {actor.verified ? null : (
+          <p className="mb-6 rounded-lg border border-line bg-surface px-4 py-3 text-2xs leading-loose">
+            <b>سجلك التجاري قيد المراجعة.</b> جهز مخزونك وأسعارك الآن — ويفتح النشر
+            للسوق فور اعتماده، وتظهر معه شارة «تاجر موثق» على صفحتك.
+          </p>
+        )}
+
         <header className="mb-7 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">{title}</h1>

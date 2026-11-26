@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
+import { encryptSecret } from '@/lib/crypto/secrets';
 import { registerDealer, validateDealerRegistration } from '@/lib/domain/dealer-register';
 import { dealerMembership, DEALER_MEMBERSHIP_SELECT } from '@/lib/domain/dealer-membership';
 import { getAccountData } from '@/lib/domain/account';
@@ -120,5 +121,105 @@ describe('registerDealer', () => {
     const again = await registerDealer(user.id, { ...INPUT, nameEn: 'Second Motors' });
     expect(again.ok).toBe(false);
     if (!again.ok) expect(again.reason).toBe('ALREADY_MEMBER');
+  });
+});
+
+/**
+ * ═══ يجهّز ولا يَعرض — قرار المالك ٢٠٢٦-١١-٢٦ ═══
+ *
+ * «المعرض يسجل و يدخل للوحة تحكمه مباشره»، ولا يصل السوقَ منه إعلانٌ
+ * حتى يُراجع مراجعُ اللوحة سجلَّه. والحقلان منفصلان: `status` «أيعمل؟»
+ * و`verified` «أفحصنا سجلَّه؟».
+ */
+describe('المعرض غير الموثق يجهز ولا ينشر', () => {
+  const keys: string[] = [];
+  const refs: string[] = [];
+
+  afterAll(async () => {
+    if (refs.length > 0) {
+      const rows = await db.listing.findMany({
+        where: { ref: { in: refs } },
+        select: { id: true, vehicleId: true },
+      });
+      await db.listingImage.deleteMany({ where: { listingId: { in: rows.map((r) => r.id) } } });
+      await db.listingFeature.deleteMany({ where: { listingId: { in: rows.map((r) => r.id) } } });
+      await db.listing.deleteMany({ where: { ref: { in: refs } } });
+      await db.vehicle.deleteMany({ where: { id: { in: rows.map((r) => r.vehicleId) } } });
+    }
+    if (keys.length > 0) await db.uploadedAsset.deleteMany({ where: { r2Key: { in: keys } } });
+  });
+
+  it('المسودة تُحفظ والنشر يُردّ بسببه — ثم يفتح بالتوثيق', async () => {
+    const user = await db.user.findFirstOrThrow({
+      where: { phone: PHONE },
+      select: { id: true, dealerId: true },
+    });
+
+    /** والنشرُ يحتاج ملفًّا مكتملًا — وإلّا رُدّ بسببٍ آخر فلا يقيس شيئًا. */
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        email: 'register-test@example.com',
+        identityStatus: 'VERIFIED',
+        idVerified: true,
+        /** **ومشفَّرًا كما يكتبه المنتج** — وصيغتان في عمودٍ واحد تُكسران قارئَه. */
+        iban: encryptSecret('SA0380000000608010167519'),
+        taxStatus: 'VAT_REGISTERED',
+        vatNumber: '300000000000003',
+      },
+    });
+
+    const model = await db.model.findFirstOrThrow({
+      where: { trims: { some: { visible: true } } },
+      include: { trims: { where: { visible: true }, take: 1 } },
+    });
+    const key = `register-test/${user.id.slice(-6)}.jpg`;
+    await db.uploadedAsset.upsert({
+      where: { r2Key: key },
+      create: { r2Key: key, ownerId: user.id, phash: 'a1b2c3d4e5f60718', plateBlurred: true, qualityFlags: [] },
+      update: { ownerId: user.id },
+    });
+    keys.push(key);
+
+    const { createListing } = await import('@/lib/domain/publish');
+    const input = {
+      sellerId: user.id,
+      type: 'DIRECT' as const,
+      askPrice: 90_000,
+      taxableSupply: null,
+      vehicle: {
+        brandId: model.brandId,
+        modelId: model.id,
+        trimId: model.trims[0]!.id,
+        year: 2023,
+        mileageKm: 40_000,
+        transmission: 'AUTOMATIC' as const,
+        fuel: 'PETROL' as const,
+        spec: 'SAUDI' as const,
+        condition: 'USED' as const,
+        city: 'الرياض',
+        colorExterior: 'أبيض',
+        vin: null,
+      },
+      images: [key],
+    };
+
+    /** **المسودّة تمرّ** — التجهيزُ نصفُ القرار. */
+    const draft = await createListing({ ...input, draft: true });
+    expect(draft.ok).toBe(true);
+    if (draft.ok) refs.push(draft.ref);
+
+    /** **والنشرُ يُردّ بسببه لا بـ«غير مسموح»** — فلم يُخطئ في شيء. */
+    const blocked = await createListing(input);
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) expect(blocked.reason).toBe('DEALER_NOT_VERIFIED');
+
+    /** وبالتوثيق يسقط هذا المانع وحده. */
+    if (user.dealerId !== null) {
+      await db.dealer.update({ where: { id: user.dealerId }, data: { verified: true } });
+    }
+    const after = await createListing(input);
+    expect(after.ok === false && after.reason === 'DEALER_NOT_VERIFIED').toBe(false);
+    if (after.ok) refs.push(after.ref);
   });
 });

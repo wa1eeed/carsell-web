@@ -17,16 +17,28 @@ import type { DealerRole } from '@/generated/prisma/enums';
  */
 export const DEALER_MEMBERSHIP_SELECT = {
   dealerRole: true,
-  dealer: { select: { id: true, nameAr: true, status: true } },
+  dealer: { select: { id: true, nameAr: true, status: true, verified: true } },
 } as const;
 
 export type DealerMembershipRow = {
   dealerRole: DealerRole | null;
-  dealer: { id: string; nameAr: string; status: string } | null;
+  dealer: { id: string; nameAr: string; status: string; verified: boolean } | null;
 };
 
 export type DealerMembership =
-  | { state: 'MEMBER'; dealerId: string; dealerName: string; role: DealerRole }
+  | {
+      state: 'MEMBER';
+      dealerId: string;
+      dealerName: string;
+      role: DealerRole;
+      /**
+       * **أفُحص سجلُّه التجاريّ؟** — غيرُ «أيعمل؟». قرار المالك
+       * ٢٠٢٦-١١-٢٦: المعرضُ يعمل من أوّل دقيقة ولا يصل السوقَ منه
+       * إعلانٌ حتى تُراجَع أوراقُه. فتقرؤه الشاشةُ لتقوله قبل أن
+       * يبذل الجهد، والحارسُ في `publish.ts` ليفرضه.
+       */
+      verified: boolean;
+    }
   | { state: 'NOT_A_MEMBER' }
   | { state: 'DEALER_NOT_ACTIVE'; dealerName: string };
 
@@ -47,5 +59,6 @@ export function dealerMembership(row: DealerMembershipRow | null): DealerMembers
     dealerId: row.dealer.id,
     dealerName: row.dealer.nameAr,
     role: row.dealerRole,
+    verified: row.dealer.verified,
   };
 }

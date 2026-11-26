@@ -232,6 +232,8 @@ export type PublishFailure =
   | 'AUCTION_DEPOSIT_INVALID'
   | 'MIN_ACCEPT_INVALID'
   | 'SALE_METHOD_NOT_ALLOWED'
+  /** معرضٌ لم يُراجَع سجلُّه التجاريّ بعد — يجهّز مخزونَه ولا يَعرض. */
+  | 'DEALER_NOT_VERIFIED'
   | 'LISTING_LIMIT_REACHED'
   /** **ولا يُفرَّق بين الغائبة ومركبةِ غيرك**: وجودُها ليس خبرًا يُعطى. */
   | 'VEHICLE_NOT_FOUND'
@@ -645,6 +647,33 @@ export async function createListing(
   if (!profileCompletion(seller).canSell) return { ok: false, reason: 'PROFILE_INCOMPLETE' };
 
   if (seller.taxStatus == null) return { ok: false, reason: 'TAX_STATUS_REQUIRED' };
+
+  /**
+   * ═══ ومعرضٌ لم يُعتمد سجلُّه يجهّز ولا يَعرض ═══
+   *
+   * قرار المالك ٢٠٢٦-١١-٢٦: المعرضُ يسجّل ويدخل لوحتَه من أوّل دقيقة
+   * (فـ`status` يُنشأ `ACTIVE`)، **ولا يصل السوقَ منه إعلانٌ حتى
+   * يُراجع مراجعُ اللوحة سجلَّه التجاريّ** (`verified`). فالحقلان
+   * منفصلان في المخطّط منذ بُني: الأوّل «أيعمل؟» والثاني «أفحصنا
+   * سجلَّه؟».
+   *
+   * **وموضعُه بعد المسودّة**: التجهيزُ هو نصفُ القرار — مركباتٌ
+   * ومسودّاتٌ وأسعارٌ تُكتب، ولا تُعرض على أحد. ومنعُ الحفظ يُفرغ
+   * «يدخل لوحته مباشرة» من معناها.
+   *
+   * **وحارسٌ في الشاشة ليس حارسًا**: لوحةُ المعرض تُخفي الزرَّ،
+   * والنداءُ المباشر كان ينشر. والقاعدةُ هنا، وتقرؤها الشاشة من
+   * `dealerPublishState`.
+   */
+  if (seller.dealerId !== null) {
+    const dealer = await db.dealer.findUnique({
+      where: { id: seller.dealerId },
+      select: { verified: true },
+    });
+    if (dealer !== null && !dealer.verified) {
+      return { ok: false, reason: 'DEALER_NOT_VERIFIED' };
+    }
+  }
 
   /**
    * ═══ وخصائصُ الباقة لم يكن يقرؤها أحد ═══

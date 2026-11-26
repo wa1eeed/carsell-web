@@ -162,3 +162,23 @@ it operate?", `verified` answers "have we checked its register?", and the
 "تاجر موثّق" badge reads the second. A CR number is required at creation, since
 `decideDealer` refuses to verify without one — a dealership created without it
 could never leave the queue.
+
+### Prepare now, publish on approval
+
+The owner's answer (2026-11-26) to "may a showroom sell before its commercial
+register is reviewed?" was the middle option: it enters the panel immediately
+and prepares its stock and prices, but **nothing of its reaches the public
+market until an admin verifies the register**.
+
+- `status: ACTIVE` at creation — it operates.
+- `verified: false` until `decideDealer` VERIFY — no "تاجر موثّق" badge.
+- `createListing` refuses with `DEALER_NOT_VERIFIED` while unverified. It is the
+  product's only publish entry (the bulk import writes vehicles, not listings),
+  and the guard sits **after** the draft branch, so drafts, vehicles and prices
+  save normally.
+- `DealerShell` carries the state on every panel screen: "سجلك التجاري قيد
+  المراجعة. جهز مخزونك وأسعارك الآن". Finding out at the publish button, after
+  photographing ten cars, is the worst possible moment.
+
+`DealerActor.verified` and `dealerMembership().verified` read the same column,
+so the screen and the guard cannot drift.
