@@ -1,3 +1,4 @@
+import type { DealerModule } from '@/lib/domain/dealer-modules';
 import type { DealerExpenseKind, DealerRole, EscrowStatus, InvoiceStatus, SupplyType } from '@/generated/prisma/enums';
 import type { OrderBucket } from '@/lib/domain/dealer-desk';
 import type { DealerLedgerKind, InvoiceBucket } from '@/lib/domain/dealer-money';
@@ -201,3 +202,19 @@ export const DEALER_EXPENSE_KIND_AR = {
   FACILITY: 'صيانة المبنى والمعدات',
   OTHER: 'أخرى',
 } satisfies Record<DealerExpenseKind, string>;
+
+/**
+ * أسماءُ موديولز اللوحة كما تُعرض للمشغّل.
+ *
+ * **والخريطةُ تحمل تعهّدَ مفاتيحها** (`Record<DealerModule, …>`): موديولٌ
+ * يُضاف إلى `DEALER_MODULE` ويُنسى هنا يُعرض بمفتاحه الخام — وهي البوابة
+ * ٥٩ بعينها.
+ */
+export const DEALER_MODULE_AR: Record<DealerModule, string> = {
+  dealer_branches: 'الفروع',
+  dealer_customers: 'العملاء',
+  dealer_expenses: 'المصروفات',
+  dealer_pos: 'نقطة البيع',
+  dealer_installments: 'التقسيط',
+  dealer_landing: 'موقع المعرض',
+};

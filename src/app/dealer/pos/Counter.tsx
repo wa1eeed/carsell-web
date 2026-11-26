@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Money } from '@/components/ui/Money';
 import { Toast } from '@/components/ui/Toast';
 import type { StockRow } from '@/lib/domain/dealer-dashboard';
+import { previewSchedule } from '@/lib/installment-preview';
 
 const field =
   'w-full rounded-md border border-line bg-bg px-3.5 py-2.5 text-sm outline-none focus:border-ink';
@@ -14,6 +15,15 @@ const METHODS = [
   { key: 'CASH', label: 'نقدا' },
   { key: 'CARD', label: 'شبكة' },
   { key: 'TRANSFER', label: 'حوالة' },
+  /**
+   * ═══ والتقسيطُ طريقةُ دفعٍ — وكان البابَ المفقود ═══
+   *
+   * النطاقُ يقبله والمسارُ يقبله وشاشةُ التقسيط تقول «يفتح العقد من
+   * نقطة البيع»، **ولم يكن في الأزرار زرٌّ له**: فمن قرأ تلك الجملة
+   * بحث عن اختيارٍ لا وجود له. وهو صنفُ «الطرف الثاني يُبنى مع
+   * الأوّل» بعينه.
+   */
+  { key: 'INSTALLMENTS', label: 'تقسيط' },
 ] as const;
 
 /**
@@ -27,11 +37,23 @@ const METHODS = [
  * `dealerStock` نفسُها — ما يراه في «المركبات» يبيعه من هنا، ولا جدولُ
  * أسعارٍ ثانٍ يتباعد.
  */
-export function Counter({ rows }: { rows: readonly StockRow[] }) {
+export function Counter({
+  rows,
+  installments: canInstal,
+}: {
+  rows: readonly StockRow[];
+  /** أموديولُ التقسيط في باقته؟ — فزرٌّ يُعرض لمن لا يملكه يردّه الخادم. */
+  installments: boolean;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
-  const [done, setDone] = useState<{ number: string; total: string } | null>(null);
+  const [done, setDone] = useState<{
+    number: string;
+    total: string;
+    /** عقدُ التقسيط إن كانت البيعةُ تقسيطًا — ويُقال، ولا يُسكت عنه. */
+    plan: { monthly: string } | null;
+  } | null>(null);
 
   const [term, setTerm] = useState('');
   const [picked, setPicked] = useState<StockRow | null>(null);
@@ -41,6 +63,27 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
   const [buyerVatNo, setBuyerVatNo] = useState('');
   const [method, setMethod] = useState<string>('CASH');
   const [note, setNote] = useState('');
+  const [downPayment, setDownPayment] = useState('');
+  const [months, setMonths] = useState('12');
+  const [startsOn, setStartsOn] = useState('');
+
+  const methods = METHODS.filter((option) => option.key !== 'INSTALLMENTS' || canInstal);
+
+  /**
+   * ═══ ويُرى القسطُ قبل أن يُوقَّع ═══
+   *
+   * «١٢ شهرًا» لا تقول ما يقوله «٦٬٥٤١٫٦٧ شهريًّا». والحسابُ نسخةٌ
+   * بلا `Prisma` (`installment-preview`) لأنّ الحدَّ يمنع استيرادَ
+   * `money.ts` هنا — **واختبارٌ يقارن ناتجَيهما** فلا تتباعدان.
+   */
+  const plan = useMemo(() => {
+    const total = Number(price);
+    const down = downPayment.trim() === '' ? 0 : Number(downPayment);
+    const count = Number(months);
+    if (!(total > 0) || !(count >= 1) || down < 0 || down >= total) return null;
+    /** **والأخيرُ يحمل الكسر** — فيُقال، ولا يُفاجأ به العميل. */
+    return previewSchedule(total - down, Math.trunc(count));
+  }, [price, downPayment, months]);
 
   /** **والبحثُ في المعروض لا في الخادم** — القائمةُ بين يديه أصلًا. */
   const found = useMemo(() => {
@@ -68,12 +111,34 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
           buyerPhone: buyerPhone.trim() === '' ? null : buyerPhone.trim(),
           buyerVatNo: buyerVatNo.trim() === '' ? null : buyerVatNo.trim(),
           method,
+          ...(method === 'INSTALLMENTS'
+            ? {
+                installments: {
+                  downPayment: downPayment.trim() === '' ? 0 : Number(downPayment),
+                  months: Math.trunc(Number(months)),
+                  /**
+                   * **والتاريخُ يُرسَل كما يقرؤه المسار**: `YYYY-MM-DD`
+                   * وحده — والمسارُ يجعله ظهرَ الرياض فلا ينزلق الأجل
+                   * إلى أمس. وأرسلتُه أوّلًا ISO كاملًا فردّ ٤٢٢
+                   * صامتًا: عقدُ المسار يُقرأ لا يُتخيّل.
+                   */
+                  startsOn,
+                },
+              }
+            : {}),
           note: note.trim() === '' ? null : note.trim(),
         }),
       }).catch(() => null);
 
       const body = (await response?.json().catch(() => null)) as
-        | { data?: { invoiceNumber?: string; total?: string }; error?: { messageAr?: string } }
+        | {
+            data?: {
+              invoiceNumber?: string;
+              total?: string;
+              plan?: { monthly?: string } | null;
+            };
+            error?: { messageAr?: string };
+          }
         | null;
 
       if (response === null || !response.ok) {
@@ -81,9 +146,16 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
         return;
       }
 
+      /**
+       * **ومعاملٌ يُرسَل ولا يُقرأ = صمتٌ بعد نجاح** (قاعدةٌ مسجَّلة):
+       * المسارُ يردّ العقدَ وقسطَه، والشاشةُ كانت تهمله — فمن وقّع
+       * عميلُه عقدَ أربعةٍ وعشرين شهرًا يرى فاتورةً فقط.
+       */
+      const monthly = body?.data?.plan?.monthly;
       setDone({
         number: body?.data?.invoiceNumber ?? '',
         total: body?.data?.total ?? '0',
+        plan: typeof monthly === 'string' && monthly !== '' ? { monthly } : null,
       });
       setPicked(null);
       setPrice('');
@@ -95,7 +167,12 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
     });
   };
 
-  const ready = picked !== null && Number(price) > 0 && buyerName.trim().length >= 2;
+  /** **وشرطُ التقسيط يُفحص هنا كما يُفحص في الخادم** — فلا يُرسَل ناقص. */
+  const ready =
+    picked !== null &&
+    Number(price) > 0 &&
+    buyerName.trim().length >= 2 &&
+    (method !== 'INSTALLMENTS' || (plan !== null && startsOn !== ''));
 
   if (done !== null) {
     return (
@@ -115,10 +192,25 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
         <p className="mt-1.5 text-3xs leading-loose opacity-75">
           وسحبت المركبة من سوق كارز إن كانت معروضة — فلا عرض يصلك عليها بعد اليوم.
         </p>
-        <div className="mt-4 flex gap-2.5">
+        {done.plan === null ? null : (
+          <p className="mt-1.5 text-3xs leading-loose opacity-75">
+            وفتح عقد التقسيط بقسط <Money amount={done.plan.monthly} decimals={2} size="sm" />{' '}
+            شهريا — تتابع أقساطه من شاشة التقسيط.
+          </p>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2.5">
           <Button size="sm" onClick={() => setDone(null)}>
             بيعة أخرى
           </Button>
+          {done.plan === null ? null : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => router.push('/dealer/installments')}
+            >
+              افتح العقد
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => router.push('/dealer/invoices')}>
             افتح الفواتير
           </Button>
@@ -247,7 +339,7 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
           <div className="flex flex-col gap-1">
             <span className="text-3xs opacity-70">طريقة الدفع</span>
             <span className="flex flex-wrap gap-1.5">
-              {METHODS.map((option) => (
+              {methods.map((option) => (
                 <button
                   key={option.key}
                   type="button"
@@ -263,6 +355,67 @@ export function Counter({ rows }: { rows: readonly StockRow[] }) {
               ))}
             </span>
           </div>
+
+          {method !== 'INSTALLMENTS' ? null : (
+            <div className="rounded-md border border-line bg-bg p-3.5">
+              <p className="mb-3 text-3xs leading-loose opacity-70">
+                العقد يصدر مع الفاتورة، وأقساطه تتابع من شاشة التقسيط.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-3xs opacity-70">الدفعة الأولى</span>
+                  <input
+                    dir="ltr"
+                    inputMode="decimal"
+                    value={downPayment}
+                    onChange={(event) => setDownPayment(event.target.value)}
+                    className={field}
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-3xs opacity-70">عدد الأشهر</span>
+                  <input
+                    dir="ltr"
+                    inputMode="numeric"
+                    max={60}
+                    value={months}
+                    onChange={(event) => setMonths(event.target.value)}
+                    className={field}
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-3xs opacity-70">أول استحقاق</span>
+                  <input
+                    type="date"
+                    dir="ltr"
+                    value={startsOn}
+                    onChange={(event) => setStartsOn(event.target.value)}
+                    className={field}
+                  />
+                </label>
+              </div>
+
+              {plan === null ? (
+                <p className="mt-3 text-3xs opacity-70">
+                  اكتب السعر والدفعة الأولى وعدد الأشهر ليظهر القسط.
+                </p>
+              ) : (
+                <p className="mt-3 text-2xs leading-loose">
+                  الممول <Money amount={plan.financed} decimals={2} size="sm" /> — القسط{' '}
+                  <b>
+                    <Money amount={plan.monthly} decimals={2} size="sm" />
+                  </b>{' '}
+                  شهريا
+                  {plan.last === plan.monthly ? null : (
+                    <>
+                      ، والأخير <Money amount={plan.last} decimals={2} size="sm" /> ليطابق المجموع
+                    </>
+                  )}
+                  .
+                </p>
+              )}
+            </div>
+          )}
 
           <label className="flex flex-col gap-1">
             <span className="text-3xs opacity-70">ملاحظة — اختيارية</span>

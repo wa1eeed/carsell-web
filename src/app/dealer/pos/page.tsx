@@ -21,6 +21,12 @@ export default async function DealerPos() {
   const actor = await currentDealer();
   if (actor === null) redirect('/dealer/enter');
   if (!(await dealerHasModule(actor, DEALER_MODULE.pos))) redirect('/dealer');
+
+  /**
+   * **والتقسيطُ موديولٌ ثانٍ**: معرضٌ باقتُه تشمل المنضدة ولا تشمل
+   * التقسيط لا يرى زرَّه — فلا يختار طريقةَ دفعٍ يردّها الخادم.
+   */
+  const canInstal = await dealerHasModule(actor, DEALER_MODULE.installments);
   if (actor.role === 'ACCOUNTANT') redirect('/dealer');
 
   const stock = await dealerStock(actor.dealerId, actor.branchId);
@@ -38,7 +44,7 @@ export default async function DealerPos() {
       title="نقطة البيع"
       subtitle="لعميل يقف أمامك — من مخزونك، وبفاتورة ضريبية"
     >
-      <Counter rows={sellable} />
+      <Counter rows={sellable} installments={canInstal} />
     </DealerShell>
   );
 }

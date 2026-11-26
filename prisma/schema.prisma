@@ -2500,6 +2500,12 @@ model Plan {
   price        Decimal @default(0) @db.Decimal(10, 2)
   billingCycle String  @default("monthly")
   visible      Boolean @default(true)
+  /// ═══ لمن هذه الباقة — شخصٌ أم معرض ═══
+  ///
+  /// الاشتراكُ يحمل `userId` أو `dealerId`، والباقاتُ كانت قائمةً واحدة:
+  /// فمن يُسند باقةً إلى معرضٍ يرى «الأساسية» بجوار «معرض احترافي» ولا
+  /// شيء يمنعه من إسناد باقةِ فردٍ إلى منشأة.
+  audience     String  @default("user")
 
   entitlements  PlanEntitlement[]
   subscriptions Subscription[]

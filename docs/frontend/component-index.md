@@ -141,7 +141,7 @@ rather than found by chance.
 | `InspectedBadge` | no | `className` | 3 |
 | `BodyTypeStrip` | no | `items` · `className` | 1 |
 | `Breadcrumb` | no | `items` · `label` · `separator` · `className` | 15 |
-| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 150 |
+| `Button` | yes | `variant` · `size` · `count` · `icon` · `children` · `className` | 151 |
 | `LinkButton` | yes | `href` · `variant` · `size` · `icon` · `children` · `className` | 32 |
 | `BuyColumn` | no | `data` · `actions` · `bidActions` · `footer` · `className` | 1 |
 | `CarCard` | no | `data` · `sponsored` · `className` | 10 |

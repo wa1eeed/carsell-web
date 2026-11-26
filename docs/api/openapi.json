@@ -1660,6 +1660,41 @@
         }
       }
     },
+    "/api/v1/admin/dealers/{id}/plan": {
+      "post": {
+        "summary": "POST /api/v1/admin/dealers/{id}/plan",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "finance.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/disputes/{id}/approve": {
       "post": {
         "summary": "POST /api/v1/admin/disputes/{id}/approve",

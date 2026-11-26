@@ -1423,6 +1423,7 @@ Relations: `serviceRequest` → `ServiceRequest` · `vehicle` → `Vehicle`
 | `price` | `Decimal` |  |
 | `billingCycle` | `String` |  |
 | `visible` | `Boolean` |  |
+| `audience` | `String` |  |
 
 Relations: `entitlements` → `PlanEntitlement` · `subscriptions` → `Subscription`
 

@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { toSlug } from './listing-detail';
 import { cityNames } from './cities';
+import { startingDealerPlanId } from './dealer-plan';
 
 /**
  * ═══ إنشاءُ المعرض — الطرفُ الذي لم يُبنَ ═══
@@ -107,6 +108,7 @@ export async function registerDealer(
   if (Object.keys(fields).length > 0) return { ok: false, reason: 'VALIDATION', fields };
 
   const slug = await freeSlug(input.nameEn);
+  const planId = await startingDealerPlanId();
 
   const dealer = await db.$transaction(async (tx) => {
     const created = await tx.dealer.create({
@@ -134,6 +136,24 @@ export async function registerDealer(
       data: { role: 'DEALER', dealerId: created.id, dealerRole: 'OWNER', branchId: null },
     });
 
+    /**
+     * ═══ والمعرضُ يُولد بباقة ═══
+     *
+     * طبقةُ المعرض في محرّك الاستحقاقات تقرأ اشتراكَه، **ومعرضٌ بلا
+     * اشتراكٍ يعمل بالافتراضيّات أبدًا** — أي بلا موديولٍ مدفوع، ولا
+     * شيء يقول ذلك لصاحبه ولا للمشغّل. وقِيس ٢٠٢٦-١١-٢٧: أربعةُ
+     * معارض مسجَّلة، **ولا اشتراكَ لواحدٍ منها**.
+     *
+     * **وغيابُ باقةٍ مبدئيّة لا يمنع التسجيل**: المعرضُ يُنشأ ويعمل
+     * بالافتراضيّات، وإسنادُ الباقة بيد المشغّل — وردُّ تسجيلٍ لأنّ
+     * جدولَ الباقات ناقصٌ عطلٌ عندنا يدفع ثمنَه من سجّل.
+     */
+    if (planId !== null) {
+      await tx.subscription.create({
+        data: { dealerId: created.id, planId, startsAt: now, status: 'active' },
+      });
+    }
+
     await tx.auditLog.create({
       data: {
         actorId: user.id,
@@ -142,7 +162,12 @@ export async function registerDealer(
         entityId: created.id,
         action: 'dealer.register',
         before: {},
-        after: { slug: created.slug, city: clean(input.city), crNumber: clean(input.crNumber) },
+        after: {
+          slug: created.slug,
+          city: clean(input.city),
+          crNumber: clean(input.crNumber),
+          planId,
+        },
         ip: null,
         createdAt: now,
       },

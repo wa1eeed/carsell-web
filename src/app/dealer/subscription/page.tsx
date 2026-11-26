@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
 import { db } from '@/lib/db';
 import { resolveEntitlements } from '@/lib/domain/entitlements';
+import { dealerSubscription } from '@/lib/domain/dealer-plan';
 import { dealerTeam } from '@/lib/domain/dealer-team';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -31,11 +32,13 @@ export default async function DealerSubscription() {
   if (actor.role !== 'OWNER') redirect('/dealer');
 
   const [subscription, grants, team] = await Promise.all([
-    db.subscription.findFirst({
-      where: { userId: actor.userId, status: 'active' },
-      orderBy: { startsAt: 'desc' },
-      include: { plan: true },
-    }),
+    /**
+     * **وباقةُ المعرض لا باقةُ شخصه.** كان الاستعلامُ بـ`userId`، وكلُّ
+     * اشتراكٍ في المنتج للمعرض بـ`dealerId` — **فالشاشةُ تقول «بلا
+     * باقة» لمالكٍ معرضُه مشترك**، وهي الشاشةُ التي يفتحها ليعرف لماذا
+     * لا يرى نقطةَ البيع.
+     */
+    dealerSubscription(actor.dealerId),
     resolveEntitlements({ userId: actor.userId, dealerId: actor.dealerId }),
     dealerTeam(actor.dealerId),
   ]);

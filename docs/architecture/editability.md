@@ -8,6 +8,13 @@ and requires that each one the product neither creates nor edits appears below
 with a reason. A model that gains an editor must be removed from this file; one
 that loses it must be added. Neither drifts silently.
 
+> **Removed 2026-11-27: `Subscription`.** It said «nothing subscribes… the
+> table waits for the dealer panel». The panel arrived, and the row stayed —
+> while POS, instalments and the showroom site sat behind plan grants that
+> nothing could assign. `assignDealerPlan` (admin) and `registerDealer` (a new
+> showroom is born with a package) are its editors now. A register kept past
+> its reason lies exactly as a missing one does.
+
 ## Why this register exists
 
 Documentation rots in two ways. A path that no longer resolves is cheap to
@@ -47,7 +54,6 @@ way a missing row does**, so the row left and this paragraph took its place.
 | `Invoice` | **Legacy, superseded.** The real one is `TaxInvoice`, written by `issueInvoice` in `tax.ts` with ZATCA numbering, a rule snapshot and a QR. This table keeps six seeded rows and nothing reads it for tax. Removing it is a destructive migration on a table with `User` and `Order` relations, so it waits for a deliberate cleanup. |
 | `FinanceProvider` | **A real gap.** Financing partners are seeded. Adding or removing one needs a deploy. |
 | `Entitlement` | **The key catalogue is seeded**, and that is deliberate: a key is a door the code opens by name, so inventing one from a screen would create a grant nothing reads. Adding a key is a migration (see `20261126180000_dealer_modules`). What each plan *grants* **is** editable — `/admin/plans` upserts `PlanEntitlement` with an audit row; the earlier claim here that it was not became false when that editor shipped and is corrected 2026-11-26. |
-| `Subscription` | Nothing subscribes: there is one free plan at zero commission and no paid tier yet. The table waits for the dealer panel, which the owner deferred. |
 
 ## The second register: models nothing reads
 

@@ -30,7 +30,8 @@ SELECT
   NULL,
   o."id",
   o."stageEnteredAt",
-  now()
+  -- بتوقيت UTC صراحةً: عمودُ Prisma بلا منطقة، و`now()` ساعةُ الجلسة.
+  (now() AT TIME ZONE 'UTC')
 FROM "Order" o
 JOIN "Listing" l ON l."id" = o."listingId"
 JOIN "Vehicle" v ON v."id" = l."vehicleId"

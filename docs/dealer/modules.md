@@ -1,6 +1,6 @@
 # Dealer modules and the entitlement engine
 
-_Last updated: 2026-11-26_
+_Last updated: 2026-11-27_
 
 The owner's requests of 2026-11-26, recorded before code:
 
@@ -322,3 +322,54 @@ nothing. So the brand accent exists once as `BRAND_ACCENT_HEX` in
 `src/lib/brand.ts`, **with a test comparing it to the token in `globals.css`**:
 two copies without a guard drift, and a showroom choosing "CARZ green" would get
 last year's green.
+
+## 10 · The modules were built, shipped — and invisible everywhere (2026-11-27)
+
+The owner deployed staging, opened the panel and said: «ما وجدت شي». He was
+right. POS, instalments and the showroom site were live in production and
+**absent from every dealer panel in every environment**. Measured, the cause was
+four missing links in one chain:
+
+| Link | State on 2026-11-27 |
+| --- | --- |
+| `Entitlement.defaultValue` for `dealer_pos`, `dealer_installments`, `dealer_landing` | `false` — written hours before those modules were built, with the comment "false for what is not built", and **never flipped when they were** |
+| `PlanEntitlement` rows for any `dealer_*` key | **zero** |
+| `Subscription` rows with a `dealerId` | **zero** — so the engine's dealership layer never read anything |
+| A screen that assigns a plan to a dealership | **none** |
+
+Each link alone hides the modules. Together they made a feature that passes
+1,740 tests and deploys cleanly reach nobody — and gave the owner no way to turn
+it on.
+
+This is the recorded "a flag written by hand describes a capability, and goes
+stale the day the capability is built" — written in `NOTES.md` about
+`HOME_ADS_SERVED`, and repeated here within the same day.
+
+### What now exists
+
+- **`Plan.audience`** separates showroom packages from personal ones, so a
+  personal plan cannot be assigned to a business — enforced in the domain, not
+  only by filtering the list.
+- **`assignDealerPlan`** ends the current subscription and opens the new one in
+  one transaction. Two active subscriptions would make the engine read
+  "whichever started later", and that is not left to two dates.
+- **`/admin/dealers/[id]`** shows the package, shows **the modules as resolved**
+  (not as the plan grants them — an override or a default can differ, and the
+  operator must see what the showroom's owner sees), says plainly when a
+  showroom has no subscription at all, and assigns one.
+- **`registerDealer`** subscribes a new showroom to the cheapest visible dealer
+  plan. Without it every new showroom is born outside the engine — the same hole
+  again, one registration at a time. A missing plan does not block registration:
+  the showroom is created and the operator assigns a package.
+- **The panel's own subscription screen** read `userId` and every subscription
+  in the product carries `dealerId`, so it told a subscribed showroom's owner he
+  had no package — on the very screen he opens to find out why POS is missing.
+
+### And a timestamp that hid the fix
+
+The first run of the migration granted everything and the modules **still** did
+not appear. `now()` in SQL returns the session's wall clock, and Prisma's
+`DateTime` is `timestamp(3)` without a zone, read back as UTC. On a database in
+`Asia/Riyadh` that writes a subscription starting **three hours in the future**,
+so `startsAt <= now` was false and the grants were ignored. Every timestamp a
+migration writes into a Prisma column now says `AT TIME ZONE 'UTC'` explicitly.

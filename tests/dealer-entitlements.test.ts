@@ -17,11 +17,20 @@ const made: { subscriptions: string[]; plans: string[] } = {
   plans: [],
 };
 
+/** اشتراكاتٌ أوقفها الفحصُ ليخلوَ له الميدان — **وتُعاد كما كانت**. */
+const restore: string[] = [];
+
 afterAll(async () => {
   if (made.subscriptions.length > 0) {
     await db.subscription.deleteMany({ where: { id: { in: made.subscriptions } } });
   }
   if (made.plans.length > 0) await db.plan.deleteMany({ where: { id: { in: made.plans } } });
+  if (restore.length > 0) {
+    await db.subscription.updateMany({
+      where: { id: { in: restore } },
+      data: { status: 'active' },
+    });
+  }
 });
 
 describe('اشتراك المعرض في محرك الاستحقاقات', () => {
@@ -51,6 +60,24 @@ describe('اشتراك المعرض في محرك الاستحقاقات', () =>
     await db.planEntitlement.create({
       data: { planId: plan.id, entitlementKey: 'can_auction', value: 'false' },
     });
+
+    /**
+     * ═══ واشتراكٌ واحدٌ نافذ لكلّ معرض ═══
+     *
+     * كان الفحصُ ينشئ اشتراكَه ويترك ما قبله نافذًا، فلمّا صار لكلّ
+     * معرضٍ باقةٌ (ترحيل ٢٠٢٦-١١-٢٧) قرأ المحرّكُ **الأحدثَ بدءًا** —
+     * أي باقةَ البذرة — فسقط. و`assignDealerPlan` تُنهي السابقَ في
+     * المعاملة نفسِها لهذا السبب عينه، فيُحاكيه الفحصُ ويُعيده بعده.
+     */
+    const displaced = await db.subscription.findMany({
+      where: { dealerId, status: 'active' },
+      select: { id: true },
+    });
+    await db.subscription.updateMany({
+      where: { id: { in: displaced.map((row) => row.id) } },
+      data: { status: 'ended' },
+    });
+    restore.push(...displaced.map((row) => row.id));
 
     const subscription = await db.subscription.create({
       data: {

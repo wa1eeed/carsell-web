@@ -13,6 +13,11 @@ import { adminDealerDetail } from '@/lib/domain/admin-detail-readers';
 import { dealerTimeline } from '@/lib/domain/admin-entity-timelines';
 import { displayDigits, AR_DATE_LOCALE } from '@/lib/arabic';
 import { Quantity } from '@/components/ui/Quantity';
+import { dealerPlans, dealerSubscription } from '@/lib/domain/dealer-plan';
+import { resolveEntitlements } from '@/lib/domain/entitlements';
+import { DEALER_MODULE, hasModule } from '@/lib/domain/dealer-modules';
+import { DEALER_MODULE_AR } from '@/lib/labels/dealer';
+import { PlanPicker } from './PlanPicker';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +50,27 @@ export default async function AdminDealerDetailPage({
   const { id } = await params;
   const dealer = await adminDealerDetail(id);
   if (dealer === null) notFound();
+
+  /**
+   * ═══ والباقةُ تُقرأ هنا لأنّها ما يفتح اللوحة ═══
+   *
+   * الموديولزُ مفاتيحُ تمنحها الباقة، **ومعرضٌ بلا اشتراكٍ يعمل
+   * بالافتراضيّات**: فنقطةُ البيع والتقسيطُ وموقعُه مبنيّةٌ وغائبةٌ عن
+   * لوحته، ولا شيء في هذه الشاشة كان يقول ذلك ولا يغيّره.
+   *
+   * **والمعروضُ ما يُحَلّ لا ما تمنحه الباقة**: تجاوزٌ على عضوٍ أو
+   * افتراضيٌّ أعلى يجعل الاثنين يفترقان، وقراءةُ الباقة وحدها تُظهر
+   * للمشغّل غيرَ ما يراه صاحبُ اللوحة. والمالكُ هو من تُحلّ به، فهو من
+   * يفتح كلَّ قسم.
+   */
+  const owner = dealer.members.find((member) => member.role === 'OWNER') ?? null;
+  const [subscription, plans, grants] = await Promise.all([
+    dealerSubscription(dealer.id),
+    dealerPlans(),
+    owner === null
+      ? Promise.resolve({})
+      : resolveEntitlements({ userId: owner.id, dealerId: dealer.id }),
+  ]);
 
   const search = await searchParams;
   /* **ويُجلَب خطُّ الزمن لتبويبته وحدها** — استعلامُه يمرّ على عدّة جداول */
@@ -203,6 +229,36 @@ export default async function AdminDealerDetailPage({
                     ? 'بلا تقييم'
                     : `${displayDigits(dealer.ratingAvg)} من ${displayDigits(String(dealer.ratingCount))}`
                 }
+              />
+            </DetailCard>
+
+            <DetailCard
+              title="الباقة والموديولز"
+              note={subscription === null ? 'بلا اشتراك' : subscription.plan.nameAr}
+            >
+              {/*
+                **ومعرضٌ بلا اشتراكٍ يُقال صراحةً**: يعمل بالافتراضيّات،
+                أي بلا موديولٍ مدفوع — وصمتُ الشاشة عنه يجعل المشغّل
+                يحسب اللوحةَ معطّلة.
+              */}
+              {subscription === null ? (
+                <p className="mb-3 text-3xs leading-loose text-warn-900">
+                  لا اشتراك — فيعمل بالافتراضيات وحدها، ولا تظهر له الموديولز المدفوعة.
+                </p>
+              ) : null}
+
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                {Object.values(DEALER_MODULE).map((key) => (
+                  <Badge key={key} tone={hasModule(grants, key) ? 'accent' : 'neutral'}>
+                    {DEALER_MODULE_AR[key]}
+                  </Badge>
+                ))}
+              </div>
+
+              <PlanPicker
+                dealerId={dealer.id}
+                current={subscription?.plan.key ?? null}
+                plans={plans.map((plan) => ({ key: plan.key, nameAr: plan.nameAr }))}
               />
             </DetailCard>
 

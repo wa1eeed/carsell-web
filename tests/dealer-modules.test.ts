@@ -96,16 +96,52 @@ describe('والشاشة تسأل الخادم أيضا', () => {
     }
   });
 
+  /**
+   * ═══ والمنحُ من الباقة لا من الافتراضيّ ═══
+   *
+   * كان هذا الفحصُ يقول «المبنيُّ مسموحٌ بالافتراضيّ، وما لم يُبنَ
+   * ممنوع» — وهي جملةٌ صحّت يومَ كُتبت ثمّ بُنيت نقطةُ البيع في اليوم
+   * نفسِه. **واختبارٌ يثبّت افتراضًا تقادم يجعل تصحيحَه يبدو كسرًا**:
+   * فلمّا مُنحت الباقاتُ مفاتيحَها سقط هذا السطرُ وحده.
+   *
+   * والصوابُ أن يُقاس ما يقوله المحرّك: **الباقةُ تغلب الافتراضيّ**.
+   */
   it('والمنح يقرأ من باقة المعرض لا من الدور', async () => {
+    const subscribed = await db.subscription.findFirst({
+      where: { dealerId: { not: null }, status: 'active' },
+      select: {
+        dealerId: true,
+        plan: { select: { entitlements: { select: { entitlementKey: true, value: true } } } },
+      },
+    });
+    expect(subscribed, 'لا معرض مشترك في البذرة — ولا يُقاس المنح بلا باقة').not.toBeNull();
+    if (subscribed === null) return;
+
     const owner = await db.user.findFirstOrThrow({
-      where: { dealerRole: 'OWNER', dealer: { status: 'ACTIVE' } },
+      where: { dealerId: subscribed.dealerId, dealerRole: 'OWNER' },
       select: { id: true, dealerId: true },
     });
     const actor = { userId: owner.id, dealerId: owner.dealerId as string };
 
-    /** المبنيُّ مسموحٌ بالافتراضيّ، وما لم يُبنَ ممنوع. */
-    expect(await dealerHasModule(actor, DEALER_MODULE.expenses)).toBe(true);
-    expect(await dealerHasModule(actor, DEALER_MODULE.pos)).toBe(false);
+    /** **ويُقرأ المتوقَّع من الباقة نفسِها** — لا من رقمٍ مكتوبٍ هنا يتقادم. */
+    const granted = (key: string): boolean =>
+      subscribed.plan.entitlements.find((row) => row.entitlementKey === key)?.value !== 'false';
+
+    for (const key of Object.values(DEALER_MODULE)) {
+      expect(await dealerHasModule(actor, key), key).toBe(granted(key));
+    }
+
+    /** **ومعرضٌ بلا اشتراكٍ يسقط إلى الافتراضيّ** — وهو منعُ المدفوع. */
+    const unsubscribed = await db.dealer.findFirst({
+      where: { subscriptions: { none: { status: 'active' } } },
+      select: { id: true, members: { where: { dealerRole: 'OWNER' }, select: { id: true } } },
+    });
+    const lone = unsubscribed?.members[0];
+    if (unsubscribed !== undefined && unsubscribed !== null && lone !== undefined) {
+      expect(
+        await dealerHasModule({ userId: lone.id, dealerId: unsubscribed.id }, DEALER_MODULE.pos),
+      ).toBe(false);
+    }
   });
 });
 
