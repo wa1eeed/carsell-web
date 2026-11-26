@@ -55,8 +55,13 @@ export function OtpInput({
       **والحاوية تُحدّ بعرضٍ أقصى.** على شاشةٍ عريضة تتمدّد الخانات
       بـ`flex-1` حتى تصير ستّ مربّعاتٍ ضخمة — ورمزٌ من ستّة أرقام لا
       يحتاج نصف الشاشة.
+
+      **و`w-full` تطلب عرضًا صريحًا.** بلا هذا تبقى الحاوية بعرض
+      محتواها، ومحتواها أساسُه صفر — فمن وضعها في عمودٍ
+      `items-center` حصل على ستّة خطوطٍ رأسية بلا خانة واحدة. (قاسه
+      المالك في تسجيل المعرض.)
     */
-    <div dir="ltr" className={cn('flex max-w-sm gap-2', className)}>
+    <div dir="ltr" className={cn('flex w-full max-w-sm gap-2', className)}>
       {Array.from({ length: OTP_BOXES }, (_, i) => {
         const digit = value[i] ?? '';
         const active = i === value.length;
@@ -101,8 +106,19 @@ export function OtpInput({
                 الحاوية — و`flex-1` وحدها تبدو كافيةً وليست كذلك.
 
                 و`w-0` تجعل الأساس صفرًا فيأتي العرض من القسمة وحدها.
+
+                ═══ و`min-w-10` أرضيّةٌ تمنع النقيض ═══
+
+                **وأساسٌ صفرٌ بلا أرضيّة ينهار إلى صفر.** في حاويةٍ
+                بعرض محتواها (`items-center`) لا قسمةَ تُجري: عرضُ
+                الحاوية مجموعُ الأُسس، وهي أصفار — **فالخانةُ عرضُها
+                حدُّها وحده**، سطرٌ رأسيّ لا مربّع.
+
+                فالعرضُ محصورٌ بين طرفين: أرضيّةٌ ٤٠px تمنع الانهيار،
+                و`flex-1` تقسم ما زاد. وعلى ٣٧٥px: ٦×٤٠ + ٥ فجوات =
+                ٢٨٠ داخل ٣٤٣ المتاحة، فالأرضيّةُ لا تُفيض شيئًا.
               */
-              'font-num aspect-square w-0 min-w-0 flex-1 rounded-md border bg-bg text-center text-xl font-bold outline-none',
+              'font-num aspect-square w-0 min-w-10 flex-1 rounded-md border bg-bg text-center text-xl font-bold outline-none',
               invalid
                 ? 'border-danger'
                 : digit !== ''
