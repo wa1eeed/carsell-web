@@ -202,11 +202,29 @@ export default async function AccountPage({
               الحساب لأجلهما)، ثمّ ما ينتظره، والأقسامُ آخرًا: هي
               مِلاحةٌ يُقصد إليها لا شيءٌ يُقرأ في الطريق.
             */}
-            <div className="lg:sticky lg:top-6 lg:col-start-1 lg:row-start-1">
+            {/*
+              ═══ العمودُ اللاصق **واحد** — بطاقةً وأقسامًا معًا ═══
+
+              كان العنصران مفصولين: البطاقةُ `sticky` في الصفّ الأوّل،
+              والأقسامُ ساكنةً في الثاني. **وحاوي العنصر اللاصق هو
+              الشبكةُ كلُّها لا صفُّه** — فالبطاقة تلتصق وتمشي حتى آخر
+              العمود، وهي بلا خلفيّةٍ ولا `z-index`، **فتمرّ الأقسامُ
+              من خلفها**: قِيس على ١٤٤٠×٩٠٠ فكان التداخلُ ٤١٥ بكسلًا من
+              نصٍّ فوق نصّ.
+
+              والتصميم (`Wf`) يرسمه عمودًا واحدًا:
+              `width:250px;position:sticky;top:0` **يضمّ البطاقة
+              والقائمة**. فالعلاجُ هو الرسمُ نفسُه لا حيلةٌ عليه.
+
+              **و`contents` على الهاتف** يُبقي أولادَه أولادًا للشبكة،
+              فترتيبُ الهاتف (هويّةٌ ثمّ محتوى ثمّ أقسام) كما كان.
+            */}
+            <div className="contents lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:block lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:[scrollbar-width:thin] lg:sticky lg:top-6">
+            <div className="lg:col-start-1 lg:row-start-1">
               <ProfileCard data={data} locale={locale} />
             </div>
 
-            <div className="order-last lg:order-none lg:col-start-1 lg:row-start-2">
+            <div className="order-last lg:order-none lg:col-start-1 lg:row-start-2 lg:mt-5">
               <AccountSections
             locale={locale}
             sections={[
@@ -260,6 +278,7 @@ export default async function AccountPage({
               { key: 'profile', label: 'بياناتي', hint: 'البريد والهوية والآيبان' },
             ]}
               />
+            </div>
             </div>
 
             <div className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2">

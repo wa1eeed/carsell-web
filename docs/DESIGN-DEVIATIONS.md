@@ -1,6 +1,6 @@
 # Design deviations
 
-_Last updated: 2026-11-25_
+_Last updated: 2026-11-26_
 
 Screens or components built **without design markup**, and places where the
 build departs from the markup on purpose. Each entry states what was built, on
@@ -1415,3 +1415,26 @@ the trip`)، فالعربيةُ وحدها انحرفت.
 
 وتبقى الإشارة خارج المقام بقرار: الكتابةُ بها تعني شحنَ الوعد. ويوم
 يصل تكاملُ أبشر تُكتب كما يرسمها الترميز.
+
+---
+
+## `Wf` — the account sidebar scrolls inside itself
+
+The design draws column 1 as one sticky element (`width:250px;position:sticky;
+top:0`) holding the identity card and the whole section list. We build it that
+way, with one addition: `max-height: calc(100dvh - 3rem)` and `overflow-y: auto`
+at `lg`.
+
+**Why.** The design's nav rows are single lines; ours each carry a hint line
+("ما تملكه من مركبات", "ما عرضته للبيع", …) decided earlier in `A`-series work.
+That makes our column 1630px tall against the design's ~650px. A sticky element
+taller than the viewport pins at its top and its lower rows become unreachable —
+the last four sections would never be clickable on a 900px screen.
+
+The alternative was to drop the hints and match the height. The hints were kept:
+they are what tells someone which section holds what, and a sidebar that scrolls
+is a smaller cost than a sidebar whose bottom half cannot be reached.
+
+Measured after the change at 1440×900: overlap between the card and the sections
+is −36px (a gap) at every scroll position, and the column pins at `top: 24px`
+whenever the content column is the taller one.

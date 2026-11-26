@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { currentUserFromCookies } from '@/lib/domain/account';
 import { currentDealer } from '@/lib/auth/dealer-session';
+import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from '@/lib/domain/dealer-membership';
 import { db } from '@/lib/db';
 import { EnterPanel } from './EnterPanel';
 
@@ -36,20 +37,15 @@ export default async function DealerEnterPage() {
   const { acceptPendingInvite } = await import('@/lib/domain/dealer-team');
   await acceptPendingInvite(user.id);
 
-  const member = await db.user.findUnique({
+  /**
+   * **وبدالّة العضويّة لا بثلاث خاصّيات تتناقض.** كانت `isMember`
+   * و`dealerStatus` تُحسبان هنا بيدٍ، وبابُ صفحة الحساب يحسبهما بيدٍ
+   * أخرى — فاختلفا.
+   */
+  const row = await db.user.findUnique({
     where: { id: user.id },
-    select: {
-      dealerRole: true,
-      dealer: { select: { nameAr: true, status: true } },
-    },
+    select: DEALER_MEMBERSHIP_SELECT,
   });
 
-  return (
-    <EnterPanel
-      name={user.name}
-      dealerName={member?.dealer?.nameAr ?? null}
-      dealerStatus={member?.dealer?.status ?? null}
-      isMember={member?.dealerRole !== null && member?.dealer != null}
-    />
-  );
+  return <EnterPanel name={user.name} membership={dealerMembership(row)} />;
 }

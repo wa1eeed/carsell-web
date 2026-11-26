@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { ibanMasked } from './iban';
+import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from './dealer-membership';
 import { db } from '@/lib/db';
 import { PERSONAL_VEHICLE, personalListingOf } from './ownership';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
@@ -618,19 +619,16 @@ export async function getAccountData(user: User, locale: string): Promise<Accoun
       memberSince: user.createdAt.toISOString(),
     },
     /**
-     * **والشرطُ هنا هو شرطُ `openDealerSession` نفسُه**: عضويّةٌ في
-     * معرضٍ `ACTIVE`. ونسخةٌ تتساهل تعرض بابًا يردّ، ونسخةٌ تتشدّد
-     * تخفي بابًا يفتح.
+     * **والشرطُ هنا هو شرطُ `openDealerSession` نفسُه** — بدالّته لا
+     * بنسخةٍ منه. وكان نسخةً تفحص `dealerId` وحده، فعرض الزرَّ لكلّ
+     * حسابٍ له معرضٌ بلا دور ثمّ ردّه البابُ «لست عضوا في أي معرض».
      */
-    dealerPanel:
-      user.dealerId === null
-        ? null
-        : await db.dealer
-            .findFirst({
-              where: { id: user.dealerId, status: 'ACTIVE' },
-              select: { nameAr: true },
-            })
-            .then((dealer) => (dealer === null ? null : { name: dealer.nameAr })),
+    dealerPanel: await db.user
+      .findUnique({ where: { id: user.id }, select: DEALER_MEMBERSHIP_SELECT })
+      .then((row) => {
+        const membership = dealerMembership(row);
+        return membership.state === 'MEMBER' ? { name: membership.dealerName } : null;
+      }),
     walletBalance,
     depositsOnCard,
     auctions,

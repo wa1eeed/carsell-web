@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button, LinkButton } from '@/components/ui/Button';
+import type { DealerMembership } from '@/lib/domain/dealer-membership';
 
 import { Toast } from '@/components/ui/Toast';
 
@@ -14,14 +15,10 @@ import { Toast } from '@/components/ui/Toast';
  */
 export function EnterPanel({
   name,
-  dealerName,
-  dealerStatus,
-  isMember,
+  membership,
 }: {
   name: string | null;
-  dealerName: string | null;
-  dealerStatus: string | null;
-  isMember: boolean;
+  membership: DealerMembership;
 }) {
   const router = useRouter();
   const [toast, setToast] = useState<string | null>(null);
@@ -47,7 +44,7 @@ export function EnterPanel({
         <p className="text-3xs font-bold tracking-widest opacity-65">DEALER DASHBOARD</p>
         <h1 className="mt-2.5 text-2xl font-bold">لوحة المعرض</h1>
 
-        {!isMember ? (
+        {membership.state === 'NOT_A_MEMBER' ? (
           <>
             <p className="mt-3.5 text-2xs leading-loose opacity-75">
               حسابك {name === null ? '' : `(${name}) `}ليس عضوا في أي معرض. سجل معرضك
@@ -57,10 +54,10 @@ export function EnterPanel({
               سجل معرضك
             </LinkButton>
           </>
-        ) : dealerStatus !== 'ACTIVE' ? (
+        ) : membership.state === 'DEALER_NOT_ACTIVE' ? (
           <>
             <p className="mt-3.5 text-2xs leading-loose opacity-75">
-              معرضك <b>{dealerName}</b> ينتظر اعتماد سجله التجاري. تصلك رسالة فور
+              معرضك <b>{membership.dealerName}</b> ينتظر اعتماد سجله التجاري. تصلك رسالة فور
               اعتماده، وتفتح اللوحة عندها.
             </p>
             <LinkButton href="/ar/account" variant="outline" className="mt-5 w-full">
@@ -70,7 +67,7 @@ export function EnterPanel({
         ) : (
           <>
             <p className="mt-3.5 text-2xs leading-loose opacity-75">
-              تدخل لوحة <b>{dealerName}</b> باسم {name ?? 'حسابك'}.
+              تدخل لوحة <b>{membership.dealerName}</b> باسم {name ?? 'حسابك'}.
             </p>
             {/*
               **وجلسةُ اللوحة غيرُ جلسة المتجر.** يُقال ذلك هنا لا بعد

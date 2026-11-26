@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { db } from '@/lib/db';
 import type { DealerRole } from '@/generated/prisma/enums';
+import { DEALER_MEMBERSHIP_SELECT, dealerMembership } from './dealer-membership';
 
 /**
  * ═══ جلسةُ لوحة المعرض ═══
@@ -53,27 +54,25 @@ export async function openDealerSession(
   const user = await db.user.findUnique({
     where: { id: userId },
     select: {
-      id: true, name: true, status: true, dealerId: true, dealerRole: true, branchId: true,
-      dealer: { select: { id: true, nameAr: true, status: true } },
+      id: true, name: true, status: true, branchId: true,
+      ...DEALER_MEMBERSHIP_SELECT,
     },
   });
 
   if (user === null || user.status !== 'ACTIVE') return { ok: false, reason: 'USER_NOT_ACTIVE' };
-  if (user.dealer === null || user.dealerRole === null) {
-    return { ok: false, reason: 'NOT_A_MEMBER' };
-  }
   /**
    * **والاعتمادُ شرطٌ لفتح الجلسة لا لعرض الشاشة.** معرضٌ ينتظر
    * مراجعة سجلّه لا يبيع ولا يسعّر — وفتحُ اللوحة له ثمّ منعُه عند
    * كل زرّ يجعله يحسب النظام معطّلًا.
    */
-  if (user.dealer.status !== 'ACTIVE') return { ok: false, reason: 'DEALER_NOT_ACTIVE' };
+  const membership = dealerMembership(user);
+  if (membership.state !== 'MEMBER') return { ok: false, reason: membership.state };
 
   const token = randomBytes(32).toString('base64url');
   await db.dealerSession.create({
     data: {
       userId: user.id,
-      dealerId: user.dealer.id,
+      dealerId: membership.dealerId,
       tokenHash: hashToken(token),
       expiresAt: new Date(now.getTime() + DEALER_SESSION_HOURS * 3_600_000),
       createdAt: now,
@@ -86,9 +85,9 @@ export async function openDealerSession(
     actor: {
       userId: user.id,
       name: user.name,
-      dealerId: user.dealer.id,
-      dealerName: user.dealer.nameAr,
-      role: user.dealerRole,
+      dealerId: membership.dealerId,
+      dealerName: membership.dealerName,
+      role: membership.role,
       branchId: user.branchId,
     },
   };
@@ -113,8 +112,8 @@ export async function resolveDealerSession(
       revokedAt: true, expiresAt: true, dealerId: true,
       user: {
         select: {
-          id: true, name: true, status: true, dealerId: true, dealerRole: true, branchId: true,
-          dealer: { select: { id: true, nameAr: true, status: true } },
+          id: true, name: true, status: true, branchId: true,
+          ...DEALER_MEMBERSHIP_SELECT,
         },
       },
     },
@@ -126,17 +125,17 @@ export async function resolveDealerSession(
 
   const user = session.user;
   if (user.status !== 'ACTIVE') return null;
-  if (user.dealerRole === null || user.dealer === null) return null;
-  if (user.dealer.status !== 'ACTIVE') return null;
+  const membership = dealerMembership(user);
+  if (membership.state !== 'MEMBER') return null;
   /** وانتقالُ عضوٍ إلى معرضٍ آخر يُبطل جلستَه في الأوّل. */
-  if (user.dealer.id !== session.dealerId) return null;
+  if (membership.dealerId !== session.dealerId) return null;
 
   return {
     userId: user.id,
     name: user.name,
-    dealerId: user.dealer.id,
-    dealerName: user.dealer.nameAr,
-    role: user.dealerRole,
+    dealerId: membership.dealerId,
+    dealerName: membership.dealerName,
+    role: membership.role,
     branchId: user.branchId,
   };
 }
