@@ -6,7 +6,9 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import type { DealerActor } from '@/lib/domain/dealer-auth';
 import { DEALER_ROLE_AR } from '@/lib/labels/dealer';
-import { dealerNavCounts, type DealerNavCounts } from '@/lib/domain/dealer-desk';
+import { resolveEntitlements } from '@/lib/domain/entitlements';
+import { visibleNav } from '@/lib/dealer-nav';
+import { dealerNavCounts } from '@/lib/domain/dealer-desk';
 import { dealerIdentity } from '@/lib/domain/dealer-branches';
 
 /**
@@ -20,66 +22,6 @@ import { dealerIdentity } from '@/lib/domain/dealer-branches';
  * **والاشتراكُ للمالك وحده**. وبندٌ يُعرض ثمّ يردّ «ليس لك» يجعل
  * العاملَ يحسب النظام معطّلًا.
  */
-type Item = {
-  href: string;
-  label: string;
-  roles?: readonly DealerActor['role'][];
-  /** مفتاحُ الشارة — وبنودٌ بلا شارةٍ في الترميز تبقى بلا رقم. */
-  badge?: keyof DealerNavCounts;
-};
-type Group = { title: string; items: readonly Item[] };
-
-const NAV: readonly Group[] = [
-  {
-    title: 'المخزون والبيع',
-    items: [
-      { href: '/dealer', label: 'لوحة القيادة' },
-      { href: '/dealer/inventory', label: 'المخزون', badge: 'inventory' },
-      { href: '/dealer/import', label: 'الإضافة الجماعية', roles: ['OWNER', 'MANAGER'] },
-      { href: '/dealer/auctions', label: 'المزادات', roles: ['OWNER', 'MANAGER', 'SALES'], badge: 'auctions' },
-    ],
-  },
-  {
-    title: 'الطلب والعميل',
-    items: [
-      { href: '/dealer/offers', label: 'العروض والمفاوضات', roles: ['OWNER', 'MANAGER', 'SALES'], badge: 'offers' },
-      { href: '/dealer/orders', label: 'الطلبات', badge: 'orders' },
-      { href: '/dealer/customers', label: 'العملاء', roles: ['OWNER', 'MANAGER', 'SALES'] },
-    ],
-  },
-  {
-    title: 'المال',
-    items: [
-      { href: '/dealer/invoices', label: 'الفواتير والضريبة', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
-      { href: '/dealer/settlements', label: 'التسويات والعمولة', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
-      /** **والمصروفُ من المال لا من المخزون** — وهو نصفُ نتيجة المعرض. */
-      { href: '/dealer/expenses', label: 'المصروفات', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
-      { href: '/dealer/subscription', label: 'الاشتراك والباقة', roles: ['OWNER'] },
-    ],
-  },
-  {
-    title: 'المعرض',
-    items: [
-      { href: '/dealer/team', label: 'الفريق والفروع', roles: ['OWNER', 'MANAGER'] },
-      { href: '/dealer/profile', label: 'الملف العام', roles: ['OWNER', 'MANAGER'] },
-      /**
-       * **ولمالكه وحده** — توثيقُ المنشأة وحسابُ التحويل قرارُ صاحب
-       * السجلّ، ومن يملك تغييرَ الآيبان يملك تحويلَ المستحقّات.
-       */
-      { href: '/dealer/owner', label: 'بيانات صاحب المعرض', roles: ['OWNER'] },
-      { href: '/dealer/replies', label: 'الردود الجاهزة', roles: ['OWNER', 'MANAGER', 'SALES'] },
-      { href: '/dealer/reports', label: 'التقارير', roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'] },
-    ],
-  },
-];
-
-export function visibleNav(role: DealerActor['role']): readonly Group[] {
-  return NAV.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => item.roles === undefined || item.roles.includes(role)),
-  })).filter((group) => group.items.length > 0);
-}
-
 export async function DealerShell({
   actor,
   activeHref,
@@ -95,11 +37,12 @@ export async function DealerShell({
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  const groups = visibleNav(actor.role);
-  const [counts, badge] = await Promise.all([
+  const [counts, badge, grants] = await Promise.all([
     dealerNavCounts(actor.dealerId, actor.branchId),
     dealerIdentity(actor.dealerId),
+    resolveEntitlements({ userId: actor.userId, dealerId: actor.dealerId }),
   ]);
+  const groups = visibleNav(actor.role, grants);
 
   return (
     <div className="flex min-h-screen bg-bg text-ink">

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
+import { DEALER_MODULE, dealerHasModule } from '@/lib/domain/dealer-modules';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { Money } from '@/components/ui/Money';
 import { currentMonth, dealerExpenses } from '@/lib/domain/dealer-expenses';
@@ -32,6 +33,8 @@ export default async function DealerExpensesPage({
   if (actor === null) redirect('/dealer/enter');
   /** **والبائعُ لا يرى دفترَ المصروف** — كما لا يرى كلفةَ الشراء. */
   if (actor.role === 'SALES') redirect('/dealer');
+  /** **وحارسٌ في الشريط ليس حارسًا** — ومن كتب العنوان بيده يصل الشاشة. */
+  if (!(await dealerHasModule(actor, DEALER_MODULE.expenses))) redirect('/dealer');
 
   const { month } = await searchParams;
   const now = new Date();

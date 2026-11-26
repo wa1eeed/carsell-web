@@ -1,6 +1,6 @@
 # Models the product never edits
 
-_Last updated: 2026-11-24_
+_Last updated: 2026-11-26_
 
 **Generated-adjacent: the list is derived from the code, the reasons are not.**
 Gate 63 reads `scripts/model-writers.mjs`, classifies every model in the schema,
@@ -46,7 +46,7 @@ way a missing row does**, so the row left and this paragraph took its place.
 |---|---|
 | `Invoice` | **Legacy, superseded.** The real one is `TaxInvoice`, written by `issueInvoice` in `tax.ts` with ZATCA numbering, a rule snapshot and a QR. This table keeps six seeded rows and nothing reads it for tax. Removing it is a destructive migration on a table with `User` and `Order` relations, so it waits for a deliberate cleanup. |
 | `FinanceProvider` | **A real gap.** Financing partners are seeded. Adding or removing one needs a deploy. |
-| `Entitlement` | Plan entitlements are seeded with their plan. `Plan` itself is editable from `/admin/plans`; what each plan *grants* is not. Six entitlements already have no reader at all — recorded in `docs/NOTES.md`. |
+| `Entitlement` | **The key catalogue is seeded**, and that is deliberate: a key is a door the code opens by name, so inventing one from a screen would create a grant nothing reads. Adding a key is a migration (see `20261126180000_dealer_modules`). What each plan *grants* **is** editable — `/admin/plans` upserts `PlanEntitlement` with an audit row; the earlier claim here that it was not became false when that editor shipped and is corrected 2026-11-26. |
 | `Subscription` | Nothing subscribes: there is one free plan at zero commission and no paid tier yet. The table waits for the dealer panel, which the owner deferred. |
 
 ## The second register: models nothing reads

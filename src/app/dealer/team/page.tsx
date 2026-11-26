@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
+import { DEALER_MODULE, dealerHasModule } from '@/lib/domain/dealer-modules';
 import { dealerBranches } from '@/lib/domain/dealer-branches';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { BranchPanel } from './BranchPanel';
@@ -20,6 +21,8 @@ export default async function DealerTeam() {
   const actor = await currentDealer();
   if (actor === null) redirect('/dealer/enter');
   if (actor.role !== 'OWNER' && actor.role !== 'MANAGER') redirect('/dealer');
+  /** **وحارسٌ في الشريط ليس حارسًا** — ومن كتب العنوان بيده يصل الشاشة. */
+  if (!(await dealerHasModule(actor, DEALER_MODULE.branches))) redirect('/dealer');
 
   const [branches, team] = await Promise.all([
     dealerBranches(actor.dealerId),

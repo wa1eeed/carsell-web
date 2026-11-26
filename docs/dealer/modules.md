@@ -132,3 +132,39 @@ auctions their dealership's plan forbids.
 **It changes no behaviour today** — no dealership has a subscription yet, so
 every key still resolves to its default. That is the point: the wiring lands
 before the modules, so granting a module is data entry rather than code.
+
+## 6 · Step 2, done 2026-11-26: the keys exist and the screen reads them
+
+**What was already there.** `/admin/plans` edits `PlanEntitlement` — a value per
+key per plan, upserted in a transaction with an `AuditLog` row. So "the super
+admin grants a module per plan" needed no new mechanism. The claim in
+`docs/architecture/editability.md` that plan grants were not editable had become
+false when that editor shipped; it is corrected.
+
+**What was missing** were the module keys themselves, and any screen that reads
+them.
+
+- Six keys added: `dealer_branches`, `dealer_customers`, `dealer_expenses`,
+  `dealer_pos`, `dealer_installments`, `dealer_landing`.
+- **Defaults state today's reality**: `true` for what is built and in use, so no
+  showroom loses something it already relies on; `false` for what is not built,
+  so no key promises a screen that does not exist.
+- **Added by migration as well as to `prisma/reference.ts`.** The seeder runs
+  once on an empty database, so a reference row alone reaches a fresh
+  environment and never a running one — and a missing key resolves to *allowed*,
+  which would make the gap silent.
+- **A key with no Arabic label is a key the operator grants blind**, so each has
+  one in `/admin/plans`.
+
+**The nav moved out of the component.** `visibleNav` and the nav table now live
+in `src/lib/dealer-nav.ts`: which section shows for which role and which plan is
+a product decision that should be testable without a browser, and a test that
+imports a JSX component fails to transform — so the most important thing to
+check had no guard.
+
+**Role and module are two conditions, not one.** The module answers "is this
+feature in their plan?"; the role answers "is it their job?" An accountant in a
+showroom whose plan includes stock still does not edit stock.
+
+**And a guard in the sidebar is not a guard.** Hiding an item is a suggestion;
+whoever types the URL arrives. Every module screen asks the server too.

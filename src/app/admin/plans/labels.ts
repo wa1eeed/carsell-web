@@ -16,6 +16,17 @@ export const ENTITLEMENT_LABEL: Record<string, string> = {
   commission_pct: 'نسبة العمولة',
   deposit_required: 'اشتراط العربون',
   priority_support: 'دعم ذو أولوية',
+
+  /**
+   * موديولزُ لوحة المعرض — ومفتاحٌ بلا تسميةٍ يُعرض خامًا للمشغّل،
+   * فيمنح «dealer_pos» ولا يعرف ما منح.
+   */
+  dealer_branches: 'موديول الفروع',
+  dealer_customers: 'موديول عملاء المعرض',
+  dealer_expenses: 'موديول المصروفات',
+  dealer_pos: 'موديول نقطة البيع',
+  dealer_installments: 'موديول التقسيط',
+  dealer_landing: 'موديول الصفحة الرسمية',
 };
 
 export const TYPE_LABEL: Record<string, string> = {

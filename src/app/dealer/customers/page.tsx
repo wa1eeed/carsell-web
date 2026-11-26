@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
+import { DEALER_MODULE, dealerHasModule } from '@/lib/domain/dealer-modules';
 import { dealerCustomers } from '@/lib/domain/dealer-customers';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
@@ -23,6 +24,8 @@ export default async function DealerCustomers() {
   const actor = await currentDealer();
   if (actor === null) redirect('/dealer/enter');
   if (actor.role === 'ACCOUNTANT') redirect('/dealer');
+  /** **وحارسٌ في الشريط ليس حارسًا** — ومن كتب العنوان بيده يصل الشاشة. */
+  if (!(await dealerHasModule(actor, DEALER_MODULE.customers))) redirect('/dealer');
 
   const rows = await dealerCustomers(actor.dealerId, actor.branchId);
 
