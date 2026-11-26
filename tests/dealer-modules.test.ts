@@ -142,6 +142,7 @@ describe('بنية شريط اللوحة', () => {
         '/dealer/replies',
         '/dealer/invoices',
         '/dealer/settlements',
+        '/dealer/installments',
         '/dealer/expenses',
         '/dealer/reports',
         '/dealer/team',

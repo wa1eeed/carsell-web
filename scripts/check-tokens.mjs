@@ -3127,12 +3127,25 @@ function checkSettleRefWritten() {
     const text = stripComments(readFileSync(file, 'utf8'));
     const rel = relative(ROOT, file);
 
-    /* ١ ─ كتابةٌ مباشرة: `data: { … status: 'SETTLED' … }` */
+    /*
+      ١ ─ كتابةٌ مباشرة: `data: { … status: 'SETTLED' … }`
+
+      **والفحصُ على النموذج لا على الكلمة.** كان يمسك أيَّ
+      `status: 'SETTLED'` في `src/` كلِّها — وهو مبنيٌّ للدفعات والضمان
+      وحدهما (المطابقةُ بمرجع البوّابة). فلمّا صار لعقد تقسيط المعرض
+      حالُ `SETTLED` — ولا بوّابةَ فيه ولا مرجعَ تحصيل — **أنذر على
+      صوابٍ**، وبوابةٌ تُنذر على الصواب تُعطَّل في يومها.
+
+      فيُقرأ النموذجُ الذي تُكتب عليه: `db.payment.…` أو `tx.escrow.…`
+      قبل كتلة `data`. وما سواهما حالٌ أخرى تحمل الاسمَ نفسَه.
+    */
+    const SETTLE_MODELS = /\b(?:db|tx)\.(payment|escrow)\.\w+\(\s*\{[\s\S]{0,400}$/;
     for (const match of text.matchAll(/data:\s*\{/g)) {
       const body = braced(text, (match.index ?? 0) + match[0].length - 1);
       if (body === null) continue;
       if (!/status:\s*'(?:SETTLED|PARTIALLY_SETTLED)'/.test(body)) continue;
       if (/\bsettleRef\b/.test(body)) continue;
+      if (!SETTLE_MODELS.test(text.slice(0, match.index ?? 0))) continue;
       problems.push(
         `${rel}  دفعةٌ تصير SETTLED بلا settleRef — والمطابقة تُطابق بمرجع الحجز فتفشل كل يوم`,
       );

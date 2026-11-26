@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-111 models · 76 enums
+114 models · 78 enums
 
 ## Relationships
 
@@ -50,6 +50,8 @@ erDiagram
   User |o--|| Wallet : "wallet"
   User ||--o{ Payout : "payouts"
   User ||--o{ DealerExpense : "expensesRecorded"
+  User ||--o{ InstallmentPlan : "installmentPlans"
+  User ||--o{ InstallmentReceipt : "installmentReceipts"
   AdminUser }o--|| AdminRole : "role"
   AdminUser ||--o{ AdminSession : "sessions"
   AdminUser ||--o{ FinanceInput : "financeInputs"
@@ -67,6 +69,7 @@ erDiagram
   Dealer ||--o{ DealerSession : "sessions"
   Dealer ||--o{ DealerInvite : "invites"
   Dealer ||--o{ DealerExpense : "expenses"
+  Dealer ||--o{ InstallmentPlan : "installmentPlans"
   DealerReply }o--|| Dealer : "dealer"
   Branch }o--|| Dealer : "dealer"
   Branch |o--|| User : "manager"
@@ -74,6 +77,7 @@ erDiagram
   Branch ||--o{ Vehicle : "vehicles"
   Branch ||--o{ DealerInvite : "invites"
   Branch ||--o{ DealerExpense : "expenses"
+  Branch ||--o{ InstallmentPlan : "installmentPlans"
   VehicleCost }o--|| VehicleCostKind : "kind"
   VehicleCost }o--|| Vehicle : "vehicle"
   VehicleCost }o--|| User : "recordedBy"
@@ -81,6 +85,20 @@ erDiagram
   DealerExpense }o--|| Dealer : "dealer"
   DealerExpense |o--|| Branch : "branch"
   DealerExpense }o--|| User : "recordedBy"
+  InstallmentPlan }o--|| InstallmentStatus : "status"
+  InstallmentPlan }o--|| Dealer : "dealer"
+  InstallmentPlan |o--|| Branch : "branch"
+  InstallmentPlan }o--|| Vehicle : "vehicle"
+  InstallmentPlan |o--|| TaxInvoice : "invoice"
+  InstallmentPlan }o--|| User : "createdBy"
+  InstallmentPlan ||--o{ InstallmentDue : "dues"
+  InstallmentPlan ||--o{ InstallmentReceipt : "receipts"
+  InstallmentDue }o--|| InstallmentPlan : "plan"
+  InstallmentDue ||--o{ InstallmentReceipt : "receipts"
+  InstallmentReceipt }o--|| InstallmentMethod : "method"
+  InstallmentReceipt }o--|| InstallmentPlan : "plan"
+  InstallmentReceipt |o--|| InstallmentDue : "due"
+  InstallmentReceipt }o--|| User : "recordedBy"
   DealerSession }o--|| User : "user"
   DealerSession }o--|| Dealer : "dealer"
   DealerInvite }o--|| DealerRole : "role"
@@ -134,6 +152,7 @@ erDiagram
   Vehicle ||--o{ ServiceRequest : "serviceRequests"
   Vehicle |o--|| Branch : "branch"
   Vehicle ||--o{ VehicleCost : "costs"
+  Vehicle ||--o{ InstallmentPlan : "installmentPlans"
   VehicleHistoryItem }o--|| VehicleHistorySource : "source"
   VehicleHistoryItem }o--|| Vehicle : "vehicle"
   Listing }o--|| ListingType : "type"
@@ -358,6 +377,7 @@ erDiagram
   TaxInvoice |o--|| Order : "order"
   TaxInvoice ||--o{ TaxInvoiceLine : "lines"
   TaxInvoice ||--o{ CreditNote : "creditNotes"
+  TaxInvoice ||--o{ InstallmentPlan : "installmentPlans"
   TaxInvoiceLine }o--|| TaxInvoice : "invoice"
   CreditNote }o--|| TaxInvoice : "invoice"
   SettlementStatement }o--|| Order : "order"
@@ -407,7 +427,7 @@ erDiagram
 | `createdAt` | `DateTime` |  |
 | `branchId` | `String?` |  |
 
-Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `sentInvites` → `DealerInvite` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout` · `expensesRecorded` → `DealerExpense`
+Relations: `role` → `UserRole` · `status` → `UserStatus` · `identityStatus` → `IdentityStatus` · `accountType` → `AccountType` · `taxStatus` → `TaxStatus` · `dealerRole` → `DealerRole` · `dealer` → `Dealer` · `branch` → `Branch` · `managedBranches` → `Branch` · `recordedCosts` → `VehicleCost` · `dealerSessions` → `DealerSession` · `sentInvites` → `DealerInvite` · `vehicles` → `Vehicle` · `listings` → `Listing` · `offers` → `Offer` · `bids` → `Bid` · `cancelledBids` → `CancelledBid` · `deposits` → `Deposit` · `ordersAsBuyer` → `Order` · `ordersAsSeller` → `Order` · `serviceRequests` → `ServiceRequest` · `serviceRequestsAsSeller` → `ServiceRequest` · `viewingsAsBuyer` → `Viewing` · `viewingsAsSeller` → `Viewing` · `subscriptions` → `Subscription` · `favorites` → `Favorite` · `savedSearches` → `SavedSearch` · `reports` → `Report` · `invoices` → `Invoice` · `overrides` → `EntitlementOverride` · `notifications` → `Notification` · `campaignSends` → `CampaignSend` · `pushPreferences` → `NotificationPreference` · `deviceTokens` → `DeviceToken` · `pushPermission` → `PushPermission` · `pushSends` → `PushSend` · `legalAcceptances` → `LegalAcceptance` · `wallet` → `Wallet` · `payouts` → `Payout` · `expensesRecorded` → `DealerExpense` · `installmentPlans` → `InstallmentPlan` · `installmentReceipts` → `InstallmentReceipt`
 
 ### `AdminUser`
 
@@ -499,7 +519,7 @@ Relations: `adminUser` → `AdminUser`
 | `ratingCount` | `Int` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `replies` → `DealerReply` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite` · `expenses` → `DealerExpense`
+Relations: `status` → `DealerStatus` · `members` → `User` · `vehicles` → `Vehicle` · `replies` → `DealerReply` · `subscriptions` → `Subscription` · `branches` → `Branch` · `sessions` → `DealerSession` · `invites` → `DealerInvite` · `expenses` → `DealerExpense` · `installmentPlans` → `InstallmentPlan`
 
 ### `DealerReply`
 
@@ -528,7 +548,7 @@ Relations: `dealer` → `Dealer`
 | `active` | `Boolean` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `dealer` → `Dealer` · `manager` → `User` · `members` → `User` · `vehicles` → `Vehicle` · `invites` → `DealerInvite` · `expenses` → `DealerExpense`
+Relations: `dealer` → `Dealer` · `manager` → `User` · `members` → `User` · `vehicles` → `Vehicle` · `invites` → `DealerInvite` · `expenses` → `DealerExpense` · `installmentPlans` → `InstallmentPlan`
 
 ### `VehicleCost`
 
@@ -558,6 +578,58 @@ Relations: `kind` → `VehicleCostKind` · `vehicle` → `Vehicle` · `recordedB
 | `createdAt` | `DateTime` |  |
 
 Relations: `kind` → `DealerExpenseKind` · `dealer` → `Dealer` · `branch` → `Branch` · `recordedBy` → `User`
+
+### `InstallmentPlan`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `dealerId` | `String` |  |
+| `branchId` | `String?` |  |
+| `vehicleId` | `String` |  |
+| `invoiceId` | `String?` |  |
+| `buyerName` | `String` |  |
+| `buyerPhone` | `String?` |  |
+| `buyerVatNo` | `String?` |  |
+| `totalPrice` | `Decimal` |  |
+| `downPayment` | `Decimal` |  |
+| `months` | `Int` |  |
+| `startsOn` | `DateTime` |  |
+| `note` | `String?` |  |
+| `createdById` | `String` |  |
+| `createdAt` | `DateTime` |  |
+| `settledAt` | `DateTime?` |  |
+
+Relations: `status` → `InstallmentStatus` · `dealer` → `Dealer` · `branch` → `Branch` · `vehicle` → `Vehicle` · `invoice` → `TaxInvoice` · `createdBy` → `User` · `dues` → `InstallmentDue` · `receipts` → `InstallmentReceipt`
+
+### `InstallmentDue`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `planId` | `String` |  |
+| `sequence` | `Int` |  |
+| `dueOn` | `DateTime` |  |
+| `amount` | `Decimal` |  |
+| `paidAmount` | `Decimal` |  |
+| `settledAt` | `DateTime?` |  |
+
+Relations: `plan` → `InstallmentPlan` · `receipts` → `InstallmentReceipt`
+
+### `InstallmentReceipt`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `planId` | `String` |  |
+| `dueId` | `String?` |  |
+| `amount` | `Decimal` |  |
+| `receivedAt` | `DateTime` |  |
+| `note` | `String?` |  |
+| `recordedById` | `String` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `method` → `InstallmentMethod` · `plan` → `InstallmentPlan` · `due` → `InstallmentDue` · `recordedBy` → `User`
 
 ### `DealerSession`
 
@@ -713,7 +785,7 @@ Relations: `trim` → `Trim` · `feature` → `Feature`
 | `city` | `String` |  |
 | `createdAt` | `DateTime` |  |
 
-Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `features` → `VehicleFeature` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest` · `branch` → `Branch` · `costs` → `VehicleCost`
+Relations: `registrationType` → `RegistrationType` · `periodicInspection` → `DocumentStatus` · `licenseStatus` → `DocumentStatus` · `accidentStatus` → `AccidentStatus` · `previousOwners` → `PreviousOwners` · `chargePort` → `ChargePort` · `bodyType` → `BodyType` · `transmission` → `Transmission` · `fuel` → `FuelType` · `drivetrain` → `Drivetrain` · `paintStatus` → `PaintStatus` · `spec` → `VehicleSpec` · `condition` → `VehicleCondition` · `entryMode` → `EntryMode` · `owner` → `User` · `dealer` → `Dealer` · `brand` → `Brand` · `model` → `Model` · `trim` → `Trim` · `listings` → `Listing` · `features` → `VehicleFeature` · `history` → `VehicleHistoryItem` · `inspectionReports` → `InspectionReport` · `serviceRequests` → `ServiceRequest` · `branch` → `Branch` · `costs` → `VehicleCost` · `installmentPlans` → `InstallmentPlan`
 
 ### `VehicleHistoryItem`
 
@@ -2073,7 +2145,7 @@ Relations: `sellerType` → `SellerType` · `buyerType` → `BuyerType` · `supp
 | `reportedAt` | `DateTime?` |  |
 | `reportError` | `String?` |  |
 
-Relations: `ruleSellerType` → `SellerType` · `ruleBuyerType` → `BuyerType` · `ruleSupplyType` → `SupplyType` · `ruleTaxableBase` → `TaxableBase` · `ruleInvoiceIssuer` → `InvoiceIssuer` · `status` → `InvoiceStatus` · `rule` → `TaxRule` · `order` → `Order` · `lines` → `TaxInvoiceLine` · `creditNotes` → `CreditNote`
+Relations: `ruleSellerType` → `SellerType` · `ruleBuyerType` → `BuyerType` · `ruleSupplyType` → `SupplyType` · `ruleTaxableBase` → `TaxableBase` · `ruleInvoiceIssuer` → `InvoiceIssuer` · `status` → `InvoiceStatus` · `rule` → `TaxRule` · `order` → `Order` · `lines` → `TaxInvoiceLine` · `creditNotes` → `CreditNote` · `installmentPlans` → `InstallmentPlan`
 
 ### `TaxInvoiceLine`
 
@@ -2194,6 +2266,8 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `DealerRole` — `OWNER`, `MANAGER`, `SALES`, `ACCOUNTANT`
 - `VehicleCostKind` — `PURCHASE`, `TRANSPORT`, `INSPECTION`, `MAINTENANCE`, `DETAILING`, `CUSTOMS`, `OTHER`
 - `DealerExpenseKind` — `RENT`, `SALARIES`, `MARKETING`, `UTILITIES`, `GOVERNMENT`, `FACILITY`, `OTHER`
+- `InstallmentStatus` — `ACTIVE`, `SETTLED`, `DEFAULTED`, `CANCELLED`
+- `InstallmentMethod` — `CASH`, `CARD`, `TRANSFER`
 - `BodyType` — `SEDAN`, `SUV`, `/**`, `* كروس أوفر — **وكان معالجُ البيع يعرضه ولا وجودَ له هنا**.`, `* قائمتُه الاحتياطية تحمل `WAGON` و`CONVERTIBLE` منذ كُتبت،`, `* والتعدادُ لا يعرفهما: من اختار أحدَهما أرسل قيمةً يردّها الخادم.`, `* (طلب المالك ٢٠٢٦-١٠-١٨، ووُجد الخللُ في قياسه.)`, `*/`, `CROSSOVER`, `PICKUP`, `HATCHBACK`, `COUPE`, `CONVERTIBLE`, `VAN`
 - `RegistrationType` — `PRIVATE // خصوصي`, `PRIVATE_TRANSPORT // نقل خاص`, `PUBLIC_TRANSPORT // نقل عام`, `MINIBUS // حافلة صغيرة`, `TAXI // أجرة`, `MOTORCYCLE // دراجة نارية`, `HEAVY_EQUIPMENT // أشغال عامة`
 - `AccidentStatus` — `NONE // بدون حوادث`, `REPORTED // حوادث مسجلة`, `UNREPORTED // حوادث غير مسجلة`

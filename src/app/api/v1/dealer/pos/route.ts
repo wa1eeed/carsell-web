@@ -13,7 +13,13 @@ const Body = z.object({
   buyerName: z.string().min(1).max(120),
   buyerPhone: z.string().max(20).nullable().optional(),
   buyerVatNo: z.string().max(20).nullable().optional(),
-  method: z.enum(['CASH', 'CARD', 'TRANSFER']),
+  method: z.enum(['CASH', 'CARD', 'TRANSFER', 'INSTALLMENTS']),
+  /** شروطُ العقد حين تكون البيعةُ تقسيطًا — وتُفحص قبل إصدار الفاتورة. */
+  installments: z.object({
+    downPayment: z.number().min(0),
+    months: z.number().int().min(1).max(60),
+    startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  }).optional(),
   note: z.string().max(200).nullable().optional(),
 });
 
@@ -61,6 +67,16 @@ export async function POST(request: NextRequest) {
       buyerPhone: parsed.data.buyerPhone ?? null,
       buyerVatNo: parsed.data.buyerVatNo ?? null,
       method: parsed.data.method,
+      ...(parsed.data.installments === undefined
+        ? {}
+        : {
+            installments: {
+              downPayment: parsed.data.installments.downPayment,
+              months: parsed.data.installments.months,
+              /** **وظهرُ اليوم بتوقيت الرياض** — فأجلٌ لا ينزلق إلى أمس. */
+              startsOn: new Date(`${parsed.data.installments.startsOn}T12:00:00.000+03:00`),
+            },
+          }),
       note: parsed.data.note ?? null,
     },
   );

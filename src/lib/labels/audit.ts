@@ -19,6 +19,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'dealer.register': 'سجل معرضه وفتح لوحته',
   'dealer.profile.update': 'عدل الملف العام للمعرض',
   'dealer.pos.sale': 'باع مركبة من نقطة البيع',
+  'dealer.installment.created': 'فتح عقد تقسيط',
   'dealer.vehicle.add': 'أدخل مركبة إلى المخزون',
   'dealer.vehicle.import': 'استورد مركبة بالإضافة الجماعية',
   /** يكتبه النظام حين يُقبل أعلى عرضٍ ولا يُنشأ الطلب — والسبب في الحمولة. */

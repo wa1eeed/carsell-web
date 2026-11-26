@@ -93,3 +93,66 @@ Decisions worth keeping:
 - **Sales staff do not see it**, the same line as the cost drawer. The
   accountant does enter here, unlike stock: this is their work, and restricting
   it to the owner gets the book filled from memory at month's end.
+
+## D15 — instalments
+
+> «نظام التقسيط و ادارة الاقساط … اللوحه يجب ان تغني اصحاب المعارض عن اي نظام آخر»
+
+The largest gap against every competitor: three sell it by name, and Qoyod says
+outright that it **is not** an instalment system.
+
+**This is the showroom's contract with its buyer, not a bank's financing.** No
+credit decision, no affordability check, no Shariah opinion — the panel records
+an agreement the showroom made and tracks what it collects. Conflating the two
+would promise what we do not have.
+
+### Decisions
+
+- **Instalments are a payment method on the counter, not a second way to sell.**
+  An instalment sale is a sale: an invoice is issued and the car leaves the
+  market. Giving it its own path would create two sale entries — and two entries
+  mean a day when one of them forgets to withdraw the listing.
+- **The terms are validated before the invoice is issued.** A contract whose
+  validation fails afterwards leaves a completed sale with no schedule — paper
+  with no obligation behind it.
+- **The schedule is written as rows, not computed on read.** A schedule
+  recalculated on every read changes when the rule changes; a signed contract
+  does not.
+- **`installmentSchedule` is exact, unlike `monthlyPayment`.** The public
+  estimate rounds to the nearest ten "so it is not read as a promise to the
+  halala". A contract is the opposite: the instalments must sum to the financed
+  amount exactly, or the customer owes a riyal nobody can explain. The remainder
+  rides on the **last** instalment — a few halalas, known from day one, and not a
+  surprise in the first month.
+- **No profit rate is added here.** This is a repayment schedule for an agreed
+  amount, not a financing calculation: a rate added inside the schedule beside a
+  different displayed price would make two numbers for one contract.
+- **Due dates follow the day of the month**, so a contract starting 31 January
+  falls due on 28 February, not 3 March. Adding thirty days slides the date off
+  its day and the twelfth instalment lands in the wrong month.
+- **A receipt names its instalment.** The most-repeated feature across all four
+  sources. An amount recorded without the instalment it belongs to makes "paid"
+  and "remaining" two numbers nobody can account for — the showroom cannot tell
+  its customer which month is still open. Excess over one instalment is refused
+  and recorded against the next with a second receipt, otherwise the sum of
+  instalments exceeds the financed amount.
+- **Arrears are calendar-based.** `dueOn <= now` makes *today's* instalment late
+  from first light. Overdue means the due day is **before** today, by Riyadh
+  days. The screen caught this on a contract that started the same day.
+- **The contract closes when its last instalment closes**, so it does not sit in
+  the arrears queue after being paid off.
+- **Arrears first, not newest first.** Whoever opens this screen opens it to
+  find out who has not paid, not to read a log.
+
+### What two gates caught
+
+- **Gate 53 fired on `status: 'SETTLED'`** for a *contract* being fully paid —
+  it was written for `Payment`/`Escrow`, where a settlement must carry the
+  gateway's reference for reconciliation. A contract has no gateway. The gate now
+  reads the **model** being written rather than the word, and was re-measured by
+  removing a real `settleRef` to confirm it still bites.
+- **Gate 64 caught `InstallmentReceipt` having no reader** on the day it was
+  created. A receipt that is never read makes "paid" a number with nothing
+  explaining it — and the first question a disputing customer asks is "when did I
+  pay?". The plan screen now lists every receipt with its amount, method, the
+  instalment it was applied to, and who recorded it.

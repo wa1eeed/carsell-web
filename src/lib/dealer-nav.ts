@@ -132,6 +132,13 @@ const NAV: readonly Group[] = [
         roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
       },
       /** **والمصروفُ من المال لا من المخزون** — وهو نصفُ نتيجة المعرض. */
+      /** **والتقسيطُ مالٌ يُحصَّل** — فموضعُه المال لا البيع. */
+      {
+        href: '/dealer/installments',
+        label: 'التقسيط',
+        roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
+        module: 'dealer_installments',
+      },
       {
         href: '/dealer/expenses',
         label: 'المصروفات',

@@ -4,6 +4,7 @@ import { issueInvoice } from './tax';
 import { buyerTypeFor, checkVatNumber, marginApprovedFor, sellerTypeFor } from './tax-profile';
 import { markListingSold } from './listing-state';
 import { vehicleMargin } from './vehicle-costs';
+import { createInstallmentPlan, validatePlan } from './installments';
 
 /**
  * ═══ `D14` — نقطةُ البيع: عميلُ الصالة ═══
@@ -39,12 +40,27 @@ export type PosSaleInput = {
   buyerPhone: string | null;
   /** رقمُه الضريبيّ إن كان منشأةً تسترد مدخلاتها. */
   buyerVatNo: string | null;
-  method: 'CASH' | 'CARD' | 'TRANSFER';
+  method: 'CASH' | 'CARD' | 'TRANSFER' | 'INSTALLMENTS';
+  /**
+   * ═══ والتقسيطُ طريقةُ دفعٍ لا بابٌ ثانٍ للبيع ═══
+   *
+   * بيعةُ التقسيط بيعةٌ: فاتورةٌ تخرج، وسيارةٌ تخرج من السوق. فلو
+   * كان لها مسارُها لصار للبيع مدخلان — ومدخلان يعنيان يومًا يخرج فيه
+   * أحدُهما بلا سحبِ الإعلان. فهي هنا، والعقدُ يتبع الفاتورة.
+   */
+  installments?: { downPayment: number; months: number; startsOn: Date };
   note: string | null;
 };
 
 export type PosSaleResult =
-  | { ok: true; invoiceNumber: string; invoiceId: string; total: string }
+  | {
+      ok: true;
+      invoiceNumber: string;
+      invoiceId: string;
+      total: string;
+      /** عقدُ التقسيط إن كانت البيعةُ تقسيطًا — وقسطُه الشهريّ. */
+      plan: { id: string; monthly: string } | null;
+    }
   | { ok: false; reason: 'VALIDATION'; fields: Record<string, string> }
   | { ok: false; reason: 'VEHICLE_NOT_FOUND' }
   | { ok: false; reason: 'ALREADY_SOLD' }
@@ -66,6 +82,30 @@ export function validatePosSale(input: PosSaleInput): Record<string, string> {
     const vat = checkVatNumber(input.buyerVatNo);
     if (!vat.ok) fields.buyerVatNo = vat.reason;
   }
+
+  /**
+   * **وشروطُ العقد تُفحص قبل أن تخرج الفاتورة.** عقدٌ يسقط تحقّقُه بعد
+   * الإصدار يترك بيعةً تمّت بلا جدولِ سداد — وورقةً لا يقابلها التزام.
+   */
+  if (input.method === 'INSTALLMENTS') {
+    if (input.installments === undefined) fields.installments = 'REQUIRED';
+    else {
+      const plan = validatePlan({
+        vehicleId: input.vehicleId,
+        invoiceId: null,
+        buyerName: input.buyerName,
+        buyerPhone: input.buyerPhone,
+        buyerVatNo: input.buyerVatNo,
+        totalPrice: input.price,
+        downPayment: input.installments.downPayment,
+        months: input.installments.months,
+        startsOn: input.installments.startsOn,
+        note: input.note,
+      });
+      for (const [key, value] of Object.entries(plan)) fields[key] = value;
+    }
+  }
+
   return fields;
 }
 
@@ -197,10 +237,36 @@ export async function sellAtCounter(
     });
   });
 
+  /**
+   * **والعقدُ بعد الفاتورة** — يحمل رقمَها، فيُقرأ العقدُ ومعه ورقتُه.
+   * وشروطُه فُحصت قبل الإصدار، فلا يسقط هنا.
+   */
+  let plan: { id: string; monthly: string } | null = null;
+  if (input.method === 'INSTALLMENTS' && input.installments !== undefined) {
+    const created = await createInstallmentPlan(
+      actor,
+      {
+        vehicleId: vehicle.id,
+        invoiceId: invoice.invoiceId,
+        buyerName: input.buyerName,
+        buyerPhone: input.buyerPhone,
+        buyerVatNo: input.buyerVatNo,
+        totalPrice: input.price,
+        downPayment: input.installments.downPayment,
+        months: input.installments.months,
+        startsOn: input.installments.startsOn,
+        note: input.note,
+      },
+      now,
+    );
+    if (created.ok) plan = { id: created.planId, monthly: created.monthly };
+  }
+
   return {
     ok: true,
     invoiceId: invoice.invoiceId,
     invoiceNumber: invoice.number,
     total: new Prisma.Decimal(invoice.amounts.total).toFixed(2),
+    plan,
   };
 }

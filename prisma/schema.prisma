@@ -171,6 +171,8 @@ model User {
   @@index([status, createdAt])
   @@index([dealerId])
   expensesRecorded   DealerExpense[]    @relation("ExpenseRecorder")
+  installmentPlans    InstallmentPlan[]    @relation("InstallmentCreator")
+  installmentReceipts InstallmentReceipt[] @relation("InstallmentRecorder")
 }
 
 enum UserRole {
@@ -328,6 +330,7 @@ model Dealer {
 
   @@index([status, city])
   expenses      DealerExpense[]
+  installmentPlans InstallmentPlan[]
 }
 
 enum DealerStatus {
@@ -410,6 +413,7 @@ model Branch {
 
   @@index([dealerId, active])
   expenses   DealerExpense[]
+  installmentPlans InstallmentPlan[]
 }
 
 /// صنفُ التكلفة — الشراءُ أوّلُها، وما بعده يحوّل السعر إلى كلفةٍ حقيقية.
@@ -510,6 +514,114 @@ model DealerExpense {
 
   @@index([dealerId, spentAt])
   @@index([branchId, spentAt])
+}
+
+/// ═══ التقسيط — قرار المالك ٢٠٢٦-١١-٢٦ ═══
+///
+/// «نظام التقسيط و ادارة الاقساط … اللوحه يجب ان تغني اصحاب المعارض عن
+/// اي نظام آخر». وهي أكبرُ فجوةٍ أمام المنافسين: ثلاثةٌ منهم يبيعونها
+/// باسمها، والرابعُ (قيود) يقول صراحةً إنّه **ليس نظامَ تقسيط**.
+///
+/// **وهذا عقدُ المعرض مع مشتريه، لا تمويلُ بنك.** لا قرارَ ائتمانٍ ولا
+/// فحصَ ملاءةٍ ولا رأيَ شرعيّ — المنصّةُ تسجّل اتّفاقًا عقده المعرضُ
+/// وتتابع ما يُحصَّل منه. ومن خلط الاثنين وَعَد بما لا يملك.
+enum InstallmentStatus {
+  /// قائمٌ يُسدَّد
+  ACTIVE
+  /// سُدِّد كاملًا
+  SETTLED
+  /// متعثّرٌ أقرّ المعرضُ تعثّره — لا حكمًا آليًّا بتأخّر يوم
+  DEFAULTED
+  /// أُلغي الاتّفاق
+  CANCELLED
+}
+
+model InstallmentPlan {
+  id       String @id @default(cuid())
+  dealerId String
+  branchId String?
+  /// المركبةُ المباعة — ومنها يُقرأ هامشُ العقد.
+  vehicleId String
+  /// فاتورةُ البيع — والعقدُ يتبعها لا يسبقها.
+  invoiceId String?
+
+  buyerName  String
+  buyerPhone String?
+  buyerVatNo String?
+
+  /// السعرُ المتَّفق عليه كاملًا — شاملُ الضريبة كما في الفاتورة.
+  totalPrice  Decimal @db.Decimal(12, 2)
+  /// الدفعةُ الأولى — وقد تكون صفرًا، وهو حالٌ لا نقص.
+  downPayment Decimal @db.Decimal(12, 2)
+  months      Int
+  /// أوّلُ استحقاق — وما بعده شهريًّا منه.
+  startsOn DateTime
+
+  status InstallmentStatus @default(ACTIVE)
+  note   String?
+
+  createdById String
+  createdAt   DateTime @default(now())
+  settledAt   DateTime?
+
+  dealer   Dealer  @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  vehicle  Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  invoice  TaxInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdBy User   @relation("InstallmentCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  dues     InstallmentDue[]
+  receipts InstallmentReceipt[]
+
+  @@index([dealerId, status])
+  @@index([branchId, status])
+}
+
+/// قسطٌ واحد باستحقاقه — **وصفٌّ لكلّ شهر لا حسابٌ عند العرض**:
+/// جدولٌ يُحسب في كلّ قراءة يتبدّل بتبدّل القاعدة، وعقدٌ وُقّع لا يتبدّل.
+model InstallmentDue {
+  id       String @id @default(cuid())
+  planId   String
+  sequence Int
+  dueOn    DateTime
+  amount   Decimal @db.Decimal(12, 2)
+  /// ما حُصِّل منه — ويُجمع من السندات لا يُكتب بيد.
+  paidAmount Decimal  @db.Decimal(12, 2) @default(0)
+  settledAt  DateTime?
+
+  plan     InstallmentPlan      @relation(fields: [planId], references: [id], onDelete: Cascade)
+  receipts InstallmentReceipt[]
+
+  @@unique([planId, sequence])
+  @@index([planId, dueOn])
+}
+
+enum InstallmentMethod {
+  CASH
+  CARD
+  TRANSFER
+}
+
+/// سندُ قبضٍ **مخصَّصٌ على قسطٍ بعينه** — وهي أكثرُ ميزةٍ تكرّرت في
+/// المنصّات الأربع: «تخصيص دفعات الحجز و الأقساط على فاتورة السيارة»،
+/// و«سند قبض مخصَّص». ومبلغٌ يُسجَّل بلا قسطٍ يحمله يجعل «المدفوع
+/// والباقي» رقمين لا يُعرف من أين جاءا.
+model InstallmentReceipt {
+  id     String @id @default(cuid())
+  planId String
+  dueId  String?
+  amount Decimal           @db.Decimal(12, 2)
+  method InstallmentMethod
+  receivedAt   DateTime
+  note         String?
+  recordedById String
+  createdAt    DateTime @default(now())
+
+  plan       InstallmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  due        InstallmentDue? @relation(fields: [dueId], references: [id], onDelete: SetNull)
+  recordedBy User            @relation("InstallmentRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([planId, receivedAt])
 }
 
 model DealerSession {
@@ -943,6 +1055,7 @@ model Vehicle {
   @@unique([vin])
   @@index([ownerId])
   @@index([brandId, modelId, year])
+  installmentPlans   InstallmentPlan[]
 }
 
 /**
@@ -3863,6 +3976,7 @@ model TaxInvoice {
 
   @@index([orderId])
   @@index([status, issuedAt])
+  installmentPlans InstallmentPlan[]
 }
 
 model TaxInvoiceLine {

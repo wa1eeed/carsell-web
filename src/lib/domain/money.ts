@@ -162,6 +162,41 @@ export function serviceTotal(
  * سنوية بسيطة — حسابٌ محلّيّ بلا استدعاء مموّل، ويُقرَّب إلى أقرب
  * عشرة فلا يُقرأ وعدًا بالهللة.
  */
+/**
+ * ═══ جدولُ أقساطٍ دقيق — وليس التقديرَ التسويقيّ ═══
+ *
+ * `monthlyPayment` أدناه **تقديرٌ** يُعرض للمتصفّح: يُقرَّب إلى أقرب
+ * عشرة «فلا يُقرأ وعدًا بالهللة». وعقدُ المعرض عكسُه تمامًا: مجموعُ
+ * أقساطه **يجب أن يساوي المموَّل بالهللة**، وإلّا بقي على العميل ريالٌ
+ * لا يعرف من أين جاء، أو سقط ريالٌ لا يعرف المعرضُ أين ذهب.
+ *
+ * **والكسرُ يُحمَّل على القسط الأخير.** قسمةُ ١٠٠٬٠٠٠ على ٧ تُخرج
+ * ١٤٬٢٨٥٫٧١ وبقيّةً من ثلاث هللات — ومن وزّعها على الأوائل فاجأ العميلَ
+ * في أوّل شهر، ومن أهملها ترك مجموعًا لا يطابق العقد. والأخيرُ يحملها:
+ * فرقٌ لا يتجاوز هللاتٍ معدودة، ومعلومٌ من أوّل يوم.
+ *
+ * **ولا ربحَ يُضاف هنا.** هذا جدولُ سدادٍ لمبلغٍ متَّفقٍ عليه، لا
+ * حسابُ تمويل: من أراد ربحًا أدخله في السعر — ونسبةٌ تُضاف في جدولٍ
+ * ويُعرض معها سعرٌ آخر تجعل رقمين لعقدٍ واحد.
+ */
+export function installmentSchedule(
+  financed: Prisma.Decimal | number | string,
+  months: number,
+): Prisma.Decimal[] {
+  const total = new Prisma.Decimal(financed);
+  if (months < 1) return [];
+
+  /** القسطُ الأساس مقطوعٌ عند الهللة — لا مقرَّبًا، فالتقريبُ لأعلى يتجاوز المموَّل. */
+  const base = total.div(months).toDecimalPlaces(2, Prisma.Decimal.ROUND_DOWN);
+  const rows = Array.from({ length: months }, () => base);
+  const spread = base.mul(months);
+  const remainder = total.sub(spread);
+
+  return rows.map((amount, index) =>
+    index === months - 1 ? amount.add(remainder) : amount,
+  );
+}
+
 export function monthlyPayment(
   price: number,
   downPct: number,
