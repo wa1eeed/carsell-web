@@ -44,7 +44,7 @@ export async function GrowthTab() {
 
   const [cards, cities, daily, growth] = await Promise.all([
     dashboardCards(from, to),
-    listingsByCity(from, to),
+    listingsByCity(),
     dailyOrders(RANGE_DAYS, to),
     growthKpis(from, to),
   ]);
@@ -54,8 +54,14 @@ export async function GrowthTab() {
 
   return (
     <>
+      {/*
+        **والوصفُ يطابق ما يُعرض.** كان «آخر ٣٠ يومًا» فوق بطاقاتٍ
+        أرقامُها مدَويّة — وصارت الأرقامُ إجماليَّ المنصّة والشارةُ
+        زيادةَ المدى، فيُقال ذلك.
+      */}
       <p className="mb-4 text-2xs opacity-70">
-        آخر <Quantity unit="days" count={RANGE_DAYS} /> · المقارنة بالمدى المساوي الذي يسبقه
+        الإجمالي على المنصة · والشارة زيادة آخر{' '}
+        <Quantity unit="days" count={RANGE_DAYS} /> مقارنة بالمدى المساوي الذي يسبقه
       </p>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -113,7 +119,7 @@ export async function GrowthTab() {
         <div className="mb-4 flex flex-wrap items-baseline gap-3">
           <h2 className="text-sm font-bold">الإعلانات حسب المدينة</h2>
           <span className="text-3xs opacity-65">
-            <Counted message="ofListings" count={cityTotal} /> نشرت في المدى
+            <Counted message="ofListings" count={cityTotal} /> نشرت على المنصة
           </span>
         </div>
 
@@ -156,7 +162,15 @@ export async function GrowthTab() {
 }
 
 function Card({ card }: { card: MetricCard }) {
-  const delta = deltaPct(card.total, card.previous);
+  /**
+   * ═══ النسبةُ على الزيادة لا على الإجمالي ═══
+   *
+   * كان الإجماليُّ عدَّ المدى فصحّت المقارنةُ عليه. وصار الإجماليُّ
+   * تراكميًّا (كما يرسمه `A1`)، فمقارنتُه بعدِّ مدًى سابق تُنتج
+   * «٪٤٠٠+» عن منصّةٍ لم تنمُ أربعة أضعاف — **رقمٌ صحيح الحساب كاذب
+   * المعنى**. والمقارنةُ بين المدَيَين: ما أُضيف الآن بما أُضيف قبله.
+   */
+  const delta = card.added === null ? null : deltaPct(card.added, card.previous);
 
   return (
     <section className="rounded-lg border border-line bg-surface p-5">
@@ -165,26 +179,42 @@ function Card({ card }: { card: MetricCard }) {
           {DASHBOARD_CARD_LABEL[card.key] ?? card.key}
         </h2>
         {/*
-          ═══ والصياغة واحدة ═══
+          ═══ والشارةُ زيادةُ المدى كما في التصميم ═══
 
-          كانت الإشارة تُبنى هنا بيد، فـ«+٠٪» تقول نموًّا لم يقع —
-          وصفرٌ لا اتّجاه له. و`Percent` تعرف القاعدة (الإشارة للفرق،
-          ولا إشارة للصفر)، ونسختان لرقمٍ واحد تتباعدان.
+          «العملاء **+١٬٩٤٠** ٢٤٬٦٨٠»: الشارةُ تقول كم أُضيف في
+          الثلاثين، والرقمُ الكبير يقول كم على المنصّة. وكانت الشارة
+          نسبةً والرقمُ عدَّ المدى — فلا يعرف القارئ حالَ منصّته من
+          البطاقة أصلًا.
+
+          ولا شارةَ على صفرٍ: «+٠» تقول نموًّا لم يقع.
         */}
-        {delta === null ? null : (
-          <Badge tone={delta >= 0 ? 'accent' : 'danger'}>
-            <Percent signed value={delta} />
+        {card.added === null || card.added === 0 ? null : (
+          <Badge tone={delta === null || delta >= 0 ? 'accent' : 'danger'}>
+            +<ArabicNumber value={card.added} />
           </Badge>
         )}
       </div>
 
-      <p className="mb-3 text-2xl font-bold">
+      <p className="text-2xl font-bold">
         <ArabicNumber value={card.total} />
+      </p>
+
+      {/*
+        **والسطرُ يقول ممّا تُقارَن الشارة** — وإلّا كان اللونُ حكمًا
+        بلا سند. و`Percent` تعرف قاعدة الإشارة، ونسختان لرقمٍ واحد
+        تتباعدان.
+      */}
+      <p className="mb-3 min-h-[1.1rem] text-3xs opacity-65">
+        {delta === null ? null : (
+          <>
+            <Percent signed value={delta} /> عن المدى السابق
+          </>
+        )}
       </p>
 
       <div className="flex flex-col gap-1.5 border-t border-line pt-3">
         {card.segments.length === 0 ? (
-          <p className="text-2xs opacity-65">لا تفصيل في هذا المدى.</p>
+          <p className="text-2xs opacity-65">لا تفصيل بعد.</p>
         ) : (
           card.segments.map((segment) => (
             <p key={segment.key} className="flex items-baseline justify-between gap-3 text-2xs">

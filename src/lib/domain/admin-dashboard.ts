@@ -21,10 +21,24 @@ export type Segment = { key: string; count: number; serviceName?: string | null 
 
 export type MetricCard = {
   key: string;
-  /** الإجمالي **في المدى** — لا الإجمالي التاريخي. */
+  /**
+   * ═══ الإجماليُّ على المنصّة — لا عدُّ المدى ═══
+   *
+   * كان عدَّ المدى، **فقرأ المشغّل «المستخدمون ١» ومنصّتُه فيها واحدٌ
+   * وثلاثون**، و«المركبات ١٤» وفيها اثنتان وستّون. وسطرُ «آخر ٣٠
+   * يومًا» فوق البطاقات لا يُصلح ذلك: الرقمُ الكبير يُقرأ حالَ
+   * المنصّة، والمخزونُ تراكميٌّ لا مدَويّ.
+   *
+   * والتصميم (`A1`) يرسمها هكذا بالضبط: «العملاء **+١٬٩٤٠**
+   * ٢٤٬٦٨٠» — زيادةُ المدى شارةً، والإجماليُّ رقمًا، والشرائحُ
+   * تجمعه (١٦٬٢٤٠ + ٦٬١٢٠ + ٣٤٢ + ١٬٩٧٨ = ٢٤٬٦٨٠).
+   */
   total: number;
-  /** العدد في المدى السابق المساوي، و`null` حين لا معنى للمقارنة. */
+  /** ما أُضيف **في المدى** — تعرضه الشاشة `+N`، و`null` لما لا مدى له. */
+  added: number | null;
+  /** ما أُضيف في المدى السابق المساوي — للنسبة لا للعرض. */
   previous: number | null;
+  /** تراكميّةٌ كالإجمالي، وتجمعه. */
   segments: Segment[];
 };
 
@@ -39,32 +53,35 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
   const window: Window = { gte: from, lt: to };
   const before = previousWindow(from, to);
 
+  /** الإعلانُ يولد في السوق حين يُنشر — ومسودّةٌ ليست إعلانًا في عدّاد. */
+  const published = { publishedAt: { not: null } } as const;
+
   const [
-    users, usersBefore, sellerIds, dealerUsers, suspended,
-    vehicles, vehiclesBefore, listedVehicles, soldVehicles,
-    listings, listingsBefore,
-    orders, ordersBefore,
-    auctions, auctionsBefore,
-    serviceRequests, serviceRequestsBefore, servicesByKey, services,
+    usersAll, sellerIdsAll, dealerUsersAll, suspendedAll, usersAdded, usersBefore,
+    vehiclesAll, listedAll, soldAll, vehiclesAdded, vehiclesBefore,
+    listingsAll, listingsAdded, listingsBefore,
+    ordersAll, ordersAdded, ordersBefore,
+    auctionsAll, auctionsAdded, auctionsBefore,
+    serviceRequestsAll, serviceRequestsAdded, serviceRequestsBefore, servicesByKey, services,
     repeatBuyers,
   ] = await Promise.all([
-    db.user.count({ where: { createdAt: window } }),
-    db.user.count({ where: { createdAt: before } }),
+    db.user.count(),
     /**
      * الشرائح الأربع **متباينة**: موقوف، ثم من بقي — تاجر، ثم بائع،
      * ثم مشترٍ. ولولا التباين لما جمعت الشرائحُ الإجماليَ فوقها،
      * فتناقض البطاقةُ نفسها في سطرين متجاورين.
      */
     db.listing.findMany({
-      where: { seller: { createdAt: window, status: 'ACTIVE', dealerId: null } },
+      where: { seller: { status: 'ACTIVE', dealerId: null } },
       select: { sellerId: true },
       distinct: ['sellerId'],
     }),
-    db.user.count({ where: { createdAt: window, status: 'ACTIVE', dealerId: { not: null } } }),
-    db.user.count({ where: { createdAt: window, status: { not: 'ACTIVE' } } }),
+    db.user.count({ where: { status: 'ACTIVE', dealerId: { not: null } } }),
+    db.user.count({ where: { status: { not: 'ACTIVE' } } }),
+    db.user.count({ where: { createdAt: window } }),
+    db.user.count({ where: { createdAt: before } }),
 
-    db.vehicle.count({ where: { createdAt: window } }),
-    db.vehicle.count({ where: { createdAt: before } }),
+    db.vehicle.count(),
     /**
      * **مركباتٌ لا صفوفُ إعلانات.** كان العدّ على `listing` فمركبةٌ
      * لها إعلانان تُعدّ مرّتين، ومسودّةٌ تُخرج صاحبها من المرآب —
@@ -72,29 +89,27 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
      * والتعريف الآن واحدٌ مصدَّرٌ من `garage`.
      */
     db.vehicle.count({
-      where: {
-        createdAt: window,
-        listings: { some: { status: { in: [...LIVE_LISTING_STATUSES] } } },
-      },
+      where: { listings: { some: { status: { in: [...LIVE_LISTING_STATUSES] } } } },
     }),
-    db.vehicle.count({ where: { createdAt: window, listings: { some: { status: 'SOLD' } } } }),
+    db.vehicle.count({ where: { listings: { some: { status: 'SOLD' } } } }),
+    db.vehicle.count({ where: { createdAt: window } }),
+    db.vehicle.count({ where: { createdAt: before } }),
 
-    // `Listing` لا `createdAt` له — والنشر هو ميلاده في السوق
-    db.listing.groupBy({ by: ['type'], where: { publishedAt: window }, _count: { _all: true } }),
+    db.listing.groupBy({ by: ['type'], where: published, _count: { _all: true } }),
+    db.listing.count({ where: { publishedAt: window } }),
     db.listing.count({ where: { publishedAt: before } }),
 
-    db.order.groupBy({ by: ['status'], where: { createdAt: window }, _count: { _all: true } }),
+    db.order.groupBy({ by: ['status'], _count: { _all: true } }),
+    db.order.count({ where: { createdAt: window } }),
     db.order.count({ where: { createdAt: before } }),
 
     // والمزاد يُقاس ببدايته
-    db.auction.groupBy({ by: ['status'], where: { startsAt: window }, _count: { _all: true } }),
+    db.auction.groupBy({ by: ['status'], _count: { _all: true } }),
+    db.auction.count({ where: { startsAt: window } }),
     db.auction.count({ where: { startsAt: before } }),
 
-    db.serviceRequest.groupBy({
-      by: ['serviceId'],
-      where: { createdAt: window },
-      _count: { _all: true },
-    }),
+    db.serviceRequest.groupBy({ by: ['serviceId'], _count: { _all: true } }),
+    db.serviceRequest.count({ where: { createdAt: window } }),
     db.serviceRequest.count({ where: { createdAt: before } }),
     db.service.findMany({ select: { id: true, nameAr: true, key: true } }),
     db.service.count(),
@@ -111,8 +126,8 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
     }),
   ]);
 
-  const sellers = sellerIds.length;
-  const buyers = Math.max(0, users - sellers - dealerUsers - suspended);
+  const sellers = sellerIdsAll.length;
+  const buyers = Math.max(0, usersAll - sellers - dealerUsersAll - suspendedAll);
 
   const repeat = repeatBuyers.filter((row) => (row._count._all ?? 0) >= 2);
   const twice = repeat.filter((row) => row._count._all === 2).length;
@@ -131,40 +146,44 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
   return [
     {
       key: 'users',
-      total: users,
+      total: usersAll,
+      added: usersAdded,
       previous: usersBefore,
       segments: [
         { key: 'buyers', count: buyers },
         { key: 'sellers', count: sellers },
-        { key: 'dealers', count: dealerUsers },
-        { key: 'suspended', count: suspended },
+        { key: 'dealers', count: dealerUsersAll },
+        { key: 'suspended', count: suspendedAll },
       ],
     },
     {
       key: 'vehicles',
-      total: vehicles,
+      total: vehiclesAll,
+      added: vehiclesAdded,
       previous: vehiclesBefore,
       segments: [
-        { key: 'listed', count: listedVehicles },
+        { key: 'listed', count: listedAll },
         // في الجراج: مملوكةٌ ولا إعلانَ حيًّا لها — والمسودّة منها
-        { key: 'garage', count: Math.max(0, vehicles - listedVehicles - soldVehicles) },
-        { key: 'sold', count: soldVehicles },
+        { key: 'garage', count: Math.max(0, vehiclesAll - listedAll - soldAll) },
+        { key: 'sold', count: soldAll },
       ],
     },
     {
       key: 'listings',
-      total: countOf(listings),
+      total: countOf(listingsAll),
+      added: listingsAdded,
       previous: listingsBefore,
-      segments: listings.map((row) => ({
+      segments: listingsAll.map((row) => ({
         key: row.type,
         count: each(row),
       })),
     },
     {
       key: 'orders',
-      total: countOf(orders),
+      total: countOf(ordersAll),
+      added: ordersAdded,
       previous: ordersBefore,
-      segments: orders.map((row) => ({
+      segments: ordersAll.map((row) => ({
         key: row.status,
         count: each(row),
       })),
@@ -172,7 +191,8 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
     {
       key: 'repeat',
       total: repeat.length,
-      // تراكميّ لا مدَويّ — فلا فترة سابقة تُقارَن بها
+      // تراكميّ لا مدَويّ — فلا زيادةَ مدًى ولا فترةَ تُقارَن بها
+      added: null,
       previous: null,
       segments: [
         { key: 'twice', count: twice },
@@ -182,18 +202,20 @@ export async function dashboardCards(from: Date, to: Date): Promise<MetricCard[]
     },
     {
       key: 'auctions',
-      total: countOf(auctions),
+      total: countOf(auctionsAll),
+      added: auctionsAdded,
       previous: auctionsBefore,
-      segments: auctions.map((row) => ({
+      segments: auctionsAll.map((row) => ({
         key: row.status,
         count: each(row),
       })),
     },
     {
       key: 'serviceRequests',
-      total: countOf(serviceRequests),
+      total: countOf(serviceRequestsAll),
+      added: serviceRequestsAdded,
       previous: serviceRequestsBefore,
-      segments: serviceRequests
+      segments: serviceRequestsAll
         .map((row) => {
           const service = servicesByKey.find((entry) => entry.id === row.serviceId);
           return {
@@ -217,16 +239,19 @@ export type CityRow = { city: string; count: number };
  * والبقية تُجمع ولا تُحذف: قائمةٌ تعرض خمسًا وتصمت عن الباقي تجعل
  * المجموع لا يطابق العدد المعروض فوقه، فيُظنّ أحدهما خطأً.
  */
-export async function listingsByCity(from: Date, to: Date, top = 5): Promise<CityRow[]> {
+export async function listingsByCity(top = 5): Promise<CityRow[]> {
   /**
-   * **نفس الجمهور الذي تعدّه بطاقة الإعلانات** — كل ما نُشر في المدى،
-   * لا ما بقي منشورًا اليوم. وتضييقُه بـ`status` كان يُنتج رقمين
-   * مختلفين على شاشة واحدة تحت الاسم نفسه، وأحدهما تحت عنوان يقول
-   * «نُشرت في المدى» وهو لا يعدّ ما نُشر ثمّ بيع.
+   * **نفس الجمهور الذي تعدّه بطاقة الإعلانات** — كلُّ ما نُشر، لا ما
+   * بقي منشورًا اليوم. وتضييقُه بـ`status` كان يُنتج رقمين مختلفين
+   * على شاشة واحدة تحت الاسم نفسه، وأحدهما لا يعدّ ما نُشر ثمّ بيع.
+   *
+   * **وصار تراكميًّا مع البطاقة.** كان يعدّ المدى وحده، والبطاقةُ
+   * فوقه صارت تعدّ المنصّة — فرقمان تحت اسمٍ واحد في شاشةٍ واحدة،
+   * وهو العطلُ الذي يحذّر منه السطرُ الأوّل من هذا التعليق.
    */
   const rows = await db.listing.groupBy({
     by: ['city'],
-    where: { publishedAt: { gte: from, lt: to } },
+    where: { publishedAt: { not: null } },
     _count: { _all: true },
     orderBy: { _count: { city: 'desc' } },
   });

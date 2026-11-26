@@ -16,21 +16,47 @@ describe('═══ معيار A1 ═══ كل رقم من قاعدة البي
    * مستقلّ. ولو كان أيٌّ منها ثابتًا مكتوبًا لاختلف عن استعلامه أوّل
    * مرّة تتغيّر البيانات.
    */
-  it('كل إجمالي يطابق استعلامًا مستقلًّا', async () => {
+  /**
+   * ═══ والإجماليُّ إجماليُّ المنصّة لا عدُّ المدى ═══
+   *
+   * كان هذا الاختبار يفحص المدى — **فثبّت السلوكَ المنحرف**: المشغّل
+   * يقرأ «المستخدمون ١» ومنصّتُه فيها واحدٌ وثلاثون. والتصميم (`A1`)
+   * يرسم الإجماليَّ رقمًا والزيادةَ شارةً، فيُفحص الطرفان.
+   */
+  it('الإجمالي إجمالي المنصة، والزيادة عدد المدى — كلاهما باستعلام مستقل', async () => {
     const cards = await dashboardCards(FROM, TO);
     const at = (key: string) => cards.find((card) => card.key === key);
     const window = { gte: FROM, lt: TO };
 
-    expect(at('users')?.total).toBe(await db.user.count({ where: { createdAt: window } }));
-    expect(at('vehicles')?.total).toBe(await db.vehicle.count({ where: { createdAt: window } }));
+    expect(at('users')?.total).toBe(await db.user.count());
+    expect(at('users')?.added).toBe(await db.user.count({ where: { createdAt: window } }));
+
+    expect(at('vehicles')?.total).toBe(await db.vehicle.count());
+    expect(at('vehicles')?.added).toBe(await db.vehicle.count({ where: { createdAt: window } }));
+
     expect(at('listings')?.total).toBe(
-      await db.listing.count({ where: { publishedAt: window } }),
+      await db.listing.count({ where: { publishedAt: { not: null } } }),
     );
-    expect(at('orders')?.total).toBe(await db.order.count({ where: { createdAt: window } }));
-    expect(at('auctions')?.total).toBe(await db.auction.count({ where: { startsAt: window } }));
-    expect(at('serviceRequests')?.total).toBe(
+    expect(at('listings')?.added).toBe(await db.listing.count({ where: { publishedAt: window } }));
+
+    expect(at('orders')?.total).toBe(await db.order.count());
+    expect(at('orders')?.added).toBe(await db.order.count({ where: { createdAt: window } }));
+
+    expect(at('auctions')?.total).toBe(await db.auction.count());
+    expect(at('auctions')?.added).toBe(await db.auction.count({ where: { startsAt: window } }));
+
+    expect(at('serviceRequests')?.total).toBe(await db.serviceRequest.count());
+    expect(at('serviceRequests')?.added).toBe(
       await db.serviceRequest.count({ where: { createdAt: window } }),
     );
+
+    /**
+     * **ولا يُصدَّق تطابقٌ لا يميّز شيئًا.** لو كان الإجماليُّ يساوي
+     * عدَّ المدى في هذه البيانات لمرّ الفحصان على شيفرةٍ مكسورة —
+     * فيُطلَب أن يكون للمنصّة تاريخٌ قبل المدى.
+     */
+    const users = at('users');
+    expect(users?.total ?? 0).toBeGreaterThan(users?.added ?? 0);
   });
 
   it('شرائح العملاء متباينة وتجمع الإجمالي', async () => {
@@ -90,10 +116,12 @@ describe('═══ معيار A1 ═══ كل رقم من قاعدة البي
 
 describe('A1 — المدن والفروق', () => {
   it('المدن تجمع كل الإعلانات — والبقية تُجمع لا تُحذف', async () => {
-    const rows = await listingsByCity(FROM, TO);
+    const rows = await listingsByCity();
     const shown = rows.reduce((total, row) => total + row.count, 0);
-    const real = await db.listing.count({ where: { publishedAt: { gte: FROM, lt: TO } } });
+    const real = await db.listing.count({ where: { publishedAt: { not: null } } });
     expect(shown).toBe(real);
+    /** ولا يُصدَّق صفرٌ قبل إثبات أن هناك ما يُعَدّ. */
+    expect(shown).toBeGreaterThan(0);
 
     // ونفس الجمهور الذي تعدّه بطاقة الإعلانات — رقمان متطابقان لا متقاربان
     const card = (await dashboardCards(FROM, TO)).find((entry) => entry.key === 'listings');
