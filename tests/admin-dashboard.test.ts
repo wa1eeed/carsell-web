@@ -136,3 +136,34 @@ describe('A1 — المدن والفروق', () => {
     expect(deltaPct(50, null)).toBeNull();
   });
 });
+
+/**
+ * ═══ ولا رقمان لاسمٍ واحد في لوحةٍ واحدة ═══
+ *
+ * بطاقةُ النموّ كانت تقول «حجم المبيعات ٨٧٠٬٦٧٥» وتبويبُ المالية
+ * «قيمة المبيعات ٨٤٢٬٩٤٠» عن المدى نفسِه: الأولى تجمع `totalAmount`
+ * (وفيه عمولتُنا ورسومُنا) والثانية `agreedPrice`. و**`GMV` قيمةُ
+ * البضاعة لا ما قُبض فوقها** — فالمالية كانت على حقّ.
+ */
+describe('A1 — حجم المبيعات واحد في اللوحة كلها', () => {
+  it('GMV مجموع أسعار المركبات لا إجمالي ما دفعه المشتري', async () => {
+    const { growthKpis } = await import('@/lib/domain/admin-kpis');
+    const { kpis } = await growthKpis(FROM, TO);
+    const gmv = kpis.gmv;
+
+    const orders = await db.order.findMany({
+      where: { createdAt: { gte: FROM, lt: TO }, status: { in: ['ACTIVE', 'COMPLETED'] } },
+      select: { agreedPrice: true, totalAmount: true },
+    });
+    const agreed = orders.reduce((total, row) => total + Number(row.agreedPrice), 0);
+    const paid = orders.reduce((total, row) => total + Number(row.totalAmount), 0);
+
+    expect(gmv?.value).toBe(agreed);
+    /**
+     * **ولا يُصدَّق تطابقٌ لا يميّز.** لو تساوى المجموعان في هذه
+     * البيانات لمرّ الفحصُ على الشيفرة المكسورة — فيُطلَب أن تكون
+     * هناك رسومٌ فوق السعر أصلًا.
+     */
+    expect(paid).toBeGreaterThan(agreed);
+  });
+});

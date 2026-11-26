@@ -34,18 +34,28 @@ describe('═══ المؤشّرات تقول ما في القاعدة ══�
 
     const orders = await db.order.findMany({
       where: { createdAt: { gte: from, lt: to }, status: { in: [...REALISED] } },
-      select: { totalAmount: true, commissionAmount: true },
+      select: { agreedPrice: true, totalAmount: true, commissionAmount: true },
     });
 
-    const gmv = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    /**
+     * ═══ `GMV` البضاعةُ، و`AOV` ما دُفع ═══
+     *
+     * كان الاثنان على `totalAmount`، فكان حجمُ المبيعات يضمّ عمولتَنا
+     * ورسومَنا — ويخالف تبويبَ المالية في الشاشة نفسِها برقمٍ ثانٍ
+     * للاسم نفسِه. والسعرُ المتَّفق عليه هو ما بِيع.
+     */
+    const gmv = orders.reduce((sum, o) => sum + Number(o.agreedPrice), 0);
+    const paid = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
     const commission = orders.reduce((sum, o) => sum + Number(o.commissionAmount), 0);
 
     expect(kpis.orders.value).toBe(orders.length);
     expect(Math.round(kpis.gmv.value)).toBe(Math.round(gmv));
+    /** ولا يُصدَّق تطابقٌ لا يميّز: لولا رسومٌ فوق السعر لمرّ الفحص. */
+    expect(paid).toBeGreaterThan(gmv);
 
     /** **ومتوسّطٌ لا يساوي القسمة ليس متوسّطًا.** */
     if (orders.length > 0) {
-      expect(Math.round(kpis.aov.value)).toBe(Math.round(gmv / orders.length));
+      expect(Math.round(kpis.aov.value)).toBe(Math.round(paid / orders.length));
       expect(kpis.aov.unknown).toBe(false);
     } else {
       expect(kpis.aov.unknown).toBe(true);

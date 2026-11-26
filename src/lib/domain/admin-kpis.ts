@@ -77,7 +77,10 @@ async function window(range: Range) {
         where: { createdAt: period, status: { in: [...REALISED] } },
         select: {
           buyerId: true,
+          /** ما دفعه المشتري — ومنه متوسّطُ قيمة الطلب. */
           totalAmount: true,
+          /** قيمةُ المركبة المتَّفق عليها — وهي البضاعةُ في `GMV`. */
+          agreedPrice: true,
           commissionAmount: true,
           createdAt: true,
           source: true,
@@ -88,10 +91,24 @@ async function window(range: Range) {
       db.listing.count({ where: { publishedAt: period } }),
     ]);
 
-  const gmv = orders.reduce((total, order) => total + Number(order.totalAmount), 0);
+  /**
+   * ═══ `GMV` قيمةُ البضاعة لا ما قُبض فوقها ═══
+   *
+   * كان مجموعَ `totalAmount` — وفيه عمولتُنا ورسومُ خدماتنا. فقالت
+   * بطاقةُ النموّ «٨٧٠٬٦٧٥» وقال تبويبُ المالية «٨٤٢٬٩٤٠» عن الشهر
+   * نفسِه: **رقمان لاسمٍ واحد في لوحةٍ واحدة**، والفرقُ رسومُنا
+   * محسوبةً في بضاعةِ غيرنا. و`agreedPrice` هو ما بِيع، وتبويبُ
+   * المالية كان على حقّ.
+   *
+   * **ونسبةُ الأخذ تتأثّر**: مقامٌ منتفخٌ يُنقص النسبة — فكانت تقول
+   * إنّنا نأخذ أقلّ ممّا نأخذ.
+   */
+  const gmv = orders.reduce((total, order) => total + Number(order.agreedPrice), 0);
+  /** ومتوسّطُ قيمة الطلب على ما دفعه المشتري — فالاسمُ «قيمة الطلب». */
+  const orderTotal = orders.reduce((total, order) => total + Number(order.totalAmount), 0);
   const commission = orders.reduce((total, order) => total + Number(order.commissionAmount), 0);
 
-  return { newCustomers, newListings, offers, bids, orders, soldListings, publishedListings, gmv, commission };
+  return { newCustomers, newListings, offers, bids, orders, soldListings, publishedListings, gmv, orderTotal, commission };
 }
 
 export type KpiSet = {
@@ -188,8 +205,8 @@ export async function growthKpis(from: Date, to: Date): Promise<KpiSet> {
       .filter((days) => days >= 0),
   );
 
-  const aov = ratio(now.gmv, now.orders.length);
-  const aovBefore = ratio(before.gmv, before.orders.length);
+  const aov = ratio(now.orderTotal, now.orders.length);
+  const aovBefore = ratio(before.orderTotal, before.orders.length);
   const takeRate = ratio(now.commission, now.gmv);
   const takeBefore = ratio(before.commission, before.gmv);
   const offerToOrder = ratio(now.orders.length, now.offers + now.bids);
