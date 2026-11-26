@@ -18,7 +18,13 @@ import {
   opsOverview,
   stageTimes,
 } from '@/lib/domain/admin-charts';
-import { CANCEL_CATEGORY_LABEL, OPS_GROUP_LABEL, ORDER_STATUS_LABEL } from '@/lib/labels/admin';
+import {
+  CANCEL_CATEGORY_LABEL,
+  OPS_GROUP_LABEL,
+  ORDER_STATUS_LABEL,
+  UNCATEGORISED_CANCEL_LABEL,
+} from '@/lib/labels/admin';
+import { UNCATEGORISED_CANCEL } from '@/lib/domain/admin-charts';
 import { displayDigits } from '@/lib/arabic';
 import { STAGE_LABEL, STAGE_TIME_LABEL, dayTick } from '@/lib/labels/charts';
 
@@ -85,7 +91,11 @@ export async function OpsTab() {
         <OpsCard
           title="الإلغاءات"
           group={overview.cancellations}
-          labelOf={(key) => CANCEL_CATEGORY_LABEL[key as keyof typeof CANCEL_CATEGORY_LABEL] ?? key}
+          labelOf={(key) =>
+            key === UNCATEGORISED_CANCEL
+              ? UNCATEGORISED_CANCEL_LABEL
+              : (CANCEL_CATEGORY_LABEL[key as keyof typeof CANCEL_CATEGORY_LABEL] ?? key)
+          }
         />
       </div>
 

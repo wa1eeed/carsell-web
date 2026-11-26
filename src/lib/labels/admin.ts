@@ -532,6 +532,13 @@ export const CANCEL_CATEGORY_LABEL = {
 } satisfies Record<OrderCancelCategory, string>;
 
 /**
+ * **وليس قيمةَ تعداد، فلا يدخل الخريطةَ المتعهَّدة.** `cancelCategory`
+ * حقلٌ اختياريّ: إلغاءٌ قديم أو من مسارٍ لا يسأل عن سبب يتركه فارغًا.
+ * ويُقال صراحةً لا يُخفى في «أخرى» — فتُحسب سببًا اختاره أحد.
+ */
+export const UNCATEGORISED_CANCEL_LABEL = 'بلا سبب مسجل';
+
+/**
  * ═══ حالُ مطابقةِ بوّابةٍ ليوم ═══
  *
  * كانت مكتوبةً في `ReconciliationTable` وحدها (A20) بـ

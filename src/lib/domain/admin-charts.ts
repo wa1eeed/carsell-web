@@ -1,5 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
-import { OrderCancelCategory } from '@/generated/prisma/enums';
+import { OrderCancelCategory, OrderStatus } from '@/generated/prisma/enums';
 import { db } from '@/lib/db';
 import { currentDeadlines } from './deadlines';
 
@@ -322,7 +322,6 @@ export async function opsOverview(now: Date = new Date()): Promise<OpsOverview> 
     rows.reduce((sum, row) => sum + row._count._all, 0);
 
   const STAGES = ['REQUEST', 'APPROVED', 'INSPECTION', 'PAYMENT', 'TRANSFER', 'DONE'] as const;
-  const STATUSES = ['COMPLETED', 'ACTIVE', 'CANCELLED', 'STALLED'] as const;
 
   return {
     live: {
@@ -351,17 +350,37 @@ export async function opsOverview(now: Date = new Date()): Promise<OpsOverview> 
     },
     month: {
       total: countOf(byStatus),
-      parts: STATUSES.map((status) => ({
+      /**
+       * **والقائمةُ من التعداد لا بجواره.** كانت أربعًا مكتوبةً بيد
+       * بلا `DISPUTED`، فقالت البطاقةُ «١١ طلبا هذا الشهر» وجمعت
+       * شرائحُها **تسعة** — والمتنازَعُ عليه أحوجُ ما يُرى في لوحة
+       * تشغيل. وهي القاعدةُ المكتوبة تحت `CANCEL_CATEGORIES` نفسِها،
+       * مطبَّقةً على جارتها لا عليها.
+       */
+      parts: ORDER_STATUSES.map((status) => ({
         key: status,
         count: byStatus.find((row) => row.status === status)?._count._all ?? 0,
       })),
     },
     cancellations: {
       total: countOf(byCancel),
-      parts: CANCEL_CATEGORIES.map((category) => ({
-        key: category,
-        count: byCancel.find((row) => row.cancelCategory === category)?._count._all ?? 0,
-      })),
+      /**
+       * **والملغى بلا صنفٍ يُقال لا يُبتلع.** `cancelCategory` حقلٌ
+       * اختياريّ، وإلغاءٌ بلا صنف يدخل الإجماليَ ولا يدخل شريحةً —
+       * فقرأ المشغّل «الإلغاءات ١» وتحتها خمسةُ أصفار. وشريحةٌ صريحة
+       * تقول «بلا سبب مسجل» خيرٌ من مجموعٍ يناقض رأسَه، وخيرٌ من
+       * إخفائه في «أخرى» فيُحسب سببًا اختاره أحد.
+       */
+      parts: [
+        ...CANCEL_CATEGORIES.map((category) => ({
+          key: category,
+          count: byCancel.find((row) => row.cancelCategory === category)?._count._all ?? 0,
+        })),
+        {
+          key: UNCATEGORISED_CANCEL,
+          count: byCancel.find((row) => row.cancelCategory === null)?._count._all ?? 0,
+        },
+      ],
     },
   };
 }
@@ -371,3 +390,7 @@ export async function opsOverview(now: Date = new Date()): Promise<OpsOverview> 
  * المخطّط تظهر في البطاقة بلا تعديلٍ هنا، ولا تبقى صامتةً خارجها.
  */
 const CANCEL_CATEGORIES = Object.values(OrderCancelCategory);
+const ORDER_STATUSES = Object.values(OrderStatus);
+
+/** مفتاحٌ محجوز لا قيمةَ تعداد — والشاشة تسمّيه. */
+export const UNCATEGORISED_CANCEL = 'UNCATEGORISED';
