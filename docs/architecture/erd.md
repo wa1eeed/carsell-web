@@ -588,6 +588,7 @@ Relations: `kind` → `VehicleCostKind` · `vehicle` → `Vehicle` · `recordedB
 | `soldById` | `String?` |  |
 | `price` | `Decimal` |  |
 | `buyerName` | `String?` |  |
+| `buyerPhone` | `String?` |  |
 | `invoiceId` | `String?` | unique |
 | `orderId` | `String?` | unique |
 | `soldAt` | `DateTime` |  |

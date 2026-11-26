@@ -208,3 +208,22 @@ on digits yields an empty string, and `contains: ''` is valid SQL that **matches
 every row** — so the search looked broken while in fact matching everyone. The
 clause is now dropped when it is empty, and the test proves it by restoring the
 bug.
+
+## The customer book includes the people who walked in (2026-11-26)
+
+`dealerCustomers` was built from orders and offers — both of which belong to a
+**CARZ account**. So a showroom's book listed everyone who messaged it online
+and **nobody who walked through its door and paid**. The owner asked for
+«العملاء الخاصين بالمعرض»: his own customers, and the counter buyer is the most
+his of all.
+
+The counter sale is now a source too, and `DealerSale.buyerPhone` is its key, so
+a customer who comes back is one row rather than two. A sale with no phone keys
+by its own id — one row per sale, which is the truth when nothing identifies the
+buyer.
+
+The row carries `walkIn`, and the screen marks it «من المعرض»: the showroom
+knows at a glance who it can message on CARZ and who it cannot, instead of
+searching for an account that does not exist. A counter sale counts as a
+completed order and as money spent — the person paid — and **no city is invented
+for them**: there is no account, so there is no recorded city.

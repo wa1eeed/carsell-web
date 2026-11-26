@@ -20,6 +20,8 @@ export type SaleFact = {
   soldById: string | null;
   price: Prisma.Decimal | string;
   buyerName: string | null;
+  /** جوالُ مشتري المنضدة — مفتاحُه في دفتر عملاء المعرض. */
+  buyerPhone: string | null;
   invoiceId: string | null;
   orderId: string | null;
 };
@@ -46,6 +48,7 @@ export async function recordSale(
         soldById: fact.soldById,
         price: new Prisma.Decimal(fact.price),
         buyerName: fact.buyerName,
+        buyerPhone: fact.buyerPhone,
         invoiceId: fact.invoiceId,
         orderId: fact.orderId,
         soldAt: now,

@@ -232,6 +232,7 @@ export async function sellAtCounter(
         soldById: actor.userId,
         price: input.price.toFixed(2),
         buyerName: input.buyerName.trim(),
+        buyerPhone: input.buyerPhone,
         invoiceId: invoice.invoiceId,
         orderId: null,
       },

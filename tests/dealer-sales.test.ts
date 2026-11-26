@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
 import { branchResults, recordSale, sellerResults } from '@/lib/domain/dealer-sales';
+import { dealerCustomers } from '@/lib/domain/dealer-customers';
 
 /**
  * ═══ واقعةُ البيع — نتيجةُ الفرع ومبيعاتُ المندوب ═══
@@ -47,6 +48,7 @@ describe('recordSale', () => {
       soldById: null,
       price: '50000.00',
       buyerName: null,
+      buyerPhone: null,
       invoiceId: null,
       orderId: order.id,
     };
@@ -178,5 +180,68 @@ describe('sellerResults', () => {
     const counted = after.find((row) => row.userId === owner.id);
     expect(counted?.sales).toBe(1);
     expect(counted?.revenue).toBe('75000.00');
+  });
+});
+
+/**
+ * ═══ ودفترُ عملاء المعرض يشمل من حضر صالتَه ═══
+ *
+ * كان يُبنى من الطلبات والعروض، وكلاهما لحسابٍ عندنا — **فمن اشترى من
+ * المنضدة لا يظهر في دفتر عملاءِ معرضِه إطلاقًا**، وهو من حضر ودفع.
+ */
+describe('dealerCustomers — عميلُ الصالة', () => {
+  it('يظهر بجواله، ويجمع من عاد في صف واحد', async () => {
+    const owner = await db.user.findFirstOrThrow({
+      where: { dealerRole: 'OWNER', dealer: { status: 'ACTIVE' } },
+      select: { id: true, dealerId: true },
+    });
+    const dealerId = owner.dealerId as string;
+    const vehicles = await db.vehicle.findMany({
+      where: { dealerId },
+      take: 2,
+      select: { id: true },
+    });
+    expect(vehicles.length, 'مركبتان على الأقل في مخزون المعرض').toBeGreaterThan(1);
+
+    const before = await dealerCustomers(dealerId, null);
+
+    const phone = '+966500000921';
+    for (const [index, vehicle] of vehicles.entries()) {
+      const sale = await db.dealerSale.create({
+        data: {
+          dealerId,
+          branchId: null,
+          vehicleId: vehicle.id,
+          channel: 'COUNTER',
+          soldById: owner.id,
+          price: index === 0 ? '60000.00' : '40000.00',
+          buyerName: 'عميل الصالة',
+          buyerPhone: phone,
+          soldAt: AT,
+        },
+        select: { id: true },
+      });
+      madeSales.push(sale.id);
+    }
+
+    const after = await dealerCustomers(dealerId, null);
+    /**
+     * **والحكمُ على الصفّ المعنيّ** — فطقما هذا الملفّ يصنعان بيعاتِ
+     * منضدةٍ بلا جوال، وعدُّ كلِّ حاضرٍ يسقط بما لا يقيسه.
+     */
+    const walkIns = after.filter((row) => row.key === `counter:${phone}`);
+    /** **ومن عاد صفٌّ واحد** — والجوالُ مفتاحُه. */
+    expect(walkIns).toHaveLength(1);
+    expect(walkIns[0]?.walkIn).toBe(true);
+    expect(walkIns[0]?.orders).toBe(2);
+    /** **وبيعةُ المنضدة طلبٌ تمّ** — فتُعَدّ فيما أتمّه. */
+    expect(walkIns[0]?.spent).toBe('100000.00');
+    /** **ولا مدينةَ تُخترع له** — لا حسابَ له فلا مدينةَ مسجَّلة. */
+    expect(walkIns[0]?.city).toBeNull();
+
+    /** وعملاءُ الحسابات كما كانوا — لم يُبدَّل أحدُهم. */
+    expect(after.filter((row) => !row.walkIn)).toHaveLength(
+      before.filter((row) => !row.walkIn).length,
+    );
   });
 });

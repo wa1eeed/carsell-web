@@ -4,6 +4,7 @@ import { DEALER_MODULE, dealerHasModule } from '@/lib/domain/dealer-modules';
 import { dealerCustomers } from '@/lib/domain/dealer-customers';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
+import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Money } from '@/components/ui/Money';
 import { Quantity } from '@/components/ui/Quantity';
@@ -46,7 +47,7 @@ export default async function DealerCustomers() {
       {rows.length === 0 ? (
         <EmptyState
           title="لا عملاء بعد"
-          description="يظهر هنا كل من قدم عرضا على مركباتك أو أنشأ طلبا عليها."
+          description="يظهر هنا كل من قدم عرضا على مركباتك أو أنشأ طلبا عليها، ومن اشتراها من معرضك."
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-line">
@@ -63,8 +64,18 @@ export default async function DealerCustomers() {
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.userId} className="border-b border-line-2 last:border-b-0">
-                  <td className="px-5 py-3.5 text-2xs font-semibold">{row.name ?? '—'}</td>
+                <tr key={row.key} className="border-b border-line-2 last:border-b-0">
+                  <td className="px-5 py-3.5 text-2xs font-semibold">
+                    {row.name ?? '—'}
+                    {/*
+                      **وعميلُ الصالة يُقال** — فالمعرضُ يعرف من يراسله
+                      على كارز ممّن يحضر إليه، ولا يبحث عن حسابٍ لا وجود
+                      له.
+                    */}
+                    {!row.walkIn ? null : (
+                      <Badge tone="neutral" size="sm" className="ms-2">من المعرض</Badge>
+                    )}
+                  </td>
                   <td className="px-5 py-3.5 text-2xs opacity-75">{row.city ?? '—'}</td>
                   <td className="px-5 py-3.5 font-num text-2xs"><ArabicNumber value={row.orders} /></td>
                   <td className="px-5 py-3.5 font-num text-2xs"><ArabicNumber value={row.offers} /></td>

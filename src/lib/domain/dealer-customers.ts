@@ -16,7 +16,17 @@ function scope(dealerId: string, branchId: string | null) {
 }
 
 export type DealerCustomer = {
-  userId: string;
+  /**
+   * ═══ ومفتاحُ الصفّ ليس دائمًا حسابًا ═══
+   *
+   * دفترُ العملاء كان يُبنى من الطلبات والعروض، وكلاهما لحسابٍ عندنا —
+   * **فمن اشترى من منضدة المعرض لا يظهر في دفتر عملاءِ معرضِه
+   * إطلاقًا**، وهو من حضر إليه ودفع. فمفتاحُ ذاك جوالُه
+   * (`counter:+9665…`)، ومفتاحُ صاحبِ الحساب معرّفُه.
+   */
+  key: string;
+  /** أمن المنضدة هو؟ — فالصفّان يُقرآن ولا يُخلطان. */
+  walkIn: boolean;
   name: string | null;
   city: string | null;
   orders: number;
@@ -27,6 +37,10 @@ export type DealerCustomer = {
 };
 
 export const DEALER_CUSTOMER_CAP = 200;
+
+/** **والمنضدةُ تجمع من عاد بجواله** — ومن اشترى بلا جوالٍ صفٌّ وحده. */
+const counterKey = (phone: string | null, saleId: string): string =>
+  phone === null || phone.trim() === '' ? `sale:${saleId}` : `counter:${phone.trim()}`;
 
 export async function dealerCustomers(
   dealerId: string,
@@ -49,20 +63,30 @@ export async function dealerCustomers(
     }),
   ]);
 
+  /**
+   * **وعميلُ الصالة من واقعةِ البيع**: اسمُه وجوالُه كُتبا في المنضدة،
+   * ولا حسابَ له عندنا — فلا طلبَ ولا عرضَ يدلّ عليه.
+   */
+  const counter = await db.dealerSale.findMany({
+    where: { channel: 'COUNTER', ...scope(dealerId, branchId) },
+    select: { id: true, buyerName: true, buyerPhone: true, price: true, soldAt: true },
+  });
+
   const byUser = new Map<string, DealerCustomer & { last: Date }>();
 
   const touch = (
-    userId: string,
-    person: { name: string | null; city: string | null },
+    key: string,
+    person: { name: string | null; city: string | null; walkIn?: boolean },
     at: Date,
   ): DealerCustomer & { last: Date } => {
-    const found = byUser.get(userId);
+    const found = byUser.get(key);
     if (found !== undefined) {
       if (at.getTime() > found.last.getTime()) found.last = at;
       return found;
     }
     const fresh = {
-      userId,
+      key,
+      walkIn: person.walkIn === true,
       name: person.name,
       city: person.city,
       orders: 0,
@@ -71,7 +95,7 @@ export async function dealerCustomers(
       lastAt: at.toISOString(),
       last: at,
     };
-    byUser.set(userId, fresh);
+    byUser.set(key, fresh);
     return fresh;
   };
 
@@ -94,14 +118,27 @@ export async function dealerCustomers(
     touch(offer.buyerId, offer.buyer, offer.createdAt).offers += 1;
   }
 
+  /**
+   * **وبيعةُ المنضدة طلبٌ تمّ** — فتُعَدّ في «الطلبات» وفي «ما أتمّه»:
+   * من دفع في الصالة أتمّ، وعرضُه صفرًا يجعله يبدو متفرّجًا.
+   * **والمدينةُ لا تُخترع له**: لا حسابَ له، فلا مدينةَ مسجَّلة.
+   */
+  for (const sale of counter) {
+    const key = counterKey(sale.buyerPhone, sale.id);
+    const row = touch(key, { name: sale.buyerName, city: null, walkIn: true }, sale.soldAt);
+    row.orders += 1;
+    spent.set(key, (spent.get(key) ?? new Prisma.Decimal(0)).plus(sale.price));
+  }
+
   return [...byUser.values()]
     .map((row) => ({
-      userId: row.userId,
+      key: row.key,
+      walkIn: row.walkIn,
       name: row.name,
       city: row.city,
       orders: row.orders,
       offers: row.offers,
-      spent: (spent.get(row.userId) ?? new Prisma.Decimal(0)).toFixed(2),
+      spent: (spent.get(row.key) ?? new Prisma.Decimal(0)).toFixed(2),
       lastAt: row.last.toISOString(),
     }))
     .sort((a, b) => b.lastAt.localeCompare(a.lastAt))

@@ -152,6 +152,7 @@ export async function advanceStage(
             soldById: sold.offers[0]?.respondedById ?? null,
             price: order.agreedPrice,
             buyerName: null,
+            buyerPhone: null,
             invoiceId: null,
             orderId: order.id,
           },
