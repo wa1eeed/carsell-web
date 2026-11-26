@@ -5,6 +5,7 @@ import { buyerTypeFor, checkVatNumber, marginApprovedFor, sellerTypeFor } from '
 import { markListingSold } from './listing-state';
 import { vehicleMargin } from './vehicle-costs';
 import { createInstallmentPlan, validatePlan } from './installments';
+import { recordSale } from './dealer-sales';
 
 /**
  * ═══ `D14` — نقطةُ البيع: عميلُ الصالة ═══
@@ -129,6 +130,8 @@ export async function sellAtCounter(
       modelName: true,
       trimName: true,
       year: true,
+      /** فرعُها — فبيعةُ مالكٍ بلا فرعٍ تُنسب إلى فرع المركبة. */
+      branchId: true,
       listings: {
         orderBy: { createdAt: 'desc' },
         select: { id: true, status: true },
@@ -213,6 +216,27 @@ export async function sellAtCounter(
   await db.$transaction(async (tx) => {
     /** **وسببُ الخروج بيعةُ صالةٍ لا طلبٌ اكتمل** — فلا يبحث مراجعٌ عن طلب. */
     if (live !== undefined) await markListingSold(tx, live.id, now, 'dealer.pos.sale');
+
+    /**
+     * **والواقعةُ تُكتب مع خروج المركبة لا بعده.** فرعُ البيعة ومن
+     * حملها لم يكونا في شيءٍ غير `AuditLog` — وهو سجلُّ أفعالٍ لا
+     * جدولُ وقائع، فلا تُبنى عليه «نتيجةُ فرع» ولا «مبيعاتُ مندوب».
+     */
+    await recordSale(
+      tx,
+      {
+        dealerId: actor.dealerId,
+        branchId: actor.branchId ?? vehicle.branchId,
+        vehicleId: vehicle.id,
+        channel: 'COUNTER',
+        soldById: actor.userId,
+        price: input.price.toFixed(2),
+        buyerName: input.buyerName.trim(),
+        invoiceId: invoice.invoiceId,
+        orderId: null,
+      },
+      now,
+    );
 
     await tx.auditLog.create({
       data: {

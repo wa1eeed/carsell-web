@@ -85,6 +85,10 @@ export type Unit =
   | 'liveAuctions'
   /** صفقاتٌ مكتملة في تقرير الماركات — `D11`. */
   | 'deals'
+  /** مركباتٌ بيعت بلا كلفةٍ مسجَّلة — فنتيجةُ الفرع ناقصةٌ وتقول ذلك. */
+  | 'soldWithoutCost'
+  /** عروضٌ ردّ عليها عضوٌ بنفسه — من `Offer.respondedById`. */
+  | 'offerReplies'
   | 'watchers'
   | 'bids'
   | 'deals'

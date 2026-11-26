@@ -425,6 +425,8 @@
     "dealerSales": "{count, plural, zero{مبيعات مكتملة} one{مبيعة مكتملة} two{مبيعتان مكتملتان} few{مبيعات مكتملة} many{مبيعة مكتملة} other{مبيعة مكتملة}}",
     "watchers": "{count, plural, zero{لا أحد يتابعه} one{يتابعه واحد} two{يتابعه اثنان} few{{n} يتابعون} many{{n} يتابعون} other{{n} يتابعون}}",
     "deals": "{count, plural, zero{لا صفقات} one{صفقة واحدة} two{صفقتان} few{{n} صفقات} many{{n} صفقة} other{{n} صفقة}}",
+      "soldWithoutCost": "{count, plural, zero{لا مركبة بلا كلفة} one{مركبة واحدة بلا كلفة مسجلة} two{مركبتان بلا كلفة مسجلة} few{{n} مركبات بلا كلفة مسجلة} many{{n} مركبة بلا كلفة مسجلة} other{{n} مركبة بلا كلفة مسجلة}}",
+      "offerReplies": "{count, plural, zero{لا ردود على عروض} one{رد واحد على عرض} two{ردان على عرضين} few{{n} ردود على عروض} many{{n} ردا على عروض} other{{n} رد على عروض}}",
     "days": "{count, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{n} أيام} many{{n} يوما} other{{n} يوم}}",
     "hours": "{count, plural, zero{لا ساعات} one{ساعة واحدة} two{ساعتان} few{{n} ساعات} many{{n} ساعة} other{{n} ساعة}}",
     "photos": "{count, plural, zero{لا صور} one{صورة واحدة} two{صورتان} few{{n} صور} many{{n} صورة} other{{n} صورة}}",

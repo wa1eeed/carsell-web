@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { recordTransfer } from './vehicle-history';
 import { markListingSold, reserveListing } from './listing-state';
+import { recordSale } from './dealer-sales';
 import { nextOrderRef } from './refs';
 import type { OrderDocument, SettlementFigures } from './documents';
 import type { OrderStage } from '@/generated/prisma/enums';
@@ -69,6 +70,8 @@ export async function advanceStage(
         buyerId: true,
         sellerId: true,
         listingId: true,
+        /** السعرُ المتَّفق عليه — إيرادُ واقعةِ البيع عند الاكتمال. */
+        agreedPrice: true,
       },
     });
 
@@ -114,9 +117,47 @@ export async function advanceStage(
        */
       const sold = await tx.listing.findUnique({
         where: { id: order.listingId },
-        select: { vehicleId: true },
+        select: {
+          vehicleId: true,
+          vehicle: { select: { dealerId: true, branchId: true } },
+          /**
+           * **ومن حمل البيعة هو من ردّ على العرض المقبول.** بيعةُ
+           * السوق بلا مندوبٍ في المخزَّن، و`Offer.respondedById`
+           * يقوله — و`null` لمن اشترى مباشرةً بلا مفاوضة: بيعةٌ لم
+           * يحملها أحد، ولا يُخترع لها صاحب.
+           */
+          offers: {
+            where: { status: 'ACCEPTED' },
+            orderBy: { respondedAt: 'desc' },
+            take: 1,
+            select: { respondedById: true },
+          },
+        },
       });
       if (sold !== null) await recordTransfer(tx, sold.vehicleId, now);
+
+      /**
+       * **وبيعةُ معرضٍ تُسجَّل واقعةً كبيعة المنضدة** — فجدولُ «نتيجة
+       * كل فرع» يقرأ القناتين من موضعٍ واحد. وبيعةُ فردٍ لا معرضَ لها
+       * فلا صفَّ لها.
+       */
+      if (sold?.vehicle.dealerId != null) {
+        await recordSale(
+          tx,
+          {
+            dealerId: sold.vehicle.dealerId,
+            branchId: sold.vehicle.branchId,
+            vehicleId: sold.vehicleId,
+            channel: 'MARKET',
+            soldById: sold.offers[0]?.respondedById ?? null,
+            price: order.agreedPrice,
+            buyerName: null,
+            invoiceId: null,
+            orderId: order.id,
+          },
+          now,
+        );
+      }
     }
 
     await tx.orderEvent.create({

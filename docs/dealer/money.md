@@ -156,3 +156,72 @@ would promise what we do not have.
   explaining it — and the first question a disputing customer asks is "when did I
   pay?". The plan screen now lists every receipt with its amount, method, the
   instalment it was applied to, and who recorded it.
+
+## Branch result and salesperson sales (`D17`, 2026-11-26)
+
+> «نتيجةُ كلّ فرع» · «مبيعاتُ كلّ مندوب وعمولتُه» — the owner's stage-2 list.
+
+Neither question had an answer in what we stored. A counter sale was an invoice
+plus a vehicle leaving the market: **no row said which branch sold it or who
+did** — the only trace was an `AuditLog` entry, and an audit log is a record of
+*actions*, not a table of *facts*; building a branch's result on it means
+parsing JSON for money. A market sale is an `Order`, which has no salesperson
+at all.
+
+So `DealerSale` is the fact: one row per vehicle leaving the dealership's
+stock, whichever channel.
+
+**The channels stay separate where it matters and join only here.** A counter
+sale is deliberately not an `Order` — its money never passed through us, so
+putting it there would inflate GMV and credit us a commission we never took
+(the reasoning lives in `dealer-pos.ts`). Both doors call one writer,
+`recordSale`, because two doors writing a table by hand write it with two
+different sets of fields at the first change.
+
+**Each door carries a unique key** (`orderId`, `invoiceId`) and the write uses
+`skipDuplicates`: a replayed webhook or a double-tap cannot book one sale twice,
+and the second attempt is a no-op rather than an exception that rolls back the
+whole transaction.
+
+**Cost is not snapshotted.** `VehicleCost` is a ledger that sometimes gains a
+line *after* the sale (a late transport invoice), so freezing a number at sale
+time freezes one that changes. The margin is computed from the ledger when the
+report is read.
+
+**Attribution is honest or absent.** A counter sale belongs to whoever rang it
+up. A market sale belongs to whoever answered the accepted offer —
+`Offer.respondedById`, built the same day. A direct purchase with no negotiation
+belongs to nobody, and the screen says so rather than inventing an owner for it.
+
+### Three numbers, not one, and rows that did not sell
+
+A branch's line is revenue, cost of what it sold, and its expenses: revenue
+alone makes a branch selling at a loss look better than its neighbour. Every
+branch stays in the table even with no sales — a list derived from sales drops
+exactly the row the table was built to show. Every selling member likewise, even
+at zero.
+
+**And a number nobody entered is not a zero.** When none of the sold vehicles
+has a recorded cost, the line reads «لم تسجل», not «٠٫٠٠» — which would claim
+the showroom bought them for nothing. Same for a month with no expense entries.
+A member with no sales shows «لا صفقات» and no amount beside it.
+
+### Commission is not here, and why
+
+The owner asked for «عمولتُه». Its **basis** is an unanswered business rule — a
+percentage of the price, a percentage of the margin, or a flat amount per car —
+and the three give very different numbers on the same sale. A figure invented in
+a screen is read as a fact by the person it is about, so the question is raised
+in `DESIGN-DECISIONS.md` and nothing is shown until it is answered. Sales per
+member ship now; commission follows the answer.
+
+### A new fact table starts empty
+
+`DealerSale` is written from today forward, so a showroom that sold ten cars
+this month would have opened the screen on zeros and read missing data as a
+broken calculation. Migration `20261127020000_dealer_sale_backfill` derives the
+market facts from completed orders, which carry everything the fact needs.
+`soldById` stays null there: `Offer.respondedById` was born the same day, so who
+answered an offer accepted before it is unknowable — and guessing an owner for a
+sale is worse than leaving it unowned. Counter sales are not backfilled: their
+only trace is audit JSON, and the feature shipped the same day.

@@ -529,6 +529,36 @@ async function sweep(when: string): Promise<void> {
     }
   }
 
+  /**
+   * ═══ وواقعةُ بيعٍ لطلبٍ لم يعد موجودًا ═══
+   *
+   * `advanceStage` تكتب `DealerSale` عند الاكتمال، فاختبارٌ يُنشئ طلبًا
+   * ويحذفه يترك بيعةً **تُجمَع في نتيجة الفرع ومبيعات المندوب** — وهو
+   * التسرّبُ الصامت الذي ضخّم عدّادات السوق من قبل: لا اختبارَ يسأل «كم
+   * صفًّا في القاعدة». والتنظيفُ بالشكل: واقعةٌ مفتاحُها طلبٌ غائب.
+   */
+  const saleFacts = await db.dealerSale.findMany({
+    where: { orderId: { not: null } },
+    select: { id: true, orderId: true },
+  });
+  if (saleFacts.length > 0) {
+    const liveOrders = new Set(
+      (
+        await db.order.findMany({
+          where: { id: { in: saleFacts.map((row) => row.orderId as string) } },
+          select: { id: true },
+        })
+      ).map((row) => row.id),
+    );
+    const orphanSales = saleFacts
+      .filter((row) => !liveOrders.has(row.orderId as string))
+      .map((row) => row.id);
+    if (orphanSales.length > 0) {
+      await db.dealerSale.deleteMany({ where: { id: { in: orphanSales } } });
+      console.log(`  نُظّف ${String(orphanSales.length)} واقعة بيعٍ يتيمة ${when}`);
+    }
+  }
+
   if (ids.length > 0) {
     await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
     await db.adminSession.deleteMany({ where: { adminUserId: { in: ids } } });

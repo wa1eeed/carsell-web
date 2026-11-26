@@ -39,7 +39,11 @@ export type DealerKpis = {
   oldestOfferHours: number | null;
 };
 
-function monthStart(now: Date, back: number): Date {
+/**
+ * **ونافذةُ الشهر تُحسب مرّةً**: بطاقةُ اللوحة ونتيجةُ الفرع تقولان
+ * «هذا الشهر»، ونسختان تختلفان بساعةِ الرياض تُنتجان رقمين لشهرٍ واحد.
+ */
+export function monthStart(now: Date, back: number): Date {
   const riyadh = new Date(now.getTime() + RIYADH_OFFSET_HOURS * 3_600_000);
   return new Date(Date.UTC(riyadh.getUTCFullYear(), riyadh.getUTCMonth() - back, 1));
 }

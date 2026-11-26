@@ -425,6 +425,8 @@
     "dealerSales": "{count, plural, one{sale completed} other{sales completed}}",
     "watchers": "{count, plural, one{# watcher} other{# watchers}}",
     "deals": "{count, plural, one{{n} deal} other{{n} deals}}",
+      "soldWithoutCost": "{count, plural, one{1 vehicle with no recorded cost} other{{n} vehicles with no recorded cost}}",
+      "offerReplies": "{count, plural, one{1 offer reply} other{{n} offer replies}}",
     "days": "{count, plural, one{{n} day} other{{n} days}}",
     "hours": "{count, plural, one{{n} hour} other{{n} hours}}",
     "photos": "{count, plural, one{{n} photo} other{{n} photos}}",

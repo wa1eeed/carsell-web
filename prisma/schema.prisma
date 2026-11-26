@@ -143,6 +143,8 @@ model User {
   offers          Offer[]
   /// العروضُ التي ردّ عليها بنفسه — مصدرُ «مبيعات كل مندوب».
   offerResponses  Offer[]          @relation("OfferResponder")
+  /// البيعاتُ التي حملها بنفسه — مصدرُ «مبيعات كل مندوب».
+  dealerSales     DealerSale[]     @relation("DealerSales")
   bids            Bid[]
   cancelledBids   CancelledBid[]
   deposits        Deposit[]
@@ -334,6 +336,7 @@ model Dealer {
   expenses      DealerExpense[]
   installmentPlans InstallmentPlan[]
   site             DealerSite?
+  sales            DealerSale[]
 }
 
 enum DealerStatus {
@@ -417,6 +420,7 @@ model Branch {
   @@index([dealerId, active])
   expenses   DealerExpense[]
   installmentPlans InstallmentPlan[]
+  sales      DealerSale[]
 }
 
 /// صنفُ التكلفة — الشراءُ أوّلُها، وما بعده يحوّل السعر إلى كلفةٍ حقيقية.
@@ -495,6 +499,56 @@ enum DealerExpenseKind {
   /// صيانةُ المبنى والمعدّات — لا صيانةُ مركبة
   FACILITY
   OTHER
+}
+
+/// ═══ قناةُ البيعة — بابان لا باب ═══
+enum DealerSaleChannel {
+  /// منضدةُ المعرض: مالٌ لم يمرّ بنا، فاتورةٌ وخروجُ مركبة.
+  COUNTER
+  /// سوقُ كارز: طلبٌ اكتمل بضمانٍ وعمولة.
+  MARKET
+}
+
+/// ═══ بيعةُ المعرض — واقعةٌ واحدة لقناتين ═══
+///
+/// طلبُ المالك: «نتيجةُ كلّ فرع» و«مبيعاتُ كلّ مندوب». والسؤالان لا
+/// جوابَ لهما في المخزَّن: بيعةُ الصالة **فاتورةٌ وخروجُ مركبة** بلا
+/// صفٍّ يقول أيُّ فرعٍ باعها ولا من باعها (الأثرُ في `AuditLog` وحده،
+/// وهو سجلُّ أفعالٍ لا جدولُ وقائع)، وبيعةُ السوق `Order` بلا مندوب.
+///
+/// **ولا تُجمع القناتان في `Order`**: بيعةُ الصالة لم يمرّ مالُها بنا،
+/// فحشرُها فيه يضخّم `GMV` وينسب إلينا عمولةً لم نأخذها (القرارُ
+/// مسجَّلٌ في `dealer-pos.ts`). فالفصلُ هناك، والجمعُ هنا.
+///
+/// **والكلفةُ لا تُلقَّط هنا**: `VehicleCost` دفترٌ يُضاف إليه بعد
+/// البيع أحيانًا (مصروفٌ متأخّر)، فلقطةٌ وقتَ البيع تُجمّد رقمًا يتغيّر.
+/// والهامشُ يُحسب عند القراءة من الدفتر.
+model DealerSale {
+  id        String            @id @default(cuid())
+  dealerId  String
+  /// فرعُ البيعة وقتَ وقوعها — ومركبةٌ تنتقل بعدها لا تُغيّر التاريخ.
+  branchId  String?
+  vehicleId String
+  channel   DealerSaleChannel
+  /// من باعها من الفريق — و`null` لبيعةِ سوقٍ لم يحملها أحد.
+  soldById  String?
+  price     Decimal           @db.Decimal(12, 2)
+  /// اسمُ المشتري كما كُتب في المنضدة — ولا حسابَ له عندنا.
+  buyerName String?
+  /// **ومفتاحٌ فريدٌ لكلّ باب** — فويبهوكٌ يُعاد أو ضغطةٌ مكرّرة لا تُثبت بيعتين.
+  invoiceId String?           @unique
+  orderId   String?           @unique
+  soldAt    DateTime
+  createdAt DateTime          @default(now())
+
+  dealer  Dealer  @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  branch  Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  soldBy  User?   @relation("DealerSales", fields: [soldById], references: [id], onDelete: SetNull)
+
+  @@index([dealerId, soldAt])
+  @@index([branchId, soldAt])
+  @@index([soldById, soldAt])
 }
 
 model DealerExpense {
@@ -1091,6 +1145,8 @@ model Vehicle {
   /// فرعُ المعرض الذي تقف فيه — و`null` لمركبةِ فردٍ أو معرضٍ بلا فروع.
   branch             Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
   costs              VehicleCost[]
+  /// بيعاتُها — واقعةٌ لكلّ خروجٍ من المخزون (منضدةً أو سوقًا).
+  dealerSales        DealerSale[]
 
   @@unique([vin])
   @@index([ownerId])

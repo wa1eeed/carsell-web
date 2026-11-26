@@ -113,6 +113,14 @@ export async function restoreOrder(snapshot: OrderSnapshot): Promise<void> {
     });
   }
 
+  /**
+   * **ورابعُ الآثار: واقعةُ البيع.** صار `advanceStage` يكتب صفًّا في
+   * `DealerSale` عند `DONE` — فكلُّ اختبارٍ يُكمل طلبًا يترك بيعةً
+   * دائمةً في نتيجةِ فرعٍ مزروع **يقرؤها كلُّ من يفتح تقاريره**.
+   * ومفتاحُها `orderId`، فتُحذف به.
+   */
+  await db.dealerSale.deleteMany({ where: { orderId: id } });
+
   const { id: _id, ...fields } = snapshot.order;
   await db.order.update({ where: { id }, data: fields });
 

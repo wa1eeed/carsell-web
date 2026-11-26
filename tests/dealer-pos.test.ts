@@ -29,6 +29,10 @@ afterAll(async () => {
     });
   }
   await db.auditLog.deleteMany({ where: { action: 'dealer.pos.sale' } });
+  /** **والأثرُ الجديد يُتبَع في الاستعادة** — وإلّا تسرّبت واقعةُ بيعٍ. */
+  if (made.invoices.length > 0) {
+    await db.dealerSale.deleteMany({ where: { invoiceId: { in: made.invoices } } });
+  }
 });
 
 describe('validatePosSale', () => {
@@ -117,6 +121,21 @@ describe('sellAtCounter', () => {
      * وجود له، ويبحث المراجعُ عن طلبٍ ليس هناك.
      */
     expect(after.closeReason).toBe('dealer.pos.sale');
+
+    /**
+     * **وواقعةُ البيع تُكتب مع الخروج** — فرعُها ومن حملها لم يكونا في
+     * شيءٍ غير `AuditLog`، فلا «نتيجةُ فرع» ولا «مبيعاتُ مندوب».
+     */
+    const fact = await db.dealerSale.findUniqueOrThrow({
+      where: { invoiceId: result.invoiceId },
+      select: { channel: true, soldById: true, price: true, vehicleId: true, orderId: true },
+    });
+    expect(fact.channel).toBe('COUNTER');
+    expect(fact.soldById).toBe(owner.id);
+    expect(fact.vehicleId).toBe(listing.vehicleId);
+    expect(Number(fact.price)).toBe(99_500);
+    /** **وبيعةُ المنضدة ليست طلبًا** — فلا عمولةَ ولا ضمانَ ولا `GMV`. */
+    expect(fact.orderId).toBeNull();
   });
 
   /** **ومركبةُ معرضٍ آخر لا تُباع من منضدتك.** */

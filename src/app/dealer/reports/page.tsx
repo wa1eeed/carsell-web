@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 import { currentDealer } from '@/lib/auth/dealer-session';
 import { dealerReports } from '@/lib/domain/dealer-reports';
+import { branchResults, sellerResults } from '@/lib/domain/dealer-sales';
+import { monthStart } from '@/lib/domain/dealer-dashboard';
+import { dealerBranches } from '@/lib/domain/dealer-branches';
 import { DealerShell } from '@/components/dealer/DealerShell';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -60,6 +63,22 @@ export default async function DealerReports() {
   if (actor.role === 'SALES') redirect('/dealer');
 
   const { brands, sources, funnel } = await dealerReports(actor.dealerId, actor.branchId);
+
+  /**
+   * ═══ ونتيجةُ الفرع والمندوب على الشهر الجاري ═══
+   *
+   * **والنافذةُ واحدةٌ مع بطاقة اللوحة** (`monthStart`): شاشتان تقولان
+   * «هذا الشهر» بحسابين مختلفين تُنتجان رقمين لشهرٍ واحد.
+   */
+  const from = monthStart(new Date(), 0);
+  const to = monthStart(new Date(), -1);
+  const [branches, perBranch, perSeller] = await Promise.all([
+    dealerBranches(actor.dealerId),
+    branchResults(actor.dealerId, from, to),
+    sellerResults(actor.dealerId, from, to),
+  ]);
+  const branchName = (id: string | null): string =>
+    id === null ? 'بلا فرع' : (branches.find((row) => row.id === id)?.name ?? 'فرع محذوف');
   const totalOrders = sources.reduce((sum, row) => sum + row.orders, 0);
 
   const steps = [
@@ -158,6 +177,119 @@ export default async function DealerReports() {
                     <ArabicNumber value={step.value} />
                   </span>
                   <Bar part={step.value} whole={funnel.views} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/*
+        ═══ نتيجةُ كلّ فرع — ثلاثةُ أرقامٍ لا رقم ═══
+
+        إيرادٌ وحده يجعل فرعًا يبيع بالخسارة يبدو أفضلَ من جاره.
+        **وفرعٌ بلا مبيعاتٍ يبقى في الجدول** — وهو أوّلُ من يُسأل عنه.
+      */}
+      <section className="mt-4 rounded-xl border border-line p-5">
+        <h2 className="mb-1 text-3xs font-bold tracking-wide opacity-70">نتيجة الفروع — هذا الشهر</h2>
+        <p className="mb-4 text-3xs leading-loose opacity-70">
+          الإيراد من البيع في المنصة والمنضدة معا. والكلفة من دفتر كل مركبة بيعت،
+          والمصروف ما قيد على الفرع.
+        </p>
+        {perBranch.length === 0 ? (
+          <p className="py-3 text-2xs opacity-70">لا فروع مسجلة — أضفها من الفريق والفروع.</p>
+        ) : (
+          <ul>
+            {perBranch.map((row) => (
+              <li
+                key={row.branchId ?? 'none'}
+                className="border-b border-line-2 py-3 last:border-b-0"
+              >
+                <span className="flex flex-wrap items-baseline justify-between gap-3">
+                  <span className="text-2xs font-semibold">{branchName(row.branchId)}</span>
+                  <span className="text-3xs opacity-70">
+                    <Quantity unit="deals" count={row.sales} />
+                  </span>
+                </span>
+                <span className="mt-1.5 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-3xs">
+                  <span className="opacity-70">
+                    الإيراد <Money amount={row.revenue} decimals={2} size="sm" />
+                  </span>
+                  {/*
+                    **ورقمٌ لم يُدخَل ليس صفرًا**: كلفةٌ لم تُسجَّل لأيّ
+                    مركبةٍ بيعت تُطبع «٠٫٠٠» فتُقرأ «بعناها بلا ثمنِ
+                    شراء» — ومصروفُ شهرٍ لم يُقيَّد فيه شيء مثلُه.
+                  */}
+                  <span className="opacity-70">
+                    الكلفة{' '}
+                    {row.sales > 0 && row.withoutCost === row.sales ? (
+                      <span className="font-semibold">لم تسجل</span>
+                    ) : (
+                      <Money amount={row.cost} decimals={2} size="sm" />
+                    )}
+                  </span>
+                  <span className="opacity-70">
+                    المصروف{' '}
+                    {row.expenseEntries === 0 ? (
+                      <span className="font-semibold">لم يسجل</span>
+                    ) : (
+                      <Money amount={row.expenses} decimals={2} size="sm" />
+                    )}
+                  </span>
+                </span>
+                {/*
+                  **وكم مركبةً بيعت بلا كلفةٍ مسجَّلة** — فمجموعٌ ينقصه
+                  نصفُ مخزونه يُقرأ كاملًا.
+                */}
+                {row.withoutCost === 0 || row.withoutCost === row.sales ? null : (
+                  <span className="mt-1 block text-3xs text-warn-900">
+                    <Quantity unit="soldWithoutCost" count={row.withoutCost} /> — فالكلفة أقل من
+                    حقيقتها.
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/*
+        ═══ مبيعاتُ كلّ مندوب ═══
+
+        **وكلُّ عضوٍ في الجدول ولو لم يبع.** والعمولةُ ليست هنا: أساسُها
+        قاعدةُ عملٍ لم تُقرَّر بعد (سؤالٌ مرفوعٌ في `DESIGN-DECISIONS`)،
+        ورقمٌ يُخترع في شاشةٍ يُقرأ حقًّا لصاحبه.
+      */}
+      <section className="mt-4 rounded-xl border border-line p-5">
+        <h2 className="mb-1 text-3xs font-bold tracking-wide opacity-70">مبيعات الفريق — هذا الشهر</h2>
+        <p className="mb-4 text-3xs leading-loose opacity-70">
+          البيعة تحسب لمن حملها: من باع على المنضدة، ومن رد على العرض المقبول في المنصة.
+          وشراء مباشر بلا مفاوضة لا يحسب لأحد.
+        </p>
+        {perSeller.length === 0 ? (
+          <p className="py-3 text-2xs opacity-70">لا أعضاء بعد — ادع فريقك من الفريق والفروع.</p>
+        ) : (
+          <ul>
+            {perSeller.map((row) => (
+              <li
+                key={row.userId}
+                className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line-2 py-2.5 last:border-b-0"
+              >
+                <span className="text-2xs font-semibold">{row.name ?? 'عضو'}</span>
+                <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span className="text-3xs opacity-70">
+                    <Quantity unit="deals" count={row.sales} />
+                  </span>
+                  <span className="text-3xs opacity-70">
+                    <Quantity unit="offerReplies" count={row.replies} />
+                  </span>
+                  {/*
+                    **وصفرُه يُسقَط لا يُطبع**: «لا صفقات» قالها، و«٠٫٠٠
+                    ريال» بجوارها تُقرأ حكمًا على صاحبها لا قياسًا.
+                  */}
+                  {row.sales === 0 ? null : (
+                    <Money amount={row.revenue} decimals={2} size="sm" />
+                  )}
                 </span>
               </li>
             ))}
