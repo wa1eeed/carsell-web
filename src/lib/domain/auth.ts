@@ -1,7 +1,15 @@
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
 import { db } from '@/lib/db';
 import { nextCustomerRef } from './refs';
-import { APP_ENV, isDevelopment } from '@/lib/env';
+import { APP_ENV, isDevelopment, isStaging } from '@/lib/env';
+import {
+  OTP_LENGTH,
+  OTP_MAX_ATTEMPTS,
+  OTP_MAX_SENDS_PER_HOUR,
+  OTP_RESEND_COOLDOWN_SECONDS,
+  OTP_TEST_CODE,
+  OTP_TTL_SECONDS,
+} from './otp-constants';
 import type { User } from '@/generated/prisma/client';
 
 /**
@@ -20,18 +28,18 @@ import type { User } from '@/generated/prisma/client';
  * (المزايدة ١٠/دقيقة — المهمة ١٩).
  */
 
-export const OTP_LENGTH = 6;
-export const OTP_TTL_SECONDS = 5 * 60;
-export const OTP_MAX_SENDS_PER_HOUR = 5;
-export const OTP_MAX_ATTEMPTS = 5;
-export const OTP_RESEND_COOLDOWN_SECONDS = 30;
-
-/** رمز ثابت لأرقام التجربة — معروف عمدًا ولا يُرسل عبر مزوّد. */
-export const OTP_TEST_CODE = '000000';
+/** **والثوابتُ في ملفٍّ بلا `db`** — فمكوّنُ العميل يستوردها بلا أن يجرّ Prisma. */
+export {
+  OTP_LENGTH,
+  OTP_TTL_SECONDS,
+  OTP_MAX_SENDS_PER_HOUR,
+  OTP_MAX_ATTEMPTS,
+  OTP_RESEND_COOLDOWN_SECONDS,
+  OTP_TEST_CODE,
+} from './otp-constants';
 
 /**
- * أرقام تجربة لـstaging بلا كلفة رسائل.
- * **الأرقام الحقيقية تمرّ بالمزوّد دائمًا** — لا استثناء.
+ * أرقام تجربة بلا كلفة رسائل.
  * كل استخدام يُسجَّل في `AuditLog` بنوع `otp.test_number`،
  * فقائمة مفتوحة على الإنتاج تظهر في التدقيق لا في السكوت.
  */
@@ -45,12 +53,53 @@ function testNumbers(): ReadonlySet<string> {
   );
 }
 
+/**
+ * ═══ وفي staging كلُّ رقمٍ رقمُ تجربة ═══
+ *
+ * قرار المالك ٢٠٢٦-١١-٢٦: «**المفترض أن الـotp في staging دائمًا
+ * `000000`**». وحجّتُه قاطعة: **كيف تُختبَر المنصّة لمستخدمي المتجر
+ * والمعارض بغير ذلك؟**
+ *
+ * فبيئةُ التجربة فيها واحدٌ وخمسون إعلانًا وأربعةُ معارض **ولا يدخلها
+ * أحدٌ كمستخدم**: الرمزُ يُولَّد ولا يُرسَل — إذ لا مزوّدَ رسائل بعد
+ * (`TODO` أدناه) — فتبقى الشاشاتُ مبنيّةً لا تُفتح. وهو «**الشرط
+ * يُفرَض ولا بابَ لاستيفائه**» بنصّه: قفلٌ بلا مفتاح.
+ *
+ * وقائمةُ `OTP_TEST_NUMBERS` تبقى — لرقمٍ بعينه على بيئةٍ أخرى — لكنها
+ * **لا تصلح حلًّا لـstaging**: متغيّرٌ يُضاف في لوحةِ نشرٍ يُنسى، ولا
+ * يُطبَّق إلّا بإعادة نشر، ويُحفظ باقتباسٍ فلا يطابق. وقد وقع الثلاثة.
+ *
+ * ═══ والشرطُ على `APP_ENV` لا على `NODE_ENV` ═══
+ *
+ * `NODE_ENV` يساوي `production` في staging أيضًا، فالحراسةُ به تُخطئ
+ * في الاتّجاهين — قاعدةٌ مكتوبةٌ في هذا المستودع من عطلٍ وقع.
+ * **والإنتاجُ لا يُستثنى منه رقمٌ إلّا بالقائمة الصريحة**، ويحرس ذلك
+ * `tests/env-guards`.
+ */
 export function isTestNumber(phone: string): boolean {
-  return testNumbers().has(phone);
+  return isStaging || testNumbers().has(phone);
 }
 
 export type RequestOtpResult =
-  | { ok: true; challengeId: string; expiresIn: number; devCode?: string }
+  | {
+      ok: true;
+      challengeId: string;
+      expiresIn: number;
+      /** الرمزُ نفسُه — **في التطوير وحده**، ولا يُرخى هذا الشرط. */
+      devCode?: string;
+      /**
+       * ═══ رايةٌ لا رمز ═══
+       *
+       * في staging الرمزُ ثابتٌ معروف (`OTP_TEST_CODE`)، فالشاشة تحتاج
+       * أن **تعرف** ذلك لتعرضه — ولا تحتاج أن يُرسَل إليها.
+       *
+       * وإعادةُ الراية بدل القيمة مقصودة: حارسُ «الرمز لا يخرج خارج
+       * التطوير» يفحص تعبيرَ `devCode` بنصّه (`tests/env-guards`)،
+       * وهو موضوعٌ لأخطر تسرّبٍ في هذا المنتج — **فلا يُمسّ لتسهيلِ
+       * تجربة**. والرايةُ تُغني، إذ القيمةُ ثابتٌ منشور.
+       */
+      fixedCode?: boolean;
+    }
   | { ok: false; reason: 'RATE_LIMITED' | 'COOLDOWN'; retryAfter: number };
 
 export type VerifyOtpResult =
@@ -171,6 +220,7 @@ export async function requestOtp(
     challengeId: challenge.id,
     expiresIn: OTP_TTL_SECONDS,
     ...(isDevelopment ? { devCode: code } : {}),
+    ...(isStaging ? { fixedCode: true } : {}),
   };
 }
 

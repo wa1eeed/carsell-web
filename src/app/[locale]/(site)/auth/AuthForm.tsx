@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { BUY_REQUIRES, SELL_REQUIRES } from '@/lib/domain/profile-requirements';
 import { cityLabel } from '@/lib/labels/cities';
+import { OTP_TEST_CODE } from '@/lib/domain/otp-constants';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -68,6 +69,8 @@ export function AuthForm({
    * التجربة هو الدخول نفسه.
    */
   const [devCode, setDevCode] = useState<string | null>(null);
+  /** أهو رمزُ staging الثابت أم رمزُ تطويرٍ مولَّد — والنصّ يفرّقهما. */
+  const [fixedCode, setFixedCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -116,7 +119,7 @@ export function AuthForm({
         body: JSON.stringify({ phone: `0${phone}` }),
       });
       const body = (await response.json()) as {
-        data?: { challengeId: string; devCode?: string };
+        data?: { challengeId: string; devCode?: string; fixedCode?: boolean };
         error?: { messageAr: string; messageEn: string };
       };
 
@@ -131,7 +134,13 @@ export function AuthForm({
 
       setChallengeId(body.data.challengeId);
       // الخادم لا يُخرجه خارج التطوير — فالشرط هناك لا هنا
-      setDevCode(body.data.devCode ?? null);
+      /**
+       * **والرمزُ في staging ثابتٌ منشور** (`000000`): الخادمُ يرسل
+       * رايةً لا قيمة — فلا يُرخى حارسُ «الرمز لا يخرج خارج التطوير»
+       * من أجل تجربة. والشاشةُ تملأ الثابتَ من عندها.
+       */
+      setDevCode(body.data.devCode ?? (body.data.fixedCode === true ? OTP_TEST_CODE : null));
+      setFixedCode(body.data.fixedCode === true);
       setCode('');
       setStep('code');
       setCooldown(RESEND_SECONDS);
@@ -415,8 +424,10 @@ export function AuthForm({
 
       {devCode === null ? null : (
         /**
-         * لا رسالة تصل في التطوير — فالرمز يُعرض ويُملأ بضغطة.
-         * والخادم لا يُخرجه إلا في التطوير، فلا حارس هنا يُنسى تشغيله.
+         * لا رسالة تصل في التطوير ولا في بيئة التجربة — فالرمز يُعرض
+         * ويُملأ بضغطة. **والخادم لا يُخرج الرمزَ إلّا في التطوير**،
+         * وفي staging يرسل رايةً والشاشةُ تملأ الثابتَ المنشور — فلا
+         * حارس هنا يُنسى تشغيله ولا يُرخى.
          */
         <button
           type="button"
@@ -426,7 +437,11 @@ export function AuthForm({
           }}
           className="mb-4 flex w-full items-center justify-between rounded-md border border-dashed border-line px-3.5 py-2.5 text-2xs opacity-75 hover:opacity-100"
         >
-          <span>وضع التطوير — لا تصل رسالة</span>
+          {/*
+            **والنصُّ يقول أيَّ بيئةٍ هي.** «وضع التطوير» على بيئة
+            تجربةٍ عامّة وعدٌ مُخلَف: من يقرؤها يحسب نفسه على جهازه.
+          */}
+          <span>{fixedCode ? 'بيئة التجربة — لا تصل رسالة' : 'وضع التطوير — لا تصل رسالة'}</span>
           {/* الرمز يُقارن خانةً بخانة — لاتينيّ معزول */}
           <span dir="ltr" className="font-num font-bold tracking-[0.3em]">
             {devCode}

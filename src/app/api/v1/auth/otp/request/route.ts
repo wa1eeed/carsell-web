@@ -41,5 +41,7 @@ export async function POST(request: NextRequest) {
     challengeId: result.challengeId,
     expiresIn: result.expiresIn,
     ...(result.devCode === undefined ? {} : { devCode: result.devCode }),
+    /** رايةُ staging — الشاشةُ تعرض الرمزَ الثابت، ولا يُرسَل إليها. */
+    ...(result.fixedCode === undefined ? {} : { fixedCode: result.fixedCode }),
   });
 }

@@ -275,3 +275,44 @@ describe('توثيق الهوية الذاتيّ محروسٌ بالبيئة', (
     expect(source).toContain('submitIdentity');
   });
 });
+
+/**
+ * ═══ والرمزُ الثابت في staging وحدها — لا في الإنتاج ═══
+ *
+ * قرار المالك ٢٠٢٦-١١-٢٦: الرمزُ في staging دائمًا `000000`، وإلّا
+ * **لم تُختبَر شاشةُ مستخدمٍ ولا لوحةُ معرضٍ قطّ** — الرمزُ يُولَّد
+ * ولا يُرسَل، إذ لا مزوّدَ رسائل بعد.
+ *
+ * **وهذا بالضبط ما لا يجوز أن يتسرّب إلى الإنتاج**: رمزٌ ثابتٌ معروف
+ * يعني انتحالَ أيّ رقمٍ بضغطة. فالشرطُ على `isStaging` — و`APP_ENV`
+ * وحدها تفرّقهما، إذ `NODE_ENV` يساوي `production` في staging أيضًا.
+ *
+ * والفحصُ على المصدر لا على السلوك، كأخيه أعلاه: `APP_ENV` ثابتٌ
+ * يُقرأ عند الإقلاع، فيُقاس الشرطُ نفسُه بدل أن يُحاكى.
+ */
+describe('الرمز الثابت في staging وحدها', () => {
+  it('والشرط isStaging — لا NODE_ENV ولا isProduction مقلوبة', () => {
+    const source = readFileSync('src/lib/domain/auth.ts', 'utf8');
+
+    expect(source).toMatch(/return isStaging \|\| testNumbers\(\)\.has\(phone\)/);
+    expect(source).toMatch(/from '@\/lib\/env'/);
+
+    /** **ولا `!isProduction`**: تشمل التطوير وstaging وأيَّ قيمةٍ تُضاف غدًا. */
+    expect(source).not.toMatch(/!isProduction/);
+  });
+
+  it('وisStaging نفسها من APP_ENV', () => {
+    expect(readFileSync('src/lib/env.ts', 'utf8')).toMatch(
+      /isStaging = APP_ENV === 'staging'/,
+    );
+  });
+
+  it('وكل استعمالٍ لرقم تجربة يُكتب في التدقيق', () => {
+    /**
+     * **فقائمةٌ مفتوحة تظهر في التدقيق لا في السكوت** — والسطرُ هو ما
+     * يجيب «أوصلت القائمةُ العمليةَ العاملة؟» حين لا يعمل `000000`.
+     */
+    const source = readFileSync('src/lib/domain/auth.ts', 'utf8');
+    expect(source).toMatch(/action: 'otp\.test_number'/);
+  });
+});
