@@ -1,6 +1,8 @@
 import { Prisma } from '@/generated/prisma/client';
 import { db } from '@/lib/db';
 import { RIYADH_OFFSET_HOURS } from './viewing-rules';
+import { toLatinDigits } from '@/lib/arabic';
+import { normalizeArabicLetters } from '@/lib/plate';
 
 /**
  * ═══ `D1` — صحّةُ المعرض في شاشة ═══
@@ -179,13 +181,63 @@ export type StockRow = {
  * تُعرض بعد **تظهر في مخزونه** — وجدولٌ مبنيٌّ على `Listing` يُخفيها،
  * وهي بالضبط ما يحتاج أن يراه: رأسُ مالٍ واقف.
  */
+/**
+ * ═══ والبحثُ برقم الشاص — أوّلُ ما يُسأل عنه في الصالة ═══
+ *
+ * «إمكانية البحث عن السيارة برقم الشاص في لحظة» تصدّرت إعلانَ منافسٍ
+ * وصفحةَ آخر، والسببُ أنّ الزميلَ على الهاتف يُملي رقمًا لا اسمًا.
+ * وجدولُنا كان بلا بحثٍ أصلًا.
+ *
+ * **ويُطبَّع ما يُلصق**: الرقمُ يُنسخ من وثيقةٍ بأحرفٍ صغيرة، واللوحةُ
+ * تُملى بأرقامٍ عربية — ومن يبحث بما لديه لا بما نخزّنه.
+ *
+ * **والآخِرةُ تكفي**: من يحفظ رقمَ هيكلٍ كاملًا نادر، والسائدُ آخرُ
+ * ستٍّ — فالمطابقةُ احتواءٌ لا تطابقٌ تامّ.
+ */
+export type StockFilter = {
+  /** رقمُ هيكلٍ أو لوحةٌ أو اسمُ مركبة. */
+  q?: string;
+  /** الراكدُ وحده — بعتبةٍ يحسبها `stockAging`. */
+  agedOverDays?: number;
+  now?: Date;
+};
+
 export async function dealerStock(
   dealerId: string,
   branchId: string | null,
-  now: Date = new Date(),
+  filter: StockFilter = {},
 ): Promise<StockRow[]> {
+  const now = filter.now ?? new Date();
+  const q = (filter.q ?? '').trim();
+  const digits = toLatinDigits(q).replace(/\D/g, '');
+  const letters = normalizeArabicLetters(q);
+
   const vehicles = await db.vehicle.findMany({
-    where: { dealerId, ...(branchId === null ? {} : { branchId }) },
+    where: {
+      dealerId,
+      ...(branchId === null ? {} : { branchId }),
+      ...(q === ''
+        ? {}
+        : {
+            OR: [
+              { vin: { contains: q.toUpperCase() } },
+              { brandName: { contains: q } },
+              { modelName: { contains: q } },
+              { trimName: { contains: q } },
+              { colorExterior: { contains: q } },
+              ...(digits === '' ? [] : [{ plateNumbers: { contains: digits } }]),
+              /**
+               * وحروفُ اللوحة تُطبَّع كما تُخزَّن — «أ» و«ا» واحدة.
+               *
+               * **وشرطٌ فارغ يطابق كلَّ شيء.** `contains: ''` صحيحٌ في
+               * SQL ويردّ الجدولَ كلَّه — فبحثٌ برقمٍ خالص («5615») كان
+               * يُنتج `normalizeArabicLetters` فارغةً، فيردّ المخزونَ
+               * كلَّه ويبدو أنّ البحث لا يعمل. والشرطُ يسقط حين يفرغ.
+               */
+              ...(letters === '' ? [] : [{ plateLetters: { contains: letters } }]),
+            ],
+          }),
+    },
     orderBy: { createdAt: 'desc' },
     take: 200,
     select: {
@@ -205,7 +257,7 @@ export async function dealerStock(
     },
   });
 
-  return vehicles.map((v) => {
+  const rows = vehicles.map((v) => {
     const listing = v.listings[0];
     const hasPurchase = v.costs.some((c) => c.kind === 'PURCHASE');
     const total = v.costs.reduce((acc, c) => acc.add(c.amount), new Prisma.Decimal(0));
@@ -230,4 +282,12 @@ export async function dealerStock(
       ageDays: Math.max(0, Math.floor((now.getTime() - since.getTime()) / 86_400_000)),
     };
   });
+
+  /**
+   * **والعمرُ يُشتقّ ولا يُخزَّن**، فترشيحُ الراكد بعد الاشتقاق لا في
+   * الاستعلام. وهو آمنٌ هنا: السقفُ مئتان، والراكدُ جزءٌ منها.
+   */
+  return filter.agedOverDays === undefined
+    ? rows
+    : rows.filter((row) => row.ageDays > (filter.agedOverDays as number));
 }

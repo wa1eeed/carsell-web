@@ -1,7 +1,13 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { db } from '@/lib/db';
-import { addDealerVehicle, validateAddVehicle } from '@/lib/domain/dealer-stock';
+import {
+  addDealerVehicle,
+  stockAging,
+  validateAddVehicle,
+  AGED_FALLBACK_DAYS,
+  AGED_MIN_SAMPLE,
+} from '@/lib/domain/dealer-stock';
 import { dealerStock } from '@/lib/domain/dealer-dashboard';
 
 /**
@@ -156,5 +162,95 @@ describe('نشر مركبة من المخزون', () => {
   it('زر العرض يختفي عن المعروضة', () => {
     const table = readFileSync('src/app/dealer/inventory/StockTable.tsx', 'utf8');
     expect(table).toContain("row.listingRef !== null ? null");
+  });
+});
+
+/**
+ * ═══ `D2d` — البحثُ والمخزونُ الراكد ═══
+ *
+ * «البحث برقم الشاص في لحظة» و«تحليل المخزون الراكد» يبيعهما المنافسون
+ * باسميهما، وجدولُنا كان بلا بحثٍ ولا عتبة.
+ */
+describe('بحث المخزون', () => {
+  it('البحث برقم اللوحة يرد صاحبه وحده — وشرط فارغ يرد الجدول كله', async () => {
+    const owner = await db.user.findFirstOrThrow({
+      where: { dealerRole: 'OWNER', dealer: { status: 'ACTIVE' } },
+      select: { dealerId: true },
+    });
+    const dealerId = owner.dealerId as string;
+
+    const all = await dealerStock(dealerId, null);
+    const withPlate = all.find((row) => row.plate !== null);
+    expect(withPlate).toBeDefined();
+    if (withPlate === undefined) return;
+
+    const digits = (withPlate.plate ?? '').replace(/\D/g, '');
+    expect(digits.length).toBeGreaterThan(0);
+
+    /**
+     * **والعطلُ الذي كشفه المشي**: بحثٌ برقمٍ خالص كان ينتج حروفَ لوحةٍ
+     * فارغة، و`contains: ''` صحيحٌ في SQL **ويردّ كلَّ صفّ** — فيبدو
+     * أنّ البحث لا يعمل وهو يعمل على الجميع.
+     */
+    const found = await dealerStock(dealerId, null, { q: digits });
+    expect(found.length).toBeLessThan(all.length);
+    expect(found.every((row) => (row.plate ?? '').replace(/\D/g, '').includes(digits))).toBe(true);
+  });
+
+  it('والبحث بالاسم العربي يطابق لقطة الكتالوج', async () => {
+    const owner = await db.user.findFirstOrThrow({
+      where: { dealerRole: 'OWNER', dealer: { status: 'ACTIVE' } },
+      select: { dealerId: true },
+    });
+    const dealerId = owner.dealerId as string;
+    const all = await dealerStock(dealerId, null);
+    const sample = all[0];
+    if (sample === undefined) return;
+
+    const brand = sample.title.split(' ')[0] as string;
+    const found = await dealerStock(dealerId, null, { q: brand });
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.every((row) => row.title.includes(brand))).toBe(true);
+  });
+});
+
+describe('المخزون الراكد', () => {
+  it('العتبة من وسيط المعرض، وبلا تاريخ كاف تقول إنها حد معلن', async () => {
+    const owner = await db.user.findFirstOrThrow({
+      where: { dealerRole: 'OWNER', dealer: { status: 'ACTIVE' } },
+      select: { dealerId: true },
+    });
+    const aging = await stockAging(owner.dealerId as string, null);
+
+    expect(aging.thresholdDays).toBeGreaterThan(0);
+    /** **ولا يُدّعى وسيطٌ على عيّنةٍ لا تصنعه.** */
+    if (aging.sample < AGED_MIN_SAMPLE) {
+      expect(aging.fromOwnMedian).toBe(false);
+      expect(aging.thresholdDays).toBe(AGED_FALLBACK_DAYS);
+    } else {
+      expect(aging.fromOwnMedian).toBe(true);
+    }
+  });
+
+  it('وترشيح الراكد يرد ما تجاوز العتبة وحده', async () => {
+    const owner = await db.user.findFirstOrThrow({
+      where: { dealerRole: 'OWNER', dealer: { status: 'ACTIVE' } },
+      select: { dealerId: true },
+    });
+    const dealerId = owner.dealerId as string;
+    const aging = await stockAging(dealerId, null);
+
+    const all = await dealerStock(dealerId, null);
+    const aged = await dealerStock(dealerId, null, { agedOverDays: aging.thresholdDays });
+
+    expect(aged.every((row) => row.ageDays > aging.thresholdDays)).toBe(true);
+    /**
+     * **ولا يُصدَّق ترشيحٌ لا يُسقط شيئًا.** لو لم يكن في المخزون صفٌّ
+     * دون العتبة وآخرُ فوقها لمرّ الفحصُ على ترشيحٍ لا يعمل — وهو شرطُ
+     * «حدٌّ لا تبلغه البيانات» المسجَّل في هذا المستودع.
+     */
+    expect(all.some((row) => row.ageDays <= aging.thresholdDays)).toBe(true);
+    expect(aged.length).toBeLessThan(all.length);
+    expect(aged.length).toBeGreaterThan(0);
   });
 });

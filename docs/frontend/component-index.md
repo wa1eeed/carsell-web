@@ -173,7 +173,7 @@ rather than found by chance.
 | `PhotoGrid` | yes | `photos` · `className` | 1 |
 | `SectionScores` | yes | `sections` | 1 |
 | `Logo` | no | `variant` · `className` · `priority` | 10 |
-| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 109 |
+| `Money` | no | `amount` · `size` · `decimals` · `struck` · `negative` · `showCurrency` · `className` | 110 |
 | `OrderStatusBadge` | no | `status` · `stage` · `size` | 4 |
 | `OtpInput` | yes | `value` · `onChange` · `onComplete` · `disabled` · `invalid` · `autoFocus` · `className` | 2 |
 | `PaintMap` | no | `panels` · `className` | 5 |
@@ -182,7 +182,7 @@ rather than found by chance.
 | `Picker` | yes | `value` · `options` · `onChange` · `id` · `placeholder` · `disabled` · `emptyLabel` · `searchable` · `searchPlaceholder` · `invalid` | 3 |
 | `PlateBadge` | no | `letters` · `numbers` · `size` · `className` | 2 |
 | `Percent` | no | `value` · `signed` · `className` | 5 |
-| `Quantity` | no | `unit` · `count` · `className` | 143 |
+| `Quantity` | no | `unit` · `count` · `className` | 144 |
 | `RangeBar` | no | `price` · `stats` · `segment` · `className` | 11 |
 | `RangeSlider` | yes | `min` · `max` · `value` · `step` · `bars` · `label` · `grouped` · `onCommit` · `className` | 1 |
 | `ScoreRing` | no | `score` · `size` · `className` | 5 |

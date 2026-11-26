@@ -168,3 +168,43 @@ the isolation itself. Measured on 2026-11-26: production carries no R2
 variables yet, so uploads there are refused explicitly, and development falls
 back to local disk. The drawer uses the same `ImageUploader` as the sell wizard,
 so the day the buckets are configured both paths work at once.
+
+## D2d — stock search, and the stock that is not moving
+
+Two features all four competitor products lead with, and the stock table had
+neither.
+
+**Search by chassis number.** A colleague on the phone dictates a number, not a
+name, which is why "البحث عن السيارة برقم الشاص في لحظة" headlines both the
+Haraj ad and Optivize. It matches VIN, plate, and the catalogue snapshot names,
+by containment rather than equality — almost nobody recalls all seventeen
+characters, but everybody has the last six. Pasted input is normalised the way
+every pasted-code field in this product is: Arabic digits to Latin, plate
+letters to the stored form.
+
+**Aged stock.** A showroom sees what it sold; standing capital does not
+announce itself.
+
+- **The threshold is the dealer's own median**, not a number we invented. Sixty
+  days fits one showroom and lies about another: a luxury floor sits for months,
+  an economy floor for weeks. So a car is "aged" when it has sat longer than the
+  median stock age of the cars *this* showroom sold, measured on the same clock
+  as the age column — first recorded cost, or the row's creation.
+- **Under three sales there is no median**, so a stated 60 days is used and the
+  screen says it is a stated limit, not the dealer's own. A number shown without
+  its source is a promise that cannot be kept.
+- **The reading is tied-up capital, not the count.** "Three cars aged" is news;
+  "280,000 standing" is a decision. It sums recorded costs only and says how
+  many cars have none, because a total missing half its stock reads as complete.
+- **And a zero that was never entered is not a zero.** When no aged car has a
+  recorded cost the line used to print "رأس المال الواقف ٠ ريال". It now says no
+  cost is recorded, so nothing is computed — the same rule as the expense card
+  in `A30`.
+
+### What the walkthrough caught
+
+Searching by a bare number returned the entire stock. `normalizeArabicLetters`
+on digits yields an empty string, and `contains: ''` is valid SQL that **matches
+every row** — so the search looked broken while in fact matching everyone. The
+clause is now dropped when it is empty, and the test proves it by restoring the
+bug.

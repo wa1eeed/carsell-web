@@ -149,3 +149,88 @@ export async function addDealerVehicle(
 
   return { ok: true, vehicleId: vehicle.id };
 }
+
+/**
+ * ═══ `D2d` — المخزونُ الراكد ═══
+ *
+ * «تحليل المخزون الراكد» يبيعه المنافسون باسمه، والسببُ بيّن: المعرضُ
+ * يرى ما باع، **ولا يرى ما لم يُبَع** — ورأسُ المال الواقف لا ينادي.
+ *
+ * ═══ والعتبةُ من وسيط المعرض لا من رقمٍ نخترعه ═══
+ *
+ * «ستّون يومًا» رقمٌ يصلح لمعرضٍ ويكذب على آخر: من يبيع الفاخرَ يمكث
+ * شهورًا ومن يبيع الاقتصاديَّ أسابيع. فالعتبةُ **وسيطُ مكوثِ ما باعه
+ * هو** — ومن تجاوزها ركدَ بمقياس نفسِه.
+ *
+ * **وبلا تاريخٍ كافٍ تُقال العتبةُ وسببُها**: ثلاثُ بيعاتٍ لا تصنع
+ * وسيطًا، فيُستعمل حدٌّ معلَن ويُقال إنه ليس وسيطَه بعد — ورقمٌ
+ * يُعرض بلا مصدرٍ وعدٌ لا يُوفى.
+ */
+export const AGED_FALLBACK_DAYS = 60;
+/** أقلُّ ما يصنع وسيطًا — وبيعتان لا تقولان شيئًا عن معرض. */
+export const AGED_MIN_SAMPLE = 3;
+
+export type StockAging = {
+  thresholdDays: number;
+  /** أمِن وسيطه هي أم من الحدّ المعلَن؟ — والشاشة تقول أيَّهما. */
+  fromOwnMedian: boolean;
+  /** عددُ البيعات التي بُني عليها الوسيط. */
+  sample: number;
+};
+
+function median(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = sorted.length / 2;
+  return sorted.length % 2 === 1
+    ? (sorted[(sorted.length - 1) / 2] as number)
+    : Math.round(((sorted[middle - 1] as number) + (sorted[middle] as number)) / 2);
+}
+
+export async function stockAging(
+  dealerId: string,
+  branchId: string | null,
+  now: Date = new Date(),
+): Promise<StockAging> {
+  /**
+   * **والمكوثُ يُقاس بالساعة نفسِها التي يُقاس بها عمرُ الصفّ**: من
+   * أوّل كلفةٍ مسجَّلة أو من إنشاء الصفّ إلى تاريخ الطلب. ومقياسان
+   * مختلفان لشيءٍ واحد يجعلان العتبةَ لا تقارن شيئًا.
+   */
+  const sold = await db.order.findMany({
+    where: {
+      status: 'COMPLETED',
+      listing: {
+        vehicle: { dealerId, ...(branchId === null ? {} : { branchId }) },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: {
+      createdAt: true,
+      listing: {
+        select: {
+          vehicle: { select: { createdAt: true, costs: { select: { incurredAt: true } } } },
+        },
+      },
+    },
+  });
+
+  const ages = sold
+    .map((order) => {
+      const vehicle = order.listing.vehicle;
+      const first = vehicle.costs
+        .map((cost) => cost.incurredAt)
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+      const since = first ?? vehicle.createdAt;
+      return Math.floor((order.createdAt.getTime() - since.getTime()) / 86_400_000);
+    })
+    .filter((days) => days >= 0);
+
+  const own = ages.length >= AGED_MIN_SAMPLE ? median(ages) : null;
+  void now;
+
+  return own === null
+    ? { thresholdDays: AGED_FALLBACK_DAYS, fromOwnMedian: false, sample: ages.length }
+    : { thresholdDays: own, fromOwnMedian: true, sample: ages.length };
+}
