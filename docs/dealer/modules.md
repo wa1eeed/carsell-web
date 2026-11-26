@@ -1,6 +1,6 @@
 # Dealer modules and the entitlement engine
 
-_Last updated: 2026-11-27_
+_Last updated: 2026-11-26_
 
 The owner's requests of 2026-11-26, recorded before code:
 
@@ -323,14 +323,14 @@ nothing. So the brand accent exists once as `BRAND_ACCENT_HEX` in
 two copies without a guard drift, and a showroom choosing "CARZ green" would get
 last year's green.
 
-## 10 · The modules were built, shipped — and invisible everywhere (2026-11-27)
+## 10 · The modules were built, shipped — and invisible everywhere (2026-11-26)
 
 The owner deployed staging, opened the panel and said: «ما وجدت شي». He was
 right. POS, instalments and the showroom site were live in production and
 **absent from every dealer panel in every environment**. Measured, the cause was
 four missing links in one chain:
 
-| Link | State on 2026-11-27 |
+| Link | State on 2026-11-26 |
 | --- | --- |
 | `Entitlement.defaultValue` for `dealer_pos`, `dealer_installments`, `dealer_landing` | `false` — written hours before those modules were built, with the comment "false for what is not built", and **never flipped when they were** |
 | `PlanEntitlement` rows for any `dealer_*` key | **zero** |

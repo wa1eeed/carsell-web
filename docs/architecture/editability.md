@@ -8,7 +8,7 @@ and requires that each one the product neither creates nor edits appears below
 with a reason. A model that gains an editor must be removed from this file; one
 that loses it must be added. Neither drifts silently.
 
-> **Removed 2026-11-27: `Subscription`.** It said «nothing subscribes… the
+> **Removed 2026-11-26: `Subscription`.** It said «nothing subscribes… the
 > table waits for the dealer panel». The panel arrived, and the row stayed —
 > while POS, instalments and the showroom site sat behind plan grants that
 > nothing could assign. `assignDealerPlan` (admin) and `registerDealer` (a new

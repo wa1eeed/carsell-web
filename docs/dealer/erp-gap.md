@@ -43,6 +43,28 @@ feature that touches a car should end at a button that publishes it.
 
 ## 2 · What is missing, in the order it should be built
 
+> **This section is a snapshot, and snapshots rot.** Measured again
+> 2026-11-26: **phases 1 and 2 are built**, and what follows each item says
+> where. Phases 3 and 4 are still missing, and nothing below them has been
+> started. A table of results read a month later is taken for a description —
+> so each line says when it was measured.
+
+### Built since this list was written (2026-11-26 → 27)
+
+| Was missing | Now | Where |
+| --- | --- | --- |
+| Add a vehicle and publish from its own options | built | `/dealer/inventory/new`, publish drawer |
+| Aged-stock analysis, tied capital | built | `/dealer/inventory` — threshold is the showroom's own median |
+| Search stock by plate or name | built | same screen |
+| Showroom expenses | built (`D13`) | `/dealer/expenses` |
+| Per-branch result | built (`D17`) | `/dealer/reports` — revenue, cost of what sold, expenses |
+| Salesperson sales | built (`D17`) | same screen. **Commission is not**: its basis is an unanswered business rule (`DESIGN-DECISIONS` 2026-11-26) |
+| Counter sales to walk-in customers | built (`D14`) | `/dealer/pos` |
+| Instalment contracts and their arrears | built (`D15`) | `/dealer/installments`, opened from the counter |
+| The showroom's own site, its identity and domain | built (`D16`) | `/dealer/site` → `/showroom/{slug}`; TLS for a custom domain is an ops step |
+
+
+
 ### Phase 1 — the panel cannot do its own job yet
 1. **Add a vehicle to stock, and publish it from the vehicle's own options.**
    Measured 2026-11-26: `createListing`'s only caller is the *personal* sell
