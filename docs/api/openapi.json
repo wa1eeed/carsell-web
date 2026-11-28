@@ -5384,6 +5384,230 @@
         }
       }
     },
+    "/api/v1/admin/services/{key}/template": {
+      "post": {
+        "summary": "POST /api/v1/admin/services/{key}/template",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "services.manage",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 40
+                  },
+                  "labelAr": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "hintAr": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "nullable": true
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "TEXT",
+                      "LATIN",
+                      "NUMBER",
+                      "MONEY",
+                      "DATE",
+                      "SELECT",
+                      "CHECKBOX",
+                      "NOTE"
+                    ]
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "REQUEST",
+                      "ACTION"
+                    ]
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "maxLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5000,
+                    "nullable": true
+                  },
+                  "priceDelta": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "nullable": true
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "key",
+                  "labelAr",
+                  "hintAr",
+                  "kind",
+                  "purpose",
+                  "required",
+                  "maxLength",
+                  "priceDelta",
+                  "options"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/admin/services/{key}/template",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "x-permission": "services.manage",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 40
+                  },
+                  "labelAr": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "hintAr": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "nullable": true
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "TEXT",
+                      "LATIN",
+                      "NUMBER",
+                      "MONEY",
+                      "DATE",
+                      "SELECT",
+                      "CHECKBOX",
+                      "NOTE"
+                    ]
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "REQUEST",
+                      "ACTION"
+                    ]
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "maxLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5000,
+                    "nullable": true
+                  },
+                  "priceDelta": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "nullable": true
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "key",
+                  "labelAr",
+                  "hintAr",
+                  "kind",
+                  "purpose",
+                  "required",
+                  "maxLength",
+                  "priceDelta",
+                  "options"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation failed"
+          }
+        }
+      }
+    },
     "/api/v1/admin/tax/invoices/{id}/cancel": {
       "post": {
         "summary": "POST /api/v1/admin/tax/invoices/{id}/cancel",
@@ -9669,6 +9893,9 @@
                   "scheduledAt": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "answers": {
+                    "type": "object"
                   }
                 },
                 "required": [

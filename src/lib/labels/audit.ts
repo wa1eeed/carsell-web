@@ -22,6 +22,8 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   'dealer.installment.created': 'فتح عقد تقسيط',
   'dealer.site.saved': 'عدل موقع المعرض',
   'dealer.plan.assigned': 'أسند باقة إلى معرض',
+  'service.template.field': 'عدل حقلا في قالب خدمة',
+  'service.template.removed': 'حذف حقلا من قالب خدمة',
   'dealer.vehicle.add': 'أدخل مركبة إلى المخزون',
   'dealer.vehicle.import': 'استورد مركبة بالإضافة الجماعية',
   /** يكتبه النظام حين يُقبل أعلى عرضٍ ولا يُنشأ الطلب — والسبب في الحمولة. */

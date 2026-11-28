@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import type { Prisma } from '@/generated/prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import type { ProviderType } from '@/generated/prisma/enums';
 import { COMPLETION_FIELDS } from './completion-schema';
 import { publishOnIssue } from './inspection';
@@ -391,6 +391,19 @@ export type AdminServiceRequestDetail = {
   listingRef: string | null;
   inspectionScore: number | null;
   /**
+   * ═══ تفصيلُ السعر — ولقطتُه يوم طُلب ═══
+   *
+   * **والمجموعُ وحده يُسأل عنه**: «١١٠٠» تُقرأ ولا تُفهم، و«٩٠٠ أساس
+   * + ٢٠٠ مسافة» تُفهم. والسطورُ من لقطة الطلب لا من القالب اليوم —
+   * فقالبٌ عُدّل بعده لا يغيّر فاتورةً صدرت.
+   */
+  quote: {
+    base: string;
+    extra: string;
+    templateVersion: number | null;
+    lines: { key: string; labelAr: string; value: string; delta: string }[];
+  } | null;
+  /**
    * مسودّةُ فحصٍ تنتظر المراجعة — و`null` حين لا شيء ينتظر.
    *
    * **والنشرُ يُقال قبل الضغط**: قرار المالك ٤ يجعل تقرير صاحب
@@ -439,6 +452,11 @@ export async function adminServiceRequestDetail(
       listing: { select: { ref: true } },
       inspectionReport: { select: { score: true, ref: true } },
       vehicle: { select: { ownerId: true } },
+      /** إجاباتُ العميل على قالب الخدمة — ومعها زيادةُ كلٍّ يوم أُجيب. */
+      answers: {
+        orderBy: { key: 'asc' },
+        select: { key: true, labelAr: true, value: true, priceDelta: true },
+      },
       inspectionDraft: {
         select: {
           id: true,
@@ -490,6 +508,21 @@ export async function adminServiceRequestDetail(
     customer: { id: request.user.id, name: request.user.name ?? request.user.phone },
     listingRef: request.listing?.ref ?? null,
     inspectionScore: request.inspectionReport?.score ?? null,
+    /** **و`null` طلبٌ بلا قالب** — فلا يُعرض تفصيلٌ لسعرٍ لم يُركَّب. */
+    quote:
+      request.quoteBase === null
+        ? null
+        : {
+            base: request.quoteBase.toFixed(2),
+            extra: (request.quoteExtra ?? new Prisma.Decimal(0)).toFixed(2),
+            templateVersion: request.templateVersion,
+            lines: request.answers.map((answer) => ({
+              key: answer.key,
+              labelAr: answer.labelAr,
+              value: answer.value,
+              delta: answer.priceDelta.toFixed(2),
+            })),
+          },
     pendingInspection:
       request.inspectionDraft === null ||
       request.inspectionDraft.status !== 'SUBMITTED' ||

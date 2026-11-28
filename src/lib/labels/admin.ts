@@ -604,3 +604,14 @@ export const ASSIGN_FAILURE_LABEL = {
   WRONG_TYPE: 'المزود لا يؤدي هذا النوع',
   CITY_NOT_COVERED: 'المزود لا يغطي مدينة الطلب',
 } satisfies Record<AssignFailure, string>;
+
+/**
+ * قيمةُ حقلٍ من قالب الخدمة كما تُعرض — والنطاقُ يعيد مفتاحًا.
+ *
+ * **وما لا مفتاحَ له يُعرض كما كُتب**: نصُّ العميل ورقمُه وتاريخُه
+ * قيمٌ لا رموز.
+ */
+export const TEMPLATE_VALUE_LABEL: Record<string, string> = {
+  YES: 'نعم',
+  NO: 'لا',
+};

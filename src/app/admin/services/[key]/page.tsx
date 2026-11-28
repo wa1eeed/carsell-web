@@ -20,6 +20,8 @@ import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
 import { SERVICE_CATEGORY, SERVICE_REQUEST_STATUS } from '@/lib/labels/services';
 import { AR_DATE_LOCALE } from '@/lib/arabic';
 import { ServiceSettings } from './ServiceSettings';
+import { TemplateEditor } from './TemplateEditor';
+import { serviceTemplate } from '@/lib/domain/service-template';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'خدمة' };
@@ -61,6 +63,7 @@ export default async function AdminServicePage({
   if (service === null) notFound();
 
   const editable = canWrite(admin.role, 'services.manage');
+  const template = await serviceTemplate(service.key);
 
   return (
     <AdminShell title="خدمة" activeHref="/admin/services" admin={admin}>
@@ -120,6 +123,39 @@ export default async function AdminServicePage({
               adminFeeEnabled={service.adminFeeEnabled}
               canEdit={editable}
             />
+
+            {/*
+              ═══ قالبُ الخدمة — طلبُ المالك ٢٠٢٦-١١-٢٨ ═══
+
+              «قالب لكل خدمة … حقول لاتخاذ إجراء وحقول للسعر». وكان
+              **الفحصُ وحده** قابلًا للتحرير، وباقي الخدمات حقولُها في
+              الشيفرة: إضافةُ حقلٍ تحتاج نشرًا.
+            */}
+            {template === null ? null : (
+              <DetailCard
+                title="قالب الخدمة"
+                note={
+                  template.version === 0 ? (
+                    'لم يحرر بعد'
+                  ) : (
+                    <>
+                      الإصدار <ArabicNumber value={template.version} />
+                    </>
+                  )
+                }
+              >
+                <p className="mb-3.5 text-3xs leading-loose opacity-70">
+                  حقول <b>يملؤها العميل</b> وهو يطلب — وما يحمل زيادة منها يرفع السعر قبل
+                  الدفع. وحقول <b>يملؤها المزود</b> عند الإنهاء، تسجل في الطلب ولا تغير
+                  مبلغا دفع. وكل تغيير يرفع الإصدار، والطلبات القائمة تحتفظ بما قرأته.
+                </p>
+                {editable ? (
+                  <TemplateEditor template={template} />
+                ) : (
+                  <p className="text-2xs opacity-70">العرض فقط — لا تملك تحرير الخدمات.</p>
+                )}
+              </DetailCard>
+            )}
 
             <DetailCard
               title="آخر الطلبات"

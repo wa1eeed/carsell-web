@@ -4,7 +4,7 @@
 > Run `npm run docs:generate`. `npm run verify` fails if this file is stale,
 > because a diagram drawn by hand describes the tree on the day it was drawn.
 
-116 models · 79 enums
+120 models · 81 enums
 
 ## Relationships
 
@@ -86,6 +86,14 @@ erDiagram
   VehicleCost }o--|| VehicleCostKind : "kind"
   VehicleCost }o--|| Vehicle : "vehicle"
   VehicleCost }o--|| User : "recordedBy"
+  ServiceRequestAnswer }o--|| ServiceRequest : "request"
+  ServiceTemplate }o--|| Service : "service"
+  ServiceTemplate ||--o{ ServiceTemplateField : "fields"
+  ServiceTemplateField }o--|| ServiceFieldKind : "kind"
+  ServiceTemplateField }o--|| ServiceFieldPurpose : "purpose"
+  ServiceTemplateField }o--|| ServiceTemplate : "template"
+  ServiceTemplateField ||--o{ ServiceTemplateOption : "options"
+  ServiceTemplateOption }o--|| ServiceTemplateField : "field"
   DealerSale }o--|| DealerSaleChannel : "channel"
   DealerSale }o--|| Dealer : "dealer"
   DealerSale |o--|| Branch : "branch"
@@ -247,6 +255,7 @@ erDiagram
   Service |o--|| ProviderType : "providerType"
   Service |o--|| ServiceProvider : "provider"
   Service ||--o{ ServiceRequest : "requests"
+  Service |o--|| ServiceTemplate : "template"
   ServiceRequest }o--|| ServiceRequestStatus : "status"
   ServiceRequest }o--|| Service : "service"
   ServiceRequest |o--|| ServiceProvider : "provider"
@@ -257,6 +266,7 @@ erDiagram
   ServiceRequest |o--|| InspectionReport : "inspectionReport"
   ServiceRequest |o--|| InspectionDraft : "inspectionDraft"
   ServiceRequest ||--o{ ServiceCompletionField : "completion"
+  ServiceRequest ||--o{ ServiceRequestAnswer : "answers"
   Viewing }o--|| ViewingStatus : "status"
   Viewing }o--|| ViewingPeriod : "period"
   Viewing |o--|| ViewingPeriod : "originalPeriod"
@@ -576,6 +586,60 @@ Relations: `dealer` → `Dealer` · `manager` → `User` · `members` → `User`
 | `createdAt` | `DateTime` |  |
 
 Relations: `kind` → `VehicleCostKind` · `vehicle` → `Vehicle` · `recordedBy` → `User`
+
+### `ServiceRequestAnswer`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `requestId` | `String` |  |
+| `key` | `String` |  |
+| `labelAr` | `String` |  |
+| `value` | `String` |  |
+| `priceDelta` | `Decimal` |  |
+
+Relations: `request` → `ServiceRequest`
+
+### `ServiceTemplate`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `serviceId` | `String` | unique |
+| `version` | `Int` |  |
+| `updatedAt` | `DateTime` |  |
+| `createdAt` | `DateTime` |  |
+
+Relations: `service` → `Service` · `fields` → `ServiceTemplateField`
+
+### `ServiceTemplateField`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `templateId` | `String` |  |
+| `key` | `String` |  |
+| `labelAr` | `String` |  |
+| `required` | `Boolean` |  |
+| `sort` | `Int` |  |
+| `maxLength` | `Int?` |  |
+| `hintAr` | `String?` |  |
+| `priceDelta` | `Decimal?` |  |
+
+Relations: `kind` → `ServiceFieldKind` · `purpose` → `ServiceFieldPurpose` · `template` → `ServiceTemplate` · `options` → `ServiceTemplateOption`
+
+### `ServiceTemplateOption`
+
+| Field | Type | Key |
+|---|---|---|
+| `id` | `String` | PK |
+| `fieldId` | `String` |  |
+| `value` | `String` |  |
+| `labelAr` | `String` |  |
+| `sort` | `Int` |  |
+| `priceDelta` | `Decimal?` |  |
+
+Relations: `field` → `ServiceTemplateField`
 
 ### `DealerSale`
 
@@ -1199,7 +1263,7 @@ Relations: `type` → `InvoiceType` · `order` → `Order` · `user` → `User`
 | `active` | `Boolean` |  |
 | `sort` | `Int` |  |
 
-Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategory` · `providerType` → `ProviderType` · `provider` → `ServiceProvider` · `requests` → `ServiceRequest`
+Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategory` · `providerType` → `ProviderType` · `provider` → `ServiceProvider` · `requests` → `ServiceRequest` · `template` → `ServiceTemplate`
 
 ### `ServiceRequest`
 
@@ -1226,8 +1290,11 @@ Relations: `adminFeeMode` → `ServiceFeeMode` · `category` → `ServiceCategor
 | `decidedAt` | `DateTime?` |  |
 | `declineReason` | `String?` |  |
 | `paymentId` | `String?` |  |
+| `quoteBase` | `Decimal?` |  |
+| `quoteExtra` | `Decimal?` |  |
+| `templateVersion` | `Int?` |  |
 
-Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport` · `inspectionDraft` → `InspectionDraft` · `completion` → `ServiceCompletionField`
+Relations: `status` → `ServiceRequestStatus` · `service` → `Service` · `provider` → `ServiceProvider` · `user` → `User` · `seller` → `User` · `listing` → `Listing` · `vehicle` → `Vehicle` · `inspectionReport` → `InspectionReport` · `inspectionDraft` → `InspectionDraft` · `completion` → `ServiceCompletionField` · `answers` → `ServiceRequestAnswer`
 
 ### `Viewing`
 
@@ -2319,6 +2386,8 @@ Relations: `account` → `LedgerAccount` · `direction` → `LedgerDirection`
 - `VehicleCostKind` — `PURCHASE`, `TRANSPORT`, `INSPECTION`, `MAINTENANCE`, `DETAILING`, `CUSTOMS`, `OTHER`
 - `DealerExpenseKind` — `RENT`, `SALARIES`, `MARKETING`, `UTILITIES`, `GOVERNMENT`, `FACILITY`, `OTHER`
 - `DealerSaleChannel` — `COUNTER`, `MARKET`
+- `ServiceFieldPurpose` — `REQUEST`, `ACTION`
+- `ServiceFieldKind` — `TEXT`, `LATIN`, `NUMBER`, `MONEY`, `DATE`, `SELECT`, `CHECKBOX`, `NOTE`
 - `InstallmentStatus` — `ACTIVE`, `SETTLED`, `DEFAULTED`, `CANCELLED`
 - `InstallmentMethod` — `CASH`, `CARD`, `TRANSFER`
 - `BodyType` — `SEDAN`, `SUV`, `/**`, `* كروس أوفر — **وكان معالجُ البيع يعرضه ولا وجودَ له هنا**.`, `* قائمتُه الاحتياطية تحمل `WAGON` و`CONVERTIBLE` منذ كُتبت،`, `* والتعدادُ لا يعرفهما: من اختار أحدَهما أرسل قيمةً يردّها الخادم.`, `* (طلب المالك ٢٠٢٦-١٠-١٨، ووُجد الخللُ في قياسه.)`, `*/`, `CROSSOVER`, `PICKUP`, `HATCHBACK`, `COUPE`, `CONVERTIBLE`, `VAN`

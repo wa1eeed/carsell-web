@@ -22,6 +22,8 @@ export const runtime = 'nodejs';
 const Body = z.object({
   vehicleId: z.string().min(1).max(40),
   scheduledAt: z.string().datetime().nullable(),
+  /** إجاباتُ قالب الخدمة — مفتاحٌ لاتينيّ لقيمةٍ نصّية، والسعرُ منها في الخادم. */
+  answers: z.record(z.string().max(40), z.string().max(2000)).optional(),
 });
 
 const MESSAGES: Record<RequestFailure, { ar: string; en: string; status: number }> = {
@@ -65,9 +67,17 @@ export async function POST(
     requesterId: user.id,
     vehicleId: parsed.data.vehicleId,
     scheduledAt: parsed.data.scheduledAt,
+    answers: parsed.data.answers ?? {},
   });
 
   if (!result.ok) {
+    /**
+     * **والجوابُ الناقص يُسمّى بحقله** — فالشاشةُ تضع الخطأ تحت الحقل
+     * نفسِه، ولا يُعيد العميل ملء الاستمارة باحثًا عمّا نقص.
+     */
+    if (result.reason === 'ANSWERS_INVALID') {
+      return fail(ERRORS.VALIDATION(result.fields), 422);
+    }
     const message = MESSAGES[result.reason];
     return fail({ code: result.reason, messageAr: message.ar, messageEn: message.en }, message.status);
   }

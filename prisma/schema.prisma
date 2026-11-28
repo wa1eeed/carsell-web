@@ -523,6 +523,118 @@ enum DealerSaleChannel {
 /// **والكلفةُ لا تُلقَّط هنا**: `VehicleCost` دفترٌ يُضاف إليه بعد
 /// البيع أحيانًا (مصروفٌ متأخّر)، فلقطةٌ وقتَ البيع تُجمّد رقمًا يتغيّر.
 /// والهامشُ يُحسب عند القراءة من الدفتر.
+/// ما يفعله الحقل في القالب — وثلاثةٌ لا واحد.
+enum ServiceFieldPurpose {
+  /// يملؤه **العميل** وهو يطلب — وبه يُحسب السعر إن حمل زيادة.
+  REQUEST
+  /// يملؤه **المزوّد** عند الإنهاء — يُسجَّل ولا يُطالَب به العميل.
+  ACTION
+}
+
+/// أصنافُ الحقل — والصنفُ يقرّر كيف يُرسم وكيف يُتحقَّق منه.
+enum ServiceFieldKind {
+  TEXT
+  /// لاتينيٌّ يُقارن خانةً بخانة: رقمُ بوليصة، لوحةُ ناقلة.
+  LATIN
+  NUMBER
+  MONEY
+  DATE
+  SELECT
+  CHECKBOX
+  NOTE
+}
+
+/// ═══ قالبُ الخدمة — ما يُسأل عنه وما يُملأ وما يُسعَّر ═══
+///
+/// طلبُ المالك ٢٠٢٦-١١-٢٨: «قالب لكل خدمة … حقول لاسم الخدمة وحقول
+/// لاتخاذ إجراء وحقول للسعر». وكان **الفحصُ وحده** قابلًا للتحرير،
+/// وباقي الخدمات حقولُها في `completion-schema.ts` — إضافةُ حقلٍ
+/// تحتاج نشرًا.
+///
+/// **والفحصُ يبقى بقالبه**: هو قائمةُ تدقيقٍ مُقيَّمة (أوزانٌ وبنودٌ
+/// مؤثّرة وتقدير)، وحشرُه في جدول حقولٍ يُفقده ما يميّزه. فالخدمةُ
+/// تقول **أيّ محرّكٍ يرسمها**، ولكلٍّ شكلُه.
+/// ═══ جوابُ العميل على حقلٍ في القالب — ولقطتُه معه ═══
+///
+/// **والقيمةُ المعروضة والزيادةُ المطبَّقة تُحفظان مع الجواب**: تعديلُ
+/// القالب غدًا لا يمسّ طلبًا قائمًا، ومن دفع ألفًا ومئة يقرأ بعد شهرٍ
+/// **من أين جاءت المئة** — ولو حُذف الخيارُ من القالب بعده.
+model ServiceRequestAnswer {
+  id        String  @id @default(cuid())
+  requestId String
+  key       String
+  /// تسميةُ الحقل يوم أُجيب — فلا يتغيّر تفصيلُ فاتورةٍ بإعادة تسمية.
+  labelAr   String
+  value     String
+  /// الزيادةُ التي أضافها هذا الجواب فعلًا — صفرٌ لحقلٍ لا يُسعّر.
+  priceDelta Decimal @default(0) @db.Decimal(10, 2)
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, key])
+  @@index([requestId])
+}
+
+model ServiceTemplate {
+  id        String @id @default(cuid())
+  serviceId String @unique
+  /// كلُّ تغييرٍ يرفعه — وبه يُعرف أيُّ قالبٍ قرأه من طلب.
+  version   Int    @default(1)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  service Service                @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  fields  ServiceTemplateField[]
+}
+
+model ServiceTemplateField {
+  id         String              @id @default(cuid())
+  templateId String
+  /// مفتاحٌ لاتينيّ — يُخزَّن في إجابات الطلب فلا يتبدّل بتغيّر التسمية.
+  key        String
+  labelAr    String
+  kind       ServiceFieldKind
+  purpose    ServiceFieldPurpose
+  required   Boolean             @default(false)
+  sort       Int                 @default(0)
+  maxLength  Int?
+  /// سطرٌ تحت الحقل يقول ما يُكتب فيه — فحقلٌ بلا شرحٍ يُملأ بالتخمين.
+  hintAr     String?
+
+  /**
+   * ═══ زيادةُ السعر — وقرارُ المالك أنّها تُحسب قبل الدفع ═══
+   *
+   * و`null` حقلٌ لا يُسعّر. ولكلّ صنفٍ معناه: `CHECKBOX` يضيفها إن
+   * أُشّر، و`NUMBER` يضيفها **لكلّ وحدة**، و`SELECT` لا يحملها هنا
+   * بل في خياره — فخيارٌ أغلى من خيار.
+   *
+   * **ولا تُحمل على حقل إجراء**: ما يملؤه المزوّد بعد الدفع لا
+   * يُطالَب به العميل، وإلّا تبدّل السعرُ بعد أن دُفع.
+   */
+  priceDelta Decimal? @db.Decimal(10, 2)
+
+  template ServiceTemplate         @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  options  ServiceTemplateOption[]
+
+  @@unique([templateId, key])
+  @@index([templateId, sort])
+}
+
+model ServiceTemplateOption {
+  id         String  @id @default(cuid())
+  fieldId    String
+  value      String
+  labelAr    String
+  sort       Int     @default(0)
+  /// زيادةُ هذا الخيار على سعر الأساس — و`null` بلا زيادة.
+  priceDelta Decimal? @db.Decimal(10, 2)
+
+  field ServiceTemplateField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, value])
+  @@index([fieldId, sort])
+}
+
 model DealerSale {
   id        String            @id @default(cuid())
   dealerId  String
@@ -2004,6 +2116,8 @@ model Service {
 
   provider ServiceProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   requests ServiceRequest[]
+  /// قالبُ حقوله — واحدٌ لكل خدمة.
+  template ServiceTemplate?
 }
 
 enum ServiceCategory {
@@ -2079,6 +2193,16 @@ model ServiceRequest {
   @@index([scheduledAt])
   inspectionDraft InspectionDraft?
   completion      ServiceCompletionField[]
+  /// ═══ لقطةُ التسعير — ولمَ تُحفظ ═══
+  ///
+  /// `amount` هو **المجموع** المدفوع. وهذان يقولان تركيبَه: سعرُ
+  /// الأساس يوم الطلب، وما أضافته إجاباتُ القالب. وبلا اللقطة يُقرأ
+  /// طلبُ أمس بسعر اليوم.
+  quoteBase    Decimal? @db.Decimal(10, 2)
+  quoteExtra   Decimal? @db.Decimal(10, 2)
+  /// إصدارُ القالب الذي قرأه الطالب — وبه يُعرف ما رآه حين دفع.
+  templateVersion Int?
+  answers      ServiceRequestAnswer[]
 }
 
 /// ═══ حقلُ إنجازٍ واحد — صفٌّ لكل حقل لا عمودٌ لكل صنف ═══

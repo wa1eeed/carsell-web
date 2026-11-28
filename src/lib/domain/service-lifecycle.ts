@@ -1,8 +1,9 @@
 import { db } from '@/lib/db';
-import type { Prisma } from '@/generated/prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import type { ProviderType, ServiceRequestStatus } from '@/generated/prisma/enums';
 import { COMPLETION_FIELDS } from './completion-schema';
 import { deadline } from './deadlines';
+import { quoteFor, serviceTemplate } from './service-template';
 import { LAPSED_REASON, MIN_DECLINE_REASON } from './service-rules';
 
 /**
@@ -163,7 +164,12 @@ export type RequestResult =
       payAt: 'NOW' | 'AFTER_CONSENT';
       decisionDueAt: string | null;
     }
-  | { ok: false; reason: RequestFailure };
+  | { ok: false; reason: RequestFailure }
+  /**
+   * **وجوابٌ ناقصٌ يُسمّى بحقله** — «تعذّر» وحدها تجعل العميل يعيد
+   * ملء الاستمارة باحثًا عمّا نقص.
+   */
+  | { ok: false; reason: 'ANSWERS_INVALID'; fields: Record<string, string> };
 
 /**
  * يُنشئ الطلب — **بلا مال**.
@@ -181,6 +187,13 @@ export async function requestService(
     requesterId: string;
     vehicleId: string;
     scheduledAt: string | null;
+    /**
+     * إجاباتُ العميل على حقول القالب — و`{}` لخدمةٍ بلا قالب.
+     *
+     * **والسعرُ يُحسب منها في الخادم** (قرار المالك ٢٠٢٦-١١-٢٨): رقمٌ
+     * يُحسب في الصفحة يُرسَل من يد المستخدم، فمن عدّله دفع ما كتبه.
+     */
+    answers?: Readonly<Record<string, string>>;
   },
   now: Date = new Date(),
 ): Promise<RequestResult> {
@@ -225,7 +238,22 @@ export async function requestService(
     where: { id: 'default' },
     select: { vatPct: true },
   });
-  const money = serviceTotal(service.price, platform?.vatPct ?? DEFAULT_VAT_PCT, {
+  /**
+   * ═══ وسعرُ الأساس يصير سعرَ هذا الطلب ═══
+   *
+   * القالبُ قد يرفعه بإجابات العميل، والزياداتُ تُحسب هنا — ثمّ
+   * تُلتقط مع الطلب، فتعديلُ القالب غدًا لا يمسّ ما دُفع.
+   */
+  const template = await serviceTemplate(input.serviceKey);
+  const quote =
+    template === null ? null : quoteFor(template, input.answers ?? {});
+  if (quote !== null && !quote.ok) {
+    return { ok: false, reason: 'ANSWERS_INVALID', fields: quote.fields };
+  }
+
+  const priced = quote === null ? service.price : new Prisma.Decimal(quote.total);
+
+  const money = serviceTotal(priced, platform?.vatPct ?? DEFAULT_VAT_PCT, {
     mode: service.adminFeeMode,
     amount: service.adminFee,
     enabled: service.adminFeeEnabled,
@@ -243,8 +271,13 @@ export async function requestService(
   const { nextServiceRequestRef } = await import('./refs');
   const ref = await db.$transaction((tx) => nextServiceRequestRef(tx, now));
 
-  await db.serviceRequest.create({
-    data: {
+  /**
+   * **والصفُّ ولقطتُه يُولدان معًا**: طلبٌ يُنشأ بسعرٍ مركَّب وإجاباتُه
+   * تُكتب بعده بخطوةٍ ثانية تترك — إن سقطت — مبلغًا لا يُفسَّر.
+   */
+  await db.$transaction(async (tx) => {
+    const created = await tx.serviceRequest.create({
+      data: {
       ref,
       serviceId: service.id,
       userId: input.requesterId,
@@ -260,8 +293,34 @@ export async function requestService(
       dueAt,
       ...(input.scheduledAt === null ? {} : { scheduledAt: new Date(input.scheduledAt) }),
       ...(subject.city === null ? {} : { city: subject.city }),
+      ...(quote === null
+        ? {}
+        : {
+            quoteBase: new Prisma.Decimal(quote.base),
+            quoteExtra: new Prisma.Decimal(quote.extra),
+            templateVersion: quote.version,
+          }),
       createdAt: now,
-    },
+      },
+      select: { id: true },
+    });
+
+    /**
+     * **واللقطةُ مع الجواب**: التسميةُ والزيادةُ كما كانتا يوم أُجيب —
+     * فمن دفع ألفًا ومئة يقرأ بعد شهرٍ من أين جاءت المئة، ولو حُذف
+     * الخيارُ من القالب بعده.
+     */
+    if (quote !== null && quote.lines.length > 0) {
+      await tx.serviceRequestAnswer.createMany({
+        data: quote.lines.map((line) => ({
+          requestId: created.id,
+          key: line.key,
+          labelAr: line.labelAr,
+          value: line.value,
+          priceDelta: new Prisma.Decimal(line.delta),
+        })),
+      });
+    }
   });
 
   /**

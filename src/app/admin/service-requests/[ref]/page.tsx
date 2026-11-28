@@ -8,6 +8,7 @@ import { Sla } from '@/components/admin/Sla';
 import { Timeline } from '@/components/admin/Timeline';
 import { ReviewInspection } from './ReviewInspection';
 import { CompletionRecord } from '@/components/ui/CompletionRecord';
+import { TEMPLATE_VALUE_LABEL } from '@/lib/labels/admin';
 import { COMPLETION_FORM_TITLE } from '@/lib/labels/completion';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Badge } from '@/components/ui/Badge';
@@ -132,6 +133,40 @@ export default async function AdminServiceRequestDetailPage({
                 وصف الصرف عن المبلغ كلّه فتُستحقّ الضريبة على كامله.
               */}
               <Field label="رسمنا الإداري" value={<Money amount={Number(request.adminFee)} decimals={2} />} />
+
+              {/*
+                ═══ ومن أين جاء السعر ═══
+
+                خدمةٌ لها قالبٌ يُسعّر: «١١٠٠» تُقرأ ولا تُفهم، و«٩٠٠
+                أساس + ٢٠٠ مسافة» تُفهم. **والسطورُ لقطةٌ يوم طُلب** —
+                فقالبٌ عُدّل بعده لا يغيّر ما دُفع.
+              */}
+              {request.quote === null || request.quote.lines.length === 0 ? null : (
+                <span className="mt-3 block border-t border-line pt-3">
+                  <span className="mb-1.5 block text-3xs font-bold opacity-70">
+                    تركيب السعر
+                  </span>
+                  <span className="flex items-baseline justify-between gap-3 py-1 text-3xs">
+                    <span className="opacity-70">سعر الأساس</span>
+                    <Money amount={Number(request.quote.base)} decimals={2} size="sm" />
+                  </span>
+                  {request.quote.lines.map((line) => (
+                    <span
+                      key={line.key}
+                      className="flex items-baseline justify-between gap-3 py-1 text-3xs"
+                    >
+                      <span className="opacity-70">
+                        {line.labelAr} — {TEMPLATE_VALUE_LABEL[line.value] ?? line.value}
+                      </span>
+                      {Number(line.delta) === 0 ? (
+                        <span className="opacity-70">بلا زيادة</span>
+                      ) : (
+                        <Money amount={Number(line.delta)} decimals={2} size="sm" />
+                      )}
+                    </span>
+                  ))}
+                </span>
+              )}
             </DetailCard>
 
             {/*

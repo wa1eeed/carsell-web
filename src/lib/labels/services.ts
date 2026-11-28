@@ -1,4 +1,10 @@
-import type { PaymentStatus, ServiceCategory, ServiceRequestStatus } from '@/generated/prisma/enums';
+import type {
+  PaymentStatus,
+  ServiceCategory,
+  ServiceFieldKind,
+  ServiceFieldPurpose,
+  ServiceRequestStatus,
+} from '@/generated/prisma/enums';
 
 /**
  * ═══ أحوالُ طلب الخدمة كما تُقرأ ═══
@@ -108,4 +114,22 @@ export const SERVICE_SHORT: Record<string, string> = {
   insurance: 'التأمين',
   ownership_transfer: 'نقل الملكية',
   featured_listing: 'التمييز',
+};
+
+/** أصنافُ حقول قالب الخدمة كما تُعرض للمشغّل. */
+export const SERVICE_FIELD_KIND: Record<ServiceFieldKind, string> = {
+  TEXT: 'نص',
+  LATIN: 'نص لاتيني',
+  NUMBER: 'رقم',
+  MONEY: 'مبلغ',
+  DATE: 'تاريخ',
+  SELECT: 'اختيار من قائمة',
+  CHECKBOX: 'نعم/لا',
+  NOTE: 'ملاحظة طويلة',
+};
+
+/** من يملأ الحقل — والفرقُ بينهما أنّ الأوّل يُسعّر والثاني لا. */
+export const SERVICE_FIELD_PURPOSE: Record<ServiceFieldPurpose, string> = {
+  REQUEST: 'يملؤه العميل',
+  ACTION: 'يملؤه المزود',
 };
