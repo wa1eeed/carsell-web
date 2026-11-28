@@ -115,6 +115,23 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     ],
   },
   {
+    /**
+     * ═══ والمزوّدون جمهورٌ ثالث — سأل عنهم المالك ٢٠٢٦-١١-٢٨ ═══
+     *
+     * «وين أحصل قائمة المزودين مثل ما يوجد قائمة للعملاء وقائمة
+     * للتجار؟» — والقائمةُ مبنيّةٌ منذ `A28`، **وموضعُها كان تحت
+     * الإعدادات**: فمن بحث عنها حيث يبحث عن العملاء والتجار لم يجدها.
+     *
+     * **وسعرُ الخدمة يبقى إعدادًا**: يُضبط مرّةً في الشهر. أمّا من
+     * ينفّذها — التزامُه وتأخّرُه وإيقافُه — فعملٌ يوميّ كالعملاء.
+     */
+    title: 'المزودون',
+    items: [
+      { label: 'مزودو الخدمات', href: '/admin/providers', permission: 'services.manage' },
+      { label: 'صرف مستحقات المزودين', href: '/admin/provider-payouts', permission: 'finance.view' },
+    ],
+  },
+  {
     title: 'الطلبات والمبيعات',
     items: [
       { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
@@ -139,11 +156,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     title: 'المال',
     items: [
       { label: 'تحويل مستحقات البائعين', href: '/admin/payouts', permission: 'finance.view' },
-      /**
-       * **وطابورٌ ثانٍ لا بندٌ واحد**: الطرفُ مزوّدٌ لا بائع،
-       * والحسابُ `PROVIDER_PAYABLE` لا `SELLER_PAYABLE`.
-       */
-      { label: 'صرف مستحقات المزودين', href: '/admin/provider-payouts', permission: 'finance.view' },
       { label: 'دفتر الحسابات', href: '/admin/ledger', permission: 'finance.view' },
     ],
   },
@@ -200,7 +212,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
        * ما يعرضه المنتج، لا مع الطابور الذي يُعالَج يوميًّا.
        */
       { label: 'الخدمات وأسعارها', href: '/admin/services', permission: 'services.manage', description: 'الخدمات المعروضة وأسعارها ومهلة تنفيذها.' },
-      { label: 'مزودو الخدمات', href: '/admin/providers', permission: 'services.manage', description: 'من ينفذ الخدمات، وتغطيته، وعمولتنا منه.' },
       { label: 'قالب الفحص', href: '/admin/inspection-template', permission: 'services.manage', description: 'أقسام الفحص وبنوده وأوزانها — يحررها المشغل بلا نشر.' },
       { label: 'الماركات والموديلات', href: '/admin/catalog/brands', permission: 'catalog.manage', description: 'الماركات والموديلات والفئات التي تبنى منها الإعلانات.' },
       { label: 'أنواع الهياكل', href: '/admin/catalog/body-types', permission: 'catalog.manage', description: 'أنواع الهياكل وصورها وترتيب عرضها.' },

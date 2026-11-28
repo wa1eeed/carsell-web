@@ -7,6 +7,7 @@ import type {
   ServiceFeeMode,
   ServiceRequestStatus,
 } from '@/generated/prisma/enums';
+import { candidatesFor } from './assignment';
 
 /**
  * الخدمات في اللوحة — A6 وA7.
@@ -1095,6 +1096,59 @@ export async function bulkAssignServiceRequests(
 
   for (const ref of refs) {
     const result = await assignServiceRequest(admin, ref, providerId, ip, now);
+    if (result.ok) assigned.push(result.ref);
+    else failed.push({ ref: result.ref, reason: result.reason });
+  }
+
+  return { assigned, failed };
+}
+
+/**
+ * ═══ الإسنادُ الآليّ — أفضلُ مرشّحٍ لكلّ طلب على حدة ═══
+ *
+ * **ولكلِّ طلبٍ مرشّحُه**: مدينتُه غيرُ مدينة جاره، فمزوّدٌ واحد
+ * للدفعة كلِّها يردّ نصفَها بـ«لا يغطّي المدينة». فيُسأل المحرّكُ لكلّ
+ * صفّ، ويُسنَد إلى أوّل الترتيب.
+ *
+ * **ويمرّ بالمفرد لا بـ`updateMany`** (قاعدةٌ مسجَّلة): فالتحقّقُ
+ * واحد، و`AuditLog` يُكتب لكلّ طلب، وفشلُ واحدٍ لا يوقف الباقين.
+ *
+ * **وما لا مرشّحَ له يُقال بسببه** — فمشغّلٌ يقرأ «تعذّر» لا يعرف
+ * أيُفعّل مزوّدًا أم يوسّع تغطيةً أم ينتظر انقضاء إيقاف.
+ */
+export async function autoAssignServiceRequests(
+  admin: AdminUser,
+  refs: readonly string[],
+  ip: string | null,
+  now: Date = new Date(),
+): Promise<{ assigned: string[]; failed: { ref: string; reason: AssignFailure }[] }> {
+  const assigned: string[] = [];
+  const failed: { ref: string; reason: AssignFailure }[] = [];
+
+  for (const ref of refs) {
+    const list = await candidatesFor(ref, now);
+    if (list === null) {
+      failed.push({ ref, reason: 'NOT_FOUND' });
+      continue;
+    }
+
+    const best = list.candidates.find((candidate) => candidate.eligible);
+    if (best === undefined) {
+      /** **والسببُ أدقُّ من «لا أحد»**: أهو لا مزوّدَ أصلًا أم كلُّهم موقوفون؟ */
+      const blocked = list.candidates[0]?.blockedBy ?? null;
+      failed.push({
+        ref,
+        reason:
+          blocked === 'SLA_SUSPENDED'
+            ? 'PROVIDER_INACTIVE'
+            : blocked === 'CITY_NOT_COVERED'
+              ? 'CITY_NOT_COVERED'
+              : 'PROVIDER_NOT_FOUND',
+      });
+      continue;
+    }
+
+    const result = await assignServiceRequest(admin, ref, best.providerId, ip, now);
     if (result.ok) assigned.push(result.ref);
     else failed.push({ ref: result.ref, reason: result.reason });
   }

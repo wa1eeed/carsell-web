@@ -1,4 +1,4 @@
-import type { ProviderType } from '@/generated/prisma/enums';
+import { ProviderType } from '@/generated/prisma/enums';
 
 /**
  * تسميات أنواع المزوّدين (A28) — **هنا لا في النطاق** (البوابة ١٧).
@@ -15,6 +15,13 @@ import type { ProviderType } from '@/generated/prisma/enums';
  * **المُصرِّف أرخص من بوابة**: `Record<ProviderType, string>` يرفض
  * البناء حتى تُكتب التسمية.
  */
+/**
+ * **أنواعُ المزوّدين — مشتقّةٌ من التعداد**، فنوعٌ يُضاف إلى المخطّط
+ * يظهر في كلّ شريحةٍ وفلترٍ بلا سطرٍ يُكتب. وقائمةٌ مكتوبةٌ بجوارها
+ * تتباعد: سقط منها `TRANSFER` فبقي مزوّدو نقل الملكية بلا شريحة.
+ */
+export const PROVIDER_TYPES = Object.values(ProviderType);
+
 export const PROVIDER_TYPE_LABEL: Record<ProviderType, string> = {
   INSPECTION: 'فحص',
   SHIPPING: 'شحن',

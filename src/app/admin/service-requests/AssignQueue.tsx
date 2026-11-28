@@ -46,13 +46,18 @@ export function AssignQueue({
     );
   };
 
-  const send = (refs: readonly string[]): void => {
-    if (provider === '' || refs.length === 0) return;
+  /**
+   * **و`auto` تترك الاختيار للمحرّك**: يرتّب الأهلَ بالتجاوز ثمّ الحِمل
+   * ثمّ الدور، ويُسنِد لكلّ طلبٍ مرشّحَه — فطلبان في مدينتين لا
+   * يذهبان إلى واحد.
+   */
+  const send = (refs: readonly string[], auto = false): void => {
+    if ((!auto && provider === '') || refs.length === 0) return;
     setPending(true);
     void fetch('/api/v1/admin/service-requests/assign', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ refs, providerId: provider }),
+      body: JSON.stringify(auto ? { refs } : { refs, providerId: provider }),
     })
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as
@@ -114,6 +119,26 @@ export function AssignQueue({
             onClick={() => send(chosen)}
           >
             إسناد جماعي
+            {chosen.length === 0 ? null : (
+              <>
+                {' '}
+                (<ArabicNumber value={chosen.length} />)
+              </>
+            )}
+          </Button>
+
+          {/*
+            ═══ والإسنادُ الآليّ — وكانت الشاشةُ تَعِد به ولا يقع ═══
+
+            شاشةُ المزوّدين تقول «تجاوز الالتزام مرّتين يُسقط المزوّد من
+            **الإسناد الآليّ**» — ولم يكن في المنتج إسنادٌ آليّ أصلًا.
+          */}
+          <Button
+            size="sm"
+            disabled={pending || chosen.length === 0}
+            onClick={() => send(chosen, true)}
+          >
+            أسند تلقائيا
             {chosen.length === 0 ? null : (
               <>
                 {' '}

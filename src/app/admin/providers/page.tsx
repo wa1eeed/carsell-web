@@ -5,9 +5,11 @@ import { MonitorCards } from '@/components/admin/MonitorShell';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can, canWrite } from '@/lib/domain/permissions';
 import { MonitorTabs, type MonitorTab } from '@/components/admin/MonitorShell';
-import { PROVIDER_TYPE_LABEL } from '@/lib/labels/providers';
+import { PROVIDER_TYPE_LABEL, PROVIDER_TYPES } from '@/lib/labels/providers';
 import { breachedRequests, providerList, providerStats } from '@/lib/domain/admin-providers';
+import { coverageGaps } from '@/lib/domain/assignment';
 import { ProviderTable } from './ProviderTable';
+import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { Duration } from '@/components/ui/Duration';
 import { Quantity } from '@/components/ui/Quantity';
 
@@ -26,12 +28,15 @@ export const metadata = { title: 'مزودو الخدمات والتمويل' };
  * معروضةٌ بمراجعها وساعات تأخّرها — ومن يقرؤها يعرف أيّها يلاحق.
  */
 /**
- * شرائح A28 — **أنواع المزوّدين من التعداد لا مكتوبةً بيد**، فنوعٌ
- * جديد في المخطّط يظهر وحده. و«أخرى» تضمّ ما لا تسمية له.
+ * ═══ شرائح A28 — من التعداد نفسِه لا من نسخةٍ له ═══
+ *
+ * كان التعليقُ يقول «من التعداد لا مكتوبةً بيد» **والقائمةُ مكتوبةٌ
+ * بيد** — فسقط منها `TRANSFER`: مزوّدو نقل الملكية بلا شريحةٍ تفتحهم،
+ * وعددُ «الكل» يشملهم ولا تبلغهم شريحة. وهو صنفُ «قائمةٌ تحاكي تعدادًا
+ * تُشتقّ منه لا تُكتب بجواره» المسجَّل في هذا المستودع — **وتعليقٌ
+ * يكذب أسوأ من غيابه**.
  */
-const TYPES = [
-  'INSPECTION', 'SHIPPING', 'INSURANCE', 'DETAILING', 'PHOTOGRAPHY', 'FINANCE', 'OTHER',
-] as const;
+const TYPES = PROVIDER_TYPES;
 
 export default async function AdminProvidersPage({
   searchParams,
@@ -42,11 +47,18 @@ export default async function AdminProvidersPage({
   if (admin === null) redirect('/admin/login');
   if (!can(admin.role, 'services.manage')) redirect('/admin');
 
-  const [all, stats, breached] = await Promise.all([
+  const [all, stats, breached, coverage] = await Promise.all([
     providerList(),
     providerStats(),
     breachedRequests(),
+    coverageGaps(),
   ]);
+
+  /**
+   * **والمعروضُ ما ينقص وحده.** شبكةُ (صنف × مدينة) كاملةً مئاتُ
+   * الصفوف يقرؤها المشغّل ولا يتصرّف — والنقصُ هو ما يُتصرَّف فيه.
+   */
+  const gaps = coverage.filter((cell) => cell.eligible === 0);
 
   const search = await searchParams;
   const raw = typeof search.type === 'string' ? search.type : null;
@@ -101,6 +113,68 @@ export default async function AdminProvidersPage({
 
       <h2 className="mb-3.5 text-sm font-bold">المزودون</h2>
       <ProviderTable rows={rows} canEdit={writable} />
+
+      {/*
+        ═══ من يغطي ماذا وأين — ومجموعةُ الإسناد تُشتقّ ولا تُخزَّن ═══
+
+        سأل المالك ٢٠٢٦-١١-٢٨: «كيف يُحدَّد أيُّ المزوّدين وفي أيّ
+        مدينة؟». والجوابُ **(صنفٌ × مدينة)**: من يغطّي هذه المدينة بهذا
+        الصنف. وجدولٌ يُخزّن ذلك نسخةٌ ثانيةٌ من تغطية المزوّد تتباعد
+        أوّلَ تعديل — فيُحسب من `cities` عند السؤال.
+
+        **والمعروضُ ما لا أحدَ فيه**: خليّةٌ بلا مزوّدٍ أهلٍ تعني أنّ كلّ
+        طلبٍ يصلها يبقى معلّقًا حتى تنقضي مهلتُه. والمشغّلُ كان يراها
+        طلبًا طلبًا ولا يرى النمط.
+      */}
+      <h2 className="mt-10 mb-1 text-sm font-bold">التغطية — ومن ينقصه مزود</h2>
+      <p className="mb-3.5 max-w-xl text-3xs leading-loose opacity-70">
+        لكل نوع خدمة في كل مدينة: كم مزودا يغطيها، وكم منهم يقبل الإسناد الآن. والمزود
+        بلا مدن محددة يغطي كل المدن.
+      </p>
+      {gaps.length === 0 ? (
+        <p className="rounded-lg border border-line border-dashed p-6 text-2xs opacity-70">
+          لا نقص — كل مدينة لها مزود يقبل الإسناد في كل نوع خدمة.
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-line">
+          <table className="w-full min-w-3xl border-collapse text-start text-2xs">
+            <thead>
+              <tr className="border-b border-line bg-surface text-3xs opacity-70">
+                <th scope="col" className="px-4 py-2.5 text-start font-bold">نوع الخدمة</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-bold">المدينة</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-bold">يغطيها</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-bold">يقبل الإسناد</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gaps.map((cell) => (
+                <tr key={`${cell.type}-${cell.city}`} className="border-b border-line-2 last:border-b-0">
+                  <td className="px-4 py-2.5 font-semibold">
+                    {PROVIDER_TYPE_LABEL[cell.type] ?? cell.type}
+                  </td>
+                  <td className="px-4 py-2.5">{cell.city}</td>
+                  <td className="px-4 py-2.5 font-num">
+                    <ArabicNumber value={cell.providers} />
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {/*
+                      **وصفرٌ هنا ليس رقمًا بل إنذار**: طلبٌ يصل هذه
+                      الخلية لا يلتقطه أحد ولا يُسنَد إليه أحد.
+                    */}
+                    {cell.eligible === 0 ? (
+                      <span className="font-bold text-danger">لا أحد</span>
+                    ) : (
+                      <span className="font-num">
+                        <ArabicNumber value={cell.eligible} />
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/*
         **التجاوز بأسمائه.** ومن يقرأ «٣ تجاوزات» ولا يرى أيّها لا

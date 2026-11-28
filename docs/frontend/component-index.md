@@ -135,7 +135,7 @@ rather than found by chance.
 | --- | --- | --- | --- |
 | `ActionButton` | no | `onClick` · `children` · `className` | 2 |
 | `ActionLink` | no | `href` · `children` · `className` | 6 |
-| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 148 |
+| `ArabicNumber` | no | `value` · `decimals` · `grouped` · `percent` · `className` | 149 |
 | `AuctionRail` | no | `auctions` · `className` | 3 |
 | `Badge` | no | `tone` · `size` · `children` · `className` | 130 |
 | `InspectedBadge` | no | `className` | 3 |

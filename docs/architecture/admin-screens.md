@@ -13,7 +13,7 @@ of a job's position, and how a screen with no sidebar entry is reached. Those
 are written here by hand, and a new row with an empty reason fails the check.
 
 <!-- generated:begin -->
-**46** entries in the sidebar, across 11 groups, against
+**46** entries in the sidebar, across 12 groups, against
 **46** folders under `src/app/admin`.
 
 ### نظرة عامة
@@ -45,6 +45,13 @@ are written here by hand, and a new row with an empty reason fails the check.
 | --- | --- | --- | --- |
 | المعارض والتجار | `/admin/dealers` | `users.view` |  |
 
+### المزودون
+
+| Screen | Path | Permission | What it is for |
+| --- | --- | --- | --- |
+| مزودو الخدمات | `/admin/providers` | `services.manage` |  |
+| صرف مستحقات المزودين | `/admin/provider-payouts` | `finance.view` |  |
+
 ### الطلبات والمبيعات
 
 | Screen | Path | Permission | What it is for |
@@ -61,7 +68,6 @@ are written here by hand, and a new row with an empty reason fails the check.
 | Screen | Path | Permission | What it is for |
 | --- | --- | --- | --- |
 | تحويل مستحقات البائعين | `/admin/payouts` | `finance.view` |  |
-| صرف مستحقات المزودين | `/admin/provider-payouts` | `finance.view` |  |
 | دفتر الحسابات | `/admin/ledger` | `finance.view` |  |
 
 ### التسويق والإعلان
@@ -94,7 +100,6 @@ are written here by hand, and a new row with an empty reason fails the check.
 | Screen | Path | Permission | What it is for |
 | --- | --- | --- | --- |
 | الخدمات وأسعارها | `/admin/services` | `services.manage` | الخدمات المعروضة وأسعارها ومهلة تنفيذها. |
-| مزودو الخدمات | `/admin/providers` | `services.manage` | من ينفذ الخدمات، وتغطيته، وعمولتنا منه. |
 | قالب الفحص | `/admin/inspection-template` | `services.manage` | أقسام الفحص وبنوده وأوزانها — يحررها المشغل بلا نشر. |
 | الماركات والموديلات | `/admin/catalog/brands` | `catalog.manage` | الماركات والموديلات والفئات التي تبنى منها الإعلانات. |
 | أنواع الهياكل | `/admin/catalog/body-types` | `catalog.manage` | أنواع الهياكل وصورها وترتيب عرضها. |

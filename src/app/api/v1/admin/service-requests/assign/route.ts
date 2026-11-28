@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ERRORS, fail, ok } from '@/lib/api/response';
 import { requireAdmin } from '@/lib/api/admin-guard';
-import { bulkAssignServiceRequests } from '@/lib/domain/admin-services';
+import { autoAssignServiceRequests, bulkAssignServiceRequests } from '@/lib/domain/admin-services';
 import { canWrite } from '@/lib/domain/permissions';
 
 export const runtime = 'nodejs';
@@ -17,9 +17,14 @@ export const runtime = 'nodejs';
  */
 const MAX_BULK = 50;
 
+/**
+ * **و`providerId` اختياريّ**: غيابُه يعني «اختر أنت» — فيسأل المسارُ
+ * محرّكَ الإسناد عن أفضل مرشّحٍ **لكلّ طلبٍ على حدة**، إذ مدينةُ الطلب
+ * غيرُ مدينة جاره.
+ */
 const Body = z.object({
   refs: z.array(z.string().min(1)).min(1).max(MAX_BULK),
-  providerId: z.string().min(1),
+  providerId: z.string().min(1).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,12 +37,11 @@ export async function POST(request: NextRequest) {
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(ERRORS.VALIDATION({ refs: 'INVALID' }), 422);
 
+  const providerId = parsed.data.providerId;
+
   return ok(
-    await bulkAssignServiceRequests(
-      guard.admin,
-      parsed.data.refs,
-      parsed.data.providerId,
-      guard.ip,
-    ),
+    providerId === undefined
+      ? await autoAssignServiceRequests(guard.admin, parsed.data.refs, guard.ip)
+      : await bulkAssignServiceRequests(guard.admin, parsed.data.refs, providerId, guard.ip),
   );
 }

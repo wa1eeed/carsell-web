@@ -98,9 +98,14 @@ describe('شريط الأدمن — ما ينتظر عملًا', () => {
     const groupOf = (href: string): string =>
       ADMIN_NAV.find((group) => group.items.some((item) => item.href === href))?.title ?? '';
 
-    for (const href of ['/admin/services', '/admin/providers']) {
-      expect(groupOf(href), href).toMatch(/^الإعدادات/);
-    }
+    /**
+     * **وسعرُ الخدمة يُضبط، ومن ينفّذها يُتابَع.** كان المزوّدون تحت
+     * الإعدادات مع أسعار الخدمات، فسأل المالك ٢٠٢٦-١١-٢٨: «وين أحصل
+     * قائمة المزودين مثل ما يوجد قائمة للعملاء وقائمة للتجار؟».
+     * فالتعريفُ (الخدمةُ وسعرُها) إعداد، **والمزوّدُ جمهورٌ يُتابَع**.
+     */
+    expect(groupOf('/admin/services')).toMatch(/^الإعدادات/);
+    expect(groupOf('/admin/providers')).toBe('المزودون');
 
     for (const href of ['/admin/service-requests', '/admin/disputes', '/admin/reports']) {
       expect(groupOf(href), href).not.toMatch(/^الإعدادات/);
