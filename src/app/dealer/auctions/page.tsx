@@ -109,7 +109,7 @@ export default async function DealerAuctions({
                     <h2 className="text-sm font-bold">
                       <Link
                         href={`/ar/cars/${row.listingRef}`}
-                        className="underline-offset-4 hover:underline"
+                        className="hover:underline"
                       >
                         {row.vehicle}
                       </Link>

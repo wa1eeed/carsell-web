@@ -70,7 +70,7 @@ export function TeamTable({ rows, meId }: { rows: readonly TeamMember[]; meId: s
                 */}
                 <Link
                   href={`/admin/team/${encodeURIComponent(row.id)}`}
-                  className="bidi-isolate -my-1 truncate py-1 text-sm font-bold underline underline-offset-4 hover:opacity-75"
+                  className="bidi-isolate -my-1 truncate py-1 text-sm font-bold hover:opacity-75"
                 >
                   {row.name}
                 </Link>

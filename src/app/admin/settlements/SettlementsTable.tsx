@@ -247,7 +247,7 @@ function Row({ row, children }: { row: SettlementRow; children: React.ReactNode 
         <Link
           href={`/admin/orders/${encodeURIComponent(row.orderRef)}`}
           dir="ltr"
-          className="font-num text-start text-2xs underline underline-offset-4 opacity-70 hover:opacity-100"
+          className="font-num text-start text-2xs opacity-70 hover:opacity-100"
         >
           {row.orderRef}
         </Link>

@@ -171,7 +171,7 @@ export default async function AdminDisputeDetailPage({
                 </p>
                 <Link
                   href="/admin/disputes"
-                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                  className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
                 >
                   اذهب إلى النزاعات
                 </Link>
@@ -218,7 +218,7 @@ export default async function AdminDisputeDetailPage({
               />
               <Link
                 href={`/admin/orders/${encodeURIComponent(dispute.order.ref)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح الطلب
               </Link>

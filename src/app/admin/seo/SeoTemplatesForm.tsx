@@ -139,7 +139,7 @@ export function SeoTemplatesForm({
                     <Link
                       href={href}
                       target="_blank"
-                      className="bidi-ltr block text-2xs underline underline-offset-2 opacity-65"
+                      className="bidi-ltr block text-2xs opacity-65"
                     >
                       {href}
                     </Link>

@@ -139,7 +139,7 @@ export default async function PushPage() {
                     <Badge tone="neutral">نعم</Badge>
                   ) : (
                     /* «لا — حرِجة» كما في الترميز: السبب مع الحكم */
-                    <Badge tone="warn">لا — حرجة</Badge>
+                    <Badge tone="warn">لا تطفأ</Badge>
                   )}
                 </td>
                 <td className="p-3.5">
@@ -230,7 +230,7 @@ export default async function PushPage() {
           </h2>
           <ul className="flex flex-col gap-2.5 text-sm leading-loose opacity-72">
             <li>
-              <strong>الحرجة لا تطفأ:</strong> المزاد الذي يشارك فيه، والطلبات والدفع.
+              <strong>قنوات لا يستطيع المستخدم إيقافها:</strong> المزاد الذي يشارك فيه، والطلبات والدفع.
               المنع في المجال نفسه، فلا يستطيع المستخدم إطفاءها من إعداداته.
             </li>
             <li>التسويقي مغلق افتراضيا، ولا يفتح إلا بموافقة صريحة.</li>

@@ -104,7 +104,7 @@ export function CitiesTable({ rows, mayWrite }: { rows: readonly Row[]; mayWrite
                       <button
                         type="button"
                         onClick={() => setDraft({ ...row })}
-                        className="text-3xs font-bold underline-offset-4 hover:underline"
+                        className="text-3xs font-bold hover:underline"
                       >
                         عدل
                       </button>
@@ -118,7 +118,7 @@ export function CitiesTable({ rows, mayWrite }: { rows: readonly Row[]; mayWrite
                           type="button"
                           disabled={pending}
                           onClick={() => send('DELETE', { id: row.id }, 'حذفت المدينة.')}
-                          className="text-3xs font-bold text-danger underline-offset-4 hover:underline"
+                          className="text-3xs font-bold text-danger hover:underline"
                         >
                           احذف
                         </button>

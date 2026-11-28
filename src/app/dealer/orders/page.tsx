@@ -149,7 +149,7 @@ export default async function DealerOrders({
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/dealer/orders/${transfer.orderRef}`}
-                      className="text-2xs font-bold underline-offset-4 hover:underline"
+                      className="text-2xs font-bold hover:underline"
                     >
                       {when.format(new Date(transfer.at))}
                     </Link>

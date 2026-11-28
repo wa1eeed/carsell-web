@@ -168,7 +168,7 @@ export function NewSegment({
                     type="button"
                     onClick={() => cycle(field.key)}
                     className={`flex items-center justify-between gap-3 rounded-md border px-3.5 py-2.5 text-start text-2xs ${
-                      state === 'off'
+ state === 'off'
                         ? 'border-line opacity-55'
                         : state === 'on'
                           ? 'border-accent-700 bg-accent-100'

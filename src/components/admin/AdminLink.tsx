@@ -28,7 +28,7 @@ export function AdminLink({
       href={href}
       dir={ltr === true ? 'ltr' : undefined}
       className={cn(
-        'underline decoration-dotted underline-offset-4 hover:decoration-solid',
+        'decoration-dotted hover:decoration-solid',
         ltr === true ? 'font-num text-start' : 'bidi-isolate',
         className,
       )}

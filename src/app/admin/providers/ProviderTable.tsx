@@ -195,7 +195,7 @@ export function ProviderTable({ rows, canEdit }: { rows: readonly ProviderRow[];
                     */}
                     <Link
                       href={`/admin/providers/${row.id}`}
-                      className="bidi-isolate font-bold underline underline-offset-4 hover:opacity-75"
+                      className="bidi-isolate font-bold hover:opacity-75"
                     >
                       {row.nameAr}
                     </Link>

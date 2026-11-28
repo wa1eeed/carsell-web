@@ -63,7 +63,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           <Link
             href={`/admin/users/${encodeURIComponent(row.customerId)}`}
-            className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
+            className="bidi-isolate relative z-10 decoration-dotted hover:decoration-solid"
           >
             {row.customer}
           </Link>
@@ -83,7 +83,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
               <Link
                 href={`/admin/listings/${encodeURIComponent(row.listingRef)}`}
                 dir="ltr"
-                className="font-num relative z-10 text-start underline decoration-dotted underline-offset-4 hover:decoration-solid"
+                className="font-num relative z-10 text-start decoration-dotted hover:decoration-solid"
               >
                 {row.listingRef}
               </Link>
@@ -97,7 +97,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
         */}
         <span className="text-3xs opacity-65">
           {row.providerName === null ? (
-            <span className="font-bold text-warn-900">بلا مزود — ينتظر الإسناد</span>
+            <span className="font-bold text-warn-900">بلا مزود — ينتظر تعيين مزود</span>
           ) : (
             <>
               <span>المزود </span>
@@ -114,7 +114,7 @@ export function ServiceRequestCard({ row }: { row: ServiceRequestRow }) {
                 */
                 <Link
                   href={`/admin/providers/${encodeURIComponent(row.providerId)}`}
-                  className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
+                  className="bidi-isolate relative z-10 decoration-dotted hover:decoration-solid"
                 >
                   {row.providerName}
                 </Link>

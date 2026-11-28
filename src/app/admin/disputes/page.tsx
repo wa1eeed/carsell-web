@@ -124,7 +124,7 @@ export default async function DisputesPage({
                 </>
               )}{' '}
               ·{' '}
-              <Link href="/admin/reports" className="underline underline-offset-4">
+              <Link href="/admin/reports" className="">
                 افتحها
               </Link>
             </>

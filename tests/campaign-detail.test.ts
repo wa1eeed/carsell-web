@@ -101,9 +101,14 @@ describe('صفحة تفاصيل الحملة', () => {
     const base = await campaignDetail(campaign.id, now);
     expect(base).not.toBeNull();
     if (base === null) return;
-    /** ولا محجوبَ قبل الزرع — فالفرقُ بعده من الزرع وحده. */
-    expect(base.audience.blockedByCooldown).toBe(0);
-    expect(base.audience.blockedByCap).toBe(0);
+    /**
+     * **والقياسُ فرقٌ لا مطلق.** كان يشترط صفرًا قبل الزرع، وجارُه في
+     * الملفّ الآخر يُرسل حملةً مستحقّة فيضع جمهورَها في التهدئة —
+     * فيسقط هذا على حالٍ صنعها غيرُه. وهو «اختبارٌ يشترط ما يفترضه»:
+     * ما يحتاجه يصنعه، وما عداه يُطرح.
+     */
+    const baseCooldown = base.audience.blockedByCooldown;
+    const baseCap = base.audience.blockedByCap;
 
     const made: string[] = [];
     const sendAt = (hoursAgo: number): Date => new Date(now.getTime() - hoursAgo * 3600 * 1000);
@@ -148,8 +153,8 @@ describe('صفحة تفاصيل الحملة', () => {
       if (after === null) return;
 
       /** التهدئةُ تضمّ المحجوبَ بالسببين — فهو يُعدّ فيها وحدها. */
-      expect(after.audience.blockedByCooldown).toBe(2);
-      expect(after.audience.blockedByCap).toBe(1);
+      expect(after.audience.blockedByCooldown - baseCooldown).toBe(2);
+      expect(after.audience.blockedByCap - baseCap).toBe(1);
       /** والمجموعُ يفسّر الفجوة كاملةً — ولا يُعدّ أحدٌ مرّتين. */
       expect(after.audience.blockedByCooldown + after.audience.blockedByCap).toBe(
         after.audience.consented - after.audience.reachable,

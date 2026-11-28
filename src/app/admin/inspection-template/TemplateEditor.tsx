@@ -65,12 +65,18 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
           <ArabicNumber value={template.totalItems} className="text-base font-bold" />
         </span>
         <span className="flex flex-col gap-0.5">
-          <span className="opacity-70">الحرجة</span>
+          {/*
+            **والمصطلحُ يُقال بأثره لا باسمه الفنّيّ** (طلب المالك
+            ٢٠٢٦-١١-٢٨): «حرج» كلمةٌ لا تقول للمشغّل ماذا تفعل، و«بنود
+            مؤثرة» تقولها، والسطرُ تحتها يقول أثرَها بالضبط.
+          */}
+          <span className="opacity-70">بنود مؤثرة</span>
           <ArabicNumber value={template.criticalItems} className="text-base font-bold" />
         </span>
         <span className="flex-1" />
         <p className="max-w-md text-3xs leading-loose opacity-70">
-          كل تغيير يرفع الإصدار، وبه يعرف أي نص رآه الفاحص يوم ملأ تقريره.
+          البند المؤثر: إذا رسب في الفحص، ينزل تقدير السيارة كلها إلى «مقبول» مهما كانت بقية
+          البنود سليمة. كل تغيير يرفع الإصدار، وبه يعرف أي نص رآه الفاحص يوم ملأ تقريره.
           <b> والتقارير الصادرة لا تتغير</b>: لقطتها محفوظة فيها.
         </p>
       </div>
@@ -165,23 +171,38 @@ export function TemplateEditor({ template }: { template: TemplateView }) {
                       {item.unit === null ? null : (
                         <span className="text-3xs opacity-65">{item.unit}</span>
                       )}
+                      {/*
+                        ═══ والزرُّ يقول حالَه وفعلَه ═══
+
+                        كان مكتوبًا عليه «حرج» في الحالين: لا يقول أهو
+                        كذلك الآن أم لا، ولا ماذا يقع إن ضُغط، ولا ما
+                        تعني الكلمة. فصار يقول **الحال** إن كان
+                        مفعَّلًا، و**الفعل** إن لم يكن.
+                      */}
                       <button
                         type="button"
                         disabled={busy}
+                        title={
+                          item.isCritical
+                            ? 'بند مؤثر: رسوبه ينزل تقدير السيارة كلها إلى «مقبول». اضغط لإلغاء تأثيره.'
+                            : 'اجعله مؤثرا: رسوبه ينزل تقدير السيارة كلها إلى «مقبول».'
+                        }
                         onClick={() =>
                           send(
                             { action: 'item', itemId: item.id, isCritical: !item.isCritical },
-                            item.isCritical ? 'لم يعد حرجا.' : 'صار حرجا.',
+                            item.isCritical
+                              ? 'لم يعد مؤثرا على التقدير.'
+                              : 'صار مؤثرا — رسوبه ينزل التقدير إلى «مقبول».',
                           )
                         }
                         className={cn(
-                          'rounded-btn border px-3 py-1.5 text-3xs font-bold',
+                          'shrink-0 rounded-btn border px-3 py-1.5 text-3xs font-bold',
                           item.isCritical
                             ? 'border-danger text-danger'
                             : 'border-line opacity-70 hover:opacity-100',
                         )}
                       >
-                        حرج
+                        {item.isCritical ? 'مؤثر على التقدير' : 'اجعله مؤثرا'}
                       </button>
                       {item.answers > 0 ? (
                         <Badge tone="neutral">

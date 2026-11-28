@@ -145,7 +145,7 @@ export function LedgerPanel({
                 type="button"
                 onClick={() => setForm({ ...form, direction: key })}
                 className={`rounded-btn border px-3.5 py-2 text-2xs font-bold ${
-                  form.direction === key
+ form.direction === key
                     ? 'border-ink bg-ink text-bg'
                     : 'border-line hover:border-ink'
                 }`}

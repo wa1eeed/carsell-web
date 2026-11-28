@@ -266,7 +266,7 @@ export default async function AdminServiceRequestDetailPage({
                   <Field label="الالتزام" value={<Sla hours={request.provider.slaHours} />} />
                   <Link
                     href="/admin/providers"
-                    className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                    className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
                   >
                     افتح المزودين
                   </Link>
@@ -289,14 +289,14 @@ export default async function AdminServiceRequestDetailPage({
               <div className="mt-3 flex flex-wrap gap-4">
                 <Link
                   href={`/admin/users/${request.customer.id}`}
-                  className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                  className="text-2xs opacity-75 hover:opacity-100"
                 >
                   افتح ملفه
                 </Link>
                 {request.listingRef === null ? null : (
                   <Link
                     href={`/admin/listings/${encodeURIComponent(request.listingRef)}`}
-                    className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                    className="text-2xs opacity-75 hover:opacity-100"
                   >
                     افتح الإعلان
                   </Link>

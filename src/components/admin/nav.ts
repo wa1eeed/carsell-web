@@ -43,6 +43,12 @@ export type AdminNavItem = {
   description?: string;
   /** بند بلا صلاحية لا يُعرض معطّلًا — يُخفى. عرضه يكشف بنية اللوحة. */
   permission?: Permission;
+  /**
+   * **يضيء ولو لم يطابق المسار**: «كل الإعدادات» مسارُه
+   * `/admin/settings` والداخلُ في `/admin/tax` — فبلا هذا يُقرأ
+   * الشريطُ كأنّ لا شيء مفتوحًا.
+   */
+  active?: boolean;
 };
 
 export type AdminNavGroup = {
@@ -52,36 +58,28 @@ export type AdminNavGroup = {
 
 export const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
-    /** ما يُفتح كل صباح — الأرقام ثم ما ينتظر عملًا. */
-    title: 'المتابعة',
+    /**
+     * ═══ الترتيب — قرار المالك ٢٠٢٦-١١-٢٨ ═══
+     *
+     * «أول شي تظهر لوحة القيادة ثم الإعلانات ثم العملاء … ثم التجار
+     * والمعارض … نتبع ستاندرت عالمي بحيث تصبح مألوفة».
+     *
+     * والترتيبُ المألوف في لوحات الإدارة واحد: **نظرةٌ عامة، ثمّ ما
+     * يُعرض، ثمّ من يَعرض ومن يشتري، ثمّ ما يقع بينهم، ثمّ المال، ثمّ
+     * التسويق، ثمّ ما يُقرأ، ثمّ ما يُضبط**. ومن فتح لوحةً جديدة
+     * يتوقّعه، فلا يتعلّم ترتيبَنا نحن.
+     *
+     * **ولوحةُ القيادة أوّلًا وحدها** — لا تحت عنوانٍ يزاحمها.
+     */
+    title: 'نظرة عامة',
     items: [
-      /**
-       * **ولوحة القيادة بندٌ واحد.** «المتابعة اليومية» و«المالية»
-       * تابان داخلها (A2 · A3)، والشريط في التصميم لا يذكرهما — وكانا
-       * بندين هنا، فصارت الشاشةُ الواحدة ثلاثًا.
-       */
       { label: 'لوحة القيادة', href: '/admin', permission: 'dashboard.view' },
-      { label: 'التقارير والتصدير', href: '/admin/exports' },
-      /**
-       * ═══ والسجلّان قراءةٌ لا ضبط ═══
-       *
-       * «دفتر الحسابات» و«سجل العمليات» كانا تحت «الإعدادات» — وهما
-       * لا يُضبط فيهما شيء: الأوّل قيودٌ تُقرأ، والثاني أثرٌ لا
-       * يُعدَّل. **ومجموعةٌ اسمُها «الإعدادات» تضمّ سجلًّا تَعِد بما
-       * لا تفي به**: من دخلها ليغيّر شيئًا وجد جدولًا، ومن أراد
-       * الجدول لم يفتّش عنه في الإعدادات.
-       *
-       * فموضعُهما مع ما يُقرأ: المتابعة.
-       */
       /**
        * **ومجرى النشاط غيرُ سجلّ العمليات.** الثاني أثرُ الأدمن وحده،
        * والأوّل ما يفعله السوق بنفسه: إعلانٌ نُشر، عرضٌ قُبل، دفعةٌ
-       * ارتدّت. وكانت اللوحة تُجيب «كم» و«ما ينتظرني» ولا تُجيب
-       * «ماذا يحدث».
+       * ارتدّت. وموضعُه مع النظرة العامة لأنه يُقرأ كلَّ صباح.
        */
       { label: 'مجرى النشاط', href: '/admin/activity', permission: 'audit.view' },
-      { label: 'دفتر الحسابات', href: '/admin/ledger', permission: 'finance.view' },
-      { label: 'سجل العمليات', href: '/admin/audit', permission: 'audit.view' },
     ],
   },
   {
@@ -95,26 +93,36 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     ],
   },
   {
+    /**
+     * **والعملاءُ هم الأفراد** — بنصّ طلب المالك: «العملاء ويقصد بهم
+     * مستخدمي المنصة (المستخدمين الأفراد)». والتوثيقُ طابورُهم، فهو
+     * معهم لا في الإعدادات.
+     */
+    title: 'العملاء',
+    items: [
+      { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
+      { label: 'طلبات توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
+    ],
+  },
+  {
+    /**
+     * **والمعارضُ جمهورٌ آخر لا صنفٌ من العملاء**: لها لوحتُها
+     * وباقاتُها وسجلُّها التجاريّ، ومن يفتحها يفتحها لعملٍ آخر.
+     */
+    title: 'المعارض والوكالات',
+    items: [
+      { label: 'المعارض والتجار', href: '/admin/dealers', permission: 'users.view' },
+    ],
+  },
+  {
     title: 'الطلبات والمبيعات',
     items: [
       { label: 'الطلبات', href: '/admin/orders', permission: 'orders.view' },
       { label: 'المدفوعات والضمان', href: '/admin/settlements', permission: 'finance.view' },
-      { label: 'تحويل مستحقات البائعين', href: '/admin/payouts', permission: 'finance.view' },
-      /**
-       * **وطابورٌ ثانٍ لا بندٌ واحد**: الطرفُ مزوّدٌ لا بائع،
-       * والحسابُ `PROVIDER_PAYABLE` لا `SELLER_PAYABLE`، ومن يصرف
-       * للمزوّدين يفتح شاشةً يرى فيها مزوّديه وحدهم — لا قائمةً
-       * مخلوطةً يبحث فيها عن سبعةٍ بين مئة بائع.
-       */
-      { label: 'صرف مستحقات المزودين', href: '/admin/provider-payouts', permission: 'finance.view' },
       { label: 'الخلافات', href: '/admin/disputes', permission: 'orders.view' },
       { label: 'الشكاوى', href: '/admin/reports', permission: 'reports.handle' },
       /**
        * ═══ وطابورُ الخدمات طابور ═══
-       *
-       * كان في مجموعةٍ مع «الخدمات وأسعارها» و«المزوّدون» بتعليلٍ
-       * مكتوب: «المزوّدون في مكانٍ واحد — وطلباتُهم معهم». **وهذا
-       * عكسُه بأمر المالك**: الفصلُ بين ما يُضبط وما يُعالَج.
        *
        * وسعرُ خدمةٍ يُضبط مرّةً في الشهر، وطابورُها يُعالَج كل يوم —
        * فجمعُهما يجعل المشغّل يمرّ على شاشتَي إعدادٍ ليبلغ عملَه.
@@ -124,12 +132,19 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     ],
   },
   {
-    /** **العملاء في مكانٍ واحد** — والتوثيق منهم لا من الإعدادات. */
-    title: 'العملاء',
+    /**
+     * **والمالُ مجموعةٌ قائمة**: من يصرف يفتحها وحدها، ولا يمرّ على
+     * طابور الإعلانات ليبلغ تحويلًا.
+     */
+    title: 'المال',
     items: [
-      { label: 'العملاء', href: '/admin/users', permission: 'users.view' },
-      { label: 'المعارض والتجار', href: '/admin/dealers', permission: 'users.view' },
-      { label: 'طلبات توثيق الهوية', href: '/admin/identity', permission: 'identity.review' },
+      { label: 'تحويل مستحقات البائعين', href: '/admin/payouts', permission: 'finance.view' },
+      /**
+       * **وطابورٌ ثانٍ لا بندٌ واحد**: الطرفُ مزوّدٌ لا بائع،
+       * والحسابُ `PROVIDER_PAYABLE` لا `SELLER_PAYABLE`.
+       */
+      { label: 'صرف مستحقات المزودين', href: '/admin/provider-payouts', permission: 'finance.view' },
+      { label: 'دفتر الحسابات', href: '/admin/ledger', permission: 'finance.view' },
     ],
   },
   {
@@ -137,6 +152,17 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     items: [
       { label: 'الإعلانات الممولة', href: '/admin/ads', permission: 'finance.view' },
       { label: 'الحملات التسويقية', href: '/admin/campaigns' },
+    ],
+  },
+  {
+    /**
+     * **وما يُقرأ ولا يُضبط**: تقريرٌ يُصدَّر وأثرٌ لا يُعدَّل.
+     * ومجموعةٌ اسمُها «الإعدادات» تضمّ سجلًّا تَعِد بما لا تفي به.
+     */
+    title: 'التقارير والسجلات',
+    items: [
+      { label: 'التقارير والتصدير', href: '/admin/exports' },
+      { label: 'سجل العمليات', href: '/admin/audit', permission: 'audit.view' },
     ],
   },
   {
@@ -231,30 +257,54 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
   },
 ];
 
+/** أقسامُ الإعدادات بعناوينها بلا البادئة — يقرؤها مركزُ الإعدادات وشريطُه. */
+export function settingsSections(): readonly AdminNavGroup[] {
+  return ADMIN_NAV.filter((group) => group.title.startsWith(SETTINGS_PREFIX)).map((group) => ({
+    ...group,
+    title: group.title.replace(`${SETTINGS_PREFIX} — `, ''),
+  }));
+}
+
+/** أهذا المسارُ إعدادٌ — مركزُها أو شاشةٌ من شاشاتها؟ */
+export function isSettingsHref(href: string | undefined): boolean {
+  if (href === undefined) return false;
+  if (href === SETTINGS_HOME) return true;
+  return ADMIN_NAV.some(
+    (group) =>
+      group.title.startsWith(SETTINGS_PREFIX) && group.items.some((item) => item.href === href),
+  );
+}
+
 /**
- * ═══ المجموعات المعروضة — والإعدادات بندٌ واحد ما لم تكن فيها ═══
+ * ═══ الشريطُ لا يفتح الإعدادات أبدًا — قرار المالك ٢٠٢٦-١١-٢٨ ═══
  *
- * ستّةَ عشرَ بندًا من ثلاثين كانت إعدادات: تُضبط مرّةً في الشهر
- * وتزاحم العمل اليوميّ في كل يوم. **فتُطوى خلف مدخلٍ واحد، فإن
- * دخلتَها انفتحت أقسامُها** — فلا تفقد التنقّل بينها، ولا تحملها
- * معك وأنت تعالج طابورًا.
+ * «صفحة الإعدادات بمجرّد الضغط عليها تظهر العديد من الأقسام تحتها
+ * بشكل يشتّت المستخدم وتكثر الصفحات في القائمة الجانبية».
  *
- * والمنطق هنا لا في المكوّن: **ترتيب اللوحة قرارُ بنية يُختبَر**.
+ * وكان الشريطُ يطويها خارجها **ويفتح ستّةً وعشرين بندًا داخلها** —
+ * فمن دخل ليغيّر نسبةَ ضريبةٍ وجد شريطَه وقد تضاعف، وفقد ترتيبَ
+ * اللوحة الذي حفظه. **والطيُّ الذي ينقضُ نفسَه عند أوّل استعمالٍ ليس
+ * طيًّا.**
+ *
+ * فالشريطُ بندٌ واحد في الحالين، والتنقّلُ بين الإعدادات **داخل
+ * الصفحة** (شريطُ أقسامٍ في `AdminShell`): وهو الشكلُ المألوف في
+ * لوحات الإدارة — منطقةٌ لها مِلاحتُها، لا ملاحةٌ تنتفخ في الجذر.
  */
 export function visibleGroups(activeHref?: string): readonly AdminNavGroup[] {
   const isSettings = (group: AdminNavGroup): boolean => group.title.startsWith(SETTINGS_PREFIX);
 
-  const inside =
-    activeHref !== undefined
-    && (activeHref === SETTINGS_HOME
-      || ADMIN_NAV.some(
-        (group) => isSettings(group) && group.items.some((item) => item.href === activeHref),
-      ));
-
-  if (inside) return ADMIN_NAV;
-
   return [
     ...ADMIN_NAV.filter((group) => !isSettings(group)),
-    { title: SETTINGS_PREFIX, items: [{ label: 'كل الإعدادات', href: SETTINGS_HOME }] },
+    {
+      title: SETTINGS_PREFIX,
+      items: [
+        {
+          label: 'كل الإعدادات',
+          href: SETTINGS_HOME,
+          /** **والبندُ مضيءٌ داخل أيّ إعداد** — فلا يضيع الداخلُ عن موضعه. */
+          ...(isSettingsHref(activeHref) ? { active: true } : {}),
+        },
+      ],
+    },
   ];
 }

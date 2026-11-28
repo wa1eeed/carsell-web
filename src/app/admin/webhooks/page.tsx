@@ -142,7 +142,7 @@ export default async function AdminWebhooksPage({
       <p className="mt-6 max-w-2xl text-2xs leading-loose opacity-65">
         وإعادة المحاولة من طرف البوابة: ترسل الرد نفسه عند أي شك، ونرده بنجاح
         فلا يتكرر الأثر. وعدد المحاولات على كل صف —{' '}
-        <Link href="/admin/payments" className="underline underline-offset-2">
+        <Link href="/admin/payments" className="">
           توجيه المدفوعات والبوابات
         </Link>
         .

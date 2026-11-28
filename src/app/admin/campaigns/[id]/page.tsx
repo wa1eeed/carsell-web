@@ -243,7 +243,7 @@ export default async function AdminCampaignPage({
                       >
                         <Link
                           href={`/admin/users/${encodeURIComponent(row.userId)}`}
-                          className="bidi-isolate -my-1 min-w-0 flex-1 truncate py-1 text-2xs underline underline-offset-4"
+                          className="bidi-isolate -my-1 min-w-0 flex-1 truncate py-1 text-2xs "
                         >
                           {row.name ?? row.ref ?? '—'}
                         </Link>

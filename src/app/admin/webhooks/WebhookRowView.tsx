@@ -74,7 +74,7 @@ export function WebhookRowView({
       {compact || orderRef === null ? null : (
         <Link
           href={`/admin/orders/${orderRef}?tab=payments`}
-          className="bidi-ltr font-num text-2xs underline underline-offset-2"
+          className="bidi-ltr font-num text-2xs "
         >
           {orderRef}
         </Link>

@@ -170,9 +170,13 @@ export function AdminMobileNav({
           </div>
 
           <nav className="flex flex-col gap-1 px-3 py-4">
-            {groups.map((group) => (
-              <div key={group.title}>
-                <p className="px-3 pb-1.5 pt-4 text-3xs font-bold tracking-wider opacity-65">
+            {groups.map((group, index) => (
+              /* **والعنوانُ عنوانٌ لا بند** — كالجانبيّ: فاصلٌ ووزنٌ أخفّ وتباعد. */
+              <div
+                key={group.title}
+                className={index === 0 ? '' : 'mt-1.5 border-t border-line pt-1'}
+              >
+                <p className="px-3 pb-1 pt-3.5 text-3xs font-semibold uppercase tracking-[0.2em] opacity-65">
                   {group.title}
                 </p>
                 {group.items.map((item) =>

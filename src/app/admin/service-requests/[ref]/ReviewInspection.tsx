@@ -71,7 +71,7 @@ export function ReviewInspection({
           <ArabicNumber value={score} />
         </span>
         <span className="text-2xs opacity-70">{grade === '' ? '—' : t(`grade.${grade}`)}</span>
-        {flagged ? <Badge tone="danger">بند حرج ساقط</Badge> : null}
+        {flagged ? <Badge tone="danger">رسب بند مؤثر على التقدير</Badge> : null}
       </div>
 
       <p className="mb-3.5 text-2xs leading-loose opacity-75">

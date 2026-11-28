@@ -142,7 +142,7 @@ export default async function AdminProviderPayoutPage({
                       {line.requestRef !== null ? (
                         <Link
                           href={`/admin/service-requests/${encodeURIComponent(line.requestRef)}`}
-                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs "
                         >
                           {line.requestRef}
                         </Link>
@@ -154,7 +154,7 @@ export default async function AdminProviderPayoutPage({
                         /* **وقيدُ تحويلٍ آخر يفتحه** — فالرصيد يُقرأ إلى آخره. */
                         <Link
                           href={`/admin/provider-payouts/${encodeURIComponent(line.payoutId)}`}
-                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs "
                         >
                           {line.payoutRef ?? 'حوالة سابقة'}
                         </Link>
@@ -203,7 +203,7 @@ export default async function AdminProviderPayoutPage({
               />
               <Link
                 href={`/admin/providers/${encodeURIComponent(payout.provider.id)}`}
-                className="mt-3 inline-block py-1 text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block py-1 text-2xs opacity-75 hover:opacity-100"
               >
                 صفحة المزود وكشف حسابه
               </Link>
@@ -240,7 +240,7 @@ export default async function AdminProviderPayoutPage({
                 </p>
                 <Link
                   href="/admin/provider-payouts"
-                  className="mt-3 inline-block py-1 text-2xs font-bold underline underline-offset-4"
+                  className="mt-3 inline-block py-1 text-2xs font-bold "
                 >
                   شاشة تحويلات المزودين
                 </Link>

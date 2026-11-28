@@ -44,7 +44,7 @@ export default async function AdminApiKeysPage() {
         القديم.{' '}
         <Link
           href="/admin/integrations"
-          className="font-bold underline underline-offset-2"
+          className="font-bold "
         >
           تكاملات المنصة
         </Link>{' '}

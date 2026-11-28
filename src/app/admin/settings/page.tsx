@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { ADMIN_NAV, SETTINGS_PREFIX } from '@/components/admin/nav';
+import { settingsSections } from '@/components/admin/nav';
 import { currentAdmin } from '@/lib/auth/admin-session';
 import { can } from '@/lib/domain/permissions';
 
@@ -28,10 +28,10 @@ export default async function AdminSettingsPage() {
   const admin = await currentAdmin();
   if (admin === null) redirect('/admin/login');
 
-  const sections = ADMIN_NAV
-    .filter((group) => group.title.startsWith(SETTINGS_PREFIX))
+  /** **والأقسامُ من مصدرٍ واحد** — تقرؤها هذه الصفحة وشريطُها الداخليّ. */
+  const sections = settingsSections()
     .map((group) => ({
-      title: group.title.replace(`${SETTINGS_PREFIX} — `, ''),
+      title: group.title,
       items: group.items.filter(
         (item) => item.href !== null
           && (item.permission === undefined || can(admin.role, item.permission)),

@@ -30,7 +30,7 @@ export function RevealPhone({
 
   if (phone !== null) {
     return (
-      <a dir="ltr" href={`tel:${phone}`} className="font-num text-2xs underline underline-offset-4">
+      <a dir="ltr" href={`tel:${phone}`} className="font-num text-2xs ">
         {phone}
       </a>
     );
@@ -67,7 +67,7 @@ export function RevealPhone({
             setPhone(payload.data.phone);
           })
         }
-        className="text-3xs font-bold underline underline-offset-4 opacity-75 hover:opacity-100"
+        className="text-3xs font-bold opacity-75 hover:opacity-100"
       >
         {busy ? 'يكشف…' : 'أظهر الرقم'}
       </button>

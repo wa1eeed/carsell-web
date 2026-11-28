@@ -147,7 +147,7 @@ export function PayoutsTable({
                     href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
                     /* **ومساحةُ اللمس ليست مساحةَ النصّ** (WCAG 2.2): حشوٌ رأسيّ
                       وهامشٌ سالب — يتّسع الهدف ولا يتحرّك سطر. */
-                    className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
+                    className="bidi-isolate -my-1 block truncate py-1 text-sm hover:opacity-75"
                   >
                     {row.sellerName ?? '—'}
                   </Link>
@@ -157,7 +157,7 @@ export function PayoutsTable({
                   */}
                   <Link
                     href={`/admin/payouts/${encodeURIComponent(row.id)}`}
-                    className="-my-1 w-fit py-1 text-3xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                    className="-my-1 w-fit py-1 text-3xs opacity-70 hover:opacity-100"
                   >
                     تفاصيل التحويل
                   </Link>
@@ -223,7 +223,7 @@ export function PayoutsTable({
                   href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
                   /* **ومساحةُ اللمس ليست مساحةَ النصّ** (WCAG 2.2): حشوٌ رأسيّ
                       وهامشٌ سالب — يتّسع الهدف ولا يتحرّك سطر. */
-                    className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
+                    className="bidi-isolate -my-1 block truncate py-1 text-sm hover:opacity-75"
                 >
                   {row.name === '' ? '—' : row.name}
                 </Link>
@@ -289,7 +289,7 @@ export function PayoutsTable({
                 */}
                 <Link
                   href={`/admin/payouts/${encodeURIComponent(row.id)}`}
-                  className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-100"
+                  className="bidi-isolate -my-1 block truncate py-1 text-sm hover:opacity-100"
                 >
                   {row.sellerName ?? '—'}
                 </Link>

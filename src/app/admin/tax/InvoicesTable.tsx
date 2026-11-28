@@ -147,7 +147,7 @@ export function InvoicesTable({
           <button
             type="button"
             onClick={() => setTarget(invoice)}
-            className="text-3xs font-bold text-danger underline underline-offset-2"
+            className="text-3xs font-bold text-danger "
           >
             إشعار دائن
           </button>

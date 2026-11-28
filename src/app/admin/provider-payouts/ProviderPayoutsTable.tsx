@@ -162,7 +162,7 @@ export function ProviderPayoutsTable({
                     href={`/admin/providers/${encodeURIComponent(row.providerId)}`}
                     /* **ومساحةُ اللمس ليست مساحةَ النصّ** (WCAG 2.2): حشوٌ رأسيّ
                       وهامشٌ سالب — يتّسع الهدف ولا يتحرّك سطر. */
-                    className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
+                    className="bidi-isolate -my-1 block truncate py-1 text-sm hover:opacity-75"
                   >
                     {row.providerName}
                   </Link>
@@ -173,7 +173,7 @@ export function ProviderPayoutsTable({
                   */}
                   <Link
                     href={`/admin/provider-payouts/${encodeURIComponent(row.id)}`}
-                    className="-my-1 w-fit py-1 text-3xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                    className="-my-1 w-fit py-1 text-3xs opacity-70 hover:opacity-100"
                   >
                     تفاصيل التحويل
                   </Link>
@@ -236,7 +236,7 @@ export function ProviderPayoutsTable({
                   href={`/admin/providers/${encodeURIComponent(row.providerId)}`}
                   /* **ومساحةُ اللمس ليست مساحةَ النصّ** (WCAG 2.2): حشوٌ رأسيّ
                       وهامشٌ سالب — يتّسع الهدف ولا يتحرّك سطر. */
-                    className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
+                    className="bidi-isolate -my-1 block truncate py-1 text-sm hover:opacity-75"
                 >
                   {row.nameAr}
                 </Link>
@@ -309,7 +309,7 @@ export function ProviderPayoutsTable({
                 */}
                 <Link
                   href={`/admin/provider-payouts/${encodeURIComponent(row.id)}`}
-                  className="bidi-isolate -my-1 block truncate py-1 text-sm underline underline-offset-4 hover:opacity-75"
+                  className="bidi-isolate -my-1 block truncate py-1 text-sm hover:opacity-75"
                 >
                   {row.providerName}
                 </Link>

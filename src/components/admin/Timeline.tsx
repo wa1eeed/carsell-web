@@ -114,7 +114,7 @@ export function Timeline({ events }: { events: readonly TimelineEvent[] }) {
               {event.href === null ? null : (
                 <>
                   <span aria-hidden>·</span>
-                  <Link href={event.href} className="underline underline-offset-4 hover:opacity-80">
+                  <Link href={event.href} className="hover:opacity-80">
                     افتح
                   </Link>
                 </>

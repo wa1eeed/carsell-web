@@ -143,7 +143,7 @@ export default async function AdminReportDetailPage({
               ) : (
                 <Link
                   href={targetHref}
-                  className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                  className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
                 >
                   افتح الهدف
                 </Link>
@@ -154,7 +154,7 @@ export default async function AdminReportDetailPage({
               <Field label="الاسم" value={report.reporter.name} />
               <Link
                 href={`/admin/users/${report.reporter.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح ملفه
               </Link>

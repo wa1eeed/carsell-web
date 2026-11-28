@@ -41,7 +41,7 @@ export default async function AdminTrustMarksPage() {
         هذه العلامات تظهر في{' '}
         <Link
           href="/ar"
-          className="font-bold underline underline-offset-2"
+          className="font-bold "
           target="_blank"
         >
           تذييل الموقع

@@ -385,8 +385,8 @@ function Shortfall({ maxHoldDays, neededDays }: HoldShortfall) {
   return (
     <>
       أقصى مدة حجز <Quantity unit="days" count={maxHoldDays} />، ومسار الطلب يحتاج{' '}
-      <Quantity unit="days" count={neededDays} /> (دفع + سقف نقل + نافذة استرجاع).
-      فسيتحول الحجز إلى تحصيل مبكر قبل أن تنقضي النافذة، وهذا يغير معنى الضمان
+      <Quantity unit="days" count={neededDays} /> (مهلة الدفع + أقصى مدة للنقل + تمديد واحد).
+      فسيتحول الحجز إلى تحصيل مبكر قبل أن يصل الطلب إلى نهايته، وهذا يغير معنى الضمان
       للمشتري.
     </>
   );

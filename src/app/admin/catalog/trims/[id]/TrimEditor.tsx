@@ -322,7 +322,7 @@ export function TrimEditor({
           <p className="mb-3.5 text-xs leading-relaxed opacity-70">
             ما تعلمه هنا يصل البائع <b>معلما مسبقا</b> في استمارته، ويشطب ما ليس في
             سيارته. وظهور الميزة نفسها في الاستمارة يقرره موضع «استمارة البائع» في{' '}
-            <Link href="/admin/catalog/features" className="underline underline-offset-4">
+            <Link href="/admin/catalog/features" className="">
               صفحة المميزات
             </Link>
             .

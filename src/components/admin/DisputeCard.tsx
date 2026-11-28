@@ -204,7 +204,7 @@ function Party({ id, name, verified }: { id: string; name: string; verified: boo
     <>
       <Link
         href={`/admin/users/${encodeURIComponent(id)}`}
-        className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
+        className="bidi-isolate relative z-10 decoration-dotted hover:decoration-solid"
       >
         {name === '' ? 'بلا اسم' : name}
       </Link>

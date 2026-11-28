@@ -186,7 +186,7 @@ export default async function TaxEnginePage({
                 <Link
                   href={`/admin/orders/${row.orderRef}`}
                   dir="ltr"
-                  className="font-num font-bold underline"
+                  className="font-num font-bold "
                 >
                   {row.orderRef}
                 </Link>

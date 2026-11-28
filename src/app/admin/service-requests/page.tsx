@@ -286,7 +286,7 @@ export default async function ServiceRequestsPage({
       {scope === null ? null : (
         <p className="mb-4 flex flex-wrap items-center gap-2 text-2xs opacity-70">
           <span>معروض: {SCOPE_LABEL[scope]}</span>
-          <Link href="/admin/service-requests" className="font-semibold underline opacity-100">
+          <Link href="/admin/service-requests" className="font-semibold opacity-100">
             أزل المرشح
           </Link>
         </p>

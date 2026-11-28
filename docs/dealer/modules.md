@@ -1,6 +1,6 @@
 # Dealer modules and the entitlement engine
 
-_Last updated: 2026-11-26_
+_Last updated: 2026-11-28_
 
 The owner's requests of 2026-11-26, recorded before code:
 
@@ -373,3 +373,12 @@ not appear. `now()` in SQL returns the session's wall clock, and Prisma's
 `Asia/Riyadh` that writes a subscription starting **three hours in the future**,
 so `startsAt <= now` was false and the grants were ignored. Every timestamp a
 migration writes into a Prisma column now says `AT TIME ZONE 'UTC'` explicitly.
+
+### And the second door: a freshly seeded environment (2026-11-28)
+
+The migration fixed the databases that exist. The **seeder** subscribed people
+and never dealerships — so `npm run db:seed` on a new environment reproduced the
+whole bug: modules granted by plans nobody holds. Reference data reaches a live
+database by migration *and* a fresh one by seed; a fix in one door only is half
+a fix. The seeded showrooms now get a package, the first on the professional
+tier and the rest on the basic one, so both states are visible from day one.

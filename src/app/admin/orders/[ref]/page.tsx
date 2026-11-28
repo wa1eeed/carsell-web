@@ -470,7 +470,7 @@ export default async function AdminOrderDetailPage({
               <Field label="حالة الإعلان" value={order.listing.status} ltr />
               <Link
                 href={`/admin/all-listings?q=${encodeURIComponent(order.listing.ref)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح الإعلان
               </Link>
@@ -523,7 +523,7 @@ export default async function AdminOrderDetailPage({
               <Field label="الإجمالي" value={<Money amount={Number(order.money.totalAmount)} />} strong />
               <Link
                 href={`/admin/orders/${encodeURIComponent(order.ref)}?tab=money`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 تفصيل المال والدفتر
               </Link>
@@ -704,7 +704,7 @@ export default async function AdminOrderDetailPage({
                 */}
                 <Link
                   href={`/admin/disputes/${encodeURIComponent(order.dispute.id)}`}
-                  className="mt-3 inline-block text-2xs font-semibold text-accent-700 underline underline-offset-4"
+                  className="mt-3 inline-block text-2xs font-semibold text-accent-700 "
                 >
                   افتح النزاع ←
                 </Link>

@@ -1,6 +1,6 @@
 # Admin screens
 
-_Last updated: 2026-11-25_
+_Last updated: 2026-11-28_
 
 Generated from `src/components/admin/nav.ts`. Nothing listed the panel's screens
 before 2026-10-19: 45 folders under `src/app/admin` against 39 sidebar entries,
@@ -13,18 +13,15 @@ of a job's position, and how a screen with no sidebar entry is reached. Those
 are written here by hand, and a new row with an empty reason fails the check.
 
 <!-- generated:begin -->
-**46** entries in the sidebar, across 8 groups, against
+**46** entries in the sidebar, across 11 groups, against
 **46** folders under `src/app/admin`.
 
-### المتابعة
+### نظرة عامة
 
 | Screen | Path | Permission | What it is for |
 | --- | --- | --- | --- |
 | لوحة القيادة | `/admin` | `dashboard.view` |  |
-| التقارير والتصدير | `/admin/exports` | — |  |
 | مجرى النشاط | `/admin/activity` | `audit.view` |  |
-| دفتر الحسابات | `/admin/ledger` | `finance.view` |  |
-| سجل العمليات | `/admin/audit` | `audit.view` |  |
 
 ### الإعلانات
 
@@ -35,26 +32,37 @@ are written here by hand, and a new row with an empty reason fails the check.
 | المزادات | `/admin/auctions` | `orders.view` |  |
 | العروض والمساومات | `/admin/offers` | `orders.view` |  |
 
+### العملاء
+
+| Screen | Path | Permission | What it is for |
+| --- | --- | --- | --- |
+| العملاء | `/admin/users` | `users.view` |  |
+| طلبات توثيق الهوية | `/admin/identity` | `identity.review` |  |
+
+### المعارض والوكالات
+
+| Screen | Path | Permission | What it is for |
+| --- | --- | --- | --- |
+| المعارض والتجار | `/admin/dealers` | `users.view` |  |
+
 ### الطلبات والمبيعات
 
 | Screen | Path | Permission | What it is for |
 | --- | --- | --- | --- |
 | الطلبات | `/admin/orders` | `orders.view` |  |
 | المدفوعات والضمان | `/admin/settlements` | `finance.view` |  |
-| تحويل مستحقات البائعين | `/admin/payouts` | `finance.view` |  |
-| صرف مستحقات المزودين | `/admin/provider-payouts` | `finance.view` |  |
 | الخلافات | `/admin/disputes` | `orders.view` |  |
 | الشكاوى | `/admin/reports` | `reports.handle` |  |
 | طلبات الخدمات | `/admin/service-requests` | `serviceRequests.handle` |  |
 | طلبات التمويل | — قريبا | — |  |
 
-### العملاء
+### المال
 
 | Screen | Path | Permission | What it is for |
 | --- | --- | --- | --- |
-| العملاء | `/admin/users` | `users.view` |  |
-| المعارض والتجار | `/admin/dealers` | `users.view` |  |
-| طلبات توثيق الهوية | `/admin/identity` | `identity.review` |  |
+| تحويل مستحقات البائعين | `/admin/payouts` | `finance.view` |  |
+| صرف مستحقات المزودين | `/admin/provider-payouts` | `finance.view` |  |
+| دفتر الحسابات | `/admin/ledger` | `finance.view` |  |
 
 ### التسويق والإعلان
 
@@ -62,6 +70,13 @@ are written here by hand, and a new row with an empty reason fails the check.
 | --- | --- | --- | --- |
 | الإعلانات الممولة | `/admin/ads` | `finance.view` |  |
 | الحملات التسويقية | `/admin/campaigns` | — |  |
+
+### التقارير والسجلات
+
+| Screen | Path | Permission | What it is for |
+| --- | --- | --- | --- |
+| التقارير والتصدير | `/admin/exports` | — |  |
+| سجل العمليات | `/admin/audit` | `audit.view` |  |
 
 ### الإعدادات — المال
 

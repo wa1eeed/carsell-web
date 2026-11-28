@@ -115,7 +115,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xs opacity-70">
           <Link
             href={`/admin/users/${encodeURIComponent(row.sellerId)}`}
-            className="bidi-isolate relative z-10 underline decoration-dotted underline-offset-4 hover:decoration-solid"
+            className="bidi-isolate relative z-10 decoration-dotted hover:decoration-solid"
           >
             {row.sellerName}
           </Link>

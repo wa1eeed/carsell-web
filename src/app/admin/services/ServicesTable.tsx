@@ -260,7 +260,7 @@ export function ServicesTable({
                 */}
                 <Link
                   href={`/admin/services/${encodeURIComponent(service.key)}`}
-                  className="bidi-isolate -my-1 block py-1 font-bold underline underline-offset-4 hover:opacity-75"
+                  className="bidi-isolate -my-1 block py-1 font-bold hover:opacity-75"
                 >
                   {service.nameAr}
                 </Link>

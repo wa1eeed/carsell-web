@@ -215,7 +215,7 @@ export default async function AdminAuctionDetailPage({
               <Field label="الاسم" value={auction.seller.name} />
               <Link
                 href={`/admin/users/${auction.seller.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح ملفه
               </Link>
@@ -229,7 +229,7 @@ export default async function AdminAuctionDetailPage({
               />
               <Link
                 href={`/admin/listings/${encodeURIComponent(auction.listingRef)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح الإعلان
               </Link>

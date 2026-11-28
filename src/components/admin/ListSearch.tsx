@@ -82,7 +82,7 @@ export function ListSearch({
                   ),
                 ).toString()}`
           }
-          className="text-3xs font-bold underline underline-offset-2 opacity-70 hover:opacity-100"
+          className="text-3xs font-bold opacity-70 hover:opacity-100"
         >
           امسح البحث
         </a>

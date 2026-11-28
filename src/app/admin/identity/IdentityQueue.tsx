@@ -183,7 +183,7 @@ export function IdentityQueue({
                   */}
                   <Link
                     href={`/admin/users/${row.userId}`}
-                    className="underline underline-offset-4 hover:opacity-70"
+                    className="hover:opacity-70"
                   >
                     {row.name ?? 'بلا اسم'}
                   </Link>

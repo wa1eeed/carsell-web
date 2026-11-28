@@ -35,7 +35,7 @@ export default async function AdminFinancingPage() {
     >
       <p className="mb-7 max-w-2xl text-sm leading-loose opacity-70">
         هذه الأرقام تبني القسط التقريبي الظاهر في{' '}
-        <Link href="/ar/cars" className="font-bold underline underline-offset-2" target="_blank">
+        <Link href="/ar/cars" className="font-bold " target="_blank">
           نتائج البحث
         </Link>{' '}
         وصفحة السيارة. <b>والقسط تقدير لا عرض تمويل:</b> يحسب عندنا ولا يمر بممول،

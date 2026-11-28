@@ -36,7 +36,7 @@ export default async function AdminContactPage() {
         هذه القنوات تظهر في{' '}
         <Link
           href="/ar/help/contact"
-          className="font-bold underline underline-offset-2"
+          className="font-bold "
           target="_blank"
         >
           صفحة «تواصل معنا»

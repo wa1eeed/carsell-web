@@ -195,7 +195,7 @@ export default async function AdminOfferDetailPage({
               />
               <Link
                 href={`/admin/users/${offer.buyer.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح ملف المشتري
               </Link>
@@ -210,7 +210,7 @@ export default async function AdminOfferDetailPage({
               <Field label="المركبة" value={offer.listing.title} />
               <Link
                 href={`/admin/listings/${encodeURIComponent(offer.listing.ref)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح الإعلان
               </Link>

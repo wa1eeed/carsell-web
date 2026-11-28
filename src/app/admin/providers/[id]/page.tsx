@@ -440,7 +440,7 @@ export default async function AdminProviderPage({
 
             <p className="mt-5 text-3xs leading-loose opacity-70">
               التحرير والإيقاف من{' '}
-              <Link href="/admin/providers" className="font-bold underline underline-offset-2">
+              <Link href="/admin/providers" className="font-bold ">
                 قائمة المزودين
               </Link>
               .

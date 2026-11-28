@@ -294,7 +294,7 @@ export default async function AdminListingDetailPage({
                     <Link
                       href={`/admin/orders/${encodeURIComponent(order.ref)}`}
                       dir="ltr"
-                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-75"
+                      className="font-num text-start text-2xs font-bold hover:opacity-75"
                     >
                       {order.ref}
                     </Link>
@@ -424,7 +424,7 @@ export default async function AdminListingDetailPage({
               />
               <Link
                 href={`/admin/users/${listing.seller.id}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 افتح ملفه
               </Link>

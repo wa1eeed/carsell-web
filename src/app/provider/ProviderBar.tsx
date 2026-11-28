@@ -22,10 +22,10 @@ export function ProviderBar({ name }: { name: string }) {
         رأسيّ وهامشٌ سالب**: تتّسع بلا أن يتحرّك سطر (WCAG 2.2).
       */}
       <nav className="flex flex-wrap items-center gap-4 text-2xs">
-        <Link href="/provider" className="-my-2 py-2 underline-offset-4 hover:underline">
+        <Link href="/provider" className="-my-2 py-2 hover:underline">
           طلباتك
         </Link>
-        <Link href="/provider/earnings" className="-my-2 py-2 underline-offset-4 hover:underline">
+        <Link href="/provider/earnings" className="-my-2 py-2 hover:underline">
           مستحقاتك
         </Link>
       </nav>
@@ -37,7 +37,7 @@ export function ProviderBar({ name }: { name: string }) {
       */}
       <Link
         href="/provider/account"
-        className="bidi-isolate text-sm font-bold underline-offset-4 hover:underline"
+        className="bidi-isolate text-sm font-bold hover:underline"
       >
         {name}
       </Link>

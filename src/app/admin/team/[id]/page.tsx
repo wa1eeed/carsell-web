@@ -229,7 +229,7 @@ export default async function AdminTeamMemberPage({
                     <li
                       key={permission}
                       className={`text-2xs ${
-                        writable.includes(permission) ? 'font-bold' : 'opacity-75'
+ writable.includes(permission) ? 'font-bold' : 'opacity-75'
                       }`}
                     >
                       {PERMISSION_LABEL[permission] ?? permission}
@@ -239,7 +239,7 @@ export default async function AdminTeamMemberPage({
               )}
               <Link
                 href="/admin/team"
-                className="mt-3 inline-block py-1 text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block py-1 text-2xs opacity-75 hover:opacity-100"
               >
                 مصفوفة الصلاحيات كاملة
               </Link>

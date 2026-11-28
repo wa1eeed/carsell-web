@@ -91,7 +91,7 @@ export function DealersTable({ rows }: { rows: readonly DealerRow[] }) {
               <span className="flex items-center gap-2.5">
                 <Link
                   href={`/admin/dealers/${row.id}`}
-                  className="bidi-isolate truncate text-sm font-bold underline underline-offset-4 hover:opacity-75"
+                  className="bidi-isolate truncate text-sm font-bold hover:opacity-75"
                 >
                   {row.name}
                 </Link>

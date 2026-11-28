@@ -92,7 +92,7 @@ export function GatewayFeesForm({
           <button
             type="button"
             onClick={show}
-            className="text-3xs underline opacity-70 hover:opacity-90"
+            className="text-3xs opacity-70 hover:opacity-90"
           >
             تعديل
           </button>
@@ -125,7 +125,7 @@ export function GatewayFeesForm({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="pb-1.5 text-3xs underline opacity-70 hover:opacity-90"
+            className="pb-1.5 text-3xs opacity-70 hover:opacity-90"
           >
             إلغاء
           </button>

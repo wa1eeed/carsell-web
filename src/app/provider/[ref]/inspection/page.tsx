@@ -67,7 +67,7 @@ export default async function InspectionFormPage({
       <main className="mx-auto w-full max-w-3xl p-6">
         <Link
           href={`/provider/${encodeURIComponent(decoded)}`}
-          className="mb-4 inline-block py-1 text-2xs opacity-70 underline underline-offset-4 hover:opacity-100"
+          className="mb-4 inline-block py-1 text-2xs opacity-70 hover:opacity-100"
         >
           ← عودة إلى الطلب
         </Link>

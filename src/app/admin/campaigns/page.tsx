@@ -126,7 +126,7 @@ export default async function CampaignsPage({
                     */}
                     <Link
                       href={`/admin/campaigns/${encodeURIComponent(campaign.id)}`}
-                      className="bidi-isolate -my-1 block py-1 underline underline-offset-4 hover:opacity-75"
+                      className="bidi-isolate -my-1 block py-1 hover:opacity-75"
                     >
                       {campaign.nameAr}
                     </Link>

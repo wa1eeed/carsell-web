@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ArabicNumber } from '@/components/ui/ArabicNumber';
 import { APP_ENV } from '@/lib/env';
 import { can } from '@/lib/domain/permissions';
-import { visibleGroups } from './nav';
+import { isSettingsHref, settingsSections, visibleGroups, SETTINGS_HOME } from './nav';
 import { adminNavCounts } from '@/lib/domain/admin-nav-counts';
 import { SignOut } from '@/components/ui/SignOut';
 import { AdminMobileNav } from './AdminMobileNav';
@@ -100,13 +100,25 @@ export async function AdminShell({
         </div>
 
         <div className="flex-1 overflow-y-auto px-2.5">
-          {groups.map((group) => (
-            <div key={group.title}>
-              <p className="px-3.5 pt-4 pb-1.5 text-3xs font-bold tracking-[0.16em] opacity-65">
+          {groups.map((group, index) => (
+            /*
+              ═══ والعنوانُ يُقرأ عنوانًا لا بندًا ═══
+
+              قال المالك إنّ عناوين المجموعات «تظهر بنفس اللون وكأنها
+              اسم صفحة». وكانت كذلك: **بيضاء عريضة** بحجمٍ قريبٍ من
+              البند، فتُقرأ سطرًا قابلًا للنقر.
+
+              فصارت تُميَّز بثلاثة معًا — خطٌّ فاصل فوقها، ووزنٌ أخفّ،
+              وتباعدُ حروفٍ أوسع. **ولا يُخفَّض التباين دون الحدّ**:
+              البوابةُ تمنع نصًّا دون `opacity-65`، والتمييزُ بالشكل لا
+              بالإخفاء.
+            */
+            <div key={group.title} className={index === 0 ? '' : 'mt-1.5 border-t border-bg/12 pt-1'}>
+              <p className="px-3.5 pt-3.5 pb-1 text-3xs font-semibold uppercase tracking-[0.2em] opacity-65">
                 {group.title}
               </p>
               {group.items.map((item) => {
-                const isActive = item.href !== null && item.href === activeHref;
+                const isActive = item.active === true || (item.href !== null && item.href === activeHref);
                 const disabled = item.href === null;
 
                 return (
@@ -201,7 +213,58 @@ export async function AdminShell({
           <SignOut path="/api/v1/admin/auth/logout" next="/admin/login" label="خروج" />
         </header>
         {/* **وحشوةٌ أضيق على الهاتف** — ٣٠px من ٣٧٥ ثُمنُ العرض */}
-        <main className="min-w-0 flex-1 p-4 sm:p-7.5">{children}</main>
+        <main className="min-w-0 flex-1 p-4 sm:p-7.5">
+          {/*
+            ═══ مِلاحةُ الإعدادات داخل الصفحة ═══
+
+            الشريطُ الجانبيّ لا يفتح الإعدادات (قرار المالك)، فالتنقّلُ
+            بينها هنا — وهو الشكلُ المألوف: منطقةٌ لها مِلاحتُها.
+            **وبلا هذا يكون الطيُّ حبسًا**: من غيّر نسبةَ ضريبةٍ ثمّ
+            أراد المهل يعود إلى المركز في كلّ مرّة.
+          */}
+          {/*
+            **ولا يُعرض في المركز نفسِه**: بطاقاتُه هي المِلاحة،
+            فشريطٌ فوقها يكرّر ستّةً وعشرين رابطًا في شاشةٍ واحدة.
+          */}
+          {!isSettingsHref(activeHref) || activeHref === SETTINGS_HOME ? null : (
+            <nav className="mb-6 flex flex-col gap-2.5 border-b border-line pb-5">
+              <Link href={SETTINGS_HOME} className="w-fit text-3xs font-bold opacity-70 hover:opacity-100">
+                ← كل الإعدادات
+              </Link>
+              {settingsSections().map((section) => {
+                const items = section.items.filter(
+                  (item) =>
+                    item.href !== null
+                    && (item.permission === undefined || can(admin.role, item.permission)),
+                );
+                if (items.length === 0) return null;
+
+                return (
+                  <span key={section.title} className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
+                    <span className="w-16 shrink-0 text-3xs font-semibold opacity-65">
+                      {section.title}
+                    </span>
+                    {items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href ?? SETTINGS_HOME}
+                        className={cn(
+                          'rounded-md px-2 py-1 text-3xs',
+                          item.href === activeHref
+                            ? 'bg-ink font-bold text-bg'
+                            : 'opacity-70 hover:bg-surface hover:opacity-100',
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </span>
+                );
+              })}
+            </nav>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );

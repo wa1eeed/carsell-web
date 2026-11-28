@@ -429,7 +429,7 @@ export function ReviewQueue({
                   <span
                     className={cn(
                       'bidi-isolate truncate text-sm font-bold',
-                      current?.ref === row.ref && 'underline decoration-accent decoration-2 underline-offset-4',
+                      current?.ref === row.ref && 'decoration-accent decoration-2 ',
                     )}
                   >
                     {row.title}

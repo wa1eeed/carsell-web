@@ -80,7 +80,7 @@ export function ExtendTransfer({
     <>
       <div className="mt-2.5 rounded-md border border-line p-3.5">
         <p className="mb-2.5 text-3xs leading-loose opacity-75">
-          يضاف <Quantity unit="days" count={days} /> إلى السقف، مرة واحدة. اكتب
+          يضاف <Quantity unit="days" count={days} /> إلى المهلة، مرة واحدة. اكتب
           السبب: التمديد يؤخر وصول المال، ويقرأ سببك من يراجع الطلب بعدك.
         </p>
         <textarea

@@ -196,7 +196,7 @@ export function SiteForm({
           <a
             dir="ltr"
             href={`${origin}/showroom/${saved.slug}`}
-            className="bidi-ltr underline"
+            className="bidi-ltr "
             target="_blank"
             rel="noreferrer"
           >

@@ -142,7 +142,7 @@ export default async function AdminServicePage({
                     <li key={row.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5">
                       <Link
                         href={`/admin/service-requests/${encodeURIComponent(row.ref)}`}
-                        className="bidi-ltr font-num -my-1 py-1 text-2xs underline underline-offset-4"
+                        className="bidi-ltr font-num -my-1 py-1 text-2xs "
                       >
                         {row.ref}
                       </Link>
@@ -196,7 +196,7 @@ export default async function AdminServicePage({
               {service.provider === null ? null : (
                 <Link
                   href={`/admin/providers/${encodeURIComponent(service.provider.id)}`}
-                  className="mt-3 inline-block py-1 text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                  className="mt-3 inline-block py-1 text-2xs opacity-75 hover:opacity-100"
                 >
                   صفحة المزود
                 </Link>

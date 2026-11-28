@@ -45,7 +45,7 @@ export function PartyLink({
     <span className="group relative inline-flex">
       <Link
         href={`/admin/users/${encodeURIComponent(party.id)}`}
-        className={className ?? 'bidi-isolate underline decoration-dotted underline-offset-4 hover:decoration-solid'}
+        className={className ?? 'bidi-isolate decoration-dotted hover:decoration-solid'}
       >
         {party.name}
       </Link>

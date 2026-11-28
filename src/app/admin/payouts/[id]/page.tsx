@@ -123,7 +123,7 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
                       {line.orderRef !== null ? (
                         <Link
                           href={`/admin/orders/${encodeURIComponent(line.orderRef)}`}
-                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs "
                         >
                           {line.orderRef}
                         </Link>
@@ -135,7 +135,7 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
                       ) : line.payoutId !== null ? (
                         <Link
                           href={`/admin/payouts/${encodeURIComponent(line.payoutId)}`}
-                          className="bidi-ltr font-num -my-1 py-1 text-3xs underline underline-offset-2"
+                          className="bidi-ltr font-num -my-1 py-1 text-3xs "
                         >
                           {line.payoutRef ?? 'حوالة سابقة'}
                         </Link>
@@ -183,7 +183,7 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
               />
               <Link
                 href={`/admin/users/${encodeURIComponent(payout.seller.id)}`}
-                className="mt-3 inline-block text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="mt-3 inline-block text-2xs opacity-75 hover:opacity-100"
               >
                 صفحة العميل
               </Link>
@@ -213,7 +213,7 @@ export default async function AdminPayoutPage({ params }: { params: Promise<{ id
                   من{' '}
                   <Link
                     href="/admin/payouts"
-                    className="font-bold underline underline-offset-2"
+                    className="font-bold "
                   >
                     شاشة التحويلات
                   </Link>{' '}

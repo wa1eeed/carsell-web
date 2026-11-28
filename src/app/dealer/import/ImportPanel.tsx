@@ -94,7 +94,7 @@ export function ImportPanel({ templateHref }: { templateHref: string }) {
           />
           <a
             href={templateHref}
-            className="text-2xs font-bold underline-offset-4 hover:underline"
+            className="text-2xs font-bold hover:underline"
           >
             نزل القالب
           </a>

@@ -63,17 +63,41 @@ describe('═══ ولا يشتري أحدٌ من نفسه ═══', () => {
      * وقتُه حتى تمرّ الوظيفة الدورية، و`placeBid` تردّ `ENDED` قبل
      * أن تنظر في المالك — فيقيس الاختبار شيئًا لم يقصده.
      */
-    const auction = await db.auction.findFirstOrThrow({
-      where: { status: 'LIVE', endsAt: { gt: new Date() } },
-      select: { id: true, startPrice: true, listing: { select: { sellerId: true } } },
+    /**
+     * **ومزادٌ مزروعٌ ينقضي بمرور الأيّام.** كان الفحصُ يأخذ «أوّل
+     * مزادٍ مباشرٍ لم ينتهِ» فسقط بعد يومين من الزرع بلا أن يتغيّر
+     * سطرٌ في الشيفرة — وهو شرطٌ يصنعه الزمنُ لا الاختبار. فيُصنع
+     * المزادُ هنا ويُحذف بعده.
+     */
+    const listing = await db.listing.findFirstOrThrow({
+      where: { auction: null, status: { in: ['PUBLISHED', 'SOLD', 'PAUSED'] } },
+      select: { id: true, sellerId: true },
     });
 
-    const result = await placeBid({
-      auctionId: auction.id,
-      bidderId: auction.listing.sellerId,
-      amount: Number(auction.startPrice) + 100_000,
+    const auction = await db.auction.create({
+      data: {
+        listingId: listing.id,
+        startPrice: 50_000,
+        bidIncrement: 500,
+        depositAmount: 1_000,
+        startsAt: new Date(Date.now() - 3_600_000),
+        endsAt: new Date(Date.now() + 7 * 24 * 3_600_000),
+        status: 'LIVE',
+      },
+      select: { id: true },
     });
 
-    expect(result).toEqual({ ok: false, reason: 'OWN_AUCTION' });
+    try {
+      const result = await placeBid({
+        auctionId: auction.id,
+        bidderId: listing.sellerId,
+        amount: 150_000,
+      });
+
+      expect(result).toEqual({ ok: false, reason: 'OWN_AUCTION' });
+    } finally {
+      /** **وما صنعه الفحصُ يُحذف ولو سقط** — وإلّا بقي مزادٌ على إعلانٍ مزروع. */
+      await db.auction.delete({ where: { id: auction.id } });
+    }
   });
 });

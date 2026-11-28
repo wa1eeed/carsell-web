@@ -153,7 +153,7 @@ export function ReportsQueue({
                 <Link
                   href={`/admin/reports/${encodeURIComponent(row.ref)}`}
                   dir="ltr"
-                  className="font-num text-start text-3xs underline underline-offset-4 opacity-70 hover:opacity-100"
+                  className="font-num text-start text-3xs opacity-70 hover:opacity-100"
                 >
                   {row.ref}
                 </Link>

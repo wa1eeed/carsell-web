@@ -119,7 +119,7 @@ export function AuctionSettingsForm({
                     })
                   }
                   className={`rounded-full border px-4 py-1.5 text-2xs ${
-                    on ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink'
+ on ? 'border-ink bg-ink text-bg' : 'border-line hover:border-ink'
                   }`}
                 >
                   <Quantity unit="days" count={days} />

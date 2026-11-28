@@ -53,7 +53,7 @@ export function OrdersTable({ rows }: { rows: readonly DeskOrder[] }) {
                   <Link
                     href={`/dealer/orders/${row.ref}`}
                     dir="ltr"
-                    className="font-num text-2xs font-semibold underline-offset-4 hover:underline"
+                    className="font-num text-2xs font-semibold hover:underline"
                   >
                     {row.ref}
                   </Link>

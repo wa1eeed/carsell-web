@@ -63,7 +63,7 @@ export default async function DealerSettlements() {
             لا آيبان مسجل — ولن يحول إليك شيء حتى يسجل في{' '}
             {/* **والإحالةُ رابطٌ لا وصف**: «يسجل في ملف صاحب المعرض» تترك
                 قارئَها يبحث عن شاشةٍ لا يعرف أين هي. */}
-            <Link href="/dealer/owner" className="underline">
+            <Link href="/dealer/owner" className="">
               بيانات صاحب المعرض
             </Link>
             .
@@ -165,7 +165,7 @@ export default async function DealerSettlements() {
                   <td className="px-5 py-3.5 text-2xs">
                     <Link
                       href={`/dealer/orders/${row.orderRef}`}
-                      className="font-semibold underline-offset-4 hover:underline"
+                      className="font-semibold hover:underline"
                     >
                       {row.subject}
                     </Link>

@@ -83,7 +83,7 @@ export function AssignQueue({
         setPicked([]);
         router.refresh();
       })
-      .catch(() => setToast('تعذر الإسناد.'))
+      .catch(() => setToast('تعذر تعيين المزود.'))
       .finally(() => setPending(false));
   };
 

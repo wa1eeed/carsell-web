@@ -142,7 +142,7 @@ export default async function AdminDealerDetailPage({
                   >
                     <Link
                       href={`/admin/users/${member.id}`}
-                      className="bidi-isolate truncate text-2xs font-semibold underline underline-offset-4 hover:opacity-75"
+                      className="bidi-isolate truncate text-2xs font-semibold hover:opacity-75"
                     >
                       {member.name}
                     </Link>
@@ -172,7 +172,7 @@ export default async function AdminDealerDetailPage({
                     <Link
                       href={`/admin/listings/${encodeURIComponent(listing.ref)}`}
                       dir="ltr"
-                      className="font-num text-start text-2xs font-bold underline underline-offset-4 hover:opacity-75"
+                      className="font-num text-start text-2xs font-bold hover:opacity-75"
                     >
                       {listing.ref}
                     </Link>
@@ -265,7 +265,7 @@ export default async function AdminDealerDetailPage({
             <DetailCard title="الصفحة العامة">
               <Link
                 href={`/ar/dealers/${dealer.slug}`}
-                className="text-2xs underline underline-offset-4 opacity-75 hover:opacity-100"
+                className="text-2xs opacity-75 hover:opacity-100"
               >
                 افتح ما يراه الزائر
               </Link>
