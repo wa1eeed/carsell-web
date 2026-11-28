@@ -105,7 +105,7 @@ rather than found by chance.
 | `PrintDocument` | yes | `className` | 1 |
 | `QueryEdit` | yes | `text` · `label` · `apply` | 1 |
 | `ReportListing` | yes | `listingId` · `signedIn` · `locale` | 2 |
-| `RequestService` | yes | `serviceKey` · `serviceName` · `vehicles` · `initialVehicleId` · `cities` · `total` · `addVehicleHref` | 1 |
+| `RequestService` | yes | `serviceKey` · `serviceName` · `vehicles` · `initialVehicleId` · `cities` · `total` · `addVehicleHref` · `fields` | 1 |
 | `RequestViewing` | yes | `listingRef` · `locale` · `label` · `className` · `variant` | 1 |
 | `SaveSearchButton` | yes | `query` · `signedIn` · `saved` · `locale` | 1 |
 | `SearchAbout` | no | `total` · `priceRange` · `scope` · `siblings` | 1 |

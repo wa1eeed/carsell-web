@@ -1,6 +1,6 @@
 # The scheduler
 
-_Last updated: 2026-11-24_
+_Last updated: 2026-11-28_
 
 One entry point, one HTTP route. Until it was built, **every
 time-based rule in the product was dead code**: offers did not lapse, unpaid
@@ -30,7 +30,7 @@ The order is not alphabetical and not arbitrary. It is tested
 invisible in the code itself.
 
 <!-- generated:begin -->
-The registry holds **18** jobs, in this order.
+The registry holds **19** jobs, in this order.
 
 | # | Job | Why here |
 | --- | --- | --- |
@@ -40,18 +40,19 @@ The registry holds **18** jobs, in this order.
 | 4 | `closeEndedAuctions` | Creates the winner's order, settles deposits. |
 | 5 | `expireSellerDecisions` | A below-reserve decision that lapsed. |
 | 6 | `lapseServiceConsents` | **Silence is a refusal here, not a consent.** An inspection that proceeds without the owner's permission sends an inspector to the door of someone who never agreed and exposes their vehicle data. No money was taken, so nothing is refunded. |
-| 7 | `closePastViewings` | **A viewing whose day has passed does not stay «awaiting a reply».** Confirmed becomes `COMPLETED`, still-pending becomes `EXPIRED` — and the seller is measured on the difference between them. |
-| 8 | `remindPaymentDue` | **After the closers, never before.** Ahead of them it would remind someone about an order the next job cancels. |
-| 9 | `remindClosingAuctions` | Same reason. |
-| 10 | `remindExpiringOffers` | Same reason. |
-| 11 | `remindUpcomingViewings` | **The reminder comes before the moment it is needed.** An appointment agreed two weeks earlier is forgotten and one side arrives alone; there is no contract and no money between them, so nothing holds them to it but remembering. Both sides are reminded. |
-| 12 | `overdueTransfers` | Flags, does not move money. |
-| 13 | `overdueDisputes` | Flags an SLA breach. |
-| 14 | `releaseConfirmedOrders` | **A safety net, not a second path.** Release happens the moment transfer is confirmed; this catches what stalled — a gateway that did not answer, a container that died between the confirmation and the call. Without it a seller's money stays held with nothing saying the call never happened. |
-| 15 | `captureDoneServices` | **A second safety net — for services.** Capture happens the moment the provider completes; this catches what stalled. Without it an authorised hold lapses after seven days and the customer's card is released, while the service was delivered and a tax invoice issued in the platform's name. Reads the list with `capturableServices`, captures one reference at a time. |
-| 16 | `reconcileYesterday` | **Last.** It reads and writes no money, so its failure delays nothing. |
-| 17 | `sendDueCampaigns` | **After everything that moves money.** Marketing is the only job here that reaches users with no transaction behind it; a send that fails or sends twice costs reputation, never a riyal, so it waits for the ones that do. It is also the slowest per row — the segment is recomputed at send time, by design. |
-| 18 | `recomputePriceStats` | **Last, with the closers behind it.** It reads completed orders, so running it after the jobs that complete and cancel them means today's deals are in today's figures. It writes no money and touches no deadline, so its failure delays nothing. |
+| 7 | `autoAssignStaleRequests` | **A request nobody claims waits twice** — once to be picked up and once to be done. The claim door is a provider's right, so a window (`serviceClaimMinutes`, 30 by default) is left open for it; after that the engine assigns the best candidate. **Placed after consent lapsing**: a request whose permission expired is assigned to nobody. |
+| 8 | `closePastViewings` | **A viewing whose day has passed does not stay «awaiting a reply».** Confirmed becomes `COMPLETED`, still-pending becomes `EXPIRED` — and the seller is measured on the difference between them. |
+| 9 | `remindPaymentDue` | **After the closers, never before.** Ahead of them it would remind someone about an order the next job cancels. |
+| 10 | `remindClosingAuctions` | Same reason. |
+| 11 | `remindExpiringOffers` | Same reason. |
+| 12 | `remindUpcomingViewings` | **The reminder comes before the moment it is needed.** An appointment agreed two weeks earlier is forgotten and one side arrives alone; there is no contract and no money between them, so nothing holds them to it but remembering. Both sides are reminded. |
+| 13 | `overdueTransfers` | Flags, does not move money. |
+| 14 | `overdueDisputes` | Flags an SLA breach. |
+| 15 | `releaseConfirmedOrders` | **A safety net, not a second path.** Release happens the moment transfer is confirmed; this catches what stalled — a gateway that did not answer, a container that died between the confirmation and the call. Without it a seller's money stays held with nothing saying the call never happened. |
+| 16 | `captureDoneServices` | **A second safety net — for services.** Capture happens the moment the provider completes; this catches what stalled. Without it an authorised hold lapses after seven days and the customer's card is released, while the service was delivered and a tax invoice issued in the platform's name. Reads the list with `capturableServices`, captures one reference at a time. |
+| 17 | `reconcileYesterday` | **Last.** It reads and writes no money, so its failure delays nothing. |
+| 18 | `sendDueCampaigns` | **After everything that moves money.** Marketing is the only job here that reaches users with no transaction behind it; a send that fails or sends twice costs reputation, never a riyal, so it waits for the ones that do. It is also the slowest per row — the segment is recomputed at send time, by design. |
+| 19 | `recomputePriceStats` | **Last, with the closers behind it.** It reads completed orders, so running it after the jobs that complete and cancel them means today's deals are in today's figures. It writes no money and touches no deadline, so its failure delays nothing. |
 <!-- generated:end -->
 
 ## Reminders

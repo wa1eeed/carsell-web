@@ -19,6 +19,7 @@ import { formatNumber } from '@/lib/arabic';
 import { RequestService } from '@/components/site/RequestService';
 import { SERVICE_CATEGORY } from '@/lib/labels/services';
 import { db } from '@/lib/db';
+import { serviceTemplate } from '@/lib/domain/service-template';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,11 +74,13 @@ export default async function ServiceDetailPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [service, platform, viewer, t] = await Promise.all([
+  const [service, platform, viewer, t, template] = await Promise.all([
     serviceByKey(key),
     db.platformSetting.findUnique({ where: { id: 'default' }, select: { vatPct: true } }),
     currentUserFromCookies(),
     getTranslations('services'),
+    /** قالبُ الخدمة — و`null` لخدمةٍ بلا حقول، فتُطلب بسعرها الثابت. */
+    serviceTemplate(key),
   ]);
 
   // خدمةٌ غير موجودة أو عُطّلت ⇒ ٤٠٤ لا صفحةٌ فارغة
@@ -305,6 +308,11 @@ export default async function ServiceDetailPage({
                 cities={coverage}
                 total={formatNumber(Number(money.total), locale, { decimals: 2 })}
                 addVehicleHref={`/${locale}/sell`}
+                /**
+                 * حقولُ القالب التي يملؤها العميل — والمزوّدُ يملأ
+                 * حقولَه عند الإنهاء، فلا تُعرض هنا.
+                 */
+                fields={template?.fields.filter((item) => item.purpose === 'REQUEST') ?? []}
               />
               </section>
 

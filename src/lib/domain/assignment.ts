@@ -272,3 +272,42 @@ export async function coverageGaps(now: Date = new Date()): Promise<CoverageCell
 
   return cells;
 }
+
+/**
+ * ═══ الإسنادُ الآليّ بعد مهلة الالتقاط ═══
+ *
+ * **والطلبُ الذي لا يلتقطه أحد يُنتظر مرّتين**: مرّةً للالتقاط ومرّةً
+ * للتنفيذ. وبابُ الالتقاط حقٌّ لمزوّدٍ يراقب طابورَه — فتُترك له نافذةٌ
+ * (`serviceClaimMinutes`)، ثمّ يُسنِد المحرّكُ ما بقي.
+ *
+ * **والإسنادُ مفردٌ لكلّ طلب**: مدينةُ هذا غيرُ مدينة ذاك، فمزوّدٌ
+ * واحد للدفعة يردّ نصفَها. وفشلُ واحدٍ لا يوقف الباقين.
+ *
+ * **وما لا مرشّحَ له يُترك ولا يُحاوَل كلَّ دقيقة**: غيابُ المزوّد
+ * مشكلةُ تغطيةٍ تُقرأ من شاشة المزوّدين، لا طابورٌ يُعاد.
+ */
+export async function autoAssignStaleRequests(now: Date = new Date()): Promise<number> {
+  const { deadline } = await import('./deadlines');
+  const minutes = await deadline('serviceClaimMinutes');
+  const cutoff = new Date(now.getTime() - minutes * 60_000);
+
+  const stale = await db.serviceRequest.findMany({
+    where: { status: 'NEW', providerId: null, createdAt: { lte: cutoff } },
+    orderBy: { createdAt: 'asc' },
+    take: 100,
+    select: { ref: true },
+  });
+  if (stale.length === 0) return 0;
+
+  /** **والإسنادُ يمرّ بمدخله الوحيد** — فالتحقّقُ واحد و`AuditLog` يُكتب. */
+  const { autoAssignServiceRequests } = await import('./admin-services');
+  const { SYSTEM_ACTOR } = await import('./system-actor');
+  const result = await autoAssignServiceRequests(
+    SYSTEM_ACTOR,
+    stale.map((row) => row.ref),
+    null,
+    now,
+  );
+
+  return result.assigned.length;
+}

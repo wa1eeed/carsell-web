@@ -1,6 +1,12 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db';
-import { candidatesFor, coverageGaps, rankCandidates, type Candidate } from '@/lib/domain/assignment';
+import {
+  autoAssignStaleRequests,
+  candidatesFor,
+  coverageGaps,
+  rankCandidates,
+  type Candidate,
+} from '@/lib/domain/assignment';
 import { SLA_BREACHES_BEFORE_SUSPENSION } from '@/lib/domain/provider-rules';
 
 /**
@@ -176,5 +182,95 @@ describe('coverageGaps', () => {
       /** **والأهلُ جزءٌ من المغطّين** — ورقمٌ يتجاوزه يعني عدًّا مزدوجًا. */
       expect(cell.eligible).toBeLessThanOrEqual(cell.providers);
     }
+  });
+});
+
+/**
+ * ═══ ومهلةُ الالتقاط ثمّ الإسناد ═══
+ *
+ * بابُ الالتقاط حقٌّ لمزوّدٍ يراقب طابورَه، **وطلبٌ لا يلتقطه أحد
+ * يُنتظر مرّتين**. فنافذةٌ ثمّ إسناد.
+ */
+describe('autoAssignStaleRequests', () => {
+  const made: { requests: string[]; providers: string[] } = { requests: [], providers: [] };
+
+  afterAll(async () => {
+    if (made.requests.length > 0) {
+      await db.auditLog.deleteMany({
+        where: { entity: 'ServiceRequest', entityId: { in: made.requests } },
+      });
+      await db.serviceRequest.deleteMany({ where: { ref: { in: made.requests } } });
+    }
+    if (made.providers.length > 0) {
+      await db.serviceProvider.deleteMany({ where: { id: { in: made.providers } } });
+    }
+  });
+
+  it('يترك الطازج ويسند ما تجاوز النافذة', async () => {
+    const service = await db.service.findFirstOrThrow({
+      where: { providerType: { not: null } },
+      select: { id: true, providerType: true },
+    });
+    const user = await db.user.findFirstOrThrow({ select: { id: true } });
+
+    /** مزوّدٌ نظيفُ السجلّ يغطّي كلَّ المدن — فالأهليّةُ ليست المقيس هنا. */
+    const provider = await db.serviceProvider.create({
+      data: {
+        nameAr: 'مزود مهلة الالتقاط',
+        nameEn: 'claim-window-probe',
+        type: service.providerType ?? 'OTHER',
+        cities: [],
+        active: true,
+      },
+      select: { id: true },
+    });
+    made.providers.push(provider.id);
+
+    const { deadline } = await import('@/lib/domain/deadlines');
+    const minutes = await deadline('serviceClaimMinutes');
+    const now = new Date();
+
+    const stamp = String(Date.now()).slice(-7);
+    const fresh = await db.serviceRequest.create({
+      data: {
+        ref: `SRQ-FRESH-${stamp}`,
+        serviceId: service.id,
+        userId: user.id,
+        status: 'NEW',
+        amount: 100,
+        createdAt: now,
+      },
+      select: { ref: true },
+    });
+    const stale = await db.serviceRequest.create({
+      data: {
+        ref: `SRQ-STALE-${stamp}`,
+        serviceId: service.id,
+        userId: user.id,
+        status: 'NEW',
+        amount: 100,
+        /** دقيقةٌ بعد النافذة — فالحدُّ يُختبَر بتجاوزه لا بعيدًا عنه. */
+        createdAt: new Date(now.getTime() - (minutes + 1) * 60_000),
+      },
+      select: { ref: true },
+    });
+    made.requests.push(fresh.ref, stale.ref);
+
+    await autoAssignStaleRequests(now);
+
+    const after = await db.serviceRequest.findMany({
+      where: { ref: { in: [fresh.ref, stale.ref] } },
+      select: { ref: true, status: true, providerId: true },
+    });
+
+    const staleRow = after.find((row) => row.ref === stale.ref);
+    const freshRow = after.find((row) => row.ref === fresh.ref);
+
+    /** **والمتجاوزُ يُسنَد** — ولا يبقى ينتظر حتى تنقضي مهلتُه. */
+    expect(staleRow?.status).toBe('ASSIGNED');
+    expect(staleRow?.providerId).not.toBeNull();
+    /** **والطازجُ يُترك** — فالنافذةُ حقُّ المزوّد في الالتقاط. */
+    expect(freshRow?.status).toBe('NEW');
+    expect(freshRow?.providerId).toBeNull();
   });
 });

@@ -95,12 +95,28 @@ under the information card.
 So a new provider type is a row in the completion schema, not a new screen. Two
 twin screens drift at the first edit to one of them.
 
-## 5 · What is still open
+## 5 · The claim window, then the engine
 
-- **Auto-assign is operator-triggered, not automatic on arrival.** The button
-  assigns the selected requests; nothing yet assigns a request the moment it is
-  created. Whether a request should be pushed immediately, or left for providers
-  to claim for a grace period first, is a product decision and not ours to make.
+Decided and built 2026-11-28, after the owner asked for it to be completed.
+
+Assigning the moment payment lands would delete the claim door entirely — and
+that door is a provider's right: whoever watches their queue earns the work.
+Assigning never would leave a paid customer waiting on nobody. So there is a
+**window**: `serviceClaimMinutes`, default **30**, set from the deadlines screen
+with the others, floor 5 minutes (below that there is no door) and ceiling one
+day (longer than that is a coverage problem, not a waiting problem).
+
+A request paid at 10:00 is visible to every eligible provider immediately. If
+nobody has taken it by 10:30, the scheduler's `autoAssignStaleRequests` hands it
+to the best candidate by the same ranking. Its audit row says `system`, not an
+operator's name: whoever reads the log must not ask a person about something
+they did not do.
+
+The job runs **after** consent lapsing, so a request whose permission expired is
+never assigned to anyone.
+
+## 6 · What is still open
+
 - **No capacity per provider** — only a count of what it currently holds. A
   provider that can take three a day and one that can take thirty rank the same
   at equal load.

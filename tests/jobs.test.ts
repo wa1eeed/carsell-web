@@ -23,6 +23,8 @@ describe('الوظائف الزمنية تعمل فعلًا', () => {
       'closeEndedAuctions',
       'expireSellerDecisions',
       'lapseServiceConsents',
+      /** **والإسنادُ بعد سقوط الإذن** — فطلبٌ انقضى إذنُه لا يُسنَد. */
+      'autoAssignStaleRequests',
       /**
        * **وموعدُ معاينةٍ مضى لا يبقى «ينتظر ردًّا»** — يقول للمشتري
        * إنّ بائعًا قد يردّ وقد فات اليوم. والمؤكَّدُ يصير `COMPLETED`

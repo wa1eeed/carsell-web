@@ -15,6 +15,7 @@ import { settleOnTransferConfirmed } from '@/lib/domain/payments';
 import { reconcileYesterday } from '@/lib/domain/reconciliation';
 import { sendDueCampaigns } from '@/lib/domain/admin-campaigns';
 import { recomputePriceStats } from '@/lib/domain/price-stats';
+import { autoAssignStaleRequests } from '@/lib/domain/assignment';
 
 /**
  * ═══ الوظائف الزمنية — والمهلة التي لا تُنفَّذ ليست مهلة ═══
@@ -67,6 +68,17 @@ const JOBS: readonly Job[] = [
    * أُخذ، فلا شيء يُردّ.
    */
   { name: 'lapseServiceConsents', run: (now) => lapseServiceConsents(now) },
+  /**
+   * ═══ وطلبٌ لا يلتقطه أحد يُسنَد ═══
+   *
+   * **والانتظارُ مرّتان**: مرّةً للالتقاط ومرّةً للتنفيذ. وبابُ
+   * الالتقاط حقٌّ لمزوّدٍ يراقب طابورَه، فتُترك له نافذةُ
+   * `serviceClaimMinutes` ثمّ يُسنِد المحرّكُ ما بقي إلى أفضل مرشّح
+   * (الأقلُّ تجاوزًا ← الأقلُّ حِملًا ← الأقدمُ إسنادًا).
+   *
+   * **وموضعُه بعد سقوط الإذن**: طلبٌ انقضى إذنُه لا يُسنَد إلى أحد.
+   */
+  { name: 'autoAssignStaleRequests', run: (now) => autoAssignStaleRequests(now) },
   /**
    * **وموعدُ معاينةٍ مضى لا يبقى «ينتظر ردًّا»**: يقول للمشتري إنّ
    * بائعًا قد يردّ وقد فات اليوم. والمؤكَّدُ يصير `COMPLETED`

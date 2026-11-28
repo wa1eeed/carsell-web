@@ -8,6 +8,7 @@ import type {
   ServiceRequestStatus,
 } from '@/generated/prisma/enums';
 import { candidatesFor } from './assignment';
+import { SYSTEM_ACTOR } from './system-actor';
 
 /**
  * الخدمات في اللوحة — A6 وA7.
@@ -1011,7 +1012,7 @@ export type AssignResult =
   | { ok: false; ref: string; reason: AssignFailure };
 
 export async function assignServiceRequest(
-  admin: AdminUser,
+  admin: Pick<AdminUser, 'id'>,
   ref: string,
   providerId: string,
   ip: string | null,
@@ -1059,7 +1060,13 @@ export async function assignServiceRequest(
 
   await db.auditLog.create({
     data: {
-      actorId: admin.id, actorType: 'admin', entity: 'ServiceRequest', entityId: request.ref,
+      actorId: admin.id,
+      /**
+       * **والفاعلُ يُقال كما هو**: إسنادُ المُجدوِل ليس فعلَ مشغّل،
+       * ونسبتُه إلى آدميٍّ تجعل من يقرأ السجلّ يسأله عمّا لم يفعله.
+       */
+      actorType: admin.id === SYSTEM_ACTOR.id ? 'system' : 'admin',
+      entity: 'ServiceRequest', entityId: request.ref,
       action: 'service_request.assign',
       after: { providerId, providerName: provider.nameAr },
       ip, createdAt: now,
@@ -1085,7 +1092,7 @@ export async function assignServiceRequest(
  * — لا «أُسنِد ٧ من ١٠» بلا اسم.
  */
 export async function bulkAssignServiceRequests(
-  admin: AdminUser,
+  admin: Pick<AdminUser, 'id'>,
   refs: readonly string[],
   providerId: string,
   ip: string | null,
@@ -1117,7 +1124,7 @@ export async function bulkAssignServiceRequests(
  * أيُفعّل مزوّدًا أم يوسّع تغطيةً أم ينتظر انقضاء إيقاف.
  */
 export async function autoAssignServiceRequests(
-  admin: AdminUser,
+  admin: Pick<AdminUser, 'id'>,
   refs: readonly string[],
   ip: string | null,
   now: Date = new Date(),

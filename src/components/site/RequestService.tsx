@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { SERVICE_SHORT } from '@/lib/labels/services';
+import { formatNumber } from '@/lib/arabic';
 import { Toast } from '@/components/ui/Toast';
+import type { TemplateField } from '@/lib/domain/service-template';
 
 /**
  * ═══ طلبُ خدمة — وكان لا مدخل له ═══
@@ -28,6 +30,7 @@ export function RequestService({
   cities,
   total,
   addVehicleHref,
+  fields = [],
 }: {
   serviceKey: string;
   vehicles: readonly { id: string; title: string }[];
@@ -43,6 +46,13 @@ export function RequestService({
   /** الإجماليّ شامل الضريبة — نصًّا كما تعرضه البطاقة فوقها. */
   total: string;
   addVehicleHref: string;
+  /**
+   * حقولُ القالب التي يملؤها العميل — و`[]` لخدمةٍ بلا قالب.
+   *
+   * **وما يُسعِّر منها يرفع المبلغ قبل الدفع** (قرار المالك)، والحسابُ
+   * في الخادم: الشاشةُ تسأل `/quote` ولا تجمع بنفسها.
+   */
+  fields?: readonly TemplateField[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -74,6 +84,59 @@ export function RequestService({
   const [when, setWhen] = useState('');
   const [toast, setToast] = useState<string | null>(null);
 
+  /**
+   * ═══ إجاباتُ القالب — ومختومةٌ بقائمة حقوله ═══
+   *
+   * نسخةٌ تُؤخذ مرّةً تتقادم حين تتبدّل الخدمة في المسار نفسِه
+   * (`/services/[key]`): فمن فتح خدمةً ثمّ أخرى يرسل إجاباتِ الأولى.
+   * وهي القاعدةُ المكتوبة في هذا الملفّ نفسِه عن المركبة.
+   */
+  const fieldKey = fields.map((item) => item.key).join('|');
+  const [answerState, setAnswerState] = useState<{ key: string; values: Record<string, string> }>({
+    key: fieldKey,
+    values: {},
+  });
+  const answers = answerState.key === fieldKey ? answerState.values : {};
+  const setAnswer = (key: string, value: string): void =>
+    setAnswerState({ key: fieldKey, values: { ...answers, [key]: value } });
+
+  /**
+   * ═══ والسعرُ من الخادم لا من جمعٍ هنا ═══
+   *
+   * قرارُ المالك أنّ حقولَ السعر تحسبه قبل الدفع، **والحسابُ في
+   * الخادم**: نسخةٌ هنا للعرض تتباعد أوّلَ تعديل، فتقول الشاشةُ رقمًا
+   * ويُحصّل الخادمُ آخر. فيُسأل `/quote` عند كلّ تغيير.
+   */
+  const [quote, setQuote] = useState<{ total: string; extra: string } | null>(null);
+  const [missing, setMissing] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (fields.length === 0) return;
+    const timer = setTimeout(() => {
+      void fetch(`/api/v1/services/${serviceKey}/quote`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ answers }),
+      })
+        .then(async (response) => {
+          const body = (await response.json().catch(() => null)) as
+            | { data?: { ready?: boolean; total?: string; extra?: string; fields?: Record<string, string> } }
+            | null;
+          if (body?.data?.ready === true && typeof body.data.total === 'string') {
+            setQuote({ total: body.data.total, extra: body.data.extra ?? '0.00' });
+            setMissing({});
+            return;
+          }
+          /** **والناقصُ يُعرض تحت حقله** — لا «أكمل البيانات» فوق الاستمارة. */
+          setQuote(null);
+          setMissing(body?.data?.fields ?? {});
+        })
+        .catch(() => undefined);
+    }, 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serviceKey, fields.length, JSON.stringify(answers)]);
+
   if (vehicles.length === 0) {
     return (
       <>
@@ -103,6 +166,7 @@ export function RequestService({
           scheduledAt: when === '' ? null : new Date(when).toISOString(),
           method: 'mada',
           returnUrl: window.location.href,
+          ...(fields.length === 0 ? {} : { answers }),
         }),
       }).catch(() => null);
 
@@ -143,6 +207,78 @@ export function RequestService({
             ))}
           </select>
         </label>
+
+        {/*
+          ═══ حقولُ قالب الخدمة — ما تسأل عنه هذه الخدمة بعينها ═══
+
+          خدمةُ شحنٍ تسأل المسافة، وتأمينٌ يسأل التغطية — **وما يحمل
+          زيادةً يرفع المبلغ قبل الدفع**، والمبلغُ على الزرّ يتبعه.
+        */}
+        {fields.map((item) => (
+          <label key={item.key} className="flex flex-col gap-1.5">
+            <span className="text-3xs font-bold opacity-70">
+              {item.labelAr}
+              {item.required ? ' *' : ''}
+            </span>
+
+            {item.kind === 'SELECT' ? (
+              <select
+                value={answers[item.key] ?? ''}
+                onChange={(event) => setAnswer(item.key, event.target.value)}
+                className="rounded-md border border-line bg-bg px-3 py-2 text-sm"
+              >
+                <option value="">اختر</option>
+                {item.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.labelAr}
+                  </option>
+                ))}
+              </select>
+            ) : item.kind === 'CHECKBOX' ? (
+              <span className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={answers[item.key] === 'true'}
+                  onChange={(event) => setAnswer(item.key, event.target.checked ? 'true' : '')}
+                />
+                نعم
+              </span>
+            ) : item.kind === 'NOTE' ? (
+              <textarea
+                rows={3}
+                value={answers[item.key] ?? ''}
+                onChange={(event) => setAnswer(item.key, event.target.value)}
+                className="rounded-md border border-line bg-bg px-3 py-2 text-sm"
+              />
+            ) : (
+              <input
+                /** **واللاتينيُّ والرقمُ يُعزلان** — يُقارنان خانةً بخانة. */
+                dir={item.kind === 'TEXT' ? 'auto' : 'ltr'}
+                type={item.kind === 'DATE' ? 'date' : 'text'}
+                inputMode={
+                  item.kind === 'NUMBER' || item.kind === 'MONEY' ? 'decimal' : undefined
+                }
+                value={answers[item.key] ?? ''}
+                onChange={(event) => setAnswer(item.key, event.target.value)}
+                className="w-full rounded-md border border-line bg-bg px-3 py-2 text-start text-sm"
+              />
+            )}
+
+            {missing[item.key] === undefined ? (
+              item.hintAr === null ? null : (
+                <span className="text-3xs leading-loose opacity-65">{item.hintAr}</span>
+              )
+            ) : (
+              <span className="text-3xs leading-loose text-danger">
+                {missing[item.key] === 'REQUIRED'
+                  ? 'هذا الحقل مطلوب لإتمام الطلب.'
+                  : missing[item.key] === 'NOT_A_NUMBER'
+                    ? 'اكتب رقما.'
+                    : 'اختر من القائمة.'}
+              </span>
+            )}
+          </label>
+        ))}
 
         {/*
           ═══ والموقع والموعد قسمٌ واحد — كما في التصميم ═══
@@ -213,7 +349,15 @@ export function RequestService({
         <span className="flex flex-col items-center gap-0.5 leading-tight">
           {/* والاسمُ القصير — لا اسمُ التسويق داخل فعلٍ يُضغط عليه مال */}
           <span>{pending ? 'جاري…' : `ادفع واطلب ${SERVICE_SHORT[serviceKey] ?? serviceName}`}</span>
-          {pending ? null : <span className="font-num text-3xs opacity-75">{total} ر.س</span>}
+          {/*
+            **والمبلغُ يتبع الإجابات**: من اختار خيارًا يزيد يرى الزيادة
+            على الزرّ قبل أن يضغطه — لا بعد أن يُخصم.
+          */}
+          {pending ? null : (
+            <span className="font-num text-3xs opacity-75">
+              {quote === null ? total : formatNumber(Number(quote.total), 'ar', { decimals: 2 })} ر.س
+            </span>
+          )}
         </span>
       </Button>
 

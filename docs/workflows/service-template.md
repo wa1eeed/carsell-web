@@ -66,12 +66,25 @@ person setting it, before it is saved and not after.
 Every change bumps the version, and the card says so, in the same words the
 inspection template uses.
 
-## 5 · Not yet
+## 5 · The customer's form (built 2026-11-28)
 
-- **The customer-facing form does not render these fields yet.** The API accepts
-  `answers` and prices them; the ordering screen still posts none, so every
-  service is still ordered at its base price until that screen is built. Said
-  plainly here rather than left to be discovered.
+`/ar/services/{key}` renders the `REQUEST` fields — select, checkbox, number,
+date, text, note — each with its hint, and a missing one is marked **under its
+own field** rather than as one line above the form.
+
+**The price on the button follows the answers**, and it comes from
+`POST /api/v1/services/{key}/quote`, not from arithmetic in the page: a number
+computed in the browser arrives from the user's hand, and a second copy of the
+rule drifts from the first. The same `quoteFor` serves the preview and the
+order.
+
+And the endpoint returns **what will actually be charged** — service price plus
+our fee plus VAT — because the button showed `1,035.00` before any answer and
+`1,500.00` after one, two numbers for one payment on one screen. Measured by
+clicking; the recorded rule caught it.
+
+## 6 · Not yet
+
 - **`completion-schema.ts` still drives the provider's finish form.** The
   template can already hold `ACTION` fields; migrating the six hard-coded lists
   into seeded templates — without losing what existing requests recorded — is
